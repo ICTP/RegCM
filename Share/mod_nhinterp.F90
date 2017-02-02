@@ -335,14 +335,14 @@ module mod_nhinterp
     ! Compute the nonhydrostatic initial vertical velocity (w) from the
     ! horizontal wind fields (u and v).
     !
-    subroutine nhw(i1,i2,j1,j2,kxs,sigmah,sigma,dsigma,xlat,ter,u,v,tv, &
-                   ps,psdot,ps0,xmsfx,xmsfd,w,wtop,ds,iband)
+    subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,xlat,ter,u,v,tv, &
+                   ps,psdot,ps0,xmsfx,w,wtop,ds,iband)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigmah , sigma , dsigma
+      real(rkx) , pointer , intent(in) , dimension(:) :: sigma , dsigma
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ter  ! Meters
       real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xmsfx , xmsfd
+      real(rkx) , pointer , intent(in) , dimension(:,:) :: xmsfx
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: u , v
@@ -351,7 +351,7 @@ module mod_nhinterp
       real(rkx) , pointer , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
       integer(ik4) :: l , ll , lm , lp , ip , im , jp , jm
-      real(rkx) :: alnpq , dx2 , omegal , omegau , ubar , vbar , wu , wl
+      real(rkx) :: dx2 , omegal , omegau , ubar , vbar , wu , wl
       real(rkx) :: zl , zu , rho , omegan , pr , t
       real(rkx) :: ua , ub , va , vb
       real(rkx) , dimension(kxs) :: mdv
