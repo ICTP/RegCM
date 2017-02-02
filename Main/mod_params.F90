@@ -1783,11 +1783,11 @@ module mod_params
       hsigma(k) = (sigma(k+1) + sigma(k))*d_half
     end do
 
-    call exchange(mddom%ht,2,jde1,jde2,ide1,ide2)
+    call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
-    call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
-    call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
+    call exchange(mddom%msfx,1,jde1,jde2,ide1,ide2)
+    call exchange(mddom%msfd,1,jde1,jde2,ide1,ide2)
 
     call init_advection
     if ( isladvec == 1 ) then

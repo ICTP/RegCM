@@ -1779,7 +1779,7 @@ module mod_tendency
       !
       if ( idynamic == 1 ) then
         call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-        call exchange(sfs%psb,2,jce1,jce2,ice1,ice2)
+        call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
         do i = ice1ga , ice2ga
           do j = jce1ga , jce2ga
             rpsa(j,i) = d_one/sfs%psa(j,i)
@@ -1793,7 +1793,7 @@ module mod_tendency
         call psc2psd(sfs%psa,sfs%psdota)
         call psc2psd(sfs%psb,sfs%psdotb)
         call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-        call exchange(sfs%psdotb,2,jde1,jde2,ide1,ide2)
+        call exchange(sfs%psdotb,1,jde1,jde2,ide1,ide2)
       else
         ! Non-hydrostatic pstar pressure is constant == ps0
         if ( .not. linit ) then
@@ -2088,16 +2088,16 @@ module mod_tendency
       !
       ! Second timelevel exchange
       !
-      call exchange(atm2%u,2,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%v,2,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%t,2,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
       if ( isladvec == 1 ) then
         call exchange(atm2%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       else
-        call exchange(atm2%qx,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        call exchange(atm2%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       end if
       if ( ibltyp == 2 ) then
-        call exchange(atm2%tke,2,jce1,jce2,ice1,ice2,1,kzp1)
+        call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
       end if
 
       if ( idynamic == 1 ) then
@@ -2109,8 +2109,8 @@ module mod_tendency
           end do
         end do
       else
-        call exchange(atm2%pp,2,jce1,jce2,ice1,ice2,1,kz)
-        call exchange(atm2%w,2,jce1,jce2,ice1,ice2,1,kzp1)
+        call exchange(atm2%pp,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kzp1)
         !
         ! Constant reference state and perturbations are defined
         ! for the nonhydrostatic model.
@@ -2125,11 +2125,11 @@ module mod_tendency
       end if
 
       if ( ichem == 1 ) then
-        call exchange(chi,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call exchange(chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         if ( isladvec == 1 ) then
           call exchange(chib,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         else
-          call exchange(chib,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
       end if
 

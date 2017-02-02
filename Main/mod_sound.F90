@@ -110,7 +110,7 @@ module mod_sound
       call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
     end if
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
-    call getmem2d(rpsb,jce1gb,jce2gb,ice1gb,ice2gb,'sound:rpsb')
+    call getmem2d(rpsb,jce1,jce2,ice1,ice2,'sound:rpsb')
     call getmem3d(ucrs,jci1,jci2,ici1,ici2,1,kz,'sound:ucrs')
     call getmem3d(vcrs,jci1,jci2,ici1,ici2,1,kz,'sound:vcrs')
   end subroutine allocate_mod_sound
@@ -216,8 +216,8 @@ module mod_sound
     !  xxb stores filtered old xxa without xxc term
     !  no asselin filter on boundary
     !
-    do i = ice1gb , ice2gb
-      do j = jce1gb , jce2gb
+    do i = ice1 , ice2
+      do j = jce1 , jce2
         rpsb(j,i) = d_one/sfs%psb(j,i)
       end do
     end do

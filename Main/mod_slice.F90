@@ -46,23 +46,23 @@ module mod_slice
     implicit none
     real(rkx) :: cell
     integer(ik4) :: i , j , k , n
-    real(rkx) , dimension(jce1gb:jce2gb,ice1gb:ice2gb) :: rpsb
-    real(rkx) , dimension(jde1gb:jde2gb,ide1gb:ide2gb) :: rpsdotb
+    real(rkx) , dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: rpsb
+    real(rkx) , dimension(jde1ga:jde2ga,ide1ga:ide2ga) :: rpsdotb
 
-    do i = ice1gb , ice2gb
-      do j = jce1gb , jce2gb
+    do i = ice1ga , ice2ga
+      do j = jce1ga , jce2ga
         rpsb(j,i) = d_one/sfs%psb(j,i)
       end do
     end do
-    do i = ide1gb , ide2gb
-      do j = jde1gb , jde2gb
+    do i = ide1ga , ide2ga
+      do j = jde1ga , jde2ga
         rpsdotb(j,i) = d_one/sfs%psdotb(j,i)
       end do
     end do
 
     do k = 1 , kz
-      do i = ide1gb , ide2gb
-        do j = jde1gb , jde2gb
+      do i = ide1ga , ide2ga
+        do j = jde1ga , jde2ga
           atms%ubd3d(j,i,k) = atm2%u(j,i,k)*rpsdotb(j,i)
           atms%vbd3d(j,i,k) = atm2%v(j,i,k)*rpsdotb(j,i)
         end do
@@ -81,8 +81,8 @@ module mod_slice
       end do
     end do
     do k = 1 , kz
-      do i = ice1gb , ice2gb
-        do j = jce1gb , jce2gb
+      do i = ice1ga , ice2ga
+        do j = jce1ga , jce2ga
           atms%tb3d(j,i,k) = atm2%t(j,i,k)*rpsb(j,i)
           atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv)*rpsb(j,i),minqq)
         end do
@@ -90,8 +90,8 @@ module mod_slice
     end do
     do n = iqfrst , iqlst
       do k = 1 , kz
-        do i = ice1gb , ice2gb
-          do j = jce1gb , jce2gb
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
             atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
           end do
         end do
@@ -100,8 +100,8 @@ module mod_slice
     if ( ichem == 1 ) then
       do n = 1 , ntr
         do k = 1 , kz
-          do i = ice1gb , ice2gb
-            do j = jce1gb , jce2gb
+          do i = ice1ga , ice2ga
+            do j = jce1ga , jce2ga
               if ( chib(j,i,k,n) > mintr ) then
                 atms%chib3d(j,i,k,n) = chib(j,i,k,n)*rpsb(j,i)
               else
@@ -115,8 +115,8 @@ module mod_slice
 
     if ( idynamic == 2 ) then
       do k = 1 , kz
-        do i = ice1gb , ice2gb
-          do j = jce1gb , jce2gb
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
             atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
           end do
         end do
@@ -184,8 +184,8 @@ module mod_slice
         end do
       end do
       do k = 1 , kzp1
-        do i = ice1gb , ice2gb
-          do j = jce1gb , jce2gb
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
             atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
           end do
         end do
