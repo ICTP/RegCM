@@ -712,13 +712,11 @@ module mod_pbl_uwtcm
           ! the tracer value implied for the next timestep
           do itr = 1 , ntr
             ! set the right side
-            do k = 2 , kz
+            do k = 1 , kz
               rimp1(k) = chix(k,itr)
             end do
             ! at surface include surface momentum fluxes
             rimp1(kz) = rimp1(kz) + dt*chifxx(itr)*rrhoxhl(kz)*rdzq(kz)
-            ! no flux out top, so no (k == 1)
-            rimp1(1) = d_zero
             !Run the tridiagonal solver
             rimp1(:) = rimp1(:) * d_1000
             call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
