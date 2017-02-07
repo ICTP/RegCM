@@ -81,6 +81,17 @@ if eval "test x"$SP_REAL" = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+USE_KNL="0"
+AC_ARG_ENABLE(knl,
+  AC_HELP_STRING([--enable-knl],
+                 [Compile with knl flags.]),
+                 [USE_KNL="1"]
+)
+if eval "test x"$USE_KNL" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)KNL $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 AC_ARG_ENABLE(selectedrealkind,
   AC_HELP_STRING([--enable-selectedrealkind],
                  [define single precision and double precision numbers using the selected_real_kind function. Default uses the kind inquiry function.]),
@@ -338,6 +349,10 @@ if test -z "$COMPILER_INTEL_TRUE"; then
   AC_SUBST(FCFLAGS)
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
   AC_SUBST(LIBS)
+  if eval "test x"$USE_KNL" = x1"; then
+    FCFLAGS="$FCFLAGS -axMIC-AVX512"
+    AC_SUBST(FCFLAGS)
+  fi
 fi
 if test -z "$COMPILER_G95_TRUE"; then
   FCFLAGS="-fendian=big -fmultiple-save"
