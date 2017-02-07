@@ -35,14 +35,13 @@ module mod_tendency
   use mod_lm_interface
   use mod_rad_interface
   use mod_pbl_interface
+  use mod_micro_interface
   use mod_bdycod
-  use mod_precip
   use mod_slice
   use mod_sun
   use mod_advection
   use mod_diffusion
   use mod_domain
-  use mod_cloud_s1
   use mod_sladvection
   use mod_slabocean
   use mod_sound
@@ -737,11 +736,7 @@ module mod_tendency
       ! Clouds and large scale precipitation
       !
       call cldfrac
-      if ( ipptls == 2 ) then
-        call microphys
-      else
-        call pcp
-      end if
+      call microscheme
       !
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.

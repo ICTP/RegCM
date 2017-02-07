@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cloud_s1
+module mod_micro_nogtom
   use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
@@ -91,26 +91,9 @@ module mod_cloud_s1
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
   real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
 
-  public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
+  public :: allocate_mod_nogtom , init_nogtom , nogtom
 
   real(rkx) :: oneodt                                 ! 1/dt
-  real(rkx) , pointer , dimension(:,:) :: psb         ! sfc
-  real(rkx) , pointer , dimension(:,:) :: rainnc      ! sfc
-  real(rkx) , pointer , dimension(:,:) :: lsmrnc      ! sfc
-  real(rkx) , pointer , dimension(:,:) :: snownc      ! sfc
-  real(rkx) , pointer , dimension(:,:,:) :: pfcc      ! from atm
-  real(rkx) , pointer , dimension(:,:,:) :: phs       ! from atms
-  real(rkx) , pointer , dimension(:,:,:) :: pfs       ! from atms
-  real(rkx) , pointer , dimension(:,:,:) :: t         ! from atms
-  real(rkx) , pointer , dimension(:,:,:) :: rho       ! from atms
-  real(rkx) , pointer , dimension(:,:,:) :: pverv     ! from atms
-  real(rkx) , pointer , dimension(:,:,:) :: verv      ! from atms
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxx     ! from atms
-  real(rkx) , pointer , dimension(:,:,:) :: radheatrt ! radiation heat rate
-  real(rkx) , pointer , dimension(:,:,:) :: tten      ! tendency of temperature
-  real(rkx) , pointer , dimension(:,:,:) :: qdetr     ! conv. detr. water
-  real(rkx) , pointer , dimension(:,:,:) :: rainls    ! Rain from here
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxten   ! tendency of qx
 
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
@@ -133,7 +116,6 @@ module mod_cloud_s1
   ! Mass variables
   ! Microphysics
   real(rkx) , pointer , dimension(:,:,:) :: dqsatdt
-  real(rkx) , pointer , dimension(:,:,:) :: pccn
   ! for sedimentation source/sink terms
   real(rkx) , pointer , dimension(:) :: fallsink
   real(rkx) , pointer , dimension(:) :: fallsrce
@@ -189,19 +171,17 @@ module mod_cloud_s1
   real(rkx) , pointer , dimension(:,:,:,:) :: qxtendc
   ! j,i,n ! generalized precipitation flux
   real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx
-  real(rkx) , public  , pointer, dimension(:,:,:,:) :: qx
+  real(rkx) , pointer, dimension(:,:,:,:) :: qx
   ! Initial values
-  real(rkx) , public  , pointer, dimension(:) :: qx0
+  real(rkx) , pointer, dimension(:) :: qx0
   ! new values for qxx at time+1
-  real(rkx) , public  , pointer, dimension(:) :: qxn
+  real(rkx) , pointer, dimension(:) :: qxn
   ! first guess values including precip
-  real(rkx) , public  , pointer, dimension(:) :: qxfg
+  real(rkx) , pointer, dimension(:) :: qxfg
   ! first guess value for cloud fraction
-  real(rkx) , public  , pointer, dimension(:,:,:) :: fccfg
-  ! relative humidity
-  real(rkx) , public  , pointer, dimension(:,:,:) :: relh
+  real(rkx) , pointer, dimension(:,:,:) :: fccfg
   ! saturation mixing ratio with respect to water
-  real(rkx) , public  , pointer, dimension(:,:,:) :: qsliq
+  real(rkx) , pointer, dimension(:,:,:) :: qsliq
   ! koop
   ! se T < 0 la nuvola si forma o quando q e' maggiore della liquid
   ! water saturation minima, oppure se e' maggiore del mixing ratio
@@ -222,32 +202,10 @@ module mod_cloud_s1
   ! a source for cloud ice.
   ! koop modifies the ice saturation mixing ratio for homogeneous
   ! nucleation
-  real(rkx) , public  , pointer, dimension(:,:,:) :: koop
+  real(rkx) , pointer, dimension(:,:,:) :: koop
   ! Delta pressure
-  real(rkx) , public  , pointer, dimension(:,:,:) :: dpfs
+  real(rkx) , pointer, dimension(:,:,:) :: dpfs
 
-#ifdef DEBUG
-  ! statistic only if stat =.true.
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statssupw
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statssupc
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statserosw
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statserosc
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsdetrw
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsdetrc
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsevapw
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsevapc
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statscond1w
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statscond1c
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statscond2w
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statscond2c
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsdepos
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsmelt
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsfrz
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsrainev
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statssnowev
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsautocvw
-  real(rkx) , public  , pointer, dimension(:,:,:) :: statsautocvc
-#endif
   integer(ik4) , pointer , dimension(:) :: indx
   real(rkx) , pointer , dimension(:) :: vv
 
@@ -264,10 +222,8 @@ module mod_cloud_s1
 
   contains
 
-  subroutine allocate_mod_cloud_s1
+  subroutine allocate_mod_nogtom
     implicit none
-    if ( ipptls /= 2 ) return
-
     call getmem1d(vqx,1,nqx,'cmicro:vqx')
     call getmem1d(indx,1,nqx,'cmicro:indx')
     call getmem1d(vv,1,nqx,'cmicro:vv')
@@ -327,58 +283,13 @@ module mod_cloud_s1
       call getmem4d(tenkeep,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:tenkeep')
       call getmem3d(tentkeep,jci1,jci2,ici1,ici2,1,kz,'cmicro:tentkeep')
     end if
-#ifdef DEBUG
-    if ( stats ) then
-      call getmem3d(statssupw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statssupw')
-      call getmem3d(statssupc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statssupc')
-      call getmem3d(statsdetrw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsdetrw')
-      call getmem3d(statsdetrc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsdetrc')
-      call getmem3d(statserosw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statserosw')
-      call getmem3d(statserosc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statserosc')
-      call getmem3d(statsevapw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsevapw')
-      call getmem3d(statsevapc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsevapc')
-      call getmem3d(statscond1w,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond1w')
-      call getmem3d(statscond1c,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond1c')
-      call getmem3d(statscond2w,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond2w')
-      call getmem3d(statscond2c,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond2c')
-      call getmem3d(statsdepos,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsdepos')
-      call getmem3d(statsmelt,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsmelt')
-      call getmem3d(statsfrz,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsfrz')
-      call getmem3d(statsrainev,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsrainev')
-      call getmem3d(statssnowev,jci1,jci2,ici1,ici2,1,kz,'cmicro:statssnowev')
-      call getmem3d(statsautocvw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsautocvw')
-      call getmem3d(statsautocvc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsautocvc')
-    end if
-#endif
-  end subroutine allocate_mod_cloud_s1
+  end subroutine allocate_mod_nogtom
 
-  subroutine init_cloud_s1
-    use mod_atm_interface
+  subroutine init_nogtom(ldmsk)
     use mod_runparams , only : vfqr , vfqi , vfqs
     implicit none
+    integer , pointer , dimension(:,:) , intent(in) :: ldmsk
     integer(ik4) :: i , j , n
-    call assignpnt(atms%pb3d,phs)
-    call assignpnt(atms%pf3d,pfs)
-    call assignpnt(atms%tb3d,t)
-    call assignpnt(atms%wpx3d,pverv)
-    call assignpnt(atms%wb3d,verv)
-    call assignpnt(atms%qxb3d,qxx)
-    call assignpnt(atms%rhob3d,rho)
-    call assignpnt(atms%rhb3d,relh)
-    call assignpnt(aten%qx,qxten)
-    call assignpnt(aten%t,tten)
-    call assignpnt(sfs%psb,psb)
-    call assignpnt(sfs%rainnc,rainnc)
-    call assignpnt(sfs%snownc,snownc)
-    call assignpnt(fcc,pfcc)
-    call assignpnt(pptnc,lsmrnc)
-    call assignpnt(heatrt,radheatrt)
-    call assignpnt(q_detr,qdetr)
-    call assignpnt(rain_ls,rainls)
-    if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-      call assignpnt(ccn,pccn)
-    end if
-
     ! Define species phase, 0 = vapour, 1 = liquid, 2 = ice
     iphase(iqqv) = 0
     iphase(iqql) = 1
@@ -416,17 +327,20 @@ module mod_cloud_s1
     ! sea  (clean, low ccn, larger droplets, lower threshold)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( mddom%ldmsk(j,i) == 0 ) then ! landmask =0 land, =1 ocean
+        if ( ldmsk(j,i) == 0 ) then ! landmask =0 land, =1 ocean
           xlcrit(j,i) = rclcrit_land ! landrclcrit_land = 5.e-4
         else
           xlcrit(j,i) = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4
         end if
       end do
     end do
-  end subroutine init_cloud_s1
+  end subroutine init_nogtom
 
-  subroutine microphys
+  subroutine nogtom(mo2mc,ngs,mc2mo)
     implicit none
+    type(mod_2_micro) , intent(in) :: mo2mc
+    type(nogtom_stats) , intent(inout) :: ngs
+    type(micro_2_mod) , intent(out) :: mc2mo
     integer(ik4) :: i , j , k , n , m , jn , jo
     logical :: lactiv , ltkgt0 , ltklt0 , ltkgthomo , lcloud , lnocloud
     logical :: locast , lnocast , lliq , lccn
@@ -521,7 +435,7 @@ module mod_cloud_s1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nqx
-            qxtendc(n,j,i,k) = qxten(j,i,k,n)/psb(j,i)
+            qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n)/mo2mc%psb(j,i)
           end do
         end do
       end do
@@ -529,7 +443,7 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ttendc(j,i,k) = tten(j,i,k)/psb(j,i)
+          ttendc(j,i,k) = mc2mo%tten(j,i,k)/mo2mc%psb(j,i)
         end do
       end do
     end do
@@ -539,7 +453,7 @@ module mod_cloud_s1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nqx
-            qx(n,j,i,k) = qxx(j,i,k,n)
+            qx(n,j,i,k) = mo2mc%qxx(j,i,k,n)
           end do
         end do
       end do
@@ -549,7 +463,7 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dpfs(j,i,k) = pfs(j,i,k+1)-pfs(j,i,k)
+          dpfs(j,i,k) = mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k)
         end do
       end do
     end do
@@ -569,7 +483,7 @@ module mod_cloud_s1
       do i = ici1 , ici2
         do j = jci1 , jci2
           qliq(j,i,k) = max(min(d_one,((max(rtice,min(tzero, &
-                        t(j,i,k)))-rtice)*rtwat_rtice_r)**2),d_zero)
+                        mo2mc%t(j,i,k)))-rtice)*rtwat_rtice_r)**2),d_zero)
         end do
       end do
     end do
@@ -577,7 +491,7 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          fccfg(j,i,k) = min(hicld,max(pfcc(j,i,k),lowcld))
+          fccfg(j,i,k) = min(hicld,max(mo2mc%fcc(j,i,k),lowcld))
         end do
       end do
     end do
@@ -594,7 +508,7 @@ module mod_cloud_s1
           if ( fccfg(j,i,k-1) > cldtopcf .and. &
                fccfg(j,i,k)  <= cldtopcf ) then
             cldtopdist(j,i,k) = cldtopdist(j,i,k) + &
-                                dpfs(j,i,k)/(rho(j,i,k)*egrav)
+                                dpfs(j,i,k)/(mo2mc%rho(j,i,k)*egrav)
           end if
         end do
       end do
@@ -607,11 +521,12 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          eeliq(j,i,k) = c2es*exp(c3les*((t(j,i,k)-tzero) / &
-                                         (t(j,i,k)-c4les)))
-          eeice(j,i,k) = c2es*exp(c3ies*((t(j,i,k)-tzero) / &
-                                         (t(j,i,k)-c4ies)))
-          koop(j,i,k) = min(rkoop1-rkoop2*t(j,i,k),eeliq(j,i,k)/eeice(j,i,k))
+          eeliq(j,i,k) = c2es*exp(c3les*((mo2mc%t(j,i,k)-tzero) / &
+                                         (mo2mc%t(j,i,k)-c4les)))
+          eeice(j,i,k) = c2es*exp(c3ies*((mo2mc%t(j,i,k)-tzero) / &
+                                         (mo2mc%t(j,i,k)-c4ies)))
+          koop(j,i,k) = min(rkoop1-rkoop2*mo2mc%t(j,i,k), &
+                                     eeliq(j,i,k)/eeice(j,i,k))
         end do
       end do
     end do
@@ -657,7 +572,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! [tnew] = K
-            tnew = t(j,i,k) + dt * (ttendc(j,i,k)-tentkeep(j,i,k))
+            tnew = mo2mc%t(j,i,k) + dt * (ttendc(j,i,k)-tentkeep(j,i,k))
             if ( k > 1 ) then
               sumq0(j,i,k) = sumq0(j,i,k-1) ! total water
               sumh0(j,i,k) = sumh0(j,i,k-1) ! liquid water temperature
@@ -678,7 +593,7 @@ module mod_cloud_s1
                 (tmpl+tmpi)*dpfs(j,i,k)*regrav    !(kg/m^2)
             end do
             ! Detrained water treated here
-            qe = qdetr(j,i,k)
+            qe = mo2mc%qdetr(j,i,k)
             if ( qe > activqx ) then
               sumq0(j,i,k) = sumq0(j,i,k)+qe
               alfaw = qliq(j,i,k)
@@ -691,7 +606,7 @@ module mod_cloud_s1
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            sumh0(j,i,k) = sumh0(j,i,k)/(pfs(j,i,k+1)-pfs(j,i,1))
+            sumh0(j,i,k) = sumh0(j,i,k)/(mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,1))
           end do
         end do
       end do
@@ -705,13 +620,13 @@ module mod_cloud_s1
         do j = jci1 , jci2
           ! zdelta = 1 if t > tzero
           ! zdelta = 0 if t < tzero
-          zdelta = max(d_zero,sign(d_one,t(j,i,k) - tzero))
+          zdelta = max(d_zero,sign(d_one,mo2mc%t(j,i,k) - tzero))
           !---------------------------------------------
           ! mixed phase saturation
           !--------------------------------------------
           phases = qliq(j,i,k)
           eewmt(j,i,k) = eeliq(j,i,k)*phases + eeice(j,i,k)*(d_one-phases)
-          eewmt(j,i,k) = min(eewmt(j,i,k)/phs(j,i,k),d_half)
+          eewmt(j,i,k) = min(eewmt(j,i,k)/mo2mc%phs(j,i,k),d_half)
           qsmix(j,i,k) = eewmt(j,i,k)
           ! ep1 = rwat/rgas - d_one
           qsmix(j,i,k) = qsmix(j,i,k)/(d_one-ep1*qsmix(j,i,k))
@@ -720,12 +635,12 @@ module mod_cloud_s1
           ! liquid water saturation for T > 273K
           !--------------------------------------------
           eew(j,i,k) = min((zdelta*eeliq(j,i,k) + &
-               (d_one-zdelta)*eeice(j,i,k))/phs(j,i,k),d_half)
+               (d_one-zdelta)*eeice(j,i,k))/mo2mc%phs(j,i,k),d_half)
           eew(j,i,k) = min(d_half,eew(j,i,k))
           !qsi saturation mixing ratio with respect to ice
           !qsice(j,i,k) = eew(j,i,k)/(d_one-ep1*eew(j,i,k))
           !ice water saturation
-          qsice(j,i,k) = min(eeice(j,i,k)/phs(j,i,k),d_half)
+          qsice(j,i,k) = min(eeice(j,i,k)/mo2mc%phs(j,i,k),d_half)
           qsice(j,i,k) = qsice(j,i,k)/(d_one-ep1*qsice(j,i,k))
           !----------------------------------
           ! liquid water saturation
@@ -733,7 +648,7 @@ module mod_cloud_s1
           !eeliq is the saturation vapor pressure es(T)
           !the saturation mixing ratio is ws = es(T)/p *0.622
           !ws = ws/(-(d_one/eps - d_one)*ws)
-          eeliqt(j,i,k) = min(eeliq(j,i,k)/phs(j,i,k),d_half)
+          eeliqt(j,i,k) = min(eeliq(j,i,k)/mo2mc%phs(j,i,k),d_half)
           qsliq(j,i,k) = eeliqt(j,i,k)
           qsliq(j,i,k) = qsliq(j,i,k)/(d_one - ep1*qsliq(j,i,k))
         end do
@@ -760,25 +675,25 @@ module mod_cloud_s1
 
 #ifdef DEBUG
     if ( stats ) then
-      statssupw(:,:,:) = d_zero
-      statssupc(:,:,:) = d_zero
-      statserosw(:,:,:) = d_zero
-      statserosc(:,:,:) = d_zero
-      statsdetrw(:,:,:) = d_zero
-      statsdetrc(:,:,:) = d_zero
-      statsevapw(:,:,:) = d_zero
-      statsevapc(:,:,:) = d_zero
-      statscond1w(:,:,:) = d_zero
-      statscond1c(:,:,:) = d_zero
-      statscond2w(:,:,:) = d_zero
-      statscond2c(:,:,:) = d_zero
-      statsdepos(:,:,:) = d_zero
-      statsmelt(:,:,:) = d_zero
-      statsfrz(:,:,:) = d_zero
-      statsrainev(:,:,:) = d_zero
-      statssnowev(:,:,:) = d_zero
-      statsautocvw(:,:,:) = d_zero
-      statsautocvc(:,:,:) = d_zero
+      ngs%statssupw(:,:,:) = d_zero
+      ngs%statssupc(:,:,:) = d_zero
+      ngs%statserosw(:,:,:) = d_zero
+      ngs%statserosc(:,:,:) = d_zero
+      ngs%statsdetrw(:,:,:) = d_zero
+      ngs%statsdetrc(:,:,:) = d_zero
+      ngs%statsevapw(:,:,:) = d_zero
+      ngs%statsevapc(:,:,:) = d_zero
+      ngs%statscond1w(:,:,:) = d_zero
+      ngs%statscond1c(:,:,:) = d_zero
+      ngs%statscond2w(:,:,:) = d_zero
+      ngs%statscond2c(:,:,:) = d_zero
+      ngs%statsdepos(:,:,:) = d_zero
+      ngs%statsmelt(:,:,:) = d_zero
+      ngs%statsfrz(:,:,:) = d_zero
+      ngs%statsrainev(:,:,:) = d_zero
+      ngs%statssnowev(:,:,:) = d_zero
+      ngs%statsautocvw(:,:,:) = d_zero
+      ngs%statsautocvc(:,:,:) = d_zero
     end if
 #endif
     !
@@ -827,17 +742,17 @@ module mod_cloud_s1
         ! First guess microphysics
         !---------------------------------
 
-        pbot    = pfs(j,i,kzp1)
+        pbot    = mo2mc%pfs(j,i,kzp1)
         dp      = dpfs(j,i,1)
-        tk      = t(j,i,1)
+        tk      = mo2mc%t(j,i,1)
         tc      = tk - tzero
-        dens    = rho(j,i,1)
+        dens    = mo2mc%rho(j,i,1)
         alfaw   = qliq(j,i,1)
         sqmix   = qsmix(j,i,1)
         ccover  = fccfg(j,i,1)
         lccover = d_zero
         totliq  = qlt(j,i,1)
-        if ( lccn) ccn = pccn(j,i,1)
+        if ( lccn) ccn = mo2mc%ccn(j,i,1)
         rainp = d_zero
         snowp = d_zero
         critauto = xlcrit(j,i)
@@ -965,7 +880,7 @@ module mod_cloud_s1
                 qxfg(iqql) = qxfg(iqql) + evapl
 #ifdef DEBUG
                 if ( stats ) then
-                  statssupw(j,i,1) =  statssupw(j,i,1) + evapl
+                  ngs%statssupw(j,i,1) = ngs%statssupw(j,i,1) + evapl
                 end if
 #endif
               else
@@ -976,7 +891,7 @@ module mod_cloud_s1
                 qxfg(iqqi) = qxfg(iqqi) + evapi
 #ifdef DEBUG
                 if ( stats ) then
-                  statssupc(j,i,1) =  statssupc(j,i,1) - evapi
+                  ngs%statssupc(j,i,1) = ngs%statssupc(j,i,1) - evapi
                 end if
 #endif
               end if
@@ -1018,19 +933,19 @@ module mod_cloud_s1
         !------------------------------------------------------------------
         !                 DETRAINMENT FROM CONVECTION
         !------------------------------------------------------------------
-        if ( qdetr(j,i,1) > activqx ) then
+        if ( mo2mc%qdetr(j,i,1) > activqx ) then
           !qice = 1 if T < 250, qice = 0 if T > 273
           qice   = d_one-alfaw
-          convsrce(iqql) = alfaw*qdetr(j,i,1)
-          convsrce(iqqi) = qice*qdetr(j,i,1)
+          convsrce(iqql) = alfaw*mo2mc%qdetr(j,i,1)
+          convsrce(iqqi) = qice*mo2mc%qdetr(j,i,1)
           solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
           solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
           qxfg(iqql) = qxfg(iqql)+convsrce(iqql)
           qxfg(iqqi) = qxfg(iqqi)+convsrce(iqqi)
 #ifdef DEBUG
           if ( stats ) then
-            statsdetrw(j,i,1) = convsrce(iqql)
-            statsdetrc(j,i,1) = convsrce(iqqi)
+            ngs%statsdetrw(j,i,1) = convsrce(iqql)
+            ngs%statsdetrc(j,i,1) = convsrce(iqqi)
           end if
 #endif
         end if
@@ -1047,7 +962,7 @@ module mod_cloud_s1
           ! rcldiff  : Diffusion coefficient for evaporation by turbulent
           ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
           ldifdt = rcldiff*dt
-          if ( qdetr(j,i,1) > d_zero ) ldifdt = convfac*ldifdt
+          if ( mo2mc%qdetr(j,i,1) > d_zero ) ldifdt = convfac*ldifdt
           !Increase by factor of 5 for convective points
           if ( lliq ) then
             leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
@@ -1063,8 +978,8 @@ module mod_cloud_s1
             qxfg(iqqi) = qxfg(iqqi) - faci
 #ifdef DEBUG
             if ( stats ) then
-              statserosw(j,i,1) = qliqfrac(j,i,1)*leros
-              statserosc(j,i,1) = qicefrac(j,i,1)*leros
+              ngs%statserosw(j,i,1) = qliqfrac(j,i,1)*leros
+              ngs%statserosc(j,i,1) = qicefrac(j,i,1)*leros
             end if
 #endif
           end if
@@ -1087,11 +1002,11 @@ module mod_cloud_s1
           ! Thus for the initial implementation the diagnostic mixed phase is
           ! retained for the moment, and the level of approximation noted.
           !------------------------------------------------------------------
-          dtdp   = rovcp*tk/phs(j,i,1)
+          dtdp   = rovcp*tk/mo2mc%phs(j,i,1)
           dpmxdt = dp*oneodt
-          wtot   = pverv(j,i,1)
+          wtot   = mo2mc%pverv(j,i,1)
           wtot   = min(dpmxdt,max(-dpmxdt,wtot))
-          dtdiab = min(dpmxdt*dtdp,max(-dpmxdt*dtdp,radheatrt(j,i,1)))*dt + &
+          dtdiab = min(dpmxdt*dtdp,max(-dpmxdt*dtdp,mo2mc%heatrt(j,i,1)))*dt + &
                         wlhfocp*ldefr
           ! ldefr = 0
           ! note: ldefr should be set to the difference between the mixed
@@ -1105,7 +1020,7 @@ module mod_cloud_s1
           tcond  = max(tcond,160.0_rkx)
           ! the goal is to produce dqs = qsmix - qold, where qsmix is
           ! reduced because of the condensation. so that dqs is negative?
-          qp = d_one/phs(j,i,1)
+          qp = d_one/mo2mc%phs(j,i,1)
           phases = max(min(d_one,((max(rtice,min(tzero, &
                    tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
           ! saturation mixing ratio ws
@@ -1150,8 +1065,8 @@ module mod_cloud_s1
             qxfg(iqqi) = qxfg(iqqi) - faci
 #ifdef DEBUG
             if ( stats ) then
-              statsevapw(j,i,1) = qliqfrac(j,i,1)*levap
-              statsevapc(j,i,1) = qicefrac(j,i,1)*levap
+              ngs%statsevapw(j,i,1) = qliqfrac(j,i,1)*levap
+              ngs%statsevapc(j,i,1) = qicefrac(j,i,1)*levap
             end if
 #endif
           end if
@@ -1188,7 +1103,7 @@ module mod_cloud_s1
               qxfg(iqql) = qxfg(iqql) + chng
 #ifdef DEBUG
               if ( stats ) then
-                statscond1w(j,i,1) = chng
+                ngs%statscond1w(j,i,1) = chng
               end if
 #endif
             else
@@ -1197,7 +1112,7 @@ module mod_cloud_s1
               qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
               if ( stats ) then
-                statscond1c(j,i,1) = chng
+                ngs%statscond1c(j,i,1) = chng
               end if
 #endif
             end if
@@ -1215,7 +1130,7 @@ module mod_cloud_s1
             !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
             !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
             rhc = ramid !=0.8
-            zsig = phs(j,i,1)/pbot
+            zsig = mo2mc%phs(j,i,1)/pbot
             ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
             if ( zsig > ramid ) then
               rhc = ramid + (d_one-ramid)*((zsig-ramid)/0.2_rkx)**2
@@ -1266,7 +1181,7 @@ module mod_cloud_s1
                 qxfg(iqql) = qxfg(iqql) + chng
 #ifdef DEBUG
                 if ( stats ) then
-                  statscond2w(j,i,1) = chng
+                  ngs%statscond2w(j,i,1) = chng
                 end if
 #endif
               else ! homogeneous freezing
@@ -1275,7 +1190,7 @@ module mod_cloud_s1
                 qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
                 if ( stats ) then
-                  statscond2c(j,i,1) = chng
+                  ngs%statscond2c(j,i,1) = chng
                 end if
 #endif
               end if
@@ -1315,7 +1230,7 @@ module mod_cloud_s1
             !   8.87 = 700**1/3 = density of ice to the third
             !------------------------------------------------
             xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(2.4e-2_rkx*tk)
-            xbdd  = rwat*tk*phs(j,i,1)/(2.21_rkx*vpice)
+            xbdd  = rwat*tk*mo2mc%phs(j,i,1)/(2.21_rkx*vpice)
             cvds = 7.8_rkx*(icenuclei/dens)** &
                    0.666_rkx*(vpliq-vpice)/(8.87_rkx*(xadd+xbdd)*vpice)
             !-----------------------------------------------------
@@ -1367,7 +1282,7 @@ module mod_cloud_s1
             qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
             if ( stats ) then
-              statsdepos(j,i,1) = chng
+              ngs%statsdepos(j,i,1) = chng
             end if
 #endif
           end if
@@ -1426,9 +1341,9 @@ module mod_cloud_s1
             call selautoconv
 #ifdef DEBUG
             if ( ltkgt0 ) then
-              statsautocvw(j,i,1) = statsautocvw(j,i,1) + rainaut
+              ngs%statsautocvw(j,i,1) = ngs%statsautocvw(j,i,1) + rainaut
             else
-              statsautocvc(j,i,1) = statsautocvc(j,i,1) + rainaut
+              ngs%statsautocvc(j,i,1) = ngs%statsautocvc(j,i,1) + rainaut
             end if
 #endif
           end if
@@ -1447,7 +1362,7 @@ module mod_cloud_s1
               solqb(iqqs,iqqi) = solqb(iqqs,iqqi) + snowaut
 #ifdef DEBUG
               if ( stats ) then
-                statsautocvc(j,i,1) = statsautocvc(j,i,1) + snowaut
+                ngs%statsautocvc(j,i,1) = ngs%statsautocvc(j,i,1) + snowaut
               end if
 #endif
             end if
@@ -1479,7 +1394,7 @@ module mod_cloud_s1
               ! approximated as in the scheme described by
               ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
               tdiff = tc ! - subsat * &
-              !    (tw1+tw2*(phs(j,i,1)-tw3)-tw4*(tk-tw5))
+              !    (tw1+tw2*(mo2mc%phs(j,i,1)-tw3)-tw4*(tk-tw5))
               ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
               cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
               chngmax = max(tdiff*cons1*rldcp,d_zero)
@@ -1499,7 +1414,7 @@ module mod_cloud_s1
                     solqa(n,m) =  solqa(n,m) - chng
 #ifdef DEBUG
                     if ( stats ) then
-                      statsmelt(j,i,1) = statsmelt(j,i,1) + chng
+                      ngs%statsmelt(j,i,1) = ngs%statsmelt(j,i,1) + chng
                     end if
 #endif
                   end if
@@ -1524,7 +1439,7 @@ module mod_cloud_s1
             solqa(iqqr,iqqs) = solqa(iqqr,iqqs) - chng
 #ifdef DEBUG
             if ( stats ) then
-              statsfrz(j,i,1) = chng
+              ngs%statsfrz(j,i,1) = chng
             end if
 #endif
           end if
@@ -1541,7 +1456,7 @@ module mod_cloud_s1
             qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
             if ( stats ) then
-              statsfrz(j,i,1) = statsfrz(j,i,1) + chng
+              ngs%statsfrz(j,i,1) = ngs%statsfrz(j,i,1) + chng
             end if
 #endif
           end if
@@ -1586,7 +1501,7 @@ module mod_cloud_s1
             ! actual microphysics formula in beta
             !--------------------------------------
             ! sensitivity test showed multiply rain evap rate by 0.5
-            beta1 = sqrt(phs(j,i,1)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
+            beta1 = sqrt(mo2mc%phs(j,i,1)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
 
             if ( beta1 >= d_zero ) then
                beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
@@ -1616,7 +1531,7 @@ module mod_cloud_s1
             qxfg(iqqr)       = qxfg(iqqr) - chng
 #ifdef DEBUG
             if ( stats ) then
-              statsrainev(j,i,1) = chng
+              ngs%statsrainev(j,i,1) = chng
             end if
 #endif
           end if
@@ -1643,7 +1558,7 @@ module mod_cloud_s1
             !--------------------------------------
             ! actual microphysics formula in beta
             !--------------------------------------
-            beta1 = sqrt(phs(j,i,1)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
+            beta1 = sqrt(mo2mc%phs(j,i,1)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
 
             if ( beta1 >= d_zero ) then
               beta = egrav*rpecons*(beta1)**0.5777_rkx
@@ -1675,7 +1590,7 @@ module mod_cloud_s1
             qxfg(iqqs)       = qxfg(iqqs) - chng
 #ifdef DEBUG
             if ( stats ) then
-              statssnowev(j,i,1) = chng
+              ngs%statssnowev(j,i,1) = chng
             end if
 #endif
           end if
@@ -1885,17 +1800,17 @@ module mod_cloud_s1
           end do
 
           critauto = xlcrit(j,i)
-          pbot    = pfs(j,i,kzp1)
+          pbot    = mo2mc%pfs(j,i,kzp1)
           dp      = dpfs(j,i,k)
-          tk      = t(j,i,k)
+          tk      = mo2mc%t(j,i,k)
           tc      = tk - tzero
-          dens    = rho(j,i,k)
+          dens    = mo2mc%rho(j,i,k)
           alfaw   = qliq(j,i,k)
           sqmix   = qsmix(j,i,k)
           ccover  = fccfg(j,i,k)
           lccover = fccfg(j,i,k-1)
           totliq  = qlt(j,i,k)
-          if ( lccn) ccn = pccn(j,i,k)
+          if ( lccn) ccn = mo2mc%ccn(j,i,k)
           rainp = pfplsx(iqqr,j,i,k)
           snowp = pfplsx(iqqs,j,i,k)
 
@@ -2021,7 +1936,7 @@ module mod_cloud_s1
                   qxfg(iqql) = qxfg(iqql) + evapl
 #ifdef DEBUG
                   if ( stats ) then
-                    statssupw(j,i,k) =  statssupw(j,i,k) + evapl
+                    ngs%statssupw(j,i,k) = ngs%statssupw(j,i,k) + evapl
                   end if
 #endif
                 else
@@ -2032,7 +1947,7 @@ module mod_cloud_s1
                   qxfg(iqqi) = qxfg(iqqi) + evapi
 #ifdef DEBUG
                   if ( stats ) then
-                    statssupc(j,i,k) =  statssupc(j,i,k) - evapi
+                    ngs%statssupc(j,i,k) = ngs%statssupc(j,i,k) - evapi
                   end if
 #endif
                 end if
@@ -2074,19 +1989,19 @@ module mod_cloud_s1
           !------------------------------------------------------------------
           !                 DETRAINMENT FROM CONVECTION
           !------------------------------------------------------------------
-          if ( qdetr(j,i,k) > activqx ) then
+          if ( mo2mc%qdetr(j,i,k) > activqx ) then
             !qice = 1 if T < 250, qice = 0 if T > 273
             qice   = d_one-alfaw
-            convsrce(iqql) = alfaw*qdetr(j,i,k)
-            convsrce(iqqi) = qice*qdetr(j,i,k)
+            convsrce(iqql) = alfaw*mo2mc%qdetr(j,i,k)
+            convsrce(iqqi) = qice*mo2mc%qdetr(j,i,k)
             solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
             solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
             qxfg(iqql) = qxfg(iqql) + convsrce(iqql)
             qxfg(iqqi) = qxfg(iqqi) + convsrce(iqqi)
 #ifdef DEBUG
             if ( stats ) then
-              statsdetrw(j,i,k) = convsrce(iqql)
-              statsdetrc(j,i,k) = convsrce(iqqi)
+              ngs%statsdetrw(j,i,k) = convsrce(iqql)
+              ngs%statsdetrc(j,i,k) = convsrce(iqqi)
             end if
 #endif
           end if
@@ -2103,7 +2018,7 @@ module mod_cloud_s1
             ! rcldiff  : Diffusion coefficient for evaporation by turbulent
             ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
             ldifdt = rcldiff*dt
-            if ( qdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
+            if ( mo2mc%qdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
             !Increase by factor of 5 for convective points
             if ( lliq ) then
               leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
@@ -2119,8 +2034,8 @@ module mod_cloud_s1
               qxfg(iqqi) = qxfg(iqqi) - faci
 #ifdef DEBUG
               if ( stats ) then
-                statserosw(j,i,k) = qliqfrac(j,i,k)*leros
-                statserosc(j,i,k) = qicefrac(j,i,k)*leros
+                ngs%statserosw(j,i,k) = qliqfrac(j,i,k)*leros
+                ngs%statserosc(j,i,k) = qicefrac(j,i,k)*leros
               end if
 #endif
             end if
@@ -2144,12 +2059,12 @@ module mod_cloud_s1
             ! Thus for the initial implementation the diagnostic mixed phase is
             ! retained for the moment, and the level of approximation noted.
             !------------------------------------------------------------------
-            dtdp   = rovcp*tk/phs(j,i,k)
+            dtdp   = rovcp*tk/mo2mc%phs(j,i,k)
             dpmxdt = dp*oneodt
-            wtot   = pverv(j,i,k)
+            wtot   = mo2mc%pverv(j,i,k)
             wtot   = min(dpmxdt,max(-dpmxdt,wtot))
-            dtdiab = min(dpmxdt*dtdp,max(-dpmxdt*dtdp,radheatrt(j,i,k)))*dt + &
-                          wlhfocp*ldefr
+            dtdiab = min(dpmxdt*dtdp, &
+                       max(-dpmxdt*dtdp,mo2mc%heatrt(j,i,k)))*dt+wlhfocp*ldefr
             ! ldefr = 0
             ! note: ldefr should be set to the difference between the mixed
             ! phase functions in the convection and cloud scheme, and
@@ -2162,7 +2077,7 @@ module mod_cloud_s1
             tcond  = max(tcond,160.0_rkx)
             ! the goal is to produce dqs = qsmix - qold, where qsmix is
             ! reduced because of the condensation. so that dqs is negative?
-            qp = d_one/phs(j,i,k)
+            qp = d_one/mo2mc%phs(j,i,k)
             phases = max(min(d_one,((max(rtice,min(tzero, &
                        tcond))-rtice)*rtwat_rtice_r)**2),d_zero)
             ! saturation mixing ratio ws
@@ -2207,8 +2122,8 @@ module mod_cloud_s1
               qxfg(iqqi) = qxfg(iqqi) - faci
 #ifdef DEBUG
               if ( stats ) then
-                statsevapw(j,i,k) = qliqfrac(j,i,k)*levap
-                statsevapc(j,i,k) = qicefrac(j,i,k)*levap
+                ngs%statsevapw(j,i,k) = qliqfrac(j,i,k)*levap
+                ngs%statsevapc(j,i,k) = qicefrac(j,i,k)*levap
               end if
 #endif
             end if
@@ -2245,7 +2160,7 @@ module mod_cloud_s1
                 qxfg(iqql) = qxfg(iqql) + chng
 #ifdef DEBUG
                 if ( stats ) then
-                  statscond1w(j,i,k) = chng
+                  ngs%statscond1w(j,i,k) = chng
                 end if
 #endif
               else
@@ -2254,7 +2169,7 @@ module mod_cloud_s1
                 qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
                 if ( stats ) then
-                  statscond1c(j,i,k) = chng
+                  ngs%statscond1c(j,i,k) = chng
                 end if
 #endif
               end if
@@ -2272,7 +2187,7 @@ module mod_cloud_s1
               !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
               !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
               rhc = ramid !=0.8
-              zsig = phs(j,i,k)/pbot
+              zsig = mo2mc%phs(j,i,k)/pbot
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
               if ( zsig > ramid ) then
                 rhc = ramid+(d_one-ramid)*((zsig-ramid)/0.2_rkx)**2
@@ -2323,7 +2238,7 @@ module mod_cloud_s1
                   qxfg(iqql) = qxfg(iqql) + chng
 #ifdef DEBUG
                   if ( stats ) then
-                    statscond2w(j,i,k) = chng
+                    ngs%statscond2w(j,i,k) = chng
                   end if
 #endif
                 else ! homogeneous freezing
@@ -2332,7 +2247,7 @@ module mod_cloud_s1
                   qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
                   if ( stats ) then
-                    statscond2c(j,i,k) = chng
+                    ngs%statscond2c(j,i,k) = chng
                   end if
 #endif
                 end if
@@ -2371,7 +2286,7 @@ module mod_cloud_s1
               !   8.87 = 700**1/3 = density of ice to the third
               !------------------------------------------------
               xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(2.4e-2_rkx*tk)
-              xbdd  = rwat*tk*phs(j,i,k)/(2.21_rkx*vpice)
+              xbdd  = rwat*tk*mo2mc%phs(j,i,k)/(2.21_rkx*vpice)
               cvds = 7.8_rkx*(icenuclei/dens)** &
                      0.666_rkx*(vpliq-vpice)/(8.87_rkx*(xadd+xbdd)*vpice)
               !-----------------------------------------------------
@@ -2423,7 +2338,7 @@ module mod_cloud_s1
               qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
               if ( stats ) then
-                statsdepos(j,i,k) = chng
+                ngs%statsdepos(j,i,k) = chng
               end if
 #endif
             end if
@@ -2488,9 +2403,9 @@ module mod_cloud_s1
 #ifdef DEBUG
               if ( stats ) then
                 if ( ltkgt0 ) then
-                  statsautocvw(j,i,k) = statsautocvw(j,i,k) + rainaut
+                  ngs%statsautocvw(j,i,k) = ngs%statsautocvw(j,i,k) + rainaut
                 else
-                  statsautocvc(j,i,k) = statsautocvc(j,i,k) + rainaut
+                  ngs%statsautocvc(j,i,k) = ngs%statsautocvc(j,i,k) + rainaut
                 end if
               end if
 #endif
@@ -2510,7 +2425,7 @@ module mod_cloud_s1
                 solqb(iqqs,iqqi) = solqb(iqqs,iqqi) + snowaut
 #ifdef DEBUG
                 if ( stats ) then
-                  statsautocvc(j,i,k) = statsautocvc(j,i,k) + snowaut
+                  ngs%statsautocvc(j,i,k) = ngs%statsautocvc(j,i,k) + snowaut
                 end if
 #endif
               end if
@@ -2542,7 +2457,7 @@ module mod_cloud_s1
                 ! approximated as in the scheme described by
                 ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
                 tdiff = tc ! - subsat * &
-                !    (tw1+tw2*(phs(j,i,k)-tw3)-tw4*(tk-tw5))
+                !    (tw1+tw2*(mo2mc%phs(j,i,k)-tw3)-tw4*(tk-tw5))
                 ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
                 cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
                 chngmax = max(tdiff*cons1*rldcp,d_zero)
@@ -2562,7 +2477,7 @@ module mod_cloud_s1
                       solqa(n,m) =  solqa(n,m) - chng
 #ifdef DEBUG
                       if ( stats ) then
-                        statsmelt(j,i,k) = statsmelt(j,i,k) + chng
+                        ngs%statsmelt(j,i,k) = ngs%statsmelt(j,i,k) + chng
                       end if
 #endif
                     end if
@@ -2587,7 +2502,7 @@ module mod_cloud_s1
               solqa(iqqr,iqqs) = solqa(iqqr,iqqs) - chng
 #ifdef DEBUG
               if ( stats ) then
-                statsfrz(j,i,k) = chng
+                ngs%statsfrz(j,i,k) = chng
               end if
 #endif
             end if
@@ -2604,7 +2519,7 @@ module mod_cloud_s1
               qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
               if ( stats ) then
-                statsfrz(j,i,k) = statsfrz(j,i,k) + chng
+                ngs%statsfrz(j,i,k) = ngs%statsfrz(j,i,k) + chng
               end if
 #endif
             end if
@@ -2650,8 +2565,8 @@ module mod_cloud_s1
               ! actual microphysics formula in beta
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
-              beta1 = sqrt(phs(j,i,k)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
-
+              beta1 = sqrt(mo2mc%phs(j,i,k)/pbot) / &
+                        5.09e-3_rkx*preclr/covpclr(j,i)
               if ( beta1 >= d_zero ) then
                  beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
                  denom = d_one + beta*dt*corqsliq
@@ -2680,7 +2595,7 @@ module mod_cloud_s1
               qxfg(iqqr)       = qxfg(iqqr) - chng
 #ifdef DEBUG
               if ( stats ) then
-                statsrainev(j,i,k) = chng
+                ngs%statsrainev(j,i,k) = chng
               end if
 #endif
             end if
@@ -2707,8 +2622,8 @@ module mod_cloud_s1
               !--------------------------------------
               ! actual microphysics formula in beta
               !--------------------------------------
-               beta1 = sqrt(phs(j,i,k)/pbot)/5.09e-3_rkx*preclr/covpclr(j,i)
-
+              beta1 = sqrt(mo2mc%phs(j,i,k)/pbot) / &
+                           5.09e-3_rkx*preclr/covpclr(j,i)
               if ( beta1 >= d_zero ) then
                 beta = egrav*rpecons*(beta1)**0.5777_rkx
                 !rpecons = alpha1
@@ -2739,7 +2654,7 @@ module mod_cloud_s1
               qxfg(iqqs)       = qxfg(iqqs) - chng
 #ifdef DEBUG
               if ( stats ) then
-                statssnowev(j,i,k) = chng
+                ngs%statssnowev(j,i,k) = chng
               end if
 #endif
             end if
@@ -2911,7 +2826,7 @@ module mod_cloud_s1
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            qxten(j,i,k,n) = qxtendc(n,j,i,k)*psb(j,i)
+            mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)*mo2mc%psb(j,i)
           end do
         end do
       end do
@@ -2919,7 +2834,7 @@ module mod_cloud_s1
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tten(j,i,k) = ttendc(j,i,k)*psb(j,i)
+          mc2mo%tten(j,i,k) = ttendc(j,i,k)*mo2mc%psb(j,i)
         end do
       end do
     end do
@@ -2932,7 +2847,7 @@ module mod_cloud_s1
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tnew = t(j,i,k)+dt*(ttendc(j,i,k)-tentkeep(j,i,k))
+            tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkeep(j,i,k))
             if ( k == 1 ) then
               sumq1(j,i,k) = d_zero ! total water
               sumh1(j,i,k) = d_zero ! liquid water temperature
@@ -2974,7 +2889,8 @@ module mod_cloud_s1
               rain = rain+wlhsocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
             end if
           end do
-          sumh1(j,i,k) = (sumh1(j,i,k)-rain)/(pfs(j,i,k+1)-pfs(j,i,1))
+          sumh1(j,i,k) = (sumh1(j,i,k)-rain) / &
+                        (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,1))
           errorh(j,i,k) = sumh1(j,i,k)-sumh0(j,i,k)
         end do
       end do
@@ -3011,7 +2927,7 @@ module mod_cloud_s1
   ! Initialize fluxes
   pfplsl(:,:,:) = d_zero
   pfplsn(:,:,:) = d_zero
-  rainls(:,:,:) = d_zero
+  mc2mo%rainls(:,:,:) = d_zero
 
   !--------------------------------------------------------------------
   ! Copy general precip arrays back into FP arrays
@@ -3026,7 +2942,7 @@ module mod_cloud_s1
         do n = 1 , nqx
           if ( iphase(n) == 1 ) then
             pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
-            rainls(j,i,k) = pfplsl(j,i,k)
+            mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
           else if ( iphase(n) == 2 ) then
             pfplsn(j,i,k) = pfplsn(j,i,k)+ pfplsx(n,j,i,k)
           end if
@@ -3043,12 +2959,12 @@ module mod_cloud_s1
       prainx = pfplsl(j,i,kzp1)*dt
       psnowx = pfplsn(j,i,kzp1)*dt
       if ( prainx > dlowval ) then
-        rainnc(j,i) =  rainnc(j,i) + prainx   !mm
-        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsl(j,i,kzp1)
+        mc2mo%rainnc(j,i) =  mc2mo%rainnc(j,i) + prainx   !mm
+        mc2mo%lsmrnc(j,i) =  mc2mo%lsmrnc(j,i) + pfplsl(j,i,kzp1)
       end if
       if ( psnowx > dlowval ) then
-        snownc(j,i) = snownc(j,i) + psnowx
-        lsmrnc(j,i) =  lsmrnc(j,i) + pfplsn(j,i,kzp1)
+        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + psnowx
+        mc2mo%lsmrnc(j,i) =  mc2mo%lsmrnc(j,i) + pfplsn(j,i,kzp1)
       end if
     end do
   end do
@@ -3283,8 +3199,8 @@ module mod_cloud_s1
 !    zsqb(src,snk) = zsqb(src,snk) + beta*proc
 !  end subroutine addpath
 !
-  end subroutine microphys
+  end subroutine nogtom
 
-end module mod_cloud_s1
+end module mod_micro_nogtom
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

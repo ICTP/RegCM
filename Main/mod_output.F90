@@ -34,13 +34,12 @@ module mod_output
   use mod_rad_interface
   use mod_cu_interface
   use mod_pbl_interface
+  use mod_micro_interface
   use mod_ncout
   use mod_bdycod
-  use mod_precip
   use mod_split
   use mod_savefile
   use mod_slabocean
-  use mod_cloud_s1
 
   implicit none
 
@@ -277,97 +276,105 @@ module mod_output
         if ( ipptls == 2 .and. stats ) then
           if ( associated(atm_stats_supw_out) ) then
             do k = 1 , kz
-              atm_stats_supw_out(:,:,k) = statssupw(jci1:jci2,ici1:ici2,k)
+              atm_stats_supw_out(:,:,k) = ngs%statssupw(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_supc_out) ) then
             do k = 1 , kz
-              atm_stats_supc_out(:,:,k) = statssupc(jci1:jci2,ici1:ici2,k)
+              atm_stats_supc_out(:,:,k) = ngs%statssupc(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_detw_out) ) then
             do k = 1 , kz
-              atm_stats_detw_out(:,:,k) = statserosw(jci1:jci2,ici1:ici2,k)
+              atm_stats_detw_out(:,:,k) = ngs%statserosw(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_detc_out) ) then
             do k = 1 , kz
-              atm_stats_detc_out(:,:,k) = statserosc(jci1:jci2,ici1:ici2,k)
+              atm_stats_detc_out(:,:,k) = ngs%statserosc(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_erow_out) ) then
             do k = 1 , kz
-              atm_stats_erow_out(:,:,k) = statsdetrw(jci1:jci2,ici1:ici2,k)
+              atm_stats_erow_out(:,:,k) = ngs%statsdetrw(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_eroc_out) ) then
             do k = 1 , kz
-              atm_stats_eroc_out(:,:,k) = statsdetrc(jci1:jci2,ici1:ici2,k)
+              atm_stats_eroc_out(:,:,k) = ngs%statsdetrc(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_evw_out) ) then
             do k = 1 , kz
-              atm_stats_evw_out(:,:,k) = statsevapw(jci1:jci2,ici1:ici2,k)
+              atm_stats_evw_out(:,:,k) = ngs%statsevapw(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_evc_out) ) then
             do k = 1 , kz
-              atm_stats_evc_out(:,:,k) = statsevapc(jci1:jci2,ici1:ici2,k)
+              atm_stats_evc_out(:,:,k) = ngs%statsevapc(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_con1w_out) ) then
             do k = 1 , kz
-              atm_stats_con1w_out(:,:,k) = statscond1w(jci1:jci2,ici1:ici2,k)
+              atm_stats_con1w_out(:,:,k) = &
+                             ngs%statscond1w(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_con1c_out) ) then
             do k = 1 , kz
-              atm_stats_con1c_out(:,:,k) = statscond1c(jci1:jci2,ici1:ici2,k)
+              atm_stats_con1c_out(:,:,k) = &
+                             ngs%statscond1c(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_con2w_out) ) then
             do k = 1 , kz
-              atm_stats_con2w_out(:,:,k) = statscond2w(jci1:jci2,ici1:ici2,k)
+              atm_stats_con2w_out(:,:,k) = &
+                             ngs%statscond2w(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_con2c_out) ) then
             do k = 1 , kz
-              atm_stats_con2c_out(:,:,k) = statscond2c(jci1:jci2,ici1:ici2,k)
+              atm_stats_con2c_out(:,:,k) = &
+                             ngs%statscond2c(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_dep_out) ) then
             do k = 1 , kz
-              atm_stats_dep_out(:,:,k) = statsdepos(jci1:jci2,ici1:ici2,k)
+              atm_stats_dep_out(:,:,k) = ngs%statsdepos(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_melt_out) ) then
             do k = 1 , kz
-              atm_stats_melt_out(:,:,k) = statsmelt(jci1:jci2,ici1:ici2,k)
+              atm_stats_melt_out(:,:,k) = ngs%statsmelt(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_frz_out) ) then
             do k = 1 , kz
-              atm_stats_frz_out(:,:,k) = statsfrz(jci1:jci2,ici1:ici2,k)
+              atm_stats_frz_out(:,:,k) = ngs%statsfrz(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_rainev_out) ) then
             do k = 1 , kz
-              atm_stats_rainev_out(:,:,k) = statsrainev(jci1:jci2,ici1:ici2,k)
+              atm_stats_rainev_out(:,:,k) = &
+                             ngs%statsrainev(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_snowev_out) ) then
             do k = 1 , kz
-              atm_stats_snowev_out(:,:,k) = statssnowev(jci1:jci2,ici1:ici2,k)
+              atm_stats_snowev_out(:,:,k) = &
+                             ngs%statssnowev(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_autocw_out) ) then
             do k = 1 , kz
-              atm_stats_autocw_out(:,:,k) = statsautocvw(jci1:jci2,ici1:ici2,k)
+              atm_stats_autocw_out(:,:,k) = &
+                             ngs%statsautocvw(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_autocc_out) ) then
             do k = 1 , kz
-              atm_stats_autocc_out(:,:,k) = statsautocvc(jci1:jci2,ici1:ici2,k)
+              atm_stats_autocc_out(:,:,k) = &
+                             ngs%statsautocvc(jci1:jci2,ici1:ici2,k)
             end do
           end if
         end if

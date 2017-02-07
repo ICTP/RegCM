@@ -37,7 +37,7 @@ module mod_init
   use rrtmg_lw_init
   use mod_pbl_interface
   use mod_diffusion , only : initialize_diffusion
-  use mod_precip
+  use mod_micro_interface
   use mod_bdycod
   use mod_mpmessage
   use mod_sun

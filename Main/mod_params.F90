@@ -33,8 +33,7 @@ module mod_params
 #ifdef CLM45
   use mod_clm_regcm
 #endif
-  use mod_precip
-  use mod_cloud_s1
+  use mod_micro_interface
   use mod_split
   use mod_slice
   use mod_bdycod
@@ -1377,7 +1376,7 @@ module mod_params
     call allocate_pblscheme
 
     if ( ipptls > 0 ) then
-      call allocate_mod_precip
+      call allocate_micro
     end if
 
     call allocate_mod_split
@@ -1385,10 +1384,6 @@ module mod_params
     call allocate_mod_savefile
 
     call allocate_surface_model
-
-    if ( ipptls == 2 ) then
-      call allocate_mod_cloud_s1
-    end if
 
     call allocate_radiation
 
@@ -1793,7 +1788,7 @@ module mod_params
     if ( isladvec == 1 ) then
       call init_sladvection
     end if
-    call init_precip
+    call init_micro
     if ( ichem == 1 ) then
       call init_chem
       do n = 1 , ntr
@@ -2159,10 +2154,6 @@ module mod_params
         write(stdout,'(a,f11.6)') '  CAPE removal time max.   : ', kf_max_dtcape
         write(stdout,'(a,f11.6)') '  TKE maximum in sub cloud : ', kf_tkemax
       end if
-    end if
-
-    if ( ipptls == 2 ) then
-      call init_cloud_s1
     end if
 
     call init_pblscheme

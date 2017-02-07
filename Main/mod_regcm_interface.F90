@@ -38,7 +38,6 @@ module mod_regcm_interface
   use mod_params
   use mod_tendency
   use mod_service
-  use mod_cloud_s1
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif

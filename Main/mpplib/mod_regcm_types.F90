@@ -623,6 +623,64 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:) :: kpbl
   end type pbl_2_mod
 
+  type mod_2_micro
+    real(rkx) , pointer , dimension(:,:) :: xlat     ! mddom
+    real(rkx) , pointer , dimension(:,:) :: psb      ! sfc
+    real(rkx) , pointer , dimension(:,:,:) :: pfcc   ! from atm
+    real(rkx) , pointer , dimension(:,:,:) :: phs    ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: pfs    ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: t      ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: rho    ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: pverv  ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: verv   ! from atms
+    real(rkx) , pointer , dimension(:,:,:,:) :: qxx  ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: qs     ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: rh     ! from atms
+    real(rkx) , pointer , dimension(:,:,:) :: fcc    ! Cloud cover
+    real(rkx) , pointer , dimension(:,:,:) :: heatrt ! radiation heat rate
+    real(rkx) , pointer , dimension(:,:,:) :: qdetr  ! conv. detr. water
+    real(rkx) , pointer , dimension(:,:,:) :: ccn    ! CCN from chem
+    real(rkx) , pointer , dimension(:,:,:) :: qvn    ! qxx(:,:,:,iqv)
+    real(rkx) , pointer , dimension(:,:,:) :: qcn    ! qxx(:,:,:,iqc)
+    real(rkx) , pointer , dimension(:,:,:) :: qin    ! qxx(:,:,:,iqi)
+  end type mod_2_micro
+
+  type micro_2_mod
+    real(rkx) , pointer , dimension(:,:) :: rainnc    ! sfc
+    real(rkx) , pointer , dimension(:,:) :: lsmrnc    ! sfc
+    real(rkx) , pointer , dimension(:,:) :: snownc    ! sfc
+    real(rkx) , pointer , dimension(:,:,:) :: rainls  ! Rain from here
+    real(rkx) , pointer , dimension(:,:,:) :: remrat  ! Rain from here
+    real(rkx) , pointer , dimension(:,:,:) :: rembc   ! Rain from here
+    real(rkx) , pointer , dimension(:,:,:) :: tten    ! tendency of temperature
+    real(rkx) , pointer , dimension(:,:,:,:) :: qxten ! tendency of qx
+    real(rkx) , pointer , dimension(:,:,:) :: dia_qcr ! diagnostic for ccn
+    real(rkx) , pointer , dimension(:,:,:) :: dia_qcl ! diagnostic for ccn
+    real(rkx) , pointer , dimension(:,:,:) :: dia_acr ! diagnostic for ccn
+  end type micro_2_mod
+
+  type nogtom_stats
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statssupw
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statssupc
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statserosw
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statserosc
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsdetrw
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsdetrc
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsevapw
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsevapc
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statscond1w
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statscond1c
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statscond2w
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statscond2c
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsdepos
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsmelt
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsfrz
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsrainev
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statssnowev
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsautocvw
+    real(rkx) , public  , pointer, dimension(:,:,:) :: statsautocvc
+  end type nogtom_stats
+
 end module mod_regcm_types
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
