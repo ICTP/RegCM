@@ -1176,7 +1176,7 @@ module mod_params
       end if
     end if
 
-    if ( ipptls == 2 ) then
+    if ( ipptls == 2 .or. ipptls == 3 ) then
       nqx = 5
       iqfrst = iqc
       iqlst  = iqs

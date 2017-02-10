@@ -775,7 +775,7 @@ module mod_atm_interface
       call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
       call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
       call getmem2d(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
-      if ( ipptls == 2 ) then
+      if ( ipptls == 2 .or. ipptls == 3 ) then
         call getmem2d(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
       end if
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')

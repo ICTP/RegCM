@@ -141,6 +141,8 @@ module mod_constants
   real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.0932676000
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rkx) , parameter :: cpw = 4186.95_rkx
+  ! Specific heat of ice at 0 Celsius J/kg/K
+  real(rkx) , parameter :: cpi = 2106.0_rkx
   ! Specific heat of water at 0 Celsius J/kg/K
   real(rkx) , parameter :: cpw0 = 4218.0_rkx
   ! Specific heat of water vapour
@@ -177,7 +179,8 @@ module mod_constants
   real(rkx) , parameter :: hcrm1 = hcratio - d_one
   real(rkx) , parameter :: rhoh2o = 1000.0_rkx
   real(rkx) , parameter :: rhosea = 1026.0_rkx
-  real(rkx) , parameter :: rhosnow = 330.0_rkx
+  real(rkx) , parameter :: rhosnow = 100.0_rkx
+  real(rkx) , parameter :: rhosnowp = 330.0_rkx
   real(rkx) , parameter :: rhoice = 917.0_rkx
   real(rkx) , parameter :: tzero = 273.15_rkx
   real(rkx) , parameter :: tiso =  216.65_rkx
@@ -214,6 +217,7 @@ module mod_constants
   real(rkx) , parameter :: stdp = 1.013250e5_rkx
   real(rkx) , parameter :: stdpmb = 1013.250_rkx
   real(rkx) , parameter :: stdt = 288.15_rkx
+  real(rkx) , parameter :: stdrho = 1.28_rkx
   real(rkx) , parameter :: lrate = 0.00649_rkx ! K/m from MSL up to 11 km
   real(rkx) , parameter :: bltop = 0.960_rkx
 
@@ -237,6 +241,7 @@ module mod_constants
   real(rkx) , parameter :: invpi = d_one/mathpi
   real(rkx) , parameter :: halfpi = mathpi*d_half
   real(rkx) , parameter :: twopi = mathpi*d_two
+  real(rkx) , parameter :: pisqr = mathpi*mathpi
   real(rkx) , parameter :: degrad = mathpi/180.0_rkx
   real(rkx) , parameter :: raddeg = 180.0_rkx/mathpi
 
@@ -303,7 +308,7 @@ module mod_constants
   real(rkx) , parameter :: lnd_sfcemiss = 0.985_rkx
   real(rkx) , parameter :: ocn_sfcemiss = 0.984_rkx
 
-  ! Constants used in Kain-Fritsch
+  ! Constants used in Kain-Fritsch and WSM5
   real(rkx) , parameter :: aliq = 613.3_rkx
   real(rkx) , parameter :: bliq = 17.502_rkx
   real(rkx) , parameter :: cliq = 4780.8_rkx

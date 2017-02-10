@@ -1352,7 +1352,7 @@ module mod_micro_nogtom
           if ( ltklt0 ) then
             ! Snow Autoconversion rate follow Lin et al. 1983
             if ( icecld > activqx ) then
-              alpha1 = dt*1.0e-3_rkx*exp(0.025_rkx*tc)
+              alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),icecld)
               arg = (icecld/rlcritsnow)**2
               if ( arg < 25.0_rkx ) then
                 snowaut = alpha1 * (d_one - exp(-arg))
@@ -2415,7 +2415,7 @@ module mod_micro_nogtom
             if ( ltklt0 ) then
               ! Snow Autoconversion rate follow Lin et al. 1983
               if ( icecld > activqx ) then
-                alpha1 = dt*1.0e-3_rkx*exp(0.025_rkx*tc)
+                alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),icecld)
                 arg = (icecld/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
                   snowaut = alpha1 * (d_one - exp(-arg))
@@ -3020,14 +3020,14 @@ module mod_micro_nogtom
       solqb(iqql,iqqv) = d_zero
       solqa(iqqr,iqql) = solqa(iqqr,iqql) - auto_rate_kessl*autocrit_kessl
       solqa(iqql,iqqr) = solqa(iqql,iqqr) + auto_rate_kessl*autocrit_kessl
-      solqb(iqqr,iqql) = solqb(iqqr,iqql) + dt*auto_rate_kessl
+      solqb(iqqr,iqql) = solqb(iqqr,iqql) + min(dt*auto_rate_kessl,liqcld)
     end subroutine kessler
 
     subroutine sundqvist
       implicit none
       real(rkx) :: precip , cfpr , arg
       real(rkx) , parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
-      alpha1 = rkconv*dt
+      alpha1 = min(rkconv*dt,liqcld)
       if ( lccn ) then
         if ( ccn > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion

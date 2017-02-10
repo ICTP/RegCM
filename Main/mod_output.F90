@@ -947,7 +947,7 @@ module mod_output
 
         if ( ipptls > 0 ) then
           call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
-          if ( ipptls == 2 ) then
+          if ( ipptls == 2 .or. ipptls == 3 ) then
             call grid_collect(sfs%snownc,snownc_io,jci1,jci2,ici1,ici2)
           end if
         end if
@@ -1075,7 +1075,7 @@ module mod_output
     if ( ldoatm ) then
       sfs%rainc   = d_zero
       sfs%rainnc  = d_zero
-      if ( ipptls == 2 ) sfs%snownc  = d_zero
+      if ( ipptls == 2 .or. ipptls == 3 ) sfs%snownc  = d_zero
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

@@ -684,7 +684,7 @@ module mod_ocn_lake
         ds = dtx *                                                  &
              ( (-ld + 0.97_rkx*sigm*t4(tf) + psi * (eomb(tf)-ea) +    &
                 theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
-              (rhosnow*li)
+              (rhosnowp*li)
         if ( ds > d_zero ) ds = d_zero
         hs = hs + ds * 10.0_rkx
         if ( hs < d_zero ) then

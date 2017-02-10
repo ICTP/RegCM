@@ -29,6 +29,7 @@ module mod_micro_interface
   use mod_runparams
   use mod_micro_nogtom
   use mod_micro_subex
+  use mod_micro_wsm5
 
   implicit none
 
@@ -107,6 +108,8 @@ module mod_micro_interface
                                     ici1,ici2,1,kz,'micro:statsautocvc')
       end if
 #endif
+    else if ( ipptls == 3 ) then
+      call allocate_mod_wsm5
     end if
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'subex:totc')
     do i = 1 , nchi
@@ -125,6 +128,7 @@ module mod_micro_interface
     call assignpnt(atms%pb3d,mo2mc%phs)
     call assignpnt(atms%pf3d,mo2mc%pfs)
     call assignpnt(atms%tb3d,mo2mc%t)
+    call assignpnt(atms%dzq,mo2mc%delz)
     call assignpnt(atms%wpx3d,mo2mc%pverv)
     call assignpnt(atms%wb3d,mo2mc%verv)
     call assignpnt(atms%qxb3d,mo2mc%qxx)
@@ -166,6 +170,8 @@ module mod_micro_interface
         call init_subex(mddom%xlat)
       case (2)
         call init_nogtom(mddom%ldmsk)
+      case(3)
+        call init_wsm5
       case default
         return
     end select
@@ -179,6 +185,8 @@ module mod_micro_interface
         call subex(mo2mc,mc2mo)
       case (2)
         call nogtom(mo2mc,ngs,mc2mo)
+      case (3)
+        call wsm5(mo2mc,mc2mo)
       case default
         return
     end select

@@ -327,7 +327,7 @@ module mod_init
 
       if ( ipptls > 0 ) then
         call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
-        if ( ipptls == 2 ) then
+        if ( ipptls == 2 .or. ipptls == 3 ) then
           call grid_distribute(snownc_io,sfs%snownc,jci1,jci2,ici1,ici2)
         end if
       end if

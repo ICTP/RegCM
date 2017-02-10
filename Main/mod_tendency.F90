@@ -78,7 +78,7 @@ module mod_tendency
     implicit none
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
     call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
-    if ( ipptls == 2 ) then
+    if ( ipptls == 2 .or. ipptls == 3 ) then
       call getmem3d(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
     else
       call assignpnt(atmx%qx,qcd,iqc)
@@ -165,7 +165,7 @@ module mod_tendency
     !
     call decouple
     !
-    if ( ipptls == 2 ) then
+    if ( ipptls == 2 .or. ipptls == 3 ) then
       qcd(:,:,:) = d_zero
       do n = iqfrst , iqlst
         do k = 1 , kz
