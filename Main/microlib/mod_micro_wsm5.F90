@@ -201,7 +201,7 @@ module mod_micro_wsm5
     type(mod_2_micro) , intent(in) :: mo2mc
     type(micro_2_mod) , intent(out) :: mc2mo
 
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , k , kk , n
     real(rkx) :: pf1 , pf2
 
     ! to calculate effective radius for radiation
@@ -213,17 +213,18 @@ module mod_micro_wsm5
 
     do k = 1 , kz
       n = 1
+      kk = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          t(n,k) = mo2mc%t(j,i,k)
-          qv(n,k) = mo2mc%qxx(j,i,k,iqv)
-          qci(n,k,1) = mo2mc%qxx(j,i,k,iqc)
-          qci(n,k,2) = mo2mc%qxx(j,i,k,iqi)
-          qrs(n,k,1) = mo2mc%qxx(j,i,k,iqr)
-          qrs(n,k,2) = mo2mc%qxx(j,i,k,iqs)
-          den(n,k) = mo2mc%rho(j,i,k)
-          delz(n,k) = mo2mc%delz(j,i,k)
-          p(n,k) = mo2mc%phs(j,i,k)
+          t(n,kk) = mo2mc%t(j,i,k)
+          qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
+          qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc)
+          qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi)
+          qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)
+          qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs)
+          den(n,kk) = mo2mc%rho(j,i,k)
+          delz(n,kk) = mo2mc%delz(j,i,k)
+          p(n,kk) = mo2mc%phs(j,i,k)
           n = n + 1
         end do
       end do
@@ -247,20 +248,21 @@ module mod_micro_wsm5
 
     do k = 1 , kz
       n = 1
+      kk = kzp1 - k
       do i = ici1 , ici2
         do j = jci1 , jci2
           mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) + &
-                  (t(n,k)-mo2mc%t(j,i,k))*ptfac(n)
+                  (t(n,kk)-mo2mc%t(j,i,k))*ptfac(n)
           mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
-                  (qv(n,k)-mo2mc%qxx(j,i,k,iqv))*ptfac(n)
+                  (qv(n,kk)-mo2mc%qxx(j,i,k,iqv))*ptfac(n)
           mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) + &
-                  (qci(n,k,1)-mo2mc%qxx(j,i,k,iqc))*ptfac(n)
+                  (qci(n,kk,1)-mo2mc%qxx(j,i,k,iqc))*ptfac(n)
           mc2mo%qxten(j,i,k,iqi) = mc2mo%qxten(j,i,k,iqi) + &
-                  (qci(n,k,2)-mo2mc%qxx(j,i,k,iqi))*ptfac(n)
+                  (qci(n,kk,2)-mo2mc%qxx(j,i,k,iqi))*ptfac(n)
           mc2mo%qxten(j,i,k,iqr) = mc2mo%qxten(j,i,k,iqr) + &
-                  (qrs(n,k,1)-mo2mc%qxx(j,i,k,iqr))*ptfac(n)
+                  (qrs(n,kk,1)-mo2mc%qxx(j,i,k,iqr))*ptfac(n)
           mc2mo%qxten(j,i,k,iqs) = mc2mo%qxten(j,i,k,iqs) + &
-                  (qrs(n,k,2)-mo2mc%qxx(j,i,k,iqs))*ptfac(n)
+                  (qrs(n,kk,2)-mo2mc%qxx(j,i,k,iqs))*ptfac(n)
           n = n + 1
         end do
       end do
@@ -269,10 +271,11 @@ module mod_micro_wsm5
     if ( ichem == 1 ) then
       do k = 1 , kz
         n = 1
+        kk = kzp1 - k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            pf1 = fall(n,k,1)*delz(n,k)/rhoh2o*1000.0_rkx/qrs(n,k,1)
-            pf2 = fall(n,k,2)*delz(n,k)/rhoh2o*1000.0_rkx/qrs(n,k,2)
+            pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o*1000.0_rkx/qrs(n,kk,1)
+            pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o*1000.0_rkx/qrs(n,kk,2)
             mc2mo%remrat(j,i,k) = pf1 + pf2
             n = n + 1
           end do
