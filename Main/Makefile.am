@@ -18,10 +18,10 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 vpath %.o $(REGCM_ROOT)/Share:mpplib:netlib:batslib:ocnlib:chemlib:clmlib:\
-          microlib:cumlib:radlib:pbllib:clmlib/clm4.5/:.
+	microlib:cloudlib:cumlib:radlib:pbllib:clmlib/clm4.5/:.
 vpath %.inc $(REGCM_ROOT)/Share:.
 
-SUBDIRS = mpplib netlib batslib ocnlib chemlib clmlib microlib \
+SUBDIRS = mpplib netlib batslib ocnlib chemlib clmlib microlib cloudlib \
           cumlib radlib pbllib
 
 include $(REGCM_ROOT)/makeinc
@@ -39,6 +39,7 @@ OCNLIBPTH = ./ocnlib
 NETLIBPTH = ./netlib
 CHELIBPTH = ./chemlib
 MICROLIBPTH = ./microlib
+CLOUDLIBPTH = ./cloudlib
 CUMLIBPTH = ./cumlib
 RADLIBPTH = ./radlib
 PBLLIBPTH = ./pbllib
@@ -52,6 +53,7 @@ OCNLIB = $(OCNLIBPTH)/libocn.a
 NETLIB = $(NETLIBPTH)/libnetlib.a
 CHELIB = $(CHELIBPTH)/libchem.a
 MICROLIB = $(MICROLIBPTH)/libmicro.a
+CLOUDLIB = $(CLOUDLIBPTH)/libcloud.a
 CUMLIB = $(CUMLIBPTH)/libcum.a
 RADLIB = $(RADLIBPTH)/librad.a
 PBLLIB = $(PBLLIBPTH)/libpbl.a
@@ -68,6 +70,7 @@ endif
 LNETLIB = -L$(NETLIBPTH) -lnetlib
 LCHELIB = -L$(CHELIBPTH) -lchem
 LMICROLIB = -L$(MICROLIBPTH) -lmicro
+LCLOUDLIB = -L$(CLOUDLIBPTH) -lcloud
 LCUMLIB = -L$(CUMLIBPTH) -lcum
 LRADLIB = -L$(RADLIBPTH) -lrad
 LPBLLIB = -L$(PBLLIBPTH) -lpbl
@@ -77,17 +80,17 @@ LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
 if COMPILER_SUN
   CPPFLAGS += -M$(MPPLIBPTH) -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) \
               -M$(CHELIBPTH) -M$(BATLIBPTH) -M$(OCNLIBPTH) -M$(CUMLIBPTH)  \
-              -M$(MICROLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) -M$(RRTMSWLIBPTH) \
-              -M$(CLMLIBPTH)/clm4.5
+              -M$(MICROLIBPTH) -M$(CLOUDLIBPTH) -M$(RADLIBPTH) -M$(PBLLIBPTH) \
+              -M$(RRTMSWLIBPTH) -M$(CLMLIBPTH)/clm4.5
 else
   CPPFLAGS += -I$(MPPLIBPTH) -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) \
               -I$(CHELIBPTH) -I$(BATLIBPTH) -I$(OCNLIBPTH) -I$(CUMLIBPTH)  \
-              -I$(MICROLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) -I$(RRTMSWLIBPTH) \
-              -I$(CLMLIBPTH)/clm4.5
+              -I$(MICROLIBPTH) -I$(CLOUDLIBPTH) -I$(RADLIBPTH) -I$(PBLLIBPTH) \
+              -I$(RRTMSWLIBPTH) -I$(CLMLIBPTH)/clm4.5
 endif
 
 LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) $(LOCNLIB) \
-       $(LMICROLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
+       $(LMICROLIB) $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
        $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB)
 
 bin_PROGRAMS = regcm
@@ -150,7 +153,7 @@ else
 mod_params.o : mod_params.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cu_interface.o mod_domain.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_pbl_interface.o mod_micro_interface.o mod_rad_interface.o mod_runparams.o mod_savefile.o mod_service.o mod_slabocean.o mod_sldepparam.o mod_slice.o mod_split.o mod_tendency.o mod_nhinterp.o mod_sound.o mod_diffusion.o mod_sladvection.o
 endif
 mod_pbl_interface.o : mod_pbl_interface.F90 mod_atm_interface.o mod_che_common.o mod_che_interface.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
-mod_micro_interface.o : mod_micro_interface.F90 mod_realkinds.o mod_service.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_regcm_types.o mod_runparams.o mod_micro_nogtom.o mod_micro_subex.o mod_micro_wsm5.o pfesat.inc pfwsat.inc clwfromt.inc
+mod_micro_interface.o : mod_micro_interface.F90 mod_realkinds.o mod_service.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_regcm_types.o mod_runparams.o mod_micro_nogtom.o mod_micro_subex.o mod_micro_wsm5.o mod_cloud_subex.o pfesat.inc pfwsat.inc clwfromt.inc
 mod_rad_interface.o : mod_rad_interface.F90 mod_atm_interface.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rad_common.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_ipcc_scenario.o mod_realkinds.o mod_regcm_types.o mod_rrtmg_driver.o mod_runparams.o
 mod_timefilter.o : mod_timefilter.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_dynparam.o mod_runparams.o
 if DO_COMPILE_CPL
@@ -180,5 +183,6 @@ endif
 #
 regcm.o : regcm.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_interface.o mod_runparams.o \
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) \
-	 $(OCNLIB) $(MICROLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) $(RRTMSWLIB)
+	 $(OCNLIB) $(MICROLIB) $(CLOUDLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) \
+         $(RRTMSWLIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<

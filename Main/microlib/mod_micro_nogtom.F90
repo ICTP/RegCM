@@ -1352,8 +1352,8 @@ module mod_micro_nogtom
           if ( ltklt0 ) then
             ! Snow Autoconversion rate follow Lin et al. 1983
             if ( icecld > activqx ) then
-              alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),icecld)
-              arg = (icecld/rlcritsnow)**2
+              alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),qinow)
+              arg = (qinow/rlcritsnow)**2
               if ( arg < 25.0_rkx ) then
                 snowaut = alpha1 * (d_one - exp(-arg))
               else
@@ -2415,8 +2415,8 @@ module mod_micro_nogtom
             if ( ltklt0 ) then
               ! Snow Autoconversion rate follow Lin et al. 1983
               if ( icecld > activqx ) then
-                alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),icecld)
-                arg = (icecld/rlcritsnow)**2
+                alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),qinow)
+                arg = (qinow/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
                   snowaut = alpha1 * (d_one - exp(-arg))
                 else
@@ -3003,16 +3003,16 @@ module mod_micro_nogtom
     subroutine klein_and_pincus
       implicit none
       solqb(iqql,iqqv) = d_zero
-      solqb(iqqr,iqql) = solqb(iqqr,iqql) + &
-                         dt*auto_rate_klepi * (qlnow**(2.3_rkx))
+      rainaut = dt*auto_rate_klepi * (qlnow**(2.3_rkx))
+      solqb(iqqr,iqql) = solqb(iqqr,iqql) + rainaut
       solqa(iqqr,iqql) = d_zero
     end subroutine klein_and_pincus
 
     subroutine khairoutdinov_and_kogan
       implicit none
       solqb(iqql,iqqv) = d_zero
-      solqb(iqqr,iqql) = solqb(iqqr,iqql) + &
-                         dt*auto_rate_khair*(qlnow**(auto_expon_khair))
+      rainaut = dt*auto_rate_khair*(qlnow**(auto_expon_khair))
+      solqb(iqqr,iqql) = solqb(iqqr,iqql) + rainaut
     end subroutine khairoutdinov_and_kogan
 
     subroutine kessler
@@ -3020,14 +3020,15 @@ module mod_micro_nogtom
       solqb(iqql,iqqv) = d_zero
       solqa(iqqr,iqql) = solqa(iqqr,iqql) - auto_rate_kessl*autocrit_kessl
       solqa(iqql,iqqr) = solqa(iqql,iqqr) + auto_rate_kessl*autocrit_kessl
-      solqb(iqqr,iqql) = solqb(iqqr,iqql) + min(dt*auto_rate_kessl,liqcld)
+      rainaut = min(dt*auto_rate_kessl,qlnow)
+      solqb(iqqr,iqql) = solqb(iqqr,iqql) + rainaut
     end subroutine kessler
 
     subroutine sundqvist
       implicit none
       real(rkx) :: precip , cfpr , arg
       real(rkx) , parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
-      alpha1 = min(rkconv*dt,liqcld)
+      alpha1 = min(rkconv*dt,qlnow)
       if ( lccn ) then
         if ( ccn > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion
@@ -3049,7 +3050,7 @@ module mod_micro_nogtom
         alpha1 = alpha1*cfpr
         critauto = critauto/max(cfpr,dlowval)
       end if
-      arg = (liqcld/critauto)**2
+      arg = (qlnow/critauto)**2
       ! security for exp for some compilers
       if ( arg < 25.0_rkx ) then
         rainaut = alpha1*(d_one - exp(-arg))

@@ -527,7 +527,8 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_CBMZ_NEW/Makefile \
                  Main/cumlib/Makefile Main/microlib/Makefile \
                  Main/radlib/Makefile Main/radlib/RRTMG_SW/Makefile \
-                 Main/pbllib/Makefile Tools/Programs/CheckSun/Makefile \
+                 Main/pbllib/Makefile Main/cloudlib/Makefile \
+                 Tools/Programs/CheckSun/Makefile \
                  Tools/Programs/RegCM_read/Makefile \
                  Tools/Programs/timeseries/Makefile])
 

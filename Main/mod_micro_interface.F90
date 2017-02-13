@@ -30,6 +30,8 @@ module mod_micro_interface
   use mod_micro_nogtom
   use mod_micro_subex
   use mod_micro_wsm5
+  use mod_cloud_subex
+  use mod_cloud_xuran
 
   implicit none
 
@@ -191,35 +193,10 @@ module mod_micro_interface
         return
     end select
   end subroutine microscheme
-
-  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  !                                                                 c
-  ! This subroutine computes the fractional cloud coverage and      c
-  ! liquid water content (in cloud value).  Both are use in         c
-  ! radiation.                                                      c
-  !                                                                 c
-  ! The fractional coverage of large scale clouds is a function of  c
-  ! relative humidity, using the relationship of sundqvist et       c
-  ! al., 1989.  The relative humidity at which clouds begin to      c
-  ! form is lower over land than ocean, due to the greater number   c
-  ! of cloud condensation nucleii.                                  c
-  !                                                                 c
-  ! The fracional coverage of convective clouds is passed in from   c
-  ! the convection scheme.                                          c
-  !                                                                 c
-  ! The large-scale and convective clouds are combined as follows:  c
-  ! 1) If the convective cloud fraction > large scale fraction, the c
-  ! convective fraction and water content are used (this occurs     c
-  ! infrequently).                                                  c
-  ! 2) Otherwise, the cloud fraction equals the large-scale         c
-  ! fraction AND the water content is a weighted average of both    c
-  ! types.                                                          c
-  !                                                                 c
-  ! Note: the incloud water content (g/m3) is passed to radiation   c
-  !                                                                 c
-  ! See Pal et al (2000) for more info.                             c
-  !                                                                 c
-  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
+  ! This subroutine computes the fractional cloud coverage and
+  ! liquid water content (in cloud value).  Both are use in
+  ! radiation.
   !
   subroutine cldfrac
     use mod_atm_interface , only : mddom , atms , cldlwc , cldfra
@@ -228,12 +205,20 @@ module mod_micro_interface
     integer(ik4) :: i , j , k
     real(rkx) :: botm , rm , qcld
 
+    select case (icldfrac)
+      case (1)
+        call xuran_cldfrac(mo2mc%phs,mo2mc%qcn,mo2mc%qvn, &
+                           mo2mc%qs,mo2mc%rh,mo2mc%fcc)
+      case default
+        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qcn,mo2mc%qvn, &
+                           mo2mc%rh,tc0,rh0,mo2mc%fcc)
+    end select
+
     if ( ipptls == 2 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k)) / &
-                                (d_one+mo2mc%qvn(j,i,k))
+            totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
           end do
         end do
       end do
@@ -241,90 +226,7 @@ module mod_micro_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            totc(j,i,k) = mo2mc%qcn(j,i,k)/(d_one+mo2mc%qvn(j,i,k))
-          end do
-        end do
-      end do
-    end if
-
-    !-----------------------------------------
-    ! 1.  Determine large-scale cloud fraction
-    !-----------------------------------------
-
-    if ( icldfrac == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! To calculate cloud fraction using the semi-empirical formula
-            ! of Xu and Randall (1996, JAS)
-            if ( mo2mc%rh(j,i,k) >= rhmax ) then  ! full cloud cover
-              mo2mc%fcc(j,i,k) = hicld
-            else if ( mo2mc%rh(j,i,k) <= rhmin ) then
-              mo2mc%fcc(j,i,k) = lowcld
-            else
-              qcld = totc(j,i,k)
-              botm = exp(0.49_rkx*log((rhmax-mo2mc%rh(j,i,k))*mo2mc%qs(j,i,k)))
-              rm = exp(0.25_rkx*log(mo2mc%rh(j,i,k)))
-              if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
-                mo2mc%fcc(j,i,k) = rm
-              else
-                mo2mc%fcc(j,i,k) = rm*(d_one-exp(-100._rkx*(qcld/botm)))
-              end if
-            end if
-          end do
-        end do
-      end do
-    else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! Adjusted relative humidity threshold
-            if ( mo2mc%t(j,i,k) > tc0 ) then
-              rh0adj = rh0(j,i)
-            else ! high cloud (less subgrid variability)
-              rh0adj = rhmax-(rhmax-rh0(j,i)) / &
-                        (d_one+0.15_rkx*(tc0-mo2mc%t(j,i,k)))
-            end if
-            rh0adj = max(rhmin+eps,min(rh0adj,rhmax-eps))
-            if ( mo2mc%rh(j,i,k) >= rhmax ) then     ! full cloud cover
-              mo2mc%fcc(j,i,k) = hicld
-            else if ( mo2mc%rh(j,i,k) <= rhmin ) then
-              mo2mc%fcc(j,i,k) = lowcld
-            else
-              ! Use Sundqvist (1989) formula
-              mo2mc%fcc(j,i,k) = d_one-sqrt(d_one-(mo2mc%rh(j,i,k)-rh0adj) / &
-                                             (rhmax-rh0adj))
-            end if
-          end do
-        end do
-      end do
-    end if
-    !
-    ! Correction:
-    !   Ivan Guettler, 14.10.2010.
-    ! Based on: Vavrus, S. and Waliser D., 2008,
-    ! An Improved Parameterization for Simulating Arctic Cloud Amount
-    ! in the CCSM3 Climate Model, J. Climate
-    !
-    if ( ipptls == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! clouds below 750hPa, extremely cold conditions,
-            !  when no cld microphy
-            if ( mo2mc%phs(j,i,k) >= 75000.0_rkx .and. &
-                 mo2mc%qvn(j,i,k) <= 0.003_rkx ) then
-              mo2mc%fcc(j,i,k) = mo2mc%fcc(j,i,k) * &
-                     max(0.15_rkx,min(d_one,mo2mc%qvn(j,i,k)/0.003_rkx))
-              !
-              ! Tuğba Öztürk mod for Siberia
-              !
-              ! mo2mc%fcc(j,i,k) = (mo2mc%rh(j,i,k)**0.25_rkx)* &
-              !      (d_one-dexp((-100.0_rkx*mo2mc%qcn(j,i,k)) / &
-              !     ((rhmax-mo2mc%rh(j,i,k))*mo2mc%qs(j,i,k))**0.49_rkx))
-              !
-              !
-            end if
+            totc(j,i,k) = mo2mc%qcn(j,i,k)
           end do
         end do
       end do
@@ -353,13 +255,6 @@ module mod_micro_interface
       end do
     end if
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mo2mc%fcc(j,i,k) = min(max(mo2mc%fcc(j,i,k),lowcld),hicld)
-        end do
-      end do
-    end do
     !-----------------------------------------------------------------
     ! 2.  Combine large-scale and convective fraction and liquid water
     !     to be passed into radiation.
@@ -517,6 +412,5 @@ module mod_micro_interface
     end do
   end subroutine condtq
 
-! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
 end module mod_micro_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
