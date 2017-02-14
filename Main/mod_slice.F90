@@ -262,16 +262,16 @@ module mod_slice
           end do
         end do
       end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ice1ga , ice2ga
+        do j = jce1ga , jce2ga
           cell = ptop * rpsb(j,i)
           atms%za(j,i,kz) = rovg * atm0%t(j,i,kz) * &
                    log((sigma(kzp1)+cell)/(hsigma(kz)+cell))
         end do
       end do
       do k = kz-1 , 1 , -1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
             cell = ptop * rpsb(j,i)
             atms%za(j,i,k) = atms%za(j,i,k+1) + rovg * atm0%t(j,i,k) * &
                      log((hsigma(k+1)+cell)/(hsigma(k)+cell))

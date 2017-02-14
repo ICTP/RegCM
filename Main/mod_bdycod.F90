@@ -43,6 +43,8 @@ module mod_bdycod
   private
 
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
+  public :: sponge , nudge , setup_bdycon , raydamp
+
   !
   ! West U External  = WUE
   ! West U Internal  = WUI
@@ -83,7 +85,11 @@ module mod_bdycod
     module procedure sponge4d , sponge3d , sponge2d , spongeuv
   end interface sponge
 
-  public :: sponge , nudge , setup_bdycon
+  interface raydamp
+    module procedure raydamp3
+    module procedure raydamp3d
+    module procedure raydamp4
+  end interface raydamp
 
   logical , parameter :: bdyflow = .true.
 
@@ -2846,6 +2852,125 @@ module mod_bdycod
       end do
     end do
   end subroutine couple
+
+  subroutine raydamp3d(z,u,v,uten,vten)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
+    real(rkx) :: rate , mval , lmval , rpnts , zz
+    integer(ik4) :: i , j , k
+    do k = 1 , rayndamp
+      lmval = d_zero
+      rpnts = d_zero
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          lmval = lmval + u(j,i,k)
+          rpnts = rpnts + d_one
+        end do
+      end do
+      if ( rpnts > d_zero ) lmval = lmval/rpnts
+      call meanall(lmval,mval)
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          if ( ba_dt%ibnd(j,i) < 0 ) then
+            zz = d_rfour * (z(j,i,k) + z(j+1,i,k) + z(j,i+1,k) + z(j+1,i+1,k))
+            if ( zz >= rayzd ) then
+              rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
+              uten(j,i,k) = uten(j,i,k) + rate * (mval-u(j,i,k))
+            end if
+          end if
+        end do
+      end do
+    end do
+    do k = 1 , rayndamp
+      lmval = d_zero
+      rpnts = d_zero
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          lmval = lmval + v(j,i,k)
+          rpnts = rpnts + d_one
+        end do
+      end do
+      if ( rpnts > d_zero ) lmval = lmval/rpnts
+      call meanall(lmval,mval)
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          if ( ba_dt%ibnd(j,i) < 0 ) then
+            zz = d_rfour * (z(j,i,k) + z(j+1,i,k) + z(j,i+1,k) + z(j+1,i+1,k))
+            if ( zz >= rayzd ) then
+              rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
+              vten(j,i,k) = vten(j,i,k) + rate * (mval-v(j,i,k))
+            end if
+          end if
+        end do
+      end do
+    end do
+  end subroutine raydamp3d
+
+  subroutine raydamp3(z,var,vten)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
+    real(rkx) :: rate , mval , lmval , rpnts
+    integer(ik4) :: i , j , k
+    do k = 1 , rayndamp
+      lmval = d_zero
+      rpnts = d_zero
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          lmval = lmval + var(j,i,k)
+          rpnts = rpnts + d_one
+        end do
+      end do
+      if ( rpnts > d_zero ) lmval = lmval/rpnts
+      call meanall(lmval,mval)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( ba_cr%ibnd(j,i) < 0 ) then
+            if ( z(j,i,k) >= rayzd ) then
+              rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+              vten(j,i,k) = vten(j,i,k) + rate * (mval-var(j,i,k))
+            end if
+          end if
+        end do
+      end do
+    end do
+  end subroutine raydamp3
+
+  subroutine raydamp4(z,var,vten)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
+    real(rkx) :: rate , mval , lmval , rpnts
+    integer(ik4) :: i , j , k , n
+    do n = 1 , size(var,4)
+      do k = 1 , rayndamp
+        lmval = d_zero
+        rpnts = d_zero
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mval = lmval + var(j,i,k,n)
+            rpnts = rpnts + d_one
+          end do
+        end do
+        if ( rpnts > d_zero ) lmval = lmval/rpnts
+        call meanall(lmval,mval)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( ba_cr%ibnd(j,i) < 0 ) then
+              if ( z(j,i,k) >= rayzd ) then
+                rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+                vten(j,i,k,n) = vten(j,i,k,n) + rate * (mval-var(j,i,k,n))
+              end if
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine raydamp4
 
   subroutine timeint2(a,b,c,j1,j2,i1,i2)
     implicit none

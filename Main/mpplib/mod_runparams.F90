@@ -191,16 +191,16 @@ module mod_runparams
   real(rkx) , public :: logp_lrate
   ! Upper radiative BC for non-hydrostatic core
   integer(ik4) , public :: ifupr
-  ! Top Raleigh dumping activation
-  integer(ik4) , public :: ifrayd
   ! BET parameter in sound waves removal
   real(rkx) , public :: nhbet
   ! XKD parameter in sound waves removal
   real(rkx) , public :: nhxkd
-  ! Raleygh dumping gammar
-  real(rkx) , public :: nhgammr
-  ! Raleygh dumping zdepth
-  real(rkx) , public :: nhzetad
+  ! Raleigh dumping activation
+  integer(ik4) , public :: ifrayd
+  integer(ik4) , public :: rayndamp
+  real(rkx) , public :: rayalpha0
+  real(rkx) , public :: rayzd
+  real(rkx) , public :: rayhd
 
   ! Grell cumulus scheme parameters
 

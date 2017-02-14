@@ -109,7 +109,8 @@ module mod_params
       c_rel_extrema , q_rel_extrema , t_rel_extrema
 
     namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
-      ifrayd , ckh , adyndif , nhbet , nhxkd , nhgammr , nhzetad
+      ckh , adyndif , nhbet , nhxkd , ifrayd , rayndamp , rayalpha0 ,   &
+      rayzd , rayhd
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -261,13 +262,15 @@ module mod_params
     base_state_pressure = stdp
     logp_lrate = 47.70_rkx
     ifupr = 1
-    ifrayd = 0
     ckh = d_one      ! Environmental diffusion tunable parameter
     adyndif = d_one  ! Dynamical diffusion tunable parameter
     nhbet = 0.4_rkx  ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
-    nhgammr = 0.2_rkx     ! Klemp e Lily 1978, Klemp et al. 2008
-    nhzetad = 5000.0_rkx
+    ifrayd = 1
+    rayndamp = 4
+    rayalpha0 = 0.0001_rkx
+    rayzd = 15000.0_rkx
+    rayhd = 3000.0_rkx
     !
     ! Rrtm radiation param ;
     !
@@ -691,6 +694,10 @@ module mod_params
             cftotmax = 0.99_rkx
           end if
         end if
+        if ( icldfrac > 1 .and. ipptls < 2 ) then
+          write(stdout,*) 'Will set icldfrac == 0 : missing hydrometeors'
+          icldfrac = 0
+        end if
       end if
 
       if ( any(icup == 2) ) then
@@ -1030,8 +1037,10 @@ module mod_params
       call bcast(adyndif)
       call bcast(nhbet)
       call bcast(nhxkd)
-      call bcast(nhgammr)
-      call bcast(nhzetad)
+      call bcast(rayndamp)
+      call bcast(rayalpha0)
+      call bcast(rayzd)
+      call bcast(rayhd)
     end if
 
     ! Check if really do output
@@ -2380,6 +2389,7 @@ module mod_params
         mddom%ht = mddom%ht * egrav
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
         call exchange(atm0%pr,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(atm0%t,1,jce1,jce2,ice1,ice2,1,kz)
         call psc2psd(atm0%ps,atm0%psdot)
         call exchange(atm0%psdot,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2

@@ -2565,9 +2565,13 @@ module mod_ncout
                   ncattribute_real8('sound_xkd_param',nhxkd))
           if ( ifrayd == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_gammar',nhgammr))
+                    ncattribute_integer('rayleigh_ndamp',rayndamp))
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_zetad',nhzetad))
+                    ncattribute_real8('rayleigh_alpha0',rayalpha0))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('rayleigh_zetad',rayzd))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('rayleigh_hd',rayhd))
           end if
         end if
         call outstream_addatt(outstream(i)%ncout(j), &

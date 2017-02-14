@@ -98,13 +98,6 @@ module mod_cloud_subex
       end do
     end do
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fcc(j,i,k) = max(min(fcc(j,i,k),hicld),lowcld)
-        end do
-      end do
-    end do
   end subroutine subex_cldfrac
 
 end module mod_cloud_subex

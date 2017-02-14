@@ -657,7 +657,7 @@ module mod_atm_interface
       type(reference_atmosphere) , intent(out) :: atm
       call getmem2d(atm%ps,jce1ga,jce2ga,ice1ga,ice2ga,'reference:ps')
       call getmem2d(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
-      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'reference:t')
+      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:t')
       call getmem3d(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:pr')
       call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
       call getmem3d(atm%tf,jce1,jce2,ice1,ice2,1,kzp1,'reference:tf')
@@ -813,7 +813,7 @@ module mod_atm_interface
         call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
       end if
       call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
-      call getmem3d(ax%za,jce1,jce2,ice1,ice2,1,kz,'slice:za')
+      call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
       call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
       call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
       call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')

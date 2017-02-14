@@ -32,6 +32,7 @@ module mod_micro_interface
   use mod_micro_wsm5
   use mod_cloud_subex
   use mod_cloud_xuran
+  use mod_cloud_thomp
 
   implicit none
 
@@ -143,8 +144,10 @@ module mod_micro_interface
 
     call assignpnt(atms%qxb3d,mo2mc%qvn,iqv)
     call assignpnt(atms%qxb3d,mo2mc%qcn,iqc)
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       call assignpnt(atms%qxb3d,mo2mc%qin,iqi)
+      call assignpnt(atms%qxb3d,mo2mc%qsn,iqs)
+      call assignpnt(atms%qxb3d,mo2mc%qrn,iqr)
     end if
 
     if ( ichem == 1 ) then
@@ -201,14 +204,17 @@ module mod_micro_interface
   subroutine cldfrac
     use mod_atm_interface , only : mddom , atms , cldlwc , cldfra
     implicit none
-    real(rkx) :: exlwc , rh0adj
-    integer(ik4) :: i , j , k
-    real(rkx) :: botm , rm , qcld
+    real(rkx) :: exlwc
+    integer(ik4) :: i , j , k , ichi
 
-    select case (icldfrac)
+    select case ( icldfrac )
       case (1)
         call xuran_cldfrac(mo2mc%phs,mo2mc%qcn,mo2mc%qvn, &
                            mo2mc%qs,mo2mc%rh,mo2mc%fcc)
+      case (2)
+        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn,     &
+                           mo2mc%qcn,mo2mc%qsn,mo2mc%qin,mddom%ldmsk, &
+                           ds,mo2mc%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qcn,mo2mc%qvn, &
                            mo2mc%rh,tc0,rh0,mo2mc%fcc)
@@ -255,6 +261,14 @@ module mod_micro_interface
       end do
     end if
 
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          mo2mc%fcc(j,i,k) = max(min(mo2mc%fcc(j,i,k),hicld),lowcld)
+        end do
+      end do
+    end do
+
     !-----------------------------------------------------------------
     ! 2.  Combine large-scale and convective fraction and liquid water
     !     to be passed into radiation.
@@ -273,8 +287,8 @@ module mod_micro_interface
             ! Implements CF scaling as in Liang GRL 32, 2005
             ! doi: 10.1029/2004GL022301
             if ( mo2mc%fcc(j,i,k) > lowcld+eps ) then
-              exlwc = clwfromt(mo2mc%t(j,i,k)) * &
-                              chis(int(mo2mc%fcc(j,i,k)*real(nchi-1,rkx)))
+              ichi = int(mo2mc%fcc(j,i,k)*real(nchi-1,rkx))
+              exlwc = clwfromt(mo2mc%t(j,i,k)) * chis(ichi)
             end if
           else
             ! NOTE : IN CLOUD HERE IS NEEDED !!!

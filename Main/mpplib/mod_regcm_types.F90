@@ -644,6 +644,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: qvn    ! qxx(:,:,:,iqv)
     real(rkx) , pointer , dimension(:,:,:) :: qcn    ! qxx(:,:,:,iqc)
     real(rkx) , pointer , dimension(:,:,:) :: qin    ! qxx(:,:,:,iqi)
+    real(rkx) , pointer , dimension(:,:,:) :: qsn    ! qxx(:,:,:,iqs)
+    real(rkx) , pointer , dimension(:,:,:) :: qrn    ! qxx(:,:,:,iqr)
   end type mod_2_micro
 
   type micro_2_mod

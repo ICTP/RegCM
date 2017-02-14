@@ -71,8 +71,6 @@ module mod_sound
   !
   real(rkx) :: bet = 0.4_rkx
   real(rkx) :: xkd = 0.1_rkx
-  real(rkx) :: gammr = 0.2_rkx
-  real(rkx) :: zetad = 5000.0_rkx
   real(rkx) , parameter :: xgamma = d_one/(d_one-rovcp)
   real(rkx) :: cs , bp , bm , bpxbm , bpxbp
   real(rkx) :: dtsmax
@@ -84,9 +82,6 @@ module mod_sound
 
   subroutine allocate_mod_sound
     implicit none
-    if ( ifrayd == 1 ) then
-      call getmem3d(tau,jce1,jce2,ice1,ice2,1,kzp1,'sound:tau')
-    end if
     call getmem3d(aa,jci1,jci2,ici1,ici2,2,kz,'sound:aa')
     call getmem3d(b,jci1,jci2,ici1,ici2,2,kz,'sound:b')
     call getmem3d(c,jci1,jci2,ici1,ici2,2,kz,'sound:c')
@@ -143,8 +138,6 @@ module mod_sound
     end if
     bet = nhbet
     xkd = nhxkd
-    gammr = nhgammr
-    zetad = nhzetad
     loc_maxt = maxval(atm0%t)
     call maxall(loc_maxt,maxt)
     cs = sqrt(xgamma*rgas*maxt)
@@ -258,9 +251,6 @@ module mod_sound
         end do
       end do
     end do
-    !
-    ! Raleygh filtering
-    !
     do k = 1 , kzp1
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -268,35 +258,13 @@ module mod_sound
         end do
       end do
     end do
-    if ( ifrayd == 1 ) then
-      tau(:,:,:) = d_zero
+    do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ztop = (atm0%pr(j,i,1) + atmc%pp(j,i,1)) * egrav
-          do k = 2 , kz
-            z = (atm0%pr(j,i,k) + atmc%pp(j,i,k)) * egrav
-            if ( z >= (ztop - zetad) ) then
-              tau(j,i,k) = gammr * ((sin(halfpi*(d_one-(ztop-z)/zetad)))**2)
-            end if
-          end do
+          aten%w(j,i,k) = aten%w(j,i,k) * dts
         end do
       end do
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%w(j,i,k) = (d_one - tau(j,i,k)) * aten%w(j,i,k) * dts
-          end do
-        end do
-      end do
-    else
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%w(j,i,k) = aten%w(j,i,k) * dts
-          end do
-        end do
-      end do
-    end if
+    end do
     !
     ! Time Step loop
     !

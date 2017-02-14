@@ -204,7 +204,7 @@ program terrain
     call mxmnll(jxsg,iysg,xlon_s,xlat_s,i_band)
     write(stdout,*) 'Determined Subgrid coordinate range'
 
-    ntypec_s = nint((ds/real(nsg,rkx)/d_two)*60.0_rkx/110.0_rkx)
+    ntypec_s = nint(ds/d_two*60.0_rkx/110.0_rkx)
     if ( ntypec_s > 0 ) then
       do while ( mod(3600,ntypec_s*60) /= 0 .and. ntypec_s > 1 )
         ntypec_s = ntypec_s - 1
@@ -217,7 +217,7 @@ program terrain
       write(stdout,*) 'No resampling used.'
     end if
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec_s,i_band,2)
+                     pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec_s,i_band,4)
     write(stdout,*)'Static DEM data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
@@ -378,7 +378,7 @@ program terrain
   call mxmnll(jx,iy,xlon,xlat,i_band)
   write(stdout,*)'Determined Grid coordinate range'
 
-  ntypec = nint((ds/d_two)*60.0_rkx/110.0_rkx)
+  ntypec = nint(ds*60.0_rkx/110.0_rkx)
   if ( ntypec > 0 ) then
     do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
       ntypec = ntypec - 1
@@ -391,7 +391,7 @@ program terrain
     write(stdout,*) 'No resampling used.'
   end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec,i_band,2)
+                   pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec,i_band,4)
   write(stdout,*)'Static DEM data successfully read in'
   call interp(jx,iy,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &

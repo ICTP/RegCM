@@ -63,7 +63,7 @@ module mod_rdldtr
     logical :: l3d
     integer(ik4) :: ncid , ivar , idimid , istatus
     integer(ik4) :: nlat , nlon , iti , itf , itile , jlat , ilon
-    integer(ik4) :: i , j , inpsec , iopsec , ifrac
+    integer(ik4) :: i , j , inpsec , iopsec , ifrac , np
     integer(ik4) , dimension(3) :: istart, icount
     integer(ik4) :: nfrac
     type(global_domain) :: gdomain
@@ -216,6 +216,18 @@ module mod_rdldtr
               call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
                            (i-1)*ifrac+1,ifrac,iband)
               values(j,i) = real(mpindex(copybuf),rkx)
+            end do
+          end do
+        case (4)
+          do i = 1 , nlatin
+            if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+            do j = 1 , nlonin
+              call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
+                           (i-1)*ifrac+1,ifrac,iband)
+              call qsort(copybuf)
+              np = (ifrac*ifrac)/4
+              values(j,i) = sum(copybuf(1+np:size(copybuf)-np+1)) / &
+                             real(size(copybuf)-2*np,rkx)
             end do
           end do
         case default

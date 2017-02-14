@@ -998,6 +998,11 @@ module mod_tendency
     ! forecast tracer chi at at tau+1:
     !
     if ( ichem == 1 ) then
+      if ( idynamic == 2 ) then
+        if ( ifrayd == 1 ) then
+          call raydamp(atms%za,chib,chiten)
+        end if
+      end if
       do itr = 1 , ntr
         do k = 1 , kz
           do i = ici1 , ici2
@@ -1429,6 +1434,12 @@ module mod_tendency
       ! Calculate the horizontal, diffusive tendency for TKE
       call diffu_x(uwstatea%advtke,atm2%tke,nuk)
     end if
+    if ( idynamic == 2 ) then
+      if ( ifrayd == 1 ) then
+        call raydamp(atms%za,atm2%t,aten%t)
+        call raydamp(atms%za,atm2%qx,aten%qx)
+      end if
+    end if
     !
     ! Compute future values of t and moisture variables at tau+1:
     !
@@ -1482,6 +1493,11 @@ module mod_tendency
       !
       ! Decouple before calling sound
       !
+      if ( ifrayd == 1 ) then
+        call raydamp(atms%za,atm2%u,atm2%v,aten%u,aten%v)
+        call raydamp(atms%za,atm2%pp,aten%pp)
+        call raydamp(atms%za,atm2%w,aten%w)
+      end if
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
@@ -1534,6 +1550,17 @@ module mod_tendency
           do j = jci1 , jci2
              aten%tke(j,i,k) = aten%tke(j,i,k) + &
                                uwstatea%advtke(j,i,k)*rpsa(j,i)
+          end do
+        end do
+      end do
+      if ( idynamic == 2 ) then
+        if ( ifrayd == 1 ) then
+          call raydamp(atms%za,atm2%tke,aten%tke)
+        end if
+      end if
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
                                dt*aten%tke(j,i,k))
           end do
