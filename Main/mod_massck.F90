@@ -196,9 +196,9 @@ module mod_massck
         write(stdout,'(a)') &
             ' ********************* MASS CHECK ********************'
         write(stdout,'(a,a23,a,i16)') ' At ', appdat, ', ktau   = ', ktau
-        write(stdout,'(a,e12.5,a,f9.4,a)') ' Total dry air   =', drymass, &
+        write(stdout,'(a,e12.5,a,f9.5,a)') ' Total dry air   =', drymass, &
                    ' kg, error = ', error1, ' %'
-        write(stdout,'(a,e12.5,a,f9.4,a)') ' Total water     =', qmass, &
+        write(stdout,'(a,e12.5,a,f9.5,a)') ' Total water     =', qmass, &
                    ' kg, error = ', error2, ' %'
         write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', dryadv , ' kg.'
         write(stdout,'(a,e12.5,a)') ' Water boundary      = ', qadv, ' kg.'
