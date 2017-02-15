@@ -59,8 +59,8 @@ module mod_massck
     ! Internal dry air mass
     !
     tttmp = q_zero
-    do i = ice1 , ice2
-      do j = jce1 , jce2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         tttmp = tttmp + sfs%psa(j,i)
       end do
     end do
@@ -89,7 +89,7 @@ module mod_massck
     end if
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
-        do j = jce1 , jce2
+        do j = jci1 , jci2
           south = (atm1%v(j+1,ide1,k)+atm1%v(j,ide1,k))
           tdadv = tdadv + dt*3.e4_rkx*dsigma(k)*dx*regrav*south
         end do
@@ -97,7 +97,7 @@ module mod_massck
     end if
     if ( ma%has_bdytop ) then
       do k = 1 , kz
-        do j = jce1 , jce2
+        do j = jci1 , jci2
           north = (atm1%v(j+1,ide2,k)+atm1%v(j,ide2,k))
           tdadv = tdadv - dt*3.e4_rkx*dsigma(k)*dx*regrav*north
         end do
@@ -122,8 +122,8 @@ module mod_massck
     do n = 1 , nqx
       do k = 1 , kz
         tttmp = q_zero
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             tttmp = tttmp + atm1%qx(j,i,k,n)
           end do
         end do
@@ -152,7 +152,7 @@ module mod_massck
       end if
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
-          do j = jce1 , jce2
+          do j = jci1 , jci2
             south = (atm1%v(j+1,ide1,k)+atm1%v(j,ide1,k)) * &
                  (atm1%qx(j,ice1,k,n)/sfs%psa(j,ice1))
             tqadv = tqadv + dt*3.e4_rkx*dsigma(k)*dx*regrav*south
@@ -161,7 +161,7 @@ module mod_massck
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
-          do j = jce1 , jce2
+          do j = jci1 , jci2
             north = (atm1%v(j+1,ide2,k)+atm1%v(j,ide2,k)) * &
                  (atm1%qx(j,ice2,k,n)/sfs%psa(j,ice2))
             tqadv = tqadv - dt*3.e4_rkx*dsigma(k)*dx*regrav*north
