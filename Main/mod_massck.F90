@@ -193,18 +193,20 @@ module mod_massck
         (real((qmass-watini)/watini,rkx) * d_100) * dt/10800.0_rkx
       if ( mod(ktau,krep) == 0 ) then
         appdat = tochar(idatex)
-        write(stdout,'(a,a23,a,i16)') ' *** ', appdat, ', ktau   = ', ktau
-        write(stdout,'(a,e12.5,a,f9.4,a)') '   total air   =', drymass, &
+        write(stdout,'(a)') &
+            ' ********************* MASS CHECK ********************'
+        write(stdout,'(a,a23,a,i16)') ' At ', appdat, ', ktau   = ', ktau
+        write(stdout,'(a,e12.5,a,f9.4,a)') ' Total dry air   =', drymass, &
                    ' kg, error = ', error1, ' %'
-        write(stdout,'(a,e12.5,a)') ' horizontal advection   = ', &
-                   dryadv , ' kg.'
-        write(stdout,'(a,e12.5,a,f9.4,a)') '   total water =', qmass, &
+        write(stdout,'(a,e12.5,a,f9.4,a)') ' Total water     =', qmass, &
                    ' kg, error = ', error2, ' %'
-        write(stdout,'(a,e12.5,a)') ' horizontal advection    = ', qadv, ' kg.'
-        write(stdout,'(a,e12.5,a)') ' convective rainfall     = ', tcrai, ' kg.'
-        write(stdout,'(a,e12.5,a)') ' nonconvective rainfall  = ', &
-                   tncrai, ' kg.'
-        write(stdout,'(a,e12.5,a)') ' evaporation from ground = ', evapm, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', dryadv , ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Water boundary      = ', qadv, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Convective rain     = ', tcrai, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Nonconvective rain  = ', tncrai, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Ground Evaporation  = ', evapm, ' kg.'
+        write(stdout,'(a)') &
+            ' *****************************************************'
         error1 = d_zero
         error2 = d_zero
       end if
