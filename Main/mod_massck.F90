@@ -114,8 +114,8 @@ module mod_massck
     tqeva = q_zero
     do i = ici1 , ici2
       do j = jci1 , jci2
-        tcrai = tcrai + sfs%rainc(j,i)*dxsq
-        tncrai = tncrai + sfs%rainnc(j,i)*dxsq
+        tcrai = tcrai + pptnc(j,i)*dxsq*dt
+        tncrai = tncrai + pptc(j,i)*dxsq*dt
         tqeva = tqeva + sfs%qfx(j,i)*dxsq*dt
       end do
     end do
@@ -188,10 +188,10 @@ module mod_massck
       drymass = drymass - dryadv
       qmass = qmass + tcrai + tncrai - qadv - evapm
       error1 = error1 + &
-        (real((drymass-dryini)/dryini,rkx) * d_100) * dt/10800.0_rkx
+        (real((drymass-dryini)/dryini,rkx) * d_100) * dt/86400.0_rkx
       error2 = error2 + &
-        (real((qmass-watini)/watini,rkx) * d_100) * dt/10800.0_rkx
-      if ( mod(ktau,krep) == 0 ) then
+        (real((qmass-watini)/watini,rkx) * d_100) * dt/86400.0_rkx
+      if ( mod(ktau,kday) == 0 ) then
         appdat = tochar(idatex)
         write(stdout,'(a)') &
             ' ********************* MASS CHECK ********************'
