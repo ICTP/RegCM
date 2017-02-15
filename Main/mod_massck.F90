@@ -37,26 +37,28 @@ module mod_massck
 
   public :: massck
 
-  real(rkx) , public :: dryini , watini
+  real(rk16) , parameter :: q_zero = 0.0_rk16
+  real(rk16) , public :: dryini , watini
 
   contains
 
   subroutine massck
     implicit none
-    real(rkx) :: error1 , error2 , tttmp
-    real(rkx) :: tdrym , tdadv , tqmass , tqadv
-    real(rkx) :: tcrai , tncrai , tqeva
-    real(rkx) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
-    real(rkx) :: north , south , east , west
+    real(rkx) :: error1 , error2
+    real(rk16) :: tttmp
+    real(rk16) :: tdrym , tdadv , tqmass , tqadv
+    real(rk16) :: tcrai , tncrai , tqeva
+    real(rk16) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
+    real(rk16) :: north , south , east , west
     integer(ik4) :: i , j , k , n
     character (len=32) :: appdat
 
-    tdrym = d_zero
-    tdadv = d_zero
+    tdrym = q_zero
+    tdadv = q_zero
     !
     ! Internal dry air mass
     !
-    tttmp = d_zero
+    tttmp = q_zero
     do i = ice1 , ice2
       do j = jce1 , jce2
         tttmp = tttmp + sfs%psa(j,i)
@@ -68,7 +70,7 @@ module mod_massck
     !
     ! Boundary input
     !
-    tdadv = d_zero
+    tdadv = q_zero
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ice1 , ice2
@@ -105,11 +107,11 @@ module mod_massck
     !
     ! Moisture
     !
-    tqmass = d_zero
-    tqadv = d_zero
-    tcrai = d_zero
-    tncrai = d_zero
-    tqeva = d_zero
+    tqmass = q_zero
+    tqadv = q_zero
+    tcrai = q_zero
+    tncrai = q_zero
+    tqeva = q_zero
     do i = ici1 , ici2
       do j = jci1 , jci2
         tcrai = tcrai + sfs%rainc(j,i)*dxsq
@@ -119,7 +121,7 @@ module mod_massck
     end do
     do n = 1 , nqx
       do k = 1 , kz
-        tttmp = d_zero
+        tttmp = q_zero
         do i = ice1 , ice2
           do j = jce1 , jce2
             tttmp = tttmp + atm1%qx(j,i,k,n)
@@ -173,8 +175,6 @@ module mod_massck
     call sumall(tqmass,qmass)
 
     if ( ktau == 0 ) then
-      dryini = drymass
-      watini = qmass
       return
     end if
 
@@ -184,27 +184,33 @@ module mod_massck
     call sumall(tncrai,ncraim)
     call sumall(tqeva,evapm)
 
-    drymass = drymass - dryadv
-    qmass = qmass + tcrai + tncrai - qadv - evapm
-
-    if ( myid == italk .and. mod(ktau,krep) == 0 ) then
-      error1 = (drymass-dryini)/dryini * d_100
-      error2 = (qmass-watini)/watini * d_100
-      appdat = tochar(idatex)
-      write(stdout,'(a,a23,a,i16)') ' *** ', appdat, ', ktau   = ', ktau
-      write(stdout,'(a,e12.5,a,f5.2,a)') '   total air   =', drymass, &
-                 ' kg, error = ', error1, ' %'
-      write(stdout,'(a,e12.5,a)') ' horizontal advection   = ', dryadv , ' kg.'
-      write(stdout,'(a,e12.5,a,f5.2,a)') '   total water =', qmass, &
-                 ' kg, error = ', error2, ' %'
-      write(stdout,'(a,e12.5,a)') ' horizontal advection    = ', qadv , ' kg.'
-      write(stdout,'(a,e12.5,a)') ' convective rainfall     = ', tcrai , ' kg.'
-      write(stdout,'(a,e12.5,a)') ' nonconvective rainfall  = ', tncrai , ' kg.'
-      write(stdout,'(a,e12.5,a)') ' evaporation from ground = ', evapm , ' kg.'
+    if ( myid == italk ) then
+      drymass = drymass - dryadv
+      qmass = qmass + tcrai + tncrai - qadv - evapm
+      error1 = error1 + &
+        (real((drymass-dryini)/dryini,rkx) * d_100) * dt/10800.0_rkx
+      error2 = error2 + &
+        (real((qmass-watini)/watini,rkx) * d_100) * dt/10800.0_rkx
+      if ( mod(ktau,krep) == 0 ) then
+        appdat = tochar(idatex)
+        write(stdout,'(a,a23,a,i16)') ' *** ', appdat, ', ktau   = ', ktau
+        write(stdout,'(a,e12.5,a,f9.4,a)') '   total air   =', drymass, &
+                   ' kg, error = ', error1, ' %'
+        write(stdout,'(a,e12.5,a)') ' horizontal advection   = ', &
+                   dryadv , ' kg.'
+        write(stdout,'(a,e12.5,a,f9.4,a)') '   total water =', qmass, &
+                   ' kg, error = ', error2, ' %'
+        write(stdout,'(a,e12.5,a)') ' horizontal advection    = ', qadv, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' convective rainfall     = ', tcrai, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' nonconvective rainfall  = ', &
+                   tncrai, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' evaporation from ground = ', evapm, ' kg.'
+        error1 = d_zero
+        error2 = d_zero
+      end if
+      dryini = drymass
+      watini = qmass
     end if
-
-    dryini = drymass
-    watini = qmass
 
   end subroutine massck
 

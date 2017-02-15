@@ -251,7 +251,8 @@ module mod_mppparam
   end interface bcast
 
   interface sumall
-    module procedure sumall_real8 , &
+    module procedure sumall_real16, &
+                     sumall_real8 , &
                      sumall_real4 , &
                      sumall_int4 ,  &
                      sumall_int4_array
@@ -683,6 +684,16 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
   end subroutine trueforall
+
+  subroutine sumall_real16(rlval,rtval)
+    implicit none
+    real(rk16) , intent(in) :: rlval
+    real(rk16) , intent(out) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_real16,mpi_sum,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine sumall_real16
 
   subroutine sumall_real8(rlval,rtval)
     implicit none

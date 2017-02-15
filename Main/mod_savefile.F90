@@ -324,6 +324,7 @@ module mod_savefile
     integer(ik4) :: int10d , ical
     integer(ik8) :: idt1 , idt2
     real(rkx) :: odtsec
+    real(rk8) :: rtmp
     character(256) :: ffin
     character(32) :: fbname
 
@@ -343,10 +344,11 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
       if ( debug_level > 0 ) then
         ! Do no give any error. User may have increased debug just now.
-        watini = 0.0_rkx
-        dryini = 0.0_rkx
-        ncstatus = nf90_get_att(ncid,nf90_global,'dryini',dryini)
-        ncstatus = nf90_get_att(ncid,nf90_global,'watini',watini)
+        rtmp = 0.0_rk8
+        ncstatus = nf90_get_att(ncid,nf90_global,'dryini',rtmp)
+        dryini = rtmp
+        ncstatus = nf90_get_att(ncid,nf90_global,'watini',rtmp)
+        watini = rtmp
       end if
       idt1 = nint(odtsec)
       idt2 = nint(dtsec)
@@ -846,9 +848,9 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot save calendar')
 
       if ( debug_level > 0 ) then
-        ncstatus = nf90_put_att(ncid,nf90_global,'dryini',dryini)
+        ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
         call check_ok(__FILE__,__LINE__,'Cannot save dryini')
-        ncstatus = nf90_put_att(ncid,nf90_global,'watini',watini)
+        ncstatus = nf90_put_att(ncid,nf90_global,'watini',real(watini,rk8))
         call check_ok(__FILE__,__LINE__,'Cannot save watini')
       end if
 
