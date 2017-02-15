@@ -47,6 +47,7 @@ module mod_tendency
   use mod_sound
   use mod_split
   use mod_timefilter
+  use mod_massck
 
   implicit none
 
@@ -1440,6 +1441,10 @@ module mod_tendency
         call raydamp(atms%za,atm2%qx,aten%qx)
       end if
     end if
+    !
+    ! Check mass
+    !
+    if ( debug_level > 0 ) call massck
     !
     ! Compute future values of t and moisture variables at tau+1:
     !

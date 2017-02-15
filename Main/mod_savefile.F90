@@ -31,6 +31,7 @@ module mod_savefile
   use mod_lm_interface
   use mod_che_interface
   use mod_che_mppio
+  use mod_massck
 
   implicit none
 
@@ -340,6 +341,13 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
       ncstatus = nf90_get_att(ncid,nf90_global,'calendar',ical)
       call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
+      if ( debug_level > 0 ) then
+        ! Do no give any error. User may have increased debug just now.
+        watini = 0.0_rkx
+        dryini = 0.0_rkx
+        ncstatus = nf90_get_att(ncid,nf90_global,'dryini',dryini)
+        ncstatus = nf90_get_att(ncid,nf90_global,'watini',watini)
+      end if
       idt1 = nint(odtsec)
       idt2 = nint(dtsec)
       if ( idt1 /= idt2 ) then
@@ -836,6 +844,13 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot save idatex')
       ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idatex%calendar)
       call check_ok(__FILE__,__LINE__,'Cannot save calendar')
+
+      if ( debug_level > 0 ) then
+        ncstatus = nf90_put_att(ncid,nf90_global,'dryini',dryini)
+        call check_ok(__FILE__,__LINE__,'Cannot save dryini')
+        ncstatus = nf90_put_att(ncid,nf90_global,'watini',watini)
+        call check_ok(__FILE__,__LINE__,'Cannot save watini')
+      end if
 
       ncstatus = nf90_enddef(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot setup savefile '//trim(ffout))

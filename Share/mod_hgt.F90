@@ -645,7 +645,7 @@ module mod_hgt
     real(rk4) , dimension(im,jm) , intent(out) :: slp
     integer(ik4) :: i , j
     real(rk4) :: tstar , hstar , alpha , sraval
-!
+
     ! Follow Kallen 1996
     alpha = real(lrate*rgas/egrav)
     do j = 1 , jm
