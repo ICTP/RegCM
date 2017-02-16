@@ -18,6 +18,14 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+# On argo:
+#
+# module load esmf
+# module load python/2.7.3/nocomp
+#
+# mpirun parallel_icbc.py /path_to/icbc namelist.in
+#
+
 #
 # Simple python script to parallelize ICBC jobs.
 # Requires two external libraries in python, f90nml and mpi4py
