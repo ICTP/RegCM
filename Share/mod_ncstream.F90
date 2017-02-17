@@ -982,7 +982,7 @@ module mod_ncstream
 
     subroutine add_varatts(stream,var)
       implicit none
-      type(ncoutstream) , pointer , intent(in) :: stream
+      type(ncoutstream) , pointer , intent(inout) :: stream
       class(ncvariable_standard) , intent(in) :: var
       character(len=16) :: coords_cross = 'xlat xlon'
       character(len=16) :: coords_dot   = 'dlat dlon'

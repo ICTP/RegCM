@@ -250,6 +250,7 @@ module mod_mppparam
                      bcast_rcm_time_and_date
   end interface bcast
 
+#ifndef __PGI
   interface sumall
     module procedure sumall_real16, &
                      sumall_real8 , &
@@ -257,6 +258,14 @@ module mod_mppparam
                      sumall_int4 ,  &
                      sumall_int4_array
   end interface sumall
+#else
+  interface sumall
+    module procedure sumall_real8 , &
+                     sumall_real4 , &
+                     sumall_int4 ,  &
+                     sumall_int4_array
+  end interface sumall
+#endif
 
   interface send_array
     module procedure send_array_logical, &
@@ -685,6 +694,7 @@ module mod_mppparam
     end if
   end subroutine trueforall
 
+#ifndef __PGI
   subroutine sumall_real16(rlval,rtval)
     implicit none
     real(rk16) , intent(in) :: rlval
@@ -694,6 +704,7 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
   end subroutine sumall_real16
+#endif
 
   subroutine sumall_real8(rlval,rtval)
     implicit none

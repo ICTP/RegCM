@@ -611,7 +611,7 @@ module mod_micro_wsm5
                            delz_tmp,work1c,denqci,delqi,dtcld,1,0)
       do k = 1 , kz
         do i = ims , ime
-          qci(i,k,2) = max(denqci(i,k)/den(i,k),0.)
+          qci(i,k,2) = max(denqci(i,k)/den(i,k),d_zero)
         end do
       end do
       do i = ims , ime

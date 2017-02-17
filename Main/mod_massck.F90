@@ -37,19 +37,25 @@ module mod_massck
 
   public :: massck
 
-  real(rk16) , parameter :: q_zero = 0.0_rk16
-  real(rk16) , public :: dryini , watini
+#ifdef __PGI
+  integer , parameter :: wrkp = rk8
+#else
+  integer , parameter :: wrkp = rk16
+#endif
+
+  real(wrkp) , parameter :: q_zero = 0.0_wrkp
+  real(wrkp) , public :: dryini , watini
 
   contains
 
   subroutine massck
     implicit none
     real(rkx) :: error1 , error2
-    real(rk16) :: tttmp
-    real(rk16) :: tdrym , tdadv , tqmass , tqadv
-    real(rk16) :: tcrai , tncrai , tqeva
-    real(rk16) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
-    real(rk16) :: north , south , east , west
+    real(wrkp) :: tttmp
+    real(wrkp) :: tdrym , tdadv , tqmass , tqadv
+    real(wrkp) :: tcrai , tncrai , tqeva
+    real(wrkp) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
+    real(wrkp) :: north , south , east , west
     integer(ik4) :: i , j , k , n
     character (len=32) :: appdat
 

@@ -296,7 +296,7 @@ module mod_sigma
       ps => psin
     end subroutine init_hydrostatic
 
-    pure real(rkx) elemental function pstar(surface_pressure)
+    real(rkx) elemental function pstar(surface_pressure)
       implicit none
       real(rkx) , intent(in) :: surface_pressure
       pstar = surface_pressure - ptop

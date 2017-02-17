@@ -389,8 +389,10 @@ module mod_micro_nogtom
     real(rkx) :: tk , tc , dens , pbot , totliq , ccn
     real(rkx) :: snowp , rainp
 
+#ifndef __PGI
     procedure (voidsub) , pointer :: selautoconv => null()
     procedure (voidsub) , pointer :: selnss => null()
+#endif
 
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
@@ -400,6 +402,7 @@ module mod_micro_nogtom
 
     lccn = ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 )
 
+#ifndef __PGI
     select case(nssopt)
       case(0,1)
         selnss => nss_tompkins
@@ -427,6 +430,7 @@ module mod_micro_nogtom
       case default
         call fatal(__FILE__,__LINE__,'UNKNOWN AUTOCONVERSION SCHEME')
     end select
+#endif
 
     oneodt = d_one/dt
 
@@ -1120,8 +1124,18 @@ module mod_micro_nogtom
 
           ! (2) generation of new clouds (dc/dt>0)
           if ( dqs <= -activqx .and. lnocast ) then
-
+#ifdef __PGI
+            select case(nssopt)
+              case(0,1)
+                call nss_tompkins
+              case(2)
+                call nss_lohmann_and_karcher
+              case(3)
+                call nss_gierens
+              end select
+#else
             call selnss
+#endif
 
             !---------------------------
             ! critical relative humidity
@@ -1338,7 +1352,20 @@ module mod_micro_nogtom
           !---------------------------------------------------------------
           ! Warm clouds
           if ( liqcld > activqx ) then
+#ifdef __PGI
+            select case (iautoconv)
+              case (1) ! Klein & Pincus (2000)
+                call klein_and_pincus
+              case (2) ! Khairoutdinov and Kogan (2000)
+                call khairoutdinov_and_kogan
+              case (3) ! Kessler(1969)
+                call kessler
+              case (4) ! Sundqvist
+                call sundqvist
+            end select
+#else
             call selautoconv
+#endif
 #ifdef DEBUG
             if ( ltkgt0 ) then
               ngs%statsautocvw(j,i,1) = ngs%statsautocvw(j,i,1) + rainaut
@@ -2178,8 +2205,18 @@ module mod_micro_nogtom
             ! (2) generation of new clouds (dc/dt>0)
             if ( dqs <= -activqx .and. lnocast ) then
 
+#ifdef __PGI
+              select case(nssopt)
+                case(0,1)
+                  call nss_tompkins
+                case(2)
+                  call nss_lohmann_and_karcher
+                case(3)
+                  call nss_gierens
+                end select
+#else
               call selnss
-
+#endif
               !---------------------------
               ! critical relative humidity
               !---------------------------
@@ -2399,7 +2436,20 @@ module mod_micro_nogtom
             !---------------------------------------------------------------
             ! Warm clouds
             if ( liqcld > activqx ) then
+#ifdef __PGI
+              select case (iautoconv)
+                case (1) ! Klein & Pincus (2000)
+                  call klein_and_pincus
+                case (2) ! Khairoutdinov and Kogan (2000)
+                  call khairoutdinov_and_kogan
+                case (3) ! Kessler(1969)
+                  call kessler
+                case (4) ! Sundqvist
+                  call sundqvist
+              end select
+#else
               call selautoconv
+#endif
 #ifdef DEBUG
               if ( stats ) then
                 if ( ltkgt0 ) then
