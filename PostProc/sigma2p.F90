@@ -401,7 +401,7 @@ program sigma2p
     call memory_init
     call init_sigma(kz,0.05_rkx,0.01_rkx)
     do k = 1 , kz
-      sigma(k) = half_sigma_coordinate(k)
+      sigma(k) = real(half_sigma_coordinate(k),rk4)
     end do
     call memory_destroy
   else

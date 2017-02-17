@@ -465,7 +465,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            th(j,i,k) = atmx%t(j,i,k) * (1.0e5_rkx/atm1%pr(j,i,k))**rovcp
+            th(j,i,k) = atmx%t(j,i,k) * (p00/atm1%pr(j,i,k))**rovcp
             tha(j,i,k) = th(j,i,k) * sfs%psa(j,i)
           end do
         end do

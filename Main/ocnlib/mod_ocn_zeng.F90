@@ -115,7 +115,7 @@ module mod_ocn_zeng
       zh = z995
       hq = z995
       ! potential T
-      th = sts(i)*(1.0e5_rkx/sfps(i))**rovcp
+      th = sts(i)*(p00/sfps(i))**rovcp
       dth = tatm(i) - tgrd(i)
       qs = pfwsat(tgrd(i),sfps(i))*0.98_rkx
       ! in kg/kg

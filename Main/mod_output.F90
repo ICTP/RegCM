@@ -40,6 +40,7 @@ module mod_output
   use mod_split
   use mod_savefile
   use mod_slabocean
+  use mod_capecin
 
   implicit none
 
@@ -55,7 +56,8 @@ module mod_output
     logical :: ldosav , ldolak , ldosub
     logical :: ldoslab
     logical :: lstartup
-    integer(ik4) :: i , j , k , itr
+    integer(ik4) :: i , j , k , kk , itr
+    real(rkx) , dimension(kz) :: p1d , t1d , rh1d
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -429,6 +431,20 @@ module mod_output
           elsewhere
             atm_tsw_out = dmissval
           end where
+        end if
+
+        if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              do k = 1 , kz
+                kk = kzp1 - k
+                p1d(kk) = atms%pb3d(j,i,k)
+                t1d(kk) = atms%tb3d(j,i,k)
+                rh1d(kk) = atms%rhb3d(j,i,k)
+              end do
+              call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
+            end do
+          end do
         end if
 
         ! FAB add tendency diagnostic here

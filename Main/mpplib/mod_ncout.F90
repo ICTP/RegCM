@@ -56,7 +56,7 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 5
 
-  integer(ik4) , parameter :: natm2dvars = 5 + nbase
+  integer(ik4) , parameter :: natm2dvars = 7 + nbase
   integer(ik4) , parameter :: natm3dvars = 63
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
@@ -167,6 +167,8 @@ module mod_ncout
   integer(ik4) , parameter :: atm_tsn   = 8
   integer(ik4) , parameter :: atm_tgb   = 9
   integer(ik4) , parameter :: atm_tsw   = 10
+  integer(ik4) , parameter :: atm_cape  = 11
+  integer(ik4) , parameter :: atm_cin   = 12
 
   integer(ik4) , parameter :: atm_u            = 1
   integer(ik4) , parameter :: atm_v            = 2
@@ -577,8 +579,23 @@ module mod_ncout
               'time: mean',l_fill=.true.)
             atm_tsw_out => v2dvar_atm(atm_tsw)%rval
           end if
+          if ( enable_atm2d_vars(atm_cape) ) then
+            call setup_var(v2dvar_atm,atm_cape,vsize,'cape','J kg-1', &
+              'Convective Available Potential Energy', &
+              'atmosphere_convective_available_potential_energy', &
+              .true.,'time: point',l_fill=.true.)
+            atm_cape_out => v2dvar_atm(atm_cape)%rval
+          end if
+          if ( enable_atm2d_vars(atm_cin) ) then
+            call setup_var(v2dvar_atm,atm_cin,vsize,'cin','J kg-1', &
+              'Convective Inhibition','atmosphere_convective_inhibition', &
+              .true.,'time: point',l_fill=.true.)
+            atm_cin_out => v2dvar_atm(atm_cin)%rval
+          end if
         else
           enable_atm2d_vars(atm_tsw) = .false.
+          enable_atm2d_vars(atm_cape) = .false.
+          enable_atm2d_vars(atm_cin) = .false.
         end if
 
         vsize%k2 = kz

@@ -250,7 +250,7 @@ module mod_mppparam
                      bcast_rcm_time_and_date
   end interface bcast
 
-#ifndef __PGI
+#ifdef QUAD_PRECISION
   interface sumall
     module procedure sumall_real16, &
                      sumall_real8 , &
@@ -694,7 +694,7 @@ module mod_mppparam
     end if
   end subroutine trueforall
 
-#ifndef __PGI
+#ifdef QUAD_PRECISION
   subroutine sumall_real16(rlval,rtval)
     implicit none
     real(rk16) , intent(in) :: rlval

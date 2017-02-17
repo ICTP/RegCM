@@ -15,7 +15,7 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_scrip_remap_conserv.F90 mod_scrip_remap_distwgt.F90 \
                       mod_scrip_interpolate.F90 mod_scrip_remap_vars.F90 \
                       mod_sunorbit.F90 mod_nhinterp.F90 mod_sigma.F90 \
-		      mod_stdatm.F90
+                      mod_capecin.F90 mod_stdatm.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
@@ -29,6 +29,7 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
+mod_capecin.o : mod_capecin.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
 mod_constants.o: mod_constants.F90 mod_realkinds.o
 mod_date.o: mod_date.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o
 mod_domain.o: mod_domain.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_nchelper.o mod_stdio.o mod_message.o

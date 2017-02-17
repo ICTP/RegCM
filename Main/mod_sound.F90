@@ -165,7 +165,7 @@ module mod_sound
     ! Variables to implement upper radiative bc
     !
     real(rkx) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
-                 xkleff , xleff , xmsftot , xmsf , ztop , z
+                 xkleff , xleff , xmsftot , xmsf
     real(rkx) :: loc_abar , loc_rhon , loc_xmsf
     integer(ik4) :: inn , jnn , ll , kk , nsi , nsj
     !

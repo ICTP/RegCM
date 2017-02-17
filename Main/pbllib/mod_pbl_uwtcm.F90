@@ -416,7 +416,7 @@ module mod_pbl_uwtcm
           udzq(k) = m2p%dzq(j,i,k)
           rdzq(k) = d_one/udzq(k)
           ! Exner function
-          exnerhl(k) = (preshl(k)/1.0e5_rkx)**rovcp
+          exnerhl(k) = (preshl(k)/p00)**rovcp
           rexnerhl(k) = d_one/exnerhl(k)
           ! Potential temperature
           thx(k) = tx(k)*rexnerhl(k)
@@ -456,7 +456,7 @@ module mod_pbl_uwtcm
           dza(k) = zax(k-1)-zax(k)
           rdza(k) = d_one/dza(k)
           ! Exner function
-          exnerfl(k) = (presfl(k)/1.0e5_rkx)**rovcp
+          exnerfl(k) = (presfl(k)/p00)**rovcp
           rexnerfl(k) = d_one/exnerfl(k)
           ! Density
           fracz = (zqx(k)-zax(k))*rdza(k)
@@ -468,7 +468,7 @@ module mod_pbl_uwtcm
         end do
 
         ! Surface exner function
-        exnerfl(kzp1) = (presfl(kzp1)/1.0e5_rkx)**rovcp
+        exnerfl(kzp1) = (presfl(kzp1)/p00)**rovcp
         rexnerfl(kzp1) = d_one/exnerfl(kzp1)
 
 !*******************************************************************************

@@ -44,7 +44,7 @@
       esat = c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
          + td*(c5 + td*(c6 + td*(c7 + td*c8)))))))
     end if
-    es   = real(esat * 100.0_rk8,rkx) ! pa
+    es = real(esat * 100.0_rk8,rkx) ! pa
   end function pfesat
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

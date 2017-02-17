@@ -88,7 +88,7 @@ module mod_pbl_thetal
     mythetal = thetal
     myqt = qt
     myp = p
-    myexner = (myp/1.0e5_rkx)**rovcp
+    myexner = (myp/p00)**rovcp
     templ = mythetal*myexner
 
     ! Use the Brent 1973 method to determine t from liquid water pot.

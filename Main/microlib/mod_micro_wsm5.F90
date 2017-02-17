@@ -104,8 +104,6 @@ module mod_micro_wsm5
 
   contains
 
-#include <pfesat.inc>
-
   subroutine allocate_mod_wsm5
     implicit none
     is = 1
@@ -364,27 +362,25 @@ module mod_micro_wsm5
     real(rkx) , dimension(ims:ime,kz) :: fallc , xl , cpm
     real(rkx) , dimension(ims:ime,kz) :: denfac , xni , denqrs1 , denqrs2
     real(rkx) , dimension(ims:ime,kz) :: denqci , n0sfac
-    real(rkx) , dimension(ims:ime,kz) :: work2 , workr , works , work1c , work2c
+    real(rkx) , dimension(ims:ime,kz) :: work2 , workr , works , work1c
     real(rkx) , dimension(ims:ime,kz) :: den_tmp , delz_tmp
     real(rkx) , dimension(ims:ime) :: delqrs1 , delqrs2 , delqi
     real(rkx) , dimension(ims:ime,kz) :: pigen , pidep , psdep , praut
     real(rkx) , dimension(ims:ime,kz) :: psaut , prevp , psevp , pracw
     real(rkx) , dimension(ims:ime,kz) :: psacw , psaci , pcond , psmlt
-    integer(ik4) , dimension(ims:ime) :: mstep , numdt
-    real(rkx) , dimension(ims:ime) :: rmstep
-    real(rkx) :: dtcldden , rdelz , rdtcld
+    integer(ik4) , dimension(ims:ime) :: mstep
+    real(rkx) :: rdtcld
     logical , dimension(ims:ime) :: flgcld
     real(rkx) , dimension(ims:ime) :: xal , xbl
-    real(rkx) :: qdt , holdrr , holdrs , supcol , supcolt , pvt ,   &
-      coeres , supsat , dtcld , xmi , eacrs , satdt , vt2i , vt2s , &
-      acrfac , qimax , diameter , xni0 , roqi0 , fallsum ,          &
-      fallsum_qsi , xlwork2 , factor , source , qval , xlf ,        &
-      pfrzdtc , pfrzdtr , supice ,  holdc , holdci
+    real(rkx) :: supcol , supcolt , coeres , &
+      supsat , dtcld , xmi , eacrs , satdt , vt2i , vt2s ,     &
+      acrfac , qimax , diameter , xni0 , roqi0 , fallsum ,     &
+      fallsum_qsi , xlwork2 , factor , source , qval , xlf ,   &
+      pfrzdtc , pfrzdtr , supice
     ! variables for optimization
     real(rkx) , dimension(ims:ime) :: tvec1
     real(rkx) :: temp , tr , logtr
-    integer(ik4) :: i , j , k , mstepmax , iprt , latd , lond , loop , &
-      loops , ifsat , n , nval
+    integer(ik4) :: i , k , loop , loops , ifsat , nval
 
     ! Constants
     real(rkx) , parameter :: dldt = cpv-cpw
@@ -1192,9 +1188,9 @@ module mod_micro_wsm5
 
   end subroutine slope_wsm5
 
-  subroutine slope_rain(qrs,den,denfac,t,rslope,rslopeb,rslope2,rslope3,vt)
+  subroutine slope_rain(qrs,den,denfac,rslope,rslopeb,rslope2,rslope3,vt)
     implicit none
-    real(rkx) , dimension(kz) , intent(in) :: qrs , den , denfac , t
+    real(rkx) , dimension(kz) , intent(in) :: qrs , den , denfac
     real(rkx) , dimension(kz) , intent(out) :: rslope , rslopeb
     real(rkx) , dimension(kz) , intent(out) :: rslope2 , rslope3 , vt
     integer(ik4) :: k
@@ -1292,6 +1288,7 @@ module mod_micro_wsm5
   subroutine nislfv_rain_plm(im,denl,denfacl,tkl,dzl, &
                              wwl,rql,precip,dt,id,iter)
     implicit none
+    integer(ik4) , intent(in) :: im , id , iter
     real(rkx) , dimension(im,kz) , intent(in) :: denl
     real(rkx) , dimension(im,kz) , intent(in) :: denfacl
     real(rkx) , dimension(im,kz) , intent(in) :: tkl
@@ -1299,14 +1296,13 @@ module mod_micro_wsm5
     real(rkx) , dimension(im,kz) , intent(in) :: wwl
     real(rkx) , dimension(im,kz) , intent(inout) :: rql
     real(rkx) , dimension(im) , intent(out) :: precip
-    integer(ik4) , intent(in) :: im , id , iter
     real(rkx) , intent(in) :: dt
 
     integer(ik4) :: i , k , n , m , kk , kb , kt
     real(rkx) :: tl , tl2 , qql , dql , qqd
     real(rkx) :: th , th2 , qqh , dqh
-    real(rkx) :: zsum , qsum , xdim , dip , c1 , con1
-    real(rkx) :: allold , allnew , zz , dzamin , cflmax , decfl
+    real(rkx) :: zsum , qsum , xdim , dip , con1
+    real(rkx) :: allold , decfl
     real(rkx) , dimension(kz) :: dz , ww , qq , wd , wa , was
     real(rkx) , dimension(kz) :: den , denfac , tk
     real(rkx) , dimension(kzp1) :: wi , zi , za
@@ -1399,7 +1395,7 @@ module mod_micro_wsm5
       !
       if ( n <= iter ) then
         if ( id == 1 ) then
-          call slope_rain(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
+          call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
         else
           call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
         end if
@@ -1530,83 +1526,82 @@ module mod_micro_wsm5
   !  schemes.
   !  Coded and implemented by Soo Ya Bae, KIAPS, January 2015.
   !
-  subroutine effectrad_wsm5(t,qc,qi,qs,rho,re_qc,re_qi,re_qs)
-    implicit none
-    real(rkx) , dimension(kz) , intent(in) :: t
-    real(rkx) , dimension(kz) , intent(in) :: qc
-    real(rkx) , dimension(kz) , intent(in) :: qi
-    real(rkx) , dimension(kz) , intent(in) :: qs
-    real(rkx) , dimension(kz) , intent(in) :: rho
-    real(rkx) , dimension(kz) , intent(inout) :: re_qc
-    real(rkx) , dimension(kz) , intent(inout) :: re_qi
-    real(rkx) , dimension(kz) , intent(inout) :: re_qs
-
-    integer(ik4) :: i , k
-    integer(ik4) :: inu_c
-    real(rkx) , dimension(kz) :: ni
-    real(rkx) , dimension(kz) :: rqc
-    real(rkx) , dimension(kz) :: rqi
-    real(rkx) , dimension(kz) :: rni
-    real(rkx) , dimension(kz) :: rqs
-    real(rkx) :: temp , lamdac , lamdas , supcol , n0sfac
-    ! diameter of ice in m
-    real(rkx) :: diai
-    logical :: has_qc , has_qi , has_qs
-
-    !..minimum microphys values
-    real(rkx) , parameter :: r1 = 1.e-12_rkx
-    real(rkx) , parameter :: r2 = 1.e-6_rkx
-    !..mass power law relations:  mass = am*d**bm
-    real(rkx) , parameter :: bm_r = 3.0_rkx
-    real(rkx) , parameter :: obmr = 1.0_rkx/bm_r
-    real(rkx) , parameter :: nc0  = 3.e8_rkx
-
-    has_qc = .false.
-    has_qi = .false.
-    has_qs = .false.
-
-    do k = 1 , kz
-      ! for cloud
-      rqc(k) = max(r1, qc(k)*rho(k))
-      if ( rqc(k) > r1 ) has_qc = .true.
-      ! for ice
-      rqi(k) = max(r1, qi(k)*rho(k))
-      temp = (rho(k)*max(qi(k),minqq))
-      temp = sqrt(sqrt(temp*temp*temp))
-      ni(k) = min(max(5.38e7_rkx*temp,1.e3_rkx),1.e6_rkx)
-      rni(k)= max(r2, ni(k)*rho(k))
-      if ( rqi(k) > r1 .and. rni(k) > r2 ) has_qi = .true.
-      ! for snow
-      rqs(k) = max(r1, qs(k)*rho(k))
-      if (rqs(k) > r1) has_qs = .true.
-    end do
-
-    if ( has_qc ) then
-      do k = 1 , kz
-        if ( rqc(k) <= r1 ) cycle
-        lamdac   = (pidnc*nc0/rqc(k))**obmr
-        re_qc(k) =  max(2.51e-6_rkx,min(1.5_rkx*(d_one/lamdac),50.e-6_rkx))
-      end do
-    end if
-
-    if ( has_qi ) then
-      do k = 1 , kz
-        if ( rqi(k) <= r1 .or. rni(k) <= r2 ) cycle
-        diai = 11.9_rkx*sqrt(rqi(k)/ni(k))
-        re_qi(k) = max(10.01e-6_rkx,min(0.75_rkx*0.163_rkx*diai,125.e-6_rkx))
-      end do
-    end if
-
-    if ( has_qs ) then
-      do k = 1 , kz
-        if ( rqs(k) <= r1 ) cycle
-        supcol = tzero-t(k)
-        n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
-        lamdas = sqrt(sqrt(pidn0s*n0sfac/rqs(k)))
-        re_qs(k) = max(25.e-6_rkx,min(0.5_rkx*(d_one/lamdas), 999.e-6_rkx))
-      end do
-    end if
-  end subroutine effectrad_wsm5
+!  subroutine effectrad_wsm5(t,qc,qi,qs,rho,re_qc,re_qi,re_qs)
+!    implicit none
+!    real(rkx) , dimension(kz) , intent(in) :: t
+!    real(rkx) , dimension(kz) , intent(in) :: qc
+!    real(rkx) , dimension(kz) , intent(in) :: qi
+!    real(rkx) , dimension(kz) , intent(in) :: qs
+!    real(rkx) , dimension(kz) , intent(in) :: rho
+!    real(rkx) , dimension(kz) , intent(inout) :: re_qc
+!    real(rkx) , dimension(kz) , intent(inout) :: re_qi
+!    real(rkx) , dimension(kz) , intent(inout) :: re_qs
+!
+!    integer(ik4) :: k
+!    real(rkx) , dimension(kz) :: ni
+!    real(rkx) , dimension(kz) :: rqc
+!    real(rkx) , dimension(kz) :: rqi
+!    real(rkx) , dimension(kz) :: rni
+!    real(rkx) , dimension(kz) :: rqs
+!    real(rkx) :: temp , lamdac , lamdas , supcol , n0sfac
+!    ! diameter of ice in m
+!    real(rkx) :: diai
+!    logical :: has_qc , has_qi , has_qs
+!
+!    !..minimum microphys values
+!    real(rkx) , parameter :: r1 = 1.e-12_rkx
+!    real(rkx) , parameter :: r2 = 1.e-6_rkx
+!    !..mass power law relations:  mass = am*d**bm
+!    real(rkx) , parameter :: bm_r = 3.0_rkx
+!    real(rkx) , parameter :: obmr = 1.0_rkx/bm_r
+!    real(rkx) , parameter :: nc0  = 3.e8_rkx
+!
+!    has_qc = .false.
+!    has_qi = .false.
+!    has_qs = .false.
+!
+!    do k = 1 , kz
+!      ! for cloud
+!      rqc(k) = max(r1, qc(k)*rho(k))
+!      if ( rqc(k) > r1 ) has_qc = .true.
+!      ! for ice
+!      rqi(k) = max(r1, qi(k)*rho(k))
+!      temp = (rho(k)*max(qi(k),minqq))
+!      temp = sqrt(sqrt(temp*temp*temp))
+!      ni(k) = min(max(5.38e7_rkx*temp,1.e3_rkx),1.e6_rkx)
+!      rni(k)= max(r2, ni(k)*rho(k))
+!      if ( rqi(k) > r1 .and. rni(k) > r2 ) has_qi = .true.
+!      ! for snow
+!      rqs(k) = max(r1, qs(k)*rho(k))
+!      if (rqs(k) > r1) has_qs = .true.
+!    end do
+!
+!    if ( has_qc ) then
+!      do k = 1 , kz
+!        if ( rqc(k) <= r1 ) cycle
+!        lamdac   = (pidnc*nc0/rqc(k))**obmr
+!        re_qc(k) =  max(2.51e-6_rkx,min(1.5_rkx*(d_one/lamdac),50.e-6_rkx))
+!      end do
+!    end if
+!
+!    if ( has_qi ) then
+!      do k = 1 , kz
+!        if ( rqi(k) <= r1 .or. rni(k) <= r2 ) cycle
+!        diai = 11.9_rkx*sqrt(rqi(k)/ni(k))
+!        re_qi(k) = max(10.01e-6_rkx,min(0.75_rkx*0.163_rkx*diai,125.e-6_rkx))
+!      end do
+!    end if
+!
+!    if ( has_qs ) then
+!      do k = 1 , kz
+!        if ( rqs(k) <= r1 ) cycle
+!        supcol = tzero-t(k)
+!        n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
+!        lamdas = sqrt(sqrt(pidn0s*n0sfac/rqs(k)))
+!        re_qs(k) = max(25.e-6_rkx,min(0.5_rkx*(d_one/lamdas), 999.e-6_rkx))
+!      end do
+!    end if
+!  end subroutine effectrad_wsm5
 
 end module mod_micro_wsm5
 

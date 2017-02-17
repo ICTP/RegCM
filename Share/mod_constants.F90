@@ -214,6 +214,7 @@ module mod_constants
   real(rkx) , parameter :: eliwv = 2.72e6_rkx
 
   ! Standard atmosphere ICAO 1993
+  real(rkx) , parameter :: p00 = 1.000000e5_rkx
   real(rkx) , parameter :: stdp = 1.013250e5_rkx
   real(rkx) , parameter :: stdpmb = 1013.250_rkx
   real(rkx) , parameter :: stdt = 288.15_rkx

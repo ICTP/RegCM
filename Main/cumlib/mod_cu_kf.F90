@@ -90,7 +90,6 @@ module mod_cu_kf
   real(rkx) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
 
   real(rkx) , parameter :: t00 = tzero
-  real(rkx) , parameter :: p00 = 1.0e5_rkx
 
   real(rkx) , parameter :: astrt = 1.0e-3_rkx
   real(rkx) , parameter :: aincb = 0.0250_rkx

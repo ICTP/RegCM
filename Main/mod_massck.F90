@@ -37,7 +37,7 @@ module mod_massck
 
   public :: massck
 
-#ifdef __PGI
+#ifndef QUAD_PRECISION
   integer , parameter :: wrkp = rk8
 #else
   integer , parameter :: wrkp = rk16
@@ -45,12 +45,12 @@ module mod_massck
 
   real(wrkp) , parameter :: q_zero = 0.0_wrkp
   real(wrkp) , public :: dryini , watini
+  real(rkx) :: error1 , error2
 
   contains
 
   subroutine massck
     implicit none
-    real(rkx) :: error1 , error2
     real(wrkp) :: tttmp
     real(wrkp) :: tdrym , tdadv , tqmass , tqadv
     real(wrkp) :: tcrai , tncrai , tqeva
@@ -61,6 +61,8 @@ module mod_massck
 
     tdrym = q_zero
     tdadv = q_zero
+    drymass = q_zero
+    dryadv = q_zero
     !
     ! Internal dry air mass
     !
@@ -118,6 +120,11 @@ module mod_massck
     tcrai = q_zero
     tncrai = q_zero
     tqeva = q_zero
+    qmass = q_zero
+    qadv = q_zero
+    craim = q_zero
+    ncraim = q_zero
+    evapm = q_zero
     do i = ici1 , ici2
       do j = jci1 , jci2
         tcrai = tcrai + pptnc(j,i)*dxsq*dt
@@ -181,11 +188,17 @@ module mod_massck
     call sumall(tqmass,qmass)
 
     if ( ktau == 0 ) then
+      error1 = d_zero
+      error2 = d_zero
+      if ( myid == italk ) then
+        dryini = drymass
+        watini = qmass
+      end if
       return
     end if
 
-    call sumall(tdadv,dryadv)
     call sumall(tqadv,qadv)
+    call sumall(tdadv,dryadv)
     call sumall(tcrai,craim)
     call sumall(tncrai,ncraim)
     call sumall(tqeva,evapm)

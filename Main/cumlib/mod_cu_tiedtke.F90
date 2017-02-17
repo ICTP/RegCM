@@ -4851,7 +4851,7 @@ module mod_cu_tiedtke
         if ( ktype(n) == 2 ) then
           dh = cpd*(tu(n,ikb)-eps*td(n,ikb) - &
                    (d_one-eps)*tf(n,ikb)) + wlhv*qumqe
-          dh = egrav*max(dh,1.0e5_rkx*dqmin)
+          dh = egrav*max(dh,p00*dqmin)
           if ( dhpbl(n) > d_zero ) then
             mfub1(n) = dhpbl(n)/dh
           else

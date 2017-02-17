@@ -158,7 +158,7 @@ module mod_slice
     do i = ici1 , ici2
       do j = jci1 , jci2
         atms%rhox2d(j,i) = atms%ps2d(j,i) / &
-                  (rgas*0.50_rkx*(atms%tb3d(j,i,kz)+sfs%tgbb(j,i)))
+                  (rgas*d_half*(atms%tb3d(j,i,kz)+sfs%tgbb(j,i)))
       end do
     end do
 
@@ -168,7 +168,7 @@ module mod_slice
           atms%pb3d(j,i,k) = atm2%pr(j,i,k)
           atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
           atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
-                      (1.0e5_rkx/atms%pb3d(j,i,k))**rovcp
+                      (p00/atms%pb3d(j,i,k))**rovcp
           atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
                       (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
         end do

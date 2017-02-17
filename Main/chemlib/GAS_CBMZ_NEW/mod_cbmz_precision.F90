@@ -10,7 +10,7 @@ module mod_cbmz_precision
   ! kpp dp - double precision kind
   integer, parameter :: dp = rk8
   ! kpp qp - quadruple precision kind
-#ifdef __PGI
+#ifndef QUAD_PRECISION
   integer, parameter :: qp = rk8
 #else
   integer, parameter :: qp = rk16
