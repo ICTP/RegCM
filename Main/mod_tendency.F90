@@ -1501,7 +1501,7 @@ module mod_tendency
       if ( ifrayd == 1 ) then
         call raydamp(atms%za,atm2%u,atm2%v,aten%u,aten%v)
         call raydamp(atms%za,atm2%pp,aten%pp)
-        call raydamp(atms%za,atm2%w,aten%w)
+        call raydamp(atms%zq,atm2%w,aten%w,kzp1)
       end if
       do k = 1 , kz
         do i = idi1 , idi2
@@ -1560,7 +1560,7 @@ module mod_tendency
       end do
       if ( idynamic == 2 ) then
         if ( ifrayd == 1 ) then
-          call raydamp(atms%za,atm2%tke,aten%tke)
+          call raydamp(atms%zq,atm2%tke,aten%tke,kzp1)
         end if
       end if
       do k = 1 , kz

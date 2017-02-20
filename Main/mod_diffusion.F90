@@ -185,14 +185,11 @@ module mod_diffusion
         end do
       end do
     end if
-    !
-    ! Do the same as MM5. Do not diffuse at surface.
-    !
-    xkcf(:,:,kzp1) = d_zero
+    xkcf(:,:,1) = xkc(:,:,1)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          xkcf(j,i,k) = xkc(j,i,k)
+          xkcf(j,i,k+1) = xkc(j,i,k)
         end do
       end do
     end do
@@ -209,6 +206,12 @@ module mod_diffusion
       do i = ici1 , ici2
         do j = jci1 , jci2
           xkc(j,i,k) = xkc(j,i,k) * rdxsq * pc(j,i)
+        end do
+      end do
+    end do
+    do k = 1 , kzp1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           xkcf(j,i,k) = xkcf(j,i,k) * rdxsq * pc(j,i)
         end do
       end do
@@ -281,7 +284,7 @@ module mod_diffusion
     !
     ! fourth-order scheme
     !
-    do k = 1 , kz
+    do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
           ften(j,i,k) = ften(j,i,k) + fac * xkcf(j,i,k) * &

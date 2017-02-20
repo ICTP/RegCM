@@ -603,25 +603,23 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
-        iciloop: &
         do i = ici1 , ici2
-          if ( i < icross1 + 1 .or. i > icross2 - 1) cycle iciloop
-          jciloop: &
           do j = jci1 , jci2
-            if ( j < jcross1 + 1 .or. j > jcross2 - 1) cycle jciloop
+            insil: &
             do nsi = -6 , 6
               inn = i+nsi
-              if ( inn < icross1+1 ) inn = icross1 + 6 + inn
-              if ( inn > icross2-1 ) inn = inn - 7
+              if ( inn < icross1+1 ) inn = icross1 + 7 + inn
+              if ( inn > icross2-1 ) inn = inn - 8
+              jnsjl: &
               do nsj = -6 , 6
                 jnn = j+nsj
-                if ( jnn < jcross1+1 ) jnn = jcross1 + 6 + jnn
-                if ( jnn > jcross2-1 ) jnn = jnn - 7
+                if ( jnn < jcross1+1 ) jnn = jcross1 + 7 + jnn
+                if ( jnn > jcross2-1 ) jnn = jnn - 8
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
-              end do
-            end do
-          end do jciloop
-        end do iciloop
+              end do jnsjl
+            end do insil
+          end do
+        end do
       end if
       !
       ! Finished calc of radiation w, apply whichever
