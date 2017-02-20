@@ -209,6 +209,14 @@ module mod_micro_wsm5
     !real(rkx) , dimension(kz) :: qi1d
     !real(rkx) , dimension(kz) :: re_qc , re_qi , re_qs
 
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ptfac(n) = mo2mc%psb(j,i)/dt
+        n = n + 1
+      end do
+    end do
+
     do k = 1 , kz
       n = 1
       kk = kzp1-k
@@ -225,14 +233,6 @@ module mod_micro_wsm5
           p(n,kk) = mo2mc%phs(j,i,k)
           n = n + 1
         end do
-      end do
-    end do
-
-    n = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ptfac(n) = mo2mc%psb(j,i)/dt
-        n = n + 1
       end do
     end do
 
@@ -270,8 +270,8 @@ module mod_micro_wsm5
         kk = kzp1 - k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o*1000.0_rkx/qrs(n,kk,1)
-            pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o*1000.0_rkx/qrs(n,kk,2)
+            pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o/qrs(n,kk,1)
+            pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
             mc2mo%remrat(j,i,k) = pf1 + pf2
             n = n + 1
           end do
@@ -361,7 +361,6 @@ module mod_micro_wsm5
     real(rkx) , dimension(ims:ime,kz) :: denfac , xni , denqrs1 , denqrs2
     real(rkx) , dimension(ims:ime,kz) :: denqci , n0sfac
     real(rkx) , dimension(ims:ime,kz) :: work2 , workr , works , work1c
-    real(rkx) , dimension(ims:ime,kz) :: den_tmp , delz_tmp
     real(rkx) , dimension(ims:ime) :: delqrs1 , delqrs2 , delqi
     real(rkx) , dimension(ims:ime,kz) :: pigen , pidep , psdep , praut
     real(rkx) , dimension(ims:ime,kz) :: psaut , prevp , psevp , pracw
@@ -411,8 +410,6 @@ module mod_micro_wsm5
     end do
     do k = 1 , kz
       do i = ims , ime
-        delz_tmp(i,k) = delz(i,k)
-        den_tmp(i,k) = den(i,k)
         denfac(i,k) = sqrt(stdrho/den(i,k))
       end do
     end do
@@ -502,7 +499,7 @@ module mod_micro_wsm5
           qrs_tmp(i,k,2) = qrs(i,k,2)
         end do
       end do
-      call slope_wsm5(qrs_tmp,den_tmp,denfac,t, &
+      call slope_wsm5(qrs_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
       do k = kz , 1, -1
         do i = ims , ime
@@ -514,10 +511,10 @@ module mod_micro_wsm5
           if ( qrs(i,k,2) <= d_zero ) works(i,k) = d_zero
         end do
       end do
-      call nislfv_rain_plm(nval,den_tmp,denfac,t, &
-                           delz_tmp,workr,denqrs1,delqrs1,dtcld,1,1)
-      call nislfv_rain_plm(nval,den_tmp,denfac,t, &
-                           delz_tmp,works,denqrs2,delqrs2,dtcld,2,1)
+      call nislfv_rain_plm(nval,den,denfac,t, &
+                           delz,workr,denqrs1,delqrs1,dtcld,1,1)
+      call nislfv_rain_plm(nval,den,denfac,t, &
+                           delz,works,denqrs2,delqrs2,dtcld,2,1)
       do k = 1 , kz
         do i = ims , ime
           qrs(i,k,1) = max(denqrs1(i,k)/den(i,k),d_zero)
@@ -536,7 +533,7 @@ module mod_micro_wsm5
           qrs_tmp(i,k,2) = qrs(i,k,2)
         end do
       end do
-      call slope_wsm5(qrs_tmp,den_tmp,denfac,t, &
+      call slope_wsm5(qrs_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
       do k = kz , 1 , -1
         do i = ims , ime
@@ -589,8 +586,8 @@ module mod_micro_wsm5
           denqci(i,k) = den(i,k)*qci(i,k,2)
         end do
       end do
-      call nislfv_rain_plm(nval,den_tmp,denfac,t, &
-                           delz_tmp,work1c,denqci,delqi,dtcld,1,0)
+      call nislfv_rain_plm(nval,den,denfac,t, &
+                           delz,work1c,denqci,delqi,dtcld,1,0)
       do k = 1 , kz
         do i = ims , ime
           qci(i,k,2) = max(denqci(i,k)/den(i,k),d_zero)
@@ -600,16 +597,16 @@ module mod_micro_wsm5
         fallc(i,1) = delqi(i)/delz(i,1)/dtcld
       end do
       !
-      ! rain (unit is mm/sec;kgm-2s-1: /1000*delt ===> m)==> mm for wrf
+      ! rain (unit is mm/sec;kgm-2s-1)
       !
       do i = ims , ime
         fallsum = fall(i,1,1)+fall(i,1,2)+fallc(i,1)
         fallsum_qsi = fall(i,1,2)+fallc(i,1)
         if ( fallsum > d_zero ) then
-          rain(i) = fallsum*delz(i,1)/rhoh2o*1000.0_rkx
+          rain(i) = fallsum*delz(i,1)/rhoh2o*d_1000
         end if
         if ( fallsum_qsi > d_zero ) then
-          snow(i) = fallsum_qsi*delz(i,1)/rhoh2o*1000.0_rkx
+          snow(i) = fallsum_qsi*delz(i,1)/rhoh2o*d_1000
         end if
       end do
       !
@@ -672,7 +669,7 @@ module mod_micro_wsm5
           qrs_tmp(i,k,2) = qrs(i,k,2)
         end do
       end do
-      call slope_wsm5(qrs_tmp,den_tmp,denfac,t, &
+      call slope_wsm5(qrs_tmp,den,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
       !
       ! work1:  the thermodynamic term in the denominator associated with
@@ -1088,7 +1085,7 @@ module mod_micro_wsm5
       integer(ik4) , intent(in) :: ice
       real(rkx) :: tr
       tr = ttp/t
-      if (t < ttp .and. ice == 1 ) then
+      if ( t < ttp .and. ice == 1 ) then
         fpvs = c1es*exp(log(tr)*(xai))*exp(xbi*(d_one-tr))
       else
         fpvs = c1es*exp(log(tr)*(xa))*exp(xb*(d_one-tr))

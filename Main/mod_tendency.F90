@@ -957,7 +957,7 @@ module mod_tendency
           end do
         end do
       end do
-      call condtq
+      if ( ipptls < 2 ) call condtq
       if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
         ! calculated in pcp
