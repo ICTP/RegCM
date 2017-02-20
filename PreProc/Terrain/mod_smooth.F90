@@ -77,9 +77,9 @@ module mod_smooth
         do i = 1 , ie - 1
           asv = slab(1,i)
           do j = 2 , je - 1
+            cell = slab(j,i)
             if ( (i <= nsp) .and. (i >= iem) .and. &
                  (j <= nsp) .and. (j >= jem) ) then
-              cell = slab(j,i)
               aplus = slab(j,i+1)
               slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
             end if
@@ -90,9 +90,9 @@ module mod_smooth
         do j = 1 , je - 1
           asv = slab(j,1)
           do i = 2 , ie - 1
+            cell = slab(j,i)
             if ( (i <= nsp) .and. (i >= iem) .and. &
                  (j <= nsp) .and. (j >= jem) ) then
-              cell = slab(j,i)
               aplus = slab(j,i+1)
               slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
             end if
