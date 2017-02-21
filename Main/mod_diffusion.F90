@@ -185,7 +185,7 @@ module mod_diffusion
         end do
       end do
     end if
-    xkcf(:,:,1) = xkc(ici1:ici2,jci1:jci2,1)
+    xkcf(:,:,1) = xkc(jci1:jci2,ici1:ici2,1)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
