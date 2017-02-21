@@ -34,6 +34,7 @@ module mod_che_interface
   use mod_che_tend
   use mod_che_start
   use mod_che_bionit
+  use mod_che_linox
 
   implicit none
 
@@ -53,6 +54,8 @@ module mod_che_interface
   public :: allocate_mod_che_dust
   public :: allocate_mod_che_bdyco
   public :: allocate_mod_che_bionit
+  public :: allocate_mod_che_linox
+
 
   public :: totsp
   public :: chi , chib3d , chic
@@ -105,6 +108,10 @@ module mod_che_interface
 
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%xlat,cxlat)
+    call assignpnt(mddom%dlat,cdlat)
+    call assignpnt(mddom%dlon,cdlon)
+
+
     call assignpnt(mddom%ht,cht)
     call assignpnt(mddom%iveg,cveg2d)
     call assignpnt(sfs%psb,cpsb)

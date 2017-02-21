@@ -317,7 +317,7 @@ contains
       ! g to kg: /1000
       ! ha to m2: /100 /100
       ! d to s: /86400
-      noxflux(i) = noxflux(i)/ (1000._rkx*100._rkx*100._rkx*86400._rkx)
+      noxflux(i) = noxflux(i)* (30./14.)/ (1000._rkx*100._rkx*100._rkx*86400._rkx)
 
       ! flux reduction because of canopy absorption
       if ( lai_int(i) > 1.9_rkx .and. lai_int(i) <  5._rkx ) then
@@ -347,7 +347,7 @@ contains
       cemtrac(j,i,ino) = cemtrac(j,i,ino) + noxflux(i)* cfdout
 
       if ( ichdiag == 1 ) then
-        cemisdiag(j,i,ino) = cemisdiag(j,i,ino) + &
+        cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
                noxflux(i)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
       end if
     end do

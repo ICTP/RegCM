@@ -305,7 +305,7 @@ module mod_clm_regcm
       clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
 ! samy
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       !clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
@@ -321,7 +321,7 @@ module mod_clm_regcm
       clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
 ! samy
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       if ( use_c13 ) then
        ! C13O2 partial pressure (Pa)

@@ -147,7 +147,7 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac
+      ismoke , rocemfac, ichlinox
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -489,6 +489,7 @@ module mod_params
     ichdiag = 0       ! chem tend outputs
     ichsursrc = 1
     ichebdy = 1
+    ichlinox = 1
     rdstemfac = d_one
     ichbion = 0
     rocemfac = 1.33_rkx
@@ -1360,6 +1361,7 @@ module mod_params
       call bcast(ichdiag)
       call bcast(ichsursrc)
       call bcast(ichebdy)
+      call bcast(ichlinox)
       call bcast(ichbion)
       call bcast(ismoke)
 
@@ -1401,6 +1403,8 @@ module mod_params
     call allocate_mod_che_dust
     call allocate_mod_che_bdyco
     call allocate_mod_che_bionit
+    call allocate_mod_che_linox
+
     if ( isladvec == 1 ) then
       call allocate_mod_sldepparam
     end if

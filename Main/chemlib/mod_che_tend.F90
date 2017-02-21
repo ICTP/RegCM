@@ -43,7 +43,7 @@
   use mod_che_pollen
   use mod_che_bionit
   use mod_che_ccn
-
+  use mod_che_linox
   implicit none
 
   private
@@ -350,6 +350,14 @@
        end do
       end if
       !
+      ! linox emissions
+      if ( ichlinox == 1 .and. ino > 0 ) then
+       do j = jci1 , jci2
+          call linox_em(j,ivegcov(:,j))
+       end do
+      end if
+
+
       ! update emission tendencies from external inventories
       ! handle biogenic emission fluxes coming from CLM45
       if ( ichsursrc == 1 ) then

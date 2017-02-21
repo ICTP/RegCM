@@ -145,9 +145,11 @@ module mod_che_output
         end if
         if ( associated(che_emten_out) ) then
           ! no need to normalise by ps here !!
-          che_emten_out(:,:) = cemisdiag(jci1:jci2,ici1:ici2,itr)
+         do k = 1 , kz
+          che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr)
+         end do 
         end if
-        cemisdiag(:,:,itr) = d_zero
+        cemisdiag(:,:,:,itr) = d_zero
       endif
 
       rainout(:,:,:,itr) = d_zero

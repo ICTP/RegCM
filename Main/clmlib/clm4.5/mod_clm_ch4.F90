@@ -304,15 +304,15 @@ module mod_clm_ch4
 
     do g = lbg , ubg
 
-      if (ch4offline) then
-        forc_pch4(g) = atmch4*forc_pbot(g)
-      else
-       write(stderr,*) 'not using ch4offline, but methane concentration &
-                  &not passed from the atmosphere &
-                  &to land model! CLM Model is stopping.'
-          call fatal(__FILE__,__LINE__, &
-           trim(subname) // 'ERROR: Methane not being passed to atmosphere')
-        end if
+      !if (ch4offline) then
+      !  forc_pch4(g) = atmch4*forc_pbot(g)
+      !else
+      ! write(stderr,*) 'not using ch4offline, but methane concentration &
+      !            &not passed from the atmosphere &
+      !            &to land model! CLM Model is stopping.'
+      !    call fatal(__FILE__,__LINE__, &
+      !     trim(subname) // 'ERROR: Methane not being passed to atmosphere')
+      !  end if
 
       c_atm(g,1) =  forc_pch4(g) / rgasm / forc_t(g) ! [mol/m3 air]
       c_atm(g,2) =  forc_po2(g) / rgasm / forc_t(g)  ! [mol/m3 air]

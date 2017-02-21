@@ -679,7 +679,7 @@ module mod_che_dust
                      rsfrow(i,n)* cfdout
 
              if ( ichdiag == 1 ) then
-             cemisdiag(jloop,i,idust(n)) = cemisdiag(jloop,i,idust(n)) + &
+             cemisdiag(jloop,i,kz,idust(n)) = cemisdiag(jloop,i,kz,idust(n)) + &
                        rsfrow(i,n) / &
                        (cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
              end if
@@ -998,7 +998,7 @@ module mod_che_dust
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
                     sumdflux(j,i)*frac(n) * cdsfrq
              if ( ichdiag == 1 ) then
-               cemisdiag(j,i,idust(n)) = cemisdiag(j,i,idust(n)) + &
+               cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
                                  sumdflux(j,i)*frac(n) / &
                                  (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cdsfrq
              end if

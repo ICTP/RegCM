@@ -80,7 +80,7 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
           cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag ,  &
           cseddpdiag
-  real(rkx) , pointer , dimension(:,:,:) :: cemisdiag
+  real(rkx) , pointer , dimension(:,:,:,:) :: cemisdiag
 
   !*****************************************************************************
   ! INTERFACE VARIABLES  for chemistry / regcm
@@ -98,7 +98,7 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
-         cps2d , cps0 , cptrop, cw10m
+         cps2d , cps0 , cptrop, cw10m, cdlat,cdlon
   real(rkx) , pointer , dimension(:,:) :: psbb0 , psbb1
   real(rkx) , pointer , dimension(:,:) :: czen
   real(rkx) , pointer , dimension(:,:,:,:) :: ctaucld
@@ -172,7 +172,7 @@ module mod_che_common
       call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
       call getmem1d(idust,1,nbin,'mod_che_common:idust')
       call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
-      call getmem1d(icarb,1,7,'mod_che_common:icarb')
+      call getmem1d(icarb,1,9,'mod_che_common:icarb')
       call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
       call getmem2d(imine,1,nbin,1,nmine,'mod_che_common:imine')
 
@@ -216,8 +216,8 @@ module mod_che_common
                       ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
         call getmem4d(cseddpdiag,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:cseddpdiag')
-        call getmem3d(cemisdiag,jce1,jce2, &
-                      ice1,ice2,1,ntr,'che_common:cemisdiag')
+        call getmem4d(cemisdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cemisdiag')
       end if
 #if defined CLM45 || (defined CLM && defined VOC)
       call getmem1d(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')

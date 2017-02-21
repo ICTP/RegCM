@@ -208,7 +208,7 @@ module mod_clm_ch4varcon
 
   ! Atmospheric CH4 mixing ratio to prescribe if not provided by the
   ! atmospheric model (mol/mol)
-  real(rk8) , public :: atmch4 = 1.7e-6_rk8
+  !  real(rk8) , public :: atmch4 = 1.7e-6_rk8
 
   public :: ch4conrd ! Read and initialize CH4 constants
 
@@ -229,7 +229,8 @@ module mod_clm_ch4varcon
 
     ! Driver
     namelist /ch4par_in/ &
-        ch4offline, fin_use_fsat, replenishlakec, allowlakeprod, atmch4
+        ch4offline, fin_use_fsat, replenishlakec, allowlakeprod
+    ! , atmch4
 
     ! Production
     namelist /ch4par_in/ &

@@ -85,8 +85,8 @@ module mod_ncout
   integer(ik4) , parameter :: nopt3dvars = 5
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
-  integer(ik4) , parameter :: nche2dvars = 9 + nbase
-  integer(ik4) , parameter :: nche3dvars = 12
+  integer(ik4) , parameter :: nche2dvars = 8 + nbase
+  integer(ik4) , parameter :: nche3dvars = 13
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -394,7 +394,6 @@ module mod_ncout
   integer(ik4) , parameter :: che_ddvel    = 11
   integer(ik4) , parameter :: che_burden   = 12
   integer(ik4) , parameter :: che_pblten   = 13
-  integer(ik4) , parameter :: che_emten    = 14
 
   integer(ik4) , parameter :: che_pp       = 1
   integer(ik4) , parameter :: che_mixrat   = 2
@@ -408,6 +407,8 @@ module mod_ncout
   integer(ik4) , parameter :: che_wasten   = 10
   integer(ik4) , parameter :: che_bdyten   = 11
   integer(ik4) , parameter :: che_sedten   = 12
+  integer(ik4) , parameter :: che_emten    = 13
+
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -2168,12 +2169,6 @@ module mod_ncout
           che_burden_out => v2dvar_che(che_burden)%rval
         end if
         if ( ichdiag == 1 ) then
-          if ( enable_che2d_vars(che_emten) ) then
-            call setup_var(v2dvar_che,che_emten,vsize,'emiten', &
-              'kg kg-1 s-1', 'Tendency of tracer due to emission', &
-              'tendency_of_mixing_ratio_due_to_emission',.true.)
-            che_emten_out => v2dvar_che(che_emten)%rval
-          end if
           if ( ibltyp == 2 ) then
             if ( enable_che2d_vars(che_pblten) ) then
               call setup_var(v2dvar_che,che_pblten,vsize,'pblten', &
@@ -2185,7 +2180,6 @@ module mod_ncout
             enable_che2d_vars(che_pblten) = .false.
           end if
         else
-          enable_che2d_vars(che_emten) = .false.
           enable_che2d_vars(che_pblten) = .false.
         end if
 
@@ -2268,8 +2262,17 @@ module mod_ncout
               'tendency_of_mixing_ratio_due_to_sedimentation',.true.)
             che_sedten_out => v3dvar_che(che_sedten)%rval
           end if
+            
+          if ( enable_che3d_vars(che_emten) ) then
+            call setup_var(v3dvar_che,che_emten,vsize,'emiten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to emission', &
+              'tendency_of_mixing_ratio_due_to_emission',.true.)
+            che_emten_out => v3dvar_che(che_emten)%rval
+          end if
+
+
         else
-          enable_che3d_vars(che_cheten:che_sedten) = .false.
+          enable_che3d_vars(che_cheten:che_emten) = .false.
         end if
         enable_che_vars(1:nche2dvars) = enable_che2d_vars
         enable_che_vars(nche2dvars+1:nchevars) = enable_che3d_vars

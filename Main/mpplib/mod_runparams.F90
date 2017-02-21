@@ -365,6 +365,7 @@ module mod_runparams
   integer(ik4) , public :: ichebdy
   integer(ik4) , public :: ichjphcld
   integer(ik4) , public :: ichbion
+  integer(ik4) , public :: ichlinox 
   real(rkx) , public :: rdstemfac
   real(rkx) , public :: rocemfac
 
