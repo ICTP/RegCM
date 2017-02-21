@@ -44,6 +44,7 @@ module mod_bdycod
 
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
   public :: sponge , nudge , setup_bdycon , raydamp
+  public :: topnudge
 
   !
   ! West U External  = WUE
@@ -80,6 +81,10 @@ module mod_bdycod
   interface nudge
     module procedure nudge4d , nudge4d3d , nudge3d , nudge2d , nudgeuv
   end interface nudge
+
+  interface topnudge
+    module procedure topnudge4d , topnudge3d , topnudgeuv
+  end interface topnudge
 
   interface sponge
     module procedure sponge4d , sponge3d , sponge2d , spongeuv
@@ -2894,6 +2899,60 @@ module mod_bdycod
     end do
   end subroutine couple
 
+  subroutine topnudgeuv(u,v,uten,vten)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
+    real(rkx) :: mval , xt
+    integer(ik4) :: i , j
+    xt = xbctime + dt
+    do i = idi1 , idi2
+      do j = jdi1 , jdi2
+        mval = (xub%b0(j,i,1)+xt*xub%bt(j,i,1))
+        uten(j,i,1) = uten(j,i,1) + rayalpha0 * (mval-u(j,i,1))
+      end do
+    end do
+    do i = idi1 , idi2
+      do j = jdi1 , jdi2
+        mval = xvb%b0(j,i,1)+xt*xvb%bt(j,i,1)
+        vten(j,i,1) = vten(j,i,1) + rayalpha0 * (mval-v(j,i,1))
+      end do
+    end do
+  end subroutine topnudgeuv
+
+  subroutine topnudge3d(v,vten,bnd)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: v
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
+    type(v3dbound) , intent(in) :: bnd
+    real(rkx) :: mval , xt
+    integer(ik4) :: i , j
+    xt = xbctime + dt
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        mval = bnd%b0(j,i,1)+xt*bnd%bt(j,i,1)
+        vten(j,i,1) = vten(j,i,1) + rayalpha0 * (mval-v(j,i,1))
+      end do
+    end do
+  end subroutine topnudge3d
+
+  subroutine topnudge4d(v,vten,bnd,n)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: v
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
+    type(v3dbound) , intent(in) :: bnd
+    integer(ik4) , intent(in) :: n
+    real(rkx) :: mval , xt
+    integer(ik4) :: i , j
+    xt = xbctime + dt
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        mval = bnd%b0(j,i,1)+xt*bnd%bt(j,i,1)
+        vten(j,i,1,n) = vten(j,i,1,n) + rayalpha0 * (mval-v(j,i,1,n))
+      end do
+    end do
+  end subroutine topnudge4d
+
   subroutine raydamp3d(z,u,v,uten,vten)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
@@ -2914,7 +2973,7 @@ module mod_bdycod
       call meanall(lmval,mval)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          zz = d_rfour * (z(j,i,k) + z(j+1,i,k) + z(j,i+1,k) + z(j+1,i+1,k))
+          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
           rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
           uten(j,i,k) = uten(j,i,k) + rate * (mval-u(j,i,k))
         end do
@@ -2933,7 +2992,7 @@ module mod_bdycod
       call meanall(lmval,mval)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          zz = d_rfour * (z(j,i,k) + z(j+1,i,k) + z(j,i+1,k) + z(j+1,i+1,k))
+          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
           rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
           vten(j,i,k) = vten(j,i,k) + rate * (mval-v(j,i,k))
         end do
