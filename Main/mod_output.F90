@@ -420,8 +420,9 @@ module mod_output
         if ( associated(atm_tpr_out) ) then
           atm_tpr_out = (sfs%rainc+sfs%rainnc)/(atmfrq*secph)
         end if
-        if ( associated(atm_tsn_out) ) &
+        if ( associated(atm_tsn_out) ) then
           atm_tsn_out = sfs%snownc/(atmfrq*secph)
+        end if
 
         if ( associated(atm_tgb_out) ) &
           atm_tgb_out = atm_tgb_out * rsrf_in_atm
@@ -575,6 +576,9 @@ module mod_output
 
         if ( associated(atm_tgb_out) ) atm_tgb_out = d_zero
         if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
+        sfs%rainc  = d_zero
+        sfs%rainnc = d_zero
+        if ( ipptls == 2 .or. ipptls == 3 ) sfs%snownc  = d_zero
       end if
     end if
 
@@ -963,9 +967,6 @@ module mod_output
 
         if ( ipptls > 0 ) then
           call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
-          if ( ipptls == 2 .or. ipptls == 3 ) then
-            call grid_collect(sfs%snownc,snownc_io,jci1,jci2,ici1,ici2)
-          end if
         end if
         call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
         call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
@@ -1088,11 +1089,6 @@ module mod_output
       end if
     end if
 
-    if ( ldoatm ) then
-      sfs%rainc   = d_zero
-      sfs%rainnc  = d_zero
-      if ( ipptls == 2 .or. ipptls == 3 ) sfs%snownc  = d_zero
-    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

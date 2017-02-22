@@ -608,13 +608,13 @@ module mod_sound
             insil: &
             do nsi = -6 , 6
               inn = i+nsi
-              if ( inn < icross1+1 ) inn = icross1 + 7 + inn
-              if ( inn > icross2-1 ) inn = inn - 8
+              if ( inn < icross1+1 ) inn = icross1 + 5 + inn
+              if ( inn > icross2-1 ) inn = inn - 6
               jnsjl: &
               do nsj = -6 , 6
                 jnn = j+nsj
-                if ( jnn < jcross1+1 ) jnn = jcross1 + 7 + jnn
-                if ( jnn > jcross2-1 ) jnn = jnn - 8
+                if ( jnn < jcross1+1 ) jnn = jcross1 + 5 + jnn
+                if ( jnn > jcross2-1 ) jnn = jnn - 6
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do jnsjl
             end do insil

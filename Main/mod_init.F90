@@ -327,9 +327,6 @@ module mod_init
 
       if ( ipptls > 0 ) then
         call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
-        if ( ipptls == 2 .or. ipptls == 3 ) then
-          call grid_distribute(snownc_io,sfs%snownc,jci1,jci2,ici1,ici2)
-        end if
       end if
       call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
       call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)

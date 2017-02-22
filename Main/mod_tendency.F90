@@ -71,6 +71,11 @@ module mod_tendency
 
   real(rkx) :: rptn ! Total number of internal points
 
+  interface ten2diag
+    module procedure extracttent
+    module procedure extracttenqv
+  end interface ten2diag
+
   contains
 
 #include <cpmf.inc>
@@ -144,7 +149,7 @@ module mod_tendency
     real(rkx) :: duv , pt2bar , pt2tot , ptnbar , maxv , ptntot ,  &
                  rovcpm , rtbar , tv , tva , tvavg , tvb , tvc ,   &
                  cpm , rofac , uaq , vaq , wabar , amfac , wadot , &
-                 wadotp1
+                 wadotp1 , scr1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -425,12 +430,8 @@ module mod_tendency
         call sponge(xwwb,aten%w)
       end if
       if ( idiag > 0 ) then
-        ! rq : temp condensation tend is added the evap temp tend
-        !      calculated in pcp
-        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
-        ten0 = aten%t
-        qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
-        qen0 = aten%qx(:,:,:,iqv)
+        call ten2diag(ten0,aten%t,tdiag%bdy)
+        call ten2diag(qen0,aten%qx,qdiag%bdy)
       end if
     end if
     !
@@ -440,26 +441,20 @@ module mod_tendency
     !
     if ( ithadv == 0 ) then
       call hadv(aten%t,atmx%t)
-      if ( idiag > 0 ) then
-        tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
-        ten0 = aten%t
-      end if
 #ifdef DEBUG
       call check_temperature_tendency('HADV')
 #endif
+      if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%adh)
       !
       ! compute the vertical advection term:
       ! same for hydrostatic and nonhydrostatic models:
       ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
       !
       call vadv(aten%t,atm1%t,kz,1)
-      if ( idiag > 0 ) then
-        tdiag%adv = tdiag%adv + (aten%t - ten0) * afdout
-        ten0 = aten%t
-      end if
 #ifdef DEBUG
       call check_temperature_tendency('VADV')
 #endif
+      if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%adv)
     else
       thten(:,:,:) = d_zero
       do k = 1 , kz
@@ -472,21 +467,7 @@ module mod_tendency
       end do
       call exchange(th,1,jce1,jce2,ice1,ice2,1,kz)
       call hadv(thten,th)
-      if ( idiag > 0 ) then
-        tdiag%adh = tdiag%adh + (thten - ten0) * afdout
-        ten0 = thten
-      end if
-#ifdef DEBUG
-      call check_temperature_tendency('HADV')
-#endif
       call vadv(thten,tha,kz,0)
-      if ( idiag > 0 ) then
-        tdiag%adv = tdiag%adv + (thten - ten0) * afdout
-        ten0 = thten
-      end if
-#ifdef DEBUG
-      call check_temperature_tendency('VADV')
-#endif
     end if
     !
     ! compute the adiabatic term:
@@ -516,9 +497,12 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               cpm = cpmf(qvd(j,i,k))
-              aten%t(j,i,k) = aten%t(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
-                        (omega(j,i,k)*sfs%psa(j,i) + aten%pp(j,i,k) + &
-                         atmx%pp(j,i,k)*mdv%cr(j,i,k)) / (atm1%rho(j,i,k)*cpm)
+              scr1 = d_half*egrav*atm0%rho(j,i,k) * &
+                           (atm1%w(j,i,k)+atm1%w(j,i,k+1))
+              aten%t(j,i,k) = aten%t(j,i,k) +  &
+                         atmx%t(j,i,k)*mdv%cr(j,i,k) - &
+                        (scr1+aten%pp(j,i,k)+atmx%pp(j,i,k)*mdv%cr(j,i,k)) / &
+                        (atm1%rho(j,i,k)*cpm)
             end do
           end do
         end do
@@ -533,6 +517,7 @@ module mod_tendency
           end do
         end do
       end if
+      if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%adi)
       !
       ! Divergence term in the pressure perturbation tendency equation in the
       ! nonhydrostatic model: 4th RHS term in Eq. 2.2.4 and Eq. 2.3.8
@@ -618,12 +603,7 @@ module mod_tendency
         end do
       end if
     end if
-    if ( idiag > 0 ) then
-      tdiag%adi = tdiag%adi + (aten%t - ten0) * afdout
-      ten0 = aten%t
-      qdiag%adi = qdiag%adi + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
-    end if
+    if ( idiag > 0 ) call ten2diag(qen0,aten%qx,qdiag%adi)
 #ifdef DEBUG
     call check_temperature_tendency('DIAB')
 #endif
@@ -634,13 +614,10 @@ module mod_tendency
     !
     ! compute the diffusion term for t and store in difft:
     !
-    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%t
+    if ( idiag > 0 ) ten0 = adf%t
     call diffu_x(adf%t,atms%tb3d)
     if ( idiag > 0 ) then
-      ! save the h diff diag here
-      tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
-        (adf%t - ten0(jci1:jci2,ici1:ici2,:)) * afdout
-      ! reset ten0 to aten%t
+      call ten2diag(ten0,adf%t,tdiag%dif)
       ten0 = aten%t
     end if
     !
@@ -660,17 +637,11 @@ module mod_tendency
     else
       call hadv(aten%qx,atmx%qx,iqv)
     end if
-    if ( idiag > 0 ) then
-      qdiag%adh = qdiag%adh + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
-    end if
+    if ( idiag > 0 ) call ten2diag(qen0,aten%qx,qdiag%adh)
     if ( all(icup /= 1) ) then
       call vadv(aten%qx,atm1%qx,iqv)
     end if
-    if ( idiag > 0 ) then
-      qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
-    end if
+    if ( idiag > 0 ) call ten2diag(qen0,aten%qx,qdiag%adv)
     if ( ipptls > 0 ) then
       if ( isladvec == 1 ) then
         call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
@@ -711,16 +682,14 @@ module mod_tendency
     ! Call cumulus parametrization
     !
     call cumulus
-    if ( idiag > 0 ) then
-      tdiag%con = tdiag%con + (aten%t - ten0) * afdout
-      ten0 = aten%t
-      qdiag%con = qdiag%con + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
-    end if
 #ifdef DEBUG
     call check_temperature_tendency('CONV')
     call check_wind_tendency('CONV')
 #endif
+    if ( idiag > 0 ) then
+      call ten2diag(ten0,aten%t,tdiag%con)
+      call ten2diag(qen0,aten%qx,qdiag%con)
+    end if
     !
     ! save cumulus cloud fraction for chemistry before it is
     ! overwritten in cldfrac
@@ -738,32 +707,24 @@ module mod_tendency
       !
       call cldfrac
       call microscheme
+      if ( idiag > 0 ) then
+        call ten2diag(ten0,aten%t,tdiag%lsc)
+        call ten2diag(qen0,aten%qx,qdiag%lsc)
+      end if
       !
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
       !
       if ( idiag > 0 ) then
-        qen0(jci1:jci2,ici1:ici2,:) = adf%qx(jci1:jci2,ici1:ici2,:,iqv)
+        qen0 = adf%qx(:,:,:,iqv)
       end if
       call diffu_x(adf%qx,atms%qxb3d,1,nqx,d_one)
       if ( idiag > 0 ) then
-        ! save the h diff diag here
-        qdiag%dif(jci1:jci2,ici1:ici2,:) = &
-                      qdiag%dif(jci1:jci2,ici1:ici2,:) +   &
-                     (adf%qx(jci1:jci2,ici1:ici2,:,iqv) -  &
-                      qen0(jci1:jci2,ici1:ici2,:)) * afdout
-        ! reset qen0 to aten%t
+        call ten2diag(qen0,adf%qx,qdiag%dif)
         qen0 = aten%qx(:,:,:,iqv)
       end if
     end if
 
-    if ( idiag > 0 ) then
-      ! save tten from pcp (evaporation)
-      tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
-      ten0 = aten%t
-      qdiag%lsc = qdiag%lsc + (aten%qx(:,:,:,iqv) - qen0) * afdout
-      qen0 = aten%qx(:,:,:,iqv)
-    end if
 #ifdef DEBUG
     call check_temperature_tendency('PREC')
 #endif
@@ -812,20 +773,20 @@ module mod_tendency
     !
     ! Call medium resolution PBL
     !
+    if ( idiag > 0 ) then
+      ten0 = adf%t
+      qen0 = adf%qx(:,:,:,iqv)
+    end if
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
     ! care : pbl update the difft table at this level
-    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%t
     call pblscheme
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
     end if
     if ( idiag > 0 ) then
-      tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:) + &
-                     (adf%t - ten0(jci1:jci2,ici1:ici2,:)) * afdout
+      call ten2diag(ten0,adf%t,tdiag%tbl)
+      call ten2diag(qen0,adf%qx,qdiag%tbl)
       ten0 = aten%t
-      qdiag%tbl(jci1:jci2,ici1:ici2,:) = qdiag%tbl(jci1:jci2,ici1:ici2,:) + &
-                (adf%qx(jci1:jci2,ici1:ici2,:,iqv) - &
-            qen0(jci1:jci2,ici1:ici2,:)) * afdout
       qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
@@ -844,10 +805,7 @@ module mod_tendency
         end do
       end do
     end do
-    if ( idiag > 0 ) then
-      tdiag%rad = tdiag%rad + (aten%t - ten0) * afdout
-      ten0 = aten%t
-    end if
+    if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%rad)
 #ifdef DEBUG
     call check_temperature_tendency('HEAT')
 #endif
@@ -859,12 +817,7 @@ module mod_tendency
       if ( iboudy == 4 ) then
         call sponge(xtb,aten%t)
         call sponge(xqb,aten%qx,iqv)
-        if ( idiag > 0 ) then
-          ! rq : temp condensation tend is added the evap temp tend
-          !      calculated in pcp
-          tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
-          ten0 = aten%t
-        end if
+        if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%bdy)
       end if
     end if
     !
@@ -920,10 +873,8 @@ module mod_tendency
         call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
       end if
       if ( idiag > 0 ) then
-        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
-        ten0 = aten%t
-        qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
-        qen0 = aten%qx(:,:,:,iqv)
+        call ten2diag(ten0,aten%t,tdiag%bdy)
+        call ten2diag(qen0,aten%qx,qdiag%bdy)
       end if
     end if
     if ( ichem == 1 ) then
@@ -937,12 +888,6 @@ module mod_tendency
 #ifdef DEBUG
     call check_temperature_tendency('BDYC')
 #endif
-    ! Rq: the temp tendency diagnostics have been already
-    !     saved for tbl and hor. diff but :
-    if ( idiag > 0 ) then
-      ten0 = aten%t ! important since aten%t have been updated
-      qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
-    end if
     !
     ! compute the condensation and precipitation terms for explicit
     ! moisture schemes
@@ -959,12 +904,8 @@ module mod_tendency
       end do
       if ( ipptls < 2 ) call condtq
       if ( idiag > 0 ) then
-        ! rq : temp condensation tend is added the evap temp tend
-        ! calculated in pcp
-        tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
-        ten0 = aten%t
-        qdiag%lsc = qdiag%lsc + (aten%qx(:,:,:,iqv) - qen0) * afdout
-        qen0 = aten%qx(:,:,:,iqv)
+        call ten2diag(ten0,aten%t,tdiag%lsc)
+        call ten2diag(qen0,aten%qx,qdiag%rad)
       end if
     end if
     !
@@ -2167,6 +2108,38 @@ module mod_tendency
     end subroutine decouple
 
   end subroutine tend
+
+  subroutine extracttent(pten,ten,store)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) :: pten
+    real(rkx) , pointer , dimension(:,:,:) :: ten
+    real(rkx) , pointer , dimension(:,:,:) :: store
+    integer :: i , j , k
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          store(j,i,k) = store(j,i,k)+(ten(j,i,k)-pten(j,i,k))*afdout
+          pten(j,i,k) = ten(j,i,k)
+        end do
+      end do
+     end do
+  end subroutine extracttent
+
+  subroutine extracttenqv(pqen,qen,store)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) :: pqen
+    real(rkx) , pointer , dimension(:,:,:,:) :: qen
+    real(rkx) , pointer , dimension(:,:,:) :: store
+    integer :: i , j , k
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          store(j,i,k) = store(j,i,k)+(qen(j,i,k,iqv)-pqen(j,i,k))*afdout
+          pqen(j,i,k) = qen(j,i,k,iqv)
+        end do
+      end do
+     end do
+  end subroutine extracttenqv
 
 end module mod_tendency
 

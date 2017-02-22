@@ -262,9 +262,9 @@ module mod_params
     base_state_pressure = stdp
     logp_lrate = 47.70_rkx
     ifupr = 1
-    ckh = d_one      ! Environmental diffusion tunable parameter
-    adyndif = d_four ! Dynamical diffusion tunable parameter
-    nhbet = 0.4_rkx  ! Arakawa beta (MM5 manual, Sec. 2.5.1)
+    ckh = d_one       ! Environmental diffusion tunable parameter
+    adyndif = 1.0_rkx ! Dynamical diffusion tunable parameter
+    nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     ifrayd = 1
     rayndamp = kz / 4
@@ -2397,12 +2397,12 @@ module mod_params
         call psc2psd(atm0%ps,atm0%psdot)
         call exchange(atm0%psdot,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
-          do j = jci1 , jci2
+          do j = jce1 , jce2
             dpsdxm(j,i) = (atm0%psdot(j+1,i) - atm0%psdot(j,i)) / &
                           (atm0%ps(j,i)*dx4*mddom%msfx(j,i))
           end do
         end do
-        do i = ici1 , ici2
+        do i = ice1 , ice2
           do j = jce1 , jce2
             dpsdym(j,i) = (atm0%psdot(j,i+1) - atm0%psdot(j,i)) / &
                           (atm0%ps(j,i)*dx4*mddom%msfx(j,i))

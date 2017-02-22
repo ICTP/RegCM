@@ -87,7 +87,6 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: tgb_io
   real(rkx) , public , pointer , dimension(:,:) :: hfx_io
   real(rkx) , public , pointer , dimension(:,:) :: qfx_io
-  real(rkx) , public , pointer , dimension(:,:) :: snownc_io
   real(rkx) , public , pointer , dimension(:,:) :: tgbb_io
   real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io
 
@@ -205,9 +204,6 @@ module mod_savefile
       call getmem2d(tgb_io,jcross1,jcross2,icross1,icross2,'tgb_io')
       call getmem2d(hfx_io,jcross1,jcross2,icross1,icross2,'hfx_io')
       call getmem2d(qfx_io,jcross1,jcross2,icross1,icross2,'qfx_io')
-      if ( ipptls == 2 .or. ipptls == 3 ) then
-        call getmem2d(snownc_io,jcross1,jcross2,icross1,icross2,'snownc_io')
-      end if
       call getmem2d(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
       call getmem2d(uvdrag_io,jcross1,jcross2,icross1,icross2,'uvdrag_io')
 
@@ -447,10 +443,6 @@ module mod_savefile
       if ( ipptls > 0 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'fcc'),fcc_io)
         call check_ok(__FILE__,__LINE__,'Cannot read fcc')
-        if ( ipptls == 2 .or. ipptls == 3 ) then
-          ncstatus = nf90_get_var(ncid,get_varid(ncid,'snownc'),snownc_io)
-          call check_ok(__FILE__,__LINE__,'Cannot read snownc')
-        end if
       end if
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'solis'),solis_io)
       call check_ok(__FILE__,__LINE__,'Cannot read solis')
@@ -719,9 +711,6 @@ module mod_savefile
       if ( ipptls > 0 ) then
         wrkdim(3) = dimids(idkh)
         call mydefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        if ( ipptls == 2 .or. ipptls == 3 ) then
-          call mydefvar(ncid,'snownc',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        end if
       end if
       call mydefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
@@ -902,9 +891,6 @@ module mod_savefile
       end if
       if ( ipptls > 0 ) then
         call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
-        if ( ipptls == 2 .or. ipptls == 3 ) then
-          call myputvar(ncid,'snownc',snownc_io,varids,ivcc)
-        end if
       end if
       call myputvar(ncid,'solis',solis_io,varids,ivcc)
       call myputvar(ncid,'solvs',solvs_io,varids,ivcc)

@@ -24,7 +24,7 @@ module mod_micro_wsm5
   use mod_constants
   use mod_dynparam
   use mod_memutil
-  use mod_runparams , only : ichem , dt , iqi , iqc , iqr , iqs , iqv
+  use mod_runparams , only : ichem , dt , dtsec , iqi , iqc , iqr , iqs , iqv
   use mod_regcm_types
 
   private
@@ -282,8 +282,8 @@ module mod_micro_wsm5
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n)*dt
-        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*dt
+        mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n)*dtsec
+        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*dtsec
         mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + rain(n)
         n = n + 1
       end do
