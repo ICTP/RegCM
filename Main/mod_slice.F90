@@ -244,41 +244,16 @@ module mod_slice
         end do
       end do
     end do
-    !
-    ! compute the height at full (za) and half (zq) sigma levels:
-    !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        atms%zq(j,i,kzp1) = d_zero
-      end do
-    end do
-    if ( idynamic == 2 ) then
-      do k = kz , 1 , -1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            cell = ptop * rpsb(j,i)
-            atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atm0%t(j,i,k) *  &
-                      log((sigma(k+1)+cell)/(sigma(k)+cell))
-          end do
+    if ( idynamic == 1 ) then
+      !
+      ! compute the height at full (za) and half (zq) sigma levels:
+      ! CONSTANT FOR NON-HYDROSTATIC
+      !
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%zq(j,i,kzp1) = d_zero
         end do
       end do
-      do i = ice1ga , ice2ga
-        do j = jce1ga , jce2ga
-          cell = ptop * rpsb(j,i)
-          atms%za(j,i,kz) = rovg * atm0%t(j,i,kz) * &
-                   log((sigma(kzp1)+cell)/(hsigma(kz)+cell))
-        end do
-      end do
-      do k = kz-1 , 1 , -1
-        do i = ice1ga , ice2ga
-          do j = jce1ga , jce2ga
-            cell = ptop * rpsb(j,i)
-            atms%za(j,i,k) = atms%za(j,i,k+1) + rovg * atm0%t(j,i,k) * &
-                     log((hsigma(k+1)+cell)/(hsigma(k)+cell))
-          end do
-        end do
-      end do
-    else
       do k = kz , 1 , -1
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -295,14 +270,14 @@ module mod_slice
           end do
         end do
       end do
-    end if
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
+          end do
         end do
       end do
-    end do
+    end if
 
     do k = 1 , kz
       do i = ice1 , ice2

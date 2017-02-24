@@ -659,10 +659,13 @@ module mod_atm_interface
       call getmem2d(atm%psdot,jde1ga,jde2ga,ide1ga,ide2ga,'reference:psdot')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:t')
       call getmem3d(atm%pr,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:pr')
-      call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'reference:rho')
+      call getmem3d(atm%rho,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:rho')
+      call getmem3d(atm%z,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'reference:z')
       call getmem3d(atm%tf,jce1,jce2,ice1,ice2,1,kzp1,'reference:tf')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
       call getmem3d(atm%rhof,jce1,jce2,ice1,ice2,1,kzp1,'reference:rhof')
+      call getmem3d(atm%zf,jce1,jce2,ice1,ice2,1,kzp1,'reference:zf')
+      call getmem3d(atm%dzf,jce1,jce2,ice1,ice2,1,kzp1,'reference:dzf')
       call getmem3d(atm%dprddx,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddx')
       call getmem3d(atm%dprddy,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddy')
     end subroutine allocate_reference_atmosphere
@@ -787,9 +790,10 @@ module mod_atm_interface
 
     end subroutine allocate_surfstate
 
-    subroutine allocate_slice(ax)
+    subroutine allocate_slice(ax,a0)
       implicit none
       type(slice) , intent(out) :: ax
+      type(reference_atmosphere) , intent(in) :: a0
       call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
       call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
       call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
@@ -812,10 +816,16 @@ module mod_atm_interface
       else
         call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
       end if
-      call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
-      call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
       call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
-      call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
+      if ( idynamic == 1 ) then
+        call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
+        call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
+        call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
+      else
+        call assignpnt(a0%z,atms%za)
+        call assignpnt(a0%zf,atms%zq)
+        call assignpnt(a0%dzf,atms%dzq)
+      end if
       call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
       call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
       call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
@@ -844,6 +854,9 @@ module mod_atm_interface
       call allocate_domain(mddom)
       call allocate_domain_subgrid(mdsub)
 
+      if ( idynamic == 2 ) then
+        call allocate_reference_atmosphere(atm0)
+      end if
       call allocate_atmstate_a(atm1)
       call allocate_atmstate_b(atm2)
       call allocate_atmstate_decoupled(atmx)
@@ -854,7 +867,7 @@ module mod_atm_interface
       end if
 
       call allocate_surfstate(sfs)
-      call allocate_slice(atms)
+      call allocate_slice(atms,atm0)
       call allocate_diffx(adf)
       call allocate_mass_divergence(mdv)
 
@@ -954,7 +967,6 @@ module mod_atm_interface
         call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kzp1,'storage:rain_ls')
       end if
       if ( idynamic == 2 ) then
-        call allocate_reference_atmosphere(atm0)
         call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
         call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
         if ( ifupr == 1 ) then

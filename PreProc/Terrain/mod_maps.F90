@@ -27,14 +27,14 @@ module mod_maps
                    dmap , htgrid , lndout , mask , dpth , snowam , &
                    smoist , texout , xlat , xlon , xmap , ps0
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist
-  real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0
+  real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0 , z0
 
   real(rkx) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
                       dlon_s , dmap_s , htgrid_s , lndout_s , &
                       mask_s , dpth_s , snowam_s , smoist_s , &
                       texout_s , xlat_s , xlon_s , xmap_s , ps0_s
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
-  real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s
+  real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s , z0_s
 
   real(rkx) , pointer , dimension(:) :: sigma
 
@@ -65,6 +65,7 @@ module mod_maps
       call getmem3d(pr0,1,jx,1,iy,1,kz+1,'maps:pr0')
       call getmem3d(t0,1,jx,1,iy,1,kz+1,'maps:t0')
       call getmem3d(rho0,1,jx,1,iy,1,kz+1,'maps:rho0')
+      call getmem3d(z0,1,jx,1,iy,1,kz+1,'maps:z0')
     end if
   end subroutine prepare_grid
 
@@ -92,6 +93,7 @@ module mod_maps
       call getmem3d(pr0_s,1,jxsg,1,iysg,1,kz+1,'maps:pr0_s')
       call getmem3d(t0_s,1,jxsg,1,iysg,1,kz+1,'maps:t0_s')
       call getmem3d(rho0_s,1,jxsg,1,iysg,1,kz+1,'maps:rho0_s')
+      call getmem3d(z0_s,1,jxsg,1,iysg,1,kz+1,'maps:z0_s')
     end if
   end subroutine prepare_subgrid
 

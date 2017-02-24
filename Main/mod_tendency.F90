@@ -1377,8 +1377,10 @@ module mod_tendency
       call diffu_x(uwstatea%advtke,atm2%tke,nuk)
     end if
     if ( idynamic == 2 ) then
-      call topnudge(atm2%t,aten%t,xtb)
-      call topnudge(atm2%qx,aten%qx,xqb,iqv)
+      if ( itopnudge == 1 ) then
+        call topnudge(atm2%t,aten%t,xtb)
+        call topnudge(atm2%qx,aten%qx,xqb,iqv)
+      end if
       if ( ifrayd == 1 ) then
         call raydamp(atms%za,atm2%t,aten%t)
         call raydamp(atms%za,atm2%qx,aten%qx)
@@ -1441,9 +1443,11 @@ module mod_tendency
       !
       ! Decouple before calling sound
       !
-      call topnudge(atm2%u,atm2%v,aten%u,aten%v)
-      call topnudge(atm2%pp,aten%pp,xppb)
-      call topnudge(atm2%w,aten%w,xwwb)
+      if ( itopnudge == 1 ) then
+        call topnudge(atm2%u,atm2%v,aten%u,aten%v)
+        call topnudge(atm2%pp,aten%pp,xppb)
+        call topnudge(atm2%w,aten%w,xwwb)
+      end if
       if ( ifrayd == 1 ) then
         call raydamp(atms%za,atm2%u,atm2%v,aten%u,aten%v)
         call raydamp(atms%za,atm2%pp,aten%pp)

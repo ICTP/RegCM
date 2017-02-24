@@ -682,7 +682,7 @@ program terrain
     if ( idynamic == 2 ) then
       call nhsetup(ptop,base_state_pressure,logp_lrate)
       call nhbase(1,iysg,1,jxsg,kz+1,sigma,xlat_s, &
-                  htgrid_s,ps0_s,pr0_s,t0_s,rho0_s)
+                  htgrid_s,ps0_s,pr0_s,t0_s,rho0_s,z0_s)
     end if
 
     write (outname,'(a,i0.3,a)') &
@@ -691,7 +691,7 @@ program terrain
                       ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,  &
                       dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,  &
                       smoist_s,rmoist_s,dpth_s,texout_s,frac_tex_s,ps0_s, &
-                      pr0_s,t0_s,rho0_s)
+                      pr0_s,t0_s,rho0_s,z0_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
@@ -699,7 +699,7 @@ program terrain
 
   if ( idynamic == 2 ) then
     call nhsetup(ptop,base_state_pressure,logp_lrate)
-    call nhbase(1,iy,1,jx,kz+1,sigma,xlat,htgrid,ps0,pr0,t0,rho0)
+    call nhbase(1,iy,1,jx,kz+1,sigma,xlat,htgrid,ps0,pr0,t0,rho0,z0)
   end if
 
   write (outname,'(a,i0.3,a)') &
@@ -707,7 +707,7 @@ program terrain
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,      &
                     htgrid,lndout,snowam,smoist,rmoist,dpth,texout,       &
-                    frac_tex,ps0,pr0,t0,rho0)
+                    frac_tex,ps0,pr0,t0,rho0,z0)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

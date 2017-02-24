@@ -39,7 +39,7 @@ module mod_grid
   real(rkx) , public , pointer , dimension(:) :: sigmah
   real(rkx) , public , pointer , dimension(:) :: sigmaf
   real(rkx) , public , pointer , dimension(:) :: dsigma
-  real(rkx) , public , pointer , dimension(:,:,:) :: pr0, t0, rho0
+  real(rkx) , public , pointer , dimension(:,:,:) :: pr0, t0, rho0 , z0
   real(rkx) , public , pointer , dimension(:,:) :: ps0
 
   real(rkx) , public :: delx
@@ -77,6 +77,7 @@ module mod_grid
       call getmem2d(ps0,1,nx,1,ny,'mod_write:ps0')
       call getmem3d(pr0,1,nx,1,ny,1,nz,'mod_write:pr0')
       call getmem3d(rho0,1,nx,1,ny,1,nz,'mod_write:rho0')
+      call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
       call getmem3d(t0,1,nx,1,ny,1,nz,'mod_write:t0')
     end if
     call read_domain_info
@@ -104,7 +105,7 @@ module mod_grid
       dsigma(k) = (sigmaf(k+1)-sigmaf(k))
     end do
     if ( idynamic == 2 ) then
-      call nhbase(1,iy,1,jx,kz,sigmah,xlat,topogm,ps0,pr0,t0,rho0)
+      call nhbase(1,iy,1,jx,kz,sigmah,xlat,topogm,ps0,pr0,t0,rho0,z0)
     end if
   end subroutine read_domain_info
 

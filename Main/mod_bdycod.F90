@@ -2881,7 +2881,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     real(rkx) :: rate , mval , lmval , rpnts , zz
     integer(ik4) :: i , j , k
-    do k = 2 , rayndamp
+    do k = 1 , rayndamp
       lmval = d_zero
       rpnts = d_zero
       do i = idi1 , idi2
@@ -2900,7 +2900,7 @@ module mod_bdycod
         end do
       end do
     end do
-    do k = 2 , rayndamp
+    do k = 1 , rayndamp
       lmval = d_zero
       rpnts = d_zero
       do i = idi1 , idi2
@@ -2929,7 +2929,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
     real(rkx) :: rate , mval , lmval , rpnts
     integer(ik4) :: i , j , k
-    do k = 2 , min(nk,rayndamp+1)
+    do k = 1 , min(nk,rayndamp+1)
       lmval = d_zero
       rpnts = d_zero
       do i = ici1 , ici2
@@ -2956,7 +2956,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
     real(rkx) :: rate , mval , lmval , rpnts
     integer(ik4) :: i , j , k
-    do k = 2 , rayndamp
+    do k = 1 , rayndamp
       lmval = d_zero
       rpnts = d_zero
       do i = ici1 , ici2
@@ -2983,7 +2983,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
     real(rkx) :: rate , mval , lmval , rpnts
     integer(ik4) :: i , j , k , n
-    do n = 2 , size(var,4)
+    do n = 1 , size(var,4)
       do k = 1 , rayndamp
         lmval = d_zero
         rpnts = d_zero

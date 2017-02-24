@@ -94,7 +94,7 @@ module mod_write
       nvar3d = 2
     else
       nvar2d = 14
-      nvar3d = 5
+      nvar3d = 6
     end if
     allocate(v2dvar_base(nvar2d))
     allocate(v3dvar_base(nvar3d))
@@ -173,7 +173,6 @@ module mod_write
     v3dvar_base(2)%axis = 'xyT'
     v3dvar_base(2)%lfillvalue = .true.
 
-
     if ( idynamic == 2 ) then
       v2dvar_base(14)%vname = 'ps0'
       v2dvar_base(14)%vunit = 'Pa'
@@ -194,13 +193,18 @@ module mod_write
       v3dvar_base(5)%long_name = 'Reference State Density'
       v3dvar_base(5)%standard_name = 'air_density'
       v3dvar_base(5)%axis = 'xyz'
+      v3dvar_base(6)%vname = 'z0'
+      v3dvar_base(6)%vunit = 'm'
+      v3dvar_base(6)%long_name = 'Reference State elevation'
+      v3dvar_base(6)%standard_name = 'heigth'
+      v3dvar_base(6)%axis = 'xyz'
     end if
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,htgrid,  &
                           lndout,snowam,smoist,rmoist,dpth,texout,frac_tex,  &
-                          ps0,pr0,t0,rho0)
+                          ps0,pr0,t0,rho0,z0)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -221,6 +225,7 @@ module mod_write
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: pr0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rho0
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: z0
 
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar
@@ -308,6 +313,7 @@ module mod_write
       v3dvar_base(3)%rval => pr0
       v3dvar_base(4)%rval => t0
       v3dvar_base(5)%rval => rho0
+      v3dvar_base(6)%rval => z0
     end if
 
     call outstream_enable(ncout,sigma)

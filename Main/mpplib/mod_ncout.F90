@@ -2262,7 +2262,7 @@ module mod_ncout
               'tendency_of_mixing_ratio_due_to_sedimentation',.true.)
             che_sedten_out => v3dvar_che(che_sedten)%rval
           end if
-            
+
           if ( enable_che3d_vars(che_emten) ) then
             call setup_var(v3dvar_che,che_emten,vsize,'emiten', &
               'kg kg-1 s-1', 'Tendency of tracer due to emission', &
@@ -2579,6 +2579,8 @@ module mod_ncout
                   ncattribute_integer('upper_radiative_bc',ifupr))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('rayleigh_damping',ifrayd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_integer('top_nudging',itopnudge))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('sound_bet_param',nhbet))
           call outstream_addatt(outstream(i)%ncout(j), &

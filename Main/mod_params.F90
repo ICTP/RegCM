@@ -110,7 +110,7 @@ module mod_params
 
     namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
       ckh , adyndif , nhbet , nhxkd , ifrayd , rayndamp , rayalpha0 ,   &
-      rayzd , rayhd
+      rayzd , rayhd , itopnudge
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -266,7 +266,8 @@ module mod_params
     adyndif = 1.0_rkx ! Dynamical diffusion tunable parameter
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
-    ifrayd = 1
+    itopnudge = 0
+    ifrayd = 0
     rayndamp = kz / 4
     rayalpha0 = 0.0001_rkx
     rayzd = 15000.0_rkx
@@ -598,11 +599,10 @@ module mod_params
 #endif
       end if
 
+      gnu = 0.0625_rkx
       if ( idynamic == 2 ) then
-        gnu = 0.1000_rkx
         diffu_hgtf = 0
       else
-        gnu = 0.0625_rkx
         diffu_hgtf = 1
       end if
       upstream_mode = .true.
@@ -1033,11 +1033,12 @@ module mod_params
       call bcast(base_state_pressure)
       call bcast(logp_lrate)
       call bcast(ifupr)
-      call bcast(ifrayd)
       call bcast(ckh)
       call bcast(adyndif)
       call bcast(nhbet)
       call bcast(nhxkd)
+      call bcast(itopnudge)
+      call bcast(ifrayd)
       call bcast(rayndamp)
       call bcast(rayalpha0)
       call bcast(rayzd)
@@ -2387,15 +2388,25 @@ module mod_params
         call nhsetup(ptop,base_state_pressure,logp_lrate)
         mddom%ht = mddom%ht * regrav
         call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%xlat,mddom%ht, &
-                    atm0%ps,atm0%pr,atm0%t,atm0%rho)
+                    atm0%ps,atm0%pr,atm0%t,atm0%rho,atm0%z)
         call nhbase(ice1,ice2,jce1,jce2,kzp1,sigma,mddom%xlat,mddom%ht, &
-                    atm0%ps,atm0%pf,atm0%tf,atm0%rhof)
+                    atm0%ps,atm0%pf,atm0%tf,atm0%rhof,atm0%zf)
         mddom%ht = mddom%ht * egrav
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)
         call exchange(atm0%pr,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange(atm0%t,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(atm0%z,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(atm0%rho,1,jce1,jce2,ice1,ice2,1,kz)
         call psc2psd(atm0%ps,atm0%psdot)
         call exchange(atm0%psdot,1,jde1,jde2,ide1,ide2)
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atm0%z(j,i,k) = d_half*(atm0%zf(j,i,k) + atm0%zf(j,i,k+1))
+              atm0%dzf(j,i,k) = atm0%zf(j,i,k) - atm0%zf(j,i,k+1)
+            end do
+          end do
+        end do
         do i = ice1 , ice2
           do j = jce1 , jce2
             dpsdxm(j,i) = (atm0%psdot(j+1,i) - atm0%psdot(j,i)) / &

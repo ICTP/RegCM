@@ -113,9 +113,12 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: t
     real(rkx) , pointer , dimension(:,:,:) :: pr
     real(rkx) , pointer , dimension(:,:,:) :: rho
+    real(rkx) , pointer , dimension(:,:,:) :: z
     real(rkx) , pointer , dimension(:,:,:) :: tf
     real(rkx) , pointer , dimension(:,:,:) :: pf
     real(rkx) , pointer , dimension(:,:,:) :: rhof
+    real(rkx) , pointer , dimension(:,:,:) :: zf
+    real(rkx) , pointer , dimension(:,:,:) :: dzf
     real(rkx) , pointer , dimension(:,:,:) :: dprddx
     real(rkx) , pointer , dimension(:,:,:) :: dprddy
   end type reference_atmosphere
