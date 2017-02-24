@@ -123,11 +123,7 @@ module mod_tendency
     ! Set number of ghost points for advection for the two schemes
     ! Select advection scheme
     !
-    if ( idynamic == 2 ) then
-      iqxvadv = 0
-    else
-      iqxvadv = 1
-    end if
+    iqxvadv = 1
     itrvadv = 2
     if ( ibltyp == 2 ) then
       if ( iuwvadv == 1 ) then
