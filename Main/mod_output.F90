@@ -50,6 +50,9 @@ module mod_output
 
   contains
 
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche
@@ -58,6 +61,7 @@ module mod_output
     logical :: lstartup
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
+    real(rkx) :: cell
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -233,28 +237,85 @@ module mod_output
         end if
         if ( associated(atm_rh_out) ) then
           do k = 1 , kz
-            atm_rh_out(:,:,k) = atms%rhb3d(jci1:jci2,ici1:ici2,k)*d_100
-          end do
-        end if
-        if ( associated(atm_zf_out) ) then
-          do k = 1 , kz
-            atm_zf_out(:,:,k) = atms%zq(jci1:jci2,ici1:ici2,k)
-          end do
-        end if
-        if ( associated(atm_zh_out) ) then
-          do k = 1 , kz
-            atm_zh_out(:,:,k) = atms%za(jci1:jci2,ici1:ici2,k)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
+                   (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                   pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+              end do
+            end do
           end do
         end if
         if ( associated(atm_pf_out) ) then
           do k = 1 , kz
-            atm_pf_out(:,:,k) = atms%pb3d(jci1:jci2,ici1:ici2,k)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                atm_pf_out(j,i,k) = atm1%pr(j,i,k)
+              end do
+            end do
           end do
         end if
-        if ( associated(atm_ph_out) ) then
-          do k = 1 , kz
-            atm_ph_out(:,:,k) = atms%pf3d(jci1:jci2,ici1:ici2,k)
+        if ( idynamic == 1 ) then
+          if ( associated(atm_ph_out) ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_ph_out(j,i,k) = (sigma(k)*sfs%psa(j,i)+ptop)*d_1000
+                end do
+              end do
+            end do
+          end if
+          if ( associated(atm_zh_out) ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cell = ptop / sfs%psa(j,i)
+                atm_zh_out(j,i,kz) = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                     log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+                do k = kz-1 , 1 , -1
+                  atm_zh_out(j,i,k) = atms%zq(j,i,k+1) +&
+                      rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
+                        log((sigma(k+1)+cell)/(sigma(k)+cell))
+                end do
+              end do
+            end do
+          end if
+        else
+          if ( associated(atm_ph_out) ) then
+            atm_ph_out(:,:,1) = ptop*d_1000
+            do k = 2 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_ph_out(j,i,k) = atm0%pf(j,i,k) + &
+                       d_half*(atm1%pp(j,i,k-1)+atm1%pp(j,i,k))/sfs%psa(j,i)
+                end do
+              end do
+            end do
+          end if
+          if ( associated(atm_zh_out) ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cell = ptop / sfs%psa(j,i)
+                atm_zh_out(j,i,kz) = rovg * atm0%t(j,i,kz) * &
+                     log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+                do k = kz-1 , 1 , -1
+                  atm_zh_out(j,i,k) = atms%zq(j,i,k+1) +&
+                      rovg * atm0%t(j,i,k) *  &
+                        log((sigma(k+1)+cell)/(sigma(k)+cell))
+                end do
+              end do
+            end do
+          end if
+        end if
+        if ( associated(atm_zf_out) .and. associated(atm_zh_out) ) then
+          do k = 1 , kz-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                atm_zf_out(j,i,k) = d_half*(atm_zh_out(j,i,k) + &
+                                            atm_zh_out(j,i,k+1))
+              end do
+            end do
           end do
+          atm_zf_out(:,:,kz) = d_half*atm_zh_out(:,:,kz)
         end if
         if ( ipptls == 2 ) then
           if ( associated(atm_rainls_out) ) then
@@ -439,9 +500,11 @@ module mod_output
             do j = jci1 , jci2
               do k = 1 , kz
                 kk = kzp1 - k
-                p1d(kk) = atms%pb3d(j,i,k)
-                t1d(kk) = atms%tb3d(j,i,k)
-                rh1d(kk) = atms%rhb3d(j,i,k)
+                p1d(kk) = atm1%pr(j,i,k)
+                t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
+                rh1d(kk) = min(rhmax,max(rhmin, &
+                   (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                   pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
               end do
               call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
             end do
@@ -563,7 +626,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                         atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
         else
@@ -588,7 +652,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                             atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
         else
@@ -715,7 +780,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                     atm1%pp(j,i,kz) / sfs%psa(j,i)
             end do
           end do
         else
@@ -765,7 +831,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
         else
@@ -813,7 +880,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
         else
@@ -840,7 +908,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
         else
@@ -893,7 +962,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                 atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
         else
@@ -916,7 +986,8 @@ module mod_output
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
         else
