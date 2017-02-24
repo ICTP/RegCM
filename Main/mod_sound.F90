@@ -604,7 +604,9 @@ module mod_sound
         ! Apply upper rad cond.
         !
         do i = ici1 , ici2
+          if ( i < icross1 + 8 .or. i > icross2 - 8 ) cycle
           do j = jci1 , jci2
+            if ( j < jcross1 + 8 .or. j > jcross2 - 8 ) cycle
             insil: &
             do nsi = -6 , 6
               inn = i+nsi
