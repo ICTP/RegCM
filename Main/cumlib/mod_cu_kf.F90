@@ -781,7 +781,8 @@ module mod_cu_kf
             !
             ! rei is the rate of environmental inflow.
             !
-            rei = vmflcl*dp(nk1)*0.03_rkx/rad ! KF (1990) Eq. 1; Kain (2004) Eq. 5
+            ! KF (1990) Eq. 1; Kain (2004) Eq. 5
+            rei = vmflcl*dp(nk1)*kf_entrate/rad
             tvqu(nk1) = tu(nk1)*(d_one + ep1*qu(nk1)-qliq(nk1)-qice(nk1))
             if ( nk == k ) then
               dilbe = ((tvlcl+tvqu(nk1))/(tven+tv0(nk1)) - d_one)*dzz
