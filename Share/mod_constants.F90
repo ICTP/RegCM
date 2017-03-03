@@ -161,9 +161,13 @@ module mod_constants
   real(rkx) , parameter :: spcpice = 2.11727e3_rkx ! fresh ice
 
   ! Latent heats (Joules/kg)
-  real(rkx) , parameter :: wlhf = 0.33355e6_rkx
+  ! Water vaporization latent heat at T 0 Celsius
   real(rkx) , parameter :: wlhv = 2.50080e6_rkx
+  ! Water fusion latent heat at T 0 Celsius
+  real(rkx) , parameter :: wlhf = 0.33355e6_rkx
+  ! Water sublimation latent heat at T 0 Celsius
   real(rkx) , parameter :: wlhs = wlhv + wlhf
+  ! Reverse helpers
   real(rkx) , parameter :: rwlhv = d_one/wlhv
   real(rkx) , parameter :: rwlhf = d_one/wlhf
   real(rkx) , parameter :: rwlhs = d_one/wlhs

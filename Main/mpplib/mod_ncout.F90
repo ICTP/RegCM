@@ -699,13 +699,13 @@ module mod_ncout
           else
             enable_atm3d_vars(atm_q_detr) = .false.
           end if
+          if ( enable_atm3d_vars(atm_qi) ) then
+            call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
+              'Mass fraction of ice', &
+              'mass_fraction_of_ice_in_air',.true.)
+            atm_qi_out => v3dvar_atm(atm_qi)%rval
+          end if
           if ( icosp == 1 ) then
-            if ( enable_atm3d_vars(atm_qi) ) then
-              call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
-                'Mass fraction of ice', &
-                'mass_fraction_of_ice_in_air',.true.)
-              atm_qi_out => v3dvar_atm(atm_qi)%rval
-            end if
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
                 'Mass fraction of rain', &
@@ -719,7 +719,6 @@ module mod_ncout
               atm_qs_out => v3dvar_atm(atm_qs)%rval
             end if
           else
-            enable_atm3d_vars(atm_qi) = .false.
             enable_atm3d_vars(atm_qr) = .false.
             enable_atm3d_vars(atm_qs) = .false.
           end if
@@ -2549,7 +2548,9 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('dynamical_core',idynamic))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('asselin_filter_nu',gnu))
+          ncattribute_real8('asselin_filter_nu_1',gnu1))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('asselin_filter_nu_2',gnu2))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -2889,6 +2890,8 @@ module mod_ncout
         if ( any(icup == 6) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_entrainment_rate',kf_entrate))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_conversion_rate',kf_convrate))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_min_precipitation_efficiency',kf_min_pef))
           call outstream_addatt(outstream(i)%ncout(j), &

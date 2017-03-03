@@ -91,6 +91,7 @@ module mod_diffusion
       ! (Xu et al., MWR, 2001, 502-516)
       xkhz = ckh * dx
       ! xkhz = ckh * 1.5e-3_rkx*dxsq/dtsec
+      ! xkhz = ckh * 3.0e-3_rkx*dxsq/dtsec
       xkhmax = d_two*xkhmax
     end if
     if ( myid == 0 ) then

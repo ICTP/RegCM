@@ -170,7 +170,8 @@ module mod_runparams
 
   ! Asselin filter parameter
 
-  real(rkx) , public :: gnu
+  real(rkx) , public :: gnu1
+  real(rkx) , public :: gnu2
 
   ! Advection tuning
 
@@ -294,6 +295,7 @@ module mod_runparams
   ! Kain-Fritsch parameter
 
   real(rkx) , public :: kf_entrate
+  real(rkx) , public :: kf_convrate
   real(rkx) , public :: kf_min_pef
   real(rkx) , public :: kf_max_pef
   real(rkx) , public :: kf_dpp

@@ -104,8 +104,8 @@ module mod_params
       icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
       itweak , temp_tend_maxval , wind_tend_maxval , ghg_year_const
 
-    namelist /dynparam/ gnu , diffu_hgtf , upstream_mode , upu , umax , &
-      stability_enhance , vert_stability_enhance , t_extrema ,          &
+    namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , upstream_mode , upu , &
+      umax , stability_enhance , vert_stability_enhance , t_extrema ,    &
       c_rel_extrema , q_rel_extrema , t_rel_extrema
 
     namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
@@ -142,7 +142,7 @@ module mod_params
       lmfwstar
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
-      kf_min_dtcape , kf_max_dtcape , kf_tkemax
+      kf_min_dtcape , kf_max_dtcape , kf_tkemax , kf_convrate
 
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
@@ -269,7 +269,7 @@ module mod_params
     itopnudge = 0
     ifrayd = 1
     rayndamp = kz / 4
-    rayalpha0 = 0.00005_rkx
+    rayalpha0 = 5.0e-5_rkx
     rayzd = 15000.0_rkx
     rayhd = 3000.0_rkx
     !
@@ -430,7 +430,8 @@ module mod_params
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
     !
-    kf_entrate = 0.03_rkx ! Kain Fritsch entrainment rate
+    kf_entrate = 0.03_rkx  ! Kain Fritsch entrainment rate
+    kf_convrate = 0.03_rkx ! Kain Fritsch condensate to rain conversion rate
     kf_min_pef = 0.2_rkx  ! Minimum precipitation efficiency
     kf_max_pef = 0.9_rkx  ! Maximum precipitation efficiency
     kf_dpp = 150.0_rkx    ! Starting height of downdraft above updraft (mb)
@@ -599,16 +600,19 @@ module mod_params
 #endif
       end if
 
-      gnu = 0.0625_rkx
       if ( idynamic == 2 ) then
         diffu_hgtf = 0
+        gnu1 = 0.0990_rkx
+        gnu2 = 0.0990_rkx
       else
         diffu_hgtf = 1
+        gnu1 = 0.0625_rkx
+        gnu2 = d_two * gnu1
       end if
       upstream_mode = .true.
       stability_enhance = .true.
       vert_stability_enhance = .true.
-      upu = 0.100_rkx
+      upu = 0.200_rkx
       umax = 200.0_rkx
       t_extrema = 5.0_rkx
       c_rel_extrema = 0.20_rkx
@@ -998,7 +1002,8 @@ module mod_params
     enable_sts_vars(1:5) = .true.
     enable_lak_vars(1:5) = .true.
 
-    call bcast(gnu)
+    call bcast(gnu1)
+    call bcast(gnu2)
     call bcast(diffu_hgtf)
     call bcast(upstream_mode)
     call bcast(upu)
@@ -1303,6 +1308,7 @@ module mod_params
 
     if ( any(icup == 6) ) then
       call bcast(kf_entrate)
+      call bcast(kf_convrate)
       call bcast(kf_min_pef)
       call bcast(kf_max_pef)
       call bcast(kf_dpp)
@@ -2161,6 +2167,7 @@ module mod_params
       if ( myid == italk ) then
         write(stdout,*) 'Kain Fritsch scheme used.'
         write(stdout,'(a,f11.6)') '  Entrainment rate         : ', kf_entrate
+        write(stdout,'(a,f11.6)') '  Conversion rate          : ', kf_convrate
         write(stdout,'(a,f11.6)') '  Maximum prec. efficiency : ', kf_max_pef
         write(stdout,'(a,f11.6)') '  Minimum prec. efficiency : ', kf_min_pef
         write(stdout,'(a,f11.6)') '  Updraft start elevation  : ', kf_dpp

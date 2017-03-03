@@ -62,7 +62,7 @@ module mod_tendency
   real(rkx) , pointer , dimension(:,:,:) :: thten
   real(rkx) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
   real(rkx) , pointer , dimension(:,:) :: rpsda
-
+  integer :: idgq
   integer :: ithadv = 1
   integer(ik4) :: iqxvadv , itrvadv
 #ifdef DEBUG
@@ -127,10 +127,11 @@ module mod_tendency
     itrvadv = 2
     if ( ibltyp == 2 ) then
       if ( iuwvadv == 1 ) then
-        itrvadv = 3
         iqxvadv = 3
+        itrvadv = 3
       end if
     end if
+    idgq = iqv
   end subroutine allocate_mod_tend
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -712,12 +713,12 @@ module mod_tendency
       ! the diffusion term for qx is stored in diffqx.
       !
       if ( idiag > 0 ) then
-        qen0 = adf%qx(:,:,:,iqv)
+        qen0 = adf%qx(:,:,:,idgq)
       end if
       call diffu_x(adf%qx,atms%qxb3d,1,nqx,d_one)
       if ( idiag > 0 ) then
         call ten2diag(qen0,adf%qx,qdiag%dif)
-        qen0 = aten%qx(:,:,:,iqv)
+        qen0 = aten%qx(:,:,:,idgq)
       end if
     end if
 
@@ -771,7 +772,7 @@ module mod_tendency
     !
     if ( idiag > 0 ) then
       ten0 = adf%t
-      qen0 = adf%qx(:,:,:,iqv)
+      qen0 = adf%qx(:,:,:,idgq)
     end if
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
     ! care : pbl update the difft table at this level
@@ -783,7 +784,7 @@ module mod_tendency
       call ten2diag(ten0,adf%t,tdiag%tbl)
       call ten2diag(qen0,adf%qx,qdiag%tbl)
       ten0 = aten%t
-      qen0 = aten%qx(:,:,:,iqv)
+      qen0 = aten%qx(:,:,:,idgq)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('PBLL')
@@ -858,7 +859,7 @@ module mod_tendency
     !     saved for tbl and hor. diff but :
     if ( idiag > 0 ) then
       ten0 = aten%t ! important since aten%t have been updated
-      qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
+      qen0 = aten%qx(:,:,:,idgq) ! important since aten%qx have been updated
     end if
     !
     ! apply the nudging boundary conditions:
@@ -1390,17 +1391,11 @@ module mod_tendency
     ! Compute future values of t and moisture variables at tau+1:
     !
     if ( idynamic == 1 ) then
-      call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu)
+      call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu1)
     end if
-    call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu,sfs%psb)
-    if ( idynamic == 1 ) then
-      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
-                            d_two*gnu,iqfrst,iqlst,minqx)
-    else
-      call timefilter_apply(atm1%qx,atm2%qx,atmc%qx, &
-                            gnu,iqfrst,iqlst,minqx)
-    end if
+    call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu1)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1,sfs%psb)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,iqfrst,iqlst,minqx)
     !
     if ( idynamic == 1 ) then
       !
@@ -1418,7 +1413,7 @@ module mod_tendency
       ! perform time smoothing operations.
       !
       call timefilter_apply(atm1%u,atm2%u,atmc%u, &
-                            atm1%v,atm2%v,atmc%v,gnu)
+                            atm1%v,atm2%v,atmc%v,gnu1)
       do i = ice1 , ice2
         do j = jce1 , jce2
           rpsb(j,i) = d_one/sfs%psb(j,i)
@@ -1517,10 +1512,10 @@ module mod_tendency
           end do
         end do
       end do
-      call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu)
+      call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu2)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
-      call timefilter_apply(chia,chib,chic,d_two*gnu,1,ntr,mintr)
+      call timefilter_apply(chia,chib,chic,gnu2,1,ntr,mintr)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
@@ -2134,8 +2129,8 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          store(j,i,k) = store(j,i,k)+(qen(j,i,k,iqv)-pqen(j,i,k))*afdout
-          pqen(j,i,k) = qen(j,i,k,iqv)
+          store(j,i,k) = store(j,i,k)+(qen(j,i,k,idgq)-pqen(j,i,k))*afdout
+          pqen(j,i,k) = qen(j,i,k,idgq)
         end do
       end do
      end do

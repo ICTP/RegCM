@@ -426,7 +426,7 @@ module mod_split
     ! Add corrections to t and p;  u and v
     !
     do l = 1 , nsplit
-      gnuan = gnu*an(l)
+      gnuan = gnu1*an(l)
       do i = ici1 , ici2
         do j = jci1 , jci2
           sfs%psa(j,i) = sfs%psa(j,i) - an(l)*ddsum(j,i,l)
@@ -436,7 +436,7 @@ module mod_split
     end do
     do l = 1 , nsplit
       do k = 1 , kz
-        gnuam = gnu*am(k,l)
+        gnuam = gnu1*am(k,l)
         do i = ici1 , ici2
           do j = jci1 , jci2
             atm1%t(j,i,k) = atm1%t(j,i,k) + am(k,l)*ddsum(j,i,l)
@@ -450,7 +450,7 @@ module mod_split
 
     do l = 1 , nsplit
       do k = 1 , kz
-        gnuzm = gnu*zmatx(k,l)
+        gnuzm = gnu1*zmatx(k,l)
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             fac = sfs%psdota(j,i)/(dx2*mddom%msfd(j,i))

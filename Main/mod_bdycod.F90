@@ -1163,7 +1163,7 @@ module mod_bdycod
               atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do i = ici1 , ici2
               atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k)
             end do
@@ -1183,7 +1183,7 @@ module mod_bdycod
               atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do i = ici1 , ici2
               atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k)
             end do
@@ -1203,7 +1203,7 @@ module mod_bdycod
               atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k)
             end do
@@ -1223,7 +1223,7 @@ module mod_bdycod
               atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k)
             end do
@@ -1247,7 +1247,7 @@ module mod_bdycod
               atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do i = ici1 , ici2
               atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
             end do
@@ -1270,7 +1270,7 @@ module mod_bdycod
               atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do i = ici1 , ici2
               atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
             end do
@@ -1293,7 +1293,7 @@ module mod_bdycod
               atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
             end do
@@ -1316,7 +1316,7 @@ module mod_bdycod
               atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
             end do
           end do
-          do k = 1 , kzp1
+          do k = 2 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
             end do
@@ -2463,7 +2463,7 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    integer(ik4) :: i , j , k , ib , nk
+    integer(ik4) :: i , j , k , ib , ns , nk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
     integer(ik4) , save :: idindx = 0
@@ -2471,6 +2471,11 @@ module mod_bdycod
 #endif
 
     nk = size(f,3)
+    if ( nk == kz ) then
+      ns = 1
+    else
+      ns = 2
+    end if
     xt = xbctime + dt
     if ( .not. ba_cr%havebound ) then
 #ifdef DEBUG
@@ -2481,7 +2486,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-        do k = 1 , nk
+        do k = ns , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2500,7 +2505,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = 1 , nk
+        do k = ns , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2519,7 +2524,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = 1 , nk
+        do k = ns , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2538,7 +2543,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = 1 , nk
+        do k = ns , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle
@@ -2558,7 +2563,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-        do k = 1 , nk
+        do k = ns , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2577,7 +2582,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = 1 , nk
+        do k = ns , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2596,7 +2601,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = 1 , kz
+        do k = ns , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2615,7 +2620,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = 1 , kz
+        do k = ns , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle
@@ -2825,18 +2830,20 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     real(rkx) :: mval , xt
-    integer(ik4) :: i , j
+    integer(ik4) :: i , j , k
     xt = xbctime + dt
-    do i = idi1 , idi2
-      do j = jdi1 , jdi2
-        mval = (xub%b0(j,i,1)+xt*xub%bt(j,i,1))
-        uten(j,i,1) = uten(j,i,1) + rayalpha0 * (mval-u(j,i,1))
+    do k = 1 , rayndamp
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          mval = (xub%b0(j,i,k)+xt*xub%bt(j,i,k))
+          uten(j,i,k) = uten(j,i,k) + rayalpha0 * (mval-u(j,i,k))
+        end do
       end do
-    end do
-    do i = idi1 , idi2
-      do j = jdi1 , jdi2
-        mval = xvb%b0(j,i,1)+xt*xvb%bt(j,i,1)
-        vten(j,i,1) = vten(j,i,1) + rayalpha0 * (mval-v(j,i,1))
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          mval = xvb%b0(j,i,k)+xt*xvb%bt(j,i,k)
+          vten(j,i,k) = vten(j,i,k) + rayalpha0 * (mval-v(j,i,k))
+        end do
       end do
     end do
   end subroutine topnudgeuv
@@ -2847,12 +2854,14 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
     type(v3dbound) , intent(in) :: bnd
     real(rkx) :: mval , xt
-    integer(ik4) :: i , j
+    integer(ik4) :: i , j , k
     xt = xbctime + dt
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        mval = bnd%b0(j,i,1)+xt*bnd%bt(j,i,1)
-        vten(j,i,1) = vten(j,i,1) + rayalpha0 * (mval-v(j,i,1))
+    do k = 1 , rayndamp
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
+          vten(j,i,k) = vten(j,i,k) + rayalpha0 * (mval-v(j,i,k))
+        end do
       end do
     end do
   end subroutine topnudge3d
@@ -2864,12 +2873,14 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     integer(ik4) , intent(in) :: n
     real(rkx) :: mval , xt
-    integer(ik4) :: i , j
+    integer(ik4) :: i , j , k
     xt = xbctime + dt
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        mval = bnd%b0(j,i,1)+xt*bnd%bt(j,i,1)
-        vten(j,i,1,n) = vten(j,i,1,n) + rayalpha0 * (mval-v(j,i,1,n))
+    do k = 1 , rayndamp
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
+          vten(j,i,k,n) = vten(j,i,k,n) + rayalpha0 * (mval-v(j,i,k,n))
+        end do
       end do
     end do
   end subroutine topnudge4d

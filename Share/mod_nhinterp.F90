@@ -496,7 +496,7 @@ module mod_nhinterp
             ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             wtmp(j,i,k) = -omegan/rho * regrav
           end do
-          wtmp(j,i,1) = d_zero
+          wtmp(j,i,1) = -omega(2)*regrav
         end do
       end do
       wtmp(1,:,:) = wtmp(2,:,:)

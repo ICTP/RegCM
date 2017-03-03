@@ -28,7 +28,7 @@ module mod_cu_kf
   use mod_cu_common
   use mod_runparams , only : dx , dxsq , ipptls , ibltyp , dt
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
-  use mod_runparams , only : kf_entrate , kf_min_pef , kf_max_pef
+  use mod_runparams , only : kf_entrate , kf_convrate , kf_min_pef , kf_max_pef
   use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
   use mod_runparams , only : kf_tkemax
   use mod_runparams , only : ichem , clfrcv
@@ -2232,7 +2232,7 @@ module mod_cu_kf
       g1 = wtw + boterm - enterm - d_two*egrav*dz*qest/1.5_rkx
       if ( g1 < d_zero ) g1 = d_zero
       wavg = d_half * (sqrt(wtw) + sqrt(g1))
-      conv = kf_entrate * dz/wavg ! KF90  Eq. 9
+      conv = kf_convrate * dz/wavg ! KF90  Eq. 9
       !
       ! ratio3 is the fraction of liquid water in fresh condensate, ratio4 is
       ! the fraction of liquid water in the total amount of condensate involv
