@@ -263,12 +263,12 @@ module mod_params
     logp_lrate = 47.70_rkx
     ifupr = 1
     ckh = d_one       ! Environmental diffusion tunable parameter
-    adyndif = 1.0_rkx ! Dynamical diffusion tunable parameter
+    adyndif = 4.0_rkx ! Dynamical diffusion tunable parameter
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     itopnudge = 0
     ifrayd = 1
-    rayndamp = kz / 4
+    rayndamp = kz / 6
     rayalpha0 = 5.0e-5_rkx
     rayzd = 15000.0_rkx
     rayhd = 3000.0_rkx

@@ -517,9 +517,7 @@ module mod_lm_interface
                                   (lms%u10m(n,j,i)*lms%drag(n,j,i))**2 + &
                                   (lms%v10m(n,j,i)*lms%drag(n,j,i))**2) / &
                                   lms%rhoa(n,j,i))
-
             lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
-
           end if
         end do
       end do

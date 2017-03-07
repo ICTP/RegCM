@@ -523,14 +523,14 @@ module mod_cu_tiedtke
     !
     do jk = 1 , klev
       do jl = 1 , kproma
-        ztp1(jl,jk) = ptm1(jl,jk) !+ ptte(jl,jk)*dtcum
-        zqp1(jl,jk) = max(minqq,pqm1(jl,jk)) ! + pqte(jl,jk)*dtcum)
-        zxlp1 = max(d_zero,pxlm1(jl,jk)) ! + pxlte(jl,jk)*dtcum)
-        zxip1 = max(d_zero,pxim1(jl,jk)) ! + pxite(jl,jk)*dtcum)
+        ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
+        zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dtcum)
+        zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtcum)
+        zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtcum)
         zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
         ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-        zup1(jl,jk) = pum1(jl,jk) ! + pvom(jl,jk)*dtcum
-        zvp1(jl,jk) = pvm1(jl,jk) ! + pvol(jl,jk)*dtcum
+        zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
+        zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
         if ( iconv /= 4 ) then
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
@@ -552,7 +552,7 @@ module mod_cu_tiedtke
 
       do jt = 1 , ktrac
         do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt))! + pxtte(jl,jk,jt)*dtcum)
+          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtcum)
         end do
       end do
 

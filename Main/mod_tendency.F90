@@ -634,11 +634,11 @@ module mod_tendency
     else
       call hadv(aten%qx,atmx%qx,iqv)
     end if
-    if ( idiag > 0 ) call ten2diag(qen0,aten%qx,qdiag%adh)
+    if ( idiag > 0 .and. idgq == iqv ) call ten2diag(qen0,aten%qx,qdiag%adh)
     if ( all(icup /= 1) ) then
       call vadv(aten%qx,atm1%qx,iqv)
     end if
-    if ( idiag > 0 ) call ten2diag(qen0,aten%qx,qdiag%adv)
+    if ( idiag > 0 .and. idgq == iqv ) call ten2diag(qen0,aten%qx,qdiag%adv)
     if ( ipptls > 0 ) then
       if ( isladvec == 1 ) then
         call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
@@ -646,7 +646,9 @@ module mod_tendency
       else
         call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
       end if
+      if ( idiag > 0 .and. idgq /= iqv ) call ten2diag(qen0,aten%qx,qdiag%adh)
       call vadv(aten%qx,atm1%qx,iqfrst,iqlst,iqxvadv)
+      if ( idiag > 0 .and. idgq /= iqv ) call ten2diag(qen0,aten%qx,qdiag%adv)
     end if
     if ( ichem == 1 ) then
       !
@@ -1356,6 +1358,8 @@ module mod_tendency
     call check_wind_tendency('DIFF')
 #endif
     if ( ibltyp == 2 ) then
+      ! Calculate the horizontal advective tendency for TKE
+      call hadv(uwstatea%advtke,atm1%tke,1)
       !
       !  Couple TKE to ps for use in vertical advection
       !
@@ -1366,8 +1370,6 @@ module mod_tendency
           end do
         end do
       end do
-      ! Calculate the horizontal advective tendency for TKE
-      call hadv(uwstatea%advtke,atm1%tke,1)
       ! Calculate the vertical advective tendency for TKE
       call vadv(uwstatea%advtke,uwstatea%tkeps,kzp1,0)
       ! Calculate the horizontal, diffusive tendency for TKE
@@ -1442,7 +1444,7 @@ module mod_tendency
       if ( ifrayd == 1 ) then
         call raydamp(atms%za,atm2%u,atm2%v,aten%u,aten%v)
         call raydamp(atms%za,atm2%pp,aten%pp)
-        call raydamp(atms%zq,atm2%w,aten%w,kzp1)
+        call raydamp(atms%zq,atm2%w,aten%w,xwwb)
       end if
       do k = 1 , kz
         do i = idi1 , idi2
@@ -1491,7 +1493,7 @@ module mod_tendency
       ! thought it would be clever to combine loops--TAO)
       ! Add the advective tendency to the TKE tendency calculated
       ! by the UW TKE routine
-      do k = 1 , kz
+      do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
              aten%tke(j,i,k) = aten%tke(j,i,k) + &
@@ -1501,10 +1503,10 @@ module mod_tendency
       end do
       if ( idynamic == 2 ) then
         if ( ifrayd == 1 ) then
-          call raydamp(atms%zq,atm2%tke,aten%tke,kzp1)
+          call raydamp(atms%zq,atm2%tke,aten%tke,tkemin)
         end if
       end if
-      do k = 1 , kz
+      do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &

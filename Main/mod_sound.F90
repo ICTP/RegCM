@@ -605,88 +605,24 @@ module mod_sound
         !
         do i = icii1 , icii2
           do j = jcii1 , jcii2
-            insil: &
             do nsi = -6 , 6
-              inn = i+nsi
-              if ( inn < icross1+1 ) inn = icross1 + 1
-              if ( inn > icross2-1 ) inn = icross2 - 1
-              jnsjl: &
+              inn = max(icross1+1,min(icross2-1,i+nsi))
               do nsj = -6 , 6
-                jnn = j+nsj
-                if ( jnn < jcross1+1 ) jnn = jcross1 + 1
-                if ( jnn > jcross2-1 ) jnn = jcross2 - 1
+                jnn = max(jcross1+1,min(jcross2-1,j+nsj))
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
-              end do jnsjl
-            end do insil
+              end do
+            end do
           end do
         end do
-        !
-        ! Zero-out gradient for W
-        !
-        if ( ma%has_bdybottom ) then
-          do j = jci1 , jci2
-            wpval(j,ici1) = wpval(j,icii1)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do j = jci1 , jci2
-            wpval(j,ici2) = wpval(j,icii2)
-          end do
-        end if
-        if ( ma%has_bdyleft ) then
-          do i = icii1 , icii2
-            wpval(jci1,i) = wpval(jcii1,i)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do i = icii1 , icii2
-            wpval(jci2,i) = wpval(jcii2,i)
-          end do
-        end if
       end if
       !
       ! Finished calc of radiation w, apply whichever
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%w(j,i,1) = wpval(j,i)
+          atmc%w(j,i,1) = wpval(j,i) + aten%w(j,i,1)
         end do
       end do
-      !
-      ! Zero-out gradient for W
-      !
-      if ( ma%has_bdybottom ) then
-        do j = jci1 , jci2
-          atmc%w(j,ice1,1) = atmc%w(j,ici1,1)
-        end do
-        if ( ma%has_bdyleft ) then
-          atmc%w(jce1,ice1,1) = atmc%w(jci1,ici1,1)
-        end if
-        if ( ma%has_bdyright ) then
-          atmc%w(jce2,ice1,1) = atmc%w(jci2,ici1,1)
-        end if
-      end if
-      if ( ma%has_bdytop ) then
-        do j = jci1 , jci2
-          atmc%w(j,ice2,1) = atmc%w(j,ici2,1)
-        end do
-        if ( ma%has_bdyleft ) then
-          atmc%w(jce1,ice2,1) = atmc%w(jci1,ici2,1)
-        end if
-        if ( ma%has_bdyright ) then
-          atmc%w(jce2,ice2,1) = atmc%w(jci2,ici2,1)
-        end if
-      end if
-      if ( ma%has_bdyleft ) then
-        do i = ici1 , ici2
-          atmc%w(jce1,i,1) = atmc%w(jci1,i,1)
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do i = ici1 , ici2
-          atmc%w(jce2,i,1) = atmc%w(jci2,i,1)
-        end do
-      end if
       !
       ! Downward sweep calculation of w
       !
@@ -697,6 +633,41 @@ module mod_sound
           end do
         end do
       end do
+      !
+      ! Zero-out gradient for W
+      !
+      if ( ma%has_bdybottom ) then
+        do j = jci1 , jci2
+          atmc%w(j,ice1,:) = atmc%w(j,ici1,:)
+        end do
+        if ( ma%has_bdyleft ) then
+          atmc%w(jce1,ice1,:) = atmc%w(jci1,ici1,:)
+        end if
+        if ( ma%has_bdyright ) then
+          atmc%w(jce2,ice1,:) = atmc%w(jci2,ici1,:)
+        end if
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jci1 , jci2
+          atmc%w(j,ice2,:) = atmc%w(j,ici2,:)
+        end do
+        if ( ma%has_bdyleft ) then
+          atmc%w(jce1,ice2,:) = atmc%w(jci1,ici2,:)
+        end if
+        if ( ma%has_bdyright ) then
+          atmc%w(jce2,ice2,:) = atmc%w(jci2,ici2,:)
+        end if
+      end if
+      if ( ma%has_bdyleft ) then
+        do i = ici1 , ici2
+          atmc%w(jce1,i,:) = atmc%w(jci1,i,:)
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ici1 , ici2
+          atmc%w(jce2,i,:) = atmc%w(jci2,i,:)
+        end do
+      end if
       !
       ! Check CFL
       !

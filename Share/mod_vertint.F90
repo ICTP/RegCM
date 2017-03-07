@@ -50,7 +50,7 @@ module mod_vertint
   end interface intlog
 
   public :: intlin , intgtb , intlog
-  public :: intpsn , intv0 , intv1 , intv2 , intv3
+  public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
 
   contains
@@ -1717,6 +1717,45 @@ module mod_vertint
       end do
     end do
   end subroutine intv0
+
+  subroutine intvp(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,kccm)
+    implicit none
+    integer(ik4) , intent(in) :: kccm , ni , nj
+    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
+    real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
+    real(rkx) , dimension(kccm) , intent(in) :: sccm
+    real(rkx) , intent(in) :: srcm
+    real(rkx) , dimension(ni,nj) , intent(out) :: frcm
+    real(rkx) :: dp1 , pt1 , rc , rc1 , sc
+    integer(ik4) :: i , j , k , k1 , kp1
+    !
+    ! INTV1 is for vertical interpolation of U, V, and RH
+    ! The interpolation is linear in P.  Where extrapolation
+    ! is necessary, fields are considered to have 0 vertical derivative.
+    !
+    pt1 = pt/pss
+    do i = 1 , ni
+      do j = 1 , nj
+        dp1 = psrcm(i,j)/pss
+        sc = srcm*dp1 + pt1
+        k1 = 0
+        do k = 1 , kccm
+          if ( sc > sccm(k) ) k1 = k
+        end do
+        if ( k1 == 0 ) then
+          frcm(i,j) = fccm(i,j,kccm)
+        else if ( k1 /= kccm ) then
+          kp1 = k1 + 1
+          rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
+          rc1 = d_one - rc
+          frcm(i,j) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
+        else
+          frcm(i,j) = fccm(i,j,1)
+        end if
+      end do
+    end do
+  end subroutine intvp
 
   subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none

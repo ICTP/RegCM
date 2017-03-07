@@ -689,23 +689,14 @@ module mod_ncout
           enable_atm3d_vars(atm_qincl) = .false.
           enable_atm3d_vars(atm_autoconvr) = .false.
         end if
-        if ( ipptls == 2 ) then
-          if ( any(icup == 5) .and. icosp == 1 ) then
-            if ( enable_atm3d_vars(atm_q_detr) ) then
-              call setup_var(v3dvar_atm,atm_q_detr,vsize,'qdetr','kg/m^2', &
-                'Detrainment', 'detrainment',.true.)
-              atm_q_detr_out => v3dvar_atm(atm_q_detr)%rval
-            end if
-          else
-            enable_atm3d_vars(atm_q_detr) = .false.
-          end if
+        if ( ipptls > 1 ) then
           if ( enable_atm3d_vars(atm_qi) ) then
             call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
               'Mass fraction of ice', &
               'mass_fraction_of_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
-          if ( icosp == 1 ) then
+          if ( icosp == 1 .or. idiag == 1 ) then
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
                 'Mass fraction of rain', &
@@ -721,6 +712,19 @@ module mod_ncout
           else
             enable_atm3d_vars(atm_qr) = .false.
             enable_atm3d_vars(atm_qs) = .false.
+          end if
+        else
+          enable_atm3d_vars(atm_qi) = .false.
+        end if
+        if ( ipptls == 2 ) then
+          if ( any(icup == 5) .and. icosp == 1 ) then
+            if ( enable_atm3d_vars(atm_q_detr) ) then
+              call setup_var(v3dvar_atm,atm_q_detr,vsize,'qdetr','kg/m^2', &
+                'Detrainment', 'detrainment',.true.)
+              atm_q_detr_out => v3dvar_atm(atm_q_detr)%rval
+            end if
+          else
+            enable_atm3d_vars(atm_q_detr) = .false.
           end if
           if ( idiag > 0) then
             if ( enable_atm3d_vars(atm_rainls) ) then
@@ -870,7 +874,6 @@ module mod_ncout
 #endif
         else
           enable_atm3d_vars(atm_q_detr) = .false.
-          enable_atm3d_vars(atm_qi:atm_qs) = .false.
           enable_atm3d_vars(atm_rainls) = .false.
           enable_atm3d_vars(atm_raincc) = .false.
           enable_atm3d_vars(atm_stats_supw:atm_stats_autocc) = .false.

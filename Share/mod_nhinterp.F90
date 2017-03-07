@@ -364,7 +364,7 @@ module mod_nhinterp
     ! Compute the nonhydrostatic initial vertical velocity (w) from the
     ! horizontal wind fields (u and v).
     !
-    subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,xlat,u,v,tv, &
+    subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,xlat,u,v,ukp,vkp,tv, &
                    ps,psdot,ps0,xmsfx,w,wtop,ds,iband)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband
@@ -374,11 +374,12 @@ module mod_nhinterp
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: u , v
+      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: ukp , vkp
       real(rkx) , intent(in) :: ds                    ! Kilometers
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: w
       real(rkx) , pointer , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
-      integer(ik4) :: l , ll , lm , lp , ip , im , jp , jm
+      integer(ik4) :: l , ll , ip , im , jp , jm
       real(rkx) :: dx2 , omegal , omegau , t0 , ubar , vbar , wu , wl
       real(rkx) :: zl , zu , rho , omegan , pr , t
       real(rkx) :: ua , ub , va , vb
@@ -387,15 +388,13 @@ module mod_nhinterp
       real(rkx) , dimension(kxs+1) :: z0q , zq
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
       real(rkx) , dimension(j1:j2,i1:i2,kxs) :: pr0 , logprp
-      real(rkx) , dimension(j1:j2,i1:i2) :: pspa , rpspa , psdotpa
+      real(rkx) , dimension(j1:j2,i1:i2) :: pspa
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
       real(rkx) , dimension(j1:j2,i1:i2) :: cell
 
       wtmp(:,:,:) = d_zero
       dx2 = d_two * ds
       pspa = ps * d_1000
-      psdotpa = psdot * d_1000
-      rpspa = d_one / pspa
       dummy = (xmsfx * xmsfx) / dx2
       dummy1 = xmsfx / dx2
       cell = ptoppa / ps0
@@ -440,33 +439,27 @@ module mod_nhinterp
           end if
           mdv(:) = d_zero
           do l = 1 , kxs
-            ua = u(j ,i ,l)  * psdotpa(j ,i ) + &
-                 u(j ,ip,l)  * psdotpa(j ,ip)
-            ub = u(jp, i ,l) * psdotpa(jp,i ) + &
-                 u(jp ,ip,l) * psdotpa(jp,ip)
-            va = v(j ,i ,l)  * psdotpa(j ,i ) + &
-                 v(jp,i ,l)  * psdotpa(jp,i )
-            vb = v(j ,ip ,l) * psdotpa(j ,ip) + &
-                 v(jp,ip ,l) * psdotpa(jp,ip)
+            ua = u(j ,i ,l)  * psdot(j ,i ) + &
+                 u(j ,ip,l)  * psdot(j ,ip)
+            ub = u(jp, i ,l) * psdot(jp,i ) + &
+                 u(jp ,ip,l) * psdot(jp,ip)
+            va = v(j ,i ,l)  * psdot(j ,i ) + &
+                 v(jp,i ,l)  * psdot(jp,i )
+            vb = v(j ,ip ,l) * psdot(j ,ip) + &
+                 v(jp,ip ,l) * psdot(jp,ip)
             mdv(l) = (ub - ua + vb - va) * dummy(j,i)
           end do
           qdt(kxs+1) = d_zero
           zq(kxs+1) = d_zero
           do l = kxs , 1 , -1
-            qdt(l) = qdt(l+1) + mdv(l) * dsigma(l) * rpspa(j,i)
+            qdt(l) = qdt(l+1) + mdv(l) * dsigma(l) / ps(j,i)
             zq(l) = zq(l+1) - rovg*tv(j,i,l) * logprp(j,i,l)
           end do
           do l = kxs+1 , 1 , -1
-            lp = min(l,kxs)
-            lm = max(l-1,1)
-            ubar = 0.125_rkx * (u(j ,i ,lp) + u(j ,i ,lm)  + &
-                                u(j ,ip,lp) + u(j ,ip,lm)  + &
-                                u(jp,i ,lp) + u(jp,i ,lm)  + &
-                                u(jp,ip,lp) + u(jp,ip,lm))
-            vbar = 0.125_rkx * (v(j ,i ,lp) + v(j ,i ,lm)  + &
-                                v(j ,ip,lp) + v(j ,ip,lm)  + &
-                                v(jp,i ,lp) + v(jp,i ,lm)  + &
-                                v(jp,ip,lp) + v(jp,ip,lm))
+            ubar = 0.250_rkx * (ukp(j ,i ,l) + ukp(j ,ip,l) + &
+                                ukp(jp,i ,l) + ukp(jp,ip,l))
+            vbar = 0.250_rkx * (vkp(j ,i ,l) + vkp(j ,ip,l) +  &
+                                vkp(jp,i ,l) + vkp(jp,ip,l))
             ! Calculate omega
             omega(l) = pspa(j,i) * qdt(l) + sigma(l) *  &
                     ((pspa(jp,i) - pspa(jm,i)) * ubar + &
@@ -475,7 +468,7 @@ module mod_nhinterp
           !
           !  Vertical velocity from interpolated omega, zero at top.
           !
-          do k = 2 , kxs + 1
+          do k = 1 , kxs + 1
             kp = min(k,kxs)
             km = max(k-1,1)
             if ( k == kxs+1 ) km = kxs - 1
@@ -496,13 +489,12 @@ module mod_nhinterp
             ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             wtmp(j,i,k) = -omegan/rho * regrav
           end do
-          wtmp(j,i,1) = -omega(2)*regrav
         end do
       end do
-      wtmp(1,:,:) = wtmp(2,:,:)
-      wtmp(:,1,:) = wtmp(:,2,:)
-      wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
-      wtmp(:,i2-1,:) = wtmp(:,i2-2,:)
+      !wtmp(1,:,:) = wtmp(2,:,:)
+      !wtmp(:,1,:) = wtmp(:,2,:)
+      !wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
+      !wtmp(:,i2-1,:) = wtmp(:,i2-2,:)
       wtmp(j2,:,:) = wtmp(j2-1,:,:)
       wtmp(:,i2,:) = wtmp(:,i2-1,:)
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)

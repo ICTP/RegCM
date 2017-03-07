@@ -352,6 +352,10 @@ module mod_nest
     !
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    if ( idynamic == 2 ) then
+      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,np)
+      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,np)
+    end if
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
     !

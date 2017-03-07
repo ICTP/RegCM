@@ -93,6 +93,7 @@ module mod_bdycod
   interface raydamp
     module procedure raydamp3
     module procedure raydamp3f
+    module procedure raydamp3f1
     module procedure raydamp3d
     module procedure raydamp4
   end interface raydamp
@@ -1163,7 +1164,7 @@ module mod_bdycod
               atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k)
             end do
@@ -1183,7 +1184,7 @@ module mod_bdycod
               atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k)
             end do
@@ -1203,7 +1204,7 @@ module mod_bdycod
               atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k)
             end do
@@ -1223,7 +1224,7 @@ module mod_bdycod
               atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k)
             end do
@@ -1247,7 +1248,7 @@ module mod_bdycod
               atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
             end do
@@ -1270,7 +1271,7 @@ module mod_bdycod
               atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do i = ici1 , ici2
               atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
             end do
@@ -1293,7 +1294,7 @@ module mod_bdycod
               atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
             end do
@@ -1316,7 +1317,7 @@ module mod_bdycod
               atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
             end do
           end do
-          do k = 2 , kzp1
+          do k = 1 , kzp1
             do j = jce1 , jce2
               atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
             end do
@@ -2463,7 +2464,7 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: ften
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    integer(ik4) :: i , j , k , ib , ns , nk
+    integer(ik4) :: i , j , k , ib , nk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge3d'
     integer(ik4) , save :: idindx = 0
@@ -2471,11 +2472,6 @@ module mod_bdycod
 #endif
 
     nk = size(f,3)
-    if ( nk == kz ) then
-      ns = 1
-    else
-      ns = 2
-    end if
     xt = xbctime + dt
     if ( .not. ba_cr%havebound ) then
 #ifdef DEBUG
@@ -2486,7 +2482,7 @@ module mod_bdycod
 
     if ( ibdy == 1 ) then
       if ( ba_cr%ns /= 0 ) then
-        do k = ns , nk
+        do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2505,7 +2501,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = ns , nk
+        do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2524,7 +2520,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = ns , nk
+        do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2543,7 +2539,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = ns , nk
+        do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle
@@ -2563,7 +2559,7 @@ module mod_bdycod
       end if
     else
       if ( ba_cr%ns /= 0 ) then
-        do k = ns , nk
+        do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bsouth(j,i) ) cycle
@@ -2582,7 +2578,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nn /= 0 ) then
-        do k = ns , nk
+        do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bnorth(j,i) ) cycle
@@ -2601,7 +2597,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%nw /= 0 ) then
-        do k = ns , kz
+        do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%bwest(j,i) ) cycle
@@ -2620,7 +2616,7 @@ module mod_bdycod
         end do
       end if
       if ( ba_cr%ne /= 0 ) then
-        do k = ns , kz
+        do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
               if ( .not. ba_cr%beast(j,i) ) cycle
@@ -2932,33 +2928,43 @@ module mod_bdycod
     end do
   end subroutine raydamp3d
 
-  subroutine raydamp3f(z,var,vten,nk)
+  subroutine raydamp3f(z,var,vten,sval)
     implicit none
-    integer , intent(in) :: nk
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
+    real(rkx) , intent(in) :: sval
     real(rkx) :: rate , mval , lmval , rpnts
     integer(ik4) :: i , j , k
-    do k = 1 , min(nk,rayndamp+1)
-      lmval = d_zero
-      rpnts = d_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          lmval = lmval + var(j,i,k)
-          rpnts = rpnts + d_one
-        end do
-      end do
-      if ( rpnts > d_zero ) lmval = lmval/rpnts
-      call meanall(lmval,mval)
+    do k = 2 , min(kzp1,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
           rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
-          vten(j,i,k) = vten(j,i,k) + rate * (mval-var(j,i,k))
+          vten(j,i,k) = vten(j,i,k) + rate * (sval-var(j,i,k))
         end do
       end do
     end do
   end subroutine raydamp3f
+
+  subroutine raydamp3f1(z,var,vten,bnd)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
+    type(v3dbound) , intent(in) :: bnd
+    real(rkx) :: rate , sval , xt
+    integer(ik4) :: i , j , k
+    xt = xbctime + dt
+    do k = 1 , min(kzp1,rayndamp)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+          sval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
+          vten(j,i,k) = vten(j,i,k) + rate * (sval-var(j,i,k))
+        end do
+      end do
+    end do
+  end subroutine raydamp3f1
 
   subroutine raydamp3(z,var,vten)
     implicit none

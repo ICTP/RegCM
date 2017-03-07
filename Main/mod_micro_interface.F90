@@ -317,8 +317,7 @@ module mod_micro_interface
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !                                                                 c
   ! This subroutine computes the condensational or evaporational    c
-  ! heating term and the fallout term of precipitation from the     c
-  ! explicit moisture scheme.                                       c
+  ! heating term from the explicit moisture scheme.                 c
   !                                                                 c
   ! ---the condensational or evaporational term are one step        c
   !    adjustment based on asai (1965, j. meteo. soc. japan).       c

@@ -149,6 +149,10 @@ module mod_ecens
     ! Interpolate U, V, T, and Q.
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+    if ( idynamic == 2 ) then
+      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nplev)
+      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nplev)
+    end if
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)

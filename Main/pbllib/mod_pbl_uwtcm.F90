@@ -221,7 +221,7 @@ module mod_pbl_uwtcm
       end do
     end if
 
-    do k = 1 , kz
+    do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
           p2m%tketen(j,i,k) = p2m%tkeuwten(j,i,k)
@@ -465,6 +465,7 @@ module mod_pbl_uwtcm
           ! Wind gradient and shear
           dudz = (ux(k) - ux(k-1)) * rdza(k)
           dvdz = (vx(k) - vx(k-1)) * rdza(k)
+          svs(k) = dudz*dudz + dvdz*dvdz
         end do
 
         ! Surface exner function
@@ -671,29 +672,29 @@ module mod_pbl_uwtcm
             qix(k) = uimp1(k)
           end do
         end if
-!
-!       !Re-update N^2 at the surface; this requires recalculation
-!       !of the surface momentum fluxes
-!
-!       !Calculate surface momentum fluxes
-!       uflxp = -uvdragx*ux(kz)/rhoxsf
-!       vflxp = -uvdragx*vx(kz)/rhoxsf
-!       ustxsq = sqrt(uflxp*uflxp + vflxp*vflxp)
-!
-!       !Estimate of surface eddy diffusivity, for estimating the
-!       !surface N^2 from the surface virtual heat flux
-!       kh0 = vonkar*2*sqrt(max(tkemin,tkefac*ustxsq))
-!
-!       !Estimate the surface N^2 from the surface virtual heat flux
-!       nsquar(kzp1) = -egrav/thgb*thvflx/kh0
+        !
+        ! Re-update N^2 at the surface; this requires recalculation
+        ! of the surface momentum fluxes
+        !
+        ! Calculate surface momentum fluxes
+        uflxp = -uvdragx*ux(kz)/rhoxsf
+        vflxp = -uvdragx*vx(kz)/rhoxsf
+        ustxsq = sqrt(uflxp*uflxp + vflxp*vflxp)
 
+        ! Estimate of surface eddy diffusivity, for estimating the
+        ! surface N^2 from the surface virtual heat flux
+        kh0 = vonkar*2*sqrt(max(tkemin,tkefac*ustxsq))
+
+        ! Estimate the surface N^2 from the surface virtual heat flux
+        nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
+        ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 
         !*************************************************************
         !****** Implicit Diffusion of tracers ************************
         !*************************************************************
 
         if ( ichem == 1 ) then
-          !Set the tridiagonal coefficients that apply to all of the tracers
+          ! Set the tridiagonal coefficients that apply to all of the tracers
           aimp(1) = d_zero
           do k = 2 , kz
             aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
@@ -830,6 +831,8 @@ module mod_pbl_uwtcm
           ! Scalar diffusivity
           uwstateb%kth(j,i,k) = kth(k)
         end do
+
+        p2m%tkeuwten(j,i,kzp1) = (tke(kzp1)-tkes(kzp1))*rdt
 
         if ( implicit_ice .and. ipptls == 2 ) then
           do k = ibnd , kz

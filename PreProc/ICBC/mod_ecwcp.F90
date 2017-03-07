@@ -161,6 +161,10 @@ module mod_ecwcp
     ! interpolate U, V, T, and Q.
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    if ( idynamic == 2 ) then
+      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
+      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
+    end if
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
