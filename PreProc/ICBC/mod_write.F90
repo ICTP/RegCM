@@ -224,6 +224,7 @@ module mod_write
     if ( idynamic == 2 ) then
       dx = ds * d_1000
       call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)
+      call meandivf(ukp,vkp,pd4,msfd,sigmaf,dsigma,jx,iy,kzp1,dx,jx-1,iy-1)
       tv4 = t4 * (d_one + ep1 * q4)
       do k = 1 , kz
         call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band)

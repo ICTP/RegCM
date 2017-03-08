@@ -26,7 +26,7 @@ module mod_vectutil
 
   private
 
-  public :: crs2dot , dot2crs , top2btm , btm2top , meandiv
+  public :: crs2dot , dot2crs , top2btm , btm2top , meandiv , meandivf
 
   contains
 
@@ -223,6 +223,104 @@ module mod_vectutil
       f(:,j) = f(:,jlast)
     end do
   end subroutine fill
+  !
+  !-----------------------------------------------------------------------
+  !
+  subroutine meandivf(u,v,psd,dm,sigf,dsg,imx,jmx,kxs,ds,imxm,jmxm)
+    implicit none
+    integer(ik4) , intent(in) :: imx , jmx , kxs , imxm , jmxm
+    real(rkx) , intent(inout) , dimension(imx,jmx,kxs) :: u , v
+    real(rkx) , intent(in) , dimension(imx,jmx) :: psd
+    real(rkx) , intent(in) , dimension(imx,jmx) :: dm
+    real(rkx) , intent(in) , dimension(kxs) :: sigf
+    real(rkx) , intent(in) , dimension(kxs-1) :: dsg
+    real(rkx) , intent(in) :: ds
+    integer(ik4) :: i , j , k
+    real(rkx) , dimension(imx,jmx) :: chi , div
+    real(rkx) , dimension(imx,jmx) :: dudx , dvdy
+    real(rkx) , dimension(imx,jmx) :: udiverg , vdiverg
+    real(rkx) , dimension(imx,jmx) :: uslb , vslb
+    real(rkx) , dimension(kxs) :: weight
+    real(rkx) :: oneov2ds
+
+    oneov2ds = d_one / (d_two * ds)
+    do k = 1 , kxs
+      weight(k) = d_two * (d_one - sigf(k))
+    end do
+    !
+    ! Integrate p* v/m, compute div, to dot point, to (x,y) format
+    !
+    do j = 1 , jmx
+      do i = 1 , imx
+        uslb(i,j) = d_zero
+        vslb(i,j) = d_zero
+      end do
+    end do
+    do j = 1 , jmx
+      do i = 1 , imx
+        do k = 1 , kxs-1
+          uslb(i,j) = uslb(i,j) + u(i,j,k) * dsg(k)
+          vslb(i,j) = vslb(i,j) + v(i,j,k) * dsg(k)
+        end do
+      end do
+    end do
+    do j = 1 , jmx
+      do i = 1 , imx
+        uslb(i,j) = uslb(i,j) * psd(i,j) / dm(i,j)
+        vslb(i,j) = vslb(i,j) * psd(i,j) / dm(i,j)
+      end do
+    end do
+    do j = 1 , jmxm
+      do i = 1 , imxm
+        dudx(i,j) = uslb(i+1,j+1) - uslb(i,j+1) + uslb(i+1,j) - uslb(i,j)
+        dvdy(i,j) = vslb(i+1,j+1) - vslb(i+1,j) + vslb(i,j+1) - vslb(i,j)
+      end do
+    end do
+    div(:,:) = d_zero
+    do j = 1 , jmxm
+      do i = 1 , imxm
+        div(i,j) = oneov2ds * (dudx(i,j) + dvdy(i,j))
+      end do
+    end do
+    !
+    ! Iteratively solve laplacian from good first guess.
+    !
+    call relax(chi,div,imx,jmx,imx-2,jmx-2,ds)
+    !
+    ! Get divergent component of wind, 2d field on dot points.
+    !
+    do j = 2 , jmxm
+      do i = 2 , imxm
+         vdiverg(i,j) = (chi(i,j) - chi(i,j-1) + &
+                         chi(i-1,j) - chi(i-1,j-1)) * oneov2ds
+      end do
+    end do
+    do j = 2 , jmxm
+      do i = 2 , imxm
+        udiverg(i,j) = (chi(i,j) - chi(i-1,j) + &
+                        chi(i,j-1) - chi(i-1,j-1)) * oneov2ds
+      end do
+    end do
+    call fill(udiverg,imx,jmx,imx,jmx,2,imxm,2,jmxm)
+    call fill(vdiverg,imx,jmx,imx,jmx,2,imxm,2,jmxm)
+    !
+    ! Remove mean divergent component
+    !
+    do j = 1 , jmx
+      do i = 1 , imx
+        udiverg(i,j) = udiverg(i,j) * dm(i,j) / psd(i,j)
+        vdiverg(i,j) = vdiverg(i,j) * dm(i,j) / psd(i,j)
+      end do
+    end do
+    do j = 1 , jmx
+      do i = 1 , imx
+        do k = 1 , kxs
+          u(i,j,k) = u(i,j,k) - weight(k) * udiverg(i,j)
+          v(i,j,k) = v(i,j,k) - weight(k) * vdiverg(i,j)
+        end do
+      end do
+    end do
+  end subroutine meandivf
   !
   !-----------------------------------------------------------------------
   !
