@@ -296,9 +296,15 @@ program terrain
     end if
 
     ! grell smoothing to eliminate 2 delx wave (6/90):
-    do ism = 1 , ismthlev
+    if ( ismthlev == 1 ) then
       call smth121(htgrid_s,jxsg,iysg)
-    end do
+    else if ( ismthlev == 2 ) then
+      call smtdsmt(htgrid_s,jxsg,iysg)
+    else
+      do ism = 1 , ismthlev
+        call smth121(htgrid_s,jxsg,iysg)
+      end do
+    end if
 
     do i = 1 , iysg
       do j = 1 , jxsg
@@ -473,9 +479,15 @@ program terrain
   if ( smthbdy ) call smthtr(htgrid,jx,iy,nspgx)
 
   ! grell smoothing to eliminate 2 delx wave (6/90):
-  do ism = 1 , ismthlev
+  if ( ismthlev == 1 ) then
     call smth121(htgrid,jx,iy)
-  end do
+  else if ( ismthlev == 2 ) then
+    call smtdsmt(htgrid,jx,iy)
+  else
+    do ism = 1 , ismthlev
+      call smth121(htgrid,jx,iy)
+    end do
+  end if
 
   do i = 1 , iy
     do j = 1 , jx
@@ -520,9 +532,7 @@ program terrain
             lndout > 13.5 .and. lndout < 14.5 )
       htgrid = 0.0
     end where
-    call remove_high_gradients(jx,iy,htgrid)
   else
-    call remove_high_gradients(jx,iy,htgrid)
     call h2oelev(jx,iy,htgrid,mask)
   end if
   if (lakedpth) then
@@ -610,9 +620,7 @@ program terrain
               lndout_s > 13.5 .and. lndout_s < 14.5 )
         htgrid_s = 0.0
       end where
-      call remove_high_gradients(jxsg,iysg,htgrid_s)
     else
-      call remove_high_gradients(jxsg,iysg,htgrid_s)
       call h2oelev(jxsg,iysg,htgrid_s,mask_s)
     end if
     if (lakedpth) then

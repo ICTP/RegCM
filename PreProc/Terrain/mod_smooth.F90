@@ -25,7 +25,8 @@ module mod_smooth
 
   private
 
-  public :: smth121 , smthtr , cleanpeaks , h2oelev , remove_high_gradients
+  public :: cleanpeaks , h2oelev , remove_high_gradients
+  public :: smtdsmt , smth121 , smthtr
 
   contains
 
@@ -34,25 +35,64 @@ module mod_smooth
     integer(ik4) , intent(in) :: jx , iy
     real(rkx) , intent(inout) , dimension(jx,iy) :: htgrid
     integer(ik4) :: i , j
-    real(rkx) , dimension(jx,iy) :: hscr1 , hscr2
+    real(rkx) , dimension(jx,iy) :: hscr
     !
     ! PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
     ! 2DX WAVES FROM THE FIELDS htgrid.
     !
-    hscr1(:,:) = htgrid(:,:)
-    hscr2(:,:) = htgrid(:,:)
+    hscr(:,:) = htgrid(:,:)
     do i = 2 , iy - 2
       do j = 2 , jx - 2
-        hscr2(j,i) = d_rfour*(d_two*hscr1(j,i)+hscr1(j+1,i)+hscr1(j-1,i))
+        hscr(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
       end do
     end do
     do i = 2 , iy - 2
       do j = 2 , jx - 2
-        hscr1(j,i) = d_rfour*(d_two*hscr2(j,i)+hscr2(j,i+1)+hscr2(j,i-1))
+        htgrid(j,i) = d_rfour*(d_two*hscr(j,i)+hscr(j,i+1)+hscr(j,i-1))
       end do
     end do
-    htgrid(:,:) = hscr1(:,:)
   end subroutine smth121
+
+  subroutine smtdsmt(slab,nj,ni)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj
+    real(rkx) , intent(inout) , dimension(nj,ni) :: slab
+    real(rkx) :: aplus , asv , cell
+    integer(ik4) :: i , ie , j , je , k , kp
+    real(rkx) , dimension(2) :: xnu
+    !
+    ! purpose: spatially smooth data in slab to dampen short
+    ! wavelength components
+    !
+    ie = ni-1
+    je = nj-1
+    xnu(1) =  0.50_rkx
+    xnu(2) = -0.52_rkx
+    do k = 1 , 2
+      do kp = 1 , 2
+        ! first smooth in the ni direction
+        do i = 2 , ie
+          asv = slab(1,i)
+          do j = 2 , je
+            cell = slab(j,i)
+            aplus = slab(j+1,i)
+            slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+            asv = cell
+          end do
+        end do
+        ! smooth in the nj direction
+        do j = 2 , je
+          asv = slab(j,1)
+          do i = 2 , ie
+            cell = slab(j,i)
+            aplus = slab(j,i+1)
+            slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+            asv = cell
+          end do
+        end do
+      end do
+    end do
+  end subroutine smtdsmt
 
   subroutine smther(slab,nj,ni,nsp,npass)
     implicit none
@@ -65,35 +105,35 @@ module mod_smooth
     ! purpose: spatially smooth data in slab to dampen short
     ! wavelength components
     !
-    ie = ni
-    je = nj
+    ie = ni - 1
+    je = nj - 1
     iem = ie - nsp + 1
     jem = je - nsp + 1
-    xnu(1) =  d_half
-    xnu(2) = -d_half
+    xnu(1) =  0.50_rkx
+    xnu(2) = -0.52_rkx
     do k = 1 , npass
       do kp = 1 , 2
         ! first smooth in the ni direction
-        do i = 1 , ie - 1
+        do i = 2 , ie
           asv = slab(1,i)
-          do j = 2 , je - 1
+          do j = 2 , je
             cell = slab(j,i)
-            if ( (i <= nsp) .and. (i >= iem) .and. &
-                 (j <= nsp) .and. (j >= jem) ) then
-              aplus = slab(j,i+1)
+            aplus = slab(j+1,i)
+            if ( (i <= nsp) .or. (i >= iem) .and. &
+                 (j <= nsp) .or. (j >= jem) ) then
               slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
             end if
             asv = cell
           end do
         end do
         ! smooth in the nj direction
-        do j = 1 , je - 1
+        do j = 2 , je
           asv = slab(j,1)
-          do i = 2 , ie - 1
+          do i = 2 , ie
             cell = slab(j,i)
-            if ( (i <= nsp) .and. (i >= iem) .and. &
-                 (j <= nsp) .and. (j >= jem) ) then
-              aplus = slab(j,i+1)
+            aplus = slab(j,i+1)
+            if ( (i <= nsp) .or. (i >= iem) .and. &
+                 (j <= nsp) .or. (j >= jem) ) then
               slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
             end if
             asv = cell
@@ -130,7 +170,7 @@ module mod_smooth
     !
     ! Apply filter
     !
-    npass = 10
+    npass = 3
     call smther(slab1,nj,ni,nsp,npass)
     !
     ! Remove negative elevation points
@@ -198,7 +238,7 @@ module mod_smooth
     real(rkx) :: np , sump
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
     integer , parameter :: npass = 2
-    real(rkx) , parameter :: maxgra = 750.0_rkx
+    real(rkx) , parameter :: maxgra = 1500.0_rkx
     dhdx1(:,:) = d_zero
     dhdy1(:,:) = d_zero
     dhdx2(:,:) = d_zero
@@ -224,7 +264,7 @@ module mod_smooth
               do jj = j-1 , j+1
                 iii = max(1,min(ii,ni))
                 jjj = max(1,min(jj,nj))
-                np = np + 1
+                np = np + 1.0_rkx
                 sump = sump + xt(jjj,iii)
               end do
             end do
