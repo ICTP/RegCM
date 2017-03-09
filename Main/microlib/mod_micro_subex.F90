@@ -61,7 +61,6 @@ module mod_micro_subex
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
-#include <clwfromt.inc>
 
   subroutine allocate_subex
     implicit none

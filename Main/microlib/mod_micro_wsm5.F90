@@ -79,9 +79,9 @@ module mod_micro_wsm5
           pacrr , precr1 , precr2 , xmmax , roqimax , bvts1 ,       &
           bvts2 , bvts3 , bvts4 , g1pbs , g3pbs , g4pbs , g5pbso2 , &
           pvts , pacrs , precs1 , precs2 , pidn0r , pidn0s ,        &
-          pacrc , rslopermax , rslopesmax , rslopegmax ,            &
-          rsloperbmax , rslopesbmax , rslopegbmax , rsloper2max ,   &
-          rslopes2max , rslopeg2max , rsloper3max , rslopes3max , rslopeg3max
+          pacrc , rslopermax , rslopesmax , rsloperbmax ,           &
+          rslopesbmax , rsloper2max ,  rslopes2max , rsloper3max ,  &
+          rslopes3max
 
   public :: allocate_mod_wsm5 , init_wsm5 , wsm5
 
@@ -95,9 +95,9 @@ module mod_micro_wsm5
   real(rkx) , dimension(:,:) , pointer :: den
   real(rkx) , dimension(:,:) , pointer :: delz
   real(rkx) , dimension(:,:) , pointer :: p
-  real(rkx) , dimension(:,:) , pointer :: cloud_er
-  real(rkx) , dimension(:,:) , pointer :: ice_er
-  real(rkx) , dimension(:,:) , pointer :: snow_er
+!  real(rkx) , dimension(:,:) , pointer :: cloud_er
+!  real(rkx) , dimension(:,:) , pointer :: ice_er
+!  real(rkx) , dimension(:,:) , pointer :: snow_er
   real(rkx) , dimension(:) , pointer :: ptfac
   real(rkx) , dimension(:) , pointer :: rain
   real(rkx) , dimension(:) , pointer :: snow

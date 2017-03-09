@@ -44,7 +44,7 @@ module mod_cu_shallow
 
     real(rkx) , dimension(kz) :: t , q , p , outts , tns , qns , outqs
     real(rkx) , dimension(knum) :: xmb
-    real(rkx) :: mbdt , dtime , ter11 , pret , psur
+    real(rkx) :: dtime , ter11 , pret , psur
 
     integer(ik4) :: i , j , kbmax , k , kk , ier
 
@@ -130,18 +130,18 @@ module mod_cu_shallow
       ! Various work dimensions, cloudworkfunctions (a,aold),
       ! kernels (xk), detrainment of updraft (cd)
       !
-      real(rkx) , dimension(knum) :: aa , xx , xxo , f , aold
+      real(rkx) , dimension(knum) :: aa , xx , f , aold
       real(rkx) , dimension(knum,knum) :: xk
       real(rkx) , dimension(kz) :: hh , della
       real(rkx) , dimension(kz,knum) :: cdd
       !
       ! Downdraft dimensions
       !
-      real(rkx) , dimension(knum) :: edt , edto , edtoo
-      real(rkx) , dimension(kz,knum) :: zd , qrcd , hcd , pwd , xzd , xqrcd
-      real(rkx) , dimension(kz,knum) :: xhcd , xpwd , zdo , pwdo
-      integer(ik4) , dimension(knum) :: kmin , itest , itestx , itest2
-      integer(ik4) , dimension(knum) :: kminx , ktop , ktopx
+      real(rkx) , dimension(knum) :: edt
+      real(rkx) , dimension(kz,knum) :: zd , qrcd , hcd , pwd
+      real(rkx) , dimension(kz,knum) :: zdo , pwdo
+      integer(ik4) , dimension(knum) :: kmin , itest
+      integer(ik4) , dimension(knum) :: ktop , ktopx
       !
       ! DIMENSIONS FOR FEEDBACK ROUTINE, INCLUDING FEEDBACK
       ! OUTPUT TO DRIVER ROUTINE (OUTTEM,OUTQ,XMB,XMFLUX)!
@@ -318,7 +318,7 @@ module mod_cu_shallow
           ! and entrainment rate, negative entrainment rates
           ! are not possible.
           !
-          call entrs(kbcon,he,hh,hes,xx(lp),kz,lp,kb,z,hkb,knum,ktop)
+          call entrs(kbcon,he,hh,hes,xx(lp),kz,lp,z,hkb,knum,ktop)
           !
           ! Final moist static energy inside cloud
           !
@@ -336,7 +336,7 @@ module mod_cu_shallow
           !
           ! Moisture properties
           !
-          call precip(cdd,kb,kbcon,kz,xx(lp),hh,hes,t,qe,qes,pw,qsc,qrc, &
+          call precip(kb,kbcon,kz,xx(lp),hh,hes,t,qe,qes,pw,qsc,qrc, &
                       z,lp,p,qkb,pcut,c0,zu,knum,ktop)
           do k = 1 , kz
             hh(k) = d_zero
@@ -406,10 +406,10 @@ module mod_cu_shallow
             !
             ! Changes in moist static energy and moisture
             !
-            call kerhels(he,xx(lp),lp,zu,hkb,hc,hh,p,z,kbcon,kz,xhe,mbdt, &
+            call kerhels(he,xx(lp),lp,zu,hkb,hc,hh,p,z,kbcon,kz,xhe, &
                          k22,xhkb,1,cdd,psurf,knum,ktop)
             call kerhels(qe,xx(lp),lp,zu,qkb,qrc,della,p,z,kbcon,kz,xqe, &
-                         mbdt,k22,xqkb,2,cdd,psurf,knum,ktop)
+                         k22,xqkb,2,cdd,psurf,knum,ktop)
             !
             ! Temperature
             !
@@ -452,7 +452,7 @@ module mod_cu_shallow
               ! and entrainment rate, negative entrainment rates
               ! are not possible.
               !
-              call entrs(kbcon,xhe,xhh,xhes,xx(lpx),kz,lpx,kb,xz,xhkb, &
+              call entrs(kbcon,xhe,xhh,xhes,xx(lpx),kz,lpx,xz,xhkb, &
                          knum,ktopx)
               if ( ktopx(lpx) < 2 ) continue
               !
@@ -468,7 +468,7 @@ module mod_cu_shallow
               !
               ! Moisture calculations necessary for downdrafts
               !
-              call precip(cdd,kb,kbcon,kz,xx(lpx),xhh,xhes,xt,xqe,xqes,xpw, &
+              call precip(kb,kbcon,kz,xx(lpx),xhh,xhes,xt,xqe,xqes,xpw, &
                           xqsc,xqrc,xz,lpx,p,xqkb,pcut,c0,xzu,knum,ktopx)
               do k = 1 , kz
                 xhh(k) = d_zero
@@ -619,9 +619,9 @@ module mod_cu_shallow
     !
     ! This subroutine calculates incloud moist static energy
     !
-    subroutine entrs(kbc,h,hc,hsat,ent,kz,lp,kb,p,hkb,knum,ktop)
+    subroutine entrs(kbc,h,hc,hsat,ent,kz,lp,p,hkb,knum,ktop)
       implicit none
-      integer(ik4) , intent(in) :: kbc , kz , lp , kb , knum
+      integer(ik4) , intent(in) :: kbc , kz , lp , knum
       real(rkx) , dimension(kz) , intent(in) :: h , hsat , p
       real(rkx) , dimension(kz) , intent(out) :: hc
       real(rkx) , intent(in) :: hkb , ent
@@ -659,10 +659,10 @@ module mod_cu_shallow
     ! the environment per unit mass (del*dp/g).
     !
     subroutine kerhels(var,r,lp,zu,hkb,hc,della,p,z,kb,kz, &
-                       xvar,mbdt,kbeg,xhkb,ich,cd,psu,knum,ktop)
+                       xvar,kbeg,xhkb,ich,cd,psu,knum,ktop)
       implicit none
       integer(ik4) , intent(in) :: kz , knum , kbeg , lp , kb , ich
-      real(rkx) , intent(in) :: hkb , mbdt , r , psu
+      real(rkx) , intent(in) :: hkb , r , psu
       real(rkx) , intent(out) :: xhkb
       real(rkx) , dimension(kz) , intent(in) :: p , z , var
       real(rkx) , dimension(kz) , intent(out) :: xvar , della
@@ -851,14 +851,14 @@ module mod_cu_shallow
     !     4. Determine new qc.
     !     5. Go back to 1..
     !
-    subroutine precip(cd,kb,kbcon,kz,r,hc,hes,t,qe, &
+    subroutine precip(kb,kbcon,kz,r,hc,hes,t,qe, &
                       qes,pw,qc,qrc,z,lp,p,qkb,pcut,c0,zu,knum,ktop)
       implicit none
       integer(ik4) , intent(in) :: kbcon , kz , kb , lp , knum
       real(rkx) , dimension(kz) , intent(in) :: hc , hes , t , z , p
       real(rkx) , dimension(kz) , intent(in) :: qe , qes
       real(rkx) , dimension(kz) , intent(out) :: qc
-      real(rkx) , dimension(kz,knum) , intent(in) :: cd , zu
+      real(rkx) , dimension(kz,knum) , intent(in) :: zu
       real(rkx) , dimension(kz,knum) , intent(out) :: pw , qrc
       real(rkx) , intent(in) :: c0 , pcut , qkb , r
       integer(ik4) , dimension(knum) :: ktop

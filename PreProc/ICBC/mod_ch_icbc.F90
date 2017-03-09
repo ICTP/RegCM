@@ -55,8 +55,6 @@ module mod_ch_icbc
 
   real(rkx) :: prcm , pmpi , pmpj
   real(rkx) :: r4pt
-  integer(ik4) :: ism
-  type (rcm_time_and_date) , save :: iref1 , iref2
 
   public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
 

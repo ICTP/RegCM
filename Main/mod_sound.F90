@@ -38,7 +38,6 @@ module mod_sound
 
   public :: allocate_mod_sound , init_sound , sound
 
-  real(rkx) , pointer , dimension(:,:,:) :: tau
   real(rkx) , pointer , dimension(:,:,:) :: aa
   real(rkx) , pointer , dimension(:,:,:) :: b
   real(rkx) , pointer , dimension(:,:,:) :: c

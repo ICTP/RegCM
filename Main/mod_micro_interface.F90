@@ -216,7 +216,7 @@ module mod_micro_interface
                            mo2mc%qcn,mo2mc%qsn,mo2mc%qin,mddom%ldmsk, &
                            ds,mo2mc%fcc)
       case default
-        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qcn,mo2mc%qvn, &
+        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            mo2mc%rh,tc0,rh0,mo2mc%fcc)
     end select
 

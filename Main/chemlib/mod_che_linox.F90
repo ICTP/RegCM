@@ -46,119 +46,118 @@ contains
 
   subroutine linox_em(j,ivegcov)
 
-    implicit none 
+    implicit none
 
     integer(ik4) , intent(in) :: j
     integer(ik4) , dimension(ici1:ici2), intent(in) :: ivegcov
     integer(ik4) :: i,k,kcumzero,kcumm10
-    real(rkx), dimension(kz) :: znox_prod_ic, znox_prod_cg, amass 
+    real(rkx), dimension(kz) :: znox_prod_ic, znox_prod_cg, amass
     real(rkx):: zsum_lmass_ic ,zsum_lmass_cg, &
-         pic_rate, pcg_rate, cloud_top_height,zthickice,zbeta, fac 
+         pic_rate, pcg_rate, cloud_top_height,zthickice,zbeta, fac
 
+    do i = ici1,ici2
 
+      ! cloud top heigh from convection scheme
+      if ( kcumtop(j,i) <= 0 ) cycle
+      cloud_top_height  =  cza(j,i,kcumtop(j,i)) + &
+        0.5_rkx * cdzq(j,i,kcumtop(j,i))
 
-    do i = ici1,ici2 
+      ! Lightning frequency for continentaland maritime clouds as a function
+      ! of cloud top height : Price and Rind
 
-       ! cloud top heigh from convection scheme
-       if (kcumtop(j,i) <= 0) cycle
-       cloud_top_height  =  cza(j,i,kcumtop(j,i)) + 0.5 * cdzq(j,i,kcumtop(j,i))
-       
-       ! Lightning frequency for continentaland maritime  clouds as a function of cloud
-       ! top height : Price and Rind 
+      if ( ivegcov(i) > 0 ) then
+         ! Flashes/min over land boxes
+        flashrate (j,i)   = 3.44e-5_rkx * &
+          ( ( cloud_top_height * 1.e-3_rkx )**4.9_rkx  )
+      else if (ivegcov(i) == 0 ) then
+        flashrate (j,i)  = 6.4e-4_rkx  * &
+          ( ( cloud_top_height  * 1e-3_rkx )**1.73_rkx )
+      end if
+      ! flash per second parameterization Price and Rind
+      flashrate(j,i) = flashrate(j,i)/60.0_rkx
+      ! apply a scale factor ( Price and Rind, 1994)
+      fac  = dx**2 * (mathpi/180.0_rkx)**2 / &
+        (earthrad**2 *cos(cxlat(j,i) * mathpi/180.0_rkx))
+      flashrate(j,i) = flashrate(j,i)*0.97241_rkx*exp(0.048203_rkx*fac)
 
-       if (ivegcov(i) > 0 ) then 
-          ! Flashes/min over land boxes
-          flashrate (j,i)   = 3.44e-5 * ( ( cloud_top_height * 1.e-3 )**4.9  )
-       else if (ivegcov(i) == 0) then 
-          flashrate (j,i)  = 6.4e-4  * ( ( cloud_top_height  * 1e-3 )**1.73 )
-       end if
-       ! flash per second parameterization Price and Rind
-       flashrate(j,i) = flashrate(j,i)/60.
-       ! apply a scale factor ( Price and Rind, 1994) 
-       fac  = dx**2 * (mathpi/180.)**2 / (earthrad**2 *cos(cxlat(j,i) * mathpi/180.)) 
-       flashrate(j,i) = flashrate(j,i)*0.97241*exp(0.048203*fac) 
+      ! IC / CG flash ratio in function of icy cloud thickness
+      kcumzero = 0
+      icelev:  do  k = kcumbot(j,i), kcumtop(j,i),-1
+        if ( ctb3d(j,i,k) < tzero ) then
+          kcumzero = k
+          exit icelev
+        end if
+      end do icelev
 
-       ! IC / CG flash ratio in function of icy cloud thickness  
-       kcumzero =0
-       icelev:  do  k = kcumbot(j,i), kcumtop(j,i),-1
-          if (ctb3d(j,i,k) < tzero ) then 
-             kcumzero = k 
-             exit icelev
-          end if
-       end do icelev
+      ! if convective cloud is not icy, cycle to the next i column
+      if ( kcumzero == 0 .or. kcumzero == kcumtop(j,i) ) cycle
 
-       ! if convective cloud is not icy, cycle to the next i column 
-       if (kcumzero ==0 .or. kcumzero == kcumtop(j,i) ) cycle 
+      kcumm10 = 0
+      minus10:  do  k = kcumzero, kcumtop(j,i),-1
+        if (ctb3d(j,i,k) < tzero - 10.0_rkx ) then
+          kcumm10 = k
+          exit minus10
+        end if
+      end do minus10
 
-       kcumm10 =0
-       minus10:  do  k = kcumzero, kcumtop(j,i),-1
-          if (ctb3d(j,i,k) < tzero - 10. ) then 
-             kcumm10 = k 
-             exit minus10
-          end if
-       end do minus10
+      zthickice = (cloud_top_height - cza(j,i,kcumzero) ) * 1.e-3_rkx
 
+      zbeta = (((0.021_rkx*zthickice - 0.648_rkx) * &
+            zthickice   +  7.493_rkx) * &
+            zthickice  - 36.540_rkx) * &
+            zthickice + 63.090_rkx
+      ! 5.5km < zthickice < 14km
+      zbeta = min( 48.7_rkx, max( 0.19_rkx, zbeta ) )
+      !
 
-       zthickice =  (cloud_top_height -  cza(j,i,kcumzero) ) *1.e-3
+      znox_prod_ic(:) = 0.0_rkx
+      znox_prod_cg(:) = 0.0_rkx
+      amass(:) = 0.0_rkx
+      zsum_lmass_ic = 0.0_rkx
+      zsum_lmass_cg = 0.0_rkx
 
-       zbeta = (((0.021*zthickice -  0.648) &
-            *zthickice   +  7.493) &
-            *zthickice  - 36.540) &
-            *zthickice + 63.090
-       zbeta = min( 48.7, max( 0.19, zbeta ) ) ! 5.5km < zthickice < 14km
-       !
-      
-       znox_prod_ic(:) = 0.0
-       znox_prod_cg(:) = 0.0
-       amass(:) = 0.0
-       zsum_lmass_ic = 0.0
-       zsum_lmass_cg = 0.0
+      ! IC_NOx production rate
 
-       ! IC_NOx production rate
-       !
-
-               
-       pic_rate = (zbeta / (1.0+zbeta))*flashrate(j,i)
-       do k = kcumzero, kcumtop(j,i), -1
+      pic_rate = (zbeta / (1.0_rkx+zbeta))*flashrate(j,i)
+      do k = kcumzero, kcumtop(j,i), -1
+        amass(k) = crhob3d(j,i,k)*  cdzq(j,i,k) * dx**2
+        zsum_lmass_ic   = zsum_lmass_ic + amass(k)
+        znox_prod_ic(k) = pic_rate * 6.7e25_rkx * amass(k)
+      end do
+      znox_prod_ic(:) = znox_prod_ic(:) / zsum_lmass_ic
+      !
+      ! cg_nox production rate
+      ! ic can happen without cg
+      if ( kcumm10 > 0 ) then
+        pcg_rate  = (1.0_rkx / (1.0_rkx+zbeta))*flashrate(j,i)
+        do k = kz, kcumm10, -1
           amass(k) = crhob3d(j,i,k)*  cdzq(j,i,k) * dx**2
-          zsum_lmass_ic   = zsum_lmass_ic + amass(k)
-          znox_prod_ic(k) = pic_rate * 6.7e25 * amass(k)
-       end do
-       znox_prod_ic(:) = znox_prod_ic(:) / zsum_lmass_ic
-       !
-       ! cg_nox production rate
-       ! ic can happen without cg
-       if (kcumm10 > 0) then  
-          pcg_rate  = (1.0 / (1.0+zbeta))*flashrate(j,i)
-          do k = kz, kcumm10, -1             
-             amass(k) = crhob3d(j,i,k)*  cdzq(j,i,k) * dx**2
-             zsum_lmass_cg   = zsum_lmass_cg + amass(k)
-             znox_prod_cg(k) = pcg_rate * 6.7e26 * amass(k)
-          end do
-          znox_prod_cg(:)  = znox_prod_cg(:)  / zsum_lmass_cg
-       end if
+          zsum_lmass_cg   = zsum_lmass_cg + amass(k)
+          znox_prod_cg(k) = pcg_rate * 6.7e26_rkx * amass(k)
+        end do
+        znox_prod_cg(:) = znox_prod_cg(:) / zsum_lmass_cg
+      end if
 
-       ! Update units (molecules NO /s => kg.kg-1.s-1)
-       ! update emission tendencies and diag
-       ! 
-       !               ------------------------------------------------
-       !!                  
-       where(amass(:) > 0.0)
-          znox_prod_ic(:) = znox_prod_ic(:) * 30.e-3 / (navgdr * amass(:))  
-          znox_prod_cg(:) =  znox_prod_cg(:)* 30.e-3 / (navgdr * amass(:))  
-       end where
+      ! Update units (molecules NO /s => kg.kg-1.s-1)
+      ! update emission tendencies and diag
+      !
+      !               ------------------------------------------------
+      !!
+      where ( amass(:) > 0.0_rkx )
+        znox_prod_ic(:) = znox_prod_ic(:) * 30.e-3_rkx / (navgdr * amass(:))
+        znox_prod_cg(:) =  znox_prod_cg(:)* 30.e-3_rkx / (navgdr * amass(:))
+      end where
 
 
-       chiten(j,i,:,ino) =   chiten(j,i,:,ino) + (znox_prod_ic(:) + znox_prod_cg(:)) * cpsb(j,i)
+      chiten(j,i,:,ino) = chiten(j,i,:,ino) + &
+        (znox_prod_ic(:) + znox_prod_cg(:)) * cpsb(j,i)
 
-       if ( ichdiag == 1 ) then
-          cemisdiag(j,i,:,ino) = cemisdiag(j,i,:,ino ) + &
-               (znox_prod_ic(:) +  znox_prod_cg(:)) * cfdout
-       end if
+      if ( ichdiag == 1 ) then
+        cemisdiag(j,i,:,ino) = cemisdiag(j,i,:,ino ) + &
+              (znox_prod_ic(:) +  znox_prod_cg(:)) * cfdout
+      end if
 
-       !
-    end do ! en loop on i 
-
+    end do ! en loop on i
 
   end subroutine linox_em
 

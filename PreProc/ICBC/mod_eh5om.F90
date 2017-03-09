@@ -56,11 +56,6 @@ module mod_eh5om
   real(rkx) , dimension(klev) :: sigma1 , sigmar
   real(rkx) , parameter :: pss = 100.0_rkx
 
-  real(rkx) , dimension(mlev+1) :: hyai , hybi
-  real(rkx) , dimension(mlev) :: hyam , hybm
-
-  integer(4) , dimension(10) :: icount , istart
-
   public :: geteh5om , headermpi
 
   contains

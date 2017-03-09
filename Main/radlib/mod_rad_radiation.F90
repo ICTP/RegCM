@@ -43,7 +43,6 @@ module mod_rad_radiation
   integer(ik4) :: npoints
 
   real(rkx) , pointer , dimension(:) :: co2plk , dtx , dty
-  real(rkx) , pointer , dimension(:) :: xptrop , dlat
   real(rkx) , pointer , dimension(:) :: tco2 , th2o , to3 , xsum
   real(rkx) , pointer , dimension(:,:) :: co2ems , emstrc , h2oems , o3ems
   real(rkx) , pointer , dimension(:,:) :: dbvtit , pnmsq , term6 , term9
@@ -217,7 +216,7 @@ module mod_rad_radiation
   !
   real(rkx) , pointer , dimension(:) :: fslwdcs
   real(rkx) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
-          o3mmr , pbr , rh
+          o3mmr , pbr
   real(rkx) , pointer , dimension(:,:) :: plco2 , plh2o , pnm , tclrsf
 
   real(rkx) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st

@@ -2934,7 +2934,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
     real(rkx) , intent(in) :: sval
-    real(rkx) :: rate , mval , lmval , rpnts
+    real(rkx) :: rate
     integer(ik4) :: i , j , k
     do k = 2 , min(kzp1,rayndamp)
       do i = ici1 , ici2

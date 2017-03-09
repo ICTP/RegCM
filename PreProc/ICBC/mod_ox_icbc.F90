@@ -31,10 +31,8 @@ module mod_ox_icbc
   use netcdf
 
   private
-!
-  integer(ik4) :: nyear , month , nday , nhour
-  integer(ik4) :: k , l
-  integer(ik4) :: k0
+
+  integer(ik4) :: l
 
   integer(ik4) :: oxilon , oxjlat , oxilev , oxitime
   real(rkx) , pointer , dimension(:) :: oxt42lon

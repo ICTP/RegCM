@@ -101,10 +101,6 @@ module mod_rad_aerosol
   !
   real(rkx) , pointer , dimension(:,:) :: path
   !
-  ! Aerosol mass mixing ratio
-  !
-  real(rkx) , pointer , dimension(:,:,:) :: aermm
-  !
   ! Background aerosol mass mixing ratio
   !
   real(rkx) , pointer , dimension(:,:) :: aermmb
@@ -138,7 +134,6 @@ module mod_rad_aerosol
   real(rkx) , pointer , dimension(:,:) :: aermtot , aervtot
   real(rkx) , pointer , dimension(:,:,:) :: fa , ga , tx , uaer , wa
   real(rkx) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
-  real(rkx) , dimension(4) :: prop
   integer(ik4) :: ll , mm , nn
   integer(ik4) :: npoints
   !
@@ -1343,7 +1338,7 @@ module mod_rad_aerosol
                 fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
               end do
             end do
-          else if ( chtrname(itr)(1:3) == 'SO4' .or.    & 
+          else if ( chtrname(itr)(1:3) == 'SO4' .or.    &
                     chtrname(itr)(1:5) == 'H2SO4'.or.    &
                     chtrname(itr)(1:4) == 'ANO3' .or.   &
                     chtrname(itr)(1:4) == 'ANH4' ) then

@@ -33,13 +33,11 @@ module mod_slabocean
 
   private
 
-  real(rkx) :: mixed_layer_salin = d_100/d_three
   real(rkx) :: mlcp , dtocean
 
   ! the actual prognotic sst pointing on tg2
   real(rkx) , pointer , dimension(:,:) :: sstemp
   real(rkx) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
-  real(rkx) , pointer , dimension(:,:) :: olndcat
   real(rkx) , pointer , dimension(:,:,:) :: qflux_restore_sst
   real(rkx) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
     hflx , qflb0 , qflb1 , qflbt

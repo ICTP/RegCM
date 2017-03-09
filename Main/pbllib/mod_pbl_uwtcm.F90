@@ -118,8 +118,8 @@ module mod_pbl_uwtcm
 
   ! local scalars
   real(rkx) :: uflxp , vflxp , rhoxsf , tgbx , tvcon , fracz , dudz , &
-            dvdz , rvls , psbx , templ , temps , cell , thgb , pblx , &
-            ustxsq , qfxx , hfxx , uvdragx , thvflx , kh0 , q0s
+            dvdz , psbx , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
+            thvflx , kh0 , q0s
   real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
   ! real(rkx) :: dth , dthv
   real(rkx) , pointer , dimension(:) :: chifxx

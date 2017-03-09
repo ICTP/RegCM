@@ -84,7 +84,7 @@ module physics_msis
   real(rkx) , dimension(100) , target :: sam     ! paa1 , paa2
 
   real(rkx) :: gsurf , re
-  real(rkx) :: gb , rout , tinf
+  real(rkx) :: tinf
   real(rkx) , dimension(15) :: t
   ! Gas constant in J/K/mol
   real(rkx) , parameter :: r100gas = rgasmol*d_100
