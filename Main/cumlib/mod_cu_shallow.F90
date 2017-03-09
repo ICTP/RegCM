@@ -23,7 +23,7 @@ module mod_cu_shallow
   use mod_constants
   use mod_cu_common
   use mod_dynparam
-  use mod_runparams , only : iqv , dtcum
+  use mod_runparams , only : iqv , dtcum , dt
 
   implicit none
 
@@ -34,12 +34,13 @@ module mod_cu_shallow
   real(rkx) , parameter :: pcut = 400.0_rkx
   real(rkx) , parameter :: c0 = 0.0_rkx
 
+  public :: shallcu
+
   contains
 
-  subroutine shallcu(m2c,scr1,scr2)
+  subroutine shallcu(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: scr1 , scr2
 
     real(rkx) , dimension(kz) :: t , q , p , outts , tns , qns , outqs
     real(rkx) , dimension(knum) :: xmb
@@ -48,7 +49,7 @@ module mod_cu_shallow
     integer(ik4) :: i , j , kbmax , k , kk , ier
 
     kbmax = ((kz*3)/4-3)
-    dtime = dt
+    dtime = dtcum
 
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -59,8 +60,8 @@ module mod_cu_shallow
           kk = kzp1-k
           t(k) = m2c%tas(j,i,kk)
           q(k) = m2c%qxas(j,i,kk,iqv)
-          tns(k) = t(k)+(scr1(j,i,kk))/m2c%psb(j,i)*dt
-          qns(k) = q(k)+(scr2(j,i,kk))/m2c%psb(j,i)*dt
+          tns(k) = t(k) + avg_tten(j,i,kk)*dt
+          qns(k) = q(k) + avg_qten(j,i,kk,iqv)*dt
           p(k) = m2c%pas(j,i,kk)*d_r100
           psur = m2c%psf(j,i)
           outts(k) = d_zero
@@ -73,7 +74,7 @@ module mod_cu_shallow
         ! Call cumulus parameterization
         !
         ier = 0
-        call shallow(t,q,ter11,tns,qns,p,kz,pret,p,outts,outqs,dt, &
+        call shallow(t,q,ter11,tns,qns,p,kz,pret,p,outts,outqs,dtcum, &
                      kbmax,pcut,c0,psur,ier,rads,xmb)
         if ( xmb(1) > d_zero ) then
           total_precip_points = total_precip_points+1
@@ -929,7 +930,7 @@ module mod_cu_shallow
         !
         ! 4.+5.
         !
-        qc(k)=qrc(k,lp)
+        qc(k) = qrc(k,lp)
       end do
     end subroutine precip
 

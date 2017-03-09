@@ -48,6 +48,7 @@ module mod_cu_interface
       edtmino2d , edtminx2d , htmax2d , htmin2d , pbcmax2d , dtauc2d ,     &
       pbcmax2d , kbmax2d
   use mod_cu_kf
+  use mod_cu_shallow
 
   implicit none
 
@@ -160,6 +161,10 @@ module mod_cu_interface
     call assignpnt(sfs%hfx,m2c%hfx)
     call assignpnt(ktrop,m2c%ktrop)
     call assignpnt(ccn,m2c%ccn)
+    call assignpnt(adf%t,m2c%tdif)
+    call assignpnt(adf%u,m2c%udif)
+    call assignpnt(adf%v,m2c%vdif)
+    call assignpnt(adf%qx,m2c%qdif)
     ! OUTPUT
     call assignpnt(aten%t,c2m%tten)
     call assignpnt(aten%u,c2m%uten)
@@ -202,7 +207,7 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              avg_tten(j,i,k) = c2m%tten(j,i,k)/m2c%psb(j,i)
+              avg_tten(j,i,k) = (c2m%tten(j,i,k)+m2c%tdif(j,i,k))/m2c%psb(j,i)
             end do
           end do
         end do
@@ -213,14 +218,16 @@ module mod_cu_interface
           do k = 1 , kz
             do i = icii1 , icii2
               do j = jcii1 , jcii2
-                avg_uten(j,i,k) = d_rfour*(c2m%uten(j,i,k) +   &
-                                           c2m%uten(j+1,i,k) + &
-                                           c2m%uten(j,i+1,k) + &
-                                           c2m%uten(j+1,i+1,k)) / m2c%psb(j,i)
-                avg_vten(j,i,k) = d_rfour*(c2m%vten(j,i,k) +   &
-                                           c2m%vten(j+1,i,k) + &
-                                           c2m%vten(j,i+1,k) + &
-                                           c2m%vten(j+1,i+1,k)) / m2c%psb(j,i)
+                avg_uten(j,i,k) = d_rfour * &
+                  (c2m%uten(j,i,k)     + m2c%udif(j,i,k)   + &
+                   c2m%uten(j+1,i,k)   + m2c%udif(j+1,i,k) + &
+                   c2m%uten(j,i+1,k)   + m2c%udif(j,i+1,k) + &
+                   c2m%uten(j+1,i+1,k) + m2c%udif(j+1,i+1,k)) / m2c%psb(j,i)
+                avg_vten(j,i,k) = d_rfour * &
+                  (c2m%vten(j,i,k)     + m2c%vdif(j,i,k)   + &
+                   c2m%vten(j+1,i,k)   + m2c%vdif(j+1,i,k) + &
+                   c2m%vten(j,i+1,k)   + m2c%vdif(j,i+1,k) + &
+                   c2m%vten(j+1,i+1,k) + m2c%vdif(j+1,i+1,k)) / m2c%psb(j,i)
               end do
             end do
           end do
@@ -229,7 +236,8 @@ module mod_cu_interface
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                avg_qten(j,i,k,n) = c2m%qxten(j,i,k,n)/m2c%psb(j,i)
+                avg_qten(j,i,k,n) = (c2m%qxten(j,i,k,n)+m2c%qdif(j,i,k,n)) / &
+                                 m2c%psb(j,i)
               end do
             end do
           end do
@@ -280,6 +288,8 @@ module mod_cu_interface
             case (6)
               call kfdrv(m2c)
               kfwavg(:,:,:) = d_zero
+            case (7)
+              call shallcu(m2c)
           end select
         else
           select case ( icup_lnd )

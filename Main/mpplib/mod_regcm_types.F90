@@ -555,6 +555,10 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: qfx       ! sfs%qfx
     real(rkx) , pointer , dimension(:,:) :: hfx       ! sfs%hfx
     real(rkx) , pointer , dimension(:,:,:) :: ccn     ! ccn
+    real(rkx) , pointer , dimension(:,:,:) :: tdif    ! adf%t
+    real(rkx) , pointer , dimension(:,:,:,:) :: qdif  ! adf%qx
+    real(rkx) , pointer , dimension(:,:,:) :: udif    ! adf%u
+    real(rkx) , pointer , dimension(:,:,:) :: vdif    ! adf%v
     integer(ik4) , pointer , dimension(:,:) :: ktrop
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type mod_2_cum

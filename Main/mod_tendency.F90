@@ -674,6 +674,29 @@ module mod_tendency
       end if
     end if
     !
+    ! Call medium resolution PBL
+    !
+    if ( idiag > 0 ) then
+      ten0 = adf%t
+      qen0 = adf%qx(:,:,:,idgq)
+    end if
+    if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
+    ! care : pbl update the difft table at this level
+    call pblscheme
+    if ( ichem == 1 .and. ichdiag == 1 ) then
+      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
+    end if
+    if ( idiag > 0 ) then
+      call ten2diag(ten0,adf%t,tdiag%tbl)
+      call ten2diag(qen0,adf%qx,qdiag%tbl)
+      ten0 = aten%t
+      qen0 = aten%qx(:,:,:,idgq)
+    end if
+#ifdef DEBUG
+    call check_temperature_tendency('PBLL')
+    call check_wind_tendency('PBLL')
+#endif
+    !
     ! conv tracer diagnostic
     !
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
@@ -769,29 +792,6 @@ module mod_tendency
       call surface_model
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
-    !
-    ! Call medium resolution PBL
-    !
-    if ( idiag > 0 ) then
-      ten0 = adf%t
-      qen0 = adf%qx(:,:,:,idgq)
-    end if
-    if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-    ! care : pbl update the difft table at this level
-    call pblscheme
-    if ( ichem == 1 .and. ichdiag == 1 ) then
-      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
-    end if
-    if ( idiag > 0 ) then
-      call ten2diag(ten0,adf%t,tdiag%tbl)
-      call ten2diag(qen0,adf%qx,qdiag%tbl)
-      ten0 = aten%t
-      qen0 = aten%qx(:,:,:,idgq)
-    end if
-#ifdef DEBUG
-    call check_temperature_tendency('PBLL')
-    call check_wind_tendency('PBLL')
-#endif
     !
     ! add ccm radiative transfer package-calculated heating rates to
     ! temperature tendency

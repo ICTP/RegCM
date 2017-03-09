@@ -765,7 +765,7 @@ module mod_params
           kf_tkemax = 3.0_rkx
         end if
       end if
-      if ( any(icup < 0) .or. any(icup > 6) ) then
+      if ( any(icup < 0) .or. any(icup > 7) ) then
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED CUMULUS SCHEME')
       end if
@@ -1699,8 +1699,13 @@ module mod_params
       if ( isladvec == 1 ) then
         write(stdout,'(a,i2)') '  QMSL algorithm used         : ' , iqmsl
       end if
-      write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ' , icup_lnd
-      write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ' , icup_ocn
+      if ( any(icup == 7) ) then
+        icup(:) = 7
+        write(stdout,'(a)') '  Shallow cumulus scheme '
+      else
+        write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ' , icup_lnd
+        write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ' , icup_ocn
+      end if
       write(stdout,'(a,i2)') '  Moisture schem              : ' , ipptls
       write(stdout,'(a,i2)') '  Ocean Flux scheme           : ' , iocnflx
       if ( iocnflx == 2 ) then
