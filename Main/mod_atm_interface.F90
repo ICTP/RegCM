@@ -838,8 +838,13 @@ module mod_atm_interface
     subroutine allocate_diffx(dx)
       implicit none
       type(diffx) , intent(out) :: dx
-      call getmem3d(dx%u,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'diffx:u')
-      call getmem3d(dx%v,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'diffx:v')
+      if ( any(icup == 5 ) ) then
+        call getmem3d(dx%u,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'diffx:u')
+        call getmem3d(dx%v,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'diffx:v')
+      else
+        call getmem3d(dx%u,jdi1,jdi2,idi1,idi2,1,kz,'diffx:u')
+        call getmem3d(dx%v,jdi1,jdi2,idi1,idi2,1,kz,'diffx:v')
+      end if
       call getmem3d(dx%t,jci1,jci2,ici1,ici2,1,kz,'diffx:t')
       call getmem4d(dx%qx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'diffx:qx')
       if ( idynamic == 2 ) then
