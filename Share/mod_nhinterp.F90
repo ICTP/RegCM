@@ -388,15 +388,16 @@ module mod_nhinterp
       real(rkx) , dimension(kxs+1) :: z0q , zq
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
       real(rkx) , dimension(j1:j2,i1:i2,kxs) :: pr0 , logprp
-      real(rkx) , dimension(j1:j2,i1:i2) :: pspa
+      real(rkx) , dimension(j1:j2,i1:i2) :: pspa , psdotpa
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
       real(rkx) , dimension(j1:j2,i1:i2) :: cell
 
       wtmp(:,:,:) = d_zero
       dx2 = d_two * ds
       pspa = ps * d_1000
+      psdotpa = psdot * d_1000
       dummy = (xmsfx * xmsfx) / dx2
-      dummy1 = xmsfx / dx2
+      dummy1 = xmsfx / ds
       cell = ptoppa / ps0
 
       do k = 1 , kxs
@@ -462,8 +463,8 @@ module mod_nhinterp
                                 vkp(jp,i ,l) + vkp(jp,ip,l))
             ! Calculate omega
             omega(l) = pspa(j,i) * qdt(l) + sigma(l) *  &
-                    ((pspa(jp,i) - pspa(jm,i)) * ubar + &
-                     (pspa(j,ip) - pspa(j,im)) * vbar) * dummy1(j,i)
+                    ((psdotpa(jp,i) - psdotpa(j,i)) * ubar + &
+                     (psdotpa(j,ip) - psdotpa(j,i)) * vbar) * dummy1(j,i)
           end do
           !
           !  Vertical velocity from interpolated omega, zero at top.
@@ -491,10 +492,6 @@ module mod_nhinterp
           end do
         end do
       end do
-      !wtmp(1,:,:) = wtmp(2,:,:)
-      !wtmp(:,1,:) = wtmp(:,2,:)
-      !wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
-      !wtmp(:,i2-1,:) = wtmp(:,i2-2,:)
       wtmp(j2,:,:) = wtmp(j2-1,:,:)
       wtmp(:,i2,:) = wtmp(:,i2-1,:)
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
