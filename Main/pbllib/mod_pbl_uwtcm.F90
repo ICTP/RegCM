@@ -326,7 +326,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls ! , pfac
+    real(rkx) :: temps , templ , deltat , rvls , pfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -358,7 +358,7 @@ module mod_pbl_uwtcm
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         uvdragx = m2p%uvdrag(j,i)
-        ! pfac = dt / psbx
+        pfac = dt / psbx
 
         ! Integrate the hydrostatic equation to calculate the level height
         ! Set variables that are on full levels
@@ -369,27 +369,27 @@ module mod_pbl_uwtcm
 
         tke(kzp1) = m2p%tkests(j,i,kzp1)
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) !+ p2m%tten(j,i,k) * pfac
-          qx(k)  = m2p%qxatm(j,i,k,iqv) !+ p2m%qxten(j,i,k,iqv) * pfac
-          qcx(k) = m2p%qxatm(j,i,k,iqc) !+ p2m%qxten(j,i,k,iqc) * pfac
-          ux(k)  = m2p%uxatm(j,i,k) !+ &
-            !d_rfour * (p2m%uten(j,i,k) + p2m%uten(j+1,i,k) + &
-            !           p2m%uten(j+1,i+1,k) + p2m%uten(j,i+1,k)) * pfac
-          vx(k)  = m2p%vxatm(j,i,k) !+ &
-            !d_rfour * (p2m%vten(j,i,k) + p2m%vten(j+1,i,k) + &
-            !           p2m%vten(j+1,i+1,k) + p2m%vten(j,i+1,k)) * pfac
+          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) * pfac
+          qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) * pfac
+          qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) * pfac
+          ux(k)  = m2p%uxatm(j,i,k) + &
+            d_rfour * (p2m%uten(j,i,k) + p2m%uten(j+1,i,k) + &
+                       p2m%uten(j+1,i+1,k) + p2m%uten(j,i+1,k)) * pfac
+          vx(k)  = m2p%vxatm(j,i,k) + &
+            d_rfour * (p2m%vten(j,i,k) + p2m%vten(j+1,i,k) + &
+                       p2m%vten(j+1,i+1,k) + p2m%vten(j,i+1,k)) * pfac
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
         end do
-        !where ( qx < minqq ) qx = minqq
-        !where ( qcx < minqx ) qcx = d_zero
+        where ( qx < minqq ) qx = minqq
+        where ( qcx < minqx ) qcx = d_zero
 
         if ( implicit_ice .and. ipptls == 2 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi) !+ p2m%qxten(j,i,k,iqi) * pfac
+            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) * pfac
           end do
-          !where ( qix < minqx ) qix = d_zero
+          where ( qix < minqx ) qix = d_zero
         else
           do k = 1 , kz
             qix(k) = d_zero
@@ -400,10 +400,10 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr) !+ chiuwten(j,i,k,itr) * pfac
+              chix(k,itr) = m2p%chib(j,i,k,itr) + chiuwten(j,i,k,itr) * pfac
             end do
           end do
-          !where ( chix < mintr ) chix = d_zero
+          where ( chix < mintr ) chix = d_zero
         end if
 
         ! Set all the save variables (used for determining the tendencies)

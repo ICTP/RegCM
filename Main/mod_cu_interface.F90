@@ -212,9 +212,11 @@ module mod_cu_interface
           end do
         end do
 
-        if ( any(icup == 5) ) then
+        if ( any(icup == 5) .or. any(icup == 7) ) then
           call exchange(c2m%uten,1,jdi1,jdi2,idi1,idi2,1,kz)
           call exchange(c2m%vten,1,jdi1,jdi2,idi1,idi2,1,kz)
+          call exchange(m2c%udif,1,jdi1,jdi2,idi1,idi2,1,kz)
+          call exchange(m2c%vdif,1,jdi1,jdi2,idi1,idi2,1,kz)
           do k = 1 , kz
             do i = icii1 , icii2
               do j = jcii1 , jcii2
