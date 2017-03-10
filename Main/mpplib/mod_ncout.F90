@@ -715,6 +715,8 @@ module mod_ncout
           end if
         else
           enable_atm3d_vars(atm_qi) = .false.
+          enable_atm3d_vars(atm_qr) = .false.
+          enable_atm3d_vars(atm_qs) = .false.
         end if
         if ( ipptls == 2 ) then
           if ( any(icup == 5) .and. icosp == 1 ) then
