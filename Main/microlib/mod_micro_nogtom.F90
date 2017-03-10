@@ -1661,7 +1661,7 @@ module mod_micro_nogtom
         end do
         do n = 1 , nqx
           do jn = 1 , nqx
-            if ( lind1(jn) .and. ratio(jn) > dlowval ) then
+            if ( lind1(jn) .and. ratio(jn) < dlowval ) then
               iorder(n) = jn
             end if
           end do
@@ -2748,7 +2748,7 @@ module mod_micro_nogtom
           end do
           do n = 1 , nqx
             do jn = 1 , nqx
-              if ( lind1(jn) .and. ratio(jn) > dlowval ) then
+              if ( lind1(jn) .and. ratio(jn) < dlowval ) then
                 iorder(n) = jn
               end if
             end do
