@@ -402,7 +402,28 @@ module mod_tendency
     ! Compute Horizontal advection terms
     !
     call start_advect
-
+    !
+    ! compute the horizontal advection terms for u and v:
+    !
+    ! compute the horizontal advection term in x and y momentum tendency:
+    ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
+    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
+    !
+    call hadv(aten%u,aten%v,atmx%ud,atmx%vd)
+#ifdef DEBUG
+    call check_wind_tendency('HADV')
+#endif
+    !
+    ! compute the vertical advection terms:
+    !
+    ! compute the vertical advection term in x and y momentum tendency:
+    ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
+    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
+    !
+    call vadv(aten%u,aten%v,atmx%uc,atmx%vc)
+#ifdef DEBUG
+    call check_wind_tendency('VADV')
+#endif
     if ( idynamic == 2 ) then
       !
       ! Horizontal and vertical advection of pressure perturbation and vertical
@@ -674,6 +695,29 @@ module mod_tendency
       end if
     end if
     !
+    ! call radiative transfer package
+    !
+    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+      !
+      ! calculate albedo
+      !
+      call surface_albedo
+      ! Update / init Ozone profiles
+      if ( iclimao3 == 1 ) then
+        call updateo3(idatex,scenario)
+      else
+        if ( ktau == 0 ) call inito3
+      end if
+      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
+      call radiation(xyear,loutrad,labsem)
+    end if
+
+    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
+      call surface_model
+      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+    end if
+    !
     ! Call medium resolution PBL
     !
     if ( idiag > 0 ) then
@@ -769,29 +813,6 @@ module mod_tendency
       !
       call tractend2(ktau,xyear,xmonth,xday,calday,declin)
     end if ! ichem
-    !
-    ! call radiative transfer package
-    !
-    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-      !
-      ! calculate albedo
-      !
-      call surface_albedo
-      ! Update / init Ozone profiles
-      if ( iclimao3 == 1 ) then
-        call updateo3(idatex,scenario)
-      else
-        if ( ktau == 0 ) call inito3
-      end if
-      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
-      call radiation(xyear,loutrad,labsem)
-    end if
-
-    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      call surface_model
-      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
-    end if
     !
     ! add ccm radiative transfer package-calculated heating rates to
     ! temperature tendency
@@ -1071,17 +1092,6 @@ module mod_tendency
     !
     call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d)
     !
-    ! compute the horizontal advection terms for u and v:
-    !
-    ! compute the horizontal advection term in x and y momentum tendency:
-    ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
-    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
-    !
-    call hadv(aten%u,aten%v,atmx%ud,atmx%vd)
-#ifdef DEBUG
-    call check_wind_tendency('HADV')
-#endif
-    !
     ! compute Coriolis and curvature terms:
     !
     if ( idynamic == 1 ) then
@@ -1315,17 +1325,6 @@ module mod_tendency
       call check_wind_tendency('GEOP')
 #endif
     end if ! idynamic == 1
-    !
-    ! compute the vertical advection terms:
-    !
-    ! compute the vertical advection term in x and y momentum tendency:
-    ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
-    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
-    !
-    call vadv(aten%u,aten%v,atmx%uc,atmx%vc)
-#ifdef DEBUG
-    call check_wind_tendency('VADV')
-#endif
     !
     ! apply the sponge boundary condition on u and v:
     !

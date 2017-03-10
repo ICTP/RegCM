@@ -379,7 +379,7 @@ module mod_nhinterp
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: w
       real(rkx) , pointer , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
-      integer(ik4) :: l , ll , ip , im , jp , jm
+      integer(ik4) :: l , ll , ip , im , jp
       real(rkx) :: dx2 , omegal , omegau , t0 , ubar , vbar , wu , wl
       real(rkx) :: zl , zu , rho , omegan , pr , t
       real(rkx) :: ua , ub , va , vb
@@ -421,7 +421,6 @@ module mod_nhinterp
           im = max(i-1,i1)
           if ( iband /= 1 ) then
             jp = min(j+1,j2)
-            jm = max(j-1,j1)
           else
             if ( j == j2-1 ) then
               jp = j2
@@ -429,13 +428,6 @@ module mod_nhinterp
               jp = j1
             else
               jp = j + 1
-            end if
-            if ( j == j1 + 1 ) then
-              jm = j1
-            else if ( j == j1 ) then
-              jm = j2
-            else
-              jm = j - 1
             end if
           end if
           mdv(:) = d_zero
@@ -492,6 +484,10 @@ module mod_nhinterp
           end do
         end do
       end do
+      wtmp(j1,:,:) = wtmp(j1+1,:,:)
+      wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
+      wtmp(:,i1,:) = wtmp(:,i1+1,:)
+      wtmp(:,i2-1,:) = wtmp(:,i2-2,:)
       wtmp(j2,:,:) = wtmp(j2-1,:,:)
       wtmp(:,i2,:) = wtmp(:,i2-1,:)
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)

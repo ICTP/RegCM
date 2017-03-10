@@ -221,15 +221,15 @@ module mod_cu_interface
             do i = icii1 , icii2
               do j = jcii1 , jcii2
                 avg_uten(j,i,k) = d_rfour * &
-                  (c2m%uten(j,i,k)     + m2c%udif(j,i,k)   + &
-                   c2m%uten(j+1,i,k)   + m2c%udif(j+1,i,k) + &
-                   c2m%uten(j,i+1,k)   + m2c%udif(j,i+1,k) + &
-                   c2m%uten(j+1,i+1,k) + m2c%udif(j+1,i+1,k)) / m2c%psb(j,i)
+                 ((c2m%uten(j,i,k)+m2c%udif(j,i,k))/m2c%psdotb(j,i) + &
+                  (c2m%uten(j+1,i,k)+m2c%udif(j+1,i,k))/m2c%psdotb(j+1,i) + &
+                  (c2m%uten(j,i+1,k)+m2c%udif(j,i+1,k))/m2c%psdotb(j,i+1) + &
+                  (c2m%uten(j+1,i+1,k)+m2c%udif(j+1,i+1,k))/m2c%psdotb(j+1,i+1))
                 avg_vten(j,i,k) = d_rfour * &
-                  (c2m%vten(j,i,k)     + m2c%vdif(j,i,k)   + &
-                   c2m%vten(j+1,i,k)   + m2c%vdif(j+1,i,k) + &
-                   c2m%vten(j,i+1,k)   + m2c%vdif(j,i+1,k) + &
-                   c2m%vten(j+1,i+1,k) + m2c%vdif(j+1,i+1,k)) / m2c%psb(j,i)
+                 ((c2m%vten(j,i,k)+m2c%vdif(j,i,k))/m2c%psdotb(j,i) + &
+                  (c2m%vten(j+1,i,k)+m2c%vdif(j+1,i,k))/m2c%psdotb(j+1,i) + &
+                  (c2m%vten(j,i+1,k)+m2c%vdif(j,i+1,k))/m2c%psdotb(j,i+1) + &
+                  (c2m%vten(j+1,i+1,k)+m2c%vdif(j+1,i+1,k))/m2c%psdotb(j+1,i+1))
               end do
             end do
           end do

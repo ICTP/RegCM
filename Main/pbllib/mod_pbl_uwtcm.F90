@@ -158,11 +158,9 @@ module mod_pbl_uwtcm
     call getmem2d(tcmstate%srftke,jci1,jci2,ici1,ici2,'pbl_common:srftke')
   end subroutine allocate_tcm_state
 
-  subroutine get_data_from_tcm(p2m,atm1,atm2)
+  subroutine get_data_from_tcm(p2m)
     implicit none
     type(pbl_2_mod) , intent(inout) :: p2m
-    type(atmstate_a) , intent(inout) :: atm1
-    type(atmstate_b) , intent(inout) :: atm2
     integer :: i , j , k , n
     ! Don't update the model variables if we are the diagnostic mode
     ! (Holtslag running, and UW updating tke)
@@ -226,15 +224,6 @@ module mod_pbl_uwtcm
         do j = jci1 , jci2
           p2m%tketen(j,i,k) = p2m%tkeuwten(j,i,k)
         end do
-      end do
-    end do
-    !
-    ! Set the surface tke (diagnosed)
-    !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        atm1%tke(j,i,kzp1) = uwstateb%srftke(j,i)
-        atm2%tke(j,i,kzp1) = uwstateb%srftke(j,i)
       end do
     end do
   end subroutine get_data_from_tcm
@@ -481,7 +470,7 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tgbx * rexnerfl(kzp1)
         ! Calculate the saturation specific humidity just above the surface
-        q0s = pfwsat(tgbx,psbx)
+        q0s = pfwsat(tgbx,presfl(kzp1))
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
@@ -942,8 +931,8 @@ module mod_pbl_uwtcm
       real(rkx) , parameter :: a1 = 0.92_rkx , c1 = 0.08_rkx , &
                                a2 = 0.74_rkx , b2 = 10.1_rkx
       integer(ik4) :: k , ilay
-      real(rkx) , parameter :: kthmax = 1.0e3_rkx
-      real(rkx) , parameter :: kzmmax = 1.0e3_rkx
+      real(rkx) , parameter :: kthmax = 1.0e4_rkx
+      real(rkx) , parameter :: kzmmax = 1.0e4_rkx
 
       a1ob1 = a1/b1
 
