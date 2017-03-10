@@ -274,7 +274,7 @@ module mod_cu_tiedtke
         pvol(ii,k)  = avg_vten(j,i,k)
         pqte(ii,k)  = avg_qten(j,i,k,iqv)
         pxlte(ii,k) = avg_qten(j,i,k,iqc)
-        if ( ipptls == 2 ) then
+        if ( ipptls > 1 ) then
           pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
           pxite(ii,k) = avg_qten(j,i,k,iqi)
         else
@@ -374,7 +374,7 @@ module mod_cu_tiedtke
       end do
     end do
 
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         do ii = 1 , nipoi
           if (ktype(ii) > 0) then

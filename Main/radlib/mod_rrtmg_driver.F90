@@ -177,7 +177,7 @@ module mod_rrtmg_driver
     end if
     call getmem2d(play,1,npr,1,kth,'rrtmg:play')
     call getmem2d(tlay,1,npr,1,kth,'rrtmg:tlay')
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       call getmem2d(ql1,1,npr,1,kth,'rrtmg:ql1')
       call getmem2d(qi1,1,npr,1,kth,'rrtmg:qi1')
     end if
@@ -628,7 +628,7 @@ module mod_rrtmg_driver
         end do
       end do
     end do
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         kj = kzp1 - k
         n = 1
@@ -1066,7 +1066,7 @@ module mod_rrtmg_driver
         !
         ! Define fractional amount of cloud that is ice
         !
-        if ( ipptls == 2 ) then
+        if ( ipptls > 1 ) then
           if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
           else

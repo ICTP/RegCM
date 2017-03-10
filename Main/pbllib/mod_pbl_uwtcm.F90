@@ -194,7 +194,7 @@ module mod_pbl_uwtcm
         end do
       end do
     end do
-    if ( implicit_ice .and. ipptls == 2 ) then
+    if ( implicit_ice .and. ipptls > 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -374,7 +374,7 @@ module mod_pbl_uwtcm
         where ( qx < minqq ) qx = minqq
         where ( qcx < minqx ) qcx = d_zero
 
-        if ( implicit_ice .and. ipptls == 2 ) then
+        if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
             qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) * pfac
           end do
@@ -638,7 +638,7 @@ module mod_pbl_uwtcm
           end if
         end do updatewind
 
-        if ( implicit_ice .and. ipptls == 2 ) then
+        if ( implicit_ice .and. ipptls > 1 ) then
           !
           ! Implicit diffusion of cloud ice
           !
@@ -823,7 +823,7 @@ module mod_pbl_uwtcm
 
         p2m%tkeuwten(j,i,kzp1) = (tke(kzp1)-tkes(kzp1))*rdt
 
-        if ( implicit_ice .and. ipptls == 2 ) then
+        if ( implicit_ice .and. ipptls > 1 ) then
           do k = ibnd , kz
             p2m%qxuwten(j,i,k,iqi) = psbx*(qix(k)-qixs(k))*rdt
           end do

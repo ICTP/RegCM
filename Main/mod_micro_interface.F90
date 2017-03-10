@@ -220,7 +220,7 @@ module mod_micro_interface
                            mo2mc%rh,tc0,rh0,mo2mc%fcc)
     end select
 
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2

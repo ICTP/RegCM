@@ -200,7 +200,7 @@ module mod_cu_kf
       end do
     end do
 
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         kk = kzp1 - k
         do np = 1 , nipoi
@@ -246,7 +246,7 @@ module mod_cu_kf
       call fatal(__FILE__,__LINE__,'Not implemented kf_trigger == 2')
     end if
 
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       call kfpara(1,kz,1,nipoi,.true.,.true.,.false.)
     else
       call kfpara(1,kz,1,nipoi,.false.,.false.,.true.)
@@ -264,7 +264,7 @@ module mod_cu_kf
       end do
     end do
 
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         kk = kz - k + 1
         do np = 1 , nipoi

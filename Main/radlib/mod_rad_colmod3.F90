@@ -122,7 +122,7 @@ module mod_rad_colmod3
     call getmem2d(pmlnm1,1,npr,1,kz,'colmod3:pmlnm1')
     call getmem2d(qm1,1,npr,1,kz,'colmod3:qm1')
     call getmem2d(ql1,1,npr,1,kz,'colmod3:ql1')
-    if ( ipptls == 2 ) call getmem2d(qi1,1,npr,1,kz,'colmod3:qi1')
+    if ( ipptls > 1 ) call getmem2d(qi1,1,npr,1,kz,'colmod3:qi1')
     call getmem2d(qrl,1,npr,1,kz,'colmod3:qrl')
     call getmem2d(qrs,1,npr,1,kz,'colmod3:qrs')
     call getmem2d(rei,1,npr,1,kz,'colmod3:rei')
@@ -340,7 +340,7 @@ module mod_rad_colmod3
     pmlnm1(:,:) = d_zero
     qm1(:,:) = d_zero
     ql1(:,:) = d_zero
-    if ( ipptls == 2 ) qi1(:,:) = d_zero
+    if ( ipptls > 1 ) qi1(:,:) = d_zero
     qrl(:,:) = d_zero
     qrs(:,:) = d_zero
     rei(:,:) = d_zero
@@ -512,7 +512,7 @@ module mod_rad_colmod3
         rei(n,k) = reimax - rirnge*weight
         ! Define fractional amount of cloud that is ice
         ! if warmer than -10 degrees C then water phase
-        if ( ipptls == 2 ) then
+        if ( ipptls > 1 ) then
           if ( qi1(n,k) > minqq ) then
             fice(n,k) = qi1(n,k) / (ql1(n,k)+qi1(n,k))
           else
@@ -772,7 +772,7 @@ module mod_rad_colmod3
         end do
       end do
     end do
-    if ( ipptls == 2 ) then
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         n = 1
         do i = ici1 , ici2

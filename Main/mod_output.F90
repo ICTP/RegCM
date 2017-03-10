@@ -642,7 +642,7 @@ module mod_output
         if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
         sfs%rainc  = d_zero
         sfs%rainnc = d_zero
-        if ( ipptls == 2 .or. ipptls == 3 ) sfs%snownc  = d_zero
+        if ( ipptls > 1 ) sfs%snownc  = d_zero
       end if
     end if
 
