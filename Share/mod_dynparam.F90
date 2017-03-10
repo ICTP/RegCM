@@ -278,6 +278,14 @@ module mod_dynparam
 
   logical :: h2ohgt
 
+  ! Do a first resampling befor final interpolation
+
+  logical :: lresamp
+
+  ! Interpolation radius in ds unit for topography
+
+  real(rkx) :: roidem
+
   ! Smoothing Control flag
   !     true  -> Perform extra smoothing in boundaries
 
@@ -413,10 +421,10 @@ module mod_dynparam
     namelist /coreparam/ idynamic
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , truelatl, truelath , i_band
-    namelist /terrainparam/ domname , smthbdy , lakedpth,  &
+    namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
-      inpter , moist_filename , tersrc , smsrc
+      inpter , moist_filename , tersrc , smsrc , roidem
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge , bdy_nm , bdy_dm
@@ -543,9 +551,11 @@ module mod_dynparam
     tersrc = 'GMTED'
     smsrc = 'ESACCI'
 
+    lresamp = .false.
     smthbdy = .false.
     h2ohgt = .true.
     h2opct = 50.0_rkx
+    roidem = 1.0_rkx
     ismthlev = 2
     rewind(ipunit)
     read(ipunit, nml=terrainparam, iostat=iresult)

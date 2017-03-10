@@ -24,7 +24,7 @@ module mod_intldtr
   use mod_constants
   use mod_stdio
   use mod_message
-  use mod_interp , only : gcdist
+  use mod_interp , only : gcdist_simple
 
   private
 
@@ -266,6 +266,63 @@ module mod_intldtr
     bilinear = dy*p12+(d_one-dy)*p03
   end function bilinear
 
+  real(rkx) function dwgt(x,y,m,n,grid,lwrap,nb)
+    implicit none
+    integer(ik4) , intent(in) :: m , n , nb
+    real(rkx) , intent(in) :: x , y
+    logical , intent(in) :: lwrap
+    real(rkx) , intent(in) , dimension(m,n) :: grid
+
+    real(rkx) :: dx , dy , pp , f
+    real(rkx) :: ii0, jj0
+    integer(ik4) :: i , j , ii , jj , iii , jjj , nh
+
+    !-----distance weight with radius of influence
+
+    nh = nb / 2
+    if (.not. lwrap) then
+      ii0 = real(min(max(floor(x),1),m),rkx)
+      jj0 = real(min(max(floor(y),1),n),rkx)
+      ii = int(ii0)
+      jj = int(jj0)
+      pp = 0.0_rkx
+      f = 0.0_rkx
+      do j = jj - nh , jj + nh
+        do i = ii - nh , ii + nh
+          iii = max(1,min(m,i))
+          jjj = max(1,min(n,j))
+          dx = max(dlowval,sqrt((x-real(i,rkx))**2+(y-real(j,rkx))**2))
+          pp = pp + d_one/dx
+          f = f + grid(iii,jjj)/dx
+        end do
+      end do
+    else
+      ii0 = floor(x)
+      ii = int(ii0)
+      if ( ii < 1 ) ii = ii + m
+      if ( ii > m ) ii = ii - m
+      jj0 = real(min(max(floor(y),1),n),rkx)
+      jj = int(jj0)
+      pp = 0.0_rkx
+      f = 0.0_rkx
+      do j = jj - nh , jj + nh
+        do i = ii - nh , ii + nh
+          iii = i
+          if ( i < 1 ) then
+            iii = iii + m
+          else if ( i > m ) then
+            iii = iii - m
+          end if
+          jjj = max(1,min(n,j))
+          dx = max(dlowval,sqrt((x-real(i,rkx))**2+(y-real(j,rkx))**2))
+          pp = pp + d_one/dx
+          f = f + grid(iii,jjj)/dx
+        end do
+      end do
+    end if
+    dwgt = f / pp
+  end function dwgt
+
   real(rkx) function bicubic(x,y,m,n,grid,lwrap)
     implicit none
     integer(ik4) , intent(in) :: m , n
@@ -365,29 +422,33 @@ module mod_intldtr
   !
   ! Interpolates input regolar lat/lon grid on output model grid
   !
-  subroutine interp(jx,iy,xlat,xlon,omt,iniy,injx,milat,milon, &
+  subroutine interp(ds,jx,iy,xlat,xlon,omt,iniy,injx,milat,milon, &
                     malat,malon,imt,itype,lwrap,lcross, &
-                    ival,ibnty,h2opct)
+                    ival,ibnty,h2opct,rdem)
     implicit none
     integer(ik4) , intent(in) :: iy , jx , iniy , injx , itype
     real(rkx) , intent(in) , dimension(jx,iy) :: xlat , xlon
+    real(rkx) , intent(out) , dimension(jx,iy) :: omt
     real(rkx) , intent(in) , dimension(injx,iniy) :: imt
-    real(rkx) , intent(in) :: milat , milon , malat , malon
+    real(rkx) , intent(in) :: ds , milat , milon , malat , malon
     logical , intent(in) :: lwrap , lcross
     integer(ik4) , intent(in) , optional :: ival
     integer(ik4) , intent(in) , optional :: ibnty
-    real(rkx) , intent(in) , optional :: h2opct
-    real(rkx) , intent(out) , dimension(jx,iy) :: omt
+    real(rkx) , intent(in) , optional :: h2opct , rdem
 
     integer(ik4) :: nbox , ii , jj
-    real(rkx) :: xx , yy , rincx , rincy , dd , dd1
+    integer , parameter :: nbmax = 100
+    real(rkx) :: xx , yy , incx , incy , rincx , rincy , dd , drcm
 
-    rincy = d_one/((malat-milat)/dble(iniy-1))
+    incy = (malat-milat)/dble(iniy-1)
     if ( lcross ) then
-      rincx = d_one/(((360.0_rkx+malon)-milon)/dble(injx))
+      incx = ((360.0_rkx+malon)-milon)/dble(injx)
     else
-      rincx = d_one/((malon-milon)/dble(injx-1))
+      incx = (malon-milon)/dble(injx-1)
     end if
+    rincx = d_one/incx
+    rincy = d_one/incy
+    drcm = rdem*ds*sqrt(2.0_rkx)
 
     ! yy and xx are the exact index values of a point j,i of the
     ! mesoscale mesh when projected onto an earth-grid of lat
@@ -433,7 +494,7 @@ module mod_intldtr
             omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
           end do
         end do
-      case(4,5)
+      case(4,5,6)
         do ii = 1 , iy
           do jj = 1 , jx
             yy = (xlat(jj,ii)-milat)*rincy + d_one
@@ -446,43 +507,24 @@ module mod_intldtr
             if (ii == 1 .or. ii == iy ) then
               omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
               cycle
-            else
-              if ( lwrap ) then
-                if ( jj == 1 ) then
-                  dd = gcdist(xlat(jx,ii-1),xlon(jx,ii-1), &
-                              xlat(jj+1,ii+1),xlon(jj+1,ii+1))
-                  dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
-                               milat+rincy*(yy+1),milon+rincx*(xx+1))
-                else if ( jj == jx ) then
-                  dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
-                              xlat(1,ii+1),xlon(1,ii+1))
-                  dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
-                               milat+rincy*(yy+1),milon+rincx*(xx+1))
-                else
-                  dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
-                              xlat(jj+1,ii+1),xlon(jj+1,ii+1))
-                  dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
-                               milat+rincy*(yy+1),milon+rincx*(xx+1))
-                end if
-                nbox = min(max(nint(dd/dd1),2),8)
-              else
-                if ( jj == 1 .or.  jj == jx ) then
-                  omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
-                  cycle
-                end if
-                dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
-                            xlat(jj+1,ii+1),xlon(jj+1,ii+1))
-                dd1 = gcdist(milat+rincy*(yy-1),milon+rincx*(xx-1), &
-                             milat+rincy*(yy+1),milon+rincx*(xx+1))
-                nbox = min(max(nint(dd/dd1),2),8)
+            end if
+            if ( .not. lwrap ) then
+              if ( jj == 1 .or.  jj == jx ) then
+                omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                cycle
               end if
             end if
+            dd = gcdist_simple(milat+incy*floor(yy), milon+incx*floor(xx), &
+                               milat+incy*ceiling(yy), milon+incx*ceiling(xx))
+            nbox = min(max(nint(drcm/dd),2),nbmax)
             nbox = (nbox / 2) * 2
             if (itype == 4) then
               omt(jj,ii) = mostaround(xx,yy,injx,iniy,imt,nbox, &
                                       ibnty,h2opct,lwrap)
-            else
+            else if (itype == 5) then
               omt(jj,ii) = pctaround(xx,yy,injx,iniy,imt,nbox,ival,lwrap)
+            else
+              omt(jj,ii) = dwgt(xx,yy,injx,iniy,imt,lwrap,nbox)
             end if
           end do
         end do

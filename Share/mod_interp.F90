@@ -33,7 +33,7 @@ module mod_interp
   private
 
   public :: bilinx , cressmcr , cressmdt , distwgtcr , distwgtdt
-  public :: gcdist , kernsmooth
+  public :: gcdist , gcdist_simple , kernsmooth
   public :: global_domain , get_window
 
   real(rkx) :: alatmn , alatmx , alonmn , alonmx

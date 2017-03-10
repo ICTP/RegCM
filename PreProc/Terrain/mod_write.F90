@@ -239,6 +239,10 @@ module mod_write
     call outstream_setup(ncout,opar)
 
     call outstream_addatt(ncout, &
+      ncattribute_logical('preliminary_resampling',lresamp))
+    call outstream_addatt(ncout, &
+          ncattribute_real8('radius_interpolation',roidem))
+    call outstream_addatt(ncout, &
       ncattribute_logical('boundary_smoothing',smthbdy))
     call outstream_addatt(ncout, &
       ncattribute_real8('minimum_h2o_pct_for_water',h2opct))
