@@ -695,52 +695,6 @@ module mod_tendency
       end if
     end if
     !
-    ! call radiative transfer package
-    !
-    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-      !
-      ! calculate albedo
-      !
-      call surface_albedo
-      ! Update / init Ozone profiles
-      if ( iclimao3 == 1 ) then
-        call updateo3(idatex,scenario)
-      else
-        if ( ktau == 0 ) call inito3
-      end if
-      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
-      call radiation(xyear,loutrad,labsem)
-    end if
-
-    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      call surface_model
-      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
-    end if
-    !
-    ! Call medium resolution PBL
-    !
-    if ( idiag > 0 ) then
-      ten0 = adf%t
-      qen0 = adf%qx(:,:,:,idgq)
-    end if
-    if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-    ! care : pbl update the difft table at this level
-    call pblscheme
-    if ( ichem == 1 .and. ichdiag == 1 ) then
-      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
-    end if
-    if ( idiag > 0 ) then
-      call ten2diag(ten0,adf%t,tdiag%tbl)
-      call ten2diag(qen0,adf%qx,qdiag%tbl)
-      ten0 = aten%t
-      qen0 = aten%qx(:,:,:,idgq)
-    end if
-#ifdef DEBUG
-    call check_temperature_tendency('PBLL')
-    call check_wind_tendency('PBLL')
-#endif
-    !
     ! conv tracer diagnostic
     !
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
@@ -790,7 +744,52 @@ module mod_tendency
         qen0 = aten%qx(:,:,:,idgq)
       end if
     end if
+    !
+    ! call radiative transfer package
+    !
+    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+      !
+      ! calculate albedo
+      !
+      call surface_albedo
+      ! Update / init Ozone profiles
+      if ( iclimao3 == 1 ) then
+        call updateo3(idatex,scenario)
+      else
+        if ( ktau == 0 ) call inito3
+      end if
+      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
+      call radiation(xyear,loutrad,labsem)
+    end if
 
+    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
+      call surface_model
+      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+    end if
+    !
+    ! Call medium resolution PBL
+    !
+    if ( idiag > 0 ) then
+      ten0 = adf%t
+      qen0 = adf%qx(:,:,:,idgq)
+    end if
+    if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
+    ! care : pbl update the difft table at this level
+    call pblscheme
+    if ( ichem == 1 .and. ichdiag == 1 ) then
+      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
+    end if
+    if ( idiag > 0 ) then
+      call ten2diag(ten0,adf%t,tdiag%tbl)
+      call ten2diag(qen0,adf%qx,qdiag%tbl)
+      ten0 = aten%t
+      qen0 = aten%qx(:,:,:,idgq)
+    end if
+#ifdef DEBUG
+    call check_temperature_tendency('PBLL')
+    call check_wind_tendency('PBLL')
+#endif
 #ifdef DEBUG
     call check_temperature_tendency('PREC')
 #endif
