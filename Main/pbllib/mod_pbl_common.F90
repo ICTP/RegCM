@@ -36,7 +36,7 @@ module mod_pbl_common
   !
   ! Pointers to the TCM state variables
   !
-  type(tcm_state) , public :: uwstatea , uwstateb
+  type(tcm_state) , public :: uwstate
   real(rkx) , public , pointer , dimension(:,:,:,:) :: chiuwten
 
 end module mod_pbl_common

@@ -102,8 +102,8 @@ module mod_slice
         do k = 1 , kz
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga
-              if ( chib(j,i,k,n) > mintr ) then
-                atms%chib3d(j,i,k,n) = chib(j,i,k,n)*rpsb(j,i)
+              if ( atm2%chi(j,i,k,n) > mintr ) then
+                atms%chib3d(j,i,k,n) = atm2%chi(j,i,k,n)*rpsb(j,i)
               else
                 atms%chib3d(j,i,k,n) = d_zero
               end if

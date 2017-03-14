@@ -55,25 +55,63 @@ module mod_tendency
 
   public :: allocate_mod_tend , tend
   real(rkx) , pointer , dimension(:,:,:) :: ttld , td , &
-         phi , ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc , th , tha
+         phi , qcd , qvd , tvfac , ucc , vcc , th , tha
   real(rkx) , pointer , dimension(:,:,:) :: ps4
   real(rkx) , pointer , dimension(:,:,:) :: ps_4
   real(rkx) , pointer , dimension(:,:) :: pten
   real(rkx) , pointer , dimension(:,:,:) :: thten
-  real(rkx) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
+  real(rkx) , pointer , dimension(:,:) :: rpsa , rpsb , rpsc
   real(rkx) , pointer , dimension(:,:) :: rpsda
+
+  real(rkx) , pointer , dimension(:,:,:) :: tten
+  real(rkx) , pointer , dimension(:,:,:) :: uten
+  real(rkx) , pointer , dimension(:,:,:) :: vten
+  real(rkx) , pointer , dimension(:,:,:) :: wten
+  real(rkx) , pointer , dimension(:,:,:) :: ppten
+  real(rkx) , pointer , dimension(:,:,:) :: tketen
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxten
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiten
+
+  real(rkx) , pointer , dimension(:,:,:) :: ttadv
+  real(rkx) , pointer , dimension(:,:,:) :: wuadv
+  real(rkx) , pointer , dimension(:,:,:) :: wvadv
+  real(rkx) , pointer , dimension(:,:,:) :: wwadv
+  real(rkx) , pointer , dimension(:,:,:) :: ppadv
+  real(rkx) , pointer , dimension(:,:,:) :: tkeadv
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxadv
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiadv
+
+  real(rkx) , pointer , dimension(:,:,:) :: tdif
+  real(rkx) , pointer , dimension(:,:,:) :: udif
+  real(rkx) , pointer , dimension(:,:,:) :: vdif
+  real(rkx) , pointer , dimension(:,:,:) :: wdif
+  real(rkx) , pointer , dimension(:,:,:) :: ppdif
+  real(rkx) , pointer , dimension(:,:,:) :: tkedif
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxdif
+  real(rkx) , pointer , dimension(:,:,:,:) :: chidif
+
+  real(rkx) , pointer , dimension(:,:,:) :: tbdy
+  real(rkx) , pointer , dimension(:,:,:) :: ubdy
+  real(rkx) , pointer , dimension(:,:,:) :: vbdy
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxbdy
+  real(rkx) , pointer , dimension(:,:,:) :: wbdy
+  real(rkx) , pointer , dimension(:,:,:) :: ppbdy
+  real(rkx) , pointer , dimension(:,:,:,:) :: chibdy
+
+  real(rkx) , pointer , dimension(:,:,:) :: ten0 , qen0
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
+  real(rkx) , pointer , dimension(:,:,:) :: tkeps
+
   integer :: idgq
   integer :: ithadv = 1
   integer(ik4) :: iqxvadv , itrvadv
-#ifdef DEBUG
-  real(rkx) , pointer , dimension(:,:,:) :: wten
-#endif
 
   real(rkx) :: rptn ! Total number of internal points
 
   interface ten2diag
     module procedure extracttent
     module procedure extracttenqv
+    module procedure extracttenchi
   end interface ten2diag
 
   contains
@@ -92,7 +130,6 @@ module mod_tendency
     call getmem3d(tvfac,jce1,jce2,ice1,ice2,1,kz,'tendency:tvfac')
     call assignpnt(atmx%qx,qvd,iqv)
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
-    call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
     call getmem2d(rpsa,jce1ga,jce2ga,ice1ga,ice2ga,'tendency:rpsa')
     call getmem2d(rpsb,jce1,jce2,ice1,ice2,'tendency:rpsb')
     call getmem2d(rpsda,jde1ga,jde2ga,ide1ga,ide2ga,'tendency:rpsda')
@@ -112,13 +149,6 @@ module mod_tendency
         call getmem3d(tha,jce1,jce2,ice1,ice2,1,kz,'tendency:tha')
       end if
     end if
-    if ( idiag > 0 ) then
-      call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'tendency:ten0')
-      call getmem3d(qen0,jci1,jci2,ici1,ici2,1,kz,'tendency:qen0')
-    end if
-#ifdef DEBUG
-    call getmem3d(wten,jdi1,jdi2,idi1,idi2,1,kz,'tendency:wten')
-#endif
     !
     ! Set number of ghost points for advection for the two schemes
     ! Select advection scheme
@@ -130,8 +160,61 @@ module mod_tendency
         iqxvadv = 3
         itrvadv = 3
       end if
+      call getmem3d(tkeps,jce1,jce2,ice1,ice2,1,kzp1,'tendency:tkeps')
     end if
-    idgq = iqv
+
+    if ( idiag == 1 ) then
+      idgq = iqv
+      call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'tendency:ten0')
+      call getmem3d(qen0,jci1,jci2,ici1,ici2,1,kz,'tendency:qen0')
+    end if
+
+    if ( ichem == 1 ) then
+      if ( ichdiag == 1 ) then
+        call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'tendency:chiten0')
+      end if
+    end if
+    call assignpnt(aten%t,tten,pc_total)
+    call assignpnt(aten%t,ttadv,pc_advection)
+    call assignpnt(aten%t,tdif,pc_diffusion)
+    call assignpnt(aten%t,tbdy,pc_boundary)
+
+    call assignpnt(aten%u,uten,uv_pc_total)
+    call assignpnt(aten%u,wuadv,uv_pc_advection)
+    call assignpnt(aten%u,udif,uv_pc_diffusion)
+    call assignpnt(aten%u,ubdy,uv_pc_boundary)
+
+    call assignpnt(aten%v,vten,uv_pc_total)
+    call assignpnt(aten%v,wvadv,uv_pc_advection)
+    call assignpnt(aten%v,vdif,uv_pc_diffusion)
+    call assignpnt(aten%v,vbdy,uv_pc_boundary)
+
+    call assignpnt(aten%qx,qxten,pc_total)
+    call assignpnt(aten%qx,qxadv,pc_advection)
+    call assignpnt(aten%qx,qxdif,pc_diffusion)
+    call assignpnt(aten%qx,qxbdy,pc_boundary)
+
+    if ( idynamic == 2 ) then
+      call assignpnt(aten%w,wten,ppw_pc_total)
+      call assignpnt(aten%w,wwadv,ppw_pc_advection)
+      call assignpnt(aten%w,wdif,ppw_pc_diffusion)
+      call assignpnt(aten%w,wbdy,ppw_pc_boundary)
+      call assignpnt(aten%pp,ppten,ppw_pc_total)
+      call assignpnt(aten%pp,ppadv,ppw_pc_advection)
+      call assignpnt(aten%pp,ppdif,ppw_pc_diffusion)
+      call assignpnt(aten%pp,ppbdy,ppw_pc_boundary)
+    end if
+    if ( ibltyp == 2 ) then
+      call assignpnt(aten%tke,tketen,tke_pc_total)
+      call assignpnt(aten%tke,tkeadv,tke_pc_advection)
+      call assignpnt(aten%tke,tkedif,tke_pc_diffusion)
+    end if
+    if ( ichem == 1 ) then
+      call assignpnt(aten%chi,chiten,chi_pc_total)
+      call assignpnt(aten%chi,chiadv,chi_pc_advection)
+      call assignpnt(aten%chi,chidif,chi_pc_diffusion)
+      call assignpnt(aten%chi,chibdy,chi_pc_boundary)
+    end if
   end subroutine allocate_mod_tend
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -168,184 +251,19 @@ module mod_tendency
     !
     call decouple
     !
-    if ( ipptls > 1 ) then
-      qcd(:,:,:) = d_zero
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-    end if
+    ! Compute pressure tendency, mass-divergence, sigma-velocity and
+    ! pressure vertical velocity
     !
-    ! compute vertical sigma-velocity (qdot):
-    !
-    qdot(:,:,:)  = d_zero
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
-      end do
-    end do
-    if ( idynamic == 1 ) then
-      !
-      ! compute the pressure tendency
-      !
-      pten(:,:) = d_zero
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! The surface pressure tendency in the   hydrostatic model:
-            ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
-            !
-            mdv%cr(j,i,k) = ((atmx%umc(j+1,i+1,k)+atmx%umc(j+1,i,k)- &
-                              atmx%umc(j,i+1,k)  -atmx%umc(j,i,k)) + &
-                             (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k)- &
-                              atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k)))*dummy(j,i)
-            pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
-          end do
-        end do
-      end do
-      do k = 2 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! The coordinate vertical velocity in the   hydrostatic model:
-            ! Eq. 2.1.6 & Eq. 2.4.3 in the MM5 manual
-            !
-            qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
-                       mdv%cr(j,i,k-1)) * dsigma(k-1) * rpsa(j,i)
-           end do
-        end do
-      end do
-    else if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! Calculate wind components at cross points
-            !
-            ucc(j,i,k) = (atmx%ud(j,i,k)  + atmx%ud(j,i+1,k) + &
-                          atmx%ud(j+1,i,k)+ atmx%ud(j+1,i+1,k))
-            vcc(j,i,k) = (atmx%vd(j,i,k)  + atmx%vd(j,i+1,k) + &
-                          atmx%vd(j+1,i,k)+ atmx%vd(j+1,i+1,k))
-          end do
-        end do
-      end do
-      do k = 2 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! The coordinate vertical velocity in the nonhydrostatic model:
-            ! Eq. 2.2.7 & Eq. 2.3.6 in the MM5 manual
-            !
-            qdot(j,i,k) = -atm0%rhof(j,i,k)*egrav*atmx%w(j,i,k)/atm0%ps(j,i) - &
-              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +       &
-                                         twt(k,2)*ucc(j,i,k-1)) +    &
-                          dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +       &
-                                         twt(k,2)*vcc(j,i,k-1)))
-           end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! The mass divergence term (in cross points) in the
-            ! nonhydrostatic model:
-            ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
-            !
-            mdv%cr(j,i,k) = ((atmx%umc(j+1,i+1,k)+atmx%umc(j+1,i,k) -  &
-                              atmx%umc(j,i+1,k)  -atmx%umc(j,i,k))  +  &
-                             (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k) -  &
-                              atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k))) *  &
-                     dummy(j,i) + (qdot(j,i,k+1) - qdot(j,i,k)) *      &
-                        sfs%psa(j,i)/dsigma(k)
-          end do
-        end do
-      end do
-    end if
-    call exchange(mdv%cr,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(qdot,1,jce1,jce2,ice1,ice2,1,kzp1)
-    !
-    ! compute omega
-    !
-    omega(:,:,:) = d_zero
-    if ( idynamic == 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
-        end do
-      end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            !
-            ! omega in the hydrostatic model: Eqs. 2.1.7, 2.1.8 & 2.4.4
-            !
-            omega(j,i,k) = d_half*(qdot(j,i,k+1)+qdot(j,i,k)) *   &
-                        sfs%psa(j,i) + hsigma(k) * (pten(j,i) +   &
-                       ((atmx%ud(j,i,k) + atmx%ud(j,i+1,k) +      &
-                         atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k))*  &
-                         (sfs%psa(j+1,i)-sfs%psa(j-1,i)) +        &
-                        (atmx%vd(j,i,k) + atmx%vd(j,i+1,k) +      &
-                         atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i,k)) * &
-                         (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
-          end do
-        end do
-      end do
-    else if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            !
-            ! omega in the non-hydrostatic model: compute from w
-            !
-            omega(j,i,k) = d_half*egrav*atm0%rho(j,i,k)*rpsb(j,i) * &
-                         (atm2%w(j,i,k)+atm2%w(j,i,k+1))
-          end do
-        end do
-      end do
-    end if
+    call compute_omega
     !
     ! Prepare fields to be used in physical parametrizations.
     !
     call mkslice
     !
-    ! Surface pressure boundary conditions for Hydrostatic
+    ! Compute forecast surface pressure for hydrostatic
     !
     if ( idynamic == 1 ) then
-      if ( iboudy == 4 ) then
-        call sponge(xpsb,pten)
-      else if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,sfs%psb,xpsb,pten)
-      end if
-      !
-      ! psc : forecast pressure
-      !
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
-          rpsc(j,i) = d_one/sfs%psc(j,i)
-        end do
-      end do
-      !
-      ! compute bleck (1977) noise parameters:
-      !
-      if ( ktau /= 0 ) then
-        ptntot = d_zero
-        pt2tot = d_zero
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ptntot = ptntot + abs(pten(j,i))
-            pt2tot = pt2tot + abs((sfs%psc(j,i)+sfs%psb(j,i)- &
-                     d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
-          end do
-        end do
-      end if
+      call new_pressure
     end if
     !
     ! calculate solar zenith angle
@@ -354,577 +272,159 @@ module mod_tendency
     !
     ! Compute new diffusion coefficients
     !
-    call calc_coeff( )
+    call calc_coeff
     !
     ! Initialize the tendencies
     !
-    aten%u(:,:,:) = d_zero
-    aten%v(:,:,:) = d_zero
-    aten%t(:,:,:) = d_zero
-    aten%qx(:,:,:,:) = d_zero
-    if ( idynamic == 2 ) then
-      !
-      ! Pressure perturbations and vertical velocity tendencies in the
-      ! nonhydrostatic model
-      !
-      aten%pp(:,:,:) = d_zero
-      aten%w(:,:,:) = d_zero
-    end if
-#ifdef DEBUG
-    wten(:,:,:) = d_zero
-#endif
-    cldfra(:,:,:) = d_zero
-    cldlwc(:,:,:) = d_zero
-    !
-    ! Initialize diffusion terms (temperature, vertical velocity, mixing ratios)
-    !
-    adf%t(:,:,:)    = d_zero
-    adf%qx(:,:,:,:) = d_zero
-    adf%u(:,:,:) = d_zero
-    adf%v(:,:,:) = d_zero
-    if ( idynamic == 2 ) then
-      adf%w(:,:,:)    = d_zero
-      adf%pp(:,:,:)   = d_zero
-    end if
-    if ( ibltyp == 2 ) then
-      aten%tke(:,:,:) = d_zero
-      uwstatea%advtke(:,:,:) = d_zero
-    end if
-    if ( ichem == 1 ) then
-      chiten(:,:,:,:)  = d_zero
-      if ( ichdiag == 1 ) chiten0(:,:,:,:) = d_zero
-    end if
-    if ( idiag > 0 ) then
-      ten0(:,:,:) = d_zero
-      qen0(:,:,:) = d_zero
-    end if
+    call init_tendencies
     !
     ! Compute Horizontal advection terms
     !
     call start_advect
+    call advection_prognostic
     !
-    ! compute the horizontal advection terms for u and v:
+    ! Compute horizontal diffusion terms
     !
-    ! compute the horizontal advection term in x and y momentum tendency:
-    ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
-    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
+    call diffusion_tendencies
     !
-    call hadv(aten%u,aten%v,atmx%ud,atmx%vd)
-#ifdef DEBUG
-    call check_wind_tendency('HADV')
-#endif
+    ! Boundary conditions
     !
-    ! compute the vertical advection terms:
-    !
-    ! compute the vertical advection term in x and y momentum tendency:
-    ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
-    ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
-    !
-    call vadv(aten%u,aten%v,atmx%uc,atmx%vc)
-#ifdef DEBUG
-    call check_wind_tendency('VADV')
-#endif
-    if ( idynamic == 2 ) then
-      !
-      ! Horizontal and vertical advection of pressure perturbation and vertical
-      ! velocity in the nonhydrostatic model: 1st and 2nd term on the RHS of the
-      ! Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8 in the MM5 manual.
-      !
-      ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
-      !
-      call hadv(aten%pp,atmx%pp,0)
-      call vadv(aten%pp,atm1%pp,kz,0)
-      call hadv(aten%w,atmx%w,1)
-      call vadv(aten%w,atm1%w,kzp1,0)
-      if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,atm2%t,xtb,aten%t)
-        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
-        call nudge(iboudy,atm2%pp,xppb,aten%pp)
-        call nudge(iboudy,atm2%w,xwwb,aten%w)
-      else if ( iboudy == 4 ) then
-        call sponge(xtb,aten%t)
-        call sponge(xqb,aten%qx,iqv)
-        call sponge(xppb,aten%pp)
-        call sponge(xwwb,aten%w)
-      end if
-      if ( idiag > 0 ) then
-        call ten2diag(ten0,aten%t,tdiag%bdy)
-        call ten2diag(qen0,aten%qx,qdiag%bdy)
-      end if
-    end if
-    !
-    ! compute the horizontal advection term in temperature tendency:
-    ! same for hydrostatic and nonhydrostatic models:
-    ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
-    !
-    if ( ithadv == 0 ) then
-      call hadv(aten%t,atmx%t)
-#ifdef DEBUG
-      call check_temperature_tendency('HADV')
-#endif
-      if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%adh)
-      !
-      ! compute the vertical advection term:
-      ! same for hydrostatic and nonhydrostatic models:
-      ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
-      !
-      call vadv(aten%t,atm1%t,kz,1)
-#ifdef DEBUG
-      call check_temperature_tendency('VADV')
-#endif
-      if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%adv)
-    else
-      thten(:,:,:) = d_zero
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            th(j,i,k) = atmx%t(j,i,k) * (p00/atm1%pr(j,i,k))**rovcp
-            tha(j,i,k) = th(j,i,k) * sfs%psa(j,i)
-          end do
-        end do
-      end do
-      call exchange(th,1,jce1,jce2,ice1,ice2,1,kz)
-      call hadv(thten,th)
-      call vadv(thten,tha,kz,0)
-    end if
+    call boundary_tendencies
     !
     ! compute the adiabatic term:
     !
-    if ( idynamic == 1 ) then
-      !
-      ! Adiabatic term in the temperature tendency equation in the
-      ! hydrostatic model:    3rd RHS term in Eq. 2.1.3
-      !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            rovcpm = rgas/cpmf(qvd(j,i,k))
-            aten%t(j,i,k) = aten%t(j,i,k) + &
-                            (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
-                            (ptop*rpsa(j,i)+hsigma(k))
-          end do
-        end do
-      end do
-    else if ( idynamic == 2 ) then
-      !
-      ! Adiabatic term in the temperature tendency equation in the
-      ! nonhydrostatic model: 3rd and 4th RHS term in Eq. 2.2.5 and Eq.2.3.9.
-      !
-      if ( ithadv == 0 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              cpm = cpmf(qvd(j,i,k))
-              scr1 = d_half*egrav*atm0%rho(j,i,k) * &
-                           (atm1%w(j,i,k)+atm1%w(j,i,k+1))
-              aten%t(j,i,k) = aten%t(j,i,k) +  &
-                         atmx%t(j,i,k)*mdv%cr(j,i,k) - &
-                        (scr1+aten%pp(j,i,k)+atmx%pp(j,i,k)*mdv%cr(j,i,k)) / &
-                        (atm1%rho(j,i,k)*cpm)
-            end do
-          end do
-        end do
-      else
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              thten(j,i,k) = thten(j,i,k) + th(j,i,k) * mdv%cr(j,i,k)
-              aten%t(j,i,k) = aten%t(j,i,k) + &
-                   atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
-            end do
-          end do
-        end do
-      end if
-      if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%adi)
-      !
-      ! Divergence term in the pressure perturbation tendency equation in the
-      ! nonhydrostatic model: 4th RHS term in Eq. 2.2.4 and Eq. 2.3.8
-      !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%pp(j,i,k) = aten%pp(j,i,k) + atmx%pp(j,i,k)*mdv%cr(j,i,k)
-          end do
-        end do
-      end do
-      do n = 1 , nqx
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + &
-                                 atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
-            end do
-          end do
-        end do
-      end do
-      !
-      ! Vertical velocity tendency. Following terms are included here:
-      ! (1) bouyancy terms: 2nd subterm and part of the 3rd subterm of the
-      !     4th RHS term in Eq.2.2.3 and 2.2.11. This is joined into the 5th
-      !     RHS term in Eq. 2.3.7.
-      ! (2) part of the vertical component of the Coriolis force due to the
-      !     horizontal movement (cf. 6th RHS term in Eq. 2.2.11)
-      ! (3) vertical curvature term (not explicitly mentioned in the MM5 1994
-      !     manual)
-      ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3, 2.2.11 and
-      !     Eq. 2.3.7)
-      !
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! Calculate wind components at cross points
-            !
-            ucc(j,i,k) = (atmx%uc(j,i,k)  + atmx%uc(j,i+1,k) + &
-                          atmx%uc(j+1,i,k)+ atmx%uc(j+1,i+1,k))
-            vcc(j,i,k) = (atmx%vc(j,i,k)  + atmx%vc(j,i+1,k) + &
-                          atmx%vc(j+1,i,k)+ atmx%vc(j+1,i+1,k))
-
-          end do
-        end do
-      end do
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +      &
-                      dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
-                    ( dsigma(k-1) * atm1%rho(j,i,k) +      &
-                      dsigma(k)   * atm1%rho(j,i,k-1) )
-            uaq = d_rfour * (twt(k,1) * ucc(j,i,k) + &
-                             twt(k,2) * ucc(j,i,k-1))
-            vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
-                             twt(k,2) * vcc(j,i,k-1))
-            aten%w(j,i,k) = aten%w(j,i,k) +                &
-                  (twt(k,2)*atmx%pr(j,i,k-1) +             &
-                   twt(k,1)*atmx%pr(j,i,k)) *              &
-                   rofac * egrav * sfs%psa(j,i) +          &
-                   mddom%ex(j,i)*(uaq*mddom%crx(j,i) -     &
-                                  vaq*mddom%cry(j,i)) +    &
-                   (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
-                   atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) + &
-                                  twt(k,2)*mdv%cr(j,i,k-1))
-          end do
-        end do
-      end do
-      if ( ipptls > 0 ) then
-        do k = 2 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              !
-              ! Vertical velocity tendency: water loading term
-              ! 5th RHS term in Eq. 2.2.3 & 6th RHS term in Eq. 2.3.7
-              !
-              aten%w(j,i,k) = aten%w(j,i,k) - egrav * sfs%psa(j,i) * &
-                (twt(k,2)*qcd(j,i,k-1) + twt(k,1)*qcd(j,i,k))
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( idiag > 0 ) call ten2diag(qen0,aten%qx,qdiag%adi)
-#ifdef DEBUG
-    call check_temperature_tendency('DIAB')
-#endif
-
-    if ( isladvec == 1 ) then
-      call trajcalc_x
-    end if
+    call adiabatic_term
     !
-    ! compute the diffusion term for t and store in difft:
+    ! Physical parametrizations
     !
-    if ( idiag > 0 ) ten0 = adf%t
-    call diffu_x(adf%t,atms%tb3d)
-    if ( idiag > 0 ) then
-      call ten2diag(ten0,adf%t,tdiag%dif)
-      ten0 = aten%t
-    end if
+    call physical_parametrizations
     !
-    ! compute the diffusion term for vertical velocity w and store in diffw:
-    ! compute the diffusion term for perturb pressure pp and store in diffpp:
-    !
-    if ( idynamic == 2 ) then
-      call diffu_x(adf%pp,atms%ppb3d)
-      call diffu_x(adf%w,atms%wb3d,d_one)
-    end if
-    !
-    ! compute the moisture tendencies for convection
-    !
-    if ( isladvec == 1 ) then
-      call slhadv_x(aten%qx,atm2%qx,iqv)
-      call hdvg_x(aten%qx,atm1%qx,iqv)
-    else
-      call hadv(aten%qx,atmx%qx,iqv)
-    end if
-    if ( idiag > 0 .and. idgq == iqv ) call ten2diag(qen0,aten%qx,qdiag%adh)
-    if ( all(icup /= 1) ) then
-      call vadv(aten%qx,atm1%qx,iqv)
-    end if
-    if ( idiag > 0 .and. idgq == iqv ) call ten2diag(qen0,aten%qx,qdiag%adv)
-    if ( ipptls > 0 ) then
-      if ( isladvec == 1 ) then
-        call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
-        call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)
-      else
-        call hadv(aten%qx,atmx%qx,iqfrst,iqlst)
-      end if
-      if ( idiag > 0 .and. idgq /= iqv ) call ten2diag(qen0,aten%qx,qdiag%adh)
-      call vadv(aten%qx,atm1%qx,iqfrst,iqlst,iqxvadv)
-      if ( idiag > 0 .and. idgq /= iqv ) call ten2diag(qen0,aten%qx,qdiag%adv)
-    end if
-    if ( ichem == 1 ) then
-      !
-      ! horizontal and vertical advection + diag
-      !
-      if ( ichdiag == 1 ) chiten0 = chiten
-      if ( isladvec == 1 ) then
-        call slhadv_x(chiten,chib)
-        call hdvg_x(chiten,chia)
-      else
-        call hadv(chiten,chi)
-      end if
-      if ( ichdiag == 1 ) then
-        cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout
-        chiten0 = chiten
-      end if
-      if ( all(icup /= 1) ) then
-        call vadv(chiten,chia,1,ntr,itrvadv)
-      end if
-      if ( ichdiag == 1 ) then
-        cadvvdiag = cadvvdiag + (chiten - chiten0) * cfdout
-        chiten0 = chiten
-      end if
-    end if
-    !
-    ! conv tracer diagnostic
-    !
-    if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-    !
-    ! Call cumulus parametrization
-    !
-    call cumulus
-#ifdef DEBUG
-    call check_temperature_tendency('CONV')
-    call check_wind_tendency('CONV')
-#endif
-    if ( idiag > 0 ) then
-      call ten2diag(ten0,aten%t,tdiag%con)
-      call ten2diag(qen0,aten%qx,qdiag%con)
-    end if
-    !
-    ! save cumulus cloud fraction for chemistry before it is
-    ! overwritten in cldfrac
-    !
-    if ( ichem == 1 .and. ichdiag == 1 ) then
-      cconvdiag = cconvdiag + (chiten - chiten0) * cfdout
-    end if
-    if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
-    !
-    ! Large scale precipitation
-    !
-    if ( ipptls > 0 ) then
-      !
-      ! Clouds and large scale precipitation
-      !
-      call cldfrac
-      call microscheme
-      if ( idiag > 0 ) then
-        call ten2diag(ten0,aten%t,tdiag%lsc)
-        call ten2diag(qen0,aten%qx,qdiag%lsc)
-      end if
-      !
-      ! compute the diffusion terms:
-      ! the diffusion term for qx is stored in diffqx.
-      !
-      if ( idiag > 0 ) then
-        qen0 = adf%qx(:,:,:,idgq)
-      end if
-      call diffu_x(adf%qx,atms%qxb3d,1,nqx,d_one)
-      if ( idiag > 0 ) then
-        call ten2diag(qen0,adf%qx,qdiag%dif)
-        qen0 = aten%qx(:,:,:,idgq)
-      end if
-    end if
-    !
-    ! call radiative transfer package
-    !
-    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-      !
-      ! calculate albedo
-      !
-      call surface_albedo
-      ! Update / init Ozone profiles
-      if ( iclimao3 == 1 ) then
-        call updateo3(idatex,scenario)
-      else
-        if ( ktau == 0 ) call inito3
-      end if
-      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
-      call radiation(xyear,loutrad,labsem)
-    end if
-
-    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      call surface_model
-      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
-    end if
-    !
-    ! Call medium resolution PBL
-    !
-    if ( idiag > 0 ) then
-      ten0 = adf%t
-      qen0 = adf%qx(:,:,:,idgq)
-    end if
-    if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-    ! care : pbl update the difft table at this level
-    call pblscheme
-    if ( ichem == 1 .and. ichdiag == 1 ) then
-      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
-    end if
-    if ( idiag > 0 ) then
-      call ten2diag(ten0,adf%t,tdiag%tbl)
-      call ten2diag(qen0,adf%qx,qdiag%tbl)
-      ten0 = aten%t
-      qen0 = aten%qx(:,:,:,idgq)
-    end if
-#ifdef DEBUG
-    call check_temperature_tendency('PBLL')
-    call check_wind_tendency('PBLL')
-#endif
-#ifdef DEBUG
-    call check_temperature_tendency('PREC')
-#endif
-    !
-    ! Tracers tendencies
+    ! Compute chemistry tendencies (other than transport)
     !
     if ( ichem == 1 ) then
-      if ( ichdiag == 1 ) chiten0 = chiten
-      !
-      ! horizontal diffusion: initialize scratch vars to 0.
-      ! need to compute tracer tendencies due to diffusion
-      ! Only active if upstream scheme not used.
-      !
-      call diffu_x(chiten,atms%chib3d,1,ntr,d_one)
-      if ( ichdiag == 1 ) then
-        cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout
-      end if
-      !
-      ! Compute chemistry tendencies (other than transport)
-      !
       call tractend2(ktau,xyear,xmonth,xday,calday,declin)
-    end if ! ichem
+    end if
     !
-    ! add ccm radiative transfer package-calculated heating rates to
-    ! temperature tendency
+    ! Sum up all tendencies for temperature and add radiative transfer
+    ! package-calculated heating rates to temperature tendency (deg/sec)
     !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ! heating rate in deg/sec
-          aten%t(j,i,k) = aten%t(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
+          aten%t(j,i,k,pc_total) = &
+                     aten%t(j,i,k,pc_advection) +  &
+                     aten%t(j,i,k,pc_diffusion) +  &
+                     aten%t(j,i,k,pc_convection) + &
+                     aten%t(j,i,k,pc_pbl) +        &
+                     aten%t(j,i,k,pc_microphys) +  &
+                     aten%t(j,i,k,pc_adiabatic) +  &
+                     aten%t(j,i,k,pc_boundary) +   &
+                     sfs%psb(j,i)*heatrt(j,i,k)
         end do
       end do
     end do
-    if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%rad)
+    if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_total)
 #ifdef DEBUG
-    call check_temperature_tendency('HEAT')
+    call check_temperature_tendency('HEAT',pc_total)
 #endif
     !
-    ! apply the sponge boundary conditions on t and qv.
-    ! We must do this before adding diffusion terms.
-    !
-    if ( idynamic == 1 ) then
-      if ( iboudy == 4 ) then
-        call sponge(xtb,aten%t)
-        call sponge(xqb,aten%qx,iqv)
-        if ( idiag > 0 ) call ten2diag(ten0,aten%t,tdiag%bdy)
-      end if
-    end if
-    !
-    ! add horizontal diffusion and pbl tendencies for t and qv
+    ! Sum up all contribution to water vapor tendencies
     ! This is the last RHS term in Eqs. 2.1.3 and 2.2.5, 2.3.9
     !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%t(j,i,k) = aten%t(j,i,k) + adf%t(j,i,k)
+          aten%qx(j,i,k,iqv,pc_total) = &
+                    aten%qx(j,i,k,iqv,pc_advection) +  &
+                    aten%qx(j,i,k,iqv,pc_diffusion) +  &
+                    aten%qx(j,i,k,iqv,pc_convection) + &
+                    aten%qx(j,i,k,iqv,pc_pbl) +        &
+                    aten%qx(j,i,k,iqv,pc_microphys) +  &
+                    aten%qx(j,i,k,iqv,pc_adiabatic) +  &
+                    aten%qx(j,i,k,iqv,pc_boundary)
         end do
       end do
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + adf%qx(j,i,k,iqv)
-        end do
-      end do
-    end do
-    !
-    ! add horizontal diffusion for vertical velocity w
-    ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
-    !
     if ( idynamic == 2 ) then
+      !
+      ! Sum up all tendencies for vertical wind and pressure perturbation
+      ! This is the last RHS term in Eqs. 2.2.3, 2.2.11, 2.3.7
+      !
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%w(j,i,k) = aten%w(j,i,k) + adf%w(j,i,k)
+            aten%w(j,i,k,ppw_pc_total) = &
+                   aten%w(j,i,k,ppw_pc_advection) + &
+                   aten%w(j,i,k,ppw_pc_diffusion) + &
+                   aten%w(j,i,k,ppw_pc_adiabatic) + &
+                   aten%w(j,i,k,ppw_pc_boundary)
+
           end do
         end do
       end do
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%pp(j,i,k) = aten%pp(j,i,k) + adf%pp(j,i,k)
+            aten%pp(j,i,k,ppw_pc_total) = &
+                   aten%pp(j,i,k,ppw_pc_advection) + &
+                   aten%pp(j,i,k,ppw_pc_diffusion) + &
+                   aten%pp(j,i,k,ppw_pc_adiabatic) + &
+                   aten%pp(j,i,k,ppw_pc_boundary)
           end do
         end do
       end do
     end if
-    ! Rq: the temp tendency diagnostics have been already
-    !     saved for tbl and hor. diff but :
-    if ( idiag > 0 ) then
-      ten0 = aten%t ! important since aten%t have been updated
-      qen0 = aten%qx(:,:,:,idgq) ! important since aten%qx have been updated
-    end if
-    !
-    ! apply the nudging boundary conditions:
-    !
-    if ( idynamic == 1 ) then
-      if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,atm2%t,xtb,aten%t)
-        call nudge(iboudy,atm2%qx,xqb,aten%qx,iqv)
-      end if
-      if ( idiag > 0 ) then
-        call ten2diag(ten0,aten%t,tdiag%bdy)
-        call ten2diag(qen0,aten%qx,qdiag%bdy)
-      end if
-    end if
-    if ( ichem == 1 ) then
-      if ( ichdiag == 1 ) chiten0 = chiten
-      ! keep nudge_chi for now
-      if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge_chi(kz,chib,chiten)
-      end if
-      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
-    end if
-#ifdef DEBUG
-    call check_temperature_tendency('BDYC')
-#endif
-    !
-    ! compute the condensation and precipitation terms for explicit
-    ! moisture schemes
-    !
     if ( ipptls > 0 ) then
       do n = iqfrst , iqlst
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%qx(j,i,k,n) = aten%qx(j,i,k,n) + adf%qx(j,i,k,n)
+              aten%qx(j,i,k,iqv,pc_total) = &
+                        aten%qx(j,i,k,iqv,pc_advection) +  &
+                        aten%qx(j,i,k,iqv,pc_diffusion) +  &
+                        aten%qx(j,i,k,iqv,pc_convection) + &
+                        aten%qx(j,i,k,iqv,pc_pbl) +        &
+                        aten%qx(j,i,k,iqv,pc_microphys) +  &
+                        aten%qx(j,i,k,iqv,pc_adiabatic) +  &
+                        aten%qx(j,i,k,iqv,pc_boundary)
             end do
           end do
         end do
       end do
-      if ( ipptls == 1 ) call condtq
+      if ( ipptls == 1 ) then
+        !
+        ! compute the condensation and precipitation terms for SUBEX
+        ! moisture schemes
+        !
+        aten%qx(:,:,:,:,pc_microphys) = d_zero
+        aten%t(:,:,:,pc_microphys) = d_zero
+        call condtq
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
+                        aten%qx(j,i,k,iqv,pc_microphys)
+              aten%qx(j,i,k,iqc,pc_total) = aten%qx(j,i,k,iqc,pc_total) + &
+                        aten%qx(j,i,k,iqc,pc_microphys)
+              aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
+                        aten%t(j,i,k,pc_microphys)
+            end do
+          end do
+        end do
+      end if
       if ( idiag > 0 ) then
-        call ten2diag(ten0,aten%t,tdiag%lsc)
-        call ten2diag(qen0,aten%qx,qdiag%rad)
+        call ten2diag(aten%t,tdiag%lsc,pc_microphys)
+        call ten2diag(aten%qx,qdiag%lsc,pc_microphys)
+      end if
+    end if
+    if ( idynamic == 2 ) then
+      if ( itopnudge == 1 ) then
+        call topnudge(atm2%t,tten,xtb)
+        call topnudge(atm2%qx,qxten,xqb,iqv)
+      end if
+      if ( ifrayd == 1 ) then
+        call raydamp(atms%za,atm2%t,tten)
+        call raydamp(atms%za,atm2%qx,qxten)
       end if
     end if
     !
@@ -933,15 +433,15 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%t(j,i,k) = atm2%t(j,i,k) + dt*aten%t(j,i,k)
+          atmc%t(j,i,k) = atm2%t(j,i,k) + dt*aten%t(j,i,k,pc_total)
         end do
       end do
     end do
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%qx(j,i,k,iqv) = &
-                  max(atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv),minqv)
+          atmc%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv) + &
+                       dt*aten%qx(j,i,k,iqv,pc_total),minqv)
         end do
       end do
     end do
@@ -949,8 +449,8 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atmc%qx(j,i,k,n) = &
-                    max(atm2%qx(j,i,k,n) + dt*aten%qx(j,i,k,n),minqx)
+            atmc%qx(j,i,k,n) = max(atm2%qx(j,i,k,n) + &
+                       dt*aten%qx(j,i,k,n,pc_total),minqx)
           end do
         end do
       end do
@@ -959,22 +459,39 @@ module mod_tendency
     ! forecast tracer chi at at tau+1:
     !
     if ( ichem == 1 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%chi(j,i,k,itr,chi_pc_total) = &
+                     aten%chi(j,i,k,itr,chi_pc_total) + &
+                     aten%chi(j,i,k,itr,chi_pc_advection) +  &
+                     aten%chi(j,i,k,itr,chi_pc_diffusion) +  &
+                     aten%chi(j,i,k,itr,chi_pc_convection) + &
+                     aten%chi(j,i,k,itr,chi_pc_pbl)
+            end do
+          end do
+        end do
+      end do
       if ( idynamic == 2 ) then
         if ( ifrayd == 1 ) then
-          call raydamp(atms%za,chib,chiten)
+          call raydamp(atms%za,atm2%chi,chiten)
         end if
       end if
       do itr = 1 , ntr
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              chic(j,i,k,itr) = &
-                   max(chib(j,i,k,itr) + dt*chiten(j,i,k,itr),mintr)
+              atmc%chi(j,i,k,itr) = max(atm2%chi(j,i,k,itr) + &
+                  dt*aten%chi(j,i,k,itr,chi_pc_total),mintr)
             end do
           end do
         end do
       end do
     end if
+    !
+    ! Pressure Gradient Force for Hydrostatic core
+    !
     if ( idynamic == 1 ) then
       !
       ! compute weighted p*t (td) for use in ssi:
@@ -1070,27 +587,6 @@ module mod_tendency
       end if
     end if
     !
-    ! compute the u and v tendencies:
-    !
-    ! compute the diffusion terms:
-    ! put diffusion and pbl tendencies of u and v in difuu and difuv.
-    !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          adf%u(j,i,k) = aten%u(j,i,k)
-          adf%v(j,i,k) = aten%v(j,i,k)
-        end do
-      end do
-    end do
-    !
-    ! Zero again tendencies
-    !
-    aten%u(:,:,:) = d_zero
-    aten%v(:,:,:) = d_zero
-    !
-    call diffu_d(adf%u,adf%v,atms%ubd3d,atms%vbd3d)
-    !
     ! compute Coriolis and curvature terms:
     !
     if ( idynamic == 1 ) then
@@ -1102,8 +598,8 @@ module mod_tendency
             ! (1) part of the horizontal component of the Coriolis force due
             ! to the horizontal movement (4th RHS term in Eq.2.1.1, Eq.2.1.2)
             !
-            aten%u(j,i,k) = aten%u(j,i,k) + mddom%coriol(j,i)*atmx%vc(j,i,k)
-            aten%v(j,i,k) = aten%v(j,i,k) - mddom%coriol(j,i)*atmx%uc(j,i,k)
+            aten%u(j,i,k,uv_pc_total) =   mddom%coriol(j,i)*atmx%vc(j,i,k)
+            aten%v(j,i,k,uv_pc_total) = - mddom%coriol(j,i)*atmx%uc(j,i,k)
           end do
         end do
       end do
@@ -1134,13 +630,13 @@ module mod_tendency
             wabar = wadot + wadotp1
             amfac = wabar * rpsda(j,i) * rearthrad
             duv = atmx%uc(j,i,k)*mddom%dmdy(j,i)-atmx%vc(j,i,k)*mddom%dmdx(j,i)
-            aten%u(j,i,k) = aten%u(j,i,k) +                      &
+            aten%u(j,i,k,uv_pc_total) = &
                             mddom%coriol(j,i)*atmx%vc(j,i,k) -   & ! H Coriolis
                             mddom%ef(j,i)*mddom%ddx(j,i)*wabar + & ! V Coriolis
                             atmx%vmd(j,i,k)*duv -                & ! H curv
                             atmx%uc(j,i,k)*amfac                   ! V curv
-            aten%v(j,i,k) = aten%v(j,i,k) -                      &
-                            mddom%coriol(j,i)*atmx%uc(j,i,k) +   & ! H Coriolis
+            aten%v(j,i,k,uv_pc_total) =  &
+                          - mddom%coriol(j,i)*atmx%uc(j,i,k) +   & ! H Coriolis
                             mddom%ef(j,i)*mddom%ddy(j,i)*wabar - & ! V Coriolis
                             atmx%umd(j,i,k)*duv -                & ! H curv
                             atmx%vc(j,i,k)*amfac                   ! V curv
@@ -1149,7 +645,7 @@ module mod_tendency
       end do
     end if
 #ifdef DEBUG
-    call check_wind_tendency('CORI')
+    call check_wind_tendency('CORI',uv_pc_total)
 #endif
     if ( idynamic == 1 ) then
       !
@@ -1174,12 +670,12 @@ module mod_tendency
               !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
               !      This second form is discretized here.
               !
-              aten%u(j,i,k) = aten%u(j,i,k) - rtbar *               &
+              aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) - rtbar * &
                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
                           hsigma(k)+ptop) -                         &
                      log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-              aten%v(j,i,k) = aten%v(j,i,k) - rtbar *               &
+              aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) - rtbar * &
                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
                           hsigma(k)+ptop) -                         &
                      log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
@@ -1205,12 +701,12 @@ module mod_tendency
               !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
               !      This second form is discretized here.
               !
-              aten%u(j,i,k) = aten%u(j,i,k) - rtbar *                &
+              aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) - rtbar * &
                      (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
                            hsigma(k)+ptop) -                         &
                       log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
                            hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-              aten%v(j,i,k) = aten%v(j,i,k) - rtbar *                &
+              aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) - rtbar * &
                      (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
                            hsigma(k)+ptop) -                         &
                       log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
@@ -1220,7 +716,7 @@ module mod_tendency
         end do
       end if
 #ifdef DEBUG
-      call check_wind_tendency('PRGR')
+      call check_wind_tendency('PRGR',uv_pc_total)
 #endif
       !
       ! compute geopotential height at half-k levels, cross points:
@@ -1307,12 +803,12 @@ module mod_tendency
             ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
             ! (2)    the 1st     term in Eq.2.4.1
             !
-            aten%u(j,i,k) = aten%u(j,i,k) -         &
+            aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) - &
                  (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
                   sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
                  (phi(j,i,k)+phi(j,i-1,k)-          &
                   phi(j-1,i,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
-            aten%v(j,i,k) = aten%v(j,i,k) -         &
+            aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) - &
                  (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
                   sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
                  (phi(j,i,k)+phi(j-1,i,k)-          &
@@ -1321,24 +817,9 @@ module mod_tendency
         end do
       end do
 #ifdef DEBUG
-      call check_wind_tendency('GEOP')
+      call check_wind_tendency('GEOP',uv_pc_total)
 #endif
     end if ! idynamic == 1
-    !
-    ! apply the sponge boundary condition on u and v:
-    !
-    if ( iboudy == 4 ) then
-      call sponge(xub,xvb,aten%u,aten%v)
-    end if
-    !
-    ! apply the nudging boundary conditions:
-    !
-    if ( iboudy == 1 .or. iboudy == 5 ) then
-      call nudge(iboudy,atm2%u,atm2%v,xub,xvb,aten%u,aten%v)
-    end if
-#ifdef DEBUG
-    call check_wind_tendency('BDYC')
-#endif
     !
     ! add the diffusion and pbl tendencies to aten%u and aten%v:
     ! Last RHS terms in Eq. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3,
@@ -1347,42 +828,21 @@ module mod_tendency
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          aten%u(j,i,k) = aten%u(j,i,k) + adf%u(j,i,k)
-          aten%v(j,i,k) = aten%v(j,i,k) + adf%v(j,i,k)
+          aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) + &
+                        aten%u(j,i,k,uv_pc_advection) +  &
+                        aten%u(j,i,k,uv_pc_diffusion) +  &
+                        aten%u(j,i,k,uv_pc_convection) + &
+                        aten%u(j,i,k,uv_pc_pbl) +        &
+                        aten%u(j,i,k,uv_pc_boundary)
+          aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) + &
+                        aten%v(j,i,k,uv_pc_advection) +  &
+                        aten%v(j,i,k,uv_pc_diffusion) +  &
+                        aten%v(j,i,k,uv_pc_convection) + &
+                        aten%v(j,i,k,uv_pc_pbl) +        &
+                        aten%v(j,i,k,uv_pc_boundary)
         end do
       end do
     end do
-#ifdef DEBUG
-    call check_wind_tendency('DIFF')
-#endif
-    if ( ibltyp == 2 ) then
-      ! Calculate the horizontal advective tendency for TKE
-      call hadv(uwstatea%advtke,atm1%tke,1)
-      !
-      !  Couple TKE to ps for use in vertical advection
-      !
-      do k = 1 , kzp1
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            uwstatea%tkeps(j,i,k) = atm1%tke(j,i,k)*sfs%psa(j,i)
-          end do
-        end do
-      end do
-      ! Calculate the vertical advective tendency for TKE
-      call vadv(uwstatea%advtke,uwstatea%tkeps,kzp1,0)
-      ! Calculate the horizontal, diffusive tendency for TKE
-      call diffu_x(uwstatea%advtke,atm2%tke,nuk)
-    end if
-    if ( idynamic == 2 ) then
-      if ( itopnudge == 1 ) then
-        call topnudge(atm2%t,aten%t,xtb)
-        call topnudge(atm2%qx,aten%qx,xqb,iqv)
-      end if
-      if ( ifrayd == 1 ) then
-        call raydamp(atms%za,atm2%t,aten%t)
-        call raydamp(atms%za,atm2%qx,aten%qx)
-      end if
-    end if
     !
     ! Check mass
     !
@@ -1404,8 +864,8 @@ module mod_tendency
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            atmc%u(j,i,k) = atm2%u(j,i,k) + dt*aten%u(j,i,k)
-            atmc%v(j,i,k) = atm2%v(j,i,k) + dt*aten%v(j,i,k)
+            atmc%u(j,i,k) = atm2%u(j,i,k) + dt*aten%u(j,i,k,uv_pc_total)
+            atmc%v(j,i,k) = atm2%v(j,i,k) + dt*aten%v(j,i,k,uv_pc_total)
           end do
         end do
       end do
@@ -1435,34 +895,35 @@ module mod_tendency
       ! Decouple before calling sound
       !
       if ( itopnudge == 1 ) then
-        call topnudge(atm2%u,atm2%v,aten%u,aten%v)
-        call topnudge(atm2%pp,aten%pp,xppb)
-        call topnudge(atm2%w,aten%w,xwwb)
+        call topnudge(atm2%u,atm2%v,uten,vten)
+        call topnudge(atm2%pp,ppten,xppb)
+        call topnudge(atm2%w,wten,xwwb)
       end if
       if ( ifrayd == 1 ) then
-        call raydamp(atms%za,atm2%u,atm2%v,aten%u,aten%v)
-        call raydamp(atms%za,atm2%pp,aten%pp)
-        call raydamp(atms%zq,atm2%w,aten%w,xwwb)
+        call raydamp(atms%za,atm2%u,atm2%v,uten,vten)
+        call raydamp(atms%za,atm2%pp,ppten)
+        call raydamp(atms%zq,atm2%w,wten,xwwb)
       end if
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            aten%u(j,i,k) = aten%u(j,i,k) * rpsda(j,i)
-            aten%v(j,i,k) = aten%v(j,i,k) * rpsda(j,i)
+            aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) * rpsda(j,i)
+            aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) * rpsda(j,i)
           end do
         end do
       end do
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%pp(j,i,k) = aten%pp(j,i,k) * rpsa(j,i)
+            aten%pp(j,i,k,ppw_pc_total) = &
+                      aten%pp(j,i,k,ppw_pc_total) * rpsa(j,i)
           end do
         end do
       end do
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%w(j,i,k) = aten%w(j,i,k) * rpsa(j,i)
+            aten%w(j,i,k,ppw_pc_total) = aten%w(j,i,k,ppw_pc_total) * rpsa(j,i)
           end do
         end do
       end do
@@ -1494,28 +955,30 @@ module mod_tendency
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
-             aten%tke(j,i,k) = aten%tke(j,i,k) + &
-                               uwstatea%advtke(j,i,k)*rpsa(j,i)
+             aten%tke(j,i,k,tke_pc_total) = aten%tke(j,i,k,tke_pc_total) + &
+                         (aten%tke(j,i,k,tke_pc_advection) + &
+                          aten%tke(j,i,k,tke_pc_diffusion)) * rpsa(j,i)  + &
+                         aten%tke(j,i,k,tke_pc_pbl)
           end do
         end do
       end do
       if ( idynamic == 2 ) then
         if ( ifrayd == 1 ) then
-          call raydamp(atms%zq,atm2%tke,aten%tke,tkemin)
+          call raydamp(atms%zq,atm2%tke,tketen,tkemin)
         end if
       end if
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
-                               dt*aten%tke(j,i,k))
+                               dt * aten%tke(j,i,k,tke_pc_total))
           end do
         end do
       end do
       call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu2)
     end if ! TKE tendency update
     if ( ichem == 1 ) then
-      call timefilter_apply(chia,chib,chic,gnu2,1,ntr,mintr)
+      call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,1,ntr,mintr)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
@@ -1550,70 +1013,70 @@ module mod_tendency
     !
     if ( idynamic == 1 .and. ktau > 1 ) then
       if ( is_nan(ptntot) ) then
-        maxv = abs(maxval(aten%t))
+        maxv = abs(maxval(aten%t(:,:,:,pc_total)))
         if ( (maxv/dtsec) > 0.01_rkx ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%t(jj,ii,kk) > maxv ) then
+                if ( aten%t(jj,ii,kk,pc_total) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%u))
+        maxv = abs(maxval(aten%u(:,:,:,uv_pc_total)))
         if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN U :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%u(jj,ii,kk) > maxv ) then
+                if ( aten%u(jj,ii,kk,uv_pc_total) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%v))
+        maxv = abs(maxval(aten%v(:,:,:,uv_pc_total)))
         if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN V :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%v(jj,ii,kk) > maxv ) then
+                if ( aten%v(jj,ii,kk,uv_pc_total) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%qx(:,:,:,iqv)))
+        maxv = abs(maxval(aten%qx(:,:,:,iqv,pc_total)))
         if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QV :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%qx(jj,ii,kk,iqv) > maxv ) then
+                if ( aten%qx(jj,ii,kk,iqv,pc_total) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%qx(:,:,:,iqc)))
+        maxv = abs(maxval(aten%qx(:,:,:,iqc,pc_total)))
         if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QC :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%qx(jj,ii,kk,iqc) > maxv ) then
+                if ( aten%qx(jj,ii,kk,iqc,pc_total) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
@@ -1662,17 +1125,18 @@ module mod_tendency
 #ifdef DEBUG
     ! Check temperature tendency less than 10 K
 
-    subroutine check_temperature_tendency(loc)
+    subroutine check_temperature_tendency(loc,ipc)
       implicit none
       character(len=*) , intent(in) :: loc
+      integer(ik4) , intent(in) :: ipc
       integer(ik4) :: i , j , k , kk , ierr
       real(rkx) :: check_tt , mean_tt
       ierr = 0
-      mean_tt = (maxval(aten%t)+minval(aten%t))/d_two
+      mean_tt = (maxval(aten%t(:,:,:,ipc))+minval(aten%t(:,:,:,ipc)))/d_two
       do k = 1 , kz
         do i = ici1, ici2
           do j = jci1 , jci2
-            check_tt = (aten%t(j,i,k)-mean_tt)*rpsb(j,i)
+            check_tt = (aten%t(j,i,k,ipc)-mean_tt)*rpsb(j,i)
             if ( abs(check_tt) > temp_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'TEMP tendency out of order : ', check_tt
@@ -1699,14 +1163,16 @@ module mod_tendency
 
     ! Check wind speed tendency less than 10 m/s
 
-    subroutine check_wind_tendency(loc)
+    subroutine check_wind_tendency(loc,ipc)
       implicit none
       character(len=*) , intent(in) :: loc
+      integer(ik4) , intent(in) :: ipc
       integer(ik4) :: i , j , k , kk , ierr
       real(rkx) :: check_ww , mean_ww
+      real(rkx) , dimension(jdi1:jdi2,idi1:idi2,1:kz) :: wten
       ierr = 0
-      wten = sqrt(max(aten%u(jdi1:jdi2,idi1:idi2,:),epsilon(d_one))**2 + &
-                  max(aten%v(jdi1:jdi2,idi1:idi2,:),epsilon(d_one))**2)
+      wten = sqrt(max(aten%u(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2 + &
+                  max(aten%v(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2)
       mean_ww = (maxval(wten)+minval(wten))/d_two
       do k = 1 , kz
         do i = ici1, ici2
@@ -1806,6 +1272,9 @@ module mod_tendency
       call exchange(atm1%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       if ( ibltyp == 2 ) then
         call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
+      end if
+      if ( ichem == 1 ) then
+        call exchange(atm1%chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       end if
       !
       ! Coupled helper
@@ -1996,9 +1465,9 @@ module mod_tendency
       if ( ichem == 1 ) then
         do n = 1 , ntr
           do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                chi(j,i,k,n) = chia(j,i,k,n)*rpsa(j,i)
+            do i = ice1ga , ice2ga
+              do j = jce1ga , jce2ga
+                atmx%chi(j,i,k,n) = atm1%chi(j,i,k,n)*rpsa(j,i)
               end do
             end do
           end do
@@ -2092,49 +1561,769 @@ module mod_tendency
       end if
 
       if ( ichem == 1 ) then
-        call exchange(chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         if ( isladvec == 1 ) then
-          call exchange(chib,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call exchange(atm2%chi,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         else
-          call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call exchange(atm2%chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
       end if
-
+      !
+      ! Total water load
+      !
+      if ( ipptls > 1 ) then
+        qcd(:,:,:) = d_zero
+        do n = iqfrst , iqlst
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                qcd(j,i,k) = qcd(j,i,k) + atmx%qx(j,i,k,n)
+              end do
+            end do
+          end do
+        end do
+      end if
     end subroutine decouple
+
+    subroutine compute_omega
+      implicit none
+      integer(ik4) :: i , j , k
+      real(rkx) , dimension(jde1:jde2,ide1:ide2) :: dummy
+
+      qdot(:,:,:)  = d_zero
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
+        end do
+      end do
+      if ( idynamic == 1 ) then
+        !
+        ! compute the pressure tendency
+        !
+        pten(:,:) = d_zero
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! The surface pressure tendency in the   hydrostatic model:
+              ! Eq. 2.1.5 & Eq. 2.4.2 in the MM5 manual
+              !
+              mdv%cr(j,i,k) = ((atmx%umc(j+1,i+1,k)+atmx%umc(j+1,i,k)- &
+                                atmx%umc(j,i+1,k)  -atmx%umc(j,i,k)) + &
+                               (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k)- &
+                                atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k)))*dummy(j,i)
+              pten(j,i) = pten(j,i) - mdv%cr(j,i,k) * dsigma(k)
+            end do
+          end do
+        end do
+        do k = 2 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! The coordinate vertical velocity in the   hydrostatic model:
+              ! Eq. 2.1.6 & Eq. 2.4.3 in the MM5 manual
+              !
+              qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
+                         mdv%cr(j,i,k-1)) * dsigma(k-1) * rpsa(j,i)
+             end do
+          end do
+        end do
+      else if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! Calculate wind components at cross points
+              !
+              ucc(j,i,k) = (atmx%ud(j,i,k)  + atmx%ud(j,i+1,k) + &
+                            atmx%ud(j+1,i,k)+ atmx%ud(j+1,i+1,k))
+              vcc(j,i,k) = (atmx%vd(j,i,k)  + atmx%vd(j,i+1,k) + &
+                            atmx%vd(j+1,i,k)+ atmx%vd(j+1,i+1,k))
+            end do
+          end do
+        end do
+        do k = 2 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! The coordinate vertical velocity in the nonhydrostatic model:
+              ! Eq. 2.2.7 & Eq. 2.3.6 in the MM5 manual
+              !
+              qdot(j,i,k) = -atm0%rhof(j,i,k)*egrav* &
+                      atmx%w(j,i,k)/atm0%ps(j,i) - &
+                  sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +       &
+                                             twt(k,2)*ucc(j,i,k-1)) +    &
+                              dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +       &
+                                             twt(k,2)*vcc(j,i,k-1)))
+             end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! The mass divergence term (in cross points) in the
+              ! nonhydrostatic model:
+              ! Eq. 2.2.6 & Eq. 2.3.5 in the MM5 manual
+              !
+              mdv%cr(j,i,k) = ((atmx%umc(j+1,i+1,k)+atmx%umc(j+1,i,k) -  &
+                                atmx%umc(j,i+1,k)  -atmx%umc(j,i,k))  +  &
+                               (atmx%vmc(j+1,i+1,k)+atmx%vmc(j,i+1,k) -  &
+                                atmx%vmc(j+1,i,k)  -atmx%vmc(j,i,k))) *  &
+                       dummy(j,i) + (qdot(j,i,k+1) - qdot(j,i,k)) *      &
+                          sfs%psa(j,i)/dsigma(k)
+            end do
+          end do
+        end do
+      end if
+      call exchange(mdv%cr,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(qdot,1,jce1,jce2,ice1,ice2,1,kzp1)
+      !
+      ! compute omega
+      !
+      omega(:,:,:) = d_zero
+      if ( idynamic == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              !
+              ! omega in the hydrostatic model: Eqs. 2.1.7, 2.1.8 & 2.4.4
+              !
+              omega(j,i,k) = d_half*(qdot(j,i,k+1)+qdot(j,i,k)) *   &
+                          sfs%psa(j,i) + hsigma(k) * (pten(j,i) +   &
+                         ((atmx%ud(j,i,k) + atmx%ud(j,i+1,k) +      &
+                           atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k))*  &
+                           (sfs%psa(j+1,i)-sfs%psa(j-1,i)) +        &
+                          (atmx%vd(j,i,k) + atmx%vd(j,i+1,k) +      &
+                           atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i,k)) * &
+                           (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
+            end do
+          end do
+        end do
+      else if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              !
+              ! omega in the non-hydrostatic model: compute from w
+              !
+              omega(j,i,k) = d_half*egrav*atm0%rho(j,i,k)*rpsb(j,i) * &
+                           (atm2%w(j,i,k)+atm2%w(j,i,k+1))
+            end do
+          end do
+        end do
+      end if
+    end subroutine compute_omega
+
+    subroutine init_tendencies
+      implicit none
+      aten%u(:,:,:,:) = d_zero
+      aten%v(:,:,:,:) = d_zero
+      aten%t(:,:,:,:) = d_zero
+      aten%qx(:,:,:,:,:) = d_zero
+      !
+      ! Pressure perturbations and vertical velocity tendencies in the
+      ! nonhydrostatic model
+      !
+      if ( idynamic == 2 ) then
+        aten%pp(:,:,:,:) = d_zero
+        aten%w(:,:,:,:) = d_zero
+      end if
+      !
+      ! TKE for UW pbl
+      !
+      if ( ibltyp == 2 ) then
+        aten%tke(:,:,:,:) = d_zero
+      end if
+      !
+      ! Chemistry
+      !
+      if ( ichem == 1 ) then
+        aten%chi(:,:,:,:,:)  = d_zero
+      end if
+      !
+      ! Cloud fractions
+      !
+      cldfra(:,:,:) = d_zero
+      cldlwc(:,:,:) = d_zero
+    end subroutine init_tendencies
+
+    subroutine advection_prognostic
+      implicit none
+      integer(ik4) :: i , j , k
+      !
+      ! Compute departure points for semi-lagrangian
+      !
+      if ( isladvec == 1 ) then
+        call trajcalc_x
+      end if
+      !
+      ! compute the horizontal advection terms for u and v:
+      !
+      ! compute the horizontal advection term in x and y momentum tendency:
+      ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
+      ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
+      !
+      call hadv(wuadv,wvadv,atmx%ud,atmx%vd)
+#ifdef DEBUG
+      call check_wind_tendency('HADV',uv_pc_advection)
+#endif
+      !
+      ! compute the vertical advection terms:
+      !
+      ! compute the vertical advection term in x and y momentum tendency:
+      ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
+      ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
+      !
+      call vadv(wuadv,wvadv,atmx%uc,atmx%vc)
+#ifdef DEBUG
+      call check_wind_tendency('VADV',uv_pc_advection)
+#endif
+      if ( idynamic == 2 ) then
+        !
+        ! Horizontal and vertical advection of pressure perturbation and
+        ! vertical velocity in the nonhydrostatic model: 1st and 2nd term
+        ! on the RHS of the Eq. 2.2.3, Eq. 2.2.4, Eq. 2.3.7 and Eq. 2.3.8
+        ! in the MM5 manual.
+        !
+        ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
+        !
+        call hadv(ppadv,atmx%pp,0)
+        call vadv(ppadv,atm1%pp,kz,0)
+        call hadv(wwadv,atmx%w,1)
+        call vadv(wwadv,atm1%w,kzp1,0)
+      end if
+      !
+      ! compute the horizontal advection term in temperature tendency:
+      ! same for hydrostatic and nonhydrostatic models:
+      ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
+      !
+      if ( ithadv == 0 ) then
+        call hadv(ttadv,atmx%t)
+#ifdef DEBUG
+        call check_temperature_tendency('HADV',pc_advection)
+#endif
+        if ( idiag > 0 ) then
+          call ten2diag(aten%t,tdiag%adh,pc_advection)
+          ten0 = ttadv
+        end if
+        !
+        ! compute the vertical advection term:
+        ! same for hydrostatic and nonhydrostatic models:
+        ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
+        !
+        call vadv(ttadv,atm1%t,kz,1)
+#ifdef DEBUG
+        call check_temperature_tendency('VADV',pc_advection)
+#endif
+        if ( idiag > 0 ) then
+          call ten2diag(aten%t,tdiag%adv,pc_advection,ten0)
+        end if
+      else
+        thten(:,:,:) = d_zero
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              th(j,i,k) = atmx%t(j,i,k) * (p00/atm1%pr(j,i,k))**rovcp
+              tha(j,i,k) = th(j,i,k) * sfs%psa(j,i)
+            end do
+          end do
+        end do
+        call exchange(th,1,jce1,jce2,ice1,ice2,1,kz)
+        call hadv(thten,th)
+        call vadv(thten,tha,kz,0)
+      end if
+      !
+      ! compute the moisture tendencies
+      !
+      if ( isladvec == 1 ) then
+        call slhadv_x(qxadv,atm2%qx,iqv)
+        call hdvg_x(qxadv,atm1%qx,iqv)
+      else
+        call hadv(qxadv,atmx%qx,iqv)
+      end if
+      if ( idiag > 0 .and. idgq == iqv ) then
+        call ten2diag(aten%qx,qdiag%adh,pc_advection)
+        qen0 = qxadv(:,:,:,iqv)
+      end if
+      if ( all(icup /= 1) ) then
+        call vadv(qxadv,atm1%qx,iqv)
+      end if
+      if ( idiag > 0 .and. idgq == iqv ) then
+        call ten2diag(aten%qx,qdiag%adv,pc_advection,qen0)
+      end if
+      if ( ipptls > 0 ) then
+        if ( isladvec == 1 ) then
+          call slhadv_x(qxadv,atm2%qx,iqfrst,iqlst)
+          call hdvg_x(qxadv,atm1%qx,iqfrst,iqlst)
+        else
+          call hadv(qxadv,atmx%qx,iqfrst,iqlst)
+        end if
+        if ( idiag > 0 .and. idgq /= iqv ) then
+          call ten2diag(aten%qx,qdiag%adh,pc_advection)
+          qen0 = qxadv(:,:,:,idgq)
+        end if
+        call vadv(qxadv,atm1%qx,iqfrst,iqlst,iqxvadv)
+        if ( idiag > 0 .and. idgq /= iqv ) then
+          call ten2diag(aten%qx,qdiag%adv,pc_advection,qen0)
+        end if
+      end if
+      if ( ichem == 1 ) then
+        !
+        ! horizontal and vertical advection + diag
+        !
+        if ( isladvec == 1 ) then
+          call slhadv_x(chiadv,atm2%chi)
+          call hdvg_x(chiadv,atm1%chi)
+        else
+          call hadv(chiadv,atmx%chi)
+        end if
+        if ( ichdiag == 1 ) then
+          call ten2diag(aten%chi,cadvhdiag,chi_pc_advection)
+          chiten0 = chiadv
+        end if
+        if ( all(icup /= 1) ) then
+          call vadv(chiadv,atm1%chi,1,ntr,itrvadv)
+        end if
+        if ( ichdiag == 1 ) then
+          call ten2diag(aten%chi,cadvvdiag,chi_pc_advection,chiten0)
+        end if
+      end if
+      if ( ibltyp == 2 ) then
+        ! Calculate the horizontal advective tendency for TKE
+        call hadv(tkeadv,atm1%tke,1)
+        !
+        !  Couple TKE to ps for use in vertical advection
+        !
+        do k = 1 , kzp1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              tkeps(j,i,k) = atm1%tke(j,i,k)*sfs%psa(j,i)
+            end do
+          end do
+        end do
+        ! Calculate the vertical advective tendency for TKE
+        call vadv(tkeadv,tkeps,kzp1,0)
+      end if
+    end subroutine advection_prognostic
+
+    subroutine new_pressure
+      implicit none
+      integer(ik4) :: i , j
+      !
+      ! Surface pressure boundary conditions
+      !
+      if ( iboudy == 4 ) then
+        call sponge(xpsb,pten)
+      else if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(iboudy,sfs%psb,xpsb,pten)
+      end if
+      !
+      ! psc : forecast pressure
+      !
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
+          rpsc(j,i) = d_one/sfs%psc(j,i)
+        end do
+      end do
+      !
+      ! Compute bleck (1977) noise parameters:
+      !
+      if ( ktau /= 0 ) then
+        ptntot = d_zero
+        pt2tot = d_zero
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ptntot = ptntot + abs(pten(j,i))
+            pt2tot = pt2tot + abs((sfs%psc(j,i)+sfs%psb(j,i)- &
+                     d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
+          end do
+        end do
+      end if
+    end subroutine new_pressure
+
+    subroutine boundary_tendencies
+      implicit none
+      if ( iboudy == 1 .or. iboudy == 5 ) then
+        call nudge(iboudy,atm2%t,xtb,tbdy)
+        call nudge(iboudy,atm2%qx,xqb,qxbdy,iqv)
+        call nudge(iboudy,atm2%u,atm2%v,xub,xvb,ubdy,vbdy)
+      else if ( iboudy == 4 ) then
+        call sponge(xtb,tbdy)
+        call sponge(xqb,qxbdy,iqv)
+        call sponge(xub,xvb,ubdy,vbdy)
+      end if
+#ifdef DEBUG
+      call check_temperature_tendency('BDYC',pc_boundary)
+      call check_wind_tendency('BDYC',uv_pc_boundary)
+#endif
+      if ( idynamic == 2 ) then
+        if ( iboudy == 1 .or. iboudy == 5 ) then
+          call nudge(iboudy,atm2%pp,xppb,ppbdy)
+          call nudge(iboudy,atm2%w,xwwb,wbdy)
+        else if ( iboudy == 4 ) then
+          call sponge(xppb,ppbdy)
+          call sponge(xwwb,wbdy)
+        end if
+      end if
+      if ( ichem == 1 ) then
+        if ( iboudy == 1 .or. iboudy == 5 ) then
+          call nudge_chi(kz,atm2%chi,chibdy)
+        end if
+      end if
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%bdy,pc_boundary)
+        call ten2diag(aten%qx,qdiag%bdy,pc_boundary)
+        if ( ichem == 1 ) then
+          call ten2diag(aten%chi,cbdydiag,chi_pc_boundary)
+        end if
+      end if
+    end subroutine boundary_tendencies
+
+    subroutine diffusion_tendencies
+      implicit none
+      !
+      ! compute the diffusion term for t and qx
+      !
+      call diffu_d(udif,vdif,atms%ubd3d,atms%vbd3d)
+      call diffu_x(tdif,atms%tb3d)
+      call diffu_x(qxdif,atms%qxb3d,1,nqx,d_one)
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%dif,pc_diffusion)
+        call ten2diag(aten%qx,qdiag%dif,pc_diffusion)
+      end if
+      if ( idynamic == 2 ) then
+        !
+        ! compute the diffusion term for vertical velocity w
+        ! compute the diffusion term for perturb pressure pp
+        !
+        call diffu_x(ppdif,atms%ppb3d)
+        call diffu_x(wdif,atms%wb3d,d_one)
+      end if
+      if ( ichem == 1 ) then
+        call diffu_x(chidif,atms%chib3d,1,ntr,d_one)
+        if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,chi_pc_diffusion)
+      end if
+      if ( ibltyp == 2 ) then
+        ! Calculate the horizontal, diffusive tendency for TKE
+        ! Here TKE is decoupled , we can pass atm2.
+        call diffu_x(tkedif,atm2%tke,d_one)
+      end if
+#ifdef DEBUG
+      call check_wind_tendency('DIFF',uv_pc_diffusion)
+      call check_temperature_tendency('DIFF',pc_diffusion)
+#endif
+    end subroutine diffusion_tendencies
+
+    subroutine adiabatic_term
+      implicit none
+      if ( idynamic == 1 ) then
+        !
+        ! Adiabatic term in the temperature tendency equation in the
+        ! hydrostatic model:    3rd RHS term in Eq. 2.1.3
+        !
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              rovcpm = rgas/cpmf(qvd(j,i,k))
+              aten%t(j,i,k,pc_adiabatic) = &
+                              (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
+                              (ptop*rpsa(j,i)+hsigma(k))
+            end do
+          end do
+        end do
+      else if ( idynamic == 2 ) then
+        !
+        ! Adiabatic term in the temperature tendency equation in the
+        ! nonhydrostatic model: 3rd and 4th RHS term in Eq. 2.2.5 and Eq.2.3.9.
+        !
+        if ( ithadv == 0 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cpm = cpmf(qvd(j,i,k))
+                scr1 = d_half*egrav*atm0%rho(j,i,k) * &
+                             (atm1%w(j,i,k)+atm1%w(j,i,k+1))
+                aten%t(j,i,k,pc_adiabatic) = &
+                           atmx%t(j,i,k)*mdv%cr(j,i,k) - &
+                          (scr1+aten%pp(j,i,k,ppw_pc_advection) + &
+                           atmx%pp(j,i,k)*mdv%cr(j,i,k))/(atm1%rho(j,i,k)*cpm)
+              end do
+            end do
+          end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                thten(j,i,k) = thten(j,i,k) + th(j,i,k) * mdv%cr(j,i,k)
+                aten%t(j,i,k,pc_adiabatic) = &
+                     atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
+              end do
+            end do
+          end do
+        end if
+        !
+        ! Divergence term in the pressure perturbation tendency equation in the
+        ! nonhydrostatic model: 4th RHS term in Eq. 2.2.4 and Eq. 2.3.8
+        !
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%pp(j,i,k,ppw_pc_adiabatic) = atmx%pp(j,i,k)*mdv%cr(j,i,k)
+            end do
+          end do
+        end do
+        do n = 1 , nqx
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                aten%qx(j,i,k,n,pc_adiabatic) = atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
+              end do
+            end do
+          end do
+        end do
+        !
+        ! Vertical velocity tendency. Following terms are included here:
+        ! (1) bouyancy terms: 2nd subterm and part of the 3rd subterm of the
+        !     4th RHS term in Eq.2.2.3 and 2.2.11. This is joined into the 5th
+        !     RHS term in Eq. 2.3.7.
+        ! (2) part of the vertical component of the Coriolis force due to the
+        !     horizontal movement (cf. 6th RHS term in Eq. 2.2.11)
+        ! (3) vertical curvature term (not explicitly mentioned in the MM5 1994
+        !     manual)
+        ! (4) mass divergence term (3rd RHS term in Eq. 2.2.3, 2.2.11 and
+        !     Eq. 2.3.7)
+        !
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! Calculate wind components at cross points
+              !
+              ucc(j,i,k) = (atmx%uc(j,i,k)  + atmx%uc(j,i+1,k) + &
+                            atmx%uc(j+1,i,k)+ atmx%uc(j+1,i+1,k))
+              vcc(j,i,k) = (atmx%vc(j,i,k)  + atmx%vc(j,i+1,k) + &
+                            atmx%vc(j+1,i,k)+ atmx%vc(j+1,i+1,k))
+
+            end do
+          end do
+        end do
+        do k = 2 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +      &
+                        dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
+                      ( dsigma(k-1) * atm1%rho(j,i,k) +      &
+                        dsigma(k)   * atm1%rho(j,i,k-1) )
+              uaq = d_rfour * (twt(k,1) * ucc(j,i,k) + &
+                               twt(k,2) * ucc(j,i,k-1))
+              vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
+                               twt(k,2) * vcc(j,i,k-1))
+              aten%w(j,i,k,ppw_pc_adiabatic) = &
+                    (twt(k,2)*atmx%pr(j,i,k-1) +             &
+                     twt(k,1)*atmx%pr(j,i,k)) *              &
+                     rofac * egrav * sfs%psa(j,i) +          &
+                     mddom%ex(j,i)*(uaq*mddom%crx(j,i) -     &
+                                    vaq*mddom%cry(j,i)) +    &
+                     (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
+                     atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) + &
+                                    twt(k,2)*mdv%cr(j,i,k-1))
+            end do
+          end do
+        end do
+        if ( ipptls > 0 ) then
+          do k = 2 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                !
+                ! Vertical velocity tendency: water loading term
+                ! 5th RHS term in Eq. 2.2.3 & 6th RHS term in Eq. 2.3.7
+                !
+                aten%w(j,i,k,ppw_pc_adiabatic) = &
+                     aten%w(j,i,k,ppw_pc_adiabatic) - egrav * sfs%psa(j,i) * &
+                            (twt(k,2)*qcd(j,i,k-1) + twt(k,1)*qcd(j,i,k))
+              end do
+            end do
+          end do
+        end if
+      end if
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%adi,pc_adiabatic)
+        call ten2diag(aten%qx,qdiag%adi,pc_adiabatic)
+      end if
+#ifdef DEBUG
+      call check_temperature_tendency('DIAB',pc_adiabatic)
+#endif
+    end subroutine adiabatic_term
+
+    subroutine physical_parametrizations
+      implicit none
+      !
+      ! Call cumulus parametrization
+      !
+      call cumulus
+#ifdef DEBUG
+      call check_temperature_tendency('CONV',pc_convection)
+      call check_wind_tendency('CONV',uv_pc_convection)
+#endif
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%con,pc_convection)
+        call ten2diag(aten%qx,qdiag%con,pc_convection)
+      end if
+      if ( ichem == 1 .and. ichdiag == 1 ) then
+        call ten2diag(aten%chi,cconvdiag,chi_pc_convection)
+      end if
+      ! save cumulus cloud fraction for chemistry before it is
+      ! overwritten in cldfrac
+      !
+      if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
+      !
+      ! Large scale precipitation
+      !
+      if ( ipptls > 0 ) then
+        !
+        ! Clouds and large scale precipitation
+        !
+        call cldfrac
+        call microscheme
+        if ( idiag > 0 ) then
+          call ten2diag(aten%t,tdiag%lsc,pc_microphys)
+          call ten2diag(aten%qx,qdiag%lsc,pc_microphys)
+        end if
+#ifdef DEBUG
+        call check_temperature_tendency('MICR',pc_microphys)
+#endif
+      end if
+      !
+      ! call radiative transfer package
+      !
+      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+        !
+        ! calculate albedo
+        !
+        call surface_albedo
+        ! Update / init Ozone profiles
+        if ( iclimao3 == 1 ) then
+          call updateo3(idatex,scenario)
+        else
+          if ( ktau == 0 ) call inito3
+        end if
+        loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+        labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
+        call radiation(xyear,loutrad,labsem)
+      end if
+
+      if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
+        call surface_model
+        if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+      end if
+      !
+      ! Call medium resolution PBL
+      !
+      call pblscheme
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%tbl,pc_pbl)
+        call ten2diag(aten%qx,qdiag%tbl,pc_pbl)
+      end if
+      if ( ichem == 1 .and. ichdiag == 1 ) then
+        call ten2diag(aten%chi,ctbldiag,chi_pc_pbl)
+      end if
+#ifdef DEBUG
+      call check_temperature_tendency('PBLL',pc_pbl)
+      call check_wind_tendency('PBLL',uv_pc_pbl)
+#endif
+    end subroutine physical_parametrizations
 
   end subroutine tend
 
-  subroutine extracttent(pten,ten,store)
+  subroutine extracttent(ten,store,indx,ten0)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) :: pten
-    real(rkx) , pointer , dimension(:,:,:) :: ten
+    real(rkx) , pointer , dimension(:,:,:,:) :: ten
     real(rkx) , pointer , dimension(:,:,:) :: store
+    integer(ik4) , intent(in) :: indx
+    real(rkx) , optional , pointer , dimension(:,:,:) :: ten0
     integer :: i , j , k
+    if ( present(ten0) ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            store(j,i,k) = store(j,i,k) + (ten(j,i,k,indx)-ten0(j,i,k))*afdout
+          end do
+        end do
+      end do
+      return
+    end if
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          store(j,i,k) = store(j,i,k)+(ten(j,i,k)-pten(j,i,k))*afdout
-          pten(j,i,k) = ten(j,i,k)
+          store(j,i,k) = store(j,i,k) + ten(j,i,k,indx)*afdout
         end do
       end do
-     end do
+    end do
   end subroutine extracttent
 
-  subroutine extracttenqv(pqen,qen,store)
+  subroutine extracttenqv(qen,store,indx,qen0)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) :: pqen
-    real(rkx) , pointer , dimension(:,:,:,:) :: qen
+    real(rkx) , pointer , dimension(:,:,:,:,:) :: qen
     real(rkx) , pointer , dimension(:,:,:) :: store
+    integer(ik4) , intent(in) :: indx
+    real(rkx) , optional , pointer , dimension(:,:,:) :: qen0
     integer :: i , j , k
+    if ( present(qen0) ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            store(j,i,k) = store(j,i,k) + &
+                    (qen(j,i,k,idgq,indx)-qen0(j,i,k))*afdout
+          end do
+        end do
+      end do
+      return
+    end if
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          store(j,i,k) = store(j,i,k)+(qen(j,i,k,idgq)-pqen(j,i,k))*afdout
-          pqen(j,i,k) = qen(j,i,k,idgq)
+          store(j,i,k) = store(j,i,k) + qen(j,i,k,idgq,indx)*afdout
         end do
       end do
-     end do
+    end do
   end subroutine extracttenqv
+
+  subroutine extracttenchi(chiten,store,indx,chiten0)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:,:,:) :: chiten
+    real(rkx) , pointer , dimension(:,:,:,:) :: store
+    integer(ik4) , intent(in) :: indx
+    real(rkx) , optional , pointer , dimension(:,:,:,:) :: chiten0
+    integer :: i , j , k , n
+    if ( present(chiten0) ) then
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              store(j,i,k,n) = store(j,i,k,n) + &
+                  (chiten(j,i,k,n,indx)-chiten0(j,i,k,n))*afdout
+            end do
+          end do
+        end do
+      end do
+      return
+    end if
+    do n = 1 , ntr
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            store(j,i,k,n) = store(j,i,k,n) + chiten(j,i,k,n,indx)*afdout
+          end do
+        end do
+      end do
+    end do
+  end subroutine extracttenchi
 
 end module mod_tendency
 

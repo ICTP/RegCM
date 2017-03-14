@@ -56,12 +56,9 @@ module mod_che_interface
   public :: allocate_mod_che_bionit
   public :: allocate_mod_che_linox
 
-
   public :: totsp
-  public :: chi , chib3d , chic
-  public :: chia , chia_io
-  public :: chib , chib_io
-  public :: chiten , chiten0
+  public :: chia_io
+  public :: chib_io
   public :: convcldfra , cadvhdiag , cadvvdiag , cbdydiag , cconvdiag
   public :: cdifhdiag , ctbldiag
   public :: chem_bdyin , chem_bdyval
@@ -111,6 +108,10 @@ module mod_che_interface
     call assignpnt(mddom%dlat,cdlat)
     call assignpnt(mddom%dlon,cdlon)
 
+    call assignpnt(atm1%chi,chia)
+    call assignpnt(atm2%chi,chib)
+    call assignpnt(atmc%chi,chic)
+    call assignpnt(aten%chi,chiten,pc_total)
 
     call assignpnt(mddom%ht,cht)
     call assignpnt(mddom%iveg,cveg2d)

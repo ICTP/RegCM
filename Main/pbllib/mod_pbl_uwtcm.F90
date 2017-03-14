@@ -140,7 +140,6 @@ module mod_pbl_uwtcm
   public :: allocate_tcm_state
   public :: init_mod_pbl_uwtcm
   public :: uwtcm
-  public :: get_data_from_tcm
 
   contains
 
@@ -150,83 +149,9 @@ module mod_pbl_uwtcm
   subroutine allocate_tcm_state(tcmstate)
     implicit none
     type(tcm_state) , intent(out) :: tcmstate
-    call getmem3d(tcmstate%tkeps,jce1,jce2,ice1,ice2,1,kzp1,'pbl_common:tkeps')
-    call getmem3d(tcmstate%advtke,jce1,jce2, &
-                  ice1,ice2,1,kzp1,'pbl_common:advtke')
     call getmem3d(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
     call getmem3d(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
-    call getmem2d(tcmstate%srftke,jci1,jci2,ici1,ici2,'pbl_common:srftke')
   end subroutine allocate_tcm_state
-
-  subroutine get_data_from_tcm(p2m)
-    implicit none
-    type(pbl_2_mod) , intent(inout) :: p2m
-    integer :: i , j , k , n
-    ! Don't update the model variables if we are the diagnostic mode
-    ! (Holtslag running, and UW updating tke)
-    !
-    ! Put the t and qv tendencies in to difft and diffq for
-    ! application of the sponge boundary conditions (see mod_tendency)
-    !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) +  &
-                                  p2m%qxuwten(j,i,k,iqv)
-        end do
-      end do
-    end do
-
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%difft(j,i,k) = p2m%difft(j,i,k) + p2m%tuwten(j,i,k)
-        end do
-      end do
-    end do
-
-    ! Put the cloud water tendency
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%diffqx(j,i,k,iqc) = p2m%diffqx(j,i,k,iqc) + &
-                                  p2m%qxuwten(j,i,k,iqc)
-        end do
-      end do
-    end do
-    if ( implicit_ice .and. ipptls > 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%diffqx(j,i,k,iqi) = p2m%diffqx(j,i,k,iqi) + &
-                                    p2m%qxuwten(j,i,k,iqi)
-          end do
-        end do
-      end do
-    end if
-
-    ! Put the tracer tendencies in chiten
-    ! TODO: may want to calcuate rmdr here following holtbl
-    if ( ichem == 1 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + chiuwten(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-    end if
-
-    do k = 1 , kzp1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%tketen(j,i,k) = p2m%tkeuwten(j,i,k)
-        end do
-      end do
-    end do
-  end subroutine get_data_from_tcm
 
   subroutine init_mod_pbl_uwtcm
     implicit none
@@ -322,14 +247,8 @@ module mod_pbl_uwtcm
     call time_begin(subroutine_name,idindx)
 #endif
 
-    ! Zero out tendencies
-
-    p2m%uuwten(:,:,:) = d_zero
     p2m%vuwten(:,:,:) = d_zero
-    p2m%tkeuwten(:,:,:) = d_zero
-    p2m%tuwten(:,:,:) = d_zero
-    p2m%qxuwten(:,:,:,:) = d_zero
-    if ( ichem == 1 ) chiuwten(:,:,:,:) = d_zero
+    p2m%uuwten(:,:,:) = d_zero
 
     !Main do loop
     do i = ici1 , ici2
@@ -808,38 +727,38 @@ module mod_pbl_uwtcm
           ! Meridional wind tendency
           p2m%vuwten(j,i,k) = psbx*(vx(k)-vxs(k))*rdt
           ! TKE tendency
-          p2m%tkeuwten(j,i,k) = (tke(k)-tkes(k))*rdt
+          p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + (tke(k)-tkes(k))*rdt
           ! Temperature tendency
-          p2m%tuwten(j,i,k) = psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
+          p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+                         psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
           ! Water vapor tendency
-          p2m%qxuwten(j,i,k,iqv) = psbx*(qx(k)-qxs(k))*rdt
+          p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + psbx*(qx(k)-qxs(k))*rdt
           ! Cloud water tendency
-          p2m%qxuwten(j,i,k,iqc) = psbx*(qcx(k)-qcxs(k))*rdt
+          p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
+                         psbx*(qcx(k)-qcxs(k))*rdt
           ! Momentum diffusivity
-          uwstateb%kzm(j,i,k) = kzm(k)
+          uwstate%kzm(j,i,k) = kzm(k)
           ! Scalar diffusivity
-          uwstateb%kth(j,i,k) = kth(k)
+          uwstate%kth(j,i,k) = kth(k)
         end do
 
-        p2m%tkeuwten(j,i,kzp1) = (tke(kzp1)-tkes(kzp1))*rdt
+        p2m%tketen(j,i,kzp1) = p2m%tketen(j,i,kzp1) + (tke(kzp1)-tkes(kzp1))*rdt
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = ibnd , kz
-            p2m%qxuwten(j,i,k,iqi) = psbx*(qix(k)-qixs(k))*rdt
+            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
+                      psbx*(qix(k)-qixs(k))*rdt
           end do
         end if
 
         if ( ichem == 1 ) then
           do itr = 1 , ntr
             do k = ibnd , kz
-              chiuwten(j,i,k,itr) = psbx*(chix(k,itr)-chixs(k,itr))*rdt
+              p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) + &
+                         psbx*(chix(k,itr)-chixs(k,itr))*rdt
             end do
           end do
         end if
-
-        ! Output the diagnosed TKE
-        uwstatea%srftke(j,i) = tke(kzp1)
-        uwstateb%srftke(j,i) = tke(kzp1)
 
         p2m%kpbl(j,i) = kpbl2dx
         p2m%zpbl(j,i) = pblx

@@ -41,20 +41,20 @@ module mod_atm_interface
   type(atmstate_a) , public :: atm1
   type(atmstate_b) , public :: atm2
   type(atmstate_c) , public :: atmc
-  type(atmstate_tendency) , public :: aten , uwten
+  type(atmstate_tendency) , public :: aten
   type(atmstate_decoupled) , public :: atmx
+  type(crosswind_tendency) , public :: uwten
   type(tendiag) , public :: tdiag
   type(qendiag) , public :: qdiag
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
-  type(diffx) , public :: adf
   type(v3dbound) , public :: xtb , xqb , xub , xvb , xppb , xwwb
   type(v2dbound) , public :: xpsb
   type(bound_area) , public :: ba_cr , ba_dt
   type(reference_atmosphere) , public :: atm0
   type(mass_divergence) , public :: mdv
 
-  public :: allocate_mod_atm_interface
+  public :: allocate_mod_atm_interface , allocate_uwstate_tendency
   public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
 
@@ -549,6 +549,10 @@ module mod_atm_interface
         call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
         call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       end if
+      if ( ichem == 1 ) then
+        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
+                              1,kz,1,ntr,'atmstate:chi')
+      end if
     end subroutine allocate_atmstate_a
 
     subroutine allocate_atmstate_b(atm)
@@ -572,6 +576,10 @@ module mod_atm_interface
         call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
         call getmem3d(atm%w,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:w')
       end if
+      if ( ichem == 1 ) then
+        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
+                              1,kz,1,ntr,'atmstate:chi')
+      end if
     end subroutine allocate_atmstate_b
 
     subroutine allocate_atmstate_c(atm)
@@ -583,13 +591,16 @@ module mod_atm_interface
         call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
       end if
       call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
-      call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       if ( idynamic == 2 ) then
         call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
         call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
         call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       else
         call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
+      end if
+      if ( ichem == 1 ) then
+        call getmem4d(atm%chi,jce1,jce2,ice1,ice2, &
+                              1,kz,1,ntr,'atmstate:chi')
       end if
     end subroutine allocate_atmstate_c
 
@@ -619,37 +630,52 @@ module mod_atm_interface
         call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
         call getmem3d(atm%w,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:w')
       end if
+      if ( ichem == 1 ) then
+        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
+                              1,kz,1,ntr,'atmstate:chi')
+      end if
     end subroutine allocate_atmstate_decoupled
 
     subroutine allocate_atmstate_tendency(atm)
       implicit none
       type(atmstate_tendency) , intent(out) :: atm
-      if ( any(icup == 5 ) ) then
-        call getmem3d(atm%u,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'atmstate:v')
+      if ( any(icup == 5) .or. ibltyp == 2 ) then
+        call getmem4d(atm%u,jdi1ga,jdi2ga,idi1ga,idi2ga, &
+                      1,kz,1,uv_number_of_prognostic_components,'atmstate:u')
+        call getmem4d(atm%v,jdi1ga,jdi2ga,idi1ga,idi2ga, &
+                      1,kz,1,uv_number_of_prognostic_components,'atmstate:v')
       else
-        call getmem3d(atm%u,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:v')
+        call getmem4d(atm%u,jdi1,jdi2,idi1,idi2, &
+                      1,kz,1,uv_number_of_prognostic_components,'atmstate:u')
+        call getmem4d(atm%v,jdi1,jdi2,idi1,idi2, &
+                      1,kz,1,uv_number_of_prognostic_components,'atmstate:v')
       end if
-      call getmem3d(atm%t,jci1,jci2,ici1,ici2,1,kz,'atmstate:t')
-      call getmem4d(atm%qx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qx')
+      call getmem4d(atm%t,jci1,jci2,ici1,ici2, &
+                    1,kz,1,number_of_prognostic_components,'atmstate:t')
+      call getmem5d(atm%qx,jci1,jci2,ici1,ici2, &
+                    1,kz,1,nqx,1,number_of_prognostic_components,'atmstate:qx')
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:tke')
+        call getmem4d(atm%tke,jci1,jci2,ici1,ici2, &
+                  1,kzp1,1,tke_number_of_prognostic_components,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
-        call getmem3d(atm%pp,jci1,jci2,ici1,ici2,1,kz,'atmstate:pp')
-        call getmem3d(atm%w,jci1,jci2,ici1,ici2,1,kzp1,'atmstate:w')
+        call getmem4d(atm%pp,jci1,jci2,ici1,ici2, &
+                      1,kz,1,ppw_number_of_prognostic_components,'atmstate:pp')
+        call getmem4d(atm%w,jci1,jci2,ici1,ici2, &
+                      1,kzp1,1,ppw_number_of_prognostic_components,'atmstate:w')
+      end if
+      if ( ichem == 1 ) then
+        call getmem5d(atm%chi,jce1,jce2,ice1,ice2, &
+                      1,kz,1,ntr,1,chi_number_of_prognostic_components, &
+                      'atmstate:chi')
       end if
     end subroutine allocate_atmstate_tendency
 
     subroutine allocate_uwstate_tendency(uws)
       implicit none
-      type(atmstate_tendency) , intent(out) :: uws
+      type(crosswind_tendency) , intent(out) :: uws
       call getmem3d(uws%u,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uws:u')
       call getmem3d(uws%v,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uws:v')
-      call getmem3d(uws%t,jci1,jci2,ici1,ici2,1,kz,'uws:t')
-      call getmem4d(uws%qx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'uws:qx')
-      call getmem3d(uws%tke,jci1,jci2,ici1,ici2,1,kzp1,'uws:tke')
     end subroutine allocate_uwstate_tendency
 
     subroutine allocate_reference_atmosphere(atm)
@@ -835,24 +861,6 @@ module mod_atm_interface
       end if
     end subroutine allocate_slice
 
-    subroutine allocate_diffx(dx)
-      implicit none
-      type(diffx) , intent(out) :: dx
-      if ( any(icup == 5 ) ) then
-        call getmem3d(dx%u,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'diffx:u')
-        call getmem3d(dx%v,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'diffx:v')
-      else
-        call getmem3d(dx%u,jdi1,jdi2,idi1,idi2,1,kz,'diffx:u')
-        call getmem3d(dx%v,jdi1,jdi2,idi1,idi2,1,kz,'diffx:v')
-      end if
-      call getmem3d(dx%t,jci1,jci2,ici1,ici2,1,kz,'diffx:t')
-      call getmem4d(dx%qx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'diffx:qx')
-      if ( idynamic == 2 ) then
-        call getmem3d(dx%w,jci1,jci2,ici1,ici2,1,kzp1,'diffx:w')
-        call getmem3d(dx%pp,jci1,jci2,ici1,ici2,1,kz,'diffx:pp')
-      end if
-    end subroutine allocate_diffx
-
     subroutine allocate_mod_atm_interface
       implicit none
 
@@ -867,13 +875,9 @@ module mod_atm_interface
       call allocate_atmstate_decoupled(atmx)
       call allocate_atmstate_c(atmc)
       call allocate_atmstate_tendency(aten)
-      if ( ibltyp == 2 ) then
-        call allocate_uwstate_tendency(uwten)
-      end if
 
       call allocate_surfstate(sfs)
       call allocate_slice(atms,atm0)
-      call allocate_diffx(adf)
       call allocate_mass_divergence(mdv)
 
       ! FAB:

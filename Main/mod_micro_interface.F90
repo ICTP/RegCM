@@ -161,8 +161,8 @@ module mod_micro_interface
       end if
     end if
 
-    call assignpnt(aten%qx,mc2mo%qxten)
-    call assignpnt(aten%t,mc2mo%tten)
+    call assignpnt(aten%qx,mc2mo%qxten,pc_microphys)
+    call assignpnt(aten%t,mc2mo%tten,pc_microphys)
     call assignpnt(sfs%rainnc,mc2mo%rainnc)
     call assignpnt(sfs%snownc,mc2mo%snownc)
     call assignpnt(pptnc,mc2mo%lsmrnc)
@@ -351,7 +351,7 @@ module mod_micro_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tmp3 = (atm2%t(j,i,k)+dt*mc2mo%tten(j,i,k))/sfs%psc(j,i)
+          tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
 #ifdef DEBUG
           if ( tmp3 < d_zero ) then
             write(stderr,*) 'Time ktau = ', ktau
@@ -362,9 +362,9 @@ module mod_micro_interface
           end if
 #endif
           qvcs = max((atm2%qx(j,i,k,iqv) + &
-                   dt*mc2mo%qxten(j,i,k,iqv)),qvmin)/sfs%psc(j,i)
+                   dt*aten%qx(j,i,k,iqv,pc_total)),qvmin)/sfs%psc(j,i)
           qccs = max((atm2%qx(j,i,k,iqc) + &
-                   dt*mc2mo%qxten(j,i,k,iqc)),d_zero)/sfs%psc(j,i)
+                   dt*aten%qx(j,i,k,iqc,pc_total)),d_zero)/sfs%psc(j,i)
           !
           ! 2.  Compute the cloud condensation/evaporation term.
           !
@@ -373,7 +373,7 @@ module mod_micro_interface
             pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
           else
             pres = atm0%pr(j,i,k) + &
-               (atm2%pp(j,i,k)+dt*aten%pp(j,i,k))/sfs%psc(j,i)
+               (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,ppw_pc_total))/sfs%psc(j,i)
           end if
           qvs = pfwsat(tmp3,pres)
           rhc = min(max(qvcs/qvs,rhmin),rhmax)
@@ -416,9 +416,12 @@ module mod_micro_interface
           ! 3. Compute the tendencies.
           !
           if ( abs(tmp2) > dlowval ) then
-            mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) - sfs%psc(j,i)*tmp2
-            mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) + sfs%psc(j,i)*tmp2
-            mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) + sfs%psc(j,i)*tmp2*wlhvocp
+            aten%qx(j,i,k,iqv,pc_microphys) = &
+                aten%qx(j,i,k,iqv,pc_microphys) - sfs%psc(j,i)*tmp2
+            aten%qx(j,i,k,iqc,pc_microphys) = &
+                aten%qx(j,i,k,iqc,pc_microphys) + sfs%psc(j,i)*tmp2
+            aten%t(j,i,k,pc_microphys) = &
+                aten%t(j,i,k,pc_microphys) + sfs%psc(j,i)*tmp2*wlhvocp
           end if
         end do
       end do

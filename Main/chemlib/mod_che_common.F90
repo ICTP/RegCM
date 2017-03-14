@@ -125,24 +125,11 @@ module mod_che_common
       call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')
       call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
-      call getmem4d(chia,jce1ga,jce2ga,ice1ga,ice2ga, &
-                         1,kz,1,ntr,'che_common:chia')
-      if ( isladvec == 1 ) then
-        call getmem4d(chib,jce1sl,jce2sl,ice1sl,ice2sl, &
-                           1,kz,1,ntr,'che_common:chib')
-      else
-        call getmem4d(chib,jce1ga,jce2ga,ice1ga,ice2ga, &
-                           1,kz,1,ntr,'che_common:chib')
-      end if
-      call getmem4d(chi,jce1ga,jce2ga,ice1ga,ice2ga, &
-                        1,kz,1,ntr,'che_common:chi')
       if ( idynamic == 2 ) then
         call getmem3d(tvirt,jce1,jce2,ice1,ice2,1,kz,'che_common:tvirt')
         call getmem2d(sp0,jce1,jce2,ice1,ice2,'che_common:sp0')
         call getmem2d(sp1,jce1,jce2,ice1,ice2,'che_common:sp1')
       end if
-      call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
-      call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
       call getmem4d(chemten,jce1,jce2, &
                     ice1,ice2,1,kz,1,ntr,'che_common:chemten')
       call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &

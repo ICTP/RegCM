@@ -26,11 +26,10 @@ module mod_pbl_interface
   use mod_memutil
   use mod_mppparam
   use mod_regcm_types
-  use mod_pbl_common , only : ricr , chiuwten , uwstatea , uwstateb , kmxpbl
+  use mod_pbl_common , only : ricr , uwstate , kmxpbl
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : allocate_tcm_state
-  use mod_pbl_uwtcm , only : uwtcm , get_data_from_tcm
-  use mod_pbl_uwtcm , only : init_mod_pbl_uwtcm , tkemin
+  use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , tkemin
   use mod_runparams , only : ibltyp
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
@@ -45,8 +44,7 @@ module mod_pbl_interface
   public :: init_pblscheme
   public :: pblscheme
 
-  public :: uwstatea
-  public :: uwstateb
+  public :: uwstate
   public :: kmxpbl
   public :: ricr
   public :: tkemin
@@ -54,18 +52,15 @@ module mod_pbl_interface
   contains
 
   subroutine allocate_pblscheme
+    use mod_atm_interface
     implicit none
     if ( ibltyp == 1 ) then
       call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
       call allocate_mod_pbl_holtbl
     end if
     if ( ibltyp == 2 ) then
-      call allocate_tcm_state(uwstatea)
-      call allocate_tcm_state(uwstateb)
-      if ( ichem == 1 ) then
-        call getmem4d(chiuwten,jci1,jci2,ici1,ici2, &
-                      1,kz,1,ntr,'pbl_common:chiuwten')
-      end if
+      call allocate_tcm_state(uwstate)
+      call allocate_uwstate_tendency(uwten)
       call init_mod_pbl_uwtcm
     end if
   end subroutine allocate_pblscheme
@@ -106,19 +101,14 @@ module mod_pbl_interface
     call assignpnt(ktrop,m2p%ktrop)
 
     ! OUTPUT FROM PBL
-    call assignpnt(aten%t,p2m%tten)
-    call assignpnt(aten%u,p2m%uten)
-    call assignpnt(aten%v,p2m%vten)
-    call assignpnt(aten%qx,p2m%qxten)
-    call assignpnt(aten%tke,p2m%tketen)
+    call assignpnt(aten%t,p2m%tten,pc_pbl)
+    call assignpnt(aten%u,p2m%uten,uv_pc_pbl)
+    call assignpnt(aten%v,p2m%vten,uv_pc_pbl)
+    call assignpnt(aten%qx,p2m%qxten,pc_pbl)
+    call assignpnt(aten%tke,p2m%tketen,tke_pc_pbl)
+    call assignpnt(aten%chi,p2m%chiten,chi_pc_pbl)
     call assignpnt(uwten%u,p2m%uuwten)
     call assignpnt(uwten%v,p2m%vuwten)
-    call assignpnt(uwten%t,p2m%tuwten)
-    call assignpnt(uwten%tke,p2m%tkeuwten)
-    call assignpnt(uwten%qx,p2m%qxuwten)
-    call assignpnt(adf%t,p2m%difft)
-    call assignpnt(adf%qx,p2m%diffqx)
-    call assignpnt(chiten,p2m%chiten)
     call assignpnt(remdrd,p2m%remdrd)
     call assignpnt(zpbl,p2m%zpbl)
     call assignpnt(kpbl,p2m%kpbl)
@@ -132,9 +122,10 @@ module mod_pbl_interface
       case (1)
         call holtbl(m2p,p2m)
       case (2)
+        call exchange(p2m%uten,1,jdi1,jdi2,idi1,idi2,1,kz)
+        call exchange(p2m%vten,1,jdi1,jdi2,idi1,idi2,1,kz)
         call uwtcm(m2p,p2m)
-        call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v)
-        call get_data_from_tcm(p2m)
+        call uvcross2dot(uwten%u,uwten%v,p2m%uten,p2m%vten)
       case default
         return
     end select

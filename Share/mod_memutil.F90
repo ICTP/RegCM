@@ -77,6 +77,11 @@ module mod_memutil
     module procedure assignp4d_i
     module procedure assignp4d_r
     module procedure assignp4d_d
+    module procedure assignp4d5_l
+    module procedure assignp4d5_s
+    module procedure assignp4d5_i
+    module procedure assignp4d5_r
+    module procedure assignp4d5_d
     module procedure assignp5d_l
     module procedure assignp5d_s
     module procedure assignp5d_i
@@ -2896,6 +2901,101 @@ module mod_memutil
     end if
     b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),a)
   end subroutine assignp4d_d
+
+  subroutine assignp4d5_l(a,b,n)
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+    implicit none
+    logical , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:,:,:) , intent(out) :: b
+    integer , intent(in) :: n
+    integer , dimension(4) :: theshape
+    logical , pointer , dimension(:,:,:,:) :: x
+    type(c_ptr) :: pntr
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,:,1))
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),n))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),x)
+  end subroutine assignp4d5_l
+
+  subroutine assignp4d5_s(a,b,n)
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+    implicit none
+    integer(2) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    integer , intent(in) :: n
+    integer , dimension(4) :: theshape
+    integer(2) , pointer , dimension(:,:,:,:) :: x
+    type(c_ptr) :: pntr
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,:,1))
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),n))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),x)
+  end subroutine assignp4d5_s
+
+  subroutine assignp4d5_i(a,b,n)
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    integer , intent(in) :: n
+    integer , dimension(4) :: theshape
+    integer(ik4) , pointer , dimension(:,:,:,:) :: x
+    type(c_ptr) :: pntr
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,:,1))
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),n))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),x)
+  end subroutine assignp4d5_i
+
+  subroutine assignp4d5_r(a,b,n)
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    integer , intent(in) :: n
+    integer , dimension(4) :: theshape
+    real(rk4) , pointer , dimension(:,:,:,:) :: x
+    type(c_ptr) :: pntr
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,:,1))
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),n))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),x)
+  end subroutine assignp4d5_r
+
+  subroutine assignp4d5_d(a,b,n)
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: b
+    integer , intent(in) :: n
+    integer , dimension(4) :: theshape
+    real(rk8) , pointer , dimension(:,:,:,:) :: x
+    type(c_ptr) :: pntr
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,:,1))
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),n))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),x)
+  end subroutine assignp4d5_d
 
   subroutine assignp5d_l(a,b)
     implicit none

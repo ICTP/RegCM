@@ -128,11 +128,12 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: v
     real(rkx) , pointer , dimension(:,:,:) :: w
     real(rkx) , pointer , dimension(:,:,:) :: t
-    real(rkx) , pointer , dimension(:,:,:,:) :: qx
     real(rkx) , pointer , dimension(:,:,:) :: tke
     real(rkx) , pointer , dimension(:,:,:) :: pp
     real(rkx) , pointer , dimension(:,:,:) :: pr
     real(rkx) , pointer , dimension(:,:,:) :: rho
+    real(rkx) , pointer , dimension(:,:,:,:) :: qx
+    real(rkx) , pointer , dimension(:,:,:,:) :: chi
   end type atmstate_a
 
   type atmstate_b
@@ -140,10 +141,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: v
     real(rkx) , pointer , dimension(:,:,:) :: w
     real(rkx) , pointer , dimension(:,:,:) :: t
-    real(rkx) , pointer , dimension(:,:,:,:) :: qx
     real(rkx) , pointer , dimension(:,:,:) :: tke
     real(rkx) , pointer , dimension(:,:,:) :: pp
     real(rkx) , pointer , dimension(:,:,:) :: pr
+    real(rkx) , pointer , dimension(:,:,:,:) :: qx
+    real(rkx) , pointer , dimension(:,:,:,:) :: chi
   end type atmstate_b
 
   type atmstate_c
@@ -151,21 +153,27 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: v
     real(rkx) , pointer , dimension(:,:,:) :: w
     real(rkx) , pointer , dimension(:,:,:) :: t
-    real(rkx) , pointer , dimension(:,:,:,:) :: qx
     real(rkx) , pointer , dimension(:,:,:) :: tke
     real(rkx) , pointer , dimension(:,:,:) :: pp
-    real(rkx) , pointer , dimension(:,:,:) :: rho
+    real(rkx) , pointer , dimension(:,:,:,:) :: qx
+    real(rkx) , pointer , dimension(:,:,:,:) :: chi
   end type atmstate_c
 
   type atmstate_tendency
+    real(rkx) , pointer , dimension(:,:,:,:) :: u
+    real(rkx) , pointer , dimension(:,:,:,:) :: v
+    real(rkx) , pointer , dimension(:,:,:,:) :: w
+    real(rkx) , pointer , dimension(:,:,:,:) :: t
+    real(rkx) , pointer , dimension(:,:,:,:) :: tke
+    real(rkx) , pointer , dimension(:,:,:,:) :: pp
+    real(rkx) , pointer , dimension(:,:,:,:,:) :: qx
+    real(rkx) , pointer , dimension(:,:,:,:,:) :: chi
+  end type atmstate_tendency
+
+  type crosswind_tendency
     real(rkx) , pointer , dimension(:,:,:) :: u
     real(rkx) , pointer , dimension(:,:,:) :: v
-    real(rkx) , pointer , dimension(:,:,:) :: w
-    real(rkx) , pointer , dimension(:,:,:) :: t
-    real(rkx) , pointer , dimension(:,:,:,:) :: qx
-    real(rkx) , pointer , dimension(:,:,:) :: tke
-    real(rkx) , pointer , dimension(:,:,:) :: pp
-  end type atmstate_tendency
+  end type crosswind_tendency
 
   type atmstate_decoupled
     real(rkx) , pointer , dimension(:,:,:) :: uc  ! Coupled with pressure
@@ -183,21 +191,14 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: pp
     real(rkx) , pointer , dimension(:,:,:) :: pr
     real(rkx) , pointer , dimension(:,:,:) :: rho
+    real(rkx) , pointer , dimension(:,:,:,:) :: chi
   end type atmstate_decoupled
 
   type tcm_state
-    ! TKE*ps
-    real(rkx) , pointer , dimension(:,:,:) :: tkeps  ! (m^2/s^2 * cb)
-    ! Coupled TKE Advective Tendency
-    real(rkx) , pointer , dimension(:,:,:) :: advtke ! (m^2/s^3 * cb)
     ! Vertical momentum diffusivity
     real(rkx) , pointer , dimension(:,:,:) :: kzm    ! (m^2/s)
     ! Vertical scalar diffusivity
     real(rkx) , pointer , dimension(:,:,:) :: kth    ! (m^2/s)
-    ! Boundary layer height (m)
-    real(rkx) , pointer , dimension(:,:) :: zpbl     ! (m)
-    ! Surface layer TKE
-    real(rkx) , pointer , dimension(:,:) :: srftke   ! (m^2/s^2)
   end type tcm_state
 
   type tendiag
@@ -273,15 +274,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: ps2d
     real(rkx) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
-
-  type diffx
-    real(rkx) , pointer , dimension(:,:,:) :: t
-    real(rkx) , pointer , dimension(:,:,:) :: u
-    real(rkx) , pointer , dimension(:,:,:) :: v
-    real(rkx) , pointer , dimension(:,:,:) :: w
-    real(rkx) , pointer , dimension(:,:,:) :: pp
-    real(rkx) , pointer , dimension(:,:,:,:) :: qx
-  end type diffx
 
   type v3dbound
     real(rkx) , pointer , dimension(:,:,:) :: b0
@@ -618,12 +610,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: tketen     ! aten%tke
     real(rkx) , pointer , dimension(:,:,:) :: uuwten     ! uwten%u
     real(rkx) , pointer , dimension(:,:,:) :: vuwten     ! uwten%v
-    real(rkx) , pointer , dimension(:,:,:) :: tuwten     ! uwten%t
-    real(rkx) , pointer , dimension(:,:,:) :: tkeuwten   ! uwten%tke
-    real(rkx) , pointer , dimension(:,:,:,:) :: qxuwten  ! uwten%qx
-    real(rkx) , pointer , dimension(:,:,:) :: difft      ! adf%difft
-    real(rkx) , pointer , dimension(:,:,:,:) :: diffqx   ! adf%diffqx
-    real(rkx) , pointer , dimension(:,:,:,:) :: diagqx   ! holtten%qx
     real(rkx) , pointer , dimension(:,:,:,:) :: chiten   ! chiten
     real(rkx) , pointer , dimension(:,:,:) :: remdrd     ! remdrd
     real(rkx) , pointer , dimension(:,:) :: zpbl

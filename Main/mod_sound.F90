@@ -224,8 +224,8 @@ module mod_sound
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          aten%u(j,i,k) = aten%u(j,i,k) * dts
-          aten%v(j,i,k) = aten%v(j,i,k) * dts
+          aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) * dts
+          aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) * dts
         end do
       end do
     end do
@@ -246,7 +246,7 @@ module mod_sound
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%pp(j,i,k) = aten%pp(j,i,k) * dts
+          aten%pp(j,i,k,ppw_pc_total) = aten%pp(j,i,k,ppw_pc_total) * dts
         end do
       end do
     end do
@@ -260,7 +260,7 @@ module mod_sound
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%w(j,i,k) = aten%w(j,i,k) * dts
+          aten%w(j,i,k,ppw_pc_total) = aten%w(j,i,k,ppw_pc_total) * dts
         end do
       end do
     end do
@@ -313,8 +313,8 @@ module mod_sound
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k)
-            atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k)
+            atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k,uv_pc_total)
+            atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k,uv_pc_total)
           end do
         end do
       end do
@@ -389,7 +389,7 @@ module mod_sound
           ! IG: at the top (k=1), w(x,y,1)=0, dw(x,y,1)/dsigma=0 so
           ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
           !
-          ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *       &
+          ptend(j,i,1) = aten%pp(j,i,1,ppw_pc_total) - d_half * cc(j,i,1) * &
                        ( ( atmc%v(j,i+1,1)   * mddom%msfd(j,i+1)   - &
                            atmc%v(j,i,1)     * mddom%msfd(j,i)     + &
                            atmc%v(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
@@ -466,7 +466,7 @@ module mod_sound
             ! Nonhydrostatic model.
             ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
             !
-            ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *         &
+            ptend(j,i,k) = aten%pp(j,i,k,ppw_pc_total) - d_half * cc(j,i,k) * &
                            ( (atmc%v(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
                               atmc%v(j,i,k)     * mddom%msfd(j,i)     +  &
                               atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
@@ -478,7 +478,7 @@ module mod_sound
                           mddom%msfx(j,i) - &
                           d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
             rhs(j,i,k) = atmc%w(j,i,k) +                                    &
-                    aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *                   &
+                    aten%w(j,i,k,ppw_pc_total) + ca(j,i,k) * ( bpxbm *      &
                      ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
                      ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +             &
                        (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +   &
@@ -619,7 +619,7 @@ module mod_sound
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%w(j,i,1) = wpval(j,i) + aten%w(j,i,1)
+          atmc%w(j,i,1) = wpval(j,i) + aten%w(j,i,1,ppw_pc_total)
         end do
       end do
       !
@@ -742,7 +742,7 @@ module mod_sound
             atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
                           ( cjtmp  * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
                             cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) ) * bp
-            pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k)
+            pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k,ppw_pc_total)
             !
             ! Compute pressure dp`/dt correction to the temperature
             !

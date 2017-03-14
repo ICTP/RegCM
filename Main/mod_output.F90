@@ -447,9 +447,9 @@ module mod_output
           if ( associated(atm_tke_out) ) &
             atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
           if ( associated(atm_kth_out) ) &
-            atm_kth_out = uwstateb%kth(jci1:jci2,ici1:ici2,1:kz)
+            atm_kth_out = uwstate%kth(jci1:jci2,ici1:ici2,1:kz)
           if ( associated(atm_kzm_out) ) &
-            atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
+            atm_kzm_out = uwstate%kzm(jci1:jci2,ici1:ici2,1:kz)
         end if
 
         if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
@@ -1118,8 +1118,8 @@ module mod_output
         end if
 
         if ( ichem == 1 ) then
-          call grid_collect(chia,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-          call grid_collect(chib,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_collect(atm1%chi,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_collect(atm2%chi,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(rainout,rainout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(washout,washout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)

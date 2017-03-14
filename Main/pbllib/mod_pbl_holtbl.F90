@@ -523,7 +523,7 @@ module mod_pbl_holtbl
       do i = ici1 , ici2
         do j = jci1 , jci2
           sf = (m2p%tatm(j,i,k)*m2p%psb(j,i))/m2p%tpatm(j,i,k)
-          p2m%difft(j,i,k) = p2m%difft(j,i,k) + &
+          p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
                          (tpred1(j,i,k)-m2p%tpatm(j,i,k))*rdt*sf
         end do
       end do
@@ -599,7 +599,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) + &
+          p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
                        (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
         end do
       end do
@@ -673,7 +673,7 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%diffqx(j,i,k,nn) = p2m%diffqx(j,i,k,nn) + &
+            p2m%qxten(j,i,k,nn) = p2m%qxten(j,i,k,nn) + &
                         (tpred1(j,i,k)-m2p%qxatm(j,i,k,nn))*rdt*m2p%psb(j,i)
           end do
         end do
@@ -700,13 +700,13 @@ module mod_pbl_holtbl
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        p2m%difft(j,i,kz) = p2m%difft(j,i,kz) - hydf(kz)*ttnp(j,i,kz)*rcpd
+        p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - hydf(kz)*ttnp(j,i,kz)*rcpd
       end do
     end do
     do k = 1 , kzm1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%difft(j,i,k) = p2m%difft(j,i,k) + &
+          p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
                   hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
         end do
       end do
