@@ -269,7 +269,7 @@ module mod_params
     itopnudge = 0
     ifrayd = 1
     rayndamp = kz / 6
-    rayalpha0 = 5.0e-5_rkx
+    rayalpha0 = 5.0e-8_rkx
     rayzd = 15000.0_rkx
     rayhd = 3000.0_rkx
     !

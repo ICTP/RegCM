@@ -110,7 +110,6 @@ module mod_che_interface
 
     call assignpnt(atm1%chi,chia)
     call assignpnt(atm2%chi,chib)
-    call assignpnt(atmc%chi,chic)
     call assignpnt(aten%chi,chiten,pc_total)
 
     call assignpnt(mddom%ht,cht)

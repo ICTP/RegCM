@@ -52,7 +52,7 @@ module mod_che_common
   ! tracer variables
 
   real(rkx) , pointer , dimension(:,:,:,:) :: chi
-  real(rkx) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiten , chiten0 , chemten
 
   real(rkx) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc,chemsrcbb,chemsrcan
   real(rkx) , pointer , dimension(:,:,:,:) :: chia , chib

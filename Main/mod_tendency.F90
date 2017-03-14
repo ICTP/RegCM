@@ -396,7 +396,8 @@ module mod_tendency
         ! compute the condensation and precipitation terms for SUBEX
         ! moisture schemes
         !
-        aten%qx(:,:,:,:,pc_microphys) = d_zero
+        aten%qx(:,:,:,iqv,pc_microphys) = d_zero
+        aten%qx(:,:,:,iqc,pc_microphys) = d_zero
         aten%t(:,:,:,pc_microphys) = d_zero
         call condtq
         do k = 1 , kz
@@ -455,40 +456,6 @@ module mod_tendency
         end do
       end do
     end do
-    !
-    ! forecast tracer chi at at tau+1:
-    !
-    if ( ichem == 1 ) then
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              aten%chi(j,i,k,itr,chi_pc_total) = &
-                     aten%chi(j,i,k,itr,chi_pc_total) + &
-                     aten%chi(j,i,k,itr,chi_pc_advection) +  &
-                     aten%chi(j,i,k,itr,chi_pc_diffusion) +  &
-                     aten%chi(j,i,k,itr,chi_pc_convection) + &
-                     aten%chi(j,i,k,itr,chi_pc_pbl)
-            end do
-          end do
-        end do
-      end do
-      if ( idynamic == 2 ) then
-        if ( ifrayd == 1 ) then
-          call raydamp(atms%za,atm2%chi,chiten)
-        end if
-      end if
-      do itr = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              atmc%chi(j,i,k,itr) = max(atm2%chi(j,i,k,itr) + &
-                  dt*aten%chi(j,i,k,itr,chi_pc_total),mintr)
-            end do
-          end do
-        end do
-      end do
-    end if
     !
     ! Pressure Gradient Force for Hydrostatic core
     !
@@ -942,7 +909,9 @@ module mod_tendency
         end do
       end do
     end if
-
+    !
+    ! forecast TKE at at tau+1:
+    !
     if ( ibltyp == 2 ) then
       ! TAO: Once the full loop above is completed, update the TKE
       ! tendency if the UW PBL is running.  NOTE!!! Do not try to
@@ -956,7 +925,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
              aten%tke(j,i,k,tke_pc_total) = aten%tke(j,i,k,tke_pc_total) + &
-                         (aten%tke(j,i,k,tke_pc_advection) + &
+                         (aten%tke(j,i,k,tke_pc_advection) +               &
                           aten%tke(j,i,k,tke_pc_diffusion)) * rpsa(j,i)  + &
                          aten%tke(j,i,k,tke_pc_pbl)
           end do
@@ -977,7 +946,39 @@ module mod_tendency
       end do
       call timefilter_apply(atm1%tke,atm2%tke,atmc%tke,gnu2)
     end if ! TKE tendency update
+    !
+    ! forecast tracer chi at at tau+1:
+    !
     if ( ichem == 1 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%chi(j,i,k,itr,chi_pc_total) = &
+                     aten%chi(j,i,k,itr,chi_pc_total) + &
+                     aten%chi(j,i,k,itr,chi_pc_advection) +  &
+                     aten%chi(j,i,k,itr,chi_pc_diffusion) +  &
+                     aten%chi(j,i,k,itr,chi_pc_convection) + &
+                     aten%chi(j,i,k,itr,chi_pc_pbl)
+            end do
+          end do
+        end do
+      end do
+      if ( idynamic == 2 ) then
+        if ( ifrayd == 1 ) then
+          call raydamp(atms%za,atm2%chi,chiten)
+        end if
+      end if
+      do itr = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              atmc%chi(j,i,k,itr) = max(atm2%chi(j,i,k,itr) + &
+                  dt*aten%chi(j,i,k,itr,chi_pc_total),mintr)
+            end do
+          end do
+        end do
+      end do
       call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,1,ntr,mintr)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
@@ -2052,6 +2053,7 @@ module mod_tendency
                 aten%t(j,i,k,pc_adiabatic) = &
                            atmx%t(j,i,k)*mdv%cr(j,i,k) - &
                           (scr1+aten%pp(j,i,k,ppw_pc_advection) + &
+                                aten%pp(j,i,k,ppw_pc_boundary) +  &
                            atmx%pp(j,i,k)*mdv%cr(j,i,k))/(atm1%rho(j,i,k)*cpm)
               end do
             end do
