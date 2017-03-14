@@ -2166,7 +2166,9 @@ module mod_tendency
     subroutine physical_parametrizations
       implicit none
       !
-      ! Call cumulus parametrization
+      !------------------------------------------------
+      !        Call cumulus parametrization
+      !------------------------------------------------
       !
       call cumulus
 #ifdef DEBUG
@@ -2182,15 +2184,14 @@ module mod_tendency
       end if
       ! save cumulus cloud fraction for chemistry before it is
       ! overwritten in cldfrac
-      !
       if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
       !
-      ! Large scale precipitation
+      !------------------------------------------------
+      ! Large scale precipitation microphysical schemes
+      !------------------------------------------------
       !
       if ( ipptls > 0 ) then
-        !
         ! Clouds and large scale precipitation
-        !
         call cldfrac
         call microscheme
         if ( idiag > 0 ) then
@@ -2202,12 +2203,12 @@ module mod_tendency
 #endif
       end if
       !
-      ! call radiative transfer package
+      !------------------------------------------------
+      !       Call radiative transfer package
+      !------------------------------------------------
       !
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-        !
         ! calculate albedo
-        !
         call surface_albedo
         ! Update / init Ozone profiles
         if ( iclimao3 == 1 ) then
@@ -2219,13 +2220,19 @@ module mod_tendency
         labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
         call radiation(xyear,loutrad,labsem)
       end if
-
+      !
+      !------------------------------------------------
+      !            Call Surface model
+      !------------------------------------------------
+      !
       if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
         call surface_model
         if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
       end if
       !
-      ! Call medium resolution PBL
+      !------------------------------------------------
+      !             Call PBL scheme
+      !------------------------------------------------
       !
       call pblscheme
       if ( idiag > 0 ) then
