@@ -547,10 +547,16 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: qfx       ! sfs%qfx
     real(rkx) , pointer , dimension(:,:) :: hfx       ! sfs%hfx
     real(rkx) , pointer , dimension(:,:,:) :: ccn     ! ccn
-    real(rkx) , pointer , dimension(:,:,:) :: tdif    ! adf%t
-    real(rkx) , pointer , dimension(:,:,:,:) :: qdif  ! adf%qx
-    real(rkx) , pointer , dimension(:,:,:) :: udif    ! adf%u
-    real(rkx) , pointer , dimension(:,:,:) :: vdif    ! adf%v
+    real(rkx) , pointer , dimension(:,:,:) :: tdif    ! aten%t
+    real(rkx) , pointer , dimension(:,:,:,:) :: qdif  ! aten%qx
+    real(rkx) , pointer , dimension(:,:,:) :: udif    ! aten%u
+    real(rkx) , pointer , dimension(:,:,:) :: vdif    ! aten%v
+    real(rkx) , pointer , dimension(:,:,:,:) :: cdif  ! aten%chi
+    real(rkx) , pointer , dimension(:,:,:) :: tadv    ! aten%t
+    real(rkx) , pointer , dimension(:,:,:,:) :: qadv  ! aten%qx
+    real(rkx) , pointer , dimension(:,:,:) :: uadv    ! aten%u
+    real(rkx) , pointer , dimension(:,:,:) :: vadv    ! aten%v
+    real(rkx) , pointer , dimension(:,:,:,:) :: cadv  ! aten%chi
     integer(ik4) , pointer , dimension(:,:) :: ktrop
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type mod_2_cum
