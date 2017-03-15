@@ -790,15 +790,15 @@ module mod_tendency
       integer(ik4) , intent(in) :: ipc
       integer(ik4) :: i , j , k , kk , ierr
       real(rkx) :: check_ww , mean_ww
-      real(rkx) , dimension(jdi1:jdi2,idi1:idi2,1:kz) :: wten
+      real(rkx) , dimension(jdi1:jdi2,idi1:idi2,1:kz) :: ww
       ierr = 0
-      wten = sqrt(max(aten%u(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2 + &
-                  max(aten%v(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2)
-      mean_ww = (maxval(wten)+minval(wten))/d_two
+      ww = sqrt(max(aten%u(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2 + &
+                max(aten%v(jdi1:jdi2,idi1:idi2,:,ipc),epsilon(d_one))**2)
+      mean_ww = (maxval(ww)+minval(ww))/d_two
       do k = 1 , kz
         do i = ici1, ici2
           do j = jci1 , jci2
-            check_ww = (wten(j,i,k)-mean_ww)/sfs%psdotb(j,i)
+            check_ww = (ww(j,i,k)-mean_ww)/sfs%psdotb(j,i)
             if ( abs(check_ww) > wind_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'WIND tendency out of order : ', check_ww
