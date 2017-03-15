@@ -271,7 +271,7 @@ module mod_tendency
     call curvature
     call adiabatic
     !
-    ! Compute horizontal diffusion term
+    ! Compute Large scale horizontal diffusion term
     !
     call diffusion
     !
@@ -1599,39 +1599,38 @@ module mod_tendency
       !
       ! compute the diffusion term for t and qx
       !
-      call diffu_d(uphy,vphy,atms%ubd3d,atms%vbd3d)
+      call diffu_d(udyn,vdyn,atms%ubd3d,atms%vbd3d)
       if ( idiag > 0 ) then
-        ten0 = tphy
-        qen0 = qxphy(:,:,:,iqv)
+        ten0 = tdyn
+        qen0 = qxdyn(:,:,:,iqv)
       end if
-      call diffu_x(tphy,atms%tb3d)
-      call diffu_x(qxphy,atms%qxb3d,1,nqx,d_one)
+      call diffu_x(tdyn,atms%tb3d)
+      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_one)
       if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%dif,pc_physic,ten0)
-        call ten2diag(aten%qx,qdiag%dif,pc_physic,qen0)
+        call ten2diag(aten%t,tdiag%dif,pc_dynamic,ten0)
+        call ten2diag(aten%qx,qdiag%dif,pc_dynamic,qen0)
       end if
       if ( idynamic == 2 ) then
         !
         ! compute the diffusion term for vertical velocity w
         ! compute the diffusion term for perturb pressure pp
         !
-        call diffu_x(ppphy,atms%ppb3d)
-        call diffu_x(wphy,atms%wb3d,d_one)
+        call diffu_x(ppdyn,atms%ppb3d)
+        call diffu_x(wdyn,atms%wb3d,d_one)
       end if
       if ( ichem == 1 ) then
-        if ( ichdiag > 0 ) chiten0 = chiphy
-        call diffu_x(chiphy,atms%chib3d,1,ntr,d_one)
-        if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_physic,chiten0)
+        if ( ichdiag > 0 ) chiten0 = chidyn
+        call diffu_x(chidyn,atms%chib3d,1,ntr,d_one)
+        if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_dynamic,chiten0)
       end if
       if ( ibltyp == 2 ) then
         ! Calculate the horizontal, diffusive tendency for TKE
-        ! Here TKE is decoupled , we can pass atm2. Use dynamic component
-        ! of tendency, to allow later decoupling to sum up all.
+        ! Here TKE is decoupled , we can pass atm2.
         call diffu_x(tkedyn,atm2%tke,nuk)
       end if
 #ifdef DEBUG
-      call check_wind_tendency('DIFF',pc_physic)
-      call check_temperature_tendency('DIFF',pc_physic)
+      call check_wind_tendency('DIFF',pc_dynamic)
+      call check_temperature_tendency('DIFF',pc_dynamic)
 #endif
     end subroutine diffusion
 

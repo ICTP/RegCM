@@ -208,7 +208,7 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              avg_tten(j,i,k) = (m2c%tphy(j,i,k))/m2c%psb(j,i)
+              avg_tten(j,i,k) = m2c%tphy(j,i,k)/m2c%psb(j,i)
             end do
           end do
         end do
