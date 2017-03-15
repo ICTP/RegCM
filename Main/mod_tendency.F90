@@ -1286,7 +1286,7 @@ module mod_tendency
       if ( idynamic == 1 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
-            dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
+            dummy(j,i) = d_one/(dx4*mddom%msfx(j,i))
           end do
         end do
         do k = 1 , kz
@@ -1299,10 +1299,10 @@ module mod_tendency
                           sfs%psa(j,i) + hsigma(k) * (pten(j,i) +   &
                          ((atmx%ud(j,i,k) + atmx%ud(j,i+1,k) +      &
                            atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k))*  &
-                           (sfs%psa(j+1,i)-sfs%psa(j-1,i)) +        &
+                           (sfs%psdota(j+1,i)-sfs%psdota(j,i)) +    &
                           (atmx%vd(j,i,k) + atmx%vd(j,i+1,k) +      &
                            atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i,k)) * &
-                           (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
+                           (sfs%psdota(j,i+1)-sfs%psdota(j,i)))*dummy(j,i))
             end do
           end do
         end do
@@ -2222,16 +2222,12 @@ module mod_tendency
             ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
             ! (2)    the 1st     term in Eq.2.4.1
             !
-            udyn(j,i,k) = udyn(j,i,k) - &
-                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
-                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
+            udyn(j,i,k) = udyn(j,i,k) - sfs%psdota(j,i) * &
                  (phi(j,i,k)+phi(j,i-1,k)-          &
-                  phi(j-1,i,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
-            vdyn(j,i,k) = vdyn(j,i,k) - &
-                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
-                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
+                  phi(j-1,i,k)-phi(j-1,i-1,k)) / (dx2*mddom%msfd(j,i))
+            vdyn(j,i,k) = vdyn(j,i,k) - sfs%psdota(j,i) * &
                  (phi(j,i,k)+phi(j-1,i,k)-          &
-                  phi(j,i-1,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
+                  phi(j,i-1,k)-phi(j-1,i-1,k)) / (dx2*mddom%msfd(j,i))
           end do
         end do
       end do

@@ -607,7 +607,7 @@ module mod_params
       else
         diffu_hgtf = 1
         gnu1 = 0.0625_rkx
-        gnu2 = d_two * gnu1
+        gnu2 = 0.0625_rkx
       end if
       upstream_mode = .true.
       stability_enhance = .true.
