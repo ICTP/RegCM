@@ -72,31 +72,23 @@ module mod_tendency
   real(rkx) , pointer , dimension(:,:,:,:) :: qxten
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten
 
-  real(rkx) , pointer , dimension(:,:,:) :: ttadv
-  real(rkx) , pointer , dimension(:,:,:) :: wuadv
-  real(rkx) , pointer , dimension(:,:,:) :: wvadv
-  real(rkx) , pointer , dimension(:,:,:) :: wwadv
-  real(rkx) , pointer , dimension(:,:,:) :: ppadv
-  real(rkx) , pointer , dimension(:,:,:) :: tkeadv
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxadv
-  real(rkx) , pointer , dimension(:,:,:,:) :: chiadv
+  real(rkx) , pointer , dimension(:,:,:) :: tdyn
+  real(rkx) , pointer , dimension(:,:,:) :: udyn
+  real(rkx) , pointer , dimension(:,:,:) :: vdyn
+  real(rkx) , pointer , dimension(:,:,:) :: wdyn
+  real(rkx) , pointer , dimension(:,:,:) :: ppdyn
+  real(rkx) , pointer , dimension(:,:,:) :: tkedyn
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxdyn
+  real(rkx) , pointer , dimension(:,:,:,:) :: chidyn
 
-  real(rkx) , pointer , dimension(:,:,:) :: tdif
-  real(rkx) , pointer , dimension(:,:,:) :: udif
-  real(rkx) , pointer , dimension(:,:,:) :: vdif
-  real(rkx) , pointer , dimension(:,:,:) :: wdif
-  real(rkx) , pointer , dimension(:,:,:) :: ppdif
-  real(rkx) , pointer , dimension(:,:,:) :: tkedif
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxdif
-  real(rkx) , pointer , dimension(:,:,:,:) :: chidif
-
-  real(rkx) , pointer , dimension(:,:,:) :: tbdy
-  real(rkx) , pointer , dimension(:,:,:) :: ubdy
-  real(rkx) , pointer , dimension(:,:,:) :: vbdy
-  real(rkx) , pointer , dimension(:,:,:,:) :: qxbdy
-  real(rkx) , pointer , dimension(:,:,:) :: wbdy
-  real(rkx) , pointer , dimension(:,:,:) :: ppbdy
-  real(rkx) , pointer , dimension(:,:,:,:) :: chibdy
+  real(rkx) , pointer , dimension(:,:,:) :: tphy
+  real(rkx) , pointer , dimension(:,:,:) :: uphy
+  real(rkx) , pointer , dimension(:,:,:) :: vphy
+  real(rkx) , pointer , dimension(:,:,:) :: wphy
+  real(rkx) , pointer , dimension(:,:,:) :: ppphy
+  real(rkx) , pointer , dimension(:,:,:) :: tkephy
+  real(rkx) , pointer , dimension(:,:,:,:) :: qxphy
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiphy
 
   real(rkx) , pointer , dimension(:,:,:) :: ten0 , qen0
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
@@ -175,45 +167,38 @@ module mod_tendency
       end if
     end if
     call assignpnt(aten%t,tten,pc_total)
-    call assignpnt(aten%t,ttadv,pc_advection)
-    call assignpnt(aten%t,tdif,pc_diffusion)
-    call assignpnt(aten%t,tbdy,pc_boundary)
+    call assignpnt(aten%t,tdyn,pc_dynamic)
+    call assignpnt(aten%t,tphy,pc_physic)
 
-    call assignpnt(aten%u,uten,uv_pc_total)
-    call assignpnt(aten%u,wuadv,uv_pc_advection)
-    call assignpnt(aten%u,udif,uv_pc_diffusion)
-    call assignpnt(aten%u,ubdy,uv_pc_boundary)
+    call assignpnt(aten%u,uten,pc_total)
+    call assignpnt(aten%u,udyn,pc_dynamic)
+    call assignpnt(aten%u,uphy,pc_physic)
 
-    call assignpnt(aten%v,vten,uv_pc_total)
-    call assignpnt(aten%v,wvadv,uv_pc_advection)
-    call assignpnt(aten%v,vdif,uv_pc_diffusion)
-    call assignpnt(aten%v,vbdy,uv_pc_boundary)
+    call assignpnt(aten%v,vten,pc_total)
+    call assignpnt(aten%v,vdyn,pc_dynamic)
+    call assignpnt(aten%v,vphy,pc_physic)
 
     call assignpnt(aten%qx,qxten,pc_total)
-    call assignpnt(aten%qx,qxadv,pc_advection)
-    call assignpnt(aten%qx,qxdif,pc_diffusion)
-    call assignpnt(aten%qx,qxbdy,pc_boundary)
+    call assignpnt(aten%qx,qxdyn,pc_dynamic)
+    call assignpnt(aten%qx,qxphy,pc_physic)
 
     if ( idynamic == 2 ) then
-      call assignpnt(aten%w,wten,ppw_pc_total)
-      call assignpnt(aten%w,wwadv,ppw_pc_advection)
-      call assignpnt(aten%w,wdif,ppw_pc_diffusion)
-      call assignpnt(aten%w,wbdy,ppw_pc_boundary)
-      call assignpnt(aten%pp,ppten,ppw_pc_total)
-      call assignpnt(aten%pp,ppadv,ppw_pc_advection)
-      call assignpnt(aten%pp,ppdif,ppw_pc_diffusion)
-      call assignpnt(aten%pp,ppbdy,ppw_pc_boundary)
+      call assignpnt(aten%w,wten,pc_total)
+      call assignpnt(aten%w,wdyn,pc_dynamic)
+      call assignpnt(aten%w,wphy,pc_physic)
+      call assignpnt(aten%pp,ppten,pc_total)
+      call assignpnt(aten%pp,ppdyn,pc_dynamic)
+      call assignpnt(aten%pp,ppphy,pc_physic)
     end if
     if ( ibltyp == 2 ) then
-      call assignpnt(aten%tke,tketen,tke_pc_total)
-      call assignpnt(aten%tke,tkeadv,tke_pc_advection)
-      call assignpnt(aten%tke,tkedif,tke_pc_diffusion)
+      call assignpnt(aten%tke,tketen,pc_total)
+      call assignpnt(aten%tke,tkedyn,pc_dynamic)
+      call assignpnt(aten%tke,tkephy,pc_physic)
     end if
     if ( ichem == 1 ) then
-      call assignpnt(aten%chi,chiten,chi_pc_total)
-      call assignpnt(aten%chi,chiadv,chi_pc_advection)
-      call assignpnt(aten%chi,chidif,chi_pc_diffusion)
-      call assignpnt(aten%chi,chibdy,chi_pc_boundary)
+      call assignpnt(aten%chi,chiten,pc_total)
+      call assignpnt(aten%chi,chidyn,pc_dynamic)
+      call assignpnt(aten%chi,chiphy,pc_physic)
     end if
   end subroutine allocate_mod_tend
   !
@@ -226,10 +211,8 @@ module mod_tendency
   !
   subroutine tend
     implicit none
-    real(rkx) :: duv , pt2bar , pt2tot , ptnbar , maxv , ptntot ,  &
-                 rovcpm , rtbar , tv , tva , tvavg , tvb , tvc ,   &
-                 cpm , rofac , uaq , vaq , wabar , amfac , wadot , &
-                 wadotp1 , scr1
+    real(rkx) :: pt2bar , pt2tot , ptnbar , maxv , ptntot , &
+                 rovcpm , cpm , rofac , uaq , vaq , scr1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -278,22 +261,28 @@ module mod_tendency
     !
     call init_tendencies
     !
-    ! Compute Horizontal advection terms
+    ! Boundary conditions term
     !
-    call start_advect
-    call advection_prognostic
+    call boundary
     !
-    ! Compute horizontal diffusion terms
+    ! Compute Horizontal advection terms and curvature terms
     !
-    call diffusion_tendencies
+    call advection
+    call curvature
     !
-    ! Boundary conditions
+    ! Pressure Gradient Force for Hydrostatic core
     !
-    call boundary_tendencies
+    if ( idynamic == 1 ) then
+      call pressure_gradient_force
+    end if
     !
-    ! compute the adiabatic term:
+    ! Compute the adiabatic term
     !
-    call adiabatic_term
+    call adiabatic
+    !
+    ! Compute horizontal diffusion term
+    !
+    call diffusion
     !
     ! Physical parametrizations
     !
@@ -305,28 +294,15 @@ module mod_tendency
       call tractend2(ktau,xyear,xmonth,xday,calday,declin)
     end if
     !
-    ! Sum up all tendencies for temperature and add radiative transfer
-    ! package-calculated heating rates to temperature tendency (deg/sec)
+    ! Sum up all tendencies for temperature
     !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%t(j,i,k,pc_total) = &
-                     aten%t(j,i,k,pc_advection) +  &
-                     aten%t(j,i,k,pc_diffusion) +  &
-                     aten%t(j,i,k,pc_convection) + &
-                     aten%t(j,i,k,pc_pbl) +        &
-                     aten%t(j,i,k,pc_microphys) +  &
-                     aten%t(j,i,k,pc_adiabatic) +  &
-                     aten%t(j,i,k,pc_boundary) +   &
-                     sfs%psb(j,i)*heatrt(j,i,k)
+          tten(j,i,k) = tten(j,i,k) + tdyn(j,i,k) + tphy(j,i,k)
         end do
       end do
     end do
-    if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_total)
-#ifdef DEBUG
-    call check_temperature_tendency('HEAT',pc_total)
-#endif
     !
     ! Sum up all contribution to water vapor tendencies
     ! This is the last RHS term in Eqs. 2.1.3 and 2.2.5, 2.3.9
@@ -334,14 +310,8 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          aten%qx(j,i,k,iqv,pc_total) = &
-                    aten%qx(j,i,k,iqv,pc_advection) +  &
-                    aten%qx(j,i,k,iqv,pc_diffusion) +  &
-                    aten%qx(j,i,k,iqv,pc_convection) + &
-                    aten%qx(j,i,k,iqv,pc_pbl) +        &
-                    aten%qx(j,i,k,iqv,pc_microphys) +  &
-                    aten%qx(j,i,k,iqv,pc_adiabatic) +  &
-                    aten%qx(j,i,k,iqv,pc_boundary)
+          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxdyn(j,i,k,iqv) + &
+                             qxphy(j,i,k,iqv)
         end do
       end do
     end do
@@ -353,11 +323,7 @@ module mod_tendency
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%w(j,i,k,ppw_pc_total) = &
-                   aten%w(j,i,k,ppw_pc_advection) + &
-                   aten%w(j,i,k,ppw_pc_diffusion) + &
-                   aten%w(j,i,k,ppw_pc_adiabatic) + &
-                   aten%w(j,i,k,ppw_pc_boundary)
+            wten(j,i,k) = wten(j,i,k) + wdyn(j,i,k) + wphy(j,i,k)
 
           end do
         end do
@@ -365,28 +331,34 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%pp(j,i,k,ppw_pc_total) = &
-                   aten%pp(j,i,k,ppw_pc_advection) + &
-                   aten%pp(j,i,k,ppw_pc_diffusion) + &
-                   aten%pp(j,i,k,ppw_pc_adiabatic) + &
-                   aten%pp(j,i,k,ppw_pc_boundary)
+            ppten(j,i,k) = ppten(j,i,k) + ppdyn(j,i,k) + ppphy(j,i,k)
           end do
         end do
       end do
     end if
+    !
+    ! Add radiative transfer package-calculated heating rates to
+    ! temperature tendency (deg/sec)
+    !
+    if ( idiag > 0 ) ten0 = tten
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tten(j,i,k) = tten(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
+        end do
+      end do
+    end do
+    if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_total,ten0)
+#ifdef DEBUG
+    call check_temperature_tendency('HEAT',pc_total)
+#endif
     if ( ipptls > 0 ) then
       do n = iqfrst , iqlst
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%qx(j,i,k,iqv,pc_total) = &
-                        aten%qx(j,i,k,iqv,pc_advection) +  &
-                        aten%qx(j,i,k,iqv,pc_diffusion) +  &
-                        aten%qx(j,i,k,iqv,pc_convection) + &
-                        aten%qx(j,i,k,iqv,pc_pbl) +        &
-                        aten%qx(j,i,k,iqv,pc_microphys) +  &
-                        aten%qx(j,i,k,iqv,pc_adiabatic) +  &
-                        aten%qx(j,i,k,iqv,pc_boundary)
+              qxten(j,i,k,n) = qxten(j,i,k,n) + qxdyn(j,i,k,n) + &
+                               qxphy(j,i,k,n)
             end do
           end do
         end do
@@ -396,26 +368,23 @@ module mod_tendency
         ! compute the condensation and precipitation terms for SUBEX
         ! moisture schemes
         !
-        aten%qx(:,:,:,iqv,pc_microphys) = d_zero
-        aten%qx(:,:,:,iqc,pc_microphys) = d_zero
-        aten%t(:,:,:,pc_microphys) = d_zero
+        qxphy(:,:,:,iqv) = d_zero
+        qxphy(:,:,:,iqc) = d_zero
+        tphy(:,:,:) = d_zero
         call condtq
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
-                        aten%qx(j,i,k,iqv,pc_microphys)
-              aten%qx(j,i,k,iqc,pc_total) = aten%qx(j,i,k,iqc,pc_total) + &
-                        aten%qx(j,i,k,iqc,pc_microphys)
-              aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
-                        aten%t(j,i,k,pc_microphys)
+              qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxphy(j,i,k,iqv)
+              qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + qxphy(j,i,k,iqc)
+              tten(j,i,k) = tten(j,i,k) + tphy(j,i,k)
             end do
           end do
         end do
       end if
       if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%lsc,pc_microphys)
-        call ten2diag(aten%qx,qdiag%lsc,pc_microphys)
+        call ten2diag(aten%t,tdiag%lsc,pc_physic)
+        call ten2diag(aten%qx,qdiag%lsc,pc_physic)
       end if
     end if
     if ( idynamic == 2 ) then
@@ -434,7 +403,7 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%t(j,i,k) = atm2%t(j,i,k) + dt*aten%t(j,i,k,pc_total)
+          atmc%t(j,i,k) = atm2%t(j,i,k) + dt * tten(j,i,k)
         end do
       end do
     end do
@@ -442,7 +411,7 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv) + &
-                       dt*aten%qx(j,i,k,iqv,pc_total),minqv)
+                       dt * qxten(j,i,k,iqv),minqv)
         end do
       end do
     end do
@@ -451,362 +420,20 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = max(atm2%qx(j,i,k,n) + &
-                       dt*aten%qx(j,i,k,n,pc_total),minqx)
+                       dt * qxten(j,i,k,n),minqx)
           end do
         end do
       end do
     end do
     !
-    ! Pressure Gradient Force for Hydrostatic core
-    !
-    if ( idynamic == 1 ) then
-      !
-      ! compute weighted p*t (td) for use in ssi:
-      !
-      if ( ipgf == 1 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
-              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
-              ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
-                        t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
-            end do
-          end do
-        end do
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
-              ttld(jce1,i,k) = td(jce1,i,k) - sfs%psa(jce1,i) * &
-                          t00pg*((hsigma(k)*sfs%psa(jce1,i)+ptop)/p00pg)**pgfaa1
-            end do
-        end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one + ep1*qvd(jce2,i,k))
-              ttld(jce2,i,k) = td(jce2,i,k) - sfs%psa(jce2,i) * &
-                       t00pg*((hsigma(k)*sfs%psa(jce2,i)+ptop)/p00pg)**pgfaa1
-            end do
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one + ep1*qvd(j,ice1,k))
-              ttld(j,ice1,k) = td(j,ice1,k) - sfs%psa(j,ice1) * &
-                       t00pg*((hsigma(k)*sfs%psa(j,ice1)+ptop)/p00pg)**pgfaa1
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one + ep1*qvd(j,ice2,k))
-              ttld(j,ice2,k) = td(j,ice2,k) - sfs%psa(j,ice2) * &
-                       t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
-            end do
-          end do
-        end if
-      else if ( ipgf == 0 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
-              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
-            end do
-          end do
-        end do
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
-            end do
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*qvd(jce2,i,k))
-            end do
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*qvd(j,ice1,k))
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
-            end do
-          end do
-        end if
-      end if
-    end if
-    !
-    ! compute Coriolis and curvature terms:
-    !
-    if ( idynamic == 1 ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            !
-            ! Hydrostatic model:
-            ! (1) part of the horizontal component of the Coriolis force due
-            ! to the horizontal movement (4th RHS term in Eq.2.1.1, Eq.2.1.2)
-            !
-            aten%u(j,i,k,uv_pc_total) =   mddom%coriol(j,i)*atmx%vc(j,i,k)
-            aten%v(j,i,k,uv_pc_total) = - mddom%coriol(j,i)*atmx%uc(j,i,k)
-          end do
-        end do
-      end do
-    else if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            !
-            ! Nonhydrostatic model:
-            ! (1) part of the horizontal component of the Coriolis force
-            !     due to the horizontal movement (5th RHS term in Eq.2.2.1,
-            !     Eq.2.2.2, Eq.2.2.9, Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
-            ! (2) part of the horizontal component of the Coriolis force
-            !     due to the vertical movement (6th RHS term in Eq.2.2.9,
-            !     Eq.2.2.10)
-            ! (3) horizontal curvature term
-            !     (not explicitly mentioned in the MM5 1994 manual)
-            ! (4) vertical curvature term
-            !     (not explicitly mentioned in the MM5 1994 manual)
-            ! (5) divergence term
-            !     (3rd RHS term in Eq.2.2.1, Eq.2.2.2, Eq.2.2.9,
-            !      Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
-            !
-            wadot   = 0.125_rkx * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k)     + &
-                                 atm1%w(j,i-1,k)   + atm1%w(j,i,k))
-            wadotp1 = 0.125_rkx * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
-                                 atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
-            wabar = wadot + wadotp1
-            amfac = wabar * rpsda(j,i) * rearthrad
-            duv = atmx%uc(j,i,k)*mddom%dmdy(j,i)-atmx%vc(j,i,k)*mddom%dmdx(j,i)
-            aten%u(j,i,k,uv_pc_total) = &
-                            mddom%coriol(j,i)*atmx%vc(j,i,k) -   & ! H Coriolis
-                            mddom%ef(j,i)*mddom%ddx(j,i)*wabar + & ! V Coriolis
-                            atmx%vmd(j,i,k)*duv -                & ! H curv
-                            atmx%uc(j,i,k)*amfac                   ! V curv
-            aten%v(j,i,k,uv_pc_total) =  &
-                          - mddom%coriol(j,i)*atmx%uc(j,i,k) +   & ! H Coriolis
-                            mddom%ef(j,i)*mddom%ddy(j,i)*wabar - & ! V Coriolis
-                            atmx%umd(j,i,k)*duv -                & ! H curv
-                            atmx%vc(j,i,k)*amfac                   ! V curv
-          end do
-        end do
-      end do
-    end if
-#ifdef DEBUG
-    call check_wind_tendency('CORI',uv_pc_total)
-#endif
-    if ( idynamic == 1 ) then
-      !
-      ! compute pressure gradient terms:
-      !
-      if ( ipgf == 1 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) + &
-                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))  - &
-                      t00pg*((hsigma(k)*sfs%psdota(j,i)+ptop)/p00pg)**pgfaa1
-              rtbar = rgas*rtbar*sfs%psdota(j,i)
-              !
-              ! Hydrostatic model. The first part of the pressure gradient term:
-              ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-              ! (2) 2nd     term in Eq.2.4.1.
-              ! (2a) Warning: there is missing sigma in the denominator in the
-              !      MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
-              !      in MM4 manual)
-              ! (2b) Hint:
-              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
-              !      This second form is discretized here.
-              !
-              aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) - rtbar * &
-                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
-                          hsigma(k)+ptop) -                         &
-                     log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
-                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-              aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) - rtbar * &
-                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
-                          hsigma(k)+ptop) -                         &
-                     log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
-                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-            end do
-          end do
-        end do
-      else if ( ipgf == 0 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) +   &
-                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))
-              rtbar = rgas*rtbar*sfs%psdota(j,i)
-              !
-              ! Hydrostatic model. The first part of the pressure gradient term:
-              ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-              ! (2)    the 2nd     term in Eq.2.4.1.
-              ! (2a) Warning: there is missing sigma in the denominator in
-              !      the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
-              !      in MM4 manual)
-              ! (2b) Hint:
-              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
-              !      This second form is discretized here.
-              !
-              aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) - rtbar * &
-                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
-                           hsigma(k)+ptop) -                         &
-                      log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
-                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-              aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) - rtbar * &
-                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
-                           hsigma(k)+ptop) -                         &
-                      log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
-                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-            end do
-          end do
-        end do
-      end if
-#ifdef DEBUG
-      call check_wind_tendency('PRGR',uv_pc_total)
-#endif
-      !
-      ! compute geopotential height at half-k levels, cross points:
-      !
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! Hydrostatic model: the 2nd part of the Eq.2.4.5
-            !
-            tvfac(j,i,k) = d_one / (d_one+qcd(j,i,k)/(d_one+qvd(j,i,k)))
-          end do
-        end do
-      end do
-      if ( ipgf == 1 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! Hydrostatic model: the 1st part of the Eq.2.4.5
-            !
-            tv = ttld(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
-            phi(j,i,kz) = mddom%ht(j,i) + &
-                     rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
-            phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
-                    log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
-          end do
-        end do
-        do k = 1 , kzm1
-          lev = kz - k
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              !
-              ! Hydrostatic model: the 1st part of the Eq.2.4.5
-              !    (also, cf. Eq.2.1.9)
-              !
-              tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
-                      dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
-                      dsigma(lev+1))))*tvfac(j,i,lev)
-              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
-                     tvavg*log((hsigma(lev) + ptop*rpsa(j,i)) /      &
-                               (hsigma(lev+1) + ptop*rpsa(j,i)))
-            end do
-          end do
-        end do
-      else if ( ipgf == 0 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            !
-            ! Hydrostatic model: the 1st part of the Eq.2.4.5
-            !         (also, cf. Eq.2.1.9)
-            !
-            tv = td(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
-            phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
-                 log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
-          end do
-        end do
-        do k = 1 , kzm1
-          lev = kz - k
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              !
-              ! Hydrostatic model: the 1st part of the Eq.2.4.5
-              !        (also, cf. Eq.2.1.9)
-              !
-              tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
-                      dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
-                      dsigma(lev+1))))*tvfac(j,i,lev)
-              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
-                     tvavg*log((hsigma(lev)+ptop*rpsa(j,i)) /        &
-                                (hsigma(lev+1)+ptop*rpsa(j,i)))
-            end do
-          end do
-        end do
-      end if
-      call exchange_lb(phi,1,jce1,jce2,ice1,ice2,1,kz)
-      !
-      ! compute the geopotential gradient terms:
-      !
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            !
-            ! Hydrostatic model. The second part of the pressure gradient term:
-            ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-            ! (2)    the 1st     term in Eq.2.4.1
-            !
-            aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) - &
-                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
-                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
-                 (phi(j,i,k)+phi(j,i-1,k)-          &
-                  phi(j-1,i,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
-            aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) - &
-                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
-                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
-                 (phi(j,i,k)+phi(j-1,i,k)-          &
-                  phi(j,i-1,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
-          end do
-        end do
-      end do
-#ifdef DEBUG
-      call check_wind_tendency('GEOP',uv_pc_total)
-#endif
-    end if ! idynamic == 1
-    !
-    ! add the diffusion and pbl tendencies to aten%u and aten%v:
     ! Last RHS terms in Eq. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3,
     ! 2.3.4
     !
     do k = 1 , kz
       do i = idi1 , idi2
         do j = jdi1 , jdi2
-          aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) + &
-                        aten%u(j,i,k,uv_pc_advection) +  &
-                        aten%u(j,i,k,uv_pc_diffusion) +  &
-                        aten%u(j,i,k,uv_pc_convection) + &
-                        aten%u(j,i,k,uv_pc_pbl) +        &
-                        aten%u(j,i,k,uv_pc_boundary)
-          aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) + &
-                        aten%v(j,i,k,uv_pc_advection) +  &
-                        aten%v(j,i,k,uv_pc_diffusion) +  &
-                        aten%v(j,i,k,uv_pc_convection) + &
-                        aten%v(j,i,k,uv_pc_pbl) +        &
-                        aten%v(j,i,k,uv_pc_boundary)
+          uten(j,i,k) = uten(j,i,k) + udyn(j,i,k) + uphy(j,i,k)
+          vten(j,i,k) = vten(j,i,k) + vdyn(j,i,k) + vphy(j,i,k)
         end do
       end do
     end do
@@ -831,8 +458,8 @@ module mod_tendency
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            atmc%u(j,i,k) = atm2%u(j,i,k) + dt*aten%u(j,i,k,uv_pc_total)
-            atmc%v(j,i,k) = atm2%v(j,i,k) + dt*aten%v(j,i,k,uv_pc_total)
+            atmc%u(j,i,k) = atm2%u(j,i,k) + dt * uten(j,i,k)
+            atmc%v(j,i,k) = atm2%v(j,i,k) + dt * vten(j,i,k)
           end do
         end do
       end do
@@ -874,23 +501,22 @@ module mod_tendency
       do k = 1 , kz
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            aten%u(j,i,k,uv_pc_total) = aten%u(j,i,k,uv_pc_total) * rpsda(j,i)
-            aten%v(j,i,k,uv_pc_total) = aten%v(j,i,k,uv_pc_total) * rpsda(j,i)
+            uten(j,i,k) = uten(j,i,k) * rpsda(j,i)
+            vten(j,i,k) = vten(j,i,k) * rpsda(j,i)
           end do
         end do
       end do
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%pp(j,i,k,ppw_pc_total) = &
-                      aten%pp(j,i,k,ppw_pc_total) * rpsa(j,i)
+            ppten(j,i,k) = ppten(j,i,k) * rpsa(j,i)
           end do
         end do
       end do
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            aten%w(j,i,k,ppw_pc_total) = aten%w(j,i,k,ppw_pc_total) * rpsa(j,i)
+            wten(j,i,k) = wten(j,i,k) * rpsa(j,i)
           end do
         end do
       end do
@@ -924,10 +550,8 @@ module mod_tendency
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
-             aten%tke(j,i,k,tke_pc_total) = aten%tke(j,i,k,tke_pc_total) + &
-                         (aten%tke(j,i,k,tke_pc_advection) +               &
-                          aten%tke(j,i,k,tke_pc_diffusion)) * rpsa(j,i)  + &
-                         aten%tke(j,i,k,tke_pc_pbl)
+            tketen(j,i,k) = tketen(j,i,k) +  &
+                         tkedyn(j,i,k) * rpsa(j,i) + tkephy(j,i,k)
           end do
         end do
       end do
@@ -940,7 +564,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
-                               dt * aten%tke(j,i,k,tke_pc_total))
+                               dt * tketen(j,i,k))
           end do
         end do
       end do
@@ -954,12 +578,8 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%chi(j,i,k,itr,chi_pc_total) = &
-                     aten%chi(j,i,k,itr,chi_pc_total) + &
-                     aten%chi(j,i,k,itr,chi_pc_advection) +  &
-                     aten%chi(j,i,k,itr,chi_pc_diffusion) +  &
-                     aten%chi(j,i,k,itr,chi_pc_convection) + &
-                     aten%chi(j,i,k,itr,chi_pc_pbl)
+              chiten(j,i,k,itr) = chiten(j,i,k,itr) + &
+                                  chidyn(j,i,k,itr) + chiphy(j,i,k,itr)
             end do
           end do
         end do
@@ -974,7 +594,7 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               atmc%chi(j,i,k,itr) = max(atm2%chi(j,i,k,itr) + &
-                  dt*aten%chi(j,i,k,itr,chi_pc_total),mintr)
+                       dt * chiten(j,i,k,itr),mintr)
             end do
           end do
         end do
@@ -1014,70 +634,70 @@ module mod_tendency
     !
     if ( idynamic == 1 .and. ktau > 1 ) then
       if ( is_nan(ptntot) ) then
-        maxv = abs(maxval(aten%t(:,:,:,pc_total)))
+        maxv = abs(maxval(tten(:,:,:)))
         if ( (maxv/dtsec) > 0.01_rkx ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%t(jj,ii,kk,pc_total) > maxv ) then
+                if ( tten(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%u(:,:,:,uv_pc_total)))
+        maxv = abs(maxval(uten(:,:,:)))
         if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN U :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%u(jj,ii,kk,uv_pc_total) > maxv ) then
+                if ( uten(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%v(:,:,:,uv_pc_total)))
+        maxv = abs(maxval(vten(:,:,:)))
         if ( (maxv/dtsec) > 0.005_rkx ) then  ! 25 m/s per hour
           write(stderr,*) 'MAXVAL ATEN V :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%v(jj,ii,kk,uv_pc_total) > maxv ) then
+                if ( vten(jj,ii,kk) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%qx(:,:,:,iqv,pc_total)))
+        maxv = abs(maxval(qxten(:,:,:,iqv)))
         if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QV :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%qx(jj,ii,kk,iqv,pc_total) > maxv ) then
+                if ( qxten(jj,ii,kk,iqv) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
             end do
           end do
         end if
-        maxv = abs(maxval(aten%qx(:,:,:,iqc,pc_total)))
+        maxv = abs(maxval(qxten(:,:,:,iqc)))
         if ( (maxv/dtsec) > 0.001_rkx ) then !
           write(stderr,*) 'MAXVAL ATEN QC :', maxv
           maxv = maxv - 0.001_rkx
           do kk = 1 , kz
             do ii = ici1 , ici2
               do jj = jci1 , jci2
-                if ( aten%qx(jj,ii,kk,iqc,pc_total) > maxv ) then
+                if ( qxten(jj,ii,kk,iqc) > maxv ) then
                   write(stderr,*) 'II :', ii, ', JJ :', jj, ', KK :', kk
                 end if
               end do
@@ -1753,9 +1373,16 @@ module mod_tendency
       cldlwc(:,:,:) = d_zero
     end subroutine init_tendencies
 
-    subroutine advection_prognostic
+    subroutine advection
       implicit none
       integer(ik4) :: i , j , k
+
+      call start_advect
+
+      if ( idiag > 0 ) then
+        ten0 = tdyn
+        qen0 = qxdyn(:,:,:,idgq)
+      end if
       !
       ! Compute departure points for semi-lagrangian
       !
@@ -1769,9 +1396,9 @@ module mod_tendency
       ! same for hydrostatic and nonhydrostatic models: 1st RHS term in
       ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
       !
-      call hadv(wuadv,wvadv,atmx%ud,atmx%vd)
+      call hadv(udyn,vdyn,atmx%ud,atmx%vd)
 #ifdef DEBUG
-      call check_wind_tendency('HADV',uv_pc_advection)
+      call check_wind_tendency('HADV',pc_dynamic)
 #endif
       !
       ! compute the vertical advection terms:
@@ -1780,9 +1407,9 @@ module mod_tendency
       ! same for hydrostatic and nonhydrostatic models: 2nd RHS term in
       ! Eqs. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3, 2.3.4
       !
-      call vadv(wuadv,wvadv,atmx%uc,atmx%vc)
+      call vadv(udyn,vdyn,atmx%uc,atmx%vc)
 #ifdef DEBUG
-      call check_wind_tendency('VADV',uv_pc_advection)
+      call check_wind_tendency('VADV',pc_dynamic)
 #endif
       if ( idynamic == 2 ) then
         !
@@ -1793,10 +1420,10 @@ module mod_tendency
         !
         ! Also, cf. Eq. 2.2.11 of vertical velocity tendency in the MM5 manual.
         !
-        call hadv(ppadv,atmx%pp,0)
-        call vadv(ppadv,atm1%pp,kz,0)
-        call hadv(wwadv,atmx%w,1)
-        call vadv(wwadv,atm1%w,kzp1,0)
+        call hadv(ppdyn,atmx%pp,0)
+        call vadv(ppdyn,atm1%pp,kz,0)
+        call hadv(wdyn,atmx%w,1)
+        call vadv(wdyn,atm1%w,kzp1,0)
       end if
       !
       ! compute the horizontal advection term in temperature tendency:
@@ -1804,25 +1431,25 @@ module mod_tendency
       ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (1st RHS term)
       !
       if ( ithadv == 0 ) then
-        call hadv(ttadv,atmx%t)
+        call hadv(tdyn,atmx%t)
 #ifdef DEBUG
-        call check_temperature_tendency('HADV',pc_advection)
+        call check_temperature_tendency('HADV',pc_dynamic)
 #endif
         if ( idiag > 0 ) then
-          call ten2diag(aten%t,tdiag%adh,pc_advection)
-          ten0 = ttadv
+          call ten2diag(aten%t,tdiag%adh,pc_dynamic,ten0)
+          ten0 = tdyn
         end if
         !
         ! compute the vertical advection term:
         ! same for hydrostatic and nonhydrostatic models:
         ! in Eqs. 2.1.3, 2.2.5, 2.3.9 (2nd RHS term)
         !
-        call vadv(ttadv,atm1%t,kz,1)
+        call vadv(tdyn,atm1%t,kz,1)
 #ifdef DEBUG
-        call check_temperature_tendency('VADV',pc_advection)
+        call check_temperature_tendency('VADV',pc_dynamic)
 #endif
         if ( idiag > 0 ) then
-          call ten2diag(aten%t,tdiag%adv,pc_advection,ten0)
+          call ten2diag(aten%t,tdiag%adv,pc_dynamic,ten0)
         end if
       else
         thten(:,:,:) = d_zero
@@ -1842,35 +1469,35 @@ module mod_tendency
       ! compute the moisture tendencies
       !
       if ( isladvec == 1 ) then
-        call slhadv_x(qxadv,atm2%qx,iqv)
-        call hdvg_x(qxadv,atm1%qx,iqv)
+        call slhadv_x(qxdyn,atm2%qx,iqv)
+        call hdvg_x(qxdyn,atm1%qx,iqv)
       else
-        call hadv(qxadv,atmx%qx,iqv)
+        call hadv(qxdyn,atmx%qx,iqv)
       end if
       if ( idiag > 0 .and. idgq == iqv ) then
-        call ten2diag(aten%qx,qdiag%adh,pc_advection)
-        qen0 = qxadv(:,:,:,iqv)
+        call ten2diag(aten%qx,qdiag%adh,pc_dynamic,qen0)
+        qen0 = qxdyn(:,:,:,iqv)
       end if
       if ( all(icup /= 1) ) then
-        call vadv(qxadv,atm1%qx,iqv)
+        call vadv(qxdyn,atm1%qx,iqv)
       end if
       if ( idiag > 0 .and. idgq == iqv ) then
-        call ten2diag(aten%qx,qdiag%adv,pc_advection,qen0)
+        call ten2diag(aten%qx,qdiag%adv,pc_dynamic,qen0)
       end if
       if ( ipptls > 0 ) then
         if ( isladvec == 1 ) then
-          call slhadv_x(qxadv,atm2%qx,iqfrst,iqlst)
-          call hdvg_x(qxadv,atm1%qx,iqfrst,iqlst)
+          call slhadv_x(qxdyn,atm2%qx,iqfrst,iqlst)
+          call hdvg_x(qxdyn,atm1%qx,iqfrst,iqlst)
         else
-          call hadv(qxadv,atmx%qx,iqfrst,iqlst)
+          call hadv(qxdyn,atmx%qx,iqfrst,iqlst)
         end if
         if ( idiag > 0 .and. idgq /= iqv ) then
-          call ten2diag(aten%qx,qdiag%adh,pc_advection)
-          qen0 = qxadv(:,:,:,idgq)
+          call ten2diag(aten%qx,qdiag%adh,pc_dynamic)
+          qen0 = qxdyn(:,:,:,idgq)
         end if
-        call vadv(qxadv,atm1%qx,iqfrst,iqlst,iqxvadv)
+        call vadv(qxdyn,atm1%qx,iqfrst,iqlst,iqxvadv)
         if ( idiag > 0 .and. idgq /= iqv ) then
-          call ten2diag(aten%qx,qdiag%adv,pc_advection,qen0)
+          call ten2diag(aten%qx,qdiag%adv,pc_dynamic,qen0)
         end if
       end if
       if ( ichem == 1 ) then
@@ -1878,25 +1505,25 @@ module mod_tendency
         ! horizontal and vertical advection + diag
         !
         if ( isladvec == 1 ) then
-          call slhadv_x(chiadv,atm2%chi)
-          call hdvg_x(chiadv,atm1%chi)
+          call slhadv_x(chidyn,atm2%chi)
+          call hdvg_x(chidyn,atm1%chi)
         else
-          call hadv(chiadv,atmx%chi)
+          call hadv(chidyn,atmx%chi)
         end if
         if ( ichdiag == 1 ) then
-          call ten2diag(aten%chi,cadvhdiag,chi_pc_advection)
-          chiten0 = chiadv
+          call ten2diag(aten%chi,cadvhdiag,pc_dynamic)
+          chiten0 = chidyn
         end if
         if ( all(icup /= 1) ) then
-          call vadv(chiadv,atm1%chi,1,ntr,itrvadv)
+          call vadv(chidyn,atm1%chi,1,ntr,itrvadv)
         end if
         if ( ichdiag == 1 ) then
-          call ten2diag(aten%chi,cadvvdiag,chi_pc_advection,chiten0)
+          call ten2diag(aten%chi,cadvvdiag,pc_dynamic,chiten0)
         end if
       end if
       if ( ibltyp == 2 ) then
         ! Calculate the horizontal advective tendency for TKE
-        call hadv(tkeadv,atm1%tke,1)
+        call hadv(tkedyn,atm1%tke,1)
         !
         !  Couple TKE to ps for use in vertical advection
         !
@@ -1908,9 +1535,9 @@ module mod_tendency
           end do
         end do
         ! Calculate the vertical advective tendency for TKE
-        call vadv(tkeadv,tkeps,kzp1,0)
+        call vadv(tkedyn,tkeps,kzp1,0)
       end if
-    end subroutine advection_prognostic
+    end subroutine advection
 
     subroutine new_pressure
       implicit none
@@ -1948,81 +1575,90 @@ module mod_tendency
       end if
     end subroutine new_pressure
 
-    subroutine boundary_tendencies
+    subroutine boundary
       implicit none
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,atm2%t,xtb,tbdy)
-        call nudge(iboudy,atm2%qx,xqb,qxbdy,iqv)
-        call nudge(iboudy,atm2%u,atm2%v,xub,xvb,ubdy,vbdy)
+        call nudge(iboudy,atm2%t,xtb,tten)
+        call nudge(iboudy,atm2%qx,xqb,qxten,iqv)
+        call nudge(iboudy,atm2%u,atm2%v,xub,xvb,uten,vten)
       else if ( iboudy == 4 ) then
-        call sponge(xtb,tbdy)
-        call sponge(xqb,qxbdy,iqv)
-        call sponge(xub,xvb,ubdy,vbdy)
+        call sponge(xtb,tten)
+        call sponge(xqb,qxten,iqv)
+        call sponge(xub,xvb,uten,vten)
       end if
 #ifdef DEBUG
-      call check_temperature_tendency('BDYC',pc_boundary)
-      call check_wind_tendency('BDYC',uv_pc_boundary)
+      call check_temperature_tendency('BDYC',pc_total)
+      call check_wind_tendency('BDYC',pc_total)
 #endif
       if ( idynamic == 2 ) then
         if ( iboudy == 1 .or. iboudy == 5 ) then
-          call nudge(iboudy,atm2%pp,xppb,ppbdy)
-          call nudge(iboudy,atm2%w,xwwb,wbdy)
+          call nudge(iboudy,atm2%pp,xppb,ppten)
+          call nudge(iboudy,atm2%w,xwwb,wten)
         else if ( iboudy == 4 ) then
-          call sponge(xppb,ppbdy)
-          call sponge(xwwb,wbdy)
+          call sponge(xppb,ppten)
+          call sponge(xwwb,wten)
         end if
       end if
       if ( ichem == 1 ) then
         if ( iboudy == 1 .or. iboudy == 5 ) then
-          call nudge_chi(kz,atm2%chi,chibdy)
+          call nudge_chi(kz,atm2%chi,chiten)
         end if
       end if
       if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%bdy,pc_boundary)
-        call ten2diag(aten%qx,qdiag%bdy,pc_boundary)
+        call ten2diag(aten%t,tdiag%bdy,pc_total)
+        call ten2diag(aten%qx,qdiag%bdy,pc_total)
         if ( ichem == 1 ) then
-          call ten2diag(aten%chi,cbdydiag,chi_pc_boundary)
+          call ten2diag(aten%chi,cbdydiag,pc_total)
         end if
       end if
-    end subroutine boundary_tendencies
+    end subroutine boundary
 
-    subroutine diffusion_tendencies
+    subroutine diffusion
       implicit none
       !
       ! compute the diffusion term for t and qx
       !
-      call diffu_d(udif,vdif,atms%ubd3d,atms%vbd3d)
-      call diffu_x(tdif,atms%tb3d)
-      call diffu_x(qxdif,atms%qxb3d,1,nqx,d_one)
+      call diffu_d(uphy,vphy,atms%ubd3d,atms%vbd3d)
       if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%dif,pc_diffusion)
-        call ten2diag(aten%qx,qdiag%dif,pc_diffusion)
+        ten0 = tphy
+        qen0 = qxphy(:,:,:,iqv)
+      end if
+      call diffu_x(tphy,atms%tb3d)
+      call diffu_x(qxphy,atms%qxb3d,1,nqx,d_one)
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%dif,pc_physic,ten0)
+        call ten2diag(aten%qx,qdiag%dif,pc_physic,qen0)
       end if
       if ( idynamic == 2 ) then
         !
         ! compute the diffusion term for vertical velocity w
         ! compute the diffusion term for perturb pressure pp
         !
-        call diffu_x(ppdif,atms%ppb3d)
-        call diffu_x(wdif,atms%wb3d,d_one)
+        call diffu_x(ppphy,atms%ppb3d)
+        call diffu_x(wphy,atms%wb3d,d_one)
       end if
       if ( ichem == 1 ) then
-        call diffu_x(chidif,atms%chib3d,1,ntr,d_one)
-        if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,chi_pc_diffusion)
+        if ( ichdiag > 0 ) chiten0 = chiphy
+        call diffu_x(chiphy,atms%chib3d,1,ntr,d_one)
+        if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_physic,chiten0)
       end if
       if ( ibltyp == 2 ) then
         ! Calculate the horizontal, diffusive tendency for TKE
         ! Here TKE is decoupled , we can pass atm2.
-        call diffu_x(tkedif,atm2%tke,d_one)
+        call diffu_x(tkephy,atm2%tke,d_one)
       end if
 #ifdef DEBUG
-      call check_wind_tendency('DIFF',uv_pc_diffusion)
-      call check_temperature_tendency('DIFF',pc_diffusion)
+      call check_wind_tendency('DIFF',pc_physic)
+      call check_temperature_tendency('DIFF',pc_physic)
 #endif
-    end subroutine diffusion_tendencies
+    end subroutine diffusion
 
-    subroutine adiabatic_term
+    subroutine adiabatic
       implicit none
+      if ( idiag > 0 ) then
+        ten0 = tdyn
+        qen0 = qxdyn(:,:,:,iqv)
+      end if
       if ( idynamic == 1 ) then
         !
         ! Adiabatic term in the temperature tendency equation in the
@@ -2032,9 +1668,9 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               rovcpm = rgas/cpmf(qvd(j,i,k))
-              aten%t(j,i,k,pc_adiabatic) = &
-                              (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
-                              (ptop*rpsa(j,i)+hsigma(k))
+              tdyn(j,i,k) = tdyn(j,i,k) +  &
+                     (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
+                     (ptop*rpsa(j,i)+hsigma(k))
             end do
           end do
         end do
@@ -2050,10 +1686,8 @@ module mod_tendency
                 cpm = cpmf(qvd(j,i,k))
                 scr1 = d_half*egrav*atm0%rho(j,i,k) * &
                              (atm1%w(j,i,k)+atm1%w(j,i,k+1))
-                aten%t(j,i,k,pc_adiabatic) = &
-                           atmx%t(j,i,k)*mdv%cr(j,i,k) - &
-                          (scr1+aten%pp(j,i,k,ppw_pc_advection) + &
-                                aten%pp(j,i,k,ppw_pc_boundary) +  &
+                tdyn(j,i,k) = tdyn(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
+                           (scr1 + ppdyn(j,i,k) + ppten(j,i,k) +   &
                            atmx%pp(j,i,k)*mdv%cr(j,i,k))/(atm1%rho(j,i,k)*cpm)
               end do
             end do
@@ -2063,8 +1697,8 @@ module mod_tendency
             do i = ici1 , ici2
               do j = jci1 , jci2
                 thten(j,i,k) = thten(j,i,k) + th(j,i,k) * mdv%cr(j,i,k)
-                aten%t(j,i,k,pc_adiabatic) = &
-                     atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
+                tdyn(j,i,k) = tdyn(j,i,k) + &
+                              atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
               end do
             end do
           end do
@@ -2076,7 +1710,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%pp(j,i,k,ppw_pc_adiabatic) = atmx%pp(j,i,k)*mdv%cr(j,i,k)
+              ppdyn(j,i,k) = ppdyn(j,i,k) + atmx%pp(j,i,k)*mdv%cr(j,i,k)
             end do
           end do
         end do
@@ -2084,7 +1718,7 @@ module mod_tendency
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                aten%qx(j,i,k,n,pc_adiabatic) = atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
+                qxdyn(j,i,k,n) = qxdyn(j,i,k,n) + atmx%qx(j,i,k,n)*mdv%cr(j,i,k)
               end do
             end do
           end do
@@ -2126,7 +1760,7 @@ module mod_tendency
                                twt(k,2) * ucc(j,i,k-1))
               vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
                                twt(k,2) * vcc(j,i,k-1))
-              aten%w(j,i,k,ppw_pc_adiabatic) = &
+              wdyn(j,i,k) = wdyn(j,i,k) + &
                     (twt(k,2)*atmx%pr(j,i,k-1) +             &
                      twt(k,1)*atmx%pr(j,i,k)) *              &
                      rofac * egrav * sfs%psa(j,i) +          &
@@ -2146,8 +1780,7 @@ module mod_tendency
                 ! Vertical velocity tendency: water loading term
                 ! 5th RHS term in Eq. 2.2.3 & 6th RHS term in Eq. 2.3.7
                 !
-                aten%w(j,i,k,ppw_pc_adiabatic) = &
-                     aten%w(j,i,k,ppw_pc_adiabatic) - egrav * sfs%psa(j,i) * &
+                wdyn(j,i,k) = wdyn(j,i,k) - egrav * sfs%psa(j,i) * &
                             (twt(k,2)*qcd(j,i,k-1) + twt(k,1)*qcd(j,i,k))
               end do
             end do
@@ -2155,13 +1788,13 @@ module mod_tendency
         end if
       end if
       if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%adi,pc_adiabatic)
-        call ten2diag(aten%qx,qdiag%adi,pc_adiabatic)
+        call ten2diag(aten%t,tdiag%adi,pc_dynamic,ten0)
+        call ten2diag(aten%qx,qdiag%adi,pc_dynamic,qen0)
       end if
 #ifdef DEBUG
-      call check_temperature_tendency('DIAB',pc_adiabatic)
+      call check_temperature_tendency('DIAB',pc_dynamic)
 #endif
-    end subroutine adiabatic_term
+    end subroutine adiabatic
 
     subroutine physical_parametrizations
       implicit none
@@ -2170,17 +1803,24 @@ module mod_tendency
       !        Call cumulus parametrization
       !------------------------------------------------
       !
-      call cumulus
-#ifdef DEBUG
-      call check_temperature_tendency('CONV',pc_convection)
-      call check_wind_tendency('CONV',uv_pc_convection)
-#endif
       if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%con,pc_convection)
-        call ten2diag(aten%qx,qdiag%con,pc_convection)
+        ten0 = tphy
+        qen0 = qxphy(:,:,:,idgq)
       end if
       if ( ichem == 1 .and. ichdiag == 1 ) then
-        call ten2diag(aten%chi,cconvdiag,chi_pc_convection)
+        chiten0 = chiphy
+      end if
+      call cumulus
+#ifdef DEBUG
+      call check_temperature_tendency('CONV',pc_physic)
+      call check_wind_tendency('CONV',pc_physic)
+#endif
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%con,pc_physic,ten0)
+        call ten2diag(aten%qx,qdiag%con,pc_physic,qen0)
+      end if
+      if ( ichem == 1 .and. ichdiag == 1 ) then
+        call ten2diag(aten%chi,cconvdiag,pc_physic,chiten0)
       end if
       ! save cumulus cloud fraction for chemistry before it is
       ! overwritten in cldfrac
@@ -2191,15 +1831,19 @@ module mod_tendency
       !------------------------------------------------
       !
       if ( ipptls > 0 ) then
+        if ( idiag > 0 ) then
+          ten0 = tphy
+          qen0 = qxphy(:,:,:,idgq)
+        end if
         ! Clouds and large scale precipitation
         call cldfrac
         call microscheme
         if ( idiag > 0 ) then
-          call ten2diag(aten%t,tdiag%lsc,pc_microphys)
-          call ten2diag(aten%qx,qdiag%lsc,pc_microphys)
+          call ten2diag(aten%t,tdiag%lsc,pc_physic,ten0)
+          call ten2diag(aten%qx,qdiag%lsc,pc_physic,qen0)
         end if
 #ifdef DEBUG
-        call check_temperature_tendency('MICR',pc_microphys)
+        call check_temperature_tendency('MICR',pc_physic)
 #endif
       end if
       !
@@ -2234,19 +1878,357 @@ module mod_tendency
       !             Call PBL scheme
       !------------------------------------------------
       !
-      call pblscheme
       if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%tbl,pc_pbl)
-        call ten2diag(aten%qx,qdiag%tbl,pc_pbl)
+        ten0 = tphy
+        qen0 = qxphy(:,:,:,idgq)
       end if
       if ( ichem == 1 .and. ichdiag == 1 ) then
-        call ten2diag(aten%chi,ctbldiag,chi_pc_pbl)
+        chiten0 = chiphy
+      end if
+      call pblscheme
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%tbl,pc_physic,ten0)
+        call ten2diag(aten%qx,qdiag%tbl,pc_physic,qen0)
+      end if
+      if ( ichem == 1 .and. ichdiag == 1 ) then
+        call ten2diag(aten%chi,ctbldiag,pc_physic,chiten0)
       end if
 #ifdef DEBUG
-      call check_temperature_tendency('PBLL',pc_pbl)
-      call check_wind_tendency('PBLL',uv_pc_pbl)
+      call check_temperature_tendency('PBLL',pc_physic)
+      call check_wind_tendency('PBLL',pc_physic)
 #endif
     end subroutine physical_parametrizations
+
+    subroutine curvature
+      implicit none
+      integer(ik4) :: i , j , k
+      real(rkx) :: wadot , wadotp1 , wabar , amfac , duv
+      !
+      ! compute Coriolis and curvature terms:
+      !
+      if ( idynamic == 1 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              !
+              ! Hydrostatic model:
+              ! (1) part of the horizontal component of the Coriolis force due
+              ! to the horizontal movement (4th RHS term in Eq.2.1.1, Eq.2.1.2)
+              !
+              udyn(j,i,k) = udyn(j,i,k) + mddom%coriol(j,i)*atmx%vc(j,i,k)
+              vdyn(j,i,k) = vdyn(j,i,k) - mddom%coriol(j,i)*atmx%uc(j,i,k)
+            end do
+          end do
+        end do
+      else if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              !
+              ! Nonhydrostatic model:
+              ! (1) part of the horizontal component of the Coriolis force
+              !     due to the horizontal movement (5th RHS term in Eq.2.2.1,
+              !     Eq.2.2.2, Eq.2.2.9, Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
+              ! (2) part of the horizontal component of the Coriolis force
+              !     due to the vertical movement (6th RHS term in Eq.2.2.9,
+              !     Eq.2.2.10)
+              ! (3) horizontal curvature term
+              !     (not explicitly mentioned in the MM5 1994 manual)
+              ! (4) vertical curvature term
+              !     (not explicitly mentioned in the MM5 1994 manual)
+              ! (5) divergence term
+              !     (3rd RHS term in Eq.2.2.1, Eq.2.2.2, Eq.2.2.9,
+              !      Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
+              !
+              wadot   = 0.125_rkx * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k)     + &
+                                   atm1%w(j,i-1,k)   + atm1%w(j,i,k))
+              wadotp1 = 0.125_rkx * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
+                                   atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
+              wabar = wadot + wadotp1
+              amfac = wabar * rpsda(j,i) * rearthrad
+              duv = atmx%uc(j,i,k)*mddom%dmdy(j,i) - &
+                    atmx%vc(j,i,k)*mddom%dmdx(j,i)
+              udyn(j,i,k) = udyn(j,i,k) + &
+                            mddom%coriol(j,i)*atmx%vc(j,i,k) -   & ! H Coriolis
+                            mddom%ef(j,i)*mddom%ddx(j,i)*wabar + & ! V Coriolis
+                            atmx%vmd(j,i,k)*duv -                & ! H curv
+                            atmx%uc(j,i,k)*amfac                   ! V curv
+              vdyn(j,i,k) = vdyn(j,i,k) - &
+                            mddom%coriol(j,i)*atmx%uc(j,i,k) +   & ! H Coriolis
+                            mddom%ef(j,i)*mddom%ddy(j,i)*wabar - & ! V Coriolis
+                            atmx%umd(j,i,k)*duv -                & ! H curv
+                            atmx%vc(j,i,k)*amfac                   ! V curv
+            end do
+          end do
+        end do
+      end if
+#ifdef DEBUG
+      call check_wind_tendency('CORI',pc_dynamic)
+#endif
+    end subroutine curvature
+
+    subroutine pressure_gradient_force
+      implicit none
+      integer(ik4) :: i , j , k
+      real(rkx) :: tva , tvb , tvc , rtbar , tv , tvavg
+      !
+      ! compute weighted p*t (td) for use in ssi:
+      !
+      if ( ipgf == 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
+              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
+              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
+              ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
+                        t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
+        end do
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
+              ttld(jce1,i,k) = td(jce1,i,k) - sfs%psa(jce1,i) * &
+                          t00pg*((hsigma(k)*sfs%psa(jce1,i)+ptop)/p00pg)**pgfaa1
+            end do
+        end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one + ep1*qvd(jce2,i,k))
+              ttld(jce2,i,k) = td(jce2,i,k) - sfs%psa(jce2,i) * &
+                       t00pg*((hsigma(k)*sfs%psa(jce2,i)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one + ep1*qvd(j,ice1,k))
+              ttld(j,ice1,k) = td(j,ice1,k) - sfs%psa(j,ice1) * &
+                       t00pg*((hsigma(k)*sfs%psa(j,ice1)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one + ep1*qvd(j,ice2,k))
+              ttld(j,ice2,k) = td(j,ice2,k) - sfs%psa(j,ice2) * &
+                       t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
+        end if
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) + &
+                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))  - &
+                      t00pg*((hsigma(k)*sfs%psdota(j,i)+ptop)/p00pg)**pgfaa1
+              rtbar = rgas*rtbar*sfs%psdota(j,i)
+              !
+              ! Hydrostatic model. The first part of the pressure gradient term:
+              ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
+              ! (2) 2nd     term in Eq.2.4.1.
+              ! (2a) Warning: there is missing sigma in the denominator in the
+              !      MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
+              !      in MM4 manual)
+              ! (2b) Hint:
+              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
+              !      This second form is discretized here.
+              !
+              udyn(j,i,k) = udyn(j,i,k) - rtbar * &
+                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
+                          hsigma(k)+ptop) -                         &
+                     log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
+                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+              vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
+                    (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
+                          hsigma(k)+ptop) -                         &
+                     log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
+                          hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+            end do
+          end do
+        end do
+      else if ( ipgf == 0 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
+              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
+              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
+            end do
+          end do
+        end do
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*qvd(jce2,i,k))
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*qvd(j,ice1,k))
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
+            end do
+          end do
+        end if
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) +   &
+                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))
+              rtbar = rgas*rtbar*sfs%psdota(j,i)
+              !
+              ! Hydrostatic model. The first part of the pressure gradient term:
+              ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
+              ! (2)    the 2nd     term in Eq.2.4.1.
+              ! (2a) Warning: there is missing sigma in the denominator in
+              !      the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
+              !      in MM4 manual)
+              ! (2b) Hint:
+              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
+              !      This second form is discretized here.
+              !
+              udyn(j,i,k) = udyn(j,i,k) - rtbar * &
+                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
+                           hsigma(k)+ptop) -                         &
+                      log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
+                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+              vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
+                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
+                           hsigma(k)+ptop) -                         &
+                      log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
+                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+            end do
+          end do
+        end do
+      end if
+#ifdef DEBUG
+      call check_wind_tendency('PRGR',pc_dynamic)
+#endif
+      !
+      ! compute geopotential height at half-k levels, cross points:
+      !
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            !
+            ! Hydrostatic model: the 2nd part of the Eq.2.4.5
+            !
+            tvfac(j,i,k) = d_one / (d_one+qcd(j,i,k)/(d_one+qvd(j,i,k)))
+          end do
+        end do
+      end do
+      if ( ipgf == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            !
+            ! Hydrostatic model: the 1st part of the Eq.2.4.5
+            !
+            tv = ttld(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
+            phi(j,i,kz) = mddom%ht(j,i) + &
+                     rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
+            phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
+                    log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+          end do
+        end do
+        do k = 1 , kzm1
+          lev = kz - k
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! Hydrostatic model: the 1st part of the Eq.2.4.5
+              !    (also, cf. Eq.2.1.9)
+              !
+              tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
+                      dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
+                      dsigma(lev+1))))*tvfac(j,i,lev)
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
+                     tvavg*log((hsigma(lev) + ptop*rpsa(j,i)) /      &
+                               (hsigma(lev+1) + ptop*rpsa(j,i)))
+            end do
+          end do
+        end do
+      else if ( ipgf == 0 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            !
+            ! Hydrostatic model: the 1st part of the Eq.2.4.5
+            !         (also, cf. Eq.2.1.9)
+            !
+            tv = td(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
+            phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
+                 log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+          end do
+        end do
+        do k = 1 , kzm1
+          lev = kz - k
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! Hydrostatic model: the 1st part of the Eq.2.4.5
+              !        (also, cf. Eq.2.1.9)
+              !
+              tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
+                      dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
+                      dsigma(lev+1))))*tvfac(j,i,lev)
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
+                     tvavg*log((hsigma(lev)+ptop*rpsa(j,i)) /        &
+                                (hsigma(lev+1)+ptop*rpsa(j,i)))
+            end do
+          end do
+        end do
+      end if
+      call exchange_lb(phi,1,jce1,jce2,ice1,ice2,1,kz)
+      !
+      ! compute the geopotential gradient terms:
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            !
+            ! Hydrostatic model. The second part of the pressure gradient term:
+            ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
+            ! (2)    the 1st     term in Eq.2.4.1
+            !
+            udyn(j,i,k) = udyn(j,i,k) - &
+                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
+                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
+                 (phi(j,i,k)+phi(j,i-1,k)-          &
+                  phi(j-1,i,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
+            vdyn(j,i,k) = vdyn(j,i,k) - &
+                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
+                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
+                 (phi(j,i,k)+phi(j-1,i,k)-          &
+                  phi(j,i-1,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
+          end do
+        end do
+      end do
+#ifdef DEBUG
+      call check_wind_tendency('GEOP',pc_dynamic)
+#endif
+    end subroutine pressure_gradient_force
 
   end subroutine tend
 

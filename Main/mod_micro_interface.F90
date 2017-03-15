@@ -161,8 +161,8 @@ module mod_micro_interface
       end if
     end if
 
-    call assignpnt(aten%qx,mc2mo%qxten,pc_microphys)
-    call assignpnt(aten%t,mc2mo%tten,pc_microphys)
+    call assignpnt(aten%qx,mc2mo%qxten,pc_physic)
+    call assignpnt(aten%t,mc2mo%tten,pc_physic)
     call assignpnt(sfs%rainnc,mc2mo%rainnc)
     call assignpnt(sfs%snownc,mc2mo%snownc)
     call assignpnt(pptnc,mc2mo%lsmrnc)
@@ -373,7 +373,7 @@ module mod_micro_interface
             pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
           else
             pres = atm0%pr(j,i,k) + &
-               (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,ppw_pc_total))/sfs%psc(j,i)
+               (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
           end if
           qvs = pfwsat(tmp3,pres)
           rhc = min(max(qvcs/qvs,rhmin),rhmax)
@@ -416,12 +416,12 @@ module mod_micro_interface
           ! 3. Compute the tendencies.
           !
           if ( abs(tmp2) > dlowval ) then
-            aten%qx(j,i,k,iqv,pc_microphys) = &
-                aten%qx(j,i,k,iqv,pc_microphys) - sfs%psc(j,i)*tmp2
-            aten%qx(j,i,k,iqc,pc_microphys) = &
-                aten%qx(j,i,k,iqc,pc_microphys) + sfs%psc(j,i)*tmp2
-            aten%t(j,i,k,pc_microphys) = &
-                aten%t(j,i,k,pc_microphys) + sfs%psc(j,i)*tmp2*wlhvocp
+            aten%qx(j,i,k,iqv,pc_physic) = &
+                aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
+            aten%qx(j,i,k,iqc,pc_physic) = &
+                aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
+            aten%t(j,i,k,pc_physic) = &
+                aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wlhvocp
           end if
         end do
       end do

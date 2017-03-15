@@ -38,44 +38,10 @@ module mod_runparams
   integer(ik4) , public , parameter :: iqr = 4
   integer(ik4) , public , parameter :: iqs = 5
 
-  integer(ik4) , public , parameter :: number_of_prognostic_components = 8
+  integer(ik4) , public , parameter :: number_of_prognostic_components = 3
   integer(ik4) , public , parameter :: pc_total      = 1
-  integer(ik4) , public , parameter :: pc_advection  = 2
-  integer(ik4) , public , parameter :: pc_diffusion  = 3
-  integer(ik4) , public , parameter :: pc_convection = 4
-  integer(ik4) , public , parameter :: pc_pbl        = 5
-  integer(ik4) , public , parameter :: pc_microphys  = 5
-  integer(ik4) , public , parameter :: pc_adiabatic  = 7
-  integer(ik4) , public , parameter :: pc_boundary   = 8
-
-  integer(ik4) , public , parameter :: ppw_number_of_prognostic_components = 5
-  integer(ik4) , public , parameter :: ppw_pc_total      = 1
-  integer(ik4) , public , parameter :: ppw_pc_advection  = 2
-  integer(ik4) , public , parameter :: ppw_pc_diffusion  = 3
-  integer(ik4) , public , parameter :: ppw_pc_adiabatic  = 4
-  integer(ik4) , public , parameter :: ppw_pc_boundary   = 5
-
-  integer(ik4) , public , parameter :: chi_number_of_prognostic_components = 6
-  integer(ik4) , public , parameter :: chi_pc_total      = 1
-  integer(ik4) , public , parameter :: chi_pc_advection  = 2
-  integer(ik4) , public , parameter :: chi_pc_diffusion  = 3
-  integer(ik4) , public , parameter :: chi_pc_convection = 5
-  integer(ik4) , public , parameter :: chi_pc_pbl        = 4
-  integer(ik4) , public , parameter :: chi_pc_boundary   = 4
-
-  integer(ik4) , public , parameter :: uv_number_of_prognostic_components = 6
-  integer(ik4) , public , parameter :: uv_pc_total      = 1
-  integer(ik4) , public , parameter :: uv_pc_advection  = 2
-  integer(ik4) , public , parameter :: uv_pc_diffusion  = 3
-  integer(ik4) , public , parameter :: uv_pc_convection = 4
-  integer(ik4) , public , parameter :: uv_pc_pbl        = 5
-  integer(ik4) , public , parameter :: uv_pc_boundary   = 6
-
-  integer(ik4) , public , parameter :: tke_number_of_prognostic_components = 4
-  integer(ik4) , public , parameter :: tke_pc_total      = 1
-  integer(ik4) , public , parameter :: tke_pc_advection  = 2
-  integer(ik4) , public , parameter :: tke_pc_diffusion  = 3
-  integer(ik4) , public , parameter :: tke_pc_pbl        = 4
+  integer(ik4) , public , parameter :: pc_dynamic    = 2
+  integer(ik4) , public , parameter :: pc_physic     = 3
 
   type(rcm_time_and_date) , save , public :: idate0 , idate1 , idate2
 

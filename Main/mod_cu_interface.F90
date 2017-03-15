@@ -161,22 +161,17 @@ module mod_cu_interface
     call assignpnt(sfs%hfx,m2c%hfx)
     call assignpnt(ktrop,m2c%ktrop)
     call assignpnt(ccn,m2c%ccn)
-    call assignpnt(aten%t,m2c%tdif,pc_diffusion)
-    call assignpnt(aten%qx,m2c%qdif,pc_diffusion)
-    call assignpnt(aten%u,m2c%udif,uv_pc_diffusion)
-    call assignpnt(aten%v,m2c%vdif,uv_pc_diffusion)
-    call assignpnt(aten%chi,m2c%cdif,chi_pc_diffusion)
-    call assignpnt(aten%t,m2c%tadv,pc_advection)
-    call assignpnt(aten%qx,m2c%qadv,pc_advection)
-    call assignpnt(aten%u,m2c%uadv,uv_pc_advection)
-    call assignpnt(aten%v,m2c%vadv,uv_pc_advection)
-    call assignpnt(aten%chi,m2c%cadv,chi_pc_advection)
+    call assignpnt(aten%t,m2c%tdyn,pc_dynamic)
+    call assignpnt(aten%qx,m2c%qdyn,pc_dynamic)
+    call assignpnt(aten%u,m2c%udyn,pc_dynamic)
+    call assignpnt(aten%v,m2c%vdyn,pc_dynamic)
+    call assignpnt(aten%chi,m2c%cdyn,pc_dynamic)
     ! OUTPUT
-    call assignpnt(aten%t,c2m%tten,pc_convection)
-    call assignpnt(aten%u,c2m%uten,uv_pc_convection)
-    call assignpnt(aten%v,c2m%vten,uv_pc_convection)
-    call assignpnt(aten%qx,c2m%qxten,pc_convection)
-    call assignpnt(aten%chi,c2m%chiten,chi_pc_convection)
+    call assignpnt(aten%t,c2m%tten,pc_physic)
+    call assignpnt(aten%u,c2m%uten,pc_physic)
+    call assignpnt(aten%v,c2m%vten,pc_physic)
+    call assignpnt(aten%qx,c2m%qxten,pc_physic)
+    call assignpnt(aten%chi,c2m%chiten,pc_physic)
     call assignpnt(sfs%rainc,c2m%rainc)
     call assignpnt(pptc,c2m%pcratec)
     call assignpnt(cldfra,c2m%cldfrc)
@@ -213,29 +208,27 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              avg_tten(j,i,k) = (m2c%tadv(j,i,k)+m2c%tdif(j,i,k))/m2c%psb(j,i)
+              avg_tten(j,i,k) = (m2c%tdyn(j,i,k))/m2c%psb(j,i)
             end do
           end do
         end do
 
         if ( any(icup == 5) ) then
-          call exchange(m2c%uadv,1,jdi1,jdi2,idi1,idi2,1,kz)
-          call exchange(m2c%vadv,1,jdi1,jdi2,idi1,idi2,1,kz)
-          call exchange(m2c%udif,1,jdi1,jdi2,idi1,idi2,1,kz)
-          call exchange(m2c%vdif,1,jdi1,jdi2,idi1,idi2,1,kz)
+          call exchange(m2c%udyn,1,jdi1,jdi2,idi1,idi2,1,kz)
+          call exchange(m2c%vdyn,1,jdi1,jdi2,idi1,idi2,1,kz)
           do k = 1 , kz
             do i = icii1 , icii2
               do j = jcii1 , jcii2
                 avg_uten(j,i,k) = d_rfour * &
-                 ((m2c%uadv(j,i,k)+m2c%udif(j,i,k))/m2c%psdotb(j,i) + &
-                  (m2c%uadv(j+1,i,k)+m2c%udif(j+1,i,k))/m2c%psdotb(j+1,i) + &
-                  (m2c%uadv(j,i+1,k)+m2c%udif(j,i+1,k))/m2c%psdotb(j,i+1) + &
-                  (m2c%uadv(j+1,i+1,k)+m2c%udif(j+1,i+1,k))/m2c%psdotb(j+1,i+1))
+                 (m2c%udyn(j,i,k)/m2c%psdotb(j,i) + &
+                  m2c%udyn(j+1,i,k)/m2c%psdotb(j+1,i) + &
+                  m2c%udyn(j,i+1,k)/m2c%psdotb(j,i+1) + &
+                  m2c%udyn(j+1,i+1,k)/m2c%psdotb(j+1,i+1))
                 avg_vten(j,i,k) = d_rfour * &
-                 ((m2c%vadv(j,i,k)+m2c%vdif(j,i,k))/m2c%psdotb(j,i) + &
-                  (m2c%vadv(j+1,i,k)+m2c%vdif(j+1,i,k))/m2c%psdotb(j+1,i) + &
-                  (m2c%vadv(j,i+1,k)+m2c%vdif(j,i+1,k))/m2c%psdotb(j,i+1) + &
-                  (m2c%vadv(j+1,i+1,k)+m2c%vdif(j+1,i+1,k))/m2c%psdotb(j+1,i+1))
+                 (m2c%vdyn(j,i,k)/m2c%psdotb(j,i) + &
+                  m2c%vdyn(j+1,i,k)/m2c%psdotb(j+1,i) + &
+                  m2c%vdyn(j,i+1,k)/m2c%psdotb(j,i+1) + &
+                  m2c%vdyn(j+1,i+1,k)/m2c%psdotb(j+1,i+1))
               end do
             end do
           end do
@@ -244,8 +237,7 @@ module mod_cu_interface
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                avg_qten(j,i,k,n) = (m2c%qadv(j,i,k,n)+m2c%qdif(j,i,k,n)) / &
-                                 m2c%psb(j,i)
+                avg_qten(j,i,k,n) = m2c%qdyn(j,i,k,n) / m2c%psb(j,i)
               end do
             end do
           end do
@@ -255,8 +247,7 @@ module mod_cu_interface
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  avg_chiten(j,i,k,n) = &
-                     (m2c%cadv(j,i,k,n)+m2c%cdif(j,i,k,n))/m2c%psb(j,i)
+                  avg_chiten(j,i,k,n) = m2c%cdyn(j,i,k,n) / m2c%psb(j,i)
                 end do
               end do
             end do

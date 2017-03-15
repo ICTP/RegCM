@@ -641,14 +641,14 @@ module mod_atm_interface
       type(atmstate_tendency) , intent(out) :: atm
       if ( any(icup == 5) .or. ibltyp == 2 ) then
         call getmem4d(atm%u,jdi1ga,jdi2ga,idi1ga,idi2ga, &
-                      1,kz,1,uv_number_of_prognostic_components,'atmstate:u')
+                      1,kz,1,number_of_prognostic_components,'atmstate:u')
         call getmem4d(atm%v,jdi1ga,jdi2ga,idi1ga,idi2ga, &
-                      1,kz,1,uv_number_of_prognostic_components,'atmstate:v')
+                      1,kz,1,number_of_prognostic_components,'atmstate:v')
       else
         call getmem4d(atm%u,jdi1,jdi2,idi1,idi2, &
-                      1,kz,1,uv_number_of_prognostic_components,'atmstate:u')
+                      1,kz,1,number_of_prognostic_components,'atmstate:u')
         call getmem4d(atm%v,jdi1,jdi2,idi1,idi2, &
-                      1,kz,1,uv_number_of_prognostic_components,'atmstate:v')
+                      1,kz,1,number_of_prognostic_components,'atmstate:v')
       end if
       call getmem4d(atm%t,jci1,jci2,ici1,ici2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:t')
@@ -656,17 +656,17 @@ module mod_atm_interface
                     1,kz,1,nqx,1,number_of_prognostic_components,'atmstate:qx')
       if ( ibltyp == 2 ) then
         call getmem4d(atm%tke,jci1,jci2,ici1,ici2, &
-                  1,kzp1,1,tke_number_of_prognostic_components,'atmstate:tke')
+                  1,kzp1,1,number_of_prognostic_components,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
         call getmem4d(atm%pp,jci1,jci2,ici1,ici2, &
-                      1,kz,1,ppw_number_of_prognostic_components,'atmstate:pp')
+                      1,kz,1,number_of_prognostic_components,'atmstate:pp')
         call getmem4d(atm%w,jci1,jci2,ici1,ici2, &
-                      1,kzp1,1,ppw_number_of_prognostic_components,'atmstate:w')
+                      1,kzp1,1,number_of_prognostic_components,'atmstate:w')
       end if
       if ( ichem == 1 ) then
         call getmem5d(atm%chi,jce1,jce2,ice1,ice2, &
-                      1,kz,1,ntr,1,chi_number_of_prognostic_components, &
+                      1,kz,1,ntr,1,number_of_prognostic_components, &
                       'atmstate:chi')
       end if
     end subroutine allocate_atmstate_tendency

@@ -277,15 +277,15 @@ module mod_pbl_uwtcm
 
         tke(kzp1) = m2p%tkests(j,i,kzp1)
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) + p2m%tten(j,i,k) * pfac
-          qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) * pfac
-          qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) * pfac
+          tx(k)  = m2p%tatm(j,i,k) + m2p%tdyn(j,i,k) * pfac
+          qx(k)  = m2p%qxatm(j,i,k,iqv) + m2p%qdyn(j,i,k,iqv) * pfac
+          qcx(k)  = m2p%qxatm(j,i,k,iqc) + m2p%qdyn(j,i,k,iqc) * pfac
           ux(k)  = m2p%uxatm(j,i,k) + &
-            d_rfour * (p2m%uten(j,i,k) + p2m%uten(j+1,i,k) + &
-                       p2m%uten(j+1,i+1,k) + p2m%uten(j,i+1,k)) * pfac
+            d_rfour * (m2p%udyn(j,i,k) + m2p%udyn(j+1,i,k) + &
+                       m2p%udyn(j+1,i+1,k) + m2p%udyn(j,i+1,k)) * pfac
           vx(k)  = m2p%vxatm(j,i,k) + &
-            d_rfour * (p2m%vten(j,i,k) + p2m%vten(j+1,i,k) + &
-                       p2m%vten(j+1,i+1,k) + p2m%vten(j,i+1,k)) * pfac
+            d_rfour * (m2p%vdyn(j,i,k) + m2p%vdyn(j+1,i,k) + &
+                       m2p%vdyn(j+1,i+1,k) + m2p%vdyn(j,i+1,k)) * pfac
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
@@ -295,7 +295,7 @@ module mod_pbl_uwtcm
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi) + p2m%qxten(j,i,k,iqi) * pfac
+            qix(k) = m2p%qxatm(j,i,k,iqi) + m2p%qdyn(j,i,k,iqi) * pfac
           end do
           where ( qix < minqx ) qix = d_zero
         else
@@ -308,7 +308,7 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr) + chiuwten(j,i,k,itr) * pfac
+              chix(k,itr) = m2p%chib(j,i,k,itr) + m2p%cdyn(j,i,k,itr) * pfac
             end do
           end do
           where ( chix < mintr ) chix = d_zero

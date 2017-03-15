@@ -547,16 +547,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: qfx       ! sfs%qfx
     real(rkx) , pointer , dimension(:,:) :: hfx       ! sfs%hfx
     real(rkx) , pointer , dimension(:,:,:) :: ccn     ! ccn
-    real(rkx) , pointer , dimension(:,:,:) :: tdif    ! aten%t
-    real(rkx) , pointer , dimension(:,:,:,:) :: qdif  ! aten%qx
-    real(rkx) , pointer , dimension(:,:,:) :: udif    ! aten%u
-    real(rkx) , pointer , dimension(:,:,:) :: vdif    ! aten%v
-    real(rkx) , pointer , dimension(:,:,:,:) :: cdif  ! aten%chi
-    real(rkx) , pointer , dimension(:,:,:) :: tadv    ! aten%t
-    real(rkx) , pointer , dimension(:,:,:,:) :: qadv  ! aten%qx
-    real(rkx) , pointer , dimension(:,:,:) :: uadv    ! aten%u
-    real(rkx) , pointer , dimension(:,:,:) :: vadv    ! aten%v
-    real(rkx) , pointer , dimension(:,:,:,:) :: cadv  ! aten%chi
+    real(rkx) , pointer , dimension(:,:,:) :: tdyn    ! aten%t
+    real(rkx) , pointer , dimension(:,:,:,:) :: qdyn  ! aten%qx
+    real(rkx) , pointer , dimension(:,:,:) :: udyn    ! aten%u
+    real(rkx) , pointer , dimension(:,:,:) :: vdyn    ! aten%v
+    real(rkx) , pointer , dimension(:,:,:,:) :: cdyn  ! aten%chi
     integer(ik4) , pointer , dimension(:,:) :: ktrop
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type mod_2_cum
@@ -601,8 +596,13 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: zq        ! atms%zq
     real(rkx) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
     real(rkx) , pointer , dimension(:,:) :: rhox2d      ! atms%rhox2d
+    real(rkx) , pointer , dimension(:,:,:,:) :: chib    ! atms%chib3d
+    real(rkx) , pointer , dimension(:,:,:) :: tdyn      ! aten%t
+    real(rkx) , pointer , dimension(:,:,:,:) :: qdyn    ! aten%qx
+    real(rkx) , pointer , dimension(:,:,:) :: udyn      ! aten%u
+    real(rkx) , pointer , dimension(:,:,:) :: vdyn      ! aten%v
+    real(rkx) , pointer , dimension(:,:,:,:) :: cdyn    ! aten%chi
     real(rkx) , pointer , dimension(:,:,:) :: heatrt    ! heatrt
-    real(rkx) , pointer , dimension(:,:,:,:) :: chib    ! chib
     real(rkx) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rkx) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
     integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop
