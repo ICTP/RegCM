@@ -98,11 +98,6 @@ module mod_pbl_interface
     call assignpnt(drydepv,m2p%drydepv)
     call assignpnt(chifxuw,m2p%chifxuw)
     call assignpnt(ktrop,m2p%ktrop)
-    call assignpnt(aten%t,m2p%tphy,pc_physic)
-    call assignpnt(aten%qx,m2p%qphy,pc_physic)
-    call assignpnt(aten%u,m2p%uphy,pc_physic)
-    call assignpnt(aten%v,m2p%vphy,pc_physic)
-    call assignpnt(aten%chi,m2p%cphy,pc_physic)
 
     ! OUTPUT FROM PBL
     call assignpnt(aten%t,p2m%tten,pc_physic)
@@ -126,8 +121,6 @@ module mod_pbl_interface
       case (1)
         call holtbl(m2p,p2m)
       case (2)
-        call exchange(m2p%uphy,1,jdi1,jdi2,idi1,idi2,1,kz)
-        call exchange(m2p%uphy,1,jdi1,jdi2,idi1,idi2,1,kz)
         call uwtcm(m2p,p2m)
         call uvcross2dot(uwten%u,uwten%v,p2m%uten,p2m%vten)
       case default

@@ -108,7 +108,7 @@ module mod_pbl_uwtcm
   ! local variables on half levels
   real(rkx) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
                  zax , kethl , thlx , thlxs, thxs , tx , tvx ,         &
-                 preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
+                 rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
                  uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
                  vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
                  uimp2 , rimp2 , qix , qixs
@@ -194,6 +194,7 @@ module mod_pbl_uwtcm
     call getmem1d(thxs,1,kz,'mod_uwtcm:thxs')
     call getmem1d(tx,1,kz,'mod_uwtcm:tx')
     call getmem1d(tvx,1,kz,'mod_uwtcm:tvx')
+    call getmem1d(rttenx,1,kz,'mod_uwtcm:rttenx')
     call getmem1d(preshl,1,kz,'mod_uwtcm:preshl')
     call getmem1d(qcx,1,kz,'mod_uwtcm:qcx')
     call getmem1d(qix,1,kz,'mod_uwtcm:qix')
@@ -239,7 +240,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , pfac
+    real(rkx) :: temps , templ , deltat , rvls
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -265,7 +266,6 @@ module mod_pbl_uwtcm
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         uvdragx = m2p%uvdrag(j,i)
-        pfac = dt / psbx
 
         ! Integrate the hydrostatic equation to calculate the level height
         ! Set variables that are on full levels
@@ -276,26 +276,19 @@ module mod_pbl_uwtcm
 
         tke(kzp1) = m2p%tkests(j,i,kzp1)
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) + m2p%tphy(j,i,k) * pfac
-          qx(k)  = m2p%qxatm(j,i,k,iqv) + m2p%qphy(j,i,k,iqv) * pfac
-          qcx(k)  = m2p%qxatm(j,i,k,iqc) + m2p%qphy(j,i,k,iqc) * pfac
-          ux(k)  = m2p%uxatm(j,i,k) + &
-            d_rfour * (m2p%uphy(j,i,k) + m2p%uphy(j+1,i,k) + &
-                       m2p%uphy(j+1,i+1,k) + m2p%uphy(j,i+1,k)) * pfac
-          vx(k)  = m2p%vxatm(j,i,k) + &
-            d_rfour * (m2p%vphy(j,i,k) + m2p%vphy(j+1,i,k) + &
-                       m2p%vphy(j+1,i+1,k) + m2p%vphy(j,i+1,k)) * pfac
+          tx(k)  = m2p%tatm(j,i,k)
+          qx(k)  = m2p%qxatm(j,i,k,iqv)
+          qcx(k)  = m2p%qxatm(j,i,k,iqc)
+          ux(k)  = m2p%uxatm(j,i,k)
+          vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
         end do
-        where ( qx < minqq ) qx = minqq
-        where ( qcx < minqx ) qcx = d_zero
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi) + m2p%qphy(j,i,k,iqi) * pfac
+            qix(k) = m2p%qxatm(j,i,k,iqi)
           end do
-          where ( qix < minqx ) qix = d_zero
         else
           do k = 1 , kz
             qix(k) = d_zero
@@ -306,10 +299,9 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr) + m2p%cphy(j,i,k,itr) * pfac
+              chix(k,itr) = m2p%chib(j,i,k,itr)
             end do
           end do
-          where ( chix < mintr ) chix = d_zero
         end if
 
         ! Set all the save variables (used for determining the tendencies)
@@ -656,6 +648,16 @@ module mod_pbl_uwtcm
           ! compute shear term with new values of svs
           shear(k)  = kzm(k) * svs(k)
         end do sandb
+        ! Add radiative divergence contribution to the buoyancy term
+        ! (only if there is cloud water at the current level)
+        radib:&
+        do ilay = 1 , kpbconv
+          k = ktop(ilay)
+          if ( qcx(k) > d_zero .and. k > 1 ) then
+            buoyan(k) = buoyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
+                        rrhoxfl(k) * rexnerfl(k) / uthvx(k)
+          end if
+        end do radib
         ! tke at top is fixed
         tke(1) = d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
@@ -1008,7 +1010,12 @@ module mod_pbl_uwtcm
             end do searchup1
             ! add radiative/entrainment contribution to total
             k = ktop(ilay)
-            radnnll = d_zero
+            if ( qcx(k) > d_zero ) then
+              radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
+                        (rhoxfl(k)*uthvx(k)*exnerfl(k))
+            else
+              radnnll = d_zero
+            end if
             entnnll = d_zero
             if ( k >= 3 ) then
               delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2))   &

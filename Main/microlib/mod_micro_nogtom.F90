@@ -439,7 +439,7 @@ module mod_micro_nogtom
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nqx
-            qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n)/mo2mc%psb(j,i)
+            qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n) / mo2mc%psb(j,i)
           end do
         end do
       end do
@@ -447,7 +447,7 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ttendc(j,i,k) = mc2mo%tten(j,i,k)/mo2mc%psb(j,i)
+          ttendc(j,i,k) = mc2mo%tten(j,i,k) / mo2mc%psb(j,i)
         end do
       end do
     end do

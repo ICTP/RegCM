@@ -261,19 +261,15 @@ module mod_tendency
     !
     call init_tendencies
     !
-    ! Boundary conditions term
-    !
-    call boundary
-    !
     ! Compute Horizontal advection terms, curvature terms and adiabatic term
     !
     call advection
     call curvature
     call adiabatic
     !
-    ! Compute Large scale horizontal diffusion term
+    ! Boundary conditions term
     !
-    call diffusion
+    call boundary
     !
     ! Physical parametrizations
     !
@@ -284,6 +280,10 @@ module mod_tendency
     if ( ichem == 1 ) then
       call tractend2(ktau,xyear,xmonth,xday,calday,declin)
     end if
+    !
+    ! Compute Large scale horizontal diffusion term
+    !
+    call diffusion
     !
     ! Sum up all tendencies for temperature
     !
@@ -1559,37 +1559,50 @@ module mod_tendency
     subroutine boundary
       implicit none
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        call nudge(iboudy,atm2%t,xtb,tten)
-        call nudge(iboudy,atm2%qx,xqb,qxten,iqv)
-        call nudge(iboudy,atm2%u,atm2%v,xub,xvb,uten,vten)
+        if ( idiag > 0 ) then
+          ten0 = tdyn
+          qen0 = qxdyn(:,:,:,iqv)
+        end if
+        call nudge(iboudy,atm2%t,xtb,tdyn)
+        call nudge(iboudy,atm2%qx,xqb,qxdyn,iqv)
+        call nudge(iboudy,atm2%u,atm2%v,xub,xvb,udyn,vdyn)
+        if ( idiag > 0 ) then
+          call ten2diag(aten%t,tdiag%bdy,pc_dynamic,ten0)
+          call ten2diag(aten%qx,qdiag%bdy,pc_dynamic,qen0)
+        end if
+#ifdef DEBUG
+        call check_temperature_tendency('BDYC',pc_dynamic)
+        call check_wind_tendency('BDYC',pc_dynamic)
+#endif
       else if ( iboudy == 4 ) then
         call sponge(xtb,tten)
         call sponge(xqb,qxten,iqv)
         call sponge(xub,xvb,uten,vten)
-      end if
+        call ten2diag(aten%t,tdiag%bdy,pc_total)
+        call ten2diag(aten%qx,qdiag%bdy,pc_total)
 #ifdef DEBUG
-      call check_temperature_tendency('BDYC',pc_total)
-      call check_wind_tendency('BDYC',pc_total)
+        call check_temperature_tendency('BDYC',pc_total)
+        call check_wind_tendency('BDYC',pc_total)
 #endif
+      end if
       if ( idynamic == 2 ) then
         if ( iboudy == 1 .or. iboudy == 5 ) then
-          call nudge(iboudy,atm2%pp,xppb,ppten)
-          call nudge(iboudy,atm2%w,xwwb,wten)
+          call nudge(iboudy,atm2%pp,xppb,ppdyn)
+          call nudge(iboudy,atm2%w,xwwb,wdyn)
         else if ( iboudy == 4 ) then
           call sponge(xppb,ppten)
           call sponge(xwwb,wten)
         end if
       end if
       if ( ichem == 1 ) then
-        if ( iboudy == 1 .or. iboudy == 5 ) then
-          call nudge_chi(kz,atm2%chi,chiten)
+        if ( ichdiag == 1 ) then
+          chiten0 = chidyn
         end if
-      end if
-      if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%bdy,pc_total)
-        call ten2diag(aten%qx,qdiag%bdy,pc_total)
-        if ( ichem == 1 ) then
-          call ten2diag(aten%chi,cbdydiag,pc_total)
+        if ( iboudy == 1 .or. iboudy == 5 ) then
+          call nudge_chi(kz,atm2%chi,chidyn)
+        end if
+        if ( ichdiag == 1 ) then
+          call ten2diag(aten%chi,cbdydiag,pc_dynamic,chiten0)
         end if
       end if
     end subroutine boundary
@@ -1780,16 +1793,6 @@ module mod_tendency
     subroutine physical_parametrizations
       implicit none
       !
-      ! First guess heating from previous radiation call
-      !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tphy(j,i,k) = tphy(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
-          end do
-        end do
-      end do
-      !
       !------------------------------------------------
       !        Call cumulus parametrization
       !------------------------------------------------
@@ -1876,16 +1879,6 @@ module mod_tendency
       !------------------------------------------------
       !
       if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-        !
-        ! Remove first guess heating from previous radiation
-        !
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              tphy(j,i,k) = tphy(j,i,k) - sfs%psb(j,i)*heatrt(j,i,k)
-            end do
-          end do
-        end do
         ! calculate albedo
         call surface_albedo
         ! Update / init Ozone profiles
@@ -1897,23 +1890,23 @@ module mod_tendency
         loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
         labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
         call radiation(xyear,loutrad,labsem)
-        !
-        ! Add radiative transfer package-calculated heating rates to
-        ! temperature tendency (deg/sec)
-        !
-        if ( idiag > 0 ) ten0 = tphy
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              tphy(j,i,k) = tphy(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
-            end do
-          end do
-        end do
-        if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_physic,ten0)
 #ifdef DEBUG
         call check_temperature_tendency('HEAT',pc_physic)
 #endif
       end if
+      !
+      ! Add radiative transfer package-calculated heating rates to
+      ! temperature tendency (deg/sec)
+      !
+      if ( idiag > 0 ) ten0 = tphy
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tphy(j,i,k) = tphy(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
+          end do
+        end do
+      end do
+      if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_physic,ten0)
     end subroutine physical_parametrizations
 
     subroutine curvature
