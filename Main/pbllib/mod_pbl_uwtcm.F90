@@ -108,7 +108,7 @@ module mod_pbl_uwtcm
   ! local variables on half levels
   real(rkx) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
                  zax , kethl , thlx , thlxs, thxs , tx , tvx ,         &
-                 rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
+                 preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
                  uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
                  vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
                  uimp2 , rimp2 , qix , qixs
@@ -194,7 +194,6 @@ module mod_pbl_uwtcm
     call getmem1d(thxs,1,kz,'mod_uwtcm:thxs')
     call getmem1d(tx,1,kz,'mod_uwtcm:tx')
     call getmem1d(tvx,1,kz,'mod_uwtcm:tvx')
-    call getmem1d(rttenx,1,kz,'mod_uwtcm:rttenx')
     call getmem1d(preshl,1,kz,'mod_uwtcm:preshl')
     call getmem1d(qcx,1,kz,'mod_uwtcm:qcx')
     call getmem1d(qix,1,kz,'mod_uwtcm:qix')
@@ -277,25 +276,24 @@ module mod_pbl_uwtcm
 
         tke(kzp1) = m2p%tkests(j,i,kzp1)
         do k = 1 , kz
-          tx(k)  = m2p%tatm(j,i,k) + m2p%tdyn(j,i,k) * pfac
-          qx(k)  = m2p%qxatm(j,i,k,iqv) + m2p%qdyn(j,i,k,iqv) * pfac
-          qcx(k)  = m2p%qxatm(j,i,k,iqc) + m2p%qdyn(j,i,k,iqc) * pfac
+          tx(k)  = m2p%tatm(j,i,k) + m2p%tphy(j,i,k) * pfac
+          qx(k)  = m2p%qxatm(j,i,k,iqv) + m2p%qphy(j,i,k,iqv) * pfac
+          qcx(k)  = m2p%qxatm(j,i,k,iqc) + m2p%qphy(j,i,k,iqc) * pfac
           ux(k)  = m2p%uxatm(j,i,k) + &
-            d_rfour * (m2p%udyn(j,i,k) + m2p%udyn(j+1,i,k) + &
-                       m2p%udyn(j+1,i+1,k) + m2p%udyn(j,i+1,k)) * pfac
+            d_rfour * (m2p%uphy(j,i,k) + m2p%uphy(j+1,i,k) + &
+                       m2p%uphy(j+1,i+1,k) + m2p%uphy(j,i+1,k)) * pfac
           vx(k)  = m2p%vxatm(j,i,k) + &
-            d_rfour * (m2p%vdyn(j,i,k) + m2p%vdyn(j+1,i,k) + &
-                       m2p%vdyn(j+1,i+1,k) + m2p%vdyn(j,i+1,k)) * pfac
+            d_rfour * (m2p%vphy(j,i,k) + m2p%vphy(j+1,i,k) + &
+                       m2p%vphy(j+1,i+1,k) + m2p%vphy(j,i+1,k)) * pfac
           zax(k) = m2p%za(j,i,k)
           tke(k) = m2p%tkests(j,i,k)
-          rttenx(k) = m2p%heatrt(j,i,k)
         end do
         where ( qx < minqq ) qx = minqq
         where ( qcx < minqx ) qcx = d_zero
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi) + m2p%qdyn(j,i,k,iqi) * pfac
+            qix(k) = m2p%qxatm(j,i,k,iqi) + m2p%qphy(j,i,k,iqi) * pfac
           end do
           where ( qix < minqx ) qix = d_zero
         else
@@ -308,7 +306,7 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr) + m2p%cdyn(j,i,k,itr) * pfac
+              chix(k,itr) = m2p%chib(j,i,k,itr) + m2p%cphy(j,i,k,itr) * pfac
             end do
           end do
           where ( chix < mintr ) chix = d_zero
@@ -658,16 +656,6 @@ module mod_pbl_uwtcm
           ! compute shear term with new values of svs
           shear(k)  = kzm(k) * svs(k)
         end do sandb
-        ! Add radiative divergence contribution to the buoyancy term
-        ! (only if there is cloud water at the current level)
-        radib:&
-        do ilay = 1 , kpbconv
-          k = ktop(ilay)
-          if ( qcx(k) > d_zero .and. k > 1 ) then
-            buoyan(k) = buoyan(k) - rttenx(k)*(presfl(k+1)-presfl(k)) * &
-                        rrhoxfl(k) * rexnerfl(k) / uthvx(k)
-          end if
-        end do radib
         ! tke at top is fixed
         tke(1) = d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
@@ -1020,12 +1008,7 @@ module mod_pbl_uwtcm
             end do searchup1
             ! add radiative/entrainment contribution to total
             k = ktop(ilay)
-            if ( qcx(k) > d_zero ) then
-              radnnll = rttenx(k)*(presfl(k+1)-presfl(k)) /  &
-                        (rhoxfl(k)*uthvx(k)*exnerfl(k))
-            else
-              radnnll = d_zero
-            end if
+            radnnll = d_zero
             entnnll = d_zero
             if ( k >= 3 ) then
               delthvl = (thlxin(k-2)+thx(k-2)*ep1*qwxin(k-2))   &

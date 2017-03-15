@@ -117,8 +117,8 @@ module mod_micro_nogtom
   ! Microphysics
   real(rkx) , pointer , dimension(:,:,:) :: dqsatdt
   ! for sedimentation source/sink terms
-  real(rkx) , pointer , dimension(:) :: fallsink
-  real(rkx) , pointer , dimension(:) :: fallsrce
+  real(rkx) , pointer , dimension(:,:,:) :: fallsrce
+  real(rkx) , pointer , dimension(:,:,:) :: fallsink
   ! for convection detrainment source and subsidence source/sink terms
   real(rkx) , pointer , dimension(:) :: convsrce
   real(rkx) , pointer , dimension(:) :: convsink
@@ -244,8 +244,8 @@ module mod_micro_nogtom
     call getmem3d(qsice,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsice')
     call getmem4d(qx,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:qx')
     call getmem3d(qsliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsliq')
-    call getmem1d(fallsink,1,nqx,'cmicro:fallsink')
-    call getmem1d(fallsrce,1,nqx,'cmicro:fallsrce')
+    call getmem3d(fallsink,jci1,jci2,ici1,ici2,1,nqx,'cmicro:fallsink')
+    call getmem3d(fallsrce,jci1,jci2,ici1,ici2,1,nqx,'cmicro:fallsrce')
     call getmem1d(ratio,1,nqx,'cmicro:ratio')
     call getmem1d(sinksum,1,nqx,'cmicro:sinksum')
     call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
@@ -707,6 +707,8 @@ module mod_micro_nogtom
     !
     covptot(:,:) = d_zero
     covpclr(:,:) = d_zero
+    fallsrce(:,:,:) = d_zero
+    fallsink(:,:,:) = d_zero
 
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -726,8 +728,6 @@ module mod_micro_nogtom
         supsat      = d_zero
         subsat      = d_zero
         convsrce(:) = d_zero
-        fallsrce(:) = d_zero
-        fallsink(:) = d_zero
         convsink(:) = d_zero
         ldefr       = d_zero
         qpretot = d_zero
@@ -1315,7 +1315,7 @@ module mod_micro_nogtom
           do n = 1 , nqx
             if ( lfall(n) ) then
               ! Sink to next layer, constant fall speed
-              fallsink(n) = dtgdp * vqx(n) * dens ! Kg/Kg
+              fallsink(j,i,n) = dtgdp * vqx(n) * dens ! Kg/Kg
             end if  !lfall
           end do ! n
 
@@ -1723,7 +1723,7 @@ module mod_micro_nogtom
           do jn = 1 , nqx
             ! Diagonals: microphysical sink terms+transport
             if ( jn == n ) then
-              qlhs(jn,n) = d_one + rsemi*fallsink(n)
+              qlhs(jn,n) = d_one + rsemi*fallsink(j,i,n)
               do jo = 1 , nqx
                 qlhs(jn,n) = qlhs(jn,n) + rsemi*solqb(jo,jn)
               end do
@@ -1748,7 +1748,7 @@ module mod_micro_nogtom
                       (d_one-rsemi)*qx0(n)*solqb(jn,n) + &
                       (d_one-rsemi)*qx0(jn)*solqb(n,jn)
             end if
-            rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(n)
+            rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(j,i,n)
           end do
           qxn(n) = max(qx0(n) + rexplicit,d_zero)
         end do
@@ -1763,11 +1763,11 @@ module mod_micro_nogtom
         do n = 1 , nqx
           ! Generalized precipitation flux
           ! this will be the source for the k
-          pfplsx(n,j,i,2) = rsemi*fallsink(n) * qxn(n)*rdtgdp + &
-                  (d_one-rsemi)*fallsink(n)*qx0(n)*rdtgdp ! kg/m2/s
+          pfplsx(n,j,i,2) = rsemi*fallsink(j,i,n) * qxn(n)*rdtgdp + &
+                  (d_one-rsemi)*fallsink(j,i,n)*qx0(n)*rdtgdp ! kg/m2/s
           ! Calculate fluxes in and out of box for conservation of TL
-          fluxq = convsrce(n) + fallsrce(n) - &
-                  (fallsink(n)+convsink(n)) * qxn(n)
+          fluxq = convsrce(n) + fallsrce(j,i,n) - &
+                  (fallsink(j,i,n)+convsink(n)) * qxn(n)
           ! Calculate the water variables tendencies
           qxtendc(n,j,i,1) = qxtendc(n,j,i,1) + (qxn(n)-qx0(n))*oneodt
           ! Calculate the temperature tendencies
@@ -1811,8 +1811,6 @@ module mod_micro_nogtom
           supsat      = d_zero
           subsat      = d_zero
           convsrce(:) = d_zero
-          fallsrce(:) = d_zero
-          fallsink(:) = d_zero
           convsink(:) = d_zero
           ldefr       = d_zero
           qpretot = d_zero
@@ -2395,12 +2393,12 @@ module mod_micro_nogtom
             do n = 1 , nqx
               if ( lfall(n) ) then
                 ! Source from layer above
-                fallsrce(n) = pfplsx(n,j,i,k)*dtgdp
-                solqa(n,n) = solqa(n,n) + fallsrce(n)
-                qxfg(n) = qxfg(n) + fallsrce(n)
+                fallsrce(j,i,n) = pfplsx(n,j,i,k)*dtgdp
+                solqa(n,n) = solqa(n,n) + fallsrce(j,i,n)
+                qxfg(n) = qxfg(n) + fallsrce(j,i,n)
                 qpretot = qpretot + qxfg(n)
                 ! Sink to next layer, constant fall speed
-                fallsink(n) = dtgdp * vqx(n) * dens ! Kg/Kg
+                fallsink(j,i,n) = dtgdp * vqx(n) * dens ! Kg/Kg
               end if  !lfall
             end do ! n
 
@@ -2810,7 +2808,7 @@ module mod_micro_nogtom
             do jn = 1 , nqx
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
-                qlhs(jn,n) = d_one + rsemi*fallsink(n)
+                qlhs(jn,n) = d_one + rsemi*fallsink(j,i,n)
                 do jo = 1 , nqx
                   qlhs(jn,n) = qlhs(jn,n) + rsemi*solqb(jo,jn)
                 end do
@@ -2835,7 +2833,7 @@ module mod_micro_nogtom
                         (d_one-rsemi)*qx0(n)*solqb(jn,n) + &
                         (d_one-rsemi)*qx0(jn)*solqb(n,jn)
               end if
-              rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(n)
+              rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(j,i,n)
             end do
             qxn(n) = max(qx0(n) + rexplicit,d_zero)
           end do
@@ -2850,11 +2848,11 @@ module mod_micro_nogtom
           do n = 1 , nqx
             ! Generalized precipitation flux
             ! this will be the source for the k
-            pfplsx(n,j,i,k+1) = rsemi*fallsink(n) * qxn(n)*rdtgdp + &
-                    (d_one-rsemi)*fallsink(n)*qx0(n)*rdtgdp ! kg/m2/s
+            pfplsx(n,j,i,k+1) = rsemi*fallsink(j,i,n) * qxn(n)*rdtgdp + &
+                    (d_one-rsemi)*fallsink(j,i,n)*qx0(n)*rdtgdp ! kg/m2/s
             ! Calculate fluxes in and out of box for conservation of TL
-            fluxq = convsrce(n) + fallsrce(n) - &
-                    (fallsink(n)+convsink(n)) * qxn(n)
+            fluxq = convsrce(n) + fallsrce(j,i,n) - &
+                    (fallsink(j,i,n)+convsink(n)) * qxn(n)
             ! Calculate the water variables tendencies
             qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + (qxn(n)-qx0(n))*oneodt
             ! Calculate the temperature tendencies

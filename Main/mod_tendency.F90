@@ -265,19 +265,10 @@ module mod_tendency
     !
     call boundary
     !
-    ! Compute Horizontal advection terms and curvature terms
+    ! Compute Horizontal advection terms, curvature terms and adiabatic term
     !
     call advection
     call curvature
-    !
-    ! Pressure Gradient Force for Hydrostatic core
-    !
-    if ( idynamic == 1 ) then
-      call pressure_gradient_force
-    end if
-    !
-    ! Compute the adiabatic term
-    !
     call adiabatic
     !
     ! Compute horizontal diffusion term
@@ -336,22 +327,6 @@ module mod_tendency
         end do
       end do
     end if
-    !
-    ! Add radiative transfer package-calculated heating rates to
-    ! temperature tendency (deg/sec)
-    !
-    if ( idiag > 0 ) ten0 = tten
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tten(j,i,k) = tten(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
-        end do
-      end do
-    end do
-    if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_total,ten0)
-#ifdef DEBUG
-    call check_temperature_tendency('HEAT',pc_total)
-#endif
     if ( ipptls > 0 ) then
       do n = iqfrst , iqlst
         do k = 1 , kz
@@ -425,6 +400,12 @@ module mod_tendency
         end do
       end do
     end do
+    !
+    ! Pressure Gradient Force for Hydrostatic core
+    !
+    if ( idynamic == 1 ) then
+      call pressure_gradient_force
+    end if
     !
     ! Last RHS terms in Eq. 2.1.1, 2.1.2, 2.2.1, 2.2.2, 2.2.9, 2.2.10, 2.3.3,
     ! 2.3.4
@@ -1800,6 +1781,16 @@ module mod_tendency
     subroutine physical_parametrizations
       implicit none
       !
+      ! First guess heating from previous radiation call
+      !
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tphy(j,i,k) = tphy(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
+          end do
+        end do
+      end do
+      !
       !------------------------------------------------
       !        Call cumulus parametrization
       !------------------------------------------------
@@ -1849,24 +1840,6 @@ module mod_tendency
       end if
       !
       !------------------------------------------------
-      !       Call radiative transfer package
-      !------------------------------------------------
-      !
-      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-        ! calculate albedo
-        call surface_albedo
-        ! Update / init Ozone profiles
-        if ( iclimao3 == 1 ) then
-          call updateo3(idatex,scenario)
-        else
-          if ( ktau == 0 ) call inito3
-        end if
-        loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-        labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
-        call radiation(xyear,loutrad,labsem)
-      end if
-      !
-      !------------------------------------------------
       !            Call Surface model
       !------------------------------------------------
       !
@@ -1898,6 +1871,50 @@ module mod_tendency
       call check_temperature_tendency('PBLL',pc_physic)
       call check_wind_tendency('PBLL',pc_physic)
 #endif
+      !
+      !------------------------------------------------
+      !       Call radiative transfer package
+      !------------------------------------------------
+      !
+      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+        !
+        ! Remove first guess heating from previous radiation
+        !
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tphy(j,i,k) = tphy(j,i,k) - sfs%psb(j,i)*heatrt(j,i,k)
+            end do
+          end do
+        end do
+        ! calculate albedo
+        call surface_albedo
+        ! Update / init Ozone profiles
+        if ( iclimao3 == 1 ) then
+          call updateo3(idatex,scenario)
+        else
+          if ( ktau == 0 ) call inito3
+        end if
+        loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+        labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
+        call radiation(xyear,loutrad,labsem)
+        !
+        ! Add radiative transfer package-calculated heating rates to
+        ! temperature tendency (deg/sec)
+        !
+        if ( idiag > 0 ) ten0 = tphy
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tphy(j,i,k) = tphy(j,i,k) + sfs%psb(j,i)*heatrt(j,i,k)
+            end do
+          end do
+        end do
+        if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_physic,ten0)
+#ifdef DEBUG
+        call check_temperature_tendency('HEAT',pc_physic)
+#endif
+      end if
     end subroutine physical_parametrizations
 
     subroutine curvature
