@@ -1644,8 +1644,9 @@ module mod_tendency
       end if
       if ( ibltyp == 2 ) then
         ! Calculate the horizontal, diffusive tendency for TKE
-        ! Here TKE is decoupled , we can pass atm2.
-        call diffu_x(tkephy,atm2%tke,d_one)
+        ! Here TKE is decoupled , we can pass atm2. Use dynamic component
+        ! of tendency, to allow later decoupling to sum up all.
+        call diffu_x(tkedyn,atm2%tke,nuk)
       end if
 #ifdef DEBUG
       call check_wind_tendency('DIFF',pc_physic)
