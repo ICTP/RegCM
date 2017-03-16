@@ -716,8 +716,6 @@ module mod_pbl_uwtcm
           p2m%uuwten(j,i,k) = psbx*(ux(k)-uxs(k))*rdt
           ! Meridional wind tendency
           p2m%vuwten(j,i,k) = psbx*(vx(k)-vxs(k))*rdt
-          ! TKE tendency
-          p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + (tke(k)-tkes(k))*rdt
           ! Temperature tendency
           p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
                          psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
@@ -732,7 +730,9 @@ module mod_pbl_uwtcm
           uwstate%kth(j,i,k) = kth(k)
         end do
 
-        p2m%tketen(j,i,kzp1) = p2m%tketen(j,i,kzp1) + (tke(kzp1)-tkes(kzp1))*rdt
+        do k = ibnd , kzp1
+          p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + (tke(k)-tkes(k))*rdt
+        end do
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = ibnd , kz
