@@ -546,6 +546,12 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: chias ! atms%chib3d
     real(rkx) , pointer , dimension(:,:) :: qfx       ! sfs%qfx
     real(rkx) , pointer , dimension(:,:) :: hfx       ! sfs%hfx
+    real(rkx) , pointer , dimension(:,:,:) :: tten     ! aten%t
+    real(rkx) , pointer , dimension(:,:,:) :: uten     ! aten%u
+    real(rkx) , pointer , dimension(:,:,:) :: vten     ! aten%v
+    real(rkx) , pointer , dimension(:,:,:,:) :: qxten  ! aten%qx
+    real(rkx) , pointer , dimension(:,:,:,:) :: chiten ! aten%chi
+    real(rkx) , pointer , dimension(:,:,:) :: heatrt   ! radiation heat rate
     real(rkx) , pointer , dimension(:,:,:) :: ccn     ! ccn
     integer(ik4) , pointer , dimension(:,:) :: ktrop
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
@@ -556,7 +562,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: uten     ! aten%u
     real(rkx) , pointer , dimension(:,:,:) :: vten     ! aten%v
     real(rkx) , pointer , dimension(:,:,:,:) :: qxten  ! aten%qx
-    real(rkx) , pointer , dimension(:,:,:,:) :: chiten ! chiten
+    real(rkx) , pointer , dimension(:,:,:,:) :: chiten ! aten%chi
     real(rkx) , pointer , dimension(:,:) :: rainc
     real(rkx) , pointer , dimension(:,:) :: pcratec
     real(rkx) , pointer , dimension(:,:,:) :: convpr
@@ -595,6 +601,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rkx) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
     integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop
+    real(rkx) , pointer , dimension(:,:,:) :: heatrt    ! radiation heat rate
   end type mod_2_pbl
 
   type pbl_2_mod

@@ -272,9 +272,9 @@ module mod_pbl_uwtcm
         do k = 1 , kzp1
           presfl(k) = m2p%patmf(j,i,k)
           zqx(k) = m2p%zq(j,i,k)
+          tke(k) = m2p%tkests(j,i,k)
         end do
 
-        tke(kzp1) = m2p%tkests(j,i,kzp1)
         do k = 1 , kz
           tx(k)  = m2p%tatm(j,i,k)
           qx(k)  = m2p%qxatm(j,i,k,iqv)
@@ -282,7 +282,7 @@ module mod_pbl_uwtcm
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
-          tke(k) = m2p%tkests(j,i,k)
+          rttenx(k) = m2p%heatrt(j,i,k)
         end do
 
         if ( implicit_ice .and. ipptls > 1 ) then

@@ -27,7 +27,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , dtcum , iqv , iqi , entrmax , &
+  use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
          ichem , iaerosol , iindirect , ipptls , hsigma , ktau , ichcumtra
   use mod_mpmessage
@@ -523,14 +523,14 @@ module mod_cu_tiedtke
     !
     do jk = 1 , klev
       do jl = 1 , kproma
-        ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtcum
-        zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dtcum)
-        zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dtcum)
-        zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dtcum)
+        ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
+        zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
+        zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
+        zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
         zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
         ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-        zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtcum
-        zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtcum
+        zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
+        zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
         if ( iconv /= 4 ) then
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
@@ -552,7 +552,7 @@ module mod_cu_tiedtke
 
       do jt = 1 , ktrac
         do jl = 1 , kproma
-          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtcum)
+          zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt)
         end do
       end do
 
@@ -797,7 +797,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1272,7 +1272,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1697,7 +1697,7 @@ module mod_cu_tiedtke
     ! -----------------------------------
     !
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2214,7 +2214,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
     ztglace = tzero - 13.0_rkx
     zqold(1:kproma) = d_zero
     !
@@ -2701,7 +2701,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dtcum)
+    zcons2 = d_one/(egrav*dt)
     ztglace = tzero - 13.0_rkx
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -3965,8 +3965,8 @@ module mod_cu_tiedtke
     !
     ! SPECIFY CONSTANTS
     !
-    zcons1 = cpd/(wlhf*egrav*dtcum)
-    zcons2 = d_one/(egrav*dtcum)
+    zcons1 = cpd/(wlhf*egrav*dt)
+    zcons2 = d_one/(egrav*dt)
     zcucov = 0.050_rkx
     ztmelp2 = tzero + 2.0_rkx
     !
@@ -4602,7 +4602,7 @@ module mod_cu_tiedtke
     integer(ik4) :: ikb , itopm2 , k , ik , n
     real(rkx) :: cons2 , cons , dh , dqmin , dz , eps , fac , &
                  mfmax , pbmpt , qumqe , xro , mfa , erate ,  &
-                 derate , duten , dvten , tdis , xalv , rdtcum
+                 derate , duten , dvten , tdis , xalv
     real(rkx) , dimension(np) :: sfl
     real(rkx) , dimension(np) :: tau ! adjustment time
     ! scaling factor for momentum and tracer massflux
@@ -4624,9 +4624,8 @@ module mod_cu_tiedtke
     !------------------------------------
     ! 1. Specify constants and parameters
     ! -----------------------------------
-    rdtcum = d_one/dtcum
-    cons2 = rmfcfl/(egrav*dtcum)
-    cons = d_one/(egrav*dtcum)
+    cons2 = rmfcfl/(egrav*dt)
+    cons = d_one/(egrav*dt)
     !---------------------------------------------
     ! 2. Initialize values at vertical grid points
     ! --------------------------------------------
@@ -4718,7 +4717,7 @@ module mod_cu_tiedtke
           if ( dhpbl(n) > d_zero ) then
             mfub(n) = dhpbl(n)/dh
             ! EPS: temporary solution for explicit
-            if ( dtcum > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
+            if ( dt > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
               mfub(n) = min(mfub(n),3.0_rkx*mfmax)
             else
               mfub(n) = min(mfub(n),mfmax)
@@ -4826,7 +4825,7 @@ module mod_cu_tiedtke
         rheat(n) = max(1.e-4_rkx,rheat(n))
         tau(n) = (geof(n,ik)-geof(n,ikb)) / &
                    ((d_two+min(15.0_rkx,wmean(n)))*egrav)*rtau
-        tau(n) = max(dtcum,min(10800.0_rkx,tau(n)))
+        tau(n) = max(dt,min(10800.0_rkx,tau(n)))
         tau(n) = max(720.0_rkx,tau(n))
         mfub1(n) = (xcape(n)*mfub(n))/(rheat(n)*tau(n))
         mfub1(n) = max(mfub1(n),0.001_rkx)
@@ -4858,7 +4857,7 @@ module mod_cu_tiedtke
             mfub1(n) = mfub(n)
           end if
           ! Temporary solution for explicit
-          if ( dtcum > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
+          if ( dt > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
             mfub1(n) = min(mfub1(n),3.0_rkx*mfmax)
           else
             mfub1(n) = min(mfub1(n),mfmax)
@@ -5037,7 +5036,7 @@ module mod_cu_tiedtke
     do k = 2 , nk
       do n = n1 , n2
         if ( ldcum(n) .and. k >= kctop(n)-1 .and. k < kcbot(n) ) then
-          dz = dtcum*egrav/(pf(n,k+1)-pf(n,k))
+          dz = dt*egrav/(pf(n,k+1)-pf(n,k))
           mfa = mfuq(n,k+1) + mfdq(n,k+1) - mfuq(n,k) - mfdq(n,k) + &
                 mful(n,k+1) - mful(n,k) + dmfup(n,k)
           mfa = (mfa-lude(n,k))*dz
@@ -5775,7 +5774,7 @@ module mod_cu_tiedtke
       !----------------------
       ! 1. Specify parameters
       ! ---------------------
-      cons2 = rmfcfl/(egrav*dtcum)
+      cons2 = rmfcfl/(egrav*dt)
       facbuo = d_half/(d_one+d_half)
       cldmax = 5.e-3_rkx
       cwifrac = d_half
@@ -5897,7 +5896,7 @@ module mod_cu_tiedtke
         ! Do adiabatic ascent for entraining/detraining plume
         ! ---------------------------------------------------
         if ( llo3 ) then
-          llo4 = dtcum > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero
+          llo4 = dt > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero
           do n = n1 , n2
             qold(n) = d_zero
           end do
@@ -6581,10 +6580,10 @@ module mod_cu_tiedtke
           do n = n1 , n2
             llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
             if ( llcumbas(n,k) ) then
-              zp = rmfsoltq*dp(n,k)*dtcum
+              zp = rmfsoltq*dp(n,k)*dt
               xmfus(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-              dtdt(n,k) = dtdt(n,k)*dtcum + t(n,k)
-              dqdt(n,k) = dqdt(n,k)*dtcum + q(n,k)
+              dtdt(n,k) = dtdt(n,k)*dt + t(n,k)
+              dqdt(n,k) = dqdt(n,k)*dt + q(n,k)
               if ( k < nk ) then
                 bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
               else
@@ -6599,9 +6598,9 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))*rdtcum
-              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))*rdtcum
-              penth(n,k) = (r1(n,k)-t(n,k))*rdtcum
+              tent(n,k) = tent(n,k) + (r1(n,k)-t(n,k))*rdt
+              tenq(n,k) = tenq(n,k) + (r2(n,k)-q(n,k))*rdt
+              penth(n,k) = (r1(n,k)-t(n,k))*rdt
             end if
           end do
         end do
@@ -6732,10 +6731,10 @@ module mod_cu_tiedtke
           do n = n1 , n2
             llcumbas(n,k) = ldcum(n) .and. k >= kctop(n) - 1
             if ( llcumbas(n,k) ) then
-              zp = rmfsoluv*dp(n,k)*dtcum
+              zp = rmfsoluv*dp(n,k)*dt
               mfuu(n,k) = -zp*(mfu(n,k)+mfd(n,k))
-              dudt(n,k) = dudt(n,k)*dtcum + uen(n,k)
-              dvdt(n,k) = dvdt(n,k)*dtcum + ven(n,k)
+              dudt(n,k) = dudt(n,k)*dt + uen(n,k)
+              dvdt(n,k) = dvdt(n,k)*dt + ven(n,k)
               if ( k < nk ) then
                 bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
               else
@@ -6749,8 +6748,8 @@ module mod_cu_tiedtke
         do k = itopm2 , nk
           do n = n1 , n2
             if ( llcumbas(n,k) ) then
-              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))*rdtcum
-              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))*rdtcum
+              tenu(n,k) = tenu(n,k) + (r1(n,k)-uen(n,k))*rdt
+              tenv(n,k) = tenv(n,k) + (r2(n,k)-ven(n,k))*rdt
             end if
           end do
         end do
@@ -6780,7 +6779,7 @@ module mod_cu_tiedtke
       ! 0. Setup constants
       ! ------------------
       cons1a = cpd/(wlhf*egrav*rtaumel)
-      cons2 = rmfcfl/(egrav*dtcum)
+      cons2 = rmfcfl/(egrav*dt)
       !-------------------------------------
       ! 1. Determine final convective fluxes
       ! ------------------------------------
@@ -7526,11 +7525,11 @@ module mod_cu_tiedtke
           if ( lddraf(n) ) then
             posi = -dp(n,k) *(mfu(n,k)*cu(n,k,nt) + &
               mfd(n,k)*cd(n,k,nt)-(mfu(n,k)+mfd(n,k))*qtrac(n,ik,nt))
-            if ( qtrac(n,k,nt)+posi*dtcum < d_zero ) then
+            if ( qtrac(n,k,nt)+posi*dt < d_zero ) then
               mfa = d_one/min(-cmfcmin,mfd(n,k))
               cd(n,k,nt) = ((mfu(n,k)+mfd(n,k))*qtrac(n,ik,nt) - &
                 mfu(n,k)*cu(n,k,nt)+qtrac(n,k,nt) / &
-                (dtcum*dp(n,k)))*mfa
+                (dt*dp(n,k)))*mfa
             end if
           end if
         end do
@@ -7598,9 +7597,9 @@ module mod_cu_tiedtke
             do n = n1 , n2
               llcumbas(n,k) = llcumask(n,k)
               if ( llcumbas(n,k) ) then
-                zp = rmfsolct*dp(n,k)*dtcum
+                zp = rmfsolct*dp(n,k)*dt
                 mfc(n,k,nt) = -zp*(mfu(n,k)+mfd(n,k))
-                xtenc(n,k,nt) = xtenc(n,k,nt)*dtcum + qtrac(n,k,nt)
+                xtenc(n,k,nt) = xtenc(n,k,nt)*dt + qtrac(n,k,nt)
                 ! for implicit solution including tendency source term
                 if ( k < nk ) then
                   bb(n,k) = d_one + zp*(mfu(n,ik)+mfd(n,ik))
@@ -7615,9 +7614,9 @@ module mod_cu_tiedtke
           do k = 2 , nk
             do n = n1 , n2
               !  for implicit solution including tendency source term
-              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))*rdtcum
+              !  tenc(n,k,nt) = (r1(n,k)-qtrac(n,k,nt))*rdt
               if ( llcumbas(n,k) ) then
-                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))*rdtcum
+                tenc(n,k,nt) = tenc(n,k,nt) + (r1(n,k)-qtrac(n,k,nt))*rdt
               end if
             end do
           end do
