@@ -1794,30 +1794,6 @@ module mod_tendency
       implicit none
       !
       !------------------------------------------------
-      !             Call PBL scheme
-      !------------------------------------------------
-      !
-      if ( idiag > 0 ) then
-        ten0 = tphy
-        qen0 = qxphy(:,:,:,idgq)
-      end if
-      if ( ichem == 1 .and. ichdiag == 1 ) then
-        chiten0 = chiphy
-      end if
-      call pblscheme
-      if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%tbl,pc_physic,ten0)
-        call ten2diag(aten%qx,qdiag%tbl,pc_physic,qen0)
-      end if
-      if ( ichem == 1 .and. ichdiag == 1 ) then
-        call ten2diag(aten%chi,ctbldiag,pc_physic,chiten0)
-      end if
-#ifdef DEBUG
-      call check_temperature_tendency('PBLL',pc_physic)
-      call check_wind_tendency('PBLL',pc_physic)
-#endif
-      !
-      !------------------------------------------------
       !        Call cumulus parametrization
       !------------------------------------------------
       !
@@ -1866,15 +1842,6 @@ module mod_tendency
       end if
       !
       !------------------------------------------------
-      !            Call Surface model
-      !------------------------------------------------
-      !
-      if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-        call surface_model
-        if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
-      end if
-      !
-      !------------------------------------------------
       !       Call radiative transfer package
       !------------------------------------------------
       !
@@ -1907,6 +1874,39 @@ module mod_tendency
         end do
       end do
       if ( idiag > 0 ) call ten2diag(aten%t,tdiag%rad,pc_physic,ten0)
+      !
+      !------------------------------------------------
+      !            Call Surface model
+      !------------------------------------------------
+      !
+      if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
+        call surface_model
+        if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+      end if
+      !
+      !------------------------------------------------
+      !             Call PBL scheme
+      !------------------------------------------------
+      !
+      if ( idiag > 0 ) then
+        ten0 = tphy
+        qen0 = qxphy(:,:,:,idgq)
+      end if
+      if ( ichem == 1 .and. ichdiag == 1 ) then
+        chiten0 = chiphy
+      end if
+      call pblscheme
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%tbl,pc_physic,ten0)
+        call ten2diag(aten%qx,qdiag%tbl,pc_physic,qen0)
+      end if
+      if ( ichem == 1 .and. ichdiag == 1 ) then
+        call ten2diag(aten%chi,ctbldiag,pc_physic,chiten0)
+      end if
+#ifdef DEBUG
+      call check_temperature_tendency('PBLL',pc_physic)
+      call check_wind_tendency('PBLL',pc_physic)
+#endif
     end subroutine physical_parametrizations
 
     subroutine curvature
