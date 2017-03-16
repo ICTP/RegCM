@@ -2421,17 +2421,41 @@ module mod_params
           end do
         end do
         do i = ice1 , ice2
-          do j = jce1 , jce2
-            dpsdxm(j,i) = (atm0%psdot(j+1,i) - atm0%psdot(j,i)) / &
-                          (atm0%ps(j,i)*dx4*mddom%msfx(j,i))
+          do j = jci1 , jci2
+            dpsdxm(j,i) = (atm0%ps(j+1,i) - atm0%ps(j-1,i)) / &
+                          (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
           end do
         end do
-        do i = ice1 , ice2
+        if ( ma%has_bdyleft ) then
+          do i = ice1 , ice2
+            dpsdxm(jce1,i) = (atm0%ps(jci1,i) - atm0%ps(jce1,i)) / &
+                        (atm0%ps(jce1,i)*dx8*mddom%msfx(jce1,i))
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do i = ice1 , ice2
+            dpsdxm(jce2,i) = (atm0%ps(jce2,i) - atm0%ps(jci2,i)) / &
+                        (atm0%ps(jce2,i)*dx8*mddom%msfx(jce2,i))
+          end do
+        end if
+        do i = ici1 , ici2
           do j = jce1 , jce2
-            dpsdym(j,i) = (atm0%psdot(j,i+1) - atm0%psdot(j,i)) / &
-                          (atm0%ps(j,i)*dx4*mddom%msfx(j,i))
+            dpsdym(j,i) = (atm0%ps(j,i+1) - atm0%ps(j,i-1)) / &
+                          (atm0%ps(j,i)*dx8*mddom%msfx(j,i))
           end do
         end do
+        if ( ma%has_bdybottom ) then
+          do j = jce1 , jce2
+            dpsdym(j,ice1) = (atm0%ps(j,ici1) - atm0%ps(j,ice1)) / &
+                        (atm0%ps(j,ice1)*dx8*mddom%msfx(j,ice1))
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do j = jce1 , jce2
+            dpsdym(j,ice2) = (atm0%ps(j,ice2) - atm0%ps(j,ici2)) / &
+                        (atm0%ps(j,ice2)*dx8*mddom%msfx(j,ice2))
+          end do
+        end if
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
