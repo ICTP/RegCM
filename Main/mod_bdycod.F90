@@ -92,10 +92,13 @@ module mod_bdycod
 
   interface raydamp
     module procedure raydamp3
+    module procedure raydamp31
     module procedure raydamp3f
     module procedure raydamp3f1
     module procedure raydamp3d
+    module procedure raydamp3d1
     module procedure raydamp4
+    module procedure raydamp41
   end interface raydamp
 
   logical , parameter :: bdyflow = .true.
@@ -2928,6 +2931,37 @@ module mod_bdycod
     end do
   end subroutine raydamp3d
 
+  subroutine raydamp3d1(z,u,v,uten,vten,ubnd,vbnd)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
+    type(v3dbound) , intent(in) :: ubnd , vbnd
+    real(rkx) :: xt , zz , rate , sval
+    integer(ik4) :: i , j , k
+    xt = xbctime + dt
+    do k = 1 , rayndamp
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
+          rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
+          sval = ubnd%b0(j,i,k)+xt*ubnd%bt(j,i,k)
+          uten(j,i,k) = uten(j,i,k) + rate * (sval-u(j,i,k))
+        end do
+      end do
+    end do
+    do k = 1 , rayndamp
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
+          rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
+          sval = vbnd%b0(j,i,k)+xt*vbnd%bt(j,i,k)
+          vten(j,i,k) = vten(j,i,k) + rate * (sval-v(j,i,k))
+        end do
+      end do
+    end do
+  end subroutine raydamp3d1
+
   subroutine raydamp3f(z,var,vten,sval)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
@@ -2946,20 +2980,27 @@ module mod_bdycod
     end do
   end subroutine raydamp3f
 
-  subroutine raydamp3f1(z,var,vten,bnd)
+  subroutine raydamp3f1(z,var,vten,sval,bnd)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
+    real(rkx) , intent(in) :: sval
     type(v3dbound) , intent(in) :: bnd
-    real(rkx) :: rate , sval , xt
+    real(rkx) :: rate , mval , xt
     integer(ik4) :: i , j , k
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        rate = rayalpha0 * exp((z(j,i,1)-rayzd)/rayhd - d_one)
+        vten(j,i,1) = vten(j,i,1) + rate * (sval-var(j,i,1))
+      end do
+    end do
     xt = xbctime + dt
-    do k = 1 , min(kzp1,rayndamp)
+    do k = 2 , min(kzp1,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
           rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
-          sval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
+          mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
           vten(j,i,k) = vten(j,i,k) + rate * (sval-var(j,i,k))
         end do
       end do
@@ -2993,6 +3034,26 @@ module mod_bdycod
     end do
   end subroutine raydamp3
 
+  subroutine raydamp31(z,var,vten,bnd)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
+    type(v3dbound) , intent(in) :: bnd
+    real(rkx) :: rate , sval , xt
+    integer(ik4) :: i , j , k
+    xt = xbctime + dt
+    do k = 1 , min(kzp1,rayndamp)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+          sval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
+          vten(j,i,k) = vten(j,i,k) + rate * (sval-var(j,i,k))
+        end do
+      end do
+    end do
+  end subroutine raydamp31
+
   subroutine raydamp4(z,var,vten)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
@@ -3021,6 +3082,46 @@ module mod_bdycod
       end do
     end do
   end subroutine raydamp4
+
+  subroutine raydamp41(z,var,vten,bnd)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
+    type(v3dbound) , intent(in) :: bnd
+    real(rkx) :: xt , rate , mval , lmval , rpnts
+    integer(ik4) :: i , j , k , n
+    xt = xbctime + dt
+    do k = 1 , min(kzp1,rayndamp)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+          mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
+          vten(j,i,k,1) = vten(j,i,k,1) + rate * (mval-var(j,i,k,1))
+        end do
+      end do
+    end do
+    do n = 2 , size(var,4)
+      do k = 1 , rayndamp
+        lmval = d_zero
+        rpnts = d_zero
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mval = lmval + var(j,i,k,n)
+            rpnts = rpnts + d_one
+          end do
+        end do
+        if ( rpnts > d_zero ) lmval = lmval/rpnts
+        call meanall(lmval,mval)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+            vten(j,i,k,n) = vten(j,i,k,n) + rate * (mval-var(j,i,k,n))
+          end do
+        end do
+      end do
+    end do
+  end subroutine raydamp41
 
   subroutine timeint2(a,b,c,j1,j2,i1,i2)
     implicit none
