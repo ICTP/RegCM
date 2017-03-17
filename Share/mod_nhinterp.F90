@@ -29,12 +29,13 @@ module mod_nhinterp
 
   private
 
-  public :: nhsetup , nhbase , nhinterp , nhpp , nhw
+  public :: base_state_temperature , nhsetup , nhbase , nhinterp , nhpp , nhw
 
   real(rkx) :: ptop = 50.0_rkx  ! Centibars
   real(rkx) :: ptoppa           ! Pascal
   real(rkx) :: p0 = stdp        ! Pascal
   real(rkx) :: tlp = 47.70_rkx  ! [K/ln(Pa)]
+  real(rkx) :: st0              ! K
 
   interface nhinterp
     module procedure nhinterp3d
@@ -43,50 +44,62 @@ module mod_nhinterp
 
   contains
 
-    subroutine nhsetup(ptp,pbase,lp)
+    real(rkx) function base_state_temperature(i1,i2,j1,j2,xlat)
       implicit none
-      real(rkx) , intent(in) :: ptp , pbase , lp
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
+      real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat    ! Latitude
+      real(rkx) , dimension(j1:j2,i1:i2) :: ts0
+      integer(ik4) :: i , j
+      do i = i1 , i2
+        do j = j1 , j2
+          ts0(j,i) = stdatm_val(xlat(j,i),p0*d_r100,istdatm_tempk)
+        end do
+      end do
+      base_state_temperature = d_half*(maxval(ts0)+minval(ts0))
+      write(stdout,*) 'Computed reference surface temperature for domain: ', &
+         base_state_temperature
+    end function base_state_temperature
+
+    subroutine nhsetup(ptp,pbase,lp,ts0)
+      implicit none
+      real(rkx) , intent(in) :: ptp , pbase , lp , ts0
       ptop = ptp
       p0 = pbase
       tlp = lp
       ptoppa = ptop * d_1000
+      st0 = ts0
     end subroutine nhsetup
     !
     ! Compute the nonhydrostatic base state.
     !
-    subroutine nhbase(i1,i2,j1,j2,kx,sigmah,xlat,ter,ps0,pr0,t0,rho0,z0)
+    subroutine nhbase(i1,i2,j1,j2,kx,sig,ter,ps0,pr0,t0,rho0,z0)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kx
-      real(rkx) , pointer , intent(in) , dimension(:) :: sigmah    ! Adim 0-1
+      real(rkx) , pointer , intent(in) , dimension(:) :: sig       ! Adim 0-1
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ter     ! Meters
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat    ! Latitude
       real(rkx) , pointer , intent(out) , dimension(:,:) :: ps0    ! Pascal
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: pr0  ! Pascal
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: t0   ! Kelvin
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: rho0 ! kg/kg
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: z0   ! m
       integer(ik4) :: i , j , k
-      real(rkx) :: ac , alnp , b , cell
+      real(rkx) :: ac , alnp , b
       !
       ! Define ps0 from terrain heights and t0 profile.
       !
       do i = i1 , i2
         do j = j1 , j2
           ac = d_half * govr * ter(j,i) / tlp
-          b = stdatm_val(xlat(j,i),p0*d_r100,istdatm_tempk) / tlp
+          b = st0 / tlp
           alnp = -b + sqrt(b*b - d_four * ac)
           ps0(j,i) = p0 * exp(alnp) - ptoppa
-          cell = ptoppa / ps0(j,i)
           ! Define reference state temperature at model points.
           do k = 1 , kx
-            pr0(j,i,k) = ps0(j,i) * sigmah(k) + ptoppa
-            t0(j,i,k) = stdatm_val(xlat(j,i),pr0(j,i,k)*d_r100,istdatm_tempk)
+            pr0(j,i,k) = ps0(j,i) * sig(k) + ptoppa
+            t0(j,i,k) = max(st0 + tlp * log(pr0(j,i,k) / p0),tiso)
             rho0(j,i,k) = pr0(j,i,k) / rgas / t0(j,i,k)
-          end do
-          z0(j,i,kx) = d_zero
-          do k = kx-1, 1 , -1
-            z0(j,i,k) = z0(j,i,k+1) + rovg * t0(j,i,k) * &
-                    log((sigmah(k+1)+cell)/(sigmah(k)+cell))
+            alnp = log(pr0(j,i,k)/(ps0(j,i)+ptoppa))
+            z0(j,i,k) = max(-(d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp),d_zero)
           end do
         end do
       end do
@@ -94,43 +107,30 @@ module mod_nhinterp
     !
     ! Interpolate the hydrostatic input to nonhydrostatic coordinate.
     !
-    subroutine nhinterp3d(i1,i2,j1,j2,kxs,sigmah,sigma, &
-                          xlat,f,tv,ps,ps0,intmeth)
+    subroutine nhinterp3d(i1,i2,j1,j2,kxs,sigmah,sigma,f,tv,ps,ps0,intmeth)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , intmeth
       real(rkx) , pointer , intent(in) , dimension(:) :: sigmah
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat
       real(rkx) , pointer , intent(in) , dimension(:) :: sigma
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps0
       real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: f
       integer(ik4) :: i , j , k , l , ll
-      real(rkx) :: fl , fu , pr0 , t0 , alnqvn
+      real(rkx) :: fl , fu , pr0 , alnqvn , alnp
       real(rkx) :: zl , zu , wu , wl
       real(rkx) , dimension(1:kxs) :: fn
       real(rkx) , dimension(j1:j2,i1:i2,1:kxs) :: z , z0
-      real(rkx) , dimension(j1:j2,i1:i2) :: cell
       real(rkx) , dimension(1:kxs+1) :: zq
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
-      cell = ptoppa / ps0
-      do i = i1 , i2
-        do j = j1 , j2
-          pr0 = ps0(j,i) * sigmah(kxs) + ptoppa
-          t0 = stdatm_val(xlat(j,i),pr0*d_r100,istdatm_tempk)
-          z0(j,i,kxs) = rovg * t0 * &
-              log((sigma(kxs+1)+cell(j,i))/(sigmah(kxs)+cell(j,i)))
-        end do
-      end do
-      do k = kxs-1 , 1 , -1
+      do k = 1 , kxs
         do i = i1 , i2
           do j = j1 , j2
             pr0 = ps0(j,i) * sigmah(k) + ptoppa
-            t0 = stdatm_val(xlat(j,i),pr0*d_r100,istdatm_tempk)
-            z0(j,i,k) = z0(j,i,k+1) + rovg * t0 * &
-                log((sigma(k+1)+cell(j,i))/(sigmah(k)+cell(j,i)))
+            alnp = log(pr0/(ps0(j,i)+ptoppa))
+            z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
           end do
         end do
       end do
@@ -203,42 +203,30 @@ module mod_nhinterp
       end if
     end subroutine nhinterp3d
 
-    subroutine nhinterp4d(i1,i2,j1,j2,kxs,nn,sigmah,sigma,xlat,f,tv,ps,ps0)
+    subroutine nhinterp4d(i1,i2,j1,j2,kxs,nn,sigmah,sigma,f,tv,ps,ps0)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , nn
       real(rkx) , pointer , intent(in) , dimension(:) :: sigmah
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat
       real(rkx) , pointer , intent(in) , dimension(:) :: sigma
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps0
       real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
       integer(ik4) :: i , j , k , n , l , ll
-      real(rkx) :: fl , fu , pr0 , t0 , alnqvn
+      real(rkx) :: fl , fu , pr0 , alnqvn , alnp
       real(rkx) :: zl , zu , wl , wu
       real(rkx) , dimension(1:kxs) :: fn
       real(rkx) , dimension(j1:j2,i1:i2,1:kxs) :: z , z0
-      real(rkx) , dimension(j1:j2,i1:i2) :: cell
       real(rkx) , dimension(1:kxs+1) :: zq
       !
       ! We expect ps and ps0 to be already interpolated on dot points
       !
-      cell = ptoppa / ps0
-      do i = i1 , i2
-        do j = j1 , j2
-          pr0 = ps0(j,i) * sigmah(kxs) + ptoppa
-          t0 = stdatm_val(xlat(j,i),pr0*d_r100,istdatm_tempk)
-          z0(j,i,kxs) = rovg * t0 * &
-              log((sigma(kxs+1)+cell(j,i))/(sigmah(kxs)+cell(j,i)))
-        end do
-      end do
-      do k = kxs-1 , 1 , -1
+      do k = 1 , kxs
         do i = i1 , i2
           do j = j1 , j2
             pr0 = ps0(j,i) * sigmah(k) + ptoppa
-            t0 = stdatm_val(xlat(j,i),pr0*d_r100,istdatm_tempk)
-            z0(j,i,k) = z0(j,i,k+1) + rovg * t0 * &
-                log((sigma(k+1)+cell(j,i))/(sigmah(k)+cell(j,i)))
+            alnp = log(pr0/(ps0(j,i)+ptoppa))
+            z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
           end do
         end do
       end do
@@ -322,9 +310,9 @@ module mod_nhinterp
           tvpot = (tvk - t0(j,i,kxs)) / tk
           pp(j,i,kxs) = (tvpot*delp0 + psp) / (d_one + delp0/pr0(j,i,kxs))
           do k = kxs - 1 , 1 , -1
-            tvkp1 = tvk
+            tvkp1 = tv(j,i,k+1)
             tvk = tv(j,i,k)
-            tkp1 = tk
+            tkp1 = t(j,i,k+1)
             tk = t(j,i,k)
             wtl = (sigma(k+1) - sigma(k  )) / (sigma(k+2) - sigma(k))
             wtu = d_one - wtl
@@ -364,12 +352,11 @@ module mod_nhinterp
     ! Compute the nonhydrostatic initial vertical velocity (w) from the
     ! horizontal wind fields (u and v).
     !
-    subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,xlat,u,v,ukp,vkp,tv, &
+    subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,u,v,ukp,vkp,tv, &
                    ps,psdot,ps0,xmsfx,w,wtop,ds,iband)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband
       real(rkx) , pointer , intent(in) , dimension(:) :: sigma , dsigma
-      real(rkx) , pointer , intent(in) , dimension(:,:) :: xlat
       real(rkx) , pointer , intent(in) , dimension(:,:) :: xmsfx
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
@@ -380,17 +367,16 @@ module mod_nhinterp
       real(rkx) , pointer , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
       integer(ik4) :: l , ll , ip , im , jp
-      real(rkx) :: dx2 , omegal , omegau , t0 , ubar , vbar , wu , wl
-      real(rkx) :: zl , zu , rho , omegan , pr , t
+      real(rkx) :: dx2 , omegal , omegau , ubar , vbar , wu , wl
+      real(rkx) :: zl , zu , rho , omegan , alnp
       real(rkx) :: ua , ub , va , vb
       real(rkx) , dimension(kxs) :: mdv
       real(rkx) , dimension(kxs+1) :: omega , qdt
-      real(rkx) , dimension(kxs+1) :: z0q , zq
+      real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: z0 , z
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
-      real(rkx) , dimension(j1:j2,i1:i2,kxs) :: pr0 , logprp
+      real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: pr0 , t0
       real(rkx) , dimension(j1:j2,i1:i2) :: pspa , psdotpa
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
-      real(rkx) , dimension(j1:j2,i1:i2) :: cell
 
       wtmp(:,:,:) = d_zero
       dx2 = d_two * ds
@@ -398,25 +384,35 @@ module mod_nhinterp
       psdotpa = psdot * d_1000
       dummy = (xmsfx * xmsfx) / dx2
       dummy1 = xmsfx / ds
-      cell = ptoppa / ps0
 
-      do k = 1 , kxs
+      !
+      ! We expect ps and ps0 to be already interpolated on dot points
+      !
+      do k = 1 , kxs+1
         do i = i1 , i2
           do j = j1 , j2
             pr0(j,i,k) = ps0(j,i) * sigma(k) + ptoppa
-            logprp(j,i,k) = log((sigma(k)   * pspa(j,i) + ptoppa) / &
-                                (sigma(k+1) * pspa(j,i) + ptoppa))
+            t0(j,i,k) = max(st0 + tlp * log(pr0(j,i,k) / p0),tiso)
+            alnp = log(pr0(j,i,k)/(ps0(j,i)+ptoppa))
+            z0(j,i,k) = - (d_half*rovg*tlp*alnp*alnp + rovg*st0*alnp)
+          end do
+        end do
+      end do
+      !
+      !  Calculate heights of input temperature sounding for interpolation
+      !  to nonhydrostatic model levels.
+      !
+      do i = i1 , i2
+        do j = j1 , j2
+          z(j,i,kxs+1) = d_zero
+          do k = kxs , 1 , -1
+            z(j,i,k) = z(j,i,k+1) - rovg * tv(j,i,k) * &
+              log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
           end do
         end do
       end do
       do i = i1 , i2
         do j = j1 , j2
-          z0q(kxs+1) = d_zero
-          do k = kxs, 1 , -1
-            t0 = stdatm_val(xlat(j,i),pr0(j,i,k)*d_r100,istdatm_tempk)
-            z0q(k) = z0q(k+1) + rovg * t0 * &
-                    log((sigma(k+1)+cell(j,i))/(sigma(k)+cell(j,i)))
-          end do
           ip = min(i+1,i2)
           im = max(i-1,i1)
           if ( iband /= 1 ) then
@@ -443,10 +439,8 @@ module mod_nhinterp
             mdv(l) = (ub - ua + vb - va) * dummy(j,i)
           end do
           qdt(kxs+1) = d_zero
-          zq(kxs+1) = d_zero
           do l = kxs , 1 , -1
             qdt(l) = qdt(l+1) + mdv(l) * dsigma(l) / ps(j,i)
-            zq(l) = zq(l+1) - rovg*tv(j,i,l) * logprp(j,i,l)
           end do
           do l = kxs+1 , 1 , -1
             ubar = 0.250_rkx * (ukp(j ,i ,l) + ukp(j ,ip,l) + &
@@ -461,27 +455,26 @@ module mod_nhinterp
           !
           !  Vertical velocity from interpolated omega, zero at top.
           !
-          do k = 1 , kxs + 1
+          do k = 2 , kxs + 1
             kp = min(k,kxs)
             km = max(k-1,1)
             if ( k == kxs+1 ) km = kxs - 1
             do ll = 1 , kxs
               l = ll
-              if ( zq(l+1) < z0q(k) ) exit
+              if (z(j,i,l+1) < z0(j,i,k)) exit
             end do
-            zu = zq(l)
-            zl = zq(l+1)
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
             omegau = omega(l)
             omegal = omega(l+1)
-            wu = (z0q(k) - zl) / (zu - zl)
+            wu = (z0(j,i,k) - zl) / (zu - zl)
             wl = d_one - wu
             omegan = omegau * wu + omegal * wl
-            pr = ps0(j,i) * sigma(k) + ptoppa
-            t = stdatm_val(xlat(j,i),pr*d_r100,istdatm_tempk)
-            rho = pr / rgas / t
+            rho = pr0(j,i,k) / rgas / t0(j,i,k)
             ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             wtmp(j,i,k) = -omegan/rho * regrav
           end do
+          wtmp(j,i,1) = d_zero
         end do
       end do
       wtmp(j1,:,:) = wtmp(j1+1,:,:)

@@ -204,7 +204,7 @@ module mod_write
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,htgrid,  &
                           lndout,snowam,smoist,rmoist,dpth,texout,frac_tex,  &
-                          ps0,pr0,t0,rho0,z0)
+                          ps0,pr0,t0,rho0,z0,ts0)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -226,6 +226,7 @@ module mod_write
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rho0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: z0
+    real(rkx) , intent(in) :: ts0
 
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar
@@ -256,6 +257,10 @@ module mod_write
       ncattribute_logical('landuse_fudging',lndfudge))
     call outstream_addatt(ncout, &
       ncattribute_logical('texture_fudging',texfudge))
+    if ( idynamic == 2 ) then
+      call outstream_addatt(ncout, &
+        ncattribute_real8('base_state_surface_temperature',ts0))
+    end if
 
     if ( lakedpth ) then
       call outstream_addatt(ncout, &

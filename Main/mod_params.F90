@@ -67,7 +67,7 @@ module mod_params
     real(rkx) :: afracl , afracs , bb , cc , chibot , delsig ,  &
                dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk , &
                qkp1 , sig700 , sigtbl , ssum , vqmax , wk ,     &
-               wkp1 , xbot , xtop , xx , yy
+               wkp1 , xbot , xtop , xx , yy , ts0
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     real(rkx) , dimension(nsplit) :: dtsplit
@@ -1601,10 +1601,10 @@ module mod_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
-    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask, &
-                          mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon, &
-                          mddom%msfx,mddom%msfd,mddom%coriol, &
-                          mddom%snowam,mddom%smoist,mddom%rmoist,mddom%dhlake)
+    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask,   &
+                          mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,     &
+                          mddom%msfx,mddom%msfd,mddom%coriol,mddom%snowam, &
+                          mddom%smoist,mddom%rmoist,mddom%dhlake,ts0)
     call bcast(ds)
     call bcast(ptop)
 
@@ -2398,11 +2398,11 @@ module mod_params
         use mod_nhinterp
         implicit none
         integer(ik4) :: i , j , k
-        call nhsetup(ptop,base_state_pressure,logp_lrate)
+        call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
         mddom%ht = mddom%ht * regrav
-        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%xlat,mddom%ht, &
+        call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%ht, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho,atm0%z)
-        call nhbase(ice1,ice2,jce1,jce2,kzp1,sigma,mddom%xlat,mddom%ht, &
+        call nhbase(ice1,ice2,jce1,jce2,kzp1,sigma,mddom%ht, &
                     atm0%ps,atm0%pf,atm0%tf,atm0%rhof,atm0%zf)
         mddom%ht = mddom%ht * egrav
         call exchange(atm0%ps,1,jce1,jce2,ice1,ice2)

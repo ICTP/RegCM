@@ -230,12 +230,12 @@ module mod_write
         call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band)
       end do
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
-      call nhw(1,iy,1,jx,kz,sigmaf,dsigma,xlat,u4,v4,ukp,vkp,tv4, &
+      call nhw(1,iy,1,jx,kz,sigmaf,dsigma,u4,v4,ukp,vkp,tv4, &
                ps4,pd4,ps0,msfx,ww4,wtop4,dx,i_band)
-      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,dlat,u4,tvd4,pd4,psd0,1)
-      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,dlat,v4,tvd4,pd4,psd0,1)
-      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,xlat,t4,tv4,ps4,ps0,1)
-      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,xlat,q4,tv4,ps4,ps0,2)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,u4,tvd4,pd4,psd0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,v4,tvd4,pd4,psd0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,t4,tv4,ps4,ps0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,q4,tv4,ps4,ps0,2)
       ! Recompute virtual temperature on non hydrostatic sigma.
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute the nonhydrostatic perturbation pressure field (pp).

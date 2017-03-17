@@ -101,6 +101,13 @@ module mod_nchelper
     module procedure write_var1d_static_text
   end interface write_var1d_static
 
+  interface get_attribute
+    module procedure get_attribute_char
+    module procedure get_attribute_int4
+    module procedure get_attribute_real4
+    module procedure get_attribute_real8
+  end interface get_attribute
+
   public :: read_var1d_static
   public :: read_var2d_static
   public :: read_var3d_static
@@ -1536,7 +1543,7 @@ module mod_nchelper
                     'Error adding attribute '//aname)
   end subroutine add_attribute
 
-  subroutine get_attribute(ncid,aname,aval,ivar)
+  subroutine get_attribute_char(ncid,aname,aval,ivar)
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: aname
@@ -1550,7 +1557,55 @@ module mod_nchelper
     end if
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error reading attribute '//aname)
-  end subroutine get_attribute
+  end subroutine get_attribute_char
+
+  subroutine get_attribute_real4(ncid,aname,aval,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: aname
+    real(rk4) , intent(out) :: aval
+    integer(ik4) , intent(in) , optional :: ivar
+    integer :: istat
+    if ( present(ivar) ) then
+      istat = nf90_get_att(ncid,ivar,aname,aval)
+    else
+      istat = nf90_get_att(ncid,nf90_global,aname,aval)
+    end if
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error reading attribute '//aname)
+  end subroutine get_attribute_real4
+
+  subroutine get_attribute_real8(ncid,aname,aval,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: aname
+    real(rk8) , intent(out) :: aval
+    integer(ik4) , intent(in) , optional :: ivar
+    integer :: istat
+    if ( present(ivar) ) then
+      istat = nf90_get_att(ncid,ivar,aname,aval)
+    else
+      istat = nf90_get_att(ncid,nf90_global,aname,aval)
+    end if
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error reading attribute '//aname)
+  end subroutine get_attribute_real8
+
+  subroutine get_attribute_int4(ncid,aname,aval,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: aname
+    integer(ik4) , intent(out) :: aval
+    integer(ik4) , intent(in) , optional :: ivar
+    integer :: istat
+    if ( present(ivar) ) then
+      istat = nf90_get_att(ncid,ivar,aname,aval)
+    else
+      istat = nf90_get_att(ncid,nf90_global,aname,aval)
+    end if
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error reading attribute '//aname)
+  end subroutine get_attribute_int4
 
   logical function check_dimlen(ncid,dname,ival)
     implicit none

@@ -90,6 +90,7 @@ program terrain
   real(rkx) :: psig , zsig , pstar , tswap
   real(rkx) :: base_state_pressure = stdp
   real(rkx) :: logp_lrate = 47.70_rkx
+  real(rkx) :: ts0
   data ibndry /.true./
 
   namelist /nonhydroparam/ base_state_pressure , logp_lrate
@@ -156,7 +157,7 @@ program terrain
   if ( clong>180. ) clong = clong - 360.
   if ( clong<=-180. ) clong = clong + 360.
 
-  if ( nsg>1 ) then
+  if ( nsg > 1 ) then
 
     write (stdout,*) ''
     write (stdout,*) 'Doing Horizontal Subgrid with following parameters'
@@ -697,9 +698,10 @@ program terrain
     end if
 
     if ( idynamic == 2 ) then
-      call nhsetup(ptop,base_state_pressure,logp_lrate)
-      call nhbase(1,iysg,1,jxsg,kz+1,sigma,xlat_s, &
-                  htgrid_s,ps0_s,pr0_s,t0_s,rho0_s,z0_s)
+      ts0 = base_state_temperature(1,iysg,1,jxsg,xlat_s)
+      call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
+      call nhbase(1,iysg,1,jxsg,kz+1,sigma,htgrid_s, &
+                  ps0_s,pr0_s,t0_s,rho0_s,z0_s)
     end if
 
     write (outname,'(a,i0.3,a)') &
@@ -708,15 +710,16 @@ program terrain
                       ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,  &
                       dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,  &
                       smoist_s,rmoist_s,dpth_s,texout_s,frac_tex_s,ps0_s, &
-                      pr0_s,t0_s,rho0_s,z0_s)
+                      pr0_s,t0_s,rho0_s,z0_s,ts0)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
   call read_moist(moist_filename,rmoist,snowam,jx,iy,num_soil_layers,lrmoist)
 
   if ( idynamic == 2 ) then
-    call nhsetup(ptop,base_state_pressure,logp_lrate)
-    call nhbase(1,iy,1,jx,kz+1,sigma,xlat,htgrid,ps0,pr0,t0,rho0,z0)
+    ts0 = base_state_temperature(1,iy,1,jx,xlat)
+    call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
+    call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0,z0)
   end if
 
   write (outname,'(a,i0.3,a)') &
@@ -724,7 +727,7 @@ program terrain
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,      &
                     htgrid,lndout,snowam,smoist,rmoist,dpth,texout,       &
-                    frac_tex,ps0,pr0,t0,rho0,z0)
+                    frac_tex,ps0,pr0,t0,rho0,z0,ts0)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

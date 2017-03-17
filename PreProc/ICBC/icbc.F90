@@ -151,8 +151,13 @@ program icbc
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname
+  integer(ik4) :: ifupr , ifrayd , rayndamp , itopnudge
+  real(rkx) :: ckh , adyndif , nhbet , nhxkd , rayalpha0 , rayzd , rayhd
 
-  namelist /nonhydroparam/ base_state_pressure , logp_lrate
+  namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
+      ckh , adyndif , nhbet , nhxkd , ifrayd , rayndamp , rayalpha0 ,   &
+      rayzd , rayhd , itopnudge
+
 
   call header('icbc')
   !

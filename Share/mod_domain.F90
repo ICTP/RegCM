@@ -56,7 +56,7 @@ module mod_domain
   end interface read_domain
 
   public :: domain_io , mddom_io , read_domain , check_domain
-  public :: read_reference_state
+  public :: read_reference_state , read_reference_surface_temp
 
   contains
 
@@ -164,18 +164,27 @@ module mod_domain
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
   end subroutine read_domain_array_single
 
-  subroutine read_reference_state(ncid,ps0,pr0,t0,rho0)
+  subroutine read_reference_state(ncid,ps0,pr0,t0,rho0,ts0)
     implicit none
     integer , intent(in) :: ncid
     real(rkx) , pointer , dimension(:,:) , intent(out) , optional :: ps0
     real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: pr0
     real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: t0
     real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: rho0
+    real(rkx) , intent(out) :: ts0
     call read_var2d_static(ncid,'ps0',ps0)
     call read_var3d_static(ncid,'pr0',pr0)
     call read_var3d_static(ncid,'t0',t0)
     call read_var3d_static(ncid,'rho0',rho0)
+    call get_attribute(ncid,'base_state_surface_temperature',ts0)
   end subroutine read_reference_state
+
+  subroutine read_reference_surface_temp(ncid,ts0)
+    implicit none
+    integer , intent(in) :: ncid
+    real(rkx) , intent(out) :: ts0
+    call get_attribute(ncid,'base_state_surface_temperature',ts0)
+  end subroutine read_reference_surface_temp
 
   subroutine allocate_domain
     implicit none

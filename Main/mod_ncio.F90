@@ -62,8 +62,9 @@ module mod_ncio
 
 #include <pfesat.inc>
 
-  subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon, &
-                              msfx,msfd,coriol,snowam,smoist,rmoist,hlake)
+  subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon,   &
+                              msfx,msfd,coriol,snowam,smoist,rmoist, &
+                              hlake,ts0)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ht
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: lnd
@@ -80,6 +81,7 @@ module mod_ncio
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: smoist
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rmoist
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: hlake
+    real(rkx) , intent(out) :: ts0
     real(rkx) , dimension(:,:) , pointer :: tempmoist
     character(len=256) :: dname
     character(len=8) :: csmoist
@@ -166,6 +168,9 @@ module mod_ncio
              istart=istart,icount=icount)
         if (has_dhlake) hlake(jde1:jde2,ide1:ide2) = rspace
       end if
+      if ( idynamic == 2 ) then
+        call read_reference_surface_temp(idmin,ts0)
+      end if
       call closefile(idmin)
       deallocate(rspace)
     else
@@ -177,6 +182,10 @@ module mod_ncio
         allocate(rspace(icount(1),icount(2)))
         call openfile_withname(dname,idmin)
         call check_domain(idmin)
+        if ( idynamic == 2 ) then
+          call read_reference_surface_temp(idmin,ts0)
+        end if
+        call bcast(ts0)
         call get_attribute(idmin,'initialized_soil_moisture',csmoist)
         if ( csmoist == 'Yes' ) then
           replacemoist = .true.
@@ -248,6 +257,7 @@ module mod_ncio
         call closefile(idmin)
         deallocate(rspace)
       else
+        call bcast(ts0)
         call bcast(replacemoist)
         call bcast(sigma)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
@@ -276,9 +286,11 @@ module mod_ncio
         end if
       end if
     end if
-    if ( idynamic == 2 .and. .not. do_parallel_netcdf_in ) then
-      call getmem3d(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
-      call getmem2d(tempwtop,jce1,jce2,ice1,ice2,'read_domain:tempwtop')
+    if ( idynamic == 2 ) then
+      if ( .not. do_parallel_netcdf_in ) then
+        call getmem3d(tempw,jce1,jce2,ice1,ice2,1,kz,'read_domain:tempw')
+        call getmem2d(tempwtop,jce1,jce2,ice1,ice2,'read_domain:tempwtop')
+      end if
     end if
   end subroutine read_domain_info
 
