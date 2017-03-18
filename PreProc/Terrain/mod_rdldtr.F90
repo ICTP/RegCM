@@ -35,7 +35,7 @@ module mod_rdldtr
   real(rkx) , allocatable , dimension(:) :: copybuf
   real(rkx) , dimension(:,:) , pointer :: values
 
-  public :: values , read_ncglob
+  public :: values , read_ncglob , longitude_circle
 
   contains
 !
@@ -54,7 +54,7 @@ module mod_rdldtr
 !  values = allocated space by the sub containing data: the caller is
 !           in charge of the deallocate
 !
-  subroutine read_ncglob(cfile,cvar,iores,iband,imeth,isel)
+  subroutine read_ncglob(cfile,cvar,iores,imeth,iband,isel)
     use netcdf
     implicit none
     character(len=*) , intent(in) :: cfile , cvar
@@ -344,6 +344,12 @@ module mod_rdldtr
       marker = left
     end if
   end subroutine partition
+
+  real(rkx) function longitude_circle(lat) result(er)
+    implicit none
+    real(rkx) , intent(in) :: lat
+    er = d_two * mathpi * erkm * cos(lat*degrad)
+  end function longitude_circle
 
 end module mod_rdldtr
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

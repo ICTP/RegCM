@@ -31,11 +31,11 @@ module mod_nhinterp
 
   public :: base_state_temperature , nhsetup , nhbase , nhinterp , nhpp , nhw
 
-  real(rkx) :: ptop = 50.0_rkx  ! Centibars
-  real(rkx) :: ptoppa           ! Pascal
-  real(rkx) :: p0 = stdp        ! Pascal
-  real(rkx) :: tlp = 47.70_rkx  ! [K/ln(Pa)]
-  real(rkx) :: st0              ! K
+  real(rkx) :: ptop = 5.0_rkx      ! Centibars
+  real(rkx) :: ptoppa = 5000.0_rkx ! Pascal
+  real(rkx) :: p0 = 101325.0_rkx   ! Pascal
+  real(rkx) :: tlp = 47.70_rkx     ! [K/ln(Pa)]
+  real(rkx) :: st0 = 288.15        ! K
 
   interface nhinterp
     module procedure nhinterp3d
@@ -366,7 +366,7 @@ module mod_nhinterp
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: w
       real(rkx) , pointer , intent(out) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k , km , kp
-      integer(ik4) :: l , ll , ip , im , jp
+      integer(ik4) :: l , ll , ip , im , jp , jm
       real(rkx) :: dx2 , omegal , omegau , ubar , vbar , wu , wl
       real(rkx) :: zl , zu , rho , omegan , alnp
       real(rkx) :: ua , ub , va , vb
@@ -383,7 +383,7 @@ module mod_nhinterp
       pspa = ps * d_1000
       psdotpa = psdot * d_1000
       dummy = (xmsfx * xmsfx) / dx2
-      dummy1 = xmsfx / ds
+      dummy1 = xmsfx / dx2
 
       !
       ! We expect ps and ps0 to be already interpolated on dot points
@@ -417,6 +417,7 @@ module mod_nhinterp
           im = max(i-1,i1)
           if ( iband /= 1 ) then
             jp = min(j+1,j2)
+            jm = min(j-1,j1)
           else
             if ( j == j2-1 ) then
               jp = j2
@@ -424,6 +425,13 @@ module mod_nhinterp
               jp = j1
             else
               jp = j + 1
+            end if
+            if ( j == j1+1 ) then
+              jm = j1
+            else if ( j == j1 ) then
+              jm = j2
+            else
+              jm = j - 1
             end if
           end if
           mdv(:) = d_zero
@@ -449,13 +457,13 @@ module mod_nhinterp
                                 vkp(jp,i ,l) + vkp(jp,ip,l))
             ! Calculate omega
             omega(l) = pspa(j,i) * qdt(l) + sigma(l) *  &
-                    ((psdotpa(jp,i) - psdotpa(j,i)) * ubar + &
-                     (psdotpa(j,ip) - psdotpa(j,i)) * vbar) * dummy1(j,i)
+                    ((pspa(jp,i) - pspa(jm,i)) * ubar + &
+                     (pspa(j,ip) - pspa(j,im)) * vbar) * dummy1(j,i)
           end do
           !
           !  Vertical velocity from interpolated omega, zero at top.
           !
-          do k = 2 , kxs + 1
+          do k = 1 , kxs + 1
             kp = min(k,kxs)
             km = max(k-1,1)
             if ( k == kxs+1 ) km = kxs - 1
@@ -474,8 +482,16 @@ module mod_nhinterp
             ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
             wtmp(j,i,k) = -omegan/rho * regrav
           end do
-          wtmp(j,i,1) = d_zero
         end do
+      end do
+      wtmp(j1,:,:) = wtmp(j1+1,:,:)
+      wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
+      wtmp(:,i1,:) = wtmp(:,i1+1,:)
+      wtmp(:,i2-1,:) = wtmp(:,i2-2,:)
+      wtmp(j2,:,:) = wtmp(j2-1,:,:)
+      wtmp(:,i2,:) = wtmp(:,i2-1,:)
+      do k = 1 , kxs + 1
+        call smtdsmt(wtmp(:,:,k),i1,i2,j1,j2)
       end do
       wtmp(j1,:,:) = wtmp(j1+1,:,:)
       wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
@@ -486,6 +502,49 @@ module mod_nhinterp
       wtop(j1:j2,i1:i2) = wtmp(j1:j2,i1:i2,1)
       w(j1:j2,i1:i2,1:kxs) = wtmp(j1:j2,i1:i2,2:kxs+1)
     end subroutine nhw
+
+    subroutine smtdsmt(slab,i1,i2,j1,j2)
+      implicit none
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
+      real(rkx) , intent(inout) , dimension(j1:j2,i1:i2) :: slab
+      real(rkx) :: aplus , asv , cell
+      integer(ik4) :: i , is , ie , j , js , je , k , kp
+      real(rkx) , dimension(2) :: xnu
+      !
+      ! purpose: spatially smooth data in slab to dampen short
+      ! wavelength components
+      !
+      ie = i2-1
+      je = j2-1
+      is = i1+1
+      js = j1+1
+      xnu(1) =  0.50_rkx
+      xnu(2) = -0.52_rkx
+      do k = 1 , 2
+        do kp = 1 , 2
+          ! first smooth in the ni direction
+          do i = is , ie
+            asv = slab(j1,i)
+            do j = js , je
+              cell = slab(j,i)
+              aplus = slab(j+1,i)
+              slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+              asv = cell
+            end do
+          end do
+          ! smooth in the nj direction
+          do j = js , je
+            asv = slab(j,i1)
+            do i = is , ie
+              cell = slab(j,i)
+              aplus = slab(j,i+1)
+              slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+              asv = cell
+            end do
+          end do
+        end do
+      end do
+    end subroutine smtdsmt
 
 end module mod_nhinterp
 

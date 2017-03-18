@@ -88,12 +88,33 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) :: psig , zsig , pstar , tswap
-  real(rkx) :: base_state_pressure = stdp
-  real(rkx) :: logp_lrate = 47.70_rkx
   real(rkx) :: ts0
   data ibndry /.true./
 
-  namelist /nonhydroparam/ base_state_pressure , logp_lrate
+  ! You should nor modify those, but it may help with "difficult" domains
+  ! to obtain better representation of topography and landuse
+
+  ! RESAMPLING METHODS if lresamp === true
+  ! 1 : mean of values
+  ! 2 : median of values
+  ! 3 : most present for classes
+  ! 4 : mean of central 50% after median filtering
+
+  integer(ik4) :: topo_resamp_method = 4
+  integer(ik4) :: class_resamp_method = 3
+  integer(ik4) :: moisture_resamp_method = 1
+
+  ! INTERPOLATION METHODS
+  ! 1 : bilinear interpolation
+  ! 2 : bicubic interpolation
+  ! 3 : nearest neighbour interpolation
+  ! 4 : most represented class
+  ! 5 : percent of most represented classes
+  ! 6 : distance weigth with roidem radius in ds units
+
+  integer(ik4) :: topo_interp_method = 6
+  integer(ik4) :: class_interp_method = 4
+  integer(ik4) :: percent_interp_method = 5
 
   call header(1)
   !
@@ -140,17 +161,9 @@ program terrain
       write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), psig, zsig
     end do
   else if ( idynamic == 2 ) then
-    open(ipunit, file=namelistfile, status='old', &
-         action='read', iostat=ierr)
-    rewind(ipunit)
-    read(ipunit, nml=nonhydroparam, iostat=ierr)
     write(stdout, *) 'Using non hydrostatic parameters'
-    write(stdout, *) 'base_state_pressure    = ', base_state_pressure
-    write(stdout, *) 'logp_lrate             = ', logp_lrate
-    if ( ierr /= 0 ) then
-      ierr = 0
-    end if
-    close(ipunit)
+    write(stdout, '(a,f10.2)') ' base_state_pressure    = ', base_state_pressure
+    write(stdout, '(a,f10.2)') ' logp_lrate             = ', logp_lrate
   end if
 
   clong = clon
@@ -207,7 +220,7 @@ program terrain
     write(stdout,*) 'Determined Subgrid coordinate range'
 
     if ( lresamp ) then
-      ntypec_s = nint(dsnsg/d_two*60.0_rkx/440.0_rkx)
+      ntypec_s = nint(longitude_circle(minval(abs(xlat)))/(36.0_rkx*dsnsg))
       if ( ntypec_s > 0 ) then
         do while ( mod(3600,ntypec_s*60) /= 0 .and. ntypec_s > 1 )
           ntypec_s = ntypec_s - 1
@@ -223,20 +236,22 @@ program terrain
       write(stdout,*) 'No resampling used.'
     end if
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec_s,i_band,4)
+                     pthsep//trim(tersrc)//'_DEM_30s.nc','z', &
+                     ntypec_s,topo_resamp_method,i_band)
     write(stdout,*)'Static DEM data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                6,lonwrap,lcrosstime,rdem=roidem)
+                topo_interp_method,lonwrap,lcrosstime,rdem=roidem)
     call relmem2d(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'GLCC_BATS_30s.nc','landcover',ntypec_s,i_band,3)
+                     pthsep//'GLCC_BATS_30s.nc','landcover', &
+                     ntypec_s,class_resamp_method,i_band)
     write(stdout,*)'Static landcover BATS data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,lndout_s,  &
                 nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                4,lonwrap,lcrosstime,     &
+                class_interp_method,lonwrap,lcrosstime,     &
                 ibnty=1,h2opct=h2opct,rdem=roidem)
     call filter1plakes(jxsg,iysg,lndout_s)
     call relmem2d(values)
@@ -246,7 +261,7 @@ program terrain
       if ( smsrc(1:3) == 'CPC' ) then
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
-                         'soilw',30,i_band,2,month)
+                         'soilw',30,moisture_resamp_method,i_band,month)
         where ( values > d_zero )
           ! The data are mm content in a column of 1.6 m
           values = values * 0.0016_rkx
@@ -254,7 +269,7 @@ program terrain
       else
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                          pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
-                         'sm',15,i_band,2,month)
+                         'sm',15,moisture_resamp_method,i_band,month)
         where ( values > d_zero )
           ! This is the scale factor from original data in the file
           values = values * 0.0001_rkx
@@ -271,32 +286,34 @@ program terrain
       end do
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,smoist_s,  &
                   nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                  6,lonwrap,lcrosstime,rdem=roidem)
+                  topo_interp_method,lonwrap,lcrosstime,rdem=roidem)
       call relmem2d(values)
       write(stdout,*)'Interpolated soil moisture on SUBGRID'
     end if
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'GLZB_SOIL_30s.nc','soiltype',ntypec_s,i_band,3)
+                     pthsep//'GLZB_SOIL_30s.nc','soiltype', &
+                     ntypec_s,class_resamp_method,i_band)
     write(stdout,*)'Static texture data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,texout_s,   &
                 nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                4,lonwrap,lcrosstime,      &
+                class_interp_method,lonwrap,lcrosstime,      &
                 ibnty=2,h2opct=h2opct,rdem=roidem)
     do i = 1 , ntex
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,frac_tex_s(:,:,i), &
                   nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                  5,lonwrap,lcrosstime,ival=i,rdem=roidem)
+                  percent_interp_method,lonwrap,lcrosstime,ival=i,rdem=roidem)
     end do
     call relmem2d(values)
     write(stdout,*)'Interpolated texture on SUBGRID'
 
     if ( lakedpth ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                       pthsep//'ETOPO_BTM_30s.nc','z',ntypec_s,i_band,2)
+                       pthsep//'ETOPO_BTM_30s.nc','z', &
+                       ntypec_s,topo_resamp_method,i_band)
       write(stdout,*)'Static bathymetry data successfully read in'
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,dpth_s,    &
                   nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                  6,lonwrap,lcrosstime,rdem=roidem)
+                  topo_interp_method,lonwrap,lcrosstime,rdem=roidem)
       call relmem2d(values)
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
@@ -391,7 +408,7 @@ program terrain
   write(stdout,*)'Determined Grid coordinate range'
 
   if ( lresamp ) then
-    ntypec = nint(ds*60.0_rkx/440.0_rkx)
+    ntypec = nint(longitude_circle(minval(abs(xlat)))/(36.0_rkx*ds))
     if ( ntypec > 0 ) then
       do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
         ntypec = ntypec - 1
@@ -407,20 +424,22 @@ program terrain
     write(stdout,*) 'No resampling used.'
   end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//trim(tersrc)//'_DEM_30s.nc','z',ntypec,i_band,4)
+                   pthsep//trim(tersrc)//'_DEM_30s.nc','z', &
+                   ntypec,topo_resamp_method,i_band)
   write(stdout,*)'Static DEM data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-              6,lonwrap,lcrosstime,rdem=roidem)
+              topo_interp_method,lonwrap,lcrosstime,rdem=roidem)
   call relmem2d(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//'GLCC_BATS_30s.nc','landcover',ntypec,i_band,3)
+                   pthsep//'GLCC_BATS_30s.nc','landcover', &
+                   ntypec,class_resamp_method,i_band)
   write(stdout,*)'Static landcover BATS data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,lndout,            &
               nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-              4,lonwrap,lcrosstime,       &
+              class_interp_method,lonwrap,lcrosstime,       &
               ibnty=1,h2opct=h2opct,rdem=roidem)
   call filter1plakes(jx,iy,lndout)
   call relmem2d(values)
@@ -430,7 +449,7 @@ program terrain
     if ( smsrc(1:3) == 'CPC' ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
-                       'soilw',30,i_band,2,month)
+                       'soilw',15,moisture_resamp_method,i_band,month)
       where ( values > d_zero )
         ! The data are mm content in a column of 1.6 m
         values = values * 0.0016_rkx
@@ -438,7 +457,7 @@ program terrain
     else
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//trim(smsrc)//'-SOILMOISTURE.nc', &
-                       'sm',15,i_band,2,month)
+                       'sm',15,moisture_resamp_method,i_band,month)
       where ( values > d_zero )
         ! This is the scale factor from original data in the file
         values = values * 0.0001_rkx
@@ -455,32 +474,34 @@ program terrain
     end do
     call interp(ds,jx,iy,xlat,xlon,smoist,               &
                 nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                6,lonwrap,lcrosstime,rdem=roidem)
+                topo_interp_method,lonwrap,lcrosstime,rdem=roidem)
     call relmem2d(values)
     write(stdout,*)'Interpolated soil moisture on model GRID'
   end if
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                   pthsep//'GLZB_SOIL_30s.nc','soiltype',ntypec,i_band,3)
+                   pthsep//'GLZB_SOIL_30s.nc','soiltype', &
+                   ntypec,class_resamp_method,i_band)
   write(stdout,*)'Static texture data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,texout,             &
               nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-              4,lonwrap,lcrosstime,        &
+              class_interp_method,lonwrap,lcrosstime,        &
               ibnty=2,h2opct=h2opct,rdem=roidem)
   do i = 1 , ntex
     call interp(ds,jx,iy,xlat,xlon,frac_tex(:,:,i),   &
                 nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                5,lonwrap,lcrosstime,ival=i,rdem=roidem)
+                percent_interp_method,lonwrap,lcrosstime,ival=i,rdem=roidem)
   end do
   call relmem2d(values)
   write(stdout,*)'Interpolated texture on model GRID'
 
   if ( lakedpth ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
-                     pthsep//'ETOPO_BTM_30s.nc','z',ntypec,i_band,2)
+                   pthsep//'ETOPO_BTM_30s.nc','z', &
+                   ntypec,topo_resamp_method,i_band)
     write(stdout,*)'Static bathymetry data successfully read in'
     call interp(ds,jx,iy,xlat,xlon,dpth,              &
                 nlatin,nlonin,grdltmn,grdlnmn,grdltma,grdlnma,values, &
-                6,lonwrap,lcrosstime,rdem=roidem)
+                topo_interp_method,lonwrap,lcrosstime,rdem=roidem)
     call relmem2d(values)
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
@@ -532,17 +553,16 @@ program terrain
   elsewhere
     mask = 2.0
   end where
-  if ( .not. h2ohgt ) then
-    where ( lndout > 14.5 .and. lndout < 15.5 )
-      htgrid = 0.0
-    end where
-    ! Correction for Black Sea
-    where ( xlat > 40.0 .and. xlat < 47.2 .and. &
-            xlon > 26.5 .and. xlon < 42.0 .and. &
-            lndout > 13.5 .and. lndout < 14.5 )
-      htgrid = 0.0
-    end where
-  else
+  where ( lndout > 14.5 .and. lndout < 15.5 )
+    htgrid = 0.0
+  end where
+  ! Correction for Black Sea
+  where ( xlat > 40.0 .and. xlat < 47.2 .and. &
+          xlon > 26.5 .and. xlon < 42.0 .and. &
+          lndout > 13.5 .and. lndout < 14.5 )
+    htgrid = 0.0
+  end where
+  if ( h2ohgt ) then
     call h2oelev(jx,iy,htgrid,mask)
   end if
   if (lakedpth) then
@@ -620,17 +640,16 @@ program terrain
     elsewhere
       mask_s = 2.0
     end where
-    if ( .not. h2ohgt ) then
-      where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
-        htgrid_s = 0.0
-      end where
-      ! Correction for Black Sea
-      where ( xlat_s > 40.0 .and. xlat_s < 47.2 .and. &
-              xlon_s > 26.5 .and. xlon_s < 42.0 .and. &
-              lndout_s > 13.5 .and. lndout_s < 14.5 )
-        htgrid_s = 0.0
-      end where
-    else
+    where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
+      htgrid_s = 0.0
+    end where
+    ! Correction for Black Sea
+    where ( xlat_s > 40.0 .and. xlat_s < 47.2 .and. &
+            xlon_s > 26.5 .and. xlon_s < 42.0 .and. &
+            lndout_s > 13.5 .and. lndout_s < 14.5 )
+      htgrid_s = 0.0
+    end where
+    if ( h2ohgt ) then
       call h2oelev(jxsg,iysg,htgrid_s,mask_s)
     end if
     if (lakedpth) then

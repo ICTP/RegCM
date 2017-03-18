@@ -255,6 +255,7 @@ later when the model calculates climatic parameters.
                               ! Controls naming of input files
  lresamp = .false.,           ! Do a first resampling before interpolation
  ismthlev = 2,                ! Smoothing level (1-2-1, smoother-desmoother)
+ roidem = 1.5,                ! Interpolation radius in ds unit for topography
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
  h2opct = 50.,                ! Surface min H2O percent to be considered water
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
@@ -821,16 +822,18 @@ sensitivity experiments to select the best scheme for your application.
 \end{Verbatim}
 }
 
-\subsection{nonhydroparam namelist}
+\subsection{referenceatm and nonhydroparam namelist}
 
-This namelist controls non-hydrostatic core for the upper radiative boundary
-conditions and the base state temperature vertical profile curve.
+These namelist controls non-hydrostatic core for the upper radiative boundary
+conditions and the base state vertical profile curve shape.
 
 {\footnotesize
 \begin{Verbatim}
- &nonhydroparam
+ &referenceatm
  base_state_pressure = 101325.0, ! Base state reference pressure
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
+ /
+ &nonhydroparam
  ifupr = 1,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
  ckh = 1.0,         ! Background diffusion multiplication factor

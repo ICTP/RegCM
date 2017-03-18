@@ -178,6 +178,11 @@ module mod_dynparam
 
   integer(ik4) :: ntr = 0  ! Total number of chemical tracers
 
+  ! Base state atmosphere for non-hydrostatic
+
+  real(rkx) :: base_state_pressure ! Base state reference pressure
+  real(rkx) :: logp_lrate          ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
+
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! End of configureation. Below this point things are
   !    calculated from above or should be considered as fixed
@@ -439,6 +444,7 @@ module mod_dynparam
     namelist /clm_regcm/ enable_megan_emission , enable_urban_landunit, &
       enable_more_crop_pft
 #endif
+    namelist /referenceatm/ base_state_pressure , logp_lrate
 
     open(ipunit, file=filename, status='old', &
                  action='read', iostat=iresult)
@@ -467,6 +473,13 @@ module mod_dynparam
     idynamic = 1
     rewind(ipunit)
     read(ipunit, nml=coreparam, iostat=iresult)
+
+    if ( idynamic == 2 ) then
+      base_state_pressure = 101325.0_rkx ! Base state reference pressure
+      logp_lrate = 47.70_rkx  ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
+      rewind(ipunit)
+      read(ipunit, nml=referenceatm, iostat=iresult)
+    end if
 
     i_band = 0
     rewind(ipunit)

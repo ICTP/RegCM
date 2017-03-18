@@ -151,12 +151,6 @@ program icbc
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname
-  integer(ik4) :: ifupr , ifrayd , rayndamp , itopnudge
-  real(rkx) :: ckh , adyndif , nhbet , nhxkd , rayalpha0 , rayzd , rayhd
-
-  namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
-      ckh , adyndif , nhbet , nhxkd , ifrayd , rayndamp , rayalpha0 ,   &
-      rayzd , rayhd , itopnudge
 
 
   call header('icbc')
@@ -167,17 +161,9 @@ program icbc
   call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
   if ( idynamic == 2 ) then
-    open(ipunit, file=namelistfile, status='old', &
-         action='read', iostat=ierr)
-    rewind(ipunit)
-    read(ipunit, nml=nonhydroparam, iostat=ierr)
-    if ( ierr /= 0 ) then
-      ierr = 0
-    end if
     write(stdout, *) 'Using non hydrostatic parameters'
-    write(stdout, *) 'base_state_pressure    = ', base_state_pressure
-    write(stdout, *) 'logp_lrate             = ', logp_lrate
-    close(ipunit)
+    write(stdout, '(a,f10.2)') ' base_state_pressure    = ', base_state_pressure
+    write(stdout, '(a,f10.2)') ' logp_lrate             = ', logp_lrate
   end if
 
   if ( dattyp == 'FVGCM' .or. dattyp == 'EH5RF' .or. &

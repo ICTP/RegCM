@@ -27,7 +27,7 @@ module mod_grid
   use mod_nchelper
   use mod_domain
   use mod_nhinterp
-  use mod_constants , only : stdp , stdt
+  use mod_dynparam , only : base_state_pressure , logp_lrate
 
   private
 
@@ -45,9 +45,6 @@ module mod_grid
   real(rkx) , public :: delx
   integer(ik4) , public :: i0 , i1 , j0 , j1
   real(rkx) , public :: lat0 , lat1 , lon0 , lon1
-
-  real(rkx) , public :: base_state_pressure = stdp
-  real(rkx) , public :: logp_lrate = 47.70_rkx
 
   public :: init_grid
 

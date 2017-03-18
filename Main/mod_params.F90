@@ -108,9 +108,8 @@ module mod_params
       umax , stability_enhance , vert_stability_enhance , t_extrema ,    &
       c_rel_extrema , q_rel_extrema , t_rel_extrema
 
-    namelist /nonhydroparam/ base_state_pressure , logp_lrate , ifupr , &
-      ckh , adyndif , nhbet , nhxkd , ifrayd , rayndamp , rayalpha0 ,   &
-      rayzd , rayhd , itopnudge
+    namelist /nonhydroparam/ ifupr , ckh , adyndif , nhbet , nhxkd ,  &
+      ifrayd , rayndamp , rayalpha0 , rayzd , rayhd , itopnudge
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -259,8 +258,6 @@ module mod_params
     !
     ! Non hydrostatic param ;
     !
-    base_state_pressure = stdp
-    logp_lrate = 47.70_rkx
     ifupr = 1
     ckh = d_one       ! Environmental diffusion tunable parameter
     adyndif = 1.0_rkx ! Dynamical diffusion tunable parameter
@@ -269,7 +266,7 @@ module mod_params
     itopnudge = 0
     ifrayd = 2
     rayndamp = kz / 6
-    rayalpha0 = 5.0e-3_rkx
+    rayalpha0 = 5.0e-5_rkx
     rayzd = 15000.0_rkx
     rayhd = 3000.0_rkx
     !

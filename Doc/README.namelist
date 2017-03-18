@@ -79,7 +79,7 @@
                               ! Controls naming of input files
  lresamp = .false.,           ! Do a first resampling before interpolation
  ismthlev = 2,                ! Smoothing level (1-2-1, smoother-desmoother)
- roidem = 1.0,                ! Interpolation radius in ds unit for topography
+ roidem = 1.5,                ! Interpolation radius in ds unit for topography
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
  h2opct = 50.,                ! Surface min H2O percent to be considered water
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
@@ -335,9 +335,11 @@
 !
 ! Non-hydrostatic core option
 !
- &nonhydroparam
+ &referenceatm
  base_state_pressure = 101325.0, ! Base state reference pressure
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
+ /
+ &nonhydroparam
  ifupr = 1,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
  ckh = 1.0,         ! Background diffusion multiplication factor
