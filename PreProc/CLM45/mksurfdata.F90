@@ -51,6 +51,7 @@ program mksurfdata
   use mod_intkinds
   use mod_constants , only : raddeg
   use mod_realkinds
+  use mod_intldtr
   use mod_dynparam
   use mod_message
   use mod_grid
@@ -119,6 +120,7 @@ program mksurfdata
   integer(ik4) :: istatus , ncid , ndim , nvar
   integer(ik4) , dimension(12) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
+  integer(ik4) :: islope2d , istddev2d
   integer(ik4) :: ipft2dvar , iglc2dvar , iwet2dvar , ilake2dvar , iurban2dvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
@@ -137,7 +139,7 @@ program mksurfdata
 #endif
 #ifdef LCH4
   integer(ik4) :: if0 , ip3 , izwt0
-! samy 
+! samy
   integer(ik4) :: isoilphvar
 #endif
 #endif
@@ -314,6 +316,11 @@ program mksurfdata
   end if
   ngcells = count(xmask(jgstart:jgstop,igstart:igstop) > 0.5_rkx)
   call closefile(ncid)
+  !
+  !
+  ! reduce the search area for the domain
+  !
+  call mxmnll(jxsg,iysg,xlon,xlat,i_band)
 
   ! Open Output in NetCDF format
 
@@ -450,6 +457,16 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
   istatus = nf90_put_att(ncid, ipft2dvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+
+  istatus = nf90_def_var(ncid, 'slope', regcm_vartype, ivdims(1:2), islope2d)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var mxc_2d')
+  istatus = nf90_put_att(ncid, islope2d, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add mxc_2d Fill Value')
+
+  istatus = nf90_def_var(ncid, 'stddv', regcm_vartype, ivdims(1:2), istddev2d)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var mxc_2d')
+  istatus = nf90_put_att(ncid, istddev2d, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add mxc_2d Fill Value')
 
   istatus = nf90_def_var(ncid, 'glc_2d', regcm_vartype, ivdims(1:2), iglc2dvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glacier')
@@ -856,6 +873,10 @@ program mksurfdata
   call mypack(var3d(:,:,2),gcvar)
   istatus = nf90_put_var(ncid, istdvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write stddev')
+  istatus = nf90_put_var(ncid, islope2d, var3d(:,:,1))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
+  istatus = nf90_put_var(ncid, istddev2d, var3d(:,:,2))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write sttdev')
   deallocate(var3d)
 
   write(stdout,*) 'Created topographic informations...'
@@ -863,7 +884,8 @@ program mksurfdata
   iurbmax = numurbl+3
   allocate(var3d(jxsg,iysg,iurbmax))
   call mkglacier('mksrf_glacier.nc',var3d(:,:,1))
-  call mkwetland('mksrf_lanwat.nc',var3d(:,:,2),var3d(:,:,3))
+  ! Do not use for now lake and wetland in RegCM
+  ! call mkwetland('mksrf_lanwat.nc',var3d(:,:,2),var3d(:,:,3))
   call mkurban_base('mksrf_urban.nc',var3d(:,:,4:iurbmax))
   if ( .not. enable_urban_landunit ) then
     write (stderr,*) 'Disable URBAN Areas in CLM4.5 Model !'

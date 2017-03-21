@@ -21,9 +21,9 @@ module mod_mkwetland
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_getwindow
-  use mod_bilinear
-  use mod_nchelper
+  use mod_rdldtr
+  use mod_intldtr
+  use mod_message
   use mod_memutil
   use netcdf
 
@@ -33,16 +33,12 @@ module mod_mkwetland
 
   public :: mkwetland
 
-  character(len=16) , parameter :: latdim = 'lat'
-  character(len=16) , parameter :: londim = 'lon'
-  character(len=16) , parameter :: latvar = 'lat'
-  character(len=16) , parameter :: lonvar = 'lon'
   character(len=16) , parameter :: varname1 = 'PCT_WETLAND'
   character(len=16) , parameter :: varname2 = 'PCT_LAKE'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rkx) :: vmin = 0.0_rkx
   real(rkx) :: vmisdat = -9999.0_rkx
+  real(rkx) :: vcutoff = 25.0_rkx
 
   contains
 
@@ -50,105 +46,42 @@ module mod_mkwetland
     implicit none
     character(len=*) , intent(in) :: wetfile
     real(rkx) , dimension(:,:) , intent(out) :: wetland , lake
-    integer(ik4) :: nlat , nlon
-    integer(ik4) :: idimid , ivarid1 , ivarid2 , ivarmask , ncid
-    integer(ik4) , dimension(2) :: istart , icount
-    integer(ik4) :: istatus , i , li , lo
-    real(rkx) , dimension(:,:) , allocatable :: rvar1 , rvar2 , rmask
-    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
-    type(global_domain) :: domain
+    integer(ik4) :: i , j
+    real(rkx) , pointer , dimension(:,:) :: rvar1 , rvar2
+    real(rkx) , pointer , dimension(:,:) :: rmask , mask
 
     character(len=256) :: inpfile
 
+    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//wetfile
-    istatus = nf90_open(inpfile,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot open file '//trim(inpfile))
+    call read_ncglob(inpfile,varname1,0,4,i_band,xlat,xlon, &
+                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rvar1)
+    call read_ncglob(inpfile,varname2,0,4,i_band,xlat,xlon, &
+                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rvar2)
+    call read_ncglob(inpfile,maskname,0,4,i_band,xlat,xlon, &
+                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rmask)
 
-    istatus = nf90_inq_dimid(ncid,latdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lat in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lat in file '//trim(inpfile))
-
-    allocate(glat(nlat))
-
-    istatus = nf90_inq_varid(ncid,latvar,ivarid1)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lat/LAT in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid1,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lat in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,londim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lon in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lon in file '//trim(inpfile))
-
-    allocate(glon(nlon))
-
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid1)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lon in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid1,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lon in file '//trim(inpfile))
-
-    ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0_rkx )
-      glon = glon - 360.0_rkx
-    end where
-    where ( glon < -180.0_rkx )
-      glon = glon + 360.0_rkx
-    end where
-
-    call get_window(glat,glon,domain)
-
-    allocate(rvar1(sum(domain%ni),domain%nj))
-    allocate(rvar2(sum(domain%ni),domain%nj))
-    allocate(rmask(sum(domain%ni),domain%nj))
-    allocate(rlon(sum(domain%ni)))
-    allocate(rlat(domain%nj))
-
-    istatus = nf90_inq_varid(ncid,varname1,ivarid1)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable wetland in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,varname2,ivarid2)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable wetland in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,maskname,ivarmask)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable landmask in file '//trim(inpfile))
-
-    li = 1
-    do i = 1 , domain%ntiles
-      istart(1) = domain%igstart(i)
-      icount(1) = domain%ni(i)
-      istart(2) = domain%jgstart
-      icount(2) = domain%nj
-      lo = li+domain%ni(i)-1
-      istatus = nf90_get_var(ncid,ivarid1,rvar1(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable wetland from file '//trim(inpfile))
-      istatus = nf90_get_var(ncid,ivarid2,rvar2(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable lake from file '//trim(inpfile))
-      istatus = nf90_get_var(ncid,ivarmask,rmask(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable landmask from file '//trim(inpfile))
-      rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
-      li = li + domain%ni(i)
+    wetland = 0.0_rkx
+    lake = 0.0_rkx
+    call interp(ds*nsg,jxsg,iysg,xlat,xlon,mask,rmask,3)
+    call interp(ds*nsg,jxsg,iysg,xlat,xlon,wetland,rvar1,6,rdem=roidem)
+    call interp(ds*nsg,jxsg,iysg,xlat,xlon,lake,rvar2,6,rdem=roidem)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 1.0_rkx ) then
+          lake(j,i) = vmisdat
+          wetland(j,i) = vmisdat
+        else
+          if ( lake(j,i) < vcutoff ) lake(j,i) = d_zero
+          if ( wetland(j,i) < vcutoff ) wetland(j,i) = d_zero
+        end if
+      end do
     end do
-    rlat = glat(domain%jgstart:domain%jgstop)
 
-    call bilinear(rvar1,rmask,rlon,rlat,wetland,xlon,xlat,vmin,vmisdat)
-    call bilinear(rvar2,rmask,rlon,rlat,lake,xlon,xlat,vmin,vmisdat)
-
-    deallocate(glat,glon,rlat,rlon,rvar1,rvar2,rmask)
+    call relmem2d(rvar1)
+    call relmem2d(rvar2)
+    call relmem2d(rmask)
   end subroutine mkwetland
 
 end module mod_mkwetland

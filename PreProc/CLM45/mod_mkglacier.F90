@@ -21,11 +21,10 @@ module mod_mkglacier
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_getwindow
-  use mod_bilinear
-  use mod_nchelper
+  use mod_rdldtr
+  use mod_intldtr
+  use mod_message
   use mod_memutil
-  use netcdf
 
   implicit none
 
@@ -33,113 +32,47 @@ module mod_mkglacier
 
   public :: mkglacier
 
-  character(len=16) , parameter :: latdim = 'lat'
-  character(len=16) , parameter :: londim = 'lon'
-  character(len=16) , parameter :: latvar = 'LAT'
-  character(len=16) , parameter :: lonvar = 'LON'
   character(len=16) , parameter :: varname = 'PCT_GLACIER'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rkx) :: vmin = 0.0_rkx
   real(rkx) :: vmisdat = -9999.0_rkx
+  real(rkx) :: vcutoff = 25.0_rkx
 
   contains
 
-  subroutine mkglacier(glcfile,glacier)
+  subroutine mkglacier(glcfile,glc)
     implicit none
     character(len=*) , intent(in) :: glcfile
-    real(rkx) , dimension(:,:) , intent(out) :: glacier
-    integer(ik4) :: nlat , nlon
-    integer(ik4) :: idimid , ivarid , ivarmask , ncid
-    integer(ik4) , dimension(2) :: istart , icount
-    integer(ik4) :: istatus , i , li , lo
-    real(rkx) , dimension(:,:) , allocatable :: rvar , rmask
-    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
-    type(global_domain) :: domain
+    real(rkx) , dimension(:,:) , intent(out) :: glc
+    integer(ik4) :: i , j
+    real(rkx) , pointer , dimension(:,:) :: rvar
+    real(rkx) , pointer , dimension(:,:) :: rmask , mask
 
     character(len=256) :: inpfile
 
+    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//glcfile
-    istatus = nf90_open(inpfile,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot open file '//trim(inpfile))
+    call read_ncglob(inpfile,varname,0,4,i_band,xlat,xlon, &
+                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rvar)
+    call read_ncglob(inpfile,maskname,0,4,i_band,xlat,xlon, &
+                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rmask)
 
-    istatus = nf90_inq_dimid(ncid,latdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lat in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lat in file '//trim(inpfile))
-
-    allocate(glat(nlat))
-
-    istatus = nf90_inq_varid(ncid,latvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lat/LAT in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lat in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,londim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lon in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lon in file '//trim(inpfile))
-
-    allocate(glon(nlon))
-
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lon in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lon in file '//trim(inpfile))
-
-    ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0_rkx )
-      glon = glon - 360.0_rkx
-    end where
-    where ( glon < -180.0_rkx )
-      glon = glon + 360.0_rkx
-    end where
-
-    call get_window(glat,glon,domain)
-
-    allocate(rvar(sum(domain%ni),domain%nj))
-    allocate(rmask(sum(domain%ni),domain%nj))
-    allocate(rlon(sum(domain%ni)))
-    allocate(rlat(domain%nj))
-
-    istatus = nf90_inq_varid(ncid,varname,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable glacier in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,maskname,ivarmask)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable landmask in file '//trim(inpfile))
-
-    li = 1
-    do i = 1 , domain%ntiles
-      istart(1) = domain%igstart(i)
-      icount(1) = domain%ni(i)
-      istart(2) = domain%jgstart
-      icount(2) = domain%nj
-      lo = li+domain%ni(i)-1
-      istatus = nf90_get_var(ncid,ivarid,rvar(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable glacier from file '//trim(inpfile))
-      istatus = nf90_get_var(ncid,ivarmask,rmask(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable glacier from file '//trim(inpfile))
-      rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
-      li = li + domain%ni(i)
+    glc = 0.0_rkx
+    call interp(ds*nsg,jxsg,iysg,xlat,xlon,mask,rmask,3)
+    call interp(ds*nsg,jxsg,iysg,xlat,xlon,glc,rvar,6,rdem=roidem)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 1.0_rkx ) then
+          glc(j,i) = vmisdat
+        else
+          if ( glc(j,i) < vcutoff ) glc(j,i) = d_zero
+        end if
+      end do
     end do
-    rlat = glat(domain%jgstart:domain%jgstop)
 
-    call bilinear(rvar,rmask,rlon,rlat,glacier,xlon,xlat,vmin,vmisdat)
-
-    deallocate(glat,glon,rlat,rlon,rvar,rmask)
+    call relmem2d(rvar)
+    call relmem2d(rmask)
   end subroutine mkglacier
 
 end module mod_mkglacier

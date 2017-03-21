@@ -28,7 +28,12 @@ module mod_intldtr
 
   private
 
-  public :: interp , filter1plakes
+  public :: mxmnll , interp , filter1plakes
+
+  real(rkx) , public :: grdlnmn , grdltmn , grdlnma , grdltma
+  real(rkx) , public :: xmaxlat , xmaxlon , xminlat , xminlon
+  integer(ik4) , public :: nlatin , nlonin
+  logical , public :: lonwrap , lcrosstime
 
   real(rkx) , dimension(4,4) :: c
   real(rkx) , dimension(16,16) :: wt
@@ -62,16 +67,15 @@ module mod_intldtr
           2*0.0_rkx , -1.0_rkx , 1.0_rkx , 6*0.0_rkx , -1.0_rkx , 1.0_rkx , &
           2*0.0_rkx , 2.0_rkx , -2.0_rkx , 2*0.0_rkx , -1.0_rkx , 1.0_rkx/
 
-   data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
+  data lndwt /26*.false.,.true.,.true.,.true.,11*.false./
 
   contains
 
-  integer(ik4) function inear(x,m,lwrap)
+  integer(ik4) function inear(x,m)
     implicit none
     real(rkx) , intent(in) :: x
     integer(ik4) , intent(in) :: m
-    logical , intent(in) :: lwrap
-    if (.not. lwrap) then
+    if (.not. lonwrap) then
       inear = min(max(nint(x),1),m)
     else
       inear = nint(x)
@@ -91,12 +95,11 @@ module mod_intldtr
     jnear = min(max(nint(y),1),n)
   end function jnear
 
-  integer(ik4) function ifloor(x,m,lwrap)
+  integer(ik4) function ifloor(x,m)
     implicit none
     real(rkx) , intent(in) :: x
     integer(ik4) , intent(in) :: m
-    logical , intent(in) :: lwrap
-    if (.not. lwrap) then
+    if (.not. lonwrap) then
       ifloor = min(max(floor(x),1),m)
     else
       ifloor = floor(x)
@@ -116,20 +119,18 @@ module mod_intldtr
     jfloor = min(max(floor(y),1),n)
   end function jfloor
 
-  real(rkx) function nearpoint(x,y,m,n,grid,lwrap)
+  real(rkx) function nearpoint(x,y,m,n,grid)
     implicit none
     integer(ik4) , intent(in) :: m , n
     real(rkx) , intent(in) :: x , y
-    logical , intent(in) :: lwrap
     real(rkx) , intent(in) , dimension(m,n) :: grid
-    nearpoint = grid(inear(x,m,lwrap),jnear(y,n))
+    nearpoint = grid(inear(x,m),jnear(y,n))
   end function nearpoint
 
-  real(rkx) function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct,lwrap)
+  real(rkx) function mostaround(x,y,m,n,grid,nbox,ibnty,h2opct)
     implicit none
     integer(ik4) , intent(in) :: m , n , nbox , ibnty
     real(rkx) , intent(in) :: x , y
-    logical , intent(in) :: lwrap
     real(rkx) , intent(in) , dimension(m,n) :: grid
     real(rkx) , intent(in) :: h2opct
 
@@ -140,13 +141,13 @@ module mod_intldtr
 
     hbox = nbox / 2
     totpoints = nbox*nbox
-    ii0 = ifloor(x,m,lwrap)-hbox
+    ii0 = ifloor(x,m)-hbox
     jj0 = jfloor(y,n)-hbox
     do i = 1 , nbox
       do j = 1 , nbox
         rx = real(ii0 + i - 1,rkx)
         ry = real(jj0 + j - 1,rkx)
-        ii = ifloor(rx,m,lwrap)
+        ii = ifloor(rx,m)
         jj = jfloor(ry,n)
         binval((i-1)*nbox+j) = grid(ii,jj)
         bindist((i-1)*nbox+j) = sqrt((x-rx)**2+(y-ry)**2)
@@ -189,11 +190,10 @@ module mod_intldtr
     end do
   end function mostaround
 
-  real(rkx) function pctaround(x,y,m,n,grid,nbox,ival,lwrap)
+  real(rkx) function pctaround(x,y,m,n,grid,nbox,ival)
     implicit none
     integer(ik4) , intent(in) :: m , n , ival , nbox
     real(rkx) , intent(in) :: x , y
-    logical , intent(in) :: lwrap
     real(rkx) , intent(in) , dimension(m,n) :: grid
     integer(ik4) :: ii0 , jj0 , ii , jj
     integer(ik4) :: i , j
@@ -201,13 +201,13 @@ module mod_intldtr
 
     pctaround = d_zero
     pc = real(nbox*nbox,rkx)
-    ii0 = ifloor(x,m,lwrap)
+    ii0 = ifloor(x,m)
     jj0 = jfloor(y,n)
     do i = 1 , nbox
       do j = 1 , nbox
         rx = real(ii0 + i - nbox/2,rkx)
         ry = real(jj0 + j - nbox/2,rkx)
-        ii = ifloor(rx,m,lwrap)
+        ii = ifloor(rx,m)
         jj = jfloor(ry,n)
         if (int(grid(ii,jj)) == ival) then
           pctaround = pctaround + 1
@@ -217,11 +217,10 @@ module mod_intldtr
     pctaround = (pctaround / pc) * d_100
   end function pctaround
 
-  real(rkx) function bilinear(x,y,m,n,grid,lwrap)
+  real(rkx) function bilinear(x,y,m,n,grid)
     implicit none
     integer(ik4) , intent(in) :: m , n
     real(rkx) , intent(in) :: x , y
-    logical , intent(in) :: lwrap
     real(rkx) , intent(in) , dimension(m,n) :: grid
 
     real(rkx) :: dx, dy, p12, p03
@@ -230,7 +229,7 @@ module mod_intldtr
 
     !-----bilinear interpolation among four grid values
 
-    if (.not. lwrap) then
+    if (.not. lonwrap) then
       ii0 = real(min(max(floor(x),1),m),rkx)
       ii2 = real(min(max(ceiling(x),1),m),rkx)
       dx = (x-ii0)
@@ -266,21 +265,20 @@ module mod_intldtr
     bilinear = dy*p12+(d_one-dy)*p03
   end function bilinear
 
-  real(rkx) function dwgt(x,y,m,n,grid,lwrap,nb)
+  real(rkx) function dwgt(x,y,m,n,grid,nb)
     implicit none
     integer(ik4) , intent(in) :: m , n , nb
     real(rkx) , intent(in) :: x , y
-    logical , intent(in) :: lwrap
     real(rkx) , intent(in) , dimension(m,n) :: grid
 
-    real(rkx) :: dx , dy , pp , f
+    real(rkx) :: dx , pp , f
     real(rkx) :: ii0, jj0
     integer(ik4) :: i , j , ii , jj , iii , jjj , nh
 
     !-----distance weight with radius of influence
 
     nh = nb / 2
-    if (.not. lwrap) then
+    if (.not. lonwrap) then
       ii0 = real(min(max(floor(x),1),m),rkx)
       jj0 = real(min(max(floor(y),1),n),rkx)
       ii = int(ii0)
@@ -323,11 +321,10 @@ module mod_intldtr
     dwgt = f / pp
   end function dwgt
 
-  real(rkx) function bicubic(x,y,m,n,grid,lwrap)
+  real(rkx) function bicubic(x,y,m,n,grid)
     implicit none
     integer(ik4) , intent(in) :: m , n
     real(rkx) , intent(in) :: x , y
-    logical , intent(in) :: lwrap
     real(rkx) , intent(in) , dimension(m,n) :: grid
     real(rkx) , dimension(4) :: f , f1 , f12 , f2
     real(rkx) :: xl , xu , yl , yu
@@ -335,7 +332,7 @@ module mod_intldtr
 
     mm = int(x)
     nn = int(y)
-    if ( .not. lwrap) then
+    if ( .not. lonwrap) then
       mm = max(2, min(m-2,mm))
     end if
     nn = max(2, min(n-2,nn))
@@ -348,7 +345,7 @@ module mod_intldtr
       do i = mm , mm + 1
         ii = 1 + (i-mm) + 3*(j-nn)
         if ( ii==5 ) ii = 3
-        if (lwrap) then
+        if (lonwrap) then
           im = i
           imp1 = i+1
           imn1 = i-1
@@ -422,16 +419,14 @@ module mod_intldtr
   !
   ! Interpolates input regolar lat/lon grid on output model grid
   !
-  subroutine interp(ds,jx,iy,xlat,xlon,omt,iniy,injx,milat,milon, &
-                    malat,malon,imt,itype,lwrap,lcross, &
-                    ival,ibnty,h2opct,rdem)
+  subroutine interp(ds,jx,iy,xlat,xlon,omt, &
+                    imt,itype,ival,ibnty,h2opct,rdem)
     implicit none
-    integer(ik4) , intent(in) :: iy , jx , iniy , injx , itype
+    integer(ik4) , intent(in) :: iy , jx , itype
     real(rkx) , intent(in) , dimension(jx,iy) :: xlat , xlon
     real(rkx) , intent(out) , dimension(jx,iy) :: omt
-    real(rkx) , intent(in) , dimension(injx,iniy) :: imt
-    real(rkx) , intent(in) :: ds , milat , milon , malat , malon
-    logical , intent(in) :: lwrap , lcross
+    real(rkx) , intent(in) , dimension(nlonin,nlatin) :: imt
+    real(rkx) , intent(in) :: ds
     integer(ik4) , intent(in) , optional :: ival
     integer(ik4) , intent(in) , optional :: ibnty
     real(rkx) , intent(in) , optional :: h2opct , rdem
@@ -440,15 +435,17 @@ module mod_intldtr
     integer , parameter :: nbmax = 100
     real(rkx) :: xx , yy , incx , incy , rincx , rincy , dd , drcm
 
-    incy = (malat-milat)/dble(iniy-1)
-    if ( lcross ) then
-      incx = ((360.0_rkx+malon)-milon)/dble(injx)
+    incy = (grdltma-grdltmn)/dble(nlatin-1)
+    if ( lcrosstime ) then
+      incx = ((360.0_rkx+grdlnma)-grdlnmn)/dble(nlonin)
     else
-      incx = (malon-milon)/dble(injx-1)
+      incx = (grdlnma-grdlnmn)/dble(nlonin-1)
     end if
     rincx = d_one/incx
     rincy = d_one/incy
-    drcm = rdem*ds*sqrt(2.0_rkx)
+    if ( present(rdem) ) then
+      drcm = rdem*ds*sqrt(2.0_rkx)
+    end if
 
     ! yy and xx are the exact index values of a point j,i of the
     ! mesoscale mesh when projected onto an earth-grid of lat
@@ -458,73 +455,74 @@ module mod_intldtr
       case(1)
         do ii = 1 , iy
           do jj = 1 , jx
-            yy = (xlat(jj,ii)-milat)*rincy + d_one
-            if (lcross) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+            yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
+            if (lcrosstime) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-milon)*rincx + d_one
+              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
             end if
-            omt(jj,ii) = bilinear(xx,yy,injx,iniy,imt,lwrap)
+            omt(jj,ii) = bilinear(xx,yy,nlonin,nlatin,imt)
           end do
         end do
       case(2)
         do ii = 1 , iy
           do jj = 1 , jx
-            yy = (xlat(jj,ii)-milat)*rincy + d_one
-            if (lcross) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+            yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
+            if (lcrosstime) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-milon)*rincx + d_one
+              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
             end if
-            omt(jj,ii) = bicubic(xx,yy,injx,iniy,imt,lwrap)
+            omt(jj,ii) = bicubic(xx,yy,nlonin,nlatin,imt)
           end do
         end do
       case(3)
         do ii = 1 , iy
           do jj = 1 , jx
-            yy = (xlat(jj,ii)-milat)*rincy + d_one
-            if (lcross) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+            yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
+            if (lcrosstime) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-milon)*rincx + d_one
+              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
             end if
-            omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+            omt(jj,ii) = nearpoint(xx,yy,nlonin,nlatin,imt)
           end do
         end do
       case(4,5,6)
         do ii = 1 , iy
           do jj = 1 , jx
-            yy = (xlat(jj,ii)-milat)*rincy + d_one
-            if (lcross) then
-              xx = (mod((xlon(jj,ii)+deg360),deg360)-milon) * &
+            yy = (xlat(jj,ii)-grdltmn)*rincy + d_one
+            if (lcrosstime) then
+              xx = (mod((xlon(jj,ii)+deg360),deg360)-grdlnmn) * &
                     rincx + d_one
             else
-              xx = (xlon(jj,ii)-milon)*rincx + d_one
+              xx = (xlon(jj,ii)-grdlnmn)*rincx + d_one
             end if
             if (ii == 1 .or. ii == iy ) then
-              omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+              omt(jj,ii) = nearpoint(xx,yy,nlonin,nlatin,imt)
               cycle
             end if
-            if ( .not. lwrap ) then
+            if ( .not. lonwrap ) then
               if ( jj == 1 .or.  jj == jx ) then
-                omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                omt(jj,ii) = nearpoint(xx,yy,nlonin,nlatin,imt)
                 cycle
               end if
             end if
-            dd = gcdist_simple(milat+incy*floor(yy), milon+incx*floor(xx), &
-                               milat+incy*ceiling(yy), milon+incx*ceiling(xx))
+            dd = gcdist_simple(grdltmn+incy*floor(yy),   &
+                               grdlnmn+incx*floor(xx),   &
+                               grdltmn+incy*ceiling(yy), &
+                               grdlnmn+incx*ceiling(xx))
             nbox = min(max(nint(drcm/dd),2),nbmax)
             nbox = (nbox / 2) * 2
             if (itype == 4) then
-              omt(jj,ii) = mostaround(xx,yy,injx,iniy,imt,nbox, &
-                                      ibnty,h2opct,lwrap)
+              omt(jj,ii) = mostaround(xx,yy,nlonin,nlatin,imt,nbox,ibnty,h2opct)
             else if (itype == 5) then
-              omt(jj,ii) = pctaround(xx,yy,injx,iniy,imt,nbox,ival,lwrap)
+              omt(jj,ii) = pctaround(xx,yy,nlonin,nlatin,imt,nbox,ival)
             else
-              omt(jj,ii) = dwgt(xx,yy,injx,iniy,imt,lwrap,nbox)
+              omt(jj,ii) = dwgt(xx,yy,nlonin,nlatin,imt,nbox)
             end if
           end do
         end do
@@ -574,6 +572,67 @@ module mod_intldtr
       end do
     end do
   end subroutine filter1plakes
+
+  subroutine mxmnll(jx,iy,xlon,xlat,iband)
+    implicit none
+    integer(ik4) , intent(in) :: iy , jx , iband
+    real(rkx) , dimension(jx,iy) , intent(in) :: xlat , xlon
+
+    real(rkx) :: xtstlon1 , xtstlon2
+    real(rkx) , parameter :: coord_eps = 0.001_rkx
+    !
+    ! PURPOSE : FINDS THE MAXIMUM AND MINIMUM LATITUDE AND LONGITUDE
+    !
+    xminlat = floor(minval(xlat))
+    xmaxlat = ceiling(maxval(xlat))
+
+    if ( iband.eq.1 ) then
+      xminlon  = -deg180
+      xmaxlon  =  deg180
+      xtstlon1 = xminlon
+      xtstlon2 = xmaxlon
+    else if ( abs(xminlat+deg90) < coord_eps .or. &
+              abs(xmaxlat-deg90) < coord_eps ) then
+      xminlon  = -deg180
+      xmaxlon  =  deg180
+      xtstlon1 = xminlon
+      xtstlon2 = xmaxlon
+    else
+      xminlon  = floor(minval(xlon(1,:)))
+      xmaxlon  = ceiling(maxval(xlon(jx,:)))
+      xtstlon1 = floor(maxval(xlon(1,:)))
+      xtstlon2 = ceiling(minval(xlon(jx,:)))
+    end if
+
+    if ( abs(xminlon-xmaxlon) < coord_eps ) then
+      xminlon  = -deg180
+      xmaxlon  =  deg180
+      xtstlon1 = xminlon
+      xtstlon2 = xmaxlon
+    end if
+
+    lonwrap = .false.
+    lcrosstime = .false.
+    if ( (xmaxlon-xminlon) > (deg360-coord_eps) ) then
+      lonwrap = .true.
+      write(stdout,*) 'Special case for longitude wrapping'
+    end if
+    if ( abs(xminlon - xtstlon1) > deg180 .or.   &
+         abs(xmaxlon - xtstlon2) > deg180 .or.   &
+         xminlon > deg00 .and. xmaxlon < deg00 ) then
+      lcrosstime = .true.
+      if ( xminlon < deg00 .and. xtstlon1 > deg00 ) xminlon = xtstlon1
+      if ( xmaxlon > deg00 .and. xtstlon2 < deg00 ) xmaxlon = xtstlon2
+      write(stdout,*) 'Special case for timeline crossing'
+    end if
+
+    write(stdout,*) 'Calculated large extrema:'
+    write(stdout,*) '         MINLAT = ', xminlat
+    write(stdout,*) '         MAXLAT = ', xmaxlat
+    write(stdout,*) '         MINLON = ', xminlon
+    write(stdout,*) '         MAXLON = ', xmaxlon
+
+  end subroutine mxmnll
 
 end module mod_intldtr
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
