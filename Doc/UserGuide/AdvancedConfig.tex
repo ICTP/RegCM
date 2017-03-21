@@ -98,7 +98,8 @@ core is used in the model.
                 ! 2 = MM5 NON hydrostatic core
  /
  &dynparam
- gnu = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
+ gnu1 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
                  ! MM5 manual , equation 2.4.6
                  ! Default 0.0625 for hydro, 0.1 for nonhydro
  diffu_hgtf = 1, ! Add topographic effect to diffusion

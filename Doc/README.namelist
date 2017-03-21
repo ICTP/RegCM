@@ -34,9 +34,10 @@
 ! Dynamical core parameters
 !
  &dynparam
- gnu = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
-                 ! MM5 manual , equation 2.4.6
-                 ! Default 0.0625 for hydro, 0.1 for nonhydro
+ gnu1 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
+                  ! MM5 manual , equation 2.4.6
+                  ! Default 0.0625 for hydro, 0.1 for nonhydro
  diffu_hgtf = 1, ! Add topographic effect to diffusion
  upstream_mode = .true., ! Add off centering to advection
  upu = 0.1,              ! Maximum off-centering factor to use
