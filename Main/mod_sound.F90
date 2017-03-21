@@ -603,9 +603,7 @@ module mod_sound
         ! Apply upper rad cond.
         !
         do i = icii1 , icii2
-          if ( i < icross1 + nspgx - 1 .or. i > icross2 - nspgx ) cycle
           do j = jcii1 , jcii2
-            if ( j < jcross1 + nspgx - 1 .or. j > jcross2 - nspgx ) cycle
             do nsi = -6 , 6
               inn = max(icross1+1,min(icross2-1,i+nsi))
               do nsj = -6 , 6

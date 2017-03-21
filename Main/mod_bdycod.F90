@@ -2991,14 +2991,14 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) :: rate , mval , xt
     integer(ik4) :: i , j , k
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        rate = rayalpha0 * exp((z(j,i,1)-rayzd)/rayhd - d_one)
-        vten(j,i,1) = vten(j,i,1) + rate * (sval-var(j,i,1))
-      end do
-    end do
+    !do i = ici1 , ici2
+    !  do j = jci1 , jci2
+    !    rate = rayalpha0 * exp((z(j,i,1)-rayzd)/rayhd - d_one)
+    !    vten(j,i,1) = vten(j,i,1) + rate * (sval-var(j,i,1))
+    !  end do
+    !end do
     xt = xbctime + dt
-    do k = 2 , min(kzp1,rayndamp)
+    do k = 1 , min(kzp1,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
           rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
