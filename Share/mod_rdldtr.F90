@@ -85,7 +85,9 @@ module mod_rdldtr
     real(rkx) :: delta
     real(rkx) , allocatable , dimension(:,:) :: readbuf
 
+#ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
+#endif
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
@@ -155,10 +157,14 @@ module mod_rdldtr
 
     ! Fix Poles for interpolations
     if ( istart(2) == 1 ) then
+#ifdef DEBUG
       write (stdout,*) 'Correcting South pole.'
+#endif
       readbuf(:,1) = readbuf(:,2)
     else if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
+#ifdef DEBUG
       write (stdout,*) 'Correcting North pole.'
+#endif
       readbuf(:,nlat) = readbuf(:,nlat-1)
     end if
 
@@ -172,7 +178,9 @@ module mod_rdldtr
       end do
     end if
     deallocate(readbuf)
+#ifdef DEBUG
     write(stdout,'(a)') ' Done.'
+#endif
   end subroutine read_ncglob2d
 
   subroutine read_ncglob3d(cfile,cvar,iores,imeth,iband,xlat,xlon, &
@@ -192,7 +200,9 @@ module mod_rdldtr
     real(rkx) :: delta
     real(rkx) , allocatable , dimension(:,:,:) :: readbuf
 
+#ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
+#endif
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
@@ -277,10 +287,14 @@ module mod_rdldtr
 
     ! Fix Poles for interpolations
     if ( istart(2) == 1 ) then
+#ifdef DEBUG
       write (stdout,*) 'Correcting South pole.'
+#endif
       readbuf(:,1,:) = readbuf(:,2,:)
     else if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
+#ifdef DEBUG
       write (stdout,*) 'Correcting North pole.'
+#endif
       readbuf(:,nlat,:) = readbuf(:,nlat-1,:)
     end if
 
@@ -299,7 +313,9 @@ module mod_rdldtr
       end do
     end if
     deallocate(readbuf)
+#ifdef DEBUG
     write(stdout,'(a)') ' Done.'
+#endif
   end subroutine read_ncglob3d
 
   subroutine read_ncglob2d3d(cfile,cvar,iores,imeth,iband,xlat,xlon, &
@@ -316,11 +332,13 @@ module mod_rdldtr
     integer(ik4) , intent(in) :: isel
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , inpsec , iopsec , ifrac , nd
-    integer(ik4) , dimension(3) :: idims , istart , icount
+    integer(ik4) , dimension(3) :: istart , icount
     real(rkx) :: delta
     real(rkx) , allocatable , dimension(:,:) :: readbuf
 
+#ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
+#endif
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
@@ -399,10 +417,14 @@ module mod_rdldtr
 
     ! Fix Poles for interpolations
     if ( istart(2) == 1 ) then
+#ifdef DEBUG
       write (stdout,*) 'Correcting South pole.'
+#endif
       readbuf(:,1) = readbuf(:,2)
     else if ( istart(2)+icount(2)-1 == gdomain%global_nj ) then
+#ifdef DEBUG
       write (stdout,*) 'Correcting North pole.'
+#endif
       readbuf(:,nlat) = readbuf(:,nlat-1)
     end if
 
@@ -416,7 +438,9 @@ module mod_rdldtr
       end do
     end if
     deallocate(readbuf)
+#ifdef DEBUG
     write(stdout,'(a)') ' Done.'
+#endif
   end subroutine read_ncglob2d3d
 
   subroutine read_geolocation(cfile)

@@ -27,13 +27,14 @@ module mod_interp
   use mod_message
   use mod_memutil
   use mod_constants
+  use mod_earth
 
   implicit none
 
   private
 
   public :: bilinx , cressmcr , cressmdt , distwgtcr , distwgtdt
-  public :: gcdist , gcdist_simple , kernsmooth
+  public :: kernsmooth
   public :: global_domain , get_window
 
   real(rkx) :: alatmn , alatmx , alonmn , alonmx
@@ -46,7 +47,6 @@ module mod_interp
   real(rkx) , parameter :: deg720 = d_two*deg360
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: missc = -9990.0_rkx
-  real(rkx) , parameter :: mindist = 1.0e-6_rkx
   integer(ik4) , parameter :: p_factor = 2
 
   real(rkx) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
@@ -178,7 +178,7 @@ module mod_interp
         nx = -1
         do n = 1 , nlat
           do m = 1 , nlon
-            dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
+            dist = gcdist(ds,glat(m,n),glon(m,n),alat(j,i),alon(j,i))
             if ( dist < distx ) then
               distx = dist
               mx = m
@@ -265,10 +265,10 @@ module mod_interp
         j1dr(j,i) = ndr
         i1dl(j,i) = mdl
         j1dl(j,i) = ndl
-        wa = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
-        wb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
-        wc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
-        wd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
+        wa = gcdist(ds,glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
+        wb = gcdist(ds,glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
+        wc = gcdist(ds,glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
+        wd = gcdist(ds,glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
         d1xa(j,i) = d_one/(wa**p_factor)
         d1xb(j,i) = d_one/(wb**p_factor)
         d1xc(j,i) = d_one/(wc**p_factor)
@@ -568,37 +568,6 @@ module mod_interp
       end do
     end do
   end subroutine cressmdt
-
-  real(rkx) function gcdist_simple(lat1,lon1,lat2,lon2)
-    implicit none
-    real(rkx) , intent(in) :: lat1 , lon1 , lat2, lon2
-    real(rkx) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
-    clat1 = cos(lat1*degrad)
-    slat1 = sin(lat1*degrad)
-    clat2 = cos(lat2*degrad)
-    slat2 = sin(lat2*degrad)
-    cdlon = cos((lon1-lon2)*degrad)
-    crd   = slat1*slat2+clat1*clat2*cdlon
-    ! Have it in km to avoid numerical problems :)
-    gcdist_simple = erkm*acos(crd)
-  end function gcdist_simple
-
-  real(rkx) function gcdist(lat1,lon1,lat2,lon2)
-    implicit none
-    real(rkx) , intent(in) :: lat1 , lon1 , lat2, lon2
-    real(rkx) :: clat1 , slat1 , clat2 , slat2 , cdlon , sdlon
-    real(rkx) :: y , x
-    clat1 = cos(lat1*degrad)
-    slat1 = sin(lat1*degrad)
-    clat2 = cos(lat2*degrad)
-    slat2 = sin(lat2*degrad)
-    cdlon = cos((lon1-lon2)*degrad)
-    sdlon = sin((lon1-lon2)*degrad)
-    y = sqrt((clat2*sdlon)**2+(clat1*slat2-slat1*clat2*cdlon)**2)
-    x = slat1*slat2+clat1*clat2*cdlon
-    ! Have it in km to avoid numerical problems :)
-    gcdist = max(erkm*atan2(y,x)/ds,mindist)
-  end function gcdist
 
   subroutine kernsmooth2(f,nx,ny,npass)
     implicit none

@@ -29,6 +29,7 @@ module mod_mksst
   use mod_message
   use mod_nchelper
   use mod_interp
+  use mod_earth
   use netcdf
 
   private
@@ -229,8 +230,8 @@ module mod_mksst
             if ( (xlat(jp,ip) - xlat(j,i)) > 2.0_rkx*epsilon(d_zero) ) then
               nearn = nearn + (max(icetemp,sst(j,i) - lrate * &
                (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))) - distsig * &
-               gcdist(xlat(jp,ip),xlon(jp,ip), &
-                      xlat(j,i),xlon(jp,ip))/100.0_rkx))*wt
+               gcdist_simple(xlat(jp,ip),xlon(jp,ip), &
+                             xlat(j,i),xlon(jp,ip))/100.0_rkx))*wt
             else
               nearn = nearn + max(icetemp,sst(j,i) - lrate * &
                (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))))*wt

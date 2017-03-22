@@ -856,7 +856,7 @@ program mksurfdata
   ! Calculate slope and std
   do i = igstart , igstop
     do j = jgstart , jgstop
-      var3d(j,i,1) = &
+      var3d(j,i,1) = raddeg * &
           atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0_rkx)/(ds*1000.0_rkx))
       mean = sum(topo(j-1:j+1,i-1:i+1))/9.0_rkx
       var3d(j,i,2) = sqrt(sum((topo(j-1:j+1,i-1:i+1)-mean)**2)/8.0_rkx)
