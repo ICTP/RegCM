@@ -604,12 +604,12 @@ module mod_params
       else
         diffu_hgtf = 1
         gnu1 = 0.0625_rkx
-        gnu2 = 0.0625_rkx
+        gnu2 = 0.1250_rkx
       end if
       upstream_mode = .true.
       stability_enhance = .true.
       vert_stability_enhance = .true.
-      upu = 0.200_rkx
+      upu = 0.100_rkx
       umax = 200.0_rkx
       t_extrema = 5.0_rkx
       c_rel_extrema = 0.20_rkx

@@ -157,8 +157,7 @@ module mod_slice
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        atms%rhox2d(j,i) = atms%ps2d(j,i) / &
-                  (rgas*d_half*(atms%tb3d(j,i,kz)+sfs%tgbb(j,i)))
+        atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*sfs%tgb(j,i))
       end do
     end do
 

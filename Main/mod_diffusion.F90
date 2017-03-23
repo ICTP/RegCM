@@ -59,8 +59,8 @@ module mod_diffusion
   ! Use 9-point laplacian as in LeVeque,
   !   Finite Difference Methods for Differential Equations , Eq. 3.17
   !
-  real(rkx) , parameter :: o4_c1 =   1.0_rkx/6.0_rkx
-  real(rkx) , parameter :: o4_c2 =   4.0_rkx/6.0_rkx
+  real(rkx) , parameter :: o4_c1 =   4.0_rkx/6.0_rkx
+  real(rkx) , parameter :: o4_c2 =   1.0_rkx/6.0_rkx
   real(rkx) , parameter :: o4_c3 = -20.0_rkx/6.0_rkx
 
   contains
