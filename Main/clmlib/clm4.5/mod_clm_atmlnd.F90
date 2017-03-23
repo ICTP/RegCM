@@ -58,8 +58,6 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: forc_pbot
     !atm potential temperature (Kelvin)
     real(rk8) , pointer , dimension(:) :: forc_th
-    !atmospheric vapor pressure (Pa)
-    real(rk8) , pointer , dimension(:) :: forc_vp
     !density (kg/m**3)
     real(rk8) , pointer , dimension(:) :: forc_rho
     !atmospheric relative humidity (%)
@@ -211,7 +209,6 @@ module mod_clm_atmlnd
     allocate(a2l%forc_hgt_q(ibeg:iend))
     allocate(a2l%forc_pbot(ibeg:iend))
     allocate(a2l%forc_th(ibeg:iend))
-    allocate(a2l%forc_vp(ibeg:iend))
     allocate(a2l%forc_rho(ibeg:iend))
     allocate(a2l%forc_psrf(ibeg:iend))
     allocate(a2l%forc_pco2(ibeg:iend))
@@ -250,7 +247,6 @@ module mod_clm_atmlnd
     a2l%forc_hgt_q(ibeg:iend) = ival
     a2l%forc_pbot(ibeg:iend) = ival
     a2l%forc_th(ibeg:iend) = ival
-    a2l%forc_vp(ibeg:iend) = ival
     a2l%forc_rho(ibeg:iend) = ival
     a2l%forc_psrf(ibeg:iend) = ival
     a2l%forc_pco2(ibeg:iend) = ival

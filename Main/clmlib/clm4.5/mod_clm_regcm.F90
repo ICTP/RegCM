@@ -280,9 +280,9 @@ module mod_clm_regcm
       satp = pfesat(real(clm_a2l%forc_t(i),rkx))
       satq = pfwsat(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx),satp)
-      clm_a2l%forc_rh(i) = min(max(clm_a2l%forc_q(i)/satq,real(rhmin,rk8)), &
-                               real(rhmax,rk8))
-      clm_a2l%forc_vp(i) = real(satp,rk8) * clm_a2l%forc_rh(i)
+      clm_a2l%forc_rh(i) = clm_a2l%forc_q(i)/satq
+      clm_a2l%forc_rh(i) = min(real(rhmax,rk8), clm_a2l%forc_rh(i))
+      clm_a2l%forc_rh(i) = max(real(rhmin,rk8), clm_a2l%forc_rh(i))
       clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0_rk8
       if ( clm_a2l%forc_t(i)-tfrz < tcrit ) then
         clm_a2l%forc_snow(i) = clm_a2l%forc_rain(i)
@@ -470,9 +470,6 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%tauy,lms%tauy)
     call glb_l2c_ss(lndcomm,clm_l2a%t_veg,lms%tlef)
 
-    lms%tgrd = lms%tgbb
-    lms%tgbrd = lms%tgbb
-
     ! soil temperature profile
     ! note tsw is used as a temporary table
     clm_l2a%notused = 0.0_rk8
@@ -481,6 +478,9 @@ module mod_clm_regcm
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%tsoi(:,:,:,k) = lms%tsw(:,:,:)
     end do
+
+    lms%tgrd = lms%tsoi(:,:,:,1)
+    lms%tgbrd = lms%tsoi(:,:,:,1)
 
     clm_l2a%notused = 0.0_rk8
 
