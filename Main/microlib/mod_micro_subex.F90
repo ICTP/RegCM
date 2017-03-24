@@ -53,6 +53,7 @@ module mod_micro_subex
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: thog = d_1000*regrav
   real(rkx) , parameter :: uch = thog*secph
+  real(rkx) , parameter :: minqc = 1.0e-10_rkx
   real(rkx) , parameter :: pptmin = 0.0_rkx
   real(rkx) , parameter :: actcld = 0.0_rkx
   real(rkx) , parameter :: accrfrc = 0.5_rkx
@@ -182,7 +183,7 @@ module mod_micro_subex
     !   maximum precipation rate (total cloud water/dt)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        afc = mo2mc%fcc(j,i,1)      ![frac][avg]
+        afc = mo2mc%fcc(j,i,1) ![frac][avg]
         qcw = mo2mc%qcn(j,i,1) ![kg/kg][avg]
         pptnew = d_zero
         if ( afc > actcld ) then ! if there is a cloud
@@ -196,7 +197,7 @@ module mod_micro_subex
           !      is formed, only half of the precipitation is assumed to
           !      accrete. 1aga. Compute the amount of water remaining in the
           !      cloud [kg/kg]
-          qcleft = max(qcw - pptnew*dt,d_zero) ![kg/kg][avg]
+          qcleft = max(qcw - pptnew*dt,minqc) ![kg/kg][avg]
           ! 1agb. Add fraction of the new precipitation can accrete.
           pptkm1 = accrfrc*pptnew/afc*mo2mc%rho(j,i,1)*dt  ![kg/m3][cld]
           ! 1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
@@ -279,7 +280,7 @@ module mod_micro_subex
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
             ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
-            qcleft = max(qcw-pptnew*dt,d_zero)             ![kg/kg][avg]
+            qcleft = max(qcw-pptnew*dt,minqc)             ![kg/kg][avg]
             ! 1bfb. Add fraction of the new precipitation to the accumulated
             !       precipitation [kg/m3]
             ! [kg/m3][cld]

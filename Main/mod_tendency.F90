@@ -1304,11 +1304,11 @@ module mod_tendency
               !
               omega(j,i,k) = d_half*(qdot(j,i,k+1)+qdot(j,i,k)) *   &
                           sfs%psa(j,i) + hsigma(k) * (pten(j,i) +   &
-                         ((atmx%umd(j,i,k) + atmx%umd(j,i+1,k) +      &
-                           atmx%umd(j+1,i+1,k) + atmx%umd(j+1,i,k))*  &
+                         ((atmx%ud(j,i,k) + atmx%ud(j,i+1,k) +      &
+                           atmx%ud(j+1,i+1,k) + atmx%ud(j+1,i,k))*  &
                            (sfs%psa(j+1,i)-sfs%psa(j-1,i)) +        &
-                          (atmx%vmd(j,i,k) + atmx%vmd(j,i+1,k) +      &
-                           atmx%vmd(j+1,i+1,k) + atmx%vmd(j+1,i,k)) * &
+                          (atmx%vd(j,i,k) + atmx%vd(j,i+1,k) +      &
+                           atmx%vd(j+1,i+1,k) + atmx%vd(j+1,i,k)) * &
                            (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
             end do
           end do

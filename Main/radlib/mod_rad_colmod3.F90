@@ -801,7 +801,7 @@ module mod_rad_colmod3
     !   - NOT on the topmost two layers
     !   - Starting from ncld levels from the surface
     !
-    kmaxcld = 1
+    kmaxcld = 2
     kmincld = kz-ncld
     do k = kmaxcld , kmincld
       n = 1
