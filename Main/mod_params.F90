@@ -606,13 +606,13 @@ module mod_params
         gnu1 = 0.0625_rkx
         gnu2 = 0.1250_rkx
       end if
-      upstream_mode = .true.
-      stability_enhance = .true.
-      vert_stability_enhance = .true.
+      upstream_mode = .false.
+      stability_enhance = .false.
+      vert_stability_enhance = .false.
       upu = 0.100_rkx
       umax = 200.0_rkx
       t_extrema = 5.0_rkx
-      c_rel_extrema = 0.20_rkx
+      c_rel_extrema = 0.80_rkx
       q_rel_extrema = 0.20_rkx
       t_rel_extrema = 0.20_rkx
       rewind(ipunit)

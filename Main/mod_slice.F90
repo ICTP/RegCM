@@ -72,11 +72,11 @@ module mod_slice
       do i = ice1 , ice2
         do j = jce1 , jce2
           atms%ubx3d(j,i,k) = d_rfour*             &
-              (atms%ubd3d(j,i,k)   + atms%ubd3d(j,i+1,k) + &
-               atms%ubd3d(j+1,i,k) + atms%ubd3d(j+1,i+1,k))
+              (atm2%u(j,i,k)   + atm2%u(j,i+1,k) + &
+               atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k)) * rpsb(j,i)
           atms%vbx3d(j,i,k) = d_rfour*             &
-              (atms%vbd3d(j,i,k)   + atms%vbd3d(j,i+1,k) + &
-               atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k))
+              (atm2%v(j,i,k)   + atm2%v(j,i+1,k) + &
+               atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k)) * rpsb(j,i)
         end do
       end do
     end do
@@ -157,7 +157,7 @@ module mod_slice
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*sfs%tgb(j,i))
+        atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
       end do
     end do
 
