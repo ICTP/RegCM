@@ -57,7 +57,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 7 + nbase
-  integer(ik4) , parameter :: natm3dvars = 63
+  integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 24 + nbase
@@ -220,19 +220,17 @@ module mod_ncout
   integer(ik4) , parameter :: atm_stats_evc    = 48
   integer(ik4) , parameter :: atm_stats_con1w  = 49
   integer(ik4) , parameter :: atm_stats_con1c  = 50
-  integer(ik4) , parameter :: atm_stats_con2w  = 51
-  integer(ik4) , parameter :: atm_stats_con2c  = 52
-  integer(ik4) , parameter :: atm_stats_dep    = 53
-  integer(ik4) , parameter :: atm_stats_melt   = 54
-  integer(ik4) , parameter :: atm_stats_frz    = 55
-  integer(ik4) , parameter :: atm_stats_rainev = 56
-  integer(ik4) , parameter :: atm_stats_snowev = 57
-  integer(ik4) , parameter :: atm_stats_autocw = 58
-  integer(ik4) , parameter :: atm_stats_autocc = 59
-  integer(ik4) , parameter :: atm_qcrit        = 60
-  integer(ik4) , parameter :: atm_ccnnum       = 61
-  integer(ik4) , parameter :: atm_qincl        = 62
-  integer(ik4) , parameter :: atm_autoconvr    = 63
+  integer(ik4) , parameter :: atm_stats_dep    = 51
+  integer(ik4) , parameter :: atm_stats_melt   = 52
+  integer(ik4) , parameter :: atm_stats_frz    = 53
+  integer(ik4) , parameter :: atm_stats_rainev = 54
+  integer(ik4) , parameter :: atm_stats_snowev = 55
+  integer(ik4) , parameter :: atm_stats_autocw = 56
+  integer(ik4) , parameter :: atm_stats_autocc = 57
+  integer(ik4) , parameter :: atm_qcrit        = 58
+  integer(ik4) , parameter :: atm_ccnnum       = 59
+  integer(ik4) , parameter :: atm_qincl        = 60
+  integer(ik4) , parameter :: atm_autoconvr    = 61
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
@@ -813,18 +811,6 @@ module mod_ncout
               '',&
               '',.true.)
               atm_stats_con1c_out => v3dvar_atm(atm_stats_con1c)%rval
-            end if
-            if ( enable_atm3d_vars(atm_stats_con2w) ) then
-              call setup_var(v3dvar_atm,atm_stats_con2w,vsize,'st_con2w','', &
-              '',&
-              '',.true.)
-             atm_stats_con2w_out => v3dvar_atm(atm_stats_con2w)%rval
-            end if
-            if ( enable_atm3d_vars(atm_stats_con2c) ) then
-              call setup_var(v3dvar_atm,atm_stats_con2c,vsize,'st_con2c','', &
-              '',&
-              '',.true.)
-             atm_stats_con2c_out => v3dvar_atm(atm_stats_con2c)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_dep) ) then
               call setup_var(v3dvar_atm,atm_stats_dep,vsize,'st_dep','', &
@@ -2734,6 +2720,8 @@ module mod_ncout
             ncattribute_real8('micro_autoconv_klepi',auto_rate_klepi))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_autoconv_timescale_sund',rkconv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('micro_snowautoconv_timescale_sund',skconv))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_min_cloud_coverage',rcovpmin))
           call outstream_addatt(outstream(i)%ncout(j), &

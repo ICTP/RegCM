@@ -119,9 +119,10 @@ module mod_params
       caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
       rcrit , coef_ccn , abulk
 
-    namelist /microparam/ stats , budget_compute , nssopt ,        &
-      iautoconv , rsemi , vfqr , vfqi , vfqs , auto_rate_khair ,   &
-      auto_rate_kessl , auto_rate_klepi , rkconv , rcovpmin , rpecons
+    namelist /microparam/ stats , budget_compute , nssopt ,      &
+      iautoconv , rsemi , vfqr , vfqi , vfqs , auto_rate_khair , &
+      auto_rate_kessl , auto_rate_klepi , rkconv , skconv ,      &
+      rcovpmin , rpecons
 
     namelist /grellparam/ igcc , gcr0 , shrmin , shrmax , edtmin , &
       edtmax , edtmino , edtmaxo , edtminx , edtmaxx , pbcmax ,    &
@@ -337,6 +338,7 @@ module mod_params
     auto_rate_kessl = 1.e-3_rkx
     auto_rate_klepi = 0.5e-3_rkx
     rkconv = 1.666e-4_rkx ! d_one/6000.0_rkx
+    skconv = 1.0e-3_rkx
     rcovpmin = 0.1_rkx
     rpecons = 5.547e-5_rkx
     !
@@ -1186,6 +1188,7 @@ module mod_params
         call bcast(rcovpmin)
         call bcast(rpecons)
         call bcast(rkconv)
+        call bcast(skconv)
       end if
     end if
 

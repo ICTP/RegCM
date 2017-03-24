@@ -37,7 +37,7 @@ module mod_micro_nogtom
   use mod_runparams , only : budget_compute , nssopt , iautoconv
   use mod_runparams , only : auto_rate_khair , auto_rate_kessl , &
                              auto_rate_klepi
-  use mod_runparams , only : rsemi , rkconv , rcovpmin , rpecons
+  use mod_runparams , only : rsemi , rkconv , skconv , rcovpmin , rpecons
   use mod_runparams , only : ktau
   use mod_runparams , only : rtsrf
 
@@ -71,12 +71,12 @@ module mod_micro_nogtom
   ! max threshold rh for evaporation for a precip coverage of zero
   real(rkx) , parameter :: rprecrhmax = 0.7_rkx
   ! evaporation rate coefficient Numerical fit to wet bulb temperature
-  ! real(rkx) , parameter :: tw1 = 1329.31_rkx
-  ! real(rkx) , parameter :: tw2 = 0.0074615_rkx
-  ! real(rkx) , parameter :: tw3 = 0.85e5_rkx
-  ! real(rkx) , parameter :: tw4 = 40.637_rkx
-  ! real(rkx) , parameter :: tw5 = 275.0_rkx
-  ! real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
+  real(rkx) , parameter :: tw1 = 1329.31_rkx
+  real(rkx) , parameter :: tw2 = 0.0074615_rkx
+  real(rkx) , parameter :: tw3 = 0.85e5_rkx
+  real(rkx) , parameter :: tw4 = 40.637_rkx
+  real(rkx) , parameter :: tw5 = 275.0_rkx
+  real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   !real(rkx) , parameter :: thomo = 225.16_rkx  ! -48.00 Celsius
@@ -119,6 +119,7 @@ module mod_micro_nogtom
   ! for sedimentation source/sink terms
   real(rkx) , pointer , dimension(:,:,:) :: fallsrce
   real(rkx) , pointer , dimension(:,:,:) :: fallsink
+  real(rkx) , pointer , dimension(:,:,:) :: fluxq
   ! for convection detrainment source and subsidence source/sink terms
   real(rkx) , pointer , dimension(:) :: convsrce
   real(rkx) , pointer , dimension(:) :: convsink
@@ -246,6 +247,7 @@ module mod_micro_nogtom
     call getmem3d(qsliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:qsliq')
     call getmem3d(fallsink,jci1,jci2,ici1,ici2,1,nqx,'cmicro:fallsink')
     call getmem3d(fallsrce,jci1,jci2,ici1,ici2,1,nqx,'cmicro:fallsrce')
+    call getmem3d(fluxq,jci1,jci2,ici1,ici2,1,nqx,'cmicro:fluxq')
     call getmem1d(ratio,1,nqx,'cmicro:ratio')
     call getmem1d(sinksum,1,nqx,'cmicro:sinksum')
     call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
@@ -375,7 +377,7 @@ module mod_micro_nogtom
     real(rkx) :: qexc
     real(rkx) :: icenuclei
     real(rkx) :: qpretot
-    real(rkx) :: qicetot , fluxq
+    real(rkx) :: qicetot
     real(rkx) :: ldefr
     real(rkx) :: critauto
     ! real(rkx) :: gdph_r
@@ -391,7 +393,6 @@ module mod_micro_nogtom
 
 #ifndef __PGI
     procedure (voidsub) , pointer :: selautoconv => null()
-    procedure (voidsub) , pointer :: selnss => null()
 #endif
 
 #ifdef DEBUG
@@ -403,17 +404,6 @@ module mod_micro_nogtom
     lccn = ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 )
 
 #ifndef __PGI
-    select case(nssopt)
-      case(0,1)
-        selnss => nss_tompkins
-      case(2)
-        selnss => nss_lohmann_and_karcher
-      case(3)
-        selnss => nss_gierens
-      case default
-        call fatal(__FILE__,__LINE__, &
-                   'NSSOPT IN CLOUD MUST BE IN RANGE 0-3')
-    end select
     !---------------------------------------------------------------
     !                         AUTOCONVERSION
     !---------------------------------------------------------------
@@ -610,7 +600,7 @@ module mod_micro_nogtom
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            sumh0(j,i,k) = sumh0(j,i,k)/(mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,1))
+            sumh0(j,i,k) = sumh0(j,i,k)/mo2mc%pfs(j,i,k+1)
           end do
         end do
       end do
@@ -709,6 +699,7 @@ module mod_micro_nogtom
     covpclr(:,:) = d_zero
     fallsrce(:,:,:) = d_zero
     fallsink(:,:,:) = d_zero
+    fluxq(:,:,:) = d_zero
 
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -867,11 +858,21 @@ module mod_micro_nogtom
             solqa(iqql,iqqv) = solqa(iqql,iqqv) + supsat
             solqa(iqqv,iqql) = solqa(iqqv,iqql) - supsat
             qxfg(iqql) = qxfg(iqql) + supsat
+#ifdef DEBUG
+            if ( stats ) then
+              ngs%statssupw(j,i,1) = ngs%statssupw(j,i,1) + evapl
+            end if
+#endif
           else
             ! turn supersaturation into ice water
             solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + supsat
             solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - supsat
             qxfg(iqqi) = qxfg(iqqi) + supsat
+#ifdef DEBUG
+            if ( stats ) then
+              ngs%statssupc(j,i,1) = ngs%statssupc(j,i,1) - evapi
+            end if
+#endif
           end if
         else
           if ( subsat < d_zero .and. lnocloud .and. lliq ) then
@@ -883,22 +884,12 @@ module mod_micro_nogtom
                 solqa(iqqv,iqql) = solqa(iqqv,iqql) - evapl
                 solqa(iqql,iqqv) = solqa(iqql,iqqv) + evapl
                 qxfg(iqql) = qxfg(iqql) + evapl
-#ifdef DEBUG
-                if ( stats ) then
-                  ngs%statssupw(j,i,1) = ngs%statssupw(j,i,1) + evapl
-                end if
-#endif
               else
                 evapi = max(-totliq,-evaplimmix)!*oneodt
                 ! turn subsaturation into vapour
                 solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - evapi
                 solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + evapi
                 qxfg(iqqi) = qxfg(iqqi) + evapi
-#ifdef DEBUG
-                if ( stats ) then
-                  ngs%statssupc(j,i,1) = ngs%statssupc(j,i,1) - evapi
-                end if
-#endif
               end if
             end if
           end if
@@ -1123,95 +1114,6 @@ module mod_micro_nogtom
             end if
           end if
 
-          ! (2) generation of new clouds (dc/dt>0)
-          if ( dqs <= -activqx .and. lnocast ) then
-#ifdef __PGI
-            select case(nssopt)
-              case(0,1)
-                call nss_tompkins
-              case(2)
-                call nss_lohmann_and_karcher
-              case(3)
-                call nss_gierens
-              end select
-#else
-            call selnss
-#endif
-
-            !---------------------------
-            ! critical relative humidity
-            !---------------------------
-            ! *RAMID*   REAL    BASE VALUE FOR CALCULATION OF RELATIVE
-            !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
-            !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
-            rhc = ramid !=0.8
-            zsig = mo2mc%phs(j,i,1)/pbot
-            ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
-            if ( zsig > ramid ) then
-              rhc = ramid + (d_one-ramid)*((zsig-ramid)/0.2_rkx)**2
-            end if
-            !---------------------------
-            ! supersaturation options
-            !---------------------------
-            if ( ltkgt0 .or. nssopt == 0 ) then
-              ! no ice supersaturation allowed
-              facl = d_one
-            else
-              ! ice supersaturation
-              facl = koop(j,i,1)
-            end if
-            if ( qexc >= rhc*sqmix*facl .and. qexc < sqmix*facl ) then
-              ! note: not **2 on 1-a term if qe is used.
-              ! added correction term fac to numerator 15/03/2010
-              acond = -(d_one-ccover)*facl*dqs / &
-                        max(d_two*(facl*sqmix-qexc),dlowval)
-              acond = min(acond,d_one-ccover) ! put the limiter back
-              ! linear term:
-              ! added correction term fac 15/03/2010
-              chng = -facl*dqs*d_half*acond !mine linear
-              ! new limiter formulation
-              ! qsice(j,i,1)-qexc) /
-              tmpa = d_one-ccover
-              zdl = d_two*(facl*sqmix-qexc) / tmpa
-              ! added correction term fac 15/03/2010
-              if ( facl*dqs < -zdl ) then
-                ! qsice(j,i,1)+qvnow
-                xlcondlim = (ccover-d_one)*facl*dqs - &
-                             facl*sqmix+qvnow
-                chng = min(chng,xlcondlim)
-              end if
-              chng = max(chng,d_zero)
-              if ( chng < activqx ) then
-                chng = d_zero
-              end if
-              !-------------------------------------------------------------
-              ! all increase goes into liquid unless so cold cloud
-              ! homogeneously freezes
-              ! include new liquid formation in first guess value, otherwise
-              ! liquid remains at cold temperatures until next timestep.
-              !-------------------------------------------------------------
-              if ( ltkgthomo ) then
-                solqa(iqql,iqqv) = solqa(iqql,iqqv) + chng
-                solqa(iqqv,iqql) = solqa(iqqv,iqql) - chng
-                qxfg(iqql) = qxfg(iqql) + chng
-#ifdef DEBUG
-                if ( stats ) then
-                  ngs%statscond2w(j,i,1) = chng
-                end if
-#endif
-              else ! homogeneous freezing
-                solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + chng
-                solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - chng
-                qxfg(iqqi) = qxfg(iqqi) + chng
-#ifdef DEBUG
-                if ( stats ) then
-                  ngs%statscond2c(j,i,1) = chng
-                end if
-#endif
-              end if
-            end if
-          end if
-
           !------------------------------------------------------------------
           ! DEPOSITION: Growth of ice by vapour deposition
           !------------------------------------------------------------------
@@ -1380,7 +1282,7 @@ module mod_micro_nogtom
           if ( ltklt0 ) then
             ! Snow Autoconversion rate follow Lin et al. 1983
             if ( icecld > activqx ) then
-              alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),qinow)
+              alpha1 = min(dt*skconv*exp(0.025_rkx*tc),icecld)
               arg = (qinow/rlcritsnow)**2
               if ( arg < 25.0_rkx ) then
                 snowaut = alpha1 * (d_one - exp(-arg))
@@ -1421,8 +1323,8 @@ module mod_micro_nogtom
               ! humidity of the air is low. The wet-bulb temperature is
               ! approximated as in the scheme described by
               ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
-              tdiff = tc ! - subsat * &
-              !    (tw1+tw2*(mo2mc%phs(j,i,1)-tw3)-tw4*(tk-tw5))
+              tdiff = tc - subsat * &
+                  (tw1+tw2*(mo2mc%phs(j,i,1)-tw3)-tw4*(tk-tw5))
               ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
               cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
               chngmax = max(tdiff*cons1*rldcp,d_zero)
@@ -1649,7 +1551,7 @@ module mod_micro_nogtom
           if ( qx0(n) > dlowval ) then
             ratio(n) = qx0(n)/max(sinksum(n),qx0(n))
           else
-            ratio(n) = d_zero
+            ratio(n) = d_one
           end if
         end do
         !--------------------------------------------------------
@@ -1750,7 +1652,7 @@ module mod_micro_nogtom
             end if
             rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(j,i,n)
           end do
-          qxn(n) = max(qx0(n) + rexplicit,d_zero)
+          qxn(n) = qx0(n) + rexplicit
         end do
 
         call mysolve
@@ -1766,17 +1668,17 @@ module mod_micro_nogtom
           pfplsx(n,j,i,2) = rsemi*fallsink(j,i,n) * qxn(n)*rdtgdp + &
                   (d_one-rsemi)*fallsink(j,i,n)*qx0(n)*rdtgdp ! kg/m2/s
           ! Calculate fluxes in and out of box for conservation of TL
-          fluxq = convsrce(n) + fallsrce(j,i,n) - &
+          fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                   (fallsink(j,i,n)+convsink(n)) * qxn(n)
           ! Calculate the water variables tendencies
           qxtendc(n,j,i,1) = qxtendc(n,j,i,1) + (qxn(n)-qx0(n))*oneodt
           ! Calculate the temperature tendencies
           if ( iphase(n) == 1 ) then
             ttendc(j,i,1) = ttendc(j,i,1) + &
-                            wlhvocp * (qxn(n)-qx0(n)-fluxq)*oneodt
+                            wlhvocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
           else if ( iphase(n) == 2 ) then
             ttendc(j,i,1) = ttendc(j,i,1) + &
-                            wlhsocp * (qxn(n)-qx0(n)-fluxq)*oneodt
+                            wlhsocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
           end if
         end do
 
@@ -1945,11 +1847,21 @@ module mod_micro_nogtom
               solqa(iqql,iqqv) = solqa(iqql,iqqv) + supsat
               solqa(iqqv,iqql) = solqa(iqqv,iqql) - supsat
               qxfg(iqql) = qxfg(iqql) + supsat
+#ifdef DEBUG
+              if ( stats ) then
+                ngs%statssupw(j,i,k) = ngs%statssupw(j,i,k) + evapl
+              end if
+#endif
             else
               ! turn supersaturation into ice water
               solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + supsat
               solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - supsat
               qxfg(iqqi) = qxfg(iqqi) + supsat
+#ifdef DEBUG
+              if ( stats ) then
+                ngs%statssupc(j,i,k) = ngs%statssupc(j,i,k) - evapi
+              end if
+#endif
             end if
           else
             if ( subsat < d_zero .and. lnocloud .and. lliq ) then
@@ -1961,22 +1873,12 @@ module mod_micro_nogtom
                   solqa(iqqv,iqql) = solqa(iqqv,iqql) - evapl
                   solqa(iqql,iqqv) = solqa(iqql,iqqv) + evapl
                   qxfg(iqql) = qxfg(iqql) + evapl
-#ifdef DEBUG
-                  if ( stats ) then
-                    ngs%statssupw(j,i,k) = ngs%statssupw(j,i,k) + evapl
-                  end if
-#endif
                 else
                   evapi = max(-totliq,-evaplimmix)!*oneodt
                   ! turn subsaturation into vapour
                   solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - evapi
                   solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + evapi
                   qxfg(iqqi) = qxfg(iqqi) + evapi
-#ifdef DEBUG
-                  if ( stats ) then
-                    ngs%statssupc(j,i,k) = ngs%statssupc(j,i,k) - evapi
-                  end if
-#endif
                 end if
               end if
             end if
@@ -2202,94 +2104,6 @@ module mod_micro_nogtom
               end if
             end if
 
-            ! (2) generation of new clouds (dc/dt>0)
-            if ( dqs <= -activqx .and. lnocast ) then
-
-#ifdef __PGI
-              select case(nssopt)
-                case(0,1)
-                  call nss_tompkins
-                case(2)
-                  call nss_lohmann_and_karcher
-                case(3)
-                  call nss_gierens
-                end select
-#else
-              call selnss
-#endif
-              !---------------------------
-              ! critical relative humidity
-              !---------------------------
-              ! *RAMID*   REAL    BASE VALUE FOR CALCULATION OF RELATIVE
-              !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
-              !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
-              rhc = ramid !=0.8
-              zsig = mo2mc%phs(j,i,k)/pbot
-              ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
-              if ( zsig > ramid ) then
-                rhc = ramid+(d_one-ramid)*((zsig-ramid)/0.2_rkx)**2
-              end if
-              !---------------------------
-              ! supersaturation options
-              !---------------------------
-              if ( ltkgt0 .or. nssopt == 0 ) then
-                ! no ice supersaturation allowed
-                facl = d_one
-              else
-                ! ice supersaturation
-                facl = koop(j,i,k)
-              end if
-              if ( qexc >= rhc*sqmix*facl .and. qexc < sqmix*facl ) then
-                ! note: not **2 on 1-a term if qe is used.
-                ! added correction term fac to numerator 15/03/2010
-                acond = -(d_one-ccover)*facl*dqs / &
-                          max(d_two*(facl*sqmix-qexc),dlowval)
-                acond = min(acond,d_one-ccover) ! put the limiter back
-                ! linear term:
-                ! added correction term fac 15/03/2010
-                chng = -facl*dqs*d_half*acond !mine linear
-                ! new limiter formulation
-                ! qsice(j,i,k)-qexc) /
-                tmpa = d_one-ccover
-                zdl = d_two*(facl*sqmix-qexc) / tmpa
-                ! added correction term fac 15/03/2010
-                if ( facl*dqs < -zdl ) then
-                  ! qsice(j,i,k)+qvnow
-                  xlcondlim = (ccover-d_one)*facl*dqs - &
-                               facl*sqmix+qvnow
-                  chng = min(chng,xlcondlim)
-                end if
-                chng = max(chng,d_zero)
-                if ( chng < activqx ) then
-                  chng = d_zero
-                end if
-                !-------------------------------------------------------------
-                ! all increase goes into liquid unless so cold cloud
-                ! homogeneously freezes
-                ! include new liquid formation in first guess value, otherwise
-                ! liquid remains at cold temperatures until next timestep.
-                !-------------------------------------------------------------
-                if ( ltkgthomo ) then
-                  solqa(iqql,iqqv) = solqa(iqql,iqqv) + chng
-                  solqa(iqqv,iqql) = solqa(iqqv,iqql) - chng
-                  qxfg(iqql) = qxfg(iqql) + chng
-#ifdef DEBUG
-                  if ( stats ) then
-                    ngs%statscond2w(j,i,k) = chng
-                  end if
-#endif
-                else ! homogeneous freezing
-                  solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + chng
-                  solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - chng
-                  qxfg(iqqi) = qxfg(iqqi) + chng
-#ifdef DEBUG
-                  if ( stats ) then
-                    ngs%statscond2c(j,i,k) = chng
-                  end if
-#endif
-                end if
-              end if
-            end if
             !------------------------------------------------------------------
             ! DEPOSITION: Growth of ice by vapour deposition
             !------------------------------------------------------------------
@@ -2465,7 +2279,7 @@ module mod_micro_nogtom
             if ( ltklt0 ) then
               ! Snow Autoconversion rate follow Lin et al. 1983
               if ( icecld > activqx ) then
-                alpha1 = min(dt*1.0e-3_rkx*exp(0.025_rkx*tc),qinow)
+                alpha1 = min(dt*skconv*exp(0.025_rkx*tc),icecld)
                 arg = (qinow/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
                   snowaut = alpha1 * (d_one - exp(-arg))
@@ -2506,8 +2320,8 @@ module mod_micro_nogtom
                 ! humidity of the air is low. The wet-bulb temperature is
                 ! approximated as in the scheme described by
                 ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
-                tdiff = tc ! - subsat * &
-                !    (tw1+tw2*(mo2mc%phs(j,i,k)-tw3)-tw4*(tk-tw5))
+                tdiff = tc - subsat * &
+                    (tw1+tw2*(mo2mc%phs(j,i,k)-tw3)-tw4*(tk-tw5))
                 ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
                 cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
                 chngmax = max(tdiff*cons1*rldcp,d_zero)
@@ -2734,7 +2548,7 @@ module mod_micro_nogtom
             if ( qx0(n) > dlowval ) then
               ratio(n) = qx0(n)/max(sinksum(n),qx0(n))
             else
-              ratio(n) = d_zero
+              ratio(n) = d_one
             end if
           end do
           !--------------------------------------------------------
@@ -2782,7 +2596,7 @@ module mod_micro_nogtom
               if ( qx0(jo) > dlowval ) then
                 ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
               else
-                ratio(jo) = d_zero
+                ratio(jo) = d_one
               end if
             end if
           end do
@@ -2851,17 +2665,17 @@ module mod_micro_nogtom
             pfplsx(n,j,i,k+1) = rsemi*fallsink(j,i,n) * qxn(n)*rdtgdp + &
                     (d_one-rsemi)*fallsink(j,i,n)*qx0(n)*rdtgdp ! kg/m2/s
             ! Calculate fluxes in and out of box for conservation of TL
-            fluxq = convsrce(n) + fallsrce(j,i,n) - &
+            fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                     (fallsink(j,i,n)+convsink(n)) * qxn(n)
             ! Calculate the water variables tendencies
             qxtendc(n,j,i,k) = qxtendc(n,j,i,k) + (qxn(n)-qx0(n))*oneodt
             ! Calculate the temperature tendencies
             if ( iphase(n) == 1 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                       wlhvocp * (qxn(n)-qx0(n)-fluxq)*oneodt
+                       wlhvocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
             else if ( iphase(n) == 2 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                       wlhsocp * (qxn(n)-qx0(n)-fluxq)*oneodt
+                       wlhsocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
             end if
           end do
 
@@ -2939,8 +2753,7 @@ module mod_micro_nogtom
               rain = rain+wlhsocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
             end if
           end do
-          sumh1(j,i,k) = (sumh1(j,i,k)-rain) / &
-                        (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,1))
+          sumh1(j,i,k) = (sumh1(j,i,k)-rain) / mo2mc%pfs(j,i,k+1)
           errorh(j,i,k) = sumh1(j,i,k)-sumh0(j,i,k)
         end do
       end do
@@ -3100,7 +2913,7 @@ module mod_micro_nogtom
         alpha1 = alpha1*cfpr
         critauto = critauto/max(cfpr,dlowval)
       end if
-      arg = (qlnow/critauto)**2
+      arg = (liqcld/critauto)**2
       ! security for exp for some compilers
       if ( arg < 25.0_rkx ) then
         rainaut = alpha1*(d_one - exp(-arg))
@@ -3108,7 +2921,7 @@ module mod_micro_nogtom
         rainaut = alpha1
       end if
       solqb(iqql,iqqv) = d_zero
-      if ( ltkgthomo ) then
+      if ( ltkgt0 ) then
         solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
       else
         !-----------------------
@@ -3117,21 +2930,6 @@ module mod_micro_nogtom
         solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
       end if
     end subroutine sundqvist
-
-    subroutine nss_tompkins
-      implicit none
-      qexc = max((qvnow-ccover*sqmix)/(d_one-ccover),d_zero)
-    end subroutine nss_tompkins
-
-    subroutine nss_lohmann_and_karcher
-      implicit none
-      qexc = qvnow
-    end subroutine nss_lohmann_and_karcher
-
-    subroutine nss_gierens
-      implicit none
-      qexc = qvnow/totliq
-    end subroutine nss_gierens
 
     subroutine mysolve
       implicit none

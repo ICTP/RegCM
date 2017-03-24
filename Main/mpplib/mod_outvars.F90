@@ -100,8 +100,6 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_evc_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_con1w_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_con1c_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: atm_stats_con2w_out => null()
-  real(rkx) , dimension(:,:,:) , pointer :: atm_stats_con2c_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_dep_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_melt_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_frz_out => null()

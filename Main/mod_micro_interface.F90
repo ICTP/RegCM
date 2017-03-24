@@ -91,10 +91,6 @@ module mod_micro_interface
                                     ici1,ici2,1,kz,'micro:statscond1w')
         call getmem3d(ngs%statscond1c,jci1,jci2, &
                                     ici1,ici2,1,kz,'micro:statscond1c')
-        call getmem3d(ngs%statscond2w,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statscond2w')
-        call getmem3d(ngs%statscond2c,jci1,jci2, &
-                                    ici1,ici2,1,kz,'micro:statscond2c')
         call getmem3d(ngs%statsdepos,jci1,jci2, &
                                     ici1,ici2,1,kz,'micro:statsdepos')
         call getmem3d(ngs%statsmelt,jci1,jci2, &

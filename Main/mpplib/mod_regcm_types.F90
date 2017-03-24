@@ -668,8 +668,6 @@ module mod_regcm_types
     real(rkx) , public  , pointer, dimension(:,:,:) :: statsevapc
     real(rkx) , public  , pointer, dimension(:,:,:) :: statscond1w
     real(rkx) , public  , pointer, dimension(:,:,:) :: statscond1c
-    real(rkx) , public  , pointer, dimension(:,:,:) :: statscond2w
-    real(rkx) , public  , pointer, dimension(:,:,:) :: statscond2c
     real(rkx) , public  , pointer, dimension(:,:,:) :: statsdepos
     real(rkx) , public  , pointer, dimension(:,:,:) :: statsmelt
     real(rkx) , public  , pointer, dimension(:,:,:) :: statsfrz

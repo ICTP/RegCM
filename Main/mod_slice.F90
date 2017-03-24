@@ -92,7 +92,7 @@ module mod_slice
       do k = 1 , kz
         do i = ice1ga , ice2ga
           do j = jce1ga , jce2ga
-            atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
+            atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),1.0e-14_rkx)
           end do
         end do
       end do
@@ -283,7 +283,7 @@ module mod_slice
         do j = jce1 , jce2
           atms%qsb3d(j,i,k) = pfwsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
           atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
-          atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),rhmin),rhmax)
+          !atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),rhmin),rhmax)
         end do
       end do
     end do

@@ -349,22 +349,22 @@ module mod_output
           end if
           if ( associated(atm_stats_detw_out) ) then
             do k = 1 , kz
-              atm_stats_detw_out(:,:,k) = ngs%statserosw(jci1:jci2,ici1:ici2,k)
+              atm_stats_detw_out(:,:,k) = ngs%statsdetrw(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_detc_out) ) then
             do k = 1 , kz
-              atm_stats_detc_out(:,:,k) = ngs%statserosc(jci1:jci2,ici1:ici2,k)
+              atm_stats_detc_out(:,:,k) = ngs%statsdetrc(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_erow_out) ) then
             do k = 1 , kz
-              atm_stats_erow_out(:,:,k) = ngs%statsdetrw(jci1:jci2,ici1:ici2,k)
+              atm_stats_erow_out(:,:,k) = ngs%statserosw(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_eroc_out) ) then
             do k = 1 , kz
-              atm_stats_eroc_out(:,:,k) = ngs%statsdetrc(jci1:jci2,ici1:ici2,k)
+              atm_stats_eroc_out(:,:,k) = ngs%statserosc(jci1:jci2,ici1:ici2,k)
             end do
           end if
           if ( associated(atm_stats_evw_out) ) then
