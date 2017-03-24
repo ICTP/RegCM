@@ -297,8 +297,9 @@ module mod_kdtree2
       write(stderr,*) 'KD_TREE_TRANS: and N=',mr%n
       write(stderr,*) 'KD_TREE_TRANS: note, that new format is data(1:D,1:N)'
       write(stderr,*) 'KD_TREE_TRANS: with usually N >> D.'
-      write(stderr,*) '   If N =approx= D, then a k-d tree'
-      call die('KD_TREE_TRANS','is not an appropriate data structure.',1)
+      write(stderr,*) &
+        'If N =approx= D, then a k-d tree is not an appropriate data structure.'
+      call die('KD_TREE_TRANS','not appropriate',1)
     end if
 
     call build_tree(mr)

@@ -32,6 +32,7 @@ module mod_earth
 
   interface ll2xyz
     module procedure ll2xyz_values
+    module procedure ll2xyz_array
     module procedure ll2xyz_arrays
   end interface
 
@@ -79,15 +80,27 @@ module mod_earth
     z = sin(rlat) * cos(rlon)
   end subroutine ll2xyz_values
 
-  subroutine ll2xyz_arrays(lat,lon,x,y,z)
+  subroutine ll2xyz_array(lat,lon,x)
+    implicit none
+    real(rkx) , intent(in) :: lat
+    real(rkx) , intent(in) :: lon
+    real(rkx) , intent(out) , dimension(3) :: x
+    real(rkx) :: rlat , rlon
+    rlat = halfpi - lat*degrad
+    rlon = lon*degrad
+    x(1) = sin(rlat) * sin(rlon)
+    x(2) = cos(rlat)
+    x(3) = sin(rlat) * cos(rlon)
+  end subroutine ll2xyz_array
+
+  subroutine ll2xyz_arrays(lat,lon,x)
     implicit none
     real(rkx) , intent(in) , dimension(:) :: lat
     real(rkx) , intent(in) , dimension(:) :: lon
-    real(rkx) , intent(out) , dimension(:) :: x , y , z
+    real(rkx) , intent(out) , dimension(:,:) :: x
     real(rkx) :: rlat , rlon
     integer(ik4) :: i , j , n
-    if ( size(x) /= size(y) .or. size(z) /= size(x) .or. &
-         size(x) /= size(lat) * size(lon) ) then
+    if ( size(x,1) /= 3 .or.  size(x,2) /= size(lat) * size(lon) ) then
       return
     end if
     n = 1
@@ -95,9 +108,9 @@ module mod_earth
       do i = 1 , size(lon)
         rlat = halfpi - lat(j)*degrad
         rlon = lon(i)*degrad
-        x(n) = sin(rlat) * sin(rlon)
-        y(n) = cos(rlat)
-        z(n) = sin(rlat) * cos(rlon)
+        x(1,n) = sin(rlat) * sin(rlon)
+        x(2,n) = cos(rlat)
+        x(3,n) = sin(rlat) * cos(rlon)
         n = n + 1
       end do
     end do
