@@ -117,10 +117,10 @@ module mod_wrtoxd
   type(nc_output_stream) , save :: ncoutox
   type(nc_output_stream) , save :: ncoutae
 
-  type(ncvariable2d_real) , save , dimension(2) :: v2dvar_base
-  type(ncvariable3d_real) , save , dimension(ncbmz) :: v3dvar_ch
-  type(ncvariable3d_real) , save , dimension(noxsp) :: v3dvar_ox
-  type(ncvariable3d_real) , save , dimension(maxaeout) :: v3dvar_ae
+  type(ncvariable2d_mixed) , save , dimension(2) :: v2dvar_base
+  type(ncvariable3d_mixed) , save , dimension(ncbmz) :: v3dvar_ch
+  type(ncvariable3d_mixed) , save , dimension(noxsp) :: v3dvar_ox
+  type(ncvariable3d_mixed) , save , dimension(maxaeout) :: v3dvar_ae
 
   data sum_soa_to_oc2 /.false./
   data sum_sslt_bins  /.false./

@@ -154,7 +154,7 @@ module mod_clm_surfrd
     integer(ik4) :: n , ierr                 ! loop indices
     type(clm_filetype) :: ncid               ! netcdf id
     integer(ik4) :: begg , endg              ! beg,end gridcell indices
-    real(rk4) , allocatable , dimension(:) :: xclon , yclat
+    real(rkx) , allocatable , dimension(:) :: xclon , yclat
     character(len=32) :: subname = 'surfrd_get_data'    ! subroutine name
 
     if (myid == italk) then
@@ -184,10 +184,11 @@ module mod_clm_surfrd
 
     ierr = 0
     do n = begg , endg
-      if ( abs(xclon(n) - ldomain%lonc(n)) > 10.e-7_rk8 .or. &
-           abs(yclat(n) - ldomain%latc(n)) > 10.e-7_rk8 ) then
+      if ( abs(real(xclon(n),rk4)-real(ldomain%lonc(n),rk4)) > 10.e-7_rk8 .or. &
+           abs(real(yclat(n),rk4)-real(ldomain%latc(n),rk4)) > 10.e-7_rk8 ) then
         write(stderr,*) 'ERROR coordinates at n ', &
-            n, xclon(n), yclat(n) , ldomain%lonc(n), ldomain%latc(n)
+            n, real(xclon(n)), real(yclat(n)) , &
+               real(ldomain%lonc(n)), real(ldomain%latc(n))
         ierr = 1
       end if
     end do

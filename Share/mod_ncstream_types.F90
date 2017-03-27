@@ -104,6 +104,10 @@ module mod_ncstream_types
     logical :: lhas2dreal = .false.
     logical :: lhas3dreal = .false.
     logical :: lhas4dreal = .false.
+    logical :: lhas1ddouble = .false.
+    logical :: lhas2ddouble = .false.
+    logical :: lhas3ddouble = .false.
+    logical :: lhas4ddouble = .false.
     integer(ik4) , dimension(1) :: max1d_int = 0
     integer(ik4) , dimension(2) :: max2d_int = 0
     integer(ik4) , dimension(3) :: max3d_int = 0
@@ -112,13 +116,19 @@ module mod_ncstream_types
     integer(ik4) , dimension(2) :: max2d_real = 0
     integer(ik4) , dimension(3) :: max3d_real = 0
     integer(ik4) , dimension(4) :: max4d_real = 0
+    integer(ik4) , dimension(1) :: max1d_double = 0
+    integer(ik4) , dimension(2) :: max2d_double = 0
+    integer(ik4) , dimension(3) :: max3d_double = 0
+    integer(ik4) , dimension(4) :: max4d_double = 0
     integer(ik4) , dimension(:) , allocatable :: intbuff
     real(rk4) , dimension(:) , allocatable :: realbuff
+    real(rk8) , dimension(:) , allocatable :: doublebuff
   end type internal_obuffer
 
   type internal_ibuffer
     integer(ik4) , dimension(:) , allocatable :: intbuff
     real(rk4) , dimension(:) , allocatable :: realbuff
+    real(rk8) , dimension(:) , allocatable :: doublebuff
   end type internal_ibuffer
 
   type obuff_p
@@ -251,6 +261,15 @@ module mod_ncstream_types
     real(rk4) , dimension(1) :: rval = 0.0
   end type ncvariable0d_real
 
+  type, extends(ncvariable_0d) :: ncvariable0d_double
+    real(rk8) , dimension(1) :: rval = 0.0
+  end type ncvariable0d_double
+
+  type, extends(ncvariable_0d) :: ncvariable0d_mixed
+    logical :: is_mixed = .true.
+    real(rkx) , dimension(1) :: rval = 0.0
+  end type ncvariable0d_mixed
+
   type, extends(ncvariable_0d) :: ncvariable0d_integer
     integer(ik4) , dimension(1) :: ival = 0
   end type ncvariable0d_integer
@@ -265,8 +284,17 @@ module mod_ncstream_types
   end type ncvariable_1d
 
   type, extends(ncvariable_1d) :: ncvariable1d_real
-    real(rkx) , dimension(:) , pointer :: rval => null()
+    real(rk4) , dimension(:) , pointer :: rval => null()
   end type ncvariable1d_real
+
+  type, extends(ncvariable_1d) :: ncvariable1d_double
+    real(rk8) , dimension(:) , pointer :: rval => null()
+  end type ncvariable1d_double
+
+  type, extends(ncvariable_1d) :: ncvariable1d_mixed
+    logical :: is_mixed = .true.
+    real(rkx) , dimension(:) , pointer :: rval => null()
+  end type ncvariable1d_mixed
 
   type, extends(ncvariable_1d) :: ncvariable1d_integer
     integer(ik4) , dimension(:) , pointer :: ival => null()
@@ -281,9 +309,22 @@ module mod_ncstream_types
 
   type, extends(ncvariable_2d) :: ncvariable2d_real
     logical :: is_slice = .false.
+    real(rk4) , dimension(:,:) , pointer :: rval => null()
+    real(rk4) , dimension(:,:,:) , pointer :: rval_slice => null()
+  end type ncvariable2d_real
+
+  type, extends(ncvariable_2d) :: ncvariable2d_double
+    logical :: is_slice = .false.
+    real(rk8) , dimension(:,:) , pointer :: rval => null()
+    real(rk8) , dimension(:,:,:) , pointer :: rval_slice => null()
+  end type ncvariable2d_double
+
+  type, extends(ncvariable_2d) :: ncvariable2d_mixed
+    logical :: is_slice = .false.
+    logical :: is_mixed = .true.
     real(rkx) , dimension(:,:) , pointer :: rval => null()
     real(rkx) , dimension(:,:,:) , pointer :: rval_slice => null()
-  end type ncvariable2d_real
+  end type ncvariable2d_mixed
 
   type, extends(ncvariable_2d) :: ncvariable2d_integer
     logical :: is_slice = .false.
@@ -301,16 +342,31 @@ module mod_ncstream_types
 
   type, extends(ncvariable_3d) :: ncvariable3d_real
     logical :: is_slice = .false.
+    real(rk4) , dimension(:,:) , pointer :: rval_level => null()
+    real(rk4) , dimension(:,:,:) , pointer :: rval => null()
+    real(rk4) , dimension(:,:,:,:) , pointer :: rval_slice => null()
+  end type ncvariable3d_real
+
+  type, extends(ncvariable_3d) :: ncvariable3d_double
+    logical :: is_slice = .false.
+    real(rk8) , dimension(:,:) , pointer :: rval_level => null()
+    real(rk8) , dimension(:,:,:) , pointer :: rval => null()
+    real(rk8) , dimension(:,:,:,:) , pointer :: rval_slice => null()
+  end type ncvariable3d_double
+
+  type, extends(ncvariable_3d) :: ncvariable3d_mixed
+    logical :: is_slice = .false.
+    logical :: is_mixed = .true.
     real(rkx) , dimension(:,:) , pointer :: rval_level => null()
     real(rkx) , dimension(:,:,:) , pointer :: rval => null()
     real(rkx) , dimension(:,:,:,:) , pointer :: rval_slice => null()
-  end type ncvariable3d_real
+  end type ncvariable3d_mixed
 
   type, extends(ncvariable_3d) :: ncvariable3d_integer
     logical :: is_slice = .false.
-    integer(rk4) , dimension(:,:) , pointer :: ival_level => null()
-    integer(rk4) , dimension(:,:,:) , pointer :: ival => null()
-    integer(rk4) , dimension(:,:,:,:) , pointer :: ival_slice => null()
+    integer(ik4) , dimension(:,:) , pointer :: ival_level => null()
+    integer(ik4) , dimension(:,:,:) , pointer :: ival => null()
+    integer(ik4) , dimension(:,:,:,:) , pointer :: ival_slice => null()
   end type ncvariable3d_integer
 
   type, extends(ncvariable_standard) :: ncvariable_4d
@@ -323,11 +379,20 @@ module mod_ncstream_types
   end type ncvariable_4d
 
   type, extends(ncvariable_4d) :: ncvariable4d_real
-    real(rkx) , dimension(:,:,:,:) , pointer :: rval => null()
+    real(rk4) , dimension(:,:,:,:) , pointer :: rval => null()
   end type ncvariable4d_real
 
+  type, extends(ncvariable_4d) :: ncvariable4d_double
+    real(rk8) , dimension(:,:,:,:) , pointer :: rval => null()
+  end type ncvariable4d_double
+
+  type, extends(ncvariable_4d) :: ncvariable4d_mixed
+    logical :: is_mixed = .true.
+    real(rkx) , dimension(:,:,:,:) , pointer :: rval => null()
+  end type ncvariable4d_mixed
+
   type, extends(ncvariable_4d) :: ncvariable4d_integer
-    integer(rk4) , dimension(:,:,:,:) , pointer :: ival => null()
+    integer(ik4) , dimension(:,:,:,:) , pointer :: ival => null()
   end type ncvariable4d_integer
 
   type ncoutstream_p
@@ -339,17 +404,17 @@ module mod_ncstream_types
   end type ncinstream_p
 
   type basic_variables
-    type(ncvariable0d_real) :: time_var
-    type(ncvariable1d_real) :: tbound_var
-    type(ncvariable0d_real) :: ptop_var
-    type(ncvariable1d_real) :: sigma_var
-    type(ncvariable1d_real) :: jx_var
-    type(ncvariable1d_real) :: iy_var
+    type(ncvariable0d_double) :: time_var
+    type(ncvariable1d_double) :: tbound_var
+    type(ncvariable0d_double) :: ptop_var
+    type(ncvariable1d_double) :: sigma_var
+    type(ncvariable1d_double) :: jx_var
+    type(ncvariable1d_double) :: iy_var
     type(ncvariable0d_char) :: map_var
-    type(ncvariable1d_real) :: lev2m_var
-    type(ncvariable1d_real) :: lev10m_var
-    type(ncvariable1d_real) :: levsoil_var
-    type(ncvariable2d_real) :: spectral_var
+    type(ncvariable1d_double) :: lev2m_var
+    type(ncvariable1d_double) :: lev10m_var
+    type(ncvariable1d_double) :: levsoil_var
+    type(ncvariable2d_double) :: spectral_var
   end type basic_variables
 
   type basic_variables_p

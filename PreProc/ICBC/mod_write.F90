@@ -46,8 +46,8 @@ module mod_write
   integer(ik4) , parameter :: nvar2d_static = 6
   integer(ik4) :: nvar3d
   integer(ik4) :: nvar2d
-  type(ncvariable2d_real) , allocatable , save , dimension(:) :: v2dvar_icbc
-  type(ncvariable3d_real) , allocatable , save , dimension(:) :: v3dvar_icbc
+  type(ncvariable2d_mixed) , allocatable , save , dimension(:) :: v2dvar_icbc
+  type(ncvariable3d_mixed) , allocatable , save , dimension(:) :: v3dvar_icbc
 
   contains
 

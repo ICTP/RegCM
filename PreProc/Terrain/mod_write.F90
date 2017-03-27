@@ -33,11 +33,12 @@ module mod_write
 
   integer(ik4) :: nvar2d
   integer(ik4) :: nvar3d
-  type(ncvariable2d_real) , save, dimension(:), allocatable :: v2dvar_base
-  type(ncvariable3d_real) , save, dimension(:), allocatable :: v3dvar_base
   integer(ik4) :: idlnd ! The position of landuse in the v2dvar_base
   integer(ik4) :: idtxt ! The position of texture in the v2dvar_base
-  type(ncvariable2d_real) , save :: v2dvar_lake
+
+  type(ncvariable2d_double) , save, dimension(:), allocatable :: v2dvar_base
+  type(ncvariable3d_double) , save, dimension(:), allocatable :: v3dvar_base
+  type(ncvariable2d_double) , save :: v2dvar_lake
 
   character(len=512) :: landuse_legend =                     &
                '1  => Crop/mixed farming'//char(10)//        &

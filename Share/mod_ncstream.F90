@@ -48,16 +48,34 @@ module mod_ncstream
   public :: nc_output_stream
   public :: ncvariable0d_char
   public :: ncvariable_standard
-  public :: ncvariable0d_real , ncvariable0d_integer
-  public :: ncvariable1d_real , ncvariable1d_integer
-  public :: ncvariable2d_real , ncvariable2d_integer
-  public :: ncvariable3d_real , ncvariable3d_integer
-  public :: ncvariable4d_real , ncvariable4d_integer
+  public :: ncvariable0d_real
+  public :: ncvariable0d_double
+  public :: ncvariable0d_mixed
+  public :: ncvariable0d_integer
+  public :: ncvariable1d_real
+  public :: ncvariable1d_double
+  public :: ncvariable1d_mixed
+  public :: ncvariable1d_integer
+  public :: ncvariable2d_real
+  public :: ncvariable2d_double
+  public :: ncvariable2d_mixed
+  public :: ncvariable2d_integer
+  public :: ncvariable3d_real
+  public :: ncvariable3d_double
+  public :: ncvariable3d_mixed
+  public :: ncvariable3d_integer
+  public :: ncvariable4d_real
+  public :: ncvariable4d_double
+  public :: ncvariable4d_mixed
+  public :: ncvariable4d_integer
 
   public :: ncattribute_string
-  public :: ncattribute_logical , ncattribute_integer
-  public :: ncattribute_real4 , ncattribute_real8
-  public :: ncattribute_real4_array , ncattribute_real8_array
+  public :: ncattribute_logical
+  public :: ncattribute_integer
+  public :: ncattribute_real4
+  public :: ncattribute_real8
+  public :: ncattribute_real4_array
+  public :: ncattribute_real8_array
 
   public :: outstream_setup
   public :: outstream_enable , outstream_dispose
@@ -379,7 +397,7 @@ module mod_ncstream
       type(ncoutstream) , pointer :: stream
       type(internal_obuffer) , pointer :: buffer
       type(basic_variables) , pointer :: stvar
-      integer(ik4) :: maxnum_int , maxnum_real , i
+      integer(ik4) :: maxnum_int , maxnum_real , maxnum_double , i
 #ifdef CLM45
       integer(ik4) :: nl
 #endif
@@ -614,6 +632,7 @@ module mod_ncstream
       !
       maxnum_int  = buffer%max1d_int(1)
       maxnum_real = buffer%max1d_real(1)
+      maxnum_double = buffer%max1d_double(1)
 
       if ( buffer%lhas2dint ) then
         maxnum_int = max(product(buffer%max2d_int),maxnum_int)
@@ -621,11 +640,17 @@ module mod_ncstream
       if ( buffer%lhas2dreal ) then
         maxnum_real = max(product(buffer%max2d_real),maxnum_real)
       end if
+      if ( buffer%lhas2ddouble ) then
+        maxnum_double = max(product(buffer%max2d_double),maxnum_double)
+      end if
       if ( buffer%lhas3dint ) then
         maxnum_int = max(product(buffer%max3d_int),maxnum_int)
       end if
       if ( buffer%lhas3dreal ) then
         maxnum_real = max(product(buffer%max3d_real),maxnum_real)
+      end if
+      if ( buffer%lhas3ddouble ) then
+        maxnum_double = max(product(buffer%max3d_double),maxnum_double)
       end if
       if ( buffer%lhas4dint ) then
         maxnum_int = max(product(buffer%max4d_int),maxnum_int)
@@ -633,8 +658,12 @@ module mod_ncstream
       if ( buffer%lhas4dreal ) then
         maxnum_real = max(product(buffer%max4d_real),maxnum_real)
       end if
+      if ( buffer%lhas4ddouble ) then
+        maxnum_double = max(product(buffer%max4d_double),maxnum_double)
+      end if
       if ( maxnum_int > 0 ) allocate(buffer%intbuff(maxnum_int))
       if ( maxnum_real > 0 ) allocate(buffer%realbuff(maxnum_real))
+      if ( maxnum_double > 0 ) allocate(buffer%doublebuff(maxnum_double))
       stream%l_enabled = .true.
 #ifdef DEBUG
       write(stdout,*) 'Enabled netCDF output stream ',trim(stream%filename)
@@ -644,6 +673,9 @@ module mod_ncstream
       if ( allocated(buffer%realbuff) ) &
         write(stdout,*) 'Total buffer float size   :', &
           size(buffer%realbuff)*4
+        if ( allocated(buffer%doublebuff) ) &
+          write(stdout,*) 'Total buffer double size   :', &
+          size(buffer%doublebuff)*4
 #endif
       ! Put "basic" information in the file
       if ( stream%l_subgrid ) then
@@ -651,56 +683,58 @@ module mod_ncstream
       else
         xds = ds
       end if
-      buffer%realbuff(1) = &
+      buffer%doublebuff(1) = &
         -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
-                  xds * d_1000,rk4)
+                  xds * d_1000,rk8)
       do i = 2 , stream%len_dims(jx_dim)
-        buffer%realbuff(i) = real(real(buffer%realbuff(i-1),rkx)+xds*d_1000,rk4)
+        buffer%doublebuff(i) = &
+          real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
       end do
       call outstream_writevar(ncout,stvar%jx_var,nocopy)
-      buffer%realbuff(1) = &
+      buffer%doublebuff(1) = &
         -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
-                  xds * d_1000,rk4)
+                  xds * d_1000,rk8)
       do i = 2 , stream%len_dims(iy_dim)
-        buffer%realbuff(i) = real(real(buffer%realbuff(i-1),rkx)+xds*d_1000,rk4)
+        buffer%doublebuff(i) = &
+          real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
       end do
       call outstream_writevar(ncout,stvar%iy_var,nocopy)
-      buffer%realbuff(1:size(sigma)) = real(sigma)
+      buffer%doublebuff(1:size(sigma)) = real(sigma,rk8)
       call outstream_writevar(ncout,stvar%sigma_var,nocopy)
-      stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk4)
+      stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
       call outstream_writevar(ncout,stvar%ptop_var)
       if ( stream%l_has2mlev ) then
-        buffer%realbuff(1) = 2.0
+        buffer%doublebuff(1) = 2.0_rk8
         call outstream_writevar(ncout,stvar%lev2m_var,nocopy)
       end if
       if ( stream%l_has10mlev ) then
-        buffer%realbuff(1) = 10.0
+        buffer%doublebuff(1) = 10.0_rk8
         call outstream_writevar(ncout,stvar%lev10m_var,nocopy)
       end if
       if ( stream%l_hassoillev ) then
 #ifdef CLM45
         do nl = 1 , num_soil_layers
-          buffer%realbuff(nl) = real(scalez*(exp(0.5_rkx * &
-            (real(nl,rkx)-0.5_rkx))-1._rkx),rk4)
+        buffer%doublebuff(nl) = real(scalez*(exp(0.5_rkx * &
+            (real(nl,rkx)-0.5_rkx))-1._rkx),rk8)
         end do
 #else
         ! Here is not precise, as the depth of levels is function of the
         ! landuse class.
-        buffer%realbuff(1) = 0.10
-        buffer%realbuff(2) = 1.00
-        buffer%realbuff(3) = 3.00
+        buffer%doublebuff(1) = 0.10_rk8
+        buffer%doublebuff(2) = 1.00_rk8
+        buffer%doublebuff(3) = 3.00_rk8
 #endif
         call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
       end if
       if ( stream%l_hasspectral ) then
-        buffer%realbuff(1) = 0.00000025
-        buffer%realbuff(2) = 0.00000069
-        buffer%realbuff(3) = 0.00000119
-        buffer%realbuff(4) = 0.00000238
-        buffer%realbuff(5) = 0.00000069
-        buffer%realbuff(6) = 0.00000119
-        buffer%realbuff(7) = 0.00000238
-        buffer%realbuff(8) = 0.00000400
+        buffer%doublebuff(1) = 0.00000025_rk8
+        buffer%doublebuff(2) = 0.00000069_rk8
+        buffer%doublebuff(3) = 0.00000119_rk8
+        buffer%doublebuff(4) = 0.00000238_rk8
+        buffer%doublebuff(5) = 0.00000069_rk8
+        buffer%doublebuff(6) = 0.00000119_rk8
+        buffer%doublebuff(7) = 0.00000238_rk8
+        buffer%doublebuff(8) = 0.00000400_rk8
         call outstream_writevar(ncout,stvar%spectral_var,nocopy)
       end if
     end subroutine outstream_enable
@@ -761,13 +795,13 @@ module mod_ncstream
       buffer => ncout%obp%xb
       if ( .not. stream%l_enabled ) return
       stream%irec = stream%irec+1
-      stvar%time_var%rval = real(val)
+      stvar%time_var%rval = real(val,rk8)
       call outstream_writevar(ncout,stvar%time_var)
       if ( stream%l_hastbound ) then
-        buffer%realbuff(1) = real(stream%zero_time)
-        buffer%realbuff(2) = real(val)
+        buffer%doublebuff(1) = real(stream%zero_time,rk8)
+        buffer%doublebuff(2) = real(val,rk8)
         call outstream_writevar(ncout,stvar%tbound_var,nocopy)
-        stream%zero_time = real(val)
+        stream%zero_time = real(val,rk8)
       end if
     end subroutine outstream_addrec_value
 
@@ -1025,6 +1059,9 @@ module mod_ncstream
         if ( var%nctype == nf90_real ) then
           call add_attribute(stream, &
             ncattribute_real4('_FillValue',var%rmissval),var%id,var%vname)
+        else if ( var%nctype == nf90_double ) then
+          call add_attribute(stream, &
+            ncattribute_real8('_FillValue',var%rmissval),var%id,var%vname)
         else
           call add_attribute(stream, &
             ncattribute_real4('_FillValue',var%imissval),var%id,var%vname)
@@ -1117,6 +1154,16 @@ module mod_ncstream
       select type(var)
         class is (ncvariable0d_char)
           var%nctype = nf90_char
+        class is (ncvariable0d_mixed)
+          var%nctype = nf90_float
+        class is (ncvariable1d_mixed)
+          var%nctype = nf90_float
+        class is (ncvariable2d_mixed)
+          var%nctype = nf90_float
+        class is (ncvariable3d_mixed)
+          var%nctype = nf90_float
+        class is (ncvariable4d_mixed)
+          var%nctype = nf90_float
         class is (ncvariable0d_real)
           var%nctype = nf90_float
         class is (ncvariable1d_real)
@@ -1127,6 +1174,16 @@ module mod_ncstream
           var%nctype = nf90_float
         class is (ncvariable4d_real)
           var%nctype = nf90_float
+        class is (ncvariable0d_double)
+          var%nctype = nf90_double
+        class is (ncvariable1d_double)
+          var%nctype = nf90_double
+        class is (ncvariable2d_double)
+          var%nctype = nf90_double
+        class is (ncvariable3d_double)
+          var%nctype = nf90_double
+        class is (ncvariable4d_double)
+          var%nctype = nf90_double
         class is (ncvariable0d_integer)
           var%nctype = nf90_int
         class is (ncvariable1d_integer)
@@ -1226,10 +1283,61 @@ module mod_ncstream
           call die('nc_stream', 'Cannot add variable of unknown type',1)
       end select
       select type(var)
+        class is (ncvariable1d_double)
+          buffer%lhas1ddouble = .true.
+          buffer%max1d_double(1) = max(buffer%max1d_double(1),len_dim(1))
+        class is (ncvariable2d_double)
+          buffer%lhas2ddouble = .true.
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max2d_double(1) = &
+               max(buffer%max2d_double(1),stream%global_nj)
+            buffer%max2d_double(2) = &
+               max(buffer%max2d_double(2),stream%global_ni)
+          else
+            buffer%max2d_double(1) = max(buffer%max2d_double(1),len_dim(1))
+            buffer%max2d_double(2) = max(buffer%max2d_double(2),len_dim(2))
+          end if
+        class is (ncvariable3d_double)
+          buffer%lhas3ddouble = .true.
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max3d_double(1) = &
+               max(buffer%max3d_double(1),stream%global_nj)
+            buffer%max3d_double(2) = &
+               max(buffer%max3d_double(2),stream%global_ni)
+          else
+            buffer%max3d_double(1) = max(buffer%max3d_double(1),len_dim(1))
+            buffer%max3d_double(2) = max(buffer%max3d_double(2),len_dim(2))
+          end if
+          buffer%max3d_double(3) = max(buffer%max3d_double(3),len_dim(3))
+        class is (ncvariable4d_double)
+          buffer%lhas4ddouble = .true.
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max4d_double(1) = &
+               max(buffer%max4d_double(1),stream%global_nj)
+            buffer%max4d_double(2) = &
+               max(buffer%max4d_double(2),stream%global_ni)
+          else
+            buffer%max4d_double(1) = max(buffer%max4d_double(1),len_dim(1))
+            buffer%max4d_double(2) = max(buffer%max4d_double(2),len_dim(2))
+          end if
+          buffer%max4d_double(3) = max(buffer%max4d_double(3),len_dim(3))
+          buffer%max4d_double(4) = max(buffer%max4d_double(4),len_dim(4))
         class is (ncvariable1d_real)
           buffer%lhas1dreal = .true.
           buffer%max1d_real(1) = max(buffer%max1d_real(1),len_dim(1))
+        class is (ncvariable1d_mixed)
+          buffer%lhas1dreal = .true.
+          buffer%max1d_real(1) = max(buffer%max1d_real(1),len_dim(1))
         class is (ncvariable2d_real)
+          buffer%lhas2dreal = .true.
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max2d_real(1) = max(buffer%max2d_real(1),stream%global_nj)
+            buffer%max2d_real(2) = max(buffer%max2d_real(2),stream%global_ni)
+          else
+            buffer%max2d_real(1) = max(buffer%max2d_real(1),len_dim(1))
+            buffer%max2d_real(2) = max(buffer%max2d_real(2),len_dim(2))
+          end if
+        class is (ncvariable2d_mixed)
           buffer%lhas2dreal = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
             buffer%max2d_real(1) = max(buffer%max2d_real(1),stream%global_nj)
@@ -1248,7 +1356,28 @@ module mod_ncstream
             buffer%max3d_real(2) = max(buffer%max3d_real(2),len_dim(2))
           end if
           buffer%max3d_real(3) = max(buffer%max3d_real(3),len_dim(3))
+        class is (ncvariable3d_mixed)
+          buffer%lhas3dreal = .true.
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max3d_real(1) = max(buffer%max3d_real(1),stream%global_nj)
+            buffer%max3d_real(2) = max(buffer%max3d_real(2),stream%global_ni)
+          else
+            buffer%max3d_real(1) = max(buffer%max3d_real(1),len_dim(1))
+            buffer%max3d_real(2) = max(buffer%max3d_real(2),len_dim(2))
+          end if
+          buffer%max3d_real(3) = max(buffer%max3d_real(3),len_dim(3))
         class is (ncvariable4d_real)
+          buffer%lhas4dreal = .true.
+          if ( stream%l_parallel .and. var%lgridded ) then
+            buffer%max4d_real(1) = max(buffer%max4d_real(1),stream%global_nj)
+            buffer%max4d_real(2) = max(buffer%max4d_real(2),stream%global_ni)
+          else
+            buffer%max4d_real(1) = max(buffer%max4d_real(1),len_dim(1))
+            buffer%max4d_real(2) = max(buffer%max4d_real(2),len_dim(2))
+          end if
+          buffer%max4d_real(3) = max(buffer%max4d_real(3),len_dim(3))
+          buffer%max4d_real(4) = max(buffer%max4d_real(4),len_dim(4))
+        class is (ncvariable4d_mixed)
           buffer%lhas4dreal = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
             buffer%max4d_real(1) = max(buffer%max4d_real(1),stream%global_nj)
@@ -1418,7 +1547,283 @@ module mod_ncstream
       if ( stream%id < 0 ) return
       buffer => ncout%obp%xb
       select type(var)
+        class is (ncvariable0d_double)
+          if ( var%lrecords ) then
+            stream%istart(1) = stream%irec
+            stream%icount(1) = 1
+            ncstat = nf90_put_var(stream%id,var%id,var%rval, &
+              stream%istart(1:1),stream%icount(1:1))
+          else
+            ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+          end if
+        class is (ncvariable1d_double)
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%doublebuff(1:var%nval(1)) = var%rval(1:var%nval(1))
+          end if
+          stream%istart(1) = 1
+          stream%icount(1) = var%nval(1)
+          nd = 1
+          if ( var%lrecords ) then
+            stream%istart(2) = stream%irec
+            stream%icount(2) = 1
+            nd = 2
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+        class is (ncvariable2d_double)
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
+            totsize = stream%parsize
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            totsize = var%totsize
+          end if
+          if ( docopy ) then
+            if ( .not. associated(var%rval) .and. &
+                 .not. associated(var%rval_slice) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            if ( var%j1 > 0 .and. var%j2 > 0 ) then
+              if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'file     : ', stream%icount(1)
+                write(stderr,*) 'internal : ', var%j2-var%j1+1
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%j1 = 1
+              var%j2 = stream%icount(1)
+            end if
+            if ( var%i1 > 0 .and. var%i2 > 0 ) then
+              if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes IY different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%i1 = 1
+              var%i2 = stream%icount(2)
+            end if
+            if ( var%is_slice ) then
+              if ( .not. present(is) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Requesting slice without giving index...'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+              buffer%doublebuff(1:totsize) =  &
+                reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
+                (/totsize/))
+            else
+              buffer%doublebuff(1:totsize) =  &
+                reshape(var%rval(var%j1:var%j2,var%i1:var%i2),(/totsize/))
+            end if
+          end if
+          nd = 2
+          if ( var%lrecords ) then
+            stream%istart(3) = stream%irec
+            stream%icount(3) = 1
+            nd = 3
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+        class is (ncvariable3d_double)
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
+            totsize = stream%parsize*var%nval(3)
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            totsize = var%totsize
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          if ( docopy ) then
+            if ( .not. associated(var%rval) .and. &
+                 .not. associated(var%rval_level) .and. &
+                 .not. associated(var%rval_slice) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            if ( var%j1 > 0 .and. var%j2 > 0 ) then
+              if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes JX different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%j1 = 1
+              var%j2 = stream%icount(1)
+            end if
+            if ( var%i1 > 0 .and. var%i2 > 0 ) then
+              if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes IY different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%i1 = 1
+              var%i2 = stream%icount(2)
+            end if
+            if ( var%k1 > 0 .and. var%k2 > 0 ) then
+              if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes KZ different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%k1 = 1
+              var%k2 = stream%icount(3)
+            end if
+            if ( var%is_slice ) then
+              if ( .not. present(is) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Requesting slice without giving index...'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+              buffer%doublebuff(1:totsize) = &
+                reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
+                  var%k1:var%k2,is), (/totsize/))
+            else
+              buffer%doublebuff(1:totsize) = &
+                reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
+                  var%k1:var%k2),(/totsize/))
+            end if
+          end if
+          nd = 3
+          if ( var%lrecords ) then
+            stream%istart(4) = stream%irec
+            stream%icount(4) = 1
+            nd = 4
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+        class is (ncvariable4d_double)
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
+            totsize = stream%parsize*var%nval(3)*var%nval(4)
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            totsize = var%totsize
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          stream%istart(4) = 1
+          stream%icount(4) = var%nval(4)
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            if ( var%j1 > 0 .and. var%j2 > 0 ) then
+              if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes JX different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%j1 = 1
+              var%j2 = stream%icount(1)
+            end if
+            if ( var%i1 > 0 .and. var%i2 > 0 ) then
+              if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes IY different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%i1 = 1
+              var%i2 = stream%icount(2)
+            end if
+            if ( var%k1 > 0 .and. var%k2 > 0 ) then
+              if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes KZ different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%k1 = 1
+              var%k2 = stream%icount(3)
+            end if
+            if ( var%n1 > 0 .and. var%n2 > 0 ) then
+              if ( (var%n2-var%n1+1) /= stream%icount(4) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes 4 different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%n1 = 1
+              var%n2 = stream%icount(4)
+            end if
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%doublebuff(1:totsize) = &
+              reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
+                var%k1:var%k2,var%n1:var%n2),(/totsize/))
+          end if
+          nd = 4
+          if ( var%lrecords ) then
+            stream%istart(5) = stream%irec
+            stream%icount(5) = 1
+            nd = 5
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
         class is (ncvariable0d_real)
+          if ( var%lrecords ) then
+            stream%istart(1) = stream%irec
+            stream%icount(1) = 1
+            ncstat = nf90_put_var(stream%id,var%id,var%rval, &
+              stream%istart(1:1),stream%icount(1:1))
+          else
+            ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+          end if
+        class is (ncvariable0d_mixed)
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
@@ -1435,7 +1840,27 @@ module mod_ncstream
               call die('nc_stream','Cannot write variable '//trim(var%vname)// &
                 ' in file '//trim(stream%filename), 1)
             end if
-            buffer%realbuff(1:var%nval(1)) = real(var%rval(1:var%nval(1)))
+            buffer%realbuff(1:var%nval(1)) = var%rval(1:var%nval(1))
+          end if
+          stream%istart(1) = 1
+          stream%icount(1) = var%nval(1)
+          nd = 1
+          if ( var%lrecords ) then
+            stream%istart(2) = stream%irec
+            stream%icount(2) = 1
+            nd = 2
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+        class is (ncvariable1d_mixed)
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%realbuff(1:var%nval(1)) = real(var%rval(1:var%nval(1)),rk4)
           end if
           stream%istart(1) = 1
           stream%icount(1) = var%nval(1)
@@ -1501,12 +1926,82 @@ module mod_ncstream
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
               buffer%realbuff(1:totsize) =                                   &
+                reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
+                (/totsize/))
+            else
+              buffer%realbuff(1:totsize) =                          &
+                reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
+                (/totsize/))
+            end if
+          end if
+          nd = 2
+          if ( var%lrecords ) then
+            stream%istart(3) = stream%irec
+            stream%icount(3) = 1
+            nd = 3
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+        class is (ncvariable2d_mixed)
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
+            totsize = stream%parsize
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            totsize = var%totsize
+          end if
+          if ( docopy ) then
+            if ( .not. associated(var%rval) .and. &
+                 .not. associated(var%rval_slice) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            if ( var%j1 > 0 .and. var%j2 > 0 ) then
+              if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes JX different from file'
+                write(stderr,*) 'file     : ', stream%icount(1)
+                write(stderr,*) 'internal : ', var%j2-var%j1+1
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%j1 = 1
+              var%j2 = stream%icount(1)
+            end if
+            if ( var%i1 > 0 .and. var%i2 > 0 ) then
+              if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes IY different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%i1 = 1
+              var%i2 = stream%icount(2)
+            end if
+            if ( var%is_slice ) then
+              if ( .not. present(is) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Requesting slice without giving index...'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+              buffer%realbuff(1:totsize) =                                   &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
-                (/totsize/)))
+                (/totsize/)),rk4)
             else
               buffer%realbuff(1:totsize) =                          &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
-                (/totsize/)))
+                (/totsize/)),rk4)
             end if
           end if
           nd = 2
@@ -1583,12 +2078,94 @@ module mod_ncstream
                   trim(var%vname)//' in file '//trim(stream%filename), 1)
               end if
               buffer%realbuff(1:totsize) = &
+                reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
+                  var%k1:var%k2,is), (/totsize/))
+            else
+              buffer%realbuff(1:totsize) = &
+                reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
+                  var%k1:var%k2),(/totsize/))
+            end if
+          end if
+          nd = 3
+          if ( var%lrecords ) then
+            stream%istart(4) = stream%irec
+            stream%icount(4) = 1
+            nd = 4
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+        class is (ncvariable3d_mixed)
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
+            totsize = stream%parsize*var%nval(3)
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            totsize = var%totsize
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          if ( docopy ) then
+            if ( .not. associated(var%rval) .and. &
+                 .not. associated(var%rval_level) .and. &
+                 .not. associated(var%rval_slice) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            if ( var%j1 > 0 .and. var%j2 > 0 ) then
+              if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes JX different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%j1 = 1
+              var%j2 = stream%icount(1)
+            end if
+            if ( var%i1 > 0 .and. var%i2 > 0 ) then
+              if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes IY different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%i1 = 1
+              var%i2 = stream%icount(2)
+            end if
+            if ( var%k1 > 0 .and. var%k2 > 0 ) then
+              if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes KZ different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%k1 = 1
+              var%k2 = stream%icount(3)
+            end if
+            if ( var%is_slice ) then
+              if ( .not. present(is) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Requesting slice without giving index...'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+              buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2,is), (/totsize/)))
+                  var%k1:var%k2,is), (/totsize/)),rk4)
             else
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2),(/totsize/)))
+                  var%k1:var%k2),(/totsize/)),rk4)
             end if
           end if
           nd = 3
@@ -1675,8 +2252,95 @@ module mod_ncstream
                 ' in file '//trim(stream%filename), 1)
             end if
             buffer%realbuff(1:totsize) = &
+              reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
+                var%k1:var%k2,var%n1:var%n2),(/totsize/))
+          end if
+          nd = 4
+          if ( var%lrecords ) then
+            stream%istart(5) = stream%irec
+            stream%icount(5) = 1
+            nd = 5
+          end if
+          ncstat = nf90_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+        class is (ncvariable4d_mixed)
+          if ( stream%l_parallel .and. var%lgridded ) then
+            stream%istart(1) = stream%jparbound(1)
+            stream%istart(2) = stream%iparbound(1)
+            stream%icount(1) = stream%global_nj
+            stream%icount(2) = stream%global_ni
+            totsize = stream%parsize*var%nval(3)*var%nval(4)
+          else
+            stream%istart(1) = 1
+            stream%icount(1) = var%nval(1)
+            stream%istart(2) = 1
+            stream%icount(2) = var%nval(2)
+            totsize = var%totsize
+          end if
+          stream%istart(3) = 1
+          stream%icount(3) = var%nval(3)
+          stream%istart(4) = 1
+          stream%icount(4) = var%nval(4)
+          if ( docopy ) then
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            if ( var%j1 > 0 .and. var%j2 > 0 ) then
+              if ( (var%j2-var%j1+1) /= stream%icount(1) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes JX different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%j1 = 1
+              var%j2 = stream%icount(1)
+            end if
+            if ( var%i1 > 0 .and. var%i2 > 0 ) then
+              if ( (var%i2-var%i1+1) /= stream%icount(2) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes IY different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%i1 = 1
+              var%i2 = stream%icount(2)
+            end if
+            if ( var%k1 > 0 .and. var%k2 > 0 ) then
+              if ( (var%k2-var%k1+1) /= stream%icount(3) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes KZ different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%k1 = 1
+              var%k2 = stream%icount(3)
+            end if
+            if ( var%n1 > 0 .and. var%n2 > 0 ) then
+              if ( (var%n2-var%n1+1) /= stream%icount(4) ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) 'Internal indexes 4 different from file'
+                call die('nc_stream','Cannot write variable '// &
+                  trim(var%vname)//' in file '//trim(stream%filename), 1)
+              end if
+            else
+              var%n1 = 1
+              var%n2 = stream%icount(4)
+            end if
+            if ( .not. associated(var%rval) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Unassociated pointer to variable'
+              call die('nc_stream','Cannot write variable '//trim(var%vname)// &
+                ' in file '//trim(stream%filename), 1)
+            end if
+            buffer%realbuff(1:totsize) = &
               real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                var%k1:var%k2,var%n1:var%n2),(/totsize/)))
+                var%k1:var%k2,var%n1:var%n2),(/totsize/)),rk4)
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -2143,6 +2807,351 @@ module mod_ncstream
         end if
       end if
       select type(var)
+        class is (ncvariable0d_double)
+          ncstat = nf90_get_var(stream%id,var%id,var%rval)
+        class is (ncvariable1d_double)
+          ncstat = nf90_get_var(stream%id,var%id,var%rval)
+        class is (ncvariable2d_double)
+          ndims = 2
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
+              var%nval(1) = stream%global_nj
+              var%nval(2) = stream%global_ni
+            else
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
+            end if
+          end if
+          var%totsize = product(var%nval)
+          stream%icount(1) = var%nval(1)
+          stream%icount(2) = var%nval(2)
+          if ( present(irec) ) then
+            if ( var%ndims /= 3 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            stream%istart(3) = irec
+            stream%icount(3) = 1
+            ndims = 3
+          end if
+          if ( size(buffer%doublebuff) < var%totsize ) then
+            deallocate(buffer%doublebuff)
+            allocate(buffer%doublebuff(var%totsize))
+          end if
+          ncstat = nf90_get_var(stream%id,var%id,buffer%doublebuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+          if ( var%j1 > 0 .and. var%j2 > 0 .and. &
+               var%i1 > 0 .and. var%i2 > 0 ) then
+            if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
+                 (var%i2-var%i1+1) /= var%nval(2) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes different from file'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            var%rval(var%j1:var%j2,var%i1:var%i2) = &
+              reshape(buffer%doublebuff(1:var%totsize),stream%icount(1:2))
+          else
+            var%rval(1:var%nval(1),1:var%nval(2)) = &
+              reshape(buffer%doublebuff(1:var%totsize),stream%icount(1:2))
+          end if
+        class is (ncvariable3d_double)
+          ndims = 3
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
+              var%nval(1) = stream%global_nj
+              var%nval(2) = stream%global_ni
+            else
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
+            end if
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
+          end if
+          var%totsize = product(var%nval)
+          stream%icount(1) = var%nval(1)
+          stream%icount(2) = var%nval(2)
+          stream%icount(3) = var%nval(3)
+          if ( present(irec) ) then
+            if ( var%ndims /= 4 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            stream%istart(4) = irec
+            stream%icount(4) = 1
+            ndims = 4
+          end if
+          if ( size(buffer%doublebuff) < var%totsize ) then
+            deallocate(buffer%doublebuff)
+            allocate(buffer%doublebuff(var%totsize))
+          end if
+          ncstat = nf90_get_var(stream%id,var%id,buffer%doublebuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+          if ( var%j1 > 0 .and. var%j2 > 0 .and. &
+               var%i1 > 0 .and. var%i2 > 0 .and. &
+               var%k1 > 0 .and. var%k2 > 0 ) then
+            if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
+                 (var%i2-var%i1+1) /= var%nval(2) .or. &
+                 (var%k2-var%k1+1) /= var%nval(3) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes different from file'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            var%rval(var%j1:var%j2,var%i1:var%i2,var%k1:var%k2) = &
+              reshape(buffer%doublebuff(1:var%totsize),stream%icount(1:3))
+          else
+            var%rval(1:var%nval(1),1:var%nval(2),1:var%nval(3)) = &
+              reshape(buffer%doublebuff(1:var%totsize),stream%icount(1:3))
+          end if
+        class is (ncvariable4d_double)
+          ndims = 4
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(7) < 0 .or. window(8) < 0 .or. &
+                 window(7) > window(8) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) .or. &
+                 window(7) > stream%len_dims(var%idims(4)) .or. &
+                 window(8) > stream%len_dims(var%idims(4)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+            stream%istart(4) = window(7)
+            var%nval(4) = window(8) - window(7) + 1
+            if ( var%n1 < 0 .and. var%n2 < 0 ) then
+              var%n1 = window(7)
+              var%n2 = window(8)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
+              var%nval(1) = stream%global_nj
+              var%nval(2) = stream%global_ni
+            else
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
+            end if
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
+            stream%istart(4) = 1
+            var%nval(4) = stream%len_dims(var%idims(4))
+          end if
+          var%totsize = product(var%nval)
+          stream%icount(1) = var%nval(1)
+          stream%icount(2) = var%nval(2)
+          stream%icount(3) = var%nval(3)
+          stream%icount(4) = var%nval(4)
+          if ( present(irec) ) then
+            if ( var%ndims /= 5 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            stream%istart(5) = irec
+            stream%icount(5) = 1
+            ndims = 5
+          end if
+          if ( size(buffer%doublebuff) < var%totsize ) then
+            deallocate(buffer%doublebuff)
+            allocate(buffer%doublebuff(var%totsize))
+          end if
+          ncstat = nf90_get_var(stream%id,var%id,buffer%doublebuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+          if ( var%j1 > 0 .and. var%j2 > 0 .and. &
+               var%i1 > 0 .and. var%i2 > 0 .and. &
+               var%k1 > 0 .and. var%k2 > 0 .and. &
+               var%n1 > 0 .and. var%n2 > 0 ) then
+            if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
+                 (var%i2-var%i1+1) /= var%nval(2) .or. &
+                 (var%k2-var%k1+1) /= var%nval(3) .or. &
+                 (var%n2-var%n1+1) /= var%nval(4) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes different from file'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            var%rval(var%j1:var%j2,var%i1:var%i2, &
+                     var%k1:var%k2,var%n1:var%n2) = &
+                 reshape(buffer%doublebuff(1:var%totsize),stream%icount(1:4))
+          else
+            var%rval(1:var%nval(1),1:var%nval(2), &
+                     1:var%nval(3),1:var%nval(4)) = &
+                 reshape(buffer%doublebuff(1:var%totsize),stream%icount(1:4))
+          end if
         class is (ncvariable0d_real)
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
         class is (ncvariable1d_real)
@@ -2359,6 +3368,351 @@ module mod_ncstream
               reshape(buffer%realbuff(1:var%totsize),stream%icount(1:3))
           end if
         class is (ncvariable4d_real)
+          ndims = 4
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(7) < 0 .or. window(8) < 0 .or. &
+                 window(7) > window(8) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) .or. &
+                 window(7) > stream%len_dims(var%idims(4)) .or. &
+                 window(8) > stream%len_dims(var%idims(4)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+            stream%istart(4) = window(7)
+            var%nval(4) = window(8) - window(7) + 1
+            if ( var%n1 < 0 .and. var%n2 < 0 ) then
+              var%n1 = window(7)
+              var%n2 = window(8)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
+              var%nval(1) = stream%global_nj
+              var%nval(2) = stream%global_ni
+            else
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
+            end if
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
+            stream%istart(4) = 1
+            var%nval(4) = stream%len_dims(var%idims(4))
+          end if
+          var%totsize = product(var%nval)
+          stream%icount(1) = var%nval(1)
+          stream%icount(2) = var%nval(2)
+          stream%icount(3) = var%nval(3)
+          stream%icount(4) = var%nval(4)
+          if ( present(irec) ) then
+            if ( var%ndims /= 5 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            stream%istart(5) = irec
+            stream%icount(5) = 1
+            ndims = 5
+          end if
+          if ( size(buffer%realbuff) < var%totsize ) then
+            deallocate(buffer%realbuff)
+            allocate(buffer%realbuff(var%totsize))
+          end if
+          ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+          if ( var%j1 > 0 .and. var%j2 > 0 .and. &
+               var%i1 > 0 .and. var%i2 > 0 .and. &
+               var%k1 > 0 .and. var%k2 > 0 .and. &
+               var%n1 > 0 .and. var%n2 > 0 ) then
+            if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
+                 (var%i2-var%i1+1) /= var%nval(2) .or. &
+                 (var%k2-var%k1+1) /= var%nval(3) .or. &
+                 (var%n2-var%n1+1) /= var%nval(4) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes different from file'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            var%rval(var%j1:var%j2,var%i1:var%i2, &
+                     var%k1:var%k2,var%n1:var%n2) = &
+              reshape(buffer%realbuff(1:var%totsize),stream%icount(1:4))
+          else
+            var%rval(1:var%nval(1),1:var%nval(2), &
+                     1:var%nval(3),1:var%nval(4)) = &
+              reshape(buffer%realbuff(1:var%totsize),stream%icount(1:4))
+          end if
+        class is (ncvariable0d_mixed)
+          ncstat = nf90_get_var(stream%id,var%id,var%rval)
+        class is (ncvariable1d_mixed)
+          ncstat = nf90_get_var(stream%id,var%id,var%rval)
+        class is (ncvariable2d_mixed)
+          ndims = 2
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
+              var%nval(1) = stream%global_nj
+              var%nval(2) = stream%global_ni
+            else
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
+            end if
+          end if
+          var%totsize = product(var%nval)
+          stream%icount(1) = var%nval(1)
+          stream%icount(2) = var%nval(2)
+          if ( present(irec) ) then
+            if ( var%ndims /= 3 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            stream%istart(3) = irec
+            stream%icount(3) = 1
+            ndims = 3
+          end if
+          if ( size(buffer%realbuff) < var%totsize ) then
+            deallocate(buffer%realbuff)
+            allocate(buffer%realbuff(var%totsize))
+          end if
+          ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+          if ( var%j1 > 0 .and. var%j2 > 0 .and. &
+               var%i1 > 0 .and. var%i2 > 0 ) then
+            if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
+                 (var%i2-var%i1+1) /= var%nval(2) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes different from file'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            var%rval(var%j1:var%j2,var%i1:var%i2) = &
+              reshape(buffer%realbuff(1:var%totsize),stream%icount(1:2))
+          else
+            var%rval(1:var%nval(1),1:var%nval(2)) = &
+              reshape(buffer%realbuff(1:var%totsize),stream%icount(1:2))
+          end if
+        class is (ncvariable3d_mixed)
+          ndims = 3
+          if ( present(window) ) then
+            if ( window(1) < 0 .or. window(2) < 0 .or. &
+                 window(1) > window(2) .or. &
+                 window(3) < 0 .or. window(4) < 0 .or. &
+                 window(3) > window(4) .or. &
+                 window(5) < 0 .or. window(6) < 0 .or. &
+                 window(5) > window(6) .or. &
+                 window(1) > stream%len_dims(var%idims(1)) .or. &
+                 window(2) > stream%len_dims(var%idims(1)) .or. &
+                 window(3) > stream%len_dims(var%idims(2)) .or. &
+                 window(4) > stream%len_dims(var%idims(2)) .or. &
+                 window(5) > stream%len_dims(var%idims(3)) .or. &
+                 window(6) > stream%len_dims(var%idims(3)) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes out of range'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            if ( stream%l_parallel .and. var%lgridded ) then
+              if ( stream%jparbound(1) > window(2) .or. &
+                   stream%jparbound(2) < window(1) .or. &
+                   stream%iparbound(1) > window(4) .or. &
+                   stream%iparbound(2) < window(3) ) then
+                ! We are not requested to read (out of our window)
+                return
+              end if
+              stream%istart(1) = max(stream%jparbound(1),window(1))
+              stream%istart(2) = max(stream%iparbound(1),window(3))
+              if ( stream%jparbound(2) > window(2) ) then
+                var%nval(1) = window(2)-stream%istart(1)+1
+              else
+                var%nval(1) = stream%jparbound(2)-stream%istart(1)+1
+              end if
+              if ( stream%iparbound(2) > window(4) ) then
+                var%nval(2) = window(4)-stream%istart(2)+1
+              else
+                var%nval(2) = stream%iparbound(2)-stream%istart(2)+1
+              end if
+            else
+              stream%istart(1) = window(1)
+              stream%istart(2) = window(3)
+              var%nval(1) = window(2) - window(1) + 1
+              var%nval(2) = window(4) - window(3) + 1
+              if ( var%j1 < 0 .and. var%j2 < 0 ) then
+                var%j1 = window(1)
+                var%j2 = window(2)
+              end if
+              if ( var%i1 < 0 .and. var%i2 < 0 ) then
+                var%i1 = window(3)
+                var%i2 = window(4)
+              end if
+            end if
+            stream%istart(3) = window(5)
+            var%nval(3) = window(6) - window(5) + 1
+            if ( var%k1 < 0 .and. var%k2 < 0 ) then
+              var%k1 = window(5)
+              var%k2 = window(6)
+            end if
+          else
+            if ( stream%l_parallel .and. var%lgridded ) then
+              stream%istart(1) = stream%jparbound(1)
+              stream%istart(2) = stream%iparbound(1)
+              var%nval(1) = stream%global_nj
+              var%nval(2) = stream%global_ni
+            else
+              stream%istart(1) = 1
+              stream%istart(2) = 1
+              var%nval(1) = stream%len_dims(var%idims(1))
+              var%nval(2) = stream%len_dims(var%idims(2))
+            end if
+            stream%istart(3) = 1
+            var%nval(3) = stream%len_dims(var%idims(3))
+          end if
+          var%totsize = product(var%nval)
+          stream%icount(1) = var%nval(1)
+          stream%icount(2) = var%nval(2)
+          stream%icount(3) = var%nval(3)
+          if ( present(irec) ) then
+            if ( var%ndims /= 4 ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested variable is not time dependent'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            stream%istart(4) = irec
+            stream%icount(4) = 1
+            ndims = 4
+          end if
+          if ( size(buffer%realbuff) < var%totsize ) then
+            deallocate(buffer%realbuff)
+            allocate(buffer%realbuff(var%totsize))
+          end if
+          ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+          if ( var%j1 > 0 .and. var%j2 > 0 .and. &
+               var%i1 > 0 .and. var%i2 > 0 .and. &
+               var%k1 > 0 .and. var%k2 > 0 ) then
+            if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
+                 (var%i2-var%i1+1) /= var%nval(2) .or. &
+                 (var%k2-var%k1+1) /= var%nval(3) ) then
+              write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+              write(stderr,*) 'Requested indexes different from file'
+              call die('nc_stream','Cannot read variable '// &
+                trim(var%vname)//' in file '//trim(stream%filename), 1)
+            end if
+            var%rval(var%j1:var%j2,var%i1:var%i2,var%k1:var%k2) = &
+              reshape(buffer%realbuff(1:var%totsize),stream%icount(1:3))
+          else
+            var%rval(1:var%nval(1),1:var%nval(2),1:var%nval(3)) = &
+              reshape(buffer%realbuff(1:var%totsize),stream%icount(1:3))
+          end if
+        class is (ncvariable4d_mixed)
           ndims = 4
           if ( present(window) ) then
             if ( window(1) < 0 .or. window(2) < 0 .or. &

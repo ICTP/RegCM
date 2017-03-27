@@ -39,8 +39,8 @@ module mod_sst_grid
 
   type(nc_output_stream) , save :: ncout
   integer(ik4) , parameter :: nvar2d = 4
-  type(ncvariable2d_real) , save , dimension(nvar2d) :: v2dvar_base
-  type(ncvariable2d_real) , save :: v2dvar_sst
+  type(ncvariable2d_mixed) , save , dimension(nvar2d) :: v2dvar_base
+  type(ncvariable2d_mixed) , save :: v2dvar_sst
 
   public :: init_grid , read_domain_info , setup_outvars , open_sstfile , &
             close_sstfile , writerec

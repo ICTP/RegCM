@@ -739,7 +739,7 @@ program mksurfdata
   istatus = nf90_def_var(ncid, 'ZWT0',regcm_vartype,idims(7),izwt0)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ZWT0')
 ! samy : for soil ph for CH4 emission
-  istatus = nf90_def_var(ncid, 'PH', nf90_double, idims(7),isoilphvar)
+  istatus = nf90_def_var(ncid, 'PH', regcm_vartype, idims(7),isoilphvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var PH')
   istatus = nf90_put_att(ncid, isoilphvar, 'long_name', &
           'Global soil pH')

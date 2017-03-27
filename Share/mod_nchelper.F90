@@ -273,7 +273,7 @@ module mod_nchelper
     integer(ik4) , intent(in) , dimension(:) :: idims
     integer(ik4) , intent(out) , dimension(2) :: izvar
 
-    incstat = nf90_def_var(ncid, 'sigma', nf90_float, idims(3), izvar(1))
+    incstat = nf90_def_var(ncid, 'sigma', nf90_double, idims(3), izvar(1))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable sigma')
     incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
@@ -304,7 +304,7 @@ module mod_nchelper
       call checkncerr(incstat,__FILE__,__LINE__, &
                              'Error adding sigma formula_terms')
     end if
-    incstat = nf90_def_var(ncid, 'ptop', nf90_float, varid=izvar(2))
+    incstat = nf90_def_var(ncid, 'ptop', nf90_double, varid=izvar(2))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable ptop')
     incstat = nf90_put_att(ncid, izvar(2), 'standard_name', &
@@ -327,7 +327,7 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
-    incstat = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2), ivar(ipnt))
+    incstat = nf90_def_var(ncid, 'xlat', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable xlat')
 #ifdef NETCDF4_HDF5
@@ -346,7 +346,7 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding xlat units')
     ipnt = ipnt+1
-    incstat = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2), ivar(ipnt))
+    incstat = nf90_def_var(ncid, 'xlon', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable xlon')
 #ifdef NETCDF4_HDF5
@@ -374,7 +374,7 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
-    incstat = nf90_def_var(ncid, 'dlat', nf90_float, idims(1:2), ivar(ipnt))
+    incstat = nf90_def_var(ncid, 'dlat', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable dlat')
 #ifdef NETCDF4_HDF5
@@ -393,7 +393,7 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding dlat units')
     ipnt = ipnt+1
-    incstat = nf90_def_var(ncid, 'dlon', nf90_float, idims(1:2), ivar(ipnt))
+    incstat = nf90_def_var(ncid, 'dlon', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable dlon')
 #ifdef NETCDF4_HDF5
@@ -532,7 +532,7 @@ module mod_nchelper
     integer(ik4) , intent(inout) :: ipnt
     integer(ik4) , dimension(:) , intent(out) :: ivar
 
-    incstat = nf90_def_var(ncid, 'xmap', nf90_float, idims(1:2), ivar(ipnt))
+    incstat = nf90_def_var(ncid, 'xmap', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable xmap')
 #ifdef NETCDF4_HDF5
@@ -554,7 +554,7 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding xmap coordinates')
     ipnt = ipnt + 1
-    incstat = nf90_def_var(ncid, 'dmap', nf90_float, idims(1:2), ivar(ipnt))
+    incstat = nf90_def_var(ncid, 'dmap', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable dmap')
 #ifdef NETCDF4_HDF5
@@ -576,7 +576,7 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding dmap coordinates')
     ipnt = ipnt + 1
-    incstat = nf90_def_var(ncid, 'coriol', nf90_float, idims(1:2), ivar(ipnt))
+    incstat = nf90_def_var(ncid, 'coriol', nf90_double, idims(1:2), ivar(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable coriol')
 #ifdef NETCDF4_HDF5

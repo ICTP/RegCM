@@ -93,43 +93,43 @@ module mod_ncout
   integer(ik4) , parameter :: nslaboc3dvars = 1
   integer(ik4) , parameter :: nslabocvars = nslaboc2dvars + nslaboc3dvars
 
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_atm => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_atm => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_srf => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_srf => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_sts => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_sts => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_sub => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_sub => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_lak => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_lak => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_rad => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_rad => null()
-  type(ncvariable4d_real) , save , pointer , &
+  type(ncvariable4d_mixed) , save , pointer , &
     dimension(:) :: v4dvar_rad => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_opt => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_opt => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_che => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_che => null()
-  type(ncvariable2d_real) , save , pointer , &
+  type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_slaboc => null()
-  type(ncvariable3d_real) , save , pointer , &
+  type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_slaboc => null()
 
   integer(ik4) :: maxstreams
@@ -2387,7 +2387,7 @@ module mod_ncout
           do ivar = 1 , outstream(i)%nvar
             vp => outstream(i)%ncvars%vlist(ivar)%vp
             select type(vp)
-              type is (ncvariable2d_real)
+              type is (ncvariable2d_mixed)
                 if ( vp%lrecords ) cycle var_loop
                 call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
               class default
@@ -3036,7 +3036,7 @@ module mod_ncout
           ! Collect on temp storage
           if ( .not. parallel_out ) then
             select type(vp)
-              type is (ncvariable2d_real)
+              type is (ncvariable2d_mixed)
                 if ( vp%lrecords ) cycle var_loop_par
                 call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
                 vp%j1 = outstream(i)%jg1
@@ -3050,7 +3050,7 @@ module mod_ncout
             end select
           else
             select type(vp)
-              type is (ncvariable2d_real)
+              type is (ncvariable2d_mixed)
                 if ( vp%lrecords ) cycle var_loop_par
               class default
                 cycle var_loop_par
@@ -3062,7 +3062,7 @@ module mod_ncout
           ! Reset pointer and shape
           if ( .not. parallel_out ) then
             select type(vp)
-              type is (ncvariable2d_real)
+              type is (ncvariable2d_mixed)
                 vp%rval => tmp2d
                 vp%j1 = outstream(i)%jl1
                 vp%j2 = outstream(i)%jl2
@@ -3081,7 +3081,7 @@ module mod_ncout
   subroutine setup_common_vars(vsize,var,xlon,xlat,topo,mask,ps,ps0)
     implicit none
     type(varspan) , intent(in) :: vsize
-    type(ncvariable2d_real) , dimension(:) , intent(inout) :: var
+    type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
     integer(ik4), intent(in) :: xlon , xlat , topo , mask , ps , ps0
     if ( associated(xlon_out) ) then
       call setup_var(var,xlon,vsize,'xlon','degrees_east', &
@@ -3132,7 +3132,7 @@ module mod_ncout
   subroutine setup_var_2d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                          l_rec,cell_method,l_fill,rmissval,lgetspace)
     implicit none
-    type(ncvariable2d_real) , dimension(:) , intent(inout) :: var
+    type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
     integer , intent(in) :: ivar
     type(varspan) , intent(in) :: vsize
     character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
@@ -3178,7 +3178,7 @@ module mod_ncout
   subroutine setup_var_3d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                           l_rec,cell_method,l_fill,rmissval,lgetspace)
     implicit none
-    type(ncvariable3d_real) , dimension(:) , intent(inout) :: var
+    type(ncvariable3d_mixed) , dimension(:) , intent(inout) :: var
     integer(ik4) , intent(in) :: ivar
     type(varspan) , intent(in) :: vsize
     character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
@@ -3219,7 +3219,7 @@ module mod_ncout
   subroutine setup_var_4d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
                           l_rec,cell_method,l_fill,rmissval,lgetspace)
     implicit none
-    type(ncvariable4d_real) , dimension(:) , intent(inout) :: var
+    type(ncvariable4d_mixed) , dimension(:) , intent(inout) :: var
     integer(ik4) , intent(in) :: ivar
     type(varspan) , intent(in) :: vsize
     character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
@@ -3311,13 +3311,13 @@ module mod_ncout
       do ivar = 1 , outstream(istream)%nvar
         vp => outstream(istream)%ncvars%vlist(ivar)%vp
         select type(vp)
-          type is (ncvariable2d_real)
+          type is (ncvariable2d_mixed)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
-          type is (ncvariable3d_real)
+          type is (ncvariable3d_mixed)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
-          type is (ncvariable4d_real)
+          type is (ncvariable4d_mixed)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
                               vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
@@ -3359,7 +3359,7 @@ module mod_ncout
 
       if ( .not. parallel_out ) then
         select type(vp)
-          type is (ncvariable2d_real)
+          type is (ncvariable2d_mixed)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt2d,vp%j1,vp%j2,vp%i1,vp%i2)
             vp%j1 = outstream(istream)%jg1
@@ -3368,7 +3368,7 @@ module mod_ncout
             vp%i2 = outstream(istream)%ig2
             tmp2d => vp%rval
             vp%rval => pnt2d
-          type is (ncvariable3d_real)
+          type is (ncvariable3d_mixed)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2,vp%i1,vp%i2,vp%k1,vp%k2)
             vp%j1 = outstream(istream)%jg1
@@ -3377,7 +3377,7 @@ module mod_ncout
             vp%i2 = outstream(istream)%ig2
             tmp3d => vp%rval
             vp%rval => pnt3d
-          type is (ncvariable4d_real)
+          type is (ncvariable4d_mixed)
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
                               vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
@@ -3392,11 +3392,11 @@ module mod_ncout
         end select
       else
         select type(vp)
-          type is (ncvariable2d_real)
+          type is (ncvariable2d_mixed)
             if ( .not. vp%lrecords ) cycle
-          type is (ncvariable3d_real)
+          type is (ncvariable3d_mixed)
             if ( .not. vp%lrecords ) cycle
-          type is (ncvariable4d_real)
+          type is (ncvariable4d_mixed)
             if ( .not. vp%lrecords ) cycle
           class default
             cycle
@@ -3409,7 +3409,7 @@ module mod_ncout
               'Writing var ',trim(vp%vname),' at time ',tochar(idate)
     end if
     select type(vp)
-      type is (ncvariable2d_real)
+      type is (ncvariable2d_mixed)
         where ( abs(vp%rval) < tiny(0.0) )
           vp%rval = d_zero
         end where
@@ -3417,7 +3417,7 @@ module mod_ncout
           write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
           write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
         end if
-      type is (ncvariable3d_real)
+      type is (ncvariable3d_mixed)
         where ( abs(vp%rval) < tiny(0.0) )
           vp%rval = d_zero
         end where
@@ -3425,7 +3425,7 @@ module mod_ncout
           write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
           write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
         end if
-      type is (ncvariable4d_real)
+      type is (ncvariable4d_mixed)
         where ( abs(vp%rval) < tiny(0.0) )
           vp%rval = d_zero
         end where
@@ -3445,19 +3445,19 @@ module mod_ncout
 
       if ( .not. parallel_out ) then
         select type(vp)
-          type is (ncvariable2d_real)
+          type is (ncvariable2d_mixed)
             vp%rval => tmp2d
             vp%j1 = outstream(istream)%jl1
             vp%j2 = outstream(istream)%jl2
             vp%i1 = outstream(istream)%il1
             vp%i2 = outstream(istream)%il2
-          type is (ncvariable3d_real)
+          type is (ncvariable3d_mixed)
             vp%rval => tmp3d
             vp%j1 = outstream(istream)%jl1
             vp%j2 = outstream(istream)%jl2
             vp%i1 = outstream(istream)%il1
             vp%i2 = outstream(istream)%il2
-          type is (ncvariable4d_real)
+          type is (ncvariable4d_mixed)
             vp%rval => tmp4d
             vp%j1 = outstream(istream)%jl1
             vp%j2 = outstream(istream)%jl2
@@ -3476,7 +3476,7 @@ module mod_ncout
     implicit none
     integer(ik4) , intent(in) :: istream
     integer(ik4) , intent(in) , optional :: ifile
-    type(ncvariable2d_real) , intent(inout) :: vp
+    type(ncvariable2d_mixed) , intent(inout) :: vp
     real(rkx) , pointer , dimension(:,:) :: tmp2d
     real(rkx) , pointer , dimension(:,:) :: pnt2d => null( )
     integer(ik4) :: jfile
@@ -3537,7 +3537,7 @@ module mod_ncout
     implicit none
     integer(ik4) , intent(in) :: istream
     integer(ik4) , intent(in) , optional :: ifile
-    type(ncvariable3d_real) , intent(inout) :: vp
+    type(ncvariable3d_mixed) , intent(inout) :: vp
     real(rkx) , pointer , dimension(:,:,:) :: tmp3d
     real(rkx) , pointer , dimension(:,:,:) :: pnt3d => null( )
     integer(ik4) :: jfile
@@ -3597,7 +3597,7 @@ module mod_ncout
     implicit none
     integer(ik4) , intent(in) :: istream
     integer(ik4) , intent(in) , optional :: ifile
-    type(ncvariable4d_real) , intent(inout) :: vp
+    type(ncvariable4d_mixed) , intent(inout) :: vp
     real(rkx) , pointer , dimension(:,:,:,:) :: tmp4d
     real(rkx) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
     integer(ik4) :: jfile
