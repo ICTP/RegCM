@@ -679,8 +679,6 @@ module mod_micro_nogtom
       ngs%statsevapc(:,:,:) = d_zero
       ngs%statscond1w(:,:,:) = d_zero
       ngs%statscond1c(:,:,:) = d_zero
-      ngs%statscond2w(:,:,:) = d_zero
-      ngs%statscond2c(:,:,:) = d_zero
       ngs%statsdepos(:,:,:) = d_zero
       ngs%statsmelt(:,:,:) = d_zero
       ngs%statsfrz(:,:,:) = d_zero
