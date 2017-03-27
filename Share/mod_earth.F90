@@ -34,6 +34,7 @@ module mod_earth
     module procedure ll2xyz_values
     module procedure ll2xyz_array
     module procedure ll2xyz_arrays
+    module procedure ll2xyz_grid
   end interface
 
   contains
@@ -115,6 +116,30 @@ module mod_earth
       end do
     end do
   end subroutine ll2xyz_arrays
+
+  subroutine ll2xyz_grid(lat,lon,x)
+    implicit none
+    real(rkx) , intent(in) , dimension(:,:) :: lat
+    real(rkx) , intent(in) , dimension(:,:) :: lon
+    real(rkx) , intent(out) , dimension(:,:) :: x
+    real(rkx) :: rlat , rlon
+    integer(ik4) :: i , j , n
+    if ( size(x,1) /= 3 .or.  size(x,2) /= product(shape(lat)) .or. &
+         product(shape(lat)) /= product(shape(lon))  ) then
+      return
+    end if
+    n = 1
+    do j = 1 , size(lat,2)
+      do i = 1 , size(lat,1)
+        rlat = halfpi - lat(i,j)*degrad
+        rlon = lon(i,j)*degrad
+        x(1,n) = sin(rlat) * sin(rlon)
+        x(2,n) = cos(rlat)
+        x(3,n) = sin(rlat) * cos(rlon)
+        n = n + 1
+      end do
+    end do
+  end subroutine ll2xyz_grid
 
   real(rkx) function longitude_circle(lat) result(er)
     implicit none

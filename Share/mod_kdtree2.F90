@@ -670,7 +670,7 @@ module mod_kdtree2
     ! Find the 'nn' vectors in the tree nearest to 'qv' in euclidean norm
     ! returning their indexes and distances in 'indexes' and 'distances'
     ! arrays already allocated passed to this subroutine.
-    type (kdtree2) , pointer      :: tp
+    type (kdtree2) , pointer :: tp
     real(kdkind) , target , dimension(:) , intent (in) :: qv
     integer , intent(in) :: nn
     type(kdtree2_result) , dimension(:) , target :: results
