@@ -236,12 +236,6 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     integer(ik4) :: begg , endg , i
-    !real(rk8) :: fsnts
-    !real(rk8) , parameter :: ax = -48.23_rk8
-    !real(rk8) , parameter :: bx = 0.75_rk8
-    !real(rk8) , parameter :: cx = 1.16_rk8
-    !real(rk8) , parameter :: dx = 1.02_rk8
-
     real(rkx) :: satq , satp
 
     call get_proc_bounds(begg,endg)
@@ -258,7 +252,7 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
     call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
     temps = (lm%cprate+lm%ncprate) * rtsrf
-    call glb_c2l_gs(lndcomm,temps,clm_a2l%forc_rain)
+    call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
 
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,1) = clm_a2l%notused
@@ -285,19 +279,15 @@ module mod_clm_regcm
       clm_a2l%forc_rh(i) = max(real(rhmin,rk8), clm_a2l%forc_rh(i))
       clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0_rk8
       if ( clm_a2l%forc_t(i)-tfrz < tcrit ) then
-        clm_a2l%forc_snow(i) = clm_a2l%forc_rain(i)
+        clm_a2l%forc_snow(i) = clm_a2l%rainf(i)
         clm_a2l%forc_rain(i) = d_zero
-        ! CLM4.5 does not allow for snow and rain together...
-        !fsnts = ax * (tanh(bx*(clm_a2l%forc_t(i)-tzero-cx))-dx)
-        !clm_a2l%forc_snow(i) = clm_a2l%forc_rain(i)*fsnts
-        !clm_a2l%forc_rain(i) = clm_a2l%forc_rain(i)-clm_a2l%forc_snow(i)
       else
         clm_a2l%forc_snow(i) = d_zero
+        clm_a2l%forc_rain(i) = clm_a2l%rainf(i)
       end if
     end do
     ! Specific humidity
     clm_a2l%forc_q = clm_a2l%forc_q/(1.0_rk8+clm_a2l%forc_q)
-    clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
 
     ! interface chemistry / surface
 
