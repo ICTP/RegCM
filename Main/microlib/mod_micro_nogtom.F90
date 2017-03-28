@@ -357,8 +357,7 @@ module mod_micro_nogtom
     real(rkx) :: zrh
     real(rkx) :: beta , beta1
     ! local variables for condensation
-    real(rkx) :: cond , dtdp , cdmax , rhc , zsig , &
-                 acond , zdl , xlcondlim
+    real(rkx) :: cond , dtdp , cdmax
     ! local variables for melting
     real(rkx) :: tdiff
     real(rkx) :: cons1
@@ -374,7 +373,6 @@ module mod_micro_nogtom
     real(rkx) :: ldifdt
     real(rkx) :: qold , told , tcond , dqs
     real(rkx) :: chng , chngmax
-    real(rkx) :: qexc
     real(rkx) :: icenuclei
     real(rkx) :: qpretot
     real(rkx) :: qicetot
