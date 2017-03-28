@@ -497,7 +497,7 @@ module mod_kdinterp
           do j = js , je
             cell = f(j,i)
             aplus = f(j+1,i)
-            if ( asv > missc .and. aplus > missl .and. cell > missc ) then
+            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
               f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
             end if
             asv = cell
@@ -509,7 +509,7 @@ module mod_kdinterp
           do i = is , ie
             cell = f(j,i)
             aplus = f(j,i+1)
-            if ( asv > missc .and. aplus > missl .and. cell > missc ) then
+            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
               f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
             end if
             asv = cell
