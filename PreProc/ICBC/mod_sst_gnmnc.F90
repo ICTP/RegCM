@@ -219,7 +219,7 @@ module mod_sst_gnmnc
     implicit none
     character(len=*) , intent(in) :: fname
     integer(ik4) :: istatus
-    integer(ik4) :: i , j , latid , lonid
+    integer(ik4) :: latid , lonid
     logical , save :: firstpass = .true.
 
     istatus = nf90_open(fname,nf90_nowrite,inet1)

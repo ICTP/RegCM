@@ -26,7 +26,7 @@ module mod_ecens
   use mod_memutil
   use mod_grid
   use mod_write
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_hgt
   use mod_humid
@@ -79,11 +79,158 @@ module mod_ecens
   type(rcm_time_and_date) , save :: fmon
   integer(ik4) :: ifmon
 
-  public :: getecens , headerecens
+  type(h_interpolator) :: cross_hint , dot_hint
+
+  public :: get_ecens , init_ecens , conclude_ecens
 
   contains
 
-  subroutine getecens(idate)
+  subroutine init_ecens
+    implicit none
+    integer(ik4) :: k , istat , inet , jdim , ivar
+
+    read (dattyp(4:4),'(i1)') mdlver
+    read (dattyp(5:5),'(i1)') ensnum
+    fmon = monfirst(globidate1)
+    ifmon = toint10(fmon)/100
+    write (fname,'(a,i1,a,i0.8,a,a,a,a,a,i1,a,i0.8,a,i0.2,a)') &
+    'ENS', mdlver, pthsep, ifmon , pthsep, trim(ensbase), '.', 'hgt', &
+                  '.', ensnum, '.', ifmon, '.', 0, '.nc'
+    pathaddname = trim(inpglob)//pthsep//trim(fname)
+
+    istat = nf90_open(pathaddname,nf90_nowrite,inet)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error open '//trim(pathaddname))
+    istat = nf90_inq_dimid(inet,'lon',jdim)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find dim lon')
+    istat = nf90_inquire_dimension(inet,jdim,len=nlon)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read dim lon')
+    istat = nf90_inq_dimid(inet,'lat',jdim)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find dim lat')
+    istat = nf90_inquire_dimension(inet,jdim,len=nlat)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read dim lat')
+    istat = nf90_inq_dimid(inet,'mlev',jdim)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find dim mlev')
+    istat = nf90_inquire_dimension(inet,jdim,len=mlev)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read dim mlev')
+
+    call getmem1d(vlat,1,nlat,'mod_ecens:vlat')
+    call getmem1d(vlon,1,nlon,'mod_ecens:vlon')
+    call getmem1d(ak,1,mlev,'mod_ecens:ak')
+    call getmem1d(bk,1,mlev,'mod_ecens:bk')
+    call getmem3d(work,1,nlon,1,nlat,1,mlev,'mod_ecens:work')
+
+    istat = nf90_inq_varid(inet,'lon',ivar)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var lon')
+    istat = nf90_get_var(inet,ivar,vlon)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var lon')
+    istat = nf90_inq_varid(inet,'lat',ivar)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var lat')
+    istat = nf90_get_var(inet,ivar,vlat)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var lat')
+    istat = nf90_inq_varid(inet,'hyam',ivar)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var hyam')
+    istat = nf90_get_var(inet,ivar,ak)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var hyam')
+    istat = nf90_inq_varid(inet,'hybm',ivar)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var hyam')
+    istat = nf90_get_var(inet,ivar,bk)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var hybm')
+
+    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,vlat,vlon,dlat,dlon,ds)
+
+    pplev(1) = 30.
+    pplev(2) = 50.
+    pplev(3) = 70.
+    pplev(4) = 100.
+    pplev(5) = 150.
+    pplev(6) = 200.
+    pplev(7) = 250.
+    pplev(8) = 300.
+    pplev(9) = 350.
+    pplev(10) = 420.
+    pplev(11) = 500.
+    pplev(12) = 600.
+    pplev(13) = 700.
+    pplev(14) = 780.
+    pplev(15) = 850.
+    pplev(16) = 920.
+    pplev(17) = 960.
+    pplev(18) = 1000.
+
+    do k = 1 , nplev
+      sigmar(k) = pplev(k)/pplev(nplev)
+    end do
+    pss = pplev(nplev) / d_10 ! centibars
+
+    call getmem3d(bb,1,nlon,1,nlat,1,mlev*4+2,'mod_ecens:bb')
+    call getmem3d(pp3d,1,nlon,1,nlat,1,mlev,'mod_ecens:pp3d')
+    call getmem3d(z1,1,nlon,1,nlat,1,mlev,'mod_ecens:z1')
+    call getmem3d(b2,1,nlon,1,nlat,1,nplev*3,'mod_ecens:b2')
+    call getmem3d(d2,1,nlon,1,nlat,1,nplev*2,'mod_ecens:d2')
+    call getmem3d(b3,1,jx,1,iy,1,nplev*3,'mod_ecens:b3')
+    call getmem3d(d3,1,jx,1,iy,1,nplev*2,'mod_ecens:d3')
+
+    ! Set up pointers
+
+    t2 => bb(:,:,1:mlev)
+    q2 => bb(:,:,mlev+1:2*mlev)
+    u2 => bb(:,:,2*mlev+1:3*mlev)
+    v2 => bb(:,:,3*mlev+1:4*mlev)
+    zs2 => bb(:,:,4*mlev+1)
+    ps2 => bb(:,:,4*mlev+2)
+
+    tp => b2(:,:,1:nplev)
+    qp => b2(:,:,nplev+1:2*nplev)
+    hp => b2(:,:,2*nplev+1:3*nplev)
+    up => d2(:,:,1:nplev)
+    vp => d2(:,:,nplev+1:2*nplev)
+    t3 => b3(:,:,1:nplev)
+    q3 => b3(:,:,nplev+1:2*nplev)
+    h3 => b3(:,:,2*nplev+1:3*nplev)
+    u3 => d3(:,:,1:nplev)
+    v3 => d3(:,:,nplev+1:2*nplev)
+
+    istat = nf90_inq_varid(inet,'var129',ivar)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error find var var129')
+
+    istart(:) = 1
+    icount(1) = nlon
+    icount(2) = nlat
+    icount(3) = 1
+    icount(4) = 1
+    istat = nf90_get_var(inet,ivar,work,istart,icount)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error read var var129')
+    zs2(:,:) = work(:,:,1)
+    where ( zs2 > 0.0 )
+      zs2 = zs2 / 9.80616
+    elsewhere
+      zs2  = 0.0
+    end where
+
+    istat = nf90_close(inet)
+    call checkncerr(istat,__FILE__,__LINE__, &
+                    'Error close file')
+  end subroutine init_ecens
+
+  subroutine get_ecens(idate)
     implicit none
     type(rcm_time_and_date) :: idate
     integer(ik4) :: i , j , k
@@ -120,8 +267,8 @@ module mod_ecens
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx(b3,b2,xlon,xlat,vlon,vlat,nlon,nlat,jx,iy,nplev*3)
-    call bilinx(d3,d2,dlon,dlat,vlon,vlat,nlon,nlat,jx,iy,nplev*2)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -156,10 +303,8 @@ module mod_ecens
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-  end subroutine getecens
-  !
-  !-------------------------------------------------------------
-  !
+  end subroutine get_ecens
+
   subroutine ecens_6hour(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
@@ -267,147 +412,11 @@ module mod_ecens
     end do
   end subroutine ecens_6hour
 
-  subroutine headerecens
+  subroutine conclude_ecens
     implicit none
-    integer(ik4) :: k , istat , inet , jdim , ivar
-
-    read (dattyp(4:4),'(i1)') mdlver
-    read (dattyp(5:5),'(i1)') ensnum
-    fmon = monfirst(globidate1)
-    ifmon = toint10(fmon)/100
-    write (fname,'(a,i1,a,i0.8,a,a,a,a,a,i1,a,i0.8,a,i0.2,a)') &
-    'ENS', mdlver, pthsep, ifmon , pthsep, trim(ensbase), '.', 'hgt', &
-                  '.', ensnum, '.', ifmon, '.', 0, '.nc'
-    pathaddname = trim(inpglob)//pthsep//trim(fname)
-
-    istat = nf90_open(pathaddname,nf90_nowrite,inet)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error open '//trim(pathaddname))
-    istat = nf90_inq_dimid(inet,'lon',jdim)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find dim lon')
-    istat = nf90_inquire_dimension(inet,jdim,len=nlon)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read dim lon')
-    istat = nf90_inq_dimid(inet,'lat',jdim)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find dim lat')
-    istat = nf90_inquire_dimension(inet,jdim,len=nlat)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read dim lat')
-    istat = nf90_inq_dimid(inet,'mlev',jdim)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find dim mlev')
-    istat = nf90_inquire_dimension(inet,jdim,len=mlev)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read dim mlev')
-
-    call getmem1d(vlat,1,nlat,'mod_ecens:vlat')
-    call getmem1d(vlon,1,nlon,'mod_ecens:vlon')
-    call getmem1d(ak,1,mlev,'mod_ecens:ak')
-    call getmem1d(bk,1,mlev,'mod_ecens:bk')
-    call getmem3d(work,1,nlon,1,nlat,1,mlev,'mod_ecens:work')
-
-    istat = nf90_inq_varid(inet,'lon',ivar)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find var lon')
-    istat = nf90_get_var(inet,ivar,vlon)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read var lon')
-    istat = nf90_inq_varid(inet,'lat',ivar)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find var lat')
-    istat = nf90_get_var(inet,ivar,vlat)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read var lat')
-    istat = nf90_inq_varid(inet,'hyam',ivar)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find var hyam')
-    istat = nf90_get_var(inet,ivar,ak)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read var hyam')
-    istat = nf90_inq_varid(inet,'hybm',ivar)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find var hyam')
-    istat = nf90_get_var(inet,ivar,bk)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read var hybm')
-
-    pplev(1) = 30.
-    pplev(2) = 50.
-    pplev(3) = 70.
-    pplev(4) = 100.
-    pplev(5) = 150.
-    pplev(6) = 200.
-    pplev(7) = 250.
-    pplev(8) = 300.
-    pplev(9) = 350.
-    pplev(10) = 420.
-    pplev(11) = 500.
-    pplev(12) = 600.
-    pplev(13) = 700.
-    pplev(14) = 780.
-    pplev(15) = 850.
-    pplev(16) = 920.
-    pplev(17) = 960.
-    pplev(18) = 1000.
-
-    do k = 1 , nplev
-      sigmar(k) = pplev(k)/pplev(nplev)
-    end do
-    pss = pplev(nplev) / d_10 ! centibars
-
-    call getmem3d(bb,1,nlon,1,nlat,1,mlev*4+2,'mod_ecens:bb')
-    call getmem3d(pp3d,1,nlon,1,nlat,1,mlev,'mod_ecens:pp3d')
-    call getmem3d(z1,1,nlon,1,nlat,1,mlev,'mod_ecens:z1')
-    call getmem3d(b2,1,nlon,1,nlat,1,nplev*3,'mod_ecens:b2')
-    call getmem3d(d2,1,nlon,1,nlat,1,nplev*2,'mod_ecens:d2')
-    call getmem3d(b3,1,jx,1,iy,1,nplev*3,'mod_ecens:b3')
-    call getmem3d(d3,1,jx,1,iy,1,nplev*2,'mod_ecens:d3')
-
-    ! Set up pointers
-
-    t2 => bb(:,:,1:mlev)
-    q2 => bb(:,:,mlev+1:2*mlev)
-    u2 => bb(:,:,2*mlev+1:3*mlev)
-    v2 => bb(:,:,3*mlev+1:4*mlev)
-    zs2 => bb(:,:,4*mlev+1)
-    ps2 => bb(:,:,4*mlev+2)
-
-    tp => b2(:,:,1:nplev)
-    qp => b2(:,:,nplev+1:2*nplev)
-    hp => b2(:,:,2*nplev+1:3*nplev)
-    up => d2(:,:,1:nplev)
-    vp => d2(:,:,nplev+1:2*nplev)
-    t3 => b3(:,:,1:nplev)
-    q3 => b3(:,:,nplev+1:2*nplev)
-    h3 => b3(:,:,2*nplev+1:3*nplev)
-    u3 => d3(:,:,1:nplev)
-    v3 => d3(:,:,nplev+1:2*nplev)
-
-    istat = nf90_inq_varid(inet,'var129',ivar)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error find var var129')
-
-    istart(:) = 1
-    icount(1) = nlon
-    icount(2) = nlat
-    icount(3) = 1
-    icount(4) = 1
-    istat = nf90_get_var(inet,ivar,work,istart,icount)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error read var var129')
-    zs2(:,:) = work(:,:,1)
-    where ( zs2 > 0.0 )
-      zs2 = zs2 / 9.80616
-    elsewhere
-      zs2  = 0.0
-    end where
-
-    istat = nf90_close(inet)
-    call checkncerr(istat,__FILE__,__LINE__, &
-                    'Error close file')
-  end subroutine headerecens
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_ecens
 
 end module mod_ecens
 

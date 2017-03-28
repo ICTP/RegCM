@@ -27,7 +27,7 @@ module mod_erahi
   use mod_stdio
   use mod_grid
   use mod_write
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_hgt
   use mod_humid
@@ -63,151 +63,13 @@ module mod_erahi
   real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
-  public :: geterahi , headerehi
+  public :: get_ehi , init_ehi , conclude_ehi
+
+  type(h_interpolator) :: cross_hint , dot_hint
 
   contains
 
-  subroutine geterahi(idate)
-    implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=256) :: finame
-    integer(ik4) :: i , j , k , nrec
-    logical :: there
-    real(rkx) :: slonmax , slonmin , xlonmax , xlonmin
-    integer :: hireclen
-
-    if ( idate == globidate1 ) then
-      xlonmin = 400.0_rkx
-      xlonmax = -400.0_rkx
-      do j = 1 , iy
-        do i = 1 , jx
-          if ( xlon(i,j) < xlonmin ) xlonmin = xlon(i,j)
-          if ( xlon(i,j) > xlonmax ) xlonmax = xlon(i,j)
-        end do
-      end do
-      write (stdout,*) 'XLONMIN,XLONMAX = ' , xlonmin , xlonmax
-      slonmin = 400.0_rkx
-      slonmax = -400.0_rkx
-      do i = 1 , nlons
-        if ( slon(i) < slonmin ) slonmin = slon(i)
-        if ( slon(i) > slonmax ) slonmax = slon(i)
-      end do
-      write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
-    end if
-    write (finame,99001) trim(inpglob),pthsep,'ERAHI',pthsep,toint10(idate)
-    inquire (file=finame,exist=there)
-    if ( .not. there ) then
-      call die('ERAHI', trim(finame)//' is not available',1)
-    end if
-    inquire(iolength=hireclen) iobuf
-    open (61,file=finame,form='unformatted',recl=hireclen,action='read', &
-          access='direct',status='old')
-    nrec = 0
-    nrec = nrec + 1
-    read (61,rec=nrec) iobuf
-    zs2 = iobuf
-    nrec = nrec + 1
-    read (61,rec=nrec) iobuf
-    lsm = iobuf
-    nrec = nrec + 1
-    read (61,rec=nrec) iobuf
-    ps2 = iobuf
-    do j = 1 , nlats
-      do i = 1 , nlons
-        if ( lsm(i,j) < 0.5 ) zs2(i,j) = 0.000
-      end do
-    end do
-    do k = 1 , nlev1
-      nrec = nrec + 1
-      read (61,rec=nrec) iobuf
-      t2(:,:,k) = iobuf
-    end do
-    do k = 1 , nlev1
-      nrec = nrec + 1
-      read (61,rec=nrec) iobuf
-      q2(:,:,k) = iobuf
-    end do
-    do k = 1 , nlev1
-      nrec = nrec + 1
-      read (61,rec=nrec) iobuf
-      u2(:,:,k) = iobuf
-    end do
-    do k = 1 , nlev1
-      nrec = nrec + 1
-      read (61,rec=nrec) iobuf
-      v2(:,:,k) = iobuf
-    end do
-
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
-    do k = 1 , nlev1
-      do j = 1 , nlats
-        do i = 1 , nlons
-          if ( ps2(i,j) > -9995. ) then
-            pp3d(i,j,k) = ps2(i,j)*0.5*(bk(k)+bk(k+1))   &
-                          + 0.5*(ak(k)+ak(k+1))
-          else
-            pp3d(i,j,k) = -9999.0
-          end if
-        end do
-      end do
-    end do
-    !
-    ! to calculate Heights on sigma surfaces.
-    call htsig(t2,z1,pp3d,ps2,zs2,nlons,nlats,nlev1)
-    !
-    ! to interpolate H,U,V,T,Q and QC
-    ! 1. For Heights
-    call height(hp,z1,t2,ps2,pp3d,zs2,nlons,nlats,nlev1,pplev,nlev2)
-    ! 2. For Zonal and Meridional Winds
-    call intlin(up,u2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
-    call intlin(vp,v2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
-    ! 3. For Temperatures
-    call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
-    ! 4. For Moisture
-    call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0_rkx)
-    call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
-    !
-    ! Horizontal interpolation of both the scalar and vector fields
-    !
-    call bilinx(b3,b2,xlon,xlat,slon,slat,nlons,nlats,jx,iy,nlev2*3)
-    call bilinx(d3,d2,dlon,dlat,slon,slat,nlons,nlats,jx,iy,nlev2*2)
-    !
-    ! Rotate U-V fields after horizontal interpolation
-    !
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev2,plon,plat,iproj)
-    !
-    ! Vertical interpolation
-    !
-    call top2btm(t3,jx,iy,nlev2)
-    call top2btm(q3,jx,iy,nlev2)
-    call top2btm(h3,jx,iy,nlev2)
-    call top2btm(u3,jx,iy,nlev2)
-    call top2btm(v3,jx,iy,nlev2)
-    ! New calculation of P* on RegCM topography.
-    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev2)
-    call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    call crs2dot(pd4,ps4,jx,iy,i_band)
-    !
-    ! Determine surface temps on RegCM topography.
-    ! Interpolation from pressure levels
-    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nlev2)
-
-    call readsst(ts4,idate)
-
-    ! Interpolate U, V, T, and Q.
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
-    if ( idynamic == 2 ) then
-      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev2)
-      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev2)
-    end if
-    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
-    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-99001 format (a,a,a,a,'EHI_',i10)
-  end subroutine geterahi
-
-  subroutine headerehi
+  subroutine init_ehi
     implicit none
     integer(ik4) :: i , k , kr
 
@@ -533,6 +395,9 @@ module mod_erahi
     call getmem3d(b3,1,jx,1,iy,1,nlev2*3,'mod_erahi:b3')
     call getmem3d(d3,1,jx,1,iy,1,nlev2*2,'mod_erahi:b3')
 
+    call h_interpolator_create(cross_hint,slat,slon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,slat,slon,dlat,dlon,ds)
+
     ! Set up pointers
 
     tp => b2(:,:,1:nlev2)
@@ -545,7 +410,153 @@ module mod_erahi
     h3 => b3(:,:,2*nlev2+1:3*nlev2)
     u3 => d3(:,:,1:nlev2)
     v3 => d3(:,:,nlev2+1:2*nlev2)
-  end subroutine headerehi
+  end subroutine init_ehi
+
+  subroutine get_ehi(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=256) :: finame
+    integer(ik4) :: i , j , k , nrec
+    logical :: there
+    real(rkx) :: slonmax , slonmin , xlonmax , xlonmin
+    integer :: hireclen
+
+    if ( idate == globidate1 ) then
+      xlonmin = 400.0_rkx
+      xlonmax = -400.0_rkx
+      do j = 1 , iy
+        do i = 1 , jx
+          if ( xlon(i,j) < xlonmin ) xlonmin = xlon(i,j)
+          if ( xlon(i,j) > xlonmax ) xlonmax = xlon(i,j)
+        end do
+      end do
+      write (stdout,*) 'XLONMIN,XLONMAX = ' , xlonmin , xlonmax
+      slonmin = 400.0_rkx
+      slonmax = -400.0_rkx
+      do i = 1 , nlons
+        if ( slon(i) < slonmin ) slonmin = slon(i)
+        if ( slon(i) > slonmax ) slonmax = slon(i)
+      end do
+      write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
+    end if
+    write (finame,99001) trim(inpglob),pthsep,'ERAHI',pthsep,toint10(idate)
+    inquire (file=finame,exist=there)
+    if ( .not. there ) then
+      call die('ERAHI', trim(finame)//' is not available',1)
+    end if
+    inquire(iolength=hireclen) iobuf
+    open (61,file=finame,form='unformatted',recl=hireclen,action='read', &
+          access='direct',status='old')
+    nrec = 0
+    nrec = nrec + 1
+    read (61,rec=nrec) iobuf
+    zs2 = iobuf
+    nrec = nrec + 1
+    read (61,rec=nrec) iobuf
+    lsm = iobuf
+    nrec = nrec + 1
+    read (61,rec=nrec) iobuf
+    ps2 = iobuf
+    do j = 1 , nlats
+      do i = 1 , nlons
+        if ( lsm(i,j) < 0.5 ) zs2(i,j) = 0.000
+      end do
+    end do
+    do k = 1 , nlev1
+      nrec = nrec + 1
+      read (61,rec=nrec) iobuf
+      t2(:,:,k) = iobuf
+    end do
+    do k = 1 , nlev1
+      nrec = nrec + 1
+      read (61,rec=nrec) iobuf
+      q2(:,:,k) = iobuf
+    end do
+    do k = 1 , nlev1
+      nrec = nrec + 1
+      read (61,rec=nrec) iobuf
+      u2(:,:,k) = iobuf
+    end do
+    do k = 1 , nlev1
+      nrec = nrec + 1
+      read (61,rec=nrec) iobuf
+      v2(:,:,k) = iobuf
+    end do
+
+    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    do k = 1 , nlev1
+      do j = 1 , nlats
+        do i = 1 , nlons
+          if ( ps2(i,j) > -9995. ) then
+            pp3d(i,j,k) = ps2(i,j)*0.5*(bk(k)+bk(k+1))   &
+                          + 0.5*(ak(k)+ak(k+1))
+          else
+            pp3d(i,j,k) = -9999.0
+          end if
+        end do
+      end do
+    end do
+    !
+    ! to calculate Heights on sigma surfaces.
+    call htsig(t2,z1,pp3d,ps2,zs2,nlons,nlats,nlev1)
+    !
+    ! to interpolate H,U,V,T,Q and QC
+    ! 1. For Heights
+    call height(hp,z1,t2,ps2,pp3d,zs2,nlons,nlats,nlev1,pplev,nlev2)
+    ! 2. For Zonal and Meridional Winds
+    call intlin(up,u2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    call intlin(vp,v2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    ! 3. For Temperatures
+    call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    ! 4. For Moisture
+    call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0_rkx)
+    call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    !
+    ! Horizontal interpolation of both the scalar and vector fields
+    !
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
+    !
+    ! Rotate U-V fields after horizontal interpolation
+    !
+    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev2,plon,plat,iproj)
+    !
+    ! Vertical interpolation
+    !
+    call top2btm(t3,jx,iy,nlev2)
+    call top2btm(q3,jx,iy,nlev2)
+    call top2btm(h3,jx,iy,nlev2)
+    call top2btm(u3,jx,iy,nlev2)
+    call top2btm(v3,jx,iy,nlev2)
+    ! New calculation of P* on RegCM topography.
+    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev2)
+    call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+    call crs2dot(pd4,ps4,jx,iy,i_band)
+    !
+    ! Determine surface temps on RegCM topography.
+    ! Interpolation from pressure levels
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nlev2)
+
+    call readsst(ts4,idate)
+
+    ! Interpolate U, V, T, and Q.
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    if ( idynamic == 2 ) then
+      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev2)
+      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev2)
+    end if
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+99001 format (a,a,a,a,'EHI_',i10)
+  end subroutine get_ehi
+
+  subroutine conclude_ehi
+    implicit none
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_ehi
 
 end module mod_erahi
 

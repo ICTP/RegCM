@@ -149,6 +149,7 @@ module mod_kdtree2
   !----------------------------------------------------------------
 
   integer, parameter :: bucket_size = 12
+
   ! The maximum number of points to keep in a terminal node.
 
   type interval
@@ -337,7 +338,7 @@ module mod_kdtree2
     forall (j=1:tp%n)
       tp%ind(j) = j
     end forall
-    tp%root => build_tree_for_range(tp,1,tp%n, dummy)
+    tp%root => build_tree_for_range(tp,1,tp%n,dummy)
   end subroutine build_tree
 
   recursive function build_tree_for_range(tp,l,u,parent) result (res)
@@ -357,30 +358,20 @@ module mod_kdtree2
     logical :: recompute
     real(kdkind) :: average
 
-!!$      If (.False.) Then
-!!$         If ((l .Lt. 1) .Or. (l .Gt. tp%n)) Then
-!!$            Stop 'illegal L value in build_tree_for_range'
-!!$         End If
-!!$         If ((u .Lt. 1) .Or. (u .Gt. tp%n)) Then
-!!$            Stop 'illegal u value in build_tree_for_range'
-!!$         End If
-!!$         If (u .Lt. l) Then
-!!$            Stop 'U is less than L, thats illegal.'
-!!$         End If
-!!$      Endif
-!!$
     ! first compute min and max
     dimen = tp%dimen
-    allocate (res)
-    allocate(res%box(dimen))
 
-    ! First, compute an APPROXIMATE bounding box of all points
-    ! associated with this node.
     if ( u < l ) then
       ! no points in this box
       nullify(res)
       return
     end if
+
+    allocate(res)
+    allocate(res%box(dimen))
+
+    ! First, compute an APPROXIMATE bounding box of all points
+    ! associated with this node.
 
     if ( (u-l) <= bucket_size ) then
       !
@@ -393,7 +384,7 @@ module mod_kdtree2
       res%cut_val = 0.0
       res%l = l
       res%u = u
-      res%left =>null()
+      res%left => null()
       res%right => null()
     else
       !
@@ -421,6 +412,7 @@ module mod_kdtree2
       end do
 
       c = maxloc(res%box(1:dimen)%upper-res%box(1:dimen)%lower,1)
+
       !
       ! c is the identity of which coordinate has the greatest spread.
       !
@@ -450,7 +442,6 @@ module mod_kdtree2
       res%cut_dim = c
       res%l = l
       res%u = u
-!     res%cut_val = tp%the_data(c,tp%ind(m))
 
       res%left => build_tree_for_range(tp,l,m,res)
       res%right => build_tree_for_range(tp,m+1,u,res)
@@ -633,8 +624,8 @@ module mod_kdtree2
     ! ..
     call destroy_node(tp%root)
 
-    deallocate (tp%ind)
-    nullify (tp%ind)
+    deallocate(tp%ind)
+    nullify(tp%ind)
 
     if ( tp%rearrange ) then
       deallocate(tp%rearranged_data)
@@ -653,11 +644,11 @@ module mod_kdtree2
       ! ..
       if ( associated(np%left) ) then
         call destroy_node(np%left)
-        nullify (np%left)
+        nullify(np%left)
       end if
       if ( associated(np%right) ) then
         call destroy_node(np%right)
-        nullify (np%right)
+        nullify(np%right)
       end if
       if ( associated(np%box) ) deallocate(np%box)
       deallocate(np)

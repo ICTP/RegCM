@@ -77,7 +77,7 @@ module mod_sst_gnhnc
     real(rkx) , pointer , dimension(:) :: grev
     type(rcm_time_and_date) :: idate , idatef , idateo
     type(rcm_time_interval) :: tdif
-    integer(ik4) :: i , j , k , nsteps , latid , lonid
+    integer(ik4) :: k , nsteps , latid , lonid
     integer(ik4) :: year , month , day , hour
 
     call split_idate(globidate1, year, month, day, hour)

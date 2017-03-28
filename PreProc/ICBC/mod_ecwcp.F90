@@ -25,6 +25,15 @@ module mod_ecwcp
   use mod_memutil
   use mod_stdio
   use mod_message
+  use mod_kdinterp
+  use mod_grid
+  use mod_write
+  use mod_vertint
+  use mod_hgt
+  use mod_humid
+  use mod_mksst
+  use mod_uvrot
+  use mod_vectutil
 
   private
 
@@ -47,131 +56,13 @@ module mod_ecwcp
   real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
-  public :: getecwcp , headerec
+  type(h_interpolator) :: cross_hint , dot_hint
+
+  public :: get_ecwcp , init_ecwcp , conclude_ecwcp
 
   contains
 
-  subroutine getecwcp(idate)
-    use mod_grid
-    use mod_write
-    use mod_interp , only : bilinx
-    use mod_vertint
-    use mod_hgt
-    use mod_humid
-    use mod_mksst
-    use mod_uvrot
-    use mod_vectutil
-    implicit none
-
-    type(rcm_time_and_date) , intent(in) :: idate
-    character(len=12) , dimension(12,5) :: finm
-    integer(ik4) :: k , nrec
-    integer(ik4) :: year , month , day , hour
-    integer :: ecwlen
-    logical :: there
-
-    data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,  &
-              'ECT421993APR' , 'ECT421993MAY' , 'ECT421993JUN' ,  &
-              'ECT421993JUL' , 'ECT421993AUG' , 'ECT421993SEP' ,  &
-              'ECT421993OCT' , 'ECT421993NOV' , 'ECT421993DEC' ,  &
-              'ECT421994JAN' , 'ECT421994FEB' , 'ECT421994MAR' ,  &
-              'ECT421994APR' , 'ECT421994MAY' , 'ECT421994JUN' ,  &
-              'ECT421994JUL' , 'ECT421994AUG' , 'ECT421994SEP' ,  &
-              'ECT421994OCT' , 'ECT421994NOV' , 'ECT421994DEC' ,  &
-              'ECT421995JAN' , 'ECT421995FEB' , 'ECT421995MAR' ,  &
-              'ECT421995APR' , 'ECT421995MAY' , 'ECT421995JUN' ,  &
-              'ECT421995JUL' , 'ECT421995AUG' , 'ECT421995SEP' ,  &
-              'ECT421995OCT' , 'ECT421995NOV' , 'ECT421995DEC' ,  &
-              'ECT421996JAN' , 'ECT421996FEB' , 'ECT421996MAR' ,  &
-              'ECT421996APR' , 'ECT421996MAY' , 'ECT421996JUN' ,  &
-              'ECT421996JUL' , 'ECT421996AUG' , 'ECT421996SEP' ,  &
-              'ECT421996OCT' , 'ECT421996NOV' , 'ECT421996DEC' ,  &
-              'ECT421997JAN' , 'ECT421997FEB' , 'ECT421997MAR' ,  &
-              'ECT421997APR' , 'ECT421997MAY' , 'ECT421997JUN' ,  &
-              'ECT421997JUL' , 'ECT421997AUG' , 'ECT421997SEP' ,  &
-              'ECT421997OCT' , 'ECT421997NOV' , 'ECT421997DEC'/
-
-    call split_idate(idate,year,month,day,hour)
-
-    inquire (file=trim(inpglob)//'/ECWCRP/'// &
-             finm(month,year-1992), exist=there)
-    if ( .not.there ) then
-      call die('getecwcp',trim(inpglob)//'/ECWCRP/'// &
-               finm(month,year-1992)//' is not available',1)
-    end if
-    inquire(iolength=ecwlen) r2
-    open (63,file=trim(inpglob)//'/ECWCRP/'// &
-          finm(month,year-1992),form='unformatted',recl=ecwlen, &
-          access='direct',action='read',status='old')
-    nrec = (((day-1)*4+hour)/6)*(nlev*6+1)
-    nrec = nrec + 1
-    do k = 1 , nlev
-      nrec = nrec + 1
-      read (63,rec=nrec) r2
-      h1(:,:,k) = r2
-    end do
-    do k = 1 , nlev
-      nrec = nrec + 1
-      read (63,rec=nrec) r2
-      t1(:,:,k) = r2
-    end do
-    do k = 1 , nlev
-      nrec = nrec + 1
-      read (63,rec=nrec) r2
-      u1(:,:,k) = r2
-    end do
-    do k = 1 , nlev
-      nrec = nrec + 1
-      read (63,rec=nrec) r2
-      v1(:,:,k) = r2
-    end do
-    do k = 1 , nlev
-      nrec = nrec + 2
-    end do
-    do k = 1 , nlev
-      nrec = nrec + 1
-      read (63,rec=nrec) r2
-      q1(:,:,k) = r2
-    end do
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate) , ' from ' , &
-                finm(month,year-1992)
-    close (21)
-    !
-    ! Horizontal interpolation of both the scalar and vector fields
-    !
-    call bilinx(b3,b2,xlon,xlat,hlon,hlat,ilon,jlat,jx,iy,nlev*3)
-    call bilinx(d3,d2,dlon,dlat,hlon,hlat,ilon,jlat,jx,iy,nlev*2)
-    !
-    ! Rotate U-V fields after horizontal interpolation
-    !
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
-    ! New calculation of P* on RegCM topography.
-    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev)
-    call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    call crs2dot(pd4,ps4,jx,iy,i_band)
-    !
-    ! Vertical interpolation
-    !
-    ! Determine surface temps on RegCM topography.
-    ! Interpolation from pressure levels
-    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nlev)
-
-    call readsst(ts4,idate)
-
-    ! interpolate U, V, T, and Q.
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
-    if ( idynamic == 2 ) then
-      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
-      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
-    end if
-    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
-    call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
-    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-  end subroutine getecwcp
-
-  subroutine headerec
+  subroutine init_ecwcp
     implicit none
     integer(ik4) :: i , k , kr
 
@@ -269,6 +160,9 @@ module mod_ecwcp
     call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_ecwcp:b3')
     call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_ecwcp:d3')
 
+    call h_interpolator_create(cross_hint,hlat,hlon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,hlat,hlon,dlat,dlon,ds)
+
     ! Set up pointers
 
     u3 => d3(:,:,1:nlev)
@@ -281,7 +175,124 @@ module mod_ecwcp
     t1 => b2(:,:,1:nlev)
     h1 => b2(:,:,nlev+1:2*nlev)
     q1 => b2(:,:,2*nlev+1:3*nlev)
-  end subroutine headerec
+  end subroutine init_ecwcp
+
+  subroutine get_ecwcp(idate)
+    implicit none
+
+    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=12) , dimension(12,5) :: finm
+    integer(ik4) :: k , nrec
+    integer(ik4) :: year , month , day , hour
+    integer :: ecwlen
+    logical :: there
+
+    data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,  &
+              'ECT421993APR' , 'ECT421993MAY' , 'ECT421993JUN' ,  &
+              'ECT421993JUL' , 'ECT421993AUG' , 'ECT421993SEP' ,  &
+              'ECT421993OCT' , 'ECT421993NOV' , 'ECT421993DEC' ,  &
+              'ECT421994JAN' , 'ECT421994FEB' , 'ECT421994MAR' ,  &
+              'ECT421994APR' , 'ECT421994MAY' , 'ECT421994JUN' ,  &
+              'ECT421994JUL' , 'ECT421994AUG' , 'ECT421994SEP' ,  &
+              'ECT421994OCT' , 'ECT421994NOV' , 'ECT421994DEC' ,  &
+              'ECT421995JAN' , 'ECT421995FEB' , 'ECT421995MAR' ,  &
+              'ECT421995APR' , 'ECT421995MAY' , 'ECT421995JUN' ,  &
+              'ECT421995JUL' , 'ECT421995AUG' , 'ECT421995SEP' ,  &
+              'ECT421995OCT' , 'ECT421995NOV' , 'ECT421995DEC' ,  &
+              'ECT421996JAN' , 'ECT421996FEB' , 'ECT421996MAR' ,  &
+              'ECT421996APR' , 'ECT421996MAY' , 'ECT421996JUN' ,  &
+              'ECT421996JUL' , 'ECT421996AUG' , 'ECT421996SEP' ,  &
+              'ECT421996OCT' , 'ECT421996NOV' , 'ECT421996DEC' ,  &
+              'ECT421997JAN' , 'ECT421997FEB' , 'ECT421997MAR' ,  &
+              'ECT421997APR' , 'ECT421997MAY' , 'ECT421997JUN' ,  &
+              'ECT421997JUL' , 'ECT421997AUG' , 'ECT421997SEP' ,  &
+              'ECT421997OCT' , 'ECT421997NOV' , 'ECT421997DEC'/
+
+    call split_idate(idate,year,month,day,hour)
+
+    inquire (file=trim(inpglob)//'/ECWCRP/'// &
+             finm(month,year-1992), exist=there)
+    if ( .not.there ) then
+      call die('getecwcp',trim(inpglob)//'/ECWCRP/'// &
+               finm(month,year-1992)//' is not available',1)
+    end if
+    inquire(iolength=ecwlen) r2
+    open (63,file=trim(inpglob)//'/ECWCRP/'// &
+          finm(month,year-1992),form='unformatted',recl=ecwlen, &
+          access='direct',action='read',status='old')
+    nrec = (((day-1)*4+hour)/6)*(nlev*6+1)
+    nrec = nrec + 1
+    do k = 1 , nlev
+      nrec = nrec + 1
+      read (63,rec=nrec) r2
+      h1(:,:,k) = r2
+    end do
+    do k = 1 , nlev
+      nrec = nrec + 1
+      read (63,rec=nrec) r2
+      t1(:,:,k) = r2
+    end do
+    do k = 1 , nlev
+      nrec = nrec + 1
+      read (63,rec=nrec) r2
+      u1(:,:,k) = r2
+    end do
+    do k = 1 , nlev
+      nrec = nrec + 1
+      read (63,rec=nrec) r2
+      v1(:,:,k) = r2
+    end do
+    do k = 1 , nlev
+      nrec = nrec + 2
+    end do
+    do k = 1 , nlev
+      nrec = nrec + 1
+      read (63,rec=nrec) r2
+      q1(:,:,k) = r2
+    end do
+    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate) , ' from ' , &
+                finm(month,year-1992)
+    close (21)
+    !
+    ! Horizontal interpolation of both the scalar and vector fields
+    !
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
+    !
+    ! Rotate U-V fields after horizontal interpolation
+    !
+    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
+    ! New calculation of P* on RegCM topography.
+    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev)
+    call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+    call crs2dot(pd4,ps4,jx,iy,i_band)
+    !
+    ! Vertical interpolation
+    !
+    ! Determine surface temps on RegCM topography.
+    ! Interpolation from pressure levels
+    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nlev)
+
+    call readsst(ts4,idate)
+
+    ! interpolate U, V, T, and Q.
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    if ( idynamic == 2 ) then
+      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
+      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
+    end if
+    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
+  end subroutine get_ecwcp
+
+  subroutine conclude_ecwcp
+    implicit none
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_ecwcp
 
 end module mod_ecwcp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -219,41 +219,31 @@ program icbc
   iodate = idate
 
   if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
-    call headernc
+    call init_ncep
   else if ( dattyp == 'ECMWF' ) then
-    call headerec
+    call init_ecwcp
   else if ( dattyp == 'ERA40' ) then
-    call headerera
+    call init_era40
   else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
             dattyp == 'EIXXX' ) then
     call init_ein
   else if ( dattyp(1:3) == 'ECE' ) then
-    call headerecens
-  else if ( dattyp == 'GFS11' ) then
-    call headgn6hnc
+    call init_ecens
   else if ( dattyp == 'ERAHI' ) then
-    call headerehi
+    call init_ehi
   else if ( dattyp(1:2) == 'EH' ) then
-    call headermpi
+    call init_eh5om
   else if ( dattyp == 'FVGCM' ) then
-    call headerfv
+    call init_fvgcm
   else if ( dattyp == 'FNEST' ) then
-    call headernest
-  else if ( dattyp == 'CAM4N'    .or. dattyp == 'CCSMN'    .or. &
-            dattyp == 'CCSM3'    .or. dattyp == 'JRA55'    .or. &
-            dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
-            dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
-            dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-            dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MP_' .or. &
-            dattyp(1:3) == 'MI_' .or. dattyp(1:2) == 'E5' ) then
+    call init_nest
+  else
     if ( dattyp(4:5) == 'RF' ) then
       write(stderr,*) 'THIS CODE IS NOT SUPPORTED.'
       write(stderr,*) 'CHOSE ONE SCENARIO CODE ',dattyp(1:3),'(26-45-60-85).'
       call die('icbc','Unknown dattyp',1)
     end if
-    call headgn6hnc
-  else
-    call die('icbc','Unknown dattyp',1)
+    call init_gn6hnc
   end if
 
   call newfile(idate)
@@ -265,33 +255,25 @@ program icbc
     end if
 
     if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
-      call getncep(idate)
+      call get_ncep(idate)
     else if ( dattyp == 'ECMWF' ) then
-      call getecwcp(idate)
+      call get_ecwcp(idate)
     else if ( dattyp == 'ERA40' ) then
-      call getera40(idate)
+      call get_era40(idate)
     else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
               dattyp == 'EIXXX' ) then
       call get_ein(idate)
-    else if ( dattyp == 'GFS11' ) then
-      call get_gn6hnc(idate)
     else if ( dattyp == 'ERAHI' ) then
-      call geterahi(idate)
+      call get_ehi(idate)
     else if ( dattyp(1:3) == 'ECE' ) then
-      call getecens(idate)
+      call get_ecens(idate)
     else if ( dattyp(1:2) == 'EH' ) then
-      call geteh5om(idate)
+      call get_eh5om(idate)
     else if ( dattyp == 'FVGCM' ) then
-      call getfvgcm(idate)
+      call get_fvgcm(idate)
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
-    else if ( dattyp == 'CAM4N'    .or. dattyp == 'CCSMN'    .or. &
-              dattyp == 'CCSM3'    .or. dattyp == 'JRA55'    .or. &
-              dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
-              dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
-              dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-              dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MP_' .or. &
-              dattyp(1:3) == 'MI_' .or. dattyp(1:2) == 'E5' ) then
+    else
       call get_gn6hnc(idate)
     end if
 
@@ -308,6 +290,24 @@ program icbc
   if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
        dattyp == 'EIXXX' ) then
     call conclude_ein
+  else if ( dattyp(1:3) == 'ECE' ) then
+    call conclude_ecens
+  else if ( dattyp == 'ECMWF' ) then
+    call conclude_ecwcp
+  else if ( dattyp(1:2) == 'EH' ) then
+    call conclude_eh5om
+  else if ( dattyp == 'ERA40' ) then
+    call conclude_era40
+  else if ( dattyp == 'ERAHI' ) then
+    call conclude_ehi
+  else if ( dattyp == 'FVGCM' ) then
+    call conclude_fvgcm
+  else if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
+    call conclude_ncep
+  else if ( dattyp == 'FNEST' ) then
+    call conclude_nest
+  else
+    call conclude_gn6hnc
   end if
 
   call dispose_output

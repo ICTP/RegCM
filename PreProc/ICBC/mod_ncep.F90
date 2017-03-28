@@ -25,7 +25,7 @@ module mod_ncep
   use mod_stdio
   use mod_grid
   use mod_write
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_hgt
   use mod_humid
@@ -65,11 +65,125 @@ module mod_ncep
   integer(ik4) :: year , month , day , hour
   integer(ik4) :: itcfs = 0
 
-  public :: getncep , headernc
+  public :: get_ncep , init_ncep , conclude_ncep
+
+  type(h_interpolator) :: cross_hint , dot_hint
+
 
   contains
 
-  subroutine getncep(idate)
+  subroutine init_ncep
+    use netcdf
+    implicit none
+
+    integer(ik4) :: k , year , month , day , hour
+    integer(ik4) :: istatus , inet , iddim , idv
+    character(len=256) :: inpfile
+
+    call split_idate(globidate1, year, month, day, hour)
+    if ( dattyp(1:3) == 'CFS' ) then
+      write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
+        trim(inpglob)//'/CFS/',year,month,day,hour, &
+        '/'//dattyp(4:5)//'/PLEV/air.',year,month,day,hour,'.nc'
+    else
+      write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
+           dattyp//'/',year , '/air.' , year,'.nc'
+    end if
+    istatus = nf90_open(inpfile,nf90_nowrite,inet)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error opening '//trim(inpfile))
+    istatus = nf90_inq_dimid(inet,'lon',iddim)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(inet,'longitude',iddim)
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lon')
+    istatus = nf90_inquire_dimension(inet,iddim, len=ilon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lon')
+    istatus = nf90_inq_dimid(inet,'lat',iddim)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(inet,'latitude',iddim)
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim lat')
+    istatus = nf90_inquire_dimension(inet,iddim, len=jlat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim lat')
+    istatus = nf90_inq_dimid(inet,'level',iddim)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find dim level')
+    istatus = nf90_inquire_dimension(inet,iddim, len=klev)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire dim level')
+
+    call getmem1d(glon,1,ilon,'mod_ncep:glon')
+    call getmem1d(glat,1,jlat,'mod_ncep:glat')
+    call getmem1d(sigmar,1,klev,'mod_ncep:sigmar')
+    call getmem1d(sigma1,1,klev,'mod_ncep:sigma1')
+
+    istatus = nf90_inq_varid(inet,'level',idv)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var level')
+    istatus = nf90_get_var(inet,idv,sigma1)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read level')
+    ! Invert levels
+    do k = 1 , klev
+      sigmar(k) = sigma1(klev-k+1)/sigma1(1)
+    end do
+    pss = sigma1(1) / d_10 ! centibars
+    !
+    ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
+    !
+    istatus = nf90_inq_varid(inet,'lon',idv)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(inet,'longitude',idv)
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lon')
+    istatus = nf90_get_var(inet,idv,glon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lon')
+    istatus = nf90_inq_varid(inet,'lat',idv)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(inet,'latitude',idv)
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var lon')
+    istatus = nf90_get_var(inet,idv,glat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read lat')
+    istatus = nf90_close(inet)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Cannot close file')
+
+    write(stdout,*) 'Read static data'
+
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
+
+    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
+    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ncep:b3')
+    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ncep:d3')
+    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ncep:b3')
+    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
+
+    ! Set up pointers
+
+    u3 => d3(:,:,1:klev)
+    v3 => d3(:,:,klev+1:2*klev)
+    t3 => b3(:,:,1:klev)
+    h3 => b3(:,:,klev+1:2*klev)
+    q3 => b3(:,:,2*klev+1:3*klev)
+    uvar => d2(:,:,1:klev)
+    vvar => d2(:,:,klev+1:2*klev)
+    tvar => b2(:,:,1:klev)
+    hvar => b2(:,:,klev+1:2*klev)
+    rhvar => b2(:,:,2*klev+1:3*klev)
+  end subroutine init_ncep
+
+  subroutine get_ncep(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
 
@@ -84,8 +198,8 @@ module mod_ncep
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-    call bilinx(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -117,7 +231,7 @@ module mod_ncep
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-  end subroutine getncep
+  end subroutine get_ncep
 
   subroutine cfs6hour
     use netcdf
@@ -358,113 +472,11 @@ module mod_ncep
     end do
   end subroutine cdc6hour
 
-  subroutine headernc
-    use netcdf
+  subroutine conclude_ncep
     implicit none
-
-    integer(ik4) :: k , year , month , day , hour
-    integer(ik4) :: istatus , inet , iddim , idv
-    character(len=256) :: inpfile
-
-    call split_idate(globidate1, year, month, day, hour)
-    if ( dattyp(1:3) == 'CFS' ) then
-      write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
-        trim(inpglob)//'/CFS/',year,month,day,hour, &
-        '/'//dattyp(4:5)//'/PLEV/air.',year,month,day,hour,'.nc'
-    else
-      write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
-           dattyp//'/',year , '/air.' , year,'.nc'
-    end if
-    istatus = nf90_open(inpfile,nf90_nowrite,inet)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error opening '//trim(inpfile))
-    istatus = nf90_inq_dimid(inet,'lon',iddim)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_dimid(inet,'longitude',iddim)
-    end if
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find dim lon')
-    istatus = nf90_inquire_dimension(inet,iddim, len=ilon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error inquire dim lon')
-    istatus = nf90_inq_dimid(inet,'lat',iddim)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_dimid(inet,'latitude',iddim)
-    end if
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find dim lat')
-    istatus = nf90_inquire_dimension(inet,iddim, len=jlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error inquire dim lat')
-    istatus = nf90_inq_dimid(inet,'level',iddim)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find dim level')
-    istatus = nf90_inquire_dimension(inet,iddim, len=klev)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error inquire dim level')
-
-    call getmem1d(glon,1,ilon,'mod_ncep:glon')
-    call getmem1d(glat,1,jlat,'mod_ncep:glat')
-    call getmem1d(sigmar,1,klev,'mod_ncep:sigmar')
-    call getmem1d(sigma1,1,klev,'mod_ncep:sigma1')
-
-    istatus = nf90_inq_varid(inet,'level',idv)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find var level')
-    istatus = nf90_get_var(inet,idv,sigma1)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read level')
-    ! Invert levels
-    do k = 1 , klev
-      sigmar(k) = sigma1(klev-k+1)/sigma1(1)
-    end do
-    pss = sigma1(1) / d_10 ! centibars
-    !
-    ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
-    !
-    istatus = nf90_inq_varid(inet,'lon',idv)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_varid(inet,'longitude',idv)
-    end if
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find var lon')
-    istatus = nf90_get_var(inet,idv,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read lon')
-    istatus = nf90_inq_varid(inet,'lat',idv)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_varid(inet,'latitude',idv)
-    end if
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find var lon')
-    istatus = nf90_get_var(inet,idv,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read lat')
-    istatus = nf90_close(inet)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Cannot close file')
-
-    write(stdout,*) 'Read static data'
-
-    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ncep:b3')
-    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ncep:d3')
-    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ncep:b3')
-    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
-
-    ! Set up pointers
-
-    u3 => d3(:,:,1:klev)
-    v3 => d3(:,:,klev+1:2*klev)
-    t3 => b3(:,:,1:klev)
-    h3 => b3(:,:,klev+1:2*klev)
-    q3 => b3(:,:,2*klev+1:3*klev)
-    uvar => d2(:,:,1:klev)
-    vvar => d2(:,:,klev+1:2*klev)
-    tvar => b2(:,:,1:klev)
-    hvar => b2(:,:,klev+1:2*klev)
-    rhvar => b2(:,:,2*klev+1:3*klev)
-  end subroutine headernc
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_ncep
 
 end module mod_ncep
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

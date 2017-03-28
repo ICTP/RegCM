@@ -28,7 +28,7 @@ module mod_earth
   real(rkx) , parameter :: mindist = 1.0e-6_rkx
 
   public :: gcdist_simple , gcdist
-  public :: ll2xyz
+  public :: ll2xyz , longitude_circle
   public :: global_domain , get_window
 
   interface ll2xyz
@@ -87,11 +87,11 @@ module mod_earth
     real(rkx) , intent(in) :: lat , lon
     real(rkx) , intent(out) :: x , y , z
     real(rkx) :: rlat , rlon
-    rlat = halfpi - lat*degrad
+    rlat = max(min(lat,89.99_rkx),-89.99_rkx)*degrad
     rlon = lon*degrad
-    x = sin(rlat) * sin(rlon)
-    y = cos(rlat)
-    z = sin(rlat) * cos(rlon)
+    x = erkm * cos(rlat) * sin(rlon)
+    y = erkm * sin(rlat)
+    z = erkm * cos(rlat) * cos(rlon)
   end subroutine ll2xyz_values
 
   subroutine ll2xyz_array(lat,lon,x)
@@ -100,11 +100,11 @@ module mod_earth
     real(rkx) , intent(in) :: lon
     real(rkx) , intent(out) , dimension(3) :: x
     real(rkx) :: rlat , rlon
-    rlat = halfpi - lat*degrad
+    rlat = max(min(lat,89.99_rkx),-89.99_rkx)*degrad
     rlon = lon*degrad
-    x(1) = sin(rlat) * sin(rlon)
-    x(2) = cos(rlat)
-    x(3) = sin(rlat) * cos(rlon)
+    x(1) = erkm * cos(rlat) * sin(rlon)
+    x(2) = erkm * sin(rlat)
+    x(3) = erkm * cos(rlat) * cos(rlon)
   end subroutine ll2xyz_array
 
   subroutine ll2xyz_arrays(lat,lon,x)
@@ -120,11 +120,11 @@ module mod_earth
     n = 1
     do j = 1 , size(lat)
       do i = 1 , size(lon)
-        rlat = halfpi - lat(j)*degrad
+        rlat = max(min(lat(j),89.99_rkx),-89.99_rkx)*degrad
         rlon = lon(i)*degrad
-        x(1,n) = sin(rlat) * sin(rlon)
-        x(2,n) = cos(rlat)
-        x(3,n) = sin(rlat) * cos(rlon)
+        x(1,n) = erkm * cos(rlat) * sin(rlon)
+        x(2,n) = erkm * sin(rlat)
+        x(3,n) = erkm * cos(rlat) * cos(rlon)
         n = n + 1
       end do
     end do
@@ -144,11 +144,11 @@ module mod_earth
     n = 1
     do j = 1 , size(lat,2)
       do i = 1 , size(lat,1)
-        rlat = halfpi - lat(i,j)*degrad
+        rlat = max(min(lat(i,j),89.99_rkx),-89.99_rkx)*degrad
         rlon = lon(i,j)*degrad
-        x(1,n) = sin(rlat) * sin(rlon)
-        x(2,n) = cos(rlat)
-        x(3,n) = sin(rlat) * cos(rlon)
+        x(1,n) = erkm * cos(rlat) * sin(rlon)
+        x(2,n) = erkm * sin(rlat)
+        x(3,n) = erkm * cos(rlat) * cos(rlon)
         n = n + 1
       end do
     end do

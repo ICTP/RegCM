@@ -27,7 +27,7 @@ module mod_nest
   use mod_date
   use mod_grid
   use mod_write
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_stdatm
   use mod_hgt
@@ -40,7 +40,7 @@ module mod_nest
 
   private
 
-  public :: get_nest , headernest
+  public :: get_nest , init_nest , conclude_nest
 
   character(len=256) , public :: coarsedir , coarsedom
 
@@ -86,7 +86,263 @@ module mod_nest
   real(rkx) , dimension(:) , pointer :: xtimes
   character(len=64) :: timeunits , timecal
 
+  type(h_interpolator) :: cross_hint , dot_hint
+
   contains
+
+  subroutine init_nest
+    use netcdf
+    implicit none
+
+    real(rkx) :: xsign
+    integer(ik4) :: i , j , k , ip , istatus , idimid , ivarid
+    type(rcm_time_and_date) :: imf
+    real(rkx) , dimension(2) :: trlat
+    real(rkx) , dimension(:) , allocatable :: sigfix
+    real(rkx) :: tlp , pr0_in
+
+    imf = monfirst(globidate1)
+    write (fillin,'(a,i10)') 'ATM.', toint10(imf)
+
+    if ( coarsedir(1:5) == '     ' ) then
+      inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
+    else
+      inpfile = trim(coarsedir)//pthsep
+    end if
+    if ( coarsedom(1:5) == '     ' ) then
+      inpfile = trim(inpfile)//fillin//'.nc'
+    else
+      inpfile = trim(inpfile)//trim(coarsedom)//'_'//fillin//'.nc'
+    end if
+
+    istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error opening '//trim(inpfile))
+
+    istatus = nf90_inq_dimid(ncinp, 'iy', idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension iy missing')
+    istatus = nf90_inquire_dimension(ncinp, idimid, len=iy_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension iy read error')
+    istatus = nf90_inq_dimid(ncinp, 'jx', idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension jx missing')
+    istatus = nf90_inquire_dimension(ncinp, idimid, len=jx_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension jx read error')
+    istatus = nf90_inq_dimid(ncinp, 'kz', idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension kz missing')
+    istatus = nf90_inquire_dimension(ncinp, idimid, len=kz_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension kz read error')
+    istatus = nf90_inq_dimid(ncinp, 'time', idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension time missing')
+    istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Dimension time read error')
+    istatus = nf90_inq_varid(ncinp, 'time', ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time missing')
+    istatus = nf90_get_att(ncinp, ivarid, 'units', timeunits)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time units missing')
+    istatus = nf90_get_att(ncinp, ivarid, 'calendar', timecal)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time calendar missing')
+    call getmem1d(itimes,1,nrec,'mod:nest:itimes')
+    call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
+    istatus = nf90_get_var(ncinp, ivarid, xtimes)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable time read error')
+    do i = 1 , nrec
+      itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
+    end do
+
+    ! Reserve space for I/O
+
+    call getmem1d(sigma_in,1,kz_in,'mod_nest:sigma_in')
+    call getmem3d(q,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q')
+    call getmem3d(t,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t')
+    call getmem3d(u,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u')
+    call getmem3d(v,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v')
+    call getmem3d(z1,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z1')
+    call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
+    call getmem2d(xts,1,jx_in,1,iy_in,'mod_nest:xts')
+    call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
+    call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
+    call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
+
+    istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable sigma error')
+    istatus = nf90_get_var(ncinp, ivarid, sigma_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable sigma read error')
+    if ( sigma_in(1) < dlowval ) then
+      ! Fix V. 4.3.x bug in sigma levels
+      allocate(sigfix(kz_in+1))
+      sigfix(1:kz_in) = sigma_in(:)
+      sigfix(kz_in+1) = d_one
+      do k = 1 , kz_in
+        sigma_in(k) = d_half*(sigfix(k)+sigfix(k+1))
+      end do
+      deallocate(sigfix)
+    end if
+    istatus = nf90_inq_varid(ncinp, 'xlat', ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlat error')
+    istatus = nf90_get_var(ncinp, ivarid, xlat_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlat read error')
+    istatus = nf90_inq_varid(ncinp, 'xlon', ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlon error')
+    istatus = nf90_get_var(ncinp, ivarid, xlon_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable xlon read error')
+    istatus = nf90_inq_varid(ncinp, 'topo', ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable topo error')
+    istatus = nf90_get_var(ncinp, ivarid, ht_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable topo read error')
+    istatus = nf90_inq_varid(ncinp, 'ptop', ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ptop error')
+    istatus = nf90_get_var(ncinp, ivarid, ptop_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'variable ptop read error')
+
+    istatus = nf90_get_att(ncinp, nf90_global,'projection', iproj_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'attribure iproj read error')
+    istatus = nf90_get_att(ncinp, nf90_global, &
+                      'latitude_of_projection_origin', clat_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'attribure clat read error')
+    istatus = nf90_get_att(ncinp, nf90_global, &
+                      'longitude_of_projection_origin', clon_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'attribure clat read error')
+    istatus = nf90_get_att(ncinp, nf90_global, 'dynamical_core', oidyn)
+    if ( istatus /= nf90_noerr ) then
+      oidyn = 1 ! Assume non-hydrostatic
+    end if
+
+    if ( iproj_in == 'LAMCON' ) then
+      istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure truelat read error')
+      if ( clat_in < 0. ) then
+        xsign = -1.0_rkx       ! SOUTH HEMESPHERE
+      else
+        xsign = 1.0_rkx        ! NORTH HEMESPHERE
+      end if
+      if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
+        xcone_in = (log10(cos(trlat(1)*degrad))                    &
+                    -log10(cos(trlat(2)*degrad))) /                &
+                    (log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))  &
+                    -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
+      else
+        xcone_in = xsign*sin(real(trlat(1),rkx)*degrad)
+      end if
+    else if ( iproj_in == 'POLSTR' ) then
+      xcone_in = 1.0_rkx
+    else if ( iproj_in == 'NORMER' ) then
+      xcone_in = 0.0_rkx
+    else
+      istatus = nf90_get_att(ncinp, nf90_global, &
+                      'grid_north_pole_latitude', plat_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure plat read error')
+      istatus = nf90_get_att(ncinp, nf90_global, &
+                      'grid_north_pole_longitude', plon_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure plon read error')
+      xcone_in = 0.0_rkx
+    end if
+
+    if ( ptop_in > ptop*10.0_rkx ) then
+      write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
+      write(stderr,*) 'WARNING : Extrapolation will be performed.'
+    end if
+
+    np = kz_in - 1
+    call getmem1d(plev,1,np,'mod_nest:plev')
+    call getmem1d(sigmar,1,np,'mod_nest:sigmar')
+
+    call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
+    call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
+
+    if ( oidyn == 2 ) then
+      istatus = nf90_get_att(ncinp, nf90_global, 'logp_lapse_rate', tlp)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure logp_lapse_rate read error')
+      call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
+      call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
+      call getmem3d(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
+      istatus = nf90_inq_varid(ncinp, 'p0', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable p0 error')
+      istatus = nf90_get_var(ncinp, ivarid, p0_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable p0 read error')
+      pstar0 = p0_in - ptop_in * d_100
+      do k = 1 , kz_in
+        do i = 1 , iy_in
+          do j = 1 , jx_in
+            pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in * d_100
+            t0_in(j,i,k) = stdatm_val(xlat_in(j,i),pr0_in*d_r100,istdatm_tempk)
+          end do
+        end do
+      end do
+    else
+      istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps error')
+      istatus = nf90_get_var(ncinp, ivarid, p0_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps read error')
+      pstar0 = p0_in - ptop_in * d_100
+    end if
+
+    do ip = 1 , np/2
+      plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
+                           maxval(pstar0*sigma_in(ip))) + ptop_in * d_100
+    end do
+    do ip = np/2+1 , np
+      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in * d_100
+    end do
+
+    call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,xlat_in,xlon_in,dlat,dlon,ds)
+
+    ! Set up pointers
+
+    call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
+    call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
+    call getmem3d(b3,1,jx,1,iy,1,np*3,'mod_nest:b3')
+    call getmem3d(d3,1,jx,1,iy,1,np*2,'mod_nest:d3')
+    call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
+    tp => b2(:,:,1:np)
+    qp => b2(:,:,np+1:2*np)
+    hp => b2(:,:,2*np+1:3*np)
+    up => d2(:,:,1:np)
+    vp => d2(:,:,np+1:2*np)
+    t3 => b3(:,:,1:np)
+    q3 => b3(:,:,np+1:2*np)
+    h3 => b3(:,:,2*np+1:3*np)
+    u3 => d3(:,:,1:np)
+    v3 => d3(:,:,np+1:2*np)
+
+    do k = 1 , np
+      sigmar(k) = plev(k)/plev(np)
+    end do
+    pss = plev(np)
+  end subroutine init_nest
 
   subroutine get_nest(idate)
     use netcdf
@@ -315,9 +571,9 @@ module mod_nest
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call cressmcr(b3,b2,xlon,xlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in,np,3)
-    call cressmdt(d3,d2,dlon,dlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in,np,2)
-    call cressmcr(ts,xts,xlon,xlat,xlon_in,xlat_in,jx,iy,jx_in,iy_in)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
+    call h_interpolate_cont(cross_hint,xts,ts)
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -365,256 +621,11 @@ module mod_nest
     pd4 = pd4 * d_r1000
   end subroutine get_nest
 
-  subroutine headernest
-    use netcdf
+  subroutine conclude_nest
     implicit none
-
-    real(rkx) :: xsign
-    integer(ik4) :: i , j , k , ip , istatus , idimid , ivarid
-    type(rcm_time_and_date) :: imf
-    real(rkx) , dimension(2) :: trlat
-    real(rkx) , dimension(:) , allocatable :: sigfix
-    real(rkx) :: tlp , pr0_in
-
-    imf = monfirst(globidate1)
-    write (fillin,'(a,i10)') 'ATM.', toint10(imf)
-
-    if ( coarsedir(1:5) == '     ' ) then
-      inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
-    else
-      inpfile = trim(coarsedir)//pthsep
-    end if
-    if ( coarsedom(1:5) == '     ' ) then
-      inpfile = trim(inpfile)//fillin//'.nc'
-    else
-      inpfile = trim(inpfile)//trim(coarsedom)//'_'//fillin//'.nc'
-    end if
-
-    istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error opening '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncinp, 'iy', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension iy missing')
-    istatus = nf90_inquire_dimension(ncinp, idimid, len=iy_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension iy read error')
-    istatus = nf90_inq_dimid(ncinp, 'jx', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension jx missing')
-    istatus = nf90_inquire_dimension(ncinp, idimid, len=jx_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension jx read error')
-    istatus = nf90_inq_dimid(ncinp, 'kz', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension kz missing')
-    istatus = nf90_inquire_dimension(ncinp, idimid, len=kz_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension kz read error')
-    istatus = nf90_inq_dimid(ncinp, 'time', idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension time missing')
-    istatus = nf90_inquire_dimension(ncinp, idimid, len=nrec)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Dimension time read error')
-    istatus = nf90_inq_varid(ncinp, 'time', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable time missing')
-    istatus = nf90_get_att(ncinp, ivarid, 'units', timeunits)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable time units missing')
-    istatus = nf90_get_att(ncinp, ivarid, 'calendar', timecal)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable time calendar missing')
-    call getmem1d(itimes,1,nrec,'mod:nest:itimes')
-    call getmem1d(xtimes,1,nrec,'mod:nest:xtimes')
-    istatus = nf90_get_var(ncinp, ivarid, xtimes)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable time read error')
-    do i = 1 , nrec
-      itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
-    end do
-
-    ! Reserve space for I/O
-
-    call getmem1d(sigma_in,1,kz_in,'mod_nest:sigma_in')
-    call getmem3d(q,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q')
-    call getmem3d(t,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t')
-    call getmem3d(u,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u')
-    call getmem3d(v,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v')
-    call getmem3d(z1,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z1')
-    call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
-    call getmem2d(xts,1,jx_in,1,iy_in,'mod_nest:xts')
-    call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
-    call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
-    call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
-
-    istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable sigma error')
-    istatus = nf90_get_var(ncinp, ivarid, sigma_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable sigma read error')
-    if ( sigma_in(1) < dlowval ) then
-      ! Fix V. 4.3.x bug in sigma levels
-      allocate(sigfix(kz_in+1))
-      sigfix(1:kz_in) = sigma_in(:)
-      sigfix(kz_in+1) = d_one
-      do k = 1 , kz_in
-        sigma_in(k) = d_half*(sigfix(k)+sigfix(k+1))
-      end do
-      deallocate(sigfix)
-    end if
-    istatus = nf90_inq_varid(ncinp, 'xlat', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable xlat error')
-    istatus = nf90_get_var(ncinp, ivarid, xlat_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable xlat read error')
-    istatus = nf90_inq_varid(ncinp, 'xlon', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable xlon error')
-    istatus = nf90_get_var(ncinp, ivarid, xlon_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable xlon read error')
-    istatus = nf90_inq_varid(ncinp, 'topo', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable topo error')
-    istatus = nf90_get_var(ncinp, ivarid, ht_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable topo read error')
-    istatus = nf90_inq_varid(ncinp, 'ptop', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ptop error')
-    istatus = nf90_get_var(ncinp, ivarid, ptop_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ptop read error')
-
-    istatus = nf90_get_att(ncinp, nf90_global,'projection', iproj_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'attribure iproj read error')
-    istatus = nf90_get_att(ncinp, nf90_global, &
-                      'latitude_of_projection_origin', clat_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'attribure clat read error')
-    istatus = nf90_get_att(ncinp, nf90_global, &
-                      'longitude_of_projection_origin', clon_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'attribure clat read error')
-    istatus = nf90_get_att(ncinp, nf90_global, 'dynamical_core', oidyn)
-    if ( istatus /= nf90_noerr ) then
-      oidyn = 1 ! Assume non-hydrostatic
-    end if
-
-    if ( iproj_in == 'LAMCON' ) then
-      istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'attribure truelat read error')
-      if ( clat_in < 0. ) then
-        xsign = -1.0_rkx       ! SOUTH HEMESPHERE
-      else
-        xsign = 1.0_rkx        ! NORTH HEMESPHERE
-      end if
-      if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
-        xcone_in = (log10(cos(trlat(1)*degrad))                    &
-                    -log10(cos(trlat(2)*degrad))) /                &
-                    (log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))  &
-                    -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
-      else
-        xcone_in = xsign*sin(real(trlat(1),rkx)*degrad)
-      end if
-    else if ( iproj_in == 'POLSTR' ) then
-      xcone_in = 1.0_rkx
-    else if ( iproj_in == 'NORMER' ) then
-      xcone_in = 0.0_rkx
-    else
-      istatus = nf90_get_att(ncinp, nf90_global, &
-                      'grid_north_pole_latitude', plat_in)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'attribure plat read error')
-      istatus = nf90_get_att(ncinp, nf90_global, &
-                      'grid_north_pole_longitude', plon_in)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'attribure plon read error')
-      xcone_in = 0.0_rkx
-    end if
-
-    if ( ptop_in > ptop*10.0_rkx ) then
-      write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
-      write(stderr,*) 'WARNING : Extrapolation will be performed.'
-    end if
-
-    np = kz_in - 1
-    call getmem1d(plev,1,np,'mod_nest:plev')
-    call getmem1d(sigmar,1,np,'mod_nest:sigmar')
-
-    call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
-    call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
-
-    if ( oidyn == 2 ) then
-      istatus = nf90_get_att(ncinp, nf90_global, 'logp_lapse_rate', tlp)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'attribure logp_lapse_rate read error')
-      call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
-      call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
-      call getmem3d(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
-      istatus = nf90_inq_varid(ncinp, 'p0', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable p0 error')
-      istatus = nf90_get_var(ncinp, ivarid, p0_in)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable p0 read error')
-      pstar0 = p0_in - ptop_in * d_100
-      do k = 1 , kz_in
-        do i = 1 , iy_in
-          do j = 1 , jx_in
-            pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in * d_100
-            t0_in(j,i,k) = stdatm_val(xlat_in(j,i),pr0_in*d_r100,istdatm_tempk)
-          end do
-        end do
-      end do
-    else
-      istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ps error')
-      istatus = nf90_get_var(ncinp, ivarid, p0_in)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ps read error')
-      pstar0 = p0_in - ptop_in * d_100
-    end if
-
-    do ip = 1 , np/2
-      plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
-                           maxval(pstar0*sigma_in(ip))) + ptop_in * d_100
-    end do
-    do ip = np/2+1 , np
-      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in * d_100
-    end do
-
-    ! Set up pointers
-
-    call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
-    call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
-    call getmem3d(b3,1,jx,1,iy,1,np*3,'mod_nest:b3')
-    call getmem3d(d3,1,jx,1,iy,1,np*2,'mod_nest:d3')
-    call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
-    tp => b2(:,:,1:np)
-    qp => b2(:,:,np+1:2*np)
-    hp => b2(:,:,2*np+1:3*np)
-    up => d2(:,:,1:np)
-    vp => d2(:,:,np+1:2*np)
-    t3 => b3(:,:,1:np)
-    q3 => b3(:,:,np+1:2*np)
-    h3 => b3(:,:,2*np+1:3*np)
-    u3 => d3(:,:,1:np)
-    v3 => d3(:,:,np+1:2*np)
-
-    do k = 1 , np
-      sigmar(k) = plev(k)/plev(np)
-    end do
-    pss = plev(np)
-  end subroutine headernest
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_nest
 
 end module mod_nest
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

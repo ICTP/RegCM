@@ -76,6 +76,7 @@ program terrain
   use mod_moist
   use mod_sigma
   use mod_nhinterp
+  use mod_earth
 
   implicit none
   character(len=256) :: char_lnd , char_tex , char_lak

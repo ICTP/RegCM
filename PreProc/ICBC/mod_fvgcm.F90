@@ -26,7 +26,7 @@ module mod_fvgcm
     use mod_message
     use mod_grid
     use mod_write
-    use mod_interp
+    use mod_kdinterp
     use mod_vertint
     use mod_hgt
     use mod_humid
@@ -64,11 +64,130 @@ module mod_fvgcm
     real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
     real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
 
-    public :: getfvgcm , headerfv
+    public :: get_fvgcm , init_fvgcm , conclude_fvgcm
+
+    type(h_interpolator) :: cross_hint , dot_hint
 
     contains
 
-    subroutine getfvgcm(idate)
+  subroutine init_fvgcm
+    implicit none
+    integer(ik4) :: i , j , k , kr
+    numx = nint((lon1-lon0)/1.25) + 1
+    numy = nint(lat1-lat0) + 1
+
+    write (stdout,*) 'Reading a ',numx,'x',numy,' point grid'
+    call getmem1d(vlat,1,numy,'fvgc:vlat')
+    call getmem1d(vlon,1,numx,'fvgc:vlon')
+
+    do j = 1 , numy
+      vlat(j) = lat0 + real(j-1,rkx)*1.0_rkx
+    end do
+    do i = 1 , numx
+      vlon(i) = lon0 + real(i-1,rkx)*1.25_rkx
+    end do
+
+    pplev(1) = 30.
+    pplev(2) = 50.
+    pplev(3) = 70.
+    pplev(4) = 100.
+    pplev(5) = 150.
+    pplev(6) = 200.
+    pplev(7) = 250.
+    pplev(8) = 300.
+    pplev(9) = 350.
+    pplev(10) = 420.
+    pplev(11) = 500.
+    pplev(12) = 600.
+    pplev(13) = 700.
+    pplev(14) = 780.
+    pplev(15) = 850.
+    pplev(16) = 920.
+    pplev(17) = 960.
+    pplev(18) = 1000.
+
+    do k = 1 , nlev
+      sigmar(k) = pplev(k)/pplev(nlev)
+    end do
+
+    do k = 1 , nlev
+      kr = nlev - k + 1
+      sigma1(k) = sigmar(kr)
+    end do
+
+    ak(1) = 2.9170
+    ak(2) = 7.9292
+    ak(3) = 21.5539
+    ak(4) = 49.1834
+    ak(5) = 83.1425
+    ak(6) = 79.9308
+    ak(7) = 75.7738
+    ak(8) = 70.5752
+    ak(9) = 64.2963
+    ak(10) = 56.9838
+    ak(11) = 48.7913
+    ak(12) = 39.9895
+    ak(13) = 30.9631
+    ak(14) = 22.1902
+    ak(15) = 14.2039
+    ak(16) = 7.5413
+    ak(17) = 2.6838
+    ak(18) = 0.0
+    ak(19) = 0.0
+
+    bk(1) = 0.0
+    bk(2) = 0.0
+    bk(3) = 0.0
+    bk(4) = 0.0
+    bk(5) = 0.0
+    bk(6) = 0.0380541
+    bk(7) = 0.0873088
+    bk(8) = 0.1489307
+    bk(9) = 0.2232996
+    bk(10) = 0.3099406
+    bk(11) = 0.4070096
+    bk(12) = 0.5112977
+    bk(13) = 0.6182465
+    bk(14) = 0.7221927
+    bk(15) = 0.8168173
+    bk(16) = 0.8957590
+    bk(17) = 0.9533137
+    bk(18) = 0.9851222
+    bk(19) = 1.0
+
+    call getmem3d(bb,1,numx,1,numy,1,nlev*4+1,'fvgc:bb')
+    call getmem3d(b2,1,numx,1,numy,1,nlev*3,'fvgc:b2')
+    call getmem3d(d2,1,numx,1,numy,1,nlev*2,'fvgc:d2')
+    call getmem3d(pp3d,1,numx,1,numy,1,nlev,'fvgc:pp3d')
+    call getmem3d(z1,1,numx,1,numy,1,nlev,'fvgc:z1')
+    call getmem2d(zs2,1,numx,1,numy,'fvgc:zs2')
+    call getmem2d(temp,1,numx,1,numy,'fvgc:temp')
+    call getmem2d(itmp,1,numx,1,numy,'fvgc:itmp')
+
+    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,vlat,vlon,dlat,dlon,ds)
+
+    call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_fvgcm:b3')
+    call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
+
+    ps2 => bb(:,:,1)
+    t2 => bb(:,:,2:nlev+1)
+    q2 => bb(:,:,nlev+2:2*nlev+1)
+    u2 => bb(:,:,2*nlev+2:3*nlev+1)
+    v2 => bb(:,:,3*nlev+2:4*nlev+1)
+    tp => b2(:,:,1:nlev)
+    qp => b2(:,:,nlev+1:2*nlev)
+    hp => b2(:,:,2*nlev+1:3*nlev)
+    up => d2(:,:,1:nlev)
+    vp => d2(:,:,nlev+1:2*nlev)
+    t3 => b3(:,:,1:nlev)
+    q3 => b3(:,:,nlev+1:2*nlev)
+    h3 => b3(:,:,2*nlev+1:3*nlev)
+    u3 => d3(:,:,1:nlev)
+    v3 => d3(:,:,nlev+1:2*nlev)
+  end subroutine init_fvgcm
+
+    subroutine get_fvgcm(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
       character(len=3) , dimension(12) :: chmon
@@ -248,8 +367,8 @@ module mod_fvgcm
     call mxr2rh(t2,q2,pp3d,numx,numy,nlev,-9999.0_rkx)
     call intlin(qp,q2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 
-    call bilinx(b3,b2,xlon,xlat,vlon,vlat,numx,numy,jx,iy,nlev*3)
-    call bilinx(d3,d2,dlon,dlat,vlon,vlat,numx,numy,jx,iy,nlev*2)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
 
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
 
@@ -277,121 +396,13 @@ module mod_fvgcm
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-  end subroutine getfvgcm
+  end subroutine get_fvgcm
 
-  subroutine headerfv
+  subroutine conclude_fvgcm
     implicit none
-    integer(ik4) :: i , j , k , kr
-    numx = nint((lon1-lon0)/1.25) + 1
-    numy = nint(lat1-lat0) + 1
-
-    write (stdout,*) 'Reading a ',numx,'x',numy,' point grid'
-    call getmem1d(vlat,1,numy,'fvgc:vlat')
-    call getmem1d(vlon,1,numx,'fvgc:vlon')
-
-    do j = 1 , numy
-      vlat(j) = lat0 + real(j-1,rkx)*1.0_rkx
-    end do
-    do i = 1 , numx
-      vlon(i) = lon0 + real(i-1,rkx)*1.25_rkx
-    end do
-
-    pplev(1) = 30.
-    pplev(2) = 50.
-    pplev(3) = 70.
-    pplev(4) = 100.
-    pplev(5) = 150.
-    pplev(6) = 200.
-    pplev(7) = 250.
-    pplev(8) = 300.
-    pplev(9) = 350.
-    pplev(10) = 420.
-    pplev(11) = 500.
-    pplev(12) = 600.
-    pplev(13) = 700.
-    pplev(14) = 780.
-    pplev(15) = 850.
-    pplev(16) = 920.
-    pplev(17) = 960.
-    pplev(18) = 1000.
-
-    do k = 1 , nlev
-      sigmar(k) = pplev(k)/pplev(nlev)
-    end do
-
-    do k = 1 , nlev
-      kr = nlev - k + 1
-      sigma1(k) = sigmar(kr)
-    end do
-
-    ak(1) = 2.9170
-    ak(2) = 7.9292
-    ak(3) = 21.5539
-    ak(4) = 49.1834
-    ak(5) = 83.1425
-    ak(6) = 79.9308
-    ak(7) = 75.7738
-    ak(8) = 70.5752
-    ak(9) = 64.2963
-    ak(10) = 56.9838
-    ak(11) = 48.7913
-    ak(12) = 39.9895
-    ak(13) = 30.9631
-    ak(14) = 22.1902
-    ak(15) = 14.2039
-    ak(16) = 7.5413
-    ak(17) = 2.6838
-    ak(18) = 0.0
-    ak(19) = 0.0
-
-    bk(1) = 0.0
-    bk(2) = 0.0
-    bk(3) = 0.0
-    bk(4) = 0.0
-    bk(5) = 0.0
-    bk(6) = 0.0380541
-    bk(7) = 0.0873088
-    bk(8) = 0.1489307
-    bk(9) = 0.2232996
-    bk(10) = 0.3099406
-    bk(11) = 0.4070096
-    bk(12) = 0.5112977
-    bk(13) = 0.6182465
-    bk(14) = 0.7221927
-    bk(15) = 0.8168173
-    bk(16) = 0.8957590
-    bk(17) = 0.9533137
-    bk(18) = 0.9851222
-    bk(19) = 1.0
-
-    call getmem3d(bb,1,numx,1,numy,1,nlev*4+1,'fvgc:bb')
-    call getmem3d(b2,1,numx,1,numy,1,nlev*3,'fvgc:b2')
-    call getmem3d(d2,1,numx,1,numy,1,nlev*2,'fvgc:d2')
-    call getmem3d(pp3d,1,numx,1,numy,1,nlev,'fvgc:pp3d')
-    call getmem3d(z1,1,numx,1,numy,1,nlev,'fvgc:z1')
-    call getmem2d(zs2,1,numx,1,numy,'fvgc:zs2')
-    call getmem2d(temp,1,numx,1,numy,'fvgc:temp')
-    call getmem2d(itmp,1,numx,1,numy,'fvgc:itmp')
-
-    call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_fvgcm:b3')
-    call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
-
-    ps2 => bb(:,:,1)
-    t2 => bb(:,:,2:nlev+1)
-    q2 => bb(:,:,nlev+2:2*nlev+1)
-    u2 => bb(:,:,2*nlev+2:3*nlev+1)
-    v2 => bb(:,:,3*nlev+2:4*nlev+1)
-    tp => b2(:,:,1:nlev)
-    qp => b2(:,:,nlev+1:2*nlev)
-    hp => b2(:,:,2*nlev+1:3*nlev)
-    up => d2(:,:,1:nlev)
-    vp => d2(:,:,nlev+1:2*nlev)
-    t3 => b3(:,:,1:nlev)
-    q3 => b3(:,:,nlev+1:2*nlev)
-    h3 => b3(:,:,2*nlev+1:3*nlev)
-    u3 => d3(:,:,1:nlev)
-    v3 => d3(:,:,nlev+1:2*nlev)
-  end subroutine headerfv
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_fvgcm
 
 end module mod_fvgcm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

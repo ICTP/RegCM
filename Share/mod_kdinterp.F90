@@ -102,7 +102,6 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
-    x = x * erkm
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     deallocate(x)
     if ( present(roi) ) then
@@ -117,7 +116,6 @@ module mod_kdinterp
     do i = 1 , ni
       do j = 1 , nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
-        p = p * erkm
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
           allocate(results(minp))
@@ -133,7 +131,7 @@ module mod_kdinterp
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
           rx = sqrt(results(n)%dis) / ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
@@ -167,7 +165,6 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
-    x = x * erkm
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     deallocate(x)
     if ( present(roi) ) then
@@ -183,7 +180,6 @@ module mod_kdinterp
     do i = 1 , ni
       do j = 1 , nj
         call ll2xyz(tlat(i),tlon(j),p)
-        p = p * erkm
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
           allocate(results(minp))
@@ -199,7 +195,7 @@ module mod_kdinterp
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
           rx = sqrt(results(n)%dis) / ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
@@ -239,7 +235,6 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
-    x = x * erkm
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     deallocate(x)
     if ( present(roi) ) then
@@ -254,7 +249,6 @@ module mod_kdinterp
     do i = 1 , ni
       do j = 1 , nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
-        p = p * erkm
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
           allocate(results(minp))
@@ -270,7 +264,7 @@ module mod_kdinterp
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
           rx = sqrt(results(n)%dis) / ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
@@ -307,7 +301,6 @@ module mod_kdinterp
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
-    x = x * erkm
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     deallocate(x)
     if ( present(roi) ) then
@@ -323,7 +316,6 @@ module mod_kdinterp
     do i = 1 , ni
       do j = 1 , nj
         call ll2xyz(tlat(i),tlon(j),p)
-        p = p * erkm
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
           allocate(results(minp))
@@ -339,7 +331,7 @@ module mod_kdinterp
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
           rx = sqrt(results(n)%dis) / ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do

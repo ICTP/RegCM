@@ -417,7 +417,7 @@ module mod_nhinterp
           im = max(i-1,i1)
           if ( iband /= 1 ) then
             jp = min(j+1,j2)
-            jm = min(j-1,j1)
+            jm = max(j-1,j1)
           else
             if ( j == j2-1 ) then
               jp = j2

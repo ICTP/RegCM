@@ -30,7 +30,7 @@ module mod_rdldtr
 
   private
 
-  public :: read_ncglob , longitude_circle
+  public :: read_ncglob
 
   real(rkx) , allocatable , dimension(:) :: glat
   real(rkx) , allocatable , dimension(:) :: glon
@@ -683,12 +683,6 @@ module mod_rdldtr
       marker = left
     end if
   end subroutine partition
-
-  real(rkx) function longitude_circle(lat) result(er)
-    implicit none
-    real(rkx) , intent(in) :: lat
-    er = d_two * mathpi * erkm * cos(lat*degrad)
-  end function longitude_circle
 
 end module mod_rdldtr
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

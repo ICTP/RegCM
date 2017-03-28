@@ -26,7 +26,7 @@ module mod_eh5om
   use mod_grid
   use mod_memutil
   use mod_write
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_hgt
   use mod_humid
@@ -56,11 +56,13 @@ module mod_eh5om
   real(rkx) , dimension(klev) :: sigma1 , sigmar
   real(rkx) , parameter :: pss = 100.0_rkx
 
-  public :: geteh5om , headermpi
+  type(h_interpolator) :: cross_hint , dot_hint
+
+  public :: get_eh5om , init_eh5om , conclude_eh5om
 
   contains
 
-  subroutine geteh5om(idate)
+  subroutine get_eh5om(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=3) , dimension(12) :: chmon
@@ -111,10 +113,10 @@ module mod_eh5om
 
     if ( dattyp(1:2) == 'EH' ) then
       if ( idate < 1941010106 ) then
-        call die('geteh5om','EH dataset is only available from 1941010106',1)
+        call die('get_eh5om','EH dataset is only available from 1941010106',1)
       end if
       if ( idate >= 2101010100 ) then
-        call die('geteh5om','EH dataset is only available up to 2100123118',1)
+        call die('get_eh5om','EH dataset is only available up to 2100123118',1)
       end if
     end if
     if (abs(lon1-lon0) < 1D-30 .and. abs(lat1-lat0) < 1D-30) then
@@ -192,7 +194,7 @@ module mod_eh5om
 
     inquire (file=trim(inpglob)//'/EH5OM/'//finm,exist=there)
     if ( .not.there ) then
-      call die('geteh5om',trim(inpglob)//'/EH5OM/'//finm// &
+      call die('get_eh5om',trim(inpglob)//'/EH5OM/'//finm// &
                ' is not available',1)
     end if
     inquire(iolength=iehlen) offset , xscale , itmp
@@ -308,8 +310,8 @@ module mod_eh5om
     close (63)
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
 
-    call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-    call bilinx(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
 
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
 
@@ -336,9 +338,9 @@ module mod_eh5om
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-  end subroutine geteh5om
+  end subroutine get_eh5om
 
-  subroutine headermpi
+  subroutine init_eh5om
     implicit none
     integer(ik4) :: i , k , kr
 
@@ -469,6 +471,9 @@ module mod_eh5om
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_eh5om:b3')
     call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_eh5om:d3')
 
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
+
     u3 => d3(:,:,1:klev)
     v3 => d3(:,:,klev+1:2*klev)
     t3 => b3(:,:,1:klev)
@@ -480,7 +485,13 @@ module mod_eh5om
     hvar => b2(:,:,klev+1:2*klev)
     rhvar => b2(:,:,2*klev+1:3*klev)
 
-  end subroutine headermpi
+  end subroutine init_eh5om
+
+  subroutine conclude_eh5om
+    implicit none
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_eh5om
 
 end module mod_eh5om
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

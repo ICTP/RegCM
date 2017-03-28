@@ -26,7 +26,7 @@ module mod_era40
   use mod_memutil
   use mod_grid
   use mod_write
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_hgt
   use mod_humid
@@ -43,10 +43,8 @@ module mod_era40
 
   real(rkx) , target , dimension(ilon,jlat,klev*3) :: b2
   real(rkx) , target , dimension(ilon,jlat,klev*2) :: d2
-  real(rkx) , target , dimension(ilon,jlat,4*3+1) :: s2
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
-  real(rkx) , pointer , dimension(:,:,:) :: s3
 
   real(rkx) , dimension(ilon,jlat,klev) :: wvar
 
@@ -54,21 +52,84 @@ module mod_era40
   real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
   real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
   real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
-  real(rkx) , pointer , dimension(:,:,:) :: qsoil , tsice , tsoil
-  real(rkx) , pointer , dimension(:,:) :: snw
-  real(rkx) , pointer , dimension(:,:,:) :: qs3 , ti3 , ts3
-  real(rkx) , pointer , dimension(:,:) :: snow
 
   real(rkx) , dimension(jlat) :: glat
   real(rkx) , dimension(ilon) :: glon
   real(rkx) , dimension(klev) :: sigma1 , sigmar
   real(rkx) , parameter :: pss = 100.0_rkx
 
-  public :: getera40 , headerera
+  type(h_interpolator) :: cross_hint , dot_hint
+
+  public :: get_era40 , init_era40 , conclude_era40
 
   contains
 
-  subroutine getera40(idate)
+  subroutine init_era40
+    implicit none
+    integer(ik4) :: i , j , k , kr
+
+    sigmar(1) = .001
+    sigmar(2) = .002
+    sigmar(3) = .003
+    sigmar(4) = .005
+    sigmar(5) = .007
+    sigmar(6) = .01
+    sigmar(7) = .02
+    sigmar(8) = .03
+    sigmar(9) = .05
+    sigmar(10) = .07
+    sigmar(11) = .1
+    sigmar(12) = .15
+    sigmar(13) = .2
+    sigmar(14) = .25
+    sigmar(15) = .3
+    sigmar(16) = .4
+    sigmar(17) = .5
+    sigmar(18) = .6
+    sigmar(19) = .7
+    sigmar(20) = .775
+    sigmar(21) = .85
+    sigmar(22) = .925
+    sigmar(23) = 1.00
+    !
+    ! Initial global grid-point longitude & latitude
+    !
+    do i = 1 , ilon
+      glon(i) = float(i-1)*2.5
+    end do
+    do j = 1 , jlat
+      glat(j) = -90.0 + float(j-1)*2.5
+    end do
+    !
+    ! Change order of vertical indexes for pressure levels
+    !
+    do k = 1 , klev
+      kr = klev - k + 1
+      sigma1(k) = sigmar(kr)
+    end do
+
+    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_era40:b3')
+    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_era40:d3')
+
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
+
+    ! Set up pointers
+
+    u3 => d3(:,:,1:klev)
+    v3 => d3(:,:,klev+1:2*klev)
+    t3 => b3(:,:,1:klev)
+    h3 => b3(:,:,klev+1:2*klev)
+    q3 => b3(:,:,2*klev+1:3*klev)
+    uvar => d2(:,:,1:klev)
+    vvar => d2(:,:,klev+1:2*klev)
+    tvar => b2(:,:,1:klev)
+    hvar => b2(:,:,klev+1:2*klev)
+    rhvar => b2(:,:,2*klev+1:3*klev)
+
+  end subroutine init_era40
+
+  subroutine get_era40(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
 
@@ -77,8 +138,8 @@ module mod_era40
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-    call bilinx(d3,d2,dlon,dlat,glon,glat,ilon,jlat,jx,iy,klev*2)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -114,7 +175,7 @@ module mod_era40
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-  end subroutine getera40
+  end subroutine get_era40
 
   subroutine era6hour(dattyp,idate,idate0)
     implicit none
@@ -329,76 +390,11 @@ module mod_era40
 
   end subroutine era6hour
 
-  subroutine headerera
+  subroutine conclude_era40
     implicit none
-    integer(ik4) :: i , j , k , kr
-
-    sigmar(1) = .001
-    sigmar(2) = .002
-    sigmar(3) = .003
-    sigmar(4) = .005
-    sigmar(5) = .007
-    sigmar(6) = .01
-    sigmar(7) = .02
-    sigmar(8) = .03
-    sigmar(9) = .05
-    sigmar(10) = .07
-    sigmar(11) = .1
-    sigmar(12) = .15
-    sigmar(13) = .2
-    sigmar(14) = .25
-    sigmar(15) = .3
-    sigmar(16) = .4
-    sigmar(17) = .5
-    sigmar(18) = .6
-    sigmar(19) = .7
-    sigmar(20) = .775
-    sigmar(21) = .85
-    sigmar(22) = .925
-    sigmar(23) = 1.00
-    !
-    ! Initial global grid-point longitude & latitude
-    !
-    do i = 1 , ilon
-      glon(i) = float(i-1)*2.5
-    end do
-    do j = 1 , jlat
-      glat(j) = -90.0 + float(j-1)*2.5
-    end do
-    !
-    ! Change order of vertical indexes for pressure levels
-    !
-    do k = 1 , klev
-      kr = klev - k + 1
-      sigma1(k) = sigmar(kr)
-    end do
-
-    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_era40:b3')
-    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_era40:d3')
-    call getmem3d(s3,1,jx,1,iy,1,4*3+1,'mod_era40:s3')
-
-    ! Set up pointers
-
-    u3 => d3(:,:,1:klev)
-    v3 => d3(:,:,klev+1:2*klev)
-    t3 => b3(:,:,1:klev)
-    h3 => b3(:,:,klev+1:2*klev)
-    q3 => b3(:,:,2*klev+1:3*klev)
-    qs3 => s3(:,:,1:4)
-    ti3 => s3(:,:,5:8)
-    ts3 => s3(:,:,9:12)
-    snow => s3(:,:,13)
-    uvar => d2(:,:,1:klev)
-    vvar => d2(:,:,klev+1:2*klev)
-    tvar => b2(:,:,1:klev)
-    hvar => b2(:,:,klev+1:2*klev)
-    rhvar => b2(:,:,2*klev+1:3*klev)
-    qsoil => s2(:,:,1:4)
-    tsice => s2(:,:,5:8)
-    tsoil => s2(:,:,9:12)
-    snw => s2(:,:,13)
-
-  end subroutine headerera
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_era40
 
 end module mod_era40
 

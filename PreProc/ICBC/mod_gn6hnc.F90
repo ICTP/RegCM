@@ -34,7 +34,7 @@ module mod_gn6hnc
   use mod_constants
   use mod_grid
   use mod_write
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_hgt
   use mod_humid
@@ -54,6 +54,8 @@ module mod_gn6hnc
   use mod_mpiesm_helper
 
   private
+
+  public :: get_gn6hnc , init_gn6hnc , conclude_gn6hnc
 
   ! Dimension of input read from input files
   integer(ik4) :: nlon , nlat , nulon , nvlat , klev
@@ -91,10 +93,7 @@ module mod_gn6hnc
   real(rkx) :: p0
   real(rkx) , pointer , dimension(:,:) :: psvar , zsvar ! , pmslvar
   real(rkx) , pointer , dimension(:) :: ak , bk
-  real(rkx) , pointer , dimension(:) :: glat , gltemp , uglon
-  real(rkx) , pointer , dimension(:) :: glon , vglat
-  real(rkx) , pointer , dimension(:,:) :: glat2
-  real(rkx) , pointer , dimension(:,:) :: glon2
+  real(rkx) , pointer , dimension(:) :: glat , glon , gltemp
   real(rkx) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
                                            uvar , vvar , pp3d , vwork
   integer(ik4) :: timlen , pstimlen
@@ -110,11 +109,11 @@ module mod_gn6hnc
   integer(ik4) , dimension(nvars) :: inet
   integer(ik4) , dimension(nvars) :: ivar
 
-  public :: get_gn6hnc , headgn6hnc
-
   character(len=256) :: pathaddname
   type(rcm_time_and_date) , save :: refdate
   type(rcm_time_and_date) , save :: filedate
+
+  type(h_interpolator) :: cross_hint , dot_hint
 
   data inet /nvars*-1/
 
@@ -150,7 +149,7 @@ module mod_gn6hnc
 
   contains
 
-  subroutine headgn6hnc
+  subroutine init_gn6hnc
     use netcdf
     implicit none
     integer(ik4) :: istatus , ivar1 , inet1 , inet2 , inet3 , jdim , i , j , k
@@ -235,6 +234,7 @@ module mod_gn6hnc
 
     call getmem1d(glat,1,nlat,'mod_gn6hnc:glat')
     call getmem1d(glon,1,nlon,'mod_gn6hnc:glon')
+
     if ( dattyp(1:2) == 'HA' ) then
       call find_hadgem_ufile(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
@@ -246,6 +246,9 @@ module mod_gn6hnc
       istatus = nf90_inquire_dimension(inet2,jdim,len=nulon)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error inquire lon dim')
+      istatus = nf90_close(inet2)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close ua file')
       call find_hadgem_vfile(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet3)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -256,8 +259,9 @@ module mod_gn6hnc
       istatus = nf90_inquire_dimension(inet3,jdim,len=nvlat)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error inquire lat dim')
-      call getmem1d(vglat,1,nvlat,'mod_gn6hnc:vglat')
-      call getmem1d(uglon,1,nulon,'mod_gn6hnc:uglon')
+      istatus = nf90_close(inet3)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close va file')
     end if
 
     call getmem2d(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
@@ -316,24 +320,6 @@ module mod_gn6hnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read lon var')
     if ( dattyp(1:2) == 'HA' ) then
-      istatus = nf90_inq_varid(inet2,'lon',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find lon var')
-      istatus = nf90_get_var(inet2,ivar1,uglon)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read lon var')
-      istatus = nf90_inq_varid(inet3,'lat',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find lat var')
-      istatus = nf90_get_var(inet3,ivar1,vglat)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read lat var')
-      istatus = nf90_close(inet2)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error close ua file')
-      istatus = nf90_close(inet3)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error close va file')
       call getmem3d(ha_d2_1,1,nulon,1,nlat,1,klev,'mod_gn6hnc:ha_d2_1')
       call getmem3d(ha_d2_2,1,nlon,1,nvlat,1,klev,'mod_gn6hnc:ha_d2_2')
     end if
@@ -439,14 +425,6 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp(1:3) == 'MP_' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -476,14 +454,6 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp(1:3) == 'CA_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -512,14 +482,6 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp(1:3) == 'IP_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -548,14 +510,6 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp(1:3) == 'GF_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -591,14 +545,6 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp(1:3) == 'MI_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -634,14 +580,6 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp(1:3) == 'CN_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -677,14 +615,6 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp(1:3) == 'CS_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -720,14 +650,6 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     else if ( dattyp == 'GFS11' ) then
       npl = klev ! Data are on pressure levels
       call getmem1d(pplev,1,klev,'mod_gn6hnc:pplev')
@@ -765,19 +687,14 @@ module mod_gn6hnc
                       'Error read geo var')
       ! Transform geopotential to elevation
       zsvar(:,:) = zsvar(:,:)/real(egrav)
-      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
-      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
-      do j = 1 , nlon
-        glat2(j,:) = glat(:)
-      end do
-      do i = 1 , nlat
-        glon2(:,i) = glon(:)
-      end do
     end if
 
     istatus = nf90_close(inet1)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error close file '//trim(pathaddname))
+
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
 
     call getmem1d(sigmar,1,npl,'mod_gn6hnc:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
@@ -860,10 +777,8 @@ module mod_gn6hnc
 
     write (stdout,*) 'Read in Static fields OK'
 
-  end subroutine headgn6hnc
-  !
-  !-----------------------------------------------------------------------
-  !
+  end subroutine init_gn6hnc
+
   subroutine get_gn6hnc(idate)
     use netcdf
     implicit none
@@ -925,17 +840,9 @@ module mod_gn6hnc
     end if
 
     ! Horizontal interpolation on RegCM grid
-    if ( dattyp(1:3) /= 'MP_' .and. dattyp(1:3) /= 'CA_' .and. &
-         dattyp(1:3) /= 'CN_' .and. dattyp(1:3) /= 'CS_' .and. &
-         dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
-         dattyp(1:3) /= 'EC_' .and. dattyp(1:3) /= 'MI_' .and. &
-         dattyp(1:2) /= 'E5' ) then
-      call bilinx(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
-      call bilinx(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
-    else ! Gaussian grid
-      call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,nlon,nlat,npl,3)
-      call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,nlon,nlat,npl,2)
-    end if
+
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
 
     ! Rotate winds
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
@@ -1801,6 +1708,12 @@ module mod_gn6hnc
 99006   format (a,a,i0.4,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,i0.2,a)
 
   end subroutine readgn6hnc
+
+  subroutine conclude_gn6hnc
+    implicit none
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_gn6hnc
 
 end module mod_gn6hnc
 
