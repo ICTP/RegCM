@@ -226,7 +226,7 @@ program icbc
     call headerera
   else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
             dattyp == 'EIXXX' ) then
-    call headerein
+    call init_ein
   else if ( dattyp(1:3) == 'ECE' ) then
     call headerecens
   else if ( dattyp == 'GFS11' ) then
@@ -272,7 +272,7 @@ program icbc
       call getera40(idate)
     else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
               dattyp == 'EIXXX' ) then
-      call getein(idate)
+      call get_ein(idate)
     else if ( dattyp == 'GFS11' ) then
       call get_gn6hnc(idate)
     else if ( dattyp == 'ERAHI' ) then
@@ -294,6 +294,7 @@ program icbc
               dattyp(1:3) == 'MI_' .or. dattyp(1:2) == 'E5' ) then
       call get_gn6hnc(idate)
     end if
+
     call writef(idate)
 
     iodate = idate
@@ -303,6 +304,11 @@ program icbc
 
   call close_output
   call closesst
+
+  if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
+       dattyp == 'EIXXX' ) then
+    call conclude_ein
+  end if
 
   call dispose_output
   call memory_destroy

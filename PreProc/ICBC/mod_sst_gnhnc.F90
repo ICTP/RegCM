@@ -25,7 +25,8 @@ module mod_sst_gnhnc
   use mod_dynparam
   use mod_memutil
   use mod_sst_grid
-  use mod_interp
+  use mod_earth
+  use mod_kdinterp
   use mod_message
   use mod_nchelper
   use mod_ccsm3_helper
@@ -54,6 +55,7 @@ module mod_sst_gnhnc
   character(len=256) :: inpfile
   character(len=8), dimension(2) :: varname
   type(global_domain) :: gdomain
+  type(h_interpolator) :: hint
 
   data varname/'time', 'TOBESET'/
 
@@ -73,8 +75,6 @@ module mod_sst_gnhnc
     real(rkx) , pointer , dimension(:) :: glat
     real(rkx) , pointer , dimension(:) :: glon
     real(rkx) , pointer , dimension(:) :: grev
-    real(rkx) , pointer , dimension(:,:) :: glat2
-    real(rkx) , pointer , dimension(:,:) :: glon2
     type(rcm_time_and_date) :: idate , idatef , idateo
     type(rcm_time_interval) :: tdif
     integer(ik4) :: i , j , k , nsteps , latid , lonid
@@ -186,14 +186,8 @@ module mod_sst_gnhnc
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
     end if
-    call getmem2d(glat2,1,ilon,1,jlat,'mod_gnhnc_sst:glat2')
-    call getmem2d(glon2,1,ilon,1,jlat,'mod_gnhnc_sst:glon2')
-    do i = 1 , ilon
-      glat2(i,:) = glat(:)
-    end do
-    do j = 1 , jlat
-      glon2(:,j) = glon(:)
-    end do
+
+    call h_interpolator_create(hint,glat,glon,xlat,xlon,ds)
 
     call getmem2d(work2,1,ilon,1,jlat,'mod_gnhnc_sst:work2')
     call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
@@ -244,15 +238,14 @@ module mod_sst_gnhnc
     tdif = 6*3600
     do k = 1 , nsteps
       call gnhnc_sst(idate)
-      if ( ssttyp(1:3) == 'CFS' .or. ssttyp(1:3) == 'EIN' ) then
-        call bilinx(sstmm,sst,xlon,xlat,glon,glat,ilon,jlat,jx,iy)
-      else
-        call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
-      end if
+      call h_interpolate_cont(hint,sst,sstmm)
       call writerec(idate)
       write (stdout,*) 'WRITEN OUT SST DATA : ' , tochar(idate)
       idate = idate + tdif
     end do
+
+    call h_interpolator_destroy(hint)
+
   end subroutine sst_gnhnc
   !
   !     Subroutine to read required records from SST data file

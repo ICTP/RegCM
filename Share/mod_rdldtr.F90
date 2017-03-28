@@ -26,7 +26,7 @@ module mod_rdldtr
   use mod_memutil
   use mod_nchelper
   use mod_message
-  use mod_interp
+  use mod_earth
 
   private
 

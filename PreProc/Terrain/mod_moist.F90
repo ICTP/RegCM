@@ -22,7 +22,6 @@ module mod_moist
   use mod_intkinds
   use mod_realkinds
   use mod_constants
-  use mod_interp
   use mod_stdio
   use netcdf
 

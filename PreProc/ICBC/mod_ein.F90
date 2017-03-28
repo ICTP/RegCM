@@ -26,8 +26,8 @@ module mod_ein
   use mod_memutil
   use mod_grid
   use mod_write
-  use mod_interp
   use mod_vertint
+  use mod_earth
   use mod_hgt
   use mod_humid
   use mod_mksst
@@ -35,6 +35,7 @@ module mod_ein
   use mod_vectutil
   use mod_message
   use mod_nchelper
+  use mod_kdinterp
   use netcdf
 
   private
@@ -54,8 +55,6 @@ module mod_ein
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
-  !real(rkx) , pointer , dimension(:,:) :: glat2
-  !real(rkx) , pointer , dimension(:,:) :: glon2
   integer(ik4) , pointer , dimension(:) :: plevs
   real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
   real(rkx) :: pss
@@ -69,12 +68,144 @@ module mod_ein
   logical :: lqas = .false.
 
   type(global_domain) :: gdomain
+  type(h_interpolator) :: cross_hint , dot_hint
 
-  public :: getein , headerein
+  public :: init_ein , get_ein , conclude_ein
 
   contains
 
-  subroutine getein(idate)
+  subroutine init_ein
+    implicit none
+    integer(ik4) :: k , kr
+    integer(ik4) :: year , month , monthp1 , day , hour
+    character(len=256) :: pathaddname
+    integer(ik4) :: istatus , ncid , ivarid , idimid
+    character(len=64) :: inname
+
+    call split_idate(globidate1,year,month,day,hour)
+    if ( dattyp == 'EIXXX' ) then
+      monthp1 = month+1
+      if ( monthp1 == 13 ) monthp1 = 1
+      write(inname,'(a,i0.2,a,i0.2,a)') &
+         't_xxxx',month,'0100-xxxx',monthp1,'0100.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERAIN_MEAN'//&
+          pthsep//'XXXX'//pthsep//inname
+      istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open file '//trim(pathaddname))
+    else
+      write(inname,'(i4,a,a,i4,a)') &
+        year, pthsep, 'air.', year, '.00.nc'
+      pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
+      istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open file '//trim(pathaddname))
+    end if
+    istatus = nf90_inq_dimid(ncid,'latitude',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Missing latitude dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=jlat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading latitude dimelen in file '//trim(pathaddname))
+    istatus = nf90_inq_dimid(ncid,'longitude',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing longitude dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=ilon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading longitude dimelen in file '//trim(pathaddname))
+    istatus = nf90_inq_dimid(ncid,'levelist',idimid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(ncid,'level',idimid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+            'Missing level/levelist dimension in file '//trim(pathaddname))
+    end if
+    istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading levelist dimelen in file '//trim(pathaddname))
+    !
+    ! Allocate working space
+    !
+    call getmem1d(plevs,1,klev,'mod_ein:plevs')
+    call getmem1d(glat,1,jlat,'mod_ein:glat')
+    call getmem1d(glon,1,ilon,'mod_ein:glon')
+    call getmem1d(grev,1,max(jlat,ilon),'mod_ein:grev')
+    call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
+    call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
+    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
+    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
+
+    istatus = nf90_inq_varid(ncid,'latitude',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing latitude variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,glat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading latitude variable in file '//trim(pathaddname))
+    istatus = nf90_inq_varid(ncid,'longitude',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing longitude variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,glon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading longitude variable in file '//trim(pathaddname))
+    istatus = nf90_inq_varid(ncid,'levelist',ivarid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(ncid,'level',ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+            'Missing level/levelist variable in file '//trim(pathaddname))
+    end if
+    istatus = nf90_get_var(ncid,ivarid,plevs)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading levelist variable in file '//trim(pathaddname))
+    istatus = nf90_close(ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error close file '//trim(pathaddname))
+    sigmar(:) = real(plevs(:),rkx)/plevs(klev)
+    pss = plevs(klev)/10.0_rkx ! mb -> cb
+    !
+    ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
+    !
+    do k = 1 , klev
+      kr = klev - k + 1
+      sigma1(k) = sigmar(kr)
+    end do
+    !
+    ! Find window to read
+    !
+    call get_window(glat,glon,xlat,xlon,i_band,gdomain)
+
+    grev(1:jlat) = glat
+    jlat = gdomain%nj
+    call getmem1d(glat,1,jlat,'mod_ein:glat')
+    glat = grev(gdomain%jgstart:gdomain%jgstop)
+    grev(1:ilon) = glon
+    ilon = sum(gdomain%ni)
+    call getmem1d(glon,1,ilon,'mod_ein:glon')
+    glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
+    if ( gdomain%ntiles == 2 ) then
+      glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
+    end if
+
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
+
+    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
+    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
+    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
+    !
+    ! Set up pointers
+    !
+    u3 => d3(:,:,1:klev)
+    v3 => d3(:,:,klev+1:2*klev)
+    t3 => b3(:,:,1:klev)
+    h3 => b3(:,:,klev+1:2*klev)
+    q3 => b3(:,:,2*klev+1:3*klev)
+    uvar => d2(:,:,1:klev)
+    vvar => d2(:,:,klev+1:2*klev)
+    tvar => b2(:,:,1:klev)
+    hvar => b2(:,:,klev+1:2*klev)
+    qvar => b2(:,:,2*klev+1:3*klev)
+  end subroutine init_ein
+
+  subroutine get_ein(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     !
@@ -85,10 +216,8 @@ module mod_ein
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
-    call bilinx(b3,b2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*3)
-    call bilinx(d3,d2,xlon,xlat,glon,glat,ilon,jlat,jx,iy,klev*2)
-    !call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat,klev,3)
-    !call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,ilon,jlat,klev,2)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    call h_interpolate_cont(dot_hint,d2,d3)
     !
     ! Rotate u-v fields after horizontal interpolation
     !
@@ -128,10 +257,8 @@ module mod_ein
       ! Get from RHUM to mixing ratio
       call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
     end if
-  end subroutine getein
-!
-!-----------------------------------------------------------------------
-!
+  end subroutine get_ein
+
   subroutine ein6hour(dattyp,idate,idate0)
     implicit none
     character(len=5) , intent(in) :: dattyp
@@ -371,143 +498,11 @@ module mod_ein
       end subroutine getwork
   end subroutine ein6hour
 
-  subroutine headerein
+  subroutine conclude_ein
     implicit none
-    integer(ik4) :: k , kr
-    integer(ik4) :: year , month , monthp1 , day , hour
-    character(len=256) :: pathaddname
-    integer(ik4) :: istatus , ncid , ivarid , idimid
-    character(len=64) :: inname
-
-    call split_idate(globidate1,year,month,day,hour)
-    if ( dattyp == 'EIXXX' ) then
-      monthp1 = month+1
-      if ( monthp1 == 13 ) monthp1 = 1
-      write(inname,'(a,i0.2,a,i0.2,a)') &
-         't_xxxx',month,'0100-xxxx',monthp1,'0100.nc'
-      pathaddname = trim(inpglob)//pthsep//'ERAIN_MEAN'//&
-          pthsep//'XXXX'//pthsep//inname
-      istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error open file '//trim(pathaddname))
-    else
-      write(inname,'(i4,a,a,i4,a)') &
-        year, pthsep, 'air.', year, '.00.nc'
-      pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
-      istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error open file '//trim(pathaddname))
-    end if
-    istatus = nf90_inq_dimid(ncid,'latitude',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Missing latitude dimension in file '//trim(pathaddname))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=jlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading latitude dimelen in file '//trim(pathaddname))
-    istatus = nf90_inq_dimid(ncid,'longitude',idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing longitude dimension in file '//trim(pathaddname))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=ilon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading longitude dimelen in file '//trim(pathaddname))
-    istatus = nf90_inq_dimid(ncid,'levelist',idimid)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_dimid(ncid,'level',idimid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-            'Missing level/levelist dimension in file '//trim(pathaddname))
-    end if
-    istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading levelist dimelen in file '//trim(pathaddname))
-    !
-    ! Allocate working space
-    !
-    call getmem1d(plevs,1,klev,'mod_ein:plevs')
-    call getmem1d(glat,1,jlat,'mod_ein:glat')
-    call getmem1d(glon,1,ilon,'mod_ein:glon')
-    call getmem1d(grev,1,max(jlat,ilon),'mod_ein:grev')
-    call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
-    call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
-    call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
-    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
-
-    istatus = nf90_inq_varid(ncid,'latitude',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing latitude variable in file '//trim(pathaddname))
-    istatus = nf90_get_var(ncid,ivarid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading latitude variable in file '//trim(pathaddname))
-    istatus = nf90_inq_varid(ncid,'longitude',ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Missing longitude variable in file '//trim(pathaddname))
-    istatus = nf90_get_var(ncid,ivarid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading longitude variable in file '//trim(pathaddname))
-    istatus = nf90_inq_varid(ncid,'levelist',ivarid)
-    if ( istatus /= nf90_noerr ) then
-      istatus = nf90_inq_varid(ncid,'level',ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-            'Missing level/levelist variable in file '//trim(pathaddname))
-    end if
-    istatus = nf90_get_var(ncid,ivarid,plevs)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error reading levelist variable in file '//trim(pathaddname))
-    istatus = nf90_close(ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Error close file '//trim(pathaddname))
-    sigmar(:) = real(plevs(:),rkx)/plevs(klev)
-    pss = plevs(klev)/10.0_rkx ! mb -> cb
-    !
-    ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
-    !
-    do k = 1 , klev
-      kr = klev - k + 1
-      sigma1(k) = sigmar(kr)
-    end do
-    !
-    ! Find window to read
-    !
-    call get_window(glat,glon,xlat,xlon,i_band,gdomain)
-
-    grev(1:jlat) = glat
-    jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_ein:glat')
-    glat = grev(gdomain%jgstart:gdomain%jgstop)
-    grev(1:ilon) = glon
-    ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_ein:glon')
-    glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
-    if ( gdomain%ntiles == 2 ) then
-      glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
-    end if
-
-    !call getmem2d(glat2,1,ilon,1,jlat,'mod_ein:glat2')
-    !call getmem2d(glon2,1,ilon,1,jlat,'mod_ein:glon2')
-
-    !do i = 1 , ilon
-    !  glat2(i,:) = glat
-    !end do
-    !do j = 1 , jlat
-    !  glon2(:,j) = glon
-    !end do
-
-    call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
-    call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
-    call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
-    !
-    ! Set up pointers
-    !
-    u3 => d3(:,:,1:klev)
-    v3 => d3(:,:,klev+1:2*klev)
-    t3 => b3(:,:,1:klev)
-    h3 => b3(:,:,klev+1:2*klev)
-    q3 => b3(:,:,2*klev+1:3*klev)
-    uvar => d2(:,:,1:klev)
-    vvar => d2(:,:,klev+1:2*klev)
-    tvar => b2(:,:,1:klev)
-    hvar => b2(:,:,klev+1:2*klev)
-    qvar => b2(:,:,2*klev+1:3*klev)
-  end subroutine headerein
+    call h_interpolator_destroy(cross_hint)
+    call h_interpolator_destroy(dot_hint)
+  end subroutine conclude_ein
 
 end module mod_ein
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -49,6 +49,9 @@ module mod_kdinterp
 
   integer(ik4) , parameter :: minp = 5
 
+  real(rkx) , parameter :: missl = -9999.0_rkx
+  real(rkx) , parameter :: missc = -9990.0_rkx
+
   type pwgt
     integer(ik4) :: i , j
     real(rkx) :: wgt
@@ -386,13 +389,19 @@ module mod_kdinterp
         do n = 1 , h_i%tg%ft(j,i)%np
           si = h_i%tg%ft(j,i)%wgt(n)%i
           sj = h_i%tg%ft(j,i)%wgt(n)%j
-          gsum = gsum + g(sj,si) * h_i%tg%ft(j,i)%wgt(n)%wgt
-          gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
+          if ( g(sj,si) > missc ) then
+            gsum = gsum + g(sj,si) * h_i%tg%ft(j,i)%wgt(n)%wgt
+            gwgt = gwgt + h_i%tg%ft(j,i)%wgt(n)%wgt
+          end if
         end do
-        f(j,i) = gsum / gwgt
+        if ( gwgt > d_zero ) then
+          f(j,i) = gsum / gwgt
+        else
+          f(j,i) = missl
+        end if
       end do
     end do
-    call smtdsmt(f)
+    if ( all(f > missc) ) call smtdsmt(f)
   end subroutine interp_2d
 
   subroutine interp_3d(h_i,g,f)
