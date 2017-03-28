@@ -389,18 +389,6 @@ module mod_output
                              ngs%statscond1c(jci1:jci2,ici1:ici2,k)
             end do
           end if
-          if ( associated(atm_stats_con2w_out) ) then
-            do k = 1 , kz
-              atm_stats_con2w_out(:,:,k) = &
-                             ngs%statscond2w(jci1:jci2,ici1:ici2,k)
-            end do
-          end if
-          if ( associated(atm_stats_con2c_out) ) then
-            do k = 1 , kz
-              atm_stats_con2c_out(:,:,k) = &
-                             ngs%statscond2c(jci1:jci2,ici1:ici2,k)
-            end do
-          end if
           if ( associated(atm_stats_dep_out) ) then
             do k = 1 , kz
               atm_stats_dep_out(:,:,k) = ngs%statsdepos(jci1:jci2,ici1:ici2,k)
