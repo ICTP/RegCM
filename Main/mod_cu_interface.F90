@@ -56,7 +56,7 @@ module mod_cu_interface
 
   public :: allocate_cumulus
   public :: init_cumulus
-  public :: cumulus
+  public :: cumulus , shallow_convection
 
   public :: lutbl
 
@@ -285,8 +285,6 @@ module mod_cu_interface
             case (6)
               call kfdrv(m2c)
               kfwavg(:,:,:) = d_zero
-            case (7)
-              call shallcu(m2c)
           end select
         else
           select case ( icup_lnd )
@@ -316,6 +314,7 @@ module mod_cu_interface
         call model_cumulus_cloud(m2c)
 
       end if
+
 
       ! Sum cumulus tendencies
 
@@ -401,6 +400,50 @@ module mod_cu_interface
     end if ! ktau > 0
 
   end subroutine cumulus
+
+  subroutine shallow_convection
+    use mod_atm_interface , only : aten
+    implicit none
+    integer(ik4) :: i , j , k
+
+    if ( ktau > 0 ) then
+
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_tten(j,i,k) = aten%t(j,i,k,pc_total)/m2c%psb(j,i)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_qten(j,i,k,iqv) = aten%qx(j,i,k,iqv,pc_total) / m2c%psb(j,i)
+          end do
+        end do
+      end do
+
+      call shallcu(m2c)
+
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
+                        cu_tten(j,i,k) * m2c%psb(j,i)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
+                        cu_qten(j,i,k,iqv) * m2c%psb(j,i)
+          end do
+        end do
+      end do
+
+    end if ! ktau > 0
+  end subroutine shallow_convection
 
 end module mod_cu_interface
 

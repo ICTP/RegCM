@@ -1169,7 +1169,7 @@ module mod_ncout
             'surface_downwelling_shortwave_flux_in_air',.true.,'time: mean')
           srf_sina_out => v2dvar_srf(srf_sina)%rval
         end if
-        if ( any(icup > 0) .and. all(icup < 7) ) then
+        if ( all(icup > 0) ) then
           if ( enable_srf2d_vars(srf_prcv) ) then
             call setup_var(v2dvar_srf,srf_prcv,vsize,'prc','kg m-2 s-1', &
               'Convective precipitation flux','convective_rainfall_flux', &
@@ -2598,10 +2598,18 @@ module mod_ncout
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('cumulus_convection_scheme_lnd',icup_lnd))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('cumulus_convection_scheme_ocn',icup_ocn))
+        if ( all(icup > 0) ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('cumulus_convection_scheme_lnd',icup_lnd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('cumulus_convection_scheme_ocn',icup_ocn))
+        else if ( all(icup < 0) ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('shallow_cumulus_scheme_active',.true.))
+        else
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('cumulus_parametrization_disabled',.true.))
+        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('moisture_scheme',ipptls))
         call outstream_addatt(outstream(i)%ncout(j), &

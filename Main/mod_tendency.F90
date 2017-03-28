@@ -327,6 +327,22 @@ module mod_tendency
         end do
       end do
     end if
+
+    if ( any(icup < 0) ) then
+      if ( idiag > 0 ) then
+        ten0 = tten
+        qen0 = qxten(:,:,:,idgq)
+      end if
+      call shallow_convection
+#ifdef DEBUG
+      call check_temperature_tendency('CONV',pc_total)
+#endif
+      if ( idiag > 0 ) then
+        call ten2diag(aten%t,tdiag%con,pc_total,ten0)
+        call ten2diag(aten%qx,qdiag%con,pc_total,qen0)
+      end if
+    end if
+
     if ( ipptls > 0 ) then
       do n = iqfrst , iqlst
         do k = 1 , kz
@@ -1804,28 +1820,30 @@ module mod_tendency
       !        Call cumulus parametrization
       !------------------------------------------------
       !
-      if ( idiag > 0 ) then
-        ten0 = tphy
-        qen0 = qxphy(:,:,:,idgq)
-      end if
-      if ( ichem == 1 .and. ichdiag == 1 ) then
-        chiten0 = chiphy
-      end if
-      call cumulus
+      if ( all(icup > 0) ) then
+        if ( idiag > 0 ) then
+          ten0 = tphy
+          qen0 = qxphy(:,:,:,idgq)
+        end if
+        if ( ichem == 1 .and. ichdiag == 1 ) then
+          chiten0 = chiphy
+        end if
+        call cumulus
 #ifdef DEBUG
-      call check_temperature_tendency('CONV',pc_physic)
-      call check_wind_tendency('CONV',pc_physic)
+        call check_temperature_tendency('CONV',pc_physic)
+        call check_wind_tendency('CONV',pc_physic)
 #endif
-      if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%con,pc_physic,ten0)
-        call ten2diag(aten%qx,qdiag%con,pc_physic,qen0)
+        if ( idiag > 0 ) then
+          call ten2diag(aten%t,tdiag%con,pc_physic,ten0)
+          call ten2diag(aten%qx,qdiag%con,pc_physic,qen0)
+        end if
+        if ( ichem == 1 .and. ichdiag == 1 ) then
+          call ten2diag(aten%chi,cconvdiag,pc_physic,chiten0)
+        end if
+        ! save cumulus cloud fraction for chemistry before it is
+        ! overwritten in cldfrac
+        if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
       end if
-      if ( ichem == 1 .and. ichdiag == 1 ) then
-        call ten2diag(aten%chi,cconvdiag,pc_physic,chiten0)
-      end if
-      ! save cumulus cloud fraction for chemistry before it is
-      ! overwritten in cldfrac
-      if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
       !
       !------------------------------------------------
       ! Large scale precipitation microphysical schemes
