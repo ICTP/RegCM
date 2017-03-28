@@ -24,7 +24,7 @@ module mod_sst_ersst
   use mod_stdio
   use mod_dynparam
   use mod_sst_grid
-  use mod_interp
+  use mod_kdinterp
   use mod_message
   use mod_memutil
   use mod_nchelper
@@ -42,6 +42,9 @@ module mod_sst_ersst
   integer(2) , pointer , dimension(:,:) :: work
 
   integer(ik4) :: inet
+
+  type(h_interpolator) :: hint
+
   contains
   !
   ! Comments on dataset sources and location:
@@ -122,6 +125,8 @@ module mod_sst_ersst
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read lat var')
 
+    call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+
     idate = globidate1
     do it = 1 , nsteps
       call split_idate(idate,year,month,day,hour)
@@ -150,11 +155,15 @@ module mod_sst_ersst
         call sst_erain(ierrec,lfirst,1)
       end if
 
-      call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
+      call h_interpolate_cont(hint,sst,sstmm)
+
       call writerec(idate)
       write(stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
       idate = idate + itbc
     end do
+
+    call h_interpolator_destroy(hint)
+
   end subroutine sst_ersst
 
   subroutine sst_erain(it,lfirst,itype)

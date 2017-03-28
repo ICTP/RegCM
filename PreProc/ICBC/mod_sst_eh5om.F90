@@ -25,7 +25,7 @@ module mod_sst_eh5om
   use mod_message
   use mod_dynparam
   use mod_sst_grid
-  use mod_interp
+  use mod_kdinterp
   use netcdf
 
   private
@@ -48,6 +48,8 @@ module mod_sst_eh5om
   integer(ik4) , parameter :: a14 = 2100123118
 
   type(rcm_time_and_date) :: ieh5ostart
+
+  type(h_interpolator) :: hint
 
   contains
   !
@@ -163,6 +165,8 @@ module mod_sst_eh5om
 
     idate = globidate1
 
+    call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+
     ilenrec = 0
     inquire(iolength=ilenrec) offset , xscale , ivar
 
@@ -179,12 +183,13 @@ module mod_sst_eh5om
           sst(i,j) = real(dble(ivar(i,j))*xscale + offset)
         end do
       end do
-      call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
+      call h_interpolate_cont(hint,sst,sstmm)
       call writerec(idate)
       write (stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
       close(11)
       idate = idate + itbc
     end do
+    call h_interpolator_destroy(hint)
   end subroutine sst_eh5om
 
   subroutine getname(i1,fname,it_base)

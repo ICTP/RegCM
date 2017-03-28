@@ -24,10 +24,12 @@ module mod_sst_fvgcm
   use mod_stdio
   use mod_message
   use mod_dynparam
-  use mod_interp
+  use mod_kdinterp
   use mod_sst_grid
 
   private
+
+  type(h_interpolator) :: hint
 
   public :: sst_fvgcm
 
@@ -100,6 +102,8 @@ module mod_sst_fvgcm
       lati(j) = -90.0 + 1.25*float(j-1)
     end do
 
+    call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+
     idate = idateo
     do k = 1 , nsteps
       call split_idate(idate,year,month,day,hour)
@@ -118,8 +122,9 @@ module mod_sst_fvgcm
           end if
         end do
       end do
-      call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
-      write (stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
+
+      call h_interpolate_cont(hint,sst,sstmm)
+
       do i = 1 , iy
         do j = 1 , jx
           if ( sstmm(j,i) > -100. ) then
@@ -133,6 +138,9 @@ module mod_sst_fvgcm
       write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
       idate = nextmon(idate)
     end do
+
+    call h_interpolator_destroy(hint)
+
   end subroutine sst_fvgcm
 
 end module mod_sst_fvgcm

@@ -401,7 +401,7 @@ module mod_kdinterp
         end if
       end do
     end do
-    if ( all(f > missc) ) call smtdsmt(f)
+    call smtdsmt(f)
   end subroutine interp_2d
 
   subroutine interp_3d(h_i,g,f)
@@ -505,7 +505,9 @@ module mod_kdinterp
           do j = js , je
             cell = f(j,i)
             aplus = f(j+1,i)
-            f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+            if ( asv > missc .and. aplus > missl .and. cell > missc ) then
+              f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+            end if
             asv = cell
           end do
         end do
@@ -515,7 +517,9 @@ module mod_kdinterp
           do i = is , ie
             cell = f(j,i)
             aplus = f(j,i+1)
-            f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+            if ( asv > missc .and. aplus > missl .and. cell > missc ) then
+              f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+            end if
             asv = cell
           end do
         end do

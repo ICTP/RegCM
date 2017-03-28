@@ -25,7 +25,7 @@ module mod_sst_1deg
   use mod_stdio
   use mod_dynparam
   use mod_sst_grid
-  use mod_interp
+  use mod_kdinterp
   use mod_nchelper
   use mod_message
   use netcdf
@@ -42,6 +42,8 @@ module mod_sst_1deg
   real(rkx) , pointer , dimension(:) :: loni
   real(rkx) , pointer , dimension(:,:) :: sst , ice
   integer(2) , pointer , dimension(:,:) :: work , work1
+
+  type(h_interpolator) :: hint
 
   contains
   !
@@ -105,6 +107,9 @@ module mod_sst_1deg
       write (stdout,*) 'OPEN ', trim(inpfile)
       open(121,file=inpfile,form='unformatted', &
            access='direct',recl=gireclen,action='read',status='old')
+
+      call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+
     else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
               ssttyp == 'OI2ST' ) then
       if ( globidate1 < 1981121512 .or. globidate2 < 1981121512 ) then
@@ -172,12 +177,10 @@ module mod_sst_1deg
           end if
         end if
 
-        call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
+        call h_interpolate_cont(hint,sst,sstmm)
         if ( ssttyp == 'OI2ST' ) then
-          call bilinx(icemm,ice,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
+          call h_interpolate_cont(hint,ice,icemm)
         end if
-
-        write (stdout,*) 'XLON,XLAT,SST = ', xlon(1,1), xlat(1,1), sstmm(1,1)
 
         do j = 1 , jx
           do i = 1 , iy
@@ -214,7 +217,8 @@ module mod_sst_1deg
         end if
 
         call sst_wk(idate,iwk,inpfile)
-        call bilinx(sstmm,sst,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
+
+        call h_interpolate_cont(hint,sst,sstmm)
 
         if ( ssttyp == 'OI2WK') then
           if ( idate < 19891231 ) then
@@ -223,7 +227,7 @@ module mod_sst_1deg
             inpfile=trim(inpglob)//'/SST/icec.wkmean.1990-present.nc'
           end if
           call ice_wk(idate,iwk,inpfile)
-          call bilinx(icemm,ice,xlon,xlat,loni,lati,ilon,jlat,jx,iy)
+          call h_interpolate_cont(hint,ice,icemm)
         end if
 
         do i = 1 , iy
@@ -242,6 +246,8 @@ module mod_sst_1deg
         idate = nextwk(idate)
       end do
     end if
+
+    call h_interpolator_destroy(hint)
   end subroutine sst_1deg
 
   subroutine sst_mn(idate,idate0,pathaddname)
@@ -319,6 +325,9 @@ module mod_sst_1deg
       istatus = nf90_get_var(inet,lonid,loni)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var lon')
+
+      call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
@@ -487,6 +496,9 @@ module mod_sst_1deg
       istatus = nf90_get_var(inet,lonid,loni)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var lon')
+
+      call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+
       istart(1) = 1
       istart(2) = 1
       icount(1) = ilon
