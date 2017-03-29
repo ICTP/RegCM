@@ -30,6 +30,7 @@ module mod_rad_interface
   use mod_rad_colmod3 , only : allocate_mod_rad_colmod3 , colmod3
   use mod_rrtmg_driver , only : allocate_mod_rad_rrtmg , rrtmg_driver
   use mod_rad_o3blk , only : allocate_mod_rad_o3blk , o3data , read_o3data
+  use mod_rad_o3blk , only : close_o3data
   use mod_rad_aerosol , only : allocate_mod_rad_aerosol
   use mod_rad_radiation , only : allocate_mod_rad_radiation
   use mod_rad_outrad , only : allocate_mod_rad_outrad
@@ -44,6 +45,7 @@ module mod_rad_interface
   public :: radiation
   public :: inito3
   public :: updateo3
+  public :: closeo3
 
   ! Procedures exported from internal modules
   public :: set_scenario
@@ -146,6 +148,11 @@ module mod_rad_interface
     character(len=8) , intent(in) :: scenario
     call read_o3data(idatex,scenario,m2r)
   end subroutine updateo3
+
+  subroutine closeo3
+    implicit none
+    call close_o3data
+  end subroutine closeo3
 
 end module mod_rad_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

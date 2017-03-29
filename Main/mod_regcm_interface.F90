@@ -25,6 +25,7 @@ module mod_regcm_interface
   use mod_lm_interface
   use mod_atm_interface
   use mod_pbl_interface
+  use mod_rad_interface
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage
@@ -252,6 +253,10 @@ module mod_regcm_interface
     call t_prf('timing_all',mpicom)
     call t_finalizef()
 #endif
+
+    if ( iclimao3 == 1 ) then
+      call closeo3
+    end if
 
     call memory_destroy
     call finaltime(myid)

@@ -24,7 +24,7 @@ module mod_rad_o3blk
   use mod_runparams
   use mod_constants
   use mod_date
-  use mod_interp
+  use mod_kdinterp
   use mod_vertint
   use mod_mppparam
   use mod_mpmessage
@@ -39,7 +39,7 @@ module mod_rad_o3blk
 
   private
 
-  public :: allocate_mod_rad_o3blk , o3data , read_o3data
+  public :: allocate_mod_rad_o3blk , o3data , read_o3data , close_o3data
 
   real(rkx) , dimension(31) :: o3ann , o3sum , o3win , ppann ,&
                               ppsum , ppwin
@@ -49,6 +49,9 @@ module mod_rad_o3blk
   real(rkx) , pointer , dimension(:,:,:) :: ozone1 , ozone2
   real(rkx) , pointer , dimension(:,:,:) :: ozone , pp3d
   real(rkx) , pointer , dimension(:,:,:) :: yozone
+
+  type(h_interpolator) :: hint
+  integer(ik4) :: ncid = -1
 
   data o3sum &
    /5.297e-8_rkx , 5.852e-8_rkx , 6.579e-8_rkx , 7.505e-8_rkx , 8.577e-8_rkx , &
@@ -149,7 +152,6 @@ module mod_rad_o3blk
     real(rkx) :: xfac1 , xfac2 , odist
     type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: iyear , imon , iday , ihour
-    integer(ik4) , save :: ncid = -1
     integer(ik4) :: im1 , iy1 , im2 , iy2
     integer(ik4) , save :: ism , isy
     type (rcm_time_and_date) :: iref1 , iref2
@@ -209,6 +211,7 @@ module mod_rad_o3blk
         call getmem1d(plev,1,24,'ozone:plev')
         call getmem3d(yozone,1,njcross,1,nicross,1,24,'ozone:yozone')
         call init_o3data(infile,ncid,lat,lon)
+        call h_interpolator_create(hint,lat,lon,alat,alon,ds)
       else
         ncid = 0
       end if
@@ -231,9 +234,9 @@ module mod_rad_o3blk
         write (stdout,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
-        call bilinx(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)
+        call h_interpolate_cont(hint,xozone1,yozone)
         call intlinreg(ozone1,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
-        call bilinx(yozone,xozone2,alon,alat,lon,lat,72,37,njcross,nicross,24)
+        call h_interpolate_cont(hint,xozone2,yozone)
         call intlinreg(ozone2,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
       end if
     end if
@@ -352,6 +355,22 @@ module mod_rad_o3blk
       call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
     end if
   end subroutine readvar1d
+
+  subroutine close_o3data
+    implicit none
+    integer(ik4) :: iret
+    if ( myid == iocpu ) then
+      call h_interpolator_destroy(hint)
+      if ( ncid > 0 ) then
+        iret = nf90_close(ncid)
+        if ( iret /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(iret)
+          call fatal(__FILE__,__LINE__,'ERROR CLOSE OZONE FILE')
+        end if
+        ncid = -1
+      end if
+    end if
+  end subroutine close_o3data
 
 end module mod_rad_o3blk
 

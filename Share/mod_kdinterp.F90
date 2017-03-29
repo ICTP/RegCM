@@ -51,6 +51,7 @@ module mod_kdinterp
 
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: missc = -9990.0_rkx
+  real(rkx) , parameter :: mindis = 1.0e-6_rkx
 
   type pwgt
     integer(ik4) :: i , j
@@ -132,7 +133,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
-          rx = sqrt(results(n)%dis) / ds
+          rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
@@ -196,7 +197,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
-          rx = sqrt(results(n)%dis) / ds
+          rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
@@ -265,7 +266,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
-          rx = sqrt(results(n)%dis) / ds
+          rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
@@ -332,7 +333,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
-          rx = sqrt(results(n)%dis) / ds
+          rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
