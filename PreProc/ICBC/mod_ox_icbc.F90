@@ -25,7 +25,7 @@ module mod_ox_icbc
   use mod_memutil
   use mod_grid
   use mod_wrtoxd
-  use mod_interp
+  use mod_kdinterp
   use mod_date
   use mod_nchelper
   use netcdf
@@ -51,13 +51,15 @@ module mod_ox_icbc
   real(rkx) :: prcm , pmpi , pmpj
   integer(ik4) :: ncid , istatus
 
-  public :: header_ox_icbc , get_ox_icbc , close_ox_icbc
+  type(h_interpolator) :: hint
+
+  public :: init_ox_icbc , get_ox_icbc , close_ox_icbc
 
   data ncid /-1/
 
   contains
 
-  subroutine header_ox_icbc
+  subroutine init_ox_icbc
     implicit none
     integer(ik4) :: ivarid , istatus , dimid , is
     character(len=256) :: oxifile
@@ -131,7 +133,10 @@ module mod_ox_icbc
     istatus = nf90_get_var(ncid,ivarid,p0)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var P0')
+
     p0 = p0*0.01
+
+    call h_interpolator_create(hint,oxt42lat,oxt42lon,xlat,xlon,ds)
 
     call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
     call getmem2d(xps,1,oxilon,1,oxjlat,'mod_ox_icbc:xps')
@@ -156,7 +161,7 @@ module mod_ox_icbc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//oxspec(is))
     end do
-  end subroutine header_ox_icbc
+  end subroutine init_ox_icbc
 
   subroutine get_ox_icbc(idate)
     implicit none
@@ -185,8 +190,7 @@ module mod_ox_icbc
           end do
         end do
       end do
-      call bilinx(oxv3(:,:,:,is),xinp,xlon,xlat,oxt42lon,oxt42lat, &
-                   oxilon,oxjlat,jx,iy,oxilev)
+      call h_interpolate_cont(hint,xinp,oxv3(:,:,:,is))
     end do
 
     do i = 1 , oxjlat
@@ -195,8 +199,8 @@ module mod_ox_icbc
       end do
     end do
 
-    call bilinx(poxid_3,xps,xlon,xlat,oxt42lon,oxt42lat, &
-                 oxilon,oxjlat,jx,iy)
+    call h_interpolate_cont(hint,xps,poxid_3)
+
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
@@ -235,6 +239,7 @@ module mod_ox_icbc
   subroutine close_ox_icbc
     use netcdf
     implicit none
+    call h_interpolator_destroy(hint)
     if ( ncid > 0 ) then
       istatus = nf90_close(ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &

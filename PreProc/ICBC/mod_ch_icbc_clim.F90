@@ -25,7 +25,7 @@ module mod_ch_icbc_clim
   use mod_dynparam
   use mod_grid
   use mod_wrtoxd
-  use mod_interp
+  use mod_kdinterp
   use mod_date
   use mod_memutil
   use mod_message
@@ -57,11 +57,13 @@ module mod_ch_icbc_clim
   integer(ik4) :: ism
   type (rcm_time_and_date) , save :: iref1 , iref2
 
-  public :: header_ch_icbc_clim , get_ch_icbc_clim , close_ch_icbc_clim
+  public :: init_ch_icbc_clim , get_ch_icbc_clim , close_ch_icbc_clim
+
+  type(h_interpolator) :: hint
 
   contains
 
-  subroutine header_ch_icbc_clim(idate)
+  subroutine init_ch_icbc_clim(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     type (rcm_time_and_date) :: imonmidd
@@ -158,13 +160,15 @@ module mod_ch_icbc_clim
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error close file chemical')
 
+    call h_interpolator_create(hint,cht42lat,cht42lon,xlat,xlon,ds)
+
     p0 = 1000.0
     r4pt = real(ptop)
     write(stdout,*) 'Static read OK.'
 
     call read2m(im1,im2)
 
-  end subroutine header_ch_icbc_clim
+  end subroutine init_ch_icbc_clim
 
   subroutine get_ch_icbc_clim(idate)
     implicit none
@@ -285,11 +289,9 @@ module mod_ch_icbc_clim
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       where ( xinp < mintr ) xinp = d_zero
-      call bilinx(chv3(:,:,:,is),xinp,xlon,xlat,cht42lon,cht42lat, &
-                   chilon,chjlat,jx,iy,chilev)
+      call h_interpolate_cont(hint,xinp,chv3(:,:,:,is))
     end do
-    call bilinx(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
-                 chilon,chjlat,jx,iy)
+    call h_interpolate_cont(hint,xps,pchem_3)
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
@@ -345,11 +347,9 @@ module mod_ch_icbc_clim
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       where ( xinp < mintr ) xinp = d_zero
-      call bilinx(chv3(:,:,:,is),xinp,xlon,xlat,cht42lon,cht42lat, &
-                   chilon,chjlat,jx,iy,chilev)
+      call h_interpolate_cont(hint,xinp,chv3(:,:,:,is))
     end do
-    call bilinx(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
-                 chilon,chjlat,jx,iy)
+    call h_interpolate_cont(hint,xps,pchem_3)
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
@@ -387,6 +387,7 @@ module mod_ch_icbc_clim
 
   subroutine close_ch_icbc_clim
     implicit none
+    call h_interpolator_destroy(hint)
     return
   end subroutine close_ch_icbc_clim
 

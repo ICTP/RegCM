@@ -25,7 +25,7 @@ module mod_ch_icbc
   use mod_dynparam
   use mod_grid
   use mod_wrtoxd
-  use mod_interp
+  use mod_kdinterp
   use mod_date
   use mod_memutil
   use mod_message
@@ -56,11 +56,13 @@ module mod_ch_icbc
   real(rkx) :: prcm , pmpi , pmpj
   real(rkx) :: r4pt
 
-  public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
+  type(h_interpolator) :: hint
+
+  public :: init_ch_icbc , get_ch_icbc , close_ch_icbc
 
   contains
 
-  subroutine header_ch_icbc(idate)
+  subroutine init_ch_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivarid , idimid
@@ -141,13 +143,15 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error close file chemical')
 
+    call h_interpolator_create(hint,cht42lat,cht42lon,xlat,xlon,ds)
+
     p0 = 1000.0 !p0*0.01
     r4pt = real(ptop)
     write(stdout,*) 'Static read OK.'
 
     call readps
 
-  end subroutine header_ch_icbc
+  end subroutine init_ch_icbc
 
   subroutine get_ch_icbc(idate)
     implicit none
@@ -228,8 +232,7 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
     xps = xps*0.01
-    call bilinx(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
-                 chilon,chjlat,jx,iy)
+    call h_interpolate_cont(hint,xps,pchem_3)
   end subroutine readps
 
   subroutine find_data(idate,idate0,chfilename)
@@ -397,8 +400,7 @@ module mod_ch_icbc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       where ( xinp < mintr ) xinp = d_zero
-      call bilinx(chv3(:,:,:,is),xinp(:,:,:),xlon,xlat,cht42lon,cht42lat, &
-                   chilon,chjlat,jx,iy,chilev)
+      call h_interpolate_cont(hint,xinp,chv3(:,:,:,is))
     end do
     do i = 1 , iy
       do j = 1 , jx
@@ -437,6 +439,7 @@ module mod_ch_icbc
 
   subroutine close_ch_icbc
     implicit none
+    call h_interpolator_destroy(hint)
     return
   end subroutine close_ch_icbc
 

@@ -28,7 +28,6 @@ module mod_mksst
   use mod_dynparam
   use mod_message
   use mod_nchelper
-  use mod_interp
   use mod_earth
   use netcdf
 

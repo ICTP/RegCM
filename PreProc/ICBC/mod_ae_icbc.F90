@@ -25,7 +25,7 @@ module mod_ae_icbc
   use mod_memutil
   use mod_grid
   use mod_wrtoxd
-  use mod_interp
+  use mod_kdinterp
   use mod_date
   use mod_nchelper
   use netcdf
@@ -52,14 +52,16 @@ module mod_ae_icbc
   real(rkx) :: prcm , pmpi , pmpj
   integer(ik4) :: ncid , istatus , iscen
 
-  public :: header_ae_icbc , get_ae_icbc , close_ae_icbc
+  public :: init_ae_icbc , get_ae_icbc , close_ae_icbc
 
   data ncid /-1/
   data scendir / 'RF', 'RCP26', 'RCP45', 'RCP85' /
 
+  type(h_interpolator) :: hint
+
   contains
 
-  subroutine header_ae_icbc(idate)
+  subroutine init_ae_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivarid , istatus , dimid , is
@@ -71,16 +73,20 @@ module mod_ae_icbc
     r4pt = real(ptop)
 
     iyear = nyear/10*10
-    select case ( dattyp(4:5) )
-      case ( '26' )
-        iscen = 2
-      case ( '45' )
-        iscen = 3
-      case ( '85' )
-        iscen = 4
-      case default
-        iscen = 1
-    end select
+    if ( iyear < 2000 ) then
+      iscen = 1
+    else
+      select case ( dattyp(4:5) )
+        case ( '26' )
+          iscen = 2
+        case ( '45' )
+          iscen = 3
+        case ( '85' )
+          iscen = 4
+        case default
+          iscen = 1
+      end select
+    end if
     write(aefilename,'(a,i0.4,a,i0.4,a)') &
        trim(inpglob)//pthsep//'AERGLOB'//pthsep// &
        trim(scendir(iscen))//pthsep//'aero_1.9x2.5_L26_', &
@@ -153,6 +159,8 @@ module mod_ae_icbc
                     'Error read var P0')
     p0 = p0*0.01
 
+    call h_interpolator_create(hint,aet42lat,aet42lon,xlat,xlon,ds)
+
     call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
     call getmem2d(xps,1,aeilon,1,aejlat,'mod_ae_icbc:xps')
     call getmem3d(xps2,1,aeilon,1,aejlat,1,aeitime,'mod_ae_icbc:xps2')
@@ -178,7 +186,7 @@ module mod_ae_icbc
         aev2(:,:,:,:,is) = d_zero
       end if
     end do
-  end subroutine header_ae_icbc
+  end subroutine init_ae_icbc
 
   subroutine get_ae_icbc(idate)
     implicit none
@@ -241,8 +249,7 @@ module mod_ae_icbc
           end do
         end do
       end do
-      call bilinx(aev3(:,:,:,is),xinp,xlon,xlat,aet42lon,aet42lat, &
-                   aeilon,aejlat,jx,iy,aeilev)
+      call h_interpolate_cont(hint,xinp,aev3(:,:,:,is))
     end do
 
     do i = 1 , aejlat
@@ -251,8 +258,7 @@ module mod_ae_icbc
       end do
     end do
 
-    call bilinx(paeid_3,xps,xlon,xlat,aet42lon,aet42lat, &
-                 aeilon,aejlat,jx,iy)
+    call h_interpolate_cont(hint,xps,paeid_3)
 
     do i = 1 , iy
       do j = 1 , jx
@@ -292,6 +298,7 @@ module mod_ae_icbc
   subroutine close_ae_icbc
     use netcdf
     implicit none
+    call h_interpolator_destroy(hint)
     if ( ncid > 0 ) then
       istatus = nf90_close(ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &

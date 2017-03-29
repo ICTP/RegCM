@@ -28,7 +28,6 @@ module mod_write
   use mod_ncstream_types
   use mod_ncstream
   use mod_nhinterp
-  use mod_interp
   use mod_vectutil
 
   private

@@ -24,7 +24,7 @@ module mod_ch_fnest
   use mod_memutil
   use mod_grid
   use mod_wrtoxd
-  use mod_interp
+  use mod_kdinterp
   use mod_date
   use mod_nchelper
   use netcdf
@@ -37,15 +37,15 @@ module mod_ch_fnest
 
   data ncid /-1/
 
-  public :: header_fnest , get_fnest , close_fnest
+  public :: init_fnest , get_fnest , close_fnest
 
   contains
 
-  subroutine header_fnest(idate,cdir,cname)
+  subroutine init_fnest(idate,cdir,cname)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=*) , intent(in) :: cdir , cname
-  end subroutine header_fnest
+  end subroutine init_fnest
 
   subroutine get_fnest(idate)
     implicit none
