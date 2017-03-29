@@ -152,7 +152,7 @@ program mksurfdata
   real(rk4) , pointer , dimension(:) :: yiy
   real(rk4) , pointer , dimension(:) :: xjx
   real(rk4) :: hptop
-  real(rkx) :: smallnum
+  real(rkx) :: smallnum , ml , ms , mt , mb
   real(rk8) , dimension(1) :: xdate
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(2) :: ihvar
@@ -168,11 +168,13 @@ program mksurfdata
   character(len=64) :: csdate , pftfile , laifile
   real(rkx) , dimension(:,:) , pointer :: pctspec , pctslake
   real(rkx) , pointer , dimension(:,:) :: var2d
+  integer(ik4) , pointer , dimension(:,:) :: ivar2d
   real(rkx) , pointer , dimension(:,:,:) :: var3d
   real(rkx) , pointer , dimension(:,:,:,:) :: var4d
   real(rkx) , pointer , dimension(:,:,:,:,:) :: var5d
   real(rkx) , pointer , dimension(:,:,:,:,:,:) :: var6d
   real(rkx) , pointer , dimension(:) :: gcvar
+  integer(ik4) , pointer , dimension(:) :: igcvar
   real(rkx) :: mval
   integer(ik4) , pointer , dimension(:) :: iiy , ijx
   integer(ik4) , pointer , dimension(:) :: landpoint
@@ -538,7 +540,7 @@ program mksurfdata
   istatus = nf90_def_var(ncid, 'FMAX', regcm_vartype, idims(7), ifmaxvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var fmax')
   istatus = nf90_put_att(ncid, ifmaxvar, 'long_name', &
-          'maximum fractional saturated area at 1/8 degree')
+          'maximum fractional saturated area')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax long_name')
   istatus = nf90_put_att(ncid, ifmaxvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax units')
@@ -546,8 +548,7 @@ program mksurfdata
   istatus = nf90_def_var(ncid, 'SOIL_COLOR', regcm_vartype, &
                          idims(7),isoilcolvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var soilcol')
-  istatus = nf90_put_att(ncid, isoilcolvar, 'long_name', &
-          'maximum fractional saturated area at 1/8 degree')
+  istatus = nf90_put_att(ncid, isoilcolvar, 'long_name', 'Soil color')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol long_name')
   istatus = nf90_put_att(ncid, isoilcolvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol units')
@@ -567,7 +568,7 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ipeatfvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add peatf units')
 
-  istatus = nf90_def_var(ncid, 'abm', regcm_vartype, idims(7),iabmvar)
+  istatus = nf90_def_var(ncid, 'abm', nf90_int, idims(7),iabmvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var abm')
   istatus = nf90_put_att(ncid, iabmvar, 'long_name', &
           'peak month for agri fire')
@@ -806,6 +807,7 @@ program mksurfdata
   call getmem2d(pctspec,1,jxsg,1,iysg,'mksurfdata: pctspec')
   call getmem2d(pctslake,1,jxsg,1,iysg,'mksurfdata: pctslake')
   call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
+  call getmem1d(igcvar,1,ngcells,'mksurfdata: igcvar')
   call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
   call getmem1d(ijx,1,ngcells,'mksurfdata: ijx')
   call getmem1d(landpoint,1,ngcells,'mksurfdata: landpoint')
@@ -1059,17 +1061,34 @@ program mksurfdata
   allocate(var5d(jxsg,iysg,npft,nmon,4))
   call mklaisai(laifile,var5d(:,:,:,:,1), var5d(:,:,:,:,2), &
                         var5d(:,:,:,:,3), var5d(:,:,:,:,4))
-  where (var5d(:,:,:,:,:) < 0.0_rkx )
-    var5d(:,:,:,:,:) = 0.0_rkx
-  end where
   do nm = 1 , nmon
     do np = 1 , npft
-      where ( xmask < 0.5_rkx )
-        var5d(:,:,np,nm,1) = vmisdat
-        var5d(:,:,np,nm,2) = vmisdat
-        var5d(:,:,np,nm,3) = vmisdat
-        var5d(:,:,np,nm,4) = vmisdat
-      end where
+      ml = max(maxval(var5d(:,:,np,nm,1)),0.05_rkx)
+      ms = max(maxval(var5d(:,:,np,nm,2)),0.05_rkx)
+      mt = max(maxval(var5d(:,:,np,nm,3)),0.1_rkx)
+      mb = max(maxval(var5d(:,:,np,nm,4)),mt)
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( xmask(j,i) < 0.5_rkx ) then
+            var5d(j,i,np,nm,:) = vmisdat
+          else
+            if ( var5d(j,i,np,nm,1) < 0.05_rkx ) then
+              var5d(j,i,np,nm,1) = ml
+            end if
+            if ( var5d(j,i,np,nm,2) < 0.05_rkx ) then
+              var5d(j,i,np,nm,2) = ms
+            end if
+            if ( var5d(j,i,np,nm,3) < 0.1_rkx ) then
+              var5d(j,i,np,nm,3) = mt
+            end if
+            if ( var5d(j,i,np,nm,4) < 0.1_rkx ) then
+              var5d(j,i,np,nm,4) = mb
+            else if ( var5d(j,i,np,nm,4) > var5d(j,i,np,nm,3) ) then
+              var5d(j,i,np,nm,4) = var5d(j,i,np,nm,3)
+            end if
+          end if
+        end do
+      end do
     end do
   end do
   do it = 1 , nmon
@@ -1100,11 +1119,29 @@ program mksurfdata
 
   allocate(var2d(jxsg,iysg))
   call mkfmax('mksrf_fmax.nc',var2d)
-  where ( xmask < 0.5_rkx )
-    var2d = vmisdat
-  end where
+  mb = 0.0_rkx
+  mt = 0.0_rkx
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) < 0.5_rkx ) then
+        var2d(j,i) = vmisdat
+      else
+        mb = mb + var2d(j,i)
+        mt = mt + 1.0_rkx
+      end if
+    end do
+  end do
+  mb = max(mb/mt,0.01_rkx)
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) > 0.5_rkx ) then
+        if ( var2d(j,i) < 0.0_rkx ) then
+          var2d(j,i) = mb
+        end if
+      end if
+    end do
+  end do
   call mypack(var2d,gcvar)
-  where ( gcvar < 0.0_rkx ) gcvar = 0.05_rkx
   istatus = nf90_put_var(ncid, ifmaxvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write fmax')
   deallocate(var2d)
@@ -1114,8 +1151,29 @@ program mksurfdata
   where ( xmask < 0.5_rkx )
     var2d = vmisdat
   end where
+  mb = 0.0_rkx
+  mt = 0.0_rkx
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) < 0.5_rkx ) then
+        var2d(j,i) = vmisdat
+      else
+        mb = mb + var2d(j,i)
+        mt = mt + 1.0_rkx
+      end if
+    end do
+  end do
+  mb = max(mb/mt,0.01_rkx)
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) > 0.5_rkx ) then
+        if ( var2d(j,i) < 0.0_rkx ) then
+          var2d(j,i) = mb
+        end if
+      end if
+    end do
+  end do
   call mypack(var2d,gcvar)
-  if ( any(gcvar < 0.0_rkx) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, isoilcolvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
   deallocate(var2d)
@@ -1173,16 +1231,15 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write peatf')
   deallocate(var2d)
 
-  allocate(var2d(jxsg,iysg))
-  call mkabm('mksrf_abm.nc',var2d)
+  allocate(ivar2d(jxsg,iysg))
+  call mkabm('mksrf_abm.nc',ivar2d)
   where ( xmask < 0.5_rkx )
-    var2d = vmisdat
+    ivar2d = 13
   end where
-  call mypack(var2d,gcvar)
-  if ( any(gcvar < 0.0_rkx) ) call fillvar(gcvar)
-  istatus = nf90_put_var(ncid, iabmvar, gcvar)
+  call mypack(ivar2d,igcvar)
+  istatus = nf90_put_var(ncid, iabmvar, igcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
-  deallocate(var2d)
+  deallocate(ivar2d)
 
   write(stdout,*) 'Created human population informations...'
 
@@ -1341,6 +1398,7 @@ program mksurfdata
       var2d = vmisdat
     end where
     call mypack(var2d,gcvar)
+    where ( gcvar < 0.1_rkx ) gcvar = 0.1_rkx
     istart(2) = it
     icount(2) = 1
     istatus = nf90_put_var(ncid, ipopden, gcvar, istart(1:2), icount(1:2))

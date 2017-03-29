@@ -154,6 +154,7 @@ module mod_mkurban
       end do
     end do
     deallocate(mask)
+    call gfclose(gfile)
   end subroutine mkurban_base
 
   subroutine mkurban_param(urbanfile,urban3d,urban4d,urban5d)

@@ -1034,7 +1034,11 @@ module mod_clm_canopyfluxes
        ! Parameterization for variation of csoilc with canopy density from
        ! X. Zeng, University of Arizona
 
-       w = exp(-(elai(p)+esai(p)))
+       if ( elai(p)+esai(p) > 25.0 ) then
+         w = 0.0_rk8
+       else
+         w = exp(-(elai(p)+esai(p)))
+       end if
 
        ! changed by K.Sakaguchi from here
        ! transfer coefficient over bare soil is changed to a local variable

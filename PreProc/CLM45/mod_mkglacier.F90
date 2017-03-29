@@ -22,9 +22,6 @@ module mod_mkglacier
   use mod_dynparam
   use mod_grid
   use mod_rdldtr
-  use mod_intldtr
-  use mod_message
-  use mod_memutil
 
   implicit none
 
@@ -67,6 +64,7 @@ module mod_mkglacier
       end do
     end do
     deallocate(mask)
+    call gfclose(gfile)
   end subroutine mkglacier
 
 end module mod_mkglacier

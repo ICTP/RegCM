@@ -47,6 +47,11 @@ module mod_kdinterp
     module procedure interp_4d
   end interface h_interpolate_cont
 
+  interface h_interpolate_class
+    module procedure interp_class_r
+    module procedure interp_class_i
+  end interface h_interpolate_class
+
   integer(ik4) , parameter :: minp = 5
 
   real(rkx) , parameter :: missl = -9999.0_rkx
@@ -435,15 +440,14 @@ module mod_kdinterp
     end do
   end subroutine interp_4d
 
-  subroutine h_interpolate_class(h_i,g,f,nc)
+  subroutine interp_class_r(h_i,g,f)
     implicit none
     type(h_interpolator) , intent(in) :: h_i
     real(rkx) , dimension(:,:) , intent(in) :: g
     real(rkx) , dimension(:,:) , intent(out) :: f
-    integer(ik4) , intent(in) :: nc
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv
+    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc
     integer(ik4) , dimension(1) :: v
-    real(rkx) :: gvals(nc)
+    real(rkx) , dimension(:) , allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -458,6 +462,8 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
+    nc = int(maxval(g)-minval(g)) + 1
+    allocate(gvals(nc))
     do i = 1 , ni
       do j = 1 , nj
         gvals(:) = d_zero
@@ -471,7 +477,47 @@ module mod_kdinterp
         f(j,i) = real(v(1),rkx)
       end do
     end do
-  end subroutine h_interpolate_class
+    deallocate(gvals)
+  end subroutine interp_class_r
+
+  subroutine interp_class_i(h_i,g,f)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    integer(ik4) , dimension(:,:) , intent(in) :: g
+    integer(ik4) , dimension(:,:) , intent(out) :: f
+    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc
+    integer(ik4) , dimension(1) :: v
+    real(rkx) , dimension(:) , allocatable :: gvals
+    if ( any(shape(g) /= h_i%sshape) ) then
+      write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
+      call die('interp_class','Non conforming shape for source',1)
+    end if
+    if ( any(shape(f) /= h_i%tg%tshape) ) then
+      write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
+      call die('interp_class','Non conforming shape for target',1)
+    end if
+    if ( nc <= 0 ) then
+      write(stderr,*) 'INCONSISTENCY IN CLASS NUMBER = ',nc
+      call die('interp_class','CLASS NUMBER <= 0',1)
+    end if
+    nj = size(f,1)
+    ni = size(f,2)
+    nc = maxval(g)-minval(g)+1
+    allocate(gvals(nc))
+    do i = 1 , ni
+      do j = 1 , nj
+        gvals(:) = d_zero
+        do n = 1 , h_i%tg%ft(j,i)%np
+          si = h_i%tg%ft(j,i)%wgt(n)%i
+          sj = h_i%tg%ft(j,i)%wgt(n)%j
+          iv = g(sj,si)
+          gvals(iv) = gvals(iv) + sqrt(h_i%tg%ft(j,i)%wgt(n)%wgt)
+        end do
+        v = maxloc(gvals)
+        f(j,i) = v(1)
+      end do
+    end do
+  end subroutine interp_class_i
 
   subroutine smtdsmt(f)
     implicit none

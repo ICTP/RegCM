@@ -72,6 +72,7 @@ module mod_mkwetland
       end do
     end do
     deallocate(mask)
+    call gfclose(gfile)
   end subroutine mkwetland
 
 end module mod_mkwetland

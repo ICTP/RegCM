@@ -926,7 +926,11 @@ module mod_clm_surfacealbedo
       p = filter_nourbanp(fp)
       if ( nlevcan == 1 ) then
         vcmaxcintsun(p) = 0._rk8
-        vcmaxcintsha(p) = (1._rk8 - exp(-extkn*elai(p))) / extkn
+        if ( extkn*elai(p) > 25.0_rkx ) then
+          vcmaxcintsha(p) = 1._rk8 / extkn
+        else
+          vcmaxcintsha(p) = (1._rk8 - exp(-extkn*elai(p))) / extkn
+        end if
         if ( elai(p) > 0._rk8 ) then
           vcmaxcintsha(p) = vcmaxcintsha(p) / elai(p)
         else

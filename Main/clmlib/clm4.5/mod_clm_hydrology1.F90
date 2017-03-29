@@ -369,7 +369,11 @@ module mod_clm_hydrology1
 
             ! Coefficient of interception
             ! Norman and Campbell (1983)
-            fpi = (1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
+            if ( 0.5_rk8*(elai(p) + esai(p)) > 25.0_rk8 ) then
+              fpi = 1.0_rk8
+            else
+              fpi = (1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
+            end if
 
             ! Direct throughfall
             qflx_through_snow(p) = forc_snow(g) * (1._rk8-fpi)

@@ -22,11 +22,7 @@ module mod_mkdynpft
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_getwindow
-  use mod_bilinear
-  use mod_nchelper
-  use mod_memutil
-  use netcdf
+  use mod_rdldtr
 
   implicit none
 
@@ -34,15 +30,9 @@ module mod_mkdynpft
 
   public :: mkdynpft
 
-  character(len=16) , parameter :: latdim = 'lat'
-  character(len=16) , parameter :: londim = 'lon'
-  character(len=16) , parameter :: pftdim = 'pft'
-  character(len=16) , parameter :: latvar = 'LAT'
-  character(len=16) , parameter :: lonvar = 'LON'
   character(len=16) , parameter :: varname = 'PCT_PFT'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rkx) :: vmin = 0.0_rkx
   real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
@@ -51,20 +41,14 @@ module mod_mkdynpft
     implicit none
     real(rkx) , dimension(:,:,:) , intent(out) :: dynpft
     integer(ik4) , intent(in) :: year
-    integer(ik4) :: nlat , nlon , npft
-    integer(ik4) :: idimid , ivarid , ivarmask , ncid
-    integer(ik4) , dimension(3) :: istart , icount
-    integer(ik4) :: istatus , i , li , lo
-    real(rkx) , dimension(:,:,:) , allocatable :: rvar
-    real(rkx) , dimension(:,:) , allocatable :: rmask
-    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
-    type(global_domain) :: domain
-    character(len=32) :: p1 , p2
-    character(len=4) :: cy
+    integer(ik4) :: i , j , n , npft
+    integer(ik4) , dimension(1) :: il
+    real(rkx) , pointer , dimension(:,:) :: mask
+    type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
-!    if ( year > 2100 ) year = 2100
+    if ( year > 2100 ) year = 2100
     p1 = 'dynamic'
     p2 = '.'
     write(cy,'(i0.4)') year
@@ -91,104 +75,34 @@ module mod_mkdynpft
       end select
     end if
 
-    inpfile = trim(inpglob)//pthsep//'CLM45'//pthsep//'surface'// &
-            pthsep//trim(p1)//pthsep//trim(p2)//pthsep//&
-            'mksrf_landuse_'//cy//'.nc'
-    istatus = nf90_open(inpfile,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot open file '//trim(inpfile))
+    npft = size(pft,3)
+    allocate(mask(jxsg,iysg))
 
-    istatus = nf90_inq_dimid(ncid,pftdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension pft in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=npft)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension pft in file '//trim(inpfile))
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfread(gfile,maskname,mask)
+    call gfread(gfile,varname,dynpft)
 
-    if ( npft > size(dynpft,3) ) then
-      call die(__FILE__,'Size too small for dynpft in mkdynpft',__LINE__)
-    end if
-
-    istatus = nf90_inq_dimid(ncid,latdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lat in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lat in file '//trim(inpfile))
-
-    allocate(glat(nlat))
-
-    istatus = nf90_inq_varid(ncid,latvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lat/LAT in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lat in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,londim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lon in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lon in file '//trim(inpfile))
-
-    allocate(glon(nlon))
-
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lon in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lon in file '//trim(inpfile))
-
-    ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0_rkx )
-      glon = glon - 360.0_rkx
-    end where
-    where ( glon < -180.0_rkx )
-      glon = glon + 360.0_rkx
-    end where
-
-    call get_window(glat,glon,domain)
-
-    allocate(rvar(sum(domain%ni),domain%nj,npft))
-    allocate(rmask(sum(domain%ni),domain%nj))
-    allocate(rlon(sum(domain%ni)))
-    allocate(rlat(domain%nj))
-
-    istatus = nf90_inq_varid(ncid,varname,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable dynpft in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,maskname,ivarmask)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable landmask in file '//trim(inpfile))
-
-    li = 1
-    do i = 1 , domain%ntiles
-      istart(1) = domain%igstart(i)
-      icount(1) = domain%ni(i)
-      istart(2) = domain%jgstart
-      icount(2) = domain%nj
-      istart(3) = 1
-      icount(3) = npft
-      lo = li+domain%ni(i)-1
-      istatus = nf90_get_var(ncid,ivarid,rvar(li:lo,:,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable dynpft from file '//trim(inpfile))
-      istatus = nf90_get_var(ncid,ivarmask, &
-              rmask(li:lo,:),istart(1:2),icount(1:2))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable landmask from file '//trim(inpfile))
-      rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
-      li = li + domain%ni(i)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 1.0_rkx ) then
+          dynpft(j,i,:) = vmisdat
+        else
+          il = maxloc(dynpft(j,i,:))
+          do n = 1 , npft
+            if ( n == il(1) ) cycle
+            if ( dynpft(j,i,n) < vcutoff ) then
+              dynpft(j,i,n) = d_zero
+              dynpft(j,i,il(1)) = dynpft(j,i,il(1)) + dynpft(j,i,n)
+            end if
+          end do
+          do n = 1 , npft
+            dynpft(j,i,n) = min(dynpft(j,i,n),100.0_rkx)
+          end do
+        end if
+      end do
     end do
-    rlat = glat(domain%jgstart:domain%jgstop)
-
-    dynpft = 0.0_rkx
-    call bilinear(rvar,rmask,rlon,rlat,dynpft(:,:,1:npft), &
-            xlon,xlat,vmin,vmisdat)
-
-    deallocate(glat,glon,rlat,rlon,rvar,rmask)
+    deallocate(mask)
+    call gfclose(gfile)
   end subroutine mkdynpft
 #endif
 

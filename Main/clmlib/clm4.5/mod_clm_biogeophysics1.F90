@@ -587,7 +587,11 @@ module mod_clm_biogeophysics1
       ! Vegetation Emissivity
 
       avmuir = 1._rk8
-      emv(p) = 1._rk8-exp(-(elai(p)+esai(p))/avmuir)
+      if ( (elai(p)+esai(p))/avmuir > 25.0_rk8 ) then
+        emv(p) = 1._rk8
+      else
+        emv(p) = 1._rk8-exp(-(elai(p)+esai(p))/avmuir)
+      end if
 
       ! Roughness lengths over vegetation
 

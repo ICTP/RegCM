@@ -181,13 +181,17 @@ module mod_clm_staticecosysdyn
           fb = 1._rk8 - max(min(snow_depth(c),0.2_rk8),0._rk8)/0.2_rk8 ! 0.2m is assumed
         end if
 
+        fb = min(max(fb,0.0_rk8),1.0_rk8)
+
         ! area weight by snow covered fraction
         elai(p) = max(tlai(p)*(1.0_rk8 - frac_sno(c)) &
                +tlai(p)*fb*frac_sno(c), 0.0_rk8)
         esai(p) = max(tsai(p)*(1.0_rk8 - frac_sno(c)) &
                +tsai(p)*fb*frac_sno(c), 0.0_rk8)
-        if ( elai(p) < 0.05_rk8 ) elai(p) = 0._rk8
-        if ( esai(p) < 0.05_rk8 ) esai(p) = 0._rk8
+        if ( elai(p) < 0.05_rk8 ) elai(p) = 0.0_rk8
+        if ( esai(p) < 0.05_rk8 ) esai(p) = 0.0_rk8
+        if ( elai(p) > 10.0_rk8 ) elai(p) = 10._rk8
+        if ( esai(p) > 10.0_rk8 ) esai(p) = 10._rk8
 
         ! Fraction of vegetation free of snow
 
