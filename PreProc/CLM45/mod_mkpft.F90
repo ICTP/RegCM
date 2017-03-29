@@ -46,32 +46,19 @@ module mod_mkpft
     real(rkx) , dimension(:,:,:) , intent(out) :: pft
     integer(ik4) :: i , j , n , npft
     integer(ik4) , dimension(1) :: il
-    real(rkx) , pointer , dimension(:,:,:) :: rvar
-    real(rkx) , pointer , dimension(:,:) :: rmask , mask
+    real(rkx) , pointer , dimension(:,:) :: mask
+    type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
+    npft = size(pft,3)
     allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//pftfile
-    call read_ncglob(inpfile,varname,0,4,i_band,xlat,xlon, &
-                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rvar)
-    call read_ncglob(inpfile,maskname,0,4,i_band,xlat,xlon, &
-                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rmask)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfread(gfile,maskname,mask)
+    call gfread(gfile,varname,pft)
 
-    npft = size(pft,3)
-    if ( size(rvar,3) /= npft ) then
-      call die('mkpft','Requested pft differ from pft in file '// &
-               trim(pftfile),1)
-    end if
-
-    call interp(ds*nsg,jxsg,iysg,xlat,xlon,mask,rmask,3)
-
-    pft = 0.0_rkx
-    do n = 1 , npft
-      call interp(ds*nsg,jxsg,iysg,xlat,xlon,pft(:,:,n), &
-                  rvar(:,:,n),6,rdem=roidem)
-    end do
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 1.0_rkx ) then
@@ -85,14 +72,14 @@ module mod_mkpft
               pft(j,i,il(1)) = pft(j,i,il(1)) + pft(j,i,n)
             end if
           end do
+          do n = 1 , npft
+            pft(j,i,n) = min(pft(j,i,n),100.0_rkx)
+          end do
         end if
       end do
     end do
-
-    call relmem3d(rvar)
-    call relmem2d(rmask)
-
     deallocate(mask)
+    call gfclose(gfile)
   end subroutine mkpft
 
 end module mod_mkpft

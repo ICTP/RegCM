@@ -27,13 +27,22 @@ module mod_rdldtr
   use mod_nchelper
   use mod_message
   use mod_earth
+  use mod_kdinterp
 
   private
+
+  public :: globalfile , gfopen , gfclose , gfread
 
   public :: read_ncglob
 
   real(rkx) , allocatable , dimension(:) :: glat
   real(rkx) , allocatable , dimension(:) :: glon
+
+  type globalfile
+    integer(ik4) :: ncid
+    type(global_domain) :: gdomain
+    type(h_interpolator) :: hint
+  end type globalfile
 
   integer(ik4) :: ncid , istatus
   type(global_domain) :: gdomain
@@ -43,6 +52,12 @@ module mod_rdldtr
     module procedure read_ncglob3d
     module procedure read_ncglob2d3d
   end interface read_ncglob
+
+  interface gfread
+    module procedure gfread_2d
+    module procedure gfread_3d
+    module procedure gfread_2d3d
+  end interface gfread
 
   contains
 !
@@ -683,6 +698,266 @@ module mod_rdldtr
       marker = left
     end if
   end subroutine partition
+
+  subroutine gfopen(gfile,cfile,xlat,xlon,ds,iband)
+    use netcdf
+    implicit none
+    type(globalfile) , intent(out) :: gfile
+    character(len=*) , intent(in) :: cfile
+    real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
+    real(rkx) , intent(in) :: ds
+    integer(ik4) , intent(in) :: iband
+    integer(ik4) :: nlat , nlon , n , i , j , js
+    real(rkx) , dimension(:) , allocatable :: glat , glon
+    real(rkx) , dimension(:) , allocatable :: rglat , rglon
+    integer(ik4) :: idimid , idvar
+    integer(ik4) :: jlat , ilon
+
+#ifdef DEBUG
+    write(stdout,*) 'Opening '//trim(cfile)
+#endif
+    istatus = nf90_open(cfile, nf90_nowrite, gfile%ncid)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+
+    istatus = nf90_inq_dimid(gfile%ncid,'lat',idimid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(gfile%ncid,'latitude',idimid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(gfile%ncid,'LAT',idimid)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_dimid(gfile%ncid,'LATITUDE',idimid)
+        end if
+      end if
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Missing lat dimension in file '//trim(cfile))
+    istatus = nf90_inquire_dimension(gfile%ncid,idimid,len=jlat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+         'Error reading lat dimelen in file '//trim(cfile))
+
+    istatus = nf90_inq_dimid(gfile%ncid,'lon',idimid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(gfile%ncid,'longitude',idimid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(gfile%ncid,'LON',idimid)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_dimid(gfile%ncid,'LONGITUDE',idimid)
+        end if
+      end if
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Missing lon dimension in file '//trim(cfile))
+    istatus = nf90_inquire_dimension(gfile%ncid,idimid,len=ilon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+         'Error reading lon dimelen in file '//trim(cfile))
+
+    allocate(glat(jlat))
+    allocate(glon(ilon))
+
+    istatus = nf90_inq_varid(gfile%ncid,'lat',idvar)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(gfile%ncid,'latitude',idvar)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(gfile%ncid,'LAT',idvar)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_varid(gfile%ncid,'LATITUDE',idvar)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_varid(gfile%ncid,'lsmlat',idvar)
+          end if
+        end if
+      end if
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+        'Missing lat variable in file '//trim(cfile))
+    istatus = nf90_get_var(gfile%ncid,idvar,glat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+        'Error reading lat variable in file '//trim(cfile))
+
+    istatus = nf90_inq_varid(gfile%ncid,'lon',idvar)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(gfile%ncid,'longitude',idvar)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(gfile%ncid,'LON',idvar)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_varid(gfile%ncid,'LONGITUDE',idvar)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_varid(gfile%ncid,'lsmlon',idvar)
+          end if
+        end if
+      end if
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__, &
+        'Missing lon variable in file '//trim(cfile))
+    istatus = nf90_get_var(gfile%ncid,idvar,glon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+        'Error reading lon variable in file '//trim(cfile))
+
+    call get_window(glat,glon,xlat,xlon,iband,gfile%gdomain)
+
+    nlat = gfile%gdomain%nj
+    nlon = sum(gfile%gdomain%ni)
+    allocate(rglat(nlat))
+    allocate(rglon(nlon))
+    rglat = 1e-20_rkx
+    rglon = 1e-20_rkx
+    do i = 1 , nlat
+      rglat(i) = glat(gfile%gdomain%jgstart+i-1)
+    end do
+    js = 1
+    do n = 1 , gfile%gdomain%ntiles
+      do j = js , js + gfile%gdomain%ni(n) - 1
+        rglon(j) = glon(gfile%gdomain%igstart(n) + j - js)
+      end do
+      js = js + gfile%gdomain%ni(n)
+    end do
+    deallocate(glat)
+    deallocate(glon)
+    call h_interpolator_create(gfile%hint,rglat,rglon,xlat,xlon,ds)
+    deallocate(rglat)
+    deallocate(rglon)
+  end subroutine gfopen
+
+  subroutine gfread_2d(gfile,vname,var)
+    use netcdf
+    implicit none
+    type(globalfile) , intent(in) :: gfile
+    character(len=*) , intent(in) :: vname
+    real(rkx) , dimension(:,:) , intent(out) :: var
+    real(rkx) , dimension(:,:) , allocatable :: vread
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
+    integer(ik4) , dimension(2) :: istart , icount
+
+    nlat = gfile%gdomain%nj
+    nlon = sum(gfile%gdomain%ni)
+    allocate(vread(nlon,nlat))
+
+    istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+
+    iti = 1
+    vread = -1000000000
+    do itile = 1 , gfile%gdomain%ntiles
+      istart(1) = gfile%gdomain%igstart(itile)
+      icount(1) = gfile%gdomain%ni(itile)
+      istart(2) = gfile%gdomain%jgstart
+      icount(2) = gfile%gdomain%nj
+      itf = iti + gfile%gdomain%ni(itile) - 1
+      istatus = nf90_get_var(gfile%ncid,ivar,vread(iti:itf,:),istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+      iti = itf + 1
+    end do
+
+    call h_interpolate_cont(gfile%hint,vread,var)
+    deallocate(vread)
+
+  end subroutine gfread_2d
+
+  subroutine gfread_2d3d(gfile,vname,var,isel)
+    use netcdf
+    implicit none
+    type(globalfile) , intent(in) :: gfile
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , intent(in) :: isel
+    real(rkx) , dimension(:,:) , intent(out) :: var
+    real(rkx) , dimension(:,:) , allocatable :: vread
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd
+    integer(ik4) , dimension(3) :: idims , istart , icount
+
+    if ( isel < 0 ) then
+      call die('rdldtr','Variable '//trim(vname)// &
+                        ' requested slice not in file')
+    end if
+
+    nlat = gfile%gdomain%nj
+    nlon = sum(gfile%gdomain%ni)
+    allocate(vread(nlon,nlat))
+
+    istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    istatus = nf90_inquire_variable(gfile%ncid,ivar,dimids=idims)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+         'Error reading dimelens for variable '//trim(vname))
+
+    if ( isel > nd ) then
+      call die('rdldtr','Variable '//trim(vname)// &
+                        ' requested slice not in file')
+    end if
+
+    iti = 1
+    vread = -1000000000
+    do itile = 1 , gfile%gdomain%ntiles
+      istart(1) = gfile%gdomain%igstart(itile)
+      icount(1) = gfile%gdomain%ni(itile)
+      istart(2) = gfile%gdomain%jgstart
+      icount(2) = gfile%gdomain%nj
+      istart(3) = isel
+      icount(3) = 1
+      itf = iti + gfile%gdomain%ni(itile) - 1
+      istatus = nf90_get_var(gfile%ncid,ivar,vread(iti:itf,:),istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+      iti = itf + 1
+    end do
+
+    call h_interpolate_cont(gfile%hint,vread,var)
+    deallocate(vread)
+
+  end subroutine gfread_2d3d
+
+  subroutine gfread_3d(gfile,vname,var)
+    use netcdf
+    implicit none
+    type(globalfile) , intent(in) :: gfile
+    character(len=*) , intent(in) :: vname
+    real(rkx) , dimension(:,:,:) , intent(out) :: var
+    real(rkx) , dimension(:,:,:) , allocatable :: vread
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd
+    integer(ik4) , dimension(3) :: idims , istart , icount
+
+    istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    istatus = nf90_inquire_variable(gfile%ncid,ivar,dimids=idims)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    istatus = nf90_inquire_dimension(gfile%ncid,idims(3),len=nd)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+         'Error reading dimelens for variable '//trim(vname))
+
+    nlat = gfile%gdomain%nj
+    nlon = sum(gfile%gdomain%ni)
+    allocate(vread(nlon,nlat,nd))
+
+    iti = 1
+    vread = -1000000000
+    do itile = 1 , gfile%gdomain%ntiles
+      istart(1) = gfile%gdomain%igstart(itile)
+      icount(1) = gfile%gdomain%ni(itile)
+      istart(2) = gfile%gdomain%jgstart
+      icount(2) = gfile%gdomain%nj
+      istart(3) = 1
+      icount(3) = nd
+      itf = iti + gfile%gdomain%ni(itile) - 1
+      istatus = nf90_get_var(gfile%ncid,ivar,vread(iti:itf,:,:),istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+      iti = itf + 1
+    end do
+
+    call h_interpolate_cont(gfile%hint,vread,var)
+    deallocate(vread)
+
+  end subroutine gfread_3d
+
+  subroutine gfclose(gfile)
+    use netcdf
+    implicit none
+    type(globalfile) , intent(inout) :: gfile
+    integer(ik4) :: istatus
+    call h_interpolator_destroy(gfile%hint)
+    if ( gfile%ncid > 0 ) then
+      istatus = nf90_close(gfile%ncid)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    end if
+  end subroutine gfclose
 
 end module mod_rdldtr
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

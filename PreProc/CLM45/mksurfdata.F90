@@ -317,13 +317,8 @@ program mksurfdata
   ngcells = count(xmask(jgstart:jgstop,igstart:igstop) > 0.5_rkx)
   call closefile(ncid)
   !
-  !
-  ! reduce the search area for the domain
-  !
-  call mxmnll(jxsg,iysg,xlon,xlat,i_band)
-
   ! Open Output in NetCDF format
-
+  !
   outfile = trim(dirglob)//pthsep//trim(domname)//'_CLM45_surface.nc'
 
   call createfile_withname(outfile,ncid)
@@ -884,8 +879,7 @@ program mksurfdata
   iurbmax = numurbl+3
   allocate(var3d(jxsg,iysg,iurbmax))
   call mkglacier('mksrf_glacier.nc',var3d(:,:,1))
-  ! Do not use for now lake and wetland in RegCM
-  ! call mkwetland('mksrf_lanwat.nc',var3d(:,:,2),var3d(:,:,3))
+  call mkwetland('mksrf_lanwat.nc',var3d(:,:,2),var3d(:,:,3))
   call mkurban_base('mksrf_urban.nc',var3d(:,:,4:iurbmax))
   if ( .not. enable_urban_landunit ) then
     write (stderr,*) 'Disable URBAN Areas in CLM4.5 Model !'
@@ -1013,7 +1007,8 @@ program mksurfdata
                 end if
               end do
               if ( iloc(1) == 0 ) then
-                write (0,*) abs(diff)
+                write (0,*) 'diff still = ', abs(diff)
+                write (0,*) 'PFTS = ', var3d(j,i,:)
                 call die(__FILE__,'Cannot normalize...',__LINE__)
               end if
               var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) - 1._rkx

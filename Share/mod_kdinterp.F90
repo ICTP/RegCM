@@ -119,9 +119,10 @@ module mod_kdinterp
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
+          np = minp
           allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,minp,results)
-          h_i%tg%ft(j,i)%np = minp
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
         else
           allocate(results(np))
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
@@ -130,9 +131,9 @@ module mod_kdinterp
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
         do n = 1 , np
-          h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
+          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i - 1)
           rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
@@ -183,9 +184,10 @@ module mod_kdinterp
         call ll2xyz(tlat(i),tlon(j),p)
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
+          np = minp
           allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,minp,results)
-          h_i%tg%ft(j,i)%np = minp
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
         else
           allocate(results(np))
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
@@ -194,9 +196,9 @@ module mod_kdinterp
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
         do n = 1 , np
-          h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
+          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
           rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
@@ -252,9 +254,10 @@ module mod_kdinterp
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
+          np = minp
           allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,minp,results)
-          h_i%tg%ft(j,i)%np = minp
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
         else
           allocate(results(np))
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
@@ -263,9 +266,9 @@ module mod_kdinterp
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
         do n = 1 , np
-          h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
+          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
           rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
@@ -319,9 +322,10 @@ module mod_kdinterp
         call ll2xyz(tlat(i),tlon(j),p)
         np = kdtree2_r_count(mr,p,r2)
         if ( np < minp ) then
+          np = minp
           allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,minp,results)
-          h_i%tg%ft(j,i)%np = minp
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
         else
           allocate(results(np))
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
@@ -330,9 +334,9 @@ module mod_kdinterp
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
         do n = 1 , np
-          h_i%tg%ft(j,i)%wgt(n)%i = results(n)%idx/n2 + 1
+          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1) + 1
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
           rx = max(sqrt(results(n)%dis)/ds,mindis)
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do

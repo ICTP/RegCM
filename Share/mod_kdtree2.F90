@@ -663,7 +663,7 @@ module mod_kdtree2
     ! arrays already allocated passed to this subroutine.
     type (kdtree2) , pointer :: tp
     real(kdkind) , target , dimension(:) , intent (in) :: qv
-    integer , intent(in) :: nn
+    integer , intent(inout) :: nn
     type(kdtree2_result) , dimension(:) , target :: results
 
     sr%ballsize = huge(1.0)
@@ -695,7 +695,7 @@ module mod_kdtree2
     if (tp%sort) then
       call kdtree2_sort_results(nn, results)
     endif
-!   deallocate(sr%pqp)
+    nn = sr%nfound
   end subroutine kdtree2_n_nearest
 
   subroutine kdtree2_n_nearest_around_point(tp,idxin,correltime,nn,results)
@@ -704,7 +704,8 @@ module mod_kdtree2
     ! with correlation window 'correltime', returing results in
     ! results(:), which must be pre-allocated upon entry.
     type (kdtree2) , pointer :: tp
-    integer , intent (in) :: idxin , correltime , nn
+    integer , intent (in) :: idxin , correltime
+    integer , intent (inout) :: nn
     type(kdtree2_result) , dimension(:) , target :: results
 
     allocate (sr%qv(tp%dimen))
@@ -739,6 +740,7 @@ module mod_kdtree2
       call kdtree2_sort_results(nn, results)
     endif
     deallocate (sr%qv)
+    nn = sr%nfound
   end subroutine kdtree2_n_nearest_around_point
 
   subroutine kdtree2_r_nearest(tp,qv,r2,nfound,nalloc,results)

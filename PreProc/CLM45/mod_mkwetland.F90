@@ -38,7 +38,7 @@ module mod_mkwetland
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
   real(rkx) :: vmisdat = -9999.0_rkx
-  real(rkx) :: vcutoff = 25.0_rkx
+  real(rkx) :: vcutoff = 75.0_rkx
 
   contains
 
@@ -47,26 +47,19 @@ module mod_mkwetland
     character(len=*) , intent(in) :: wetfile
     real(rkx) , dimension(:,:) , intent(out) :: wetland , lake
     integer(ik4) :: i , j
-    real(rkx) , pointer , dimension(:,:) :: rvar1 , rvar2
-    real(rkx) , pointer , dimension(:,:) :: rmask , mask
+    real(rkx) , pointer , dimension(:,:) :: mask
+    type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
     allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//wetfile
-    call read_ncglob(inpfile,varname1,0,4,i_band,xlat,xlon, &
-                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rvar1)
-    call read_ncglob(inpfile,varname2,0,4,i_band,xlat,xlon, &
-                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rvar2)
-    call read_ncglob(inpfile,maskname,0,4,i_band,xlat,xlon, &
-                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rmask)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfread(gfile,maskname,mask)
+    call gfread(gfile,varname1,wetland)
+    call gfread(gfile,varname2,lake)
 
-    wetland = 0.0_rkx
-    lake = 0.0_rkx
-    call interp(ds*nsg,jxsg,iysg,xlat,xlon,mask,rmask,3)
-    call interp(ds*nsg,jxsg,iysg,xlat,xlon,wetland,rvar1,6,rdem=roidem)
-    call interp(ds*nsg,jxsg,iysg,xlat,xlon,lake,rvar2,6,rdem=roidem)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 1.0_rkx ) then
@@ -78,10 +71,7 @@ module mod_mkwetland
         end if
       end do
     end do
-
-    call relmem2d(rvar1)
-    call relmem2d(rvar2)
-    call relmem2d(rmask)
+    deallocate(mask)
   end subroutine mkwetland
 
 end module mod_mkwetland

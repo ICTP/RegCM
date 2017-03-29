@@ -121,32 +121,18 @@ module mod_mkurban
     real(rkx) , dimension(:,:,:) , intent(out) :: urban
     integer(ik4) :: i , j , n , nurban
     integer(ik4) , dimension(1) :: il
-    real(rkx) , pointer , dimension(:,:,:) :: rvar
-    real(rkx) , pointer , dimension(:,:) :: rmask , mask
+    real(rkx) , pointer , dimension(:,:) :: mask
+    type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
+    nurban = size(urban,3)
     allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//urbanfile
-    call read_ncglob(inpfile,varname,0,4,i_band,xlat,xlon, &
-                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rvar)
-    call read_ncglob(inpfile,maskname,0,4,i_band,xlat,xlon, &
-                     grdlnma,grdlnmn,grdltma,grdltmn,nlatin,nlonin,rmask)
-
-    nurban = size(rvar,3)
-    if ( size(urban,3) < nurban ) then
-      call die('mkurban_base', 'Urban classes exceed storage in '// &
-               trim(urbanfile),1)
-    end if
-
-    call interp(ds*nsg,jxsg,iysg,xlat,xlon,mask,rmask,3)
-
-    urban = 0.0_rkx
-    do n = 1 , nurban
-      call interp(ds*nsg,jxsg,iysg,xlat,xlon,urban(:,:,n), &
-                  rvar(:,:,n),6,rdem=roidem)
-    end do
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfread(gfile,maskname,mask)
+    call gfread(gfile,varname,urban)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 1.0_rkx ) then
@@ -167,10 +153,7 @@ module mod_mkurban
         end if
       end do
     end do
-
-    call relmem3d(rvar)
-    call relmem2d(rmask)
-
+    deallocate(mask)
   end subroutine mkurban_base
 
   subroutine mkurban_param(urbanfile,urban3d,urban4d,urban5d)
