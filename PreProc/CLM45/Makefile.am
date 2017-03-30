@@ -37,7 +37,7 @@ mod_mkgdp.o : mod_mkgdp.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkin
 mod_mkglacier.o : mod_mkglacier.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o
 mod_mklaisai.o : mod_mklaisai.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o
 mod_mklake.o : mod_mklake.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o
-mod_mkorganic.o : mod_mkorganic.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o
+mod_mkorganic.o : mod_mkorganic.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o
 mod_mkpeatf.o : mod_mkpeatf.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o
 mod_mkpft.o : mod_mkpft.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o
 mod_mksoilcol.o : mod_mksoilcol.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o
@@ -49,6 +49,6 @@ mod_mklightning.o : mod_mklightning.F90 mod_bilinear.o mod_dynparam.o mod_getwin
 mod_mkpopd.o : mod_mkpopd.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_mkharvest.o : mod_mkharvest.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_message.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_mkdynpft.o : mod_mkdynpft.F90 mod_dynparam.o mod_grid.o mod_message.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o $(REGCM_ROOT)/makeinc
-mod_mkvic.o : mod_mkvic.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
-mod_mklch4.o : mod_mklch4.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
-mod_mksoilph.o : mod_mksoilph.F90 mod_bilinear.o mod_dynparam.o mod_getwindow.o mod_grid.o mod_intkinds.o mod_memutil.o mod_nchelper.o mod_realkinds.o $(REGCM_ROOT)/makeinc
+mod_mkvic.o : mod_mkvic.F90 mod_dynparam.o mod_grid.o mod_message.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o $(REGCM_ROOT)/makeinc
+mod_mklch4.o : mod_mklch4.F90 mod_dynparam.o mod_grid.o mod_message.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o $(REGCM_ROOT)/makeinc
+mod_mksoilph.o : mod_mksoilph.F90 mod_dynparam.o mod_grid.o mod_message.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o $(REGCM_ROOT)/makeinc

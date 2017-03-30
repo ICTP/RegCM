@@ -28,24 +28,21 @@ module mod_mkpopd
 
   private
 
-  public :: mkpopd
+  public :: mkpopd , mkpopd_init , mkpopd_close
 
   character(len=16) , parameter :: maskname = 'LANDMASK'
   character(len=16) , parameter :: varname = 'PDENS'
 
   real(rkx) :: vmisdat = -9999.0_rkx
 
+  type(globalfile) :: gfile
+  real(rkx) , pointer , dimension(:,:) :: mask
+
   contains
 
-  subroutine mkpopd(popdfile,popd,it)
+  subroutine mkpopd_init(popdfile)
     implicit none
     character(len=*) , intent(in) :: popdfile
-    real(rkx) , dimension(:,:) , intent(out) :: popd
-    integer(ik4) , intent(in) :: it
-    integer(ik4) :: i , j
-    real(rkx) , pointer , dimension(:,:) :: mask
-    type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
     allocate(mask(jxsg,iysg))
@@ -53,8 +50,14 @@ module mod_mkpopd
                              pthsep//'surface'//pthsep//popdfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
     call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname,popd,it)
+  end subroutine mkpopd_init
 
+  subroutine mkpopd(popd,it)
+    implicit none
+    real(rkx) , dimension(:,:) , intent(out) :: popd
+    integer(ik4) , intent(in) :: it
+    integer(ik4) :: i , j
+    call gfread(gfile,varname,popd,it)
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 1.0_rkx ) then
@@ -64,9 +67,13 @@ module mod_mkpopd
         end if
       end do
     end do
+  end subroutine mkpopd
+
+  subroutine mkpopd_close
+    implicit none
     deallocate(mask)
     call gfclose(gfile)
-  end subroutine mkpopd
+  end subroutine mkpopd_close
 #endif
 
 end module mod_mkpopd

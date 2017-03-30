@@ -32,7 +32,7 @@ module mod_mkabm
   character(len=16) , parameter :: varname = 'abm'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rkx) :: vmisdat = -9999.0_rkx
+  integer(ik4) :: vmisdat = 13
 
   contains
 
@@ -56,7 +56,7 @@ module mod_mkabm
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 1.0_rkx ) then
-          abm(j,i) = 13
+          abm(j,i) = vmisdat
         end if
       end do
     end do

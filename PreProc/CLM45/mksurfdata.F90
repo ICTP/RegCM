@@ -1392,8 +1392,9 @@ program mksurfdata
     istatus = nf90_put_var(ncid, ilightning, gcvar, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write lnfm')
   end do
+  call mkpopd_init('mksrf_popd.nc')
   do it = 1 , nyears
-    call mkpopd('mksrf_popd.nc',var2d,it)
+    call mkpopd(var2d,it)
     where ( xmask < 0.5_rkx )
       var2d = vmisdat
     end where
@@ -1404,6 +1405,7 @@ program mksurfdata
     istatus = nf90_put_var(ncid, ipopden, gcvar, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write hdm')
   end do
+  call mkpopd_close
   deallocate(var2d)
 
   write(stdout,*) 'Created FIRE informations...'

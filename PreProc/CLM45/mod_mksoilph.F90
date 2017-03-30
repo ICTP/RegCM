@@ -31,7 +31,7 @@ module mod_mksoilph
   public :: mksoilph
 
   character(len=16) , parameter :: varname = 'soilph'
-  character(len=16) , parameter :: maskname = 'landmask'
+  character(len=16) , parameter :: maskname = 'LANDMASK'
 
   real(rkx) :: vmin = 4.4855_rkx
   real(rkx) :: vmisdat = 0.0_rkx
