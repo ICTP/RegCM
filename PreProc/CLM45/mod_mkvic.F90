@@ -22,7 +22,7 @@ module mod_mkvic
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_rdltr
+  use mod_rdldtr
 
   implicit none
 
@@ -69,7 +69,6 @@ module mod_mkvic
     end do
     deallocate(mask)
     call gfclose(gfile)
-
   end subroutine mkvic
 #endif
 

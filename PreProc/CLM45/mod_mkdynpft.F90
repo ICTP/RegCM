@@ -22,6 +22,7 @@ module mod_mkdynpft
   use mod_intkinds
   use mod_dynparam
   use mod_grid
+  use mod_message
   use mod_rdldtr
 
   implicit none
@@ -34,6 +35,7 @@ module mod_mkdynpft
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
   real(rkx) :: vmisdat = -9999.0_rkx
+  real(rkx) :: vcutoff = 19.0_rkx
 
   contains
 
@@ -41,19 +43,21 @@ module mod_mkdynpft
     implicit none
     real(rkx) , dimension(:,:,:) , intent(out) :: dynpft
     integer(ik4) , intent(in) :: year
-    integer(ik4) :: i , j , n , npft
+    integer(ik4) :: i , j , n , iy , npft
     integer(ik4) , dimension(1) :: il
     real(rkx) , pointer , dimension(:,:) :: mask
+    character(len=32) :: p1 , p2
+    character(len=4) :: cy
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
-    if ( year > 2100 ) year = 2100
+    iy = min(max(year,2100),1950)
     p1 = 'dynamic'
     p2 = '.'
-    write(cy,'(i0.4)') year
+    write(cy,'(i0.4)') iy
 
-    if ( year > 2005 ) then
+    if ( iy > 2005 ) then
       select case (dattyp(4:5))
         case ('RF')
           continue
@@ -75,7 +79,7 @@ module mod_mkdynpft
       end select
     end if
 
-    npft = size(pft,3)
+    npft = size(dynpft,3)
     allocate(mask(jxsg,iysg))
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)

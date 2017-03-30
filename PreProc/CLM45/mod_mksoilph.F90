@@ -22,11 +22,7 @@ module mod_mksoilph
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_getwindow
-  use mod_bilinear
-  use mod_nchelper
-  use mod_memutil
-  use netcdf
+  use mod_rdldtr
 
   implicit none
 
@@ -34,111 +30,42 @@ module mod_mksoilph
 
   public :: mksoilph
 
-  character(len=16) , parameter :: latdim = 'lat'
-  character(len=16) , parameter :: londim = 'lon'
-  character(len=16) , parameter :: latvar = 'lat'
-  character(len=16) , parameter :: lonvar = 'lon'
   character(len=16) , parameter :: varname = 'soilph'
-  !character(len=16) , parameter :: maskname = 'landmask'
+  character(len=16) , parameter :: maskname = 'landmask'
 
-  real(rk8) :: vmin = 4.4855
-  real(rk8) :: vmisdat = 0.D0
+  real(rkx) :: vmin = 4.4855_rkx
+  real(rkx) :: vmisdat = 0.0_rkx
 
   contains
 
   subroutine mksoilph(soilphfile,soilph)
     implicit none
     character(len=*) , intent(in) :: soilphfile
-    real(rk8) , dimension(:,:) , intent(out) :: soilph
-    integer(ik4) :: nlat , nlon
-    integer(ik4) :: idimid , ncid, ivarid, ivarmask
-    integer(ik4) , dimension(2) :: istart , icount
-    integer(ik4) :: istatus , i , j , li , lo
-    real(rk8) , dimension(:,:) , allocatable :: rvar, rmask
-    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
-    type(global_domain) :: domain
+    real(rkx) , dimension(:,:) , intent(out) :: soilph
+    integer(ik4) :: i , j
+    real(rkx) , pointer , dimension(:,:) :: mask
+    type(globalfile) :: gfile
+
     character(len=256) :: inpfile
 
+    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//soilphfile
-    istatus = nf90_open(inpfile,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot open file '//trim(inpfile))
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfread(gfile,maskname,mask)
+    call gfread(gfile,varname,soilph)
 
-    istatus = nf90_inq_dimid(ncid,latdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension latitude in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension latitude in file '//trim(inpfile))
-
-    allocate(glat(nlat))
-
-    istatus = nf90_inq_varid(ncid,latvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable latitude/latitude in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable latitude in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,londim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension longitude in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension longitude in file '//trim(inpfile))
-
-    allocate(glon(nlon))
-
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable longitude in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable longitude in file '//trim(inpfile))
-
-    ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0D0 )
-      glon = glon - 360.0D0
-    end where
-    where ( glon < -180.0D0 )
-      glon = glon + 360.0D0
-    end where
-    call get_window(glat,glon,domain)
-
-    allocate(rvar(sum(domain%ni),domain%nj))
-    allocate(rmask(sum(domain%ni),domain%nj))
-    allocate(rlon(sum(domain%ni)))
-    allocate(rlat(domain%nj))
-
-    istatus = nf90_inq_varid(ncid,varname,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable soilph in file '//trim(inpfile))
-    !istatus = nf90_inq_varid(ncid,maskname,ivarmask)
-    !call checkncerr(istatus,__FILE__,__LINE__, &
-    ! 'Cannot find variable landmask in file '//trim(inpfile))
-
-    rmask(:,:) = 1.0D0
-
-    li = 1
-    do i = 1 , domain%ntiles
-      istart(1) = domain%igstart(i)
-      icount(1) = domain%ni(i)
-      istart(2) = domain%jgstart
-      icount(2) = domain%nj
-      lo = li+domain%ni(i)-1
-      istatus = nf90_get_var(ncid,ivarid,rvar(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable soilph from file '//trim(inpfile))
-      rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
-       li = li + domain%ni(i)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 1.0_rkx ) then
+          soilph(j,i) = vmisdat
+        else
+          if ( soilph(j,i) < vmin ) soilph(j,i) = vmin
+        end if
+      end do
     end do
-    rlat = glat(domain%jgstart:domain%jgstop)
-
-    !write(*,*) soilph(:,:)
-    call bilinear(rvar,rmask,rlon,rlat,soilph,xlon,xlat,vmin,vmisdat)
-    deallocate(glat,glon,rlat,rlon,rvar,rmask)
-
+    deallocate(mask)
+    call gfclose(gfile)
   end subroutine mksoilph
 #endif
 
