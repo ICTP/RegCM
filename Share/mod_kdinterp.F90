@@ -45,6 +45,7 @@ module mod_kdinterp
     module procedure interp_2d
     module procedure interp_3d
     module procedure interp_4d
+    module procedure interp_5d
   end interface h_interpolate_cont
 
   interface h_interpolate_class
@@ -439,6 +440,23 @@ module mod_kdinterp
       call interp_3d(h_i,g(:,:,:,n),f(:,:,:,n))
     end do
   end subroutine interp_4d
+
+  subroutine interp_5d(h_i,g,f)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    real(rkx) , dimension(:,:,:,:,:) , intent(in) :: g
+    real(rkx) , dimension(:,:,:,:,:) , intent(out) :: f
+    integer(ik4) :: n5 , n
+    n5 = size(g,5)
+    if ( n5 /= size(f,5) ) then
+      write(stderr,*) 'DIMENSION 5 g = ',size(g,5)
+      write(stderr,*) 'DIMENSION 5 f = ',size(f,5)
+      call die('interp_5d','Non conforming shapes',1)
+    end if
+    do n = 1 , n5
+      call interp_4d(h_i,g(:,:,:,:,n),f(:,:,:,:,n))
+    end do
+  end subroutine interp_5d
 
   subroutine interp_class_r(h_i,g,f)
     implicit none
