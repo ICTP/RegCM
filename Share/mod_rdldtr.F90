@@ -474,6 +474,9 @@ module mod_rdldtr
         istatus = nf90_inq_dimid(ncid,'LAT',idimid)
         if ( istatus /= nf90_noerr ) then
           istatus = nf90_inq_dimid(ncid,'LATITUDE',idimid)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_dimid(ncid,'lsmlat',idimid)
+          end if
         end if
       end if
     end if
@@ -490,6 +493,9 @@ module mod_rdldtr
         istatus = nf90_inq_dimid(ncid,'LON',idimid)
         if ( istatus /= nf90_noerr ) then
           istatus = nf90_inq_dimid(ncid,'LONGITUDE',idimid)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_dimid(ncid,'lsmlon',idimid)
+          end if
         end if
       end if
     end if
@@ -728,6 +734,9 @@ module mod_rdldtr
         istatus = nf90_inq_dimid(gfile%ncid,'LAT',idimid)
         if ( istatus /= nf90_noerr ) then
           istatus = nf90_inq_dimid(gfile%ncid,'LATITUDE',idimid)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_dimid(gfile%ncid,'lsmlat',idimid)
+          end if
         end if
       end if
     end if
@@ -744,6 +753,9 @@ module mod_rdldtr
         istatus = nf90_inq_dimid(gfile%ncid,'LON',idimid)
         if ( istatus /= nf90_noerr ) then
           istatus = nf90_inq_dimid(gfile%ncid,'LONGITUDE',idimid)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_dimid(gfile%ncid,'lsmlon',idimid)
+          end if
         end if
       end if
     end if
