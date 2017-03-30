@@ -1381,8 +1381,10 @@ program mksurfdata
   allocate(var2d(jxsg,iysg))
   istart(1) = 1
   icount(1) = ngcells
+
+  call mklightning_init('mksrf_lightning.nc')
   do it = 1 , noleap_yday_3h
-    call mklightning('mksrf_lightning.nc',var2d,it)
+    call mklightning(var2d,it)
     where ( xmask < 0.5_rkx )
       var2d = vmisdat
     end where
@@ -1392,6 +1394,8 @@ program mksurfdata
     istatus = nf90_put_var(ncid, ilightning, gcvar, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write lnfm')
   end do
+  call mklightning_close
+
   call mkpopd_init('mksrf_popd.nc')
   do it = 1 , nyears
     call mkpopd(var2d,it)

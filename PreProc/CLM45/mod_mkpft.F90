@@ -68,8 +68,8 @@ module mod_mkpft
           do n = 1 , npft
             if ( n == il(1) ) cycle
             if ( pft(j,i,n) < vcutoff ) then
-              pft(j,i,n) = d_zero
               pft(j,i,il(1)) = pft(j,i,il(1)) + pft(j,i,n)
+              pft(j,i,n) = d_zero
             end if
           end do
           do n = 1 , npft

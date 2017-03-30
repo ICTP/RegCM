@@ -22,124 +22,40 @@ module mod_mklightning
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_getwindow
-  use mod_bilinear
-  use mod_nchelper
-  use mod_memutil
-  use netcdf
+  use mod_rdldtr
 
   implicit none
 
   private
 
-  public :: mklightning
+  public :: mklightning , mklightning_init , mklightning_close
 
-  character(len=16) , parameter :: latdim = 'lat'
-  character(len=16) , parameter :: londim = 'lon'
-  character(len=16) , parameter :: latvar = 'lat'
-  character(len=16) , parameter :: lonvar = 'lon'
   character(len=16) , parameter :: varname = 'lnfm'
 
-  real(rkx) :: vmin = -0.0001_rkx
-  real(rkx) :: vmisdat = -9999.0_rkx
+  type(globalfile) :: gfile
 
   contains
 
-  subroutine mklightning(lnfmfile,lightning,it)
+  subroutine mklightning_init(lnfmfile)
     implicit none
     character(len=*) , intent(in) :: lnfmfile
-    real(rkx) , dimension(:,:) , intent(out) :: lightning
-    integer(ik4) , intent(in) :: it
-    integer(ik4) :: nlat , nlon
-    integer(ik4) :: idimid , ivarid , ncid
-    integer(ik4) , dimension(3) :: istart , icount
-    integer(ik4) :: istatus , i , li , lo
-    real(rkx) , dimension(:,:) , allocatable :: rvar , rmask
-    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
-    type(global_domain) :: domain
-
     character(len=256) :: inpfile
-
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//lnfmfile
-    istatus = nf90_open(inpfile,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot open file '//trim(inpfile))
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+  end subroutine mklightning_init
 
-    istatus = nf90_inq_dimid(ncid,latdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lat in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lat in file '//trim(inpfile))
-
-    allocate(glat(nlat))
-
-    istatus = nf90_inq_varid(ncid,latvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lat/LAT in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lat in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,londim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lon in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lon in file '//trim(inpfile))
-
-    allocate(glon(nlon))
-
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lon in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lon in file '//trim(inpfile))
-
-    ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0_rkx )
-      glon = glon - 360.0_rkx
-    end where
-    where ( glon < -180.0_rkx )
-      glon = glon + 360.0_rkx
-    end where
-
-    call get_window(glat,glon,domain)
-
-    allocate(rvar(sum(domain%ni),domain%nj))
-    allocate(rmask(sum(domain%ni),domain%nj))
-    allocate(rlon(sum(domain%ni)))
-    allocate(rlat(domain%nj))
-
-    istatus = nf90_inq_varid(ncid,varname,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lightning in file '//trim(inpfile))
-
-    rmask(:,:) = 1.0_rkx
-
-    li = 1
-    do i = 1 , domain%ntiles
-      istart(1) = domain%igstart(i)
-      icount(1) = domain%ni(i)
-      istart(2) = domain%jgstart
-      icount(2) = domain%nj
-      istart(3) = it
-      icount(3) = 1
-      lo = li+domain%ni(i)-1
-      istatus = nf90_get_var(ncid,ivarid,rvar(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable lightning from file '//trim(inpfile))
-      rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
-      li = li + domain%ni(i)
-    end do
-    rlat = glat(domain%jgstart:domain%jgstop)
-
-    call bilinear(rvar,rmask,rlon,rlat,lightning,xlon,xlat,vmin,vmisdat)
-
-    deallocate(glat,glon,rlat,rlon,rvar,rmask)
+  subroutine mklightning(lightning,it)
+    implicit none
+    real(rkx) , dimension(:,:) , intent(out) :: lightning
+    integer(ik4) , intent(in) :: it
+    call gfread(gfile,varname,lightning,it)
   end subroutine mklightning
+
+  subroutine mklightning_close
+    implicit none
+    call gfclose(gfile)
+  end subroutine mklightning_close
 #endif
 
 end module mod_mklightning

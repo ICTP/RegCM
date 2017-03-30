@@ -996,13 +996,14 @@ module mod_rdldtr
     deallocate(vread)
   end subroutine gfread_3d
 
-  subroutine gfread_3d_lookup(gfile,vname,lkdim,lkvar,var)
+  subroutine gfread_3d_lookup(gfile,vname,lkdim,lkvar,var,lrev)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
     character(len=*) , intent(in) :: lkdim
     character(len=*) , intent(in) :: lkvar
+    logical , intent(in) :: lrev
     real(rkx) , dimension(:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:) , allocatable :: vread
     real(rkx) , dimension(:,:) , allocatable :: temp
@@ -1030,7 +1031,11 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__, &
         'Cannot read dimension '//trim(lkdim)//' in file')
 
-    allocate(temp(nmpu,nlev))
+    if ( lrev ) then
+      allocate(temp(nlev,nmpu))
+    else
+      allocate(temp(nmpu,nlev))
+    end if
 
     istatus = nf90_get_var(gfile%ncid,ivar,temp)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
@@ -1048,17 +1053,31 @@ module mod_rdldtr
       iti = itf + 1
     end do
 
-    do n = 1 , nlev
-      do i = 1 , nlat
-        do j = 1 , nlon
-          if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
-            vread(j,i,n) = temp(mpu(j,i),n)
-          else
-            vread(j,i,n) = -9999.0_rkx
-          end if
+    if ( lrev ) then
+      do n = 1 , nlev
+        do i = 1 , nlat
+          do j = 1 , nlon
+            if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
+              vread(j,i,n) = temp(n,mpu(j,i))
+            else
+              vread(j,i,n) = -9999.0_rkx
+            end if
+          end do
         end do
       end do
-    end do
+    else
+      do n = 1 , nlev
+        do i = 1 , nlat
+          do j = 1 , nlon
+            if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
+              vread(j,i,n) = temp(mpu(j,i),n)
+            else
+              vread(j,i,n) = -9999.0_rkx
+            end if
+          end do
+        end do
+      end do
+    end if
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
@@ -1111,13 +1130,14 @@ module mod_rdldtr
     deallocate(vread)
   end subroutine gfread_4d
 
-  subroutine gfread_4d_lookup(gfile,vname,lkdim,lkvar,var)
+  subroutine gfread_4d_lookup(gfile,vname,lkdim,lkvar,var,lrev)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
     character(len=*) , intent(in) :: lkdim
     character(len=*) , intent(in) :: lkvar
+    logical , intent(in) :: lrev
     real(rkx) , dimension(:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:) , allocatable :: vread
     real(rkx) , dimension(:,:,:) , allocatable :: temp
@@ -1146,7 +1166,11 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__, &
         'Cannot read dimension '//trim(lkdim)//' in file')
 
-    allocate(temp(nlev1,nmpu,nlev2))
+    if ( lrev ) then
+      allocate(temp(nlev2,nmpu,nlev1))
+    else
+      allocate(temp(nlev1,nmpu,nlev2))
+    end if
 
     istatus = nf90_get_var(gfile%ncid,ivar,temp)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
@@ -1164,19 +1188,35 @@ module mod_rdldtr
       iti = itf + 1
     end do
 
-    do n2 = 1 , nlev2
-      do n1 = 1 , nlev1
-        do i = 1 , nlat
-          do j = 1 , nlon
-            if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
-              vread(j,i,n1,n2) = temp(n1,mpu(j,i),n2)
-            else
-              vread(j,i,n1,n2) = -9999.0_rkx
-            end if
+    if ( lrev ) then
+      do n2 = 1 , nlev2
+        do n1 = 1 , nlev1
+          do i = 1 , nlat
+            do j = 1 , nlon
+              if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
+                vread(j,i,n1,n2) = temp(n2,mpu(j,i),n1)
+              else
+                vread(j,i,n1,n2) = -9999.0_rkx
+              end if
+            end do
           end do
         end do
       end do
-    end do
+    else
+      do n2 = 1 , nlev2
+        do n1 = 1 , nlev1
+          do i = 1 , nlat
+            do j = 1 , nlon
+              if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
+                vread(j,i,n1,n2) = temp(n1,mpu(j,i),n2)
+              else
+                vread(j,i,n1,n2) = -9999.0_rkx
+              end if
+            end do
+          end do
+        end do
+      end do
+    end if
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
@@ -1235,13 +1275,14 @@ module mod_rdldtr
     deallocate(vread)
   end subroutine gfread_5d
 
-  subroutine gfread_5d_lookup(gfile,vname,lkdim,lkvar,var)
+  subroutine gfread_5d_lookup(gfile,vname,lkdim,lkvar,var,lrev)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
     character(len=*) , intent(in) :: lkdim
     character(len=*) , intent(in) :: lkvar
+    logical , intent(in) :: lrev
     real(rkx) , dimension(:,:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:,:) , allocatable :: vread
     real(rkx) , dimension(:,:,:,:) , allocatable :: temp
@@ -1250,6 +1291,7 @@ module mod_rdldtr
     integer(ik4) :: i , j , n1 , n2 , n3
     integer(ik4) :: itile , ivar , ilook , impud , iti , itf
     integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4) , dimension(4) :: vdims , dimlen
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
@@ -1261,6 +1303,13 @@ module mod_rdldtr
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    istatus = nf90_inquire_variable(gfile%ncid,ivar,dimids=vdims)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+        'Cannot read variable dimension '//trim(vname)//' in file')
+    do i = 1 , 4
+      istatus = nf90_inquire_dimension(gfile%ncid,vdims(i),len=dimlen(i))
+    end do
+
     istatus = nf90_inq_varid(gfile%ncid, lkvar, ilook)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
 
@@ -1272,7 +1321,11 @@ module mod_rdldtr
     call checkncerr(istatus,__FILE__,__LINE__, &
         'Cannot read dimension '//trim(lkdim)//' in file')
 
-    allocate(temp(nlev1,nmpu,nlev2,nlev3))
+    if ( lrev ) then
+      allocate(temp(nlev3,nmpu,nlev2,nlev1))
+    else
+      allocate(temp(nlev1,nmpu,nlev2,nlev3))
+    end if
 
     istatus = nf90_get_var(gfile%ncid,ivar,temp)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
@@ -1290,21 +1343,39 @@ module mod_rdldtr
       iti = itf + 1
     end do
 
-    do n3 = 1 , nlev3
-      do n2 = 1 , nlev2
-        do n1 = 1 , nlev1
-          do i = 1 , nlat
-            do j = 1 , nlon
-              if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
-                vread(j,i,n1,n2,n3) = temp(n1,n2,mpu(j,i),n3)
-              else
-                vread(j,i,n1,n2,n3) = -9999.0_rkx
-              end if
+    if ( lrev ) then
+      do n3 = 1 , nlev3
+        do n2 = 1 , nlev2
+          do n1 = 1 , nlev1
+            do i = 1 , nlat
+              do j = 1 , nlon
+                if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
+                  vread(j,i,n1,n2,n3) = temp(n3,mpu(j,i),n2,n1)
+                else
+                  vread(j,i,n1,n2,n3) = -9999.0_rkx
+                end if
+              end do
             end do
           end do
         end do
       end do
-    end do
+    else
+      do n3 = 1 , nlev3
+        do n2 = 1 , nlev2
+          do n1 = 1 , nlev1
+            do i = 1 , nlat
+              do j = 1 , nlon
+                if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
+                  vread(j,i,n1,n2,n3) = temp(n1,mpu(j,i),n2,n3)
+                else
+                  vread(j,i,n1,n2,n3) = -9999.0_rkx
+                end if
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)

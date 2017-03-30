@@ -95,8 +95,8 @@ module mod_mkdynpft
           do n = 1 , npft
             if ( n == il(1) ) cycle
             if ( dynpft(j,i,n) < vcutoff ) then
-              dynpft(j,i,n) = d_zero
               dynpft(j,i,il(1)) = dynpft(j,i,il(1)) + dynpft(j,i,n)
+              dynpft(j,i,n) = d_zero
             end if
           end do
           do n = 1 , npft

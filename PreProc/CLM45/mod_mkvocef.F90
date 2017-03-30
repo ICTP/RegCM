@@ -21,11 +21,7 @@ module mod_mkvocef
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_getwindow
-  use mod_bilinear
-  use mod_nchelper
-  use mod_memutil
-  use netcdf
+  use mod_rdldtr
 
   implicit none
 
@@ -33,19 +29,13 @@ module mod_mkvocef
 
   public :: mkvocef
 
-  character(len=16) , parameter :: latdim = 'lat'
-  character(len=16) , parameter :: londim = 'lon'
-  character(len=16) , parameter :: latvar = 'lat'
-  character(len=16) , parameter :: lonvar = 'lon'
-  character(len=16) , parameter :: varname1 = 'ef_btr'
-  character(len=16) , parameter :: varname2 = 'ef_crp'
-  character(len=16) , parameter :: varname3 = 'ef_fdt'
-  character(len=16) , parameter :: varname4 = 'ef_fet'
-  character(len=16) , parameter :: varname5 = 'ef_grs'
-  character(len=16) , parameter :: varname6 = 'ef_shr'
+  integer , parameter :: nvocs = 6
+
+  character(len=16) , parameter , dimension(nvocs):: varname = &
+          (/ 'ef_btr' , 'ef_crp' , 'ef_fdt' , &
+             'ef_fet' , 'ef_grs' , 'ef_shr'/)
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rkx) :: vmin = 0.0_rkx
   real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
@@ -54,116 +44,31 @@ module mod_mkvocef
     implicit none
     character(len=*) , intent(in) :: vocfile
     real(rkx) , dimension(:,:,:) , intent(out) :: vocef
-    integer(ik4) :: nlat , nlon
-    integer(ik4) :: idimid , ivarmask , ncid
-    integer(ik4) , dimension(6) :: ivarid
-    integer(ik4) , dimension(2) :: istart , icount
-    integer(ik4) :: istatus , i , j , li , lo
-    real(rkx) , dimension(:,:,:) , allocatable :: rvar
-    real(rkx) , dimension(:,:) , allocatable :: rmask
-    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
-    type(global_domain) :: domain
+    integer(ik4) :: i , j , n
+    real(rkx) , pointer , dimension(:,:) :: mask
+    type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//vocfile
-    istatus = nf90_open(inpfile,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot open file '//trim(inpfile))
+    allocate(mask(jxsg,iysg))
 
-    istatus = nf90_inq_dimid(ncid,latdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lat in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lat in file '//trim(inpfile))
-
-    allocate(glat(nlat))
-
-    istatus = nf90_inq_varid(ncid,latvar,ivarid(1))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lat/LAT in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid(1),glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lat in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,londim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lon in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lon in file '//trim(inpfile))
-
-    allocate(glon(nlon))
-
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid(1))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lon in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid(1),glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lon in file '//trim(inpfile))
-
-    ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0_rkx )
-      glon = glon - 360.0_rkx
-    end where
-    where ( glon < -180.0_rkx )
-      glon = glon + 360.0_rkx
-    end where
-
-    call get_window(glat,glon,domain)
-
-    allocate(rvar(sum(domain%ni),domain%nj,6))
-    allocate(rmask(sum(domain%ni),domain%nj))
-    allocate(rlon(sum(domain%ni)))
-    allocate(rlat(domain%nj))
-
-    istatus = nf90_inq_varid(ncid,varname1,ivarid(1))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable vocef 1 in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,varname2,ivarid(2))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable vocef 2 in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,varname3,ivarid(3))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable vocef 3 in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,varname4,ivarid(4))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable vocef 4 in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,varname5,ivarid(5))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable vocef 5 in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,varname6,ivarid(6))
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable vocef 6 in file '//trim(inpfile))
-    istatus = nf90_inq_varid(ncid,maskname,ivarmask)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable landmask in file '//trim(inpfile))
-
-    li = 1
-    do i = 1 , domain%ntiles
-      istart(1) = domain%igstart(i)
-      icount(1) = domain%ni(i)
-      istart(2) = domain%jgstart
-      icount(2) = domain%nj
-      lo = li+domain%ni(i)-1
-      do j = 1 , 6
-        istatus = nf90_get_var(ncid,ivarid(j),rvar(li:lo,:,j),istart,icount)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot read variable vocef from file '//trim(inpfile))
-      end do
-      istatus = nf90_get_var(ncid,ivarmask,rmask(li:lo,:),istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable mask from file '//trim(inpfile))
-      rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
-      li = li + domain%ni(i)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfread(gfile,maskname,mask)
+    do n = 1 , nvocs
+      call gfread(gfile,varname(n),vocef(:,:,n))
     end do
-    rlat = glat(domain%jgstart:domain%jgstop)
 
-    call bilinear(rvar,rmask,rlon,rlat,vocef,xlon,xlat,vmin,vmisdat)
-
-    deallocate(glat,glon,rlat,rlon,rvar,rmask)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 1.0_rkx ) then
+          vocef(j,i,:) = vmisdat
+        end if
+      end do
+    end do
+    deallocate(mask)
+    call gfclose(gfile)
   end subroutine mkvocef
 
 end module mod_mkvocef

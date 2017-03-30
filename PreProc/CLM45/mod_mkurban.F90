@@ -21,13 +21,7 @@ module mod_mkurban
   use mod_intkinds
   use mod_dynparam
   use mod_grid
-  use mod_getwindow
-  use mod_bilinear
-  use mod_nchelper
-  use mod_memutil
-  use netcdf
   use mod_rdldtr
-  use mod_intldtr
   use mod_message
 
   implicit none
@@ -37,15 +31,8 @@ module mod_mkurban
   public :: mkurban_base , mkurban_param
   public :: ip2d , ip3d , ip4d
 
-  character(len=16) , parameter :: latdim = 'lat'
-  character(len=16) , parameter :: londim = 'lon'
   character(len=16) , parameter :: densdim = 'density_class'
   character(len=16) , parameter :: regiondim = 'region'
-  character(len=16) , parameter :: levurbdim = 'nlevurb'
-  character(len=16) , parameter :: solardim = 'numsolar'
-  character(len=16) , parameter :: raddim = 'numrad'
-  character(len=16) , parameter :: latvar = 'LAT'
-  character(len=16) , parameter :: lonvar = 'LON'
   character(len=16) , parameter :: varname = 'PCT_URBAN'
   character(len=16) , parameter :: maskname = 'LANDMASK'
   character(len=16) , parameter :: regionname = 'REGION_ID'
@@ -105,13 +92,11 @@ module mod_mkurban
     (/'1 ', '1 ', '1 ', '1 '/)
   character(len=16) , dimension(nparam) :: parmname
 
-  integer :: nreg , ndens
-
   integer(ik4) , dimension(nparam) , parameter :: parmdim = &
     (/3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5/)
-  real(rkx) :: vmin = 0.0_rkx
-  real(rkx) :: vmisdat = -9999.0_rkx
-  real(rkx) :: vcutoff = 40.0_rkx
+
+  real(rkx) , parameter :: vmisdat = -9999.0_rkx
+  real(rkx) , parameter :: vcutoff = 40.0_rkx
 
   contains
 
@@ -145,8 +130,8 @@ module mod_mkurban
             do n = 1 , nurban
               if ( n == il(1) ) cycle
               if ( urban(j,i,n) < vcutoff ) then
-                urban(j,i,n) = d_zero
                 urban(j,i,il(1)) = urban(j,i,il(1)) + urban(j,i,n)
+                urban(j,i,n) = d_zero
               end if
             end do
           end if
@@ -163,20 +148,10 @@ module mod_mkurban
     real(rkx) , dimension(:,:,:,:) , intent(out) :: urban3d
     real(rkx) , dimension(:,:,:,:,:) , intent(out) :: urban4d
     real(rkx) , dimension(:,:,:,:,:,:) , intent(out) :: urban5d
-    integer(ik4) :: nlat , nlon
-    integer(ik4) :: idimid , ivarid , ivarmask , ivarreg , ncid
-    integer(ik4) , dimension(5) :: istart , icount
-    integer(ik4) :: istatus , i , j , ic , il , ir , is , n , li , lo
-    integer(ik4) :: nurb , nrad , nsol , ipt , ip
-    real(rkx) , dimension(:,:,:) , allocatable :: rvar3d
-    real(rkx) , dimension(:,:,:,:) , allocatable :: rvar4d
-    real(rkx) , dimension(:,:,:,:,:) , allocatable :: rvar5d
+    integer(ik4) :: ipt , ip , i , j , n
     integer(ik4) :: i4 , i5 , i6
-    real(rkx) , dimension(:,:) , allocatable :: mread
-    integer(ik4) , dimension(:,:) , allocatable :: region
-    real(rkx) , dimension(:,:) , allocatable :: rmask
-    real(rkx) , dimension(:) , allocatable :: glat , glon , rlat , rlon
-    type(global_domain) :: domain
+    real(rkx) , pointer , dimension(:,:) :: mask
+    type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
@@ -194,233 +169,41 @@ module mod_mkurban
       ipt = ipt + 1
     end do
 
+    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//urbanfile
-    istatus = nf90_open(inpfile,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-          'Cannot open file '//trim(inpfile))
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfread(gfile,maskname,mask)
 
-    istatus = nf90_inq_dimid(ncid,latdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lat in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lat in file '//trim(inpfile))
-
-    allocate(glat(nlat))
-
-    istatus = nf90_inq_varid(ncid,latvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lat/LAT in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lat in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,londim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension lon in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension lon in file '//trim(inpfile))
-
-    allocate(glon(nlon))
-
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable lon in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read variable lon in file '//trim(inpfile))
-
-    ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0_rkx )
-      glon = glon - 360.0_rkx
-    end where
-    where ( glon < -180.0_rkx )
-      glon = glon + 360.0_rkx
-    end where
-
-    istatus = nf90_inq_dimid(ncid,densdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension density_class in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=ndens)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension density_class in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,regiondim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension region in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nreg)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension region in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,levurbdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension nlevurb in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nurb)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension nlevurb in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,solardim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension numsolar in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nsol)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension numsolar in file '//trim(inpfile))
-
-    istatus = nf90_inq_dimid(ncid,raddim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension numrad in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=nrad)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension numrad in file '//trim(inpfile))
-
-    call get_window(glat,glon,domain)
-
-    allocate(region(sum(domain%ni),domain%nj))
-    allocate(mread(ndens,0:nreg))
-    allocate(rvar3d(sum(domain%ni),domain%nj,ndens))
-    allocate(rvar4d(sum(domain%ni),domain%nj,nurb,ndens))
-    allocate(rvar5d(sum(domain%ni),domain%nj,nrad,nsol,ndens))
-    allocate(rmask(sum(domain%ni),domain%nj))
-    allocate(rlon(sum(domain%ni)))
-    allocate(rlat(domain%nj))
-
-    mread(:,0) = vmisdat
-
-    istatus = nf90_inq_varid(ncid,maskname,ivarmask)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable landmask in file '//trim(inpfile))
-
-    istatus = nf90_inq_varid(ncid,regionname,ivarreg)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable region in file '//trim(inpfile))
-
-    li = 1
-    do i = 1 , domain%ntiles
-      istart(1) = domain%igstart(i)
-      icount(1) = domain%ni(i)
-      istart(2) = domain%jgstart
-      icount(2) = domain%nj
-      lo = li+domain%ni(i)-1
-      istatus = nf90_get_var(ncid,ivarmask,rmask(li:lo,:), &
-                             istart(1:2),icount(1:2))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable mask from file '//trim(inpfile))
-      istatus = nf90_get_var(ncid,ivarreg,region(li:lo,:), &
-                             istart(1:2),icount(1:2))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable mask from file '//trim(inpfile))
-      rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
-      li = li + domain%ni(i)
-    end do
-    rlat = glat(domain%jgstart:domain%jgstop)
-
-    istart(1) = 1
-    icount(1) = ndens
-    istart(2) = 1
-    icount(2) = nreg
     do n = 1 , nparam
-      istatus = nf90_inq_varid(ncid,parmname(n),ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot find variable '//trim(parmname(n))// &
-        ' in file '//trim(inpfile))
       select case (parmdim(n))
         case (3)
-          istatus = nf90_get_var(ncid,ivarid,mread(:,1:ndens), &
-                          istart(1:2),icount(1:2))
-          call checkncerr(istatus,__FILE__,__LINE__,'Cannot read variable '// &
-            trim(parmname(n))//' from file '//trim(inpfile))
-          do ic = 1 , ndens
-            do i = 1 , size(rvar3d,2)
-              do j = 1 , size(rvar3d,1)
-                rvar3d(j,i,ic) = mread(ic,region(j,i))
-              end do
-            end do
-            where ( rvar3d(:,:,ic) < 0.0 )
-              rvar3d(:,:,ic) = minval(mread(ic,1:nreg))
-            end where
-          end do
           i4 = ip2d(parmname(n))
-          call bilinear(rvar3d,rmask,rlon,rlat,urban3d(:,:,:,i4), &
-                        xlon,xlat,vmin,vmisdat)
-          do ic = 1, ndens
-            where ( urban3d(:,:,ic,i4) < 0.0 )
-              urban3d(:,:,ic,i4) = minval(rvar3d(:,:,ic))
-            end where
-          end do
+          call gfread(gfile,parmname(n),regiondim,regionname, &
+                        urban3d(:,:,:,i4),.true.)
         case (4)
-          do il = 1 , nurb
-            istart(3) = il
-            icount(3) = 1
-            istatus = nf90_get_var(ncid,ivarid,mread(:,1:ndens), &
-                            istart(1:3),icount(1:3))
-            call checkncerr(istatus,__FILE__,__LINE__, &
-              'Cannot read variable '// &
-              trim(parmname(n))//' from file '//trim(inpfile))
-            do ic = 1, ndens
-              do i = 1 , size(rvar4d,2)
-                do j = 1 , size(rvar4d,1)
-                  rvar4d(j,i,il,ic) = mread(ic,region(j,i))
-                end do
-              end do
-              where ( rvar4d(:,:,il,ic) < 0.0 )
-                rvar4d(:,:,il,ic) = minval(mread(ic,1:nreg))
-              end where
-            end do
-          end do
           i5 = ip3d(parmname(n))
-          call bilinear(rvar4d,rmask,rlon,rlat,urban4d(:,:,:,:,i5), &
-                   xlon,xlat,vmin,vmisdat)
-          do il = 1 , nurb
-            do ic = 1, ndens
-              where ( urban4d(:,:,il,ic,i5) < 0.0 )
-                urban4d(:,:,il,ic,i5) = minval(rvar4d(:,:,il,ic))
-              end where
-            end do
-          end do
+          call gfread(gfile,parmname(n),regiondim,regionname, &
+                        urban4d(:,:,:,:,i5),.true.)
         case (5)
-          do is = 1 , nsol
-            istart(4) = is
-            icount(4) = 1
-            do ir = 1 , nrad
-              istart(3) = ir
-              icount(3) = 1
-              istatus = nf90_get_var(ncid,ivarid,mread(:,1:ndens), &
-                              istart(1:4),icount(1:4))
-              call checkncerr(istatus,__FILE__,__LINE__, &
-                'Cannot read variable '// &
-                trim(parmname(n))//' from file '//trim(inpfile))
-              do ic = 1 , ndens
-                do i = 1 , size(rvar5d,2)
-                  do j = 1 , size(rvar5d,1)
-                    rvar5d(j,i,ir,is,ic) = mread(ic,region(j,i))
-                  end do
-                end do
-                where ( rvar5d(:,:,ir,is,ic) < 0.0 )
-                  rvar5d(:,:,ir,is,ic) = minval(mread(ic,1:nreg))
-                end where
-              end do
-            end do
-          end do
           i6 = ip4d(parmname(n))
-          call bilinear(rvar5d,rmask,rlon,rlat,urban5d(:,:,:,:,:,i6), &
-                   xlon,xlat,vmin,vmisdat)
-          do is = 1 , nsol
-            do ir = 1 , nrad
-              do ic = 1 , ndens
-                where ( urban5d(:,:,ir,is,ic,i6) < 0.0 )
-                  urban5d(:,:,ir,is,ic,i6) = minval(rvar5d(:,:,ir,is,ic))
-                end where
-              end do
-            end do
-          end do
+          call gfread(gfile,parmname(n),regiondim,regionname, &
+                        urban5d(:,:,:,:,:,i6),.true.)
         case default
           call die(__FILE__,'Variable dimension not implemented',__LINE__)
       end select
     end do
-
-    deallocate(glat,glon,rlat,rlon,region,mread,rvar3d,rvar4d,rvar5d,rmask)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 1.0_rkx ) then
+          urban3d(j,i,:,:) = vmisdat
+          urban4d(j,i,:,:,:) = vmisdat
+          urban5d(j,i,:,:,:,:) = vmisdat
+        end if
+      end do
+    end do
+    deallocate(mask)
+    call gfclose(gfile)
   end subroutine mkurban_param
 
   integer(ik4) function ip2d(pname) result(ip)
