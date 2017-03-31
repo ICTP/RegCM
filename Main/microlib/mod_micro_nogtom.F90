@@ -37,7 +37,7 @@ module mod_micro_nogtom
   use mod_runparams , only : budget_compute , nssopt , iautoconv
   use mod_runparams , only : auto_rate_khair , auto_rate_kessl , &
                              auto_rate_klepi
-  use mod_runparams , only : rsemi , rkconv , skconv , rcovpmin , rpecons
+  use mod_runparams , only : rkconv , skconv , rcovpmin , rpecons
   use mod_runparams , only : ktau
   use mod_runparams , only : rtsrf
 
@@ -569,21 +569,22 @@ module mod_micro_nogtom
               sumq0(j,i,k) = sumq0(j,i,k-1) ! total water
               sumh0(j,i,k) = sumh0(j,i,k-1) ! liquid water temperature
             end if
-            do n = 1 , nqx
-              if ( iphase(n) == 1 ) then
-                tmpl = qx(n,j,i,k)+dt*(qxtendc(n,j,i,k)-tenkeep(n,j,i,k))
-                tmpi = d_zero
-              else if ( iphase(n) == 2 ) then
-                tmpi = qx(n,j,i,k)+dt*(qxtendc(n,j,i,k)-tenkeep(n,j,i,k))
-                tmpl = d_zero
-              end if
-              sumq0(j,i,k) = sumq0(j,i,k) + &
-                (qx(n,j,i,k)+(qxtendc(n,j,i,k)-tenkeep(n,j,i,k))*dt)* &
-                dpfs(j,i,k)*regrav
-              tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
-              sumq0(j,i,k) = sumq0(j,i,k) + &
-                (tmpl+tmpi)*dpfs(j,i,k)*regrav    !(kg/m^2)
-            end do
+   
+            tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
+                   qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))
+
+            tmpi = qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
+                   qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))
+
+            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+
+            sumq0(j,i,k) = sumq0(j,i,k)+(qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k)) + &
+                           qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))+ &
+                           qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+ &
+                           qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))+ &
+                           qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenkeep(iqqv,j,i,k)))*&
+                           dpfs(j,i,k)*regrav
+
             ! Detrained water treated here
             qe = mo2mc%qdetr(j,i,k)
             if ( qe > activqx ) then
@@ -1279,7 +1280,7 @@ module mod_micro_nogtom
             ! Snow Autoconversion rate follow Lin et al. 1983
             if ( icecld > activqx ) then
               alpha1 = min(dt*skconv*exp(0.025_rkx*tc),icecld)
-              arg = (qinow/rlcritsnow)**2
+              arg = (icecld/rlcritsnow)**2
               if ( arg < 25.0_rkx ) then
                 snowaut = alpha1 * (d_one - exp(-arg))
               else
@@ -1292,7 +1293,7 @@ module mod_micro_nogtom
               end if
 #endif
             end if
-          else
+          else 
             !---------------------------------------------------------------
             !                         MELTING
             !---------------------------------------------------------------
@@ -1303,45 +1304,45 @@ module mod_micro_nogtom
             ! liquid water saturation for T > 273K
             !---------------------------------------------
             if ( qicetot > activqx ) then
-              ! Calculate subsaturation
-              ! qsice(j,i,1)-qvnow,d_zero)
-              subsat = max(sqmix-qvnow,d_zero)
-              ! Calculate difference between dry-bulb (t)  and the temperature
-              ! at which the wet-bulb = 0degC
-              ! Melting only occurs if the wet-bulb temperature >0
-              ! i.e. warming of ice particle due to melting > cooling
-              ! due to evaporation.
-              ! The wet-bulb temperature is used in order to account for the
-              ! thermal (cooling) ect of evaporation on the melting process
-              ! in sub-saturated air. The evaporation counteracts the latent
-              ! heating due to melting and allows snow particles to survive
-              ! to slightly warmer temperatures when the relative
-              ! humidity of the air is low. The wet-bulb temperature is
-              ! approximated as in the scheme described by
-              ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
-              tdiff = tc - subsat * &
-                  (tw1+tw2*(mo2mc%phs(j,i,1)-tw3)-tw4*(tk-tw5))
-              ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
-              cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
-              chngmax = max(tdiff*cons1*rldcp,d_zero)
-              ! Loop over frozen hydrometeors (iphase == 2 (ice, snow))
-              if ( chngmax > dlowval ) then
-                do n = 1, nqx
-                  if ( iphase(n) == 2 ) then
-                    m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
-                    if ( m < 0 ) cycle
-                    phases = qxfg(n)/qicetot
-                    chng = min(qxfg(n),phases*chngmax)
-                    chng = max(chng,d_zero)
-                    ! n = iqqi,iqqs; m = iqql,iqqr
-                    qxfg(n) =  qxfg(n) - chng
-                    qxfg(m) =  qxfg(m) + chng
-                    solqa(m,n) =  solqa(m,n) + chng
-                    solqa(n,m) =  solqa(n,m) - chng
+                ! Calculate subsaturation
+                ! qsice(j,i,1)-qvnow,d_zero)
+                subsat = max(sqmix-qvnow,d_zero)
+                ! Calculate difference between dry-bulb (t)  and the temperature
+                ! at which the wet-bulb = 0degC
+                ! Melting only occurs if the wet-bulb temperature >0
+                ! i.e. warming of ice particle due to melting > cooling
+                ! due to evaporation.
+                ! The wet-bulb temperature is used in order to account for the
+                ! thermal (cooling) ect of evaporation on the melting process
+                ! in sub-saturated air. The evaporation counteracts the latent
+                ! heating due to melting and allows snow particles to survive
+                ! to slightly warmer temperatures when the relative
+                ! humidity of the air is low. The wet-bulb temperature is
+                ! approximated as in the scheme described by
+                ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
+                tdiff = tc - subsat * &
+                    (tw1+tw2*(mo2mc%phs(j,i,1)-tw3)-tw4*(tk-tw5))
+                ! Ensure CONS1 is positive so that MELTMAX = 0 if TDMTW0 < 0
+                cons1 = d_one ! abs(dt*(d_one + d_half*tdiff)/rtaumel)
+                chngmax = max(tdiff*cons1*rldcp,d_zero)
+                ! Loop over frozen hydrometeors (iphase == 2 (ice, snow))
+                if ( chngmax > dlowval ) then
+                  do n = 1, nqx
+                    if ( iphase(n) == 2 ) then
+                      m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
+                      if ( m < 0 ) cycle
+                      phases = qxfg(n)/qicetot
+                      chng = min(qxfg(n),phases*chngmax)
+                      chng = max(chng,d_zero)
+                      ! n = iqqi,iqqs; m = iqql,iqqr
+                      qxfg(n) =  qxfg(n) - chng
+                      qxfg(m) =  qxfg(m) + chng
+                      solqa(m,n) =  solqa(m,n) + chng
+                      solqa(n,m) =  solqa(n,m) - chng
 #ifdef DEBUG
-                    if ( stats ) then
-                      ngs%statsmelt(j,i,1) = ngs%statsmelt(j,i,1) + chng
-                    end if
+                      if ( stats ) then
+                        ngs%statsmelt(j,i,1) = ngs%statsmelt(j,i,1) + chng
+                      end if
 #endif
                   end if
                 end do
@@ -1621,14 +1622,14 @@ module mod_micro_nogtom
           do jn = 1 , nqx
             ! Diagonals: microphysical sink terms+transport
             if ( jn == n ) then
-              qlhs(jn,n) = d_one + rsemi*fallsink(j,i,n)
+              qlhs(jn,n) = d_one + fallsink(j,i,n)
               do jo = 1 , nqx
-                qlhs(jn,n) = qlhs(jn,n) + rsemi*solqb(jo,jn)
+                qlhs(jn,n) = qlhs(jn,n) + solqb(jo,jn)
               end do
               ! Non-diagonals: microphysical source terms
             else
               ! Here is the delta T - missing from doc.
-              qlhs(jn,n) = -rsemi*solqb(jn,n)
+              qlhs(jn,n) = -solqb(jn,n)
             end if
           end do
         end do
@@ -1641,12 +1642,6 @@ module mod_micro_nogtom
           do jn = 1 , nqx
             ! Positive, since summed over 2nd index
             rexplicit = rexplicit + solqa(n,jn)
-            if ( jn /= n ) then
-              rexplicit =  rexplicit - &
-                      (d_one-rsemi)*qx0(n)*solqb(jn,n) + &
-                      (d_one-rsemi)*qx0(jn)*solqb(n,jn)
-            end if
-            rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(j,i,n)
           end do
           qxn(n) = qx0(n) + rexplicit
         end do
@@ -1661,8 +1656,7 @@ module mod_micro_nogtom
         do n = 1 , nqx
           ! Generalized precipitation flux
           ! this will be the source for the k
-          pfplsx(n,j,i,2) = rsemi*fallsink(j,i,n) * qxn(n)*rdtgdp + &
-                  (d_one-rsemi)*fallsink(j,i,n)*qx0(n)*rdtgdp ! kg/m2/s
+          pfplsx(n,j,i,2) = fallsink(j,i,n) * qxn(n)*rdtgdp 
           ! Calculate fluxes in and out of box for conservation of TL
           fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                   (fallsink(j,i,n)+convsink(n)) * qxn(n)
@@ -2542,7 +2536,7 @@ module mod_micro_nogtom
           !---------------------------------------
           do n = 1 , nqx
             if ( qx0(n) > dlowval ) then
-              ratio(n) = qx0(n)/max(sinksum(n),qx0(n))
+              ratio(n) = max(qx0(n),dlowval)/max(sinksum(n),qx0(n))
             else
               ratio(n) = d_one
             end if
@@ -2590,7 +2584,7 @@ module mod_micro_nogtom
             jo = iorder(n)
             if ( jo > 0 ) then
               if ( qx0(jo) > dlowval ) then
-                ratio(jo) = qx0(jo)/max(sinksum(jo),qx0(jo))
+                ratio(jo) = max(qx0(jo),dlowval)/max(sinksum(jo),qx0(jo))
               else
                 ratio(jo) = d_one
               end if
@@ -2618,14 +2612,14 @@ module mod_micro_nogtom
             do jn = 1 , nqx
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
-                qlhs(jn,n) = d_one + rsemi*fallsink(j,i,n)
+                qlhs(jn,n) = d_one + fallsink(j,i,n)
                 do jo = 1 , nqx
-                  qlhs(jn,n) = qlhs(jn,n) + rsemi*solqb(jo,jn)
+                  qlhs(jn,n) = qlhs(jn,n) + solqb(jo,jn)
                 end do
                 ! Non-diagonals: microphysical source terms
               else
                 ! Here is the delta T - missing from doc.
-                qlhs(jn,n) = -rsemi*solqb(jn,n)
+                qlhs(jn,n) = -solqb(jn,n)
               end if
             end do
           end do
@@ -2638,14 +2632,8 @@ module mod_micro_nogtom
             do jn = 1 , nqx
               ! Positive, since summed over 2nd index
               rexplicit = rexplicit + solqa(n,jn)
-              if ( jn /= n ) then
-                rexplicit =  rexplicit - &
-                        (d_one-rsemi)*qx0(n)*solqb(jn,n) + &
-                        (d_one-rsemi)*qx0(jn)*solqb(n,jn)
-              end if
-              rexplicit = rexplicit - (d_one-rsemi)*qx0(n)*fallsink(j,i,n)
             end do
-            qxn(n) = max(qx0(n) + rexplicit,d_zero)
+            qxn(n) = qx0(n) + rexplicit
           end do
 
           call mysolve
@@ -2658,8 +2646,7 @@ module mod_micro_nogtom
           do n = 1 , nqx
             ! Generalized precipitation flux
             ! this will be the source for the k
-            pfplsx(n,j,i,k+1) = rsemi*fallsink(j,i,n) * qxn(n)*rdtgdp + &
-                    (d_one-rsemi)*fallsink(j,i,n)*qx0(n)*rdtgdp ! kg/m2/s
+            pfplsx(n,j,i,k+1) = fallsink(j,i,n) * qxn(n)*rdtgdp 
             ! Calculate fluxes in and out of box for conservation of TL
             fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                     (fallsink(j,i,n)+convsink(n)) * qxn(n)
@@ -2708,26 +2695,25 @@ module mod_micro_nogtom
         do i = ici1 , ici2
           do j = jci1 , jci2
             tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkeep(j,i,k))
-            if ( k == 1 ) then
-              sumq1(j,i,k) = d_zero ! total water
-              sumh1(j,i,k) = d_zero ! liquid water temperature
-            else
+           if ( k > 1 ) then 
               sumq1(j,i,k) = sumq1(j,i,k-1)
               sumh1(j,i,k) = sumh1(j,i,k-1)
             end if
-            ! cld vars
-            do n = 1 , nqx
-              if ( iphase(n) == 1 ) then
-                tnew = tnew-wlhvocp*(qx(n,j,i,k)+ &
-                        (qxtendc(n,j,i,k)-tenkeep(n,j,i,k))*dt)
-              else if ( iphase(n) == 2 ) then
-                tnew = tnew-wlhsocp*(qx(n,j,i,k)+ &
-                        (qxtendc(n,j,i,k)-tenkeep(n,j,i,k))*dt)
-              end if
-              sumq1(j,i,k) = sumq1(j,i,k) + &
-                (qx(n,j,i,k)+(qxtendc(n,j,i,k)-tenkeep(n,j,i,k))*dt)* &
-                dpfs(j,i,k)*regrav
-            end do
+  
+           tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
+                  qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))
+
+           tmpi = qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
+                  qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))
+
+          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+
+          sumq1(j,i,k) = sumq1(j,i,k)+(qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
+                        qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))+&
+                        qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
+                        qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))+&
+                        qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenkeep(iqqv,j,i,k)))*dpfs(j,i,k)*regrav
+
             sumh1(j,i,k) = sumh1(j,i,k)+dpfs(j,i,k)*tnew
             rain = d_zero
             do n = 1 , nqx
@@ -2887,7 +2873,7 @@ module mod_micro_nogtom
       implicit none
       real(rkx) :: precip , cfpr , arg
       real(rkx) , parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
-      alpha1 = min(rkconv*dt,qlnow)
+      alpha1 = min(rkconv*dt,liqcld)
       if ( lccn ) then
         if ( ccn > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion
