@@ -152,8 +152,7 @@ program mksurfdata
   real(rk4) , pointer , dimension(:) :: yiy
   real(rk4) , pointer , dimension(:) :: xjx
   real(rk4) :: hptop
-  real(rkx) :: smallnum , ml , ms , mt , mb
-  real(rkx) , dimension(6) :: vocefs , cvocefs
+  real(rkx) :: smallnum
   real(rk8) , dimension(1) :: xdate
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(2) :: ihvar
@@ -176,7 +175,6 @@ program mksurfdata
   real(rkx) , pointer , dimension(:,:,:,:,:,:) :: var6d
   real(rkx) , pointer , dimension(:) :: gcvar
   integer(ik4) , pointer , dimension(:) :: igcvar
-  real(rkx) :: mval
   integer(ik4) , pointer , dimension(:) :: iiy , ijx
   integer(ik4) , pointer , dimension(:) :: landpoint
   logical , pointer , dimension(:) :: pft_gt0
@@ -317,6 +315,7 @@ program mksurfdata
     igstop = iysg-2*nsg
     call setup_pack(2,jx-2,2,iy-2)
   end if
+  mmx = (2*minval(shape(xmask(:,:)))/2+1)**2
   ngcells = count(xmask(jgstart:jgstop,igstart:igstop) > 0.5_rkx)
   call closefile(ncid)
   !
@@ -967,7 +966,6 @@ program mksurfdata
   end do
 
   ! Here adjustment !
-  mmx = (2*minval(shape(var3d(:,:,1)))/2+1)**2
   do i = igstart , igstop
     do j = jgstart , jgstop
       var3d(j,i,:) = int(var3d(j,i,:))
@@ -978,7 +976,7 @@ program mksurfdata
           spft = sum(var3d(j,i,:))
           if ( spft < smallnum ) then
             ! Substitute with something around it
-            call bestaround_pft(var3d,i,j,mmx)
+            call bestaround3d(var3d,i,j)
             var3d(j,i,:) = int(var3d(j,i,:))
             spft = sum(var3d(j,i,:))
             if ( spft < smallnum ) then
@@ -994,18 +992,7 @@ program mksurfdata
               diff = spft - (100.0_rkx-pctspec(j,i))
             end do
             do while ( diff <= -1.0_rkx )
-              iloc(:) = 0
-              mval = -1.0_rkx
-              do np = 1 , npft
-                if ( var3d(j,i,np) > 0.0_rkx .and. mval < var3d(j,i,np) ) then
-                  iloc(1) = np
-                  mval = var3d(j,i,np)
-                end if
-              end do
-              if ( iloc(1) == 0 ) then
-                write (0,*) abs(diff)
-                call die(__FILE__,'Cannot normalize...',__LINE__)
-              end if
+              iloc = minloc(var3d(j,i,:))
               var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + 1._rkx
               spft = sum(var3d(j,i,:))
               diff = spft - (100.0_rkx-pctspec(j,i))
@@ -1040,30 +1027,26 @@ program mksurfdata
   allocate(var5d(jxsg,iysg,npft,nmon,4))
   call mklaisai(laifile,var5d(:,:,:,:,1), var5d(:,:,:,:,2), &
                         var5d(:,:,:,:,3), var5d(:,:,:,:,4))
-  do nm = 1 , nmon
-    do np = 1 , npft
-      ml = max(maxval(var5d(:,:,np,nm,1)),0.05_rkx)
-      ms = max(maxval(var5d(:,:,np,nm,2)),0.05_rkx)
-      mt = max(maxval(var5d(:,:,np,nm,3)),0.1_rkx)
-      mb = max(maxval(var5d(:,:,np,nm,4)),mt)
+  do n = 1 , 4
+    do nm = 1 , nmon
+      do np = 1 , npft
+        do i = 1 , iysg
+          do j = 1 , jxsg
+            if ( xmask(j,i) < 0.5_rkx ) then
+              var5d(j,i,np,nm,n) = vmisdat
+            end if
+          end do
+        end do
+      end do
+    end do
+  end do
+  do n = 1 , 4
+    do nm = 1 , nmon
       do i = 1 , iysg
         do j = 1 , jxsg
-          if ( xmask(j,i) < 0.5_rkx ) then
-            var5d(j,i,np,nm,:) = vmisdat
-          else
-            if ( var5d(j,i,np,nm,1) < 0.05_rkx ) then
-              var5d(j,i,np,nm,1) = ml
-            end if
-            if ( var5d(j,i,np,nm,2) < 0.05_rkx ) then
-              var5d(j,i,np,nm,2) = ms
-            end if
-            if ( var5d(j,i,np,nm,3) < 0.1_rkx ) then
-              var5d(j,i,np,nm,3) = mt
-            end if
-            if ( var5d(j,i,np,nm,4) < 0.1_rkx ) then
-              var5d(j,i,np,nm,4) = mb
-            else if ( var5d(j,i,np,nm,4) > var5d(j,i,np,nm,3) ) then
-              var5d(j,i,np,nm,4) = var5d(j,i,np,nm,3)
+          if ( xmask(j,i) > 0.5_rkx ) then
+            if ( var5d(j,i,1,nm,n) < 0.0_rkx ) then
+              call bestaround3d(var5d(:,:,:,nm,n),i,j)
             end if
           end if
         end do
@@ -1098,32 +1081,22 @@ program mksurfdata
 
   allocate(var2d(jxsg,iysg))
   call mkfmax('mksrf_fmax.nc',var2d)
-  !
-  ! Set missing point to domain average values
-  !
-  mb = 0.0_rkx
-  mt = 0.0_rkx
   do i = 1 , iysg
     do j = 1 , jxsg
       if ( xmask(j,i) < 0.5_rkx ) then
         var2d(j,i) = vmisdat
-      else
-        mb = mb + var2d(j,i)
-        mt = mt + 1.0_rkx
       end if
     end do
   end do
-  mb = max(mb/mt,0.01_rkx)
   do i = 1 , iysg
     do j = 1 , jxsg
       if ( xmask(j,i) > 0.5_rkx ) then
         if ( var2d(j,i) < 0.0_rkx ) then
-          var2d(j,i) = mb
+          call bestaround2d(var2d,j,i)
         end if
       end if
     end do
   end do
-
   call mypack(var2d,gcvar)
   istatus = nf90_put_var(ncid, ifmaxvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write fmax')
@@ -1131,31 +1104,18 @@ program mksurfdata
 
   allocate(var2d(jxsg,iysg))
   call mksoilcol('mksrf_soicol.nc',var2d)
-  where ( xmask < 0.5_rkx )
-    var2d = vmisdat
-  end where
-
-  !
-  ! Set missing point to domain average values
-  !
-  mb = 0.0_rkx
-  mt = 0.0_rkx
   do i = 1 , iysg
     do j = 1 , jxsg
       if ( xmask(j,i) < 0.5_rkx ) then
         var2d(j,i) = vmisdat
-      else
-        mb = mb + var2d(j,i)
-        mt = mt + 1.0_rkx
       end if
     end do
   end do
-  mb = max(mb/mt,0.01_rkx)
   do i = 1 , iysg
     do j = 1 , jxsg
       if ( xmask(j,i) > 0.5_rkx ) then
         if ( var2d(j,i) < 0.0_rkx ) then
-          var2d(j,i) = mb
+          call bestaround2d(var2d,j,i)
         end if
       end if
     end do
@@ -1199,32 +1159,46 @@ program mksurfdata
 
   allocate(var2d(jxsg,iysg))
   call mkgdp('mksrf_gdp.nc',var2d)
-  where ( xmask < 0.5_rkx )
-    var2d = vmisdat
-  end where
-
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) < 0.5_rkx ) then
+        var2d(j,i) = vmisdat
+      end if
+    end do
+  end do
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) > 0.5_rkx ) then
+        if ( var2d(j,i) < 0.0_rkx ) then
+          call bestaround2d(var2d,j,i)
+        end if
+      end if
+    end do
+  end do
   call mypack(var2d,gcvar)
-  !
-  ! Fill from nearby.
-  !
-  if ( any(gcvar < 0.0_rkx) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, igdpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
   deallocate(var2d)
 
   allocate(var2d(jxsg,iysg))
   call mkpeatf('mksrf_peatf.nc',var2d)
-  !
-  ! This field is mostly zero except some regions
-  !
-  where ( var2d < 0.0_rkx )
-   var2d = 0.0_rkx
-  end where
-  where ( xmask < 0.5_rkx )
-    var2d = vmisdat
-  end where
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) < 0.5_rkx ) then
+        var2d(j,i) = vmisdat
+      end if
+    end do
+  end do
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) > 0.5_rkx ) then
+        if ( var2d(j,i) < 0.0_rkx ) then
+          call bestaround2d(var2d,j,i)
+        end if
+      end if
+    end do
+  end do
   call mypack(var2d,gcvar)
-
   istatus = nf90_put_var(ncid, ipeatfvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write peatf')
   deallocate(var2d)
@@ -1246,44 +1220,26 @@ program mksurfdata
 
   allocate(var3d(jxsg,iysg,6))
   call mkvocef('mksrf_vocef.nc',var3d)
-  !
-  ! Use domain average to substitute missing pixels.
-  !
-  vocefs = 0.0_rkx
-  cvocefs = 0.0_rkx
   do n = 1 , 6
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( xmask(j,i) < 0.5_rkx ) then
           var3d(j,i,n) = vmisdat
-        else
-          if ( var3d(j,i,n) < 0.0_rkx ) then
-            if ( pctbare(j,i) > 50.0_rkx ) then
-              var3d(j,i,n) = 0.0_rkx
-            end if
-          else
-            vocefs(n) = vocefs(n) + var3d(j,i,n)
-            cvocefs(n) = cvocefs(n) + 1.0_rkx
-          end if
         end if
       end do
     end do
   end do
   do n = 1 , 6
-    if ( cvocefs(n) > 0.0_rkx ) then
-      vocefs(n) = vocefs(n) / cvocefs(n)
-    end if
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( xmask(j,i) > 0.5_rkx ) then
-          if ( var3d(j,i,n) < 0.0_rkx ) then
-            var3d(j,i,n) = vocefs(n)
+          if ( var3d(j,i,1) < 0.0_rkx ) then
+            call bestaround2d(var3d(:,:,n),j,i)
           end if
         end if
       end do
     end do
   end do
-
   call mypack(var3d(:,:,1),gcvar)
   istatus = nf90_put_var(ncid, ief_btrvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_btr')
@@ -1306,13 +1262,25 @@ program mksurfdata
 
   allocate(var3d(jxsg,iysg,nsoil))
   call mkorganic('mksrf_organic.nc',var3d)
-  where ( var3d < 0.0_rkx )
-    var3d = 1.0_rkx
-  end where
-  do il = 1 , nsoil
-    where ( xmask < 0.5_rkx )
-      var3d(:,:,il) = vmisdat
-    end where
+  do n = 1 , nsoil
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) < 0.5_rkx ) then
+          var3d(j,i,n) = vmisdat
+        end if
+      end do
+    end do
+  end do
+  do n = 1 , nsoil
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) > 0.5_rkx ) then
+          if ( var3d(j,i,1) < 0.0_rkx ) then
+            call bestaround2d(var3d(:,:,n),j,i)
+          end if
+        end if
+      end do
+    end do
   end do
   do il = 1 , nsoil
     istart(1) = 1
@@ -1329,9 +1297,22 @@ program mksurfdata
 
   allocate(var2d(jxsg,iysg))
   call mklake('mksrf_lake.nc',var2d)
-  where ( var2d < 10.0_rkx )
-    var2d = 10.0_rkx
-  end where
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) < 0.5_rkx ) then
+        var2d(j,i) = vmisdat
+      end if
+    end do
+  end do
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) > 0.5_rkx ) then
+        if ( var2d(j,i) < 0.0_rkx ) then
+          call bestaround2d(var2d,j,i)
+        end if
+      end if
+    end do
+  end do
   call mypack(var2d,gcvar)
   istatus = nf90_put_var(ncid, idepthvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
@@ -1440,42 +1421,57 @@ program mksurfdata
 #ifdef LCH4
   allocate(var3d(jxsg,iysg,3))
   call mklch4('mksrf_ch4inversion.nc',var3d)
-  do i = 1 , 3
-    where ( xmask < 0.5_rkx )
-      var3d(:,:,i) = vmisdat
-    end where
+  do n = 1 , 3
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) < 0.5_rkx ) then
+          var3d(j,i,n) = vmisdat
+        end if
+      end do
+    end do
+  end do
+  do n = 1 , 3
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) > 0.5_rkx ) then
+          if ( var3d(j,i,1) < 0.0_rkx ) then
+            call bestaround2d(var3d(:,:,n),j,i)
+          end if
+        end if
+      end do
+    end do
   end do
   call mypack(var3d(:,:,1),gcvar)
-  where ( gcvar < 0.0_rkx )
-    gcvar = 0.01_rkx
-  end where
   istatus = nf90_put_var(ncid, if0, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write F0')
   call mypack(var3d(:,:,2),gcvar)
-  where ( gcvar < 0.0_rkx )
-    gcvar = 10.0_rkx
-  end where
   istatus = nf90_put_var(ncid, ip3, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write P3')
   call mypack(var3d(:,:,3),gcvar)
-  where ( gcvar < 0.0_rkx )
-    gcvar = 0.01_rkx
-  end where
   istatus = nf90_put_var(ncid, izwt0, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ZWt0')
   deallocate(var3d)
 
-! soil ph
+  ! soil ph
   allocate(var2d(jxsg,iysg))
   call mksoilph('mksrf_soilph.nc',var2d)
-  where ( var2d < 4.5 )
-   var2d = 4.5
-  end where
-  where ( xmask < 0.5D0 )
-    var2d = vmisdat
-  end where
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) < 0.5_rkx ) then
+        var2d(j,i) = vmisdat
+      end if
+    end do
+  end do
+  do i = 1 , iysg
+    do j = 1 , jxsg
+      if ( xmask(j,i) > 0.5_rkx ) then
+        if ( var2d(j,i) < 0.0_rkx ) then
+          call bestaround2d(var2d,j,i)
+        end if
+      end if
+    end do
+  end do
   call mypack(var2d,gcvar)
-  if ( any(gcvar < 4.5D0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, isoilphvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write PH')
   deallocate(var2d)
@@ -1487,33 +1483,36 @@ program mksurfdata
 #ifdef VICHYDRO
   allocate(var3d(jxsg,iysg,4))
   call mkvic('mksrf_vic.nc',var3d)
-  do i = 1 , 4
-    where ( xmask < 0.5_rkx )
-      var3d(:,:,i) = vmisdat
-    end where
+  do n = 1 , 4
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) < 0.5_rkx ) then
+          var3d(j,i,n) = vmisdat
+        end if
+      end do
+    end do
+  end do
+  do n = 1 , 4
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) > 0.5_rkx ) then
+          if ( var3d(j,i,1) < 0.0_rkx ) then
+            call bestaround2d(var3d(:,:,n),j,i)
+          end if
+        end if
+      end do
+    end do
   end do
   call mypack(var3d(:,:,1),gcvar)
-  where ( gcvar < 0.0_rkx )
-    gcvar = 0.1_rkx
-  end where
   istatus = nf90_put_var(ncid, ibinfl, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write binfl')
   call mypack(var3d(:,:,2),gcvar)
-  where ( gcvar < 0.0_rkx )
-    gcvar = 0.1_rkx
-  end where
   istatus = nf90_put_var(ncid, ids, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ds')
   call mypack(var3d(:,:,3),gcvar)
-  where ( gcvar < 0.0_rkx )
-    gcvar = 10.0_rkx
-  end where
   istatus = nf90_put_var(ncid, idsmax, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write dsmax')
   call mypack(var3d(:,:,4),gcvar)
-  where ( gcvar < 0.0_rkx )
-    gcvar = 0.75_rkx
-  end where
   istatus = nf90_put_var(ncid, iws, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ws')
   deallocate(var3d)
@@ -1663,8 +1662,6 @@ program mksurfdata
       end where
     end do
 
-    ! Here adjustment !
-    mmx = (2*minval(shape(var3d(:,:,1)))/2+1)**2
     do i = igstart , igstop
       do j = jgstart , jgstop
         var3d(j,i,:) = int(var3d(j,i,:))
@@ -1675,7 +1672,7 @@ program mksurfdata
             spft = sum(var3d(j,i,:))
             if ( spft < smallnum ) then
               ! Substitute with something around it
-              call bestaround_pft(var3d,i,j,mmx)
+              call bestaround3d(var3d,i,j)
               var3d(j,i,:) = int(var3d(j,i,:))
               spft = sum(var3d(j,i,:))
               if ( spft < smallnum ) then
@@ -1685,35 +1682,13 @@ program mksurfdata
             diff = spft - (100.0_rkx-pctspec(j,i))
             if ( abs(diff) > 0.5_rkx ) then
               do while ( diff >= 1.0_rkx )
-                iloc(:) = 0
-                mval = 101.0_rkx
-                do np = 1 , npft
-                  if ( var3d(j,i,np) > 0.0_rkx .and. mval > var3d(j,i,np) ) then
-                    iloc(1) = np
-                    mval = var3d(j,i,np)
-                  end if
-                end do
-                if ( iloc(1) == 0 ) then
-                  write (0,*) abs(diff)
-                  call die(__FILE__,'Cannot normalize...',__LINE__)
-                end if
+                iloc = maxloc(var3d(j,i,:))
                 var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) - 1._rkx
                 spft = sum(var3d(j,i,:))
                 diff = spft - (100.0_rkx-pctspec(j,i))
               end do
               do while ( diff <= -1.0_rkx )
-                iloc(:) = 0
-                mval = -1.0_rkx
-                do np = 1 , npft
-                  if ( var3d(j,i,np) > 0.0_rkx .and. mval < var3d(j,i,np) ) then
-                    iloc(1) = np
-                    mval = var3d(j,i,np)
-                  end if
-                end do
-                if ( iloc(1) == 0 ) then
-                  write (0,*) abs(diff)
-                  call die(__FILE__,'Cannot normalize...',__LINE__)
-                end if
+                iloc(:) = minloc(var3d(j,i,:))
                 var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + 1._rkx
                 spft = sum(var3d(j,i,:))
                 diff = spft - (100.0_rkx-pctspec(j,i))
@@ -1738,10 +1713,25 @@ program mksurfdata
 
     allocate(var3d(jxsg,iysg,6))
     call mkharvest(var3d,it)
-    do i = 1 , 6
-      where ( xmask < 0.5_rkx )
-        var3d(:,:,i) = vmisdat
-      end where
+    do n = 1 , 6
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( xmask(j,i) < 0.5_rkx ) then
+            var3d(j,i,n) = vmisdat
+          end if
+        end do
+      end do
+    end do
+    do n = 1 , 6
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( xmask(j,i) > 0.5_rkx ) then
+            if ( var3d(j,i,1) < 0.0_rkx ) then
+              call bestaround2d(var3d(:,:,n),j,i)
+            end if
+          end if
+        end do
+      end do
     end do
     call mypack(var3d(:,:,1),gcvar)
     istatus = nf90_put_var(ncid, iharvvh1, gcvar)
@@ -1775,46 +1765,54 @@ program mksurfdata
 
   contains
 
-  subroutine fillvar(xvar)
+  subroutine bestaround2d(grid,i,j)
     implicit none
-    real(rkx) , dimension(:) , intent(inout) :: xvar
-    integer(ik4) :: nvar , i , ip , left , right
-    real(rkx) :: leftval , rightval
-    nvar = size(xvar)
-    do i = 1 , nvar
-      if ( xvar(i) < 0.0_rkx ) then
-        leftval = -1.0_rkx
-        rightval = -1.0_rkx
-        ip = 1
-        do
-          if ( leftval < 0.0_rkx ) left = i - ip
-          if ( left < 1 ) left = np - left
-          if ( rightval < 0.0_rkx ) right = i + ip
-          if ( right > nvar ) right = right - nvar
-          if ( xvar(left) > 0.0_rkx ) leftval = xvar(left)
-          if ( xvar(right) > 0.0_rkx ) rightval = xvar(right)
-          if ( leftval > 0.0_rkx .and. rightval > 0.0_rkx ) then
-            xvar(i) = (leftval+rightval)/2.0_rkx
+    integer(ik4) , intent(in) :: i , j
+    real(rkx) , dimension(:,:) , intent(inout) :: grid
+    real(rkx) , dimension(mmx) :: vals
+    integer(ik4) :: ii , jj , js , is , ip , il , maxil
+    il = 1
+    maxil = minval(shape(grid(:,:)))/2
+    do
+      ip = 0
+      vals(:) = 0.0_rkx
+      do ii = i - il , i + il
+        do jj = j - il , j + il
+          is = ii
+          js = jj
+          if ( js < 1 ) js = 1-js
+          if ( js > jxsg ) js = 2*jxsg - js
+          if ( is < 1 ) is = 1-is
+          if ( is > iysg ) is = 2*iysg - is
+          if ( grid(js,is) > vmisdat ) then
+            ip = ip + 1
+            vals(ip) = vals(ip) + grid(js,is)
           end if
-          if ( ip == nvar / 2 ) then
-            call die(__FILE__,'Not finding anything around !',__LINE__)
-            exit
-          end if
-          if ( xvar(i) > 0.0_rkx ) exit
-          ip = ip + 1
         end do
+      end do
+      if ( ip > 0 ) then
+        grid(j,i) = sum(vals(1:ip))/real(ip)
+        exit
+      else
+        il = il + 1
+        if ( il == maxil ) then
+          write(stderr,*) 'At point lat = ',xlat(j,i)
+          write(stderr,*) '         lon = ',xlon(j,i)
+          call die(__FILE__,'Not finding anything around !',__LINE__)
+          exit
+        end if
       end if
     end do
-  end subroutine fillvar
+  end subroutine bestaround2d
 
-  subroutine bestaround_pft(pft,i,j,mmx)
+  subroutine bestaround3d(grid,i,j)
     implicit none
-    integer(ik4) , intent(in) :: i , j , mmx
-    real(rkx) , dimension(:,:,:) , intent(inout) :: pft
-    real(rkx) , dimension (npft,mmx) :: vals
+    integer(ik4) , intent(in) :: i , j
+    real(rkx) , dimension(:,:,:) , intent(inout) :: grid
+    real(rkx) , dimension (size(grid,3),mmx) :: vals
     integer(ik4) :: ii , jj , js , is , ip , n , il , maxil
     il = 1
-    maxil = minval(shape(pft(:,:,1)))/2
+    maxil = minval(shape(grid(:,:,1)))/2
     do
       ip = 0
       vals(:,:) = 0.0_rkx
@@ -1826,17 +1824,17 @@ program mksurfdata
           if ( js > jxsg ) js = 2*jxsg - js
           if ( is < 1 ) is = 1-is
           if ( is > iysg ) is = 2*iysg - is
-          do n = 1 , npft
-            if ( pft(js,is,n) > smallnum ) then
+          do n = 1 , size(grid,3)
+            if ( grid(js,is,n) > vmisdat ) then
               ip = ip + 1
-              vals(n,ip) = vals(n,ip) + pft(js,is,n)
+              vals(n,ip) = vals(n,ip) + grid(js,is,n)
             end if
           end do
         end do
       end do
       if ( ip > 0 ) then
-        do n = 1 , npft
-          pft(j,i,n) = sum(vals(n,1:ip))/real(ip)
+        do n = 1 , size(grid,3)
+          grid(j,i,n) = sum(vals(n,1:ip))/real(ip)
         end do
         exit
       else
@@ -1849,7 +1847,7 @@ program mksurfdata
         end if
       end if
     end do
-  end subroutine bestaround_pft
+  end subroutine bestaround3d
 
   recursive subroutine sortpatch(vals,svals,ird,lsub)
     implicit none
