@@ -56,6 +56,8 @@ module mod_grid
   integer(ik4) :: js , je , is , ie
   public :: init_domain , mypack , setup_pack
 
+  real(rkx) , public :: h_missing_value = -9999.0_rkx
+
   contains
 
   subroutine init_domain

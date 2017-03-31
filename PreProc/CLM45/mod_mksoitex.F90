@@ -33,9 +33,6 @@ module mod_mksoitex
   character(len=24) , parameter :: mapdim = 'number_of_mapunits'
   character(len=16) , parameter :: varname1 = 'PCT_SAND'
   character(len=16) , parameter :: varname2 = 'PCT_CLAY'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -44,29 +41,21 @@ module mod_mksoitex
     character(len=*) , intent(in) :: soitexfile
     real(rkx) , dimension(:,:,:) , intent(out) :: sand , clay
     integer(ik4) :: i , j , nc , n
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
-
-    allocate(mask(jxsg,iysg))
 
     nc = size(sand,3)
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//soitexfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname1,mapdim,mapname,sand,.false.)
-    call gfread(gfile,varname2,mapdim,mapname,clay,.false.)
+    call gfread(gfile,varname1,mapdim,mapname,sand,.false.,h_missing_value)
+    call gfread(gfile,varname2,mapdim,mapname,clay,.false.,h_missing_value)
 
     do n = 1 , nc
       do i = 1 , iysg
         do j = 1 , jxsg
-          if ( mask(j,i) < 1.0_rkx ) then
-            sand(j,i,n) = vmisdat
-            clay(j,i,n) = vmisdat
-          else
+          if ( clay(j,i,1) > h_missing_value ) then
             if ( clay(j,i,n) + sand(j,i,n) /= 100.0_rkx ) then
               if ( clay(j,i,n) > sand(j,i,n) ) then
                 sand(j,i,n) = 100.0_rkx - clay(j,i,n)
@@ -78,7 +67,6 @@ module mod_mksoitex
         end do
       end do
     end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mksoitex
 

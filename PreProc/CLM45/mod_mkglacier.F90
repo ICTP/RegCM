@@ -30,9 +30,7 @@ module mod_mkglacier
   public :: mkglacier
 
   character(len=16) , parameter :: varname = 'PCT_GLACIER'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rkx) :: vmisdat = -9999.0_rkx
   real(rkx) :: vcutoff = 25.0_rkx
 
   contains
@@ -42,28 +40,20 @@ module mod_mkglacier
     character(len=*) , intent(in) :: glcfile
     real(rkx) , dimension(:,:) , intent(out) :: glc
     integer(ik4) :: i , j
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//glcfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname,glc)
-
+    call gfread(gfile,varname,glc,d_zero)
     do i = 1 , iysg
       do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          glc(j,i) = vmisdat
-        else
-          if ( glc(j,i) < vcutoff ) glc(j,i) = d_zero
+        if ( glc(j,i) > d_zero .and. glc(j,i) < vcutoff ) then
+          glc(j,i) = d_zero
         end if
       end do
     end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mkglacier
 

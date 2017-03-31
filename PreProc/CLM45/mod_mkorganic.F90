@@ -30,9 +30,6 @@ module mod_mkorganic
   public :: mkorganic
 
   character(len=16) , parameter :: varname = 'ORGANIC'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -40,28 +37,13 @@ module mod_mkorganic
     implicit none
     character(len=*) , intent(in) :: orgfile
     real(rkx) , dimension(:,:,:) , intent(out) :: organic
-    integer(ik4) :: i , j , nsoil
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
-    nsoil = size(organic,3)
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//orgfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname,organic)
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          organic(j,i,:) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
+    call gfread(gfile,varname,organic,h_missing_value)
     call gfclose(gfile)
   end subroutine mkorganic
 

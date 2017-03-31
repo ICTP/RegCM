@@ -33,6 +33,7 @@ module mod_kdinterp
   public :: h_interpolator_create
   public :: h_interpolate_cont , h_interpolate_class
   public :: h_interpolator_destroy
+  public :: h_missing_value
 
   interface h_interpolator_create
     module procedure interp_create_ll_g
@@ -56,6 +57,7 @@ module mod_kdinterp
   integer(ik4) , parameter :: minp = 5
 
   real(rkx) , parameter :: missl = -9999.0_rkx
+  real(rkx) , parameter :: h_missing_value = missl
   real(rkx) , parameter :: missc = -9990.0_rkx
   real(rkx) , parameter :: mindis = 1.0e-6_rkx
 
@@ -463,7 +465,7 @@ module mod_kdinterp
     type(h_interpolator) , intent(in) :: h_i
     real(rkx) , dimension(:,:) , intent(in) :: g
     real(rkx) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc
+    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
     integer(ik4) , dimension(1) :: v
     real(rkx) , dimension(:) , allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
@@ -474,14 +476,16 @@ module mod_kdinterp
       write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
       call die('interp_class','Non conforming shape for target',1)
     end if
+    n1 = int(minval(g))
+    n2 = int(maxval(g))
+    nc = n2 - n1 + 1
     if ( nc <= 0 ) then
       write(stderr,*) 'INCONSISTENCY IN CLASS NUMBER = ',nc
       call die('interp_class','CLASS NUMBER <= 0',1)
     end if
     nj = size(f,1)
     ni = size(f,2)
-    nc = int(maxval(g)-minval(g)) + 1
-    allocate(gvals(nc))
+    allocate(gvals(n1:n2))
     do i = 1 , ni
       do j = 1 , nj
         gvals(:) = d_zero
@@ -503,7 +507,7 @@ module mod_kdinterp
     type(h_interpolator) , intent(in) :: h_i
     integer(ik4) , dimension(:,:) , intent(in) :: g
     integer(ik4) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc
+    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
     integer(ik4) , dimension(1) :: v
     real(rkx) , dimension(:) , allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
@@ -514,14 +518,16 @@ module mod_kdinterp
       write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
       call die('interp_class','Non conforming shape for target',1)
     end if
+    n1 = minval(g)
+    n2 = maxval(g)
+    nc = n2 - n1 + 1
     if ( nc <= 0 ) then
       write(stderr,*) 'INCONSISTENCY IN CLASS NUMBER = ',nc
       call die('interp_class','CLASS NUMBER <= 0',1)
     end if
     nj = size(f,1)
     ni = size(f,2)
-    nc = maxval(g)-minval(g)+1
-    allocate(gvals(nc))
+    allocate(gvals(n1:n2))
     do i = 1 , ni
       do j = 1 , nj
         gvals(:) = d_zero
@@ -535,6 +541,7 @@ module mod_kdinterp
         f(j,i) = v(1)
       end do
     end do
+    deallocate(gvals)
   end subroutine interp_class_i
 
   subroutine smtdsmt(f)

@@ -30,13 +30,9 @@ module mod_mkpopd
 
   public :: mkpopd , mkpopd_init , mkpopd_close
 
-  character(len=16) , parameter :: maskname = 'LANDMASK'
   character(len=16) , parameter :: varname = 'PDENS'
 
-  real(rkx) :: vmisdat = -9999.0_rkx
-
   type(globalfile) :: gfile
-  real(rkx) , pointer , dimension(:,:) :: mask
 
   contains
 
@@ -45,33 +41,20 @@ module mod_mkpopd
     character(len=*) , intent(in) :: popdfile
     character(len=256) :: inpfile
 
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//popdfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
   end subroutine mkpopd_init
 
   subroutine mkpopd(popd,it)
     implicit none
     real(rkx) , dimension(:,:) , intent(out) :: popd
     integer(ik4) , intent(in) :: it
-    integer(ik4) :: i , j
-    call gfread(gfile,varname,popd,it)
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          popd(j,i) = vmisdat
-        else
-          if ( popd(j,i) < 0.1_rkx ) popd(j,i) = 0.1_rkx
-        end if
-      end do
-    end do
+    call gfread(gfile,varname,popd,it,0.1_rkx)
   end subroutine mkpopd
 
   subroutine mkpopd_close
     implicit none
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mkpopd_close
 #endif

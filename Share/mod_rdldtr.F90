@@ -42,6 +42,8 @@ module mod_rdldtr
     integer(ik4) :: ncid
     type(global_domain) :: gdomain
     type(h_interpolator) :: hint
+    logical :: lmask = .false.
+    integer(ik4) , dimension(:,:) , allocatable :: mask
   end type globalfile
 
   integer(ik4) :: ncid , istatus
@@ -719,11 +721,12 @@ module mod_rdldtr
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
     real(rkx) , intent(in) :: ds
     integer(ik4) , intent(in) :: iband
-    integer(ik4) :: nlat , nlon , n , i , j , js
+    integer(ik4) :: nlat , nlon , n , i , j , js , itf , iti , itile
     real(rkx) , dimension(:) , allocatable :: glat , glon
     real(rkx) , dimension(:) , allocatable :: rglat , rglon
     integer(ik4) :: idimid , idvar
     integer(ik4) :: jlat , ilon
+    integer(ik4) , dimension(2) :: istart , icount
 
 #ifdef DEBUG
     write(stdout,*) 'Opening '//trim(cfile)
@@ -833,16 +836,47 @@ module mod_rdldtr
     call h_interpolator_create(gfile%hint,rglat,rglon,xlat,xlon,ds)
     deallocate(rglat)
     deallocate(rglon)
+
+    istatus = nf90_inq_varid(gfile%ncid,'LANDMASK',idvar)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(gfile%ncid,'landmask',idvar)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(gfile%ncid,'MASK',idvar)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_varid(gfile%ncid,'mask',idvar)
+        end if
+      end if
+    end if
+    if ( istatus == nf90_noerr ) then
+      gfile%lmask = .true.
+      allocate(gfile%mask(nlon,nlat))
+      iti = 1
+      gfile%mask = -10000
+      do itile = 1 , gfile%gdomain%ntiles
+        istart(1) = gfile%gdomain%igstart(itile)
+        icount(1) = gfile%gdomain%ni(itile)
+        istart(2) = gfile%gdomain%jgstart
+        icount(2) = gfile%gdomain%nj
+        itf = iti + gfile%gdomain%ni(itile) - 1
+        istatus = nf90_get_var(gfile%ncid,idvar, &
+                               gfile%mask(iti:itf,:),istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+        iti = itf + 1
+      end do
+    else
+      gfile%lmask = .false.
+    end if
   end subroutine gfopen
 
-  subroutine gfread_2di(gfile,vname,var)
+  subroutine gfread_2di(gfile,vname,var,idef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
+    integer(ik4) , intent(in) :: idef
     integer(ik4) , dimension(:,:) , intent(out) :: var
     integer(ik4) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , j , i
     integer(ik4) , dimension(2) :: istart , icount
 
     nlat = gfile%gdomain%nj
@@ -864,19 +898,30 @@ module mod_rdldtr
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
       iti = itf + 1
     end do
-
+    if ( gfile%lmask ) then
+      do i = 1 , nlat
+        do j = 1 , nlon
+          if ( gfile%mask(j,i) == 0 ) then
+            vread(j,i) = -1
+          else
+            if ( vread(j,i) < 0 ) vread(j,i) = idef
+          end if
+        end do
+      end do
+    end if
     call h_interpolate_class(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_2di
 
-  subroutine gfread_2d(gfile,vname,var)
+  subroutine gfread_2d(gfile,vname,var,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:) , intent(out) :: var
     real(rkx) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , i , j
     integer(ik4) , dimension(2) :: istart , icount
 
     nlat = gfile%gdomain%nj
@@ -898,20 +943,33 @@ module mod_rdldtr
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
       iti = itf + 1
     end do
+
+    if ( gfile%lmask ) then
+      do i = 1 , nlat
+        do j = 1 , nlon
+          if ( gfile%mask(j,i) == 0 ) then
+            vread(j,i) = h_missing_value
+          else
+            if ( vread(j,i) < 0.0_rkx ) vread(j,i) = rdef
+          end if
+        end do
+      end do
+    end if
 
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_2d
 
-  subroutine gfread_2d3d(gfile,vname,var,isel)
+  subroutine gfread_2d3d(gfile,vname,var,isel,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
     integer(ik4) , intent(in) :: isel
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:) , intent(out) :: var
     real(rkx) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd , i , j
     integer(ik4) , dimension(3) :: idims , istart , icount
 
     if ( isel < 0 ) then
@@ -951,18 +1009,31 @@ module mod_rdldtr
       iti = itf + 1
     end do
 
+    if ( gfile%lmask ) then
+      do i = 1 , nlat
+        do j = 1 , nlon
+          if ( gfile%mask(j,i) == 0 ) then
+            vread(j,i) = h_missing_value
+          else
+            if ( vread(j,i) < 0.0_rkx ) vread(j,i) = rdef
+          end if
+        end do
+      end do
+    end if
+
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_2d3d
 
-  subroutine gfread_3d(gfile,vname,var)
+  subroutine gfread_3d(gfile,vname,var,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd , i , j , n
     integer(ik4) , dimension(3) :: idims , istart , icount
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
@@ -992,11 +1063,25 @@ module mod_rdldtr
       iti = itf + 1
     end do
 
+    if ( gfile%lmask ) then
+      do n = 1 , nd
+        do i = 1 , nlat
+          do j = 1 , nlon
+            if ( gfile%mask(j,i) == 0 ) then
+              vread(j,i,n) = h_missing_value
+            else
+              if ( vread(j,i,n) < 0.0_rkx ) vread(j,i,n) = rdef
+            end if
+          end do
+        end do
+      end do
+    end if
+
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_3d
 
-  subroutine gfread_3d_lookup(gfile,vname,lkdim,lkvar,var,lrev)
+  subroutine gfread_3d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
@@ -1004,6 +1089,7 @@ module mod_rdldtr
     character(len=*) , intent(in) :: lkdim
     character(len=*) , intent(in) :: lkvar
     logical , intent(in) :: lrev
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:) , allocatable :: vread
     real(rkx) , dimension(:,:) , allocatable :: temp
@@ -1060,7 +1146,7 @@ module mod_rdldtr
             if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
               vread(j,i,n) = temp(n,mpu(j,i))
             else
-              vread(j,i,n) = -9999.0_rkx
+              vread(j,i,n) = h_missing_value
             end if
           end do
         end do
@@ -1072,26 +1158,43 @@ module mod_rdldtr
             if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
               vread(j,i,n) = temp(mpu(j,i),n)
             else
-              vread(j,i,n) = -9999.0_rkx
+              vread(j,i,n) = h_missing_value
             end if
           end do
         end do
       end do
     end if
+
+    if ( gfile%lmask ) then
+      do n = 1 , nlev
+        do i = 1 , nlat
+          do j = 1 , nlon
+            if ( gfile%mask(j,i) == 0 ) then
+              vread(j,i,n) = h_missing_value
+            else
+              if ( vread(j,i,n) < 0.0_rkx ) vread(j,i,n) = rdef
+            end if
+          end do
+        end do
+      end do
+    end if
+
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
     deallocate(mpu)
   end subroutine gfread_3d_lookup
 
-  subroutine gfread_4d(gfile,vname,var)
+  subroutine gfread_4d(gfile,vname,var,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd , ne
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
+    integer(ik4) :: nd , ne , i , j , m , n
     integer(ik4) , dimension(4) :: idims , istart , icount
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
@@ -1126,11 +1229,27 @@ module mod_rdldtr
       iti = itf + 1
     end do
 
+    if ( gfile%lmask ) then
+      do m = 1 , ne
+        do n = 1 , nd
+          do i = 1 , nlat
+            do j = 1 , nlon
+              if ( gfile%mask(j,i) == 0 ) then
+                vread(j,i,n,m) = h_missing_value
+              else
+                if ( vread(j,i,n,m) < 0.0_rkx ) vread(j,i,n,m) = rdef
+              end if
+            end do
+          end do
+        end do
+      end do
+    end if
+
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_4d
 
-  subroutine gfread_4d_lookup(gfile,vname,lkdim,lkvar,var,lrev)
+  subroutine gfread_4d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
@@ -1138,11 +1257,13 @@ module mod_rdldtr
     character(len=*) , intent(in) :: lkdim
     character(len=*) , intent(in) :: lkvar
     logical , intent(in) :: lrev
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:) , allocatable :: vread
     real(rkx) , dimension(:,:,:) , allocatable :: temp
     integer(ik4) , dimension(:,:) , allocatable :: mpu
-    integer(ik4) :: nlat , nlon , nlev1 , nlev2 , nmpu , i , j , n1 , n2
+    integer(ik4) :: nlat , nlon , nlev1 , nlev2 , nmpu
+    integer(ik4) :: i , j , n1 , n2
     integer(ik4) :: itile , ivar , ilook , impud , iti , itf
     integer(ik4) , dimension(2) :: istart , icount
 
@@ -1196,7 +1317,7 @@ module mod_rdldtr
               if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                 vread(j,i,n1,n2) = temp(n2,mpu(j,i),n1)
               else
-                vread(j,i,n1,n2) = -9999.0_rkx
+                vread(j,i,n1,n2) = h_missing_value
               end if
             end do
           end do
@@ -1210,27 +1331,46 @@ module mod_rdldtr
               if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                 vread(j,i,n1,n2) = temp(n1,mpu(j,i),n2)
               else
-                vread(j,i,n1,n2) = -9999.0_rkx
+                vread(j,i,n1,n2) = h_missing_value
               end if
             end do
           end do
         end do
       end do
     end if
+
+    if ( gfile%lmask ) then
+      do n2 = 1 , nlev2
+        do n1 = 1 , nlev1
+          do i = 1 , nlat
+            do j = 1 , nlon
+              if ( gfile%mask(j,i) == 0 ) then
+                vread(j,i,n1,n2) = h_missing_value
+              else
+                if ( vread(j,i,n1,n2) < 0.0_rkx ) vread(j,i,n1,n2) = rdef
+              end if
+            end do
+          end do
+        end do
+      end do
+    end if
+
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
     deallocate(mpu)
   end subroutine gfread_4d_lookup
 
-  subroutine gfread_5d(gfile,vname,var)
+  subroutine gfread_5d(gfile,vname,var,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:,:) , allocatable :: vread
     integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , nd , ne , nf
+    integer(ik4) :: i , j , l , m , n
     integer(ik4) , dimension(5) :: idims , istart , icount
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
@@ -1271,11 +1411,29 @@ module mod_rdldtr
       iti = itf + 1
     end do
 
+    if ( gfile%lmask ) then
+      do l = 1 , nd
+        do m = 1 , ne
+          do n = 1 , nf
+            do i = 1 , nlat
+              do j = 1 , nlon
+                if ( gfile%mask(j,i) == 0 ) then
+                  vread(j,i,n,m,l) = h_missing_value
+                else
+                  if ( vread(j,i,n,m,l) < 0.0_rkx ) vread(j,i,n,m,l) = rdef
+                end if
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
+
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_5d
 
-  subroutine gfread_5d_lookup(gfile,vname,lkdim,lkvar,var,lrev)
+  subroutine gfread_5d_lookup(gfile,vname,lkdim,lkvar,var,lrev,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
@@ -1283,6 +1441,7 @@ module mod_rdldtr
     character(len=*) , intent(in) :: lkdim
     character(len=*) , intent(in) :: lkvar
     logical , intent(in) :: lrev
+    real(rkx) , intent(in) :: rdef
     real(rkx) , dimension(:,:,:,:,:) , intent(out) :: var
     real(rkx) , dimension(:,:,:,:,:) , allocatable :: vread
     real(rkx) , dimension(:,:,:,:) , allocatable :: temp
@@ -1352,7 +1511,7 @@ module mod_rdldtr
                 if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                   vread(j,i,n1,n2,n3) = temp(n3,mpu(j,i),n2,n1)
                 else
-                  vread(j,i,n1,n2,n3) = -9999.0_rkx
+                  vread(j,i,n1,n2,n3) = h_missing_value
                 end if
               end do
             end do
@@ -1368,7 +1527,7 @@ module mod_rdldtr
                 if ( mpu(j,i) > 0 .and. mpu(j,i) <= nmpu ) then
                   vread(j,i,n1,n2,n3) = temp(n1,mpu(j,i),n2,n3)
                 else
-                  vread(j,i,n1,n2,n3) = -9999.0_rkx
+                  vread(j,i,n1,n2,n3) = h_missing_value
                 end if
               end do
             end do
@@ -1376,6 +1535,25 @@ module mod_rdldtr
         end do
       end do
     end if
+
+    if ( gfile%lmask ) then
+      do n3 = 1 , nlev3
+        do n2 = 1 , nlev2
+          do n1 = 1 , nlev1
+            do i = 1 , nlat
+              do j = 1 , nlon
+                if ( gfile%mask(j,i) < 0 ) then
+                  vread(j,i,n1,n2,n3) = h_missing_value
+                else
+                  vread(j,i,n1,n2,n3) = rdef
+                end if
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
+
     call h_interpolate_cont(gfile%hint,vread,var)
     deallocate(vread)
     deallocate(temp)
@@ -1391,6 +1569,9 @@ module mod_rdldtr
     if ( gfile%ncid > 0 ) then
       istatus = nf90_close(gfile%ncid)
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    end if
+    if ( gfile%lmask ) then
+      deallocate(gfile%mask)
     end if
   end subroutine gfclose
 

@@ -30,9 +30,6 @@ module mod_mkgdp
   public :: mkgdp
 
   character(len=16) , parameter :: varname = 'gdp'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -40,27 +37,13 @@ module mod_mkgdp
     implicit none
     character(len=*) , intent(in) :: gdpfile
     real(rkx) , dimension(:,:) , intent(out) :: gdp
-    integer(ik4) :: i , j
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//gdpfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname,gdp)
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          gdp(j,i) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
+    call gfread(gfile,varname,gdp,h_missing_value)
     call gfclose(gfile)
   end subroutine mkgdp
 

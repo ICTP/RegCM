@@ -153,6 +153,7 @@ program mksurfdata
   real(rk4) , pointer , dimension(:) :: xjx
   real(rk4) :: hptop
   real(rkx) :: smallnum , ml , ms , mt , mb
+  real(rkx) , dimension(6) :: vocefs , cvocefs
   real(rk8) , dimension(1) :: xdate
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(2) :: ihvar
@@ -161,12 +162,12 @@ program mksurfdata
   integer(ik4) , dimension(1) :: istart1 , icount1 , mxsoil_color , iloc
   real(rkx) :: spft , mean , diff
   integer(ik4) :: ierr
-  integer(ik4) :: i , j , ip , il , ir , iu , np , nm , it , ipnt , iurbmax
+  integer(ik4) :: i , j , n , ip , il , ir , iu , np , nm , it , ipnt , iurbmax
   integer(ik4) :: jgstart , jgstop , igstart , igstop , mmx
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate , pftfile , laifile
-  real(rkx) , dimension(:,:) , pointer :: pctspec , pctslake
+  real(rkx) , dimension(:,:) , pointer :: pctspec , pctslake , pctbare
   real(rkx) , pointer , dimension(:,:) :: var2d
   integer(ik4) , pointer , dimension(:,:) :: ivar2d
   real(rkx) , pointer , dimension(:,:,:) :: var3d
@@ -806,6 +807,7 @@ program mksurfdata
 
   call getmem2d(pctspec,1,jxsg,1,iysg,'mksurfdata: pctspec')
   call getmem2d(pctslake,1,jxsg,1,iysg,'mksurfdata: pctslake')
+  call getmem2d(pctbare,1,jxsg,1,iysg,'mksurfdata: pctbare')
   call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
   call getmem1d(igcvar,1,ngcells,'mksurfdata: igcvar')
   call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
@@ -813,6 +815,7 @@ program mksurfdata
   call getmem1d(landpoint,1,ngcells,'mksurfdata: landpoint')
   pctspec(:,:) = 0.0_rkx
   pctslake(:,:) = 0.0_rkx
+  pctbare(:,:) = 0.0_rkx
   ip = 1
   do i = igstart , igstop
     do j = jgstart , jgstop
@@ -887,55 +890,40 @@ program mksurfdata
     write (stderr,*) 'Disable URBAN Areas in CLM4.5 Model !'
     var3d(:,:,4:iurbmax) = 0.0_rkx
   end if
-  var3d = max(var3d,0.0_rkx)
+  var3d = min(max(aint(var3d),0.0_rkx),100.0_rkx)
   do i = 1 , iurbmax
     where ( xmask < 0.5_rkx )
       var3d(:,:,i) = vmisdat
     end where
   end do
-
-  where ( var3d(:,:,1) > 100.0_rkx ) var3d(:,:,1) = 100.0_rkx
-  where ( var3d(:,:,2) > 100.0_rkx ) var3d(:,:,2) = 100.0_rkx
-  where ( var3d(:,:,3) > 100.0_rkx ) var3d(:,:,3) = 100.0_rkx
-  where ( var3d(:,:,4:iurbmax) > 100.0_rkx ) var3d(:,:,4:iurbmax) = 100.0_rkx
-  var3d(:,:,:) = int(var3d(:,:,:))
-
+  !
+  ! Normalize the sum of pctspec to range 0-100
+  !
   do i = igstart , igstop
     do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5_rkx ) then
         pctspec(j,i) = sum(var3d(j,i,:))
-        if ( pctspec(j,i) < 0.0_rkx ) then
-          write(stderr,*) 'Negative pctspec ',pctspec(j,i),' at j,i ', j , i
-          call die(__FILE__,'PCTSPEC error',__LINE__)
-        end if
+        ! If 2 or more special classes at 100 same point
         if ( pctspec(j,i) > (200.0_rkx - smallnum) ) then
           var3d(j,i,:) = var3d(j,i,:) / (pctspec(j,i)/100.0_rkx)
           pctspec(j,i) = sum(var3d(j,i,:))
         end if
+        ! Reduce to biggest if the sum is not less equal 100
         if ( pctspec(j,i) > (100.0_rkx - smallnum) ) then
-          diff = 100.0_rkx - pctspec(j,i)
           iloc = maxloc(var3d(j,i,:))
-          var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
-          pctspec(j,i) = sum(var3d(j,i,:))
-          if ( pctspec(j,i) /= 100.0_rkx ) then
-            diff = 100.0_rkx - pctspec(j,i)
-            iloc = maxloc(var3d(j,i,:))
-            var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
-            pctspec(j,i) = sum(var3d(j,i,:))
-            if ( pctspec(j,i) /= 100.0_rkx ) then
-              write(stderr,*) 'Cannot normalize pctspec at j,i ', &
-                      j , i , pctspec(j,i)
-              call die(__FILE__,'PCTSPEC normalization error',__LINE__)
-            end if
-          end if
-        end if
-        if ( pctspec(j,i) < smallnum ) then
-          pctspec(j,i) = 0.0_rkx
           var3d(j,i,:) = 0.0_rkx
+          var3d(j,i,iloc(1)) = 100.0_rkx
+          pctspec(j,i) = 100.0_rkx
         end if
       end if
     end do
   end do
+
+  if ( any(pctspec < 0.0_rkx) .or. any(pctspec > 100.0_rkx) ) then
+    write(stderr,*) 'Error in special categories.'
+    call die(__FILE__,'Cannot continue!',__LINE__)
+  end if
+
   call mypack(var3d(:,:,1),gcvar)
   istatus = nf90_put_var(ncid, iglcvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
@@ -1000,19 +988,7 @@ program mksurfdata
           diff = spft - (100.0_rkx-pctspec(j,i))
           if ( abs(diff) > 0.5_rkx ) then
             do while ( diff >= 1.0_rkx )
-              iloc(:) = 0
-              mval = 101.0_rkx
-              do np = 1 , npft
-                if ( var3d(j,i,np) > 0.0_rkx .and. mval > var3d(j,i,np) ) then
-                  iloc(1) = np
-                  mval = var3d(j,i,np)
-                end if
-              end do
-              if ( iloc(1) == 0 ) then
-                write (0,*) 'diff still = ', abs(diff)
-                write (0,*) 'PFTS = ', var3d(j,i,:)
-                call die(__FILE__,'Cannot normalize...',__LINE__)
-              end if
+              iloc = maxloc(var3d(j,i,:))
               var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) - 1._rkx
               spft = sum(var3d(j,i,:))
               diff = spft - (100.0_rkx-pctspec(j,i))
@@ -1039,6 +1015,9 @@ program mksurfdata
       end if
     end do
   end do
+  where ( var3d(:,:,1) > 50.0_rkx )
+    pctbare = 100.0_rkx
+  end where
   !var3d(:,:,15) = var3d(:,:,15) + var3d(:,:,5)
   !var3d(:,:,5) = 0.0_rkx
   !var3d(:,:,15) = var3d(:,:,15) + var3d(:,:,7)
@@ -1119,6 +1098,9 @@ program mksurfdata
 
   allocate(var2d(jxsg,iysg))
   call mkfmax('mksrf_fmax.nc',var2d)
+  !
+  ! Set missing point to domain average values
+  !
   mb = 0.0_rkx
   mt = 0.0_rkx
   do i = 1 , iysg
@@ -1141,6 +1123,7 @@ program mksurfdata
       end if
     end do
   end do
+
   call mypack(var2d,gcvar)
   istatus = nf90_put_var(ncid, ifmaxvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write fmax')
@@ -1151,6 +1134,10 @@ program mksurfdata
   where ( xmask < 0.5_rkx )
     var2d = vmisdat
   end where
+
+  !
+  ! Set missing point to domain average values
+  !
   mb = 0.0_rkx
   mt = 0.0_rkx
   do i = 1 , iysg
@@ -1180,6 +1167,10 @@ program mksurfdata
 
   allocate(var4d(jxsg,iysg,nsoil,2))
   call mksoitex('mksrf_soitex.nc',var4d(:,:,:,1),var4d(:,:,:,2))
+
+  !
+  ! Set missing point to neutral texture 50%/50%
+  !
   where ( var4d(:,:,:,1) < 0.0_rkx )
     var4d(:,:,:,1) = 50.0_rkx
     var4d(:,:,:,2) = 50.0_rkx
@@ -1211,7 +1202,11 @@ program mksurfdata
   where ( xmask < 0.5_rkx )
     var2d = vmisdat
   end where
+
   call mypack(var2d,gcvar)
+  !
+  ! Fill from nearby.
+  !
   if ( any(gcvar < 0.0_rkx) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, igdpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
@@ -1219,6 +1214,9 @@ program mksurfdata
 
   allocate(var2d(jxsg,iysg))
   call mkpeatf('mksrf_peatf.nc',var2d)
+  !
+  ! This field is mostly zero except some regions
+  !
   where ( var2d < 0.0_rkx )
    var2d = 0.0_rkx
   end where
@@ -1226,15 +1224,18 @@ program mksurfdata
     var2d = vmisdat
   end where
   call mypack(var2d,gcvar)
-  if ( any(gcvar < 0.0_rkx) ) call fillvar(gcvar)
+
   istatus = nf90_put_var(ncid, ipeatfvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write peatf')
   deallocate(var2d)
 
   allocate(ivar2d(jxsg,iysg))
   call mkabm('mksrf_abm.nc',ivar2d)
+  !
+  ! ABM missing is 13
+  !
   where ( xmask < 0.5_rkx )
-    ivar2d = 13
+    ivar2d = -1
   end where
   call mypack(ivar2d,igcvar)
   istatus = nf90_put_var(ncid, iabmvar, igcvar)
@@ -1245,22 +1246,44 @@ program mksurfdata
 
   allocate(var3d(jxsg,iysg,6))
   call mkvocef('mksrf_vocef.nc',var3d)
-  where ( var3d(:,:,1) < 0.0_rkx )
-    var3d(:,:,1) = 0.0_rkx
-    var3d(:,:,2) = 0.0_rkx
-    var3d(:,:,3) = 0.0_rkx
-    var3d(:,:,4) = 0.0_rkx
-    var3d(:,:,5) = 0.0_rkx
-    var3d(:,:,6) = 0.0_rkx
-  end where
-  where ( xmask < 0.5_rkx )
-    var3d(:,:,1) = vmisdat
-    var3d(:,:,2) = vmisdat
-    var3d(:,:,3) = vmisdat
-    var3d(:,:,4) = vmisdat
-    var3d(:,:,5) = vmisdat
-    var3d(:,:,6) = vmisdat
-  end where
+  !
+  ! Use domain average to substitute missing pixels.
+  !
+  vocefs = 0.0_rkx
+  cvocefs = 0.0_rkx
+  do n = 1 , 6
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) < 0.5_rkx ) then
+          var3d(j,i,n) = vmisdat
+        else
+          if ( var3d(j,i,n) < 0.0_rkx ) then
+            if ( pctbare(j,i) > 50.0_rkx ) then
+              var3d(j,i,n) = 0.0_rkx
+            end if
+          else
+            vocefs(n) = vocefs(n) + var3d(j,i,n)
+            cvocefs(n) = cvocefs(n) + 1.0_rkx
+          end if
+        end if
+      end do
+    end do
+  end do
+  do n = 1 , 6
+    if ( cvocefs(n) > 0.0_rkx ) then
+      vocefs(n) = vocefs(n) / cvocefs(n)
+    end if
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( xmask(j,i) > 0.5_rkx ) then
+          if ( var3d(j,i,n) < 0.0_rkx ) then
+            var3d(j,i,n) = vocefs(n)
+          end if
+        end if
+      end do
+    end do
+  end do
+
   call mypack(var3d(:,:,1),gcvar)
   istatus = nf90_put_var(ncid, ief_btrvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_btr')

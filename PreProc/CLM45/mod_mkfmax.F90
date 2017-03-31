@@ -30,9 +30,6 @@ module mod_mkfmax
   public :: mkfmax
 
   character(len=16) , parameter :: varname = 'FMAX'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -40,27 +37,14 @@ module mod_mkfmax
     implicit none
     character(len=*) , intent(in) :: fmaxfile
     real(rkx) , dimension(:,:) , intent(out) :: fmax
-    integer(ik4) :: i , j
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//fmaxfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname,fmax)
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          fmax(j,i) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
+    call gfread(gfile,varname,fmax,h_missing_value)
     call gfclose(gfile)
   end subroutine mkfmax
 

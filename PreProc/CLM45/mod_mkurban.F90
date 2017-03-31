@@ -34,7 +34,6 @@ module mod_mkurban
   character(len=16) , parameter :: densdim = 'density_class'
   character(len=16) , parameter :: regiondim = 'region'
   character(len=16) , parameter :: varname = 'PCT_URBAN'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
   character(len=16) , parameter :: regionname = 'REGION_ID'
 
   integer(ik4) , public , parameter :: npu2d = 14
@@ -95,7 +94,6 @@ module mod_mkurban
   integer(ik4) , dimension(nparam) , parameter :: parmdim = &
     (/3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5/)
 
-  real(rkx) , parameter :: vmisdat = -9999.0_rkx
   real(rkx) , parameter :: vcutoff = 40.0_rkx
 
   contains
@@ -106,23 +104,17 @@ module mod_mkurban
     real(rkx) , dimension(:,:,:) , intent(out) :: urban
     integer(ik4) :: i , j , n , nurban
     integer(ik4) , dimension(1) :: il
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
     nurban = size(urban,3)
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//urbanfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname,urban)
+    call gfread(gfile,varname,urban,h_missing_value)
     do i = 1 , iysg
       do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          urban(j,i,:) = vmisdat
-        else
+        if ( urban(j,i,1) > h_missing_value ) then
           if ( sum(urban(j,i,:)) < vcutoff ) then
             urban(j,i,:) = d_zero
           else
@@ -138,7 +130,6 @@ module mod_mkurban
         end if
       end do
     end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mkurban_base
 
@@ -148,9 +139,8 @@ module mod_mkurban
     real(rkx) , dimension(:,:,:,:) , intent(out) :: urban3d
     real(rkx) , dimension(:,:,:,:,:) , intent(out) :: urban4d
     real(rkx) , dimension(:,:,:,:,:,:) , intent(out) :: urban5d
-    integer(ik4) :: ipt , ip , i , j , n
+    integer(ik4) :: ipt , ip , n
     integer(ik4) :: i4 , i5 , i6
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
@@ -169,40 +159,28 @@ module mod_mkurban
       ipt = ipt + 1
     end do
 
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//urbanfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
 
     do n = 1 , nparam
       select case (parmdim(n))
         case (3)
           i4 = ip2d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
-                        urban3d(:,:,:,i4),.true.)
+                        urban3d(:,:,:,i4),.true.,h_missing_value)
         case (4)
           i5 = ip3d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
-                        urban4d(:,:,:,:,i5),.true.)
+                        urban4d(:,:,:,:,i5),.true.,h_missing_value)
         case (5)
           i6 = ip4d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
-                        urban5d(:,:,:,:,:,i6),.true.)
+                        urban5d(:,:,:,:,:,i6),.true.,h_missing_value)
         case default
           call die(__FILE__,'Variable dimension not implemented',__LINE__)
       end select
     end do
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          urban3d(j,i,:,:) = vmisdat
-          urban4d(j,i,:,:,:) = vmisdat
-          urban5d(j,i,:,:,:,:) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mkurban_param
 

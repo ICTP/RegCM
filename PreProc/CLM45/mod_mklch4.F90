@@ -34,9 +34,6 @@ module mod_mklch4
 
   character(len=16) , parameter , dimension(nlch4):: varname = &
           (/ 'F0  ' , 'P3  ' , 'ZWT0'/)
-  character(len=16) , parameter :: maskname = 'mask'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -44,30 +41,18 @@ module mod_mklch4
     implicit none
     character(len=*) , intent(in) :: lch4file
     real(rkx) , dimension(:,:,:) , intent(out) :: lch4
-    integer(ik4) :: i , j , n
-    real(rkx) , pointer , dimension(:,:) :: mask
+    integer(ik4) :: n
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//lch4file
-    allocate(mask(jxsg,iysg))
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
     do n = 1 , nlch4
-      call gfread(gfile,varname(n),lch4(:,:,n))
+      call gfread(gfile,varname(n),lch4(:,:,n),h_missing_value)
     end do
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          lch4(j,i,:) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mklch4
 #endif

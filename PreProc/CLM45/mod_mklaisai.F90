@@ -34,9 +34,6 @@ module mod_mklaisai
   character(len=16) , parameter :: varname2 = 'MONTHLY_SAI'
   character(len=32) , parameter :: varname3 = 'MONTHLY_HEIGHT_BOT'
   character(len=32) , parameter :: varname4 = 'MONTHLY_HEIGHT_TOP'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -46,33 +43,16 @@ module mod_mklaisai
     character(len=*) , intent(in) :: laisaifile
     real(rkx) , dimension(:,:,:,:) , intent(out) :: monthly_sai , monthly_lai
     real(rkx) , dimension(:,:,:,:) , intent(out) :: monthly_top , monthly_bot
-    integer(ik4) :: i , j
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//laisaifile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname1,monthly_lai)
-    call gfread(gfile,varname2,monthly_sai)
-    call gfread(gfile,varname3,monthly_top)
-    call gfread(gfile,varname4,monthly_bot)
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          monthly_lai(j,i,:,:) = vmisdat
-          monthly_sai(j,i,:,:) = vmisdat
-          monthly_top(j,i,:,:) = vmisdat
-          monthly_bot(j,i,:,:) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
+    call gfread(gfile,varname1,monthly_lai,h_missing_value)
+    call gfread(gfile,varname2,monthly_sai,h_missing_value)
+    call gfread(gfile,varname3,monthly_top,h_missing_value)
+    call gfread(gfile,varname4,monthly_bot,h_missing_value)
     call gfclose(gfile)
   end subroutine mklaisai
 

@@ -34,9 +34,6 @@ module mod_mkvic
 
   character(len=16) , parameter , dimension(nvic):: varname = &
           (/ 'binfl' , 'Ds   ' , 'Dsmax' , 'Ws   '/)
-  character(len=16) , parameter :: maskname = 'mask'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -44,30 +41,17 @@ module mod_mkvic
     implicit none
     character(len=*) , intent(in) :: vicfile
     real(rkx) , dimension(:,:,:) , intent(out) :: vic
-    integer(ik4) :: i , j , n
-    real(rkx) , pointer , dimension(:,:) :: mask
+    integer(ik4) :: n
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//vicfile
-    allocate(mask(jxsg,iysg))
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
     do n = 1 , nvic
-      call gfread(gfile,varname(n),vic(:,:,n))
+      call gfread(gfile,varname(n),vic(:,:,n),h_missing_value)
     end do
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          vic(j,i,:) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mkvic
 #endif

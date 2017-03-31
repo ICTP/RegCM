@@ -34,9 +34,6 @@ module mod_mkvocef
   character(len=16) , parameter , dimension(nvocs):: varname = &
           (/ 'ef_btr' , 'ef_crp' , 'ef_fdt' , &
              'ef_fet' , 'ef_grs' , 'ef_shr'/)
-  character(len=16) , parameter :: maskname = 'LANDMASK'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -44,30 +41,16 @@ module mod_mkvocef
     implicit none
     character(len=*) , intent(in) :: vocfile
     real(rkx) , dimension(:,:,:) , intent(out) :: vocef
-    integer(ik4) :: i , j , n
-    real(rkx) , pointer , dimension(:,:) :: mask
+    integer(ik4) :: n
     type(globalfile) :: gfile
-
     character(len=256) :: inpfile
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//vocfile
-    allocate(mask(jxsg,iysg))
-
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
     do n = 1 , nvocs
-      call gfread(gfile,varname(n),vocef(:,:,n))
+      call gfread(gfile,varname(n),vocef(:,:,n),h_missing_value)
     end do
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          vocef(j,i,:) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mkvocef
 

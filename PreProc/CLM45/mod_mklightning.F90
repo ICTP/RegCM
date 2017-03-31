@@ -49,7 +49,7 @@ module mod_mklightning
     implicit none
     real(rkx) , dimension(:,:) , intent(out) :: lightning
     integer(ik4) , intent(in) :: it
-    call gfread(gfile,varname,lightning,it)
+    call gfread(gfile,varname,lightning,it,0.0_rkx)
   end subroutine mklightning
 
   subroutine mklightning_close

@@ -36,9 +36,6 @@ module mod_mkharvest
   character(len=16) , parameter , dimension(nvarc):: varname = &
           (/ 'HARVEST_VH1' , 'HARVEST_VH2' , 'HARVEST_SH1' , &
              'HARVEST_SH2' , 'HARVEST_SH3' , 'GRAZING    '/)
-  character(len=16) , parameter :: maskname = 'LANDMASK'
-
-  real(rkx) :: vmisdat = -9999.0_rkx
 
   contains
 
@@ -46,8 +43,7 @@ module mod_mkharvest
     implicit none
     real(rkx) , dimension(:,:,:) , intent(out) :: harvest
     integer(ik4) , intent(in) :: iyear
-    integer(ik4) :: i , j , n
-    real(rkx) , pointer , dimension(:,:) :: mask
+    integer(ik4) :: n
     character(len=32) :: p1 , p2
     character(len=4) :: cy
     type(globalfile) :: gfile
@@ -83,23 +79,13 @@ module mod_mkharvest
     inpfile = trim(inpglob)//pthsep//'CLM45'//pthsep//'surface'// &
             pthsep//trim(p1)//pthsep//trim(p2)//pthsep//&
             'mksrf_landuse_'//cy//'.nc'
-    allocate(mask(jxsg,iysg))
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
     do n = 1 , nvarc
-      call gfread(gfile,varname(n),harvest(:,:,n))
+      call gfread(gfile,varname(n),harvest(:,:,n),h_missing_value)
     end do
-
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          harvest(j,i,:) = vmisdat
-        end if
-      end do
-    end do
-    deallocate(mask)
     call gfclose(gfile)
+
   end subroutine mkharvest
 #endif
 

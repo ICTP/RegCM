@@ -33,9 +33,7 @@ module mod_mkpft
   public :: mkpft
 
   character(len=16) , parameter :: varname = 'PCT_PFT'
-  character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rkx) :: vmisdat = -9999.0_rkx
   real(rkx) :: vcutoff = 19.0_rkx
 
   contains
@@ -46,24 +44,19 @@ module mod_mkpft
     real(rkx) , dimension(:,:,:) , intent(out) :: pft
     integer(ik4) :: i , j , n , npft
     integer(ik4) , dimension(1) :: il
-    real(rkx) , pointer , dimension(:,:) :: mask
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
 
     npft = size(pft,3)
-    allocate(mask(jxsg,iysg))
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//pftfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,maskname,mask)
-    call gfread(gfile,varname,pft)
+    call gfread(gfile,varname,pft,h_missing_value)
 
     do i = 1 , iysg
       do j = 1 , jxsg
-        if ( mask(j,i) < 1.0_rkx ) then
-          pft(j,i,:) = vmisdat
-        else
+        if ( pft(j,i,1) > h_missing_value ) then
           il = maxloc(pft(j,i,:))
           do n = 1 , npft
             if ( n == il(1) ) cycle
@@ -73,12 +66,11 @@ module mod_mkpft
             end if
           end do
           do n = 1 , npft
-            pft(j,i,n) = min(pft(j,i,n),100.0_rkx)
+            pft(j,i,n) = max(min(pft(j,i,n),100.0_rkx),0.0_rkx)
           end do
         end if
       end do
     end do
-    deallocate(mask)
     call gfclose(gfile)
   end subroutine mkpft
 
