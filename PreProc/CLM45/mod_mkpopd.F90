@@ -61,7 +61,7 @@ module mod_mkpopd
           if ( popd(j,i) > h_missing_value ) then
             popd(j,i) = max(d_zero,popd(j,i))
           else
-            call bestaround(popd,j,i)
+            call bestaround(popd,i,j)
             popd(j,i) = max(d_zero,popd(j,i))
           end if
         end if

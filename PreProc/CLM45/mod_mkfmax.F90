@@ -57,7 +57,7 @@ module mod_mkfmax
           if ( fmax(j,i) > h_missing_value ) then
             fmax(j,i) = max(d_zero,min(d_one,fmax(j,i)))
           else
-            call bestaround(fmax,j,i)
+            call bestaround(fmax,i,j)
             fmax(j,i) = max(d_zero,min(d_one,fmax(j,i)))
           end if
         end if

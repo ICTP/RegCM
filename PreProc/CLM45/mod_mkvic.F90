@@ -60,7 +60,7 @@ module mod_mkvic
             if ( vic(j,i,n) > h_missing_value ) then
               vic(j,i,n) = max(d_zero,vic(j,i,n))
             else
-              call bestaround(vic(:,:,n),j,i)
+              call bestaround(vic(:,:,n),i,j)
               vic(j,i,n) = max(d_zero,vic(j,i,n))
             end if
           end if

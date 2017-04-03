@@ -63,7 +63,7 @@ module mod_mkvocef
             if ( vocef(j,i,n) > h_missing_value ) then
               vocef(j,i,n) = max(d_zero,vocef(j,i,n))
             else
-              call bestaround(vocef(:,:,n),j,i)
+              call bestaround(vocef(:,:,n),i,j)
               vocef(j,i,n) = max(d_zero,vocef(j,i,n))
             end if
           end if

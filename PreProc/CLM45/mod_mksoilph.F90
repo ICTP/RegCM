@@ -58,7 +58,7 @@ module mod_mksoilph
           if ( soilph(j,i) > h_missing_value ) then
             soilph(j,i) = max(d_zero,soilph(j,i))
           else
-            call bestaround(soilph,j,i)
+            call bestaround(soilph,i,j)
             soilph(j,i) = max(d_zero,soilph(j,i))
           end if
         end if

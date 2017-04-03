@@ -60,7 +60,7 @@ module mod_mklightning
           if ( lightning(j,i) > h_missing_value ) then
             lightning(j,i) = max(d_zero,lightning(j,i))
           else
-            call bestaround(lightning,j,i)
+            call bestaround(lightning,i,j)
             lightning(j,i) = max(d_zero,lightning(j,i))
           end if
         end if

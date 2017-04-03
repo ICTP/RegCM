@@ -58,8 +58,8 @@ module mod_mksoitex
         if ( mask(j,i) > 0.5_rkx ) then
           if ( clay(j,i,1) < 0.0_rkx .or. sand(j,i,1) < 0.0_rkx ) then
             do n = 1 , nc
-              call bestaround(sand(:,:,n),j,i)
-              call bestaround(clay(:,:,n),j,i)
+              call bestaround(sand(:,:,n),i,j)
+              call bestaround(clay(:,:,n),i,j)
             end do
           end if
           do n = 1 , nc

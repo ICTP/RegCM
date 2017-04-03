@@ -55,7 +55,7 @@ module mod_mklake
           if ( lake(j,i) > h_missing_value ) then
             lake(j,i) = max(d_zero,lake(j,i))
           else
-            call bestaround(lake,j,i)
+            call bestaround(lake,i,j)
             lake(j,i) = max(d_zero,lake(j,i))
           end if
         end if

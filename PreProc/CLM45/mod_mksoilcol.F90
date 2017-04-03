@@ -56,7 +56,7 @@ module mod_mksoilcol
           if ( soilcol(j,i) > h_missing_value ) then
             soilcol(j,i) = max(d_zero,soilcol(j,i))
           else
-            call bestaround(soilcol,j,i)
+            call bestaround(soilcol,i,j)
             soilcol(j,i) = max(d_zero,soilcol(j,i))
           end if
         end if

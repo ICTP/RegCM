@@ -92,7 +92,7 @@ module mod_mkharvest
             if ( harvest(j,i,n) > h_missing_value ) then
               harvest(j,i,n) = max(d_zero,harvest(j,i,n))
             else
-              call bestaround(harvest(:,:,n),j,i)
+              call bestaround(harvest(:,:,n),i,j)
               harvest(j,i,n) = max(d_zero,harvest(j,i,n))
             end if
           end if

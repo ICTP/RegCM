@@ -61,7 +61,7 @@ module mod_mklch4
             if ( lch4(j,i,n) > h_missing_value ) then
               lch4(j,i,n) = max(d_zero,lch4(j,i,n))
             else
-              call bestaround(lch4(:,:,n),j,i)
+              call bestaround(lch4(:,:,n),i,j)
               lch4(j,i,n) = max(d_zero,lch4(j,i,n))
             end if
           end if

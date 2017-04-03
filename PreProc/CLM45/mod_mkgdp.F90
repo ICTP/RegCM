@@ -56,7 +56,7 @@ module mod_mkgdp
           if ( gdp(j,i) > h_missing_value ) then
             gdp(j,i) = max(d_zero,gdp(j,i))
           else
-            call bestaround(gdp,j,i)
+            call bestaround(gdp,i,j)
             gdp(j,i) = max(d_zero,gdp(j,i))
           end if
         end if

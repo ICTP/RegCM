@@ -193,7 +193,7 @@ module mod_mkurban
                   if ( urban3d(j,i,n1,i4) > h_missing_value ) then
                     urban3d(j,i,n1,i4) = max(d_zero,urban3d(j,i,n1,i4))
                   else
-                    call bestaround(urban3d(:,:,n1,i4),j,i)
+                    call bestaround(urban3d(:,:,n1,i4),i,j)
                     urban3d(j,i,n1,i4) = max(d_zero,urban3d(j,i,n1,i4))
                   end if
                 end if
@@ -214,7 +214,7 @@ module mod_mkurban
                     if ( urban4d(j,i,n1,n2,i5) > h_missing_value ) then
                       urban4d(j,i,n1,n2,i5) = max(d_zero,urban4d(j,i,n1,n2,i5))
                     else
-                      call bestaround(urban4d(:,:,n1,n2,i5),j,i)
+                      call bestaround(urban4d(:,:,n1,n2,i5),i,j)
                       urban4d(j,i,n1,n2,i5) = max(d_zero,urban4d(j,i,n1,n2,i5))
                     end if
                   end if

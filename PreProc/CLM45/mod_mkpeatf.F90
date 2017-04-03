@@ -56,7 +56,7 @@ module mod_mkpeatf
           if ( peatf(j,i) > h_missing_value ) then
             peatf(j,i) = max(d_zero,peatf(j,i))
           else
-            call bestaround(peatf,j,i)
+            call bestaround(peatf,i,j)
             peatf(j,i) = max(d_zero,peatf(j,i))
           end if
         end if
