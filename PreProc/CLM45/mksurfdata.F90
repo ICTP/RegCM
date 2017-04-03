@@ -51,7 +51,6 @@ program mksurfdata
   use mod_intkinds
   use mod_constants , only : raddeg
   use mod_realkinds
-  use mod_rdldtr
   use mod_dynparam
   use mod_message
   use mod_grid
@@ -149,8 +148,8 @@ program mksurfdata
   integer(ik4) :: ijxvar , iiyvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
-  real(rk4) , pointer , dimension(:) :: yiy
-  real(rk4) , pointer , dimension(:) :: xjx
+  real(rk4) , pointer , dimension(:) :: yiy => null( )
+  real(rk4) , pointer , dimension(:) :: xjx => null( )
   real(rk4) :: hptop
   real(rkx) :: smallnum
   real(rk8) , dimension(1) :: xdate
@@ -166,18 +165,21 @@ program mksurfdata
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate , pftfile , laifile
-  real(rkx) , dimension(:,:) , pointer :: pctspec , pctslake , pctbare
-  real(rkx) , pointer , dimension(:,:) :: var2d
-  integer(ik4) , pointer , dimension(:,:) :: ivar2d
-  real(rkx) , pointer , dimension(:,:,:) :: var3d
-  real(rkx) , pointer , dimension(:,:,:,:) :: var4d
-  real(rkx) , pointer , dimension(:,:,:,:,:) :: var5d
-  real(rkx) , pointer , dimension(:,:,:,:,:,:) :: var6d
-  real(rkx) , pointer , dimension(:) :: gcvar
-  integer(ik4) , pointer , dimension(:) :: igcvar
-  integer(ik4) , pointer , dimension(:) :: iiy , ijx
-  integer(ik4) , pointer , dimension(:) :: landpoint
-  logical , pointer , dimension(:) :: pft_gt0
+  real(rkx) , dimension(:,:) , pointer :: pctspec => null( )
+  real(rkx) , dimension(:,:) , pointer :: pctslake => null( )
+  real(rkx) , dimension(:,:) , pointer :: pctbare => null( )
+  real(rkx) , pointer , dimension(:,:) :: var2d => null( )
+  integer(ik4) , pointer , dimension(:,:) :: ivar2d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: var3d => null( )
+  real(rkx) , pointer , dimension(:,:,:,:) :: var4d => null( )
+  real(rkx) , pointer , dimension(:,:,:,:,:) :: var5d => null( )
+  real(rkx) , pointer , dimension(:,:,:,:,:,:) :: var6d => null( )
+  real(rkx) , pointer , dimension(:) :: gcvar => null( )
+  integer(ik4) , pointer , dimension(:) :: igcvar => null( )
+  integer(ik4) , pointer , dimension(:) :: iiy => null( )
+  integer(ik4) , pointer , dimension(:) :: ijx => null( )
+  integer(ik4) , pointer , dimension(:) :: landpoint => null( )
+  logical , pointer , dimension(:) :: pft_gt0 => null( )
   logical :: subgrid
   integer(ik4) :: hostnm
   integer(ik4) :: ihost , idir
