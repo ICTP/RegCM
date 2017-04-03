@@ -301,7 +301,8 @@ module mod_rad_o3blk
     character(len=*) , intent(in) :: vname
     real(rkx) , intent(out) , dimension(:,:,:) :: val
     real(rkx) , save :: xscale , xfact
-    integer(ik4) , save :: ilastncid , icvar
+    real(rkx)  :: frstp
+    integer(ik4) , save :: ilastncid , icvar , itvar
     integer(ik4) , save , dimension(4) :: istart , icount
     integer(ik4) :: iret , irec
     data ilastncid /-1/
@@ -328,8 +329,18 @@ module mod_rad_o3blk
         write (stderr, *) nf90_strerror(iret)
         call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
       end if
+      iret = nf90_inq_varid(ncid,'time',itvar)
+      if ( iret /= nf90_noerr ) then
+        write (stderr, *) nf90_strerror(iret)
+        call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+      end if
     end if
-    istart(4) = irec
+    iret = nf90_get_var(ncid,itvar,frstp)
+    if ( iret /= nf90_noerr ) then
+      write (stderr, *) nf90_strerror(iret)
+      call fatal(__FILE__,__LINE__,'CANNOT READ FROM OZONE FILE')
+    end if
+    istart(4) = irec - int(frstp)
     iret = nf90_get_var(ncid,icvar,val,istart,icount)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) nf90_strerror(iret)

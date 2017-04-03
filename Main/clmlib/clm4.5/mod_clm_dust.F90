@@ -173,7 +173,7 @@ module mod_clm_dust
     end do
     found = .false.
     do l = lbl,ubl
-      if (sumwt(l) > 1.0_rk8 + 1.e-4_rk8) then
+      if (sumwt(l) > 1.0_rk8 + 1.e-3_rk8) then
         found = .true.
         index = l
         exit

@@ -311,7 +311,7 @@ module mod_clm_ch4varcon
     call bcast(anoxicmicrosites)
     call bcast(ch4frzout)
     call bcast(redoxlag_vertical)
-    call bcast(atmch4)
+    !call bcast(atmch4)
 
     if (myid == iocpu) then
       write(stdout,*) 'Successfully read CH4 namelist'
@@ -351,7 +351,7 @@ module mod_clm_ch4varcon
       write(stdout,*)'anoxicmicrosites = ', anoxicmicrosites
       write(stdout,*)'ch4frzout = ', ch4frzout
       write(stdout,*)'redoxlag_vertical = ', redoxlag_vertical
-      write(stdout,*)'atmch4 = ', atmch4
+      !write(stdout,*)'atmch4 = ', atmch4
 
       if (ch4offline) then
         write(stdout,*) &

@@ -157,8 +157,8 @@ module mod_clm_pftdyn
     ! convert weights from percent to proportion
     do m = 0 , numpft
       do g = begg , endg
-        wtpft1(g,m) = wtpft1(g,m)/100._rk8
-        wtpft2(g,m) = wtpft2(g,m)/100._rk8
+        wtpft1(g,m) = int(wtpft1(g,m))/100._rk8
+        wtpft2(g,m) = int(wtpft2(g,m))/100._rk8
       end do
     end do
   end subroutine pftdyn_init
@@ -1090,70 +1090,180 @@ module mod_clm_pftdyn
           ! is modified to conserve the original pft mass distributed
           ! over the new (larger) area, plus a term to account for the
           ! introduction of new seed source for leaf and deadstem
-          t1 = wtcol_old(p)/pptr%wtcol(p)
-          t2 = dwt/pptr%wtcol(p)
-
-          tot_leaf = pptr%pcs%leafc(p) + pptr%pcs%leafc_storage(p) + &
-                  pptr%pcs%leafc_xfer(p)
-          pleaf = 0._rk8
-          pstor = 0._rk8
-          pxfer = 0._rk8
-          if (tot_leaf /= 0._rk8) then
-            ! when adding seed source to non-zero leaf state, use
-            ! current proportions
-            pleaf = pptr%pcs%leafc(p)/tot_leaf
-            pstor = pptr%pcs%leafc_storage(p)/tot_leaf
-            pxfer = pptr%pcs%leafc_xfer(p)/tot_leaf
-          else
-            ! when initiating from zero leaf state, use
-            ! evergreen flag to set proportions
-            if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
-              pleaf = 1._rk8
-            else
-              pstor = 1._rk8
-            end if
-          end if
-          pptr%pcs%leafc(p) = pptr%pcs%leafc(p)*t1 + leafc_seed*pleaf*t2
-          pptr%pcs%leafc_storage(p) = pptr%pcs%leafc_storage(p)*t1 + &
-                  leafc_seed*pstor*t2
-          pptr%pcs%leafc_xfer(p)    = pptr%pcs%leafc_xfer(p)*t1    + &
-                  leafc_seed*pxfer*t2
-          pptr%pcs%frootc(p)         = pptr%pcs%frootc(p)         * t1
-          pptr%pcs%frootc_storage(p) = pptr%pcs%frootc_storage(p) * t1
-          pptr%pcs%frootc_xfer(p)    = pptr%pcs%frootc_xfer(p)    * t1
-          pptr%pcs%livestemc(p)      = pptr%pcs%livestemc(p)      * t1
-          pptr%pcs%livestemc_storage(p) = pptr%pcs%livestemc_storage(p) * t1
-          pptr%pcs%livestemc_xfer(p)    = pptr%pcs%livestemc_xfer(p)    * t1
-          pptr%pcs%deadstemc(p) = pptr%pcs%deadstemc(p)*t1  + deadstemc_seed*t2
-          pptr%pcs%deadstemc_storage(p) = pptr%pcs%deadstemc_storage(p)  * t1
-          pptr%pcs%deadstemc_xfer(p) = pptr%pcs%deadstemc_xfer(p)   * t1
-          pptr%pcs%livecrootc(p)     = pptr%pcs%livecrootc(p)       * t1
-          pptr%pcs%livecrootc_storage(p) = pptr%pcs%livecrootc_storage(p) * t1
-          pptr%pcs%livecrootc_xfer(p)    = pptr%pcs%livecrootc_xfer(p) * t1
-          pptr%pcs%deadcrootc(p)  = pptr%pcs%deadcrootc(p) * t1
-          pptr%pcs%deadcrootc_storage(p) = pptr%pcs%deadcrootc_storage(p) * t1
-          pptr%pcs%deadcrootc_xfer(p) = pptr%pcs%deadcrootc_xfer(p)  * t1
-          pptr%pcs%gresp_storage(p) = pptr%pcs%gresp_storage(p)      * t1
-          pptr%pcs%gresp_xfer(p) = pptr%pcs%gresp_xfer(p)  * t1
-          pptr%pcs%cpool(p)      = pptr%pcs%cpool(p)       * t1
-          pptr%pcs%xsmrpool(p)   = pptr%pcs%xsmrpool(p)    * t1
-          pptr%pcs%pft_ctrunc(p) = pptr%pcs%pft_ctrunc(p)  * t1
-          pptr%pcs%dispvegc(p) = pptr%pcs%dispvegc(p)      * t1
-          pptr%pcs%storvegc(p) = pptr%pcs%storvegc(p)      * t1
-          pptr%pcs%totvegc(p)  = pptr%pcs%totvegc(p)       * t1
-          pptr%pcs%totpftc(p)  = pptr%pcs%totpftc(p)       * t1
-
-          if ( use_c13 ) then
-            ! pft-level carbon-13 state variables
-            tot_leaf = pptr%pc13s%leafc(p) + &
-                    pptr%pc13s%leafc_storage(p) + pptr%pc13s%leafc_xfer(p)
+          if ( pptr%wtcol(p) /= 0._rk8 ) then
+            t1 = wtcol_old(p)/pptr%wtcol(p)
+            t2 = dwt/pptr%wtcol(p)
+            tot_leaf = pptr%pcs%leafc(p) + pptr%pcs%leafc_storage(p) + &
+                    pptr%pcs%leafc_xfer(p)
             pleaf = 0._rk8
             pstor = 0._rk8
             pxfer = 0._rk8
             if (tot_leaf /= 0._rk8) then
-              pleaf = pptr%pc13s%leafc(p)/tot_leaf
-              pstor = pptr%pc13s%leafc_storage(p)/tot_leaf
-              pxfer = pptr%pc13s%leafc_xfer(p)/tot_leaf
+              ! when adding seed source to non-zero leaf state, use
+              ! current proportions
+              pleaf = pptr%pcs%leafc(p)/tot_leaf
+              pstor = pptr%pcs%leafc_storage(p)/tot_leaf
+              pxfer = pptr%pcs%leafc_xfer(p)/tot_leaf
+            else
+              ! when initiating from zero leaf state, use
+              ! evergreen flag to set proportions
+              if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
+                pleaf = 1._rk8
+              else
+                pstor = 1._rk8
+              end if
+            end if
+            pptr%pcs%leafc(p) = pptr%pcs%leafc(p)*t1 + leafc_seed*pleaf*t2
+            pptr%pcs%leafc_storage(p) = pptr%pcs%leafc_storage(p)*t1 + &
+                    leafc_seed*pstor*t2
+            pptr%pcs%leafc_xfer(p)    = pptr%pcs%leafc_xfer(p)*t1    + &
+                    leafc_seed*pxfer*t2
+            pptr%pcs%frootc(p)         = pptr%pcs%frootc(p)         * t1
+            pptr%pcs%frootc_storage(p) = pptr%pcs%frootc_storage(p) * t1
+            pptr%pcs%frootc_xfer(p)    = pptr%pcs%frootc_xfer(p)    * t1
+            pptr%pcs%livestemc(p)      = pptr%pcs%livestemc(p)      * t1
+            pptr%pcs%livestemc_storage(p) = pptr%pcs%livestemc_storage(p) * t1
+            pptr%pcs%livestemc_xfer(p)    = pptr%pcs%livestemc_xfer(p)    * t1
+            pptr%pcs%deadstemc(p) = pptr%pcs%deadstemc(p)*t1  + deadstemc_seed*t2
+            pptr%pcs%deadstemc_storage(p) = pptr%pcs%deadstemc_storage(p)  * t1
+            pptr%pcs%deadstemc_xfer(p) = pptr%pcs%deadstemc_xfer(p)   * t1
+            pptr%pcs%livecrootc(p)     = pptr%pcs%livecrootc(p)       * t1
+            pptr%pcs%livecrootc_storage(p) = pptr%pcs%livecrootc_storage(p) * t1
+            pptr%pcs%livecrootc_xfer(p)    = pptr%pcs%livecrootc_xfer(p) * t1
+            pptr%pcs%deadcrootc(p)  = pptr%pcs%deadcrootc(p) * t1
+            pptr%pcs%deadcrootc_storage(p) = pptr%pcs%deadcrootc_storage(p) * t1
+            pptr%pcs%deadcrootc_xfer(p) = pptr%pcs%deadcrootc_xfer(p)  * t1
+            pptr%pcs%gresp_storage(p) = pptr%pcs%gresp_storage(p)      * t1
+            pptr%pcs%gresp_xfer(p) = pptr%pcs%gresp_xfer(p)  * t1
+            pptr%pcs%cpool(p)      = pptr%pcs%cpool(p)       * t1
+            pptr%pcs%xsmrpool(p)   = pptr%pcs%xsmrpool(p)    * t1
+            pptr%pcs%pft_ctrunc(p) = pptr%pcs%pft_ctrunc(p)  * t1
+            pptr%pcs%dispvegc(p) = pptr%pcs%dispvegc(p)      * t1
+            pptr%pcs%storvegc(p) = pptr%pcs%storvegc(p)      * t1
+            pptr%pcs%totvegc(p)  = pptr%pcs%totvegc(p)       * t1
+            pptr%pcs%totpftc(p)  = pptr%pcs%totpftc(p)       * t1
+
+            if ( use_c13 ) then
+              ! pft-level carbon-13 state variables
+              tot_leaf = pptr%pc13s%leafc(p) + &
+                      pptr%pc13s%leafc_storage(p) + pptr%pc13s%leafc_xfer(p)
+              pleaf = 0._rk8
+              pstor = 0._rk8
+              pxfer = 0._rk8
+              if (tot_leaf /= 0._rk8) then
+                pleaf = pptr%pc13s%leafc(p)/tot_leaf
+                pstor = pptr%pc13s%leafc_storage(p)/tot_leaf
+                pxfer = pptr%pc13s%leafc_xfer(p)/tot_leaf
+              else
+                ! when initiating from zero leaf state, use evergreen
+                ! flag to set proportions
+                if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
+                  pleaf = 1._rk8
+                else
+                  pstor = 1._rk8
+                end if
+              end if
+              pptr%pc13s%leafc(p) = pptr%pc13s%leafc(p)*t1 + leafc13_seed*pleaf*t2
+              pptr%pc13s%leafc_storage(p) = pptr%pc13s%leafc_storage(p)*t1 + &
+                      leafc13_seed*pstor*t2
+              pptr%pc13s%leafc_xfer(p) = pptr%pc13s%leafc_xfer(p)*t1 + &
+                      leafc13_seed*pxfer*t2
+              pptr%pc13s%frootc(p) = pptr%pc13s%frootc(p) * t1
+              pptr%pc13s%frootc_storage(p) = pptr%pc13s%frootc_storage(p) * t1
+              pptr%pc13s%frootc_xfer(p) = pptr%pc13s%frootc_xfer(p) * t1
+              pptr%pc13s%livestemc(p) = pptr%pc13s%livestemc(p)     * t1
+              pptr%pc13s%livestemc_storage(p) = &
+                      pptr%pc13s%livestemc_storage(p) * t1
+              pptr%pc13s%livestemc_xfer(p) = pptr%pc13s%livestemc_xfer(p) * t1
+              pptr%pc13s%deadstemc(p) = pptr%pc13s%deadstemc(p)*t1 + &
+                      deadstemc13_seed*t2
+              pptr%pc13s%deadstemc_storage(p) = &
+                      pptr%pc13s%deadstemc_storage(p) * t1
+              pptr%pc13s%deadstemc_xfer(p) = pptr%pc13s%deadstemc_xfer(p) * t1
+              pptr%pc13s%livecrootc(p) = pptr%pc13s%livecrootc(p) * t1
+              pptr%pc13s%livecrootc_storage(p) = &
+                      pptr%pc13s%livecrootc_storage(p) * t1
+              pptr%pc13s%livecrootc_xfer(p) = pptr%pc13s%livecrootc_xfer(p) * t1
+              pptr%pc13s%deadcrootc(p) = pptr%pc13s%deadcrootc(p) * t1
+              pptr%pc13s%deadcrootc_storage(p) = &
+                      pptr%pc13s%deadcrootc_storage(p) * t1
+              pptr%pc13s%deadcrootc_xfer(p) = pptr%pc13s%deadcrootc_xfer(p)  * t1
+              pptr%pc13s%gresp_storage(p) = pptr%pc13s%gresp_storage(p)      * t1
+              pptr%pc13s%gresp_xfer(p) = pptr%pc13s%gresp_xfer(p) * t1
+              pptr%pc13s%cpool(p)      = pptr%pc13s%cpool(p)      * t1
+              pptr%pc13s%xsmrpool(p)   = pptr%pc13s%xsmrpool(p)   * t1
+              pptr%pc13s%pft_ctrunc(p) = pptr%pc13s%pft_ctrunc(p) * t1
+              pptr%pc13s%dispvegc(p) = pptr%pc13s%dispvegc(p)    * t1
+              pptr%pc13s%storvegc(p) = pptr%pc13s%storvegc(p)    * t1
+              pptr%pc13s%totvegc(p) = pptr%pc13s%totvegc(p)    * t1
+              pptr%pc13s%totpftc(p) = pptr%pc13s%totpftc(p)    * t1
+            end if
+
+            if ( use_c14 ) then
+              ! pft-level carbon-14 state variables
+              tot_leaf = pptr%pc14s%leafc(p) + pptr%pc14s%leafc_storage(p) + &
+                      pptr%pc14s%leafc_xfer(p)
+              pleaf = 0._rk8
+              pstor = 0._rk8
+              pxfer = 0._rk8
+              if (tot_leaf /= 0._rk8) then
+                pleaf = pptr%pc14s%leafc(p)/tot_leaf
+                pstor = pptr%pc14s%leafc_storage(p)/tot_leaf
+                pxfer = pptr%pc14s%leafc_xfer(p)/tot_leaf
+              else
+                ! when initiating from zero leaf state, use evergreen
+                ! flag to set proportions
+                if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
+                  pleaf = 1._rk8
+                else
+                  pstor = 1._rk8
+                end if
+              end if
+              pptr%pc14s%leafc(p) = pptr%pc14s%leafc(p)*t1 + leafc14_seed*pleaf*t2
+              pptr%pc14s%leafc_storage(p) = pptr%pc14s%leafc_storage(p)*t1 + &
+                      leafc14_seed*pstor*t2
+              pptr%pc14s%leafc_xfer(p) = pptr%pc14s%leafc_xfer(p)*t1 + &
+                      leafc14_seed*pxfer*t2
+              pptr%pc14s%frootc(p) = pptr%pc14s%frootc(p) * t1
+              pptr%pc14s%frootc_storage(p) = pptr%pc14s%frootc_storage(p) * t1
+              pptr%pc14s%frootc_xfer(p)    = pptr%pc14s%frootc_xfer(p)    * t1
+              pptr%pc14s%livestemc(p)      = pptr%pc14s%livestemc(p)      * t1
+              pptr%pc14s%livestemc_storage(p) = &
+                      pptr%pc14s%livestemc_storage(p) * t1
+              pptr%pc14s%livestemc_xfer(p) = pptr%pc14s%livestemc_xfer(p) * t1
+              pptr%pc14s%deadstemc(p) = pptr%pc14s%deadstemc(p)*t1 + &
+                      deadstemc14_seed*t2
+              pptr%pc14s%deadstemc_storage(p) = &
+                      pptr%pc14s%deadstemc_storage(p) * t1
+              pptr%pc14s%deadstemc_xfer(p) = pptr%pc14s%deadstemc_xfer(p) * t1
+              pptr%pc14s%livecrootc(p)     = pptr%pc14s%livecrootc(p)     * t1
+              pptr%pc14s%livecrootc_storage(p) = &
+                      pptr%pc14s%livecrootc_storage(p) * t1
+              pptr%pc14s%livecrootc_xfer(p) = pptr%pc14s%livecrootc_xfer(p) * t1
+              pptr%pc14s%deadcrootc(p)      = pptr%pc14s%deadcrootc(p)      * t1
+              pptr%pc14s%deadcrootc_storage(p) = &
+                      pptr%pc14s%deadcrootc_storage(p) * t1
+              pptr%pc14s%deadcrootc_xfer(p) = pptr%pc14s%deadcrootc_xfer(p) * t1
+              pptr%pc14s%gresp_storage(p) = pptr%pc14s%gresp_storage(p) * t1
+              pptr%pc14s%gresp_xfer(p)    = pptr%pc14s%gresp_xfer(p)  * t1
+              pptr%pc14s%cpool(p)         = pptr%pc14s%cpool(p)       * t1
+              pptr%pc14s%xsmrpool(p)      = pptr%pc14s%xsmrpool(p)    * t1
+              pptr%pc14s%pft_ctrunc(p)    = pptr%pc14s%pft_ctrunc(p)  * t1
+              pptr%pc14s%dispvegc(p)      = pptr%pc14s%dispvegc(p)    * t1
+              pptr%pc14s%storvegc(p)      = pptr%pc14s%storvegc(p)    * t1
+              pptr%pc14s%totvegc(p)       = pptr%pc14s%totvegc(p)     * t1
+              pptr%pc14s%totpftc(p)       = pptr%pc14s%totpftc(p)     * t1
+            end if
+
+            tot_leaf = pptr%pns%leafn(p) + &
+                    pptr%pns%leafn_storage(p) + pptr%pns%leafn_xfer(p)
+            pleaf = 0._rk8
+            pstor = 0._rk8
+            pxfer = 0._rk8
+            if (tot_leaf /= 0._rk8) then
+              pleaf = pptr%pns%leafn(p)/tot_leaf
+              pstor = pptr%pns%leafn_storage(p)/tot_leaf
+              pxfer = pptr%pns%leafn_xfer(p)/tot_leaf
             else
               ! when initiating from zero leaf state, use evergreen
               ! flag to set proportions
@@ -1163,161 +1273,53 @@ module mod_clm_pftdyn
                 pstor = 1._rk8
               end if
             end if
-            pptr%pc13s%leafc(p) = pptr%pc13s%leafc(p)*t1 + leafc13_seed*pleaf*t2
-            pptr%pc13s%leafc_storage(p) = pptr%pc13s%leafc_storage(p)*t1 + &
-                    leafc13_seed*pstor*t2
-            pptr%pc13s%leafc_xfer(p) = pptr%pc13s%leafc_xfer(p)*t1 + &
-                    leafc13_seed*pxfer*t2
-            pptr%pc13s%frootc(p) = pptr%pc13s%frootc(p) * t1
-            pptr%pc13s%frootc_storage(p) = pptr%pc13s%frootc_storage(p) * t1
-            pptr%pc13s%frootc_xfer(p) = pptr%pc13s%frootc_xfer(p) * t1
-            pptr%pc13s%livestemc(p) = pptr%pc13s%livestemc(p)     * t1
-            pptr%pc13s%livestemc_storage(p) = &
-                    pptr%pc13s%livestemc_storage(p) * t1
-            pptr%pc13s%livestemc_xfer(p) = pptr%pc13s%livestemc_xfer(p) * t1
-            pptr%pc13s%deadstemc(p) = pptr%pc13s%deadstemc(p)*t1 + &
-                    deadstemc13_seed*t2
-            pptr%pc13s%deadstemc_storage(p) = &
-                    pptr%pc13s%deadstemc_storage(p) * t1
-            pptr%pc13s%deadstemc_xfer(p) = pptr%pc13s%deadstemc_xfer(p) * t1
-            pptr%pc13s%livecrootc(p) = pptr%pc13s%livecrootc(p) * t1
-            pptr%pc13s%livecrootc_storage(p) = &
-                    pptr%pc13s%livecrootc_storage(p) * t1
-            pptr%pc13s%livecrootc_xfer(p) = pptr%pc13s%livecrootc_xfer(p) * t1
-            pptr%pc13s%deadcrootc(p) = pptr%pc13s%deadcrootc(p) * t1
-            pptr%pc13s%deadcrootc_storage(p) = &
-                    pptr%pc13s%deadcrootc_storage(p) * t1
-            pptr%pc13s%deadcrootc_xfer(p) = pptr%pc13s%deadcrootc_xfer(p)  * t1
-            pptr%pc13s%gresp_storage(p) = pptr%pc13s%gresp_storage(p)      * t1
-            pptr%pc13s%gresp_xfer(p) = pptr%pc13s%gresp_xfer(p) * t1
-            pptr%pc13s%cpool(p)      = pptr%pc13s%cpool(p)      * t1
-            pptr%pc13s%xsmrpool(p)   = pptr%pc13s%xsmrpool(p)   * t1
-            pptr%pc13s%pft_ctrunc(p) = pptr%pc13s%pft_ctrunc(p) * t1
-            pptr%pc13s%dispvegc(p) = pptr%pc13s%dispvegc(p)    * t1
-            pptr%pc13s%storvegc(p) = pptr%pc13s%storvegc(p)    * t1
-            pptr%pc13s%totvegc(p) = pptr%pc13s%totvegc(p)    * t1
-            pptr%pc13s%totpftc(p) = pptr%pc13s%totpftc(p)    * t1
-          end if
+            ! pft-level nitrogen state variables
+            pptr%pns%leafn(p) = pptr%pns%leafn(p)*t1 + leafn_seed*pleaf*t2
+            pptr%pns%leafn_storage(p) = pptr%pns%leafn_storage(p)*t1 + &
+                    leafn_seed*pstor*t2
+            pptr%pns%leafn_xfer(p)    = pptr%pns%leafn_xfer(p)*t1    + &
+                    leafn_seed*pxfer*t2
+            pptr%pns%frootn(p) = pptr%pns%frootn(p) * t1
+            pptr%pns%frootn_storage(p) = pptr%pns%frootn_storage(p) * t1
+            pptr%pns%frootn_xfer(p)    = pptr%pns%frootn_xfer(p)    * t1
+            pptr%pns%livestemn(p)      = pptr%pns%livestemn(p)      * t1
+            pptr%pns%livestemn_storage(p) = pptr%pns%livestemn_storage(p) * t1
+            pptr%pns%livestemn_xfer(p)    = pptr%pns%livestemn_xfer(p)    * t1
+            pptr%pns%deadstemn(p)         = pptr%pns%deadstemn(p)*t1 + &
+                    deadstemn_seed*t2
+            pptr%pns%deadstemn_storage(p) = pptr%pns%deadstemn_storage(p) * t1
+            pptr%pns%deadstemn_xfer(p)    = pptr%pns%deadstemn_xfer(p)    * t1
+            pptr%pns%livecrootn(p)        = pptr%pns%livecrootn(p)        * t1
+            pptr%pns%livecrootn_storage(p) = pptr%pns%livecrootn_storage(p) * t1
+            pptr%pns%livecrootn_xfer(p)    = pptr%pns%livecrootn_xfer(p)  * t1
+            pptr%pns%deadcrootn(p) = pptr%pns%deadcrootn(p) * t1
+            pptr%pns%deadcrootn_storage(p) = pptr%pns%deadcrootn_storage(p) * t1
+            pptr%pns%deadcrootn_xfer(p) = pptr%pns%deadcrootn_xfer(p)       * t1
+            pptr%pns%retransn(p)   = pptr%pns%retransn(p)   * t1
+            pptr%pns%npool(p)      = pptr%pns%npool(p)      * t1
+            pptr%pns%pft_ntrunc(p) = pptr%pns%pft_ntrunc(p) * t1
+            pptr%pns%dispvegn(p)   = pptr%pns%dispvegn(p)   * t1
+            pptr%pns%storvegn(p)   = pptr%pns%storvegn(p)   * t1
+            pptr%pns%totvegn(p)    = pptr%pns%totvegn(p)    * t1
+            pptr%pns%totpftn(p)    = pptr%pns%totpftn(p)    * t1
 
-          if ( use_c14 ) then
-            ! pft-level carbon-14 state variables
-            tot_leaf = pptr%pc14s%leafc(p) + pptr%pc14s%leafc_storage(p) + &
-                    pptr%pc14s%leafc_xfer(p)
-            pleaf = 0._rk8
-            pstor = 0._rk8
-            pxfer = 0._rk8
-            if (tot_leaf /= 0._rk8) then
-              pleaf = pptr%pc14s%leafc(p)/tot_leaf
-              pstor = pptr%pc14s%leafc_storage(p)/tot_leaf
-              pxfer = pptr%pc14s%leafc_xfer(p)/tot_leaf
-            else
-              ! when initiating from zero leaf state, use evergreen
-              ! flag to set proportions
-              if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
-                pleaf = 1._rk8
-              else
-                pstor = 1._rk8
-              end if
+            ! update temporary seed source arrays
+            ! These are calculated in terms of the required contributions from
+            ! column-level seed source
+            dwt_leafc_seed(p)   = leafc_seed   * dwt
+            if ( use_c13 ) then
+              dwt_leafc13_seed(p) = leafc13_seed * dwt
+              dwt_deadstemc13_seed(p) = deadstemc13_seed * dwt
             end if
-            pptr%pc14s%leafc(p) = pptr%pc14s%leafc(p)*t1 + leafc14_seed*pleaf*t2
-            pptr%pc14s%leafc_storage(p) = pptr%pc14s%leafc_storage(p)*t1 + &
-                    leafc14_seed*pstor*t2
-            pptr%pc14s%leafc_xfer(p) = pptr%pc14s%leafc_xfer(p)*t1 + &
-                    leafc14_seed*pxfer*t2
-            pptr%pc14s%frootc(p) = pptr%pc14s%frootc(p) * t1
-            pptr%pc14s%frootc_storage(p) = pptr%pc14s%frootc_storage(p) * t1
-            pptr%pc14s%frootc_xfer(p)    = pptr%pc14s%frootc_xfer(p)    * t1
-            pptr%pc14s%livestemc(p)      = pptr%pc14s%livestemc(p)      * t1
-            pptr%pc14s%livestemc_storage(p) = &
-                    pptr%pc14s%livestemc_storage(p) * t1
-            pptr%pc14s%livestemc_xfer(p) = pptr%pc14s%livestemc_xfer(p) * t1
-            pptr%pc14s%deadstemc(p) = pptr%pc14s%deadstemc(p)*t1 + &
-                    deadstemc14_seed*t2
-            pptr%pc14s%deadstemc_storage(p) = &
-                    pptr%pc14s%deadstemc_storage(p) * t1
-            pptr%pc14s%deadstemc_xfer(p) = pptr%pc14s%deadstemc_xfer(p) * t1
-            pptr%pc14s%livecrootc(p)     = pptr%pc14s%livecrootc(p)     * t1
-            pptr%pc14s%livecrootc_storage(p) = &
-                    pptr%pc14s%livecrootc_storage(p) * t1
-            pptr%pc14s%livecrootc_xfer(p) = pptr%pc14s%livecrootc_xfer(p) * t1
-            pptr%pc14s%deadcrootc(p)      = pptr%pc14s%deadcrootc(p)      * t1
-            pptr%pc14s%deadcrootc_storage(p) = &
-                    pptr%pc14s%deadcrootc_storage(p) * t1
-            pptr%pc14s%deadcrootc_xfer(p) = pptr%pc14s%deadcrootc_xfer(p) * t1
-            pptr%pc14s%gresp_storage(p) = pptr%pc14s%gresp_storage(p) * t1
-            pptr%pc14s%gresp_xfer(p)    = pptr%pc14s%gresp_xfer(p)  * t1
-            pptr%pc14s%cpool(p)         = pptr%pc14s%cpool(p)       * t1
-            pptr%pc14s%xsmrpool(p)      = pptr%pc14s%xsmrpool(p)    * t1
-            pptr%pc14s%pft_ctrunc(p)    = pptr%pc14s%pft_ctrunc(p)  * t1
-            pptr%pc14s%dispvegc(p)      = pptr%pc14s%dispvegc(p)    * t1
-            pptr%pc14s%storvegc(p)      = pptr%pc14s%storvegc(p)    * t1
-            pptr%pc14s%totvegc(p)       = pptr%pc14s%totvegc(p)     * t1
-            pptr%pc14s%totpftc(p)       = pptr%pc14s%totpftc(p)     * t1
-          end if
-
-          tot_leaf = pptr%pns%leafn(p) + &
-                  pptr%pns%leafn_storage(p) + pptr%pns%leafn_xfer(p)
-          pleaf = 0._rk8
-          pstor = 0._rk8
-          pxfer = 0._rk8
-          if (tot_leaf /= 0._rk8) then
-            pleaf = pptr%pns%leafn(p)/tot_leaf
-            pstor = pptr%pns%leafn_storage(p)/tot_leaf
-            pxfer = pptr%pns%leafn_xfer(p)/tot_leaf
-          else
-            ! when initiating from zero leaf state, use evergreen
-            ! flag to set proportions
-            if (pftcon%evergreen(pptr%itype(p)) == 1._rk8) then
-              pleaf = 1._rk8
-            else
-              pstor = 1._rk8
+            if ( use_c14 ) then
+              dwt_leafc14_seed(p) = leafc14_seed * dwt
+              dwt_deadstemc14_seed(p) = deadstemc14_seed * dwt
             end if
-          end if
-          ! pft-level nitrogen state variables
-          pptr%pns%leafn(p) = pptr%pns%leafn(p)*t1 + leafn_seed*pleaf*t2
-          pptr%pns%leafn_storage(p) = pptr%pns%leafn_storage(p)*t1 + &
-                  leafn_seed*pstor*t2
-          pptr%pns%leafn_xfer(p)    = pptr%pns%leafn_xfer(p)*t1    + &
-                  leafn_seed*pxfer*t2
-          pptr%pns%frootn(p) = pptr%pns%frootn(p) * t1
-          pptr%pns%frootn_storage(p) = pptr%pns%frootn_storage(p) * t1
-          pptr%pns%frootn_xfer(p)    = pptr%pns%frootn_xfer(p)    * t1
-          pptr%pns%livestemn(p)      = pptr%pns%livestemn(p)      * t1
-          pptr%pns%livestemn_storage(p) = pptr%pns%livestemn_storage(p) * t1
-          pptr%pns%livestemn_xfer(p)    = pptr%pns%livestemn_xfer(p)    * t1
-          pptr%pns%deadstemn(p)         = pptr%pns%deadstemn(p)*t1 + &
-                  deadstemn_seed*t2
-          pptr%pns%deadstemn_storage(p) = pptr%pns%deadstemn_storage(p) * t1
-          pptr%pns%deadstemn_xfer(p)    = pptr%pns%deadstemn_xfer(p)    * t1
-          pptr%pns%livecrootn(p)        = pptr%pns%livecrootn(p)        * t1
-          pptr%pns%livecrootn_storage(p) = pptr%pns%livecrootn_storage(p) * t1
-          pptr%pns%livecrootn_xfer(p)    = pptr%pns%livecrootn_xfer(p)  * t1
-          pptr%pns%deadcrootn(p) = pptr%pns%deadcrootn(p) * t1
-          pptr%pns%deadcrootn_storage(p) = pptr%pns%deadcrootn_storage(p) * t1
-          pptr%pns%deadcrootn_xfer(p) = pptr%pns%deadcrootn_xfer(p)       * t1
-          pptr%pns%retransn(p)   = pptr%pns%retransn(p)   * t1
-          pptr%pns%npool(p)      = pptr%pns%npool(p)      * t1
-          pptr%pns%pft_ntrunc(p) = pptr%pns%pft_ntrunc(p) * t1
-          pptr%pns%dispvegn(p)   = pptr%pns%dispvegn(p)   * t1
-          pptr%pns%storvegn(p)   = pptr%pns%storvegn(p)   * t1
-          pptr%pns%totvegn(p)    = pptr%pns%totvegn(p)    * t1
-          pptr%pns%totpftn(p)    = pptr%pns%totpftn(p)    * t1
+            dwt_leafn_seed(p)   = leafn_seed   * dwt
+            dwt_deadstemc_seed(p)   = deadstemc_seed   * dwt
+            dwt_deadstemn_seed(p)   = deadstemn_seed   * dwt
 
-          ! update temporary seed source arrays
-          ! These are calculated in terms of the required contributions from
-          ! column-level seed source
-          dwt_leafc_seed(p)   = leafc_seed   * dwt
-          if ( use_c13 ) then
-            dwt_leafc13_seed(p) = leafc13_seed * dwt
-            dwt_deadstemc13_seed(p) = deadstemc13_seed * dwt
           end if
-          if ( use_c14 ) then
-            dwt_leafc14_seed(p) = leafc14_seed * dwt
-            dwt_deadstemc14_seed(p) = deadstemc14_seed * dwt
-          end if
-          dwt_leafn_seed(p)   = leafn_seed   * dwt
-          dwt_deadstemc_seed(p)   = deadstemc_seed   * dwt
-          dwt_deadstemn_seed(p)   = deadstemn_seed   * dwt
 
         else if (dwt < 0._rk8) then
 

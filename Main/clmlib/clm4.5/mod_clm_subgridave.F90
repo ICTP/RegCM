@@ -128,7 +128,7 @@ module mod_clm_subgridave
     end do
     found = .false.
     do c = lbc , ubc
-      if ( sumwt(c) > 1.0_rk8 + 1.e-4_rk8 ) then
+      if ( sumwt(c) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = c
       else if ( sumwt(c) /= 0._rk8 ) then
@@ -199,7 +199,7 @@ module mod_clm_subgridave
       end do
       found = .false.
       do c = lbc , ubc
-        if (sumwt(c) > 1.0_rk8 + 1.e-4_rk8) then
+        if (sumwt(c) > 1.0_rk8 + 1.e-3_rk8) then
           found = .true.
           iind = c
         else if (sumwt(c) /= 0._rk8) then
@@ -400,7 +400,7 @@ module mod_clm_subgridave
     end do
     found = .false.
     do l = lbl , ubl
-      if ( sumwt(l) > 1.0_rk8 + 1.e-4_rk8 ) then
+      if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = l
       else if ( sumwt(l) /= 0._rk8 ) then
@@ -538,7 +538,7 @@ module mod_clm_subgridave
       end do
       found = .false.
       do l = lbl , ubl
-        if ( sumwt(l) > 1.0_rk8 + 1.e-4_rk8 ) then
+        if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind = l
         else if ( sumwt(l) /= 0._rk8 ) then
@@ -686,7 +686,7 @@ module mod_clm_subgridave
     end do
     found = .false.
     do g = lbg , ubg
-      if ( sumwt(g) > 1.0_rk8 + 1.e-4_rk8 ) then
+      if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = g
       else if ( sumwt(g) /= 0._rk8 ) then
@@ -833,7 +833,7 @@ module mod_clm_subgridave
       end do
       found = .false.
       do g = lbg , ubg
-        if ( sumwt(g) > 1.0_rk8 + 1.e-4_rk8 ) then
+        if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind = g
         else if ( sumwt(g) /= 0._rk8 ) then
@@ -947,7 +947,7 @@ module mod_clm_subgridave
     end do
     found = .false.
     do l = lbl , ubl
-      if ( sumwt(l) > 1.0_rk8 + 1.e-4_rk8 ) then
+      if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = l
       else if ( sumwt(l) /= 0._rk8 ) then
@@ -1063,7 +1063,7 @@ module mod_clm_subgridave
       end do
       found = .false.
       do l = lbl , ubl
-        if ( sumwt(l) > 1.0_rk8 + 1.e-4_rk8 ) then
+        if ( sumwt(l) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind = l
         else if ( sumwt(l) /= 0._rk8 ) then
@@ -1188,7 +1188,7 @@ module mod_clm_subgridave
     end do
     found = .false.
     do g = lbg , ubg
-      if ( sumwt(g) > 1.0_rk8 + 1.e-4_rk8 ) then
+      if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = g
       else if ( sumwt(g) /= 0._rk8 ) then
@@ -1316,7 +1316,7 @@ module mod_clm_subgridave
       end do
       found = .false.
       do g = lbg, ubg
-        if ( sumwt(g) > 1.0_rk8 + 1.e-4_rk8 ) then
+        if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind = g
         else if ( sumwt(g) /= 0._rk8 ) then
@@ -1378,7 +1378,7 @@ module mod_clm_subgridave
     end do
     found = .false.
     do g = lbg , ubg
-      if ( sumwt(g) > 1.0_rk8 + 1.e-4_rk8 ) then
+      if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
         found = .true.
         iind = g
       else if ( sumwt(g) /= 0._rk8 ) then
@@ -1443,7 +1443,7 @@ module mod_clm_subgridave
       end do
       found = .false.
       do g = lbg , ubg
-        if ( sumwt(g) > 1.0_rk8 + 1.e-4_rk8 ) then
+        if ( sumwt(g) > 1.0_rk8 + 1.e-3_rk8 ) then
           found = .true.
           iind= g
         else if ( sumwt(g) /= 0._rk8 ) then

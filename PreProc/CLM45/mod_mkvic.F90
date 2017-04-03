@@ -68,6 +68,16 @@ module mod_mkvic
       end do
     end do
     call gfclose(gfile)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) > 0.5_rkx ) then
+          vic(j,i,1) = max(0.005_rkx,vic(j,i,1))
+          vic(j,i,2) = max(0.1_rkx,vic(j,i,2))
+          vic(j,i,3) = max(0.5_rkx,vic(j,i,3))
+          vic(j,i,4) = max(0.5_rkx,vic(j,i,4))
+        end if
+      end do
+    end do
   end subroutine mkvic
 #endif
 
