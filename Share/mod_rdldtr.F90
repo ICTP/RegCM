@@ -1550,7 +1550,9 @@ module mod_rdldtr
                 if ( gfile%mask(j,i) < 0 ) then
                   vread(j,i,n1,n2,n3) = h_missing_value
                 else
-                  vread(j,i,n1,n2,n3) = rdef
+                  if ( vread(j,i,n1,n2,n3) < 0.0_rkx ) then
+                    vread(j,i,n1,n2,n3) = rdef
+                  end if
                 end if
               end do
             end do

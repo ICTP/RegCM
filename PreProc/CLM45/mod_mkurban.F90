@@ -242,6 +242,8 @@ module mod_mkurban
                         urban5d(j,i,n1,n2,n3,i6) = &
                                max(d_zero,urban5d(j,i,n1,n2,n3,i6))
                       end if
+                      if ( urban5d(j,i,n1,n2,n3,i6) <= d_zero ) then
+                      end if
                     end if
                   end do
                 end do
