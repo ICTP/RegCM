@@ -56,10 +56,10 @@ module mod_mkorganic
             organic(j,i,n) = h_missing_value
           else
             if ( organic(j,i,n) > h_missing_value ) then
-              organic(j,i,n) = max(d_zero,organic(j,i,n))
+              organic(j,i,n) = min(max(d_zero,organic(j,i,n)),d_one)
             else
               call bestaround(organic(:,:,n),i,j)
-              organic(j,i,n) = max(d_zero,organic(j,i,n))
+              organic(j,i,n) = min(max(d_zero,organic(j,i,n)),d_one)
             end if
           end if
         end do

@@ -190,11 +190,11 @@ module mod_mkurban
                 if ( mask(j,i) < 0.5_rkx ) then
                   urban3d(j,i,n1,i4) = h_missing_value
                 else
-                  if ( urban3d(j,i,n1,i4) > h_missing_value ) then
-                    urban3d(j,i,n1,i4) = max(d_zero,urban3d(j,i,n1,i4))
-                  else
+                  if ( urban3d(j,i,n1,i4) <= h_missing_value ) then
                     call bestaround(urban3d(:,:,n1,i4),i,j)
-                    urban3d(j,i,n1,i4) = max(d_zero,urban3d(j,i,n1,i4))
+                  end if
+                  if ( urban3d(j,i,n1,i4) < d_zero ) then
+                    urban3d(j,i,n1,i4) = h_missing_value
                   end if
                 end if
               end do
@@ -211,11 +211,11 @@ module mod_mkurban
                   if ( mask(j,i) < 0.5_rkx ) then
                     urban4d(j,i,n1,n2,i5) = h_missing_value
                   else
-                    if ( urban4d(j,i,n1,n2,i5) > h_missing_value ) then
-                      urban4d(j,i,n1,n2,i5) = max(d_zero,urban4d(j,i,n1,n2,i5))
-                    else
+                    if ( urban4d(j,i,n1,n2,i5) <= h_missing_value ) then
                       call bestaround(urban4d(:,:,n1,n2,i5),i,j)
-                      urban4d(j,i,n1,n2,i5) = max(d_zero,urban4d(j,i,n1,n2,i5))
+                    end if
+                    if ( urban4d(j,i,n1,n2,i5) < d_zero ) then
+                      urban4d(j,i,n1,n2,i5) = h_missing_value
                     end if
                   end if
                 end do
@@ -234,15 +234,11 @@ module mod_mkurban
                     if ( mask(j,i) < 0.5_rkx ) then
                       urban5d(j,i,n1,n2,n3,i6) = h_missing_value
                     else
-                      if ( urban5d(j,i,n1,n2,n3,i6) > h_missing_value ) then
-                        urban5d(j,i,n1,n2,n3,i6) = &
-                               max(d_zero,urban5d(j,i,n1,n2,n3,i6))
-                      else
+                      if ( urban5d(j,i,n1,n2,n3,i6) <= h_missing_value ) then
                         call bestaround(urban5d(:,:,n1,n2,n3,i6),i,j)
-                        urban5d(j,i,n1,n2,n3,i6) = &
-                               max(d_zero,urban5d(j,i,n1,n2,n3,i6))
                       end if
-                      if ( urban5d(j,i,n1,n2,n3,i6) <= d_zero ) then
+                      if ( urban5d(j,i,n1,n2,n3,i6) < d_zero ) then
+                        urban5d(j,i,n1,n2,n3,i6) = h_missing_value
                       end if
                     end if
                   end do

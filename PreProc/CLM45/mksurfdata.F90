@@ -657,15 +657,22 @@ program mksurfdata
   ivdims(1) = idims(7)
   ivdims(2) = idims(8)
   do i = 1 , npu2d
-    istatus = nf90_def_var(ncid, parm2d(i), regcm_vartype, &
-                           ivdims(1:2), iurb2d(i))
+    if ( parm2d(i) == 'NLEV_IMPROAD' ) then
+      istatus = nf90_def_var(ncid, parm2d(i), nf90_int, &
+                             ivdims(1:2), iurb2d(i))
+    else
+      istatus = nf90_def_var(ncid, parm2d(i), regcm_vartype, &
+                             ivdims(1:2), iurb2d(i))
+    end if
     call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
     istatus = nf90_put_att(ncid, iurb2d(i), 'long_name', lngn2d(i))
     call checkncerr(istatus,__FILE__,__LINE__,'Error add long_name')
     istatus = nf90_put_att(ncid, iurb2d(i), 'units', unit2d(i) )
     call checkncerr(istatus,__FILE__,__LINE__,'Error add units')
-    istatus = nf90_put_att(ncid, iurb2d(i), '_FillValue',vmisdat)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
+    if ( parm2d(i) /= 'NLEV_IMPROAD' ) then
+      istatus = nf90_put_att(ncid, iurb2d(i), '_FillValue',vmisdat)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
+    end if
   end do
 
   ivdims(1) = idims(7)
