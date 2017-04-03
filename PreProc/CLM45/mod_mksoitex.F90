@@ -36,9 +36,10 @@ module mod_mksoitex
 
   contains
 
-  subroutine mksoitex(soitexfile,sand,clay)
+  subroutine mksoitex(soitexfile,mask,sand,clay)
     implicit none
     character(len=*) , intent(in) :: soitexfile
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: sand , clay
     integer(ik4) :: i , j , nc , n
     type(globalfile) :: gfile
@@ -52,10 +53,16 @@ module mod_mksoitex
     call gfread(gfile,varname1,mapdim,mapname,sand,.false.,h_missing_value)
     call gfread(gfile,varname2,mapdim,mapname,clay,.false.,h_missing_value)
 
-    do n = 1 , nc
-      do i = 1 , iysg
-        do j = 1 , jxsg
-          if ( clay(j,i,1) > h_missing_value ) then
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) > 0.5_rkx ) then
+          if ( clay(j,i,1) < 0.0_rkx .or. sand(j,i,1) < 0.0_rkx ) then
+            do n = 1 , nc
+              call bestaround(sand(:,:,n),j,i)
+              call bestaround(clay(:,:,n),j,i)
+            end do
+          end if
+          do n = 1 , nc
             if ( clay(j,i,n) + sand(j,i,n) /= 100.0_rkx ) then
               if ( clay(j,i,n) > sand(j,i,n) ) then
                 sand(j,i,n) = 100.0_rkx - clay(j,i,n)
@@ -63,10 +70,14 @@ module mod_mksoitex
                 clay(j,i,n) = 100.0_rkx - sand(j,i,n)
               end if
             end if
-          end if
-        end do
+          end do
+        else
+          sand(j,i,:) = h_missing_value
+          clay(j,i,:) = h_missing_value
+        end if
       end do
     end do
+
     call gfclose(gfile)
   end subroutine mksoitex
 

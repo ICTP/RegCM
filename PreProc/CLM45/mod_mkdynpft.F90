@@ -33,13 +33,14 @@ module mod_mkdynpft
 
   character(len=16) , parameter :: varname = 'PCT_PFT'
 
-  real(rkx) :: vcutoff = 19.0_rkx
+  real(rkx) , parameter :: vcutoff = 19.0_rkx
 
   contains
 
-  subroutine mkdynpft(dynpft,year)
+  subroutine mkdynpft(mask,pft,year)
     implicit none
-    real(rkx) , dimension(:,:,:) , intent(out) :: dynpft
+    real(rkx) , dimension(:,:) , intent(in) :: mask
+    real(rkx) , dimension(:,:,:) , intent(out) :: pft
     integer(ik4) , intent(in) :: year
     integer(ik4) :: i , j , n , iy , npft
     integer(ik4) , dimension(1) :: il
@@ -48,7 +49,7 @@ module mod_mkdynpft
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
-    iy = min(max(year,2100),1950)
+    iy = max(min(year,2100),1950)
     p1 = 'dynamic'
     p2 = '.'
     write(cy,'(i0.4)') iy
@@ -75,29 +76,51 @@ module mod_mkdynpft
       end select
     end if
 
-    npft = size(dynpft,3)
+    npft = size(pft,3)
+
+    inpfile = trim(inpglob)//pthsep//'CLM45'//pthsep//'surface'// &
+              pthsep//trim(p1)//pthsep//trim(p2)//pthsep//&
+              'mksrf_landuse_'//cy//'.nc'
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
-    call gfread(gfile,varname,dynpft,h_missing_value)
-
+    call gfread(gfile,varname,pft,h_missing_value)
+    call gfclose(gfile)
+    !
+    ! Mask and fill grid
+    !
     do i = 1 , iysg
       do j = 1 , jxsg
-        if ( dynpft(j,i,1) > h_missing_value ) then
-          il = maxloc(dynpft(j,i,:))
+        if ( mask(j,i) < 0.5_rkx ) then
+          pft(j,i,:) = h_missing_value
+        else
+          if ( pft(j,i,1) < d_zero ) then
+            call bestaround(pft,i,j)
+          else
+            pft(j,i,:) = min(max(0,nint(pft(j,i,:))),100)
+          end if
+        end if
+      end do
+    end do
+    !
+    ! Keep only classes with percentage greater than cutoff
+    !
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) > 0.5_rkx ) then
+          il = maxloc(pft(j,i,:))
           do n = 1 , npft
             if ( n == il(1) ) cycle
-            if ( dynpft(j,i,n) < vcutoff ) then
-              dynpft(j,i,il(1)) = dynpft(j,i,il(1)) + dynpft(j,i,n)
-              dynpft(j,i,n) = d_zero
+            if ( pft(j,i,n) < vcutoff ) then
+              pft(j,i,il(1)) = pft(j,i,il(1)) + pft(j,i,n)
+              pft(j,i,n) = d_zero
             end if
           end do
           do n = 1 , npft
-            dynpft(j,i,n) = min(dynpft(j,i,n),100.0_rkx)
+            pft(j,i,n) = min(max(0,nint(pft(j,i,n))),100)
           end do
         end if
       end do
     end do
-    call gfclose(gfile)
   end subroutine mkdynpft
 #endif
 

@@ -39,11 +39,12 @@ module mod_mkharvest
 
   contains
 
-  subroutine mkharvest(harvest,iyear)
+  subroutine mkharvest(mask,harvest,iyear)
     implicit none
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: harvest
     integer(ik4) , intent(in) :: iyear
-    integer(ik4) :: n
+    integer(ik4) :: n , i , j
     character(len=32) :: p1 , p2
     character(len=4) :: cy
     type(globalfile) :: gfile
@@ -83,9 +84,22 @@ module mod_mkharvest
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
     do n = 1 , nvarc
       call gfread(gfile,varname(n),harvest(:,:,n),h_missing_value)
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( mask(j,i) < 0.5_rkx ) then
+            harvest(j,i,n) = h_missing_value
+          else
+            if ( harvest(j,i,n) > h_missing_value ) then
+              harvest(j,i,n) = max(d_zero,harvest(j,i,n))
+            else
+              call bestaround(harvest(:,:,n),j,i)
+              harvest(j,i,n) = max(d_zero,harvest(j,i,n))
+            end if
+          end if
+        end do
+      end do
     end do
     call gfclose(gfile)
-
   end subroutine mkharvest
 #endif
 

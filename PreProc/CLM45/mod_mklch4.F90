@@ -37,11 +37,12 @@ module mod_mklch4
 
   contains
 
-  subroutine mklch4(lch4file,lch4)
+  subroutine mklch4(lch4file,mask,lch4)
     implicit none
     character(len=*) , intent(in) :: lch4file
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: lch4
-    integer(ik4) :: n
+    integer(ik4) :: n , i , j
     type(globalfile) :: gfile
 
     character(len=256) :: inpfile
@@ -52,6 +53,20 @@ module mod_mklch4
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
     do n = 1 , nlch4
       call gfread(gfile,varname(n),lch4(:,:,n),h_missing_value)
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( mask(j,i) < 0.5_rkx ) then
+            lch4(j,i,n) = h_missing_value
+          else
+            if ( lch4(j,i,n) > h_missing_value ) then
+              lch4(j,i,n) = max(d_zero,lch4(j,i,n))
+            else
+              call bestaround(lch4(:,:,n),j,i)
+              lch4(j,i,n) = max(d_zero,lch4(j,i,n))
+            end if
+          end if
+        end do
+      end do
     end do
     call gfclose(gfile)
   end subroutine mklch4

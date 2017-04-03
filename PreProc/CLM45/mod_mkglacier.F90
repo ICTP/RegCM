@@ -31,13 +31,14 @@ module mod_mkglacier
 
   character(len=16) , parameter :: varname = 'PCT_GLACIER'
 
-  real(rkx) :: vcutoff = 25.0_rkx
+  real(rkx) , parameter :: vcutoff = 25.0_rkx
 
   contains
 
-  subroutine mkglacier(glcfile,glc)
+  subroutine mkglacier(glcfile,mask,glc)
     implicit none
     character(len=*) , intent(in) :: glcfile
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:) , intent(out) :: glc
     integer(ik4) :: i , j
     type(globalfile) :: gfile
@@ -47,14 +48,25 @@ module mod_mkglacier
                              pthsep//'surface'//pthsep//glcfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
     call gfread(gfile,varname,glc,d_zero)
+    call gfclose(gfile)
+
     do i = 1 , iysg
       do j = 1 , jxsg
-        if ( glc(j,i) > d_zero .and. glc(j,i) < vcutoff ) then
-          glc(j,i) = d_zero
+        if ( mask(j,i) < 0.5_rkx ) then
+          glc(j,i) = h_missing_value
+        else
+          if ( glc(j,i) < d_zero ) then
+            glc(j,i) = d_zero
+          else
+            if ( glc(j,i) < vcutoff ) then
+              glc(j,i) = d_zero
+            else
+              glc(j,i) = min(max(0,nint(glc(j,i))),100)
+            end if
+          end if
         end if
       end do
     end do
-    call gfclose(gfile)
   end subroutine mkglacier
 
 end module mod_mkglacier

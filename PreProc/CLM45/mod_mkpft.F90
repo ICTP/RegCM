@@ -38,9 +38,10 @@ module mod_mkpft
 
   contains
 
-  subroutine mkpft(pftfile,pft)
+  subroutine mkpft(pftfile,mask,pft)
     implicit none
     character(len=*) , intent(in) :: pftfile
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: pft
     integer(ik4) :: i , j , n , npft
     integer(ik4) , dimension(1) :: il
@@ -53,10 +54,29 @@ module mod_mkpft
                              pthsep//'surface'//pthsep//pftfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
     call gfread(gfile,varname,pft,h_missing_value)
-
+    call gfclose(gfile)
+    !
+    ! Mask and fill grid
+    !
     do i = 1 , iysg
       do j = 1 , jxsg
-        if ( pft(j,i,1) > h_missing_value ) then
+        if ( mask(j,i) < 0.5_rkx ) then
+          pft(j,i,:) = h_missing_value
+        else
+          if ( pft(j,i,1) < d_zero ) then
+            call bestaround(pft,i,j)
+          else
+            pft(j,i,:) = min(max(0,nint(pft(j,i,:))),100)
+          end if
+        end if
+      end do
+    end do
+    !
+    ! Keep only classes with percentage greater than cutoff
+    !
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) > 0.5_rkx ) then
           il = maxloc(pft(j,i,:))
           do n = 1 , npft
             if ( n == il(1) ) cycle
@@ -66,12 +86,11 @@ module mod_mkpft
             end if
           end do
           do n = 1 , npft
-            pft(j,i,n) = max(min(pft(j,i,n),100.0_rkx),0.0_rkx)
+            pft(j,i,n) = min(max(0,nint(pft(j,i,n))),100)
           end do
         end if
       end do
     end do
-    call gfclose(gfile)
   end subroutine mkpft
 
 end module mod_mkpft

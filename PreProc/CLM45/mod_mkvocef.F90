@@ -37,11 +37,12 @@ module mod_mkvocef
 
   contains
 
-  subroutine mkvocef(vocfile,vocef)
+  subroutine mkvocef(vocfile,mask,vocef)
     implicit none
     character(len=*) , intent(in) :: vocfile
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: vocef
-    integer(ik4) :: n
+    integer(ik4) :: n , i , j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
@@ -52,6 +53,23 @@ module mod_mkvocef
       call gfread(gfile,varname(n),vocef(:,:,n),h_missing_value)
     end do
     call gfclose(gfile)
+
+    do n = 1 , nvocs
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( mask(j,i) < 0.5_rkx ) then
+            vocef(j,i,n) = h_missing_value
+          else
+            if ( vocef(j,i,n) > h_missing_value ) then
+              vocef(j,i,n) = max(d_zero,vocef(j,i,n))
+            else
+              call bestaround(vocef(:,:,n),j,i)
+              vocef(j,i,n) = max(d_zero,vocef(j,i,n))
+            end if
+          end if
+        end do
+      end do
+    end do
   end subroutine mkvocef
 
 end module mod_mkvocef

@@ -36,13 +36,14 @@ module mod_mkwetland
   character(len=16) , parameter :: varname1 = 'PCT_WETLAND'
   character(len=16) , parameter :: varname2 = 'PCT_LAKE'
 
-  real(rkx) :: vcutoff = 75.0_rkx
+  real(rkx) , parameter :: vcutoff = 75_rkx
 
   contains
 
-  subroutine mkwetland(wetfile,wetland,lake)
+  subroutine mkwetland(wetfile,mask,wetland,lake)
     implicit none
     character(len=*) , intent(in) :: wetfile
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:) , intent(out) :: wetland , lake
     integer(ik4) :: i , j
     type(globalfile) :: gfile
@@ -53,17 +54,42 @@ module mod_mkwetland
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
     call gfread(gfile,varname1,wetland,d_zero)
     call gfread(gfile,varname2,lake,d_zero)
+    call gfclose(gfile)
+
     do i = 1 , iysg
       do j = 1 , jxsg
-        if ( wetland(j,i) > d_zero .and. wetland(j,i) < vcutoff ) then
-          wetland(j,i) = d_zero
-        end if
-        if ( lake(j,i) > d_zero .and. lake(j,i) < vcutoff ) then
-          lake(j,i) = d_zero
+        if ( mask(j,i) < 0.5_rkx ) then
+          wetland(j,i) = h_missing_value
+        else
+          if ( wetland(j,i) < d_zero ) then
+            wetland(j,i) = d_zero
+          else
+            if ( wetland(j,i) < vcutoff ) then
+              wetland(j,i) = d_zero
+            else
+              wetland(j,i) = min(max(0,nint(wetland(j,i))),100)
+            end if
+          end if
         end if
       end do
     end do
-    call gfclose(gfile)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 0.5_rkx ) then
+          lake(j,i) = h_missing_value
+        else
+          if ( lake(j,i) < d_zero ) then
+            lake(j,i) = d_zero
+          else
+            if ( lake(j,i) < vcutoff ) then
+              lake(j,i) = d_zero
+            else
+              lake(j,i) = min(max(0,nint(lake(j,i))),100)
+            end if
+          end if
+        end if
+      end do
+    end do
   end subroutine mkwetland
 
 end module mod_mkwetland

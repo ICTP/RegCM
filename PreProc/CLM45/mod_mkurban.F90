@@ -98,48 +98,63 @@ module mod_mkurban
 
   contains
 
-  subroutine mkurban_base(urbanfile,urban)
+  subroutine mkurban_base(urbanfile,mask,urban)
     implicit none
     character(len=*) , intent(in) :: urbanfile
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: urban
     integer(ik4) :: i , j , n , nurban
-    integer(ik4) , dimension(1) :: il
     type(globalfile) :: gfile
     character(len=256) :: inpfile
+    real(rkx) , dimension(:,:) , allocatable :: usum
 
     nurban = size(urban,3)
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//urbanfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
     call gfread(gfile,varname,urban,h_missing_value)
-    do i = 1 , iysg
-      do j = 1 , jxsg
-        if ( urban(j,i,1) > h_missing_value ) then
-          if ( sum(urban(j,i,:)) < vcutoff ) then
-            urban(j,i,:) = d_zero
+    call gfclose(gfile)
+
+    do n  = 1 , nurban
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( mask(j,i) < 0.5_rkx ) then
+            urban(j,i,n) = h_missing_value
           else
-            il = maxloc(urban(j,i,:))
-            do n = 1 , nurban
-              if ( n == il(1) ) cycle
-              if ( urban(j,i,n) < vcutoff ) then
-                urban(j,i,il(1)) = urban(j,i,il(1)) + urban(j,i,n)
-                urban(j,i,n) = d_zero
-              end if
-            end do
+            if ( urban(j,i,n) < d_zero ) then
+              urban(j,i,n) = d_zero
+            else
+              urban(j,i,n) = min(max(0,nint(urban(j,i,n))),100)
+            end if
           end if
-        end if
+        end do
       end do
     end do
-    call gfclose(gfile)
+
+    allocate(usum(jxsg,iysg))
+    usum = sum(urban,3)
+    do n  = 1 , nurban
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          if ( mask(j,i) > 0.5_rkx ) then
+            if ( usum(j,i) < vcutoff ) then
+              urban(j,i,n) = d_zero
+            end if
+          end if
+        end do
+      end do
+    end do
+    deallocate(usum)
   end subroutine mkurban_base
 
-  subroutine mkurban_param(urbanfile,urban3d,urban4d,urban5d)
+  subroutine mkurban_param(urbanfile,mask,urban3d,urban4d,urban5d)
     implicit none
     character(len=*) , intent(in) :: urbanfile
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:,:) , intent(out) :: urban3d
     real(rkx) , dimension(:,:,:,:,:) , intent(out) :: urban4d
     real(rkx) , dimension(:,:,:,:,:,:) , intent(out) :: urban5d
-    integer(ik4) :: ipt , ip , n
+    integer(ik4) :: ipt , ip , n , i , j , n1 , n2 , n3
     integer(ik4) :: i4 , i5 , i6
     type(globalfile) :: gfile
 
@@ -169,14 +184,70 @@ module mod_mkurban
           i4 = ip2d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
                         urban3d(:,:,:,i4),.true.,h_missing_value)
+          do n1 = 1 , size(urban3d,3)
+            do i = 1 , iysg
+              do j = 1 , jxsg
+                if ( mask(j,i) < 0.5_rkx ) then
+                  urban3d(j,i,n1,i4) = h_missing_value
+                else
+                  if ( urban3d(j,i,n1,i4) > h_missing_value ) then
+                    urban3d(j,i,n1,i4) = max(d_zero,urban3d(j,i,n1,i4))
+                  else
+                    call bestaround(urban3d(:,:,n1,i4),j,i)
+                    urban3d(j,i,n1,i4) = max(d_zero,urban3d(j,i,n1,i4))
+                  end if
+                end if
+              end do
+            end do
+          end do
         case (4)
           i5 = ip3d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
                         urban4d(:,:,:,:,i5),.true.,h_missing_value)
+          do n2 = 1 , size(urban4d,4)
+            do n1 = 1 , size(urban4d,3)
+              do i = 1 , iysg
+                do j = 1 , jxsg
+                  if ( mask(j,i) < 0.5_rkx ) then
+                    urban4d(j,i,n1,n2,i5) = h_missing_value
+                  else
+                    if ( urban4d(j,i,n1,n2,i5) > h_missing_value ) then
+                      urban4d(j,i,n1,n2,i5) = max(d_zero,urban4d(j,i,n1,n2,i5))
+                    else
+                      call bestaround(urban4d(:,:,n1,n2,i5),j,i)
+                      urban4d(j,i,n1,n2,i5) = max(d_zero,urban4d(j,i,n1,n2,i5))
+                    end if
+                  end if
+                end do
+              end do
+            end do
+          end do
         case (5)
           i6 = ip4d(parmname(n))
           call gfread(gfile,parmname(n),regiondim,regionname, &
                         urban5d(:,:,:,:,:,i6),.true.,h_missing_value)
+          do n3 = 1 , size(urban5d,5)
+            do n2 = 1 , size(urban5d,4)
+              do n1 = 1 , size(urban5d,3)
+                do i = 1 , iysg
+                  do j = 1 , jxsg
+                    if ( mask(j,i) < 0.5_rkx ) then
+                      urban5d(j,i,n1,n2,n3,i6) = h_missing_value
+                    else
+                      if ( urban5d(j,i,n1,n2,n3,i6) > h_missing_value ) then
+                        urban5d(j,i,n1,n2,n3,i6) = &
+                               max(d_zero,urban5d(j,i,n1,n2,n3,i6))
+                      else
+                        call bestaround(urban5d(:,:,n1,n2,n3,i6),j,i)
+                        urban5d(j,i,n1,n2,n3,i6) = &
+                               max(d_zero,urban5d(j,i,n1,n2,n3,i6))
+                      end if
+                    end if
+                  end do
+                end do
+              end do
+            end do
+          end do
         case default
           call die(__FILE__,'Variable dimension not implemented',__LINE__)
       end select

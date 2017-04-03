@@ -45,11 +45,27 @@ module mod_mklightning
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
   end subroutine mklightning_init
 
-  subroutine mklightning(lightning,it)
+  subroutine mklightning(lightning,mask,it)
     implicit none
+    real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:) , intent(out) :: lightning
     integer(ik4) , intent(in) :: it
-    call gfread(gfile,varname,lightning,it,0.0_rkx)
+    integer(ik4) :: i , j
+    call gfread(gfile,varname,lightning,it,h_missing_value)
+    do i = 1 , iysg
+      do j = 1 , jxsg
+        if ( mask(j,i) < 0.5_rkx ) then
+          lightning(j,i) = h_missing_value
+        else
+          if ( lightning(j,i) > h_missing_value ) then
+            lightning(j,i) = max(d_zero,lightning(j,i))
+          else
+            call bestaround(lightning,j,i)
+            lightning(j,i) = max(d_zero,lightning(j,i))
+          end if
+        end if
+      end do
+    end do
   end subroutine mklightning
 
   subroutine mklightning_close

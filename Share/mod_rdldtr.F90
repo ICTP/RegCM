@@ -31,7 +31,7 @@ module mod_rdldtr
 
   private
 
-  public :: globalfile , gfopen , gfclose , gfread
+  public :: globalfile , gfopen , gfclose , gfread , bestaround
 
   public :: read_ncglob
 
@@ -66,6 +66,11 @@ module mod_rdldtr
     module procedure gfread_5d
     module procedure gfread_5d_lookup
   end interface gfread
+
+  interface bestaround
+    module procedure bestaround2d
+    module procedure bestaround3d
+  end interface
 
   contains
 !
@@ -1574,6 +1579,116 @@ module mod_rdldtr
       deallocate(gfile%mask)
     end if
   end subroutine gfclose
+
+  subroutine bestaround2d(grid,i,j)
+    implicit none
+    integer(ik4) , intent(in) :: i , j
+    real(rkx) , dimension(:,:) , intent(inout) :: grid
+    real(rkx) , allocatable , dimension(:) :: vals
+    integer(ik4) :: ii , jj , js , is , ip , il , maxil , mmx
+    integer(ik4) :: iis , jjs , iie , jje
+
+    if ( all(grid <= h_missing_value) ) return
+
+    mmx = (2*minval(shape(grid(:,:)))/2+1)**2
+    jjs = lbound(grid,1)
+    iis = lbound(grid,2)
+    jje = ubound(grid,1)
+    iie = ubound(grid,2)
+
+    allocate(vals(mmx))
+    il = 1
+    maxil = minval(shape(grid(:,:)))/2
+    do
+      ip = 0
+      vals(:) = 0.0_rkx
+      do ii = i - il , i + il
+        do jj = j - il , j + il
+          is = ii
+          js = jj
+          if ( js < jjs ) js = jjs-js
+          if ( js > jje ) js = 2*jje-js
+          if ( is < iis ) is = iis-is
+          if ( is > iie ) is = 2*iie - is
+          if ( grid(js,is) > h_missing_value ) then
+            ip = ip + 1
+            vals(ip) = vals(ip) + grid(js,is)
+          end if
+        end do
+      end do
+      if ( ip > 0 ) then
+        grid(j,i) = sum(vals(1:ip))/real(ip)
+        exit
+      else
+        il = il + 1
+        if ( il == maxil ) then
+          write(stderr,*) 'At point I = ',i
+          write(stderr,*) '         J = ',j
+          call die(__FILE__,'Not finding anything around !',__LINE__)
+          exit
+        end if
+      end if
+    end do
+    deallocate(vals)
+  end subroutine bestaround2d
+
+  subroutine bestaround3d(grid,i,j)
+    implicit none
+    integer(ik4) , intent(in) :: i , j
+    real(rkx) , dimension(:,:,:) , intent(inout) :: grid
+    real(rkx) , allocatable , dimension (:,:) :: vals
+    integer(ik4) :: ii , jj , js , is , ip , n , il , maxil , mmx
+    integer(ik4) :: iis , jjs , iie , jje , kks , kke
+
+    if ( all(grid <= h_missing_value) ) return
+
+    mmx = (2*minval(shape(grid(:,:,1)))/2+1)**2
+    jjs = lbound(grid,1)
+    iis = lbound(grid,2)
+    kks = lbound(grid,3)
+    jje = ubound(grid,1)
+    iie = ubound(grid,2)
+    kke = ubound(grid,3)
+
+    allocate(vals(kks:kke,mmx))
+    il = 1
+    maxil = minval(shape(grid(:,:,1)))/2
+    do
+      ip = 0
+      vals(:,:) = 0.0_rkx
+      do ii = i - il , i + il
+        do jj = j - il , j + il
+          is = ii
+          js = jj
+          if ( js < jjs ) js = jjs-js
+          if ( js > jje ) js = 2*jje - js
+          if ( is < iis ) is = iis-is
+          if ( is > iie ) is = 2*iie - is
+          do n = kks , kke
+            if ( grid(js,is,n) > h_missing_value ) then
+              ip = ip + 1
+              vals(n,ip) = vals(n,ip) + grid(js,is,n)
+            end if
+          end do
+        end do
+      end do
+      if ( ip > 0 ) then
+        do n = kks , kke
+          grid(j,i,n) = sum(vals(n,1:ip))/real(ip)
+        end do
+        exit
+      else
+        il = il + 1
+        if ( il == maxil ) then
+          write(stderr,*) 'At point I = ',i
+          write(stderr,*) '         J = ',j
+          call die(__FILE__,'Not finding anything around !',__LINE__)
+          exit
+        end if
+      end if
+    end do
+    deallocate(vals)
+  end subroutine bestaround3d
 
 end module mod_rdldtr
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
