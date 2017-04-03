@@ -238,7 +238,7 @@ module mod_mkurban
                         urban5d(j,i,n1,n2,n3,i6) = &
                                max(d_zero,urban5d(j,i,n1,n2,n3,i6))
                       else
-                        call bestaround(urban5d(:,:,n1,n2,n3,i6),j,i)
+                        call bestaround(urban5d(:,:,n1,n2,n3,i6),i,j)
                         urban5d(j,i,n1,n2,n3,i6) = &
                                max(d_zero,urban5d(j,i,n1,n2,n3,i6))
                       end if
