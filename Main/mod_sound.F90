@@ -542,9 +542,9 @@ module mod_sound
         ! If first time through and upper radiation b.c`s are used
         ! Need to calc some coefficients. RegCM updates every day.
         !
-        if ( ( ktau == 0 .or. mod(ktau,khour) == 0 ) .and. it == 1 ) then
+        if ( ( ktau == 0 .or. mod(ktau,kday) == 0 ) .and. it == 1 ) then
           ! Calculating means for upper radiative boundary conditions
-          if ( myid == italk .and. mod(ktau,kday) == 0 ) then
+          if ( myid == italk ) then
             write(stdout,'(a,i8)') &
                ' Updating upper radiative BC coefficients at ktau = ',ktau
           end if
@@ -602,8 +602,8 @@ module mod_sound
         !
         ! Apply upper rad cond.
         !
-        do i = icii1 , icii2
-          do j = jcii1 , jcii2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             do nsi = -6 , 6
               inn = max(icross1+1,min(icross2-1,i+nsi))
               do nsj = -6 , 6

@@ -108,20 +108,20 @@ module mod_bdycod
   subroutine allocate_mod_bdycon
     implicit none
     if ( iboudy == 1 .or. idynamic == 2 ) then
-      call getmem1d(fcx,1,nspgx,'bdycon:fcx')
-      call getmem1d(gcx,1,nspgx,'bdycon:gcx')
-      call getmem1d(fcd,1,nspgd,'bdycon:fcd')
-      call getmem1d(gcd,1,nspgd,'bdycon:gcd')
+      call getmem1d(fcx,2,nspgx-1,'bdycon:fcx')
+      call getmem1d(gcx,2,nspgx-1,'bdycon:gcx')
+      call getmem1d(fcd,2,nspgd-1,'bdycon:fcd')
+      call getmem1d(gcd,2,nspgd-1,'bdycon:gcd')
     end if
     if ( iboudy == 4 ) then
-      call getmem1d(wgtd,1,nspgd,'bdycon:wgtd')
-      call getmem1d(wgtx,1,nspgx,'bdycon:wgtx')
+      call getmem1d(wgtd,2,nspgd-1,'bdycon:wgtd')
+      call getmem1d(wgtx,2,nspgx-1,'bdycon:wgtx')
     end if
     if ( iboudy == 5 ) then
-      call getmem2d(hefc,1,nspgx,1,kz,'bdycon:hefc')
-      call getmem2d(hegc,1,nspgx,1,kz,'bdycon:hegc')
-      call getmem2d(hefd,1,nspgd,1,kz,'bdycon:hefd')
-      call getmem2d(hegd,1,nspgd,1,kz,'bdycon:hegd')
+      call getmem2d(hefc,2,nspgx-1,1,kz,'bdycon:hefc')
+      call getmem2d(hegc,2,nspgx-1,1,kz,'bdycon:hegc')
+      call getmem2d(hefd,2,nspgd-1,1,kz,'bdycon:hefd')
+      call getmem2d(hegd,2,nspgd-1,1,kz,'bdycon:hegd')
     end if
 
     if ( ma%has_bdytop ) then
@@ -2474,8 +2474,8 @@ module mod_bdycod
     call time_begin(subroutine_name,idindx)
 #endif
 
-    nk = size(f,3)
-    ns = 1
+    nk = ubound(f,3)
+    ns = lbound(f,3)
     !if ( nk == kzp1 ) ns = 2
     xt = xbctime + dt
     if ( .not. ba_cr%havebound ) then

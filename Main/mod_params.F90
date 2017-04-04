@@ -265,7 +265,7 @@ module mod_params
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     itopnudge = 0
-    ifrayd = 2
+    ifrayd = 0
     rayndamp = kz / 6
     rayalpha0 = 5.0e-5_rkx
     rayzd = 15000.0_rkx
@@ -601,8 +601,8 @@ module mod_params
 
       if ( idynamic == 2 ) then
         diffu_hgtf = 0
-        gnu1 = 0.0990_rkx
-        gnu2 = 0.0990_rkx
+        gnu1 = 0.1000_rkx
+        gnu2 = 0.1000_rkx
       else
         diffu_hgtf = 1
         gnu1 = 0.0625_rkx
@@ -611,8 +611,8 @@ module mod_params
       upstream_mode = .false.
       stability_enhance = .false.
       vert_stability_enhance = .false.
-      upu = 0.100_rkx
-      umax = 200.0_rkx
+      upu = 0.150_rkx
+      umax = 160.0_rkx
       t_extrema = 5.0_rkx
       c_rel_extrema = 0.80_rkx
       q_rel_extrema = 0.20_rkx
