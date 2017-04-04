@@ -312,7 +312,7 @@
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          0, ! Model desert seasonal albedo variability
- iconvlwp =          1, ! Use convective algo for lwp in the large-scale
+ iconvlwp =          0, ! Use convective algo for lwp in the large-scale
                         ! This is reset to zero if using ipptls = 2
  icldfrac =          0, ! Cloud fraction algorithm
                         !   0 : Original SUBEX

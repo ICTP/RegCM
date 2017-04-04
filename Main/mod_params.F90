@@ -246,7 +246,7 @@ module mod_params
     idcsst = 0
     iseaice = 0
     idesseas = 0
-    iconvlwp = 1
+    iconvlwp = 0
     icldfrac = 0
     icldmstrat = 0
     irrtm = 0
