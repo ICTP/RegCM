@@ -197,7 +197,6 @@ module mod_pbl_uwtcm
     call getmem1d(rttenx,1,kz,'mod_uwtcm:rttenx')
     call getmem1d(preshl,1,kz,'mod_uwtcm:preshl')
     call getmem1d(qcx,1,kz,'mod_uwtcm:qcx')
-    call getmem1d(qix,1,kz,'mod_uwtcm:qix')
     call getmem1d(qwx,1,kz,'mod_uwtcm:qwx')
     call getmem1d(qwxs,1,kz,'mod_uwtcm:qwxs')
     call getmem1d(udzq,1,kz,'mod_uwtcm:udzq')
@@ -210,7 +209,6 @@ module mod_pbl_uwtcm
     call getmem1d(rdzq,1,kz,'mod_uwtcm:rdzq')
     call getmem1d(vxs,1,kz,'mod_uwtcm:vxs')
     call getmem1d(qcxs,1,kz,'mod_uwtcm:qcxs')
-    call getmem1d(qixs,1,kz,'mod_uwtcm:qixs')
     call getmem1d(aimp,1,kz,'mod_uwtcm:aimp')
     call getmem1d(bimp,1,kz,'mod_uwtcm:bimp')
     call getmem1d(cimp,1,kz,'mod_uwtcm:cimp')
@@ -218,6 +216,11 @@ module mod_pbl_uwtcm
     call getmem1d(rimp1,1,kz,'mod_uwtcm:rimp1')
     call getmem1d(uimp2,1,kz,'mod_uwtcm:uimp2')
     call getmem1d(rimp2,1,kz,'mod_uwtcm:rimp2')
+
+    if ( implicit_ice .and. ipptls > 1 ) then
+      call getmem1d(qix,1,kz,'mod_uwtcm:qix')
+      call getmem1d(qixs,1,kz,'mod_uwtcm:qixs')
+    end if
 
     if ( ichem == 1 ) then
       call getmem2d(chix,1,kz,1,ntr,'mod_uwtcm:chix')
@@ -239,7 +242,7 @@ module mod_pbl_uwtcm
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
-    integer(ik4) :: ilay , kpbconv , iteration
+    integer(ik4) :: ilay , kpbconv , iteration , pfac , rpfac
     real(rkx) :: temps , templ , deltat , rvls
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
@@ -262,6 +265,8 @@ module mod_pbl_uwtcm
 
         ! Copy in local versions of necessary variables
         psbx = m2p%psb(j,i)
+        pfac = dt / psbx
+        rpfac = psbx / dt
         tgbx = m2p%tgb(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
@@ -277,8 +282,8 @@ module mod_pbl_uwtcm
 
         do k = 1 , kz
           tx(k)  = m2p%tatm(j,i,k)
-          qx(k)  = m2p%qxatm(j,i,k,iqv)
-          qcx(k)  = m2p%qxatm(j,i,k,iqc)
+          qx(k)  = max(m2p%qxatm(j,i,k,iqv)+p2m%qxten(j,i,k,iqv)*pfac,minqq)
+          qcx(k) = max(m2p%qxatm(j,i,k,iqc)+p2m%qxten(j,i,k,iqc)*pfac,d_zero)
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
@@ -287,11 +292,7 @@ module mod_pbl_uwtcm
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = m2p%qxatm(j,i,k,iqi)
-          end do
-        else
-          do k = 1 , kz
-            qix(k) = d_zero
+            qix(k) = max(m2p%qxatm(j,i,k,iqi)+p2m%qxten(j,i,k,iqi)*pfac,d_zero)
           end do
         end if
 
@@ -299,14 +300,14 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = m2p%chib(j,i,k,itr)
+              chix(k,itr) = max(m2p%chib(j,i,k,itr) + &
+                              p2m%chiten(j,i,k,itr)*pfac,d_zero)
             end do
           end do
         end if
 
         ! Set all the save variables (used for determining the tendencies)
         tkes(kzp1) = tke(kzp1)
-        khalfloop: &
         do k = 1 , kz
           ! pressure at half levels
           preshl(k) = m2p%patm(j,i,k)
@@ -335,11 +336,16 @@ module mod_pbl_uwtcm
           thxs(k) = thx(k)
           qxs(k) = qx(k)
           qcxs(k) = qcx(k)
-          qixs(k) = qix(k)
           ! density at half levels
           rhoxhl(k) = preshl(k)/(rgas*tvx(k))
           rrhoxhl(k) = d_one/rhoxhl(k)
-        end do khalfloop
+        end do
+
+        if ( implicit_ice .and. ipptls > 1 ) then
+          do k = 1 , kz
+            qixs(k) = qix(k)
+          end do
+        end if
 
         if ( ichem == 1 ) then
           do itr = 1 , ntr
@@ -713,17 +719,15 @@ module mod_pbl_uwtcm
         if ( update_only_in_pbl ) ibnd = kpbl2dx
         do k = ibnd , kz
           ! Zonal wind tendency
-          p2m%uuwten(j,i,k) = psbx*(ux(k)-uxs(k))*rdt
+          p2m%uuwten(j,i,k) = rpfac*(ux(k)-uxs(k))
           ! Meridional wind tendency
-          p2m%vuwten(j,i,k) = psbx*(vx(k)-vxs(k))*rdt
+          p2m%vuwten(j,i,k) = rpfac*(vx(k)-vxs(k))
           ! Temperature tendency
-          p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-                         psbx*(thx(k)-thxs(k))*exnerhl(k)*rdt
+          p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*(thx(k)-thxs(k))*exnerhl(k)
           ! Water vapor tendency
-          p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + psbx*(qx(k)-qxs(k))*rdt
+          p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv)+rpfac*(qx(k)-qxs(k))
           ! Cloud water tendency
-          p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-                         psbx*(qcx(k)-qcxs(k))*rdt
+          p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc)+rpfac*(qcx(k)-qcxs(k))
           ! Momentum diffusivity
           uwstate%kzm(j,i,k) = kzm(k)
           ! Scalar diffusivity
@@ -736,8 +740,7 @@ module mod_pbl_uwtcm
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = ibnd , kz
-            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-                      psbx*(qix(k)-qixs(k))*rdt
+            p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi)+rpfac*(qix(k)-qixs(k))
           end do
         end if
 
@@ -745,7 +748,7 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             do k = ibnd , kz
               p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) + &
-                         psbx*(chix(k,itr)-chixs(k,itr))*rdt
+                         rpfac*(chix(k,itr)-chixs(k,itr))
             end do
           end do
         end if
