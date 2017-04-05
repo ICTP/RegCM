@@ -379,14 +379,7 @@ module mod_tendency
       end if
     end if
     if ( idynamic == 2 ) then
-      if ( itopnudge == 1 ) then
-        call topnudge(atm2%t,tten,xtb)
-        call topnudge(atm2%qx,qxten,xqb,iqv)
-      end if
       if ( ifrayd == 1 ) then
-        call raydamp(atms%za,atm2%t,tten)
-        call raydamp(atms%za,atm2%qx,qxten)
-      else if ( ifrayd == 2 ) then
         call raydamp(atms%za,atm2%t,tten,xtb)
         call raydamp(atms%za,atm2%qx,qxten,xqb)
       end if
@@ -488,16 +481,7 @@ module mod_tendency
       !
       ! Decouple before calling sound
       !
-      if ( itopnudge == 1 ) then
-        call topnudge(atm2%u,atm2%v,uten,vten)
-        call topnudge(atm2%pp,ppten,xppb)
-        call topnudge(atm2%w,wten,xwwb)
-      end if
       if ( ifrayd == 1 ) then
-        call raydamp(atms%za,atm2%u,atm2%v,uten,vten)
-        call raydamp(atms%za,atm2%pp,ppten)
-        call raydamp(atms%zq,atm2%w,wten,d_zero)
-      else if (ifrayd == 2 ) then
         call raydamp(atms%za,atm2%u,atm2%v,uten,vten,xub,xvb)
         call raydamp(atms%za,atm2%pp,ppten,xppb)
         call raydamp(atms%zq,atm2%w,wten,d_zero,xwwb)
@@ -559,11 +543,6 @@ module mod_tendency
           end do
         end do
       end do
-      if ( idynamic == 2 ) then
-        if ( ifrayd > 0 ) then
-          call raydamp(atms%zq,atm2%tke,tketen,tkemin)
-        end if
-      end if
       do k = 1 , kzp1
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -588,11 +567,6 @@ module mod_tendency
           end do
         end do
       end do
-      if ( idynamic == 2 ) then
-        if ( ifrayd > 0 ) then
-          call raydamp(atms%za,atm2%chi,chiten)
-        end if
-      end if
       do itr = 1 , ntr
         do k = 1 , kz
           do i = ici1 , ici2

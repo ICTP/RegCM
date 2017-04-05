@@ -245,6 +245,9 @@ module mod_micro_wsm5
       end do
     end do
 
+    where ( qci < 1.0e-14 ) qci = d_zero
+    where ( qrs < 1.0e-14 ) qrs = d_zero
+
     if ( ichem == 1 ) then
       mc2mo%remrat(:,:,:) = d_zero
     end if
@@ -978,15 +981,6 @@ module mod_micro_wsm5
           q(i,k) = q(i,k) - pcond(i,k)*dtcld
           qci(i,k,1) = max(qci(i,k,1)+pcond(i,k)*dtcld,d_zero)
           t(i,k) = t(i,k) + pcond(i,k)*xl(i,k)/cpm(i,k)*dtcld
-        end do
-      end do
-      !
-      ! padding for small values
-      !
-      do k = 1 , kz
-        do i = ims , ime
-          if (qci(i,k,1) <= minqq ) qci(i,k,1) = d_zero
-          if (qci(i,k,2) <= minqq ) qci(i,k,2) = d_zero
         end do
       end do
     end do ! big loops

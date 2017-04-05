@@ -44,7 +44,6 @@ module mod_bdycod
 
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
   public :: sponge , nudge , setup_bdycon , raydamp
-  public :: topnudge
 
   !
   ! West U External  = WUE
@@ -82,23 +81,15 @@ module mod_bdycod
     module procedure nudge4d , nudge4d3d , nudge3d , nudge2d , nudgeuv
   end interface nudge
 
-  interface topnudge
-    module procedure topnudge4d , topnudge3d , topnudgeuv
-  end interface topnudge
-
   interface sponge
     module procedure sponge4d , sponge3d , sponge2d , spongeuv
   end interface sponge
 
   interface raydamp
     module procedure raydamp3
-    module procedure raydamp31
     module procedure raydamp3f
-    module procedure raydamp3f1
-    module procedure raydamp3d
-    module procedure raydamp3d1
-    module procedure raydamp4
-    module procedure raydamp41
+    module procedure raydampuv
+    module procedure raydampqv
   end interface raydamp
 
   logical , parameter :: bdyflow = .true.
@@ -2826,114 +2817,7 @@ module mod_bdycod
     end do
   end subroutine couple
 
-  subroutine topnudgeuv(u,v,uten,vten)
-    implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
-    real(rkx) :: mval , xt
-    integer(ik4) :: i , j , k
-    xt = xbctime + dt
-    do k = 1 , rayndamp
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          mval = (xub%b0(j,i,k)+xt*xub%bt(j,i,k))
-          uten(j,i,k) = uten(j,i,k) + rayalpha0 * (mval-u(j,i,k))
-        end do
-      end do
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          mval = xvb%b0(j,i,k)+xt*xvb%bt(j,i,k)
-          vten(j,i,k) = vten(j,i,k) + rayalpha0 * (mval-v(j,i,k))
-        end do
-      end do
-    end do
-  end subroutine topnudgeuv
-
-  subroutine topnudge3d(v,vten,bnd)
-    implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
-    type(v3dbound) , intent(in) :: bnd
-    real(rkx) :: mval , xt
-    integer(ik4) :: i , j , k
-    xt = xbctime + dt
-    do k = 1 , rayndamp
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
-          vten(j,i,k) = vten(j,i,k) + rayalpha0 * (mval-v(j,i,k))
-        end do
-      end do
-    end do
-  end subroutine topnudge3d
-
-  subroutine topnudge4d(v,vten,bnd,n)
-    implicit none
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: v
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
-    type(v3dbound) , intent(in) :: bnd
-    integer(ik4) , intent(in) :: n
-    real(rkx) :: mval , xt
-    integer(ik4) :: i , j , k
-    xt = xbctime + dt
-    do k = 1 , rayndamp
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
-          vten(j,i,k,n) = vten(j,i,k,n) + rayalpha0 * (mval-v(j,i,k,n))
-        end do
-      end do
-    end do
-  end subroutine topnudge4d
-
-  subroutine raydamp3d(z,u,v,uten,vten)
-    implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
-    real(rkx) :: rate , mval , lmval , rpnts , zz
-    integer(ik4) :: i , j , k
-    do k = 1 , rayndamp
-      lmval = d_zero
-      rpnts = d_zero
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          lmval = lmval + u(j,i,k)
-          rpnts = rpnts + d_one
-        end do
-      end do
-      if ( rpnts > d_zero ) lmval = lmval/rpnts
-      call meanall(lmval,mval)
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
-          uten(j,i,k) = uten(j,i,k) + rate * (mval-u(j,i,k))
-        end do
-      end do
-    end do
-    do k = 1 , rayndamp
-      lmval = d_zero
-      rpnts = d_zero
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          lmval = lmval + v(j,i,k)
-          rpnts = rpnts + d_one
-        end do
-      end do
-      if ( rpnts > d_zero ) lmval = lmval/rpnts
-      call meanall(lmval,mval)
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
-          vten(j,i,k) = vten(j,i,k) + rate * (mval-v(j,i,k))
-        end do
-      end do
-    end do
-  end subroutine raydamp3d
-
-  subroutine raydamp3d1(z,u,v,uten,vten,ubnd,vbnd)
+  subroutine raydampuv(z,u,v,uten,vten,ubnd,vbnd)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
@@ -2942,47 +2826,29 @@ module mod_bdycod
     real(rkx) :: xt , zz , rate , sval
     integer(ik4) :: i , j , k
     xt = xbctime + dt
-    do k = 1 , rayndamp
+    do k = 1 , min(kz,rayndamp)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
+          rate = rayalpha0 * rdt * exp((zz-rayzd)/rayhd - d_one)
           sval = ubnd%b0(j,i,k)+xt*ubnd%bt(j,i,k)
           uten(j,i,k) = uten(j,i,k) + rate * (sval-u(j,i,k))
         end do
       end do
     end do
-    do k = 1 , rayndamp
+    do k = 1 , min(kz,rayndamp)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          rate = rayalpha0 * exp((zz-rayzd)/rayhd - d_one)
+          rate = rayalpha0 * rdt * exp((zz-rayzd)/rayhd - d_one)
           sval = vbnd%b0(j,i,k)+xt*vbnd%bt(j,i,k)
           vten(j,i,k) = vten(j,i,k) + rate * (sval-v(j,i,k))
         end do
       end do
     end do
-  end subroutine raydamp3d1
+  end subroutine raydampuv
 
-  subroutine raydamp3f(z,var,vten,sval)
-    implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
-    real(rkx) , intent(in) :: sval
-    real(rkx) :: rate
-    integer(ik4) :: i , j , k
-    do k = 2 , min(kzp1,rayndamp)
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
-          vten(j,i,k) = vten(j,i,k) + rate * (sval-var(j,i,k))
-        end do
-      end do
-    end do
-  end subroutine raydamp3f
-
-  subroutine raydamp3f1(z,var,vten,sval,bnd)
+  subroutine raydamp3f(z,var,vten,sval,bnd)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
@@ -2991,52 +2857,19 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) :: rate , mval , xt
     integer(ik4) :: i , j , k
-    !do i = ici1 , ici2
-    !  do j = jci1 , jci2
-    !    rate = rayalpha0 * exp((z(j,i,1)-rayzd)/rayhd - d_one)
-    !    vten(j,i,1) = vten(j,i,1) + rate * (sval-var(j,i,1))
-    !  end do
-    !end do
     xt = xbctime + dt
     do k = 1 , min(kzp1,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+          rate = rayalpha0 * rdt * exp((z(j,i,k)-rayzd)/rayhd - d_one)
           mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
           vten(j,i,k) = vten(j,i,k) + rate * (sval-var(j,i,k))
         end do
       end do
     end do
-  end subroutine raydamp3f1
+  end subroutine raydamp3f
 
-  subroutine raydamp3(z,var,vten)
-    implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
-    real(rkx) :: rate , mval , lmval , rpnts
-    integer(ik4) :: i , j , k
-    do k = 1 , rayndamp
-      lmval = d_zero
-      rpnts = d_zero
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          lmval = lmval + var(j,i,k)
-          rpnts = rpnts + d_one
-        end do
-      end do
-      if ( rpnts > d_zero ) lmval = lmval/rpnts
-      call meanall(lmval,mval)
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
-          vten(j,i,k) = vten(j,i,k) + rate * (mval-var(j,i,k))
-        end do
-      end do
-    end do
-  end subroutine raydamp3
-
-  subroutine raydamp31(z,var,vten,bnd)
+  subroutine raydamp3(z,var,vten,bnd)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
@@ -3045,47 +2878,18 @@ module mod_bdycod
     real(rkx) :: rate , sval , xt
     integer(ik4) :: i , j , k
     xt = xbctime + dt
-    do k = 1 , min(kzp1,rayndamp)
+    do k = 1 , min(kz,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+          rate = rayalpha0 * rdt * exp((z(j,i,k)-rayzd)/rayhd - d_one)
           sval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
           vten(j,i,k) = vten(j,i,k) + rate * (sval-var(j,i,k))
         end do
       end do
     end do
-  end subroutine raydamp31
+  end subroutine raydamp3
 
-  subroutine raydamp4(z,var,vten)
-    implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
-    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
-    real(rkx) :: rate , mval , lmval , rpnts
-    integer(ik4) :: i , j , k , n
-    do n = 1 , size(var,4)
-      do k = 1 , rayndamp
-        lmval = d_zero
-        rpnts = d_zero
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mval = lmval + var(j,i,k,n)
-            rpnts = rpnts + d_one
-          end do
-        end do
-        if ( rpnts > d_zero ) lmval = lmval/rpnts
-        call meanall(lmval,mval)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
-            vten(j,i,k,n) = vten(j,i,k,n) + rate * (mval-var(j,i,k,n))
-          end do
-        end do
-      end do
-    end do
-  end subroutine raydamp4
-
-  subroutine raydamp41(z,var,vten,bnd)
+  subroutine raydampqv(z,var,vten,bnd)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
@@ -3094,36 +2898,16 @@ module mod_bdycod
     real(rkx) :: xt , rate , mval , lmval , rpnts
     integer(ik4) :: i , j , k , n
     xt = xbctime + dt
-    do k = 1 , min(kzp1,rayndamp)
+    do k = 1 , min(kz,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
+          rate = rayalpha0 * rdt * exp((z(j,i,k)-rayzd)/rayhd - d_one)
           mval = bnd%b0(j,i,k)+xt*bnd%bt(j,i,k)
-          vten(j,i,k,1) = vten(j,i,k,1) + rate * (mval-var(j,i,k,1))
+          vten(j,i,k,iqv) = vten(j,i,k,iqv) + rate * (mval-var(j,i,k,iqv))
         end do
       end do
     end do
-    do n = 2 , size(var,4)
-      do k = 1 , rayndamp
-        lmval = d_zero
-        rpnts = d_zero
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mval = lmval + var(j,i,k,n)
-            rpnts = rpnts + d_one
-          end do
-        end do
-        if ( rpnts > d_zero ) lmval = lmval/rpnts
-        call meanall(lmval,mval)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            rate = rayalpha0 * exp((z(j,i,k)-rayzd)/rayhd - d_one)
-            vten(j,i,k,n) = vten(j,i,k,n) + rate * (mval-var(j,i,k,n))
-          end do
-        end do
-      end do
-    end do
-  end subroutine raydamp41
+  end subroutine raydampqv
 
   subroutine timeint2(a,b,c,j1,j2,i1,i2)
     implicit none
