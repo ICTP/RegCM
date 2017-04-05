@@ -276,21 +276,22 @@ module mod_micro_interface
           exlwc = dlowval
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          if ( iconvlwp == 1 ) then
-            ! Apply the parameterisation based on temperature to the
-            ! the large scale clouds.
-            ! Scaling for CF
-            ! Implements CF scaling as in Liang GRL 32, 2005
-            ! doi: 10.1029/2004GL022301
-            if ( mo2mc%fcc(j,i,k) > lowcld+eps ) then
-              ichi = int(mo2mc%fcc(j,i,k)*real(nchi-1,rkx))
-              exlwc = clwfromt(mo2mc%t(j,i,k)) * chis(ichi)
-            end if
-          else
-            ! NOTE : IN CLOUD HERE IS NEEDED !!!
-            if ( mo2mc%fcc(j,i,k) > lowcld+eps ) then
+          if ( mo2mc%fcc(j,i,k) > lowcld+eps ) then
+            if ( iconvlwp == 1 ) then
+              ! Apply the parameterisation based on temperature to the
+              ! the large scale clouds.
+              exlwc = clwfromt(mo2mc%t(j,i,k))
+            else
+              ! NOTE : IN CLOUD HERE IS NEEDED !!!
               ! In g / m^3
               exlwc = ((totc(j,i,k)*d_1000)/mo2mc%fcc(j,i,k))*mo2mc%rho(j,i,k)
+            end if
+            if ( .true. ) then
+              ! Scaling for CF
+              ! Implements CF scaling as in Liang GRL 32, 2005
+              ! doi: 10.1029/2004GL022301
+              ichi = int(mo2mc%fcc(j,i,k)*real(nchi-1,rkx))
+              exlwc = exlwc * chis(ichi)
             end if
           end if
           if ( cldfra(j,i,k) > lowcld+eps .or. &
