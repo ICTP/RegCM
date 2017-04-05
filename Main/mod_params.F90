@@ -608,9 +608,9 @@ module mod_params
         gnu1 = 0.0625_rkx
         gnu2 = 0.1250_rkx
       end if
-      upstream_mode = .false.
-      stability_enhance = .false.
-      vert_stability_enhance = .false.
+      upstream_mode = .true.
+      stability_enhance = .true.
+      vert_stability_enhance = .true.
       upu = 0.150_rkx
       umax = 160.0_rkx
       t_extrema = 5.0_rkx
