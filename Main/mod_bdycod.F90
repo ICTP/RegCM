@@ -92,7 +92,7 @@ module mod_bdycod
     module procedure raydampqv
   end interface raydamp
 
-  logical , parameter :: bdyflow = .false.
+  logical , parameter :: bdyflow = .true.
 
   contains
 
