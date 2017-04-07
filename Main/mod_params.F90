@@ -683,10 +683,6 @@ module mod_params
           if ( budget_compute ) then
             write(stdout,*) 'Will check the total enthalpy and moisture'
           end if
-          if ( iconvlwp /= 0 ) then
-            write(stdout,*) 'Will set iconvlwp == 0'
-            iconvlwp = 0
-          end if
           if ( cftotmax < 0.99_rkx ) then
             write(stdout,*) 'Will set cftotmax == 0.99'
             cftotmax = 0.99_rkx

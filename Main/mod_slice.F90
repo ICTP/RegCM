@@ -92,7 +92,10 @@ module mod_slice
       do k = 1 , kz
         do i = ice1ga , ice2ga
           do j = jce1ga , jce2ga
-            atms%qxb3d(j,i,k,n) = max(atm2%qx(j,i,k,n)*rpsb(j,i),1.0e-14_rkx)
+            atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
+            if ( atms%qxb3d(j,i,k,n) > 1.0e-14_rkx ) then
+              atms%qxb3d(j,i,k,n) = d_zero
+            end if
           end do
         end do
       end do

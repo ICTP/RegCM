@@ -286,7 +286,7 @@ module mod_micro_interface
               ! In g / m^3
               exlwc = ((totc(j,i,k)*d_1000)/mo2mc%fcc(j,i,k))*mo2mc%rho(j,i,k)
             end if
-            if ( .true. ) then
+            if ( .false. ) then
               ! Scaling for CF
               ! Implements CF scaling as in Liang GRL 32, 2005
               ! doi: 10.1029/2004GL022301

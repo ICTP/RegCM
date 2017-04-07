@@ -406,8 +406,8 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atmc%qx(j,i,k,n) = max(atm2%qx(j,i,k,n) + &
-                       dt * qxten(j,i,k,n),minqx)
+            atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt * qxten(j,i,k,n)
+            if ( atmc%qx(j,i,k,n) < minqx ) atmc%qx(j,i,k,n) = d_zero
           end do
         end do
       end do
@@ -1046,7 +1046,10 @@ module mod_tendency
         do k = 1 , kz
           do i = ice1ga , ice2ga
             do j = jce1ga , jce2ga
-              atmx%qx(j,i,k,n) = max(atm1%qx(j,i,k,n)*rpsa(j,i),minqx)
+              atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
+              if ( atmx%qx(j,i,k,n) < 1.0e-14_rkx ) then
+                atmx%qx(j,i,k,n) = d_zero
+              end if
             end do
           end do
         end do
