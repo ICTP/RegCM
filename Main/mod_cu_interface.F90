@@ -395,6 +395,15 @@ module mod_cu_interface
             end do
           end do
         end do
+        if ( ipptls /= 2 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + c2m%q_detr(j,i,k)
+              end do
+            end do
+          end do
+        end if
       end if
 
     end if ! ktau > 0

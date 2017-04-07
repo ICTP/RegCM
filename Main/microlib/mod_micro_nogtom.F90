@@ -212,8 +212,8 @@ module mod_micro_nogtom
 
   real(rkx) , parameter :: activqx = 1.0e-8_rkx
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
-  real(rkx) , parameter :: zerocf = lowcld + 0.1_rkx
-  real(rkx) , parameter :: onecf  = hicld - 0.1_rkx
+  real(rkx) , parameter :: zerocf = lowcld
+  real(rkx) , parameter :: onecf  = hicld
 
   abstract interface
     subroutine voidsub
@@ -569,7 +569,7 @@ module mod_micro_nogtom
               sumq0(j,i,k) = sumq0(j,i,k-1) ! total water
               sumh0(j,i,k) = sumh0(j,i,k-1) ! liquid water temperature
             end if
-   
+
             tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
                    qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))
 
@@ -1293,7 +1293,7 @@ module mod_micro_nogtom
               end if
 #endif
             end if
-          else 
+          else
             !---------------------------------------------------------------
             !                         MELTING
             !---------------------------------------------------------------
@@ -1656,7 +1656,7 @@ module mod_micro_nogtom
         do n = 1 , nqx
           ! Generalized precipitation flux
           ! this will be the source for the k
-          pfplsx(n,j,i,2) = fallsink(j,i,n) * qxn(n)*rdtgdp 
+          pfplsx(n,j,i,2) = fallsink(j,i,n) * qxn(n)*rdtgdp
           ! Calculate fluxes in and out of box for conservation of TL
           fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                   (fallsink(j,i,n)+convsink(n)) * qxn(n)
@@ -1736,7 +1736,7 @@ module mod_micro_nogtom
           ltkgt0    = ( tk > tzero )
           ltklt0    = ( .not. ltkgt0 )
           ltkgthomo = ( tk > thomo )
-          lcloud    = ( ccover > zerocf )
+          lcloud    = ( ccover >= zerocf )
           lnocloud  = ( .not. lcloud )
           locast    = ( ccover >= onecf )
           lnocast   = ( .not. locast )
@@ -2646,7 +2646,7 @@ module mod_micro_nogtom
           do n = 1 , nqx
             ! Generalized precipitation flux
             ! this will be the source for the k
-            pfplsx(n,j,i,k+1) = fallsink(j,i,n) * qxn(n)*rdtgdp 
+            pfplsx(n,j,i,k+1) = fallsink(j,i,n) * qxn(n)*rdtgdp
             ! Calculate fluxes in and out of box for conservation of TL
             fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                     (fallsink(j,i,n)+convsink(n)) * qxn(n)
@@ -2695,11 +2695,11 @@ module mod_micro_nogtom
         do i = ici1 , ici2
           do j = jci1 , jci2
             tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkeep(j,i,k))
-           if ( k > 1 ) then 
+           if ( k > 1 ) then
               sumq1(j,i,k) = sumq1(j,i,k-1)
               sumh1(j,i,k) = sumh1(j,i,k-1)
             end if
-  
+
            tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
                   qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))
 
