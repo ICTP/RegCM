@@ -1515,7 +1515,7 @@ module mod_params
     !
     bdydate1 = idate1
 
-    nsavfrq = nint(secph*savfrq)
+    nsavfrq = nint(secpd*savfrq)
     natmfrq = nint(secph*atmfrq)
     nradfrq = nint(secph*radfrq)
     ndbgfrq = nint(secph*dbgfrq)
@@ -1671,10 +1671,10 @@ module mod_params
       if ( nsavfrq == 0 ) then
         write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
       else if ( nsavfrq > 0 ) then
-        write(stdout,'(a,f6.1)') ' Frequency in hours to create SAV : ' , savfrq
+        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , savfrq
       else
         write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
-        write(stdout,'(a,f6.1)') ' Frequency in hours to create SAV : ' , savfrq
+        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , savfrq
       end if
       write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ' , atmfrq
       write(stdout,'(a,f6.1)') ' Frequency in hours to create RAD : ' , radfrq
