@@ -998,7 +998,9 @@ module mod_advection
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
                   fg(j,i,k) = svv(j,i,k) * &
-                      (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                      f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+                  !fg(j,i,k) = svv(j,i,k) * &
+                  !    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
                 end if
               end do
             end do
