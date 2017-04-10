@@ -578,12 +578,13 @@ module mod_micro_nogtom
 
             tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
 
-            sumq0(j,i,k) = sumq0(j,i,k)+(qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k)) + &
-                           qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))+ &
-                           qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+ &
-                           qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))+ &
-                           qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenkeep(iqqv,j,i,k)))*&
-                           dpfs(j,i,k)*regrav
+            sumq0(j,i,k) = sumq0(j,i,k) + &
+              (qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k)) + &
+               qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))+ &
+               qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+ &
+               qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))+ &
+               qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenkeep(iqqv,j,i,k)))*&
+               dpfs(j,i,k)*regrav
 
             ! Detrained water treated here
             qe = mo2mc%qdetr(j,i,k)
@@ -2695,130 +2696,131 @@ module mod_micro_nogtom
         do i = ici1 , ici2
           do j = jci1 , jci2
             tnew = mo2mc%t(j,i,k)+dt*(ttendc(j,i,k)-tentkeep(j,i,k))
-           if ( k > 1 ) then
+            if ( k > 1 ) then
               sumq1(j,i,k) = sumq1(j,i,k-1)
               sumh1(j,i,k) = sumh1(j,i,k-1)
             end if
 
-           tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
-                  qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))
+            tmpl = qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
+                   qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))
 
-           tmpi = qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
-                  qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))
+            tmpi = qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
+                   qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))
 
-          tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
+            tnew = tnew - wlhvocp*tmpl - wlhsocp*tmpi
 
-          sumq1(j,i,k) = sumq1(j,i,k)+(qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
-                        qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))+&
-                        qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
-                        qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))+&
-                        qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenkeep(iqqv,j,i,k)))*dpfs(j,i,k)*regrav
-
+            sumq1(j,i,k) = sumq1(j,i,k) + &
+             (qx(iqql,j,i,k)+dt*(qxtendc(iqql,j,i,k)-tenkeep(iqql,j,i,k))+&
+              qx(iqqr,j,i,k)+dt*(qxtendc(iqqr,j,i,k)-tenkeep(iqqr,j,i,k))+&
+              qx(iqqi,j,i,k)+dt*(qxtendc(iqqi,j,i,k)-tenkeep(iqqi,j,i,k))+&
+              qx(iqqs,j,i,k)+dt*(qxtendc(iqqs,j,i,k)-tenkeep(iqqs,j,i,k))+&
+              qx(iqqv,j,i,k)+dt*(qxtendc(iqqv,j,i,k)-tenkeep(iqqv,j,i,k)))*&
+              dpfs(j,i,k)*regrav
             sumh1(j,i,k) = sumh1(j,i,k)+dpfs(j,i,k)*tnew
             rain = d_zero
             do n = 1 , nqx
-            rain = rain + dt*pfplsx(n,j,i,k+1)
+              rain = rain + dt*pfplsx(n,j,i,k+1)
+            end do
+            errorq(j,i,k) = sumq1(j,i,k)+rain-sumq0(j,i,k)
           end do
-          errorq(j,i,k) = sumq1(j,i,k)+rain-sumq0(j,i,k)
         end do
       end do
-    end do
-    do k = 1 , kz
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            dtgdp = dt*egrav/dpfs(j,i,k)
+            rain = d_zero
+            do n = 1 , nqx
+              if ( iphase(n) == 1 ) then
+                rain = rain+wlhvocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
+              else if ( iphase(n) == 2 ) then
+                rain = rain+wlhsocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
+              end if
+            end do
+            sumh1(j,i,k) = (sumh1(j,i,k)-rain) / mo2mc%pfs(j,i,k+1)
+            errorh(j,i,k) = sumh1(j,i,k)-sumh0(j,i,k)
+          end do
+        end do
+      end do
+
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( abs(errorq(j,i,kz)) > 1.e-12_rkx .or. &
+                 abs(errorh(j,i,kz)) > 1.e-12_rkx) then
+              if ( abs(errorq(j,i,kz)) > 1.e-12_rkx ) then
+                write(stderr,*) 'WATER NON CONSERVED AT '
+                write(stderr,*) 'J = ',j
+                write(stderr,*) 'I = ',i
+                write(stderr,*) 'K = ',k
+                write(stderr,*) 'ERROR IS : ',errorq(j,i,kz)
+              end if
+              if ( abs(errorh(j,i,kz)) > 1.e-12_rkx ) then
+                write(stderr,*) 'ENTHALPY NON CONSERVED AT '
+                write(stderr,*) 'J = ',j
+                write(stderr,*) 'I = ',i
+                write(stderr,*) 'K = ',k
+                write(stderr,*) 'ERROR IS : ',errorh(j,i,kz)
+              end if
+              call fatal(__FILE__,__LINE__, &
+                'TOTAL WATER OR ENTHALPY NOT CONSERVED')
+            end if
+          end do
+        end do
+      end do
+    end if ! budget_compute
+
+    ! Sum fluxes over the levels
+    ! Initialize fluxes
+    pfplsl(:,:,:) = d_zero
+    pfplsn(:,:,:) = d_zero
+    mc2mo%rainls(:,:,:) = d_zero
+
+    !--------------------------------------------------------------------
+    ! Copy general precip arrays back into FP arrays
+    ! Add rain and liquid fluxes, ice and snow fluxes
+    !--------------------------------------------------------------------
+
+    ! Rain+liquid, snow+ice
+    ! for each level k = 1 , kz, sum of the same phase elements
+    do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dtgdp = dt*egrav/dpfs(j,i,k)
-          rain = d_zero
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
-              rain = rain+wlhvocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
+              pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
+              mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
             else if ( iphase(n) == 2 ) then
-              rain = rain+wlhsocp*dtgdp*pfplsx(n,j,i,k+1)*dpfs(j,i,k)
+              pfplsn(j,i,k) = pfplsn(j,i,k)+ pfplsx(n,j,i,k)
             end if
           end do
-          sumh1(j,i,k) = (sumh1(j,i,k)-rain) / mo2mc%pfs(j,i,k+1)
-          errorh(j,i,k) = sumh1(j,i,k)-sumh0(j,i,k)
         end do
       end do
     end do
-
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( abs(errorq(j,i,kz)) > 1.e-12_rkx .or. &
-               abs(errorh(j,i,kz)) > 1.e-12_rkx) then
-            if ( abs(errorq(j,i,kz)) > 1.e-12_rkx ) then
-              write(stderr,*) 'WATER NON CONSERVED AT '
-              write(stderr,*) 'J = ',j
-              write(stderr,*) 'I = ',i
-              write(stderr,*) 'K = ',k
-              write(stderr,*) 'ERROR IS : ',errorq(j,i,kz)
-            end if
-            if ( abs(errorh(j,i,kz)) > 1.e-12_rkx ) then
-              write(stderr,*) 'ENTHALPY NON CONSERVED AT '
-              write(stderr,*) 'J = ',j
-              write(stderr,*) 'I = ',i
-              write(stderr,*) 'K = ',k
-              write(stderr,*) 'ERROR IS : ',errorh(j,i,kz)
-            end if
-            call fatal(__FILE__,__LINE__, &
-              'TOTAL WATER OR ENTHALPY NOT CONSERVED')
-          end if
-        end do
-      end do
-    end do
-  end if ! budget_compute
-
-  ! Sum fluxes over the levels
-  ! Initialize fluxes
-  pfplsl(:,:,:) = d_zero
-  pfplsn(:,:,:) = d_zero
-  mc2mo%rainls(:,:,:) = d_zero
-
-  !--------------------------------------------------------------------
-  ! Copy general precip arrays back into FP arrays
-  ! Add rain and liquid fluxes, ice and snow fluxes
-  !--------------------------------------------------------------------
-
-  ! Rain+liquid, snow+ice
-  ! for each level k = 1 , kz, sum of the same phase elements
-  do k = 1 , kzp1
+    !--------------------------------------------------------------
+    ! Convert the accumlated precipitation to appropriate units for
+    ! the surface physics and the output sum up through the levels
+    !--------------------------------------------------------------
     do i = ici1 , ici2
       do j = jci1 , jci2
-        do n = 1 , nqx
-          if ( iphase(n) == 1 ) then
-            pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
-            mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
-          else if ( iphase(n) == 2 ) then
-            pfplsn(j,i,k) = pfplsn(j,i,k)+ pfplsx(n,j,i,k)
-          end if
-        end do
+        prainx = pfplsl(j,i,kzp1)*dt
+        psnowx = pfplsn(j,i,kzp1)*dt
+        if ( prainx > dlowval ) then
+          mc2mo%rainnc(j,i) =  mc2mo%rainnc(j,i) + prainx   !mm
+          mc2mo%lsmrnc(j,i) =  mc2mo%lsmrnc(j,i) + pfplsl(j,i,kzp1)
+        end if
+        if ( psnowx > dlowval ) then
+          mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + psnowx
+          mc2mo%lsmrnc(j,i) =  mc2mo%lsmrnc(j,i) + pfplsn(j,i,kzp1)
+        end if
       end do
     end do
-  end do
-  !--------------------------------------------------------------
-  ! Convert the accumlated precipitation to appropriate units for
-  ! the surface physics and the output sum up through the levels
-  !--------------------------------------------------------------
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      prainx = pfplsl(j,i,kzp1)*dt
-      psnowx = pfplsn(j,i,kzp1)*dt
-      if ( prainx > dlowval ) then
-        mc2mo%rainnc(j,i) =  mc2mo%rainnc(j,i) + prainx   !mm
-        mc2mo%lsmrnc(j,i) =  mc2mo%lsmrnc(j,i) + pfplsl(j,i,kzp1)
-      end if
-      if ( psnowx > dlowval ) then
-        mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + psnowx
-        mc2mo%lsmrnc(j,i) =  mc2mo%lsmrnc(j,i) + pfplsn(j,i,kzp1)
-      end if
-    end do
-  end do
 
 #ifdef DEBUG
-  call time_end(subroutine_name,idindx)
+    call time_end(subroutine_name,idindx)
 #endif
 
-  contains
+    contains
 
     pure real(rkx) function edem(t,phase)
       implicit none
@@ -2871,16 +2873,17 @@ module mod_micro_nogtom
 
     subroutine sundqvist
       implicit none
-      real(rkx) :: precip , cfpr , arg
+      real(rkx) :: precip , cfpr , arg , acrit
       real(rkx) , parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
       alpha1 = min(rkconv*dt,liqcld)
+      acrit = critauto
       if ( lccn ) then
         if ( ccn > 0._rkx ) then
           ! aerosol second indirect effect on autoconversion
           ! threshold, rcrit is a critical cloud radius for cloud
           ! water undergoing autoconversion
           ! ccn = number of ccn /m3
-          critauto = ccn*spherefac*((rcrit*1e-6_rkx)**3)*rhoh2o
+          acrit = ccn*spherefac*((rcrit*1e-6_rkx)**3)*rhoh2o
         endif
       endif
       !-----------------------------------------------------------
@@ -2893,9 +2896,9 @@ module mod_micro_nogtom
         precip = (rainp+snowp)/covptot(j,i)
         cfpr = d_one + rprc1*sqrt(max(precip,d_zero))
         alpha1 = alpha1*cfpr
-        critauto = critauto/max(cfpr,dlowval)
+        acrit = acrit/max(cfpr,dlowval)
       end if
-      arg = (liqcld/critauto)**2
+      arg = (liqcld/acrit)**2
       ! security for exp for some compilers
       if ( arg < 25.0_rkx ) then
         rainaut = alpha1*(d_one - exp(-arg))
