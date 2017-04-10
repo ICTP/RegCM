@@ -39,7 +39,7 @@ module mod_che_cumtran
     real(rkx) :: chiabar , chibbar , deltas , cumfrc
     integer(ik4) :: i , j , k , kctop , n
 
-    if ( ichdiag == 1 ) then
+    if ( ichdiag > 0 ) then
      do j = jci1 , jci2
         do i = ici1 , ici2
          chiten0(j,i,:,:) = chib(j,i,:,:)
@@ -72,7 +72,7 @@ module mod_che_cumtran
     end do
     ! here calculate a pseudo tendency.
     ! factor 2 is added since we are out of leap frog
-    if ( ichdiag == 1 ) then
+    if ( ichdiag > 0 ) then
       do j = jci1 , jci2
         do i = ici1 , ici2
         cconvdiag(j,i,:,:)  = cconvdiag(j,i,:,:) +   &

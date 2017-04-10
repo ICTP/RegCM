@@ -346,7 +346,7 @@ contains
       ! diagnostic source (accumulated)
       cemtrac(j,i,ino) = cemtrac(j,i,ino) + noxflux(i)* cfdout
 
-      if ( ichdiag == 1 ) then
+      if ( ichdiag > 0 ) then
         cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
                noxflux(i)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
       end if

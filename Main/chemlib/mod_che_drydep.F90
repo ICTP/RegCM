@@ -597,7 +597,7 @@ module mod_che_drydep
               exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt
 
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
-            if ( ichdiag == 1 ) then
+            if ( ichdiag > 0 ) then
               cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
                                             settend(i,k) * cfdout
             end if
@@ -633,7 +633,7 @@ module mod_che_drydep
                  cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))
 
             !diagnostic for settling and drydeposition removal
-            if ( ichdiag == 1 ) then
+            if ( ichdiag > 0 ) then
               cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
                                              settend(i,kz) * cfdout
             end if
@@ -781,7 +781,7 @@ module mod_che_drydep
              ! update chiten
              chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
              ! diag dry dep tendency
-             if ( ichdiag == 1 ) then
+             if ( ichdiag > 0 ) then
                 cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
                                                 ddrem(i) * cfdout
              end if

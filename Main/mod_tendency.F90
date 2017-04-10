@@ -155,14 +155,14 @@ module mod_tendency
       call getmem3d(tkeps,jce1,jce2,ice1,ice2,1,kzp1,'tendency:tkeps')
     end if
 
-    if ( idiag == 1 ) then
+    if ( idiag > 0 ) then
       idgq = iqv
       call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'tendency:ten0')
       call getmem3d(qen0,jci1,jci2,ici1,ici2,1,kz,'tendency:qen0')
     end if
 
     if ( ichem == 1 ) then
-      if ( ichdiag == 1 ) then
+      if ( ichdiag > 0 ) then
         call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'tendency:chiten0')
       end if
     end if
@@ -1342,10 +1342,20 @@ module mod_tendency
         aten%tke(:,:,:,:) = d_zero
       end if
       !
+      ! Diagnostic helpers
+      !
+      if ( idiag > 0 ) then
+        ten0 = d_zero
+        qen0 = d_zero
+      end if
+      !
       ! Chemistry
       !
       if ( ichem == 1 ) then
         aten%chi(:,:,:,:,:)  = d_zero
+        if ( ichdiag > 0 ) then
+          chiten0 = d_zero
+        end if
       end if
       !
       ! Cloud fractions
@@ -1491,14 +1501,14 @@ module mod_tendency
         else
           call hadv(chidyn,atmx%chi)
         end if
-        if ( ichdiag == 1 ) then
+        if ( ichdiag > 0 ) then
           call ten2diag(aten%chi,cadvhdiag,pc_dynamic)
           chiten0 = chidyn
         end if
         if ( all(icup /= 1) ) then
           call vadv(chidyn,atm1%chi,1,ntr,itrvadv)
         end if
-        if ( ichdiag == 1 ) then
+        if ( ichdiag > 0 ) then
           call ten2diag(aten%chi,cadvvdiag,pc_dynamic,chiten0)
         end if
       end if
@@ -1595,13 +1605,13 @@ module mod_tendency
         end if
       end if
       if ( ichem == 1 ) then
-        if ( ichdiag == 1 ) then
+        if ( ichdiag > 0 ) then
           chiten0 = chidyn
         end if
         if ( iboudy == 1 .or. iboudy == 5 ) then
           call nudge_chi(kz,atm2%chi,chidyn)
         end if
-        if ( ichdiag == 1 ) then
+        if ( ichdiag > 0 ) then
           call ten2diag(aten%chi,cbdydiag,pc_dynamic,chiten0)
         end if
       end if
@@ -1802,7 +1812,7 @@ module mod_tendency
           ten0 = tphy
           qen0 = qxphy(:,:,:,idgq)
         end if
-        if ( ichem == 1 .and. ichdiag == 1 ) then
+        if ( ichem == 1 .and. ichdiag > 0 ) then
           chiten0 = chiphy
         end if
         call cumulus
@@ -1814,7 +1824,7 @@ module mod_tendency
           call ten2diag(aten%t,tdiag%con,pc_physic,ten0)
           call ten2diag(aten%qx,qdiag%con,pc_physic,qen0)
         end if
-        if ( ichem == 1 .and. ichdiag == 1 ) then
+        if ( ichem == 1 .and. ichdiag > 0 ) then
           call ten2diag(aten%chi,cconvdiag,pc_physic,chiten0)
         end if
         ! save cumulus cloud fraction for chemistry before it is
@@ -1894,7 +1904,7 @@ module mod_tendency
         ten0 = tphy
         qen0 = qxphy(:,:,:,idgq)
       end if
-      if ( ichem == 1 .and. ichdiag == 1 ) then
+      if ( ichem == 1 .and. ichdiag > 0 ) then
         chiten0 = chiphy
       end if
       call pblscheme
@@ -1902,7 +1912,7 @@ module mod_tendency
         call ten2diag(aten%t,tdiag%tbl,pc_physic,ten0)
         call ten2diag(aten%qx,qdiag%tbl,pc_physic,qen0)
       end if
-      if ( ichem == 1 .and. ichdiag == 1 ) then
+      if ( ichem == 1 .and. ichdiag > 0 ) then
         call ten2diag(aten%chi,ctbldiag,pc_physic,chiten0)
       end if
 #ifdef DEBUG

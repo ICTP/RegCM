@@ -132,7 +132,7 @@ module mod_micro_subex
             qcincl = mo2mc%qcn(j,i,k)/mo2mc%fcc(j,i,k)
             qcth(j,i,k) = mo2mc%ccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
                           ((rcrit*1e-6_rkx)**3)*rhow
-            if ( idiag == 1 ) then
+            if ( idiag > 0 ) then
               mc2mo%dia_qcr(j,i,k) = qcth(j,i,k)
               mc2mo%dia_qcl(j,i,k) = qcincl
             end if
@@ -175,7 +175,7 @@ module mod_micro_subex
     pptsum(:,:) = d_zero
     if ( ichem == 1 ) then
       mc2mo%remrat(:,:,:) = d_zero
-      if ( lsecind .and. idiag == 1 ) then
+      if ( lsecind .and. idiag > 0 ) then
         mc2mo%dia_acr(:,:,:) = d_zero
       end if
     end if
@@ -217,7 +217,7 @@ module mod_micro_subex
           ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
           if ( ichem == 1 ) then
             mc2mo%remrat(j,i,1) = pptnew/qcw
-            if ( lsecind .and. idiag == 1 ) then
+            if ( lsecind .and. idiag > 0 ) then
               mc2mo%dia_acr(j,i,1) = pptnew
             end if
           end if
@@ -301,7 +301,7 @@ module mod_micro_subex
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1 ) then
               mc2mo%remrat(j,i,k) = pptnew/qcw
-              if (lsecind .and. idiag == 1 ) then
+              if ( lsecind .and. idiag > 0 ) then
                 mc2mo%dia_acr(j,i,k) = pptnew
               end if
             end if

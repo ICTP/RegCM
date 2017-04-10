@@ -152,7 +152,7 @@ contains
       chiten(j,i,:,ino) = chiten(j,i,:,ino) + &
         (znox_prod_ic(:) + znox_prod_cg(:)) * cpsb(j,i)
 
-      if ( ichdiag == 1 ) then
+      if ( ichdiag > 0 ) then
         cemisdiag(j,i,:,ino) = cemisdiag(j,i,:,ino ) + &
               (znox_prod_ic(:) +  znox_prod_cg(:)) * cfdout
       end if

@@ -546,7 +546,7 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( idiag == 1 .or. icosp == 1 ) then
+        if ( idiag > 0 .or. icosp == 1 ) then
           if ( enable_atm2d_vars(atm_tpr) ) then
             call setup_var(v2dvar_atm,atm_tpr,vsize,'pr','kg m-2 s-1', &
               'Total rain precipitation flux','precipitation_flux',.true., &
@@ -571,7 +571,7 @@ module mod_ncout
             'Groud surface temperature','soil_temperature',.true.,'time: mean')
           atm_tgb_out => v2dvar_atm(atm_tgb)%rval
         end if
-        if ( idiag == 1 ) then
+        if ( idiag > 0 ) then
           if ( enable_atm2d_vars(atm_tsw) ) then
             call setup_var(v2dvar_atm,atm_tsw,vsize,'mrso','kg m-2', &
               'Total soil water','soil_moisture_content',.true., &
@@ -662,7 +662,7 @@ module mod_ncout
         else
           enable_atm3d_vars(atm_ccnnum) = .false.
         end if
-        if ( .false. .and. idiag == 1 .and. &
+        if ( .false. .and. idiag > 0 .and. &
              ichem == 1 .and. iaerosol == 1 ) then
           if ( enable_atm3d_vars(atm_qcrit) ) then
             call setup_var(v3dvar_atm,atm_qcrit,vsize, &
@@ -694,7 +694,7 @@ module mod_ncout
               'mass_fraction_of_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
-          if ( icosp == 1 .or. idiag == 1 ) then
+          if ( icosp == 1 .or. idiag > 0 ) then
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
                 'Mass fraction of rain', &
@@ -874,7 +874,7 @@ module mod_ncout
               'turbulent_kinetic_energy', .true.)
             atm_tke_out => v3dvar_atm(atm_tke)%rval
           end if
-          if ( idiag == 1 ) then
+          if ( idiag > 0 ) then
             if ( enable_atm3d_vars(atm_kth) ) then
               call setup_var(v3dvar_atm,atm_kth,vsize,'kth','m2 s-1', &
                 'Vertical Turbulent Viscosity', &
@@ -1705,7 +1705,7 @@ module mod_ncout
             'Cloud liquid water path','thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
-        if ( idiag == 1 ) then
+        if ( idiag > 0 ) then
           if ( enable_rad3d_vars(rad_qrs) ) then
             call setup_var(v3dvar_rad,rad_qrs,vsize,'qrs','K s-1', &
               'Shortwave radiation heating rate', &
@@ -2158,7 +2158,7 @@ module mod_ncout
             'tracer_burden',.true.,'time: mean')
           che_burden_out => v2dvar_che(che_burden)%rval
         end if
-        if ( ichdiag == 1 ) then
+        if ( ichdiag > 0 ) then
           if ( ibltyp == 2 ) then
             if ( enable_che2d_vars(che_pblten) ) then
               call setup_var(v2dvar_che,che_pblten,vsize,'pblten', &
@@ -2191,7 +2191,7 @@ module mod_ncout
           che_mixrat_out => v3dvar_che(che_mixrat)%rval
         end if
 
-        if ( ichdiag == 1 ) then
+        if ( ichdiag > 0 ) then
           if ( enable_che3d_vars(che_cheten) ) then
             call setup_var(v3dvar_che,che_cheten,vsize,'cheten', &
               'kg kg-1 s-1', 'Tendency of tracer due to chemical reactions', &

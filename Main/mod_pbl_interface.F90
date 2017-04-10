@@ -30,7 +30,7 @@ module mod_pbl_interface
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : allocate_tcm_state
   use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , tkemin
-  use mod_runparams , only : ibltyp
+  use mod_runparams , only : ibltyp , pc_physic
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
   implicit none

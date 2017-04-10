@@ -225,7 +225,7 @@ module mod_che_emission
                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
-            if ( ichdiag == 1 ) then
+            if ( ichdiag > 0 ) then
               cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
                   chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
             end if
@@ -248,7 +248,7 @@ module mod_che_emission
           chifxuw(j,i,itr) = chifxuw(j,i,itr) +  chemsrc(j,i,itr)
           ! diagnostic for source, cumul
           cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
-          if ( ichdiag == 1 ) then
+          if ( ichdiag > 0 ) then
             ! in this case we calculate emission tendency diagnostic, but
             ! this term will also be included in BL tendency diagnostic
             ! if UW scheme is used.

@@ -150,7 +150,7 @@ module mod_micro_interface
       if ( iaerosol == 1 .and. iindirect == 2 ) then
         call assignpnt(ccn,mo2mc%ccn)
       end if
-      if ( idiag == 1 ) then
+      if ( idiag > 0 ) then
         call assignpnt(qdiag%qcr,mc2mo%dia_qcr)
         call assignpnt(qdiag%qcl,mc2mo%dia_qcl)
         call assignpnt(qdiag%acr,mc2mo%dia_acr)
@@ -203,19 +203,6 @@ module mod_micro_interface
     real(rkx) :: exlwc
     integer(ik4) :: i , j , k , ichi
 
-    select case ( icldfrac )
-      case (1)
-        call xuran_cldfrac(mo2mc%phs,mo2mc%qcn,mo2mc%qvn, &
-                           mo2mc%qs,mo2mc%rh,mo2mc%fcc)
-      case (2)
-        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn,     &
-                           mo2mc%qcn,mo2mc%qsn,mo2mc%qin,mddom%ldmsk, &
-                           ds,mo2mc%fcc)
-      case default
-        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           mo2mc%rh,tc0,rh0,mo2mc%fcc)
-    end select
-
     if ( ipptls > 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -233,6 +220,19 @@ module mod_micro_interface
         end do
       end do
     end if
+
+    select case ( icldfrac )
+      case (1)
+        call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qvn, &
+                           mo2mc%qs,mo2mc%rh,mo2mc%fcc)
+      case (2)
+        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn,     &
+                           totc,mo2mc%qsn,mo2mc%qin,mddom%ldmsk, &
+                           ds,mo2mc%fcc)
+      case default
+        call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
+                           mo2mc%rh,tc0,rh0,mo2mc%fcc)
+    end select
 
     !------------------------------------------
     ! 1a. Determine Marine stratocumulus clouds

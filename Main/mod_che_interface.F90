@@ -19,6 +19,7 @@ module mod_che_interface
 
   use mod_realkinds
   use mod_regcm_types
+  use mod_runparams
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust

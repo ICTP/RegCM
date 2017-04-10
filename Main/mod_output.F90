@@ -447,7 +447,7 @@ module mod_output
               atm_ccnnum_out(:,:,k) = ccn(jci1:jci2,ici1:ici2,k) * 1.e-6_rkx
             end do
           end if
-          if ( idiag == 1 ) then
+          if ( idiag > 0 ) then
             if ( associated(atm_qcrit_out) ) then
               do k = 1 , kz
                 atm_qcrit_out(:,:,k) = qdiag%qcr(jce1:jce2,ice1:ice2,k)
@@ -500,7 +500,7 @@ module mod_output
         end if
 
         ! FAB add tendency diagnostic here
-        if ( idiag == 1 ) then
+        if ( idiag > 0 ) then
           if ( associated(atm_tten_adh_out) ) then
             do k = 1 , kz
               atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
