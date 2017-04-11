@@ -478,7 +478,7 @@ module mod_params
     ! chemparam ; ( 0 = none, 1 = activated)
     !
     ichsolver = 1     ! enable chem solver
-    ismoke = 1        ! consider emissions from fires (smoke tracer)
+    ismoke = 0        ! consider emissions from fires (smoke tracer)
     ichremlsc = 1     ! tracer removal by large scale clouds
     ichremcvc = 1     ! tracer removal by convective clouds
     ichdrdepo = 1     ! tracer dry deposition

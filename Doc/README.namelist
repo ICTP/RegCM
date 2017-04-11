@@ -635,6 +635,7 @@
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
+ ismoke = 0,     ! Consider emissions from fires (smoke tracer)
  iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
  rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
  ichjphcld = 1,  ! Impact of cloud aod on photolysis coef

@@ -96,7 +96,9 @@ module mod_che_emission
     call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrcan)
 
     ! allow to increase OC emission to account for SOA via namelist
-    chemsrcan(:,:,iochb)= rocemfac * chemsrcan(:,:,iochb)
+    if ( iochb > 0 ) then
+      chemsrcan(:,:,iochb) = rocemfac * chemsrcan(:,:,iochb)
+    end if
 
     ! Handle biomass burning emissions , possibly at a different frequency
     !

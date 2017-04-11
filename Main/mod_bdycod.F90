@@ -2895,8 +2895,8 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
     type(v3dbound) , intent(in) :: bnd
-    real(rkx) :: xt , rate , mval , lmval , rpnts
-    integer(ik4) :: i , j , k , n
+    real(rkx) :: xt , rate , mval
+    integer(ik4) :: i , j , k
     xt = xbctime + dt
     do k = 1 , min(kz,rayndamp)
       do i = ici1 , ici2

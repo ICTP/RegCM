@@ -130,8 +130,8 @@ module mod_che_common
         call getmem2d(sp0,jce1,jce2,ice1,ice2,'che_common:sp0')
         call getmem2d(sp1,jce1,jce2,ice1,ice2,'che_common:sp1')
       end if
-      call getmem4d(chemten,jce1,jce2, &
-                    ice1,ice2,1,kz,1,ntr,'che_common:chemten')
+      call getmem4d(chemten,jci1,jci2, &
+                    ici1,ici2,1,kz,1,ntr,'che_common:chemten')
       call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
                     1,ntr,'mod_che_common:chemsrc')
       call getmem3d(chemsrcbb,jce1,jce2,ice1,ice2, &
@@ -185,26 +185,26 @@ module mod_che_common
       call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
 
       if ( ichdiag > 0 ) then
-        call getmem4d(chiten0,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:chiten0')
-        call getmem4d(chemdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
-        call getmem4d(cadvhdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cadvhdiag')
-        call getmem4d(cadvvdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cadvvdiag')
-        call getmem4d(cdifhdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cdifhdiag')
-        call getmem4d(cconvdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cconvdiag')
-        call getmem4d(ctbldiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:ctbldiag')
-        call getmem4d(cbdydiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
-        call getmem4d(cseddpdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cseddpdiag')
-        call getmem4d(cemisdiag,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:cemisdiag')
+        call getmem4d(chiten0,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:chiten0')
+        call getmem4d(chemdiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:chemdiag')
+        call getmem4d(cadvhdiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:cadvhdiag')
+        call getmem4d(cadvvdiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:cadvvdiag')
+        call getmem4d(cdifhdiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:cdifhdiag')
+        call getmem4d(cconvdiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:cconvdiag')
+        call getmem4d(ctbldiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:ctbldiag')
+        call getmem4d(cbdydiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:cbdydiag')
+        call getmem4d(cseddpdiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:cseddpdiag')
+        call getmem4d(cemisdiag,jci1,jci2, &
+                      ici1,ici2,1,kz,1,ntr,'che_common:cemisdiag')
       end if
 #if defined CLM45 || (defined CLM && defined VOC)
       call getmem1d(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')

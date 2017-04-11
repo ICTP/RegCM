@@ -665,7 +665,7 @@ module mod_atm_interface
                       1,kzp1,1,number_of_prognostic_components,'atmstate:w')
       end if
       if ( ichem == 1 ) then
-        call getmem5d(atm%chi,jce1,jce2,ice1,ice2, &
+        call getmem5d(atm%chi,jci1,jci2,ici1,ici2, &
                       1,kz,1,ntr,1,number_of_prognostic_components, &
                       'atmstate:chi')
       end if

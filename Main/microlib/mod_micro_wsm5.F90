@@ -282,8 +282,16 @@ module mod_micro_wsm5
         kk = kzp1 - k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o/qrs(n,kk,1)
-            pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
+            if ( qrs(n,kk,1) > dlowval ) then
+              pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o/qrs(n,kk,1)
+            else
+              pf1 = d_zero
+            end if
+            if ( qrs(n,kk,2) > dlowval ) then
+              pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
+            else
+              pf2 = d_zero
+            end if
             mc2mo%remrat(j,i,k) = pf1 + pf2
             n = n + 1
           end do
@@ -384,7 +392,7 @@ module mod_micro_wsm5
       fallsum_qsi , xlwork2 , factor , source , qval , xlf ,   &
       pfrzdtc , pfrzdtr , supice
     ! variables for optimization
-    real(rkx) :: temp , tr , logtr
+    real(rkx) :: temp
     integer(ik4) :: i , k , loop , loops , ifsat , nval
 
     nval = ime-ims+1
