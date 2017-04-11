@@ -579,6 +579,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: psdot       ! psdot
     real(rkx) , pointer , dimension(:,:) :: psb         ! sfs%psb
     real(rkx) , pointer , dimension(:,:) :: tgb         ! sfs%tgb
+    real(rkx) , pointer , dimension(:,:) :: tsk         ! sfs%tgbb
     real(rkx) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
     real(rkx) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag

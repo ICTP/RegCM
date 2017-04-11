@@ -76,6 +76,7 @@ module mod_pbl_interface
     call assignpnt(sfs%psdotb,m2p%psdot)
     call assignpnt(sfs%psb,m2p%psb)
     call assignpnt(sfs%tgb,m2p%tgb)
+    call assignpnt(sfs%tgbb,m2p%tsk)
     call assignpnt(sfs%qfx,m2p%qfx)
     call assignpnt(sfs%hfx,m2p%hfx)
     call assignpnt(sfs%uvdrag,m2p%uvdrag)

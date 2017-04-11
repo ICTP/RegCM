@@ -117,7 +117,7 @@ module mod_pbl_uwtcm
   integer(ik4) , pointer , dimension(:) :: isice , ktop , kbot
 
   ! local scalars
-  real(rkx) :: uflxp , vflxp , rhoxsf , tgbx , tvcon , fracz , dudz , &
+  real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
             dvdz , psbx , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
             thvflx , kh0 , q0s
   real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
@@ -144,7 +144,7 @@ module mod_pbl_uwtcm
   contains
 
 #include <pfesat.inc>
-#include <pfqsat.inc>
+#include <pfwsat.inc>
 
   subroutine allocate_tcm_state(tcmstate)
     implicit none
@@ -267,7 +267,7 @@ module mod_pbl_uwtcm
         psbx = m2p%psb(j,i)
         pfac = dt / psbx
         rpfac = psbx / dt
-        tgbx = m2p%tgb(j,i)
+        tskx = m2p%tsk(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         uvdragx = m2p%uvdrag(j,i)
@@ -319,7 +319,7 @@ module mod_pbl_uwtcm
           rexnerhl(k) = d_one/exnerhl(k)
           ! Potential temperature
           thx(k) = tx(k)*rexnerhl(k)
-          ! Total water specific humidity
+          ! Total water mixing ratio
           qwx(k) = qx(k) + qcx(k)
           qwxs(k) = qwx(k)
           ! Virtual temperature and potential temperature
@@ -383,9 +383,9 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 
         ! more surface variables
-        thgb = tgbx * rexnerfl(kzp1)
-        ! Calculate the saturation specific humidity just above the surface
-        q0s = pfqsat((0.75_rkx*tgbx+0.25_rkx*tx(kz)),presfl(kzp1))
+        thgb = tskx * rexnerfl(kzp1)
+        ! Calculate the saturation mixing ratio just above the surface
+        q0s = pfwsat((0.9_rkx*tskx+0.1_rkx*tx(kz),presfl(kzp1))
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
@@ -494,13 +494,13 @@ module mod_pbl_uwtcm
           qwx(k) = uimp2(k)
           templ = thlx(k)*exnerhl(k)
           temps = templ
-          rvls = pfqsat(temps,preshl(k))
+          rvls = pfwsat(temps,preshl(k))
           rvls = max(qwx(k)-minqq,rvls)
           do iteration = 1 , 3
             deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls)/   &
                       (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
             temps = temps + deltat
-            rvls = pfqsat(temps,preshl(k))
+            rvls = pfwsat(temps,preshl(k))
             rvls = max(qwx(k)-minqq,rvls)
           end do
           qcx(k) = min(max(qwx(k)-rvls, d_zero),qwx(k)-minqq)
@@ -810,20 +810,20 @@ module mod_pbl_uwtcm
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
-        rvls = pfqsat(templ,presfl(k))
+        rvls = pfwsat(templ,presfl(k))
         temps = templ + (qwxin(k)-rvls)/(cpowlhv +    &
                          ep2*wlhv*rvls/(rgas*templ*templ))
-        rvls = pfqsat(temps,presfl(k))
+        rvls = pfwsat(temps,presfl(k))
         rcldb(k) = max(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) *    &
                 (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
         tvbl = tempv*rexnerfl(k)
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
-        rvls = pfqsat(templ,presfl(k))
+        rvls = pfwsat(templ,presfl(k))
         temps = templ+(qwxin(k-1)-rvls) / &
                        (cpowlhv+ep2*wlhv*rvls/(rgas*templ*templ))
-        rvls = pfqsat(temps,presfl(k))
+        rvls = pfwsat(temps,presfl(k))
         rcld = max(qwxin(k-1)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcld) *    &
                 (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
