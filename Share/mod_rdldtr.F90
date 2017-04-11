@@ -58,6 +58,7 @@ module mod_rdldtr
   interface gfread
     module procedure gfread_2d
     module procedure gfread_2di
+    module procedure gfread_2d_landuse
     module procedure gfread_2d3d
     module procedure gfread_3d
     module procedure gfread_3d_lookup
@@ -718,13 +719,13 @@ module mod_rdldtr
     end if
   end subroutine partition
 
-  subroutine gfopen(gfile,cfile,xlat,xlon,ds,iband)
+  subroutine gfopen(gfile,cfile,xlat,xlon,ds,roi,iband)
     use netcdf
     implicit none
     type(globalfile) , intent(out) :: gfile
     character(len=*) , intent(in) :: cfile
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , intent(in) :: ds
+    real(rkx) , intent(in) :: ds , roi
     integer(ik4) , intent(in) :: iband
     integer(ik4) :: nlat , nlon , n , i , j , js , itf , iti , itile
     real(rkx) , dimension(:) , allocatable :: glat , glon
@@ -838,7 +839,7 @@ module mod_rdldtr
     end do
     deallocate(glat)
     deallocate(glon)
-    call h_interpolator_create(gfile%hint,rglat,rglon,xlat,xlon,ds)
+    call h_interpolator_create(gfile%hint,rglat,rglon,xlat,xlon,ds,roi)
     deallocate(rglat)
     deallocate(rglon)
 
@@ -917,6 +918,41 @@ module mod_rdldtr
     call h_interpolate_class(gfile%hint,vread,var)
     deallocate(vread)
   end subroutine gfread_2di
+
+  subroutine gfread_2d_landuse(gfile,vname,var,iw,h2opct,rdef)
+    use netcdf
+    implicit none
+    type(globalfile) , intent(in) :: gfile
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , intent(in) :: iw
+    real(rkx) , intent(in) :: h2opct , rdef
+    real(rkx) , dimension(:,:) , intent(out) :: var
+    integer(ik4) , dimension(:,:) , allocatable :: vread
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , j , i
+    integer(ik4) , dimension(2) :: istart , icount
+
+    nlat = gfile%gdomain%nj
+    nlon = sum(gfile%gdomain%ni)
+    allocate(vread(nlon,nlat))
+
+    istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+
+    iti = 1
+    vread = -1000000000
+    do itile = 1 , gfile%gdomain%ntiles
+      istart(1) = gfile%gdomain%igstart(itile)
+      icount(1) = gfile%gdomain%ni(itile)
+      istart(2) = gfile%gdomain%jgstart
+      icount(2) = gfile%gdomain%nj
+      itf = iti + gfile%gdomain%ni(itile) - 1
+      istatus = nf90_get_var(gfile%ncid,ivar,vread(iti:itf,:),istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+      iti = itf + 1
+    end do
+    call h_interpolate_class(gfile%hint,vread,var,iw,h2opct)
+    deallocate(vread)
+  end subroutine gfread_2d_landuse
 
   subroutine gfread_2d(gfile,vname,var,rdef)
     use netcdf

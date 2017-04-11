@@ -52,6 +52,7 @@ module mod_kdinterp
   interface h_interpolate_class
     module procedure interp_class_r
     module procedure interp_class_i
+    module procedure interp_class_ld
   end interface h_interpolate_class
 
   integer(ik4) , parameter :: minp = 5
@@ -543,6 +544,58 @@ module mod_kdinterp
     end do
     deallocate(gvals)
   end subroutine interp_class_i
+
+  subroutine interp_class_ld(h_i,g,f,iw,pct)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    integer(ik4) , dimension(:,:) , intent(in) :: g
+    integer(ik4) , intent(in) :: iw
+    real(rkx) , dimension(:,:) , intent(out) :: f
+    real(rkx) , intent(in) :: pct
+    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
+    real(rkx) :: wgt
+    integer(ik4) , dimension(1) :: v
+    integer(ik4) , dimension(:) , allocatable :: gvals
+    if ( any(shape(g) /= h_i%sshape) ) then
+      write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
+      call die('interp_class','Non conforming shape for source',1)
+    end if
+    if ( any(shape(f) /= h_i%tg%tshape) ) then
+      write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
+      call die('interp_class','Non conforming shape for target',1)
+    end if
+    n1 = minval(g)
+    n2 = maxval(g)
+    nc = n2 - n1 + 1
+    if ( nc <= 0 ) then
+      write(stderr,*) 'INCONSISTENCY IN CLASS NUMBER = ',nc
+      call die('interp_class','CLASS NUMBER <= 0',1)
+    end if
+    nj = size(f,1)
+    ni = size(f,2)
+    allocate(gvals(n1:n2))
+    do i = 1 , ni
+      do j = 1 , nj
+        gvals(:) = 0
+        do n = 1 , h_i%tg%ft(j,i)%np
+          si = h_i%tg%ft(j,i)%wgt(n)%i
+          sj = h_i%tg%ft(j,i)%wgt(n)%j
+          iv = g(sj,si)
+          gvals(iv) = gvals(iv) + 1
+        end do
+        v = maxloc(gvals)
+        if ( v(1) == iw ) then
+          wgt = real(gvals(v(1)),rkx)/real(sum(gvals),rkx)
+          if ( wgt < pct/d_100 ) then
+            gvals(iw) = 0
+            v = maxloc(gvals)
+          end if
+        end if
+        f(j,i) = real(v(1),rkx)
+      end do
+    end do
+    deallocate(gvals)
+  end subroutine interp_class_ld
 
   subroutine smtdsmt(f)
     implicit none

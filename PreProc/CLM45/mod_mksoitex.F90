@@ -49,7 +49,7 @@ module mod_mksoitex
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//soitexfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname1,mapdim,mapname,sand,.false.,h_missing_value)
     call gfread(gfile,varname2,mapdim,mapname,clay,.false.,h_missing_value)
 

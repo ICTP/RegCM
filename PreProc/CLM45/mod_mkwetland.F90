@@ -51,7 +51,7 @@ module mod_mkwetland
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//wetfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname1,wetland,d_zero)
     call gfread(gfile,varname2,lake,d_zero)
     call gfclose(gfile)

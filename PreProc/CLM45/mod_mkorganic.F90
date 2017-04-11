@@ -45,7 +45,7 @@ module mod_mkorganic
     norg = size(organic,3)
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//orgfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname,organic,h_missing_value)
     call gfclose(gfile)
 

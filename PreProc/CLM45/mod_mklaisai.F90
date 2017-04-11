@@ -52,7 +52,7 @@ module mod_mklaisai
     nm = size(monthly_lai,4)
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//laisaifile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     call gfread(gfile,varname1,monthly_lai,h_missing_value)
     call gfread(gfile,varname2,monthly_sai,h_missing_value)
     call gfread(gfile,varname3,monthly_top,h_missing_value)

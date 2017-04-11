@@ -90,6 +90,7 @@ program terrain
   real(rkx) , pointer , dimension(:,:) :: values
   real(rkx) :: psig , zsig , pstar , tswap
   real(rkx) :: ts0
+  type(globalfile) :: gfile
   data ibndry /.true./
 
   ! You should nor modify those, but it may help with "difficult" domains
@@ -429,6 +430,12 @@ program terrain
   else
     write(stdout,*) 'No resampling used.'
   end if
+
+  !call gfopen(gfile,trim(inpter)//pthsep//'SURFACE'//        &
+  !            pthsep//trim(tersrc)//'_DEM_30s.nc',xlat,xlon, &
+  !            ds,roidem,i_band)
+  !call gfread(gfile,'z',htgrid,d_zero)
+  !call gfclose(gfile)
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
                    pthsep//trim(tersrc)//'_DEM_30s.nc','z',   &
                    ntypec,topo_resamp_method,i_band,          &
@@ -440,6 +447,11 @@ program terrain
   call relmem2d(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 
+  !call gfopen(gfile,trim(inpter)//pthsep//'SURFACE'//  &
+  !            pthsep//'GLCC_BATS_30s.nc', xlat,xlon,   &
+  !            ds,roidem,i_band)
+  !call gfread(gfile,'landcover',lndout,15,h2opct,d_zero)
+  !call gfclose(gfile)
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
                    pthsep//'GLCC_BATS_30s.nc','landcover',    &
                    ntypec,class_resamp_method,i_band,         &

@@ -43,7 +43,7 @@ module mod_mkpopd
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//popdfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
   end subroutine mkpopd_init
 
   subroutine mkpopd(popd,mask,it)

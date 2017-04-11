@@ -50,7 +50,7 @@ module mod_mklch4
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//lch4file
 
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     do n = 1 , nlch4
       call gfread(gfile,varname(n),lch4(:,:,n),h_missing_value)
       do i = 1 , iysg

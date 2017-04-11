@@ -81,7 +81,7 @@ module mod_mkharvest
             pthsep//trim(p1)//pthsep//trim(p2)//pthsep//&
             'mksrf_landuse_'//cy//'.nc'
 
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     do n = 1 , nvarc
       call gfread(gfile,varname(n),harvest(:,:,n),h_missing_value)
       do i = 1 , iysg

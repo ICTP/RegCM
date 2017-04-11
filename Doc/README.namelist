@@ -700,4 +700,9 @@
  &clm_hydrology1_inparm
  oldfflag = 0,
  /
+ &clm_regcm
+ enable_megan_emission = .false.,
+ enable_urban_landunit = .true.,
+ enable_more_crop_pft = .false.,
+ /
 ! ####################################################################

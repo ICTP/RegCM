@@ -48,7 +48,7 @@ module mod_mkvocef
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//vocfile
-    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,i_band)
+    call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     do n = 1 , nvocs
       call gfread(gfile,varname(n),vocef(:,:,n),h_missing_value)
     end do
