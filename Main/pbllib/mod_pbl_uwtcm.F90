@@ -282,8 +282,8 @@ module mod_pbl_uwtcm
 
         do k = 1 , kz
           tx(k)  = m2p%tatm(j,i,k)
-          qx(k)  = max(m2p%qxatm(j,i,k,iqv)+p2m%qxten(j,i,k,iqv)*pfac,minqq)
-          qcx(k) = max(m2p%qxatm(j,i,k,iqc)+p2m%qxten(j,i,k,iqc)*pfac,d_zero)
+          qx(k)  = m2p%qxatm(j,i,k,iqv)
+          qcx(k) = m2p%qxatm(j,i,k,iqc)
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
@@ -292,7 +292,7 @@ module mod_pbl_uwtcm
 
         if ( implicit_ice .and. ipptls > 1 ) then
           do k = 1 , kz
-            qix(k) = max(m2p%qxatm(j,i,k,iqi)+p2m%qxten(j,i,k,iqi)*pfac,d_zero)
+            qix(k) = m2p%qxatm(j,i,k,iqi)
           end do
         end if
 
@@ -300,8 +300,7 @@ module mod_pbl_uwtcm
           do itr = 1 , ntr
             chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
             do k = 1 , kz
-              chix(k,itr) = max(m2p%chib(j,i,k,itr) + &
-                              p2m%chiten(j,i,k,itr)*pfac,d_zero)
+              chix(k,itr) = m2p%chib(j,i,k,itr)
             end do
           end do
         end if
