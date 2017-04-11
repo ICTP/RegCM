@@ -54,17 +54,18 @@ PROGRAM EMCRE
   LOGICAL                         :: file_exists  ! checking existence of file
 
   LOGICAL :: smthbdy , lakedpth, fudge_lnd , fudge_lnd_s , fudge_tex , &
-             fudge_lak_s , fudge_tex_s , fudge_lak , h2ohgt, lsmoist
-  REAL(DP) :: h2opct
+             fudge_lak_s , fudge_tex_s , fudge_lak , h2ohgt, lsmoist , &
+             lresamp
+  REAL(DP) :: h2opct , roidem
   CHARACTER(len=64) :: domname
   CHARACTER(len=256) :: dirter , inpter , moist_filename
-  CHARACTER(len=8) :: tersrc
+  CHARACTER(len=8) :: tersrc , smsrc
   CHARACTER(len=1) :: pthsep='/'
   INTEGER :: ipunit = 101
-  namelist /terrainparam/ domname , smthbdy , lakedpth , lsmoist ,    &
-                fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
-                fudge_lak, fudge_lak_s , h2opct , h2ohgt , ismthlev , &
-                dirter , inpter , tersrc , moist_filename
+  namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
+     lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
+     fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
+     inpter , moist_filename , tersrc , smsrc , roidem
 
   ! (1) READ COMMAND LINE
   NARG = COMMAND_ARGUMENT_COUNT()    ! number of arguments
