@@ -577,8 +577,13 @@ module mod_atm_interface
         call getmem3d(atm%w,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:w')
       end if
       if ( ichem == 1 ) then
-        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
-                              1,kz,1,ntr,'atmstate:chi')
+        if ( isladvec == 1 ) then
+          call getmem4d(atm%chi,jce1sl,jce2sl,ice1sl,ice2sl, &
+                                1,kz,1,ntr,'atmstate:chi')
+        else
+          call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
+                                1,kz,1,ntr,'atmstate:chi')
+        end if
       end if
     end subroutine allocate_atmstate_b
 
