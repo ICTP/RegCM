@@ -385,7 +385,7 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tskx * rexnerfl(kzp1)
         ! Calculate the saturation mixing ratio just above the surface
-        q0s = pfwsat((0.9_rkx*tskx+0.1_rkx*tx(kz),presfl(kzp1))
+        q0s = pfwsat((0.9_rkx*tskx+0.1_rkx*tx(kz)),presfl(kzp1))
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
