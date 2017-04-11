@@ -56,6 +56,7 @@ module mod_kdinterp
   end interface h_interpolate_class
 
   integer(ik4) , parameter :: minp = 5
+  integer(ik4) , parameter :: maxp = 129
 
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: h_missing_value = missl
@@ -132,6 +133,11 @@ module mod_kdinterp
           allocate(results(minp))
           call kdtree2_n_nearest(mr,p,np,results)
           h_i%tg%ft(j,i)%np = np
+        else if ( np > maxp ) then
+          np = maxp
+          allocate(results(maxp))
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
         else
           allocate(results(np))
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
@@ -195,6 +201,11 @@ module mod_kdinterp
         if ( np < minp ) then
           np = minp
           allocate(results(minp))
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
+        else if ( np > maxp ) then
+          np = maxp
+          allocate(results(maxp))
           call kdtree2_n_nearest(mr,p,np,results)
           h_i%tg%ft(j,i)%np = np
         else
@@ -267,6 +278,11 @@ module mod_kdinterp
           allocate(results(minp))
           call kdtree2_n_nearest(mr,p,np,results)
           h_i%tg%ft(j,i)%np = np
+        else if ( np > maxp ) then
+          np = maxp
+          allocate(results(maxp))
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
         else
           allocate(results(np))
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
@@ -333,6 +349,11 @@ module mod_kdinterp
         if ( np < minp ) then
           np = minp
           allocate(results(minp))
+          call kdtree2_n_nearest(mr,p,np,results)
+          h_i%tg%ft(j,i)%np = np
+        else if ( np > maxp ) then
+          np = maxp
+          allocate(results(maxp))
           call kdtree2_n_nearest(mr,p,np,results)
           h_i%tg%ft(j,i)%np = np
         else
