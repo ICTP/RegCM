@@ -928,7 +928,7 @@ module mod_rdldtr
     real(rkx) , intent(in) :: h2opct , rdef
     real(rkx) , dimension(:,:) , intent(out) :: var
     integer(ik4) , dimension(:,:) , allocatable :: vread
-    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , j , i
+    integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
     integer(ik4) , dimension(2) :: istart , icount
 
     nlat = gfile%gdomain%nj

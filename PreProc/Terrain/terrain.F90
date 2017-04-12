@@ -90,7 +90,7 @@ program terrain
   real(rkx) , pointer , dimension(:,:) :: values
   real(rkx) :: psig , zsig , pstar , tswap
   real(rkx) :: ts0
-  type(globalfile) :: gfile
+  !type(globalfile) :: gfile
   data ibndry /.true./
 
   ! You should nor modify those, but it may help with "difficult" domains

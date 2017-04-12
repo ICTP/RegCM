@@ -23,6 +23,8 @@ chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
                     mod_ox_icbc.F90 mod_ae_icbc.F90 mod_wrtoxd.F90 \
                     mod_ch_fnest.F90 mod_grid.F90 mod_header.F90 chem_icbc.F90
 
+LDADD = $(OMPFLAGS)
+
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 

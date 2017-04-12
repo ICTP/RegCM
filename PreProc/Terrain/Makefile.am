@@ -8,6 +8,8 @@ terrain_SOURCES = mod_header.F90 mod_fudge.F90 mod_maps.F90 \
                 mod_write.F90 mod_smooth.F90 mod_maputils.F90 \
                 mod_moist.F90 terrain.F90
 
+LDADD = $(OMPFLAGS)
+
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 

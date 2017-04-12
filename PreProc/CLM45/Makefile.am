@@ -13,6 +13,8 @@ mksurfdata_SOURCES = mksurfdata.F90 mod_mkabm.F90 mod_mklaisai.F90 \
   mod_mklake.F90 mod_mklightning.F90 mod_mkpopd.F90 mod_mkharvest.F90 \
   mod_mkdynpft.F90 mod_mkvic.F90 mod_mklch4.F90 mod_mksoilph.F90
 
+LDADD = $(OMPFLAGS)
+
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 

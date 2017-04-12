@@ -409,6 +409,7 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
+!$OMP PARALLEL DO PRIVATE(gsum,gwgt,si,sj)
     do i = 1 , ni
       do j = 1 , nj
         gsum = d_zero
@@ -428,6 +429,7 @@ module mod_kdinterp
         end if
       end do
     end do
+!$OMP END PARALLEL DO
     call smtdsmt(f)
   end subroutine interp_2d
 

@@ -1216,9 +1216,10 @@ module mod_date
     real(rk8) , intent(in) :: xval
     character(*) , intent(in) :: cunit
     integer(ik4) , intent(out) :: year , month
+    integer(ik4) :: istat , aunit
     type (iadate) , save :: d
     type (iatime) :: t
-    character(len=16) :: cdum
+    character(len=32) :: cdum
 
     character(len=64) , save :: csave
     data csave /'months since XXXX-XX-XX XX:XX:XX XXX'/
@@ -1235,30 +1236,10 @@ module mod_date
       end if
       return
     end if
-    if (cunit(1:6) == 'months') then
-      ! Unit is months since reference
-      if (len_trim(cunit) >= 31) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, &
-          cdum, t%hour, cdum, t%minute, cdum, t%second
-      else if (len_trim(cunit) >= 28) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, &
-          cdum, t%hour, cdum, t%minute
-      else if (len_trim(cunit) >= 25) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-      else if (len_trim(cunit) >= 22) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day
-      else if (len_trim(cunit) >= 19) then
-        read(cunit,'(a13,i4,a1,i2)') &
-          cdum, d%year, cdum, d%month
-      else
-        call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2YM')
-      end if
-    else
-       call die('mod_date','TIME UNIT IN TIMEVAL2YM MUST BE MONTHS')
+    istat = parse_timestring(cunit,aunit,d%year,d%month,d%day, &
+                             t%hour,t%minute,t%second)
+    if ( istat /= 0 .or. aunit /= umnt ) then
+      call die('mod_date','TIME UNIT ERROR IN timeval2ym')
     end if
     csave = cunit
     year = d%year+int(xval/12.0_rk8)
@@ -1323,119 +1304,9 @@ module mod_date
       csave = cunit
       csavecal = ccal
       z = abs(xval)
-      if (cunit(1:5) == 'hours') then
-        ! Unit is hours since reference
-        if (len_trim(cunit) >= 30) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)',iostat=istat) &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-          if ( istat /= 0 ) then
-            ! Erain fix
-            read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)',iostat=istat) &
-              cdum, d%year, cdum, d%month, cdum, d%day, &
-              cdum, t%hour, cdum, t%minute, cdum, t%second
-            if ( istat /= 0 ) then
-              call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-            end if
-          end if
-        else if (len_trim(cunit) >= 27) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 24) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = uhrs
-      else if (cunit(1:7) == 'minutes') then
-        ! Unit is minutes since reference
-        if (len_trim(cunit) >= 32) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 29) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 26) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = umin
-      else if (cunit(1:7) == 'seconds') then
-        ! Unit is seconds since reference
-        if (len_trim(cunit) >= 32) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 29) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 26) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = usec
-      else if (cunit(1:4) == 'days') then
-        ! Unit is days since reference
-        if (len_trim(cunit) >= 30) then
-          if ( cunit(30:30) == '.' ) then
-            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)') &
-              cdum, d%year, cdum, d%month, cdum, d%day, &
-              cdum, t%hour, cdum, t%minute, cdum, t%second
-          else
-            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-              cdum, d%year, cdum, d%month, cdum, d%day, &
-              cdum, t%hour, cdum, t%minute, cdum, t%second
-          end if
-        else if (len_trim(cunit) >= 27) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 24) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else if (len_trim(cunit) >= 21) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else if (len_trim(cunit) >= 19) then
-          read(cunit,'(a11,i4,a1,i1,a1,i1)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = uday
-      else if (cunit(1:6) == 'months') then
-        ! Unit is months since reference
-        if (len_trim(cunit) >= 31) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 28) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 25) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else if (len_trim(cunit) >= 22) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else if (len_trim(cunit) >= 19) then
-          read(cunit,'(a13,i4,a1,i2)') &
-            cdum, d%year, cdum, d%month
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = umnt
-      else
+      istat = parse_timestring(cunit,iunit,d%year,d%month,d%day, &
+                               t%hour,t%minute,t%second)
+      if ( istat /= 0 ) then
         call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
       end if
       if ( csavecal(1:6) == 'noleap' .or.   &
@@ -1523,119 +1394,9 @@ module mod_date
       csave = cunit
       csavecal = ccal
       z = abs(xval)
-      if (cunit(1:5) == 'hours') then
-        ! Unit is hours since reference
-        if (len_trim(cunit) >= 30) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)',iostat=istat) &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-          if ( istat /= 0 ) then
-            ! Erain fix
-            read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)',iostat=istat) &
-              cdum, d%year, cdum, d%month, cdum, d%day, &
-              cdum, t%hour, cdum, t%minute, cdum, t%second
-            if ( istat /= 0 ) then
-              call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-            end if
-          end if
-        else if (len_trim(cunit) >= 27) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 24) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = uhrs
-      else if (cunit(1:7) == 'minutes') then
-        ! Unit is minutes since reference
-        if (len_trim(cunit) >= 32) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 29) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 26) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = umin
-      else if (cunit(1:7) == 'seconds') then
-        ! Unit is seconds since reference
-        if (len_trim(cunit) >= 32) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 29) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 26) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = usec
-      else if (cunit(1:4) == 'days') then
-        ! Unit is days since reference
-        if (len_trim(cunit) >= 30) then
-          if ( cunit(30:30) == '.' ) then
-            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)') &
-              cdum, d%year, cdum, d%month, cdum, d%day, &
-              cdum, t%hour, cdum, t%minute, cdum, t%second
-          else
-            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-              cdum, d%year, cdum, d%month, cdum, d%day, &
-              cdum, t%hour, cdum, t%minute, cdum, t%second
-          end if
-        else if (len_trim(cunit) >= 27) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 24) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else if (len_trim(cunit) >= 21) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else if (len_trim(cunit) >= 19) then
-          read(cunit,'(a11,i4,a1,i1,a1,i1)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = uday
-      else if (cunit(1:6) == 'months') then
-        ! Unit is months since reference
-        if (len_trim(cunit) >= 31) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 28) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 25) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else if (len_trim(cunit) >= 22) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else if (len_trim(cunit) >= 19) then
-          read(cunit,'(a13,i4,a1,i2)') &
-            cdum, d%year, cdum, d%month
-        else
-          call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
-        end if
-        iunit = umnt
-      else
+      istat = parse_timestring(cunit,iunit,d%year,d%month,d%day, &
+                               t%hour,t%minute,t%second)
+      if ( istat /= 0 ) then
         call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
       end if
       if ( csavecal(1:6) == 'noleap' .or.   &
@@ -2248,6 +2009,243 @@ module mod_date
       end if
     end if
   end function date_in_scenario
+
+  integer(ik4) function parse_timestring(string,aunit, &
+                                         y,m,d,h,minu,seco) result(ires)
+    implicit none
+    character(len=*) :: string
+    integer(ik4) , intent(out) :: aunit
+    integer(ik4) , intent(out) :: y , m , d , h , minu , seco
+    integer(ik4) :: ip , istat
+    character(len=128) :: cdum , cdum1
+    character(len=1) :: cdiv
+
+    ires = -1
+    aunit = -1
+
+    cdum(:) = ' '
+    cdum1(:) = ' '
+
+    y = 1900
+    m = 1
+    d = 1
+    h = 0
+    minu = 0
+    seco = 0
+
+    if ( string(1:5) == 'hours' ) then
+      aunit = uhrs
+      ip = 13
+    else if ( string(1:6) == 'months' ) then
+      aunit = umnt
+      ip = 14
+    else if ( string(1:4) == 'days' ) then
+      aunit = uday
+      ip = 12
+    else if ( string(1:7) == 'minutes' ) then
+      aunit = umin
+      ip = 15
+    else if ( string(1:7) == 'seconds' ) then
+      aunit = usec
+      ip = 15
+    else if ( string(1:5) == 'years' ) then
+      aunit = uyrs
+      ip = 13
+    else
+      write(stderr,*) 'Unrecognized unit of measure for time string.'
+      write(stderr,*) 'Offending timeunit string :',trim(string)
+    end if
+
+    if ( len_trim(string(ip:)) >= 6 ) then
+      read(string(ip:),'(i4,a1,a)',iostat=istat) y , cdiv , cdum
+      if ( istat /= 0 ) then
+        write(stderr,*) 'Unrecognized year read from time string.'
+        write(stderr,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      if ( cdiv /= '-' ) then
+        write(stderr,*) 'Unrecognized year read from time string.'
+        write(stderr,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+    else
+      read(string(ip:),'(i4)',iostat=istat) y
+      if ( istat /= 0 ) then
+        write(stderr,*) 'Unrecognized year read from time string.'
+        write(stderr,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == '-' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) m , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized month read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) m , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized month read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) m
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized month read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) m
+      if ( istat /= 0 ) then
+        write(stderr,*) 'Unrecognized month read from time string.'
+        write(stderr,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    cdum = cdum1
+    cdum1(:) = ' '
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == ' ' .or. cdum(2:2) == 'T' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) d , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized day read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. &
+                cdum(3:3) == ' ' .or. cdum(3:3) == 'T' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) d , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized day read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) d
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized day read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) d
+      if ( istat /= 0 ) then
+        write(stderr,*) 'Unrecognized day read from time string.'
+        write(stderr,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    cdum = cdum1
+    cdum1(:) = ' '
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == ':' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) h , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized hour read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) h , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized hour read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) h
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized hour read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) h
+      if ( istat /= 0 ) then
+        write(stderr,*) 'Unrecognized hour read from time string.'
+        write(stderr,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    cdum = cdum1
+    cdum1(:) = ' '
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == ':' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) minu , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized minute read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) minu , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized minute read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) minu
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized minute read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) minu
+      if ( istat /= 0 ) then
+        write(stderr,*) 'Unrecognized minute read from time string.'
+        write(stderr,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    if ( len_trim(cdum1) > 1 ) then
+      read(cdum1,'(i2)',iostat=istat) seco
+      if ( istat /= 0 ) then
+        read(cdum1,'(i1)', iostat=istat) seco
+        if ( istat /= 0 ) then
+          write(stderr,*) 'Unrecognized second read from time string.'
+          write(stderr,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      end if
+    end if
+    ires = 0
+  end function parse_timestring
 
 end module mod_date
 

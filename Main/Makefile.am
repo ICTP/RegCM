@@ -24,6 +24,8 @@ vpath %.inc $(REGCM_ROOT)/Share:.
 SUBDIRS = mpplib netlib batslib ocnlib chemlib clmlib microlib cloudlib \
           cumlib radlib pbllib
 
+LDADD = $(OMPFLAGS)
+
 include $(REGCM_ROOT)/makeinc
 
 if REGCM_PARALLEL

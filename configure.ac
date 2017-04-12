@@ -339,14 +339,18 @@ if test -z "$COMPILER_GNU_TRUE"; then
 #    fi
 #  fi
   FCFLAGS="-fconvert=big-endian -fno-range-check -fPIC"
+  OMPFLAGS="-fopenmp"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
+  AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="-convert big_endian -assume byterecl \
            -heap-arrays -fPIC"
+  OMPFLAGS="-openmp"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
+  AC_SUBST(OMPFLAGS)
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
   AC_SUBST(LIBS)
   if eval "test x"$USE_KNL" = x1"; then
@@ -356,21 +360,29 @@ if test -z "$COMPILER_INTEL_TRUE"; then
 fi
 if test -z "$COMPILER_G95_TRUE"; then
   FCFLAGS="-fendian=big -fmultiple-save"
+  OMPFLAGS=""
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
+  AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_PGI_TRUE"; then
   FCFLAGS="-byteswapio"
+  OMPFLAGS="-mp"
   CPRDEF="PGI"
   AC_SUBST(FCFLAGS)
+  AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_IBM_TRUE"; then
   FCFLAGS="-WF,-DIBM"
+  OMPFLAGS="-qsmp=omp"
   CPRDEF="XLF"
   AC_SUBST(FCFLAGS)
+  AC_SUBST(OMPFLAGS)
 fi
 if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
+  OMPFLAGS="-xopenmp=parallel"
+  AC_SUBST(OMPFLAGS)
 fi
 if test -z "$COMPILER_CRAY_TRUE"; then
   FCFLAGS=""
