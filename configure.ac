@@ -347,7 +347,7 @@ fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="-convert big_endian -assume byterecl \
            -heap-arrays -fPIC"
-  OMPFLAGS="-qopenmp"
+  OMPFLAGS="-openmp"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
