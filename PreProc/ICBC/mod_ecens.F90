@@ -255,15 +255,22 @@ module mod_ecens
     !
     ! to interpolate H,U,V,T,Q and QC
     ! 1. For Heights
+!$OMP SECTIONS
+!$OMP SECTION
     call height(hp,z1,t2,ps2,pp3d,zs2,nlon,nlat,mlev,pplev,nplev)
     ! 2. For Zonal and Meridional Winds
+!$OMP SECTION
     call intlin(up,u2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
+!$OMP SECTION
     call intlin(vp,v2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
     ! 3. For Temperatures
+!$OMP SECTION
     call intlog(tp,t2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
     ! 4. For Moisture qva & qca
+!$OMP SECTION
     call mxr2rh(t2,q2,pp3d,nlon,nlat,mlev,-9999.0_rkx)
     call intlin(qp,q2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
+!$OMP END SECTIONS
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -276,11 +283,18 @@ module mod_ecens
     !
     ! Vertical interpolation
     !
+!$OMP SECTIONS
+!$OMP SECTION
     call top2btm(t3,jx,iy,nplev)
+!$OMP SECTION
     call top2btm(q3,jx,iy,nplev)
+!$OMP SECTION
     call top2btm(h3,jx,iy,nplev)
+!$OMP SECTION
     call top2btm(u3,jx,iy,nplev)
+!$OMP SECTION
     call top2btm(v3,jx,iy,nplev)
+!$OMP END SECTIONS
     !
     ! New calculation of P* on RegCM topography.
     !
@@ -293,15 +307,23 @@ module mod_ecens
     !
     call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nplev)
     call readsst(ts4,idate)
+!$OMP SECTIONS
+!$OMP SECTION
     ! Interpolate U, V, T, and Q.
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+!$OMP SECTION
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
     if ( idynamic == 2 ) then
+!$OMP SECTION
       call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nplev)
+!$OMP SECTION
       call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nplev)
     end if
+!$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+!$OMP SECTION
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+!$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_ecens
 

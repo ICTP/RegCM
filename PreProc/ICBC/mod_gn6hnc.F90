@@ -794,12 +794,20 @@ module mod_gn6hnc
       ! All processing assumes dataset in top -> bottom
       ! HadGEM is read bottom -> top
       if ( dattyp(1:3) == 'HA_' ) then
+!$OMP SECTIONS
+!$OMP SECTION
         call top2btm(tvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(qvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(uvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(vvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(pp3d,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(hvar,nlon,nlat,klev)
+!$OMP END SECTION
       end if
 
       ! All processing assumes dataset in top -> bottom
@@ -807,11 +815,18 @@ module mod_gn6hnc
       if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
            dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
            dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' ) then
+!$OMP SECTIONS
+!$OMP SECTION
         call top2btm(tvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(qvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(uvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(vvar,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(pp3d,nlon,nlat,klev)
+!$OMP END SECTION
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
 
@@ -820,23 +835,36 @@ module mod_gn6hnc
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
 
-      ! Calculate HGT on Pressure levels
-      call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
-
       ! Interpolate vertically on Pressure levels
+!$OMP SECTIONS
+!$OMP SECTION
+      call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
       call intlin(up,uvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
       call intlin(vp,vvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
       call intlog(tp,tvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
       call intlin(qp,qvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+!$OMP END SECTIONS
     end if
 
     if ( dattyp == 'JRA55' ) then
+!$OMP SECTIONS
+!$OMP SECTION
       call top2btm(tvar,nlon,nlat,klev)
+!$OMP SECTION
       call top2btm(qvar,nlon,nlat,klev)
+!$OMP SECTION
       call top2btm(uvar,nlon,nlat,klev)
+!$OMP SECTION
       call top2btm(vvar,nlon,nlat,klev)
+!$OMP SECTION
       call top2btm(pp3d,nlon,nlat,klev)
+!$OMP SECTION
       call top2btm(hvar,nlon,nlat,klev)
+!$OMP END SECTIONS
     end if
 
     ! Horizontal interpolation on RegCM grid
@@ -849,11 +877,18 @@ module mod_gn6hnc
 
     ! Go to bottom->top
     if ( dattyp(1:3) /= 'EC_' ) then
+!$OMP SECTIONS
+!$OMP SECTION
       call top2btm(t3,jx,iy,npl)
+!$OMP SECTION
       call top2btm(q3,jx,iy,npl)
+!$OMP SECTION
       call top2btm(h3,jx,iy,npl)
+!$OMP SECTION
       call top2btm(u3,jx,iy,npl)
+!$OMP SECTION
       call top2btm(v3,jx,iy,npl)
+!$OMP END SECTIONS
     end if
 
     ! Recalculate pressure on RegCM orography
@@ -867,14 +902,22 @@ module mod_gn6hnc
     call readsst(ts4,idate)
 
     ! Vertically interpolate on RegCM sigma levels
+!$OMP SECTIONS
+!$OMP SECTION
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+!$OMP SECTION
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
     if ( idynamic == 2 ) then
+!$OMP SECTION
       call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,klev)
+!$OMP SECTION
       call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,klev)
     end if
+!$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+!$OMP SECTION
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+!$OMP END SECTIONS
   end subroutine get_gn6hnc
   !
   !-----------------------------------------------------------------------

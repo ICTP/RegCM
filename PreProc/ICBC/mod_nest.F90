@@ -551,19 +551,33 @@ module mod_nest
     ! In this module, all pressures are in Pascal.
     !
     if ( oidyn == 1 ) then
+!$OMP SECTIONS
+!$OMP SECTION
       call htsig_o(t,z1,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in)
-      call intlog(tp,t,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
       call height_o(hp,z1,t,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
+      call intlog(tp,t,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
       call intlin(up,u,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
       call intlin(vp,v,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
       call intlin(qp,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+!$OMP END SECTIONS
     else
+!$OMP SECTIONS
+!$OMP SECTION
       call nonhydrost(z1,t0_in,p0_in,ptop_in,ht_in,sigma_in,jx_in,iy_in,kz_in)
-      call intlog(tp,t,ps,p3d,jx_in,iy_in,kz_in,plev,np)
       call height_o(hp,z1,t,ps,ht_in,p3d,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
+      call intlog(tp,t,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
       call intlin(up,u,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
       call intlin(vp,v,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
       call intlin(qp,q,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+!$OMP END SECTIONS
     end if
 
     call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
@@ -581,11 +595,18 @@ module mod_nest
     !
     ! Vertical interpolation
     !
+!$OMP SECTIONS
+!$OMP SECTION
     call top2btm(t3,jx,iy,np)
+!$OMP SECTION
     call top2btm(q3,jx,iy,np)
+!$OMP SECTION
     call top2btm(h3,jx,iy,np)
+!$OMP SECTION
     call top2btm(u3,jx,iy,np)
+!$OMP SECTION
     call top2btm(v3,jx,iy,np)
+!$OMP END SECTIONS
     !
     ! New calculation of P* on RegCM topography.
     !
@@ -606,14 +627,22 @@ module mod_nest
     !
     ! Interpolate U, V, T, and Q.
     !
+!$OMP SECTIONS
+!$OMP SECTION
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+!$OMP SECTION
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
     if ( idynamic == 2 ) then
+!$OMP SECTION
       call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,np)
+!$OMP SECTION
       call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,np)
     end if
+!$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+!$OMP SECTION
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+!$OMP END SECTIONS
     !
     ! Put surface pressures in cb now to be conforming to other modules.
     !

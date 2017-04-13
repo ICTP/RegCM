@@ -147,11 +147,18 @@ module mod_era40
     !
     ! Vertical interpolation
     !
+!$OMP SECTIONS
+!$OMP SECTION
     call top2btm(t3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(q3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(h3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(u3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(v3,jx,iy,klev)
+!$OMP END SECTIONS
     !
     ! New calculation of P* on rcm topography.
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
@@ -166,14 +173,22 @@ module mod_era40
     call readsst(ts4,idate)
 
     ! Interpolate U, V, T, and Q.
+!$OMP SECTIONS
+!$OMP SECTION
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+!$OMP SECTION
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
     if ( idynamic == 2 ) then
+!$OMP SECTION
       call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,klev)
+!$OMP SECTION
       call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,klev)
     end if
+!$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+!$OMP SECTION
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+!$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_era40
 

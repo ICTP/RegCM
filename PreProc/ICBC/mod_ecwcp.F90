@@ -276,15 +276,23 @@ module mod_ecwcp
     call readsst(ts4,idate)
 
     ! interpolate U, V, T, and Q.
+!$OMP SECTIONS
+!$OMP SECTION
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+!$OMP SECTION
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
     if ( idynamic == 2 ) then
+!$OMP SECTION
       call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
+!$OMP SECTION
       call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev)
     end if
+!$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+!$OMP SECTION
     call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+!$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_ecwcp
 

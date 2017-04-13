@@ -225,11 +225,18 @@ module mod_ein
     !
     ! Invert vertical order top -> bottom for RegCM convention
     !
+!$OMP SECTIONS
+!$OMP SECTION
     call top2btm(t3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(q3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(h3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(u3,jx,iy,klev)
+!$OMP SECTION
     call top2btm(v3,jx,iy,klev)
+!$OMP END SECTIONS
     !
     ! Vertical interpolation
     ! New calculation of p* on rcm topography.

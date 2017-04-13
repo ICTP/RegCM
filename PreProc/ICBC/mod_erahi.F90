@@ -502,15 +502,22 @@ module mod_erahi
     !
     ! to interpolate H,U,V,T,Q and QC
     ! 1. For Heights
+!$OMP SECTIONS
+!$OMP SECTION
     call height(hp,z1,t2,ps2,pp3d,zs2,nlons,nlats,nlev1,pplev,nlev2)
     ! 2. For Zonal and Meridional Winds
+!$OMP SECTION
     call intlin(up,u2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+!$OMP SECTION
     call intlin(vp,v2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     ! 3. For Temperatures
+!$OMP SECTION
     call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     ! 4. For Moisture
+!$OMP SECTION
     call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0_rkx)
     call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+!$OMP END SECTIONS
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -523,11 +530,18 @@ module mod_erahi
     !
     ! Vertical interpolation
     !
+!$OMP SECTIONS
+!$OMP SECTION
     call top2btm(t3,jx,iy,nlev2)
+!$OMP SECTION
     call top2btm(q3,jx,iy,nlev2)
+!$OMP SECTION
     call top2btm(h3,jx,iy,nlev2)
+!$OMP SECTION
     call top2btm(u3,jx,iy,nlev2)
+!$OMP SECTION
     call top2btm(v3,jx,iy,nlev2)
+!$OMP END SECTIONS
     ! New calculation of P* on RegCM topography.
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev2)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
@@ -540,14 +554,22 @@ module mod_erahi
     call readsst(ts4,idate)
 
     ! Interpolate U, V, T, and Q.
+!$OMP SECTIONS
+!$OMP SECTION
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+!$OMP SECTION
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
     if ( idynamic == 2 ) then
+!$OMP SECTION
       call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev2)
+!$OMP SECTION
       call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,nlev2)
     end if
+!$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+!$OMP SECTION
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+!$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
 99001 format (a,a,a,a,'EHI_',i10)
   end subroutine get_ehi
