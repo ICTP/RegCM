@@ -697,6 +697,7 @@ module mod_micro_nogtom
           qvnow = qx0(iqqv)
           qlnow = qx0(iqql)
           qinow = qx0(iqqi)
+          totc = qlnow + qinow
 
           qsexp(:,:)  = d_zero
           qsimp(:,:)  = d_zero
@@ -1226,7 +1227,6 @@ module mod_micro_nogtom
             tmpa = d_one/ccover
             liqcldfg = qxfg(iqql)*tmpa
             icecldfg = qxfg(iqqi)*tmpa
-            totc = qlnow + qinow
 
             !---------------------------------------------------------------
             ! Precip cover overlap using MAX-RAN Overlap

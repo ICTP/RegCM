@@ -686,7 +686,7 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) <= minqx ) cycle
+                if ( f(j,i,k,n) <= 1.0e-8_rkx ) cycle
                 if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
                      d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
@@ -1006,7 +1006,7 @@ module mod_advection
             do k = 2 , kz-1
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  if ( f(j,i,k,n) <= minqx ) cycle
+                  if ( f(j,i,k,n) <= 1.0e-8_rkx ) cycle
                   if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
                        f(j,i,k,n) > c_rel_extrema ) then
                     if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
@@ -1022,7 +1022,7 @@ module mod_advection
             end do
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) <= minqx ) cycle
+                if ( f(j,i,k,n) <= 1.0e-8_rkx ) cycle
                 if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
                      f(j,i,kz,n) > c_rel_extrema ) then
                   if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
