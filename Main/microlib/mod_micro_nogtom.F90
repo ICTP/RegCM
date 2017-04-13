@@ -52,7 +52,7 @@ module mod_micro_nogtom
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  real(rkx) , parameter :: rcldiff = 1.e-6_rkx ! 3.e-6_rkx ! 3.e-4_rkx
+  real(rkx) , parameter :: rcldiff = d_one/3600.0_rkx !  one hour
   real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
   real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
 
@@ -80,21 +80,18 @@ module mod_micro_nogtom
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   !real(rkx) , parameter :: thomo = 225.16_rkx  ! -48.00 Celsius
-  ! Cloud fraction threshold that defines cloud top
-  real(rkx) , parameter :: cldtopcf = 0.1_rkx
-  ! Fraction of deposition rate in cloud top layer
-  real(rkx) , parameter :: depliqrefrate = 0.1_rkx
-  ! Depth of supercooled liquid water layer (m)
-  real(rkx) , parameter :: depliqrefdepth = 500.0_rkx
   ! initial mass of ice particle
   real(rkx) , parameter :: iceinit = 1.e-12_rkx
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
   real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
+  real(rkx) , parameter :: ciden13 = 8.87_rkx    ! ice density 700**0.333
+  real(rkx) , parameter :: airconduct = 2.4e-2_rkx ! conductivity of air
 
   public :: allocate_mod_nogtom , init_nogtom , nogtom
 
   real(rkx) :: oneodt                                 ! 1/dt
-
+  real(rkx) :: sink ! sink term for sedimentation conservation
+  real(rkx) :: totc ! total condensate liquid+ice
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
   ! 0 = vapour, 1 = liquid, 2 = ice
@@ -125,8 +122,6 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:) :: convsink
   ! total rain frac: fractional occurence of precipitation (%)
   ! for condensation
-  ! distance from the top of the cloud
-  real(rkx) , pointer , dimension(:,:,:) :: cldtopdist
   ! ice nuclei concentration
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
   real(rkx) , pointer , dimension(:,:,:) :: qliq
@@ -164,10 +159,10 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:) :: vqx
   ! n x n matrix storing the LHS of implicit solver
   real(rkx) , pointer , dimension(:,:) :: qlhs
-  ! explicit sources and sinks
-  real(rkx) , pointer , dimension(:,:) :: solqa
-  ! implicit sources and sinks
-  real(rkx) , pointer , dimension(:,:) :: solqb
+  ! explicit sources and sinks "q s exp"=q source explicit
+  real(rkx) , pointer , dimension(:,:) :: qsexp
+  ! implicit sources and sinks "q s imp"=q source/sink implicit
+  real(rkx) , pointer , dimension(:,:) :: qsimp
   ! decoupled mixing ratios tendency
   real(rkx) , pointer , dimension(:,:,:,:) :: qxtendc
   ! j,i,n ! generalized precipitation flux
@@ -231,7 +226,6 @@ module mod_micro_nogtom
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
-    call getmem3d(cldtopdist,jci1,jci2,ici1,ici2,1,kz,'cmicro:cldtopdist')
     call getmem3d(qliqfrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qliqfrac')
     call getmem3d(qicefrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qicefrac')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
@@ -270,8 +264,8 @@ module mod_micro_nogtom
     call getmem1d(qx0,1,nqx,'cmicro:qx0')
     call getmem1d(qxn,1,nqx,'cmicro:qxn')
     call getmem2d(qlhs,1,nqx,1,nqx,'cmicro:qlhs')
-    call getmem2d(solqa,1,nqx,1,nqx,'cmicro:solqa')
-    call getmem2d(solqb,1,nqx,1,nqx,'cmicro:solqb')
+    call getmem2d(qsexp,1,nqx,1,nqx,'cmicro:qsexp')
+    call getmem2d(qsimp,1,nqx,1,nqx,'cmicro:qsimp')
     call getmem2d(lind3,1,nqx,1,nqx,'cmicro:lind3')
     call getmem4d(pfplsx,1,nqx,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsx')
     call getmem3d(dpfs,jci1,jci2,ici1,ici2,1,kz,'cmicro:dpfs')
@@ -368,7 +362,7 @@ module mod_micro_nogtom
     real(rkx) :: dqsmixdt , dqsicedt , dqsliqdt
     real(rkx) :: dp , dtgdp , rdtgdp
     real(rkx) :: corqsliq , corqsice , corqsmix , evaplimmix
-    real(rkx) :: liqcld , icecld , licld
+    real(rkx) :: liqcldfg , icecldfg , licld
     real(rkx) :: supsat , subsat
     real(rkx) :: ldifdt
     real(rkx) :: qold , told , tcond , dqs
@@ -484,24 +478,6 @@ module mod_micro_nogtom
       do i = ici1 , ici2
         do j = jci1 , jci2
           fccfg(j,i,k) = min(hicld,max(mo2mc%fcc(j,i,k),lowcld))
-        end do
-      end do
-    end do
-
-    !--------------------------------------------------------------
-    ! Calculate distance from cloud top
-    ! defined by cloudy layer below a layer with cloud frac <0.01
-    ! DZ = DP(JL)/(RHO(JL)*RG)
-    !--------------------------------------------------------------
-    cldtopdist(:,:,:) = d_zero
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( fccfg(j,i,k-1) > cldtopcf .and. &
-               fccfg(j,i,k)  <= cldtopcf ) then
-            cldtopdist(j,i,k) = cldtopdist(j,i,k) + &
-                                dpfs(j,i,k)/(mo2mc%rho(j,i,k)*egrav)
-          end if
         end do
       end do
     end do
@@ -722,8 +698,8 @@ module mod_micro_nogtom
           qlnow = qx0(iqql)
           qinow = qx0(iqqi)
 
-          solqa(:,:)  = d_zero
-          solqb(:,:)  = d_zero
+          qsexp(:,:)  = d_zero
+          qsimp(:,:)  = d_zero
           supsat      = d_zero
           subsat      = d_zero
           convsrce(:) = d_zero
@@ -802,20 +778,20 @@ module mod_micro_nogtom
           ! in-cloud consensate amount
           !--------------------------------
           tmpa = d_one/ccover
-          liqcld = qlnow*tmpa
-          icecld = qinow*tmpa
-          licld  = liqcld + icecld
+          liqcldfg = qlnow*tmpa
+          icecldfg = qinow*tmpa
+          licld  = liqcldfg + icecldfg
           !------------------------------------------------
           ! Evaporate very small amounts of liquid and ice
           !------------------------------------------------
           if ( qlnow < activqx ) then
-            solqa(iqqv,iqql) =  qlnow
-            solqa(iqql,iqqv) = -qlnow
+            qsexp(iqqv,iqql) =  qlnow
+            qsexp(iqql,iqqv) = -qlnow
             qxfg(iqql) = qxfg(iqql) - qlnow
           end if
           if ( qinow < activqx ) then
-            solqa(iqqv,iqqi) =  qinow
-            solqa(iqqi,iqqv) = -qinow
+            qsexp(iqqv,iqqi) =  qinow
+            qsexp(iqqi,iqqv) = -qinow
             qxfg(iqqi) = qxfg(iqqi) - qinow
           end if
 
@@ -864,8 +840,8 @@ module mod_micro_nogtom
           if ( supsat > dlowval ) then
             if ( ltkgthomo ) then
               ! turn supersaturation into liquid water
-              solqa(iqql,iqqv) = solqa(iqql,iqqv) + supsat
-              solqa(iqqv,iqql) = solqa(iqqv,iqql) - supsat
+              qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + supsat
+              qsexp(iqqv,iqql) = qsexp(iqqv,iqql) - supsat
               qxfg(iqql) = qxfg(iqql) + supsat
 #ifdef DEBUG
               if ( stats ) then
@@ -874,8 +850,8 @@ module mod_micro_nogtom
 #endif
             else
               ! turn supersaturation into ice water
-              solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + supsat
-              solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - supsat
+              qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + supsat
+              qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - supsat
               qxfg(iqqi) = qxfg(iqqi) + supsat
 #ifdef DEBUG
               if ( stats ) then
@@ -890,22 +866,22 @@ module mod_micro_nogtom
               if ( excess < d_zero ) then
                 if ( ltkgthomo ) then
                   evapl = max(-totliq,-evaplimmix)!*oneodt
-                  solqa(iqqv,iqql) = solqa(iqqv,iqql) - evapl
-                  solqa(iqql,iqqv) = solqa(iqql,iqqv) + evapl
+                  qsexp(iqqv,iqql) = qsexp(iqqv,iqql) - evapl
+                  qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + evapl
                   qxfg(iqql) = qxfg(iqql) + evapl
                 else
                   evapi = max(-totliq,-evaplimmix)!*oneodt
                   ! turn subsaturation into vapour
-                  solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - evapi
-                  solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + evapi
+                  qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - evapi
+                  qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + evapi
                   qxfg(iqqi) = qxfg(iqqi) + evapi
                 end if
               end if
             end if
           end if
           !
-          ! call addpath(iqql,iqqv,supsatl,solqa,solqb,d_zero,qxfg)
-          ! call addpath(iqqi,iqqv,supsati,solqa,solqb,d_zero,qxfg)
+          ! call addpath(iqql,iqqv,supsatl,qsexp,qsimp,d_zero,qxfg)
+          ! call addpath(iqqi,iqqv,supsati,qsexp,qsimp,d_zero,qxfg)
           !
           !-------------------------------------------------------
           ! SOURCE/SINK array for implicit and explicit terms
@@ -943,8 +919,8 @@ module mod_micro_nogtom
             qice   = d_one-alfaw
             convsrce(iqql) = alfaw*mo2mc%qdetr(j,i,k)
             convsrce(iqqi) = qice*mo2mc%qdetr(j,i,k)
-            solqa(iqql,iqql) = solqa(iqql,iqql) + convsrce(iqql)
-            solqa(iqqi,iqqi) = solqa(iqqi,iqqi) + convsrce(iqqi)
+            qsexp(iqql,iqql) = qsexp(iqql,iqql) + convsrce(iqql)
+            qsexp(iqqi,iqqi) = qsexp(iqqi,iqqi) + convsrce(iqqi)
             qxfg(iqql) = qxfg(iqql) + convsrce(iqql)
             qxfg(iqqi) = qxfg(iqqi) + convsrce(iqqi)
 #ifdef DEBUG
@@ -967,18 +943,18 @@ module mod_micro_nogtom
             ! rcldiff  : Diffusion coefficient for evaporation by turbulent
             ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
             ldifdt = rcldiff*dt
-            if ( mo2mc%qdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
             !Increase by factor of 5 for convective points
             if ( lliq ) then
-              leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
+              leros = (ldifdt*max(qvnow+totc-sqmix,d_zero)+totc) / &
+                     (1.0_rkx+ldifdt)
               leros = min(leros,evaplimmix)
-              leros = min(leros,totliq)
+
               facl = qliqfrac(j,i,k)*leros
               faci = qicefrac(j,i,k)*leros
-              solqa(iqql,iqqv) = solqa(iqql,iqqv) - facl
-              solqa(iqqv,iqql) = solqa(iqqv,iqql) + facl
-              solqa(iqqi,iqqv) = solqa(iqqi,iqqv) - faci
-              solqa(iqqv,iqqi) = solqa(iqqv,iqqi) + faci
+              qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - facl
+              qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + facl
+              qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) - faci
+              qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + faci
               qxfg(iqql) = qxfg(iqql) - facl
               qxfg(iqqi) = qxfg(iqqi) - faci
 #ifdef DEBUG
@@ -1063,10 +1039,10 @@ module mod_micro_nogtom
               levap = min(levap,max(sqmix-qvnow,d_zero))
               facl = qliqfrac(j,i,k)*levap
               faci = qicefrac(j,i,k)*levap
-              solqa(iqqv,iqql) = solqa(iqqv,iqql) + facl
-              solqa(iqql,iqqv) = solqa(iqql,iqqv) - facl
-              solqa(iqqv,iqqi) = solqa(iqqv,iqqi) + faci
-              solqa(iqqi,iqqv) = solqa(iqqi,iqqv) - faci
+              qsexp(iqqv,iqql) = qsexp(iqqv,iqql) + facl
+              qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - facl
+              qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) + faci
+              qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) - faci
               qxfg(iqql) = qxfg(iqql) - facl
               qxfg(iqqi) = qxfg(iqqi) - faci
 #ifdef DEBUG
@@ -1104,8 +1080,8 @@ module mod_micro_nogtom
               ! liquid remains at cold temperatures until next timestep.
               !----------------------------------------------------------------
               if ( ltkgthomo ) then
-                solqa(iqql,iqqv) = solqa(iqql,iqqv) + chng
-                solqa(iqqv,iqql) = solqa(iqqv,iqql) - chng
+                qsexp(iqql,iqqv) = qsexp(iqql,iqqv) + chng
+                qsexp(iqqv,iqql) = qsexp(iqqv,iqql) - chng
                 qxfg(iqql) = qxfg(iqql) + chng
 #ifdef DEBUG
                 if ( stats ) then
@@ -1113,8 +1089,8 @@ module mod_micro_nogtom
                 end if
 #endif
               else
-                solqa(iqqi,iqqv) = solqa(iqqi,iqqv) + chng
-                solqa(iqqv,iqqi) = solqa(iqqv,iqqi) - chng
+                qsexp(iqqi,iqqv) = qsexp(iqqi,iqqv) + chng
+                qsexp(iqqv,iqqi) = qsexp(iqqv,iqqi) - chng
                 qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
                 if ( stats ) then
@@ -1125,104 +1101,16 @@ module mod_micro_nogtom
             end if
 
             !------------------------------------------------------------------
-            ! DEPOSITION: Growth of ice by vapour deposition
-            !------------------------------------------------------------------
-            ! Following Rotstayn et al. 2001:
-            ! does not use the ice nuclei number from cloudaer.F90
-            ! but rather a simple Meyers et al. 1992 form based on the
-            ! supersaturation and assuming clouds are saturated with
-            ! respect to liquid water (well mixed), (or Koop adjustment)
-            ! Growth considered as sink of liquid water if present so
-            ! Bergeron-Findeisen adjustment in autoconversion term no
-            ! longer needed
-            ! only treat depositional growth if liquid present. due to fact
-            ! that can not model ice growth from vapour without additional
-            ! in-cloud water vapour variable
-            ! If water droplets are present, the ice crystals are in an
-            ! environment supersaturated with respect to ice and grow by
-            ! deposition, reducing the water vapour and leading to
-            ! subsaturation with respect to water.
-            ! Water droplets then evaporate and the process continues with
-            ! ice growth until the water droplets are completely evaporated.
-            ! Thus in mixed phase clouds, the deposition process acts as a
-            ! sink of cloud liquid and a source of ice cloud.
-            !--------------------------------------------------------------
-            if ( ltklt0 .and. qxfg(iqql) > activqx ) then
-              vpice = eeice(j,i,k) !saturation vapor pressure wrt ice
-              vpliq = eeliq(j,i,k) !saturation vapor pressure wrt liq
-              ! Meyers et al 1992
-              icenuclei = d_1000*exp(12.96_rkx*((vpliq-vpice)/vpice)-0.639_rkx)
-              !------------------------------------------------
-              !   2.4e-2 is conductivity of air
-              !   8.87 = 700**1/3 = density of ice to the third
-              !------------------------------------------------
-              xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(2.4e-2_rkx*tk)
-              xbdd  = rwat*tk*mo2mc%phs(j,i,k)/(2.21_rkx*vpice)
-              cvds = 7.8_rkx*(icenuclei/dens)** &
-                     0.666_rkx*(vpliq-vpice)/(8.87_rkx*(xadd+xbdd)*vpice)
-              !-----------------------------------------------------
-              ! iceinit = 1.e-12 is initial mass of ice particle
-              !-----------------------------------------------------
-              qice0 = max(icecld, icenuclei*iceinit/dens)
-              !------------------
-              ! new value of ice condensate amount ( Rotstayn et al. (2000) )
-              !------------------
-              qice0 = max(qice0,d_zero)
-              cvds = max(cvds,d_zero)
-              qinew = (0.666_rkx*cvds*dt+qice0**0.666_rkx)**1.5_rkx
-              !---------------------------
-              ! grid-mean deposition rate:
-              !---------------------------
-              chng = max(ccover*(qinew-qice0),d_zero)*2.0_rkx
-              ! above increased by factor of 2 to retain similar mixed
-              ! phase liq as in diagnostic scheme
-              !---------------------------------------------------------------
-              ! limit deposition to liquid water amount
-              ! if liquid is all frozen, ice would use up reservoir of water
-              ! vapour in excess of ice saturation mixing ratio - however this
-              ! can not be represented without a in-cloud humidity variable.
-              ! using the grid-mean humidity would imply a large artificial
-              ! horizontal flux from the clear sky to the cloudy area.
-              ! we thus rely on the supersaturation check to clean up any
-              ! remaining supersaturation
-              !---------------------------------------------------------------
-              ! limit to liquid water amount
-              chng = min(chng,qxfg(iqql))
-              !---------------------------------------------------------------
-              ! at top of cloud, reduce deposition rate near cloud top to
-              ! account for small scale turbulent processes, limited ice
-              ! nucleation and ice fallout
-              !---------------------------------------------------------------
-              ! Fraction of deposition rate in cloud top layer
-              ! depliqrefrate = 0.1_rkx
-              ! Depth of supercooled liquid water layer (m)
-              ! depliqrefdepth = 500.0_rkx
-              infactor = min(icenuclei/15000.0_rkx, d_one)
-              chng = chng*min(infactor + (d_one-infactor)* &
-                     (depliqrefrate+cldtopdist(j,i,k)/depliqrefdepth),d_one)
-              !--------------
-              ! add to matrix
-              !--------------
-              solqa(iqqi,iqql) = solqa(iqqi,iqql) + chng
-              solqa(iqql,iqqi) = solqa(iqql,iqqi) - chng
-              qxfg(iqql) = qxfg(iqql) - chng
-              qxfg(iqqi) = qxfg(iqqi) + chng
-#ifdef DEBUG
-              if ( stats ) then
-                ngs%statsdepos(j,i,k) = chng
-              end if
-#endif
-            end if
-
-            tmpa = d_one/ccover
-            liqcld = qxfg(iqql)*tmpa
-            icecld = qxfg(iqqi)*tmpa
-
-            !------------------------------------------------------------------
             !  SEDIMENTATION/FALLING OF *ALL* MICROPHYSICAL SPECIES
             !     now that rain and snow species are prognostic
-            !     the precipitation flux can be defined directly level by level
-            !     There is no vertical memory required from the flux variable
+            !     the precipitation flux can be defined directly level
+            !     by level
+            !     There is no vertical memory required from the flux
+            !     variable
+            !
+            !     *AMT* moved sedimentation before the deposition and
+            !     included sink in first guess in order to account for
+            !     supercooled water enhancement at cloud top
             !------------------------------------------------------------------
             if ( k == 1 ) then
               do n = 1 , nqx
@@ -1235,14 +1123,110 @@ module mod_micro_nogtom
                 if ( lfall(n) ) then
                   ! Source from layer above
                   fallsrce(j,i,n) = pfplsx(n,j,i,k)*dtgdp
-                  solqa(n,n) = solqa(n,n) + fallsrce(j,i,n)
+                  qsexp(n,n) = qsexp(n,n) + fallsrce(j,i,n)
                   qxfg(n) = qxfg(n) + fallsrce(j,i,n)
                   qpretot = qpretot + qxfg(n)
+
                   ! Sink to next layer, constant fall speed
-                  fallsink(j,i,n) = dtgdp * vqx(n) * dens ! Kg/Kg
+                  ! *AMT* now included in first guess.
+                  sink = dtgdp * vqx(n) * dens
+                  fallsink(j,i,n) = sink
+                  ! plus due to implicit negative sign
+                  qxfg(n) = qxfg(n)/(d_one+sink)
                 end if  !lfall
               end do ! n
             end if
+
+            !------------------------------------------------------------------
+            ! DEPOSITION:
+            ! Growth of ice by vapour deposition
+            ! and fudged ice contact nucleation included here.
+            !
+            !------------------------------------------------------------------
+            ! Following Rotstayn et al. 2001 and Meyers et al. 1992
+            !
+            ! clouds are exactly saturated with
+            ! respect to liquid water (well mixed), (or koop)
+            !
+            ! Growth considered as sink of liquid water
+            !
+            ! Bergeron-Findeisen adjustment not required.
+            !
+            ! Can not treat if liquid not present as would require
+            ! additional variable to model in-cloud vapour mixing ratio
+            !
+            ! *AMT* 03/2017 removed factor 2, and cloud top reduction
+            ! introduce enhancement due to contact nucleation when
+            ! collisions occurs between liquid and ice crystals
+            ! By considering sedimentation first and including the
+            ! implicit loss term in the first guess of ice.
+            !--------------------------------------------------------------
+            if ( ltklt0 .and. qxfg(iqql) > activqx ) then
+              vpice = eeice(j,i,k) !saturation vapor pressure wrt ice
+              vpliq = eeliq(j,i,k) !saturation vapor pressure wrt liq
+              ! Meyers et al 1992
+              icenuclei = d_1000*exp(12.96_rkx*((vpliq-vpice)/vpice)-0.639_rkx)
+
+              !------------------------------------------------------------
+              ! *AMT* contact nucleation fudge factor
+              ! Note this refers to contact between liquid and ice
+              ! crystals
+              ! not contact nucleation by contact with heterogeneous
+              ! nuclei
+              ! process acts as 1/liqfrac , when liqfrac=1, no speed up
+              ! this is the max(clfeps,qliqfrac(j,i,k)) factor...
+              !------------------------------------------------------------
+
+              xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(airconduct*tk)
+              xbdd  = rwat*tk*mo2mc%phs(j,i,k)/(2.21_rkx*vpice)
+              cvds = (7.8_rkx/max(clfeps,qliqfrac(j,i,k)))*(icenuclei/dens)** &
+                     0.666_rkx*(vpliq-vpice)/(ciden13*(xadd+xbdd)*vpice)
+              cvds = max(cvds,d_zero)
+
+              !-----------------------------------------------------
+              ! iceinit = 1.e-12 is initial mass of ice particle
+              !           used if no ice present to start process
+              !-----------------------------------------------------
+              qice0 = max(icecldfg, icenuclei*iceinit/dens,d_zero)
+
+              !--------------------------------------------------------------
+              ! new value of ice mixing ratio
+              ! Note: eqn 8 in Rotstayn et al. (2000) is incorrect
+              !--------------------------------------------------------------
+              qinew = (0.666_rkx*cvds*dt+qice0**0.666_rkx)**1.5_rkx
+
+              !------------------------------------------------------------
+              ! grid-mean deposition rate:
+              ! Use of CCOVER assumes that clouds are completely well
+              ! mixed
+              !------------------------------------------------------------
+
+              chng = max(ccover*(qinew-qice0),d_zero)
+
+              !---------------------------------------------------------------
+              ! limit deposition to liquid water amount
+              ! can't treat vapour in ice-only cloud without extra
+              ! prognostic variable
+              !---------------------------------------------------------------
+              chng = min(chng,qxfg(iqql))
+              !--------------
+              ! add to matrix
+              !--------------
+              qsexp(iqqi,iqql) = qsexp(iqqi,iqql) + chng
+              qsexp(iqql,iqqi) = qsexp(iqql,iqqi) - chng
+              qxfg(iqql) = qxfg(iqql) - chng
+              qxfg(iqqi) = qxfg(iqqi) + chng
+#ifdef DEBUG
+              if ( stats ) then
+                ngs%statsdepos(j,i,k) = chng
+              end if
+#endif
+            end if
+
+            tmpa = d_one/ccover
+            liqcldfg = qxfg(iqql)*tmpa
+            icecldfg = qxfg(iqqi)*tmpa
+            totc = qlnow + qinow
 
             !---------------------------------------------------------------
             ! Precip cover overlap using MAX-RAN Overlap
@@ -1277,7 +1261,7 @@ module mod_micro_nogtom
             !                         AUTOCONVERSION
             !---------------------------------------------------------------
             ! Warm clouds
-            if ( liqcld > activqx ) then
+            if ( liqcldfg > activqx ) then
 #ifdef __PGI
               select case (iautoconv)
                 case (1) ! Klein & Pincus (2000)
@@ -1306,15 +1290,15 @@ module mod_micro_nogtom
             ! Cold clouds
             if ( ltklt0 ) then
               ! Snow Autoconversion rate follow Lin et al. 1983
-              if ( icecld > activqx ) then
-                alpha1 = min(dt*skconv*exp(0.025_rkx*tc),icecld)
+              if ( icecldfg > activqx ) then
+                alpha1 = min(dt*skconv*exp(0.025_rkx*tc),icecldfg)
                 arg = (qinow/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then
                   snowaut = alpha1 * (d_one - exp(-arg))
                 else
                   snowaut = alpha1
                 end if
-                solqb(iqqs,iqqi) = solqb(iqqs,iqqi) + snowaut
+                qsimp(iqqs,iqqi) = qsimp(iqqs,iqqi) + snowaut
 #ifdef DEBUG
                 if ( stats ) then
                   ngs%statsautocvc(j,i,k) = ngs%statsautocvc(j,i,k) + snowaut
@@ -1365,8 +1349,8 @@ module mod_micro_nogtom
                       ! n = iqqi,iqqs; m = iqql,iqqr
                       qxfg(n) =  qxfg(n) - chng
                       qxfg(m) =  qxfg(m) + chng
-                      solqa(m,n) =  solqa(m,n) + chng
-                      solqa(n,m) =  solqa(n,m) - chng
+                      qsexp(m,n) =  qsexp(m,n) + chng
+                      qsexp(n,m) =  qsexp(n,m) - chng
 #ifdef DEBUG
                       if ( stats ) then
                         ngs%statsmelt(j,i,k) = ngs%statsmelt(j,i,k) + chng
@@ -1390,8 +1374,8 @@ module mod_micro_nogtom
             if ( chngmax > dlowval .and. qxfg(iqqr) > activqx ) then
               chng = min(qxfg(iqqr),chngmax)
               chng = max(chng,d_zero)
-              solqa(iqqs,iqqr) = solqa(iqqs,iqqr) + chng
-              solqa(iqqr,iqqs) = solqa(iqqr,iqqs) - chng
+              qsexp(iqqs,iqqr) = qsexp(iqqs,iqqr) + chng
+              qsexp(iqqr,iqqs) = qsexp(iqqr,iqqs) - chng
 #ifdef DEBUG
               if ( stats ) then
                 ngs%statsfrz(j,i,k) = chng
@@ -1405,8 +1389,8 @@ module mod_micro_nogtom
             if ( chngmax > dlowval .and. qxfg(iqql) > activqx ) then
               chng = min(qxfg(iqql),chngmax)
               chng = max(chng,d_zero)
-              solqa(iqqi,iqql) = solqa(iqqi,iqql) + chng
-              solqa(iqql,iqqi) = solqa(iqql,iqqi) - chng
+              qsexp(iqqi,iqql) = qsexp(iqqi,iqql) + chng
+              qsexp(iqql,iqqi) = qsexp(iqql,iqqi) - chng
               qxfg(iqql) = qxfg(iqql) - chng
               qxfg(iqqi) = qxfg(iqqi) + chng
 #ifdef DEBUG
@@ -1482,8 +1466,8 @@ module mod_micro_nogtom
               else
                 chng = qxfg(iqqr)
               end if
-              solqa(iqqv,iqqr) = solqa(iqqv,iqqr) + chng
-              solqa(iqqr,iqqv) = solqa(iqqr,iqqv) - chng
+              qsexp(iqqv,iqqr) = qsexp(iqqv,iqqr) + chng
+              qsexp(iqqr,iqqv) = qsexp(iqqr,iqqv) - chng
               qxfg(iqqr)       = qxfg(iqqr) - chng
 #ifdef DEBUG
               if ( stats ) then
@@ -1541,8 +1525,8 @@ module mod_micro_nogtom
               else
                 chng = qxfg(iqqs)
               end if
-              solqa(iqqv,iqqs) = solqa(iqqv,iqqs) + chng
-              solqa(iqqs,iqqv) = solqa(iqqs,iqqv) - chng
+              qsexp(iqqv,iqqs) = qsexp(iqqv,iqqs) + chng
+              qsexp(iqqs,iqqv) = qsexp(iqqs,iqqv) - chng
               qxfg(iqqs)       = qxfg(iqqs) - chng
 #ifdef DEBUG
               if ( stats ) then
@@ -1566,7 +1550,7 @@ module mod_micro_nogtom
           !----------------------------
           do jn = 1 , nqx
             do n = 1 , nqx
-              sinksum(n) = sinksum(n) - solqa(n,jn)
+              sinksum(n) = sinksum(n) - qsexp(n,jn)
             end do
           end do
           !---------------------------------------
@@ -1610,8 +1594,8 @@ module mod_micro_nogtom
             do jn = 1 , nqx
               jo = iorder(n)
               if ( jo > 0 ) then
-                lind3(jo,jn) = solqa(jo,jn) < d_zero
-                sinksum(jo) = sinksum(jo) - solqa(jo,jn)
+                lind3(jo,jn) = qsexp(jo,jn) < d_zero
+                sinksum(jo) = sinksum(jo) - qsexp(jo,jn)
               end if
             end do
           end do
@@ -1636,8 +1620,8 @@ module mod_micro_nogtom
               jo = iorder(n)
               if ( jo > 0 ) then
                 if ( lind3(jo,jn) ) then
-                  solqa(jo,jn) = solqa(jo,jn)*ratio(jo)
-                  solqa(jn,jo) = solqa(jn,jo)*ratio(jo)
+                  qsexp(jo,jn) = qsexp(jo,jn)*ratio(jo)
+                  qsexp(jn,jo) = qsexp(jn,jo)*ratio(jo)
                 end if
               end if
             end do
@@ -1652,12 +1636,12 @@ module mod_micro_nogtom
               if ( jn == n ) then
                 qlhs(jn,n) = d_one + fallsink(j,i,n)
                 do jo = 1 , nqx
-                  qlhs(jn,n) = qlhs(jn,n) + solqb(jo,jn)
+                  qlhs(jn,n) = qlhs(jn,n) + qsimp(jo,jn)
                 end do
                 ! Non-diagonals: microphysical source terms
               else
                 ! Here is the delta T - missing from doc.
-                qlhs(jn,n) = -solqb(jn,n)
+                qlhs(jn,n) = -qsimp(jn,n)
               end if
             end do
           end do
@@ -1669,7 +1653,7 @@ module mod_micro_nogtom
             rexplicit = d_zero
             do jn = 1 , nqx
               ! Positive, since summed over 2nd index
-              rexplicit = rexplicit + solqa(n,jn)
+              rexplicit = rexplicit + qsexp(n,jn)
             end do
             qxn(n) = qx0(n) + rexplicit
           end do
@@ -1886,33 +1870,33 @@ module mod_micro_nogtom
 
     subroutine klein_and_pincus
       implicit none
-      solqb(iqql,iqqv) = d_zero
+      qsimp(iqql,iqqv) = d_zero
       rainaut = dt*auto_rate_klepi * (qlnow**(2.3_rkx))
-      solqb(iqqr,iqql) = solqb(iqqr,iqql) + rainaut
-      solqa(iqqr,iqql) = d_zero
+      qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
+      qsexp(iqqr,iqql) = d_zero
     end subroutine klein_and_pincus
 
     subroutine khairoutdinov_and_kogan
       implicit none
-      solqb(iqql,iqqv) = d_zero
+      qsimp(iqql,iqqv) = d_zero
       rainaut = dt*auto_rate_khair*(qlnow**(auto_expon_khair))
-      solqb(iqqr,iqql) = solqb(iqqr,iqql) + rainaut
+      qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
     end subroutine khairoutdinov_and_kogan
 
     subroutine kessler
       implicit none
-      solqb(iqql,iqqv) = d_zero
-      solqa(iqqr,iqql) = solqa(iqqr,iqql) - auto_rate_kessl*autocrit_kessl
-      solqa(iqql,iqqr) = solqa(iqql,iqqr) + auto_rate_kessl*autocrit_kessl
+      qsimp(iqql,iqqv) = d_zero
+      qsexp(iqqr,iqql) = qsexp(iqqr,iqql) - auto_rate_kessl*autocrit_kessl
+      qsexp(iqql,iqqr) = qsexp(iqql,iqqr) + auto_rate_kessl*autocrit_kessl
       rainaut = min(dt*auto_rate_kessl,qlnow)
-      solqb(iqqr,iqql) = solqb(iqqr,iqql) + rainaut
+      qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
     end subroutine kessler
 
     subroutine sundqvist
       implicit none
       real(rkx) :: precip , cfpr , arg , acrit
       real(rkx) , parameter :: spherefac = (4.0_rkx/3.0_rkx)*mathpi
-      alpha1 = min(rkconv*dt,liqcld)
+      alpha1 = min(rkconv*dt,liqcldfg)
       acrit = critauto
       if ( lccn ) then
         if ( ccn > 0._rkx ) then
@@ -1935,21 +1919,21 @@ module mod_micro_nogtom
         alpha1 = alpha1*cfpr
         acrit = acrit/max(cfpr,dlowval)
       end if
-      arg = (liqcld/acrit)**2
+      arg = (liqcldfg/acrit)**2
       ! security for exp for some compilers
       if ( arg < 25.0_rkx ) then
         rainaut = alpha1*(d_one - exp(-arg))
       else
         rainaut = alpha1
       end if
-      solqb(iqql,iqqv) = d_zero
+      qsimp(iqql,iqqv) = d_zero
       if ( ltkgt0 ) then
-        solqb(iqqr,iqql) = solqb(iqqr,iqql)+rainaut
+        qsimp(iqqr,iqql) = qsimp(iqqr,iqql)+rainaut
       else
         !-----------------------
         ! rain freezes instantly
         !-----------------------
-        solqb(iqqs,iqql) = solqb(iqqs,iqql)+rainaut
+        qsimp(iqqs,iqql) = qsimp(iqqs,iqql)+rainaut
       end if
     end subroutine sundqvist
 
