@@ -52,7 +52,7 @@ module mod_micro_nogtom
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  real(rkx) , parameter :: rcldiff = d_one/3600.0_rkx !  one hour
+  real(rkx) , parameter :: rcldiff = 1.e-6_rkx ! 3.e-6_rkx ! 3.e-4_rkx
   real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
   real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
 
@@ -80,18 +80,24 @@ module mod_micro_nogtom
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   !real(rkx) , parameter :: thomo = 225.16_rkx  ! -48.00 Celsius
+  ! Cloud fraction threshold that defines cloud top
+  real(rkx) , parameter :: cldtopcf = 0.1_rkx
+  ! Fraction of deposition rate in cloud top layer
+  real(rkx) , parameter :: depliqrefrate = 0.1_rkx
+  ! Depth of supercooled liquid water layer (m)
+  real(rkx) , parameter :: depliqrefdepth = 500.0_rkx
   ! initial mass of ice particle
   real(rkx) , parameter :: iceinit = 1.e-12_rkx
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
   real(rkx) , parameter :: rkoop2 = 0.48116e-2_rkx ! 1/207.8
+  !------------------------------------------------
   real(rkx) , parameter :: ciden13 = 8.87_rkx    ! ice density 700**0.333
   real(rkx) , parameter :: airconduct = 2.4e-2_rkx ! conductivity of air
 
   public :: allocate_mod_nogtom , init_nogtom , nogtom
 
   real(rkx) :: oneodt                                 ! 1/dt
-  real(rkx) :: sink ! sink term for sedimentation conservation
-  real(rkx) :: totc ! total condensate liquid+ice
+
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
   ! 0 = vapour, 1 = liquid, 2 = ice
@@ -122,6 +128,8 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:) :: convsink
   ! total rain frac: fractional occurence of precipitation (%)
   ! for condensation
+  ! distance from the top of the cloud
+  real(rkx) , pointer , dimension(:,:,:) :: cldtopdist
   ! ice nuclei concentration
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
   real(rkx) , pointer , dimension(:,:,:) :: qliq
@@ -159,7 +167,7 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:) :: vqx
   ! n x n matrix storing the LHS of implicit solver
   real(rkx) , pointer , dimension(:,:) :: qlhs
-  ! explicit sources and sinks "q s exp"=q source explicit
+  ! explicit sources and sinks "q s exp"=q source explicit 
   real(rkx) , pointer , dimension(:,:) :: qsexp
   ! implicit sources and sinks "q s imp"=q source/sink implicit
   real(rkx) , pointer , dimension(:,:) :: qsimp
@@ -226,6 +234,7 @@ module mod_micro_nogtom
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
+    call getmem3d(cldtopdist,jci1,jci2,ici1,ici2,1,kz,'cmicro:cldtopdist')
     call getmem3d(qliqfrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qliqfrac')
     call getmem3d(qicefrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qicefrac')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
@@ -382,6 +391,8 @@ module mod_micro_nogtom
     real(rkx) :: qvnow , qlnow , qinow , sqmix , ccover , lccover
     real(rkx) :: tk , tc , dens , pbot , totliq , ccn
     real(rkx) :: snowp , rainp
+    real(rkx) :: sink ! sink term for sedimentation conservation
+    real(rkx) :: totc ! total condensate liquid+ice
 
 #ifndef __PGI
     procedure (voidsub) , pointer :: selautoconv => null()
@@ -478,6 +489,24 @@ module mod_micro_nogtom
       do i = ici1 , ici2
         do j = jci1 , jci2
           fccfg(j,i,k) = min(hicld,max(mo2mc%fcc(j,i,k),lowcld))
+        end do
+      end do
+    end do
+
+    !--------------------------------------------------------------
+    ! Calculate distance from cloud top
+    ! defined by cloudy layer below a layer with cloud frac <0.01
+    ! DZ = DP(JL)/(RHO(JL)*RG)
+    !--------------------------------------------------------------
+    cldtopdist(:,:,:) = d_zero
+    do k = 2 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( fccfg(j,i,k-1) > cldtopcf .and. &
+               fccfg(j,i,k)  <= cldtopcf ) then
+            cldtopdist(j,i,k) = cldtopdist(j,i,k) + &
+                                dpfs(j,i,k)/(mo2mc%rho(j,i,k)*egrav)
+          end if
         end do
       end do
     end do
@@ -944,12 +973,12 @@ module mod_micro_nogtom
             ! rcldiff  : Diffusion coefficient for evaporation by turbulent
             ! mixing (IBID., EQU. 30) rcldiff = 1.0e-6_rkx
             ldifdt = rcldiff*dt
+            if ( mo2mc%qdetr(j,i,k) > d_zero ) ldifdt = convfac*ldifdt
             !Increase by factor of 5 for convective points
             if ( lliq ) then
-              leros = (ldifdt*max(qvnow+totc-sqmix,d_zero)+totc) / &
-                     (1.0_rkx+ldifdt)
+              leros = ccover * ldifdt * max(sqmix-qvnow,d_zero)
               leros = min(leros,evaplimmix)
-
+              leros = min(leros,totliq)
               facl = qliqfrac(j,i,k)*leros
               faci = qicefrac(j,i,k)*leros
               qsexp(iqql,iqqv) = qsexp(iqql,iqqv) - facl
@@ -1102,114 +1131,77 @@ module mod_micro_nogtom
             end if
 
             !------------------------------------------------------------------
-            !  SEDIMENTATION/FALLING OF *ALL* MICROPHYSICAL SPECIES
-            !     now that rain and snow species are prognostic
-            !     the precipitation flux can be defined directly level
-            !     by level
-            !     There is no vertical memory required from the flux
-            !     variable
-            !
-            !     *AMT* moved sedimentation before the deposition and
-            !     included sink in first guess in order to account for
-            !     supercooled water enhancement at cloud top
+            ! DEPOSITION: Growth of ice by vapour deposition
             !------------------------------------------------------------------
-            if ( k == 1 ) then
-              do n = 1 , nqx
-                if ( lfall(n) ) then
-                  fallsink(j,i,n) = dtgdp * vqx(n) * dens ! Kg/Kg
-                end if
-              end do
-            else
-              do n = 1 , nqx
-                if ( lfall(n) ) then
-                  ! Source from layer above
-                  fallsrce(j,i,n) = pfplsx(n,j,i,k)*dtgdp
-                  qsexp(n,n) = qsexp(n,n) + fallsrce(j,i,n)
-                  qxfg(n) = qxfg(n) + fallsrce(j,i,n)
-                  qpretot = qpretot + qxfg(n)
-
-                  ! Sink to next layer, constant fall speed
-                  ! *AMT* now included in first guess.
-                  sink = dtgdp * vqx(n) * dens
-                  fallsink(j,i,n) = sink
-                  ! plus due to implicit negative sign
-                  qxfg(n) = qxfg(n)/(d_one+sink)
-                end if  !lfall
-              end do ! n
-            end if
-
-            !------------------------------------------------------------------
-            ! DEPOSITION:
-            ! Growth of ice by vapour deposition
-            ! and fudged ice contact nucleation included here.
-            !
-            !------------------------------------------------------------------
-            ! Following Rotstayn et al. 2001 and Meyers et al. 1992
-            !
-            ! clouds are exactly saturated with
-            ! respect to liquid water (well mixed), (or koop)
-            !
-            ! Growth considered as sink of liquid water
-            !
-            ! Bergeron-Findeisen adjustment not required.
-            !
-            ! Can not treat if liquid not present as would require
-            ! additional variable to model in-cloud vapour mixing ratio
-            !
-            ! *AMT* 03/2017 removed factor 2, and cloud top reduction
-            ! introduce enhancement due to contact nucleation when
-            ! collisions occurs between liquid and ice crystals
-            ! By considering sedimentation first and including the
-            ! implicit loss term in the first guess of ice.
+            ! Following Rotstayn et al. 2001:
+            ! does not use the ice nuclei number from cloudaer.F90
+            ! but rather a simple Meyers et al. 1992 form based on the
+            ! supersaturation and assuming clouds are saturated with
+            ! respect to liquid water (well mixed), (or Koop adjustment)
+            ! Growth considered as sink of liquid water if present so
+            ! Bergeron-Findeisen adjustment in autoconversion term no
+            ! longer needed
+            ! only treat depositional growth if liquid present. due to fact
+            ! that can not model ice growth from vapour without additional
+            ! in-cloud water vapour variable
+            ! If water droplets are present, the ice crystals are in an
+            ! environment supersaturated with respect to ice and grow by
+            ! deposition, reducing the water vapour and leading to
+            ! subsaturation with respect to water.
+            ! Water droplets then evaporate and the process continues with
+            ! ice growth until the water droplets are completely evaporated.
+            ! Thus in mixed phase clouds, the deposition process acts as a
+            ! sink of cloud liquid and a source of ice cloud.
             !--------------------------------------------------------------
             if ( ltklt0 .and. qxfg(iqql) > activqx ) then
               vpice = eeice(j,i,k) !saturation vapor pressure wrt ice
               vpliq = eeliq(j,i,k) !saturation vapor pressure wrt liq
               ! Meyers et al 1992
               icenuclei = d_1000*exp(12.96_rkx*((vpliq-vpice)/vpice)-0.639_rkx)
-
-              !------------------------------------------------------------
-              ! *AMT* contact nucleation fudge factor
-              ! Note this refers to contact between liquid and ice
-              ! crystals
-              ! not contact nucleation by contact with heterogeneous
-              ! nuclei
-              ! process acts as 1/liqfrac , when liqfrac=1, no speed up
-              ! this is the max(clfeps,qliqfrac(j,i,k)) factor...
-              !------------------------------------------------------------
-
               xadd  = wlhs*(wlhs/(rwat*tk)-d_one)/(airconduct*tk)
               xbdd  = rwat*tk*mo2mc%phs(j,i,k)/(2.21_rkx*vpice)
-              cvds = (7.8_rkx/max(clfeps,qliqfrac(j,i,k)))*(icenuclei/dens)** &
+              cvds = 7.8_rkx*(icenuclei/dens)** &
                      0.666_rkx*(vpliq-vpice)/(ciden13*(xadd+xbdd)*vpice)
-              cvds = max(cvds,d_zero)
-
               !-----------------------------------------------------
               ! iceinit = 1.e-12 is initial mass of ice particle
-              !           used if no ice present to start process
               !-----------------------------------------------------
-              qice0 = max(icecldfg, icenuclei*iceinit/dens,d_zero)
-
-              !--------------------------------------------------------------
-              ! new value of ice mixing ratio
-              ! Note: eqn 8 in Rotstayn et al. (2000) is incorrect
-              !--------------------------------------------------------------
+              qice0 = max(icecldfg, icenuclei*iceinit/dens)
+              !------------------
+              ! new value of ice condensate amount ( Rotstayn et al. (2000) )
+              !------------------
+              qice0 = max(qice0,d_zero)
+              cvds = max(cvds,d_zero)
               qinew = (0.666_rkx*cvds*dt+qice0**0.666_rkx)**1.5_rkx
-
-              !------------------------------------------------------------
+              !---------------------------
               ! grid-mean deposition rate:
-              ! Use of CCOVER assumes that clouds are completely well
-              ! mixed
-              !------------------------------------------------------------
-
-              chng = max(ccover*(qinew-qice0),d_zero)
-
+              !---------------------------
+              chng = max(ccover*(qinew-qice0),d_zero)*2.0_rkx
+              ! above increased by factor of 2 to retain similar mixed
+              ! phase liq as in diagnostic scheme
               !---------------------------------------------------------------
               ! limit deposition to liquid water amount
-              ! can't treat vapour in ice-only cloud without extra
-              ! prognostic variable
+              ! if liquid is all frozen, ice would use up reservoir of water
+              ! vapour in excess of ice saturation mixing ratio - however this
+              ! can not be represented without a in-cloud humidity variable.
+              ! using the grid-mean humidity would imply a large artificial
+              ! horizontal flux from the clear sky to the cloudy area.
+              ! we thus rely on the supersaturation check to clean up any
+              ! remaining supersaturation
               !---------------------------------------------------------------
+              ! limit to liquid water amount
               chng = min(chng,qxfg(iqql))
+              !---------------------------------------------------------------
+              ! at top of cloud, reduce deposition rate near cloud top to
+              ! account for small scale turbulent processes, limited ice
+              ! nucleation and ice fallout
+              !---------------------------------------------------------------
+              ! Fraction of deposition rate in cloud top layer
+              ! depliqrefrate = 0.1_rkx
+              ! Depth of supercooled liquid water layer (m)
+              ! depliqrefdepth = 500.0_rkx
+              infactor = min(icenuclei/15000.0_rkx, d_one)
+              chng = chng*min(infactor + (d_one-infactor)* &
+                     (depliqrefrate+cldtopdist(j,i,k)/depliqrefdepth),d_one)
               !--------------
               ! add to matrix
               !--------------
@@ -1227,6 +1219,32 @@ module mod_micro_nogtom
             tmpa = d_one/ccover
             liqcldfg = qxfg(iqql)*tmpa
             icecldfg = qxfg(iqqi)*tmpa
+
+            !------------------------------------------------------------------
+            !  SEDIMENTATION/FALLING OF *ALL* MICROPHYSICAL SPECIES
+            !     now that rain and snow species are prognostic
+            !     the precipitation flux can be defined directly level by level
+            !     There is no vertical memory required from the flux variable
+            !------------------------------------------------------------------
+            if ( k == 1 ) then
+              do n = 1 , nqx
+                if ( lfall(n) ) then
+                  fallsink(j,i,n) = dtgdp * vqx(n) * dens ! Kg/Kg
+                end if
+              end do
+            else
+              do n = 1 , nqx
+                if ( lfall(n) ) then
+                  ! Source from layer above
+                  fallsrce(j,i,n) = pfplsx(n,j,i,k)*dtgdp
+                  qsexp(n,n) = qsexp(n,n) + fallsrce(j,i,n)
+                  qxfg(n) = qxfg(n) + fallsrce(j,i,n)
+                  qpretot = qpretot + qxfg(n)
+                  ! Sink to next layer, constant fall speed
+                  fallsink(j,i,n) = dtgdp * vqx(n) * dens ! Kg/Kg
+                end if  !lfall
+              end do ! n
+            end if
 
             !---------------------------------------------------------------
             ! Precip cover overlap using MAX-RAN Overlap

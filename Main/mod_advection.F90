@@ -686,9 +686,9 @@ module mod_advection
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) <= 1.0e-8_rkx ) cycle
                 if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
-                     d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
+                     d_two*f(j,i,k,n)) / &
+                        max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
                        (f(j,i,k,n) > f(j,i-1,k,n)) ) then
                     fg(j,i,k) = min(fg(j,i,k),d_zero)
@@ -698,7 +698,8 @@ module mod_advection
                   end if
                 end if
                 if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
-                     d_two*f(j,i,k,n)) / f(j,i,k,n) > c_rel_extrema ) then
+                     d_two*f(j,i,k,n)) / &
+                        max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
                   if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
                        (f(j,i,k,n) > f(j-1,i,k,n)) ) then
                     fg(j,i,k) = min(fg(j,i,k),d_zero)
@@ -997,7 +998,9 @@ module mod_advection
               do j = jci1 , jci2
                 if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
                   fg(j,i,k) = svv(j,i,k) * &
-                      (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                      f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+                  !fg(j,i,k) = svv(j,i,k) * &
+                  !    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
                 end if
               end do
             end do
@@ -1006,9 +1009,8 @@ module mod_advection
             do k = 2 , kz-1
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  if ( f(j,i,k,n) <= 1.0e-8_rkx ) cycle
                   if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
-                       f(j,i,k,n) > c_rel_extrema ) then
+                       max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
                     if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
                          f(j,i,k,n) > f(j,i,k-1,n) ) then
                       fg(j,i,k) = min(fg(j,i,k),d_zero)
@@ -1022,9 +1024,8 @@ module mod_advection
             end do
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) <= 1.0e-8_rkx ) cycle
                 if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
-                     f(j,i,kz,n) > c_rel_extrema ) then
+                     max(f(j,i,kz,n),dlowval) > c_rel_extrema ) then
                   if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
                     fg(j,i,kz) = min(fg(j,i,kz),d_zero)
                   else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
@@ -1049,9 +1050,8 @@ module mod_advection
             do k = 2 , kz-1
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  if ( f(j,i,k,n) < dlowval ) cycle
                   if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
-                       f(j,i,k,n) > t_rel_extrema ) then
+                       max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
                     if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
                          f(j,i,k,n) > f(j,i,k-1,n) ) then
                       fg(j,i,k) = min(fg(j,i,k),d_zero)
@@ -1065,9 +1065,8 @@ module mod_advection
             end do
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( f(j,i,k,n) < dlowval ) cycle
                 if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
-                     f(j,i,kz,n) > t_rel_extrema ) then
+                     max(f(j,i,kz,n),dlowval) > t_rel_extrema ) then
                   if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
                     fg(j,i,kz) = min(fg(j,i,kz),d_zero)
                   else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
