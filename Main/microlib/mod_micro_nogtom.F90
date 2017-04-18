@@ -80,12 +80,6 @@ module mod_micro_nogtom
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
   !real(rkx) , parameter :: thomo = 225.16_rkx  ! -48.00 Celsius
-  ! Cloud fraction threshold that defines cloud top
-  real(rkx) , parameter :: cldtopcf = 0.1_rkx
-  ! Fraction of deposition rate in cloud top layer
-  real(rkx) , parameter :: depliqrefrate = 0.1_rkx
-  ! Depth of supercooled liquid water layer (m)
-  real(rkx) , parameter :: depliqrefdepth = 500.0_rkx
   ! initial mass of ice particle
   real(rkx) , parameter :: iceinit = 1.e-12_rkx
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
@@ -126,10 +120,6 @@ module mod_micro_nogtom
   ! for convection detrainment source and subsidence source/sink terms
   real(rkx) , pointer , dimension(:) :: convsrce
   real(rkx) , pointer , dimension(:) :: convsink
-  ! total rain frac: fractional occurence of precipitation (%)
-  ! for condensation
-  ! distance from the top of the cloud
-  real(rkx) , pointer , dimension(:,:,:) :: cldtopdist
   ! ice nuclei concentration
   real(rkx) , pointer , dimension(:,:,:) :: eewmt
   real(rkx) , pointer , dimension(:,:,:) :: qliq
@@ -167,7 +157,7 @@ module mod_micro_nogtom
   real(rkx) , pointer , dimension(:) :: vqx
   ! n x n matrix storing the LHS of implicit solver
   real(rkx) , pointer , dimension(:,:) :: qlhs
-  ! explicit sources and sinks "q s exp"=q source explicit 
+  ! explicit sources and sinks "q s exp"=q source explicit
   real(rkx) , pointer , dimension(:,:) :: qsexp
   ! implicit sources and sinks "q s imp"=q source/sink implicit
   real(rkx) , pointer , dimension(:,:) :: qsimp
@@ -234,7 +224,6 @@ module mod_micro_nogtom
     call getmem1d(imelt,1,nqx,'cmicro:imelt')
     call getmem1d(lfall,1,nqx,'cmicro:lfall')
     call getmem1d(iphase,1,nqx,'cmicro:iphase')
-    call getmem3d(cldtopdist,jci1,jci2,ici1,ici2,1,kz,'cmicro:cldtopdist')
     call getmem3d(qliqfrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qliqfrac')
     call getmem3d(qicefrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:qicefrac')
     call getmem3d(eewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:eewmt')
@@ -384,7 +373,7 @@ module mod_micro_nogtom
     ! real(rkx) :: gdph_r
     ! constants for deposition process
     real(rkx) :: vpice , vpliq , xadd , xbdd , cvds , &
-                 qice0 , qinew , infactor , rainaut , snowaut
+                 qice0 , qinew , rainaut , snowaut
     ! constants for condensation and turbulent mixing erosion of clouds
     real(rkx) :: dpmxdt , wtot , dtdiab , dtforc , &
                  qp , qsat , cond1 , levap , leros
@@ -489,24 +478,6 @@ module mod_micro_nogtom
       do i = ici1 , ici2
         do j = jci1 , jci2
           fccfg(j,i,k) = min(hicld,max(mo2mc%fcc(j,i,k),lowcld))
-        end do
-      end do
-    end do
-
-    !--------------------------------------------------------------
-    ! Calculate distance from cloud top
-    ! defined by cloudy layer below a layer with cloud frac <0.01
-    ! DZ = DP(JL)/(RHO(JL)*RG)
-    !--------------------------------------------------------------
-    cldtopdist(:,:,:) = d_zero
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( fccfg(j,i,k-1) > cldtopcf .and. &
-               fccfg(j,i,k)  <= cldtopcf ) then
-            cldtopdist(j,i,k) = cldtopdist(j,i,k) + &
-                                dpfs(j,i,k)/(mo2mc%rho(j,i,k)*egrav)
-          end if
         end do
       end do
     end do
@@ -924,14 +895,14 @@ module mod_micro_nogtom
           !             |   Sink of this variable
           !             |   |
           !             V   V
-          ! SOLQA/B:q(IQa,IQb)
+          ! QSEXP/IMP:q(IQa,IQb)
           !
-          ! Thus if SOLQA/B(IQL,IQV) = K where K > 0 then this is
+          ! Thus if QSEXP/IMP(IQL,IQV) = K where K > 0 then this is
           ! a source of IQL and a sink of IQV
           !
-          ! put 'magic' source terms such as LUDE from
+          ! put 'magic' source terms such as QDETR from
           ! detrainment into explicit source/sink array diagnognal
-          ! SOLQA(IQL,IQL)=LUDE
+          ! QSEXP(IQL,IQL) = QDETR
           !--------------------------------------------------------
           ! Define the microphysics
           ! the matrix will be sparse is this a problem ?
@@ -1134,9 +1105,8 @@ module mod_micro_nogtom
             ! DEPOSITION: Growth of ice by vapour deposition
             !------------------------------------------------------------------
             ! Following Rotstayn et al. 2001:
-            ! does not use the ice nuclei number from cloudaer.F90
-            ! but rather a simple Meyers et al. 1992 form based on the
-            ! supersaturation and assuming clouds are saturated with
+            ! Uses a rather simple (Meyers et al. 1992) form based on the
+            ! supersaturation and assumes clouds are saturated with
             ! respect to liquid water (well mixed), (or Koop adjustment)
             ! Growth considered as sink of liquid water if present so
             ! Bergeron-Findeisen adjustment in autoconversion term no
@@ -1190,18 +1160,6 @@ module mod_micro_nogtom
               !---------------------------------------------------------------
               ! limit to liquid water amount
               chng = min(chng,qxfg(iqql))
-              !---------------------------------------------------------------
-              ! at top of cloud, reduce deposition rate near cloud top to
-              ! account for small scale turbulent processes, limited ice
-              ! nucleation and ice fallout
-              !---------------------------------------------------------------
-              ! Fraction of deposition rate in cloud top layer
-              ! depliqrefrate = 0.1_rkx
-              ! Depth of supercooled liquid water layer (m)
-              ! depliqrefdepth = 500.0_rkx
-              infactor = min(icenuclei/15000.0_rkx, d_one)
-              chng = chng*min(infactor + (d_one-infactor)* &
-                     (depliqrefrate+cldtopdist(j,i,k)/depliqrefdepth),d_one)
               !--------------
               ! add to matrix
               !--------------
