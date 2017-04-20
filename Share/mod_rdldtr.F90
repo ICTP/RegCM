@@ -410,6 +410,7 @@ module mod_rdldtr
                    gdomain%ni(gdomain%ntiles)-1) - delta
     grdltmn = glat(gdomain%jgstart) + delta
     grdltma = glat(gdomain%jgstart+gdomain%nj-1) - delta
+
     deallocate(glat)
     deallocate(glon)
 

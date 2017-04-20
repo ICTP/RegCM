@@ -262,6 +262,7 @@ program terrain
     write(stdout,*)'Interpolated landcover on SUBGRID'
 
     if ( lsmoist ) then
+      write(stdout, *) 'Reading ', trim(smsrc)//'-SOILMOISTURE.nc'
       if ( smsrc(1:3) == 'CPC' ) then
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
                          pthsep//trim(smsrc)//'-SOILMOISTURE.nc',       &
@@ -272,6 +273,12 @@ program terrain
           ! The data are mm content in a column of 1.6 m
           values = values * 0.0016_rkx
         end where
+      else if ( smsrc(1:6) == 'ERA20C' ) then
+        call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
+                         pthsep//trim(smsrc)//'-SOILMOISTURE.nc',       &
+                         'swvl1',30,moisture_resamp_method,i_band,      &
+                         xlat_s,xlon_s,grdlnma,grdlnmn,grdltma,grdltmn, &
+                         nlatin,nlonin,values,month)
       else
         call read_ncglob(trim(inpter)//pthsep//'SURFACE'//              &
                          pthsep//trim(smsrc)//'-SOILMOISTURE.nc',       &
@@ -465,16 +472,23 @@ program terrain
   write(stdout,*)'Interpolated landcover on model GRID'
 
   if ( lsmoist ) then
+    write(stdout, *) 'Reading ', trim(smsrc)//'-SOILMOISTURE.nc'
     if ( smsrc(1:3) == 'CPC' ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
                        pthsep//trim(smsrc)//'-SOILMOISTURE.nc',   &
-                       'soilw',15,moisture_resamp_method,i_band,  &
+                       'soilw',30,moisture_resamp_method,i_band,  &
                        xlat,xlon,grdlnma,grdlnmn,grdltma,grdltmn, &
                        nlatin,nlonin,values,month)
       where ( values > d_zero )
         ! The data are mm content in a column of 1.6 m
         values = values * 0.0016_rkx
       end where
+    else if ( smsrc(1:6) == 'ERA20C' ) then
+      call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
+                       pthsep//trim(smsrc)//'-SOILMOISTURE.nc',   &
+                       'swvl1',30,moisture_resamp_method,i_band,  &
+                       xlat,xlon,grdlnma,grdlnmn,grdltma,grdltmn, &
+                       nlatin,nlonin,values,month)
     else
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'//          &
                        pthsep//trim(smsrc)//'-SOILMOISTURE.nc',   &

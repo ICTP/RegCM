@@ -437,7 +437,14 @@ module mod_intldtr
 
     incy = (grdltma-grdltmn)/dble(nlatin-1)
     if ( lcrosstime ) then
-      incx = ((360.0_rkx+grdlnma)-grdlnmn)/dble(nlonin)
+      if ( grdlnmn > grdlnma ) then
+        incx = ((360.0_rkx+grdlnma)-grdlnmn)/dble(nlonin-1)
+      else
+        incx = (grdlnma-grdlnmn)/dble(nlonin-1)
+      end if
+    else if ( grdlnmn > grdlnma ) then
+      incx = (grdlnma+(360.0_rkx-grdlnmn))/dble(nlonin-1)
+      grdlnmn = -(360.0_rkx-grdlnmn)
     else
       incx = (grdlnma-grdlnmn)/dble(nlonin-1)
     end if
