@@ -285,10 +285,12 @@ program terrain
                          'sm',15,moisture_resamp_method,i_band,         &
                          xlat_s,xlon_s,grdlnma,grdlnmn,grdltma,grdltmn, &
                          nlatin,nlonin,values,month)
-        where ( values > d_zero )
-          ! This is the scale factor from original data in the file
-          values = values * 0.0001_rkx
-        end where
+        if ( smsrc(1:6) == 'ESACCI' ) then
+          where ( values > d_zero )
+            ! This is the scale factor from original data in the file
+            values = values * 0.0001_rkx
+          end where
+        end if
       end if
       write(stdout,*)'Satellite soil moisture data successfully read in'
       mmx = (2*minval(shape(values))/2+1)**2
@@ -495,10 +497,12 @@ program terrain
                        'sm',15,moisture_resamp_method,i_band,     &
                        xlat,xlon,grdlnma,grdlnmn,grdltma,grdltmn, &
                        nlatin,nlonin,values,month)
-      where ( values > d_zero )
-        ! This is the scale factor from original data in the file
-        values = values * 0.0001_rkx
-      end where
+      if ( smsrc(1:6) == 'ESACCI' ) then
+        where ( values > d_zero )
+          ! This is the scale factor from original data in the file
+          values = values * 0.0001_rkx
+        end where
+      end if
     end if
     write(stdout,*)'Satellite soil moisture data successfully read in'
     mmx = (2*minval(shape(values))/2+1)**2
