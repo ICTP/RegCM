@@ -15,6 +15,35 @@
 !    You should have received a copy of the GNU General Public License
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
+!
+!    Documentation:
+! 
+!    Authors: code loosely based on toy model developed by Tompkins 
+!             implemented and further developed by Nogherotto in REGCM in 2013-2015
+!
+!    Code implements a 5 phase prognostic cloud microphysics scheme with a 
+!    diagnostic treatment of cloud fraction
+!
+!    - The cloud cover is parameterized using the diagnostic scheme of Xu and Randall 96
+!
+!    - Microphysics were originally based on  Tiedtke 93 and Tompkins et al. 2007
+!      but with a number of modifications to the melting, collection, autoconversion
+!      
+!    - Solver is a simple implicit solver, implemented layer by layer
+!      Original tests in REGCM4 published in Nogherotto et al. 2016
+!
+!    Modifications:
+!      201704: Tompkins and Nogherotto
+!       a) repetition of code removed for layer k=1 and tidy up of duplicate/redundant arrays 
+!       b) Bug fixes to autoconversion terms for all parameterization scheme (CCOVER missing)  
+!       c) Sedimentation term moved before BF-type process and loss sink included in the first guess
+!          to improve supercooled liquid water at top of mixed phase clouds (no need for 
+!          cloud top distance deposition "fudge".
+!       d) Factor 2 fudge removed from deposition term
+!       e) A number of clean up terms added to remove tiny cloud/precipiation amounts
+!       f) Collection fudge factor removed from autoconversion and replaced by 
+!          explicit parameterization from Khairoutdinov and Kogan [2000].
+!
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_micro_nogtom
@@ -163,12 +192,12 @@ module mod_micro_nogtom
   ! decoupled mixing ratios tendency
   real(rkx) , pointer , dimension(:,:,:,:) :: qxtendc
   ! j,i,n ! generalized precipitation flux
-  real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx , pfplsxclean
+  real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx 
   real(rkx) , pointer, dimension(:,:,:,:) :: qx
   ! Initial values
   real(rkx) , pointer, dimension(:) :: qx0
   ! new values for qxx at time+1
-  real(rkx) , pointer, dimension(:) :: qxn , qxnclean
+  real(rkx) , pointer, dimension(:) :: qxn 
   ! first guess values including precip
   real(rkx) , pointer, dimension(:) :: qxfg
   ! first guess value for cloud fraction
@@ -260,14 +289,11 @@ module mod_micro_nogtom
     call getmem4d(qxtendc,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:qxtendc')
     call getmem1d(qx0,1,nqx,'cmicro:qx0')
     call getmem1d(qxn,1,nqx,'cmicro:qxn')
-    call getmem1d(qxnclean,1,nqx,'cmicro:qxnclean')
     call getmem2d(qlhs,1,nqx,1,nqx,'cmicro:qlhs')
     call getmem2d(qsexp,1,nqx,1,nqx,'cmicro:qsexp')
     call getmem2d(qsimp,1,nqx,1,nqx,'cmicro:qsimp')
     call getmem2d(lind3,1,nqx,1,nqx,'cmicro:lind3')
     call getmem4d(pfplsx,1,nqx,jci1,jci2,ici1,ici2,1,kzp1,'cmicro:pfplsx')
-    call getmem4d(pfplsxclean,1,nqx,jci1,jci2, &
-                                ici1,ici2,1,kzp1,'cmicro:pfplsxclean')
     call getmem3d(dpfs,jci1,jci2,ici1,ici2,1,kz,'cmicro:dpfs')
     if ( budget_compute ) then
       call getmem3d(sumq0,jci1,jci2,ici1,ici2,1,kz,'cmicro:sumq0')
@@ -491,7 +517,6 @@ module mod_micro_nogtom
 
     ! Reset total precipitation variables
     pfplsx(:,:,:,:) = d_zero
-    pfplsxclean(:,:,:,:) = d_zero
 
     ! Compute supersaturations
     do k = 1 , kz
@@ -740,7 +765,6 @@ module mod_micro_nogtom
             qxfg(n)     = qx(n,j,i,k)
             qx0(n)      = qxfg(n)
             qxn(n)      = qxfg(n)
-            qxnclean(n) = qxn(n)
           end do
 
           ! local cloud cover
@@ -947,35 +971,25 @@ module mod_micro_nogtom
           ! call addpath(iqqi,iqqv,supsati,qsexp,qsimp,d_zero,qxfg)
           !
           !-------------------------------------------------------
-          ! SOURCE/SINK array for implicit and explicit terms
+          ! source/sink array for implicit and explicit terms
           !-------------------------------------------------------
           !
-          ! a POSITIVE value entered into the arrays is a...
+          ! a positive value is:
           !
-          !             Source of this variable
-          !             |
-          !             |   Sink of this variable
+          !        Source   Sink of this variable
           !             |   |
           !             V   V
-          ! SOLQA/B:q(IQa,IQb)
+          ! QSEXP/IMP:q(IQa,IQb)
           !
-          ! Thus if SOLQA/B(IQL,IQV) = K where K > 0 then this is
+          ! Thus if QSEXP/IMP(IQL,IQV) = K where K > 0 then this is
           ! a source of IQL and a sink of IQV
           !
-          ! put 'magic' source terms such as LUDE from
-          ! detrainment into explicit source/sink array diagnognal
-          ! SOLQA(IQL,IQL)=LUDE
+          ! put external source terms in the diagonal entries
           !--------------------------------------------------------
-          ! Define the microphysics
-          ! the matrix will be sparse is this a problem ?
-          ! (X,Y) means a sink of X and a source of Y
-          ! for the implementation I will use flexible pointers
-          ! such that it will be written (IQR,IQG) to indicate graupel to rain
-          ! and the parametrization can have different variables switched on
-          ! and off.
-          ! each of these is a parametrization for a microphysical process.
+
+
           !------------------------------------------------------------------
-          !                 DETRAINMENT FROM CONVECTION
+          ! convective detrainment
           !------------------------------------------------------------------
           if ( mo2mc%qdetr(j,i,k) > activqx ) then
             !qice = 1 if T < 250, qice = 0 if T > 273
@@ -1028,23 +1042,10 @@ module mod_micro_nogtom
             end if
 
             !------------------------------------------------------------------
-            ! CONDENSATION/EVAPORATION DUE TO DQSAT/DT
+            ! condensation/evaporation due to dqsat/dt
             !------------------------------------------------------------------
-            ! calculate dqs/dt
-            ! Note: For the separate prognostic Qi and Ql, one would ideally use
-            ! Qsat/DT wrt liquid/Koop here, since the physics is that new clouds
-            ! forms by liquid droplets [liq] or when aqueous aerosols [Koop]
-            ! form.
-            ! These would then instant. freeze if T<-38C or lead to ice growth
-            ! by deposition in warmer mixed phase clouds.  However, since we do
-            ! not have a separate prognostic equation for in-cloud humidity or a
-            ! statistical scheme approach in place, the depositional growth of
-            ! ice in the mixed phase can not be modelled and we resort to
-            ! supersaturation
-            ! wrt ice instanteously converting to ice over one timestep
-            ! (see Tompkins et al. QJRMS 2007 for details)
-            ! Thus for the initial implementation the diagnostic mixed phase is
-            ! retained for the moment, and the level of approximation noted.
+            ! calculate dqs/dt and use to calculate the cloud source
+            ! note that old diagnostic mix phased qsat is retained for moment 
             !------------------------------------------------------------------
             dtdp   = rovcp*tk/mo2mc%phs(j,i,k)
             dpmxdt = dp*oneodt
@@ -1091,7 +1092,7 @@ module mod_micro_nogtom
             !----------------------------------------------------------------
             ! dqs > 0:  evaporation of clouds
             !----------------------------------------------------------------
-            ! erosion term is linear in l
+            ! erosion term is explicit in for cloud liquid 
             ! changed to be uniform distribution in cloud region
             ! previous function based on delta distribution in cloud:
             if ( dqs > d_zero ) then
@@ -1447,7 +1448,9 @@ module mod_micro_nogtom
 #endif
             end if
 
+            !-------------------
             ! Freezing of liquid
+            !-------------------
 
             chngmax = max((thomo-tk)*rldcp,d_zero)
             if ( chngmax > dlowval .and. qxfg(iqql) > activqx ) then
@@ -1465,9 +1468,15 @@ module mod_micro_nogtom
             end if
 
             !---------------------------------------------------------------
-            !                         EVAPORATION
+            ! collection and coellescion here Khairoutdinov and Kogan [2000]
             !---------------------------------------------------------------
-            !------------------------------------------------------------
+            ! CODE 
+
+
+            !---------------------------------------------------------------
+            ! evaporation - follows Jakob and Klein MWR 2000, with mods from 
+            !               Tompkins  
+            !---------------------------------------------------------------
             ! recalculate qpretot since melting term may have changed it
             ! rprecrhmax = 0.7 is the threshold for the clear-sky RH that
             ! can be reached by evaporation of precipitation. THis assumption
@@ -1508,10 +1517,14 @@ module mod_micro_nogtom
               beta1 = sqrt(mo2mc%phs(j,i,k)/pbot) / &
                         5.09e-3_rkx*preclr/covpclr(j,i)
               if ( beta1 >= d_zero ) then
-                 beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
-                 denom = d_one + beta*dt*corqsliq
-                 dpr = covpclr(j,i) * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
-                 dpevap = dpr*dtgdp
+                beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
+                denom = d_one + beta*dt*corqsliq
+                dpr = covpclr(j,i) * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
+                dpevap = dpr*dtgdp
+
+                ! AMT just evaporate all rain if the rainfall is very small
+                if (qxfg(iqqr)<activqx ) dpevap=qxfg(iqqr)
+                 
                 !---------------------------------------------------------
                 ! add evaporation term to explicit sink.
                 ! this has to be explicit since if treated in the implicit
@@ -1571,13 +1584,11 @@ module mod_micro_nogtom
                 dpr = covpclr(j,i) * beta * &
                        (qsice(j,i,k)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
-                !---------------------------------------------------------
-                ! add evaporation term to explicit sink.
-                ! this has to be explicit since if treated in the implicit
-                ! term evaporation can not reduce snow to zero and model
-                ! produces small amounts of snowfall everywhere.
-                !---------------------------------------------------------
-                ! evaporate snow
+
+                ! sublimation of  snow
+                ! AMT just evaporate all if snow is very small
+                if (qxfg(iqqr)<activqx ) dpevap=qxfg(iqqr)
+
                 chng = min(dpevap,qxfg(iqqs))
                 chng = max(chng,d_zero)
                 !-------------------------------------------------------------
@@ -1724,14 +1735,6 @@ module mod_micro_nogtom
 
           call mysolve
 
-          ! Evaporate small amounts of qxn after solver
-          do n = 1 , nqx
-            qxnclean(n) = qxn(n)
-            if ( qxnclean(n) < activqx ) then
-              qxnclean(n) = d_zero
-            end if
-          end do
-
           !-------------------------------------------------------------------
           !  Precipitation/sedimentation fluxes to next level
           !  diagnostic precipitation fluxes
@@ -1741,7 +1744,6 @@ module mod_micro_nogtom
             ! Generalized precipitation flux
             ! this will be the source for the k
             pfplsx(n,j,i,k+1) = fallsink(j,i,n) * qxn(n)*rdtgdp
-            pfplsxclean(n,j,i,k+1) = fallsink(j,i,n) * qxnclean(n)*rdtgdp
             ! Calculate fluxes in and out of box for conservation of TL
             fluxq(j,i,n) = convsrce(n) + fallsrce(j,i,n) - &
                     (fallsink(j,i,n)+convsink(n)) * qxn(n)
@@ -1882,10 +1884,10 @@ module mod_micro_nogtom
         do j = jci1 , jci2
           do n = 1 , nqx
             if ( iphase(n) == 1 ) then
-              pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsxclean(n,j,i,k)
+              pfplsl(j,i,k) = pfplsl(j,i,k) + pfplsx(n,j,i,k)
               mc2mo%rainls(j,i,k) = pfplsl(j,i,k)
             else if ( iphase(n) == 2 ) then
-              pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsxclean(n,j,i,k)
+               pfplsn(j,i,k) = pfplsn(j,i,k) + pfplsx(n,j,i,k)
             end if
           end do
         end do
@@ -1950,6 +1952,7 @@ module mod_micro_nogtom
     subroutine khairoutdinov_and_kogan
       implicit none
       rainaut = dt*ccover*auto_rate_khair*(ql_incld**(auto_expon_khair))
+      if (rainaut<activqx) rainaut=d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
     end subroutine khairoutdinov_and_kogan
 
@@ -1980,7 +1983,7 @@ module mod_micro_nogtom
       ! parameters for cloud collection by rain and snow.
       ! note that with new prognostic variable it is now possible
       ! to replace this with an explicit collection
-      ! parametrization
+      ! parametrization to be replaced by Khairoutdinov and Kogan [2000]: 
       !-----------------------------------------------------------
       if ( covptot(j,i) > dlowval ) then
         precip = (rainp+snowp)/covptot(j,i)
@@ -1988,13 +1991,18 @@ module mod_micro_nogtom
         alpha1 = alpha1*cfpr
         acrit = acrit/max(cfpr,dlowval)
       end if
-      arg = (ql_incld/acrit)**2
+
       ! security for exp for some compilers
+      arg = (ql_incld/acrit)**2
       if ( arg < 25.0_rkx ) then
         rainaut = ccover*alpha1*(d_one - exp(-arg))
       else
         rainaut = ccover*alpha1
       end if
+
+      ! clean up
+      if (rainaut<activqx) rainaut=d_zero
+
       if ( ltkgt0 ) then
         qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
       else
