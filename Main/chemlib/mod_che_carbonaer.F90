@@ -119,7 +119,7 @@ module mod_che_carbonaer
       if ( ism1 > 0  .and. ism2 > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            kav = max(chib(j,i,k,iochb)-mintr,d_zero)
+            kav = max(chib(j,i,k,ism1)-mintr,d_zero)
             agingtend1 = -kav*(d_one-exp(-dt/chsmct))/dt
             agingtend2 = -agingtend1
             chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend1
