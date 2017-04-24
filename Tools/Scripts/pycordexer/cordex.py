@@ -88,7 +88,10 @@ def copyvar(nc,name,ovar,nnvar=None,bnds=True,stsf=False,ds=0.0,
                                shuffle=True,fletcher32=True,
                                zlib=True,complevel=9)
     else:
-      xvar = nc.createVariable(nvar,'f8',tuple(ssdim))
+      try:
+        xvar = nc.createVariable(nvar,'f8',tuple(ssdim))
+      except:
+        return None
   attrlist = [ ]
   for attr in ovar.ncattrs():
     attrlist.append(attr)
@@ -195,7 +198,13 @@ try:
 except:
   corrflag = 1
 
-lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
+lookup = { 'orog' :  { 'name' : ['topo'],
+                       'units' : 'm',
+                       'long_name' : 'Surface Altitude',
+                       'standard_name' : 'surface_altitude',
+                       'needbound' : False,
+                   },
+           'tas' : { 'name' : ['t2m','t2avg'],
                      'long_name' : 'Near-Surface Air Temperature',
                      'units' : 'K',
                      'needbound' : False,
@@ -511,10 +520,22 @@ if len(times) < 1:
   print('No timesteps in file !')
   sys.exit(0)
 
-xlat = ncf.variables['xlat']
-xlon = ncf.variables['xlon']
-iy = ncf.variables['iy']
-jx = ncf.variables['jx']
+try:
+  xlat = ncf.variables['xlat']
+except:
+  xlat = ncf.variables['lat']
+try:
+  xlon = ncf.variables['xlon']
+except:
+  xlon = ncf.variables['lon']
+try:
+  iy = ncf.variables['iy']
+except:
+  iy = ncf.variables['y']
+try:
+  jx = ncf.variables['jx']
+except:
+  jx = ncf.variables['x']
 
 stsf = False
 ftype = 'SRF'
@@ -566,7 +587,8 @@ if var is None:
 
 correct_time = times[:]
 if corrflag == 1:
-  correct_time = correct_time + lookup[variable]['timecorr'][ftype]
+  if lookup[variable].has_key('timecorr'):
+    correct_time = correct_time + lookup[variable]['timecorr'][ftype]
 dates = num2date(correct_time, units=times.units, calendar=times.calendar)
 
 try:
@@ -588,6 +610,10 @@ elif ff > 670:
 else:
   frequency = repr(ff.astype(int))+'hr'
   needbound = lookup[variable]['needbound']
+
+if 'time' not in var.dimensions:
+  frequency = 'fixed'
+  needbound = False
 
 olddom = getattr(ncf,'experiment')
 
@@ -796,7 +822,10 @@ else:
   newjx[Ellipsis] = jx[Ellipsis]
 
 if newrcm_map is not None:
-  newrcm_map[Ellipsis] = rcm_map[Ellipsis]
+  try:
+    newrcm_map[Ellipsis] = rcm_map[Ellipsis]
+  except:
+    pass
 
 for avar , avname in zip(avars,addvar):
   if avname == 'm2':
@@ -812,74 +841,78 @@ for avar , avname in zip(avars,addvar):
       else:
         avar[Ellipsis] = np.array( lookupvar[avname]['default_value'], )
 
-if stsf:
-  newtime[:] = correct_time[:]/24.0
-else:
-  newtime[:] = correct_time[:]
-if timebnds is not None and needbound:
+if newtime:
   if stsf:
-    newtimebnds[:] = timebnds[:]/24.0
+    newtime[:] = correct_time[:]/24.0
   else:
-    newtimebnds[:] = timebnds[:]
-else:
-  if needbound:
+    newtime[:] = correct_time[:]
+  if timebnds is not None and needbound:
     if stsf:
-      newtimebnds[:,0] = (times[:] - ff/2)/24.0
-      newtimebnds[:,1] = (times[:] + ff/2)/24.0
+      newtimebnds[:] = timebnds[:]/24.0
     else:
-      newtimebnds[:,0] = times[:] - ff/2
-      newtimebnds[:,1] = times[:] + ff/2
+      newtimebnds[:] = timebnds[:]
+  else:
+    if needbound:
+      if stsf:
+        newtimebnds[:,0] = (times[:] - ff/2)/24.0
+        newtimebnds[:,1] = (times[:] + ff/2)/24.0
+      else:
+        newtimebnds[:,0] = times[:] - ff/2
+        newtimebnds[:,1] = times[:] + ff/2
 
 xfac = unitcorrect(oldunits,lookup[variable]['units'])
 
-for it in range(0,np.size(correct_time)):
-  if lookup[variable].has_key('vertint'):
-    if 'plev' in var.dimensions:
-      intvar = var[it,mask[0],Ellipsis]
-      newvar[it,Ellipsis] = intvar * xfac
-    else:
-      if lookup[variable]['vertmod'] == 'linear':
-        intvar = mod_vertint.intlin(var[it,:,:,:],
-                          ps[it,:,:],sigma,ptop,
-                          lookup[variable]['vertint'])
-        if variable == 'hus850':
-          intvar = mrtosph(intvar,getattr(var,'standard_name'))
+if 'time' not in var.dimensions:
+  newvar[Ellipsis] = var[Ellipsis]
+else:
+  for it in range(0,np.size(correct_time)):
+    if lookup[variable].has_key('vertint'):
+      if 'plev' in var.dimensions:
+        intvar = var[it,mask[0],Ellipsis]
         newvar[it,Ellipsis] = intvar * xfac
-      elif lookup[variable]['vertmod'] == 'log':
-        newvar[it,Ellipsis] = mod_vertint.intlog(var[it,:,:,:],
-                              ps[it,:,:],sigma,ptop,
-                              lookup[variable]['vertint']) * xfac
-      elif lookup[variable]['vertmod'] == 'compute':
-        if not lookup[variable].has_key('formula'):
-          raise RuntimeError('Cannot compute without formula!')
-        func = lookup[variable]['tocall']['method']
-        if ( func == 'level' ):
-          lvl = lookup[variable]['tocall']['level']
-          newvar[it,Ellipsis] = var[it,lvl,:,:]
-        else:
-          newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
       else:
-        raise RuntimeError('Unknow vertical interpolation method!')
-  elif lookup[variable].has_key('formula') and use_formula:
-    func = lookup[variable]['tocall']['method']
-    if lookup[variable]['tocall']['dimension'] == 2:
-      if variable == 'mslp':
-        tmp = wrapper(func,compvars,it) * xfac
-        mod_hgt.gs_filter(tmp,compvars[0][it,Ellipsis])
-        newvar[it,Ellipsis] = tmp
-      else:
-        if ( func == 'level' and len(var.dimensions) == 4 ):
-          lvl = lookup[variable]['tocall']['level']
-          newvar[it,Ellipsis] = var[it,lvl,:,:]
+        if lookup[variable]['vertmod'] == 'linear':
+          intvar = mod_vertint.intlin(var[it,:,:,:],
+                            ps[it,:,:],sigma,ptop,
+                            lookup[variable]['vertint'])
+          if variable == 'hus850':
+            intvar = mrtosph(intvar,getattr(var,'standard_name'))
+          newvar[it,Ellipsis] = intvar * xfac
+        elif lookup[variable]['vertmod'] == 'log':
+          newvar[it,Ellipsis] = mod_vertint.intlog(var[it,:,:,:],
+                                ps[it,:,:],sigma,ptop,
+                                lookup[variable]['vertint']) * xfac
+        elif lookup[variable]['vertmod'] == 'compute':
+          if not lookup[variable].has_key('formula'):
+            raise RuntimeError('Cannot compute without formula!')
+          func = lookup[variable]['tocall']['method']
+          if ( func == 'level' ):
+            lvl = lookup[variable]['tocall']['level']
+            newvar[it,Ellipsis] = var[it,lvl,:,:]
+          else:
+            newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
         else:
-          newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
+          raise RuntimeError('Unknow vertical interpolation method!')
+    elif lookup[variable].has_key('formula') and use_formula:
+      func = lookup[variable]['tocall']['method']
+      if lookup[variable]['tocall']['dimension'] == 2:
+        if variable == 'mslp':
+          tmp = wrapper(func,compvars,it) * xfac
+          mod_hgt.gs_filter(tmp,compvars[0][it,Ellipsis])
+          newvar[it,Ellipsis] = tmp
+        else:
+          if ( func == 'level' and len(var.dimensions) == 4 ):
+            lvl = lookup[variable]['tocall']['level']
+            newvar[it,Ellipsis] = var[it,lvl,:,:]
+          else:
+            newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
+      else:
+        newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
     else:
-      newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
-  else:
-    if variable == 'evspsbl':
-        newvar[it,Ellipsis] = correct_evaporation(var[it,Ellipsis]) * xfac
-    else:
-        newvar[it,Ellipsis] = var[it,Ellipsis] * xfac
+      if variable == 'evspsbl':
+          newvar[it,Ellipsis] = correct_evaporation(var[it,Ellipsis]) * xfac
+      else:
+          newvar[it,Ellipsis] = var[it,Ellipsis] * xfac
 
 nco.close()
 ncf.close()

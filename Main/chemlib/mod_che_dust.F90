@@ -444,7 +444,7 @@ module mod_che_dust
         dustbsiz(:,:) = dustbsiz1(:,:)
         dustbed(:) = dustbed1(:)
         chtrsol(idust(:))=  soldust1(:)
-      elseif ( size(idust) == size(dustbsiz2,1) ) then
+      else if ( size(idust) == size(dustbsiz2,1) ) then
         dustbsiz(:,:) = dustbsiz2(:,:)
         dustbed(:) = dustbed2(:)
         chtrsol(idust(:))=  soldust2(:)
@@ -669,7 +669,7 @@ module mod_che_dust
             if ( ichdrdepo == 1 ) then
               chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + &
                    rsfrow(i,n)*egrav/(dsigma(kz)*1.e3_rkx)
-            elseif ( ichdrdepo == 2 ) then
+            else if ( ichdrdepo == 2 ) then
               ! pass the flux to BL scheme
               chifxuw(jloop,i,idust(n)) = chifxuw(jloop,i,idust(n)) + &
                    rsfrow(i,n)
@@ -967,7 +967,7 @@ module mod_che_dust
       implicit none
       integer(ik4) :: i,j,n
       real(rkx) , pointer , dimension(:,:) :: sumdflux
-      real(rkx) :: cdsfrq
+      ! real(rkx) :: cdsfrq
       ! Update dust tendency with dust fluxes calculated in CLM
       ! here sump up the total flux from clm ( initially defined on 4 bins)
       ! and re-distribute it according to the selected dust emission size
@@ -976,7 +976,7 @@ module mod_che_dust
       ! readius and optical properties
       ! use the same tuning erodibility factor rdstemfac than for
       ! standard scheme
-      cdsfrq = real(ntsrf/kche,rkx)
+      ! cdsfrq = real(ntsrf/kche,rkx)
       allocate(sumdflux(jci1:jci2,ici1:ici2))
       sumdflux = d_zero
 #ifdef CLM45
@@ -994,13 +994,13 @@ module mod_che_dust
                   sumdflux(j,i) * frac(n)
             end if
             ! diagnostic source (accumulated)
-!            cdsfrq = cfdout
+            ! cdsfrq = cfdout
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
-                    sumdflux(j,i)*frac(n) * cfdout 
+                    sumdflux(j,i)*frac(n) * cfdout
              if ( ichdiag > 0 ) then
                cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
                                  sumdflux(j,i)*frac(n) / &
-                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) *cfdout 
+                                 (cdzq(j,i,kz)*crhob3d(j,i,kz))*cfdout
              end if
           end do
         end do

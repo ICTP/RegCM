@@ -67,7 +67,6 @@ module mod_che_carbonaer
   real(rkx) , parameter :: solsm1 = 0.05_rkx
   real(rkx) , parameter :: solsm2 = 0.8_rkx
 
-
   public :: aging_carb , solbc , solbchl , soloc , solochl , solsm1 , solsm2
 
   ! bin size for carboneaceous aerosols
@@ -95,8 +94,8 @@ module mod_che_carbonaer
             chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
             chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
             if ( ichdiag > 0 ) then
-              chemdiag(j,i,k,ibchb) = chemdiag(j,i,k,ibchb) + agingtend1 * cfdout
-              chemdiag(j,i,k,ibchl) = chemdiag(j,i,k,ibchl) + agingtend2 * cfdout
+              chemdiag(j,i,k,ibchb) = chemdiag(j,i,k,ibchb) + agingtend1*cfdout
+              chemdiag(j,i,k,ibchl) = chemdiag(j,i,k,ibchl) + agingtend2*cfdout
             end if
           end do
         end do
@@ -110,8 +109,8 @@ module mod_che_carbonaer
             chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
             chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
             if ( ichdiag > 0 ) then
-              chemdiag(j,i,k,iochb) = chemdiag(j,i,k,iochb) + agingtend1 * cfdout
-              chemdiag(j,i,k,iochl) = chemdiag(j,i,k,iochl) + agingtend2 * cfdout
+              chemdiag(j,i,k,iochb) = chemdiag(j,i,k,iochb) + agingtend1*cfdout
+              chemdiag(j,i,k,iochl) = chemdiag(j,i,k,iochl) + agingtend2*cfdout
             end if
           end do
         end do
@@ -126,17 +125,14 @@ module mod_che_carbonaer
             chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend1
             chiten(j,i,k,ism2) = chiten(j,i,k,ism2) + agingtend2
             if ( ichdiag > 0 ) then
-              chemdiag(j,i,k,ism1) = chemdiag(j,i,k,ism1) + agingtend1 * cfdout
-              chemdiag(j,i,k,ism2) = chemdiag(j,i,k,ism2) + agingtend2 * cfdout
+              chemdiag(j,i,k,ism1) = chemdiag(j,i,k,ism1) + agingtend1*cfdout
+              chemdiag(j,i,k,ism2) = chemdiag(j,i,k,ism2) + agingtend2*cfdout
             end if
           end do
         end do
       end if
 
-
-
-
     end subroutine aging_carb
-!
+
 end module mod_che_carbonaer
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
