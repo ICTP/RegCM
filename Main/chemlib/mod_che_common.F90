@@ -306,13 +306,23 @@ module mod_che_common
       if ( myid == italk ) write(stdout,*) 'SUCA simulation'
     else if ( chemsimtype(1:4) == 'AERO' ) then
       nbin = 4
-      ntr = 12
-      allocate(chtrname(ntr))
-      iaerosol = 1
-      ioxclim  = 1
-      chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+      iaerosol=1
+      ioxclim =1
+      if (ismoke==1) then
+       ntr = 14
+       allocate(chtrname(ntr))
+       chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                               'SO2   ','SO4   ','DUST01','DUST02', &
+                               'DUST03','DUST04','SSLT01','SSLT02', &
+                               'SM1   ','SM2   ' /)
+      else
+        ntr = 12
+        allocate(chtrname(ntr))
+        chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
                                'SO2   ','SO4   ','DUST01','DUST02', &
                                'DUST03','DUST04','SSLT01','SSLT02' /)
+      end if
+
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
     else if ( chemsimtype(1:4) == 'DCCB' ) then
       nbin = 4
