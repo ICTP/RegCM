@@ -94,6 +94,10 @@ module mod_che_carbonaer
             agingtend2 = -agingtend1
             chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
             chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
+            if ( ichdiag > 0 ) then
+              chemdiag(j,i,k,ibchb) = chemdiag(j,i,k,ibchb) + agingtend1 * cfdout
+              chemdiag(j,i,k,ibchl) = chemdiag(j,i,k,ibchl) + agingtend2 * cfdout
+            end if
           end do
         end do
       end if
@@ -105,6 +109,10 @@ module mod_che_carbonaer
             agingtend2 = -agingtend1
             chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
             chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
+            if ( ichdiag > 0 ) then
+              chemdiag(j,i,k,iochb) = chemdiag(j,i,k,iochb) + agingtend1 * cfdout
+              chemdiag(j,i,k,iochl) = chemdiag(j,i,k,iochl) + agingtend2 * cfdout
+            end if
           end do
         end do
       end if
@@ -117,9 +125,16 @@ module mod_che_carbonaer
             agingtend2 = -agingtend1
             chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend1
             chiten(j,i,k,ism2) = chiten(j,i,k,ism2) + agingtend2
+            if ( ichdiag > 0 ) then
+              chemdiag(j,i,k,ism1) = chemdiag(j,i,k,ism1) + agingtend1 * cfdout
+              chemdiag(j,i,k,ism2) = chemdiag(j,i,k,ism2) + agingtend2 * cfdout
+            end if
           end do
         end do
       end if
+
+
+
 
     end subroutine aging_carb
 !
