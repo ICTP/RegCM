@@ -996,11 +996,11 @@ module mod_che_dust
             ! diagnostic source (accumulated)
 !            cdsfrq = cfdout
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
-                    sumdflux(j,i)*frac(n) * cdsfrq
+                    sumdflux(j,i)*frac(n) * cfdout 
              if ( ichdiag > 0 ) then
                cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
                                  sumdflux(j,i)*frac(n) / &
-                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cdsfrq
+                                 (cdzq(j,i,kz)*crhob3d(j,i,kz)) *cfdout 
              end if
           end do
         end do
