@@ -538,6 +538,19 @@
               chemten(jci1:jci2,:,:,:) * cfdout
         end if
       end if
+! FAB try to put a criteria to avoid grid point storm and explosion in the
+! chemistry 
+! normally grid point storm produces a crazy precipitation in the column 
+! set tracer total tracer tendency to zero if so .. threshold 0.005 mm/s = 432
+! mm /d
+! 
+    do j = jci1 , jci2
+     do i = ici1 , ici2
+
+      if ( maxval(convprec(i,:,j) + prec(i,:,j))  > 0.001 ) chiten (j,i,:,:) = d_zero
+
+     end do
+    end do
       !
       ! diagnostics
       ! tracer instantaneous burden for diag
