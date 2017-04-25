@@ -37,6 +37,7 @@ module mod_nest
   use mod_message
   use mod_memutil
   use mod_nchelper
+  use mod_domain , only : read_reference_surface_temp
 
   private
 
@@ -68,7 +69,7 @@ module mod_nest
   real(rkx) , pointer , dimension(:,:,:) :: up , vp
 
   real(rkx) , pointer , dimension(:) :: plev , sigmar
-  real(rkx) :: pss
+  real(rkx) :: pss , ptoppa
   real(rkx) , pointer , dimension(:) :: sigma_in
 
   integer(ik4) :: iy_in , jx_in , kz_in
@@ -99,7 +100,8 @@ module mod_nest
     type(rcm_time_and_date) :: imf
     real(rkx) , dimension(2) :: trlat
     real(rkx) , dimension(:) , allocatable :: sigfix
-    real(rkx) :: tlp , pr0_in
+    integer(ik4) , dimension(3) :: istart , icount
+    real(rkx) :: tlp , pr0_in , ts0
 
     imf = monfirst(globidate1)
     write (fillin,'(a,i10)') 'ATM.', toint10(imf)
@@ -291,11 +293,13 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable p0 read error')
       pstar0 = p0_in - ptop_in * d_100
+      call read_reference_surface_temp(ncinp,ts0)
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
             pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in * d_100
-            t0_in(j,i,k) = stdatm_val(xlat_in(j,i),pr0_in*d_r100,istdatm_tempk)
+            t0_in(j,i,k) = max(ts0 +  &
+                      tlp * log(pr0(j,i,k) / base_state_pressure),tiso)
           end do
         end do
       end do
@@ -303,7 +307,11 @@ module mod_nest
       istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ps error')
-      istatus = nf90_get_var(ncinp, ivarid, p0_in)
+      istart(:) = 1
+      icount(1) = jx_in
+      icount(2) = iy_in
+      icount(3) = 1
+      istatus = nf90_get_var(ncinp, ivarid, p0_in,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ps read error')
       pstar0 = p0_in - ptop_in * d_100
@@ -341,7 +349,10 @@ module mod_nest
     do k = 1 , np
       sigmar(k) = plev(k)/plev(np)
     end do
+
     pss = plev(np)
+    ptoppa = ptop * d_1000
+
   end subroutine init_nest
 
   subroutine get_nest(idate)
@@ -354,9 +365,6 @@ module mod_nest
     integer(ik4) , dimension(4) :: istart , icount
     type(rcm_time_and_date) :: imf
     logical :: lspch
-    real(rkx) :: ptoppa
-
-    ptoppa = ptop * d_1000
 
     if (.not. associated(b2)) then
       call die('get_nest','Called get_nest before headernest !',1)
@@ -398,16 +406,7 @@ module mod_nest
       do i = 1 , nrec
         itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
       end do
-    end if
-
-    irec = -1
-    do i = 1 , nrec
-      if (idate == itimes(i)) then
-        irec = i
-        exit
-      end if
-    end do
-    if (irec < 0) then
+    else if ( idate < itimes(1) ) then
       ! Try previous month !
       istatus = nf90_close(ncinp)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -444,17 +443,18 @@ module mod_nest
       do i = 1 , nrec
         itimes(i) = timeval2date(xtimes(i), timeunits,timecal)
       end do
-      irec = -1
-      do i = 1 , nrec
-        if (idate == itimes(i)) then
-          irec = i
-          exit
-        end if
-      end do
-      if ( irec < 0 ) then
-        write (stderr,*) 'Error : time ', tochar(idate), ' not in file'
-        call die('get_nest')
+    end if
+
+    irec = -1
+    do i = 1 , nrec
+      if (idate == itimes(i)) then
+        irec = i
+        exit
       end if
+    end do
+    if ( irec < 0 ) then
+      write (stderr,*) 'Error : time ', tochar(idate), ' not in file'
+      call die('get_nest')
     end if
 
     istart(4) = irec

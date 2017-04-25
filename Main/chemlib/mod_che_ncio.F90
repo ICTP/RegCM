@@ -93,11 +93,15 @@ module mod_che_ncio
 !                 'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
 !                 'TOLUENE ','PAN     ','SO2     ','SO4     ', &
 !                 'DMS     '/
- data chbcname / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ','N2O5    ','H2O2    ','CH4     ',  &
-                 'CO      ','SO2     ','H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ','OLET    ',  &
-                 'OLEI    ','TOL     ','XYL     ','ISOP    ','CRES    ','OPEN    ','ISOPN   ','ISOPRD  ',  &
-                 'ONIT    ','MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ','ALD2    ','HCHO    ','CH3OH   '/
-
+  data chbcname / 'O3      ','NO      ','NO2     ','HNO3    ', &
+                  'HNO4    ','N2O5    ','H2O2    ','CH4     ', &
+                  'CO      ','SO2     ','H2SO4   ','DMS     ', &
+                  'PAR     ','C2H6    ','ETH     ','OLET    ', &
+                  'OLEI    ','TOL     ','XYL     ','ISOP    ', &
+                  'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ', &
+                  'ONIT    ','MGLY    ','AONE    ','PAN     ', &
+                  'CH3OOH  ','ETHOOH  ','ALD2    ','HCHO    ', &
+                  'CH3OH   '/
   data oxbcname /'OH      ','HO2     ','O3      ', 'NO3    ','H2O2   ' /
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
   data aedu12 / 'DUST01', 'DUST02', 'DUST03', 'DUST04',  &

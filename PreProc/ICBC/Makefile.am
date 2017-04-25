@@ -51,7 +51,7 @@ mod_ipsl_helper.o : mod_ipsl_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynpa
 mod_gfdl_helper.o : mod_gfdl_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_cnrm_helper.o : mod_cnrm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_mpiesm_helper.o : mod_mpiesm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
-mod_ch_fnest.o : mod_ch_fnest.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o
+mod_ch_fnest.o : mod_ch_fnest.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o mod_posix.o mod_message.o mod_vertint.o
 mod_ecens.o : mod_ecens.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o
 mod_ecwcp.o : mod_ecwcp.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
 mod_eh5om.o : mod_eh5om.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_memutil.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o
