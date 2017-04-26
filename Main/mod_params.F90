@@ -67,7 +67,7 @@ module mod_params
     real(rkx) :: afracl , afracs , bb , cc , chibot , delsig ,  &
                dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk , &
                qkp1 , sig700 , sigtbl , ssum , vqmax , wk ,     &
-               wkp1 , xbot , xtop , xx , yy , ts0
+               wkp1 , xbot , xtop , xx , yy
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     real(rkx) , dimension(nsplit) :: dtsplit
@@ -1600,7 +1600,8 @@ module mod_params
     call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask,   &
                           mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,     &
                           mddom%msfx,mddom%msfd,mddom%coriol,mddom%snowam, &
-                          mddom%smoist,mddom%rmoist,mddom%dhlake,ts0)
+                          mddom%smoist,mddom%rmoist,mddom%dhlake,          &
+                          base_state_ts0)
     call bcast(ds)
     call bcast(ptop)
 
@@ -2394,7 +2395,7 @@ module mod_params
         use mod_nhinterp
         implicit none
         integer(ik4) :: i , j , k
-        call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
+        call nhsetup(ptop,base_state_pressure,logp_lrate,base_state_ts0)
         mddom%ht = mddom%ht * regrav
         call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%ht, &
                     atm0%ps,atm0%pr,atm0%t,atm0%rho,atm0%z)

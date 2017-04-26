@@ -2564,6 +2564,9 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('logp_lapse_rate',logp_lrate))
           call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_real8('base_state_surface_temperature', &
+                  base_state_ts0))
+          call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('background_diffusion_coefficient',ckh))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('dynamical_diffusion_coefficient',adyndif))

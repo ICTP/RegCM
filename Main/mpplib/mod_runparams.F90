@@ -194,6 +194,7 @@ module mod_runparams
   ! Non hydrostatic core parameters
 
   ! Upper radiative BC for non-hydrostatic core
+  real(rkx) , public :: base_state_ts0
   integer(ik4) , public :: ifupr
   ! BET parameter in sound waves removal
   real(rkx) , public :: nhbet
