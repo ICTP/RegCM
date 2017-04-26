@@ -32,8 +32,8 @@ module mod_wrtoxd
   private
 
   public :: chv4 , oxv4 , aev4 , mw
-  public :: nchsp , noxsp , naesp
-  public :: chspec , oxspec , aespec
+  public :: nchsp , noxsp , naesp , ncbmz
+  public :: chspec , oxspec , aespec , cbmzspec
 
   public :: init_outoxd , close_outoxd
   public :: newfile_ch_icbc , newfile_ox_icbc , newfile_ae_icbc

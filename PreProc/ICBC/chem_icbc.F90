@@ -142,7 +142,7 @@ program chem_icbc
   if ( doaero ) call newfile_ae_icbc(idate)
 
   if ( chemtyp .eq. 'FNEST' ) then
-    call init_fnest(idate,cdir,cname)
+    call init_fnest(idate,cdir,cname,dochem,dooxcl,doaero)
   else
     if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call init_ch_icbc(idate)
     if ( dochem .and. chemtyp .eq. 'MZCLM' ) call init_ch_icbc_clim(idate)

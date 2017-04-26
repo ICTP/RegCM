@@ -61,16 +61,20 @@ module mod_ch_fnest
   real(rkx) , dimension(:) , pointer :: xtimes
   character(len=64) :: timeunits , timecal
 
+  logical , dimension(3) :: mapping
+
+  data mapping /.false.,.false.,.false./
   type(h_interpolator) :: hint
 
   public :: init_fnest , get_fnest , close_fnest
 
   contains
 
-  subroutine init_fnest(idate,cdir,cname)
+  subroutine init_fnest(idate,cdir,cname,dochem,dooxcl,doaero)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=*) , intent(in) :: cdir , cname
+    logical , intent(in) :: dochem , dooxcl , doaero
     type(direntry) , pointer , dimension(:) :: listf => null()
     type(rcm_time_and_date) :: imf
     character(len=10) :: cdate
@@ -80,6 +84,10 @@ module mod_ch_fnest
     real(rkx) :: xsign
     integer(ik4) :: istatus , idimid , ivarid
     integer(ik4) , dimension(3) :: istart , icount
+
+    if ( dochem ) mapping(1) = .true.
+    if ( dooxcl ) mapping(2) = .true.
+    if ( doaero ) mapping(3) = .true.
 
     call dirlist(cdir,listf)
     if ( .not. associated(listf) ) then
@@ -306,6 +314,7 @@ module mod_ch_fnest
       sigmar(k) = plev(k)/plev(np)
     end do
     pss = plev(np)
+
   end subroutine init_fnest
 
   subroutine get_fnest(idate)
@@ -477,7 +486,41 @@ module mod_ch_fnest
         end do
       end do
     end do
+    !
+    ! Now we have to map....
+    !
+    if ( mapping(1) ) then
+      do i = 1 , ncbmz
+        chv4(:,:,:,i) = mxc4_1(:,:,:,findex(cbmzspec(i)))
+      end do
+    end if
+    if ( mapping(2) ) then
+      do i = 1 , noxsp
+        oxv4(:,:,:,i) = mxc4_1(:,:,:,findex(oxspec(i)))
+      end do
+    end if
+    if ( mapping(3) ) then
+      do i = 1 , naesp
+        aev4(:,:,:,i) = mxc4_1(:,:,:,findex(aespec(i)))
+      end do
+    end if
   end subroutine get_fnest
+
+  integer(ik4) function findex(sname) result(i)
+    implicit none
+    character(len=*) , intent(in) :: sname
+    integer(ik4) :: nf
+    i = -1
+    do nf = 1 , fchem
+      if ( trim(chnames(nf)) == trim(sname) ) then
+        i = nf
+        return
+      end if
+    end do
+    if ( i == -1 ) then
+      call die('ch_fnest','Cannot find specie : '//trim(sname)//' in coarse',1)
+    end if
+  end function findex
 
   subroutine close_fnest
     use netcdf
