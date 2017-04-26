@@ -44,7 +44,7 @@ module mod_grid
 
   real(rkx) , public :: delx
   integer(ik4) , public :: i0 , i1 , j0 , j1
-  real(rkx) , public :: lat0 , lat1 , lon0 , lon1
+  real(rkx) , public :: lat0 , lat1 , lon0 , lon1 , ts0
 
   public :: init_grid
 
@@ -86,7 +86,6 @@ module mod_grid
     integer(ik4) :: incin
     character(len=256) :: fname
     integer(ik4) :: k
-    real(rkx) :: ts0
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     if ( idynamic == 2 ) then

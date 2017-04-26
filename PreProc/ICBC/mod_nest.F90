@@ -293,7 +293,6 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable p0 read error')
       pstar0 = p0_in - ptop_in * d_100
-      call read_reference_surface_temp(ncinp,ts0)
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
