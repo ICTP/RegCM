@@ -327,8 +327,8 @@ program ncprepare
     end if
     minlon = rounder(minval(tmplon),.false.)
   end if
-  rlatinc = max(rounder(ds/111000.0_rkx/2.0_rkx,.false.),1.0_rkx/120.0_rkx)
-  rloninc = max(rounder(ds/111000.0_rkx/2.0_rkx,.false.),1.0_rkx/120.0_rkx)
+  rlatinc = max(rounder(ds/111000.0_rkx,.false.),1.0_rkx/120.0_rkx)
+  rloninc = max(rounder(ds/111000.0_rkx,.false.),1.0_rkx/120.0_rkx)
   nlat = nint(abs(maxlat-minlat)/rlatinc)
   if (minlon > 0.0_rkx .and. maxlon < 0.0_rkx) then
     nlon = nint(abs((maxlon+360.0_rkx)-minlon)/rloninc) + 1
