@@ -75,7 +75,7 @@ module mod_ch_fnest
     type(rcm_time_and_date) :: imf
     character(len=10) :: cdate
     character(len=256) :: fname
-    integer(ik4) :: fnum , nf , is , ie , ip , i , j , k , istat
+    integer(ik4) :: fnum , nf , is , ie , ip , i , j , k
     real(rkx) , dimension(2) :: trlat
     real(rkx) :: xsign
     integer(ik4) :: istatus , idimid , ivarid

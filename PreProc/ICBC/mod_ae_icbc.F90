@@ -44,18 +44,21 @@ module mod_ae_icbc
   real(rkx) , pointer , dimension(:,:,:,:,:) :: aev2
   real(rkx) , pointer , dimension(:,:,:) :: xps2
   real(rkx) , pointer , dimension(:,:,:) :: xinp
-  real(rkx) , pointer , dimension(:,:) :: paeid_3
+  real(rkx) , pointer , dimension(:,:) :: paeid_3 , xps3
   real(rkx) , pointer , dimension(:,:,:,:) :: aev3
   integer(ik4) :: iyear
   character(len=8) , dimension(4) :: scendir
 
   real(rkx) :: prcm , pmpi , pmpj
   integer(ik4) :: ncid , istatus , iscen
+  integer(ik4) :: ncicbc , ivarps , irec
 
   public :: init_ae_icbc , get_ae_icbc , close_ae_icbc
 
   data ncid /-1/
+  data ncicbc /-1/
   data scendir / 'RF', 'RCP26', 'RCP45', 'RCP85' /
+  type(rcm_time_and_date) :: iodate
 
   type(h_interpolator) :: hint
 
@@ -66,9 +69,11 @@ module mod_ae_icbc
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivarid , istatus , dimid , is
     integer(ik4) :: nyear , month , nday , nhour
-    character(len=256) :: aefilename
+    character(len=256) :: aefilename , icbcfilename
 
     call split_idate(idate,nyear,month,nday,nhour)
+
+    iodate = idate
 
     r4pt = real(ptop)
 
@@ -91,11 +96,20 @@ module mod_ae_icbc
        trim(inpglob)//pthsep//'AERGLOB'//pthsep// &
        trim(scendir(iscen))//pthsep//'aero_1.9x2.5_L26_', &
        iyear, '-', iyear+9, '.nc'
+    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+            trim(domname), '_ICBC.', toint10(idate), '.nc'
 
     write(stdout,*) 'Opening ',trim(aefilename)
     istatus = nf90_open(aefilename,nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open aeid file')
+    istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open ICBC file '//trim(icbcfilename))
+    istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var ps in icbc file '//trim(icbcfilename))
+    irec = 1
 
     istatus = nf90_inq_dimid(ncid,'lon',dimid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -162,6 +176,7 @@ module mod_ae_icbc
     call h_interpolator_create(hint,aet42lat,aet42lon,xlat,xlon,ds)
 
     call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
+    call getmem2d(xps3,1,jx,1,iy,'mod_ae_icbc:xps3')
     call getmem2d(xps,1,aeilon,1,aejlat,'mod_ae_icbc:xps')
     call getmem3d(xps2,1,aeilon,1,aejlat,1,aeitime,'mod_ae_icbc:xps2')
     call getmem3d(xinp,1,aeilon,1,aejlat,1,aeilev,'mod_ae_icbc:xinp')
@@ -199,7 +214,8 @@ module mod_ae_icbc
     integer(ik4) :: m1 , m2
     integer(ik4) :: ivarid , istatus
     integer(ik4) :: nyear , month , nday , nhour
-    character(len=256) :: aefilename
+    character(len=256) :: aefilename , icbcfilename
+    integer(ik4) , dimension(3) :: istart , icount
 
     call split_idate(idate,nyear,month,nday,nhour)
 
@@ -232,6 +248,22 @@ module mod_ae_icbc
       end do
     end if
 
+    if (.not. lsamemonth(idate, iodate) ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close ICBC file')
+      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+              trim(domname), '_ICBC.', toint10(idate), '.nc'
+      istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open ICBC file '//trim(icbcfilename))
+      istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var ps in icbc file '//trim(icbcfilename))
+      iodate = idate
+      irec = 1
+    end if
+
     d1 = monfirst(idate)
     d2 = nextmon(d1)
     m1 = getmonth(d1)
@@ -257,8 +289,18 @@ module mod_ae_icbc
         xps(j,i) = xps2(j,i,m1)*wt1+xps2(j,i,m2)*wt2
       end do
     end do
+    call h_interpolate_cont(hint,xps,xps3)
 
-    call h_interpolate_cont(hint,xps,paeid_3)
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = irec
+    icount(1) = jx
+    icount(2) = iy
+    icount(3) = 1
+    istatus = nf90_get_var(ncicbc,ivarps,paeid_3)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var ps')
+    irec = irec + 1
 
     do i = 1 , iy
       do j = 1 , jx
@@ -266,21 +308,21 @@ module mod_ae_icbc
           prcm=((paeid_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
           k0 = -1
           do k = aeilev , 1 , -1
-            pmpi = aet42hyam(k)*p0+paeid_3(j,i)*aet42hybm(k)
+            pmpi = aet42hyam(k)*p0+xps3(j,i)*aet42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
           end do
           if (k0 == aeilev) then
-            pmpj = aet42hyam(aeilev-1)*p0+paeid_3(j,i)*aet42hybm(aeilev-1)
-            pmpi = aet42hyam(aeilev  )*p0+paeid_3(j,i)*aet42hybm(aeilev  )
+            pmpj = aet42hyam(aeilev-1)*p0+xps3(j,i)*aet42hybm(aeilev-1)
+            pmpi = aet42hyam(aeilev  )*p0+xps3(j,i)*aet42hybm(aeilev  )
             do is = 1 , naesp
               aev4(j,i,l,is) = aev3(j,i,aeilev,is) + &
                  (aev3(j,i,aeilev-1,is) - aev3(j,i,aeilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
-            pmpj = aet42hyam(k0  )*p0+paeid_3(j,i)*aet42hybm(k0  )
-            pmpi = aet42hyam(k0+1)*p0+paeid_3(j,i)*aet42hybm(k0+1)
+            pmpj = aet42hyam(k0  )*p0+xps3(j,i)*aet42hybm(k0  )
+            pmpi = aet42hyam(k0+1)*p0+xps3(j,i)*aet42hybm(k0+1)
             wt1 = (prcm-pmpj)/(pmpi-pmpj)
             wt2 = 1.0 - wt1
             do is = 1 , naesp
@@ -303,6 +345,11 @@ module mod_ae_icbc
       istatus = nf90_close(ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close aeid file')
+    end if
+    if ( ncicbc > 0 ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close icbc file')
     end if
   end subroutine close_ae_icbc
 

@@ -101,7 +101,7 @@ module mod_nest
     real(rkx) , dimension(2) :: trlat
     real(rkx) , dimension(:) , allocatable :: sigfix
     integer(ik4) , dimension(3) :: istart , icount
-    real(rkx) :: tlp , pr0_in , ts0
+    real(rkx) :: tlp , pr0_in
 
     imf = monfirst(globidate1)
     write (fillin,'(a,i10)') 'ATM.', toint10(imf)

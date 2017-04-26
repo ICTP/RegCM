@@ -45,33 +45,50 @@ module mod_ox_icbc
   real(rkx) , pointer , dimension(:,:) :: xps
   real(rkx) , pointer , dimension(:,:,:,:,:) :: oxv2
   real(rkx) , pointer , dimension(:,:,:) :: xps2 , xinp
-  real(rkx) , pointer , dimension(:,:) :: poxid_3
+  real(rkx) , pointer , dimension(:,:) :: poxid_3 , xps3
   real(rkx) , pointer , dimension(:,:,:,:) :: oxv3
 
   real(rkx) :: prcm , pmpi , pmpj
   integer(ik4) :: ncid , istatus
+  integer(ik4) :: ncicbc , ivarps , irec
 
   type(h_interpolator) :: hint
+  type(rcm_time_and_date) :: iodate
 
   public :: init_ox_icbc , get_ox_icbc , close_ox_icbc
 
   data ncid /-1/
+  data ncicbc /-1/
 
   contains
 
-  subroutine init_ox_icbc
+  subroutine init_ox_icbc(idate)
     implicit none
+    type(rcm_time_and_date) :: idate
     integer(ik4) :: ivarid , istatus , dimid , is
-    character(len=256) :: oxifile
+    character(len=256) :: oxifile , icbcfilename
 
     r4pt = real(ptop)
 
+    iodate = idate
+
     oxifile = trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
               'oxid_3d_64x128_L26_c030722.nc'
+    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+           trim(domname), '_ICBC.', toint10(idate), '.nc'
+
     write(stdout,*) 'Opening ',trim(oxifile)
     istatus = nf90_open(oxifile, nf90_nowrite, ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open oxid file')
+
+    istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open ICBC file '//trim(icbcfilename))
+    istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var ps in icbc file '//trim(icbcfilename))
+    irec = 1
 
     istatus = nf90_inq_dimid(ncid,'lon',dimid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -139,6 +156,7 @@ module mod_ox_icbc
     call h_interpolator_create(hint,oxt42lat,oxt42lon,xlat,xlon,ds)
 
     call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
+    call getmem2d(xps3,1,jx,1,iy,'mod_ch_icbc:xps3')
     call getmem2d(xps,1,oxilon,1,oxjlat,'mod_ox_icbc:xps')
     call getmem3d(xps2,1,oxilon,1,oxjlat,1,oxitime,'mod_ox_icbc:xps2')
     call getmem3d(xinp,1,oxilon,1,oxjlat,1,oxilev,'mod_ox_icbc:xinp')
@@ -169,9 +187,11 @@ module mod_ox_icbc
     integer(ik4) :: i , is , j , k , k0
     type(rcm_time_and_date) , intent(in) :: idate
     real(rkx) :: wt1 , wt2
+    character(len=256) :: icbcfilename
+    integer(ik4) , dimension(3) :: istart , icount
     type(rcm_time_and_date) :: d1 , d2
     type(rcm_time_interval) :: t1 , tt
-    integer(ik4) :: m1 , m2
+    integer(ik4) :: m1 , m2 , istatus
 
     d1 = monfirst(idate)
     d2 = nextmon(d1)
@@ -181,6 +201,33 @@ module mod_ox_icbc
     tt = d2-d1
     wt1 = real(tohours(t1)/tohours(tt),rkx)
     wt2 = 1.0_rkx - wt1
+
+    if (.not. lsamemonth(idate, iodate) ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close ICBC file')
+      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+             trim(domname), '_ICBC.', toint10(idate), '.nc'
+      istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open ICBC file '//trim(icbcfilename))
+      istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var ps in icbc file '//trim(icbcfilename))
+      iodate = idate
+      irec = 1
+    end if
+
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = irec
+    icount(1) = jx
+    icount(2) = iy
+    icount(3) = 1
+    istatus = nf90_get_var(ncicbc,ivarps,poxid_3)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var ps')
+    irec = irec + 1
 
     do is = 1 , noxsp
       do i = 1 , oxjlat
@@ -199,7 +246,7 @@ module mod_ox_icbc
       end do
     end do
 
-    call h_interpolate_cont(hint,xps,poxid_3)
+    call h_interpolate_cont(hint,xps,xps3)
 
     do i = 1 , iy
       do j = 1 , jx
@@ -207,21 +254,21 @@ module mod_ox_icbc
           prcm=((poxid_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
           k0 = -1
           do k = oxilev , 1 , -1
-            pmpi = oxt42hyam(k)*p0+poxid_3(j,i)*oxt42hybm(k)
+            pmpi = oxt42hyam(k)*p0+xps3(j,i)*oxt42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
           end do
           if (k0 == oxilev) then
-            pmpj = oxt42hyam(oxilev-1)*p0+poxid_3(j,i)*oxt42hybm(oxilev-1)
-            pmpi = oxt42hyam(oxilev  )*p0+poxid_3(j,i)*oxt42hybm(oxilev  )
+            pmpj = oxt42hyam(oxilev-1)*p0+xps3(j,i)*oxt42hybm(oxilev-1)
+            pmpi = oxt42hyam(oxilev  )*p0+xps3(j,i)*oxt42hybm(oxilev  )
             do is = 1 , noxsp
               oxv4(j,i,l,is) = oxv3(j,i,oxilev,is) + &
                  (oxv3(j,i,oxilev-1,is) - oxv3(j,i,oxilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
-            pmpj = oxt42hyam(k0  )*p0+poxid_3(j,i)*oxt42hybm(k0  )
-            pmpi = oxt42hyam(k0+1)*p0+poxid_3(j,i)*oxt42hybm(k0+1)
+            pmpj = oxt42hyam(k0  )*p0+xps3(j,i)*oxt42hybm(k0  )
+            pmpi = oxt42hyam(k0+1)*p0+xps3(j,i)*oxt42hybm(k0+1)
             wt1 = (prcm-pmpj)/(pmpi-pmpj)
             wt2 = 1.0 - wt1
             do is = 1 , noxsp
@@ -244,6 +291,11 @@ module mod_ox_icbc
       istatus = nf90_close(ncid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close oxid file')
+    end if
+    if ( ncicbc > 0 ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close icbc file')
     end if
   end subroutine close_ox_icbc
 

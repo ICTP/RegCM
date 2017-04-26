@@ -146,7 +146,7 @@ program chem_icbc
   else
     if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call init_ch_icbc(idate)
     if ( dochem .and. chemtyp .eq. 'MZCLM' ) call init_ch_icbc_clim(idate)
-    if ( dooxcl ) call init_ox_icbc
+    if ( dooxcl ) call init_ox_icbc(idate)
     if ( doaero ) call init_ae_icbc(idate)
   end if
 

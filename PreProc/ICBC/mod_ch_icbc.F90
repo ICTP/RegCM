@@ -46,7 +46,7 @@ module mod_ch_icbc
   real(rkx) , pointer , dimension(:) :: xtimes
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   real(rkx) :: p0
-  real(rkx) , pointer , dimension(:,:) :: pchem_3
+  real(rkx) , pointer , dimension(:,:) :: pchem_3 , xps3
   real(rkx) , pointer , dimension(:,:,:,:) :: chv3
   real(rkx) , pointer , dimension(:,:) :: xps
   real(rkx) , pointer , dimension(:,:,:) :: xinp
@@ -55,6 +55,11 @@ module mod_ch_icbc
 
   real(rkx) :: prcm , pmpi , pmpj
   real(rkx) :: r4pt
+
+  integer(ik4) :: ncicbc , ivarps , irec
+  type(rcm_time_and_date) :: iodate
+
+  data ncicbc /-1/
 
   type(h_interpolator) :: hint
 
@@ -67,17 +72,31 @@ module mod_ch_icbc
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) :: ivarid , idimid
     integer(ik4) :: nyear , month , nday , nhour
-    character(len=256) :: chfilename
+    character(len=256) :: chfilename , icbcfilename
     integer(ik4) :: ncid , istatus
 
     call split_idate(idate,nyear,month,nday,nhour)
 
+    iodate = idate
+
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
        'mz4_19990401.nc'
+    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+           trim(domname), '_ICBC.', toint10(idate), '.nc'
+
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
        'Error open file chemical '//trim(chfilename))
+
+    istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open ICBC file '//trim(icbcfilename))
+    istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var ps in icbc file '//trim(icbcfilename))
+    irec = 1
+
     istatus = nf90_inq_dimid(ncid,'lon',idimid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find dim lon')
@@ -98,6 +117,7 @@ module mod_ch_icbc
                     'Error inquire dim lev')
 
     call getmem2d(pchem_3,1,jx,1,iy,'mod_ch_icbc:pchem_3_1')
+    call getmem2d(xps3,1,jx,1,iy,'mod_ch_icbc:xps3')
     call getmem4d(chv3,1,jx,1,iy,1,chilev,1,nchsp,'mod_ch_icbc:chv3')
     call getmem4d(chv4_1,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_1')
     call getmem4d(chv4_2,1,jx,1,iy,1,kz,1,nchsp,'mod_ch_icbc:chv4_2')
@@ -156,14 +176,44 @@ module mod_ch_icbc
   subroutine get_ch_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    character(len=256)     :: chfilename
+    character(len=256) :: chfilename
     integer(ik4) :: year1 , month1 , day1 , hour1
     integer(ik4) :: nyear , month , nday , nhour
+    character(len=256) :: icbcfilename
+    integer(ik4) :: istatus
+    integer(ik4) , dimension(3) :: istart , icount
 
     call split_idate(globidate1,year1,month1,day1,hour1)
     call split_idate(idate,nyear,month,nday,nhour)
     call find_data(idate,globidate1,chfilename)
     write(*,*)chfilename
+    if (.not. lsamemonth(idate, iodate) ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close ICBC file')
+      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+             trim(domname), '_ICBC.', toint10(idate), '.nc'
+      istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open ICBC file '//trim(icbcfilename))
+      istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var ps in icbc file '//trim(icbcfilename))
+      iodate = idate
+      irec = 1
+    end if
+
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = irec
+    icount(1) = jx
+    icount(2) = iy
+    icount(3) = 1
+    istatus = nf90_get_var(ncicbc,ivarps,pchem_3)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var ps')
+    irec = irec + 1
+
     call readmz4(idate,chfilename)
 
     ! Lumping of Mozart species to CBMZ species
@@ -232,7 +282,7 @@ module mod_ch_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
     xps = xps*0.01
-    call h_interpolate_cont(hint,xps,pchem_3)
+    call h_interpolate_cont(hint,xps,xps3)
   end subroutine readps
 
   subroutine find_data(idate,idate0,chfilename)
@@ -408,21 +458,21 @@ module mod_ch_icbc
           prcm=((pchem_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
           k0 = -1
           do k = chilev , 1 , -1
-            pmpi = cht42hyam(k)*p0+pchem_3(j,i)*cht42hybm(k)
+            pmpi = cht42hyam(k)*p0+xps3(j,i)*cht42hybm(k)
             k0 = k
             if (prcm > pmpi) exit
           end do
           if (k0 == chilev) then
-            pmpj = cht42hyam(chilev-1)*p0+pchem_3(j,i)*cht42hybm(chilev-1)
-            pmpi = cht42hyam(chilev  )*p0+pchem_3(j,i)*cht42hybm(chilev  )
+            pmpj = cht42hyam(chilev-1)*p0+xps3(j,i)*cht42hybm(chilev-1)
+            pmpi = cht42hyam(chilev  )*p0+xps3(j,i)*cht42hybm(chilev  )
             do is = 1 , nchsp
               chv4_1(j,i,l,is) = chv3(j,i,chilev,is) + &
                  (chv3(j,i,chilev-1,is) - chv3(j,i,chilev,is)) * &
                  (prcm-pmpi)/(pmpi-pmpj)
             end do
           else if (k0 >= 1) then
-            pmpj = cht42hyam(k0  )*p0+pchem_3(j,i)*cht42hybm(k0  )
-            pmpi = cht42hyam(k0+1)*p0+pchem_3(j,i)*cht42hybm(k0+1)
+            pmpj = cht42hyam(k0  )*p0+xps3(j,i)*cht42hybm(k0  )
+            pmpi = cht42hyam(k0+1)*p0+xps3(j,i)*cht42hybm(k0+1)
             wt1 = (prcm-pmpj)/(pmpi-pmpj)
             wt2 = 1.0 - wt1
             do is = 1 , nchsp
@@ -439,7 +489,13 @@ module mod_ch_icbc
 
   subroutine close_ch_icbc
     implicit none
+    integer(ik4) :: istatus
     call h_interpolator_destroy(hint)
+    if ( ncicbc > 0 ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close icbc file')
+    end if
     return
   end subroutine close_ch_icbc
 
