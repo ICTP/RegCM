@@ -1760,7 +1760,7 @@ module mod_cu_kf
           ! Go back up for another iteration.
           !
         end if
-        if ( abs(topomg-omg(ltop)) > 1.0e-3_rkx ) then
+        if ( abs(topomg-omg(ltop)) > 1.0e-3_rkx .and. ncount > 1 ) then
           iprnt = .true.
           write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
           write (stderr, *) 'MASS DOES NOT BALANCE IN KF SCHEME'
