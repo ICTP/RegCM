@@ -327,6 +327,7 @@ module mod_ch_fnest
     integer(ik4) :: istatus , idimid , ivarid
     integer(ik4) , dimension(4) :: istart , icount
     real(rkx) :: prcm , pmpi , pmpj , wt1 , wt2
+    character(len=8) :: specname
 
     if ( idate > itimes(nrec) ) then
       imf = monfirst(idate)
@@ -493,16 +494,37 @@ module mod_ch_fnest
       do i = 1 , ncbmz
         chv4(:,:,:,i) = mxc4_1(:,:,:,findex(cbmzspec(i)))
       end do
+      call write_ch_icbc(idate)
     end if
     if ( mapping(2) ) then
       do i = 1 , noxsp
         oxv4(:,:,:,i) = mxc4_1(:,:,:,findex(oxspec(i)))
       end do
+      call write_ox_icbc(idate)
     end if
     if ( mapping(3) ) then
       do i = 1 , naesp
-        aev4(:,:,:,i) = mxc4_1(:,:,:,findex(aespec(i)))
+        if ( aespec(i) == 'SOA' ) cycle
+        if ( aespec(i) == 'SSLT03' ) cycle
+        if ( aespec(i) == 'SSLT04' ) cycle
+        if ( aespec(i)(1:3) == 'DST' ) then
+          specname = 'DUST'//aespec(i)(4:5)
+        else if ( aespec(i)(1:3) == 'D12' ) then
+          specname = 'DUST'//aespec(i)(4:5)
+        else if ( aespec(i)(1:3) == 'OC1' ) then
+          specname = 'OC_HB'
+        else if ( aespec(i)(1:3) == 'OC2' ) then
+          specname = 'OC_HL'
+        else if ( aespec(i)(1:3) == 'CB1' ) then
+          specname = 'BC_HB'
+        else if ( aespec(i)(1:3) == 'CB2' ) then
+          specname = 'BC_HL'
+        else
+          specname = aespec(i)
+        end if
+        aev4(:,:,:,i) = mxc4_1(:,:,:,findex(specname))
       end do
+      call write_ae_icbc(idate)
     end if
   end subroutine get_fnest
 
