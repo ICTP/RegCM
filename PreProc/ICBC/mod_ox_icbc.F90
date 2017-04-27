@@ -151,8 +151,6 @@ module mod_ox_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var P0')
 
-    p0 = p0*0.01
-
     call h_interpolator_create(hint,oxt42lat,oxt42lon,xlat,xlon,ds)
 
     call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
@@ -170,7 +168,6 @@ module mod_ox_icbc
     istatus = nf90_get_var(ncid,ivarid,xps2)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
-    xps2 = xps2 * 0.01
     do is = 1 , noxsp
       istatus = nf90_inq_varid(ncid,oxspec(is),ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -251,7 +248,7 @@ module mod_ox_icbc
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((poxid_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
+          prcm = ((poxid_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
           do k = oxilev , 1 , -1
             pmpi = oxt42hyam(k)*p0+xps3(j,i)*oxt42hybm(k)

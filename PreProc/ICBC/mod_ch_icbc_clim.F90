@@ -181,7 +181,6 @@ module mod_ch_icbc_clim
 
     call h_interpolator_create(hint,cht42lat,cht42lon,xlat,xlon,ds)
 
-    p0 = 1000.0
     r4pt = real(ptop)
     write(stdout,*) 'Static read OK.'
 
@@ -321,14 +320,13 @@ module mod_ch_icbc_clim
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open file chemical')
-    write(stdout, *) trim(chfilename)
+    write(stdout, *) 'Opening ', trim(chfilename)
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
-    xps = xps*0.01
     call h_interpolate_cont(hint,xps,xps3)
     do is = 1 , nchsp
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
@@ -343,7 +341,7 @@ module mod_ch_icbc_clim
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((pchem_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
+          prcm = ((pchem_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
           do k = chilev , 1 , -1
             pmpi = cht42hyam(k)*p0+xps3(j,i)*cht42hybm(k)
@@ -379,14 +377,13 @@ module mod_ch_icbc_clim
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open file chemical')
-    write(stdout, *) trim(chfilename)
+    write(stdout, *) 'Opening ', trim(chfilename)
     istatus = nf90_inq_varid(ncid,'PS',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var PS')
     istatus = nf90_get_var(ncid,ivarid,xps)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
-    xps = xps*0.01
     call h_interpolate_cont(hint,xps,xps3)
     do is = 1 , nchsp
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
@@ -401,7 +398,7 @@ module mod_ch_icbc_clim
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((pchem_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
+          prcm = ((pchem_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
           do k = chilev , 1 , -1
             pmpi = cht42hyam(k)*p0+xps3(j,i)*cht42hybm(k)

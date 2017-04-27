@@ -165,7 +165,6 @@ module mod_ch_icbc
 
     call h_interpolator_create(hint,cht42lat,cht42lon,xlat,xlon,ds)
 
-    p0 = 1000.0 !p0*0.01
     r4pt = real(ptop)
     write(stdout,*) 'Static read OK.'
 
@@ -281,7 +280,6 @@ module mod_ch_icbc
     istatus = nf90_get_var(ncid,ivarid,xps)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
-    xps = xps*0.01
     call h_interpolate_cont(hint,xps,xps3)
   end subroutine readps
 
@@ -428,7 +426,7 @@ module mod_ch_icbc
         recc = it
       end if
     end do
-    write(*,*)chfilename,'  ',recc,'  ',tochar(itimes(recc))
+    write(stdout,*) 'Opening ', chfilename,'  ',recc,'  ',tochar(itimes(recc))
 
     do k = 1 , 4
       istart(k) = 1
@@ -455,7 +453,7 @@ module mod_ch_icbc
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((pchem_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
+          prcm = ((pchem_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
           do k = chilev , 1 , -1
             pmpi = cht42hyam(k)*p0+xps3(j,i)*cht42hybm(k)

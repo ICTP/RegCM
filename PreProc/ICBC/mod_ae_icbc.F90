@@ -171,7 +171,6 @@ module mod_ae_icbc
     istatus = nf90_get_var(ncid,ivarid,p0)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var P0')
-    p0 = p0*0.01
 
     call h_interpolator_create(hint,aet42lat,aet42lon,xlat,xlon,ds)
 
@@ -190,7 +189,6 @@ module mod_ae_icbc
     istatus = nf90_get_var(ncid,ivarid,xps2)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var PS')
-    xps2 = xps2*0.01
     do is = 1 , naesp
       istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
       if ( istatus == nf90_noerr ) then
@@ -235,7 +233,6 @@ module mod_ae_icbc
       istatus = nf90_get_var(ncid,ivarid,xps2)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var PS')
-      xps2 = xps2*0.01
       do is = 1 , naesp
         istatus = nf90_inq_varid(ncid,aespec(is),ivarid)
         if ( istatus == nf90_noerr ) then
@@ -305,7 +302,7 @@ module mod_ae_icbc
     do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
-          prcm=((paeid_3(j,i)*0.1-r4pt)*sigmah(l)+r4pt)*10.
+          prcm = ((paeid_3(j,i)*0.1_rkx-r4pt)*sigmah(l)+r4pt)*1000.0_rkx
           k0 = -1
           do k = aeilev , 1 , -1
             pmpi = aet42hyam(k)*p0+xps3(j,i)*aet42hybm(k)
