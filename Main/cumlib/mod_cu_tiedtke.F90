@@ -28,11 +28,12 @@ module mod_cu_tiedtke
   use mod_cu_tables
   use mod_service
   use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
-         entrdd , entrmid , cprcon , entrpen , entrscv , iconv , &
-         ichem , iaerosol , iindirect , ipptls , hsigma , ktau , ichcumtra
+         entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
+         entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
+         hsigma , ktau , ichcumtra
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
-  use mod_runparams , only : detrpen , entrpen , entshalp , entrdd
+  use mod_runparams , only : detrpen_lnd , detrpen_ocn , entshalp , entrdd
   use mod_runparams , only : rhebc_ocn , rhebc_lnd , rcuc_lnd , rcuc_ocn
   use mod_runparams , only : rcpec_ocn , rcpec_lnd , cmtcape
   use mod_runparams , only : lmfpen , lmfmid , lmfdd , lepcld , lmfdudv , &
@@ -776,7 +777,7 @@ module mod_cu_tiedtke
     real(rkx) :: zalvdcp , zalvs , zb , zbi , zcons2 , zcor , zdepth ,  &
                zdhdz , zdqmin , zdqsdt , zdz , zeps , zes , zfac ,    &
                zgam , zhhat , zhsat , zmfmax , zpbmpt , zqalv ,       &
-               zqsat , zqst1 , qumqe , zrh , zro , ztau , zzz
+               zqsat , zqst1 , qumqe , zrh , zro , ztau , zzz , entrpen
     real(rkx) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
                                   zhcbase , zheat , zhmin , zmfub ,   &
                                   zmfub1 , zrfl , zsfl
@@ -864,6 +865,7 @@ module mod_cu_tiedtke
       zmfub(jl) = min(zmfub(jl),zmfmax)
       if ( .not.llo1 ) ldcum(jl) = .false.
       ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger*pqhfla(jl)*egrav))
+      entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(jl))
       zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     end do
     !
@@ -916,6 +918,7 @@ module mod_cu_tiedtke
     !
     do jl = 1 , kproma
       ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.0e4_rkx)
+      entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(jl))
       zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     end do
 
@@ -1251,7 +1254,7 @@ module mod_cu_tiedtke
     real(rkx) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
                zdz , zeps , zes , zfac , zgam , zhhat , zhsat ,       &
                zmfmax , zpbmpt , zqalv , zqsat , zqst1 , zqumqe ,     &
-               zro , ztau , zzz
+               zro , ztau , zzz , entrpen
     real(rkx) , dimension(kbdim) :: zcape , zdqcv , zdqpbl , zentr ,    &
                                   zhcbase , zheat , zmfub , zmfub1 ,  &
                                   zrfl , zsfl
@@ -1339,6 +1342,7 @@ module mod_cu_tiedtke
       zmfub(jl) = min(zmfub(jl),zmfmax)
       if ( .not.llo1 ) ldcum(jl) = .false.
       ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger*pqhfla(jl)*egrav))
+      entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(jl))
       zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     end do
     !
@@ -1395,6 +1399,7 @@ module mod_cu_tiedtke
     !!
     !  do jl = 1 , kproma
     !    ktype(jl) = merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl))>2.e4_rkx)
+    !    entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(jl))
     !    zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     !  end do
     !!
@@ -1676,7 +1681,7 @@ module mod_cu_tiedtke
     logical , dimension(kbdim) :: loddraf
     real(rkx) :: zalvdcp , zalvs , zcons2 , zcor , zdqmin , zdqsdt ,    &
                zeps , zes , zfac , zgam , zhhat , zhsat , zmfmax ,    &
-               zpbmpt , zqalv , zqsat , zqst1 , zqumqe , zzz
+               zpbmpt , zqalv , zqsat , zqst1 , zqumqe , zzz , entrpen
     real(rkx) , dimension(kbdim,klev) :: zcpcu , zcpen , zdmfdp ,       &
            zdmfup , zdpmel , zgeoh , zmfdq , zmfds , zmful , zmfuq ,  &
            zmfus , zqd , zqenh , zqsenh , ztd , ztenh , zud , zuu ,   &
@@ -1756,6 +1761,7 @@ module mod_cu_tiedtke
       zmfub(jl) = min(zmfub(jl),zmfmax)
       if ( .not.llo1 ) ldcum(jl) = .false.
       ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger*pqhfla(jl)*egrav))
+      entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(jl))
       zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
     end do
     !
@@ -5769,7 +5775,7 @@ module mod_cu_tiedtke
                    kedke , lcrit , leen , lnew , mfmax , mftest ,     &
                    mfulk , mfun , mfuqk , mfusk , prcdgw , prcon ,    &
                    qeen , qude , rnew , rold , scde , seen , &
-                   zvi , zvv , zvw , zwu , zco , arg
+                   zvi , zvv , zvw , zwu , zco , arg , entrpen
       real(rkx) :: change , zxs , zxe
       logical , dimension(np) :: llklab
       !----------------------
@@ -5905,6 +5911,7 @@ module mod_cu_tiedtke
             n = nlx(nll)
             ndmfde(n) = min(ndmfde(n),0.75_rkx*mfu(n,k+1))
             if ( k == kcbot(n) ) then
+              entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
               zoentr(n) = -entrpen*(min(d_one,q(n,k)/qs(n,k)) - &
                            d_one)*(geof(n,k)-geof(n,k+1))*regrav
               zoentr(n) = min(0.4_rkx,zoentr(n))*mfu(n,k+1)
@@ -6028,6 +6035,7 @@ module mod_cu_tiedtke
                 end if
                 if ( buo(n,k) >- 0.2_rkx .and. ilab(n,k+1) == 2 ) then
                   ikb = kcbot(n)
+                  entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
                   zoentr(n) = entrpen*(0.3_rkx-(min(d_one,q(n,k-1) /    &
                          qs(n,k-1))-d_one))*(geof(n,k-1)-geof(n,k)) * &
                          regrav*min(d_one,qs(n,k)/qs(n,ikb))**3
@@ -6157,7 +6165,7 @@ module mod_cu_tiedtke
       real(rkx) , dimension(np) , intent(out) :: dmfen    ! Entrainment
       real(rkx) , dimension(np) , intent(out) :: dmfde    ! Detrainment
       integer(ik4) :: n
-      real(rkx) :: mf
+      real(rkx) :: mf , entrpen , detrpen
       !-----------------------------------------------
       ! 1. Calculate entrainment and detrainment rates
       ! ----------------------------------------------
@@ -6170,6 +6178,8 @@ module mod_cu_tiedtke
           if ( ldcum(n) ) then
             if ( kk < kcbot(n) ) then
               mf = mfu(n,kk+1)*(geof(n,kk)-geof(n,kk+1))*regrav
+              entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
+              detrpen = merge(detrpen_lnd,detrpen_ocn,ldland(n))
               dmfen(n) = entrpen*mf
               dmfde(n) = detrpen*mf
             end if
@@ -7013,7 +7023,7 @@ module mod_cu_tiedtke
       real(rkx) :: tven2 , tvu2 ! pseudoadiabatic T_v
       real(rkx) , dimension(np) :: dtvtrig ! virtual temperatures
       real(rkx) :: work1 , work2 ! work for T and w perturbations
-      real(rkx) :: xtmp
+      real(rkx) :: xtmp , entrpen
       !-----------------------------------
       ! 0. Initialize constants and fields
       ! ----------------------------------
@@ -7192,6 +7202,7 @@ module mod_cu_tiedtke
                 dz(n) = (geof(n,k)-geof(n,k+1))*regrav
                 xqf = (qf(n,k+1)+qf(n,k))*d_half
                 sf = (xsenh(n,k+1)+xsenh(n,k))*d_half
+                entrpen = merge(entrpen_lnd,entrpen_ocn,ldland(n))
                 zmix(n) = 0.4_rkx*entrpen*dz(n) * &
                            min(d_one,(qs(n,k)/qs(n,nk))**3)
                 xqu(n,k) = xqu(n,k+1)*(d_one-zmix(n)) + xqf*zmix(n)

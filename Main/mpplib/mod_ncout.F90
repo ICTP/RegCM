@@ -2836,7 +2836,9 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_entrainment_rate_downdraft',entrdd))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('tiedtke_entrainment_rate_deep',entrpen))
+            ncattribute_real8('tiedtke_entrainment_rate_deep_land',entrpen_lnd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_real8('tiedtke_entrainment_rate_deep_ocean',entrpen_ocn))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('tiedtke_penetrative',lmfpen))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2859,7 +2861,9 @@ module mod_ncout
             ncattribute_logical('tiedtke_shallow_wstar_closure',lmfwstar))
           if ( iconv == 4 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_detrainment_rate_deep',detrpen))
+           ncattribute_real8('tiedtke_detrainment_rate_deep_land',detrpen_lnd))
+            call outstream_addatt(outstream(i)%ncout(j), &
+           ncattribute_real8('tiedtke_detrainment_rate_deep_ocean',detrpen_ocn))
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_shallow_entrainment',entshalp))
             call outstream_addatt(outstream(i)%ncout(j), &

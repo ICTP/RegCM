@@ -134,12 +134,12 @@ module mod_params
       entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
       betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
 
-    namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen ,   &
-      entrscv , entrmid , cprcon , detrpen , entshalp , rcuc_lnd , &
-      rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
-      rprc_ocn , rprc_lnd , cmtcape , lmfpen , lmfmid , lmfdd ,    &
-      lepcld , lmfdudv , lmfscv , lmfuvdis , lmftrac , lmfsmooth , &
-      lmfwstar
+    namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen_lnd , &
+      entrpen_ocn , entrscv , entrmid , cprcon , detrpen_lnd ,       &
+      detrpen_ocn , entshalp , rcuc_lnd , rcuc_ocn , rcpec_lnd ,     &
+      rcpec_ocn , rhebc_lnd , rhebc_ocn , rprc_ocn , rprc_lnd ,      &
+      cmtcape , lmfpen , lmfmid , lmfdd , lepcld , lmfdudv ,         &
+      lmfscv , lmfuvdis , lmftrac , lmfsmooth , lmfwstar
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
       kf_min_dtcape , kf_max_dtcape , kf_tkemax , kf_convrate
@@ -398,11 +398,13 @@ module mod_params
     iconv    = 4            ! Selects the actual scheme
     entrmax  = 1.75e-3_rkx  ! Max entrainment iconv=[1,2,3]
     entrdd   = 3.0e-4_rkx   ! Entrainment rate for cumulus downdrafts
-    entrpen  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
+    entrpen_lnd  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
+    entrpen_ocn  = 1.75e-3_rkx  ! Entrainment rate for penetrative convection
     entrscv  = 3.0e-4_rkx   ! Entrainment rate for shallow convn iconv=[1,2,3]
     entrmid  = 1.0e-4_rkx   ! Entrainment rate for midlevel convn iconv=[1,2,3]
     cprcon   = 1.0e-4_rkx   ! Coefficient for determine conversion iconv=[1,2,3]
-    detrpen = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
+    detrpen_lnd = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
+    detrpen_ocn = 0.75e-4_rkx   ! Detrainment rate for penetrative convection
     entshalp = 2.0_rkx      ! shallow entrainment factor for entrpen
     rcuc_lnd = 0.05_rkx     ! Convective cloud cover for rain evporation
     rcuc_ocn = 0.05_rkx     ! Convective cloud cover for rain evporation
@@ -1275,11 +1277,13 @@ module mod_params
       call bcast(iconv)
       call bcast(entrmax)
       call bcast(entrdd)
-      call bcast(entrpen)
+      call bcast(entrpen_lnd)
+      call bcast(entrpen_ocn)
       call bcast(entrscv)
       call bcast(entrmid)
       call bcast(cprcon)
-      call bcast(detrpen)
+      call bcast(detrpen_lnd)
+      call bcast(detrpen_ocn)
       call bcast(entshalp)
       call bcast(rcuc_lnd)
       call bcast(rcuc_ocn)
@@ -2150,7 +2154,9 @@ module mod_params
         write(stdout,'(a,i2)')    &
           '  Used Scheme                       : ',iconv
         write(stdout,'(a,f11.6)') &
-          '  Entrainment rate penetrative conv.: ',entrpen
+          '  Entrainment rate pen. conv. land  : ',entrpen_lnd
+        write(stdout,'(a,f11.6)') &
+          '  Entrainment rate pen. conv. ocean : ',entrpen_ocn
         write(stdout,'(a,f11.6)') &
           '  Entrainment rate shallow conv.    : ',entrscv
         write(stdout,'(a,f11.6)') &

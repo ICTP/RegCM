@@ -274,7 +274,8 @@ module mod_runparams
   real(rkx) , public :: entrdd  ! entrainment rate for cumulus downdrafts
 
   ! ICONV 1, 2, 3
-  real(rkx) , public :: entrpen ! entrainment rate for penetrative convection
+  real(rkx) , public :: entrpen_lnd ! entrainment rate for penetrative conv.
+  real(rkx) , public :: entrpen_ocn ! entrainment rate for penetrative conv.
   real(rkx) , public :: entrscv ! entrainment rate for shallow convection
   real(rkx) , public :: entrmid ! entrainment rate for midlevel convection
   real(rkx) , public :: cprcon  ! coefficients for determining conversion
@@ -293,7 +294,8 @@ module mod_runparams
                                   ! cloud at which evaporation starts for ocean
   real(rkx) , public :: rprc_lnd  ! coeff for conversion from cloud water
   real(rkx) , public :: rprc_ocn  ! coeff for conversion from cloud water
-  real(rkx) , public :: detrpen   ! Detrainment rate for penetrative convection
+  real(rkx) , public :: detrpen_lnd ! Detrainment rate for penetrative conv
+  real(rkx) , public :: detrpen_ocn ! Detrainment rate for penetrative conv
   real(rkx) , public :: entshalp  ! shallow entrainment factor for entrorg
 
   ! Kain-Fritsch parameter
