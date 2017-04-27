@@ -1001,11 +1001,13 @@ selected number is $2, 4, 5$.
  iconv = 4,           ! Actual used scheme.
  entrmax = 1.75e-3,   ! Max entrainment iconv=[1,2,3]
  entrdd  = 3.0e-4,    ! Entrainment rate for cumulus downdrafts
- entrpen = 1.75e-3,   ! Entrainment rate for penetrative convection
+ entrpen_lnd = 1.75e-3, ! Entrainment rate for penetrative convection land
+ entrpen_ocn = 1.75e-3, ! Entrainment rate for penetrative convection ocean
  entrscv = 3.0e-4,    ! Entrainment rate for shallow convection iconv=[1,2,3]
  entrmid = 1.0e-4,    ! Entrainment rate for midlevel convection iconv=[1,2,3]
  cprcon = 1.0e-4,     ! Coefficient for determining conversion iconv=[1,2,3]
- detrpen = 0.75e-4,   ! Detrainment rate for penetrative convection iconv=4
+ detrpen_lnd = 0.75e-4, ! Detrainment rate for penetrative conv land iconv=4
+ detrpen_ocn = 0.75e-4, ! Detrainment rate for penetrative conv ocean iconv=4
  entshalp = 2.0,      ! shallow entrainment factor for entrorg iconv=4
  rcuc_lnd = 0.05,     ! Convective cloud cover for rain evporation iconv=4
  rcuc_ocn = 0.05,     ! Convective cloud cover for rain evporation iconv=4
