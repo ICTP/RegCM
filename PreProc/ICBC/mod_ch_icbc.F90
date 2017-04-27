@@ -186,7 +186,7 @@ module mod_ch_icbc
     call split_idate(globidate1,year1,month1,day1,hour1)
     call split_idate(idate,nyear,month,nday,nhour)
     call find_data(idate,globidate1,chfilename)
-    write(*,*)chfilename
+    write(stdout,*) chfilename
     if (.not. lsamemonth(idate, iodate) ) then
       istatus = nf90_close(ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -209,7 +209,7 @@ module mod_ch_icbc
     icount(1) = jx
     icount(2) = iy
     icount(3) = 1
-    istatus = nf90_get_var(ncicbc,ivarps,pchem_3)
+    istatus = nf90_get_var(ncicbc,ivarps,pchem_3,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var ps')
     irec = irec + 1

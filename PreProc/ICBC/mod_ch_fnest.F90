@@ -50,7 +50,7 @@ module mod_ch_fnest
   real(rkx) , dimension(:,:,:,:) , pointer :: mxc4_1
   real(rkx) , dimension(:,:,:) , pointer :: pp3d , p3d
   real(rkx) , dimension(:,:) , pointer :: xlat_in , xlon_in , ht_in
-  real(rkx) , dimension(:,:) , pointer :: p0_in , pstar0 , ps , xps
+  real(rkx) , dimension(:,:) , pointer :: p0_in , pstar0 , ps , xps , xps3
   real(rkx) , dimension(:) , pointer :: sigma_in , plev , sigmar
   real(rkx) :: pss
   integer(ik4) :: oidyn
@@ -60,11 +60,13 @@ module mod_ch_fnest
   type(rcm_time_and_date) , dimension(:) , pointer :: itimes
   real(rkx) , dimension(:) , pointer :: xtimes
   character(len=64) :: timeunits , timecal
-
+  integer(ik4) :: ncicbc , ivarps , irec
+  type(rcm_time_and_date) :: iodate
+  type(h_interpolator) :: hint
   logical , dimension(3) :: mapping
 
   data mapping /.false.,.false.,.false./
-  type(h_interpolator) :: hint
+  data ncicbc /-1/
 
   public :: init_fnest , get_fnest , close_fnest
 
@@ -78,7 +80,7 @@ module mod_ch_fnest
     type(direntry) , pointer , dimension(:) :: listf => null()
     type(rcm_time_and_date) :: imf
     character(len=10) :: cdate
-    character(len=256) :: fname
+    character(len=256) :: fname , icbcfilename
     integer(ik4) :: fnum , nf , is , ie , ip , i , j , k
     real(rkx) , dimension(2) :: trlat
     real(rkx) :: xsign
@@ -89,6 +91,8 @@ module mod_ch_fnest
     if ( dooxcl ) mapping(2) = .true.
     if ( doaero ) mapping(3) = .true.
 
+    iodate = idate
+
     call dirlist(cdir,listf)
     if ( .not. associated(listf) ) then
       call die('chem_icbc','Cannot read from coarse '//trim(cdir),1)
@@ -97,6 +101,8 @@ module mod_ch_fnest
     fchem = 0
     imf = monfirst(idate)
     write(cdate,'(i10)') toint10(imf)
+    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+           trim(domname), '_ICBC.', toint10(idate), '.nc'
     do nf = 1 , fnum
       if ( index(listf(nf)%ename,trim(cname)) /= 0 .and. &
            index(listf(nf)%ename,'.nc') /= 0 .and. &
@@ -173,6 +179,14 @@ module mod_ch_fnest
     do i = 1 , nrec
       itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
     end do
+
+    istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open ICBC file '//trim(icbcfilename))
+    istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var ps in icbc file '//trim(icbcfilename))
+    irec = 1
 
     call getmem2d(xlat_in,1,jx_in,1,iy_in,'init_fnest:xlat_in')
     call getmem2d(xlon_in,1,jx_in,1,iy_in,'init_fnest:xlon_in')
@@ -309,6 +323,7 @@ module mod_ch_fnest
     call getmem3d(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')
     call getmem4d(mxc4_1,1,jx,1,iy,1,kz,1,fchem,'init_fnest:mxc4_1')
     call getmem2d(xps,1,jx,1,iy,'mod_nest:xps')
+    call getmem2d(xps3,1,jx,1,iy,'mod_nest:xps3')
 
     do k = 1 , np
       sigmar(k) = plev(k)/plev(np)
@@ -321,9 +336,9 @@ module mod_ch_fnest
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=10) :: cdate
-    character(len=256) :: fname
+    character(len=256) :: fname , icbcfilename
     type(rcm_time_and_date) :: imf
-    integer(ik4) :: nf , i , j , k , l , irec , k0
+    integer(ik4) :: nf , i , j , k , l , crec , k0
     integer(ik4) :: istatus , idimid , ivarid
     integer(ik4) , dimension(4) :: istart , icount
     real(rkx) :: prcm , pmpi , pmpj , wt1 , wt2
@@ -399,19 +414,35 @@ module mod_ch_fnest
       end do
     end if
 
-    irec = -1
+    if (.not. lsamemonth(idate, iodate) ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close ICBC file')
+      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
+             trim(domname), '_ICBC.', toint10(idate), '.nc'
+      istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open ICBC file '//trim(icbcfilename))
+      istatus = nf90_inq_varid(ncicbc,'ps',ivarps)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find var ps in icbc file '//trim(icbcfilename))
+      iodate = idate
+      irec = 1
+    end if
+
+    crec = -1
     do i = 1 , nrec
       if (idate == itimes(i)) then
-        irec = i
+        crec = i
         exit
       end if
     end do
 
-    if ( irec < 0 ) then
+    if ( crec < 0 ) then
       call die('chem_icbc','Cannot find timestep '//tochar(idate),1)
     end if
 
-    istart(3) = irec
+    istart(3) = crec
     istart(2) = 1
     istart(1) = 1
     icount(3) = 1
@@ -425,7 +456,18 @@ module mod_ch_fnest
                     'variable ps read error')
     call h_interpolate_cont(hint,ps,xps)
 
-    istart(4) = irec
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = irec
+    icount(1) = jx
+    icount(2) = iy
+    icount(3) = 1
+    istatus = nf90_get_var(ncicbc,ivarps,xps3,istart(1:3),icount(1:3))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read icbc var ps')
+    irec = irec + 1
+
+    istart(4) = crec
     istart(3) = 1
     istart(2) = 1
     istart(1) = 1
@@ -464,7 +506,7 @@ module mod_ch_fnest
       do i = 1 , iy
         do j = 1 , jx
           do l = 1 , kz
-            prcm = ((xps(j,i)*0.1-ptop)*sigmah(l)+ptop)*10.
+            prcm = ((xps3(j,i)*0.1_rkx-ptop)*sigmah(l)+ptop)*1000.0_rkx
             k0 = -1
             do k = np , 1 , -1
               pmpi = plev(k)
@@ -557,6 +599,11 @@ module mod_ch_fnest
         end if
       end do
       deallocate(ncid)
+    end if
+    if ( ncicbc > 0 ) then
+      istatus = nf90_close(ncicbc)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close icbc file')
     end if
   end subroutine close_fnest
 
