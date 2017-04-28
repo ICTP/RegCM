@@ -91,9 +91,11 @@ def map_RegCMtopo(ax, lat, lon, topo, latc , lonc ,
                 urcrnrlon=lon_end, urcrnrlat=lat_end,
                 resolution='i', area_thresh=10000., 
                 projection='mill', lon_0=lonc, lat_0=latc, lat_ts=0)
-    llevels = np.arange(-500,3000,25)
+    llevels = ( 1 , 10 , 25 , 50 , 75 , 100 , 150 , 200 , 250 , 300 , 400, 
+                500 , 600 , 700 , 800 , 1000 , 1250 , 1500 , 1750 , 2000 ,
+                2500 , 3000 , 3500 , 4000 , 4500 , 5000 , 5500 , 6000 , 7000)
     x, y = m(lon,lat)
-    im = m.contourf(x, y, topo, llevels, cmap=plt.cm.gist_earth)
+    im = m.contourf(x, y, topo, llevels, cmap=plt.cm.RdYlGn_r)
     m.drawcoastlines(color='k',linewidth=1, zorder=10)
     m.drawparallels(range(lat_start, lat_end, 5),
             labels=[1,0,0,0], fontsize=fontsize, dashes=[1, 2],
@@ -107,10 +109,11 @@ def map_RegCMtopo(ax, lat, lon, topo, latc , lonc ,
 
 ### Test if everything works fine
 fig = plt.figure()
-ax1 = plt.subplot(2,1,1)
-m = map_RegCMdomain(ax1, latc, lonc,
-                    lat_start, lat_end, lon_start, lon_end)
-ax2 = plt.subplot(2,1,2)
+#ax1 = plt.subplot(2,1,1)
+#m = map_RegCMdomain(ax1, latc, lonc,
+#                    lat_start, lat_end, lon_start, lon_end)
+#ax2 = plt.subplot(2,1,2)
+ax2 = plt.subplot(1,1,1)
 m = map_RegCMtopo(ax2, lat, lon, topo, latc, lonc,
                   lat_start, lat_end, lon_start, lon_end)
 
