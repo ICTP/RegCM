@@ -657,7 +657,7 @@ program sigma2p
     end if
     if ( make_hgt ) then
       if ( iodyn == 2 ) then
-        call nonhydrost(hzvar,tmpvar,ps0,ptop,topo,sigma,jx,iy,kz)
+        call nonhydrost(hzvar,tmpvar,ps0,ptop*100.0,topo,sigma,jx,iy,kz)
         call height_o(pvar,hzvar,tmpvar,ps,topo,press,jx,iy,kz,plevs,np)
       else
         call htsig_o(tmpvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)

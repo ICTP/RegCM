@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 from netCDF4 import Dataset as nc
 import numpy as np
 import os
+import sys
 
 
 ######################################################
@@ -35,11 +36,16 @@ domname = 'mm5'
 ### Open & read NCDF files & vars 
 #-----------------------------------------------------
 # RegCM file
-RCMf    = nc(os.path.join(dirnc,domname+'_DOMAIN000.nc'), mode='r')
-lat     = RCMf.variables['xlat'][:,:]
-lon     = RCMf.variables['xlon'][:,:]
-topo    = RCMf.variables['topo'][:,:]
-mask    = RCMf.variables['mask'][:,:]
+if len(sys.argv) > 1:
+    RCMf = nc(sys.argv[1], mode='r')
+else:
+    RCMf = nc(os.path.join(dirnc,domname+'_DOMAIN000.nc'), mode='r')
+lat  = RCMf.variables['xlat'][:,:]
+lon  = RCMf.variables['xlon'][:,:]
+topo = RCMf.variables['topo'][:,:]
+mask = RCMf.variables['mask'][:,:]
+lonc = RCMf.longitude_of_projection_origin
+latc = RCMf.latitude_of_projection_origin
 RCMf.close()
 
 lat_start  = np.min(lat[:,:])
@@ -52,25 +58,62 @@ lon_end    = np.max(lon[:,:])
 ### e.g. mill = Miller --> Ref.: http://matplotlib.org/basemap/users/mill.html
 #-----------------------------------------------------
 ### MAp over the MedCORDEX domain  
-def map_RegCMdomain(ax, lat_start, lat_end, lon_start, lon_end, fontsize=10):
+def map_RegCMdomain(ax, latc , lonc ,
+        lat_start, lat_end, lon_start, lon_end, fontsize=10):
     """
-    use: map = map_RegCMdomain(ax, lat_start, lat_end, lon_start, lon_end) # to create a basemap object
+    use: map = map_RegCMdomain(ax, latc, lonc, lat_start, lat_end,
+                               lon_start, lon_end) # to create a basemap object
     """
-    m = Basemap(ax=ax, llcrnrlon=lon_start, llcrnrlat=lat_start, urcrnrlon=lon_end,urcrnrlat=lat_end,
-                resolution='i', area_thresh=10000., projection='mill', lon_0=46.47, lat_0=11.39, lat_ts=0)
+    m = Basemap(ax=ax, llcrnrlon=lon_start, llcrnrlat=lat_start,
+                urcrnrlon=lon_end, urcrnrlat=lat_end,
+                resolution='i', area_thresh=10000., 
+                projection='mill', lon_0=lonc, lat_0=latc, lat_ts=0)
 
+    m.etopo()
     m.drawcoastlines(color='k',linewidth=1, zorder=10)
     m.drawcountries(color='k',linewidth=0.5, zorder=11)
-    m.drawparallels(range(10, 80, 5), labels=[1,0,0,0], fontsize=fontsize, dashes=[1, 2],linewidth=1, color='k', zorder=12)
-    m.drawmeridians(range(-30, 80, 5),labels=[0,0,0,1], fontsize=fontsize, dashes=[1, 2],linewidth=1, color='k', zorder=12)
-    m.fillcontinents(color='coral',lake_color='aqua', zorder=1)
+    m.drawparallels(range(lat_start, lat_end, 5),
+            labels=[1,0,0,0], fontsize=fontsize, dashes=[1, 2],
+            linewidth=1, color='k', zorder=12)
+    m.drawmeridians(range(lon_start, lon_end, 5),
+            labels=[0,0,0,1], fontsize=fontsize, dashes=[1, 2],
+            linewidth=1, color='k', zorder=12)
+
+    return m
+
+def map_RegCMtopo(ax, lat, lon, topo, latc , lonc ,
+        lat_start, lat_end, lon_start, lon_end, fontsize=10):
+    """
+    use: map = map_RegCMdomain(ax, latc, lonc, lat_start, lat_end,
+                               lon_start, lon_end) # to create a basemap object
+    """
+    m = Basemap(ax=ax, llcrnrlon=lon_start, llcrnrlat=lat_start,
+                urcrnrlon=lon_end, urcrnrlat=lat_end,
+                resolution='i', area_thresh=10000., 
+                projection='mill', lon_0=lonc, lat_0=latc, lat_ts=0)
+    llevels = np.arange(-500,3000,25)
+    x, y = m(lon,lat)
+    im = m.contourf(x, y, topo, llevels, cmap=plt.cm.gist_earth)
+    m.drawcoastlines(color='k',linewidth=1, zorder=10)
+    m.drawparallels(range(lat_start, lat_end, 5),
+            labels=[1,0,0,0], fontsize=fontsize, dashes=[1, 2],
+            linewidth=1, color='k', zorder=12)
+    m.drawmeridians(range(lon_start, lon_end, 5),
+            labels=[0,0,0,1], fontsize=fontsize, dashes=[1, 2],
+            linewidth=1, color='k', zorder=12)
+    
 
     return m
 
 ### Test if everything works fine
-fig_MED = plt.figure(1, figsize=(12,8))
-ax      = fig_MED.add_subplot(1,1,1)
-m       = map_RegCMdomain(ax, lat_start, lat_end, lon_start, lon_end)
+fig = plt.figure()
+ax1 = plt.subplot(2,1,1)
+m = map_RegCMdomain(ax1, latc, lonc,
+                    lat_start, lat_end, lon_start, lon_end)
+ax2 = plt.subplot(2,1,2)
+m = map_RegCMtopo(ax2, lat, lon, topo, latc, lonc,
+                  lat_start, lat_end, lon_start, lon_end)
+
 ## Print out 
 plt.show()
 

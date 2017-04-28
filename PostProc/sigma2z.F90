@@ -501,7 +501,7 @@ program sigma2z
     if ( iodyn == 1 ) then
       call htsig_o(tazvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
     else
-      call nonhydrost(hzvar,tazvar,ps0,ptop,topo,sigma,jx,iy,kz)
+      call nonhydrost(hzvar,tazvar,ps0,ptop*100.0,topo,sigma,jx,iy,kz)
     end if
     do i = 1 , nvars
       if (.not. ltvarflag(i)) cycle

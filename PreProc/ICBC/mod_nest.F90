@@ -271,6 +271,7 @@ module mod_nest
       write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
       write(stderr,*) 'WARNING : Extrapolation will be performed.'
     end if
+    ptop_in = ptop_in * d_100
 
     np = kz_in - 1
     call getmem1d(plev,1,np,'mod_nest:plev')
@@ -292,11 +293,11 @@ module mod_nest
       istatus = nf90_get_var(ncinp, ivarid, p0_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable p0 read error')
-      pstar0 = p0_in - ptop_in * d_100
+      pstar0 = p0_in - ptop_in
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
-            pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in * d_100
+            pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in
             t0_in(j,i,k) = max(ts0 +  &
                       tlp * log(pr0(j,i,k) / base_state_pressure),tiso)
           end do
@@ -313,15 +314,15 @@ module mod_nest
       istatus = nf90_get_var(ncinp, ivarid, p0_in,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ps read error')
-      pstar0 = p0_in - ptop_in * d_100
+      pstar0 = p0_in - ptop_in
     end if
 
     do ip = 1 , np/2
       plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
-                           maxval(pstar0*sigma_in(ip))) + ptop_in * d_100
+                           maxval(pstar0*sigma_in(ip))) + ptop_in
     end do
     do ip = np/2+1 , np
-      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in * d_100
+      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
     end do
 
     call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon,ds)
@@ -517,7 +518,7 @@ module mod_nest
         do i = 1 , iy_in
           do j = 1 , jx_in
             p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
-                         ptop_in*d_100 + pp3d(j,i,k)
+                         ptop_in + pp3d(j,i,k)
           end do
         end do
       end do

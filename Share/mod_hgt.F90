@@ -120,7 +120,7 @@ module mod_hgt
     !
     do j = 1 , nj
       do i = 1 , ni
-        cell = (ptop * d_100) / p0(i,j)
+        cell = ptop / p0(i,j)
         h(i,j,nk) = rovg * t0(i,j,nk) * &
                  log((d_one+cell)/(sigmah(nk)+cell)) + topo(i,j)
       end do
@@ -128,7 +128,7 @@ module mod_hgt
     do k = nk-1 , 1 , -1
       do j = 1 , nj
         do i = 1 , ni
-          cell = (ptop * d_100) / p0(i,j)
+          cell = ptop / p0(i,j)
           h(i,j,k) = h(i,j,k+1) + rovg * t0(i,j,k) * &
                    log((sigmah(k+1)+cell)/(sigmah(k)+cell))
         end do
@@ -155,7 +155,7 @@ module mod_hgt
     ptp = real(ptop)
     do j = 1 , nj
       do i = 1 , ni
-        cell = (ptp * 100.0) / p0(i,j)
+        cell = ptp / p0(i,j)
         h(i,j,nk) = srovg * t0(i,j,nk) * &
                  log((1.0+cell)/(sigmah(nk)+cell)) + topo(i,j)
       end do
@@ -163,7 +163,7 @@ module mod_hgt
     do k = nk-1 , 1 , -1
       do j = 1 , nj
         do i = 1 , ni
-          cell = (ptp * 100.0) / p0(i,j)
+          cell = ptp / p0(i,j)
           h(i,j,k) = h(i,j,k+1) + srovg * t0(i,j,k) * &
                    log((sigmah(k+1)+cell)/(sigmah(k)+cell))
         end do

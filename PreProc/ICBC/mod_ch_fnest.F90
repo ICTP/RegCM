@@ -277,6 +277,8 @@ module mod_ch_fnest
       write(stderr,*) 'WARNING : Extrapolation will be performed.'
     end if
 
+    ptop_in = ptop_in * d_100
+
     np = kz_in - 1
     call getmem1d(plev,1,np,'mod_nest:plev')
     call getmem1d(sigmar,1,np,'mod_nest:sigmar')
@@ -294,7 +296,7 @@ module mod_ch_fnest
       istatus = nf90_get_var(ncid(1), ivarid, p0_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable p0 read error')
-      pstar0 = p0_in - ptop_in * d_100
+      pstar0 = p0_in - ptop_in
     else
       istatus = nf90_inq_varid(ncid(1), 'ps', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -306,15 +308,15 @@ module mod_ch_fnest
       istatus = nf90_get_var(ncid(1), ivarid, p0_in, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ps read error')
-      pstar0 = p0_in - ptop_in * d_100
+      pstar0 = p0_in - ptop_in
     end if
 
     do ip = 1 , np/2
       plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
-                           maxval(pstar0*sigma_in(ip))) + ptop_in * d_100
+                           maxval(pstar0*sigma_in(ip))) + ptop_in
     end do
     do ip = np/2+1 , np
-      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in * d_100
+      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
     end do
 
     call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds)
@@ -487,7 +489,7 @@ module mod_ch_fnest
         do i = 1 , iy_in
           do j = 1 , jx_in
             p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
-                         ptop_in*d_100 + pp3d(j,i,k)
+                         ptop_in + pp3d(j,i,k)
           end do
         end do
       end do
