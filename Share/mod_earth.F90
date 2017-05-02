@@ -181,7 +181,7 @@ module mod_earth
     real(rkx) :: minlat
     real(rkx) :: maxlon
     real(rkx) :: minlon
-    integer :: gi , gj , xi , xj , l1 , l2 , i , j
+    integer :: gi , gj , xi , xj , l1 , l2 , i , j , itmp
 
     xi = size(xlon,1)
     xj = size(xlat,2)
@@ -305,10 +305,24 @@ module mod_earth
       end if
     end if
 
+    if ( domain%igstart(1) < 1 .and. domain%ntiles == 1 ) then
+      domain%ntiles = 2
+      itmp = domain%igstop(1)
+      domain%igstart(1) = gi + domain%igstart(i) - 1
+      domain%igstop(1) = gi
+      domain%igstart(2) = 1
+      domain%igstop(2) = itmp
+    end if
+    if ( domain%igstop(1) > gi .and. domain%ntiles == 1 ) then
+      domain%ntiles = 2
+      itmp = domain%igstop(1) - gi
+      domain%igstart(1) = domain%igstart(1)
+      domain%igstop(1) = gi
+      domain%igstart(2) = 1
+      domain%igstop(2) = itmp
+    end if
     domain%ni = 0
     do i = 1 , domain%ntiles
-      domain%igstart(i) = min(max(1,domain%igstart(i)),gi)
-      domain%igstop(i) = max(min(domain%igstop(i),gi),1)
       domain%ni(i) =  domain%igstop(i) - domain%igstart(i) + 1
     end do
     domain%jgstart = min(max(1,domain%jgstart),gj)
