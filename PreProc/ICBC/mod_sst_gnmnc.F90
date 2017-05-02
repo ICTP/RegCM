@@ -115,7 +115,7 @@ module mod_sst_gnmnc
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'MI_' ) then
       call find_miroc_sst(inpfile,imm1)
-      varname(2) = 'ts'
+      varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'EC_' ) then
       if ( .not. date_in_scenario(imm1,5,.true.) ) then
         inpfile = trim(inpglob)//'/SST/EC-EARTH/RF/ich1_sst_1950-2009.nc'
@@ -243,6 +243,19 @@ module mod_sst_gnmnc
         istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error inquire dim lon')
+      else if ( ssttyp(1:3) == 'MI_' ) then
+        istatus = nf90_inq_dimid(inet1,'rlat',latid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim rlat')
+        istatus = nf90_inq_dimid(inet1,'rlon',lonid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim rlon')
+        istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim rlat')
+        istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim rlon')
       else
         istatus = nf90_inq_dimid(inet1,'j',latid)
         call checkncerr(istatus,__FILE__,__LINE__, &
@@ -282,11 +295,10 @@ module mod_sst_gnmnc
         istatus = nf90_get_var(inet1,lonid,glon)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var lon')
-
         call h_interpolator_create(hint,glat,glon,xlat,xlon,ds)
-
       else
-        if ( ssttyp(1:3) /= 'CN_' .and. ssttyp(1:3) /= 'IP_' ) then
+        if ( ssttyp(1:3) /= 'CN_' .and. ssttyp(1:3) /= 'IP_' .and. &
+             ssttyp(1:3) /= 'MI_' ) then
           call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
           call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
           istatus = nf90_get_var(inet1,latid,glat)
@@ -398,6 +410,11 @@ module mod_sst_gnmnc
     istatus = nf90_get_var(inet1,ivar2(2),vv,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(2))
+    if ( ssttyp(1:3) == 'MI_' ) then
+      where ( vv < 100.0_rkx )
+        vv = 1e+20_rkx
+      end where
+    end if
   end subroutine read_month
 
 end module mod_sst_gnmnc

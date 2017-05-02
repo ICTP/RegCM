@@ -46,11 +46,11 @@ module mod_miroc_helper
     type(rcm_time_and_date) , intent(in) :: idate
     if ( .not. date_in_scenario(idate,5) ) then
       fname = trim(inpglob)//pthsep//'MIROC5'//pthsep//'SST'// &
-              pthsep//'ts_Amon_MIROC5_historical'// &
-              '_r1i1p1_185001-200512.nc'
+              pthsep//'tos_Omon_MIROC5_historical'// &
+              '_r1i1p1_185001-201212.nc'
     else
       fname = trim(inpglob)//pthsep//'MIROC5'//pthsep//'SST'// &
-              pthsep//'ts_Amon_MIROC5_rcp'//ssttyp(4:5)//  &
+              pthsep//'tos_Omon_MIROC5_rcp'//ssttyp(4:5)//  &
               '_r1i1p1_200601-210012.nc'
     end if
   end subroutine find_miroc_sst
@@ -78,7 +78,7 @@ module mod_miroc_helper
     character(len=256) , intent(out) :: dim_filename
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
-    call assemble_path(dim_filename,'RF','ta','1970010100','1970020100')
+    call assemble_path(dim_filename,'RF','ta','2000120100','2000123118')
   end subroutine find_miroc_dim
 
   subroutine find_miroc_topo(topo_filename)
@@ -107,16 +107,8 @@ module mod_miroc_helper
           call assemble_path(miroc_filename,'RCP'//dattyp(4:5),var,d1,d2)
         end if
       case default
-        y1 = y
-        m1 = m
-        y2 = y1
-        m2 = m1 + 1
-        if ( m2 > 12 ) then
-          m2 = 1
-          y2 = y2 + 1
-        end if
-        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 0
-        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, m, 1, 0
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, m, 31, 18
         if ( .not. date_in_scenario(idate,5,.true.) ) then
           call assemble_path(miroc_filename,'RF',var,d1,d2)
         else
