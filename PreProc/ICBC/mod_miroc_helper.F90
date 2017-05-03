@@ -38,6 +38,10 @@ module mod_miroc_helper
   character(len=64) :: mirocbase2  = '_6hrLev_MIROC5_rcp'
   character(len=64) :: mirocbase3 = '_r1i1p1_'
 
+  integer(ik4) , dimension(12) :: dm
+
+  data dm /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
+
   contains
 
   subroutine find_miroc_sst(fname,idate)
@@ -108,7 +112,7 @@ module mod_miroc_helper
         end if
       case default
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, m, 1, 0
-        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, m, 31, 18
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, m, dm(m), 18
         if ( .not. date_in_scenario(idate,5,.true.) ) then
           call assemble_path(miroc_filename,'RF',var,d1,d2)
         else
