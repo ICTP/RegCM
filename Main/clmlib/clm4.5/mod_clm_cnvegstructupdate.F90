@@ -27,6 +27,7 @@ module mod_clm_cnvegstructupdate
       nbrdlf_evr_shrub, nbrdlf_dcd_brl_shrub
     use mod_clm_pftvarcon , only : ncorn, ncornirrig, npcropmin, ztopmx, laimx
     use mod_clm_varcon , only : rpi
+    use mod_clm_pftvarcon , only : nbrdlf_evr_trp_tree
     implicit none
     ! number of column soil points in pft filter
     integer(ik4), intent(in) :: num_soilp
@@ -163,15 +164,31 @@ module mod_clm_cnvegstructupdate
 
         ! update the leaf area index based on leafC and SLA
         ! Eq 3 from Thornton and Zimmerman, 2007, J Clim, 20, 3902-3923.
+        ! This modification is done to obtain LAI in the range of MODIS
+        ! satellite derived values !
+        ! The specification over evergreen forest was done to reduce bias in
+        ! comparison with MODIS dataset over Africa domain.
+        ! For any other domain, the pft under specification will be replaced
+        ! instead of nbrdlf_evr_trp_tree with tuning in the equation till
+        ! getting the least bias
+        ! Important note: since dsladlai for nc4_grass, nc3_nonarctic_grass
+        ! or shrub is zero so to get reseanoable values for LAI or GPP for
+        ! Savannah region (as a case study)
+        ! Assume that SLA increases with canopy height with constant slope
+        ! (0.01) for all of them
         if ( dsladlai(ivt(p)) > 0._rk8 ) then
-          !tlai(p) = (slatop(ivt(p)) * &
-          !  (exp(leafc(p)*dsladlai(ivt(p))) - 1._rk8))/dsladlai(ivt(p))
-          tlai(p) = (slatop(ivt(p)) * &
-            (exp(0.037_rk8*leafc(p)*dsladlai(ivt(p))) - &
-                     0.2_rk8))/dsladlai(ivt(p))
+          if ( ivt(p) == nbrdlf_evr_trp_tree ) then
+            tlai(p) = (slatop(ivt(p)) * &
+               exp(0.05_rk8*leafc(p)*dsladlai(ivt(p))-0.40_rk8)) / &
+               dsladlai(ivt(p))
+          else
+            tlai(p) = (slatop(ivt(p)) * &
+               exp(0.04_rk8*leafc(p)*dsladlai(ivt(p))-0.30_rk8)) / &
+               dsladlai(ivt(p))
+          end if
         else
-          !tlai(p) = slatop(ivt(p)) * leafc(p)
-          tlai(p) = 0.37_rk8 * slatop(ivt(p)) * leafc(p)
+           tlai(p) = 100.0_rk8*(slatop(ivt(p)) * &
+               exp(0.00005_rk8*leafc(p)-0.5_rk8))
         end if
         tlai(p) = max(0._rk8, tlai(p))
 

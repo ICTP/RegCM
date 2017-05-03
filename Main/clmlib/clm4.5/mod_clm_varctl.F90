@@ -90,6 +90,7 @@ module mod_clm_varctl
   ! State of the model for the accelerated decomposition (AD) spinup.
   !  0 (default) = normal model; 1 = AD SPINUP
   integer(ik4) , public :: spinup_state = 0
+  integer(ik4) , public :: q10_maintenance = 0
   ! used to override an error check on reading in restart files
   logical , public :: override_bgc_restart_mismatch_dump = .false.
   !

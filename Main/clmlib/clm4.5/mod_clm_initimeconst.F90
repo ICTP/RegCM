@@ -137,6 +137,9 @@ module mod_clm_initimeconst
     ! decay factor (m)
     real(rk8), pointer :: hkdepth(:)
     integer(ik4) , pointer :: isoicol(:)  ! soil color class
+#ifdef CN
+    real(rk8) , pointer :: q10(:)
+#endif
 
     ! added by F. Li and S. Levis
     real(rk8), pointer :: gdp_lf(:)      ! global gdp data
@@ -236,6 +239,11 @@ module mod_clm_initimeconst
     real(rk8) , pointer :: p3_in(:)       ! read in - p3
     real(rk8) , pointer :: pH_in(:)       ! read in - pH
 #endif
+
+#ifdef CN
+    real(rk8) , pointer :: q10_in(:)
+#endif
+
     real(rk8) , pointer :: lakedepth_in(:) ! read in - lakedepth
     real(rk8) , pointer :: etal_in(:)     ! read in - etal
     real(rk8) , pointer :: lakefetch_in(:) ! read in - lakefetch
@@ -307,6 +315,9 @@ module mod_clm_initimeconst
     allocate(lakedepth_in(begg:endg))
     allocate(etal_in(begg:endg))
     allocate(lakefetch_in(begg:endg))
+#ifdef CN
+    allocate(q10_in(begg:endg))
+#endif
 
     allocate(temp_ef(begg:endg),efisop2d(6,begg:endg))
 #if (defined VICHYDRO)
@@ -365,6 +376,10 @@ module mod_clm_initimeconst
     pH              => clm3%g%l%c%cps%pH
 #endif
     isoicol         => clm3%g%l%c%cps%isoicol
+
+#ifdef CN
+    q10            => clm3%g%l%c%cps%q10
+#endif
 
     ! added by F. Li and S. Levis
     gdp_lf          => clm3%g%l%c%cps%gdp_lf
@@ -463,6 +478,10 @@ module mod_clm_initimeconst
     end if
 #endif
     ! def CH4
+
+#ifdef CN
+    call clm_readvar(ncid,'Q10',q10_in,gcomm_gridcell)
+#endif
 
     ! Read lakedepth
     if ( .not. clm_check_var(ncid,'LAKEDEPTH') ) then
@@ -1006,6 +1025,10 @@ module mod_clm_initimeconst
       if ( usephfact ) pH(c) = pH_in(g)
 #endif
 
+#ifdef CN
+       q10(c) = q10_in(g)
+#endif
+
       ! Lake data
       lakedepth(c) = lakedepth_in(g)
       etal(c) = etal_in(g)
@@ -1456,6 +1479,11 @@ module mod_clm_initimeconst
     deallocate(zwt0_in, f0_in, p3_in)
     if (usephfact) deallocate(pH_in)
 #endif
+
+#ifdef CN
+    deallocate(q10_in)
+#endif
+
     deallocate(lakedepth_in)
     deallocate(etal_in)
     deallocate(lakefetch_in)

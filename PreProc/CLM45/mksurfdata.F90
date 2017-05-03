@@ -77,13 +77,13 @@ program mksurfdata
 #ifdef CN
   use mod_mklightning
   use mod_mkpopd
+  use mod_mkq10soil
 #ifdef DYNPFT
   use mod_mkharvest
   use mod_mkdynpft
 #endif
 #ifdef LCH4
   use mod_mklch4
-! samy
   use mod_mksoilph
 #endif
 #endif
@@ -132,13 +132,13 @@ program mksurfdata
   integer(ik4) , dimension(npu4d*2) :: iurb4d
 #ifdef CN
   integer(ik4) :: ilightning , ipopden
+  integer(ik4) :: q10
 #ifdef DYNPFT
   integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
   character(len=256) :: dynfile
 #endif
 #ifdef LCH4
   integer(ik4) :: if0 , ip3 , izwt0
-! samy
   integer(ik4) :: isoilphvar
 #endif
 #endif
@@ -735,6 +735,18 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm long_name')
   istatus = nf90_put_att(ncid, ipopden, 'units','counts/km^2')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm units')
+
+  ! samy : reading global gridded Q10 soil respiration parameter
+#if defined(CN)
+  istatus = nf90_def_var(ncid, 'Q10',regcm_vartype, idims(7),q10)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var Q10')
+  istatus = nf90_put_att(ncid, q10, 'long_name', &
+          'Global Q10 soil respiration')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add Q10 long_name')
+  istatus = nf90_put_att(ncid, q10, 'units','unitless')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add Q10 units')
+#endif
+
 #ifdef LCH4
   istatus = nf90_def_var(ncid, 'F0',regcm_vartype,idims(7),if0)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var F0')
@@ -742,7 +754,7 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var P3')
   istatus = nf90_def_var(ncid, 'ZWT0',regcm_vartype,idims(7),izwt0)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ZWT0')
-! samy : for soil ph for CH4 emission
+  ! samy : for soil ph for CH4 emission
   istatus = nf90_def_var(ncid, 'PH', regcm_vartype, idims(7),isoilphvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var PH')
   istatus = nf90_put_att(ncid, isoilphvar, 'long_name', &
@@ -750,7 +762,6 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add PH long_name')
   istatus = nf90_put_att(ncid, isoilphvar, 'units','unitless')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add PH units')
-! samy
 
 #endif
 #endif
@@ -1235,6 +1246,18 @@ program mksurfdata
   deallocate(var2d)
 
   write(stdout,*) 'Created FIRE informations...'
+
+#if defined(CN)
+  ! q10 soil respiration
+  allocate(var2d(jxsg,iysg))
+  call mkq10soil('mksrf_q10soil.nc',xmask,var2d)
+  call mypack(var2d,gcvar)
+  istatus = nf90_put_var(ncid, q10, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write Q10')
+  deallocate(var2d)
+
+  write(stdout,*) 'Created SOIL RESPIRATION informations...'
+#endif
 
 #ifdef LCH4
   allocate(var3d(jxsg,iysg,3))

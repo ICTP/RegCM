@@ -126,6 +126,13 @@ module mod_clm_histflds
          avgflag='A', long_name='2m air temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t_ref2m)
 
+    ! samy : output for gridded Q10 maintenance respiration
+
+    call hist_addfld1d (fname='Q10M', units='unitless',  &
+         avgflag='A', long_name='Q10 maintenance respiration', &
+         ptr_pft=clm3%g%l%c%p%pes%q10m, set_lake=spval, set_urb=spval, &
+         l2g_scale_type='veg')
+
     call hist_addfld1d (fname='TSA_U', units='K',  &
          avgflag='A', long_name='Urban 2m air temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t_ref2m_u, set_nourb=spval)
@@ -5979,20 +5986,20 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='PLANT_NALLOC', units='gN/m^2/s', &
          avgflag='A', long_name='total allocated N flux', &
-         ptr_pft=clm3%g%l%c%p%pepv%plant_nalloc, default='inactive')
+         ptr_pft=clm3%g%l%c%p%pepv%plant_nalloc, set_lake=0.D0, set_urb=0.D0)
 
     call hist_addfld1d (fname='PLANT_CALLOC', units='gC/m^2/s', &
          avgflag='A', long_name='total allocated C flux', &
-         ptr_pft=clm3%g%l%c%p%pepv%plant_calloc, default='inactive')
+         ptr_pft=clm3%g%l%c%p%pepv%plant_calloc, set_lake=0.D0, set_urb=0.D0)
 
     call hist_addfld1d (fname='EXCESS_CFLUX', units='gC/m^2/s', &
          avgflag='A', long_name='C flux not allocated due to downregulation', &
-         ptr_pft=clm3%g%l%c%p%pepv%excess_cflux, default='inactive')
+         ptr_pft=clm3%g%l%c%p%pepv%excess_cflux, set_lake=0.D0, set_urb=0.D0)
 
     call hist_addfld1d (fname='DOWNREG', units='proportion', &
          avgflag='A', &
          long_name='fractional reduction in GPP due to N limitation', &
-         ptr_pft=clm3%g%l%c%p%pepv%downreg, default='inactive')
+         ptr_pft=clm3%g%l%c%p%pepv%downreg, set_lake=0.D0, set_urb=0.D0)
 
     call hist_addfld1d (fname='PREV_LEAFC_TO_LITTER', units='gC/m^2/s', &
          avgflag='A', long_name='previous timestep leaf C litterfall flux', &

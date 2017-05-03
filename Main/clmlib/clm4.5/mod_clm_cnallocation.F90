@@ -101,6 +101,8 @@ module mod_clm_cnallocation
             grpnow, nsoybean
     use mod_clm_varcon , only : secspday, istsoil, istcrop
     use mod_clm_varpar , only : max_pft_per_col
+    use mod_clm_pftvarcon , only : nbrdlf_evr_trp_tree
+
     implicit none
     integer(ik4), intent(in) :: lbp, ubp  ! pft-index bounds
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
@@ -1413,7 +1415,19 @@ module mod_clm_cnallocation
 
       ! calculate the associated carbon allocation, and the excess
       ! carbon flux that must be accounted for through downregulation
-      plant_calloc(p) = plant_nalloc(p) * (c_allometry(p)/n_allometry(p))
+      !plant_calloc(p) = plant_nalloc(p) * (c_allometry(p)/n_allometry(p))
+
+      ! samy : the following condition applied to obtain reasonable values
+      ! of downregulation
+
+      if ( ivt(p) == nbrdlf_evr_trp_tree ) then
+        plant_calloc(p) = 0.8_rk8 * plant_nalloc(p) * &
+                   (c_allometry(p)/n_allometry(p))
+      else
+        plant_calloc(p) = 0.7_rk8 * plant_nalloc(p) * &
+          (c_allometry(p)/n_allometry(p))
+      end if
+
       excess_cflux(p) = availc(p) - plant_calloc(p)
 
       ! reduce gpp fluxes due to N limitation

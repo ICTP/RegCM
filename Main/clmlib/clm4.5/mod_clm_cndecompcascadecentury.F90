@@ -471,7 +471,10 @@ module mod_clm_cndecompcascadecentury
     integer(ik4) :: i_soil2
     integer(ik4) :: i_soil3
     integer(ik4) :: c, fc, j, k, l
-    real(rk8) :: q10 = 1.50_rk8
+    !real(rk8) :: q10 = 1.50_rk8
+
+    ! samy (gridded Q10 soil respiration sensitivity parameter)
+    real(rk8), pointer :: q10(:)
     real(rk8) :: catanf    ! hyperbolic temperature function from CENTURY
     real(rk8) :: catanf_30 ! reference rate at 30C
     real(rk8) :: t1        ! temperature argument
@@ -503,6 +506,7 @@ module mod_clm_cndecompcascadecentury
     finundated      => clm3%g%l%c%cws%finundated
 #endif
     alt_indx        => clm3%g%l%c%cps%alt_indx
+    q10             => clm3%g%l%c%cps%q10
 
     if ( use_century_tfunc .and. normalize_q10_to_century_tfunc ) then
       call fatal(__FILE__,__LINE__, &
@@ -596,9 +600,10 @@ module mod_clm_cndecompcascadecentury
             !!   (q10**((t_soisno(c,j)-(tfrz+25.0_rk8))/10.0_rk8))*fr(c,j)
             if (t_soisno(c,j) >= tfrz) then
               t_scalar(c,1) = t_scalar(c,1) + &
-                      (q10**((t_soisno(c,j)-(tfrz+25.0_rk8))/10.0_rk8))*fr(c,j)
+                      (q10(c)**((t_soisno(c,j)-&
+                      (tfrz+25.0_rk8))/10.0_rk8))*fr(c,j)
             else
-              t_scalar(c,1) = t_scalar(c,1) + (q10**(-25.0_rk8/10.0_rk8))* &
+              t_scalar(c,1) = t_scalar(c,1) + (q10(c)**(-25.0_rk8/10.0_rk8))* &
                       (froz_q10**((t_soisno(c,j)-tfrz)/10.0_rk8))*fr(c,j)
             end if
           end do
@@ -705,9 +710,9 @@ module mod_clm_cndecompcascadecentury
             !! freezing point
             !! t_scalar(c,j)= (q10**((t_soisno(c,j)-(tfrz+25.0_rk8))/10.0_rk8))
             if (t_soisno(c,j) >= tfrz) then
-              t_scalar(c,j)= (q10**((t_soisno(c,j)-(tfrz+25.0_rk8))/10.0_rk8))
+              t_scalar(c,j)= (q10(c)**((t_soisno(c,j)-(tfrz+25.0_rk8))/10.0_rk8))
             else
-              t_scalar(c,j)= (q10**(-25.0_rk8/10.0_rk8)) * &
+              t_scalar(c,j)= (q10(c)**(-25.0_rk8/10.0_rk8)) * &
                       (froz_q10**((t_soisno(c,j)-tfrz)/10.0_rk8))
             end if
           end do

@@ -391,8 +391,7 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k) - &
-                            avg_qten(j,i,k,iqi)
+            cu_qten(j,i,k,iqc) = cu_qten(j,i,k,iqc) + pxite(ii,k)
           end if
         end do
       end do

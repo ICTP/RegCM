@@ -718,6 +718,8 @@ module mod_clm_type
   type , public :: pft_estate_type
     !2 m height surface air temperature (Kelvin)
     real(rk8) , pointer , dimension(:) :: t_ref2m
+    ! samy : gridded Q10 maintenance respiration at PFT level
+    real(rk8) , pointer , dimension(:) :: q10m
     !daily minimum of average 2 m height surface air temperature (K)
     real(rk8) , pointer , dimension(:) :: t_ref2m_min
     !daily maximum of average 2 m height surface air temperature (K)
@@ -2384,6 +2386,10 @@ module mod_clm_type
     real(rk8) , pointer , dimension(:) :: forc_pbot
     ! surface air density, downscaled to column (kg/m^3)
     real(rk8) , pointer , dimension(:) :: forc_rho
+
+#ifdef CN
+    real(rk8) , pointer , dimension(:) :: q10
+#endif
   end type column_pstate_type
 
   !----------------------------------------------------

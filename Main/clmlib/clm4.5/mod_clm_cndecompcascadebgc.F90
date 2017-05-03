@@ -404,6 +404,17 @@ module mod_clm_cndecompcascadebgc
     real(rk8), pointer :: sucsat(:,:)   ! minimum soil suction (mm)
     ! soil water potential in each soil layer (MPa)
     real(rk8), pointer :: soilpsi(:,:)
+
+    ! samy : (gridded Q10 soil respiration sensitivity parameter) to improve
+    ! heterotrophic respiration at the column scale
+    ! Reference :  Tao Zhou et al., 2009;
+    !   Global pattern of temperature sensitivity of soil heterotrophic
+    !   respiration (Q10)  and its implications for carbon-climate
+    !   feedback
+    ! JOURNAL OF GEOPHYSICAL RESEARCH, VOL. 114, G02016,
+    !       doi:10.1029/2008JG000850.
+    real(rk8), pointer :: q10(:)
+
 #ifdef LCH4
     ! Ratio of oxygen available to that demanded by roots,
     ! aerobes, & methanotrophs (nlevsoi)
@@ -466,6 +477,7 @@ module mod_clm_cndecompcascadebgc
     finundated            => clm3%g%l%c%cws%finundated
 #endif
     alt_indx              => clm3%g%l%c%cps%alt_indx
+    q10                   => clm3%g%l%c%cps%q10
 
     ! set time steps
     dt = dtsrf
@@ -567,12 +579,17 @@ module mod_clm_cndecompcascadebgc
           ! use separate (possibly equal) t funcs above and below
           ! freezing point
           if ( t_soisno(c,j) >= tfrz ) then
+            !t_scalar(c,1) = t_scalar(c,1) + &
+            !       (1.5_rk8**((t_soisno(c,j)-(tfrz+25._rk8))/10._rk8))*fr(c,j)
             t_scalar(c,1) = t_scalar(c,1) + &
-                    (1.5_rk8**((t_soisno(c,j)-(tfrz+25._rk8))/10._rk8))*fr(c,j)
+              (q10(c)**((t_soisno(c,j)-(tfrz+25._rk8))/10._rk8))*fr(c,j)
           else
+            !t_scalar(c,1) = t_scalar(c,1) + &
+            !       (1.5_rk8**(-25._rk8/10._rk8))* &
+            !      (froz_q10**((t_soisno(c,j)-tfrz)/10._rk8))*fr(c,j)
             t_scalar(c,1) = t_scalar(c,1) + &
-                    (1.5_rk8**(-25._rk8/10._rk8))* &
-                    (froz_q10**((t_soisno(c,j)-tfrz)/10._rk8))*fr(c,j)
+              (q10(c)**(-25._rk8/10._rk8))* &
+              (froz_q10**((t_soisno(c,j)-tfrz)/10._rk8))*fr(c,j)
           endif
         end do
       end do
@@ -659,9 +676,9 @@ module mod_clm_cndecompcascadebgc
           !! freezing point
           !! t_scalar(c,j)= (1.5**((t_soisno(c,j)-(tfrz+25._rk8))/10._rk8))
           if (t_soisno(c,j) >= tfrz) then
-            t_scalar(c,j)= (1.5_rk8**((t_soisno(c,j)-(tfrz+25._rk8))/10._rk8))
+            t_scalar(c,j)= (q10(c)**((t_soisno(c,j)-(tfrz+25._rk8))/10._rk8))
           else
-            t_scalar(c,j)= (1.5_rk8**(-25._rk8/10._rk8)) * &
+            t_scalar(c,j)= (q10(c)**(-25._rk8/10._rk8)) * &
                     (froz_q10**((t_soisno(c,j)-tfrz)/10._rk8))
           endif
         end do

@@ -22,6 +22,8 @@ module mod_clm_cnmresp
   subroutine CNMResp(lbc, ubc, num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
     use mod_clm_pftvarcon , only : npcropmin
+    use mod_clm_subgridave , only : p2c
+    use mod_clm_varctl , only : q10_maintenance
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
     integer(ik4), intent(in) :: num_soilc ! number of soil points in col filter
@@ -35,6 +37,8 @@ module mod_clm_cnmresp
     ! pft level
     ! 2 m height surface air temperature (Kelvin)
     real(rk8), pointer :: t_ref2m(:)
+    real(rk8), pointer :: q10m(:)
+    real(rk8), pointer :: col_q10m(:)
     real(rk8), pointer :: leafn(:)      ! (gN/m2) leaf N
     real(rk8), pointer :: frootn(:)     ! (gN/m2) fine root N
     real(rk8), pointer :: livestemn(:)  ! (gN/m2) live stem N
@@ -73,12 +77,19 @@ module mod_clm_cnmresp
     real(rk8):: br   ! base rate (gC/gN/s)
     real(rk8):: q10  ! temperature dependence
     real(rk8):: tc   ! temperature correction, 2m air temp (unitless)
+    real(rk8):: tcc   ! converting from Kelvin to Celisus
     ! temperature correction by soil layer (unitless)
     real(rk8):: tcsoi(lbc:ubc,nlevgrnd)
+    type(pft_estate_type), pointer :: peisos
+    type(column_estate_type), pointer :: ceisos
+    peisos => clm3%g%l%c%p%pes
+    ceisos => clm3%g%l%c%ces
 
     ! Assign local pointers to derived type arrays
     t_soisno       => clm3%g%l%c%ces%t_soisno
     t_ref2m        => clm3%g%l%c%p%pes%t_ref2m
+    col_q10m       => ceisos%pes_a%q10m
+    q10m           => peisos%q10m
     leafn          => clm3%g%l%c%p%pns%leafn
     frootn         => clm3%g%l%c%p%pns%frootn
     livestemn      => clm3%g%l%c%p%pns%livestemn
@@ -113,19 +124,8 @@ module mod_clm_cnmresp
     ! Q10 was originally set to 2.0, an arbitrary choice, but reduced to
     ! 1.5 as part of the tuning to improve seasonal cycle of atmospheric
     ! CO2 concentration in global simulatoins
-    q10 = 1.5_rk8
+    !q10 = 1.5_rk8
 
-    ! column loop to calculate temperature factors in each soil layer
-    do j = 1 , nlevgrnd
-      do fc = 1 , num_soilc
-        c = filter_soilc(fc)
-
-        ! calculate temperature corrections for each soil layer, for use in
-        ! estimating fine root maintenance respiration with depth
-
-        tcsoi(c,j) = q10**((t_soisno(c,j)-tfrz - 20.0_rk8)/10.0_rk8)
-      end do
-    end do
 
     ! pft loop for leaves and live wood
     do fp = 1 , num_soilp
@@ -135,7 +135,25 @@ module mod_clm_cnmresp
       ! gC/m2/s for each of the live plant tissues.
       ! Leaf and live wood MR
 
-      tc = q10**((t_ref2m(p)-tfrz - 20.0_rk8)/10.0_rk8)
+      ! samy : calculation of gridded Q10 to take account for
+      ! spatial heterogenity
+      ! Choosing between 2 models for Q10 : 0 == linear; 1 == polynomial
+      ! linear model Ref :
+      ! http://www.ntsg.umt.edu/sites/ntsg.umt.edu/files/modis/MOD17UsersGuide2015_v3.pdf
+      ! Polynomial model Ref : Modelling temperature acclimation effects
+      ! on the carbon dynamics of forest ecosystems in the conterminous
+      ! United states; MIN Chen and QIANLAI Zhuang
+      !(2013); Tellus B: Chemical and Physical Meteorology
+      tcc = t_ref2m(p) - tfrz ! to convert it to Celisus
+
+      if ( q10_maintenance == 1 ) then
+         q10m(p) = 2.35665D0 - (0.05308D0*tcc) + &
+           (0.00238D0*tcc*tcc) - (0.00004D0*tcc*tcc*tcc)
+      else
+         q10m(p) = 3.22D0 - (0.046D0*tcc)
+      end if
+
+      tc = q10m(p)**((t_ref2m(p)-tfrz - 20.0_rk8)/10.0_rk8)
       if ( frac_veg_nosno(p) == 1 ) then
         leaf_mr(p) = lmrsun(p) * laisun(p) * 12.011e-6_rk8 + &
                      lmrsha(p) * laisha(p) * 12.011e-6_rk8
@@ -150,6 +168,20 @@ module mod_clm_cnmresp
         livestem_mr(p) = livestemn(p)*br*tc
         grain_mr(p) = grainn(p)*br*tc
       end if
+    end do
+
+   ! column loop to calculate temperature factors in each soil layer
+    do j = 1 , nlevgrnd
+      do fc = 1 , num_soilc
+        c = filter_soilc(fc)
+
+        ! calculate temperature corrections for each soil layer, for use in
+        ! estimating fine root maintenance respiration with depth
+        ! samy : to calculate q10m at column level for soil temperature
+        ! correction
+        call p2c(num_soilc,filter_soilc,q10m,col_q10m)
+        tcsoi(c,j) = col_q10m(c)**((t_soisno(c,j)-tfrz - 20.0_rk8)/10.0_rk8)
+      end do
     end do
 
     ! soil and pft loop for fine root

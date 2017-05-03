@@ -24,7 +24,7 @@ module mod_clm_control
           pertlim , username , fsnowaging , fsnowoptics ,         &
           subgridflag , use_c13 , use_c14 , irrigate ,            &
           spinup_state , override_bgc_restart_mismatch_dump ,     &
-          source , ialblawr , tcrit
+          source , ialblawr , tcrit , q10_maintenance
   use mod_clm_varpar, only : numrad
   use mod_clm_varctl , only : ctitle , caseid , nsrest
   use mod_clm_varcon , only : secspday
@@ -154,6 +154,8 @@ module mod_clm_control
          nfix_timeconst
     namelist /clm_inparm/ &
          spinup_state, override_bgc_restart_mismatch_dump
+    namelist /clm_inparm/ &
+         q10_maintenance
 #endif
 
     namelist /clm_inparm / co2_type
@@ -373,7 +375,7 @@ module mod_clm_control
     call bcast(suplnitro,len(suplnitro))
     call bcast(nfix_timeconst)
     call bcast(spinup_state)
-    call bcast(spinup_state)
+    call bcast(q10_maintenance)
     call bcast(override_bgc_restart_mismatch_dump)
 #endif
 
@@ -521,6 +523,19 @@ module mod_clm_control
     else
       call fatal(__FILE__,__LINE__, &
       subname//' error: spinup_state can only have integer value of 0 or 1' )
+    end if
+
+    ! samy : q10 maintenance respiration
+    write(stdout,*) &
+      '   q10_maintenance, (0 = linear model; 1 = polynomial model):  ', &
+         q10_maintenance
+    if ( q10_maintenance == 0 ) then
+      write(stdout,*) '   Q10 linear model is activated.'
+    else if ( q10_maintenance == 1 ) then
+      write(stdout,*) '   Q10 polynomial model is activated.'
+    else
+      call fatal(__FILE__,__LINE__, &
+      subname//' error: q10_maintenance can only have integer value of 0 or 1' )
     end if
 
     write(stdout,*) &

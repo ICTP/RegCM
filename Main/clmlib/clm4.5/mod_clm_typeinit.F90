@@ -1177,6 +1177,7 @@ module mod_clm_typeinit
     type (pft_estate_type) , intent(inout) :: pes
 
     allocate(pes%t_ref2m(ibeg:iend))
+    allocate(pes%q10m(ibeg:iend))
     allocate(pes%t_ref2m_min(ibeg:iend))
     allocate(pes%t_ref2m_max(ibeg:iend))
     allocate(pes%t_ref2m_min_inst(ibeg:iend))
@@ -1204,6 +1205,7 @@ module mod_clm_typeinit
     allocate(pes%thm(ibeg:iend))
 
     pes%t_ref2m(ibeg:iend) = nan
+    pes%q10m(ibeg:iend) = nan
     pes%t_ref2m_min(ibeg:iend) = nan
     pes%t_ref2m_max(ibeg:iend) = nan
     pes%t_ref2m_min_inst(ibeg:iend) = nan
@@ -2615,6 +2617,11 @@ module mod_clm_typeinit
     ! New variable for methane
     allocate(cps%pH(ibeg:iend))
 #endif
+
+#ifdef CN
+    allocate(cps%q10(ibeg:iend))
+#endif
+
     allocate(cps%irrig_rate(ibeg:iend))
     allocate(cps%n_irrig_steps_left(ibeg:iend))
     allocate(cps%forc_pbot(ibeg:iend))
@@ -2791,6 +2798,10 @@ module mod_clm_typeinit
     cps%p3(ibeg:iend)   = nan
     ! New variable for methane
     cps%pH(ibeg:iend)   = nan
+#endif
+
+#ifdef CN
+    cps%q10(ibeg:iend) = nan
 #endif
 
     cps%irrig_rate(ibeg:iend) = nan
