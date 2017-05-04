@@ -52,6 +52,7 @@ module mod_gn6hnc
   use mod_gfdl_helper
   use mod_cnrm_helper
   use mod_mpiesm_helper
+  use mod_ecearth_helper
 
   private
 
@@ -123,8 +124,6 @@ module mod_gn6hnc
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
                          (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
-  character(len=3) , target , dimension(nvars) :: echvars = &
-                         (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ' , 'XXX'/)
 
   character(len=3) , target , dimension(nvars) :: gfsvars = &
                          (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
@@ -199,7 +198,7 @@ module mod_gn6hnc
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
     else if ( dattyp(1:3) == 'EC_' ) then
-      pathaddname = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
+      call find_ecearth_dim(pathaddname)
     else if ( dattyp == 'CCSM3' ) then
       call find_ccsm3_topo(pathaddname)
     else if ( dattyp == 'JRA55' ) then
@@ -1181,15 +1180,7 @@ module mod_gn6hnc
         end do
         varname => echvars
         do kkrec = 1 , 5
-          if ( .not. date_in_scenario(idate,5,.true.) ) then
-            write (inname,99004) 'RF', pthsep, year, pthsep, 'ich1_', &
-                  trim(varname(kkrec))//'_', year, '.nc'
-          else
-            write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, year,  &
-                  pthsep, 'ich1_',                                    &
-                  trim(varname(kkrec))//'_', year, '.nc'
-          end if
-          pathaddname = trim(inpglob)//'/EC-EARTH/'//inname
+          call find_ecearth_file(pathaddname,varname(kkrec),idate)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
@@ -1746,7 +1737,6 @@ module mod_gn6hnc
 99001   format (i0.4,a,a,i0.4,i0.2,i0.2,a,i0.2,a)
 99002   format (a,i0.4,'-',i0.2,'-',i0.2,'-',i0.5,'.nc')
 99003   format (i0.4,'/','ccsm.',a,a,'.',i0.4,'.nc')
-99004   format (a,a,i0.4,a,a,a,i0.4,a)
 99005   format (a,a,a,a,a,i0.4,a,i0.4,a)
 99006   format (a,a,i0.4,a,a,a,a,i0.4,i0.2,a,i0.4,i0.2,i0.2,a)
 

@@ -35,6 +35,7 @@ module mod_sst_gnmnc
   use mod_ipsl_helper
   use mod_gfdl_helper
   use mod_cnrm_helper
+  use mod_ecearth_helper
   use netcdf
 
   private
@@ -117,12 +118,7 @@ module mod_sst_gnmnc
       call find_miroc_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'EC_' ) then
-      if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        inpfile = trim(inpglob)//'/EC-EARTH/SST/RF/ich1_sst_1950-2009.nc'
-      else
-        inpfile = trim(inpglob)//'/EC-EARTH/SST/RCP'//ssttyp(4:5)//&
-          '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
-      end if
+      call find_ecearth_sst(inpfile,imm1)
       varname(2) = 'sst'
     else if ( ssttyp(1:3) == 'IP_' ) then
       call find_ipsl_sst(inpfile,imm1)
@@ -379,11 +375,8 @@ module mod_sst_gnmnc
         call find_csiro_sst(inpfile,idate)
         lswitch = .true.
       else if ( ssttyp(1:3) == 'EC_' ) then
-        if ( date_in_scenario(idate,5,.true.) ) then
-          inpfile = trim(inpglob)//'/EC-EARTH/SST/RCP'//ssttyp(4:5)//&
-             '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
-          lswitch = .true.
-        end if
+        call find_ecearth_sst(inpfile,idate)
+        lswitch = .true.
       else if ( ssttyp(1:3) == 'MI_' ) then
         call find_miroc_sst(inpfile,idate)
         lswitch = .true.
