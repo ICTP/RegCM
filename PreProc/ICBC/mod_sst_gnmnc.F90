@@ -118,9 +118,9 @@ module mod_sst_gnmnc
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'EC_' ) then
       if ( .not. date_in_scenario(imm1,5,.true.) ) then
-        inpfile = trim(inpglob)//'/SST/EC-EARTH/RF/ich1_sst_1950-2009.nc'
+        inpfile = trim(inpglob)//'/EC-EARTH/SST/RF/ich1_sst_1950-2009.nc'
       else
-        inpfile = trim(inpglob)//'/SST/EC-EARTH/RCP'//ssttyp(4:5)//&
+        inpfile = trim(inpglob)//'/EC-EARTH/SST/RCP'//ssttyp(4:5)//&
           '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
       end if
       varname(2) = 'sst'
@@ -380,7 +380,7 @@ module mod_sst_gnmnc
         lswitch = .true.
       else if ( ssttyp(1:3) == 'EC_' ) then
         if ( date_in_scenario(idate,5,.true.) ) then
-          inpfile = trim(inpglob)//'/SST/EC-EARTH/RCP'//ssttyp(4:5)//&
+          inpfile = trim(inpglob)//'/EC-EARTH/SST/RCP'//ssttyp(4:5)//&
              '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
           lswitch = .true.
         end if
