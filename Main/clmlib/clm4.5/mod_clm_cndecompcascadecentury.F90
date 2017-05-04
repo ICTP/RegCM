@@ -786,7 +786,7 @@ module mod_clm_cndecompcascadecentury
       ! scale all decomposition rates by a constant to compensate for
       ! offset between original CENTURY temp func and Q10
       normalization_factor = (catanf(normalization_tref)/catanf_30) / &
-              (q10**((normalization_tref-25.0_rk8)/10.0_rk8))
+              (q10(c)**((normalization_tref-25.0_rk8)/10.0_rk8))
       do j = 1 , nlevdecomp
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
