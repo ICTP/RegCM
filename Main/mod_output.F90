@@ -856,8 +856,8 @@ module mod_output
         if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
         if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
         if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out = d_zero
-        if ( associated(opt_aastoarf_out) ) opt_acstoarf_out = d_zero
-        if ( associated(opt_aastsrrf_out) ) opt_acstsrrf_out = d_zero
+        if ( associated(opt_aastoarf_out) ) opt_aastoarf_out = d_zero
+        if ( associated(opt_aastsrrf_out) ) opt_aastsrrf_out = d_zero
         if ( associated(opt_aastalrf_out) ) opt_aastalrf_out = d_zero
         if ( associated(opt_aassrlrf_out) ) opt_aassrlrf_out = d_zero
       end if
