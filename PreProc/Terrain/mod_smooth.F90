@@ -58,8 +58,9 @@ module mod_smooth
     integer(ik4) , intent(in) :: ni , nj
     real(rkx) , intent(inout) , dimension(nj,ni) :: slab
     real(rkx) :: aplus , asv , cell
-    integer(ik4) :: i , ie , j , je , k , kp
+    integer(ik4) :: i , ie , j , je , np , kp
     real(rkx) , dimension(2) :: xnu
+    integer(ik4) , parameter :: npass = 2
     !
     ! purpose: spatially smooth data in slab to dampen short
     ! wavelength components
@@ -68,10 +69,10 @@ module mod_smooth
     je = nj-1
     xnu(1) =  0.50_rkx
     xnu(2) = -0.52_rkx
-    do k = 1 , 2
+    do np = 1 , npass
       do kp = 1 , 2
         ! first smooth in the ni direction
-        do i = 2 , ie
+        do i = 1 , ni
           asv = slab(1,i)
           do j = 2 , je
             cell = slab(j,i)
@@ -81,7 +82,7 @@ module mod_smooth
           end do
         end do
         ! smooth in the nj direction
-        do j = 2 , je
+        do j = 1 , nj
           asv = slab(j,1)
           do i = 2 , ie
             cell = slab(j,i)

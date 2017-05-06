@@ -352,7 +352,7 @@ module mod_nhinterp
     ! Compute the nonhydrostatic initial vertical velocity (w) from the
     ! horizontal wind fields (u and v).
     !
-    subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,u,v,ukp,vkp,tv, &
+    subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,u,v,tv, &
                    ps,psdot,ps0,xmsfx,w,wtop,ds,iband)
       implicit none
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband
@@ -361,20 +361,19 @@ module mod_nhinterp
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: u , v
-      real(rkx) , pointer , intent(in) , dimension(:,:,:) :: ukp , vkp
       real(rkx) , intent(in) :: ds                    ! Kilometers
       real(rkx) , pointer , intent(out) , dimension(:,:,:) :: w
       real(rkx) , pointer , intent(out) , dimension(:,:) :: wtop
-      integer(ik4) :: i , j , k , km , kp
-      integer(ik4) :: l , ll , ip , im , jp , jm
+      integer(ik4) :: i , j , k
+      integer(ik4) :: l , ll , ip , im , jp , jm , lm , lp
       real(rkx) :: dx2 , omegal , omegau , ubar , vbar , wu , wl
       real(rkx) :: zl , zu , rho , omegan , alnp
       real(rkx) :: ua , ub , va , vb
       real(rkx) , dimension(kxs) :: mdv
-      real(rkx) , dimension(kxs+1) :: omega , qdt
+      real(rkx) , dimension(kxs+1) :: qdt
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: z0 , z
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
-      real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: pr0 , t0
+      real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: pr0 , t0 , omega
       real(rkx) , dimension(j1:j2,i1:i2) :: pspa , psdotpa
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
 
@@ -407,7 +406,7 @@ module mod_nhinterp
           z(j,i,kxs+1) = d_zero
           do k = kxs , 1 , -1
             z(j,i,k) = z(j,i,k+1) - rovg * tv(j,i,k) * &
-              log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
+              log((sigma(k)*pspa(j,i)+ptoppa)/(sigma(k+1)*pspa(j,i)+ptoppa))
           end do
         end do
       end do
@@ -436,45 +435,56 @@ module mod_nhinterp
           end if
           mdv(:) = d_zero
           do l = 1 , kxs
-            ua = u(j ,i ,l)  * psdot(j ,i ) + &
-                 u(j ,ip,l)  * psdot(j ,ip)
-            ub = u(jp, i ,l) * psdot(jp,i ) + &
-                 u(jp ,ip,l) * psdot(jp,ip)
-            va = v(j ,i ,l)  * psdot(j ,i ) + &
-                 v(jp,i ,l)  * psdot(jp,i )
-            vb = v(j ,ip ,l) * psdot(j ,ip) + &
-                 v(jp,ip ,l) * psdot(jp,ip)
-            mdv(l) = (ub - ua + vb - va) * dummy(j,i)
+            ua = u(j ,i ,l) * psdotpa(j,i)  + &
+                 u(j ,ip,l) * psdotpa(j,ip)
+            ub = u(jp, i,l) * psdotpa(jp,i) + &
+                 u(jp,ip,l) * psdotpa(jp,ip)
+            va = v(j ,i ,l) * psdotpa(j,i)  + &
+                 v(jp,i ,l) * psdotpa(jp,i)
+            vb = v(j ,ip,l) * psdotpa(j,ip) + &
+                 v(jp,ip,l) * psdotpa(jp,ip)
+            mdv(l) = (ub - ua + vb - va) * dummy(j,i) / pspa(j,i)
           end do
           qdt(kxs+1) = d_zero
           do l = kxs , 1 , -1
-            qdt(l) = qdt(l+1) + mdv(l) * dsigma(l) / ps(j,i)
+            qdt(l) = qdt(l+1) + mdv(l) * dsigma(l)
           end do
           do l = kxs+1 , 1 , -1
-            ubar = 0.250_rkx * (ukp(j ,i ,l) + ukp(j ,ip,l) + &
-                                ukp(jp,i ,l) + ukp(jp,ip,l))
-            vbar = 0.250_rkx * (vkp(j ,i ,l) + vkp(j ,ip,l) +  &
-                                vkp(jp,i ,l) + vkp(jp,ip,l))
+            lp = min(l,kxs)
+            lm = max(l-1,1)
+            ubar = 0.125_rkx * (u(j ,i ,lm) + u(j ,ip,lm) + &
+                                u(jp,i ,lm) + u(jp,ip,lm) + &
+                                u(j ,i ,lp) + u(j ,ip,lp) + &
+                                u(jp,i ,lp) + u(jp,ip,lp))
+            vbar = 0.125_rkx * (v(j ,i ,lm) + v(j ,ip,lm) + &
+                                v(jp,i ,lm) + v(jp,ip,lm) + &
+                                v(j ,i ,lp) + v(j ,ip,lp) + &
+                                v(jp,i ,lp) + v(jp,ip,lp))
             ! Calculate omega
-            omega(l) = pspa(j,i) * qdt(l) + sigma(l) *  &
+            omega(j,i,l) = pspa(j,i) * qdt(l) + sigma(l) *  &
                     ((pspa(jp,i) - pspa(jm,i)) * ubar + &
                      (pspa(j,ip) - pspa(j,im)) * vbar) * dummy1(j,i)
           end do
-          !
-          !  Vertical velocity from interpolated omega, zero at top.
-          !
-          do k = 1 , kxs + 1
-            kp = min(k,kxs)
-            km = max(k-1,1)
-            if ( k == kxs+1 ) km = kxs - 1
+        end do
+      end do
+      !
+      ! Remove signal from grid (need because interpolation in ATM)
+      !
+      call smtdsmt(omega,i1,i2,j1,j2,1,kxs+1)
+      !
+      ! Vertical velocity from interpolated omega
+      !
+      do k = 2 , kxs + 1
+        do i = i1 , i2
+          do j = j1 , j2
             do ll = 1 , kxs
-              l = ll
-              if (z(j,i,l+1) < z0(j,i,k)) exit
+              l = ll + 1
+              if (z(j,i,l) < z0(j,i,k)) exit
             end do
-            zu = z(j,i,l)
-            zl = z(j,i,l+1)
-            omegau = omega(l)
-            omegal = omega(l+1)
+            zu = z(j,i,l-1)
+            zl = z(j,i,l)
+            omegau = omega(j,i,l-1)
+            omegal = omega(j,i,l)
             wu = (z0(j,i,k) - zl) / (zu - zl)
             wl = d_one - wu
             omegan = omegau * wu + omegal * wl
@@ -484,15 +494,7 @@ module mod_nhinterp
           end do
         end do
       end do
-      wtmp(j1,:,:) = wtmp(j1+1,:,:)
-      wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
-      wtmp(:,i1,:) = wtmp(:,i1+1,:)
-      wtmp(:,i2-1,:) = wtmp(:,i2-2,:)
-      wtmp(j2,:,:) = wtmp(j2-1,:,:)
-      wtmp(:,i2,:) = wtmp(:,i2-1,:)
-      do k = 1 , kxs + 1
-        call smtdsmt(wtmp(:,:,k),i1,i2,j1,j2)
-      end do
+      wtmp(:,:,1) = d_zero
       wtmp(j1,:,:) = wtmp(j1+1,:,:)
       wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
       wtmp(:,i1,:) = wtmp(:,i1+1,:)
@@ -503,13 +505,14 @@ module mod_nhinterp
       w(j1:j2,i1:i2,1:kxs) = wtmp(j1:j2,i1:i2,2:kxs+1)
     end subroutine nhw
 
-    subroutine smtdsmt(slab,i1,i2,j1,j2)
+    subroutine smtdsmt(slab,i1,i2,j1,j2,k1,k2)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
-      real(rkx) , intent(inout) , dimension(j1:j2,i1:i2) :: slab
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , k1 , k2
+      real(rkx) , intent(inout) , dimension(j1:j2,i1:i2,k1:k2) :: slab
       real(rkx) :: aplus , asv , cell
-      integer(ik4) :: i , is , ie , j , js , je , k , kp
+      integer(ik4) :: i , is , ie , j , js , je , k , id , kp , np
       real(rkx) , dimension(2) :: xnu
+      integer(ik4) , parameter :: npass = 16
       !
       ! purpose: spatially smooth data in slab to dampen short
       ! wavelength components
@@ -520,28 +523,36 @@ module mod_nhinterp
       js = j1+1
       xnu(1) =  0.50_rkx
       xnu(2) = -0.52_rkx
-      do k = 1 , 2
-        do kp = 1 , 2
-          ! first smooth in the ni direction
-          do i = is , ie
-            asv = slab(j1,i)
-            do j = js , je
-              cell = slab(j,i)
-              aplus = slab(j+1,i)
-              slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
-              asv = cell
+      do k = k1 , k2
+        do np = 1 , npass
+          do kp = 1 , 2
+            ! first smooth in the ni direction
+            do i = i1 , i2
+              asv = slab(j1,i,k)
+              do j = js , je
+                cell = slab(j,i,k)
+                aplus = slab(j+1,i,k)
+                slab(j,i,k) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+                asv = cell
+              end do
+            end do
+            ! smooth in the nj direction
+            do j = j1 , j2
+              asv = slab(j,i1,k)
+              do i = is , ie
+                cell = slab(j,i,k)
+                aplus = slab(j,i+1,k)
+                slab(j,i,k) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+                asv = cell
+              end do
             end do
           end do
-          ! smooth in the nj direction
-          do j = js , je
-            asv = slab(j,i1)
-            do i = is , ie
-              cell = slab(j,i)
-              aplus = slab(j,i+1)
-              slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
-              asv = cell
-            end do
-          end do
+          slab(j1,:,k) = slab(j1+1,:,k)
+          slab(:,i1,k) = slab(:,i1+1,k)
+          slab(j2-1,:,k) = slab(j2-2,:,k)
+          slab(:,i2-1,k) = slab(:,i2-2,k)
+          slab(j2,:,k) = slab(j2-1,:,k)
+          slab(:,i2,k) = slab(:,i2-1,k)
         end do
       end do
     end subroutine smtdsmt

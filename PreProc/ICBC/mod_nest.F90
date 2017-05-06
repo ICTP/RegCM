@@ -77,7 +77,8 @@ module mod_nest
 
   integer(ik4) :: oidyn
   character(len=6) :: iproj_in
-  real(rkx) :: clat_in , clon_in , plat_in , plon_in , ptop_in , xcone_in
+  real(rkx) :: clat_in , clon_in , plat_in , plon_in
+  real(rkx) :: xcone_in , ds_in , ptop_in
 
   character(len=14) :: fillin
   character(len=256) :: inpfile
@@ -221,6 +222,10 @@ module mod_nest
     istatus = nf90_get_att(ncinp, nf90_global,'projection', iproj_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'attribure iproj read error')
+    istatus = nf90_get_att(ncinp, nf90_global, &
+                      'grid_size_in_meters', ds_in)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'attribure ds read error')
     istatus = nf90_get_att(ncinp, nf90_global, &
                       'latitude_of_projection_origin', clat_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -632,12 +637,6 @@ module mod_nest
     call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
 !$OMP SECTION
     call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
-    if ( idynamic == 2 ) then
-!$OMP SECTION
-      call intv1(ukp,u3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,np)
-!$OMP SECTION
-      call intv1(vkp,v3,pd4,sigmaf,pss,sigmar,ptop,jx,iy,kzp1,np)
-    end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
 !$OMP SECTION

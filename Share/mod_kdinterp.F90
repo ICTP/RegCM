@@ -55,13 +55,13 @@ module mod_kdinterp
     module procedure interp_class_ld
   end interface h_interpolate_class
 
-  integer(ik4) , parameter :: minp = 5
-  integer(ik4) , parameter :: maxp = 129
+  integer(ik4) , parameter :: minp = 4
+  integer(ik4) , parameter :: maxp = 64
 
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: h_missing_value = missl
   real(rkx) , parameter :: missc = -9990.0_rkx
-  real(rkx) , parameter :: mindis = 1.0e-6_rkx
+  real(rkx) , parameter :: mindis = 1.0e-3_rkx
 
   type pwgt
     integer(ik4) :: i , j
@@ -149,7 +149,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i - 1)
-          rx = max(sqrt(results(n)%dis)/ds,mindis)
+          rx = max(sqrt(results(n)%dis),mindis)/ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
@@ -219,7 +219,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          rx = max(sqrt(results(n)%dis)/ds,mindis)
+          rx = max(sqrt(results(n)%dis),mindis)/ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
@@ -294,7 +294,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          rx = max(sqrt(results(n)%dis)/ds,mindis)
+          rx = max(sqrt(results(n)%dis),mindis)/ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
@@ -367,7 +367,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          rx = max(sqrt(results(n)%dis)/ds,mindis)
+          rx = max(sqrt(results(n)%dis),mindis)/ds
           h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
         end do
         deallocate(results)
@@ -625,7 +625,7 @@ module mod_kdinterp
     real(rkx) , intent(inout) , dimension(:,:) :: f
     real(rkx) :: aplus , asv , cell
     integer(ik4) :: i1 , i2 , j1 , j2
-    integer(ik4) :: i , is , ie , j , js , je , k , kp
+    integer(ik4) :: i , is , ie , j , js , je , kp
     real(rkx) , dimension(2) :: xnu
     !
     ! purpose: spatially smooth data in f to dampen short
@@ -641,31 +641,29 @@ module mod_kdinterp
     js = j1+1
     xnu(1) =  0.50_rkx
     xnu(2) = -0.52_rkx
-    do k = 1 , 4
-      do kp = 1 , 2
-        ! first smooth in the ni direction
-        do i = is , ie
-          asv = f(j1,i)
-          do j = js , je
-            cell = f(j,i)
-            aplus = f(j+1,i)
-            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-              f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
-            end if
-            asv = cell
-          end do
-        end do
-        ! smooth in the nj direction
+    do kp = 1 , 2
+      ! first smooth in the ni direction
+      do i = i1 , i2
+        asv = f(j1,i)
         do j = js , je
-          asv = f(j,i1)
-          do i = is , ie
-            cell = f(j,i)
-            aplus = f(j,i+1)
-            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-              f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
-            end if
-            asv = cell
-          end do
+          cell = f(j,i)
+          aplus = f(j+1,i)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+          end if
+          asv = cell
+        end do
+      end do
+      ! smooth in the nj direction
+      do j = j1 , j2
+        asv = f(j,i1)
+        do i = is , ie
+          cell = f(j,i)
+          aplus = f(j,i+1)
+          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+            f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+          end if
+          asv = cell
         end do
       end do
     end do

@@ -35,10 +35,9 @@ module mod_write
   real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
   real(rkx) , pointer , dimension(:,:,:) :: q4
   real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(rkx) , pointer , dimension(:,:,:) :: ukp , vkp
   real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
 
-  public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4 , ukp , vkp
+  public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , dispose_output , newfile , writef
 
   type(nc_output_stream) , save :: ncout
@@ -59,8 +58,6 @@ module mod_write
     call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
     call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
     call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
-    call getmem3d(ukp,1,jx,1,iy,1,kzp1,'mod_write:ukp')
-    call getmem3d(vkp,1,jx,1,iy,1,kzp1,'mod_write:vkp')
     if ( idynamic == 2 ) then
       nvar3d = 6
       nvar2d = 9
@@ -223,13 +220,12 @@ module mod_write
     if ( idynamic == 2 ) then
       dx = ds * d_1000
       call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)
-      call meandivf(ukp,vkp,pd4,msfd,sigmaf,dsigma,jx,iy,kzp1,dx,jx-1,iy-1)
       tv4 = t4 * (d_one + ep1 * q4)
       do k = 1 , kz
         call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band)
       end do
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
-      call nhw(1,iy,1,jx,kz,sigmaf,dsigma,u4,v4,ukp,vkp,tv4, &
+      call nhw(1,iy,1,jx,kz,sigmaf,dsigma,u4,v4,tv4, &
                ps4,pd4,ps0,msfx,ww4,wtop4,dx,i_band)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,u4,tvd4,pd4,psd0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,v4,tvd4,pd4,psd0,1)
