@@ -430,7 +430,7 @@ module mod_kdinterp
       end do
     end do
 !$OMP END PARALLEL DO
-    ! call smtdsmt(f)
+    call smtdsmt(f)
   end subroutine interp_2d
 
   subroutine interp_3d(h_i,g,f)

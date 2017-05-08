@@ -377,6 +377,7 @@ module mod_nhinterp
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
 
       wtmp(:,:,:) = d_zero
+      omega(:,:,:) = d_zero
       dx2 = d_two * ds
       dummy = (xmsfx * xmsfx) / dx2
       dummy1 = xmsfx / dx2
@@ -449,6 +450,7 @@ module mod_nhinterp
           do l = kxs+1 , 1 , -1
             lp = min(l,kxs)
             lm = max(l-1,1)
+            if ( l == kxs+1 ) lm = kxs-1
             ubar = 0.125_rkx * (u(j ,i ,lm) + u(j ,ip,lm) + &
                                 u(jp,i ,lm) + u(jp,ip,lm) + &
                                 u(j ,i ,lp) + u(j ,ip,lp) + &
@@ -467,7 +469,7 @@ module mod_nhinterp
       !
       ! Remove signal from grid (need because interpolation in ATM)
       !
-      !call smtdsmt(omega,i1,i2,j1,j2,1,kxs+1)
+      call smtdsmt(omega,i1,i2,j1,j2,1,kxs+1)
       !
       ! Vertical velocity from interpolated omega
       !
@@ -475,23 +477,22 @@ module mod_nhinterp
         do i = i1 , i2
           do j = j1 , j2
             do ll = 1 , kxs
-              l = ll + 1
-              if (z(j,i,l) < z0(j,i,k)) exit
+              l = ll
+              if (z(j,i,l+1) < z0(j,i,k)) exit
             end do
-            zu = z(j,i,l-1)
-            zl = z(j,i,l)
-            omegau = omega(j,i,l-1)
-            omegal = omega(j,i,l)
+            zu = z(j,i,l)
+            zl = z(j,i,l+1)
+            omegau = omega(j,i,l)
+            omegal = omega(j,i,l+1)
             wu = (z0(j,i,k) - zl) / (zu - zl)
             wl = d_one - wu
             omegan = omegau * wu + omegal * wl
             rho = pr0(j,i,k) / rgas / t0(j,i,k)
             ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
-            wtmp(j,i,k) = - d_1000 * omegan/rho * regrav
+            wtmp(j,i,k) = -d_1000 * omegan/rho * regrav
           end do
         end do
       end do
-      wtmp(:,:,1) = d_zero
       wtmp(j1,:,:) = wtmp(j1+1,:,:)
       wtmp(j2-1,:,:) = wtmp(j2-2,:,:)
       wtmp(:,i1,:) = wtmp(:,i1+1,:)
