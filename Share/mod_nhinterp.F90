@@ -303,7 +303,7 @@ module mod_nhinterp
           !  lowest half-layer.   Start with pp at surface.
           !
           p0surf = ps0(j,i) + ptoppa
-          psp = ps(j,i) * d_1000 - ps0(j,i)
+          psp = (ps(j,i) + ptop) * d_1000 - ps0(j,i)
           delp0 = p0surf - pr0(j,i,kxs)
           tvk = tv(j,i,kxs)
           tk = t(j,i,kxs)
@@ -374,13 +374,10 @@ module mod_nhinterp
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: z0 , z
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: wtmp
       real(rkx) , dimension(j1:j2,i1:i2,kxs+1) :: pr0 , t0 , omega
-      real(rkx) , dimension(j1:j2,i1:i2) :: pspa , psdotpa
       real(rkx) , dimension(j1:j2,i1:i2) :: dummy , dummy1
 
       wtmp(:,:,:) = d_zero
       dx2 = d_two * ds
-      pspa = ps * d_1000
-      psdotpa = psdot * d_1000
       dummy = (xmsfx * xmsfx) / dx2
       dummy1 = xmsfx / dx2
 
@@ -406,7 +403,7 @@ module mod_nhinterp
           z(j,i,kxs+1) = d_zero
           do k = kxs , 1 , -1
             z(j,i,k) = z(j,i,k+1) - rovg * tv(j,i,k) * &
-              log((sigma(k)*pspa(j,i)+ptoppa)/(sigma(k+1)*pspa(j,i)+ptoppa))
+              log((sigma(k)*ps(j,i)+ptop)/(sigma(k+1)*ps(j,i)+ptop))
           end do
         end do
       end do
@@ -435,15 +432,15 @@ module mod_nhinterp
           end if
           mdv(:) = d_zero
           do l = 1 , kxs
-            ua = u(j ,i ,l) * psdotpa(j,i)  + &
-                 u(j ,ip,l) * psdotpa(j,ip)
-            ub = u(jp, i,l) * psdotpa(jp,i) + &
-                 u(jp,ip,l) * psdotpa(jp,ip)
-            va = v(j ,i ,l) * psdotpa(j,i)  + &
-                 v(jp,i ,l) * psdotpa(jp,i)
-            vb = v(j ,ip,l) * psdotpa(j,ip) + &
-                 v(jp,ip,l) * psdotpa(jp,ip)
-            mdv(l) = (ub - ua + vb - va) * dummy(j,i) / pspa(j,i)
+            ua = u(j ,i ,l) * psdot(j,i)  + &
+                 u(j ,ip,l) * psdot(j,ip)
+            ub = u(jp, i,l) * psdot(jp,i) + &
+                 u(jp,ip,l) * psdot(jp,ip)
+            va = v(j ,i ,l) * psdot(j,i)  + &
+                 v(jp,i ,l) * psdot(jp,i)
+            vb = v(j ,ip,l) * psdot(j,ip) + &
+                 v(jp,ip,l) * psdot(jp,ip)
+            mdv(l) = (ub - ua + vb - va) * dummy(j,i) / ps(j,i)
           end do
           qdt(kxs+1) = d_zero
           do l = kxs , 1 , -1
@@ -461,16 +458,16 @@ module mod_nhinterp
                                 v(j ,i ,lp) + v(j ,ip,lp) + &
                                 v(jp,i ,lp) + v(jp,ip,lp))
             ! Calculate omega
-            omega(j,i,l) = pspa(j,i) * qdt(l) + sigma(l) *  &
-                    ((pspa(jp,i) - pspa(jm,i)) * ubar + &
-                     (pspa(j,ip) - pspa(j,im)) * vbar) * dummy1(j,i)
+            omega(j,i,l) = ps(j,i) * qdt(l) + sigma(l) *  &
+                    ((ps(jp,i) - ps(jm,i)) * ubar + &
+                     (ps(j,ip) - ps(j,im)) * vbar) * dummy1(j,i)
           end do
         end do
       end do
       !
       ! Remove signal from grid (need because interpolation in ATM)
       !
-      call smtdsmt(omega,i1,i2,j1,j2,1,kxs+1)
+      !call smtdsmt(omega,i1,i2,j1,j2,1,kxs+1)
       !
       ! Vertical velocity from interpolated omega
       !
@@ -490,7 +487,7 @@ module mod_nhinterp
             omegan = omegau * wu + omegal * wl
             rho = pr0(j,i,k) / rgas / t0(j,i,k)
             ! W =~ -OMEGA/RHO0/G *1000*PS0/1000. (OMEGA IN CB)
-            wtmp(j,i,k) = -omegan/rho * regrav
+            wtmp(j,i,k) = - d_1000 * omegan/rho * regrav
           end do
         end do
       end do

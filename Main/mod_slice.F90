@@ -206,7 +206,7 @@ module mod_slice
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atms%wb3d(j,i,k) = d_half*regrav * &
+            atms%wb3d(j,i,k) = -d_half*regrav * &
                    (atms%wpx3d(j,i,k-1)/atms%rhob3d(j,i,k-1) + &
                     atms%wpx3d(j,i,k)/atms%rhob3d(j,i,k))
           end do
