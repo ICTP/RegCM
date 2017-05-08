@@ -102,7 +102,7 @@ module mod_nest
     real(rkx) , dimension(2) :: trlat
     real(rkx) , dimension(:) , allocatable :: sigfix
     integer(ik4) , dimension(3) :: istart , icount
-    real(rkx) :: tlp , pr0_in
+    real(rkx) :: tlp , pr0_in , maxps , minps
 
     imf = monfirst(globidate1)
     write (fillin,'(a,i10)') 'ATM.', toint10(imf)
@@ -272,13 +272,9 @@ module mod_nest
       xcone_in = 0.0_rkx
     end if
 
-    if ( ptop_in > ptop*10.0_rkx ) then
-      write(stderr,*) 'WARNING : top pressure higher than PTOP detected.'
-      write(stderr,*) 'WARNING : Extrapolation will be performed.'
-    end if
     ptop_in = ptop_in * d_100
 
-    np = kz_in - 1
+    np = kz_in
     call getmem1d(plev,1,np,'mod_nest:plev')
     call getmem1d(sigmar,1,np,'mod_nest:sigmar')
 
@@ -322,13 +318,18 @@ module mod_nest
       pstar0 = p0_in - ptop_in
     end if
 
-    do ip = 1 , np/2
-      plev(ip) = d_half * (minval(pstar0*sigma_in(ip+1)) + &
-                           maxval(pstar0*sigma_in(ip))) + ptop_in
+    maxps = maxval(pstar0)
+    do ip = 1 , np
+      plev(ip) = maxps*sigma_in(ip) + ptop_in
     end do
-    do ip = np/2+1 , np
-      plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
-    end do
+
+    minps = d_half * (plev(2)+plev(1)) * d_r1000
+    if ( ptop < minps ) then
+      write(stderr,*) 'ERROR : top pressure lower than COARSE top'
+      write(stderr,*) 'ERROR : Extrapolation will be performed.'
+      write(stderr,*) 'MINIMUM SUGGESTED PTOP is ', minps
+      call die('nest','INCREASE PTOP',1)
+    end if
 
     call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon,ds)
     call h_interpolator_create(dot_hint,xlat_in,xlon_in,dlat,dlon,ds)
