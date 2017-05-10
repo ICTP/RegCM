@@ -172,7 +172,7 @@ module mod_ae_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var P0')
 
-    call h_interpolator_create(hint,aet42lat,aet42lon,xlat,xlon,ds)
+    call h_interpolator_create(hint,aet42lat,aet42lon,xlat,xlon)
 
     call getmem2d(paeid_3,1,jx,1,iy,'mod_ae_icbc:paeid_3')
     call getmem2d(xps3,1,jx,1,iy,'mod_ae_icbc:xps3')

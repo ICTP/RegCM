@@ -326,7 +326,7 @@ module mod_sst_1deg
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var lon')
 
-      call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+      call h_interpolator_create(hint,lati,loni,xlat,xlon)
 
       istart(1) = 1
       istart(2) = 1

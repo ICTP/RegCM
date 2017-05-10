@@ -224,6 +224,7 @@ module mod_nest
                     'attribure iproj read error')
     istatus = nf90_get_att(ncinp, nf90_global, &
                       'grid_size_in_meters', ds_in)
+    ds_in = ds_in * sqrt(d_two)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'attribure ds read error')
     istatus = nf90_get_att(ncinp, nf90_global, &
@@ -331,8 +332,8 @@ module mod_nest
       call die('nest','INCREASE PTOP',1)
     end if
 
-    call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,xlat_in,xlon_in,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon,ds_in)
+    call h_interpolator_create(dot_hint,xlat_in,xlon_in,dlat,dlon,ds_in)
 
     ! Set up pointers
 
@@ -635,13 +636,13 @@ module mod_nest
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,2)
 !$OMP END SECTIONS
     !
     ! Put surface pressures in cb now to be conforming to other modules.

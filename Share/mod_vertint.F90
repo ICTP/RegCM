@@ -1757,9 +1757,9 @@ module mod_vertint
     end do
   end subroutine intvp
 
-  subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
+  subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm,imeth)
     implicit none
-    integer(ik4) , intent(in) :: kccm , krcm , ni , nj
+    integer(ik4) , intent(in) :: kccm , krcm , ni , nj , imeth
     real(rkx) , intent(in) :: pt , pss
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
@@ -1774,28 +1774,55 @@ module mod_vertint
     ! is necessary, fields are considered to have 0 vertical derivative.
     !
     pt1 = pt/pss
-    do i = 1 , ni
-      do j = 1 , nj
-        dp1 = psrcm(i,j)/pss
-        do n = 1 , krcm
-          sc = srcm(n)*dp1 + pt1
-          k1 = 0
-          do k = 1 , kccm
-            if ( sc > sccm(k) ) k1 = k
+    if ( imeth == 1 ) then
+      do i = 1 , ni
+        do j = 1 , nj
+          dp1 = psrcm(i,j)/pss
+          do n = 1 , krcm
+            sc = srcm(n)*dp1 + pt1
+            k1 = 0
+            do k = 1 , kccm
+              if ( sc > sccm(k) ) k1 = k
+            end do
+            if ( k1 == 0 ) then
+              frcm(i,j,n) = fccm(i,j,kccm)
+            else if ( k1 /= kccm ) then
+              kp1 = k1 + 1
+              rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
+              rc1 = d_one - rc
+              frcm(i,j,n) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
+            else
+              frcm(i,j,n) = fccm(i,j,1)
+            end if
           end do
-          if ( k1 == 0 ) then
-            frcm(i,j,n) = fccm(i,j,kccm)
-          else if ( k1 /= kccm ) then
-            kp1 = k1 + 1
-            rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
-            rc1 = d_one - rc
-            frcm(i,j,n) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
-          else
-            frcm(i,j,n) = fccm(i,j,1)
-          end if
         end do
       end do
-    end do
+    else
+      do i = 1 , ni
+        do j = 1 , nj
+          dp1 = psrcm(i,j)/pss
+          do n = 1 , krcm
+            sc = srcm(n)*dp1 + pt1
+            k1 = 0
+            do k = 1 , kccm
+              if ( sc > sccm(k) ) k1 = k
+            end do
+            if ( k1 == 0 ) then
+              frcm(i,j,n) = fccm(i,j,kccm)
+            else if ( k1 /= kccm ) then
+              kp1 = k1 + 1
+              rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
+              rc1 = d_one - rc
+              frcm(i,j,n) = rc1*log(fccm(i,j,kccm-k1+1)) + &
+                            rc*log(fccm(i,j,kccm-kp1+1))
+              frcm(i,j,n) = exp(frcm(i,j,n))
+            else
+              frcm(i,j,n) = fccm(i,j,1)
+            end if
+          end do
+        end do
+      end do
+    end if
   end subroutine intv1
   !
   !-----------------------------------------------------------------------

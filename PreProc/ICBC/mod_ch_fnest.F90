@@ -319,7 +319,7 @@ module mod_ch_fnest
       plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
     end do
 
-    call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds)
+    call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon)
 
     call getmem3d(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')
     call getmem3d(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')

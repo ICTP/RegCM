@@ -165,7 +165,7 @@ module mod_sst_eh5om
 
     idate = globidate1
 
-    call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+    call h_interpolator_create(hint,lati,loni,xlat,xlon)
 
     ilenrec = 0
     inquire(iolength=ilenrec) offset , xscale , ivar

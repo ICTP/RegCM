@@ -187,7 +187,7 @@ module mod_sst_gnhnc
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
     end if
 
-    call h_interpolator_create(hint,glat,glon,xlat,xlon,ds)
+    call h_interpolator_create(hint,glat,glon,xlat,xlon)
 
     call getmem2d(work2,1,ilon,1,jlat,'mod_gnhnc_sst:work2')
     call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')

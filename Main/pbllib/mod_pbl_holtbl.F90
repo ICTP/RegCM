@@ -970,8 +970,11 @@ module mod_pbl_holtbl
     do j = jci1 , jci2
       ! compute mechanical mixing depth, set to lowest model level if lower
       phpblm = 0.07_rkx*ustr(j,i)/pfcor(j,i)
-      phpblm = max(phpblm,m2p%za(j,i,kz))
       p2m%zpbl(j,i) = max(p2m%zpbl(j,i),phpblm)
+      if ( p2m%zpbl(j,i) < m2p%za(j,i,kz) ) then
+        p2m%zpbl(j,i) = m2p%za(j,i,kz)
+        p2m%kpbl(j,i) = kz
+      end if
     end do
   end do
 

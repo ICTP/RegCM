@@ -692,8 +692,8 @@ module mod_gn6hnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error close file '//trim(pathaddname))
 
-    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon)
 
     call getmem1d(sigmar,1,npl,'mod_gn6hnc:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
@@ -903,13 +903,13 @@ module mod_gn6hnc
     ! Vertically interpolate on RegCM sigma levels
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,2)
 !$OMP END SECTIONS
   end subroutine get_gn6hnc
   !

@@ -151,7 +151,7 @@ module mod_ox_icbc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var P0')
 
-    call h_interpolator_create(hint,oxt42lat,oxt42lon,xlat,xlon,ds)
+    call h_interpolator_create(hint,oxt42lat,oxt42lon,xlat,xlon)
 
     call getmem2d(poxid_3,1,jx,1,iy,'mod_ox_icbc:poxid_3')
     call getmem2d(xps3,1,jx,1,iy,'mod_ch_icbc:xps3')

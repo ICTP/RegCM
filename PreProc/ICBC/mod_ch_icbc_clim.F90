@@ -179,7 +179,7 @@ module mod_ch_icbc_clim
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error close file chemical')
 
-    call h_interpolator_create(hint,cht42lat,cht42lon,xlat,xlon,ds)
+    call h_interpolator_create(hint,cht42lat,cht42lon,xlat,xlon)
 
     r4pt = real(ptop)
     write(stdout,*) 'Static read OK.'

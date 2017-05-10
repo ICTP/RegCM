@@ -184,8 +184,8 @@ module mod_ein
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
     end if
 
-    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon)
 
     call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
@@ -254,16 +254,18 @@ module mod_ein
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
-    if ( .not. lqas ) then
-      ! Get from RHUM to mixing ratio
+    ! Get from RHUM to mixing ratio
+    if ( lqas ) then
+      q4 = d_10**q4
+    else
       call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
     end if
   end subroutine get_ein
@@ -467,6 +469,7 @@ module mod_ein
         end do
         if ( lqas ) then
           call sph2mxr(qvar,ilon,jlat,klev)
+          qvar = log10(qvar)
         else
           qvar = qvar * 0.01_rkx
         end if

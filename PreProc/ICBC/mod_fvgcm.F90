@@ -164,8 +164,8 @@ module mod_fvgcm
     call getmem2d(temp,1,numx,1,numy,'fvgc:temp')
     call getmem2d(itmp,1,numx,1,numy,'fvgc:itmp')
 
-    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,vlat,vlon,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon)
+    call h_interpolator_create(dot_hint,vlat,vlon,dlat,dlon)
 
     call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_fvgcm:b3')
     call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
@@ -400,13 +400,13 @@ module mod_fvgcm
 
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
 !$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_fvgcm

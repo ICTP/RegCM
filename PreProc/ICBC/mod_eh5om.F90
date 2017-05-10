@@ -338,13 +338,13 @@ module mod_eh5om
 
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_eh5om
@@ -480,8 +480,8 @@ module mod_eh5om
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_eh5om:b3')
     call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_eh5om:d3')
 
-    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
+    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon)
 
     u3 => d3(:,:,1:klev)
     v3 => d3(:,:,klev+1:2*klev)

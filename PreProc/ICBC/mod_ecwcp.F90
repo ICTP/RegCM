@@ -160,8 +160,8 @@ module mod_ecwcp
     call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_ecwcp:b3')
     call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_ecwcp:d3')
 
-    call h_interpolator_create(cross_hint,hlat,hlon,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,hlat,hlon,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,hlat,hlon,xlat,xlon)
+    call h_interpolator_create(dot_hint,hlat,hlon,dlat,dlon)
 
     ! Set up pointers
 
@@ -278,14 +278,14 @@ module mod_ecwcp
     ! interpolate U, V, T, and Q.
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
 !$OMP SECTION
     call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
 !$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_ecwcp

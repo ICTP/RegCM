@@ -151,8 +151,8 @@ module mod_ecens
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error read var hybm')
 
-    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,vlat,vlon,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon)
+    call h_interpolator_create(dot_hint,vlat,vlon,dlat,dlon)
 
     pplev(1) = 30.
     pplev(2) = 50.
@@ -310,13 +310,13 @@ module mod_ecens
 !$OMP SECTIONS
 !$OMP SECTION
     ! Interpolate U, V, T, and Q.
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
 !$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_ecens

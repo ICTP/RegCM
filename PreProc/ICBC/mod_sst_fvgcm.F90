@@ -102,7 +102,7 @@ module mod_sst_fvgcm
       lati(j) = -90.0 + 1.25*float(j-1)
     end do
 
-    call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+    call h_interpolator_create(hint,lati,loni,xlat,xlon)
 
     idate = idateo
     do k = 1 , nsteps

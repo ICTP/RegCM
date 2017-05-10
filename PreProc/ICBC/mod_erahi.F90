@@ -395,8 +395,8 @@ module mod_erahi
     call getmem3d(b3,1,jx,1,iy,1,nlev2*3,'mod_erahi:b3')
     call getmem3d(d3,1,jx,1,iy,1,nlev2*2,'mod_erahi:b3')
 
-    call h_interpolator_create(cross_hint,slat,slon,xlat,xlon,ds)
-    call h_interpolator_create(dot_hint,slat,slon,dlat,dlon,ds)
+    call h_interpolator_create(cross_hint,slat,slon,xlat,xlon)
+    call h_interpolator_create(dot_hint,slat,slon,dlat,dlon)
 
     ! Set up pointers
 
@@ -556,13 +556,13 @@ module mod_erahi
     ! Interpolate U, V, T, and Q.
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
+    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
 !$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
 99001 format (a,a,a,a,'EHI_',i10)

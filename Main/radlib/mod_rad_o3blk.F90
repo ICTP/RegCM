@@ -211,7 +211,7 @@ module mod_rad_o3blk
         call getmem1d(plev,1,24,'ozone:plev')
         call getmem3d(yozone,1,njcross,1,nicross,1,24,'ozone:yozone')
         call init_o3data(infile,ncid,lat,lon)
-        call h_interpolator_create(hint,lat,lon,alat,alon,ds)
+        call h_interpolator_create(hint,lat,lon,alat,alon)
       else
         ncid = 0
       end if

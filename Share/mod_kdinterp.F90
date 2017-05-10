@@ -81,7 +81,6 @@ module mod_kdinterp
   type h_interpolator
     integer(ik4) , dimension(2) :: sshape
     type(ftarget) :: tg
-    real(rkx) :: ds
   end type h_interpolator
 
   contains
@@ -93,32 +92,36 @@ module mod_kdinterp
     real(rkx) , dimension(:) , intent(in) :: slon
     real(rkx) , dimension(:,:) , intent(in) :: tlat
     real(rkx) , dimension(:,:) , intent(in) :: tlon
-    real(rkx) , intent(in) :: ds
+    real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
     real(rkx) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
+    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) , allocatable , dimension(:) :: tmpw
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
       call die('interp_create_ll_g','Target shapes non conforming',1)
     end if
     n1 = size(slat)
     n2 = size(slon)
-    h_i%ds = ds
     h_i%sshape(1) = n2
     h_i%sshape(2) = n1
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    deallocate(x)
-    if ( present(roi) ) then
-      r2 = ds*ds*roi*roi
+    if ( present(ds) ) then
+      dx = ds
     else
-      r2 = ds*ds
+      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+    end if
+    if ( present(roi) ) then
+      r2 = dx*dx*roi*roi
+    else
+      r2 = dx*dx
     end if
     nj = size(tlat,1)
     ni = size(tlat,2)
@@ -145,16 +148,34 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
+        allocate(tmpw(np))
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i - 1)
-          rx = max(sqrt(results(n)%dis),mindis)/ds
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
+          tmpw(n) = sqrt(results(n)%dis)
+        end do
+        rd = d_zero
+        do n = 1 , np
+          do nn = n+1 , np
+            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
+          end do
+        end do
+        do n = 1 , np
+          rx = d_zero
+          do nn = 1 , np
+            if ( nn == n ) cycle
+            ra = tmpw(n) / rd
+            rb = tmpw(nn) / rd
+            rx = rx + rb / (ra+rb)
+          end do
+          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do
         deallocate(results)
+        deallocate(tmpw)
       end do
     end do
+    deallocate(x)
     call kdtree2_destroy(mr)
   end subroutine interp_create_ll_g
 
@@ -165,29 +186,33 @@ module mod_kdinterp
     real(rkx) , dimension(:) , intent(in) :: slon
     real(rkx) , dimension(:) , intent(in) :: tlat
     real(rkx) , dimension(:) , intent(in) :: tlon
-    real(rkx) , intent(in) :: ds
+    real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
     real(rkx) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
+    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) , allocatable , dimension(:) :: tmpw
 
     n1 = size(slat)
     n2 = size(slon)
-    h_i%ds = ds
     h_i%sshape(1) = n2
     h_i%sshape(2) = n1
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    deallocate(x)
-    if ( present(roi) ) then
-      r2 = ds*ds*roi*roi
+    if ( present(ds) ) then
+      dx = ds
     else
-      r2 = ds*ds
+      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+    end if
+    if ( present(roi) ) then
+      r2 = dx*dx*roi*roi
+    else
+      r2 = dx*dx
     end if
     nj = size(tlat)
     ni = size(tlon)
@@ -215,16 +240,34 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
+        allocate(tmpw(np))
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          rx = max(sqrt(results(n)%dis),mindis)/ds
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
+          tmpw(n) = sqrt(results(n)%dis)
+        end do
+        rd = d_zero
+        do n = 1 , np
+          do nn = n+1 , np
+            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
+          end do
+        end do
+        do n = 1 , np
+          rx = d_zero
+          do nn = 1 , np
+            if ( nn == n ) cycle
+            ra = tmpw(n) / rd
+            rb = tmpw(nn) / rd
+            rx = rx + rb / (ra+rb)
+          end do
+          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do
         deallocate(results)
+        deallocate(tmpw)
       end do
     end do
+    deallocate(x)
     call kdtree2_destroy(mr)
   end subroutine interp_create_ll_ll
 
@@ -235,14 +278,15 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(in) :: slon
     real(rkx) , dimension(:,:) , intent(in) :: tlat
     real(rkx) , dimension(:,:) , intent(in) :: tlon
-    real(rkx) , intent(in) :: ds
+    real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
     real(rkx) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
+    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) , allocatable , dimension(:) :: tmpw
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -254,16 +298,19 @@ module mod_kdinterp
     n2 = size(slat,1)
     h_i%sshape(1) = n2
     h_i%sshape(2) = n1
-    h_i%ds = ds
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    deallocate(x)
-    if ( present(roi) ) then
-      r2 = ds*ds*roi*roi
+    if ( present(ds) ) then
+      dx = ds
     else
-      r2 = ds*ds
+      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+    end if
+    if ( present(roi) ) then
+      r2 = dx*dx*roi*roi
+    else
+      r2 = dx*dx
     end if
     ni = size(tlat,2)
     nj = size(tlat,1)
@@ -290,16 +337,34 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
+        allocate(tmpw(np))
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          rx = max(sqrt(results(n)%dis),mindis)/ds
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
+          tmpw(n) = sqrt(results(n)%dis)
+        end do
+        rd = d_zero
+        do n = 1 , np
+          do nn = n+1 , np
+            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
+          end do
+        end do
+        do n = 1 , np
+          rx = d_zero
+          do nn = 1 , np
+            if ( nn == n ) cycle
+            ra = tmpw(n) / rd
+            rb = tmpw(nn) / rd
+            rx = rx + rb / (ra+rb)
+          end do
+          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do
         deallocate(results)
+        deallocate(tmpw)
       end do
     end do
+    deallocate(x)
     call kdtree2_destroy(mr)
   end subroutine interp_create_g_g
 
@@ -310,14 +375,15 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(in) :: slon
     real(rkx) , dimension(:) , intent(in) :: tlat
     real(rkx) , dimension(:) , intent(in) :: tlon
-    real(rkx) , intent(in) :: ds
+    real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
     real(rkx) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
+    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) , allocatable , dimension(:) :: tmpw
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -326,16 +392,19 @@ module mod_kdinterp
     n2 = size(slat,1)
     h_i%sshape(1) = n2
     h_i%sshape(2) = n1
-    h_i%ds = ds
     np = n1 * n2
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    deallocate(x)
-    if ( present(roi) ) then
-      r2 = ds*ds*roi*roi
+    if ( present(ds) ) then
+      dx = ds
     else
-      r2 = ds*ds
+      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+    end if
+    if ( present(roi) ) then
+      r2 = dx*dx*roi*roi
+    else
+      r2 = dx*dx
     end if
     ni = size(tlat)
     nj = size(tlon)
@@ -363,16 +432,34 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
+        allocate(tmpw(np))
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          rx = max(sqrt(results(n)%dis),mindis)/ds
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/(rx*rx)
+          tmpw(n) = sqrt(results(n)%dis)
+        end do
+        rd = d_zero
+        do n = 1 , np
+          do nn = n+1 , np
+            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
+          end do
+        end do
+        do n = 1 , np
+          rx = d_zero
+          do nn = 1 , np
+            if ( nn == n ) cycle
+            ra = tmpw(n) / rd
+            rb = tmpw(nn) / rd
+            rx = rx + rb / (ra+rb)
+          end do
+          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do
         deallocate(results)
+        deallocate(tmpw)
       end do
     end do
+    deallocate(x)
     call kdtree2_destroy(mr)
   end subroutine interp_create_g_ll
 
@@ -625,8 +712,9 @@ module mod_kdinterp
     real(rkx) , intent(inout) , dimension(:,:) :: f
     real(rkx) :: aplus , asv , cell
     integer(ik4) :: i1 , i2 , j1 , j2
-    integer(ik4) :: i , is , ie , j , js , je , kp
+    integer(ik4) :: i , is , ie , j , js , je , kp , np
     real(rkx) , dimension(2) :: xnu
+    integer(ik4) , parameter :: npass = 4
     !
     ! purpose: spatially smooth data in f to dampen short
     ! wavelength components
@@ -641,33 +729,41 @@ module mod_kdinterp
     js = j1+1
     xnu(1) =  0.50_rkx
     xnu(2) = -0.52_rkx
-    do kp = 1 , 2
-      ! first smooth in the ni direction
-      do i = i1 , i2
-        asv = f(j1,i)
-        do j = js , je
-          cell = f(j,i)
-          aplus = f(j+1,i)
-          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-            f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
-          end if
-          asv = cell
+    do np = 1 , npass
+      do kp = 1 , 2
+        ! first smooth in the ni direction
+        do i = i1 , i2
+          asv = f(j1,i)
+          do j = js , je
+            cell = f(j,i)
+            aplus = f(j+1,i)
+            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+              f(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+            end if
+            asv = cell
+          end do
         end do
-      end do
-      ! smooth in the nj direction
-      do j = j1 , j2
-        asv = f(j,i1)
-        do i = is , ie
-          cell = f(j,i)
-          aplus = f(j,i+1)
-          if ( asv > missc .and. aplus > missc .and. cell > missc ) then
-            f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
-          end if
-          asv = cell
+        ! smooth in the nj direction
+        do j = j1 , j2
+          asv = f(j,i1)
+          do i = is , ie
+            cell = f(j,i)
+            aplus = f(j,i+1)
+            if ( asv > missc .and. aplus > missc .and. cell > missc ) then
+              f(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+            end if
+            asv = cell
+          end do
         end do
       end do
     end do
   end subroutine smtdsmt
+
+  pure real(rkx) function dist(x,i,j) result(d)
+    real(rkx) , intent(in) , dimension(:,:) :: x
+    integer(ik4) , intent(in) :: i , j
+    d = sqrt((x(1,i)-x(1,j))**2+(x(2,i)-x(2,j))**2+(x(3,i)-x(3,j))**2)
+  end function dist
 
 end module mod_kdinterp
 

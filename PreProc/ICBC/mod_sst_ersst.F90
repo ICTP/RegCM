@@ -125,7 +125,7 @@ module mod_sst_ersst
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read lat var')
 
-    call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+    call h_interpolator_create(hint,lati,loni,xlat,xlon)
 
     idate = globidate1
     do it = 1 , nsteps
