@@ -155,7 +155,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk4) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
-    var(:,:) = 1E+20
+    var(:,:) = 1E+36
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -197,7 +197,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk4) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj , ip
-    var(:,:) = 1E+20
+    var(:,:) = 1E+36
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -261,7 +261,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk8) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
-    var(:,:) = 1D+20
+    var(:,:) = 1D+36
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
@@ -303,7 +303,7 @@ module mod_remap
     integer(ik4) , intent(in) , dimension(:,:) :: mask
     real(rk8) , dimension(:,:) , intent(out) :: var
     integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj , ip
-    var(:,:) = 1D+20
+    var(:,:) = 1D+36
     if ( nsg == 1 ) then
       n1 = size(mask,1)
       n2 = size(mask,2)
