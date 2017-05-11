@@ -308,7 +308,7 @@ module mod_earth
     if ( domain%igstart(1) < 1 .and. domain%ntiles == 1 ) then
       domain%ntiles = 2
       itmp = domain%igstop(1)
-      domain%igstart(1) = gi + domain%igstart(i) - 1
+      domain%igstart(1) = gi + domain%igstart(1) - 1
       domain%igstop(1) = gi
       domain%igstart(2) = 1
       domain%igstop(2) = itmp

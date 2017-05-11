@@ -99,7 +99,6 @@ module mod_miroc_helper
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=10) :: d1 , d2
     integer(ik4) :: y , m , d , h
-    integer(ik4) :: y1 , m1 , y2 , m2
     call split_idate(idate,y,m,d,h)
     select case (var)
       case ('ps')

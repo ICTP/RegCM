@@ -99,7 +99,7 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
     real(rkx) , allocatable , dimension(:) :: tmpw
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
@@ -152,22 +152,25 @@ module mod_kdinterp
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i - 1)
+                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
           tmpw(n) = sqrt(results(n)%dis)
         end do
         rd = d_zero
+        rp = real(np,rkx)
         do n = 1 , np
           do nn = n+1 , np
             rd = rd + dist(x,results(n)%idx,results(nn)%idx)
           end do
         end do
+        ! Divide for total number of lines in a polygon (sides + dyagonals)
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
           do nn = 1 , np
             if ( nn == n ) cycle
             ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
-            rx = rx + rb / (ra+rb)
+            rx = rx + d_half * (rb / (ra+rb))
           end do
           h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do
@@ -193,7 +196,7 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
     real(rkx) , allocatable , dimension(:) :: tmpw
 
     n1 = size(slat)
@@ -248,18 +251,21 @@ module mod_kdinterp
           tmpw(n) = sqrt(results(n)%dis)
         end do
         rd = d_zero
+        rp = real(np,rkx)
         do n = 1 , np
           do nn = n+1 , np
             rd = rd + dist(x,results(n)%idx,results(nn)%idx)
           end do
         end do
+        ! Divide for total number of lines in a polygon (sides + dyagonals)
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
           do nn = 1 , np
             if ( nn == n ) cycle
             ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
-            rx = rx + rb / (ra+rb)
+            rx = rx + d_half * (rb / (ra+rb))
           end do
           h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do
@@ -285,7 +291,7 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
     real(rkx) , allocatable , dimension(:) :: tmpw
 
     if ( any(shape(slat) /= shape(slon)) ) then
@@ -345,18 +351,21 @@ module mod_kdinterp
           tmpw(n) = sqrt(results(n)%dis)
         end do
         rd = d_zero
+        rp = real(np,rkx)
         do n = 1 , np
           do nn = n+1 , np
             rd = rd + dist(x,results(n)%idx,results(nn)%idx)
           end do
         end do
+        ! Divide for total number of lines in a polygon (sides + dyagonals)
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
           do nn = 1 , np
             if ( nn == n ) cycle
             ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
-            rx = rx + rb / (ra+rb)
+            rx = rx + d_half * (rb / (ra+rb))
           end do
           h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do
@@ -382,7 +391,7 @@ module mod_kdinterp
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb
+    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
     real(rkx) , allocatable , dimension(:) :: tmpw
 
     if ( any(shape(slat) /= shape(slon)) ) then
@@ -440,18 +449,21 @@ module mod_kdinterp
           tmpw(n) = sqrt(results(n)%dis)
         end do
         rd = d_zero
+        rp = real(np,rkx)
         do n = 1 , np
           do nn = n+1 , np
             rd = rd + dist(x,results(n)%idx,results(nn)%idx)
           end do
         end do
+        ! Divide for total number of lines in a polygon (sides + dyagonals)
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
           do nn = 1 , np
             if ( nn == n ) cycle
             ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
-            rx = rx + rb / (ra+rb)
+            rx = rx + d_half * (rb / (ra+rb))
           end do
           h_i%tg%ft(j,i)%wgt(n)%wgt = rx
         end do

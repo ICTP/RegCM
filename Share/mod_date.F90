@@ -1219,7 +1219,6 @@ module mod_date
     integer(ik4) :: istat , aunit
     type (iadate) , save :: d
     type (iatime) :: t
-    character(len=32) :: cdum
 
     character(len=64) , save :: csave
     data csave /'months since XXXX-XX-XX XX:XX:XX XXX'/
@@ -1265,7 +1264,6 @@ module mod_date
     character(len=16) , save :: csavecal
     integer(ik4) , save :: iunit
     type (rcm_time_and_date) , save :: dref
-    character(len=16) :: cdum
     type (iadate) :: d
     type (iatime) :: t
     integer(ik4) :: istat
@@ -1355,7 +1353,6 @@ module mod_date
     character(len=16) , save :: csavecal
     integer(ik4) , save :: iunit
     type (rcm_time_and_date) , save :: dref
-    character(len=16) :: cdum
     type (iadate) :: d
     type (iatime) :: t
     integer(ik4) :: istat

@@ -508,7 +508,7 @@ module mod_nhinterp
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , k1 , k2
       real(rkx) , intent(inout) , dimension(j1:j2,i1:i2,k1:k2) :: slab
       real(rkx) :: aplus , asv , cell
-      integer(ik4) :: i , is , ie , j , js , je , k , id , kp , np
+      integer(ik4) :: i , is , ie , j , js , je , k , kp , np
       real(rkx) , dimension(2) :: xnu
       integer(ik4) , parameter :: npass = 16
       !
