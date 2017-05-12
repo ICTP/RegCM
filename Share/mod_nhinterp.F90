@@ -303,7 +303,7 @@ module mod_nhinterp
           !  lowest half-layer.   Start with pp at surface.
           !
           p0surf = ps0(j,i) + ptoppa
-          psp = (ps(j,i) + ptop) * d_1000 - ps0(j,i)
+          psp = ps(j,i) * d_1000 - ps0(j,i)
           delp0 = p0surf - pr0(j,i,kxs)
           tvk = tv(j,i,kxs)
           tk = t(j,i,kxs)
