@@ -17,31 +17,37 @@
 !
 !
 !    Documentation:
-! 
-!    Authors: code loosely based on toy model developed by Tompkins 
-!             implemented and further developed by Nogherotto in REGCM in 2013-2015
 !
-!    Code implements a 5 phase prognostic cloud microphysics scheme with a 
+!    Authors: code loosely based on toy model developed by Tompkins
+!        implemented and further developed by Nogherotto in REGCM in 2013-2015
+!
+!    Code implements a 5 phase prognostic cloud microphysics scheme with a
 !    diagnostic treatment of cloud fraction
 !
-!    - The cloud cover is parameterized using the diagnostic scheme of Xu and Randall 96
+!    - The cloud cover is parameterized using the diagnostic scheme of
+!      Xu and Randall 96
 !
-!    - Microphysics were originally based on  Tiedtke 93 and Tompkins et al. 2007
-!      but with a number of modifications to the melting, collection, autoconversion
-!      
+!    - Microphysics were originally based on Tiedtke 93 and Tompkins et al. 2007
+!      but with a number of modifications to the melting, collection,
+!      autoconversion
+!
 !    - Solver is a simple implicit solver, implemented layer by layer
 !      Original tests in REGCM4 published in Nogherotto et al. 2016
 !
 !    Modifications:
 !      201704: Tompkins and Nogherotto
-!       a) repetition of code removed for layer k=1 and tidy up of duplicate/redundant arrays 
-!       b) Bug fixes to autoconversion terms for all parameterization scheme (CCOVER missing)  
-!       c) Sedimentation term moved before BF-type process and loss sink included in the first guess
-!          to improve supercooled liquid water at top of mixed phase clouds (no need for 
-!          cloud top distance deposition "fudge".
+!       a) repetition of code removed for layer k=1 and tidy up of
+!          duplicate/redundant arrays
+!       b) Bug fixes to autoconversion terms for all parameterization scheme
+!          (CCOVER missing)
+!       c) Sedimentation term moved before BF-type process and loss sink
+!          included in the first guess to improve supercooled liquid water
+!          at top of mixed phase clouds (no need for cloud top distance
+!          deposition "fudge".
 !       d) Factor 2 fudge removed from deposition term
-!       e) A number of clean up terms added to remove tiny cloud/precipiation amounts
-!       f) Collection fudge factor removed from autoconversion and replaced by 
+!       e) A number of clean up terms added to remove tiny cloud/precipiation
+!          amounts
+!       f) Collection fudge factor removed from autoconversion and replaced by
 !          explicit parameterization from Khairoutdinov and Kogan [2000].
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -192,12 +198,12 @@ module mod_micro_nogtom
   ! decoupled mixing ratios tendency
   real(rkx) , pointer , dimension(:,:,:,:) :: qxtendc
   ! j,i,n ! generalized precipitation flux
-  real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx 
+  real(rkx) , pointer , dimension(:,:,:,:) :: pfplsx
   real(rkx) , pointer, dimension(:,:,:,:) :: qx
   ! Initial values
   real(rkx) , pointer, dimension(:) :: qx0
   ! new values for qxx at time+1
-  real(rkx) , pointer, dimension(:) :: qxn 
+  real(rkx) , pointer, dimension(:) :: qxn
   ! first guess values including precip
   real(rkx) , pointer, dimension(:) :: qxfg
   ! first guess value for cloud fraction
@@ -1045,7 +1051,7 @@ module mod_micro_nogtom
             ! condensation/evaporation due to dqsat/dt
             !------------------------------------------------------------------
             ! calculate dqs/dt and use to calculate the cloud source
-            ! note that old diagnostic mix phased qsat is retained for moment 
+            ! note that old diagnostic mix phased qsat is retained for moment
             !------------------------------------------------------------------
             dtdp   = rovcp*tk/mo2mc%phs(j,i,k)
             dpmxdt = dp*oneodt
@@ -1092,7 +1098,7 @@ module mod_micro_nogtom
             !----------------------------------------------------------------
             ! dqs > 0:  evaporation of clouds
             !----------------------------------------------------------------
-            ! erosion term is explicit in for cloud liquid 
+            ! erosion term is explicit in for cloud liquid
             ! changed to be uniform distribution in cloud region
             ! previous function based on delta distribution in cloud:
             if ( dqs > d_zero ) then
@@ -1470,12 +1476,12 @@ module mod_micro_nogtom
             !---------------------------------------------------------------
             ! collection and coellescion here Khairoutdinov and Kogan [2000]
             !---------------------------------------------------------------
-            ! CODE 
+            ! CODE
 
 
             !---------------------------------------------------------------
-            ! evaporation - follows Jakob and Klein MWR 2000, with mods from 
-            !               Tompkins  
+            ! evaporation - follows Jakob and Klein MWR 2000, with mods from
+            !               Tompkins
             !---------------------------------------------------------------
             ! recalculate qpretot since melting term may have changed it
             ! rprecrhmax = 0.7 is the threshold for the clear-sky RH that
@@ -1524,7 +1530,7 @@ module mod_micro_nogtom
 
                 ! AMT just evaporate all rain if the rainfall is very small
                 if (qxfg(iqqr)<activqx ) dpevap=qxfg(iqqr)
-                 
+
                 !---------------------------------------------------------
                 ! add evaporation term to explicit sink.
                 ! this has to be explicit since if treated in the implicit
@@ -1983,7 +1989,7 @@ module mod_micro_nogtom
       ! parameters for cloud collection by rain and snow.
       ! note that with new prognostic variable it is now possible
       ! to replace this with an explicit collection
-      ! parametrization to be replaced by Khairoutdinov and Kogan [2000]: 
+      ! parametrization to be replaced by Khairoutdinov and Kogan [2000]:
       !-----------------------------------------------------------
       if ( covptot(j,i) > dlowval ) then
         precip = (rainp+snowp)/covptot(j,i)

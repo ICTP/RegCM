@@ -1313,7 +1313,7 @@ module mod_tendency
               !
               ! omega in the non-hydrostatic model: compute from w
               !
-              omega(j,i,k) = d_half*egrav*atm0%rho(j,i,k)*rpsb(j,i) * &
+              omega(j,i,k) = -d_half*egrav*atm0%rho(j,i,k)*rpsb(j,i) * &
                            (atm2%w(j,i,k)+atm2%w(j,i,k+1))
             end do
           end do

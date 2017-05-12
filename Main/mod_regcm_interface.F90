@@ -166,14 +166,7 @@ module mod_regcm_interface
     real(rk8) , intent(in) :: timeend   ! ending   time-step
     character(len=32) :: appdat
 
-#ifdef DEBUG
-    ! if ( ipptls == 2 ) call grid_nc_create('qqxp',cross,zqxn,qqxp)
-    ! call grid_nc_create('qxatm',cross,atm1%qx,nc_4d)
-#endif
     do while ( extime >= timestr .and. extime < timeend )
-#ifdef DEBUG
-      ! call grid_nc_write(nc_4d)
-#endif
       !
       ! Retrieve information from the driver
       !
@@ -228,10 +221,8 @@ module mod_regcm_interface
     end do
 
 #ifdef DEBUG
-    call stop_debug()
-    ! if ( ipptls == 2 ) call grid_nc_destroy(qqxp)
-    ! call grid_nc_destroy(nc_4d)
     call time_print(6,'evolution phase')
+    call stop_debug()
 #endif
 
   end subroutine RCM_run
