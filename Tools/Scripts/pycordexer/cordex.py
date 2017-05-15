@@ -539,12 +539,12 @@ except:
 
 stsf = False
 ftype = 'SRF'
-if ncf.variables.has_key('tsmax') or ncf.variables.has_key('t2max'):
+if 'tsmax' in ncf.variables or 'tsmin' in ncf.variables:
   ftype = 'STS'
   stsf = True
-if ncf.variables.has_key('ua') or ncf.variables.has_key('u'):
+if 'ua' in ncf.variables or 'u' in ncf.variables:
   ftype = 'ATM'
-if ncf.variables.has_key('qrs') or ncf.variables.has_key('firtp'):
+if 'qrs' in ncf.variables or 'firtp' in ncf.variables:
   ftype = 'RAD'
 
 try:
@@ -566,7 +566,7 @@ use_formula = False
 
 [var,idtc] = searchvar([variable,]+lookup[variable]['name'],ncf)
 if var is None:
-  if lookup[variable].has_key('formula'):
+  if 'formula' in lookup[variable]:
     compvars = [ ]
     for name in lookup[variable]['formula']:
       vv = searchvar(name,ncf)
@@ -579,7 +579,7 @@ if var is None:
         compvars.append(vv[0][:])
     var = compvars[0]
     use_formula = True
-    if lookup[variable].has_key('vertint'):
+    if 'vertint' in lookup[variable]:
       compvars.append(np.array([lookup[variable]['vertint'],]))
   else:
     print('Variable not in file !')
@@ -587,7 +587,7 @@ if var is None:
 
 correct_time = times[:]
 if corrflag == 1:
-  if lookup[variable].has_key('timecorr'):
+  if 'timecorr' in lookup[variable]:
     correct_time = correct_time + lookup[variable]['timecorr'][ftype]
 dates = num2date(correct_time, units=times.units, calendar=times.calendar)
 
@@ -661,7 +661,7 @@ else:
          repr(dates[-1].day).zfill(2)+repr(dates[-1].hour).zfill(2)+
          repr(dates[-1].minute).zfill(2))
 
-myexp = experiment.translate(None,'.')
+myexp = experiment.translate({None: '.'})
 cordexdir = os.path.join('CORDEX','output',domain,'ICTP',global_model,
                          myexp,ensemble,ICTP_Model,ICTP_Model_Version,
                          frequency,variable)
@@ -787,7 +787,7 @@ for attr in var.ncattrs():
       newvar.setncattr(attr,getattr(var,attr))
 # Search for dimension variables to be added
 
-if lookup[variable].has_key('vertint'):
+if 'vertint' in lookup[variable]:
   if 'plev' in var.dimensions:
     plevs = ncf.variables['plev'][:]
     mask = np.where(plevs == lookup[variable]['vertint'])
@@ -866,7 +866,7 @@ if 'time' not in var.dimensions:
   newvar[Ellipsis] = var[Ellipsis]
 else:
   for it in range(0,np.size(correct_time)):
-    if lookup[variable].has_key('vertint'):
+    if 'vertint' in lookup[variable]:
       if 'plev' in var.dimensions:
         intvar = var[it,mask[0],Ellipsis]
         newvar[it,Ellipsis] = intvar * xfac
@@ -883,7 +883,7 @@ else:
                                 ps[it,:,:],sigma,ptop,
                                 lookup[variable]['vertint']) * xfac
         elif lookup[variable]['vertmod'] == 'compute':
-          if not lookup[variable].has_key('formula'):
+          if not 'formula' in lookup[variable]:
             raise RuntimeError('Cannot compute without formula!')
           func = lookup[variable]['tocall']['method']
           if ( func == 'level' ):
@@ -893,7 +893,7 @@ else:
             newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
         else:
           raise RuntimeError('Unknow vertical interpolation method!')
-    elif lookup[variable].has_key('formula') and use_formula:
+    elif 'formula' in lookup[variable] and use_formula:
       func = lookup[variable]['tocall']['method']
       if lookup[variable]['tocall']['dimension'] == 2:
         if variable == 'mslp':
