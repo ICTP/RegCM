@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 from netCDF4 import num2date, date2num , Dataset
 from vertint import mod_vertint
