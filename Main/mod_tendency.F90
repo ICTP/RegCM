@@ -561,8 +561,12 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              chiten(j,i,k,itr) = chiten(j,i,k,itr) + &
-                                  chidyn(j,i,k,itr) + chiphy(j,i,k,itr)
+    ! FAB: if grid point storm detected chiten = 0 after tractend2
+    ! update total tendency only if chiten ne zero 
+              if(chiten(j,i,k,itr) .ne. d_zero) then            
+                 chiten(j,i,k,itr) = chiten(j,i,k,itr) + &
+                                   chidyn(j,i,k,itr) + chiphy(j,i,k,itr)
+              end if
             end do
           end do
         end do
