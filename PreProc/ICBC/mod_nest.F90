@@ -224,7 +224,7 @@ module mod_nest
                     'attribure iproj read error')
     istatus = nf90_get_att(ncinp, nf90_global, &
                       'grid_size_in_meters', ds_in)
-    ds_in = ds_in * sqrt(d_two)
+    ds_in = ds_in * sqrt(d_two) * d_r1000
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'attribure ds read error')
     istatus = nf90_get_att(ncinp, nf90_global, &

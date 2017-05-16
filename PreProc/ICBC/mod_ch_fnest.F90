@@ -55,7 +55,7 @@ module mod_ch_fnest
   real(rkx) :: pss
   integer(ik4) :: oidyn
   character(len=6) :: iproj_in
-  real(rkx) :: clat_in , clon_in
+  real(rkx) :: clat_in , clon_in , ds_in
   real(rkx) :: plat_in , plon_in , ptop_in , xcone_in
   type(rcm_time_and_date) , dimension(:) , pointer :: itimes
   real(rkx) , dimension(:) , pointer :: xtimes
@@ -224,6 +224,9 @@ module mod_ch_fnest
     istatus = nf90_get_var(ncid(1), ivarid, ptop_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable ptop read error')
+    istatus = nf90_get_att(ncid(1), nf90_global, &
+                      'grid_size_in_meters', ds_in)
+    ds_in = ds_in * sqrt(d_two) * d_r1000
     istatus = nf90_get_att(ncid(1), nf90_global,'projection', iproj_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'attribure iproj read error')
@@ -319,7 +322,7 @@ module mod_ch_fnest
       plev(ip) = maxval(pstar0*sigma_in(ip+1)) + ptop_in
     end do
 
-    call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon)
+    call h_interpolator_create(hint,xlat_in,xlon_in,xlat,xlon,ds_in)
 
     call getmem3d(mxcp,1,jx_in,1,iy_in,1,np,'init_fnest:mxcp')
     call getmem3d(mxcp4,1,jx,1,iy,1,np,'init_fnest:mxcp4')

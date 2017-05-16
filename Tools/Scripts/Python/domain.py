@@ -97,12 +97,12 @@ def map_RegCMtopo(ax, lat, lon, topo, latc , lonc ,
     x, y = m(lon,lat)
     im = m.contourf(x, y, topo, llevels, cmap=plt.cm.RdYlGn_r)
     m.drawcoastlines(color='k',linewidth=1, zorder=10)
-    m.drawparallels(range(lat_start, lat_end, 5),
-            labels=[1,0,0,0], fontsize=fontsize, dashes=[1, 2],
-            linewidth=1, color='k', zorder=12)
-    m.drawmeridians(range(lon_start, lon_end, 5),
-            labels=[0,0,0,1], fontsize=fontsize, dashes=[1, 2],
-            linewidth=1, color='k', zorder=12)
+    #m.drawparallels(range(lat_start, lat_end, 5),
+    #        labels=[1,0,0,0], fontsize=fontsize, dashes=[1, 2],
+    #        linewidth=1, color='k', zorder=12)
+    #m.drawmeridians(range(lon_start, lon_end, 5),
+    #        labels=[0,0,0,1], fontsize=fontsize, dashes=[1, 2],
+    #        linewidth=1, color='k', zorder=12)
     
 
     return m

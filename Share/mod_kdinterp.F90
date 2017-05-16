@@ -127,7 +127,9 @@ module mod_kdinterp
     ni = size(tlat,2)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
+    write(stdout,'(a)',advance='no') ' Computing weights'
     do i = 1 , ni
+      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1 , nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         np = kdtree2_r_count(mr,p,r2)
@@ -147,7 +149,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%np = nf
         end if
         np = h_i%tg%ft(j,i)%np
-        allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
+        allocate(h_i%tg%ft(j,i)%wgt(np))
         allocate(tmpw(np))
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
@@ -166,9 +168,9 @@ module mod_kdinterp
         rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
+          ra = tmpw(n) / rd
           do nn = 1 , np
             if ( nn == n ) cycle
-            ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
             rx = rx + d_half * (rb / (ra+rb))
           end do
@@ -180,6 +182,7 @@ module mod_kdinterp
     end do
     deallocate(x)
     call kdtree2_destroy(mr)
+    write(stdout,'(a)') ' Done.'
   end subroutine interp_create_ll_g
 
   subroutine interp_create_ll_ll(h_i,slat,slon,tlat,tlon,ds,roi)
@@ -222,7 +225,9 @@ module mod_kdinterp
     h_i%tg%tshape(1) = nj
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
+    write(stdout,'(a)',advance='no') ' Computing weights'
     do i = 1 , ni
+      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1 , nj
         call ll2xyz(tlat(i),tlon(j),p)
         np = kdtree2_r_count(mr,p,r2)
@@ -242,7 +247,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%np = nf
         end if
         np = h_i%tg%ft(j,i)%np
-        allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
+        allocate(h_i%tg%ft(j,i)%wgt(np))
         allocate(tmpw(np))
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
@@ -261,9 +266,9 @@ module mod_kdinterp
         rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
+          ra = tmpw(n) / rd
           do nn = 1 , np
             if ( nn == n ) cycle
-            ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
             rx = rx + d_half * (rb / (ra+rb))
           end do
@@ -275,6 +280,7 @@ module mod_kdinterp
     end do
     deallocate(x)
     call kdtree2_destroy(mr)
+    write(stdout,'(a)') ' Done.'
   end subroutine interp_create_ll_ll
 
   subroutine interp_create_g_g(h_i,slat,slon,tlat,tlon,ds,roi)
@@ -322,7 +328,9 @@ module mod_kdinterp
     nj = size(tlat,1)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
+    write(stdout,'(a)',advance='no') ' Computing weights'
     do i = 1 , ni
+      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1 , nj
         call ll2xyz(tlat(j,i),tlon(j,i),p)
         np = kdtree2_r_count(mr,p,r2)
@@ -342,7 +350,7 @@ module mod_kdinterp
           h_i%tg%ft(j,i)%np = nf
         end if
         np = h_i%tg%ft(j,i)%np
-        allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
+        allocate(h_i%tg%ft(j,i)%wgt(np))
         allocate(tmpw(np))
         do n = 1 , np
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
@@ -361,9 +369,9 @@ module mod_kdinterp
         rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
+          ra = tmpw(n) / rd
           do nn = 1 , np
             if ( nn == n ) cycle
-            ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
             rx = rx + d_half * (rb / (ra+rb))
           end do
@@ -375,6 +383,7 @@ module mod_kdinterp
     end do
     deallocate(x)
     call kdtree2_destroy(mr)
+    write(stdout,'(a)') ' Done.'
   end subroutine interp_create_g_g
 
   subroutine interp_create_g_ll(h_i,slat,slon,tlat,tlon,ds,roi)
@@ -420,7 +429,9 @@ module mod_kdinterp
     h_i%tg%tshape(1) = nj
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
+    write(stdout,'(a)',advance='no') ' Computing weights'
     do i = 1 , ni
+      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
       do j = 1 , nj
         call ll2xyz(tlat(i),tlon(j),p)
         np = kdtree2_r_count(mr,p,r2)
@@ -459,9 +470,9 @@ module mod_kdinterp
         rd = rd / (rp + 0.5_rkx*rp*(rp-3))
         do n = 1 , np
           rx = d_zero
+          ra = tmpw(n) / rd
           do nn = 1 , np
             if ( nn == n ) cycle
-            ra = tmpw(n) / rd
             rb = tmpw(nn) / rd
             rx = rx + d_half * (rb / (ra+rb))
           end do
@@ -473,6 +484,7 @@ module mod_kdinterp
     end do
     deallocate(x)
     call kdtree2_destroy(mr)
+    write(stdout,'(a)') ' Done.'
   end subroutine interp_create_g_ll
 
   subroutine h_interpolator_destroy(h_i)
