@@ -23,6 +23,9 @@ else
   DEFINE = -D
 endif
 
+$(REGCM_ROOT)/version :
+	@cd $(REGCM_ROOT) && sh checkver
+
 SVNDEF := $(DEFINE)'SVN_REV="$(shell cat $(REGCM_ROOT)/version)"'
 
 # CLM45 flags to activate schemes.

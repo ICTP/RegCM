@@ -17,7 +17,10 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+all : version
+
+version :
+	@sh checkver
+
 SUBDIRS = external Share PreProc Main PostProc
 
-dover:
-	@sh checkver
