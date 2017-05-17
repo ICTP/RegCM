@@ -97,12 +97,13 @@ module mod_params
       enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
       do_parallel_netcdf_out , idiag , icosp
 
-    namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,          &
-      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,            &
-      iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,         &
-      scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat ,   &
-      icldfrac , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean , &
-      itweak , temp_tend_maxval , wind_tend_maxval , ghg_year_const
+    namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
+      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
+      iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
+      scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat , &
+      icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud , &
+      islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,      &
+      ghg_year_const
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , upstream_mode , upu , &
       umax , stability_enhance , vert_stability_enhance , t_extrema ,    &
@@ -252,6 +253,7 @@ module mod_params
     irrtm = 0
     islab_ocean = 0
     iclimao3 = 0
+    iclimaaer = 0
     isolconst = 0
     icumcloud = 1
     temp_tend_maxval = 5.0_rkx*(dt/secpm)
@@ -1122,6 +1124,7 @@ module mod_params
     call bcast(icldmstrat)
     call bcast(irrtm)
     call bcast(iclimao3)
+    call bcast(iclimaaer)
     call bcast(isolconst)
     call bcast(icumcloud)
     call bcast(islab_ocean)
@@ -1380,6 +1383,11 @@ module mod_params
       call bcast(ioxclim)
       call bcast(igaschem)
     end if
+
+    if ( iclimaaer == 1 ) then
+      call init_aerclima
+    end if
+
     !
     ! ALLOCATE NEEDED SPACE
     !
@@ -1727,7 +1735,9 @@ module mod_params
       write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
       write(stdout,'(a,i2)') '  Large scale LWP as convect. : ' , iconvlwp
       write(stdout,'(a,i2)') '  Cloud fraction scheme       : ' , icldfrac
-      write(stdout,'(a,i2)') '  Marine stratocumulus fraction ' , icldmstrat
+      write(stdout,'(a,i2)') '  Marine stratocumulus        : ' , icldmstrat
+      write(stdout,'(a,i2)') '  Climate O3 dataset          : ' , iclimao3
+      write(stdout,'(a,i2)') '  Climate Aerosol dataset     : ' , iclimaaer
       write(stdout,*) 'Boundary Pameterizations'
       write(stdout,'(a,i2)') '  Num. of bndy points cross  : ', nspgx
       write(stdout,'(a,i2)') '  Num. of bndy points dot    : ', nspgd

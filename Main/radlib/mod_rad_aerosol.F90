@@ -27,6 +27,7 @@ module mod_rad_aerosol
   use mod_memutil
   use mod_mpmessage
   use mod_rad_common
+  use mod_regcm_types
   use parrrsw , only : nbndsw
   use parrrtm , only : nbndlw
   implicit none
@@ -35,14 +36,20 @@ module mod_rad_aerosol
 
   public :: tauxar3d , tauasc3d , gtota3d , ftota3d
   public :: tauxar , tauasc , gtota , ftota
-  public :: aertrlw , tauxar3d_lw
+  public :: aermmr , aertrlw , tauxar3d_lw
   public :: allocate_mod_rad_aerosol , aermix , aeroppt
+  public :: init_aerclima , read_aerclima , close_aerclima
   !
   ! MODIF 16/09/2005 IBRAH Internal mixing
   !
   integer(ik4) , parameter :: ncoefs = 5  ! Number of coefficients
   integer(ik4) , parameter :: nwav = 19
   integer(ik4) , parameter :: nih = 8
+
+  integer(ik4) , parameter :: aerclima_ntr = 4
+  integer(ik4) , parameter :: aerclima_nbin = 4
+
+  character(len=6) , dimension(aerclima_ntr) :: aerclima_chtr
 
   real(rkx) , parameter :: d10e5  = 1.0e+5_rkx
   real(rkx) , parameter :: d10e4  = 1.0e+4_rkx
@@ -66,6 +73,7 @@ module mod_rad_aerosol
 
   ! Sulfate param for standard scheme / works only with rad standard
   ! (Brieglieb et al.)
+  real(rkx) , pointer , dimension(:,:,:) :: aermmr
   real(rkx) , dimension(nspi) :: gsbase  , ksbase , wsbase
   real(rkx) , dimension(nspi,ncoefs) :: gscoef , kscoef , wscoef
 
@@ -1022,6 +1030,8 @@ module mod_rad_aerosol
       0.887_rkx, 0.912_rkx, 0.923_rkx, 0.921_rkx, &
       0.904_rkx, 0.029_rkx/
 
+  data aerclima_chtr / 'DUST01', 'DUST02', 'DUST03', 'DUST04' /
+
   contains
 
     subroutine allocate_mod_rad_aerosol
@@ -1035,6 +1045,10 @@ module mod_rad_aerosol
       end if
 
       npoints = (jci2-jci1+1)*(ici2-ici1+1)
+
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        call getmem3d(aermmr,1,npoints,1,kz,1,ntr,'colmod3:aermmr')
+      end if
 
       call getmem1d(gsbc_hb,1,nband,'aerosol:gsbc_hb')
       call getmem1d(gsbc_hl,1,nband,'aerosol:gsbc_hl')
@@ -1077,7 +1091,7 @@ module mod_rad_aerosol
       call getmem2d(aermtot,1,npoints,1,kz,'aerosol:aermtot')
       call getmem2d(aervtot,1,npoints,1,kz,'aerosol:aervtot')
       call getmem3d(aertrlw,1,npoints,1,kzp1,1,kzp1,'aerosol:aertrlw')
-      if ( ichem == 1 ) then
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
         call getmem3d(fa,1,npoints,0,kz,1,ntr,'aerosol:fa')
         call getmem3d(ga,1,npoints,0,kz,1,ntr,'aerosol:ga')
         call getmem3d(tx,1,npoints,0,kz,1,ntr,'aerosol:tx')
@@ -1148,6 +1162,39 @@ module mod_rad_aerosol
         end if
       end if
     end subroutine allocate_mod_rad_aerosol
+
+    subroutine init_aerclima
+      implicit none
+      integer(ik4) :: itr
+
+      if ( iclimaaer /= 1 ) return
+
+      if ( iclimaaer == 1 ) then
+        ntr = aerclima_ntr
+        nbin = aerclima_nbin
+      end if
+
+      allocate(chtrname(ntr))
+      do itr = 1 , ntr
+        chtrname(itr) = aerclima_chtr(itr)
+      end do
+
+    end subroutine init_aerclima
+
+    subroutine read_aerclima(idatex,scenario,m2r)
+      implicit none
+      type (rcm_time_and_date) , intent(in) :: idatex
+      character(len=8) , intent(in) :: scenario
+      type(mod_2_rad) , intent(in) :: m2r
+
+      aermmr(:,:,:) = 0.0_rkx
+
+    end subroutine read_aerclima
+
+    subroutine close_aerclima
+      implicit none
+    end subroutine close_aerclima
+
     !
     !-----------------------------------------------------------------------
     !
@@ -1233,20 +1280,19 @@ module mod_rad_aerosol
     !
     ! SUBROUTINE AEROPPT
     !
-    subroutine aeroppt(rh,aermmr,pint,n1,n2)
+    subroutine aeroppt(rh,pint,n1,n2)
       implicit none
       !
       ! Interface pressure, relative humidity
       !
       integer(ik4) , intent(in) :: n1 , n2
       real(rkx) , intent(in) , pointer , dimension(:,:) :: pint
-      real(rkx) , intent(in) , pointer , dimension(:,:,:) :: aermmr
       real(rkx) , intent(in) , pointer , dimension(:,:) :: rh
 
       integer(ik4) :: n , l , ibin , jbin , itr , k , k1, k2 , ns , nband
       real(rkx) :: uaerdust , qabslw , rh0
 
-      if ( ichem /= 1 ) then
+      if ( ichem /= 1 .and. iclimaaer /= 1 ) then
         tauxar(:,:) = d_zero
         tauasc(:,:) = d_zero
         gtota(:,:) = d_zero
@@ -1270,7 +1316,7 @@ module mod_rad_aerosol
       !   Melange externe
       !
       !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      if (irrtm==1) then
+      if ( irrtm == 1 ) then
         nband = nbndsw
       else
         nband = nspi

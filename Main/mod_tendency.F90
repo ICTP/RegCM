@@ -1870,6 +1870,9 @@ module mod_tendency
         else
           if ( ktau == 0 ) call inito3
         end if
+        if ( iclimaaer == 1 ) then
+          call updateaerosol(idatex,scenario)
+        end if
         loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
         labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
         call radiation(xyear,loutrad,labsem)

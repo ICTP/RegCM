@@ -578,13 +578,17 @@ module mod_init
               p = atm1%pr(j,i,k)
               qs = pfwsat(t,p)
               qv = atm1%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx
-              rh = min(max((qv/qs),rhmin),rhmax)
-              if ( rh > rh0(j,i) ) then
-                pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
-                dens = p / (rgas*t)
-                atm1%qx(j,i,k,iqc) = pfcc * dens * &
-                             clwfromt(t)/d_1000 * sfs%psa(j,i)
-                atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
+              if ( qv > qs ) then
+                rh = min(max((qv/qs),rhmin),rhmax)
+                if ( rh > rh0(j,i) ) then
+                  pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
+                  dens = p / (rgas*t)
+                  atm1%qx(j,i,k,iqv) = qs * sfs%psa(j,i)
+                  atm1%qx(j,i,k,iqc) = pfcc * dens * &
+                               clwfromt(t)/d_1000 * sfs%psa(j,i)
+                  atm2%qx(j,i,k,iqv) = atm1%qx(j,i,k,iqv)
+                  atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
+                end if
               end if
             end do
           end do

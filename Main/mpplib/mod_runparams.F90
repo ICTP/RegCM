@@ -342,6 +342,7 @@ module mod_runparams
   ! Radiation schemes common parametrs
 
   integer(ik4) , public :: iclimao3
+  integer(ik4) , public :: iclimaaer
 
   ! UW PBL parameters
 

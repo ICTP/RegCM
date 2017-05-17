@@ -2658,6 +2658,8 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('climatic_ozone_input_dataset',iclimao3))
         call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('climatic_aerosol_input_dataset',iclimaaer))
+        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('static_solar_constant_used',isolconst))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('cumulus_cloud_model',icumcloud))

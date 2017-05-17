@@ -249,6 +249,10 @@ module mod_regcm_interface
       call closeo3
     end if
 
+    if ( iclimaaer == 1 ) then
+      call closeaerosol
+    end if
+
     call memory_destroy
     call finaltime(myid)
 

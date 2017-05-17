@@ -24,7 +24,8 @@ module mod_rad_radiation
   use mod_dynparam
   use mod_mpmessage
   use mod_service
-  use mod_runparams , only : idirect , scon , ichem , cftotmax , lsrfhack
+  use mod_runparams , only : idirect , ichem , iclimaaer
+  use mod_runparams , only : scon , cftotmax , lsrfhack
   use mod_memutil
   use mod_ipcc_scenario
 
@@ -775,7 +776,7 @@ module mod_rad_radiation
   !-----------------------------------------------------------------------
   !
   subroutine radctl(n1,n2,dlat,xptrop,ts,pmid,pint,pmln,piln,   &
-                    t,h2ommr,rh,cld,effcld,clwp,aermmr,fsns,qrs,qrl,  &
+                    t,h2ommr,rh,cld,effcld,clwp,fsns,qrs,qrl,  &
                     flwds,rel,rei,fice,sols,soll,solsd,solld,emiss,   &
                     fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb, &
                     albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
@@ -831,7 +832,6 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(rkx) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t , rh
-    real(rkx) , pointer , dimension(:,:,:) :: aermmr
     real(rkx) , pointer , dimension(:,:) :: o3vmr
     intent (inout) alb , albc , abv , sol , tauxcl , tauxci
     intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
@@ -879,7 +879,7 @@ module mod_rad_radiation
       !
       call aermix(pnm,n1,n2)
 
-      call aeroppt(rh,aermmr,pint,n1,n2)
+      call aeroppt(rh,pint,n1,n2)
 
       call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,solsd,solld, &
@@ -1458,6 +1458,9 @@ module mod_rad_radiation
           lzero = .false.
         end if
       end if
+      if ( iclimaaer == 1 ) then
+        lzero = .false.
+      end if
 
       call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
       !
@@ -1712,7 +1715,7 @@ module mod_rad_radiation
 
     ! FAB calculation of TOA aerosol radiative forcing
     ! convert from cgs to MKS
-    if ( ichem == 1 .and. idirect > 0 ) then
+    if ( (ichem == 1 .and. idirect > 0) .or. iclimaaer == 1 ) then
       do n = n1 , n2
         if ( czengt0(n) ) then
           aeradfo(n) = -(x0fsntc(n)-fsntc(n)) * d_r1000
@@ -1923,7 +1926,8 @@ module mod_rad_radiation
 
     do irad = 1 , nradaer
 
-      if ( ichem == 1 .and. idirect > 0 .and. irad == 2 ) then
+      if ( (ichem == 1 .and. idirect > 0 .and. irad == 2) .or. &
+           iclimaaer == 1 ) then
         abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
         emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
@@ -3249,7 +3253,7 @@ module mod_rad_radiation
         pinpl(n,4) = (p2+pint(n,k2+1))*d_half
 
         ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        if ( ichem == 1 .and. idirect > 0 ) then
+        if ( ichem == 1 .and. idirect > 0 .or. iclimaaer == 1 ) then
           do kn = 1 , 4
             xuinpl(n,k2,kn) = uinpl(n,kn)
           end do

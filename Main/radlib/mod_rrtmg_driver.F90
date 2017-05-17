@@ -70,7 +70,7 @@ module mod_rrtmg_driver
   real(rkx) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
          asmcmcl , fsfcmcl , ciwpmcl , clwpmcl
   real(rkx) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
-         ciwpmcl_lw , clwpmcl_lw , aermmr
+         ciwpmcl_lw , clwpmcl_lw
 
   real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos , &
     asaeradfo , asaeradfos
@@ -170,10 +170,9 @@ module mod_rrtmg_driver
     call getmem1d(totcl,1,npr,'rrtmg:totlf')
     call getmem1d(totci,1,npr,'rrtmg:totif')
 
-    if ( ichem == 1 ) then
+    if ( ichem == 1 .or. iclimaaer == 1 ) then
       call getmem2d(pint,1,npr,1,kzp1,'rrtmg:pint')
       call getmem2d(rh,1,npr,1,kzp1,'rrtmg:rh')
-      call getmem3d(aermmr,1,npr,1,kz,1,ntr,'rrtmg:aermmr')
     end if
     call getmem2d(play,1,npr,1,kth,'rrtmg:play')
     call getmem2d(tlay,1,npr,1,kth,'rrtmg:tlay')
@@ -751,6 +750,19 @@ module mod_rrtmg_driver
     !care : Tracers mixing ratios are on regcm grid
     !
     if ( ichem == 1 ) then
+      do itr = 1 , ntr
+        do k = 1 , kz
+          n = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aermmr(n,k,itr) = m2r%chiatms(j,i,k,itr)
+              n = n + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ichem == 1 .or. iclimaaer == 1 ) then
       do k = 1 , kz
         n = 1
         do i = ici1 , ici2
@@ -769,18 +781,7 @@ module mod_rrtmg_driver
           end do
         end do
       end do
-      do itr = 1 , ntr
-        do k = 1 , kz
-          n = 1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              aermmr(n,k,itr) = m2r%chiatms(j,i,k,itr)
-              n = n + 1
-            end do
-          end do
-        end do
-      end do
-      call aeroppt(rh,aermmr,pint,1,npr)
+      call aeroppt(rh,pint,1,npr)
       ! adapt reverse the vertical grid for RRTM
       do k = 1 , kz
         kj = kzp1 - k

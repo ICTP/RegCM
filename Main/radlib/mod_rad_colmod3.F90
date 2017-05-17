@@ -57,7 +57,6 @@ module mod_rad_colmod3
     o3vmr , pmidm1 , pmlnm1 , qm1 , ql1 , qi1 , qrl ,  &
     qrs , rei , rel , deltaz , tm1 , rh1
   real(rkx) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-  real(rkx) , pointer , dimension(:,:,:) :: aermmr
   real(rkx) , pointer , dimension(:,:,:) :: absgasnxt
   real(rkx) , pointer , dimension(:,:,:) :: absgastot
   real(rkx) , pointer , dimension(:,:) :: emsgastot
@@ -144,10 +143,6 @@ module mod_rad_colmod3
     call getmem3d(outtauci,1,npr,1,kzp1,1,4,'colmod3:outtauci')
 
     call getmem1d(ioro,1,npr,'colmod3:ioro')
-
-    if ( ichem == 1 ) then
-      call getmem3d(aermmr,1,npr,1,kz,1,ntr,'colmod3:aermmr')
-    end if
 
     dosw = .true.
     dolw = .true.
@@ -377,7 +372,7 @@ module mod_rad_colmod3
     ! NB: All fluxes returned from radctl() have already been converted to MKS.
     !
     call radctl(1,npr,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1,       &
-                tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,  &
+                tm1,qm1,rh1,cld,effcld,clwp,fsns,qrs,qrl,flwds,         &
                 rel,rei,fice,sols,soll,solsd,solld,emiss,fsnt,fsntc,    &
                 fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt, &
                 fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
@@ -420,7 +415,7 @@ module mod_rad_colmod3
         end do
       end do
     end if
-    if ( ichem == 1 ) then
+    if ( ichem == 1 .or. iclimaaer == 1 ) then
       do m = 1 , nspi
         do k = 0 , kz
           n = 1
@@ -542,7 +537,7 @@ module mod_rad_colmod3
     !FAB : reintroduce simple sulfate indirect effect
     ! from Qian  1999
     ! clwp is passed in g/m2
-    if ( ichem == 1 .and. iindirect == 1 ) then
+    if ( (ichem == 1 .and. iindirect == 1) .or. iclimaaer == 1 ) then
       do nt = 1 , ntr
         if ( chtrname(nt) /= 'SO4' ) cycle
         do k = 1 , kz
