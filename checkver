@@ -1,3 +1,4 @@
+#!/bin/sh
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
 #    This file is part of ICTP RegCM.
@@ -17,9 +18,6 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SUBDIRS = external Share PreProc Main PostProc
-
-all : version
-
-version:
-	@sh checkver
+[ -f tag ] && nv="tag-`cat tag`" || nv=`svnversion`
+[ -f version ] && ov=`cat version` || ov="export"
+[ "${nv}" != "${ov}" ] && echo ${nv} > version

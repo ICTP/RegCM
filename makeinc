@@ -23,7 +23,7 @@ else
   DEFINE = -D
 endif
 
-SVNDEF := $(DEFINE)'SVN_REV="$(shell svnversion -n .)"'
+SVNDEF := $(DEFINE)'SVN_REV="$(shell cat $(REGCM_ROOT)/version)"'
 
 # CLM45 flags to activate schemes.
 
