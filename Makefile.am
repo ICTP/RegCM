@@ -19,7 +19,5 @@
 
 SUBDIRS = external Share PreProc Main PostProc
 
-all : dover
-
 dover:
 	@sh checkver
