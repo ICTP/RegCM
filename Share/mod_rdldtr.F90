@@ -1637,7 +1637,7 @@ module mod_rdldtr
 
     allocate(vals(mmx))
     il = 1
-    maxil = minval(shape(grid(:,:)))/2
+    maxil = minval(shape(grid(:,:)))/2 + 1
     do
       ip = 0
       vals(:) = 0.0_rkx
@@ -1661,9 +1661,7 @@ module mod_rdldtr
       else
         il = il + 1
         if ( il == maxil ) then
-          write(stderr,*) 'At point I = ',i
-          write(stderr,*) '         J = ',j
-          call die(__FILE__,'Not finding anything around !',__LINE__)
+          grid(j,i) = h_missing_value
           exit
         end if
       end if
@@ -1691,7 +1689,7 @@ module mod_rdldtr
 
     allocate(vals(kks:kke,mmx))
     il = 1
-    maxil = minval(shape(grid(:,:,1)))/2
+    maxil = minval(shape(grid(:,:,1)))/2 + 1
     do
       ip = 0
       vals(:,:) = 0.0_rkx
@@ -1719,9 +1717,9 @@ module mod_rdldtr
       else
         il = il + 1
         if ( il == maxil ) then
-          write(stderr,*) 'At point I = ',i
-          write(stderr,*) '         J = ',j
-          call die(__FILE__,'Not finding anything around !',__LINE__)
+          do n = kks , kke
+            grid(j,i,n) = h_missing_value
+          end do
           exit
         end if
       end if
