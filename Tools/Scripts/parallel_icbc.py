@@ -155,7 +155,7 @@ if ntasks < size:
 basen = os.path.splitext(namelist)[0]
 ofile = open(basen+".icbc.out"+("%04d" % (rank)),'w')
 efile = open(basen+".icbc.err"+("%04d" % (rank)),'w')
-for imon in xrange(rank,ntasks,size):
+for imon in range(rank,ntasks,size):
     datest = monthadd(gdate1, imon)
     d1 = datest
     if imon == ntasks-1:
