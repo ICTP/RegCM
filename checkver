@@ -22,7 +22,8 @@
 if [ -z "$nv" ]
 then
   has_svnversion=`which svnversion`
-  if [ -z "$has_svnversion" ] then
+  if [ -z "$has_svnversion" ]
+  then
     nv="export"
   else
     nv=`svnversion`
