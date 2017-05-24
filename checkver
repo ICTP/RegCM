@@ -19,6 +19,6 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 [ -f tag ] && nv="tag-`cat tag`" || nv=`svnversion`
-[ -z "${nv}" ] && nv=`export`
+[ -z "${nv}" ] && nv="export"
 [ -f version ] && ov=`cat version` || ov="export"
 [ "${nv}" != "${ov}" ] && echo ${nv} > version
