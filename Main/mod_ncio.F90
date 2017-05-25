@@ -36,7 +36,7 @@ module mod_ncio
   public :: read_domain_info , read_subdomain_info
   public :: open_icbc , icbc_search , read_icbc , close_icbc
   public :: open_som , som_search , read_som , close_som
-!
+
   integer(ik4) :: ibcin , somin
   integer(ik4) :: istatus
   integer(ik4) :: ibcrec , ibcnrec

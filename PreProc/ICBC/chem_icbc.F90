@@ -50,15 +50,35 @@ program chem_icbc
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
         ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
         iindirect , ichebdy , ichjphcld , ichbion
+  integer(ik4) :: ichem , iclimaaer
+  integer(ik4) ibltyp , iboudy , isladvec , iqmsl , icup_lnd , icup_ocn , &
+    ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl , iwavcpl ,      &
+    iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,        &
+    icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,    &
+    islab_ocean , itweak , ghg_year_const
+  real(rkx) :: temp_tend_maxval , wind_tend_maxval
+  character(len=8) :: scenario
   real(rkx) :: rdstemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
   data dooxcl /.false./
   data doaero /.false./
+  data ichem /0/
+  data iclimaaer /0/
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
-     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect ,&
-     ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion
+    ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect , &
+    ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion
+
+  namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
+    icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
+    iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
+    scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat , &
+    icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud , &
+    islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,      &
+    ghg_year_const
+
+  namelist /physicsparam/ ichem , iclimaaer
 
   call header('chem_icbc')
   !
@@ -84,37 +104,51 @@ program chem_icbc
     write (stderr,*) 'Cannot open ',trim(namelistfile)
     stop
   end if
-  read(ipunit, chemparam, iostat=ierr)
-  if ( ierr /= 0 ) then
-    write (stderr,*) 'Cannot read namelist stanza: chemparam'
-    write (stderr,*) 'Assuming nothing to do for this experiment (ichem = 0)'
+  read(ipunit, physicsparam, iostat=ierr)
+  if ( ichem == 1 .or. iclimaaer == 1 ) then
+    rewind(ipunit)
+    read(ipunit, chemparam, iostat=ierr)
+    if ( ierr /= 0 ) then
+      write (stderr,*) 'Cannot read namelist stanza: chemparam'
+      write (stderr,*) 'Assuming nothing to do for this experiment'
+      stop
+    end if
+    close(ipunit)
+  else
+    close(ipunit)
+    write (stderr,*) 'Assuming nothing to do for this experiment'
+    write (stderr,*) 'Both ichem and iclimaaer equal to zero.'
     stop
   end if
-  close(ipunit)
 
   if ( chemtyp .eq. 'FNEST' ) then
     call init_fnestparam(namelistfile,cdir,cname)
   end if
 
-  select case (chemsimtype)
-    case ( 'CBMZ' )
-      dochem = .true.
-    case ( 'DUST', 'DU12', 'SSLT', 'DUSS' )
-      doaero = .true.
-    case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
-      doaero = .true.
-      dooxcl = .true.
-    case ( 'DCCB' )
-      dochem = .true.
-      doaero = .true.
-      dooxcl = .true.
-    case default
-      write (stderr,*) 'Unknown chemsimtype'
-      write (stderr,*) 'Assuming nothing to do for this experiment'
-      call finaltime(0)
-      write(stdout,*) 'Successfully completed CHEM ICBC'
-      stop
-  end select
+  if ( iclimaaer == 1 ) then
+    doaero = .true.
+    chemsimtype = 'AERO'
+  else
+    select case (chemsimtype)
+      case ( 'CBMZ' )
+        dochem = .true.
+      case ( 'DUST', 'DU12', 'SSLT', 'DUSS' )
+        doaero = .true.
+      case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
+        doaero = .true.
+        dooxcl = .true.
+      case ( 'DCCB' )
+        dochem = .true.
+        doaero = .true.
+        dooxcl = .true.
+      case default
+        write (stderr,*) 'Unknown chemsimtype'
+        write (stderr,*) 'Assuming nothing to do for this experiment'
+        call finaltime(0)
+        write(stdout,*) 'Successfully completed CHEM ICBC'
+        stop
+    end select
+  end if
 
   call memory_init
 

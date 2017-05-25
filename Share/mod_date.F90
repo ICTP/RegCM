@@ -151,7 +151,7 @@ module mod_date
             operator(<=) , operator(/=)
   public :: print_rcm_time_and_date , print_rcm_time_interval
   public :: setcal , set_timeunit
-  public :: tochar , toint10 , tohours , toiso8601
+  public :: tochar , toint10 , tochar10 , tohours , toiso8601
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: hourdiff , nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek
@@ -980,6 +980,18 @@ module mod_date
         call date_to_days_from_reference(d,z)
     end select
   end function sub_interval
+
+  function tochar10(x) result(cdat)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    character (len=10) :: cdat
+    integer(ik4) :: z
+    type (iadate) :: d
+    type (iatime) :: t
+    call internal_to_date_time(x,d,t)
+    z = d%year*1000000+d%month*10000+d%day*100+t%hour;
+    write(cdat,'(i10)') z
+  end function tochar10
 
   integer(ik4) function toint10(x) result(z)
     implicit none

@@ -313,9 +313,9 @@ module mod_ae_icbc
             pmpj = aet42hyam(aeilev-1)*p0+xps3(j,i)*aet42hybm(aeilev-1)
             pmpi = aet42hyam(aeilev  )*p0+xps3(j,i)*aet42hybm(aeilev  )
             do is = 1 , naesp
-              aev4(j,i,l,is) = aev3(j,i,aeilev,is) + &
+              aev4(j,i,l,is) = max(aev3(j,i,aeilev,is) + &
                  (aev3(j,i,aeilev-1,is) - aev3(j,i,aeilev,is)) * &
-                 (prcm-pmpi)/(pmpi-pmpj)
+                 (prcm-pmpi)/(pmpi-pmpj),mintr)
             end do
           else if (k0 >= 1) then
             pmpj = aet42hyam(k0  )*p0+xps3(j,i)*aet42hybm(k0  )

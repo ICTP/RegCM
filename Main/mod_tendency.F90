@@ -562,8 +562,8 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
     ! FAB: if grid point storm detected chiten = 0 after tractend2
-    ! update total tendency only if chiten ne zero 
-              if(chiten(j,i,k,itr) .ne. d_zero) then            
+    ! update total tendency only if chiten ne zero
+              if(chiten(j,i,k,itr) .ne. d_zero) then
                  chiten(j,i,k,itr) = chiten(j,i,k,itr) + &
                                    chidyn(j,i,k,itr) + chiphy(j,i,k,itr)
               end if
@@ -1871,7 +1871,7 @@ module mod_tendency
           if ( ktau == 0 ) call inito3
         end if
         if ( iclimaaer == 1 ) then
-          call updateaerosol(idatex,scenario)
+          call updateaerosol(idatex)
         end if
         loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
         labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )

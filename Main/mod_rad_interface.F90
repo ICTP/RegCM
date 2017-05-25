@@ -146,11 +146,10 @@ module mod_rad_interface
     call o3data(m2r)
   end subroutine inito3
 
-  subroutine updateaerosol(idatex,scenario)
+  subroutine updateaerosol(idatex)
     implicit none
     type (rcm_time_and_date) , intent(in) :: idatex
-    character(len=8) , intent(in) :: scenario
-    call read_aerclima(idatex,scenario,m2r)
+    call read_aerclima(idatex)
   end subroutine updateaerosol
 
   subroutine closeaerosol

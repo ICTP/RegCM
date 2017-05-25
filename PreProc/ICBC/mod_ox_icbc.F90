@@ -259,9 +259,9 @@ module mod_ox_icbc
             pmpj = oxt42hyam(oxilev-1)*p0+xps3(j,i)*oxt42hybm(oxilev-1)
             pmpi = oxt42hyam(oxilev  )*p0+xps3(j,i)*oxt42hybm(oxilev  )
             do is = 1 , noxsp
-              oxv4(j,i,l,is) = oxv3(j,i,oxilev,is) + &
+              oxv4(j,i,l,is) = max(oxv3(j,i,oxilev,is) + &
                  (oxv3(j,i,oxilev-1,is) - oxv3(j,i,oxilev,is)) * &
-                 (prcm-pmpi)/(pmpi-pmpj)
+                 (prcm-pmpi)/(pmpi-pmpj),mintr)
             end do
           else if (k0 >= 1) then
             pmpj = oxt42hyam(k0  )*p0+xps3(j,i)*oxt42hybm(k0  )

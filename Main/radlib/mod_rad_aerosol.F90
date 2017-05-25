@@ -28,8 +28,10 @@ module mod_rad_aerosol
   use mod_mpmessage
   use mod_rad_common
   use mod_regcm_types
+  use mod_mppparam
   use parrrsw , only : nbndsw
   use parrrtm , only : nbndlw
+  use netcdf
   implicit none
 
   private
@@ -46,10 +48,18 @@ module mod_rad_aerosol
   integer(ik4) , parameter :: nwav = 19
   integer(ik4) , parameter :: nih = 8
 
-  integer(ik4) , parameter :: aerclima_ntr = 4
+  integer(ik4) , parameter :: aerclima_ntr = 12
   integer(ik4) , parameter :: aerclima_nbin = 4
 
   character(len=6) , dimension(aerclima_ntr) :: aerclima_chtr
+  integer(ik4) :: ncaec , ncstatus , naetime
+  integer(ik4) , dimension(aerclima_ntr) :: ncaevar
+  type(rcm_time_and_date) , dimension(:) , allocatable :: aetime
+  type(rcm_time_and_date) :: d1 , d2
+  type(rcm_time_interval) :: aefreq
+  real(rkx) :: aerfreq
+  real(rkx) , pointer , dimension(:,:,:,:) :: aerm1 , aerm2
+  real(rkx) , pointer , dimension(:,:,:) :: aerio
 
   real(rkx) , parameter :: d10e5  = 1.0e+5_rkx
   real(rkx) , parameter :: d10e4  = 1.0e+4_rkx
@@ -122,10 +132,9 @@ module mod_rad_aerosol
 
   real(rkx) , pointer,  dimension(:,:) :: gsdust , ksdust , wsdust , ksdust_lw
 
-  real(rkx) , pointer , dimension(:,:,:) :: ftota3d ,   &
-                 gtota3d , tauasc3d , tauxar3d, tauxar3d_lw
-  real(rkx) , pointer , dimension(:,:) :: ftota ,  &
-         gtota , tauasc , tauxar
+  real(rkx) , pointer , dimension(:,:,:) :: ftota3d , gtota3d , &
+    tauasc3d , tauxar3d, tauxar3d_lw
+  real(rkx) , pointer , dimension(:,:) :: ftota , gtota , tauasc , tauxar
   !
   ! Work arrays for aeroppt (aerosol individual optical properties SW)
   !
@@ -1030,7 +1039,11 @@ module mod_rad_aerosol
       0.887_rkx, 0.912_rkx, 0.923_rkx, 0.921_rkx, &
       0.904_rkx, 0.029_rkx/
 
-  data aerclima_chtr / 'DUST01', 'DUST02', 'DUST03', 'DUST04' /
+  data aerclima_chtr     / 'BC_HB ' , 'BC_HL ' , 'OC_HB ' , 'OC_HL ' , &
+                           'SO2   ' , 'SO4   ' , 'SSLT01' , 'SSLT02' , &
+                           'DUST01' , 'DUST02' , 'DUST03' , 'DUST04' /
+
+  data ncaec / -1 /
 
   contains
 
@@ -1047,7 +1060,16 @@ module mod_rad_aerosol
       npoints = (jci2-jci1+1)*(ici2-ici1+1)
 
       if ( ichem == 1 .or. iclimaaer == 1 ) then
-        call getmem3d(aermmr,1,npoints,1,kz,1,ntr,'colmod3:aermmr')
+        call getmem3d(aermmr,1,npoints,1,kz,1,ntr,'aerosol:aermmr')
+        if ( iclimaaer == 1 ) then
+          call getmem4d(aerm1,jce1,jce2,ice1,ice2,1,kz,1,ntr,'aerosol:aerm1')
+          call getmem4d(aerm2,jce1,jce2,ice1,ice2,1,kz,1,ntr,'aerosol:aerm2')
+          if ( .not. do_parallel_netcdf_in ) then
+            if ( myid == iocpu ) then
+              call getmem3d(aerio,jdot1,jdot2,idot1,idot2,1,kz,'aerosol:aerio')
+            end if
+          end if
+        end if
       end if
 
       call getmem1d(gsbc_hb,1,nband,'aerosol:gsbc_hb')
@@ -1166,35 +1188,247 @@ module mod_rad_aerosol
     subroutine init_aerclima
       implicit none
       integer(ik4) :: itr
+      type (rcm_time_and_date) :: aedate
 
       if ( iclimaaer /= 1 ) return
 
-      if ( iclimaaer == 1 ) then
-        ntr = aerclima_ntr
-        nbin = aerclima_nbin
-      end if
-
+      ntr = aerclima_ntr
+      nbin = aerclima_nbin
       allocate(chtrname(ntr))
       do itr = 1 , ntr
         chtrname(itr) = aerclima_chtr(itr)
       end do
 
+      aedate = idate1
+      if ( aedate /= globidate1 ) then
+        aedate = monfirst(aedate)
+      end if
+
+      call open_aerclima(aedate)
+
+      aefreq%ival = ibdyfrq
+      aefreq%iunit = uhrs
+      aerfreq = real(ibdyfrq,rkx)
+      d1 = aedate
+      d2 = aedate
     end subroutine init_aerclima
 
-    subroutine read_aerclima(idatex,scenario,m2r)
+    subroutine read_aerclima(idatex)
       implicit none
       type (rcm_time_and_date) , intent(in) :: idatex
-      character(len=8) , intent(in) :: scenario
-      type(mod_2_rad) , intent(in) :: m2r
+      type(rcm_time_interval) :: tdif
+      real(rkx) :: w1 , w2 , step
+      integer(ik4) :: i , j , k , n , ib
 
-      aermmr(:,:,:) = 0.0_rkx
+      if ( d1 == d2 ) then
+        call doread(d1,aerm1)
+        d2 = d1 + aefreq
+        call doread(d2,aerm2)
+        if ( myid == italk ) then
+          write(stdout, *) 'Ready AEROSOL data from ', &
+              tochar10(d1),' to ',tochar10(d2)
+        end if
+        step = d_zero
+      else
+        step = dtsec/3600.0_rkx
+      end if
 
+      if ( idatex >= d2 ) then
+        aerm2 = aerm1
+        d1 = d2
+        d2 = d1 + aefreq
+        if ( d2 > aetime(naetime) ) then
+          call open_aerclima(d2)
+        end if
+        call doread(d2,aerm2)
+        if ( myid == italk ) then
+          write(stdout, *) 'Ready AEROSOL data from ', &
+              tochar10(d1),' to ',tochar10(d2)
+        end if
+      end if
+
+      tdif = d2 - idatex
+      w1 = (real(tohours(tdif),rkx)-step)/aerfreq
+      w2 = d_one - w1
+      do n = 1 , ntr
+        do k = 1 , kz
+          ib = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aermmr(ib,k,n) = max(w1*aerm1(j,i,k,n) + w2*aerm2(j,i,k,n),d_zero)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
     end subroutine read_aerclima
+
+    integer(ik4) function findrec(idate) result(irec)
+      implicit none
+      type (rcm_time_and_date) , intent(in) :: idate
+      type(rcm_time_interval) :: tdif
+
+      irec = -1
+      if ( idate < aetime(1) ) return
+      if ( idate > aetime(naetime) ) return
+      tdif = idate - aetime(1)
+      irec = (nint(tohours(tdif))/ibdyfrq)+1
+    end function findrec
+
+    subroutine doread(idate,aerm)
+      implicit none
+      type (rcm_time_and_date) , intent(in) :: idate
+      real(rkx) , dimension(:,:,:,:) , pointer :: aerm
+      real(rkx) , dimension(:,:,:) , pointer :: pnt
+      integer(ik4) :: n , irec
+      integer(ik4) , dimension(4) :: istart , icount
+
+      irec = findrec(idate)
+      if ( irec < 0 ) then
+        write(stderr,* ) 'Searching for date '//tochar(idate)// &
+          ' in AE file : NOT FOUND'
+        write(stderr,* ) 'Available dates : from '//tochar10(aetime(1))// &
+          ' to '//tochar10(aetime(naetime))
+        call fatal(__FILE__,__LINE__,'NO AEROSOL DATA')
+      end if
+
+      if ( .not. do_parallel_netcdf_in ) then
+        if ( myid /= iocpu ) then
+          do n = 1 , ntr
+            call assignpnt(aerm,pnt,n)
+            call grid_distribute(aerio,pnt,jce1,jce2,ice1,ice2,1,kz)
+          end do
+          return
+        else
+          istart(1) = 1
+          istart(2) = 1
+          istart(3) = 1
+          istart(4) = irec
+          icount(1) = jdot2-jdot1 + 1
+          icount(2) = idot2-idot1 + 1
+          icount(3) = kz
+          icount(4) = 1
+          do n = 1 , ntr
+            call assignpnt(aerm,pnt,n)
+            ncstatus = nf90_get_var(ncaec,ncaevar(n),aerio,istart,icount)
+            call check_ok(__FILE__,__LINE__, &
+               'Error reading variable '//trim(aerclima_chtr(n))// &
+               ' in AE file','AEBC FILE')
+            call grid_distribute(aerio,pnt,jce1,jce2,ice1,ice2,1,kz)
+          end do
+        end if
+      else
+        istart(1) = jce1
+        istart(2) = ice1
+        istart(3) = 1
+        istart(4) = irec
+        icount(1) = jce2
+        icount(2) = ice2
+        icount(3) = kz
+        icount(4) = 1
+        do n = 1 , ntr
+          call assignpnt(aerm,pnt,n)
+          ncstatus = nf90_get_var(ncaec,ncaevar(n),pnt,istart,icount)
+          call check_ok(__FILE__,__LINE__, &
+             'Error reading variable '//trim(aerclima_chtr(n))// &
+             ' in AE file','AEBC FILE')
+        end do
+      end if
+    end subroutine doread
+
+    subroutine open_aerclima(idate)
+      implicit none
+      type (rcm_time_and_date) , intent(in) :: idate
+      integer(ik4) :: nae , idtime , n
+      character(len=256) :: aefile
+      real(rkx) , allocatable , dimension(:) :: xtime
+      character(len=64) :: timeunits , timecal
+      character(len=10) :: ctime
+
+      if ( .not. do_parallel_netcdf_in ) then
+        if ( myid /= iocpu ) then
+          call bcast(naetime)
+          allocate(aetime(naetime))
+          call bcast(aetime)
+          return
+        end if
+      end if
+
+      call close_aerclima
+
+      write (ctime, '(i10)') toint10(idate)
+      aefile = trim(dirglob)//pthsep//trim(domname)//'_AEBC.'//ctime//'.nc'
+
+      write (stdout, *) 'Opening aerosol file : '//trim(aefile)
+
+      ncstatus = nf90_open(aefile,nf90_nowrite,ncaec)
+      call check_ok(__FILE__,__LINE__, &
+        'Error Open AE file '//trim(aefile),'AEBC FILE')
+      do nae = 1 , ntr
+        ncstatus = nf90_inq_varid(ncaec,aerclima_chtr(nae),ncaevar(nae))
+        call check_ok(__FILE__,__LINE__, &
+          'Error searching variable '//trim(aerclima_chtr(nae))// &
+          ' in AE file '//trim(aefile),'AEBC FILE')
+      end do
+
+      ncstatus = nf90_inq_dimid(ncaec,'time',idtime)
+      call check_ok(__FILE__,__LINE__, &
+         'Error searching dimension time in AE file '//trim(aefile),'AEBC FILE')
+      ncstatus = nf90_inquire_dimension(ncaec,idtime,len=naetime)
+      call check_ok(__FILE__,__LINE__, &
+         'Error reading dimension time in AE file '//trim(aefile),'AEBC FILE')
+      allocate(xtime(naetime))
+      allocate(aetime(naetime))
+      ncstatus = nf90_inq_varid(ncaec,'time',idtime)
+      call check_ok(__FILE__,__LINE__, &
+         'Error searching variable time in AE file '//trim(aefile),'AEBC FILE')
+      ncstatus = nf90_get_att(ncaec,idtime,'units',timeunits)
+      call check_ok(__FILE__,__LINE__, &
+         'variable time missing attribute units '// &
+         'in AE file '//trim(aefile),'AEBC FILE')
+      ncstatus = nf90_get_att(ncaec,idtime,'calendar',timecal)
+      call check_ok(__FILE__,__LINE__, &
+         'variable time missing attribute calendar '// &
+         'in AE file '//trim(aefile),'AEBC FILE')
+      ncstatus = nf90_get_var(ncaec,idtime,xtime)
+      call check_ok(__FILE__,__LINE__, &
+         'Error reading variable time in AE file '//trim(aefile),'AEBC FILE')
+      do n = 1 , naetime
+        aetime(n) = timeval2date(xtime(n),timeunits,timecal)
+      end do
+      deallocate(xtime)
+      if ( .not. do_parallel_netcdf_in ) then
+        call bcast(naetime)
+        call bcast(aetime)
+      end if
+    end subroutine open_aerclima
 
     subroutine close_aerclima
       implicit none
+      if ( .not. do_parallel_netcdf_in ) then
+        if ( myid /= iocpu ) return
+      end if
+      if ( ncaec > 0 ) then
+        if ( allocated(aetime) ) then
+          deallocate(aetime)
+        end if
+        ncstatus = nf90_close(ncaec)
+        call check_ok(__FILE__,__LINE__, &
+               'Error Close AE file','AEBC FILE')
+        ncaec = -1
+      end if
     end subroutine close_aerclima
 
+    subroutine check_ok(f,l,m1,mf)
+      implicit none
+      character(*) , intent(in) :: f, m1 , mf
+      integer(ik4) , intent(in) :: l
+      if ( ncstatus /= nf90_noerr ) then
+        write (stderr,*) trim(m1)
+        write (stderr,*) nf90_strerror(ncstatus)
+        call fatal(f,l,trim(mf))
+      end if
+    end subroutine check_ok
     !
     !-----------------------------------------------------------------------
     !

@@ -464,9 +464,9 @@ module mod_ch_icbc
             pmpj = cht42hyam(chilev-1)*p0+xps3(j,i)*cht42hybm(chilev-1)
             pmpi = cht42hyam(chilev  )*p0+xps3(j,i)*cht42hybm(chilev  )
             do is = 1 , nchsp
-              chv4_1(j,i,l,is) = chv3(j,i,chilev,is) + &
+              chv4_1(j,i,l,is) = max(chv3(j,i,chilev,is) + &
                  (chv3(j,i,chilev-1,is) - chv3(j,i,chilev,is)) * &
-                 (prcm-pmpi)/(pmpi-pmpj)
+                 (prcm-pmpi)/(pmpi-pmpj),mintr)
             end do
           else if (k0 >= 1) then
             pmpj = cht42hyam(k0  )*p0+xps3(j,i)*cht42hybm(k0  )

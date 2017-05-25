@@ -233,21 +233,22 @@ module mod_mppparam
   end interface grid_fill
 
   interface bcast
-    module procedure bcast_logical,       &
-                     bcast_int4,          &
-                     bcast_int8,          &
-                     bcast_real4,         &
-                     bcast_real8,         &
-                     bcast_arr_logical,   &
-                     bcast_arr_character, &
-                     bcast_arr_text_list, &
-                     bcast_arr_int4,      &
-                     bcast_arr_int8,      &
-                     bcast_arr_real4,     &
-                     bcast_arr_real8,     &
-                     bcast_matr_real8,    &
-                     bcast_matr_real4,    &
-                     bcast_rcm_time_and_date
+    module procedure bcast_logical,           &
+                     bcast_int4,              &
+                     bcast_int8,              &
+                     bcast_real4,             &
+                     bcast_real8,             &
+                     bcast_arr_logical,       &
+                     bcast_arr_character,     &
+                     bcast_arr_text_list,     &
+                     bcast_arr_int4,          &
+                     bcast_arr_int8,          &
+                     bcast_arr_real4,         &
+                     bcast_arr_real8,         &
+                     bcast_matr_real8,        &
+                     bcast_matr_real4,        &
+                     bcast_rcm_time_and_date, &
+                     bcast_arr_rcm_time_and_date
   end interface bcast
 
 #ifdef QUAD_PRECISION
@@ -675,6 +676,17 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine bcast_matr_real4
+
+  subroutine bcast_arr_rcm_time_and_date(x)
+    implicit none
+    type (rcm_time_and_date) , dimension(:) , intent(inout) :: x
+    integer(ik4) :: n
+    do n = 1 , size(x)
+      call bcast(x(n)%calendar)
+      call bcast(x(n)%days_from_reference)
+      call bcast(x(n)%second_of_day)
+    end do
+  end subroutine bcast_arr_rcm_time_and_date
 
   subroutine bcast_rcm_time_and_date(x)
     implicit none
