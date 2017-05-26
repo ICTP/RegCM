@@ -329,6 +329,9 @@
                         !   1,2 => function of temperature
  irrtm    =          0, ! Use RRTM radiation scheme instead of CCSM
  iclimao3 =          0, ! Use O3 climatic dataset from SPARC CMIP5
+ iclimaaer =         0, ! Use AEROSOL climatic dataset from AERGLOB for non
+                        ! interactive aerosol load affecting radiative scheme.
+                        ! Requires running chem_icbc
  isolconst =         0, ! Use a constant 1367 W/m^2 instead of the prescribed
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
