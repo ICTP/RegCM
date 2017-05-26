@@ -92,12 +92,10 @@ module mod_che_interface
     call assignpnt(atms%rhb3d,crhb3d)
     if ( idynamic == 2 ) then
       call assignpnt(atm0%ps,cps0)
-      call assignpnt(xtb%b0,bndt0)
-      call assignpnt(xtb%b1,bndt1)
-      call assignpnt(xqb%b0,bndq0)
-      call assignpnt(xqb%b1,bndq1)
-      call assignpnt(hyps0,bndp0)
-      call assignpnt(hyps1,bndp1)
+      call assignpnt(nhbh0%ps,bndp0)
+      call assignpnt(nhbh1%ps,bndp1)
+      call assignpnt(nhbh0%tvirt,tvirt0)
+      call assignpnt(nhbh1%tvirt,tvirt1)
     end if
     ! wind at cell center
     call assignpnt(atms%ubx3d,cubx3d)

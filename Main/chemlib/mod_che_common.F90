@@ -89,12 +89,11 @@ module mod_che_common
 
   real(rkx) , pointer , dimension(:,:,:,:) ::chib3d
   real(rkx) , pointer , dimension(:,:,:,:) :: cqxb3d
-  real(rkx) , pointer , dimension(:,:,:) :: bndt0 , bndt1 , bndq0 , bndq1
   real(rkx) , pointer , dimension(:,:) :: bndp0 , bndp1
-  real(rkx) , pointer , dimension(:,:) :: sp0 , sp1
+  real(rkx) , pointer , dimension(:,:,:) :: tvirt0 , tvirt1
   real(rkx) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d ,  &
          crhob3d , cpb3d , cpf3d , cfcc , cza , czq , cdzq , ccldfra , &
-         crembc , cremrat ,  cconvpr , crhb3d , cdrydepflx , cwetdepflx , tvirt
+         crembc , cremrat ,  cconvpr , crhb3d , cdrydepflx , cwetdepflx
   real(rkx) , pointer , dimension(:,:) :: cpsb , ctg , ctga , clndcat , cht , &
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
@@ -125,11 +124,6 @@ module mod_che_common
       call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')
       call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
-      if ( idynamic == 2 ) then
-        call getmem3d(tvirt,jce1,jce2,ice1,ice2,1,kz,'che_common:tvirt')
-        call getmem2d(sp0,jce1,jce2,ice1,ice2,'che_common:sp0')
-        call getmem2d(sp1,jce1,jce2,ice1,ice2,'che_common:sp1')
-      end if
       call getmem4d(chemten,jci1,jci2, &
                     ici1,ici2,1,kz,1,ntr,'che_common:chemten')
       call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &

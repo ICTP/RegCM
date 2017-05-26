@@ -29,6 +29,7 @@ module mod_rad_aerosol
   use mod_rad_common
   use mod_regcm_types
   use mod_mppparam
+  use mod_nhinterp
   use parrrsw , only : nbndsw
   use parrrtm , only : nbndlw
   use netcdf
@@ -1213,17 +1214,18 @@ module mod_rad_aerosol
       d2 = aedate
     end subroutine init_aerclima
 
-    subroutine read_aerclima(idatex)
+    subroutine read_aerclima(idatex,m2r)
       implicit none
       type (rcm_time_and_date) , intent(in) :: idatex
+      type(mod_2_rad) , intent(in) :: m2r
       type(rcm_time_interval) :: tdif
       real(rkx) :: w1 , w2 , step
       integer(ik4) :: i , j , k , n , ib
 
       if ( d1 == d2 ) then
-        call doread(d1,aerm1)
+        call doread(d1,m2r,1,aerm1)
         d2 = d1 + aefreq
-        call doread(d2,aerm2)
+        call doread(d2,m2r,2,aerm2)
         if ( myid == italk ) then
           write(stdout, *) 'Ready AEROSOL data from ', &
               tochar10(d1),' to ',tochar10(d2)
@@ -1240,7 +1242,7 @@ module mod_rad_aerosol
         if ( d2 > aetime(naetime) ) then
           call open_aerclima(d2)
         end if
-        call doread(d2,aerm2)
+        call doread(d2,m2r,2,aerm2)
         if ( myid == italk ) then
           write(stdout, *) 'Ready AEROSOL data from ', &
               tochar10(d1),' to ',tochar10(d2)
@@ -1275,10 +1277,12 @@ module mod_rad_aerosol
       irec = (nint(tohours(tdif))/ibdyfrq)+1
     end function findrec
 
-    subroutine doread(idate,aerm)
+    subroutine doread(idate,m2r,step,aerm)
       implicit none
       type (rcm_time_and_date) , intent(in) :: idate
-      real(rkx) , dimension(:,:,:,:) , pointer :: aerm
+      type(mod_2_rad) , intent(in) :: m2r
+      integer(ik4) , intent(in) :: step
+      real(rkx) , dimension(:,:,:,:) , pointer , intent(out) :: aerm
       real(rkx) , dimension(:,:,:) , pointer :: pnt
       integer(ik4) :: n , irec
       integer(ik4) , dimension(4) :: istart , icount
@@ -1334,6 +1338,17 @@ module mod_rad_aerosol
              ' in AE file','AEBC FILE')
         end do
       end if
+
+      if ( idynamic == 2 ) then
+        if ( step == 1 ) then
+          call nhinterp(ice1,ice2,jce1,jce2,kz,ntr, &
+                        hsigma,sigma,aerm,m2r%btv0,m2r%bps0,m2r%ps0)
+        else if ( step == 2 ) then
+          call nhinterp(ice1,ice2,jce1,jce2,kz,ntr, &
+                        hsigma,sigma,aerm,m2r%btv1,m2r%bps1,m2r%ps0)
+        end if
+      end if
+
     end subroutine doread
 
     subroutine open_aerclima(idate)

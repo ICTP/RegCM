@@ -53,6 +53,7 @@ module mod_atm_interface
   type(bound_area) , public :: ba_cr , ba_dt
   type(reference_atmosphere) , public :: atm0
   type(mass_divergence) , public :: mdv
+  type(nhboundhelp) , public :: nhbh0 , nhbh1
 
   public :: allocate_mod_atm_interface , allocate_uwstate_tendency
   public :: allocate_v3dbound , allocate_v2dbound
@@ -61,7 +62,6 @@ module mod_atm_interface
   real(rkx) , public , pointer , dimension(:,:,:) :: dstor
   real(rkx) , public , pointer , dimension(:,:,:) :: hstor
   real(rkx) , public , pointer , dimension(:,:) :: ts0 , ts1
-  real(rkx) , public , pointer , dimension(:,:) :: hyps0 , hyps1
 
   real(rkx) , public , pointer , dimension(:,:,:) :: qdot , omega
 
@@ -866,6 +866,16 @@ module mod_atm_interface
       end if
     end subroutine allocate_slice
 
+    subroutine allocate_nhbh(nhbh)
+      implicit none
+      type(nhboundhelp) , intent(out) :: nhbh
+
+      call getmem2d(nhbh%ps,jce1,jce2,ice1,ice2,'nhboundhelp:ps')
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        call getmem3d(nhbh%tvirt,jce1,jce2,ice1,ice2,1,kz,'nhboundhelp:tvirt')
+      end if
+    end subroutine allocate_nhbh
+
     subroutine allocate_mod_atm_interface
       implicit none
 
@@ -874,6 +884,8 @@ module mod_atm_interface
 
       if ( idynamic == 2 ) then
         call allocate_reference_atmosphere(atm0)
+        call allocate_nhbh(nhbh0)
+        call allocate_nhbh(nhbh1)
       end if
       call allocate_atmstate_a(atm1)
       call allocate_atmstate_b(atm2)
@@ -988,8 +1000,6 @@ module mod_atm_interface
           call getmem2d(estore_g,jcross1,jcross2, &
                                  icross1,icross2,'storage:estore_g')
         end if
-        call getmem2d(hyps0,jce1,jce2,ice1,ice2,'storage:hyps0')
-        call getmem2d(hyps1,jce1,jce2,ice1,ice2,'storage:hyps1')
       end if
 
     end subroutine allocate_mod_atm_interface

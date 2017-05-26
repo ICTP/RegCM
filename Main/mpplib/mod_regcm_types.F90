@@ -287,6 +287,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: bt
   end type v2dbound
 
+  type nhboundhelp
+    real(rkx) , pointer , dimension(:,:,:) :: tvirt
+    real(rkx) , pointer , dimension(:,:) :: ps
+  end type nhboundhelp
+
   type bound_area
     logical :: dotflag
     logical :: havebound
@@ -502,6 +507,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: aldirl
     real(rkx) , pointer , dimension(:,:) :: aldifl
     real(rkx) , pointer , dimension(:,:) :: emiss
+    real(rkx) , pointer , dimension(:,:) :: ps0
+    real(rkx) , pointer , dimension(:,:) :: bps0
+    real(rkx) , pointer , dimension(:,:,:) :: btv0
+    real(rkx) , pointer , dimension(:,:) :: bps1
+    real(rkx) , pointer , dimension(:,:,:) :: btv1
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type mod_2_rad
 

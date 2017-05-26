@@ -115,6 +115,13 @@ module mod_rad_interface
     call assignpnt(cldfra,m2r%cldfrc)
     call assignpnt(cldlwc,m2r%cldlwc)
     call assignpnt(ptrop,m2r%ptrop)
+    if ( ichem == 1 .or. iclimaaer == 1 ) then
+      call assignpnt(atm0%ps,m2r%ps0)
+      call assignpnt(nhbh0%ps,m2r%bps0)
+      call assignpnt(nhbh1%ps,m2r%bps1)
+      call assignpnt(nhbh0%tvirt,m2r%btv0)
+      call assignpnt(nhbh1%tvirt,m2r%btv1)
+    end if
     ! OUTPUT
     call assignpnt(solis,r2m%solis)
     call assignpnt(sabveg,r2m%sabveg)
@@ -149,7 +156,7 @@ module mod_rad_interface
   subroutine updateaerosol(idatex)
     implicit none
     type (rcm_time_and_date) , intent(in) :: idatex
-    call read_aerclima(idatex)
+    call read_aerclima(idatex,m2r)
   end subroutine updateaerosol
 
   subroutine closeaerosol

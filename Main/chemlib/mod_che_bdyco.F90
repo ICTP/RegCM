@@ -143,16 +143,8 @@ module mod_che_bdyco
 
       if ( idynamic == 2 ) then
         ! Interpolate to non-hydrostatic levels
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              tvirt(j,i,k) = bndt0(j,i,k) / (cps0(j,i) * d_r1000) * &
-                (d_one + ep1 * bndq0(j,i,k) / (cps0(j,i) * d_r1000))
-            end do
-          end do
-        end do
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                      hsigma,sigma,chebdy,tvirt,bndp0,cps0)
+                      hsigma,sigma,chebdy,tvirt0,bndp0,cps0)
       end if
 
       chib0 = d_zero
@@ -212,16 +204,8 @@ module mod_che_bdyco
       call read_chbc(chebdy)
 
       if ( idynamic == 2 ) then
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r1000) * &
-                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r1000))
-            end do
-          end do
-        end do
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                      hsigma,sigma,chebdy,tvirt,bndp1,cps0)
+                      hsigma,sigma,chebdy,tvirt1,bndp1,cps0)
       end if
 
       chib1 = d_zero
@@ -337,16 +321,8 @@ module mod_che_bdyco
       call read_chbc(chebdy)
 
       if ( idynamic == 2 ) then
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              tvirt(j,i,k) = bndt1(j,i,k) / (cps0(j,i) * d_r1000) * &
-                (d_one + ep1 * bndq1(j,i,k) / (cps0(j,i) * d_r1000))
-            end do
-          end do
-        end do
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                      hsigma,sigma,chebdy,tvirt,bndp1,cps0)
+                      hsigma,sigma,chebdy,tvirt1,bndp1,cps0)
       end if
 
       chib1 = d_zero

@@ -219,7 +219,7 @@ module mod_bdycod
 
   subroutine init_bdy
     implicit none
-    integer(ik4) :: datefound
+    integer(ik4) :: datefound , i , j , k
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     type (rcm_time_interval) :: tdif
@@ -254,8 +254,21 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(hyps0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
-      hyps0 = hyps0 * d_r10 - ptop
+      call read_icbc(nhbh0%ps,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            nhbh0%ps(j,i) = nhbh0%ps(j,i) * d_r10 - ptop
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              nhbh0%tvirt(j,i,k) = xtb%b0(j,i,k)*(d_one+ep1*xqb%b0(j,i,k))
+            end do
+          end do
+        end do
+      end if
     else
       call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
     end if
@@ -325,8 +338,21 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(hyps1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
-      hyps1 = hyps1 * d_r10 - ptop
+      call read_icbc(nhbh1%ps,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
+            end do
+          end do
+        end do
+      end if
     else
       call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if
@@ -409,7 +435,7 @@ module mod_bdycod
   !
   subroutine bdyin
     implicit none
-    integer(ik4) :: i , j , n , datefound
+    integer(ik4) :: i , j , k , n , datefound
     character(len=32) :: appdat
     logical :: update_slabocn
     real(rkx) :: sfice_temp
@@ -460,8 +486,21 @@ module mod_bdycod
       end if
     end if
     if ( idynamic == 2 ) then
-      call read_icbc(hyps1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
-      hyps1 = hyps1 * d_r10 - ptop
+      call read_icbc(nhbh1%ps,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
+            end do
+          end do
+        end do
+      end if
     else
       call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if
