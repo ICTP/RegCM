@@ -329,6 +329,15 @@ module mod_sound
       end do
       call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
+      if ( it > 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
+            end do
+          end do
+        end do
+      end if
       !
       !  Semi-implicit solution for w and p
       !
@@ -754,15 +763,6 @@ module mod_sound
         end do
       end do
 
-      if ( it > 1 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
-            end do
-          end do
-        end do
-      end if
       ! End of time loop
     end do timeloop
     !
