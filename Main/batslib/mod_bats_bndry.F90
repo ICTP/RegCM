@@ -40,8 +40,6 @@ module mod_bats_bndry
 
   contains
 
-#include <pfesat.inc>
-#include <pqderiv.inc>
   !
   !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   !
@@ -279,6 +277,11 @@ module mod_bats_bndry
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+    contains
+
+#include <pfesat.inc>
+#include <pqderiv.inc>
+
   end subroutine bndry
   !
   !=======================================================================

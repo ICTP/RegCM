@@ -471,6 +471,15 @@ module mod_rad_tracer
                   acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +   &
                   aco21 + aco22
     end do
+
+    contains
+
+      pure real(rkx) function func(u,b)
+        implicit none
+        real(rkx) , intent(in) :: u , b
+        func = u/sqrt(d_four+u*(d_one+d_one/b))
+     end function func
+
   end subroutine trcab
   !
   !----------------------------------------------------------------------
@@ -698,6 +707,15 @@ module mod_rad_tracer
                   acfc7 + acfc8 + an2o1 + an2o2 + an2o3 + ach4 +  &
                   aco21 + aco22
     end do
+
+    contains
+
+      pure real(rkx) function func(u,b)
+        implicit none
+        real(rkx) , intent(in) :: u , b
+        func = u/sqrt(d_four+u*(d_one+d_one/b))
+     end function func
+
   end subroutine trcabn
   !
   !----------------------------------------------------------------------
@@ -980,13 +998,16 @@ module mod_rad_tracer
                     ecfc7 + ecfc8 + en2o1 + en2o2 + en2o3 + ech4 +   &
                     eco21 + eco22
     end do
-  end subroutine trcems
 
-  pure real(rkx) function func(u,b)
-    implicit none
-    real(rkx) , intent(in) :: u , b
-    func = u/sqrt(d_four+u*(d_one+d_one/b))
-  end function func
+    contains
+
+      pure real(rkx) function func(u,b)
+        implicit none
+        real(rkx) , intent(in) :: u , b
+        func = u/sqrt(d_four+u*(d_one+d_one/b))
+     end function func
+
+  end subroutine trcems
 
 end module mod_rad_tracer
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

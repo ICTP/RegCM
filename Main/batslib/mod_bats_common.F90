@@ -52,8 +52,6 @@ module mod_bats_common
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
   !
   ! provides initial fields to boundary subroutine
   ! units are si
@@ -478,6 +476,12 @@ module mod_bats_common
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine interf
 
   subroutine albedobats(lm,lms)

@@ -70,9 +70,6 @@ module mod_cu_grell
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine allocate_mod_cu_grell
     implicit none
 
@@ -1105,6 +1102,9 @@ module mod_cu_grell
     call time_end(subroutine_name,idindx)
 #endif
     contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
 
      subroutine minimi(array,ks,ke,kt)
        implicit none

@@ -60,9 +60,6 @@ module mod_init
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-#include <clwfromt.inc>
 
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -665,6 +662,13 @@ module mod_init
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+#include <clwfromt.inc>
+
   end subroutine init
 
 end module mod_init

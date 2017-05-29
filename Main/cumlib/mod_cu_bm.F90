@@ -85,9 +85,6 @@ module mod_cu_bm
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine allocate_mod_cu_bm
     implicit none
     integer(ik4) :: intall
@@ -1000,6 +997,10 @@ module mod_cu_bm
     call time_end(subroutine_name,idindx)
 #endif
     contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
       !
       ! Calculates tpfc
       !

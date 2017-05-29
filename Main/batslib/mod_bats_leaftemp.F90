@@ -39,10 +39,6 @@ module mod_bats_leaftemp
 
   contains
 
-#include <pfesat.inc>
-#include <pfqsat.inc>
-#include <pqderiv.inc>
-
 !
 !=======================================================================
 !     based on: bats version 1e          copyright 18 august 1989
@@ -302,6 +298,13 @@ module mod_bats_leaftemp
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <pqderiv.inc>
+
   end subroutine lftemp
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -536,6 +539,12 @@ module mod_bats_leaftemp
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   end subroutine satur
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -730,6 +739,13 @@ module mod_bats_leaftemp
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <pqderiv.inc>
+
   end subroutine deriv
 !
   subroutine fseas(temp,ffsea)

@@ -52,9 +52,6 @@
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
@@ -572,6 +569,12 @@
           call ccn(j)
         end do
       end if
+
+      contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
     end subroutine tractend2
 
 end module mod_che_tend

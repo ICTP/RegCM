@@ -143,9 +143,6 @@ module mod_pbl_uwtcm
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine allocate_tcm_state(tcmstate)
     implicit none
     type(tcm_state) , intent(out) :: tcmstate
@@ -762,6 +759,9 @@ module mod_pbl_uwtcm
 #endif
 
     contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
 
     subroutine solve_tridiag(a,b,c,v,x,n)
       ! n - number of equations

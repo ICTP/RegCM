@@ -34,9 +34,6 @@ module mod_ocn_bats
 
   contains
 
-#include <pfesat.inc>
-#include <pfqsat.inc>
-
   subroutine ocnbats
     implicit none
     real(rkx) :: ribd , cdrn , rib , qgrd
@@ -91,6 +88,12 @@ module mod_ocn_bats
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   end subroutine ocnbats
 
   subroutine seaice
@@ -294,6 +297,12 @@ module mod_ocn_bats
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   end subroutine seaice
 
 end module mod_ocn_bats

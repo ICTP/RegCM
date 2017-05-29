@@ -106,9 +106,6 @@ module mod_micro_wsm5
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine allocate_mod_wsm5
     implicit none
     is = 1
@@ -994,6 +991,9 @@ module mod_micro_wsm5
     end do ! big loops
 
     contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
 
     pure real(rkx) function cpmcal(x)
       implicit none

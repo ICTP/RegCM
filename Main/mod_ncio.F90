@@ -60,8 +60,6 @@ module mod_ncio
 
   contains
 
-#include <pfesat.inc>
-
   subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon,   &
                               msfx,msfd,coriol,snowam,smoist,rmoist, &
                               hlake,ts0)
@@ -834,6 +832,11 @@ module mod_ncio
         end do
       end if
     end if
+
+    contains
+
+#include <pfesat.inc>
+
   end subroutine read_icbc
 
   subroutine read_som(qflx)

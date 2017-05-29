@@ -65,9 +65,6 @@ module mod_ocn_lake
 
   contains
 
-#include <pfesat.inc>
-#include <pfqsat.inc>
-
 !
 !-----------------------------------------------------------------------
 !
@@ -352,6 +349,12 @@ module mod_ocn_lake
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   end subroutine lakedrv
 !
 !-----------------------------------------------------------------------

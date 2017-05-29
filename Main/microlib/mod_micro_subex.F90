@@ -60,9 +60,6 @@ module mod_micro_subex
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine allocate_subex
     implicit none
     ! Those not. Note the external, internal change.
@@ -355,6 +352,9 @@ module mod_micro_subex
     end do
 
   contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
 
     pure real(rkx) function season_factor(lat) result(sf)
       implicit none

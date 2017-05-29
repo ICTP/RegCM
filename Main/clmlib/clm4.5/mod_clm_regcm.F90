@@ -31,9 +31,6 @@ module mod_clm_regcm
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine initclm45(lm,lms)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
@@ -425,6 +422,12 @@ module mod_clm_regcm
       ! clm_a2l%forc_flood  ! flood (mm/s)
       ! clm_a2l%volr        ! rof volr (m3)
     end if
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine atmosphere_to_land
 
   subroutine land_to_atmosphere(lms)

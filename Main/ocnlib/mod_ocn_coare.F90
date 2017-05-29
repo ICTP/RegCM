@@ -33,11 +33,7 @@ module mod_ocn_coare
   public :: coare3_drv
 
   contains
-#include <pfesat.inc>
-#include <pfqsat.inc>
-#include <pqderiv.inc>
-#include <wlh.inc>
-#include <cpmf.inc>
+
     !
     !-----------------------------------------------------------------------
     ! This routine computes the bulk parameterization of surface
@@ -360,48 +356,57 @@ module mod_ocn_coare
         t2m(i) = t995+tzero-dt*facttq
         q2m(i) = q995-dq*facttq
       end do
+
+      contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+#include <pqderiv.inc>
+#include <wlh.inc>
+#include <cpmf.inc>
+
+      pure real(rkx) function psiuo(zet)
+        implicit none
+        real(rkx) , intent (in) :: zet
+        real(rkx) :: x, psik, f, psic, c
+        if (zet < 0.0_rkx) then
+          x = (1.0_rkx-15.0_rkx*zet)**0.25_rkx
+          psik = 2.0_rkx*log((1.0_rkx+x)/2.0_rkx)+log((1.0_rkx+x*x)/2.0_rkx)- &
+                 2.0_rkx*atan(x)+2.0_rkx*atan(1.0_rkx)
+          x = (1.0_rkx-10.15_rkx*zet)**0.3333_rkx
+          psic = 1.5_rkx*log((1.0_rkx+x+x*x)/3.0_rkx)-sqrt(3.0_rkx)*        &
+                 atan((1.0_rkx+2.0_rkx*x)/sqrt(3.0_rkx))+4.0_rkx*           &
+                 atan(1.0_rkx)/sqrt(3.0_rkx)
+          f = zet*zet/(1.0_rkx+zet*zet)
+          psiuo = (1.0_rkx-f)*psik+f*psic
+        else
+          c = min(50.0_rkx,0.35_rkx*zet)
+          psiuo = -((1.0_rkx+1.0_rkx*zet)**1.0_rkx+0.667_rkx*                 &
+                  (zet-14.28_rkx)/exp(c)+8.525_rkx)
+        end if
+      end function psiuo
+
+      pure real(rkx) function psit(zet)
+        implicit none
+        real(rkx) , intent (in) :: zet
+        real(rkx) :: x, psik, f, psic, c
+        if (zet < 0.0_rkx) then
+          x = (1.0_rkx-15.0_rkx*zet)**0.5_rkx
+          psik = 2.0_rkx*log((1.0_rkx+x)/2.0_rkx)
+          x = (1.0_rkx-34.15_rkx*zet)**0.3333_rkx
+          psic = 1.5_rkx*log((1.0_rkx+x+x*x)/3.0_rkx)-sqrt(3.0_rkx)* &
+                 atan((1.0_rkx+2.0_rkx*x)/sqrt(3.0_rkx))+4.0_rkx*    &
+                 atan(1.0_rkx)/sqrt(3.0_rkx)
+          f = zet*zet/(1.0_rkx+zet*zet)
+          psit = (1.0_rkx-f)*psik+f*psic
+        else
+          c = min(50.0_rkx,0.35_rkx*zet)
+          psit = -((1.0_rkx+2.0_rkx/3.0_rkx*zet)**1.5_rkx+0.667_rkx*     &
+                  (zet-14.28_rkx)/exp(c)+8.525_rkx)
+        end if
+      end function psit
+
     end subroutine coare3_drv
-
-    pure real(rkx) function psiuo(zet)
-      implicit none
-      real(rkx) , intent (in) :: zet
-      real(rkx) :: x, psik, f, psic, c
-      if (zet < 0.0_rkx) then
-        x = (1.0_rkx-15.0_rkx*zet)**0.25_rkx
-        psik = 2.0_rkx*log((1.0_rkx+x)/2.0_rkx)+log((1.0_rkx+x*x)/2.0_rkx)- &
-               2.0_rkx*atan(x)+2.0_rkx*atan(1.0_rkx)
-        x = (1.0_rkx-10.15_rkx*zet)**0.3333_rkx
-        psic = 1.5_rkx*log((1.0_rkx+x+x*x)/3.0_rkx)-sqrt(3.0_rkx)*        &
-               atan((1.0_rkx+2.0_rkx*x)/sqrt(3.0_rkx))+4.0_rkx*           &
-               atan(1.0_rkx)/sqrt(3.0_rkx)
-        f = zet*zet/(1.0_rkx+zet*zet)
-        psiuo = (1.0_rkx-f)*psik+f*psic
-      else
-        c = min(50.0_rkx,0.35_rkx*zet)
-        psiuo = -((1.0_rkx+1.0_rkx*zet)**1.0_rkx+0.667_rkx*                 &
-                (zet-14.28_rkx)/exp(c)+8.525_rkx)
-      end if
-    end function psiuo
-
-    pure real(rkx) function psit(zet)
-      implicit none
-      real(rkx) , intent (in) :: zet
-      real(rkx) :: x, psik, f, psic, c
-      if (zet < 0.0_rkx) then
-        x = (1.0_rkx-15.0_rkx*zet)**0.5_rkx
-        psik = 2.0_rkx*log((1.0_rkx+x)/2.0_rkx)
-        x = (1.0_rkx-34.15_rkx*zet)**0.3333_rkx
-        psic = 1.5_rkx*log((1.0_rkx+x+x*x)/3.0_rkx)-sqrt(3.0_rkx)* &
-               atan((1.0_rkx+2.0_rkx*x)/sqrt(3.0_rkx))+4.0_rkx*    &
-               atan(1.0_rkx)/sqrt(3.0_rkx)
-        f = zet*zet/(1.0_rkx+zet*zet)
-        psit = (1.0_rkx-f)*psik+f*psic
-      else
-        c = min(50.0_rkx,0.35_rkx*zet)
-        psit = -((1.0_rkx+2.0_rkx/3.0_rkx*zet)**1.5_rkx+0.667_rkx*     &
-                (zet-14.28_rkx)/exp(c)+8.525_rkx)
-      end if
-    end function psit
 
 end module mod_ocn_coare
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

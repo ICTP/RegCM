@@ -58,9 +58,6 @@ module mod_cu_em
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine allocate_mod_cu_em
     implicit none
 
@@ -1129,6 +1126,10 @@ module mod_cu_em
     end do pointloop
 
     contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
       !
       ! Calculate lifting level temperature
       !

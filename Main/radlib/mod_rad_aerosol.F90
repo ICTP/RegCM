@@ -1593,11 +1593,11 @@ module mod_rad_aerosol
         gtota3d(:,:,ns) = d_zero
         ftota3d(:,:,ns) = d_zero
 
-        uaer(:,0,:) = d_zero
-        tx(:,0,:) = d_zero
-        wa(:,0,:) = d_zero
-        ga(:,0,:) = d_zero
-        fa(:,0,:) = d_zero
+        uaer(:,:,:) = d_zero
+        tx(:,:,:) = d_zero
+        wa(:,:,:) = d_zero
+        ga(:,:,:) = d_zero
+        fa(:,:,:) = d_zero
         utaer(:,:) = d_zero
         tauaer(:,:) = d_zero
         waer(:,:) = d_zero
@@ -1614,11 +1614,6 @@ module mod_rad_aerosol
         ibin = 0
         jbin = 0
         do itr = 1 , ntr
-          do k = 1 , kz
-            do n = n1 , n2
-              uaer(n,k,itr) = d_zero
-            end do
-          end do
           if ( chtrname(itr) == 'XXXXX') then
             continue
           end if

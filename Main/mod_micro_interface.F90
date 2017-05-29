@@ -58,10 +58,6 @@ module mod_micro_interface
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-#include <clwfromt.inc>
-
   subroutine allocate_micro
     implicit none
     integer(ik4) :: i
@@ -309,6 +305,11 @@ module mod_micro_interface
         end do
       end do
     end do
+
+    contains
+
+#include <clwfromt.inc>
+
   end subroutine cldfrac
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -423,6 +424,12 @@ module mod_micro_interface
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine condtq
 
 end module mod_micro_interface

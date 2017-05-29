@@ -450,17 +450,15 @@ else
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     if test -z "${osname##Linux}"; then
+      FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
       if eval "test x"$USE_PROF" = x1"; then
-        FCFLAGS="-O2 -g -p $FCFLAGS"
-      else
-        FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
+        FCFLAGS="-g -pg $FCFLAGS"
       fi
     else
+      # MacOSX may choke on using AVX extensions...
+      FCFLAGS="-O3 -finline-functions $FCFLAGS"
       if eval "test x"$USE_PROF" = x1"; then
-        FCFLAGS="-O2 -g -p $FCFLAGS"
-      else
-        # MacOSX may choke on using AVX extensions...
-        FCFLAGS="-O3 $FCFLAGS"
+        FCFLAGS="-g -pg $FCFLAGS"
       fi
     fi
     AC_SUBST(FCFLAGS)

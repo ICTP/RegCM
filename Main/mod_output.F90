@@ -50,9 +50,6 @@ module mod_output
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche
@@ -1151,6 +1148,12 @@ module mod_output
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine output
 
   subroutine vertint(f3,p3,f2,plev)

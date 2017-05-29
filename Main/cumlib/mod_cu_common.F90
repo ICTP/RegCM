@@ -67,8 +67,6 @@ module mod_cu_common
 
   contains
 
-#include <clwfromt.inc>
-
   subroutine init_mod_cumulus
     implicit none
     integer(ik4) , dimension(:) , allocatable:: iseed
@@ -206,6 +204,11 @@ module mod_cu_common
         end do
       end do
     end if
+
+    contains
+
+#include <clwfromt.inc>
+
   end subroutine model_cumulus_cloud
 
 end module mod_cu_common

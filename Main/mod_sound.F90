@@ -77,8 +77,6 @@ module mod_sound
 
   contains
 
-#include <cpmf.inc>
-
   subroutine allocate_mod_sound
     implicit none
     call getmem3d(aa,jci1,jci2,ici1,ici2,2,kz,'sound:aa')
@@ -797,6 +795,11 @@ module mod_sound
     call timefilter_apply(atm1%w,atm2%w,atmc%w,gnu2)
     where ( abs(atm2%w) < dlowval ) atm2%w = d_zero
     where ( abs(atm1%w) < dlowval ) atm1%w = d_zero
+
+    contains
+
+#include <cpmf.inc>
+
   end subroutine sound
 
 end module mod_sound

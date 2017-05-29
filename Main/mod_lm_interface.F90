@@ -90,9 +90,6 @@ module mod_lm_interface
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine allocate_surface_model
     implicit none
 
@@ -1095,6 +1092,12 @@ module mod_lm_interface
       lm%wetdepflx = d_zero
       lm%drydepflx = d_zero
     end if
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine collect_output
 
 end module mod_lm_interface

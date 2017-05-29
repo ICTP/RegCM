@@ -39,10 +39,8 @@ module mod_slice
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
   subroutine mkslice
+
     implicit none
     real(rkx) :: cell
     integer(ik4) :: i , j , k , n
@@ -290,6 +288,11 @@ module mod_slice
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
 
   end subroutine mkslice
 
