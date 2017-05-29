@@ -92,6 +92,17 @@ if eval "test x"$USE_KNL" = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+USE_PROF="0"
+AC_ARG_ENABLE(profile,
+  AC_HELP_STRING([--enable-profile],
+                 [Compile with profile flags.]),
+                 [USE_PROF="1"]
+)
+if eval "test x"$USE_PROF" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)PROF $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 AC_ARG_ENABLE(selectedrealkind,
   AC_HELP_STRING([--enable-selectedrealkind],
                  [define single precision and double precision numbers using the selected_real_kind function. Default uses the kind inquiry function.]),
@@ -439,18 +450,31 @@ else
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     if test -z "${osname##Linux}"; then
-      FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
+      if eval "test x"$USE_PROF" = x1"; then
+        FCFLAGS="-O2 -g -p $FCFLAGS"
+      else
+        FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
+      fi
     else
-      # MacOSX may choke on using AVX extensions...
-      FCFLAGS="-O3 $FCFLAGS"
+      if eval "test x"$USE_PROF" = x1"; then
+        FCFLAGS="-O2 -g -p $FCFLAGS"
+      else
+        # MacOSX may choke on using AVX extensions...
+        FCFLAGS="-O3 $FCFLAGS"
+      fi
     fi
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
     AR=xiar
-    FCFLAGS="-ftz -ip -O3 -finline-functions -fp-model source $FCFLAGS"
-    AC_SUBST(FCFLAGS)
     AC_SUBST(AR)
+    if eval "test x"$USE_PROF" = x1"; then
+      FCFLAGS="-ftz -O2 -g -p -fp-model source $FCFLAGS"
+      AC_SUBST(FCFLAGS)
+    else
+      FCFLAGS="-ftz -ip -O3 -finline-functions -fp-model source $FCFLAGS"
+      AC_SUBST(FCFLAGS)
+    fi
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
     FCFLAGS="-qsuppress=1501-245 -O3 -qstrict -qxlf2003=polymorphic \
