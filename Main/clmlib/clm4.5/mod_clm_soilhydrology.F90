@@ -234,14 +234,14 @@ module mod_clm_soilhydrology
 
         vol_ice(c,j) = min(watsat(c,j), h2osoi_ice(c,j)/(dz(c,j)*denice))
         if ( origflag == 1 ) then
-          icefrac(c,j) = min(1._rk8,h2osoi_ice(c,j)/(h2osoi_ice(c,j) + &
+          icefrac(c,j) = min(1.0_rk8,h2osoi_ice(c,j)/(h2osoi_ice(c,j) + &
                                   h2osoi_liq(c,j)))
         else
-          icefrac(c,j) = min(1._rk8,vol_ice(c,j)/watsat(c,j))
+          icefrac(c,j) = min(1.0_rk8,vol_ice(c,j)/watsat(c,j))
         end if
 
-        fracice(c,j) = max(0._rk8,exp(-3._rk8*(1._rk8-icefrac(c,j))) - &
-                exp(-3._rk8))/(1.0_rk8-exp(-3._rk8))
+        fracice(c,j) = max(0.0_rk8,exp(-3.0_rk8*(1.0_rk8-icefrac(c,j))) - &
+                exp(-3.0_rk8))/(1.0_rk8-exp(-3.0_rk8))
       end do
     end do
 
@@ -251,20 +251,20 @@ module mod_clm_soilhydrology
       c = filter_hydrologyc(fc)
       fff(c) = 0.5_rk8
 #if (defined VICHYDRO)
-      top_moist(c) = 0._rk8
-      top_ice(c) = 0._rk8
-      top_max_moist(c) = 0._rk8
+      top_moist(c) = 0.0_rk8
+      top_ice(c) = 0.0_rk8
+      top_max_moist(c) = 0.0_rk8
       do j = 1 , nlayer - 1
         top_ice(c) = top_ice(c) + ice(c,j)
         top_moist(c) =  top_moist(c) + moist(c,j) + ice(c,j)
         top_max_moist(c) = top_max_moist(c) + max_moist(c,j)
       end do
       if ( top_moist(c)> top_max_moist(c) ) top_moist(c)= top_max_moist(c)
-      top_ice(c)     = max(0._rk8,top_ice(c))
-      max_infil(c)   = (1._rk8+b_infil(c)) * top_max_moist(c)
-      ex(c)          = b_infil(c) / (1._rk8 + b_infil(c))
-      A(c)           = 1._rk8 - (1._rk8 - top_moist(c) / top_max_moist(c))**ex(c)
-      i_0(c)         = max_infil(c) * (1._rk8 - (1._rk8 - A(c))**(1._rk8/b_infil(c)))
+      top_ice(c)     = max(0.0_rk8,top_ice(c))
+      max_infil(c)   = (1.0_rk8+b_infil(c)) * top_max_moist(c)
+      ex(c)          = b_infil(c) / (1.0_rk8 + b_infil(c))
+      A(c)           = 1.0_rk8 - (1.0_rk8 - top_moist(c) / top_max_moist(c))**ex(c)
+      i_0(c)         = max_infil(c) * (1.0_rk8 - (1.0_rk8 - A(c))**(1.0_rk8/b_infil(c)))
       fsat(c)        = A(c)  !for output
 #else
       fsat(c) = wtfact(c) * exp(-0.5_rk8*fff(c)*zwt(c))
@@ -288,7 +288,7 @@ module mod_clm_soilhydrology
         call fatal(__FILE__,__LINE__,&
              subname // ':: VICHYDRO is not available for origflag = 1')
 #else
-        fcov(c) = (1._rk8 - fracice(c,1)) * fsat(c) + fracice(c,1)
+        fcov(c) = (1.0_rk8 - fracice(c,1)) * fsat(c) + fracice(c,1)
 #endif
       else
         fcov(c) = fsat(c)
@@ -317,22 +317,22 @@ module mod_clm_soilhydrology
            ctype(c) == icol_road_imperv ) then
         ! If there are snow layers then all qflx_top_soil goes to surface runoff
         if (snl(c) < 0) then
-          qflx_surf(c) = max(0._rk8,qflx_top_soil(c))
+          qflx_surf(c) = max(0.0_rk8,qflx_top_soil(c))
         else
-          xs(c) = max(0._rk8, &
+          xs(c) = max(0.0_rk8, &
             h2osoi_liq(c,1)/dtsrf + qflx_top_soil(c) - &
                                     qflx_evap_grnd(c) - pondmx_urban/dtsrf)
           if (xs(c) > 0.0_rk8 ) then
             h2osoi_liq(c,1) = pondmx_urban
           else
-            h2osoi_liq(c,1) = max(0._rk8,h2osoi_liq(c,1)+ &
+            h2osoi_liq(c,1) = max(0.0_rk8,h2osoi_liq(c,1)+ &
                      (qflx_top_soil(c)-qflx_evap_grnd(c))*dtsrf)
           end if
           qflx_surf(c) = xs(c)
         end if
       else if ( ctype(c) == icol_sunwall .or. &
                 ctype(c) == icol_shadewall ) then
-        qflx_surf(c) = 0._rk8
+        qflx_surf(c) = 0.0_rk8
       end if
       ! send flood water flux to runoff for all urban columns
       qflx_surf(c) = qflx_surf(c) + qflx_floodc(c)
@@ -520,7 +520,7 @@ module mod_clm_soilhydrology
         vol_ice(c,j) = min(watsat(c,j), h2osoi_ice(c,j)/(dz(c,j)*denice))
         eff_porosity(c,j) = max(0.01_rk8,watsat(c,j)-vol_ice(c,j))
         vol_liq(c,j) = min(eff_porosity(c,j), h2osoi_liq(c,j)/(dz(c,j)*denh2o))
-        icefrac(c,j) = min(1._rk8,vol_ice(c,j)/watsat(c,j))
+        icefrac(c,j) = min(1.0_rk8,vol_ice(c,j)/watsat(c,j))
       end do
     end do
 
@@ -532,7 +532,7 @@ module mod_clm_soilhydrology
 
         ! explicitly use frac_sno=0 if snl=0
         if (snl(c) >= 0) then
-          fsno = 0._rk8
+          fsno = 0.0_rk8
           ! if no snow layers, sublimation is removed from h2osoi_ice
           ! in drainage
           qflx_evap(c) = qflx_evap_grnd(c)
@@ -542,7 +542,7 @@ module mod_clm_soilhydrology
         end if
 
         !1. partition surface inputs between soil and h2osfc
-        qflx_in_soil(c) = (1._rk8 - frac_h2osfc(c)) * &
+        qflx_in_soil(c) = (1.0_rk8 - frac_h2osfc(c)) * &
                 (qflx_top_soil(c)  - qflx_surf(c))
         qflx_in_h2osfc(c) = frac_h2osfc(c) * &
                 (qflx_top_soil(c)  - qflx_surf(c))
@@ -555,18 +555,18 @@ module mod_clm_soilhydrology
 
         !3. determine maximum infiltration rate
 #if (defined VICHYDRO)
-        top_moist(c) = 0._rk8
-        top_ice(c) = 0._rk8
-        top_max_moist(c) = 0._rk8
+        top_moist(c) = 0.0_rk8
+        top_ice(c) = 0.0_rk8
+        top_max_moist(c) = 0.0_rk8
         do j = 1, nlayer - 1
           top_ice(c) = top_ice(c) + ice(c,j)
           top_moist(c) =  top_moist(c) + moist(c,j) + ice(c,j)
           top_max_moist(c) = top_max_moist(c) + max_moist(c,j)
         end do
-        top_icefrac = min(1._rk8,top_ice(c)/top_max_moist(c))
-        if ( qflx_in_soil(c) <= 0._rk8 ) then
-          rsurf_vic = 0._rk8
-        else if ( max_infil(c) <= 0._rk8 ) then
+        top_icefrac = min(1.0_rk8,top_ice(c)/top_max_moist(c))
+        if ( qflx_in_soil(c) <= 0.0_rk8 ) then
+          rsurf_vic = 0.0_rk8
+        else if ( max_infil(c) <= 0.0_rk8 ) then
           rsurf_vic = qflx_in_soil(c)
         else if ( (i_0(c) + qflx_in_soil(c)*dtsrf) > max_infil(c) ) then
           !(Eq.(3a) Wood et al. 1992)
@@ -574,19 +574,19 @@ module mod_clm_soilhydrology
                   top_max_moist(c) + top_moist(c))/dtsrf
         else
           !(Eq.(3b) Wood et al. 1992)
-          basis = 1._rk8 - (i_0(c) + qflx_in_soil(c)*dtsrf)/max_infil(c)
+          basis = 1.0_rk8 - (i_0(c) + qflx_in_soil(c)*dtsrf)/max_infil(c)
           rsurf_vic = (qflx_in_soil(c)*dtsrf - &
                   top_max_moist(c) + top_moist(c)    &
-                + top_max_moist(c) * basis**(1._rk8 + b_infil(c)))/dtsrf
+                + top_max_moist(c) * basis**(1.0_rk8 + b_infil(c)))/dtsrf
         end if
-        rsurf_vic = max(0._rk8, rsurf_vic)
-        qinmax = (1._rk8 - fsat(c)) * &
-                10._rk8**(-e_ice*top_icefrac)*(qflx_in_soil(c) - rsurf_vic)
+        rsurf_vic = max(0.0_rk8, rsurf_vic)
+        qinmax = (1.0_rk8 - fsat(c)) * &
+                10.0_rk8**(-e_ice*top_icefrac)*(qflx_in_soil(c) - rsurf_vic)
 #else
-        qinmax = (1._rk8 - fsat(c)) * &
-                minval(10._rk8**(-e_ice*(icefrac(c,1:3)))*hksat(c,1:3))
+        qinmax = (1.0_rk8 - fsat(c)) * &
+                minval(10.0_rk8**(-e_ice*(icefrac(c,1:3)))*hksat(c,1:3))
 #endif
-        qflx_infl_excess(c) = max(0._rk8,qflx_in_soil(c) - &
+        qflx_infl_excess(c) = max(0.0_rk8,qflx_in_soil(c) - &
                 (1.0_rk8 - frac_h2osfc(c))*qinmax)
 
         !4. soil infiltration and h2osfc "run-on"
@@ -622,19 +622,19 @@ module mod_clm_soilhydrology
           qflx_h2osfc_surf(c) = min(qflx_h2osfc_surf(c),(h2osfc(c) - &
                   h2osfc_thresh(c))/dtsrf)
         else
-          qflx_h2osfc_surf(c) = 0._rk8
+          qflx_h2osfc_surf(c) = 0.0_rk8
         end if
 
         ! cutoff lower limit
-        if ( qflx_h2osfc_surf(c) < 1.0e-8_rk8 ) qflx_h2osfc_surf(c) = 0._rk8
+        if ( qflx_h2osfc_surf(c) < 1.0e-8_rk8 ) qflx_h2osfc_surf(c) = 0.0_rk8
 
         ! use this for non-h2osfc code
         if ( h2osfcflag == 0 ) then
-          qflx_h2osfc_surf(c) = 0._rk8
+          qflx_h2osfc_surf(c) = 0.0_rk8
           ! shift infiltration excess from h2osfc input to surface runoff
           qflx_in_h2osfc(c) = qflx_in_h2osfc(c) - qflx_infl_excess(c)
           qflx_surf(c) = qflx_surf(c) + qflx_infl_excess(c)
-          qflx_infl_excess(c) = 0._rk8
+          qflx_infl_excess(c) = 0.0_rk8
         end if
 
         qflx_in_h2osfc(c) =  qflx_in_h2osfc(c) - qflx_h2osfc_surf(c)
@@ -642,16 +642,16 @@ module mod_clm_soilhydrology
         !6. update h2osfc prior to calculating bottom drainage from h2osfc
         h2osfc(c) = h2osfc(c) + qflx_in_h2osfc(c) * dtsrf
         !--  if all water evaporates, there will be no bottom drainage
-        if ( h2osfc(c) < 0.0 ) then
+        if ( h2osfc(c) < 0.0_rk8 ) then
           qflx_infl(c) = qflx_infl(c) + h2osfc(c)/dtsrf
-          h2osfc(c) = 0.0
-          qflx_h2osfc_drain(c) = 0._rk8
+          h2osfc(c) = 0.0_rk8
+          qflx_h2osfc_drain(c) = 0.0_rk8
         else
           qflx_h2osfc_drain(c) = min(frac_h2osfc(c)*qinmax,h2osfc(c)/dtsrf)
         end if
 
         if ( h2osfcflag == 0 ) then
-          qflx_h2osfc_drain(c) = max(0._rk8,h2osfc(c)/dtsrf) !ensure no h2osfc
+          qflx_h2osfc_drain(c) = max(0.0_rk8,h2osfc(c)/dtsrf) !ensure no h2osfc
         end if
 
         !7. remove drainage from h2osfc and add to qflx_infl
@@ -668,7 +668,7 @@ module mod_clm_soilhydrology
           qflx_infl(c) = qflx_top_soil(c) - qflx_surf(c) &
                - (1.0_rk8 - frac_sno(c)) * qflx_ev_soil(c)
         end if
-        qflx_h2osfc_surf(c) = 0._rk8
+        qflx_h2osfc_surf(c) = 0.0_rk8
       end if
     end do
 
@@ -677,7 +677,7 @@ module mod_clm_soilhydrology
     do fc = 1, num_urbanc
       c = filter_urbanc(fc)
       if ( ctype(c) /= icol_road_perv ) then
-        qflx_infl(c) = 0._rk8
+        qflx_infl(c) = 0.0_rk8
       end if
     end do
   end subroutine Infiltration
@@ -903,7 +903,7 @@ module mod_clm_soilhydrology
         zimm(c,j) = zi(c,j)*1.e3_rk8
         ! calculate icefrac up here
         vol_ice(c,j) = min(watsat(c,j), h2osoi_ice(c,j)/(dz(c,j)*denice))
-        icefrac(c,j) = min(1._rk8,vol_ice(c,j)/watsat(c,j))
+        icefrac(c,j) = min(1.0_rk8,vol_ice(c,j)/watsat(c,j))
         vwc_liq(c,j) = max(h2osoi_liq(c,j),1.0e-6_rk8)/(dz(c,j)*denh2o)
       end do
     end do
@@ -921,12 +921,12 @@ module mod_clm_soilhydrology
     ! weighting depends on both the per-unit-area transpiration
     ! of the PFT and the PFTs area relative to all PFTs.
 
-    temp(:) = 0._rk8
+    temp(:) = 0.0_rk8
 
     do j = 1 , nlevsoi
       do fc = 1 , num_hydrologyc
         c = filter_hydrologyc(fc)
-        rootr_col(c,j) = 0._rk8
+        rootr_col(c,j) = 0.0_rk8
       end do
     end do
 
@@ -957,7 +957,7 @@ module mod_clm_soilhydrology
     do j = 1, nlevsoi
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
-        if ( temp(c) /= 0._rk8 ) then
+        if ( temp(c) /= 0.0_rk8 ) then
           rootr_col(c,j) = rootr_col(c,j)/temp(c)
         end if
       end do
@@ -986,11 +986,11 @@ module mod_clm_soilhydrology
         do j = nlevsoi,nlevgrnd
           if ( zwt(c) <= zi(c,j) ) then
             smp1 = hfus*(tfrz-t_soisno(c,j)) / &
-                    (grav*t_soisno(c,j)) * 1000._rk8  !(mm)
-            !smp1 = max(0._rk8,smp1)
+                    (grav*t_soisno(c,j)) * 1000.0_rk8  !(mm)
+            !smp1 = max(0.0_rk8,smp1)
             smp1 = max(sucsat(c,nlevsoi),smp1)
             vwc_zwt(c) = watsat(c,nlevsoi) * &
-                    (smp1/sucsat(c,nlevsoi))**(-1._rk8/bsw(c,nlevsoi))
+                    (smp1/sucsat(c,nlevsoi))**(-1.0_rk8/bsw(c,nlevsoi))
             ! for temperatures close to tfrz, limit vwc to total water content
             vwc_zwt(c) = min(vwc_zwt(c), &
                     0.5_rk8*(watsat(c,nlevsoi) + h2osoi_vol(c,nlevsoi)) )
@@ -1015,8 +1015,8 @@ module mod_clm_soilhydrology
                   (zwtmm(c) > zimm(c,j-1)) ) then
           tempi = 1.0_rk8
           temp0 = (((sucsat(c,j)+zwtmm(c)-zimm(c,j-1)) / &
-                  sucsat(c,j)))**(1._rk8-1._rk8/bsw(c,j))
-          voleq1 = -sucsat(c,j)*watsat(c,j)/(1._rk8-1._rk8/bsw(c,j)) / &
+                  sucsat(c,j)))**(1.0_rk8-1.0_rk8/bsw(c,j))
+          voleq1 = -sucsat(c,j)*watsat(c,j)/(1.0_rk8-1.0_rk8/bsw(c,j)) / &
                   (zwtmm(c)-zimm(c,j-1))*(tempi-temp0)
           vol_eq(c,j) = (voleq1*(zwtmm(c)-zimm(c,j-1)) + &
                   watsat(c,j)*(zimm(c,j)-zwtmm(c)))/(zimm(c,j)-zimm(c,j-1))
@@ -1024,11 +1024,11 @@ module mod_clm_soilhydrology
           vol_eq(c,j) = max(vol_eq(c,j),0.0_rk8)
         else
           tempi = (((sucsat(c,j)+zwtmm(c)-zimm(c,j)) / &
-                     sucsat(c,j)))**(1._rk8-1._rk8/bsw(c,j))
+                     sucsat(c,j)))**(1.0_rk8-1.0_rk8/bsw(c,j))
           temp0 = (((sucsat(c,j)+zwtmm(c)-zimm(c,j-1)) / &
-                     sucsat(c,j)))**(1._rk8-1._rk8/bsw(c,j))
+                     sucsat(c,j)))**(1.0_rk8-1.0_rk8/bsw(c,j))
           vol_eq(c,j) = -sucsat(c,j)*watsat(c,j) / &
-                  (1._rk8-1._rk8/bsw(c,j))/(zimm(c,j)-zimm(c,j-1))*(tempi-temp0)
+                  (1.0_rk8-1.0_rk8/bsw(c,j))/(zimm(c,j)-zimm(c,j-1))*(tempi-temp0)
           vol_eq(c,j) = max(vol_eq(c,j),0.0_rk8)
           vol_eq(c,j) = min(watsat(c,j),vol_eq(c,j))
         end if
@@ -1043,11 +1043,11 @@ module mod_clm_soilhydrology
     do fc = 1, num_hydrologyc
       c = filter_hydrologyc(fc)
       if ( jwt(c) == nlevsoi ) then
-        tempi = 1._rk8
+        tempi = 1.0_rk8
         temp0 = (((sucsat(c,j)+zwtmm(c)-zimm(c,j)) / &
-                   sucsat(c,j)))**(1._rk8-1._rk8/bsw(c,j))
+                   sucsat(c,j)))**(1.0_rk8-1.0_rk8/bsw(c,j))
         vol_eq(c,j+1) = -sucsat(c,j)*watsat(c,j) / &
-                (1._rk8-1._rk8/bsw(c,j))/(zwtmm(c)-zimm(c,j))*(tempi-temp0)
+                (1.0_rk8-1.0_rk8/bsw(c,j))/(zwtmm(c)-zimm(c,j))*(tempi-temp0)
         vol_eq(c,j+1) = max(vol_eq(c,j+1),0.0_rk8)
         vol_eq(c,j+1) = min(watsat(c,j),vol_eq(c,j+1))
         zq(c,j+1) = -sucsat(c,j) * &
@@ -1058,7 +1058,7 @@ module mod_clm_soilhydrology
 
     ! Hydraulic conductivity and soil matric potential and their derivatives
 
-    sdamp = 0._rk8
+    sdamp = 0.0_rk8
     do j = 1, nlevsoi
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
@@ -1071,15 +1071,15 @@ module mod_clm_soilhydrology
           s1 = 0.5_rk8*(vwc_liq(c,j) + vwc_liq(c,min(nlevsoi, j+1))) / &
               (0.5_rk8*(watsat(c,j)+watsat(c,min(nlevsoi, j+1))))
         end if
-        s1 = min(1._rk8, s1)
-        s2 = hksat(c,j)*s1**(2._rk8*bsw(c,j)+2._rk8)
+        s1 = min(1.0_rk8, s1)
+        s2 = hksat(c,j)*s1**(2.0_rk8*bsw(c,j)+2.0_rk8)
 
         ! replace fracice with impedance factor, as in zhao 97,99
         if ( origflag == 1 ) then
-          imped(c,j) = (1._rk8 - 0.5_rk8*(fracice(c,j) + &
+          imped(c,j) = (1.0_rk8 - 0.5_rk8*(fracice(c,j) + &
             fracice(c,min(nlevsoi, j+1))))
         else
-          imped(c,j) = 10._rk8**(-e_ice*(0.5_rk8*(icefrac(c,j) + &
+          imped(c,j) = 10.0_rk8**(-e_ice*(0.5_rk8*(icefrac(c,j) + &
                   icefrac(c,min(nlevsoi, j+1)))))
         end if
         if ( imped(c,j) > dlowval .and. s1 > dlowval .and. s2 > dlowval ) then
@@ -1087,8 +1087,8 @@ module mod_clm_soilhydrology
         else
           hk(c,j) = d_zero
         end if
-        dhkdw(c,j) = imped(c,j)*(2._rk8*bsw(c,j)+3._rk8)*s2* &
-                       (1._rk8/(watsat(c,j)+watsat(c,min(nlevsoi, j+1))))
+        dhkdw(c,j) = imped(c,j)*(2.0_rk8*bsw(c,j)+3.0_rk8)*s2* &
+                       (1.0_rk8/(watsat(c,j)+watsat(c,min(nlevsoi, j+1))))
 
         ! compute matric potential and derivative based on
         ! liquid water content only
@@ -1139,8 +1139,8 @@ module mod_clm_soilhydrology
       dqodw1(c,j) = -(-hk(c,j)*dsmpdw(c,j)   + num*dhkdw(c,j))/den
       dqodw2(c,j) = -( hk(c,j)*dsmpdw(c,j+1) + num*dhkdw(c,j))/den
       rmx(c,j) =  qin(c,j) - qout(c,j) - qflx_tran_veg_col(c) * rootr_col(c,j)
-      amx(c,j) =  0._rk8
-      bmx(c,j) =  dzmm(c,j)*(sdamp+1._rk8/dtsrf) + dqodw1(c,j)
+      amx(c,j) =  0.0_rk8
+      bmx(c,j) =  dzmm(c,j)*(sdamp+1.0_rk8/dtsrf) + dqodw1(c,j)
       cmx(c,j) =  dqodw2(c,j)
     end do
 
@@ -1180,18 +1180,18 @@ module mod_clm_soilhydrology
         qin(c,j)    = -hk(c,j-1)*num/den
         dqidw0(c,j) = -(-hk(c,j-1)*dsmpdw(c,j-1) + num*dhkdw(c,j-1))/den
         dqidw1(c,j) = -( hk(c,j-1)*dsmpdw(c,j)   + num*dhkdw(c,j-1))/den
-        qout(c,j)   =  0._rk8
-        dqodw1(c,j) =  0._rk8
+        qout(c,j)   =  0.0_rk8
+        dqodw1(c,j) =  0.0_rk8
         rmx(c,j) =  qin(c,j) - qout(c,j) - qflx_tran_veg_col(c)*rootr_col(c,j)
         amx(c,j) = -dqidw0(c,j)
         bmx(c,j) =  dzmm(c,j)/dtsrf - dqidw1(c,j) + dqodw1(c,j)
-        cmx(c,j) =  0._rk8
+        cmx(c,j) =  0.0_rk8
 
         ! next set up aquifer layer; hydrologically inactive
-        rmx(c,j+1) = 0._rk8
-        amx(c,j+1) = 0._rk8
+        rmx(c,j+1) = 0.0_rk8
+        amx(c,j+1) = 0.0_rk8
         bmx(c,j+1) = dzmm(c,j+1)/dtsrf
-        cmx(c,j+1) = 0._rk8
+        cmx(c,j+1) = 0.0_rk8
       else ! water table is below soil column
 
         ! compute aquifer soil moisture as average of layer 10 and saturation
@@ -1232,12 +1232,12 @@ module mod_clm_soilhydrology
         qin(c,j+1)    = qout(c,j)
         dqidw0(c,j+1) = -(-hk(c,j)*dsmpdw(c,j) + num*dhkdw(c,j))/den
         dqidw1(c,j+1) = -( hk(c,j)*dsmpdw1   + num*dhkdw(c,j))/den
-        qout(c,j+1)   =  0._rk8  ! zero-flow bottom boundary condition
-        dqodw1(c,j+1) =  0._rk8  ! zero-flow bottom boundary condition
+        qout(c,j+1)   =  0.0_rk8  ! zero-flow bottom boundary condition
+        dqodw1(c,j+1) =  0.0_rk8  ! zero-flow bottom boundary condition
         rmx(c,j+1) =  qin(c,j+1) - qout(c,j+1)
         amx(c,j+1) = -dqidw0(c,j+1)
         bmx(c,j+1) =  dzmm(c,j+1)/dtsrf - dqidw1(c,j+1) + dqodw1(c,j+1)
-        cmx(c,j+1) =  0._rk8
+        cmx(c,j+1) =  0.0_rk8
       end if
     end do
 
@@ -1280,15 +1280,15 @@ module mod_clm_soilhydrology
       ! calculate qcharge for case jwt < nlevsoi
       if ( jwt(c) < nlevsoi ) then
         !since wh_zwt = -sucsat - zq_zwt, where zq_zwt = -sucsat
-        wh_zwt = 0._rk8
+        wh_zwt = 0.0_rk8
 
         ! Recharge rate qcharge to groundwater (positive to aquifer)
         s_node = max(h2osoi_vol(c,jwt(c)+1)/watsat(c,jwt(c)+1), 0.01_rk8)
-        s1 = min(1._rk8, s_node)
+        s1 = min(1.0_rk8, s_node)
 
         !scs: this is the expression for unsaturated hk
         ka = imped(c,jwt(c)+1)*hksat(c,jwt(c)+1) &
-               *s1**(2._rk8*bsw(c,jwt(c)+1)+3._rk8)
+               *s1**(2.0_rk8*bsw(c,jwt(c)+1)+3.0_rk8)
 
         ! Recharge rate qcharge to groundwater (positive to aquifer)
         smp1 = max(smpmin(c), smp(c,max(1,jwt(c))))
@@ -1296,12 +1296,12 @@ module mod_clm_soilhydrology
 
         !scs: original formulation
         if ( jwt(c) == 0 ) then
-          qcharge(c) = -ka * (wh_zwt-wh)  /((zwt(c)+1.e-3)*1000._rk8)
+          qcharge(c) = -ka * (wh_zwt-wh)  /((zwt(c)+1.e-3_rk8)*1000.0_rk8)
         else
-          ! qcharge(c) = -ka * (wh_zwt-wh)/((zwt(c)-z(c,jwt(c)))*1000._rk8)
+          ! qcharge(c) = -ka * (wh_zwt-wh)/((zwt(c)-z(c,jwt(c)))*1000.0_rk8)
           !scs: 1/2, assuming flux is at zwt interface, saturation
           ! deeper than zwt
-          qcharge(c) = -ka * (wh_zwt-wh)/((zwt(c)-z(c,jwt(c)))*1000._rk8*2.0)
+          qcharge(c) = -ka*(wh_zwt-wh)/((zwt(c)-z(c,jwt(c)))*1000.0_rk8*2.0_rk8)
         end if
 
         ! To limit qcharge  (for the first several timesteps)
@@ -1515,11 +1515,11 @@ module mod_clm_soilhydrology
 
     do fc = 1, num_hydrologyc
       c = filter_hydrologyc(fc)
-      qflx_drain(c)    = 0._rk8
-      rsub_bot(c)      = 0._rk8
-      qflx_rsub_sat(c) = 0._rk8
-      rsub_top(c)      = 0._rk8
-      fracice_rsub(c)  = 0._rk8
+      qflx_drain(c)    = 0.0_rk8
+      rsub_bot(c)      = 0.0_rk8
+      qflx_rsub_sat(c) = 0.0_rk8
+      rsub_top(c)      = 0.0_rk8
+      fracice_rsub(c)  = 0.0_rk8
     end do
 
     ! The layer index of the first unsaturated layer, i.e., the layer
@@ -1552,7 +1552,7 @@ module mod_clm_soilhydrology
        ! water table is below the soil column
       if ( jwt(c) == nlevsoi ) then
         wa(c)  = wa(c) + qcharge(c)  * dtsrf
-        zwt(c) = zwt(c) - (qcharge(c)  * dtsrf)/1000._rk8/rous
+        zwt(c) = zwt(c) - (qcharge(c)  * dtsrf)/1000.0_rk8/rous
       else
         ! water table within soil layers 1-9
         ! try to raise water table to account for qcharge
@@ -1564,9 +1564,9 @@ module mod_clm_soilhydrology
                     (1.0_rk8+1.e3_rk8*zwt(c)/sucsat(c,j))**(-1.0_rk8/bsw(c,j)))
             s_y = max(s_y,0.02_rk8)
             qcharge_layer = min(qcharge_tot,(s_y*(zwt(c) - zi(c,j-1))*1.e3_rk8))
-            qcharge_layer = max(qcharge_layer,0._rk8)
+            qcharge_layer = max(qcharge_layer,0.0_rk8)
 
-            if ( s_y > 0._rk8 ) zwt(c) = zwt(c) - qcharge_layer/s_y/1000._rk8
+            if ( s_y > 0.0_rk8 ) zwt(c) = zwt(c) - qcharge_layer/s_y/1000.0_rk8
 
             qcharge_tot = qcharge_tot - qcharge_layer
             if ( qcharge_tot <= 0.0_rk8 ) exit
@@ -1578,17 +1578,17 @@ module mod_clm_soilhydrology
                     (1.0_rk8 + 1.e3_rk8*zwt(c)/sucsat(c,j))**(-1.0_rk8/bsw(c,j)))
             s_y = max(s_y,0.02_rk8)
             qcharge_layer = max(qcharge_tot,-(s_y*(zi(c,j) - zwt(c))*1.e3_rk8))
-            qcharge_layer = min(qcharge_layer,0._rk8)
+            qcharge_layer = min(qcharge_layer,0.0_rk8)
             qcharge_tot = qcharge_tot - qcharge_layer
 
             if ( qcharge_tot >= 0.0_rk8 ) then
-              zwt(c) = zwt(c) - qcharge_layer/s_y/1000._rk8
+              zwt(c) = zwt(c) - qcharge_layer/s_y/1000.0_rk8
               exit
             else
               zwt(c) = zi(c,j)
             end if
           end do
-          if ( qcharge_tot > 0.0_rk8 ) zwt(c) = zwt(c) - qcharge_tot/1000._rk8/rous
+          if ( qcharge_tot > 0.0_rk8 ) zwt(c) = zwt(c) - qcharge_tot/1000.0_rk8/rous
         end if
 
         ! recompute jwt for following calculations
@@ -1609,7 +1609,7 @@ module mod_clm_soilhydrology
       c = filter_hydrologyc(fc)
 
       !  specify maximum drainage rate
-      q_perch_max = 1.e-5_rk8 * sin(topo_slope(c) * (rpi/180._rk8))
+      q_perch_max = 1.e-5_rk8 * sin(topo_slope(c) * (rpi/180.0_rk8))
 
       ! if layer containing water table is frozen, compute the following:
       ! frost table, perched water table, and drainage from perched
@@ -1634,7 +1634,7 @@ module mod_clm_soilhydrology
       ! initialize perched water table to frost table, and
       ! qflx_drain_perched(c) to zero
       zwt_perched(c)=frost_table(c)
-      qflx_drain_perched(c) = 0._rk8
+      qflx_drain_perched(c) = 0.0_rk8
 
       ! water table above frost table  =============================
       ! if water table is above frost table, do not use topmodel
@@ -1642,15 +1642,15 @@ module mod_clm_soilhydrology
       if ( zwt(c) < frost_table(c) .and. &
            t_soisno(c,k_frz) <= tfrz .and. origflag == 0 ) then
         ! compute drainage from perched saturated region
-        wtsub = 0._rk8
-        q_perch = 0._rk8
+        wtsub = 0.0_rk8
+        q_perch = 0.0_rk8
         do k = jwt(c)+1 , k_frz
-          imped = 10._rk8**(-e_ice*(0.5_rk8*(icefrac(c,k) + &
+          imped = 10.0_rk8**(-e_ice*(0.5_rk8*(icefrac(c,k) + &
                   icefrac(c,min(nlevsoi, k+1)))))
           q_perch = q_perch + imped*hksat(c,k)*dzmm(c,k)
           wtsub = wtsub + dzmm(c,k)
         end do
-        if ( wtsub > 0._rk8 ) q_perch = q_perch/wtsub
+        if ( wtsub > 0.0_rk8 ) q_perch = q_perch/wtsub
 
         qflx_drain_perched(c) = q_perch_max * q_perch &
                   *(frost_table(c) - zwt(c))
@@ -1659,13 +1659,13 @@ module mod_clm_soilhydrology
         rsub_top_tot = - qflx_drain_perched(c) * dtsrf
         do k = jwt(c)+1 , k_frz
           rsub_top_layer=max(rsub_top_tot,-(h2osoi_liq(c,k)-watmin))
-          rsub_top_layer=min(rsub_top_layer,0._rk8)
+          rsub_top_layer=min(rsub_top_layer,0.0_rk8)
           rsub_top_tot = rsub_top_tot - rsub_top_layer
 
           h2osoi_liq(c,k) = h2osoi_liq(c,k) + rsub_top_layer
 
           if ( rsub_top_tot >= 0.0_rk8 ) then
-            zwt(c) = zwt(c) - rsub_top_layer/eff_porosity(c,k)/1000._rk8
+            zwt(c) = zwt(c) - rsub_top_layer/eff_porosity(c,k)/1000.0_rk8
             exit
           else
             zwt(c) = zi(c,k)
@@ -1691,7 +1691,7 @@ module mod_clm_soilhydrology
         ! afterwards locate perched water table from bottom up starting
         ! at frost table sat_lev is an arbitrary saturation level used
         ! to determine perched water table
-        sat_lev=0.9
+        sat_lev=0.9_rk8
 
         k_perch = 1
         do k = k_frz,1,-1
@@ -1719,36 +1719,36 @@ module mod_clm_soilhydrology
 
           m = (z(c,k_perch+1)-z(c,k_perch))/(s2-s1)
           b = z(c,k_perch+1)-m*s2
-          zwt_perched(c)=max(0._rk8,m*sat_lev+b)
+          zwt_perched(c)=max(0.0_rk8,m*sat_lev+b)
 
           ! compute drainage from perched saturated region
-          wtsub = 0._rk8
-          q_perch = 0._rk8
+          wtsub = 0.0_rk8
+          q_perch = 0.0_rk8
           do k = k_perch, k_frz
-            imped = 10._rk8**(-e_ice*(0.5_rk8*(icefrac(c,k) + &
+            imped = 10.0_rk8**(-e_ice*(0.5_rk8*(icefrac(c,k) + &
                                  icefrac(c,min(nlevsoi, k+1)))))
             q_perch = q_perch + imped*hksat(c,k)*dzmm(c,k)
             wtsub = wtsub + dzmm(c,k)
           end do
-          if ( wtsub > 0._rk8 ) q_perch = q_perch/wtsub
+          if ( wtsub > 0.0_rk8 ) q_perch = q_perch/wtsub
 
           qflx_drain_perched(c) = q_perch_max * q_perch &
                   *(frost_table(c) - zwt_perched(c))
 
           ! no perched water table drainage if using original formulation
-          if ( origflag == 1 ) qflx_drain_perched(c) = 0._rk8
+          if ( origflag == 1 ) qflx_drain_perched(c) = 0.0_rk8
 
           ! remove drainage from perched saturated layers
           rsub_top_tot = -  qflx_drain_perched(c) * dtsrf
           do k = k_perch+1 , k_frz
             rsub_top_layer=max(rsub_top_tot,-(h2osoi_liq(c,k)-watmin))
-            rsub_top_layer=min(rsub_top_layer,0._rk8)
+            rsub_top_layer=min(rsub_top_layer,0.0_rk8)
             rsub_top_tot = rsub_top_tot - rsub_top_layer
             h2osoi_liq(c,k) = h2osoi_liq(c,k) + rsub_top_layer
 
             if ( rsub_top_tot >= 0.0_rk8 ) then
               zwt_perched(c) = zwt_perched(c) - &
-                      rsub_top_layer/eff_porosity(c,k)/1000._rk8
+                      rsub_top_layer/eff_porosity(c,k)/1000.0_rk8
               exit
             else
               zwt_perched(c) = zi(c,k)
@@ -1761,13 +1761,13 @@ module mod_clm_soilhydrology
           qflx_drain_perched(c) = qflx_drain_perched(c) + rsub_top_tot/dtsrf
 
         else
-          qflx_drain_perched(c) = 0._rk8
+          qflx_drain_perched(c) = 0.0_rk8
         end if !k_frz > k_perch
 
         ! Topographic runoff
-        fff(c) = 1._rk8/ hkdepth(c)
-        dzsum = 0._rk8
-        icefracsum = 0._rk8
+        fff(c) = 1.0_rk8/ hkdepth(c)
+        dzsum = 0.0_rk8
+        icefracsum = 0.0_rk8
         do j = max(jwt(c),1), nlevsoi
           dzsum  = dzsum + dzmm(c,j)
           icefracsum = icefracsum + icefrac(c,j) * dzmm(c,j)
@@ -1778,19 +1778,19 @@ module mod_clm_soilhydrology
           call fatal(__FILE__,__LINE__, &
                   subname // ':: VICHYDRO is not available for origflag = 1')
 #else
-          fracice_rsub(c) = max(0._rk8,exp(-3._rk8*(1._rk8-(icefracsum/dzsum))) &
-               - exp(-3._rk8))/(1.0_rk8-exp(-3._rk8))
-          imped = (1._rk8 - fracice_rsub(c))
+          fracice_rsub(c) = max(0.0_rk8,exp(-3.0_rk8*(1.0_rk8-(icefracsum/dzsum))) &
+               - exp(-3.0_rk8))/(1.0_rk8-exp(-3.0_rk8))
+          imped = max(0.0_rk8,(1.0_rk8 - fracice_rsub(c)))
           rsub_top_max = 5.5e-3_rk8
 #endif
         else
 #if (defined VICHYDRO)
-          imped = 10._rk8**(-e_ice*min(1.0_rk8,ice(c,nlayer)/max_moist(c,nlayer)))
+          imped = 10.0_rk8**(-e_ice*min(1.0_rk8,ice(c,nlayer)/max_moist(c,nlayer)))
           dsmax_tmp(c) = Dsmax(c) * dtsrf/ secspday !mm/day->mm/dtsrf
           rsub_top_max = dsmax_tmp(c)
 #else
-          imped = 10._rk8**(-e_ice*(icefracsum/dzsum))
-          rsub_top_max = 10._rk8 * sin((rpi/180.) * topo_slope(c))
+          imped = 10.0_rk8**(-e_ice*(icefracsum/dzsum))
+          rsub_top_max = 10.0_rk8 * sin((rpi/180.0_rk8) * topo_slope(c))
 #endif
         end if
 #if (defined VICHYDRO)
@@ -1808,9 +1808,9 @@ module mod_clm_soilhydrology
         end if
         rsub_top(c) = imped * rsub_tmp
         ! make sure baseflow isn't negative
-        rsub_top(c) = max(0._rk8, rsub_top(c))
+        rsub_top(c) = max(0.0_rk8, rsub_top(c))
 #else
-        rsub_top(c) = imped * rsub_top_max* exp(-fff(c)*zwt(c))
+        rsub_top(c) = max(0.0_rk8, imped * rsub_top_max* exp(-fff(c)*zwt(c)))
 #endif
         ! use analytical expression for aquifer specific yield
         rous = watsat(c,nlevsoi) * ( 1.0_rk8 - &
@@ -1820,16 +1820,16 @@ module mod_clm_soilhydrology
         ! water table is below the soil column
         if ( jwt(c) == nlevsoi ) then
           wa(c)  = wa(c) - rsub_top(c) * dtsrf
-          zwt(c) = zwt(c) + (rsub_top(c) * dtsrf)/1000._rk8/rous
+          zwt(c) = zwt(c) + (rsub_top(c) * dtsrf)/1000.0_rk8/rous
           h2osoi_liq(c,nlevsoi) = h2osoi_liq(c,nlevsoi) + &
-                  max(0._rk8,(wa(c)-5000._rk8))
-          wa(c)  = min(wa(c), 5000._rk8)
+                  max(0.0_rk8,(wa(c)-5000.0_rk8))
+          wa(c)  = min(wa(c), 5000.0_rk8)
         else
           ! water table within soil layers 1-9
           !--  Now remove water via rsub_top
           rsub_top_tot = - rsub_top(c) * dtsrf
-          !should never be positive... but include for completeness
-          if ( rsub_top_tot > 0.) then !rising water table
+          ! should never be positive... but include for completeness
+          if ( rsub_top_tot > 0.0_rk8 ) then !rising water table
             write(stderr,*) 'RSUB_TOP IS POSITIVE in Drainage!'
             write(stderr,*)'clm model is stopping'
             call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -1837,7 +1837,7 @@ module mod_clm_soilhydrology
 
           else ! deepening water table
 #if (defined VICHYDRO)
-            wtsub_vic = 0._rk8
+            wtsub_vic = 0.0_rk8
             do j = (nlvic(1)+nlvic(2)+1), nlevsoi
               wtsub_vic = wtsub_vic + hk_l(c,j)*dzmm(c,j)
             end do
@@ -1845,7 +1845,7 @@ module mod_clm_soilhydrology
             do j = (nlvic(1)+nlvic(2)+1) , nlevsoi
               rsub_top_layer = max(rsub_top_tot, &
                       rsub_top_tot*hk_l(c,j)*dzmm(c,j)/wtsub_vic)
-              rsub_top_layer = min(rsub_top_layer,0._rk8)
+              rsub_top_layer = min(rsub_top_layer,0.0_rk8)
               h2osoi_liq(c,j) = h2osoi_liq(c,j) + rsub_top_layer
               rsub_top_tot = rsub_top_tot - rsub_top_layer
             end do
@@ -1857,13 +1857,13 @@ module mod_clm_soilhydrology
               s_y=max(s_y,0.02_rk8)
 
               rsub_top_layer = max(rsub_top_tot,-(s_y*(zi(c,j) - zwt(c))*1.e3_rk8))
-              rsub_top_layer = min(rsub_top_layer,0._rk8)
+              rsub_top_layer = min(rsub_top_layer,0.0_rk8)
               h2osoi_liq(c,j) = h2osoi_liq(c,j) + rsub_top_layer
 
               rsub_top_tot = rsub_top_tot - rsub_top_layer
 
-              if ( rsub_top_tot >= 0.) then
-                zwt(c) = zwt(c) - rsub_top_layer/s_y/1000._rk8
+              if ( rsub_top_tot >= 0.0_rk8 ) then
+                zwt(c) = zwt(c) - rsub_top_layer/s_y/1000.0_rk8
                 exit
               else
                 zwt(c) = zi(c,j)
@@ -1871,7 +1871,7 @@ module mod_clm_soilhydrology
             end do
 #endif
             ! remove residual rsub_top
-            zwt(c) = zwt(c) - rsub_top_tot/1000._rk8/rous
+            zwt(c) = zwt(c) - rsub_top_tot/1000.0_rk8/rous
             wa(c) = wa(c) + rsub_top_tot
           end if
 
@@ -1887,7 +1887,7 @@ module mod_clm_soilhydrology
         end if ! end of jwt if construct
 
         zwt(c) = max(0.0_rk8,zwt(c))
-        zwt(c) = min(80._rk8,zwt(c))
+        zwt(c) = min(80.0_rk8,zwt(c))
       end if
     end do
 
@@ -1899,7 +1899,7 @@ module mod_clm_soilhydrology
     do j = nlevsoi , 2 , -1
       do fc = 1 , num_hydrologyc
         c = filter_hydrologyc(fc)
-        xsi(c) = max(h2osoi_liq(c,j)-eff_porosity(c,j)*dzmm(c,j),0._rk8)
+        xsi(c) = max(h2osoi_liq(c,j)-eff_porosity(c,j)*dzmm(c,j),0.0_rk8)
         h2osoi_liq(c,j)   = min(eff_porosity(c,j)*dzmm(c,j), h2osoi_liq(c,j))
         h2osoi_liq(c,j-1) = h2osoi_liq(c,j-1) + xsi(c)
       end do
@@ -1907,10 +1907,10 @@ module mod_clm_soilhydrology
 
     do fc = 1 , num_hydrologyc
       c = filter_hydrologyc(fc)
-      xs1(c) = max(max(h2osoi_liq(c,1),0._rk8) - &
-                   max(0._rk8,(pondmx+watsat(c,1)*dzmm(c,1) - &
-                       h2osoi_ice(c,1))),0._rk8)
-      h2osoi_liq(c,1) = min(max(0._rk8,pondmx+watsat(c,1)*dzmm(c,1) - &
+      xs1(c) = max(max(h2osoi_liq(c,1),0.0_rk8) - &
+                   max(0.0_rk8,(pondmx+watsat(c,1)*dzmm(c,1) - &
+                       h2osoi_ice(c,1))),0.0_rk8)
+      h2osoi_liq(c,1) = min(max(0.0_rk8,pondmx+watsat(c,1)*dzmm(c,1) - &
               h2osoi_ice(c,1)), h2osoi_liq(c,1))
       if ( ltype(clandunit(c)) == isturb ) then
         qflx_rsub_sat(c)     = xs1(c) / dtsrf
@@ -1918,17 +1918,17 @@ module mod_clm_soilhydrology
         if ( h2osfcflag == 1 ) then
           ! send this water up to h2osfc rather than sending to drainage
           h2osfc(c) = h2osfc(c) + xs1(c)
-          qflx_rsub_sat(c)     = 0._rk8
+          qflx_rsub_sat(c)     = 0.0_rk8
         else
           ! use original code to send water to drainage (non-h2osfc case)
           qflx_rsub_sat(c)     = xs1(c) / dtsrf
         end if
       end if
       ! add in ice check
-      xs1(c) = max(max(h2osoi_ice(c,1),0._rk8) - &
-                   max(0._rk8,(pondmx+watsat(c,1)*dzmm(c,1) - &
-                   h2osoi_liq(c,1))),0._rk8)
-      h2osoi_ice(c,1) = min(max(0._rk8,pondmx+watsat(c,1)*dzmm(c,1) - &
+      xs1(c) = max(max(h2osoi_ice(c,1),0.0_rk8) - &
+                   max(0.0_rk8,(pondmx+watsat(c,1)*dzmm(c,1) - &
+                   h2osoi_liq(c,1))),0.0_rk8)
+      h2osoi_ice(c,1) = min(max(0.0_rk8,pondmx+watsat(c,1)*dzmm(c,1) - &
                                h2osoi_liq(c,1)), h2osoi_ice(c,1))
       qflx_snwcp_ice(c) = qflx_snwcp_ice(c) + xs1(c) / dtsrf
     end do
@@ -1944,10 +1944,10 @@ module mod_clm_soilhydrology
           xs(c) = watmin - h2osoi_liq(c,j)
           ! deepen water table if water is passed from below zwt layer
           if ( j == jwt(c) ) then
-            zwt(c) = zwt(c) + xs(c)/eff_porosity(c,j)/1000._rk8
+            zwt(c) = zwt(c) + xs(c)/eff_porosity(c,j)/1000.0_rk8
           endif
         else
-          xs(c) = 0._rk8
+          xs(c) = 0.0_rk8
         end if
         h2osoi_liq(c,j  ) = h2osoi_liq(c,j  ) + xs(c)
         h2osoi_liq(c,j+1) = h2osoi_liq(c,j+1) - xs(c)
@@ -1962,11 +1962,11 @@ module mod_clm_soilhydrology
         xs(c) = watmin - h2osoi_liq(c,j)
         searchforwater: &
         do i = nlevsoi-1, 1, -1
-          available_h2osoi_liq = max(h2osoi_liq(c,i)-watmin-xs(c),0._rk8)
+          available_h2osoi_liq = max(h2osoi_liq(c,i)-watmin-xs(c),0.0_rk8)
           if ( available_h2osoi_liq >= xs(c) ) then
             h2osoi_liq(c,j) = h2osoi_liq(c,j) + xs(c)
             h2osoi_liq(c,i) = h2osoi_liq(c,i) - xs(c)
-            xs(c) = 0._rk8
+            xs(c) = 0.0_rk8
             exit searchforwater
           else
             h2osoi_liq(c,j) = h2osoi_liq(c,j) + available_h2osoi_liq
@@ -1975,7 +1975,7 @@ module mod_clm_soilhydrology
           end if
         end do searchforwater
       else
-        xs(c) = 0._rk8
+        xs(c) = 0.0_rk8
       end if
       ! Needed in case there is no water to be found
       h2osoi_liq(c,j) = h2osoi_liq(c,j) + xs(c)
@@ -1998,22 +1998,22 @@ module mod_clm_soilhydrology
 
       ! Implicit evaporation term is now zero
 
-      eflx_impsoil(c) = 0._rk8
+      eflx_impsoil(c) = 0.0_rk8
 
       ! Renew the ice and liquid mass due to condensation
 
       if ( snl(c)+1 >= 1 ) then
         ! make consistent with how evap_grnd removed in infiltration
         h2osoi_liq(c,1) = h2osoi_liq(c,1) + &
-                (1._rk8 - frac_h2osfc(c))*qflx_dew_grnd(c) * dtsrf
+                (1.0_rk8 - frac_h2osfc(c))*qflx_dew_grnd(c) * dtsrf
         h2osoi_ice(c,1) = h2osoi_ice(c,1) + &
-                (1._rk8 - frac_h2osfc(c))*qflx_dew_snow(c) * dtsrf
+                (1.0_rk8 - frac_h2osfc(c))*qflx_dew_snow(c) * dtsrf
         if (qflx_sub_snow(c)*dtsrf > h2osoi_ice(c,1)) then
           qflx_sub_snow(c) = h2osoi_ice(c,1)/dtsrf
-          h2osoi_ice(c,1) = 0._rk8
+          h2osoi_ice(c,1) = 0.0_rk8
         else
           h2osoi_ice(c,1) = h2osoi_ice(c,1) - &
-                  (1._rk8 - frac_h2osfc(c)) * qflx_sub_snow(c) * dtsrf
+                  (1.0_rk8 - frac_h2osfc(c)) * qflx_sub_snow(c) * dtsrf
         end if
       end if
     end do
@@ -2024,11 +2024,11 @@ module mod_clm_soilhydrology
     do fc = 1 , num_urbanc
       c = filter_urbanc(fc)
       if ( ctype(c) /= icol_road_perv ) then
-        qflx_drain(c) = 0._rk8
-        qflx_irrig(c) = 0._rk8
+        qflx_drain(c) = 0.0_rk8
+        qflx_irrig(c) = 0.0_rk8
         ! This must be done for roofs and impervious road (walls will be zero)
         qflx_qrgwl(c) = qflx_snwcp_liq(c)
-        eflx_impsoil(c) = 0._rk8
+        eflx_impsoil(c) = 0.0_rk8
       end if
 
       ! Renew the ice and liquid mass due to condensation for urban
@@ -2040,7 +2040,7 @@ module mod_clm_soilhydrology
           h2osoi_ice(c,1) = h2osoi_ice(c,1) + (qflx_dew_snow(c) * dtsrf)
           if (qflx_sub_snow(c)*dtsrf > h2osoi_ice(c,1)) then
             qflx_sub_snow(c) = h2osoi_ice(c,1)/dtsrf
-            h2osoi_ice(c,1) = 0._rk8
+            h2osoi_ice(c,1) = 0.0_rk8
           else
             h2osoi_ice(c,1) = h2osoi_ice(c,1) - (qflx_sub_snow(c) * dtsrf)
           end if
