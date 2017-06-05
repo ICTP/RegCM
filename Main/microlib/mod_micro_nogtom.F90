@@ -800,16 +800,6 @@ module mod_micro_nogtom
             qsexp(iqqs,iqqv) = -qxfg(iqqs)
             qxfg(iqqs) = d_zero
           end if
-          if ( ccover <= lowcld ) then
-            qsexp(iqqv,iqql) =  qxfg(iqql)
-            qsexp(iqql,iqqv) = -qxfg(iqql)
-            qsexp(iqqv,iqqi) =  qxfg(iqqi)
-            qsexp(iqqi,iqqv) = -qxfg(iqqi)
-            qxfg(iqql) = d_zero
-            qxfg(iqqi) = d_zero
-            ccover = d_zero
-          end if
-
           qlifg = qxfg(iqql)+qxfg(iqqi)
 
           do n = 1 , nqx
@@ -889,6 +879,22 @@ module mod_micro_nogtom
           qli_incld  = ql_incld + qi_incld
 
           !------------------------------------------------------------------
+          !  MICROPHYSICS START HERE
+          !------------------------------------------------------------------
+          !------------------------------------------------------------------
+          !  FALL SOURCE
+          !------------------------------------------------------------------
+          do n = 1 , nqx
+            if ( lfall(n) ) then
+              ! Source from layer above
+              fallsrce(j,i,n) = pfplsx(n,j,i,k)*dtgdp
+              qsexp(n,n) = qsexp(n,n) + fallsrce(j,i,n)
+              qxfg(n) = qxfg(n) + fallsrce(j,i,n)
+              qpretot = qpretot + qxfg(n)
+            endif
+          enddo
+
+          !------------------------------------------------------------------
           !  ICE SUPERSATURATION ADJUSTMENT
           !------------------------------------------------------------------
           ! Note that the supersaturation adjustment is made with respect to
@@ -926,9 +932,9 @@ module mod_micro_nogtom
           ! Moreover the RH is clipped to the limit of
           ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
           !------------------------------------------------------------------
-          supsat = max((qx0(iqqv)-facl*sqmix)/corqsliq,d_zero)
+          supsat = max((qx0(iqqv)-facl*sqmix)*corqsmix,d_zero) 
           ! e < esi, because for e > esi ice still present
-          subsat = min((qx0(iqqv)-facl*sqmix)/corqsliq,d_zero)
+          subsat = min((qx0(iqqv)-facl*sqmix)*corqsmix,d_zero) 
 
           if ( supsat > dlowval ) then
             if ( ltkgthomo ) then
@@ -953,7 +959,7 @@ module mod_micro_nogtom
 #endif
             end if
           else
-            if ( subsat < d_zero .and. lnocloud .and. lliq ) then
+            if ( subsat < d_zero .and. lliq ) then 
               ! turn subsaturation into vapor, where there is no cloud
               excess = qlifg + subsat
               if ( excess < d_zero ) then
@@ -972,6 +978,7 @@ module mod_micro_nogtom
               end if
             end if
           end if
+  
           !
           ! call addpath(iqql,iqqv,supsatl,qsexp,qsimp,d_zero,qxfg)
           ! call addpath(iqqi,iqqv,supsati,qsexp,qsimp,d_zero,qxfg)
@@ -993,7 +1000,6 @@ module mod_micro_nogtom
           ! put external source terms in the diagonal entries
           !--------------------------------------------------------
 
-
           !------------------------------------------------------------------
           ! convective detrainment
           !------------------------------------------------------------------
@@ -1013,6 +1019,27 @@ module mod_micro_nogtom
             end if
 #endif
           end if
+
+          !------------------------------------------------
+          ! UPDATE CLOUD COVER TO ALLOW MICROPHYSICS
+          ! TO WORK ON SATURATION ADJUSMENT LIQUID
+          ! update the diagnostic cloud cover and logicals
+          !------------------------------------------------
+
+          ccover=d_one-SQRT(MAX(d_zero,d_one-qx0(iqqv)/sqmix)/0.4)
+          ccover=MIN(MAX(ccover,lowcld),hicld)
+
+          lcloud    = ( ccover >= zerocf )
+          lnocloud  = ( .not. lcloud )
+          locast    = ( ccover >= onecf )
+          !--------------------------------
+          ! in-cloud consensate amount
+          !--------------------------------
+          tmpa = d_one/max(ccover,lowcld)
+          ql_incld = qxfg(iqql)*tmpa
+          qi_incld = qxfg(iqqi)*tmpa
+          qli_incld  = ql_incld + qi_incld
+
 
           !------------------------------------------------------------------
           ! Turn on/off microphysics
@@ -1192,12 +1219,6 @@ module mod_micro_nogtom
             else
               do n = 1 , nqx
                 if ( lfall(n) ) then
-                  ! Source from layer above
-                  fallsrce(j,i,n) = pfplsx(n,j,i,k)*dtgdp
-                  qsexp(n,n) = qsexp(n,n) + fallsrce(j,i,n)
-                  qxfg(n) = qxfg(n) + fallsrce(j,i,n)
-                  qpretot = qpretot + qxfg(n)
-
                   ! Sink to next layer, constant fall speed
                   ! *AMT* now included in first guess.
                   sink = dtgdp * vqx(n) * dens
@@ -1740,7 +1761,7 @@ module mod_micro_nogtom
           end do
 
           call mysolve
-
+         
           !-------------------------------------------------------------------
           !  Precipitation/sedimentation fluxes to next level
           !  diagnostic precipitation fluxes
