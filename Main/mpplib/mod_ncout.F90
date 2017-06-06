@@ -2971,13 +2971,29 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_activate_convective_transport',ichcumtra))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('chem_activate_wet_removal',ichremlsc))
+            ncattribute_integer('chem_activate_wet_rainout',ichremlsc))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_wet_washout',ichremcvc))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_dust_emission_scheme',ichdustemd))
           call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('chem_enable_aerosol_radiation_feedback',idirect))
+            ncattribute_integer('chem_enable_aerosol_radiation_feedback',idirect))
           call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('chem_enable_sulfate_indirect_effect',iindirect))
+            ncattribute_integer('chem_enable_sulfate_indirect_effect',iindirect))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('chem_dust_em_tuning_fac',rdstemfac))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('chem_organic_carbon_em_tuning_fac',rocemfac))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_linox',ichlinox))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_bionem',ichbion))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_diag',ichdiag))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_activate_smoke_tracers',ismoke))
+          
+
         end if
         if ( iocncpl == 1 .or. iwavcpl == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
