@@ -51,6 +51,10 @@ module mod_mppparam
 #ifdef MPI_SERIAL
   integer(ik4) mpi_status_ignore(mpi_status_size)
   integer(ik4) , parameter :: mpi_proc_null = -2
+  interface mpi_sendrecv
+    module procedure mpi_sendrecvr8
+    module procedure mpi_sendrecvr4
+  end interface mpi_sendrecv
 #endif
 
   public :: set_nproc , broadcast_params
@@ -170,8 +174,11 @@ module mod_mppparam
                      real8_4d_collect ,    &
                      real8_4d_2d_collect , &
                      real4_2d_collect ,    &
+                     real4_2d_3d_collect , &
                      real4_3d_collect ,    &
+                     real4_3d_2d_collect , &
                      real4_4d_collect ,    &
+                     real4_4d_2d_collect , &
                      integer_2d_collect ,  &
                      integer_3d_collect ,  &
                      integer_4d_collect ,  &
@@ -470,6 +477,9 @@ module mod_mppparam
   logical , pointer , dimension(:) :: lvector1
   logical , pointer , dimension(:) :: lvector2
   integer(ik4) , dimension(4) :: window
+  integer(ik4) , pointer , dimension(:) :: windows
+  integer(ik4) , pointer , dimension(:) :: wincount
+  integer(ik4) , pointer , dimension(:) :: windispl
   integer(ik4) :: mpierr
   real(rk8) , pointer , dimension(:,:,:) :: r8subgrid
   real(rk4) , pointer , dimension(:,:,:) :: r4subgrid
@@ -492,7 +502,6 @@ module mod_mppparam
   integer(ik4) , parameter :: tag_tlbr = 6   ! FROM topleft TO bottomright
   integer(ik4) , parameter :: tag_bltr = 7   ! FROM bottomleft TO topright
   integer(ik4) , parameter :: tag_trbl = 8   ! FROM topright TO bottomleft
-  integer(ik4) , parameter :: tag_w = 100    ! The global indexes from the cpu
   integer(ik4) , parameter :: tag_base = 200 ! The data to/from the cpu to iocpu
 !
   public :: exchange , exchange_lb , exchange_rt
@@ -514,16 +523,28 @@ module mod_mppparam
   contains
 
 #ifdef MPI_SERIAL
-  subroutine mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, &
-                          recvbuf, recvcount, recvtype, source, recvtag, &
-                          comm, status, ierror)
+
+  subroutine mpi_sendrecvr4(sendbuf, sendcount, sendtype, dest, sendtag, &
+                            recvbuf, recvcount, recvtype, source, recvtag, &
+                            comm, status, ierror)
+    implicit none
+    real(rk4) , dimension(:) :: sendbuf , recvbuf
+    integer(ik4) :: sendcount , sendtype , dest , sendtag
+    integer(ik4) :: recvcount , recvtype , source , recvtag , comm
+    integer(ik4) :: status(mpi_status_size)
+    integer(ik4) :: ierror
+  end subroutine mpi_sendrecvr4
+
+  subroutine mpi_sendrecvr8(sendbuf, sendcount, sendtype, dest, sendtag, &
+                            recvbuf, recvcount, recvtype, source, recvtag, &
+                            comm, status, ierror)
     implicit none
     real(rk8) , dimension(:) :: sendbuf , recvbuf
     integer(ik4) :: sendcount , sendtype , dest , sendtag
     integer(ik4) :: recvcount , recvtype , source , recvtag , comm
     integer(ik4) :: status(mpi_status_size)
     integer(ik4) :: ierror
-  end subroutine mpi_sendrecv
+  end subroutine mpi_sendrecvr8
 
   subroutine mpi_cart_create(comm_old,ndims,dims,periods,reorder, &
                              comm_cart,ierror)
@@ -1279,6 +1300,11 @@ module mod_mppparam
     end if
     ! Allocate to something should fit all
     if ( nproc > 1 ) then
+      if ( myid == ccio ) then
+        call getmem1d(windows,1,nproc*4,'set_nproc:windows')
+      end if
+      call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
+      call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
       call getmem1d(r8vector1,1,nsg*jx*iy*kz,'set_nproc:r8vector1')
       call getmem1d(r8vector2,1,nsg*jx*iy*kz,'set_nproc:r8vector2')
       call getmem1d(r4vector1,1,nsg*jx*iy*kz,'set_nproc:r4vector1')
@@ -1401,69 +1427,78 @@ module mod_mppparam
       sixteenth_dayspy = dayspy/16.0_rkx
     end if
   end subroutine broadcast_params
-!
+
+  subroutine get_windows
+    implicit none
+    call mpi_gather(window,4,mpi_integer4, &
+                    windows,4,mpi_integer4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gather error.')
+    end if
+  end subroutine get_windows
+
   subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , rsize , icpu
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           ml(j,i) = mg(j,i)
         end do
       end do
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             r8vector1(ib) = mg(j,i)
             ib = ib + 1
           end do
         end do
-        call send_array(r8vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r8vector2,lsize,ccio,tag_base)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i) = r8vector2(ib)
-          ib = ib + 1
-        end do
       end do
     end if
+    call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
+                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        ml(j,i) = r8vector2(ib)
+        ib = ib + 1
+      end do
+    end do
   end subroutine real8_2d_distribute
-!
+
   subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
@@ -1472,18 +1507,28 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -1492,43 +1537,32 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r8vector2,lsize,ccio,tag_base)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
       end do
     end if
+    call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
+                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i,k) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
   end subroutine real8_3d_distribute
-!
+
   subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+                    ksize , lsize , rsize , icpu
+    if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -1538,20 +1572,29 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        ksize = k2-k1+1
-        nsize = n2-n1+1
-        lsize = isize*jsize*ksize*nsize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_4d_distribute')
-        end if
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    do n = n1 , n2
+      if ( ccid == ccio ) then
         ib = 1
-        do n = n1 , n2
+        do icpu = 0 , nproc-1
+          window = windows(icpu*4+1:icpu*4+4)
+          isize = window(2)-window(1)+1
+          jsize = window(4)-window(3)+1
+          ksize = k2-k1+1
+          lsize = isize*jsize*ksize
+          wincount(icpu+1) = lsize
+          windispl(icpu+1) = sum(wincount(1:icpu))
           do k = k1 , k2
             do i = window(1) , window(2)
               do j = window(3) , window(4)
@@ -1561,100 +1604,86 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      nsize = n2-n1+1
-      lsize = isize*jsize*ksize*nsize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_4d_distribute')
       end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r8vector2,lsize,ccio,tag_base)
+      call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
+                        r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              ml(j,i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k,n) = r8vector2(ib)
+            ib = ib + 1
           end do
         end do
       end do
-    end if
+    end do
   end subroutine real8_4d_distribute
-!
+
   subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , rsize , icpu
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           ml(j,i) = mg(j,i)
         end do
       end do
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             r4vector1(ib) = mg(j,i)
             ib = ib + 1
           end do
         end do
-        call send_array(r4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r4vector2,lsize,ccio,tag_base)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i) = r4vector2(ib)
-          ib = ib + 1
-        end do
       end do
     end if
+    call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
+                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        ml(j,i) = r4vector2(ib)
+        ib = ib + 1
+      end do
+    end do
   end subroutine real4_2d_distribute
-!
+
   subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -1662,18 +1691,28 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -1682,43 +1721,32 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r4vector2,lsize,ccio,tag_base)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
       end do
     end if
+    call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
+                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i,k) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
   end subroutine real4_3d_distribute
-!
+
   subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , &
-                    jsize , ksize , nsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+                    jsize , ksize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -1728,20 +1756,29 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        ksize = k2-k1+1
-        nsize = n2-n1+1
-        lsize = isize*jsize*ksize*nsize
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_4d_distribute')
-        end if
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    do n = n1 , n2
+      if ( ccid == ccio ) then
         ib = 1
-        do n = n1 , n2
+        do icpu = 0 , nproc-1
+          window = windows(icpu*4+1:icpu*4+4)
+          isize = window(2)-window(1)+1
+          jsize = window(4)-window(3)+1
+          ksize = k2-k1+1
+          lsize = isize*jsize*ksize
+          wincount(icpu+1) = lsize
+          windispl(icpu+1) = sum(wincount(1:icpu))
           do k = k1 , k2
             do i = window(1) , window(2)
               do j = window(3) , window(4)
@@ -1751,100 +1788,88 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      nsize = n2-n1+1
-      lsize = isize*jsize*ksize*nsize
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_4d_distribute')
       end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r4vector2,lsize,ccio,tag_base)
+      call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
+                        r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              ml(j,i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k,n) = r4vector2(ib)
+            ib = ib + 1
           end do
         end do
       end do
-    end if
+    end do
   end subroutine real4_4d_distribute
-!
+
   subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           ml(j,i) = mg(j,i)
         end do
       end do
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ! Copy in memory my piece.
       ! Send to other nodes the piece they request.
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             i4vector1(ib) = mg(j,i)
             ib = ib + 1
           end do
         end do
-        call send_array(i4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(i4vector2,lsize,ccio,tag_base)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i) = i4vector2(ib)
-          ib = ib + 1
-        end do
       end do
     end if
+    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
+                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        ml(j,i) = i4vector2(ib)
+        ib = ib + 1
+      end do
+    end do
   end subroutine integer_2d_distribute
-!
+
   subroutine integer_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml !model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -1852,18 +1877,28 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -1872,43 +1907,32 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(i4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(i4vector2,lsize,ccio,tag_base)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k) = i4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
       end do
     end if
+    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
+                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i,k) = i4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+    end do
   end subroutine integer_3d_distribute
-!
+
   subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model loc
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml !model loc
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+                    ksize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -1918,20 +1942,29 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        ksize = k2-k1+1
-        nsize = n2-n1+1
-        lsize = isize*jsize*ksize*nsize
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_4d_distribute')
-        end if
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    do n = n1 , n2
+      if ( ccid == ccio ) then
         ib = 1
-        do n = n1 , n2
+        do icpu = 0 , nproc-1
+          window = windows(icpu*4+1:icpu*4+4)
+          isize = window(2)-window(1)+1
+          jsize = window(4)-window(3)+1
+          ksize = k2-k1+1
+          lsize = isize*jsize*ksize
+          wincount(icpu+1) = lsize
+          windispl(icpu+1) = sum(wincount(1:icpu))
           do k = k1 , k2
             do i = window(1) , window(2)
               do j = window(3) , window(4)
@@ -1941,46 +1974,32 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(i4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      nsize = n2-n1+1
-      lsize = isize*jsize*ksize*nsize
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_4d_distribute')
       end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(i4vector2,lsize,ccio,tag_base)
+      call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
+                        i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              ml(j,i,k,n) = i4vector2(ib)
-              ib = ib + 1
-            end do
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            ml(j,i,k,n) = i4vector2(ib)
+            ib = ib + 1
           end do
         end do
       end do
-    end if
+    end do
   end subroutine integer_4d_distribute
-!
+
   subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
           do j = j1 , j2
@@ -1998,17 +2017,26 @@ module mod_mppparam
           end do
         end do
       end if
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize*nnsg
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -2017,53 +2045,43 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,lsize,icpu,tag_base)
+      end do
+    end if
+    call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
+                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            if ( mask(n,j,i) ) ml(n,j,i) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
       end do
     else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r8vector2,lsize,ccio,tag_base)
-      ib = 1
-      if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = r8vector2(ib)
-              ib = ib + 1
-            end do
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = r8vector2(ib)
+            ib = ib + 1
           end do
         end do
-      else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
+      end do
     end if
   end subroutine real8_2d_sub_distribute
-!
+
   subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
           do j = j1 , j2
@@ -2081,17 +2099,26 @@ module mod_mppparam
           end do
         end do
       end if
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize*nnsg
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -2100,44 +2127,35 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,lsize,icpu,tag_base)
+      end do
+    end if
+    call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
+                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            if ( mask(n,j,i) ) ml(n,j,i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
       end do
     else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r4vector2,lsize,ccio,tag_base)
-      ib = 1
-      if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = r4vector2(ib)
-              ib = ib + 1
-            end do
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = r4vector2(ib)
+            ib = ib + 1
           end do
         end do
-      else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
+      end do
     end if
   end subroutine real4_2d_sub_distribute
-!
+
   subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
@@ -2145,366 +2163,8 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = &
-                        mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      end if
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        ksize = k2-k1+1
-        lsize = isize*jsize*ksize*nnsg
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_distribute')
-        end if
-        ib = 1
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                r8vector1(ib) = mg(n,j,i,k)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call send_array(r8vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize*nnsg
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r8vector2,lsize,ccio,tag_base)
-      ib = 1
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if ( mask(n,j,i) ) ml(n,j,i,k) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-  end subroutine real8_3d_sub_distribute
-!
-  subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = &
-                        mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      end if
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        ksize = k2-k1+1
-        lsize = isize*jsize*ksize*nnsg
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_distribute')
-        end if
-        ib = 1
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                r4vector1(ib) = mg(n,j,i,k)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call send_array(r4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize*nnsg
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(r4vector2,lsize,ccio,tag_base)
-      ib = 1
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if ( mask(n,j,i) ) ml(n,j,i,k) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-  end subroutine real4_3d_sub_distribute
-!
-  subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
-    implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
-      if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
-        end do
-      else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
-        end do
-      end if
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        if ( size(lvector1) < lsize ) then
-          call getmem1d(lvector1,1,lsize,'logical_2d_sub_distribute')
-        end if
-        ib = 1
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
-              lvector1(ib) = mg(n,j,i)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call send_array(lvector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(lvector2) < lsize ) then
-        call getmem1d(lvector2,1,lsize,'logical_2d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(lvector2,lsize,ccio,tag_base)
-      ib = 1
-      if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i) = lvector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = lvector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-  end subroutine logical_2d_sub_distribute
-!
-  subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
-    implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
-      if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-            if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
-        end do
-      else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
-        end do
-      end if
-      ! Send to other nodes the piece they request.
-      do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_distribute')
-        end if
-        ib = 1
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
-              i4vector1(ib) = mg(n,j,i)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call send_array(i4vector1,lsize,icpu,tag_base)
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(i4vector2,lsize,ccio,tag_base)
-      ib = 1
-      if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-            if ( mask(n,j,i) ) ml(n,j,i) = i4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = i4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-  end subroutine integer_2d_sub_distribute
-!
-  subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
-    implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model loc
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       if ( present(mask) ) then
         do k = k1 , k2
           do i = i1 , i2
@@ -2526,18 +2186,381 @@ module mod_mppparam
           end do
         end do
       end if
-      ! Send to other nodes the piece they request.
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize*nnsg
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_distribute')
-        end if
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+        do k = k1 , k2
+          do i = window(1) , window(2)
+            do j = window(3) , window(4)
+              do n = 1 , nnsg
+                r8vector1(ib) = mg(n,j,i,k)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
+                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real8_3d_sub_distribute
+
+  subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
+              end do
+            end do
+          end do
+        end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = mg(n,j,i,k)
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize*nnsg
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+        do k = k1 , k2
+          do i = window(1) , window(2)
+            do j = window(3) , window(4)
+              do n = 1 , nnsg
+                r4vector1(ib) = mg(n,j,i,k)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
+                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_3d_sub_distribute
+
+  subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      end if
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            do n = 1 , nnsg
+              lvector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatterv(lvector1,wincount,windispl,mpi_logical, &
+                      lvector2,rsize,mpi_logical,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            if ( mask(n,j,i) ) ml(n,j,i) = lvector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = lvector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine logical_2d_sub_distribute
+
+  subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model locl
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+            if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      end if
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            do n = 1 , nnsg
+              i4vector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
+                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+          if ( mask(n,j,i) ) ml(n,j,i) = i4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = i4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine integer_2d_sub_distribute
+
+  subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! modl loc
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
+              end do
+            end do
+          end do
+        end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = mg(n,j,i,k)
+              end do
+            end do
+          end do
+        end do
+      end if
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize*nnsg
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -2548,77 +2571,92 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(i4vector1,lsize,icpu,tag_base)
+      end do
+    end if
+    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
+                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i,k) = i4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
       end do
     else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize*nnsg
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_distribute')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      call recv_array(i4vector2,lsize,ccio,tag_base)
-      ib = 1
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if ( mask(n,j,i) ) ml(n,j,i,k) = i4vector2(ib)
-                ib = ib + 1
-              end do
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i,k) = i4vector2(ib)
+              ib = ib + 1
             end do
           end do
         end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = i4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
+      end do
     end if
   end subroutine integer_3d_sub_distribute
-!
+
   subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) , intent(in) , optional :: k
-    integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      kk = 1
-      if ( present(k) ) kk = k
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu , rsize
+    kk = 1
+    if ( present(k) ) kk = k
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           mg(j,i,kk) = ml(j,i)
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_3d_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r8vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                     r8vector1,wincount,windispl,mpi_real8, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             mg(j,i,kk) = r8vector1(ib)
@@ -2626,54 +2664,59 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_3d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          r8vector2(ib) = ml(j,i)
-          ib = ib + 1
-         end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
     end if
   end subroutine real8_2d_3d_collect
-!
+
   subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           mg(j,i) = ml(j,i)
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r8vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                     r8vector1,wincount,windispl,mpi_real8, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             mg(j,i) = r8vector1(ib)
@@ -2681,37 +2724,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          r8vector2(ib) = ml(j,i)
-          ib = ib + 1
-        end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
     end if
   end subroutine real8_2d_collect
-!
+
   subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -2719,19 +2742,48 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          r8vector2(ib) = ml(j,i,k)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                     r8vector1,wincount,windispl,mpi_real8, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -2741,57 +2793,59 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            r8vector2(ib) = ml(j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
     end if
   end subroutine real8_3d_collect
-!
+
   subroutine real8_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           mg(j,i) = ml(j,i,k)
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r8vector2(ib) = ml(j,i,k)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                     r8vector1,wincount,windispl,mpi_real8, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             mg(j,i) = r8vector1(ib)
@@ -2799,38 +2853,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          r8vector2(ib) = ml(j,i,k)
-          ib = ib + 1
-        end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
     end if
   end subroutine real8_3d_2d_collect
-!
+
   subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+                    ksize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -2840,21 +2873,49 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        nsize = n2-n1+1
-        lsize = isize*jsize*ksize*nsize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
+        lsize = isize*jsize*ksize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    do n = n1 , n2
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            r8vector2(ib) = ml(j,i,k,n)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                       r8vector1,wincount,windispl,mpi_real8, &
+                       ccio,mycomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      if ( ccid == ccio ) then
         ib = 1
-        do n = n1 , n2
+        do icpu = 0 , nproc-1
+          window = windows(icpu*4+1:icpu*4+4)
           do k = k1 , k2
             do i = window(1) , window(2)
               do j = window(3) , window(4)
@@ -2864,61 +2925,60 @@ module mod_mppparam
             end do
           end do
         end do
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      nsize = n2-n1+1
-      lsize = isize*jsize*ksize*nsize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
       end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              r8vector2(ib) = ml(j,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
-    end if
+    end do
   end subroutine real8_4d_collect
-!
+
   subroutine real8_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg     ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           mg(j,i) = ml(j,i,k,n)
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_4d_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r8vector2(ib) = ml(j,i,k,n)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                     r8vector1,wincount,windispl,mpi_real8, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             mg(j,i) = r8vector1(ib)
@@ -2926,54 +2986,122 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_4d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          r8vector2(ib) = ml(j,i,k,n)
-          ib = ib + 1
-        end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
     end if
   end subroutine real8_4d_2d_collect
-!
+
+  subroutine real4_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) , intent(in) , optional :: k
+    integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu , rsize
+    kk = 1
+    if ( present(k) ) kk = k
+    if ( nproc == 1 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(j,i,kk) = ml(j,i)
+        end do
+      end do
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r4vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                     r4vector1,wincount,windispl,mpi_real4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i,kk) = r4vector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine real4_2d_3d_collect
+
   subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           mg(j,i) = ml(j,i)
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_collect')
-        end if
-        call recv_array(r4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r4vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                     r4vector1,wincount,windispl,mpi_real4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             mg(j,i) = r4vector1(ib)
@@ -2981,37 +3109,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          r4vector2(ib) = ml(j,i)
-          ib = ib + 1
-        end do
-      end do
-      call send_array(r4vector2,lsize,ccio,tag_base)
     end if
   end subroutine real4_2d_collect
-!
+
   subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -3019,19 +3127,48 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_collect')
-        end if
-        call recv_array(r4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          r4vector2(ib) = ml(j,i,k)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                     r4vector1,wincount,windispl,mpi_real4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -3041,41 +3178,77 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
+    end if
+  end subroutine real4_3d_collect
+
+  subroutine real4_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(j,i) = ml(j,i,k)
+        end do
+      end do
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r4vector2(ib) = ml(j,i,k)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                     r4vector1,wincount,windispl,mpi_real4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            r4vector2(ib) = ml(j,i,k)
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i) = r4vector1(ib)
             ib = ib + 1
           end do
         end do
       end do
-      call send_array(r4vector2,lsize,ccio,tag_base)
     end if
-  end subroutine real4_3d_collect
-!
+  end subroutine real4_3d_2d_collect
+
   subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+                    ksize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -3085,21 +3258,49 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        nsize = n2-n1+1
-        lsize = isize*jsize*ksize*nsize
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_4d_collect')
-        end if
-        call recv_array(r4vector1,lsize,icpu,tag_base)
+        lsize = isize*jsize*ksize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    do n = n1 , n2
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            r4vector2(ib) = ml(j,i,k,n)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                       r4vector1,wincount,windispl,mpi_real4, &
+                       ccio,mycomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      if ( ccid == ccio ) then
         ib = 1
-        do n = n1 , n2
+        do icpu = 0 , nproc-1
+          window = windows(icpu*4+1:icpu*4+4)
           do k = k1 , k2
             do i = window(1) , window(2)
               do j = window(3) , window(4)
@@ -3109,61 +3310,120 @@ module mod_mppparam
             end do
           end do
         end do
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      nsize = n2-n1+1
-      lsize = isize*jsize*ksize*nsize
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_4d_collect')
       end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
+    end do
+  end subroutine real4_4d_collect
+
+  subroutine real4_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(j,i) = ml(j,i,k,n)
+        end do
+      end do
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        r4vector2(ib) = ml(j,i,k,n)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                     r4vector1,wincount,windispl,mpi_real4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
       ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              r4vector2(ib) = ml(j,i,k,n)
-              ib = ib + 1
-            end do
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i) = r4vector1(ib)
+            ib = ib + 1
           end do
         end do
       end do
-      call send_array(r4vector2,lsize,ccio,tag_base)
     end if
-  end subroutine real4_4d_collect
-!
+  end subroutine real4_4d_2d_collect
+
   subroutine logical_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           mg(j,i) = ml(j,i)
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(lvector1) < lsize ) then
-          call getmem1d(lvector1,1,lsize,'logical_2d_collect')
-        end if
-        call recv_array(lvector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        lvector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(lvector2,rsize,mpi_logical, &
+                     lvector1,wincount,windispl,mpi_logical, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             mg(j,i) = lvector1(ib)
@@ -3171,54 +3431,59 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(lvector2) < lsize ) then
-        call getmem1d(lvector2,1,lsize,'logical_2d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          lvector2(ib) = ml(j,i)
-          ib = ib + 1
-        end do
-      end do
-      call send_array(lvector2,lsize,ccio,tag_base)
     end if
   end subroutine logical_2d_collect
-!
+
   subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           mg(j,i) = ml(j,i)
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_collect')
-        end if
-        call recv_array(i4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        i4vector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
+                     i4vector1,wincount,windispl,mpi_integer4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             mg(j,i) = i4vector1(ib)
@@ -3226,37 +3491,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          i4vector2(ib) = ml(j,i)
-          ib = ib + 1
-        end do
-      end do
-      call send_array(i4vector2,lsize,ccio,tag_base)
     end if
   end subroutine integer_2d_collect
-!
+
   subroutine integer_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glbl
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -3264,19 +3509,48 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_collect')
-        end if
-        call recv_array(i4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          i4vector2(ib) = ml(j,i,k)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
+                     i4vector1,wincount,windispl,mpi_integer4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -3286,41 +3560,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            i4vector2(ib) = ml(j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(i4vector2,lsize,ccio,tag_base)
     end if
   end subroutine integer_3d_collect
-!
+
   subroutine integer_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model loc
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+                    ksize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
           do i = i1 , i2
@@ -3330,21 +3580,49 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
-        nsize = n2-n1+1
-        lsize = isize*jsize*ksize*nsize
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_4d_collect')
-        end if
-        call recv_array(i4vector1,lsize,icpu,tag_base)
+        lsize = isize*jsize*ksize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    do n = n1 , n2
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            i4vector2(ib) = ml(j,i,k,n)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
+                       i4vector1,wincount,windispl,mpi_integer4, &
+                       ccio,mycomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      if ( ccid == ccio ) then
         ib = 1
-        do n = n1 , n2
+        do icpu = 0 , nproc-1
+          window = windows(icpu*4+1:icpu*4+4)
           do k = k1 , k2
             do i = window(1) , window(2)
               do j = window(3) , window(4)
@@ -3354,44 +3632,17 @@ module mod_mppparam
             end do
           end do
         end do
-      end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      nsize = n2-n1+1
-      lsize = isize*jsize*ksize*nsize
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_4d_collect')
       end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              i4vector2(ib) = ml(j,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(i4vector2,lsize,ccio,tag_base)
-    end if
+    end do
   end subroutine integer_4d_collect
-!
+
   subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
@@ -3399,18 +3650,46 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize*nnsg
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_2d_sub_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        do n = 1 , nnsg
+          r8vector2(ib) = ml(n,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                     r8vector1,wincount,windispl,mpi_real8, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -3420,39 +3699,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_2d_sub_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            r8vector2(ib) = ml(n,j,i)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
     end if
   end subroutine real8_2d_sub_collect
-!
+
   subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -3462,19 +3719,50 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize*nnsg
-        if ( size(r8vector1) < lsize ) then
-          call getmem1d(r8vector1,1,lsize,'real8_3d_sub_collect')
-        end if
-        call recv_array(r8vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            r8vector2(ib) = ml(n,j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+                     r8vector1,wincount,windispl,mpi_real8, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -3486,42 +3774,16 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize*nnsg
-      if ( size(r8vector2) < lsize ) then
-        call getmem1d(r8vector2,1,lsize,'real8_3d_sub_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              r8vector2(ib) = ml(n,j,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r8vector2,lsize,ccio,tag_base)
     end if
   end subroutine real8_3d_sub_collect
-!
+
   subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
@@ -3529,18 +3791,46 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize*nnsg
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_2d_sub_collect')
-        end if
-        call recv_array(r4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        do n = 1 , nnsg
+          r4vector2(ib) = ml(n,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                     r4vector1,wincount,windispl,mpi_real4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -3550,39 +3840,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_2d_sub_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            r4vector2(ib) = ml(n,j,i)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r4vector2,lsize,ccio,tag_base)
     end if
   end subroutine real4_2d_sub_collect
-!
+
   subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -3592,19 +3860,50 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize*nnsg
-        if ( size(r4vector1) < lsize ) then
-          call getmem1d(r4vector1,1,lsize,'real4_3d_sub_collect')
-        end if
-        call recv_array(r4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            r4vector2(ib) = ml(n,j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+                     r4vector1,wincount,windispl,mpi_real4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -3616,42 +3915,16 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize*nnsg
-      if ( size(r4vector2) < lsize ) then
-        call getmem1d(r4vector2,1,lsize,'real4_3d_sub_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              r4vector2(ib) = ml(n,j,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r4vector2,lsize,ccio,tag_base)
     end if
   end subroutine real4_3d_sub_collect
-!
+
   subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
@@ -3659,18 +3932,46 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize*nnsg
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_2d_sub_collect')
-        end if
-        call recv_array(i4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        do n = 1 , nnsg
+          i4vector2(ib) = ml(n,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
+                     i4vector1,wincount,windispl,mpi_integer4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -3680,39 +3981,17 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_2d_sub_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            i4vector2(ib) = ml(n,j,i)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(i4vector2,lsize,ccio,tag_base)
     end if
   end subroutine integer_2d_sub_collect
-!
+
   subroutine integer_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model loc
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -3722,19 +4001,50 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         ksize = k2-k1+1
         lsize = isize*jsize*ksize*nnsg
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(i4vector1,1,lsize,'integer_3d_sub_collect')
-        end if
-        call recv_array(i4vector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do k = k1 , k2
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            i4vector2(ib) = ml(n,j,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end do
+    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
+                     i4vector1,wincount,windispl,mpi_integer4, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do k = k1 , k2
           do i = window(1) , window(2)
             do j = window(3) , window(4)
@@ -3746,42 +4056,16 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      ksize = k2-k1+1
-      lsize = isize*jsize*ksize*nnsg
-      if ( size(i4vector2) < lsize ) then
-        call getmem1d(i4vector2,1,lsize,'integer_3d_sub_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              i4vector2(ib) = ml(n,j,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(i4vector2,lsize,ccio,tag_base)
     end if
   end subroutine integer_3d_sub_collect
-!
+
   subroutine logical_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
-    logical(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    logical(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    logical , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
-    if ( ccid == ccio ) then
-      ! Copy in memory my piece.
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
@@ -3789,18 +4073,46 @@ module mod_mppparam
           end do
         end do
       end do
-      ! Receive from other nodes the piece they have
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    lsize = isize*jsize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
-        if ( icpu == ccio ) cycle
-        call recv_array(window,4,icpu,tag_w)
+        window = windows(icpu*4+1:icpu*4+4)
         isize = window(2)-window(1)+1
         jsize = window(4)-window(3)+1
         lsize = isize*jsize*nnsg
-        if ( size(i4vector1) < lsize ) then
-          call getmem1d(lvector1,1,lsize,'logical_2d_sub_collect')
-        end if
-        call recv_array(lvector1,lsize,icpu,tag_base)
-        ib = 1
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        do n = 1 , nnsg
+          lvector2(ib) = ml(n,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    call mpi_gatherv(lvector2,rsize,mpi_logical, &
+                     lvector1,wincount,windispl,mpi_logical, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -3810,31 +4122,84 @@ module mod_mppparam
           end do
         end do
       end do
-    else
-      isize = i2-i1+1
-      jsize = j2-j1+1
-      lsize = isize*jsize*nnsg
-      if ( size(lvector2) < lsize ) then
-        call getmem1d(lvector2,1,lsize,'logical_2d_sub_collect')
-      end if
-      window(1) = i1
-      window(2) = window(1)+isize-1
-      window(3) = j1
-      window(4) = window(3)+jsize-1
-      call send_array(window,4,ccio,tag_w)
-      ib = 1
+    end if
+  end subroutine logical_2d_sub_collect
+
+  subroutine logical_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    logical , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
+    logical , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
+    integer(ik4) :: rsize
+    if ( nproc == 1 ) then
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              mg(n,j,i,k) = ml(n,j,i,k)
+            end do
+          end do
+        end do
+      end do
+      return
+    end if
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    lsize = isize*jsize*ksize*nnsg
+    rsize = lsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
+    call get_windows
+    if ( ccid == ccio ) then
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        ksize = k2-k1+1
+        lsize = isize*jsize*ksize*nnsg
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do k = k1 , k2
       do i = i1 , i2
         do j = j1 , j2
           do n = 1 , nnsg
-            lvector2(ib) = ml(n,j,i)
+            lvector2(ib) = ml(n,j,i,k)
             ib = ib + 1
           end do
         end do
       end do
-      call send_array(lvector2,lsize,ccio,tag_base)
+    end do
+    call mpi_gatherv(lvector2,rsize,mpi_logical, &
+                     lvector1,wincount,windispl,mpi_logical, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-  end subroutine logical_2d_sub_collect
-!
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        do k = k1 , k2
+          do i = window(1) , window(2)
+            do j = window(3) , window(4)
+              do n = 1 , nnsg
+                mg(n,j,i,k) = lvector1(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine logical_3d_sub_collect
+
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
