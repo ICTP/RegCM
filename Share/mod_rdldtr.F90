@@ -875,12 +875,12 @@ module mod_rdldtr
     end if
   end subroutine gfopen
 
-  subroutine gfread_2di(gfile,vname,var,idef)
+  subroutine gfread_2di(gfile,vname,var,idef,imin,imax)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: idef
+    integer(ik4) , intent(in) :: idef , imin , imax
     integer(ik4) , dimension(:,:) , intent(out) :: var
     integer(ik4) , dimension(:,:) , allocatable :: vread
     integer(ik4) :: nlat , nlon , itile , ivar , iti , itf , j , i
@@ -916,16 +916,16 @@ module mod_rdldtr
         end do
       end do
     end if
-    call h_interpolate_class(gfile%hint,vread,var)
+    call h_interpolate_class(gfile%hint,vread,var,imin,imax)
     deallocate(vread)
   end subroutine gfread_2di
 
-  subroutine gfread_2d_landuse(gfile,vname,var,iw,h2opct,rdef)
+  subroutine gfread_2d_landuse(gfile,vname,var,iw,imin,imax,h2opct,rdef)
     use netcdf
     implicit none
     type(globalfile) , intent(in) :: gfile
     character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: iw
+    integer(ik4) , intent(in) :: iw , imin , imax
     real(rkx) , intent(in) :: h2opct , rdef
     real(rkx) , dimension(:,:) , intent(out) :: var
     integer(ik4) , dimension(:,:) , allocatable :: vread
@@ -951,7 +951,7 @@ module mod_rdldtr
       call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
       iti = itf + 1
     end do
-    call h_interpolate_class(gfile%hint,vread,var,iw,h2opct)
+    call h_interpolate_class(gfile%hint,vread,var,iw,imin,imax,h2opct)
     deallocate(vread)
   end subroutine gfread_2d_landuse
 

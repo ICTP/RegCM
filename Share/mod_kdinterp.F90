@@ -637,12 +637,13 @@ module mod_kdinterp
     deallocate(gvals)
   end subroutine interp_class_r
 
-  subroutine interp_class_i(h_i,g,f)
+  subroutine interp_class_i(h_i,g,f,n1,n2)
     implicit none
     type(h_interpolator) , intent(in) :: h_i
     integer(ik4) , dimension(:,:) , intent(in) :: g
     integer(ik4) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
+    integer(ik4) , intent(in) :: n1 , n2
+    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc
     integer(ik4) , dimension(1) :: v
     real(rkx) , dimension(:) , allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
@@ -653,8 +654,6 @@ module mod_kdinterp
       write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
       call die('interp_class','Non conforming shape for target',1)
     end if
-    n1 = minval(g)
-    n2 = maxval(g)
     nc = n2 - n1 + 1
     if ( nc <= 0 ) then
       write(stderr,*) 'INCONSISTENCY IN CLASS NUMBER = ',nc
@@ -679,14 +678,14 @@ module mod_kdinterp
     deallocate(gvals)
   end subroutine interp_class_i
 
-  subroutine interp_class_ld(h_i,g,f,iw,pct)
+  subroutine interp_class_ld(h_i,g,f,iw,n1,n2,pct)
     implicit none
     type(h_interpolator) , intent(in) :: h_i
     integer(ik4) , dimension(:,:) , intent(in) :: g
-    integer(ik4) , intent(in) :: iw
+    integer(ik4) , intent(in) :: iw , n1 , n2
     real(rkx) , dimension(:,:) , intent(out) :: f
     real(rkx) , intent(in) :: pct
-    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
+    integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc
     real(rkx) :: wgt
     integer(ik4) , dimension(1) :: v
     integer(ik4) , dimension(:) , allocatable :: gvals
@@ -698,8 +697,6 @@ module mod_kdinterp
       write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
       call die('interp_class','Non conforming shape for target',1)
     end if
-    n1 = minval(g)
-    n2 = maxval(g)
     nc = n2 - n1 + 1
     if ( nc <= 0 ) then
       write(stderr,*) 'INCONSISTENCY IN CLASS NUMBER = ',nc
