@@ -1298,21 +1298,21 @@ module mod_mppparam
       write(stdout,*) 'CPUS DIM2 = ', cpus_per_dim(2)
       write(stdout,*)
     end if
-    ! Allocate to something should fit all
     if ( nproc > 1 ) then
       if ( myid == ccio ) then
         call getmem1d(windows,1,nproc*4,'set_nproc:windows')
       end if
       call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
-      call getmem1d(r8vector1,1,nnsg*jx*iy*kz,'set_nproc:r8vector1')
-      call getmem1d(r8vector2,1,nnsg*jx*iy*kz,'set_nproc:r8vector2')
-      call getmem1d(r4vector1,1,nnsg*jx*iy*kz,'set_nproc:r4vector1')
-      call getmem1d(r4vector2,1,nnsg*jx*iy*kz,'set_nproc:r4vector2')
-      call getmem1d(i4vector1,1,nnsg*jx*iy*kz,'set_nproc:i4vector1')
-      call getmem1d(i4vector2,1,nnsg*jx*iy*kz,'set_nproc:i4vector2')
-      call getmem1d(lvector1,1,nnsg*jx*iy*kz,'set_nproc:lvector1')
-      call getmem1d(lvector2,1,nnsg*jx*iy*kz,'set_nproc:lvector2')
+      ! Allocate to something should fit all
+      call getmem1d(r8vector1,1,nnsg*jx*iy*kzp1,'set_nproc:r8vector1')
+      call getmem1d(r8vector2,1,nnsg*jx*iy*kzp1,'set_nproc:r8vector2')
+      call getmem1d(r4vector1,1,nnsg*jx*iy*kzp1,'set_nproc:r4vector1')
+      call getmem1d(r4vector2,1,nnsg*jx*iy*kzp1,'set_nproc:r4vector2')
+      call getmem1d(i4vector1,1,nnsg*jx*iy*kzp1,'set_nproc:i4vector1')
+      call getmem1d(i4vector2,1,nnsg*jx*iy*kzp1,'set_nproc:i4vector2')
+      call getmem1d(lvector1,1,nnsg*jx*iy*kzp1,'set_nproc:lvector1')
+      call getmem1d(lvector2,1,nnsg*jx*iy*kzp1,'set_nproc:lvector2')
     end if
   end subroutine set_nproc
 

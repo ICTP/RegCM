@@ -433,7 +433,7 @@ module mod_clm_regcm
   subroutine land_to_atmosphere(lms)
     implicit none
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: k , g , begg , endg
+    integer(ik4) :: k , begg , endg
     real(rk8) , pointer , dimension(:,:,:) :: emis2d
 
     call get_proc_bounds(begg,endg)
