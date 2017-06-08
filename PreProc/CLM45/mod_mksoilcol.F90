@@ -52,6 +52,8 @@ module mod_mksoilcol
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
           soilcol(j,i) = -1
+        else
+          if ( soilcol(j,i) < 1 ) soilcol(j,i) = 1
         end if
       end do
     end do
