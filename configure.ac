@@ -330,7 +330,8 @@ AM_CONDITIONAL(COMPILER_SUN, [ test -z "${FCPROG##sunf9*}" ] )
 AM_CONDITIONAL(COMPILER_PGI, [ test -z "${FCPROG##pgf9*}" -o \
                                     -z "${FCPROG##pgfortran*}" ] )
 AM_CONDITIONAL(COMPILER_INTEL, [ test -z "${FCPROG##ifort*}" -o \
-                                      -z "${FCPROG##impif*}" ] )
+                                      -z "${FCPROG##impif*}" -o \
+                                      -z "${FCPROG##mpiifort*}" ] )
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 # Force Big endian I/O for known compilers
