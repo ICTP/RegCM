@@ -546,7 +546,7 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ifmaxvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax units')
 
-  istatus = nf90_def_var(ncid, 'SOIL_COLOR', regcm_vartype, &
+  istatus = nf90_def_var(ncid, 'SOIL_COLOR', nf90_int, &
                          idims(7),isoilcolvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var soilcol')
   istatus = nf90_put_att(ncid, isoilcolvar, 'long_name', 'Soil color')
@@ -1062,12 +1062,12 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write fmax')
   deallocate(var2d)
 
-  allocate(var2d(jxsg,iysg))
-  call mksoilcol('mksrf_soicol.nc',xmask,var2d)
-  call mypack(var2d,gcvar)
-  istatus = nf90_put_var(ncid, isoilcolvar, gcvar)
+  allocate(ivar2d(jxsg,iysg))
+  call mksoilcol('mksrf_soicol.nc',xmask,ivar2d)
+  call mypack(ivar2d,igcvar)
+  istatus = nf90_put_var(ncid, isoilcolvar, igcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
-  deallocate(var2d)
+  deallocate(ivar2d)
 
   allocate(var4d(jxsg,iysg,nsoil,2))
   call mksoitex('mksrf_soitex.nc',xmask,var4d(:,:,:,1),var4d(:,:,:,2))
