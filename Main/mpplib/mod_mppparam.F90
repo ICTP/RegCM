@@ -1305,14 +1305,14 @@ module mod_mppparam
       end if
       call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
-      call getmem1d(r8vector1,1,nsg*jx*iy*kz,'set_nproc:r8vector1')
-      call getmem1d(r8vector2,1,nsg*jx*iy*kz,'set_nproc:r8vector2')
-      call getmem1d(r4vector1,1,nsg*jx*iy*kz,'set_nproc:r4vector1')
-      call getmem1d(r4vector2,1,nsg*jx*iy*kz,'set_nproc:r4vector2')
-      call getmem1d(i4vector1,1,nsg*jx*iy*kz,'set_nproc:i4vector1')
-      call getmem1d(i4vector2,1,nsg*jx*iy*kz,'set_nproc:i4vector2')
-      call getmem1d(lvector1,1,nsg*jx*iy*kz,'set_nproc:lvector1')
-      call getmem1d(lvector2,1,nsg*jx*iy*kz,'set_nproc:lvector2')
+      call getmem1d(r8vector1,1,nnsg*jx*iy*kz,'set_nproc:r8vector1')
+      call getmem1d(r8vector2,1,nnsg*jx*iy*kz,'set_nproc:r8vector2')
+      call getmem1d(r4vector1,1,nnsg*jx*iy*kz,'set_nproc:r4vector1')
+      call getmem1d(r4vector2,1,nnsg*jx*iy*kz,'set_nproc:r4vector2')
+      call getmem1d(i4vector1,1,nnsg*jx*iy*kz,'set_nproc:i4vector1')
+      call getmem1d(i4vector2,1,nnsg*jx*iy*kz,'set_nproc:i4vector2')
+      call getmem1d(lvector1,1,nnsg*jx*iy*kz,'set_nproc:lvector1')
+      call getmem1d(lvector2,1,nnsg*jx*iy*kz,'set_nproc:lvector2')
     end if
   end subroutine set_nproc
 
