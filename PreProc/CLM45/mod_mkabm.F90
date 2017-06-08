@@ -45,7 +45,7 @@ module mod_mkabm
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
                              pthsep//'surface'//pthsep//abmfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
-    call gfread(gfile,varname,abm,13,1,12)
+    call gfread(gfile,varname,abm,13)
     call gfclose(gfile)
     do i = 1 , iysg
       do j = 1 , jxsg
