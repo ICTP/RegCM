@@ -468,6 +468,7 @@ module mod_mppparam
 
   type(model_area) , public :: ma
 
+  integer(ik4) :: actk = 0
   real(rk8) , pointer , dimension(:) :: r8vector1
   real(rk8) , pointer , dimension(:) :: r8vector2
   real(rk4) , pointer , dimension(:) :: r4vector1
@@ -493,7 +494,7 @@ module mod_mppparam
   real(rk4) , pointer , dimension(:,:) :: global_r4grid
   integer(ik4) , pointer , dimension(:,:) :: global_i4grid
   logical , pointer , dimension(:,:) :: global_lgrid
-!
+
   integer(ik4) , parameter :: tag_bt = 1     ! FROM bottom TO top
   integer(ik4) , parameter :: tag_tb = 2     ! FROM top TO bottom
   integer(ik4) , parameter :: tag_lr = 3     ! FROM left TO right
@@ -503,7 +504,7 @@ module mod_mppparam
   integer(ik4) , parameter :: tag_bltr = 7   ! FROM bottomleft TO topright
   integer(ik4) , parameter :: tag_trbl = 8   ! FROM topright TO bottomleft
   integer(ik4) , parameter :: tag_base = 200 ! The data to/from the cpu to iocpu
-!
+
   public :: exchange , exchange_lb , exchange_rt
   public :: exchange_bdy_lr , exchange_bdy_tb
   public :: grid_distribute , grid_collect , grid_fill
@@ -1305,14 +1306,15 @@ module mod_mppparam
       call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
       ! Allocate to something should fit all
-      call getmem1d(r8vector1,1,2,'set_nproc:r4vector1')
-      call getmem1d(r8vector2,1,2,'set_nproc:r4vector2')
-      call getmem1d(r4vector1,1,2,'set_nproc:r4vector1')
-      call getmem1d(r4vector2,1,2,'set_nproc:r4vector2')
-      call getmem1d(i4vector1,1,2,'set_nproc:i4vector1')
-      call getmem1d(i4vector2,1,2,'set_nproc:i4vector2')
-      call getmem1d(lvector1,1,2,'set_nproc:lvector1')
-      call getmem1d(lvector2,1,2,'set_nproc:lvector2')
+      actk = kzp1
+      call getmem1d(r8vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
+      call getmem1d(r8vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
+      call getmem1d(r4vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
+      call getmem1d(r4vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
+      call getmem1d(i4vector1,1,jxsg*iysg*actk,'set_nproc:i4vector1')
+      call getmem1d(i4vector2,1,jxpsg*iypsg*actk,'set_nproc:i4vector2')
+      call getmem1d(lvector1,1,jxsg*iysg*actk,'set_nproc:lvector1')
+      call getmem1d(lvector2,1,jxpsg*iypsg*actk,'set_nproc:lvector2')
     end if
   end subroutine set_nproc
 
@@ -1437,93 +1439,21 @@ module mod_mppparam
     end if
   end subroutine get_windows
 
-  subroutine check_vsize_r8(j1,j2,i1,i2,k1,k2)
+  subroutine check_vsize(nk)
     implicit none
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: totsize , isize , jsize , icpu
-    totsize = (i2-i1+1)*(j2-j1+1)*(k2-k1+1)
-    if ( size(r8vector2) < totsize ) then
-      call getmem1d(r8vector2,1,totsize,'check_vsize_r8:r8vector2')
+    integer(ik4) , intent(in) :: nk
+    if ( nk > actk ) then
+      actk = nk
+      call getmem1d(r8vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
+      call getmem1d(r8vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
+      call getmem1d(r4vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
+      call getmem1d(r4vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
+      call getmem1d(i4vector1,1,jxsg*iysg*actk,'set_nproc:i4vector1')
+      call getmem1d(i4vector2,1,jxpsg*iypsg*actk,'set_nproc:i4vector2')
+      call getmem1d(lvector1,1,jxsg*iysg*actk,'set_nproc:lvector1')
+      call getmem1d(lvector2,1,jxpsg*iypsg*actk,'set_nproc:lvector2')
     end if
-    if ( ccid == ccio ) then
-      totsize = 0
-      do icpu = 0 , nproc - 1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        totsize = totsize + isize*jsize*(k2-k1+1)
-      end do
-      if ( size(r8vector1) < totsize ) then
-        call getmem1d(r8vector1,1,totsize,'check_vsize_r8:r8vector1')
-      end if
-    end if
-  end subroutine check_vsize_r8
-
-  subroutine check_vsize_r4(j1,j2,i1,i2,k1,k2)
-    implicit none
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: totsize , isize , jsize , icpu
-    totsize = (i2-i1+1)*(j2-j1+1)*(k2-k1+1)
-    if ( size(r4vector2) < totsize ) then
-      call getmem1d(r4vector2,1,totsize,'check_vsize_r4:r4vector2')
-    end if
-    if ( ccid == ccio ) then
-      totsize = 0
-      do icpu = 0 , nproc - 1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        totsize = totsize + isize*jsize*(k2-k1+1)
-      end do
-      if ( size(r4vector1) < totsize ) then
-        call getmem1d(r4vector1,1,totsize,'check_vsize_r4:r4vector1')
-      end if
-    end if
-  end subroutine check_vsize_r4
-
-  subroutine check_vsize_i4(j1,j2,i1,i2,k1,k2)
-    implicit none
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: totsize , isize , jsize , icpu
-    totsize = (i2-i1+1)*(j2-j1+1)*(k2-k1+1)
-    if ( size(i4vector2) < totsize ) then
-      call getmem1d(i4vector2,1,totsize,'check_vsize_i4:i4vector2')
-    end if
-    if ( ccid == ccio ) then
-      totsize = 0
-      do icpu = 0 , nproc - 1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        totsize = totsize + isize*jsize*(k2-k1+1)
-      end do
-      if ( size(i4vector1) < totsize ) then
-        call getmem1d(i4vector1,1,totsize,'check_vsize_i4:i4vector1')
-      end if
-    end if
-  end subroutine check_vsize_i4
-
-  subroutine check_vsize_l(j1,j2,i1,i2,k1,k2)
-    implicit none
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: totsize , isize , jsize , icpu
-    totsize = (i2-i1+1)*(j2-j1+1)*(k2-k1+1)
-    if ( size(lvector2) < totsize ) then
-      call getmem1d(lvector2,1,totsize,'check_vsize_l:lvector2')
-    end if
-    if ( ccid == ccio ) then
-      totsize = 0
-      do icpu = 0 , nproc - 1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        totsize = totsize + isize*jsize*(k2-k1+1)
-      end do
-      if ( size(lvector1) < totsize ) then
-        call getmem1d(lvector1,1,totsize,'check_vsize_l:lvector1')
-      end if
-    end if
-  end subroutine check_vsize_l
+  end subroutine check_vsize
 
   subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
@@ -1548,7 +1478,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1608,7 +1537,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1674,7 +1603,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     do n = n1 , n2
       if ( ccid == ccio ) then
         ib = 1
@@ -1736,7 +1665,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1795,7 +1723,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1861,7 +1789,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     do n = n1 , n2
       if ( ccid == ccio ) then
         ib = 1
@@ -1923,7 +1851,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1982,7 +1909,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2048,7 +1975,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     do n = n1 , n2
       if ( ccid == ccio ) then
         ib = 1
@@ -2123,7 +2050,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2206,7 +2132,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2295,7 +2220,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1*nsg,j2*nsg,i1*nsg,i2*nsg,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2390,7 +2315,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2480,7 +2405,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_l(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2563,7 +2487,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2652,7 +2575,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2732,7 +2655,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -2793,7 +2715,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -2858,7 +2779,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -2924,7 +2845,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -2991,7 +2911,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3059,7 +2979,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3123,7 +3042,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3184,7 +3102,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3249,7 +3166,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3315,7 +3232,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3382,7 +3298,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3450,7 +3366,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3511,7 +3426,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_l(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3572,7 +3486,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1,j2,i1,i2,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3637,7 +3550,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3709,7 +3622,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1,j2,i1,i2,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3779,7 +3692,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3850,7 +3762,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r8(j1*nsg,j2*nsg,i1*nsg,i2*nsg,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3922,7 +3834,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3993,7 +3904,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_r4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -4065,7 +3976,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -4136,7 +4046,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_i4(j1*nsg,j2*nsg,i1*nsg,i2*nsg,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -4208,7 +4118,6 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_l(j1*nsg,j2*nsg,i1*nsg,i2*nsg,1,1)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -4279,7 +4188,7 @@ module mod_mppparam
     window(3) = j1
     window(4) = window(3)+jsize-1
     call get_windows
-    call check_vsize_l(j1*nsg,j2*nsg,i1*nsg,i2*nsg,k1,k2)
+    call check_vsize(ksize)
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
