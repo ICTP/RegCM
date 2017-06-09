@@ -305,29 +305,29 @@ module mod_regcm_types
   end type bound_area
 
   type exp_data
-    real(rkx) , pointer , dimension(:,:) :: psfc
-    real(rkx) , pointer , dimension(:,:) :: tsfc
-    real(rkx) , pointer , dimension(:,:) :: qsfc
-    real(rkx) , pointer , dimension(:,:) :: swrd
-    real(rkx) , pointer , dimension(:,:) :: lwrd
-    real(rkx) , pointer , dimension(:,:) :: dlwr
-    real(rkx) , pointer , dimension(:,:) :: lhfx
-    real(rkx) , pointer , dimension(:,:) :: shfx
-    real(rkx) , pointer , dimension(:,:) :: prec
-    real(rkx) , pointer , dimension(:,:) :: wndu
-    real(rkx) , pointer , dimension(:,:) :: wndv
-    real(rkx) , pointer , dimension(:,:) :: rnof
-    real(rkx) , pointer , dimension(:,:) :: snof
-    real(rkx) , pointer , dimension(:,:) :: taux
-    real(rkx) , pointer , dimension(:,:) :: tauy
-    real(rkx) , pointer , dimension(:,:) :: wspd
-    real(rkx) , pointer , dimension(:,:) :: wdir
-    real(rkx) , pointer , dimension(:,:) :: ustr
-    real(rkx) , pointer , dimension(:,:) :: nflx
-    real(rkx) , pointer , dimension(:,:) :: sflx
-    real(rkx) , pointer , dimension(:,:) :: snow
-    real(rkx) , pointer , dimension(:,:) :: dswr
-    real(rkx) , pointer , dimension(:,:) :: rhoa
+    real(rk8) , pointer , dimension(:,:) :: psfc
+    real(rk8) , pointer , dimension(:,:) :: tsfc
+    real(rk8) , pointer , dimension(:,:) :: qsfc
+    real(rk8) , pointer , dimension(:,:) :: swrd
+    real(rk8) , pointer , dimension(:,:) :: lwrd
+    real(rk8) , pointer , dimension(:,:) :: dlwr
+    real(rk8) , pointer , dimension(:,:) :: lhfx
+    real(rk8) , pointer , dimension(:,:) :: shfx
+    real(rk8) , pointer , dimension(:,:) :: prec
+    real(rk8) , pointer , dimension(:,:) :: wndu
+    real(rk8) , pointer , dimension(:,:) :: wndv
+    real(rk8) , pointer , dimension(:,:) :: rnof
+    real(rk8) , pointer , dimension(:,:) :: snof
+    real(rk8) , pointer , dimension(:,:) :: taux
+    real(rk8) , pointer , dimension(:,:) :: tauy
+    real(rk8) , pointer , dimension(:,:) :: wspd
+    real(rk8) , pointer , dimension(:,:) :: wdir
+    real(rk8) , pointer , dimension(:,:) :: ustr
+    real(rk8) , pointer , dimension(:,:) :: nflx
+    real(rk8) , pointer , dimension(:,:) :: sflx
+    real(rk8) , pointer , dimension(:,:) :: snow
+    real(rk8) , pointer , dimension(:,:) :: dswr
+    real(rk8) , pointer , dimension(:,:) :: rhoa
   end type exp_data
 
   type imp_data
