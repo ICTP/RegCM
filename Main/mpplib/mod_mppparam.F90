@@ -5675,6 +5675,7 @@ module mod_mppparam
     else
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
+        ib = 1
         do i = i1 , i2
           do j = 1 , nex
             r8vector1(ib) = ml(j2-j+1,i)
