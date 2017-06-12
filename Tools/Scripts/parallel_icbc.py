@@ -55,10 +55,10 @@ except:
 
 class mydatetime(object):
     def __init__(self,ival):
-        self.year = ival/1000000
-        self.month = (ival-self.year*1000000)/10000
-        self.day = (ival-self.year*1000000-self.month*10000)/100
-        self.hour = ival-self.year*1000000-self.month*10000-self.day*100
+        self.year = int(ival/1000000)
+        self.month = int((ival-self.year*1000000)/10000)
+        self.day = int((ival-self.year*1000000-self.month*10000)/100)
+        self.hour = int(ival-self.year*1000000-self.month*10000-self.day*100)
     def __str__(self):
         return "%04d%02d%02d%02d" % (self.year, self.month, self.day, self.hour)
     def __repr__(self):
