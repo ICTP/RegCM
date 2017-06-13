@@ -1306,7 +1306,7 @@ module mod_mppparam
       call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
       ! Allocate to something should fit all
-      actk = kzp1
+      actk = 10*kzp1
       if ( myid == ccio ) then
         call getmem1d(r8vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
         call getmem1d(r4vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
