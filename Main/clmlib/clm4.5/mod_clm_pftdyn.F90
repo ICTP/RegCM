@@ -121,6 +121,9 @@ module mod_clm_pftdyn
     fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
             '_CLM45_surface_'//cy4//'.nc'
     call clm_openfile(fpftdyn,ncid)
+    if (myid == italk) then
+      write(stdout,*) 'Reading ',trim(fpftdyn)
+    end if
 
     ! Consistency check
 
@@ -145,6 +148,9 @@ module mod_clm_pftdyn
     fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
             '_CLM45_surface_'//cy4//'.nc'
     call clm_openfile(fpftdyn,ncid)
+    if (myid == italk) then
+      write(stdout,*) 'Reading ',trim(fpftdyn)
+    end if
 
     ! Consistency check
 
@@ -163,6 +169,7 @@ module mod_clm_pftdyn
         wtpft2(g,m) = int(wtpft2(g,m))/100._rk8
       end do
     end do
+    nt = year
   end subroutine pftdyn_init
   !
   ! Time interpolate dynamic landuse data to get pft weights for model time
@@ -234,32 +241,17 @@ module mod_clm_pftdyn
 
     if ( year /= nt ) then
       if (myid == italk) then
-        write(stdout,*) 'Read pft dynamic landuse data for year ',year
+        write(stdout,*) 'Read pft dynamic landuse data for year ',year + 1
       end if
-      write(cy4,'(i0.4)') nt
+      write(cy4,'(i0.4)') year + 1
 
-      ! Obtain Year 1 file
+      ! Obtain Year + 1 file
       fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
               '_CLM45_surface_'//cy4//'.nc'
       call clm_openfile(fpftdyn,ncid)
-
-      ! Consistency check
-
-      if ( .not. clm_check_dimlen(ncid,'lsmpft',numpft+1) ) then
-        call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (myid == italk) then
+        write(stdout,*) 'Reading ',trim(fpftdyn)
       end if
-
-#ifdef CN
-      ! Get harvest rate at the nt1 time
-      call pftdyn_getharvest(begg,endg)
-#endif
-      call clm_closefile(ncid)
-
-      nt = year
-      write(cy4,'(i0.4)') year
-      fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
-              '_CLM45_surface_'//cy4//'.nc'
-      call clm_openfile(fpftdyn,ncid)
 
       ! Consistency check
 
@@ -274,6 +266,10 @@ module mod_clm_pftdyn
       end do
       ! Get pctpft time samples bracketing the current time
       call clm_readvar(ncid,'PCT_PFT',wtpft2(:,0:numpft),gcomm_gridcell)
+#ifdef CN
+      ! Get harvest rate at the nt1 time
+      call pftdyn_getharvest(begg,endg)
+#endif
       call clm_closefile(ncid)
 
       do m = 0 , numpft
