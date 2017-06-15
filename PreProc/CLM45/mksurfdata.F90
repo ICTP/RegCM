@@ -30,12 +30,6 @@ program mksurfdata
   write(stdout,*) 'Please recompile it using --enable-clm45 flag'
 #else
 
-#ifdef DYNPFT
-#ifndef CN
-  ERROR : CN MUST BE DEFINED ON ACTIVATING DYNPFT
-#endif
-#endif
-
 #ifdef CROP
 #ifndef CN
   ERROR : CN MUST BE DEFINED ON ACTIVATING CROP
@@ -78,10 +72,14 @@ program mksurfdata
   use mod_mklightning
   use mod_mkpopd
   use mod_mkq10soil
+#endif
 #ifdef DYNPFT
+#ifdef CN
   use mod_mkharvest
+#endif
   use mod_mkdynpft
 #endif
+#ifdef CN
 #ifdef LCH4
   use mod_mklch4
   use mod_mksoilph
@@ -105,11 +103,13 @@ program mksurfdata
 #ifdef CN
   integer(ik4) , parameter :: noleap_yday_3h = 365*8
   integer(ik4) , parameter :: nyears = 2100-1850+1
+#endif
 #ifdef DYNPFT
+  integer(ik4) , parameter :: noleap_yday_3h = 365*8
+  integer(ik4) , parameter :: nyears = 2100-1850+1
   integer(ik4) :: y1 , y2 , mon , day , hour
   character(len=4) :: cy
   character(len=32) :: p1 , p2
-#endif
 #endif
 
   integer(ik4) :: ngcells
@@ -133,14 +133,16 @@ program mksurfdata
 #ifdef CN
   integer(ik4) :: ilightning , ipopden
   integer(ik4) :: q10
-#ifdef DYNPFT
-  integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
-  character(len=256) :: dynfile
-#endif
 #ifdef LCH4
   integer(ik4) :: if0 , ip3 , izwt0
   integer(ik4) :: isoilphvar
 #endif
+#endif
+#ifdef DYNPFT
+#ifdef CN
+  integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
+#endif
+  character(len=256) :: dynfile
 #endif
 #ifdef VICHYDRO
   integer(ik4) :: ibinfl , ids , idsmax ,iws
@@ -1309,7 +1311,6 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,  &
     'Error close file '//trim(outfile))
 
-#ifdef CN
 #ifdef DYNPFT
   call split_idate(globidate1,y1,mon,day,hour)
   call split_idate(globidate2,y2,mon,day,hour)
@@ -1379,6 +1380,7 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
     istatus = nf90_put_att(ncid, ipftvar, '_FillValue',vmisdat)
     call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+#ifdef CN
     istatus = nf90_def_var(ncid, 'HARVEST_VH1', regcm_vartype, &
                            idims(5), iharvvh1)
     call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_VH1')
@@ -1414,6 +1416,7 @@ program mksurfdata
     istatus = nf90_put_att(ncid, igraz, 'long_name', &
             'grazing of herbacous pfts')
     call checkncerr(istatus,__FILE__,__LINE__,'Error add GRAZING long_name')
+#endif
 
     istatus = nf90_enddef(ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
@@ -1484,6 +1487,7 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft2d')
     deallocate(var3d)
 
+#ifdef CN
     allocate(var3d(jxsg,iysg,6))
     call mkharvest(xmask,var3d,it)
     call mypack(var3d(:,:,1),gcvar)
@@ -1504,12 +1508,12 @@ program mksurfdata
     call mypack(var3d(:,:,6),gcvar)
     istatus = nf90_put_var(ncid, igraz, gcvar)
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write GRAZING')
+#endif
 
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__,  &
       'Error close file '//trim(outfile))
   end do
-#endif
 #endif
 
   call memory_destroy

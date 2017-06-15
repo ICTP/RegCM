@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 module mod_mkdynpft
-#ifdef CN
+#ifdef DYNPFT
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam

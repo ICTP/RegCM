@@ -95,11 +95,13 @@ module mod_clm_pftdyn
               subname//' allocation error for wtpft1, wtpft2' )
     end if
 
+#ifdef CN
     allocate(harvest(begg:endg),stat=ier)
     if (ier /= 0) then
       call fatal(__FILE__,__LINE__, &
                subname//' allocation error for harvest')
     end if
+#endif
 
     allocate(wtcol_old(begp:endp),stat=ier)
     if (ier /= 0) then
@@ -126,9 +128,9 @@ module mod_clm_pftdyn
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
 
+#ifdef CN
     do_harvest = .true.
 
-#ifdef CN
     ! Get harvest rate at the nt1 time
     call pftdyn_getharvest(begg,endg)
 #endif
@@ -189,8 +191,8 @@ module mod_clm_pftdyn
     integer(ik4)  :: mon       ! month (1, ..., 12) for nstep+1
     integer(ik4)  :: day       ! day of month (1, ..., 31) for nstep+1
     integer(ik4)  :: sec       ! seconds into current date for nstep+1
-    real(rk8) :: cday           ! current calendar day (1.0 = 0Z on Jan 1)
-    real(rk8) :: wt1    ! time interpolation weights
+    real(rk8) :: cday          ! current calendar day (1.0 = 0Z on Jan 1)
+    real(rk8) :: wt1 , wt2     ! time interpolation weights
     ! summation of pft weights for renormalization
     real(rk8) , pointer , dimension(:) :: wtpfttot1
     ! summation of pft weights for renormalization
@@ -285,7 +287,12 @@ module mod_clm_pftdyn
 
     cday = get_curr_calday()
 
-    wt1 = ((dayspy + 1._rk8) - cday)/dayspy
+    !wt1 = ((dayspy + 1._rk8) - cday)/dayspy
+    wt1 = (dayspy - cday)/dayspy
+    if ( wt1 > 1.0_rk8 .or. wt1 < 0.0_rk8 ) then
+      call fatal(__FILE__,__LINE__,'WGT ERROR !')
+    end if
+    wt2 = 1.0_rk8 - wt1
 
     do p = begp , endp
       c = pptr%column(p)
@@ -297,7 +304,7 @@ module mod_clm_pftdyn
 !       --- recoded for roundoff performance, tcraig 3/07 from k.lindsay
 !       pptr%wtgcell(p)   = wtpft1(g,m)*wt1 + wtpft2(g,m)*wt2
         wtpfttot1(c) = wtpfttot1(c)+pptr%wtgcell(p)
-        pptr%wtgcell(p)   = wtpft2(g,m) + wt1*(wtpft1(g,m)-wtpft2(g,m))
+        pptr%wtgcell(p)   = wtpft1(g,m) * wt2 + wtpft2(g,m) * wt1
         pptr%wtlunit(p)   = pptr%wtgcell(p) / lptr%wtgcell(l)
         pptr%wtcol(p)     = pptr%wtgcell(p) / lptr%wtgcell(l)
         wtpfttot2(c) = wtpfttot2(c)+pptr%wtgcell(p)
