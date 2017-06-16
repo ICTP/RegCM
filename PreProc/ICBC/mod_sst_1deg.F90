@@ -73,8 +73,7 @@ module mod_sst_1deg
     implicit none
     real(rk4) , dimension(360,180) :: gisst
     integer(ik4) :: i , j , k , iwk , nrec
-    integer(ik4) :: nsteps
-    integer :: gireclen
+    integer(ik4) :: nsteps , ipunit , gireclen
     type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
     character(len=256) :: inpfile
     logical :: there
@@ -105,7 +104,7 @@ module mod_sst_1deg
       end if
       inquire(iolength=gireclen) gisst
       write (stdout,*) 'OPEN ', trim(inpfile)
-      open(121,file=inpfile,form='unformatted', &
+      open(newunit=ipunit,file=inpfile,form='unformatted', &
            access='direct',recl=gireclen,action='read',status='old')
 
       call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
@@ -165,7 +164,7 @@ module mod_sst_1deg
 
         if ( ssttyp == 'GISST' ) then
           nrec = (year-1947)*12 + month - 11
-          read (121,rec=nrec) gisst
+          read (ipunit,rec=nrec) gisst
           sst = gisst
         else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
                   ssttyp == 'OI2ST') then
@@ -248,6 +247,9 @@ module mod_sst_1deg
     end if
 
     call h_interpolator_destroy(hint)
+    if ( ssttyp == 'GISST' ) then
+      close(ipunit)
+    end if
   end subroutine sst_1deg
 
   subroutine sst_mn(idate,idate0,pathaddname)

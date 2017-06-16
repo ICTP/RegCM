@@ -521,7 +521,8 @@ module mod_clm_drydep
     seq_drydep_fields = ' '
     do i = 1 , maxspc
       if ( len_trim(drydep_list(i))==0 ) exit
-      write(token,333) i
+      ! Need to explicitly add Sl_ based on naming convention
+      write(token,"('Sl_dd',i3.3)") i
       seq_drydep_fields = trim(seq_drydep_fields)//':'//trim(token)
       if ( i == 1 ) then
         seq_drydep_fields = trim(token)
@@ -555,9 +556,6 @@ module mod_clm_drydep
       call fatal(__FILE__,__LINE__, &
        'seq_drydep_read: incorrect dry deposition method specification')
     end if
-
-    ! Need to explicitly add Sl_ based on naming convention
-333 format ('Sl_dd',i3.3)
 
   end subroutine seq_drydep_read
   !

@@ -327,25 +327,25 @@ module mod_atm_interface
       ide2sg = ide2*nsg
 
 #ifdef DEBUG
-      write(ndebug+myid,*) 'TOPLEFT     = ', ma%topleft
-      write(ndebug+myid,*) 'TOP         = ', ma%top
-      write(ndebug+myid,*) 'TOPRIGHT    = ', ma%topright
-      write(ndebug+myid,*) 'RIGHT       = ', ma%right
-      write(ndebug+myid,*) 'BOTTOMRIGHT = ', ma%bottomright
-      write(ndebug+myid,*) 'BOTTOM      = ', ma%bottom
-      write(ndebug+myid,*) 'BOTTOMLEFT  = ', ma%bottomleft
-      write(ndebug+myid,*) 'LEFT        = ', ma%left
-      write(ndebug+myid,*) 'DOTPEXTJI1 : ', jde1 , jde2 , ide1 , ide2
-      write(ndebug+myid,*) 'DOTPINTJI1 : ', jdi1 , jdi2 , idi1 , idi2
-      write(ndebug+myid,*) 'DOTPINTJI2 : ', jdii1 , jdii2 , idii1 , idii2
-      write(ndebug+myid,*) 'CRXPEXTJI1 : ', jce1 , jce2 , ice1 , ice2
-      write(ndebug+myid,*) 'CRXPINTJI1 : ', jci1 , jci2 , ici1 , ici2
-      write(ndebug+myid,*) 'CRXPINTJI2 : ', jcii1 , jcii2 , icii1 , icii2
-      write(ndebug+myid,*) 'TOPBDY   : ', ma%has_bdytop
-      write(ndebug+myid,*) 'BTMBDY   : ', ma%has_bdybottom
-      write(ndebug+myid,*) 'RGTBDY   : ', ma%has_bdyright
-      write(ndebug+myid,*) 'LFTBDY   : ', ma%has_bdyleft
-      flush(ndebug+myid)
+      write(ndebug,*) 'TOPLEFT     = ', ma%topleft
+      write(ndebug,*) 'TOP         = ', ma%top
+      write(ndebug,*) 'TOPRIGHT    = ', ma%topright
+      write(ndebug,*) 'RIGHT       = ', ma%right
+      write(ndebug,*) 'BOTTOMRIGHT = ', ma%bottomright
+      write(ndebug,*) 'BOTTOM      = ', ma%bottom
+      write(ndebug,*) 'BOTTOMLEFT  = ', ma%bottomleft
+      write(ndebug,*) 'LEFT        = ', ma%left
+      write(ndebug,*) 'DOTPEXTJI1 : ', jde1 , jde2 , ide1 , ide2
+      write(ndebug,*) 'DOTPINTJI1 : ', jdi1 , jdi2 , idi1 , idi2
+      write(ndebug,*) 'DOTPINTJI2 : ', jdii1 , jdii2 , idii1 , idii2
+      write(ndebug,*) 'CRXPEXTJI1 : ', jce1 , jce2 , ice1 , ice2
+      write(ndebug,*) 'CRXPINTJI1 : ', jci1 , jci2 , ici1 , ici2
+      write(ndebug,*) 'CRXPINTJI2 : ', jcii1 , jcii2 , icii1 , icii2
+      write(ndebug,*) 'TOPBDY   : ', ma%has_bdytop
+      write(ndebug,*) 'BTMBDY   : ', ma%has_bdybottom
+      write(ndebug,*) 'RGTBDY   : ', ma%has_bdyright
+      write(ndebug,*) 'LFTBDY   : ', ma%has_bdyleft
+      flush(ndebug)
 #endif
     end subroutine setup_model_indexes
 
@@ -474,27 +474,27 @@ module mod_atm_interface
       ba%havebound = (ba%ns /= 0 .or. ba%nn /= 0 .or. &
                       ba%nw /= 0 .or. ba%ne /= 0)
 #ifdef DEBUG
-      write(ndebug+myid,*) 'DOT  : ', ldot
-      write(ndebug+myid,*) 'BDYS : ', ba%ns
-      write(ndebug+myid,*) 'BDYN : ', ba%nn
-      write(ndebug+myid,*) 'BDYW : ', ba%nw
-      write(ndebug+myid,*) 'BDYE : ', ba%ne
+      write(ndebug,*) 'DOT  : ', ldot
+      write(ndebug,*) 'BDYS : ', ba%ns
+      write(ndebug,*) 'BDYN : ', ba%nn
+      write(ndebug,*) 'BDYW : ', ba%nw
+      write(ndebug,*) 'BDYE : ', ba%ne
 
       do i = ide2 , ide1 , -1
         do j = jde1, jde2
           if ( ba%bsouth(j,i) ) then
-            write(ndebug+myid,'(1a,i0.4)',advance='no') 'S' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'S' , ba%ibnd(j,i)
           else if ( ba%bnorth(j,i) ) then
-            write(ndebug+myid,'(1a,i0.4)',advance='no') 'N' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'N' , ba%ibnd(j,i)
           else if ( ba%bwest(j,i) ) then
-            write(ndebug+myid,'(1a,i0.4)',advance='no') 'W' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'W' , ba%ibnd(j,i)
           else if ( ba%beast(j,i) ) then
-            write(ndebug+myid,'(1a,i0.4)',advance='no') 'E' , ba%ibnd(j,i)
+            write(ndebug,'(1a,i0.4)',advance='no') 'E' , ba%ibnd(j,i)
           else
-            write(ndebug+myid,'(1a,i0.4)',advance='no') 'X', 0
+            write(ndebug,'(1a,i0.4)',advance='no') 'X', 0
           end if
         end do
-        write(ndebug+myid,*) ' '
+        write(ndebug,*) ' '
       end do
 #endif
     end subroutine setup_boundaries

@@ -72,7 +72,7 @@ module mod_params
     integer(ik4) :: iretval
     real(rkx) , dimension(nsplit) :: dtsplit
     integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
-    integer(ik4) :: hspan
+    integer(ik4) :: hspan , ipunit
     integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
     integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq
     integer(ik4) :: n , len_path
@@ -526,7 +526,7 @@ module mod_params
 #endif
 
     if ( myid == iocpu ) then
-      open(ipunit, file=namelistfile, status='old', &
+      open(newunit=ipunit, file=namelistfile, status='old', &
                    action='read', iostat=iretval)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error opening input namelist file ',trim(namelistfile)

@@ -318,6 +318,11 @@ module mod_clm_balancecheck
     ! column level snow rate [mm/s]
     real(rk8) , dimension(lbc:ubc) :: forc_snow_col
 
+    character(len=*) , parameter :: f99001 = &
+     "(1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' W/m2')"
+    character(len=*) , parameter :: f99002 = &
+     "(1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' mm')"
+
     ! Assign local pointers to derived type scalar members (gridcell-level)
 
     tws                 => clm3%g%tws
@@ -669,7 +674,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found  .and. (ktau > 2) ) then
-      write(stderr,100) &
+      write(stderr,f99001) &
          'BalanceCheck: solar radiation balance error', ktau, indexp, &
          errsol(indexp)
       write(stderr,*)'fsa          = ',fsa(indexp)
@@ -697,7 +702,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found  .and. (ktau > 2) ) then
-      write(stderr,100) &
+      write(stderr,f99001) &
           'BalanceCheck: longwave enery balance error',ktau,indexp, &
           errlon(indexp)
       call fatal(__FILE__,__LINE__,'clm model is stopping')
@@ -715,7 +720,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found  .and. (ktau > 2) ) then
-      write(stderr,100) &
+      write(stderr,f99001) &
          'BalanceCheck: surface flux energy balance error',ktau,indexp, &
          errseb(indexp)
       write(stderr,*)' sabv           = ',sabv(indexp)
@@ -742,7 +747,7 @@ module mod_clm_balancecheck
     end do
     if ( found ) then
       if (abs(errsoi_col(indexc)) > .10_rk8 .and. (ktau > 2) ) then
-        write(stderr,100) &
+        write(stderr,f99001) &
           'BalanceCheck: soil balance error',ktau,indexc,errsoi_col(indexc)
         write(stderr,*)'ktau = ',ktau,' indexc= ',indexc, &
                 ' errsoi_col= ',errsoi_col(indexc)
@@ -786,9 +791,6 @@ module mod_clm_balancecheck
     do g = lbg , ubg
       tws(g) = tws(g) + volr(g) / area(g) * 1.e-3_rk8
     enddo
-
-100 format (1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' W/m2')
-! 200 format (1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' mm')
 
   end subroutine BalanceCheck
 

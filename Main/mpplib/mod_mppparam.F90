@@ -468,7 +468,6 @@ module mod_mppparam
 
   type(model_area) , public :: ma
 
-  integer(ik4) :: actk = 0
   real(rk8) , pointer , dimension(:) :: r8vector1
   real(rk8) , pointer , dimension(:) :: r8vector2
   real(rk4) , pointer , dimension(:) :: r4vector1
@@ -1007,6 +1006,7 @@ module mod_mppparam
     logical , dimension(2) :: dim_period
     integer(ik4) , dimension(2) :: isearch
     integer(ik4) :: imaxcpus , imax1 , imax2 , imiss
+    integer(ik4) :: maximum_buffer_size
     data dim_period /.false.,.false./
 
     ma%bandflag    = (i_band == 1)
@@ -1306,22 +1306,16 @@ module mod_mppparam
       call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
       ! Allocate to something should fit all
-      actk = 10*kzp1
-      if ( myid == ccio ) then
-        call getmem1d(r8vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
-        call getmem1d(r4vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
-        call getmem1d(i4vector1,1,jxsg*iysg*actk,'set_nproc:i4vector1')
-        call getmem1d(lvector1,1,jxsg*iysg*actk,'set_nproc:lvector1')
-      else
-        call getmem1d(r8vector1,1,jxpsg*iypsg*actk,'set_nproc:r4vector1')
-        call getmem1d(r4vector1,1,jxpsg*iypsg*actk,'set_nproc:r4vector1')
-        call getmem1d(i4vector1,1,jxpsg*iypsg*actk,'set_nproc:i4vector1')
-        call getmem1d(lvector1,1,jxpsg*iypsg*actk,'set_nproc:lvector1')
-      end if
-      call getmem1d(r8vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
-      call getmem1d(r4vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
-      call getmem1d(i4vector2,1,jxpsg*iypsg*actk,'set_nproc:i4vector2')
-      call getmem1d(lvector2,1,jxpsg*iypsg*actk,'set_nproc:lvector2')
+      maximum_buffer_size = jxsg*iysg
+      maximum_buffer_size = max(maximum_buffer_size,kzp1)
+      call getmem1d(r8vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
+      call getmem1d(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
+      call getmem1d(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
+      call getmem1d(lvector1,1,maximum_buffer_size,'set_nproc:lvector1')
+      call getmem1d(r8vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
+      call getmem1d(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
+      call getmem1d(i4vector2,1,maximum_buffer_size,'set_nproc:i4vector2')
+      call getmem1d(lvector2,1,maximum_buffer_size,'set_nproc:lvector2')
     end if
   end subroutine set_nproc
 
@@ -1446,22 +1440,6 @@ module mod_mppparam
     end if
   end subroutine get_windows
 
-  subroutine check_vsize(nk)
-    implicit none
-    integer(ik4) , intent(in) :: nk
-    if ( nk > actk ) then
-      actk = nk
-      call getmem1d(r8vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
-      call getmem1d(r8vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
-      call getmem1d(r4vector1,1,jxsg*iysg*actk,'set_nproc:r4vector1')
-      call getmem1d(r4vector2,1,jxpsg*iypsg*actk,'set_nproc:r4vector2')
-      call getmem1d(i4vector1,1,jxsg*iysg*actk,'set_nproc:i4vector1')
-      call getmem1d(i4vector2,1,jxpsg*iypsg*actk,'set_nproc:i4vector2')
-      call getmem1d(lvector1,1,jxsg*iysg*actk,'set_nproc:lvector1')
-      call getmem1d(lvector2,1,jxpsg*iypsg*actk,'set_nproc:lvector2')
-    end if
-  end subroutine check_vsize
-
   subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
@@ -1521,10 +1499,10 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
     if ( nproc == 1 ) then
-      ! Copy in memory my piece.
       do k = k1 , k2
         do i = i1 , i2
           do j = j1 , j2
@@ -1532,52 +1510,13 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              r8vector1(ib) = mg(j,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real8_2d_distribute(mg2,ml2,j1,j2,i1,i2)
       end do
     end if
-    call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
-                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i,k) = r8vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
   end subroutine real8_3d_distribute
 
   subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -1585,8 +1524,9 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , lsize , nsize , rsize , icpu
+    integer(ik4) :: i , j , k , n
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
     if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -1597,57 +1537,15 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    lsize = isize*jsize*ksize*nsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize*nsize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = window(1) , window(2)
-              do j = window(3) , window(4)
-                r8vector1(ib) = mg(j,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
+    else
+      do n = n1 , n2
+        do k = k1 , k2
+          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+          call assignpnt(ml,ml2,k,n)
+          call real8_2d_distribute(mg2,ml2,j1,j2,i1,i2)
         end do
       end do
     end if
-    call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
-                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    do n = n1 , n2
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k,n) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
   end subroutine real8_4d_distribute
 
   subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
@@ -1709,8 +1607,9 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -1719,52 +1618,13 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              r4vector1(ib) = mg(j,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real4_2d_distribute(mg2,ml2,j1,j2,i1,i2)
       end do
     end if
-    call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
-                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i,k) = r4vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
   end subroutine real4_3d_distribute
 
   subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -1772,8 +1632,9 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ib , i , j , k , n , isize , &
-                    jsize , ksize , nsize , lsize , icpu , rsize
+    integer(ik4) :: i , j , k , n
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
     if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -1784,57 +1645,15 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    lsize = isize*jsize*ksize*nsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize*nsize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = window(1) , window(2)
-              do j = window(3) , window(4)
-                r4vector1(ib) = mg(j,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
+    else
+      do n = n1 , n2
+        do k = k1 , k2
+          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+          call assignpnt(ml,ml2,k,n)
+          call real4_2d_distribute(mg2,ml2,j1,j2,i1,i2)
         end do
       end do
     end if
-    call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
-                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    do n = n1 , n2
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k,n) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
   end subroutine real4_4d_distribute
 
   subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
@@ -1896,8 +1715,9 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml !model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k
+    integer(ik4) , pointer , dimension(:,:) :: mg2 => null()
+    integer(ik4) , pointer , dimension(:,:) :: ml2 => null()
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -1906,52 +1726,13 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              i4vector1(ib) = mg(j,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call integer_2d_distribute(mg2,ml2,j1,j2,i1,i2)
       end do
     end if
-    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
-                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          ml(j,i,k) = i4vector2(ib)
-          ib = ib + 1
-        end do
-      end do
-    end do
   end subroutine integer_3d_distribute
 
   subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -1959,8 +1740,9 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml !model loc
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , lsize , nsize , icpu , rsize
+    integer(ik4) :: i , j , k , n
+    integer(ik4) , pointer , dimension(:,:) :: mg2 => null( )
+    integer(ik4) , pointer , dimension(:,:) :: ml2 => null( )
     if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -1971,57 +1753,15 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    lsize = isize*jsize*ksize*nsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize*nsize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = window(1) , window(2)
-              do j = window(3) , window(4)
-                i4vector1(ib) = mg(j,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
+    else
+      do n = n1 , n2
+        do k = k1 , k2
+          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+          call assignpnt(ml,ml2,k,n)
+          call integer_2d_distribute(mg2,ml2,j1,j2,i1,i2)
         end do
       end do
     end if
-    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
-                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    do n = n1 , n2
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k,n) = i4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
   end subroutine integer_4d_distribute
 
   subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
@@ -2194,8 +1934,9 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k , n
+    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null()
+    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null()
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do k = k1 , k2
@@ -2218,67 +1959,11 @@ module mod_mppparam
           end do
         end do
       end if
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                r8vector1(ib) = mg(n,j,i,k)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end do
-    end if
-    call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
-                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    if ( present(mask) ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
     else
       do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real8_2d_sub_distribute(mg2,ml2,j1,j2,i1,i2,mask)
       end do
     end if
   end subroutine real8_3d_sub_distribute
@@ -2289,8 +1974,9 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k , n
+    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null()
+    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null()
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do k = k1 , k2
@@ -2313,66 +1999,11 @@ module mod_mppparam
           end do
         end do
       end if
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                r4vector1(ib) = mg(n,j,i,k)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end do
-    end if
-    call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
-                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    if ( present(mask) ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
     else
       do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real4_2d_sub_distribute(mg2,ml2,j1,j2,i1,i2,mask)
       end do
     end if
   end subroutine real4_3d_sub_distribute
@@ -2547,8 +2178,9 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! modl loc
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k , n
+    integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
+    integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do k = k1 , k2
@@ -2571,67 +2203,11 @@ module mod_mppparam
           end do
         end do
       end if
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                i4vector1(ib) = mg(n,j,i,k)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end do
-    end if
-    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
-                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    if ( present(mask) ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              if ( mask(n,j,i) ) ml(n,j,i,k) = i4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
     else
       do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = i4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call integer_2d_sub_distribute(mg2,ml2,j1,j2,i1,i2,mask)
       end do
     end if
   end subroutine integer_3d_sub_distribute
@@ -2764,8 +2340,9 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -2774,56 +2351,11 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          r8vector2(ib) = ml(j,i,k)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
-                     r8vector1,wincount,windispl,mpi_real8, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              mg(j,i,k) = r8vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio )  call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real8_2d_collect(ml2,mg2,j1,j2,i1,i2)
       end do
     end if
   end subroutine real8_3d_collect
@@ -2893,8 +2425,9 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu , rsize
+    integer(ik4) :: i , j , k , n
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
     if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -2905,60 +2438,12 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    lsize = isize*jsize*ksize*nsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize*nsize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do n = n1 , n2
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            r8vector2(ib) = ml(j,i,k,n)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
-                     r8vector1,wincount,windispl,mpi_real8, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = window(1) , window(2)
-              do j = window(3) , window(4)
-                mg(j,i,k,n) = r8vector1(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
+    else
+      do n = n1 , n2
+        do k = k1 , k2
+          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+          call assignpnt(ml,ml2,k,n)
+          call real8_2d_collect(ml2,mg2,j1,j2,i1,i2)
         end do
       end do
     end if
@@ -3152,8 +2637,9 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -3162,56 +2648,11 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          r4vector2(ib) = ml(j,i,k)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
-                     r4vector1,wincount,windispl,mpi_real4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              mg(j,i,k) = r4vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real4_2d_collect(ml2,mg2,j1,j2,i1,i2)
       end do
     end if
   end subroutine real4_3d_collect
@@ -3281,8 +2722,9 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu , rsize
+    integer(ik4) :: i , j , k , n
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
     if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -3293,60 +2735,12 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    lsize = isize*jsize*ksize*nsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize*nsize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do n = n1 , n2
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            r4vector2(ib) = ml(j,i,k,n)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
-                     r4vector1,wincount,windispl,mpi_real4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = window(1) , window(2)
-              do j = window(3) , window(4)
-                mg(j,i,k,n) = r4vector1(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
+    else
+      do n = n1 , n2
+        do k = k1 , k2
+          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+          call assignpnt(ml,ml2,k,n)
+          call real4_2d_collect(ml2,mg2,j1,j2,i1,i2)
         end do
       end do
     end if
@@ -3537,8 +2931,9 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glbl
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k
+    integer(ik4) , pointer , dimension(:,:) :: ml2 => null()
+    integer(ik4) , pointer , dimension(:,:) :: mg2 => null()
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -3547,56 +2942,11 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          i4vector2(ib) = ml(j,i,k)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
-                     i4vector1,wincount,windispl,mpi_integer4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              mg(j,i,k) = i4vector1(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call integer_2d_collect(ml2,mg2,j1,j2,i1,i2)
       end do
     end if
   end subroutine integer_3d_collect
@@ -3606,8 +2956,9 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , &
-                    ksize , nsize , lsize , icpu , rsize
+    integer(ik4) :: i , j , k , n
+    integer(ik4) , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) , pointer , dimension(:,:) :: mg2 => null( )
     if ( nproc == 1 ) then
       do n = n1 , n2
         do k = k1 , k2
@@ -3618,60 +2969,12 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    lsize = isize*jsize*ksize*nsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize*nsize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do n = n1 , n2
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            i4vector2(ib) = ml(j,i,k,n)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
-                     i4vector1,wincount,windispl,mpi_integer4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = window(1) , window(2)
-              do j = window(3) , window(4)
-                mg(j,i,k,n) = i4vector1(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
+    else
+      do n = n1 , n2
+        do k = k1 , k2
+          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+          call assignpnt(ml,ml2,k,n)
+          call integer_2d_collect(ml2,mg2,j1,j2,i1,i2)
         end do
       end do
     end if
@@ -3748,8 +3051,9 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k , n
+    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null( )
+    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null( )
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -3760,60 +3064,11 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            r8vector2(ib) = ml(n,j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
-                     r8vector1,wincount,windispl,mpi_real8, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                mg(n,j,i,k) = r8vector1(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real8_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
       end do
     end if
   end subroutine real8_3d_sub_collect
@@ -3889,8 +3144,9 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k , n
+    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null( )
+    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null( )
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -3901,60 +3157,11 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            r4vector2(ib) = ml(n,j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
-                     r4vector1,wincount,windispl,mpi_real4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                mg(n,j,i,k) = r4vector1(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call real4_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
       end do
     end if
   end subroutine real4_3d_sub_collect
@@ -4030,8 +3237,9 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k , n
+    integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
+    integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -4042,60 +3250,11 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            i4vector2(ib) = ml(n,j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
-                     i4vector1,wincount,windispl,mpi_integer4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                mg(n,j,i,k) = i4vector1(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call integer_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
       end do
     end if
   end subroutine integer_3d_sub_collect
@@ -4171,8 +3330,9 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
     logical , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
-    integer(ik4) :: rsize
+    integer(ik4) :: i , j , k , n
+    logical , pointer , dimension(:,:,:) :: ml2 => null()
+    logical , pointer , dimension(:,:,:) :: mg2 => null()
     if ( nproc == 1 ) then
       do k = k1 , k2
         do i = i1 , i2
@@ -4183,60 +3343,11 @@ module mod_mppparam
           end do
         end do
       end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    lsize = isize*jsize*ksize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    call check_vsize(ksize)
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*ksize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do k = k1 , k2
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            lvector2(ib) = ml(n,j,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end do
-    call mpi_gatherv(lvector2,rsize,mpi_logical, &
-                     lvector1,wincount,windispl,mpi_logical, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do k = k1 , k2
-          do i = window(1) , window(2)
-            do j = window(3) , window(4)
-              do n = 1 , nnsg
-                mg(n,j,i,k) = lvector1(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+    else
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+        call assignpnt(ml,ml2,k)
+        call logical_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
       end do
     end if
   end subroutine logical_3d_sub_collect
@@ -4433,7 +3544,7 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_2d_exchange
-!
+
   subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -4626,473 +3737,29 @@ module mod_mppparam
       end do
     end if
   end subroutine real4_2d_exchange
-!
+
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r8vector1(ib) = ml(j2-j+1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r8vector1(ib) = ml(j1+j-1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call exchange_array(r8vector1,r8vector2,ssize,ma%right,tag_rl,tag_lr)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j1+j-1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call exchange_array(r8vector1,r8vector2,ssize,ma%left,tag_lr,tag_rl)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r8vector1(ib) = ml(j,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2,ssize,ma%top,tag_tb,tag_bt)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r8vector1(ib) = ml(j,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2,ssize,ma%bottom,tag_bt,tag_tb)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r8vector1(ib) = ml(j1+j-1,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%topleft,tag_tlbr,tag_brtl)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i2+i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r8vector1(ib) = ml(j2-j+1,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i1-i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%topright,tag_trbl,tag_bltr)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i2+i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i1-i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
+    integer(ik4) :: k
+    real(rk8) , pointer , dimension(:,:) :: ml2
+    do k = k1 , k2
+      call assignpnt(ml,ml2,k)
+      call real8_2d_exchange(ml2,nex,j1,j2,i1,i2)
+    end do
   end subroutine real8_3d_exchange
-!
+
   subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r4vector1(ib) = ml(j2-j+1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r4vector1(ib) = ml(j1+j-1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j2-j+1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call exchange_array(r4vector1,r4vector2,ssize,ma%right,tag_rl,tag_lr)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j1+j-1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call exchange_array(r4vector1,r4vector2,ssize,ma%left,tag_lr,tag_rl)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r4vector1(ib) = ml(j,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2,ssize,ma%top,tag_tb,tag_bt)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r4vector1(ib) = ml(j,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2,ssize,ma%bottom,tag_bt,tag_tb)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r4vector1(ib) = ml(j1+j-1,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%topleft,tag_tlbr,tag_brtl)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i2+i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r4vector1(ib) = ml(j2-j+1,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i1-i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%topright,tag_trbl,tag_bltr)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i2+i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i1-i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
+    integer(ik4) :: k
+    real(rk4) , pointer , dimension(:,:) :: ml2
+    do k = k1 , k2
+      call assignpnt(ml,ml2,k)
+      call real4_2d_exchange(ml2,nex,j1,j2,i1,i2)
+    end do
   end subroutine real4_3d_exchange
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -5100,551 +3767,28 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    integer(ik4) :: k , n
+    real(rk8) , pointer , dimension(:,:) :: ml2
+    do n = n1 , n2
+      do k = k1 , k2
+        call assignpnt(ml,ml2,k,n)
+        call real8_2d_exchange(ml2,nex,j1,j2,i1,i2)
       end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j1+j-1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r8vector1(ib) = ml(j2-j+1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call exchange_array(r8vector1,r8vector2,ssize,ma%right,tag_rl,tag_lr)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r8vector1(ib) = ml(j1+j-1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call exchange_array(r8vector1,r8vector2,ssize,ma%left,tag_lr,tag_rl)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r8vector1(ib) = ml(j,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2,ssize,ma%top,tag_tb,tag_bt)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r8vector1(ib) = ml(j,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2,ssize,ma%bottom,tag_bt,tag_tb)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i1-i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r8vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%topleft,tag_tlbr,tag_brtl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i2+i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i1-i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%topright,tag_trbl,tag_bltr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i2+i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r8vector1,r8vector2, &
-                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i1-i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
+    end do
   end subroutine real8_4d_exchange
-!
+
   subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize
-    integer(ik4) :: j , i , k , n , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j2-j+1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    integer(ik4) :: k , n
+    real(rk4) , pointer , dimension(:,:) :: ml2
+    do n = n1 , n2
+      do k = k1 , k2
+        call assignpnt(ml,ml2,k,n)
+        call real4_2d_exchange(ml2,nex,j1,j2,i1,i2)
       end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j1+j-1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r4vector1(ib) = ml(j2-j+1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call exchange_array(r4vector1,r4vector2,ssize,ma%right,tag_rl,tag_lr)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r4vector1(ib) = ml(j1+j-1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call exchange_array(r4vector1,r4vector2,ssize,ma%left,tag_lr,tag_rl)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r4vector1(ib) = ml(j,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2,ssize,ma%top,tag_tb,tag_bt)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r4vector1(ib) = ml(j,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2,ssize,ma%bottom,tag_bt,tag_tb)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i1-i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r4vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%topleft,tag_tlbr,tag_brtl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i2+i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r4vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i1-i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%topright,tag_trbl,tag_bltr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i2+i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call exchange_array(r4vector1,r4vector2, &
-                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i1-i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
+    end do
   end subroutine real4_4d_exchange
 
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
@@ -5741,7 +3885,7 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_2d_exchange_left_bottom
-!
+
   subroutine real4_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -5836,489 +3980,59 @@ module mod_mppparam
       end do
     end if
   end subroutine real4_2d_exchange_left_bottom
-!
+
   subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r8vector1(ib) = ml(j2-j+1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call send_array(r8vector1,ssize,ma%right,tag_lr)
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        call recv_array(r8vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r8vector1(ib) = ml(j,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%top,tag_bt)
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%topright,tag_bltr)
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i1-i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
+    integer(ik4) :: k
+    real(rk8) , pointer , dimension(:,:) :: ml2
+    do k = k1 , k2
+      call assignpnt(ml,ml2,k)
+      call real8_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
+    end do
   end subroutine real8_3d_exchange_left_bottom
-!
+
   subroutine real4_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r4vector1(ib) = ml(j2-j+1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j2-j+1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call send_array(r4vector1,ssize,ma%right,tag_lr)
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        call recv_array(r4vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r4vector1(ib) = ml(j,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%top,tag_bt)
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i1-i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
+    integer(ik4) :: k
+    real(rk4) , pointer , dimension(:,:) :: ml2
+    do k = k1 , k2
+      call assignpnt(ml,ml2,k)
+      call real4_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
+    end do
   end subroutine real4_3d_exchange_left_bottom
-!
+
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    integer(ik4) :: k , n
+    real(rk8) , pointer , dimension(:,:) :: ml2
+    do n = n1 , n2
+      do k = k1 , k2
+        call assignpnt(ml,ml2,k,n)
+        call real8_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
       end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r8vector1(ib) = ml(j2-j+1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call send_array(r8vector1,ssize,ma%right,tag_lr)
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        call recv_array(r8vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r8vector1(ib) = ml(j,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%top,tag_bt)
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i1-i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%topright,tag_bltr)
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i1-i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
+    end do
   end subroutine real8_4d_exchange_left_bottom
-!
+
   subroutine real4_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j2-j+1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    integer(ik4) :: k , n
+    real(rk4) , pointer , dimension(:,:) :: ml2
+    do n = n1 , n2
+      do k = k1 , k2
+        call assignpnt(ml,ml2,k,n)
+        call real4_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
       end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%right,ma%left,tag_lr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    else
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r4vector1(ib) = ml(j2-j+1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call send_array(r4vector1,ssize,ma%right,tag_lr)
-      end if
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        call recv_array(r4vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r4vector1(ib) = ml(j,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%top,tag_bt)
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i1-i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i1-i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
+    end do
   end subroutine real4_4d_exchange_left_bottom
-!
+
   subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -6508,489 +4222,59 @@ module mod_mppparam
       end do
     end if
   end subroutine real4_2d_exchange_right_top
-!
+
   subroutine real8_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r8vector1(ib) = ml(j1+j-1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    else
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j1+j-1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call send_array(r8vector1,ssize,ma%left,tag_rl)
-      end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        call recv_array(r8vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r8vector1(ib) = ml(j,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%bottom,tag_tb)
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      call recv_array(r8vector2,ssize,ma%top,tag_tb)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%bottomleft,tag_trbl)
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i2+i,k) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
+    integer(ik4) :: k
+    real(rk8) , pointer , dimension(:,:) :: ml2
+    do k = k1 , k2
+      call assignpnt(ml,ml2,k)
+      call real8_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
+    end do
   end subroutine real8_3d_exchange_right_top
-!
+
   subroutine real4_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            r4vector1(ib) = ml(j1+j-1,i,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    else
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j1+j-1,i,k)
-              ib = ib + 1
-            end do
-          end do
-        end do
-        call send_array(r4vector1,ssize,ma%left,tag_rl)
-      end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        call recv_array(r4vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r4vector1(ib) = ml(j,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%bottom,tag_tb)
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      call recv_array(r4vector2,ssize,ma%top,tag_tb)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i2+i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
+    integer(ik4) :: k
+    real(rk4) , pointer , dimension(:,:) :: ml2
+    do k = k1 , k2
+      call assignpnt(ml,ml2,k)
+      call real4_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
+    end do
   end subroutine real4_3d_exchange_right_top
-!
+
   subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r8vector1(ib) = ml(j1+j-1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    integer(ik4) :: k , n
+    real(rk8) , pointer , dimension(:,:) :: ml2
+    do n = n1 , n2
+      do k = k1 , k2
+        call assignpnt(ml,ml2,k,n)
+        call real8_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
       end do
-      call cyclic_exchange_array(r8vector1,r8vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    else
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r8vector1(ib) = ml(j1+j-1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call send_array(r8vector1,ssize,ma%left,tag_rl)
-      end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        call recv_array(r8vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r8vector1(ib) = ml(j,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%bottom,tag_tb)
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      call recv_array(r8vector2,ssize,ma%top,tag_tb)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r8vector1,ssize,ma%bottomleft,tag_trbl)
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i2+i,k,n) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
+    end do
   end subroutine real8_4d_exchange_right_top
-!
+
   subroutine real4_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    ksize = k2-k1+1
-    nsize = n2-n1+1
-    if ( ma%bandflag ) then
-      ssize = nex*isize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              r4vector1(ib) = ml(j1+j-1,i,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
+    integer(ik4) :: k , n
+    real(rk4) , pointer , dimension(:,:) :: ml2
+    do n = n1 , n2
+      do k = k1 , k2
+        call assignpnt(ml,ml2,k,n)
+        call real4_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
       end do
-      call cyclic_exchange_array(r4vector1,r4vector2, &
-                                 ssize,ma%left,ma%right,tag_rl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    else
-      if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                r4vector1(ib) = ml(j1+j-1,i,k,n)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-        call send_array(r4vector1,ssize,ma%left,tag_rl)
-      end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        call recv_array(r4vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
-      end if
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              r4vector1(ib) = ml(j,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%bottom,tag_tb)
-    end if
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize*nsize
-      call recv_array(r4vector2,ssize,ma%top,tag_tb)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize*nsize
-      call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
-      ib = 1
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i2+i,k,n) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
+    end do
   end subroutine real4_4d_exchange_right_top
-!
+
   subroutine real8_bdy_exchange_left_right(ml,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -7051,7 +4335,7 @@ module mod_mppparam
       end if
     end if
   end subroutine real8_bdy_exchange_left_right
-!
+
   subroutine real4_bdy_exchange_left_right(ml,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -7112,7 +4396,7 @@ module mod_mppparam
       end if
     end if
   end subroutine real4_bdy_exchange_left_right
-!
+
   subroutine real8_bdy_exchange_top_bottom(ml,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -7146,7 +4430,7 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_bdy_exchange_top_bottom
-!
+
   subroutine real4_bdy_exchange_top_bottom(ml,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -7180,7 +4464,7 @@ module mod_mppparam
       end do
     end if
   end subroutine real4_bdy_exchange_top_bottom
-!
+
   subroutine real8_2d_grid_fill_extend1(a,b)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
@@ -7206,7 +4490,7 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine real8_2d_grid_fill_extend1
-!
+
   subroutine real4_2d_grid_fill_extend1(a,b)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(in) :: a
@@ -7232,7 +4516,7 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine real4_2d_grid_fill_extend1
-!
+
   subroutine real8_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
     implicit none
     integer , intent(in) :: i1 , i2 , j1 , j2
@@ -7244,7 +4528,7 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine real8_2d_grid_fill_extend2
-!
+
   subroutine real4_2d_grid_fill_extend2(a,b,i1,i2,j1,j2)
     implicit none
     integer , intent(in) :: i1 , i2 , j1 , j2
@@ -7256,14 +4540,14 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine real4_2d_grid_fill_extend2
-!
-! Takes u and v tendencies on the cross grid (the same grid as t, qv, qc, etc.)
-! and interpolates the u and v to the dot grid.
-! This routine sheilds the user of the function from the need to worry
-! about the details of the domain decomposition.
-!
-! Written by Travis A. O'Brien 01/04/11.
-!
+  !
+  ! Takes u and v tendencies on the cross grid (as t, qv, qc, etc.)
+  ! and interpolates the u and v to the dot grid.
+  ! This routine sheilds the user of the function from the need to worry
+  ! about the details of the domain decomposition.
+  !
+  ! Written by Travis A. O'Brien 01/04/11.
+  !
   subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx

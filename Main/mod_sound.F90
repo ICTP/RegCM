@@ -158,6 +158,9 @@ module mod_sound
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
     character (len=32) :: appdat
+    character (len=*) , parameter :: f99003 =    &
+          '("CFL>1: CFL = ",f12.4," W = ",f12.4, &
+            "  I = ",i5,"  J = ",i5,"  K = ",i5 )'
     !
     ! Variables to implement upper radiative bc
     !
@@ -727,9 +730,7 @@ module mod_sound
             do j = jci1 , jci2
               cfl = abs(sigdot(j,i,k)) * dt / (dsigma(k)+dsigma(k-1))
               if ( cfl > d_one ) then
-                write(stderr,99003) cfl , atmc%w(j,i,k) , i , j , k
-    99003       format ('CFL>1: CFL = ',f12.4,' W = ',f12.4,'  I = ',i5, &
-                        '  J = ',i5,'  K = ',i5 )
+                write(stderr,f99003) cfl , atmc%w(j,i,k) , i , j , k
               end if
             end do
           end do

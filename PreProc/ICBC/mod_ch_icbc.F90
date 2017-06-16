@@ -303,7 +303,7 @@ module mod_ch_icbc
     integer(ik4) :: year , month , day , hour
     integer(ik4) :: year1 , month1 , day1 , hour1
     integer(ik4) :: nyear , nmonth , nday , nhour
-    integer :: ncid , istatus
+    integer :: ncid , istatus , ipunit
     type (rcm_time_interval) :: tdif
 
     call split_idate(idate,year,month,day,hour)
@@ -318,13 +318,13 @@ module mod_ch_icbc
     chfilemm='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mm
     chfilemmm1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmm1
     chfilemmp1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmp1
-    open(10,file=trim(inpglob)//pthsep//'OXIGLOB'//pthsep//'list')
+    open(newunit=ipunit,file=trim(inpglob)//pthsep//'OXIGLOB'//pthsep//'list')
 
     call split_idate(idate0,year1,month1,day1,hour1)
     call split_idate(idate,nyear,nmonth,nday,nhour)
     if ( nyear .eq. year1 .and. nmonth .eq. month1 .and. nhour .eq. hour1 ) then
       do i = 1 , nfile
-        read(10,*) filename(i)
+        read(ipunit,*) filename(i)
       end do
       recc=0
       do i = 1 , nfile
@@ -374,7 +374,7 @@ module mod_ch_icbc
         end if
       end do
     end do
-    rewind(10)
+    close(ipunit)
   end subroutine find_data
 
   subroutine readmz4(idate,chfilename)

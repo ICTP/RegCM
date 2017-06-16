@@ -262,26 +262,26 @@ module mod_lm_interface
     call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
 
 #ifdef DEBUG
-    write(ndebug+myid,*) 'TOTAL POINTS FOR LAND  IN LNDCOMM : ', &
+    write(ndebug,*) 'TOTAL POINTS FOR LAND  IN LNDCOMM : ', &
       lndcomm%linear_npoint_sg(myid+1)
-    write(ndebug+myid,*) 'Cartesian p ', lndcomm%cartesian_npoint_g
-    write(ndebug+myid,*) 'Cartesian d ', lndcomm%cartesian_displ_g
-    write(ndebug+myid,*) 'Linear    p ', lndcomm%linear_npoint_g
-    write(ndebug+myid,*) 'Linear    d ', lndcomm%linear_displ_g
-    write(ndebug+myid,*) 'Subgrid Cartesian p ', lndcomm%cartesian_npoint_sg
-    write(ndebug+myid,*) 'Subgrid Cartesian d ', lndcomm%cartesian_displ_sg
-    write(ndebug+myid,*) 'Subgrid Linear    p ', lndcomm%linear_npoint_sg
-    write(ndebug+myid,*) 'Subgrid Linear    d ', lndcomm%linear_displ_sg
-    write(ndebug+myid,*) 'TOTAL POINTS FOR OCEAN IN OCNCOMM : ', &
+    write(ndebug,*) 'Cartesian p ', lndcomm%cartesian_npoint_g
+    write(ndebug,*) 'Cartesian d ', lndcomm%cartesian_displ_g
+    write(ndebug,*) 'Linear    p ', lndcomm%linear_npoint_g
+    write(ndebug,*) 'Linear    d ', lndcomm%linear_displ_g
+    write(ndebug,*) 'Subgrid Cartesian p ', lndcomm%cartesian_npoint_sg
+    write(ndebug,*) 'Subgrid Cartesian d ', lndcomm%cartesian_displ_sg
+    write(ndebug,*) 'Subgrid Linear    p ', lndcomm%linear_npoint_sg
+    write(ndebug,*) 'Subgrid Linear    d ', lndcomm%linear_displ_sg
+    write(ndebug,*) 'TOTAL POINTS FOR OCEAN IN OCNCOMM : ', &
       ocncomm%linear_npoint_sg(myid+1)
-    write(ndebug+myid,*) 'Cartesian p ', ocncomm%cartesian_npoint_g
-    write(ndebug+myid,*) 'Cartesian d ', ocncomm%cartesian_displ_g
-    write(ndebug+myid,*) 'Linear    p ', ocncomm%linear_npoint_g
-    write(ndebug+myid,*) 'Linear    d ', ocncomm%linear_displ_g
-    write(ndebug+myid,*) 'Subgrid Cartesian p ', ocncomm%cartesian_npoint_sg
-    write(ndebug+myid,*) 'Subgrid Cartesian d ', ocncomm%cartesian_displ_sg
-    write(ndebug+myid,*) 'Subgrid Linear    p ', ocncomm%linear_npoint_sg
-    write(ndebug+myid,*) 'Subgrid Linear    d ', ocncomm%linear_displ_sg
+    write(ndebug,*) 'Cartesian p ', ocncomm%cartesian_npoint_g
+    write(ndebug,*) 'Cartesian d ', ocncomm%cartesian_displ_g
+    write(ndebug,*) 'Linear    p ', ocncomm%linear_npoint_g
+    write(ndebug,*) 'Linear    d ', ocncomm%linear_displ_g
+    write(ndebug,*) 'Subgrid Cartesian p ', ocncomm%cartesian_npoint_sg
+    write(ndebug,*) 'Subgrid Cartesian d ', ocncomm%cartesian_displ_sg
+    write(ndebug,*) 'Subgrid Linear    p ', ocncomm%linear_npoint_sg
+    write(ndebug,*) 'Subgrid Linear    d ', ocncomm%linear_displ_sg
 #endif
 
     call allocate_mod_bats_internal(lndcomm)
@@ -673,6 +673,15 @@ module mod_lm_interface
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
     integer :: i , j , n
     logical :: flag = .false.
+    character (len=*) , parameter :: f99001 =                   &
+       "(' ATM land-sea mask is changed at (',I3,',',I3,') : ', &
+          A5,' --> ',A5,' [',I2,']')"
+    character (len=*) , parameter :: f99002 =            &
+       "(' ATM sea-ice is formed at (',I3,',',I3,') : ', &
+          A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
+    character (len=*) , parameter :: f99003 =            &
+       "(' ATM sea-ice is melted at (',I3,',',I3,') : ', &
+          A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
     ! real(rkx) :: toth
     ! real(rkx) , parameter :: href = d_two * iceminh
     ! real(rkx) , parameter :: steepf = 1.0_rkx
@@ -741,7 +750,7 @@ module mod_lm_interface
 !             wetdry(j,i) = 1
 !             ! write debug info
 !             if (flag) then
-!               write(*,20) j, i, 'water', 'land ', lm%ldmsk(j,i)
+!               write(*,f99001) j, i, 'water', 'land ', lm%ldmsk(j,i)
 !             end if
 !           else
 !             if (lm%ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
@@ -756,7 +765,7 @@ module mod_lm_interface
 !               wetdry(j,i) = 0
 !               ! write debug info
 !               if (flag) then
-!                 write(*,20) j, i, 'land ', 'water', lm%ldmsk(j,i)
+!                 write(*,f99001) j, i, 'land ', 'water', lm%ldmsk(j,i)
 !               end if
 !             end if
 !           end if
@@ -779,7 +788,7 @@ module mod_lm_interface
               end do
               ! write debug info
               if ( flag ) then
-                write(*,30) j, i, 'water', 'ice  ', &
+                write(*,f99002) j, i, 'water', 'ice  ', &
                    lm%ldmsk(j,i), lms%sfice(1,j,i)
               end if
             else
@@ -802,7 +811,7 @@ module mod_lm_interface
                 end do
                 ! write debug info
                 if ( flag ) then
-                  write(*,40) j, i, 'ice  ', 'water',  &
+                  write(*,f99003) j, i, 'ice  ', 'water',  &
                     lm%ldmsk(j,i), lms%sfice(1,j,i)
                 end if
               end if
@@ -842,17 +851,6 @@ module mod_lm_interface
         end if
       end do
     end do
-    !
-    !-----------------------------------------------------------------------
-    ! Format definition
-    !-----------------------------------------------------------------------
-    !
-! 20 format(' ATM land-sea mask is changed at (',I3,',',I3,') : ',     &
-!             A5,' --> ',A5,' [',I2,']')
- 30 format(' ATM sea-ice is formed at (',I3,',',I3,') : ',            &
-             A5,' --> ',A5,' [',I2,' - ',F12.4,']')
- 40 format(' ATM sea-ice is melted at (',I3,',',I3,') : ',       &
-             A5,' --> ',A5,' [',I2,' - ',F12.4,']')
   end subroutine import_data_into_surface
 
   subroutine collect_output

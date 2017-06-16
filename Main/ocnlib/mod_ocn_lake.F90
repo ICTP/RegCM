@@ -76,7 +76,7 @@ module mod_ocn_lake
     lakmsk = (mask >= 3)
     nlakep = count(lakmsk)
 #ifdef DEBUG
-    write(ndebug+myid,*) 'NUMBER OF LAKE POINTS : ',nlakep
+    write(ndebug,*) 'NUMBER OF LAKE POINTS : ',nlakep
 #endif
     if ( nlakep == 0 ) return
     call getmem1d(idep,1,nlakep,'ocn::initlake::idep')

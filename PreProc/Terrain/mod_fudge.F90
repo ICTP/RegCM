@@ -28,7 +28,7 @@ module mod_fudge
 
   public :: lndfudge , texfudge , lakfudge
 
-  integer(ik4) , parameter :: iunit = 777
+  character(len=*) , parameter :: f99001 = '(132A1)'
 
   contains
 
@@ -40,6 +40,7 @@ module mod_fudge
     real(rkx) , dimension(jx,iy) :: lndout
     intent (in) char_lnd , fudge , iy , jx
     intent (inout) lndout
+    integer(ik4) :: iunit
     integer(ik4) :: i , j
     character(len=1) , dimension(jx,iy) :: ch
 
@@ -52,9 +53,9 @@ module mod_fudge
             ' FILE:  FILE DOES NOT EXIST'
         call die('lndfudge')
       endif
-      open (iunit,file=char_lnd,form='formatted')
+      open (newunit=iunit,file=char_lnd,form='formatted')
       do i = iy , 1 , -1
-        read (iunit,99001) (ch(j,i),j=1,jx)
+        read (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
       do i = 1 , iy
@@ -167,9 +168,9 @@ module mod_fudge
           end if
         end do
       end do
-      open (iunit,file=char_lnd,form='formatted',err=100)
+      open (newunit=iunit,file=char_lnd,form='formatted',err=100)
       do i = iy , 1 , -1
-        write (iunit,99001) (ch(j,i),j=1,jx)
+        write (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
     end if
@@ -178,7 +179,6 @@ module mod_fudge
     write (stderr, *)  'Is the directory "dirter" present?'
     write (stderr, *)  'Have you got write privileges on it?'
     call die('lndfudge','Path or permission problem',1)
-99001 format (132A1)
   end subroutine lndfudge
 
   subroutine texfudge(fudge,texout,lnduse,jx,iy,char_tex)
@@ -190,6 +190,7 @@ module mod_fudge
     intent (in) char_tex , fudge , iy , jx
     intent (inout) texout , lnduse
     integer(ik4) :: i , j
+    integer(ik4) :: iunit
     real(rkx) :: oval
     character(len=1) , dimension(jx,iy) :: ch
 
@@ -202,9 +203,9 @@ module mod_fudge
                  ' FILE:  FILE DOES NOT EXIST'
         call die('texfudge')
       endif
-      open (iunit,file=char_tex,form='formatted')
+      open (newunit=iunit,file=char_tex,form='formatted')
       do i = iy , 1 , -1
-        read (iunit,99001) (ch(j,i),j=1,jx)
+        read (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
       do i = 1 , iy
@@ -309,9 +310,9 @@ module mod_fudge
           end if
         end do
       end do
-      open (iunit,file=char_tex,form='formatted',err=100)
+      open (newunit=iunit,file=char_tex,form='formatted',err=100)
       do i = iy , 1 , -1
-        write (iunit,99001) (ch(j,i),j=1,jx)
+        write (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
     end if
@@ -320,7 +321,6 @@ module mod_fudge
     write (stderr, *)  'Is the directory "dirter" present?'
     write (stderr, *)  'Have you got write privileges on it?'
     call die('lndfudge','Path or permission problem',1)
-99001 format (132A1)
   end subroutine texfudge
 
   subroutine lakfudge(fudge,dpth,lnd,jx,iy,char_lak)
@@ -331,6 +331,7 @@ module mod_fudge
     real(rkx) , dimension(jx,iy) , intent(inout) :: dpth , lnd
     logical :: there
     integer(ik4) :: i , j
+    integer(ik4) :: iunit
     character(len=1) , dimension(jx,iy) :: ch
 
     if ( fudge ) then
@@ -342,9 +343,9 @@ module mod_fudge
             ' FILE:  FILE DOES NOT EXIST'
         call die('lakfudge')
       endif
-      open (iunit,file=char_lak,form='formatted')
+      open (newunit=iunit,file=char_lak,form='formatted')
       do i = iy , 1 , -1
-        read (iunit,99001) (ch(j,i),j=1,jx)
+        read (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
       do i = 1 , iy
@@ -371,9 +372,9 @@ module mod_fudge
           end if
         end do
       end do
-      open (iunit,file=char_lak,form='formatted',err=100)
+      open (newunit=iunit,file=char_lak,form='formatted',err=100)
       do i = iy , 1 , -1
-        write (iunit,99001) (ch(j,i),j=1,jx)
+        write (iunit,f99001) (ch(j,i),j=1,jx)
       end do
       close (iunit)
     end if
@@ -382,7 +383,6 @@ module mod_fudge
     write (stderr, *)  'Is the directory "dirter" present?'
     write (stderr, *)  'Have you got write privileges on it?'
     call die('lndfudge','Path or permission problem',1)
-99001 format (132A1)
   end subroutine lakfudge
 
 end module mod_fudge

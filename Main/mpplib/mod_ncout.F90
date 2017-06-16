@@ -515,7 +515,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( myid == italk) &
-      write(ndebug+myid,*) 'Enabling ',nstream,' output file streams'
+      write(ndebug,*) 'Enabling ',nstream,' output file streams'
 #endif
 
     enabled_stream_loop: &
@@ -2992,7 +2992,7 @@ module mod_ncout
             ncattribute_integer('chem_activate_diag',ichdiag))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_activate_smoke_tracers',ismoke))
-          
+
 
         end if
         if ( iocncpl == 1 .or. iwavcpl == 1 ) then
@@ -3438,7 +3438,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(ndebug+myid,*) &
+      write(ndebug,*) &
               'Writing var ',trim(vp%vname),' at time ',tochar(idate)
     end if
     select type(vp)
@@ -3447,29 +3447,29 @@ module mod_ncout
           vp%rval = d_zero
         end where
         if ( debug_level > 2 ) then
-          write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
-          write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
+          write(ndebug,*) 'Max Value : ', maxval(vp%rval)
+          write(ndebug,*) 'Min Value : ', minval(vp%rval)
         end if
       type is (ncvariable3d_mixed)
         where ( abs(vp%rval) < tiny(0.0) )
           vp%rval = d_zero
         end where
         if ( debug_level > 2 ) then
-          write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
-          write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
+          write(ndebug,*) 'Max Value : ', maxval(vp%rval)
+          write(ndebug,*) 'Min Value : ', minval(vp%rval)
         end if
       type is (ncvariable4d_mixed)
         where ( abs(vp%rval) < tiny(0.0) )
           vp%rval = d_zero
         end where
         if ( debug_level > 2 ) then
-          write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
-          write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
+          write(ndebug,*) 'Max Value : ', maxval(vp%rval)
+          write(ndebug,*) 'Min Value : ', minval(vp%rval)
         end if
       class default
     end select
     if ( debug_level > 2 ) then
-      flush(ndebug+myid)
+      flush(ndebug)
     end if
 #endif
       call outstream_writevar(outstream(istream)%ncout(jfile),vp)
@@ -3549,7 +3549,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(ndebug+myid,*) 'Writing var ',trim(vp%vname)
+      write(ndebug,*) 'Writing var ',trim(vp%vname)
     end if
 #endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)
@@ -3610,7 +3610,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(ndebug+myid,*) 'Writing var ',trim(vp%vname)
+      write(ndebug,*) 'Writing var ',trim(vp%vname)
     end if
 #endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)
@@ -3668,7 +3668,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(ndebug+myid,*) 'Writing var ',trim(vp%vname)
+      write(ndebug,*) 'Writing var ',trim(vp%vname)
     end if
 #endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)

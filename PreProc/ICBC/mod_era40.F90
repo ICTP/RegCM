@@ -204,6 +204,14 @@ module mod_era40
     integer(ik4) , dimension(5,4) , save :: inet6
     integer(ik4) , dimension(5,4) , save :: ivar6
     character(len=5) , dimension(5) :: varname
+    character (len=*) , parameter :: f99001 = '(i4,"/",a4,i4,".00.nc")'
+    character (len=*) , parameter :: f99002 = '(i4,"/",a4,i4,".06.nc")'
+    character (len=*) , parameter :: f99003 = '(i4,"/",a4,i4,".12.nc")'
+    character (len=*) , parameter :: f99004 = '(i4,"/",a4,i4,".18.nc")'
+    character (len=*) , parameter :: f99005 = '(i4,"/",a5,i4,".00.nc")'
+    character (len=*) , parameter :: f99006 = '(i4,"/",a5,i4,".06.nc")'
+    character (len=*) , parameter :: f99007 = '(i4,"/",a5,i4,".12.nc")'
+    character (len=*) , parameter :: f99008 = '(i4,"/",a5,i4,".18.nc")'
     data varname/'t' , 'z' , 'r' , 'u' , 'v'/
 
     call split_idate(idate,year,month,day,hour)
@@ -218,53 +226,53 @@ module mod_era40
         do kkrec = 1 , 5
           if ( kkrec == 1 ) then
             if ( k4 == 1 ) then
-              write (inname,99001) year , 'air.' , year
+              write (inname,f99001) year , 'air.' , year
             else if ( k4 == 2 ) then
-              write (inname,99002) year , 'air.' , year
+              write (inname,f99002) year , 'air.' , year
             else if ( k4 == 3 ) then
-              write (inname,99003) year , 'air.' , year
+              write (inname,f99003) year , 'air.' , year
             else if ( k4 == 4 ) then
-              write (inname,99004) year , 'air.' , year
+              write (inname,f99004) year , 'air.' , year
             end if
           else if ( kkrec == 2 ) then
             if ( k4 == 1 ) then
-              write (inname,99001) year , 'hgt.' , year
+              write (inname,f99001) year , 'hgt.' , year
             else if ( k4 == 2 ) then
-              write (inname,99002) year , 'hgt.' , year
+              write (inname,f99002) year , 'hgt.' , year
             else if ( k4 == 3 ) then
-              write (inname,99003) year , 'hgt.' , year
+              write (inname,f99003) year , 'hgt.' , year
             else if ( k4 == 4 ) then
-              write (inname,99004) year , 'hgt.' , year
+              write (inname,f99004) year , 'hgt.' , year
             end if
           else if ( kkrec == 3 ) then
             if ( k4 == 1 ) then
-              write (inname,99005) year , 'rhum.' , year
+              write (inname,f99005) year , 'rhum.' , year
             else if ( k4 == 2 ) then
-              write (inname,99006) year , 'rhum.' , year
+              write (inname,f99006) year , 'rhum.' , year
             else if ( k4 == 3 ) then
-              write (inname,99007) year , 'rhum.' , year
+              write (inname,f99007) year , 'rhum.' , year
             else if ( k4 == 4 ) then
-              write (inname,99008) year , 'rhum.' , year
+              write (inname,f99008) year , 'rhum.' , year
             end if
           else if ( kkrec == 4 ) then
             if ( k4 == 1 ) then
-              write (inname,99005) year , 'uwnd.' , year
+              write (inname,f99005) year , 'uwnd.' , year
             else if ( k4 == 2 ) then
-              write (inname,99006) year , 'uwnd.' , year
+              write (inname,f99006) year , 'uwnd.' , year
             else if ( k4 == 3 ) then
-              write (inname,99007) year , 'uwnd.' , year
+              write (inname,f99007) year , 'uwnd.' , year
             else if ( k4 == 4 ) then
-              write (inname,99008) year , 'uwnd.' , year
+              write (inname,f99008) year , 'uwnd.' , year
             end if
           else if ( kkrec == 5 ) then
             if ( k4 == 1 ) then
-              write (inname,99005) year , 'vwnd.' , year
+              write (inname,f99005) year , 'vwnd.' , year
             else if ( k4 == 2 ) then
-              write (inname,99006) year , 'vwnd.' , year
+              write (inname,f99006) year , 'vwnd.' , year
             else if ( k4 == 3 ) then
-              write (inname,99007) year , 'vwnd.' , year
+              write (inname,f99007) year , 'vwnd.' , year
             else if ( k4 == 4 ) then
-              write (inname,99008) year , 'vwnd.' , year
+              write (inname,f99008) year , 'vwnd.' , year
             end if
           end if
 
@@ -387,16 +395,6 @@ module mod_era40
         end do
       end if
     end do
-
-99001 format (i4,'/',a4,i4,'.00.nc')
-99002 format (i4,'/',a4,i4,'.06.nc')
-99003 format (i4,'/',a4,i4,'.12.nc')
-99004 format (i4,'/',a4,i4,'.18.nc')
-99005 format (i4,'/',a5,i4,'.00.nc')
-99006 format (i4,'/',a5,i4,'.06.nc')
-99007 format (i4,'/',a5,i4,'.12.nc')
-99008 format (i4,'/',a5,i4,'.18.nc')
-
   end subroutine era6hour
 
   subroutine conclude_era40

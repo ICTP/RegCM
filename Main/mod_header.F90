@@ -42,16 +42,16 @@ module mod_header
   subroutine whoami(myid)
     implicit none
     integer(ik4) , intent(in) :: myid
+    character(len=*) , parameter :: f99001 = &
+        '(2x," SVN Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
     if ( myid == iocpu ) then
       call cpu_time(start_time)
       last_time = start_time
       write (stdout,"(/,2x,'This is RegCM trunk')")
-      write (stdout,99001)  SVN_REV, __DATE__ , __TIME__
+      write (stdout,f99001)  SVN_REV, __DATE__ , __TIME__
     end if
 
-99001   format(2x,' SVN Revision: ',a,' compiled at: data : ',a,  &
-    &    '  time: ',a,/)
   end subroutine whoami
 
   subroutine header(myid,nproc)

@@ -85,7 +85,7 @@ module mod_cbmz_chemmech
 !
   integer(ik4) , parameter :: c_out = 27  ! Output unit
   integer(ik4) , parameter :: c_rin = 25  ! Input unit for REACTION.DAT (mechanism)
-  integer(ik4) , parameter :: c_hvin = 26 ! Input unit for TUVGRID2 (hv data)
+  integer(ik4) :: c_hvin ! Input unit for TUVGRID2 (hv data)
 !
 ! REACTION RATE PARAMETERS:
 !

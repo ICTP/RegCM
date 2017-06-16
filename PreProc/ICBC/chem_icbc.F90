@@ -43,7 +43,7 @@ program chem_icbc
   type(rcm_time_and_date) :: idate , iodate
   type(rcm_time_interval) :: tdif , tbdy
   integer(ik4) :: nnn , nsteps
-  integer(ik4) :: ierr
+  integer(ik4) :: ierr , ipunit
   character(len=256) :: namelistfile , prgname
   character(len=256) :: cdir , cname
   character(len=8)   :: chemsimtype
@@ -97,7 +97,7 @@ program chem_icbc
   end if
 
   ! Read also chemparam
-  open(ipunit, file=namelistfile, status='old', &
+  open(newunit=ipunit, file=namelistfile, status='old', &
        action='read', iostat=ierr)
   if ( ierr /= 0 ) then
     write (stderr,*) 'Parameter initialization not completed'

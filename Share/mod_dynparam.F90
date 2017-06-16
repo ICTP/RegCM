@@ -32,8 +32,6 @@ module mod_dynparam
   !
   ! PARAMETER definitions
   !
-  integer(ik4) , parameter :: ipunit = 255
-  !
   !################### GRID DIMENSION ####################################
   !
 
@@ -421,6 +419,7 @@ module mod_dynparam
     character (len=*) , intent(in) :: filename
     integer(ik4) , intent(out) :: ierr
     integer(ik4) :: gdate1 , gdate2 , iresult
+    integer(ik4) :: ipunit
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
@@ -446,8 +445,8 @@ module mod_dynparam
 #endif
     namelist /referenceatm/ base_state_pressure , logp_lrate
 
-    open(ipunit, file=filename, status='old', &
-                 action='read', iostat=iresult)
+    open(newunit=ipunit, file=filename, status='old', &
+         action='read', iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error opening input namelist file ',trim(filename)
       ierr = 1
@@ -686,11 +685,12 @@ module mod_dynparam
     character(len=*) , intent(in) :: filename
     character(len=256) , intent(out) :: coarse_outdir , coarse_domname
     integer(ik4) :: iresult
+    integer(ik4) :: ipunit
     namelist /fnestparam/ coarse_outdir , coarse_domname
 
     coarse_outdir = '        '
     coarse_domname = '        '
-    open(ipunit, file=filename, status='old', &
+    open(newunit=ipunit, file=filename, status='old', &
                  action='read', iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error opening input namelist file ',trim(filename)
@@ -708,6 +708,7 @@ module mod_dynparam
     character(len=*) , intent(in) :: filename
     real(rkx) , intent(out) :: lat0 , lat1 , lon0 , lon1
     integer(ik4) :: iresult
+    integer(ik4) :: ipunit
     namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
     lat0 = 0.0_rkx
@@ -715,7 +716,7 @@ module mod_dynparam
     lat1 = 0.0_rkx
     lon1 = 0.0_rkx
 
-    open(ipunit, file=filename, status='old', &
+    open(newunit=ipunit, file=filename, status='old', &
                  action='read', iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error opening input namelist file ',trim(filename)

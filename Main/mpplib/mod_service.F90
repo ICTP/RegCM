@@ -34,7 +34,7 @@ module mod_service
 
   integer(ik4) , parameter , public :: dbgslen = 64
   integer(ik4) , parameter , public :: dbglinelen = 80
-  integer(ik4) , parameter , public :: ndebug = 28 !! unit for debugging files
+  integer(ik4) , public :: ndebug
 
   type timing_info
     character(len=dbgslen) :: name_of_section
@@ -102,16 +102,16 @@ module mod_service
         end if
       end if
       write(string,'(a6,a3)') "debug_",np
-      open(ndebug+node,file=string,status='replace', &
+      open(newunit=ndebug,file=string,status='replace', &
               action='write',form='formatted',iostat=iretval)
       if ( iretval /= 0 ) then
         call fatal(__FILE__,__LINE__,'Cannot open debug files!')
       end if
-      idum = ndebug+node
-      write(ndebug+node,'(A20,'':'',A,i10)') &
+      idum = ndebug
+      write(ndebug,'(A20,'':'',A,i10)') &
           sub(1:20), 'DEBUGGING FILE CORRECTLY OPEN: unit is ', idum
       if ( present(level) ) debug_level = level
-      write(ndebug+node,'(A20,'':'',A,i10)') &
+      write(ndebug,'(A20,'':'',A,i10)') &
           sub(1:20), 'Default debug_level is ', debug_level
       ldebug = .true.
       stringa(1:dbgslen) = ' '
@@ -132,10 +132,10 @@ module mod_service
       if ( present(line) ) write(sline,'(1x,i6)') line
       write(string,'(A29,A20,A6,A8)') &
            'Debugging started in routine:',substr(1:20),', line',sline
-      write(ndebug+node,'(a80)') string
-      call flusha(ndebug+node)
+      write(ndebug,'(a80)') string
+      call flusha(ndebug)
       if ( ldebug ) then
-        write(ndebug+node,*) 'Debug already active, debug level = ', debug_level
+        write(ndebug,*) 'Debug already active, debug level = ', debug_level
       else
         ldebug = .true.
         if ( present(level) ) debug_level = level
@@ -160,8 +160,8 @@ module mod_service
            'Ending debug in routine:', substr(1:20), ", line", sline
       ldebug = .false.
       debug_level = 0
-      write(ndebug+node,'(a80)') string
-      call flusha(ndebug+node)
+      write(ndebug,'(a80)') string
+      call flusha(ndebug)
     end subroutine stop_debug
 
     subroutine time_begin(name,indx)
@@ -178,8 +178,8 @@ module mod_service
       if ( ldebug .and. (debug_level > 3) ) then
         nlevel = nlevel+1
         if ( nlevel <= 4 ) then
-          write(ndebug+node,*) stringa(1:nlevel*2),name(1:20),"(in)",nlevel
-          call flusha(ndebug+node)
+          write(ndebug,*) stringa(1:nlevel*2),name(1:20),"(in)",nlevel
+          call flusha(ndebug)
         end if
       end if
     end subroutine time_begin
@@ -199,9 +199,9 @@ module mod_service
       ! debugging stuff
       if ( ldebug .and. (debug_level > 3) ) then
         if ( nlevel <= 4 ) then
-          write(ndebug+node,*) &
+          write(ndebug,*) &
                stringa(1:nlevel*2),name_of_section(1:20),"(out)",nlevel
-          call flusha(ndebug+node)
+          call flusha(ndebug)
         end if
         nlevel = nlevel-1
       end if
@@ -260,7 +260,7 @@ module mod_service
       test = array_entries(0)
       do i = 1 , mxnode-1
         if ( array_entries(i) /= test ) then
-          write(ndebug+node,*) 'Warning:Different trees on different pe:',  &
+          write(ndebug,*) 'Warning:Different trees on different pe:',  &
                n_of_nsubs
           call fatal(__FILE__,__LINE__,'different trees on different pe!')
         end if
@@ -308,7 +308,7 @@ module mod_service
 
       !save anyway the data for each pe on debug unit:
       if ( ldebug ) then
-        write(ndebug+node,'(A20,'':'',A,i10)') &
+        write(ndebug,'(A20,'':'',A,i10)') &
           sub(1:20), 'Specific local time up to checkpoint for node', node
         do nsubs = 1 , n_of_nsubs
           cname = info_serial(nsubs)%name_of_section
@@ -316,10 +316,10 @@ module mod_service
             cname = "*" // info_serial(nsubs)%name_of_section
           end if
           if ( info_serial(nsubs)%n_of_time >= 1 ) then
-            write(ndebug+node,102) cname, &
+            write(ndebug,102) cname, &
                info_serial(nsubs)%n_of_time, &
                info_serial(nsubs)%total_time
-            call flusha(ndebug+node)
+            call flusha(ndebug)
           end if
         end do
       endif

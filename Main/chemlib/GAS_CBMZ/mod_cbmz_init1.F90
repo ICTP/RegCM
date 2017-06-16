@@ -2025,8 +2025,10 @@ module mod_cbmz_init1
 !  12/06 Written by Sandy Sillman from boxchemv7.f
 !
 ! -------------------------------------------------------------------
-    subroutine hvread
+    subroutine hvread(ip)
       implicit none
+      integer(ik4) , intent(in) :: ip
+      c_hvin = ip
       call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
     end subroutine hvread
 !

@@ -54,6 +54,7 @@ module mod_che_start
   subroutine start_chem
     implicit none
     integer(ik4) :: i , j , k , n , itr , ibin , jbin , kbin , mmin , mbin
+    integer(ik4) :: ipunit
     character(len=8) :: minamesav
 
     ! A : Intialise chemistry tracer indices
@@ -389,15 +390,16 @@ module mod_che_start
 !!$     end do
     if ( idust(1) > 0 .or. ichbion==1) then
       ! activate dust initialization
-      if ( myid == italk ) write(stdout,*) 'Calling inidust'
+      if ( myid == italk ) write(stdout,'(a)',advance='no') ' Calling inidust'
       call inidust
+      if ( myid == italk ) write(stdout,*) '. Success.'
     end if
 
     if ( ichbion == 1 ) call ini_bionit
 
     if ( igaschem == 1 ) then
-      open(26,file='TUVGRID2', status='old', err=900)
-      call hvread
+      open(newunit=ipunit,file='TUVGRID2', status='old', err=900)
+      call hvread(ipunit)
     end if
 
     call init_mod_che_ncio(chemsimtype)

@@ -17,9 +17,10 @@ module mod_cbmz_hvread
   ! Result: creates the hv input arrays:
   !     c_hvin, c_nhv, c_hvmat, c_hvmatb, c_jarray
   !
-  subroutine hvread
+  subroutine hvread(ip)
     implicit none
-    c_hvin = 26
+    integer(ik4) , intent(in) :: ip
+    c_hvin = ip
     call readhv(c_hvin,c_nhv,c_hvmat,c_hvmatb,c_jarray)
   end subroutine hvread
 

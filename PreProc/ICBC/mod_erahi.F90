@@ -420,6 +420,7 @@ module mod_erahi
     logical :: there
     real(rkx) :: slonmax , slonmin , xlonmax , xlonmin
     integer :: hireclen
+    character(len=*) , parameter :: f99001 = '(a,a,a,a,"EHI_",i10)'
 
     if ( idate == globidate1 ) then
       xlonmin = 400.0_rkx
@@ -439,7 +440,7 @@ module mod_erahi
       end do
       write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
     end if
-    write (finame,99001) trim(inpglob),pthsep,'ERAHI',pthsep,toint10(idate)
+    write (finame,f99001) trim(inpglob),pthsep,'ERAHI',pthsep,toint10(idate)
     inquire (file=finame,exist=there)
     if ( .not. there ) then
       call die('ERAHI', trim(finame)//' is not available',1)
@@ -565,7 +566,6 @@ module mod_erahi
     call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
 !$OMP END SECTIONS
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
-99001 format (a,a,a,a,'EHI_',i10)
   end subroutine get_ehi
 
   subroutine conclude_ehi

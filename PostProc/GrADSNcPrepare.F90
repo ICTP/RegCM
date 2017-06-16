@@ -63,7 +63,7 @@ program ncprepare
   logical , allocatable , dimension(:) :: lvarflag
   integer(ik4) , allocatable , dimension(:) :: dimids
   integer(ik4) :: ndims , nvars , natts , udimid , totvars
-  integer(ik4) :: ivarid , idimid , xtype
+  integer(ik4) :: ivarid , idimid , xtype , ip1 , ip2
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
   integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
   real(rkx) :: alat , alon , angle
@@ -131,21 +131,21 @@ program ncprepare
   call checkalloc(istatus,__FILE__,__LINE__, &
                   'dimids')
 
-  open(11, file=tmpctl, form='formatted', status='replace')
+  open(newunit=ip1, file=tmpctl, form='formatted', status='replace')
   if ( lclm ) then
-    write(11, '(a)') 'dset ^'//trim(clmfile(iid+1:))
-    write(11, '(a)') 'dtype netcdf'
-    write(11, '(a)') 'undef 1e+20_FillValue'
+    write(ip1, '(a)') 'dset ^'//trim(clmfile(iid+1:))
+    write(ip1, '(a)') 'dtype netcdf'
+    write(ip1, '(a)') 'undef 1e+20_FillValue'
   else
-    write(11, '(a)') 'dset ^'//trim(ncfile(iid+1:))
-    write(11, '(a)') 'dtype netcdf'
-    write(11, '(a)') 'undef 1e+20_FillValue'
+    write(ip1, '(a)') 'dset ^'//trim(ncfile(iid+1:))
+    write(ip1, '(a)') 'dtype netcdf'
+    write(ip1, '(a)') 'undef 1e+20_FillValue'
   end if
 
   istatus = nf90_get_att(ncid, nf90_global, 'title', charatt)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error reading title attribute')
-  write(11, '(a)') 'title '//trim(charatt)
+  write(ip1, '(a)') 'title '//trim(charatt)
 
   istatus = nf90_get_att(ncid, nf90_global, 'ipcc_scenario_code', charatt)
   if ( istatus == nf90_noerr ) then
@@ -243,12 +243,12 @@ program ncprepare
 #ifdef NETCDF4_HDF5
   if (ldepth) then
     if (iy*jx*64*4 > 524288) then
-      write(11, '(a)') 'cachesize ', 524288 ! 1MB
+      write(ip1, '(a)') 'cachesize ', 524288 ! 1MB
     else
-      write(11, '(a,i10)') 'cachesize ', iy*jx*nd*4
+      write(ip1, '(a,i10)') 'cachesize ', iy*jx*nd*4
     end if
   else
-    write(11, '(a,i10)') 'cachesize ', iy*jx*kz*4
+    write(ip1, '(a,i10)') 'cachesize ', iy*jx*kz*4
   end if
 #endif
 
@@ -431,11 +431,11 @@ program ncprepare
     r4in = real(rin)
     r4jn = real(rjn)
     r4uv = real(ruv)
-    open(12, file=tmpcoord, form='unformatted', status='replace')
-    write(12) r4in
-    write(12) r4jn
-    write(12) r4uv
-    close(12)
+    open(newunit=ip2, file=tmpcoord, form='unformatted', status='replace')
+    write(ip2) r4in
+    write(ip2) r4jn
+    write(ip2) r4uv
+    close(ip2)
   else
     write(stdout,*) 'Coordinate file exist, not recreating it'
   end if
@@ -444,15 +444,15 @@ program ncprepare
   deallocate(r4in,r4jn,r4uv)
 
   if ( lclm ) then
-    write(11, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
+    write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
            ' bilin sequential binary-big ', trim(tmpcoord)
   else
-    write(11, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
+    write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
            ' bilin sequential binary-big ^', trim(experiment)//'.coord'
   end if
-  write(11, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc
-  write(11, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
+  write(ip1, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
          minlat, rlatinc
 
   if (.not. ldepth .and. kz /= 0) then
@@ -476,12 +476,12 @@ program ncprepare
     if (lsigma) level = level * 1000.0
     write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f7.1)'
     write (levels, lvformat) 'zdef ', kz , ' levels ', level
-    write (11, '(a)') trim(levels)
+    write (ip1, '(a)') trim(levels)
     deallocate(level)
   else if (ldepth) then
-    write (11, '(a,i5,a,i5,i5)') 'zdef ', nd, ' linear ', 1, nd
+    write (ip1, '(a,i5,a,i5,i5)') 'zdef ', nd, ' linear ', 1, nd
   else
-    write (11, '(a)') 'zdef 1 levels 1000.0'
+    write (ip1, '(a)') 'zdef 1 levels 1000.0'
   end if
 
   if (nt > 1) then
@@ -522,21 +522,21 @@ program ncprepare
     deallocate(times)
     call split_idate(idate1,year,month,day,hour)
     if (delta == 24) then
-      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
+      write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
              'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 1dy'
     else if (delta == 168) then
-      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
+      write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,a)') &
              'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 7dy'
     else if (delta >= 672 .and. delta <= 744) then
-      write (11, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
+      write (ip1, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
              'tdef ', nt, ' linear ', '12', 'Z', '15', &
               cmon(month), year , ' 1mo'
     else if (delta > 8640) then
-      write (11, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
+      write (ip1, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
              'tdef ', nt, ' linear ', '12' , 'Z', '15' , &
              '06' , year , ' 1yr'
     else
-      write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
+      write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
              'tdef ', nt, ' linear ', hour, 'Z', day,  &
              cmon(month), year , delta, 'hr'
     end if
@@ -571,11 +571,11 @@ program ncprepare
     idate1 = timeval2date(time1, timeunit, timecal)
     delta = 6
     call split_idate(idate1,year,month,day,hour)
-    write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
+    write (ip1, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
            'tdef ', nt, ' linear ', hour, 'Z', day,  &
            cmon(month), year , delta, 'hr'
   else
-    write (11, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'
+    write (ip1, '(a)') 'tdef 1 linear 00Z31dec1999 1yr'
   end if
 
   totvars = 0
@@ -657,13 +657,13 @@ program ncprepare
   end do
 
   if ( lu ) then
-    write (11, '(a)') 'vectorpairs u,v'
+    write (ip1, '(a)') 'vectorpairs u,v'
   else if ( lua ) then
-    write (11, '(a)') 'vectorpairs ua,va'
+    write (ip1, '(a)') 'vectorpairs ua,va'
   else if ( luas ) then
-    write (11, '(a)') 'vectorpairs s01uas,s01vas'
+    write (ip1, '(a)') 'vectorpairs s01uas,s01vas'
   end if
-  write (11, '(a,i4)') 'vars ', totvars
+  write (ip1, '(a,i4)') 'vars ', totvars
 
   do i = 1 , nvars
     if (lvarflag(i) .eqv. .false.) cycle
@@ -735,7 +735,7 @@ program ncprepare
     end if
 
     if (.not. lvarsplit) then
-      write (11, '(a,a,a,a,a,a,a,a,a)') trim(varname),'=>',trim(varname), &
+      write (ip1, '(a,a,a,a,a,a,a,a,a)') trim(varname),'=>',trim(varname), &
                               trim(dimdesc), ' ', trim(vardesc) , ' (',   &
                               trim(varunit), ')'
     else if (idimid <= 4 .and. lvarsplit) then
@@ -748,13 +748,13 @@ program ncprepare
                       'Inquire split dimension')
       if (idimid == 3) then
         do j = 1 , isplit
-          write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+          write (ip1, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
                                 j, trim(varname), ' 0 ', j-1, ',y,x ',   &
                                 trim(vardesc) , ' (', trim(varunit), ')'
         end do
       else if (idimid == 4) then
         do j = 1 , isplit
-          write (11, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+          write (ip1, '(a,a,i0.2,a,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
                                 j, trim(varname), ' 0 t,', j-1, ',y,x ',   &
                                 trim(vardesc) , ' (', trim(varunit), ')'
         end do
@@ -769,11 +769,11 @@ program ncprepare
                       'Inquire split dimension')
       do j = 1 , isplit
         if (ldepth) then
-          write (11, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+          write (ip1, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
                     j, trim(varname)//' ', nd , ' t,', j-1, ',z,y,x ',   &
                     trim(vardesc) , ' (', trim(varunit), ')'
         else
-          write (11, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
+          write (ip1, '(a,a,i0.2,a,i2,a,i2,a,a,a,a,a)') trim(varname),'=>s', &
                     j, trim(varname)//' ', kz, ' t,', j-1, ',z,y,x ',   &
                     trim(vardesc) , ' (', trim(varunit), ')'
         end if
@@ -786,8 +786,8 @@ program ncprepare
   deallocate(lvarflag)
   deallocate(dimids)
 
-  write (11, '(a)') 'endvars'
-  close(11)
+  write (ip1, '(a)') 'endvars'
+  close(ip1)
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__, &

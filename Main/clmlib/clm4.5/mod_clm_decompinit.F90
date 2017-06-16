@@ -98,11 +98,11 @@ module mod_clm_decompinit
     procinfo%endp    = 0
 
 #ifdef DEBUG
-    write(ndebug+myid,*) 'TOTAL GRIDCELLS IN CLM45 DECOMP : ', numg
-    write(ndebug+myid,*) 'Linear    p ', procinfo%gc
-    write(ndebug+myid,*) 'Linear    d ', procinfo%gd
-    write(ndebug+myid,*) 'My begg     ', procinfo%begg
-    write(ndebug+myid,*) 'My endg     ', procinfo%endg
+    write(ndebug,*) 'TOTAL GRIDCELLS IN CLM45 DECOMP : ', numg
+    write(ndebug,*) 'Linear    p ', procinfo%gc
+    write(ndebug,*) 'Linear    d ', procinfo%gd
+    write(ndebug,*) 'My begg     ', procinfo%begg
+    write(ndebug,*) 'My endg     ', procinfo%endg
 #endif
 
   end subroutine decompInit_lnd
@@ -220,24 +220,24 @@ module mod_clm_decompinit
     end if
 
 #ifdef DEBUG
-    write(ndebug+myid,*)'proc= ',myid,&
+    write(ndebug,*)'proc= ',myid,&
                ' beg landunit= ',procinfo%begl, &
                ' end landunit= ',procinfo%endl,                   &
                ' total landunits per proc= ',procinfo%nlunits
-    write(ndebug+myid,*) 'Linear    p ', procinfo%lc
-    write(ndebug+myid,*) 'Linear    d ', procinfo%ld
-    write(ndebug+myid,*)'proc= ',myid,&
+    write(ndebug,*) 'Linear    p ', procinfo%lc
+    write(ndebug,*) 'Linear    d ', procinfo%ld
+    write(ndebug,*)'proc= ',myid,&
                ' beg column  = ',procinfo%begc, &
                ' end column  = ',procinfo%endc,                   &
                ' total columns per proc  = ',procinfo%ncols
-    write(ndebug+myid,*) 'Linear    p ', procinfo%cc
-    write(ndebug+myid,*) 'Linear    d ', procinfo%cd
-    write(ndebug+myid,*)'proc= ',myid,&
+    write(ndebug,*) 'Linear    p ', procinfo%cc
+    write(ndebug,*) 'Linear    d ', procinfo%cd
+    write(ndebug,*)'proc= ',myid,&
                ' beg pft     = ',procinfo%begp, &
                ' end pft     = ',procinfo%endp,                   &
                ' total pfts per proc     = ',procinfo%npfts
-    write(ndebug+myid,*) 'Linear    p ', procinfo%pc
-    write(ndebug+myid,*) 'Linear    d ', procinfo%pd
+    write(ndebug,*) 'Linear    p ', procinfo%pc
+    write(ndebug,*) 'Linear    d ', procinfo%pd
 #endif
 
   end subroutine decompInit_glcp

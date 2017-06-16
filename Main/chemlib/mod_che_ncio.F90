@@ -149,10 +149,10 @@ module mod_che_ncio
       end if
     end subroutine init_mod_che_ncio
 
-    subroutine read_texture(nats,texture)
+    subroutine read_texture(nats,rtex)
       implicit none
       integer(ik4) , intent(in) :: nats
-      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: texture
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: rtex
       integer(ik4) :: idmin
       integer(ik4) , dimension(3) :: istart , icount
       character(len=256) :: dname
@@ -170,8 +170,8 @@ module mod_che_ncio
         icount(3) = nats
         allocate(rspace(jde1:jde2,ide1:ide2,nats))
         call read_var3d_static(idmin,'texture_fraction',rspace, &
-          istart=istart,icount=icount)
-        texture(jci1:jci2,ici1:ici2,:) = &
+                               istart=istart,icount=icount)
+        rtex(jci1:jci2,ici1:ici2,:) = &
           max(rspace(jci1:jci2,ici1:ici2,:)*0.01_rkx,d_zero)
         call closefile(idmin)
         deallocate(rspace)
@@ -188,11 +188,11 @@ module mod_che_ncio
           call read_var3d_static(idmin,'texture_fraction',rspace, &
             istart=istart,icount=icount)
           rspace = max(rspace*0.01_rkx,d_zero)
-          call grid_distribute(rspace,texture,jci1,jci2,ici1,ici2,1,nats)
+          call grid_distribute(rspace,rtex,jci1,jci2,ici1,ici2,1,nats)
           call closefile(idmin)
           deallocate(rspace)
         else
-          call grid_distribute(rspace,texture,jci1,jci2,ici1,ici2,1,nats)
+          call grid_distribute(rspace,rtex,jci1,jci2,ici1,ici2,1,nats)
         end if
       end if
     end subroutine read_texture

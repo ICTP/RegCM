@@ -324,9 +324,8 @@ module mod_clm_histfile
       if ( myid == italk ) then
         write(stdout,*)' ******* MASTER FIELD LIST *******'
         do nf = 1 , nfmaster
-          write(stdout,9000) nf, masterlist(nf)%field%name, &
+          write(stdout,'(i5,1x,a32,1x,a16)') nf, masterlist(nf)%field%name, &
                   masterlist(nf)%field%units
-9000      format (i5,1x,a32,1x,a16)
         end do
       end if
     end if
@@ -1948,10 +1947,8 @@ module mod_clm_histfile
       hours   = nbsec / 3600
       minutes = (nbsec - hours*3600) / 60
       secs    = (nbsec - hours*3600 - minutes*60)
-      write(basedate,80) yr,mon,day
-80    format(i4.4,'-',i2.2,'-',i2.2)
-      write(basesec ,90) hours, minutes, secs
-90    format(i2.2,':',i2.2,':',i2.2)
+      write(basedate,"(i4.4,'-',i2.2,'-',i2.2)") yr,mon,day
+      write(basesec ,"(i2.2,':',i2.2,':',i2.2)") hours, minutes, secs
       str = 'hours since ' // basedate // " " // basesec
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                       varname='time',cdims=(/'time'/), &

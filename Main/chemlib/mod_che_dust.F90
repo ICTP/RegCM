@@ -190,7 +190,7 @@ module mod_che_dust
         call getmem1d(frac,1,nbin,'che_dust:frac')
         call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:cminer')
         call getmem3d(sminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:sminer')
-    end if
+      end if
       ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
     !

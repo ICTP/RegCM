@@ -232,7 +232,8 @@ module mod_clm_megan
 
         call destroy_parser_items( items )
 
-        write(token,333) shr_megan_mechcomps_n
+        ! Need to explicitly add Fl_ based on naming convention
+        write(token,"('Fall_voc',i3.3)") shr_megan_mechcomps_n
 
         if ( shr_megan_mechcomps_n == 1 ) then
           ! no not prepend ":" to the string for the first token
@@ -243,9 +244,6 @@ module mod_clm_megan
         end if
       end if
     end do
-
-    ! Need to explicitly add Fl_ based on naming convention
-333 format ('Fall_voc',i3.3)
 
   end subroutine shr_megan_init
 

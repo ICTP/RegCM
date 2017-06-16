@@ -91,6 +91,9 @@ program terrain
   real(rkx) :: psig , zsig , pstar , tswap
   real(rkx) :: ts0
   !type(globalfile) :: gfile
+  character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
+  character(len=*) , parameter :: f99002 = '(a,a,a,a)'
+
   data ibndry /.true./
 
   ! You should nor modify those, but it may help with "difficult" domains
@@ -352,10 +355,10 @@ program terrain
       end do
     end do
 
-    write (char_lnd,99001) trim(dirter), pthsep, trim(domname), &
+    write (char_lnd,f99001) trim(dirter), pthsep, trim(domname), &
            '_LANDUSE' , nsg
     call lndfudge(fudge_lnd_s,lndout_s,jxsg,iysg,trim(char_lnd))
-    write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
+    write (char_tex,f99001) trim(dirter), pthsep, trim(domname), &
            '_TEXTURE' , nsg
     allocate(tmptex(jxsg,iysg))
     tmptex(:,:) = texout_s(:,:)
@@ -567,9 +570,9 @@ program terrain
     end do
   end do
 
-  write (char_lnd,99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
+  write (char_lnd,f99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
   call lndfudge(fudge_lnd,lndout,jx,iy,trim(char_lnd))
-  write (char_tex,99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
+  write (char_tex,f99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
   allocate(tmptex(jx,iy))
   tmptex(:,:) = texout(:,:)
   call texfudge(fudge_tex,texout,lndout,jx,iy,trim(char_tex))
@@ -665,7 +668,7 @@ program terrain
   end if
 
   if ( lakedpth ) then
-    write (char_lak,99002) trim(dirter), pthsep, trim(domname), &
+    write (char_lak,f99002) trim(dirter), pthsep, trim(domname), &
              '_LAK'
     call lakfudge(fudge_lak,dpth,lndout,jx,iy,trim(char_lak))
   end if
@@ -701,7 +704,7 @@ program terrain
       end where
     end if
     if ( lakedpth ) then
-      write (char_lak,99001) trim(dirter), pthsep, trim(domname), &
+      write (char_lak,f99001) trim(dirter), pthsep, trim(domname), &
                '_LAK', nsg
       call lakfudge(fudge_lak_s,dpth_s,lndout_s,jxsg,iysg, &
                     trim(char_lak))
@@ -799,9 +802,6 @@ program terrain
   call memory_destroy
 
   write(stdout,*)'Successfully completed terrain fields generation'
-
-99001 format (a,a,a,a,i0.3)
-99002 format (a,a,a,a)
 
   contains
 
