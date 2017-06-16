@@ -70,7 +70,7 @@ module mod_service
       character(len=3) :: np = '   '
       character(len=9) :: string
       character(len=dbgslen) :: sub = 'activate_debug'
-      integer(ik4) :: idum , iretval
+      integer(ik4) :: iretval
 
       ! Number of processes
       node = myid
@@ -107,9 +107,8 @@ module mod_service
       if ( iretval /= 0 ) then
         call fatal(__FILE__,__LINE__,'Cannot open debug files!')
       end if
-      idum = ndebug
       write(ndebug,'(A20,'':'',A,i10)') &
-          sub(1:20), 'DEBUGGING FILE CORRECTLY OPEN: unit is ', idum
+          sub(1:20), 'DEBUGGING FILE CORRECTLY OPEN: unit is ', ndebug
       if ( present(level) ) debug_level = level
       write(ndebug,'(A20,'':'',A,i10)') &
           sub(1:20), 'Default debug_level is ', debug_level

@@ -160,7 +160,7 @@ module mod_sound
     character (len=32) :: appdat
     character (len=*) , parameter :: f99003 =    &
           '("CFL>1: CFL = ",f12.4," W = ",f12.4, &
-            "  I = ",i5,"  J = ",i5,"  K = ",i5 )'
+           &"  I = ",i5,"  J = ",i5,"  K = ",i5 )'
     !
     ! Variables to implement upper radiative bc
     !

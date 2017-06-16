@@ -673,15 +673,15 @@ module mod_lm_interface
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
     integer :: i , j , n
     logical :: flag = .false.
-    character (len=*) , parameter :: f99001 =                   &
-       "(' ATM land-sea mask is changed at (',I3,',',I3,') : ', &
-          A5,' --> ',A5,' [',I2,']')"
+!    character (len=*) , parameter :: f99001 =                   &
+!       "(' ATM land-sea mask is changed at (',I3,',',I3,') : ', &
+!          &A5,' --> ',A5,' [',I2,']')"
     character (len=*) , parameter :: f99002 =            &
        "(' ATM sea-ice is formed at (',I3,',',I3,') : ', &
-          A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
+          &A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
     character (len=*) , parameter :: f99003 =            &
        "(' ATM sea-ice is melted at (',I3,',',I3,') : ', &
-          A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
+          &A5,' --> ',A5,' [',I2,' - ',F12.4,']')"
     ! real(rkx) :: toth
     ! real(rkx) , parameter :: href = d_two * iceminh
     ! real(rkx) , parameter :: steepf = 1.0_rkx

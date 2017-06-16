@@ -34,8 +34,6 @@ module mod_posix
     character(len=1,kind=c_char) :: d_name(256)
   end type
 
-  integer(c_long) :: SEEK_SET = 0_c_long
-
   interface
     function opendir(a) bind(C,name='opendir')
       import
@@ -81,11 +79,9 @@ module mod_posix
     implicit none
     character(len=*) , intent(in) :: path
     type(direntry) , dimension(:) , pointer :: dire
-    integer(c_int) :: fres
     type(c_ptr) :: dir , dc
     integer(c_int) :: ires
     type(dirent) , pointer :: d
-    type(c_ptr) :: f_ptr
     integer :: i , ic , fnum
 
     if ( associated(dire) ) then
