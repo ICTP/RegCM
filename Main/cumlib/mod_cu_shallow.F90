@@ -158,10 +158,10 @@ module mod_cu_shallow
 
       real(rkx) , parameter :: ht1 = wlhv/cpd
       real(rkx) , parameter :: ht2 = wlhs/cpd
-      real(rkx) , parameter , dimension(2) :: be = (/ ep2*ht1/c287 , &
-                                                      ep2*ht2/c287 /)
-      real(rkx) , parameter , dimension(2) :: ae = (/ be(1)/tzero+log(c1es) , &
-                                                      be(2)/tzero+log(c1es) /)
+      real(rkx) , parameter , dimension(2) :: be = [ ep2*ht1/c287 , &
+                                                      ep2*ht2/c287 ]
+      real(rkx) , parameter , dimension(2) :: ae = [ be(1)/tzero+log(c1es) , &
+                                                      be(2)/tzero+log(c1es) ]
 
       rad(1) = rads
       xx(1) = 0.2_rkx/rad(1)

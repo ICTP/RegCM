@@ -592,16 +592,16 @@ module mod_clm_dust
     ! constants
     ! [m] Mass median diameter
     real(rk8) :: dmt_vma_src(dst_src_nbr) =    &
-         (/ 0.832e-6_rk8 , 4.82e-6_rk8 , 19.38e-6_rk8 /)        ! BSM96 p. 73 Table 2
+         [ 0.832e-6_rk8 , 4.82e-6_rk8 , 19.38e-6_rk8 ]        ! BSM96 p. 73 Table 2
     ! [frc] Geometric std deviation
     real(rk8) :: gsd_anl_src(dst_src_nbr) =    &
-         (/ 2.10_rk8     ,  1.90_rk8   , 1.60_rk8     /)        ! BSM96 p. 73 Table 2
+         [ 2.10_rk8     ,  1.90_rk8   , 1.60_rk8     ]        ! BSM96 p. 73 Table 2
     ! [frc] Mass fraction
     real(rk8) :: mss_frc_src(dst_src_nbr) =    &
-         (/ 0.036_rk8, 0.957_rk8, 0.007_rk8 /)                  ! BSM96 p. 73 Table 2
+         [ 0.036_rk8, 0.957_rk8, 0.007_rk8 ]                  ! BSM96 p. 73 Table 2
     ! [m] Particle diameter grid
     real(rk8) :: dmt_grd(5) =                  &
-         (/ 0.1e-6_rk8, 1.0e-6_rk8, 2.5e-6_rk8, 5.0e-6_rk8, 10.0e-6_rk8 /)
+         [ 0.1e-6_rk8, 1.0e-6_rk8, 2.5e-6_rk8, 5.0e-6_rk8, 10.0e-6_rk8 ]
     ! [m] Optim diam for saltation
     real(rk8), parameter :: dmt_slt_opt = 75.0e-6_rk8
     ! [kg m-3] Density of optimal saltation particles

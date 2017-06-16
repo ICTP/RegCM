@@ -32,8 +32,8 @@ module mod_message
 
   character , parameter :: esc = achar(27)
   integer(ik4) , parameter :: maxplot = 10
-  character , parameter :: plot(0:maxplot) = (/ &
-      ' ', '.', ',', ':', '=', '+', 'o', 'x', 'X', '#', '@' /)
+  character , parameter :: plot(0:maxplot) = [ &
+      ' ', '.', ',', ':', '=', '+', 'o', 'x', 'X', '#', '@' ]
 
   integer(ik4) :: rows = 24
   integer(ik4) :: cols = 48

@@ -109,7 +109,7 @@ module mod_clm_cnrest
 
     ! dormant_flag
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'dormant_flag',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'dormant_flag',['pft'], &
             long_name='dormancy flag',units='unitless' )
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dormant_flag') ) then
@@ -123,7 +123,7 @@ module mod_clm_cnrest
 
     ! days_active
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'days_active',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'days_active',['pft'], &
             long_name='number of days since last dormancy',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'days_active') ) then
@@ -137,7 +137,7 @@ module mod_clm_cnrest
 
     ! onset_flag
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_flag',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'onset_flag',['pft'], &
             long_name='flag if critical growing degree-day sum is exceeded', &
               units='unitless' )
     else if (flag == 'read') then
@@ -152,7 +152,7 @@ module mod_clm_cnrest
 
     ! onset_counter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_counter',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'onset_counter',['pft'], &
             long_name='onset days counter',units='sec' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_counter') ) then
@@ -166,7 +166,7 @@ module mod_clm_cnrest
 
     ! onset_gddflag
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_gddflag',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'onset_gddflag',['pft'], &
             long_name='onset flag for growing degree day sum',units='' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gddflag') ) then
@@ -180,7 +180,7 @@ module mod_clm_cnrest
 
     ! onset_fdd
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_fdd',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'onset_fdd',['pft'], &
             long_name='onset freezing degree days counter',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_fdd') ) then
@@ -194,7 +194,7 @@ module mod_clm_cnrest
 
     ! onset_gdd
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_gdd',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'onset_gdd',['pft'], &
             long_name='onset growing degree days',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gdd') ) then
@@ -208,7 +208,7 @@ module mod_clm_cnrest
 
     ! onset_swi
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_swi',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'onset_swi',['pft'], &
             long_name='onset soil water index',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_swi') ) then
@@ -222,7 +222,7 @@ module mod_clm_cnrest
 
     ! offset_flag
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_flag',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'offset_flag',['pft'], &
             long_name='offset flag',units='unitless' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_flag') ) then
@@ -236,7 +236,7 @@ module mod_clm_cnrest
 
     ! offset_counter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_counter',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'offset_counter',['pft'], &
             long_name='offset days counter',units='sec' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_counter') ) then
@@ -252,7 +252,7 @@ module mod_clm_cnrest
 
     ! offset_fdd
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_fdd',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'offset_fdd',['pft'], &
             long_name='offset freezing degree days counter',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_fdd') ) then
@@ -266,7 +266,7 @@ module mod_clm_cnrest
 
     ! offset_swi
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_swi',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'offset_swi',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_swi') ) then
@@ -281,7 +281,7 @@ module mod_clm_cnrest
 #if (defined CROP)
     ! fert_counter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fert_counter',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'fert_counter',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert_counter') ) then
@@ -296,7 +296,7 @@ module mod_clm_cnrest
     ! fert
     if ( crop_prog ) then
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'fert',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'fert',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert') ) then
@@ -312,7 +312,7 @@ module mod_clm_cnrest
 
     ! lgsf
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'lgsf',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'lgsf',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'lgsf') ) then
@@ -326,7 +326,7 @@ module mod_clm_cnrest
 
     ! bglfr
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'bglfr',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'bglfr',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bglfr') ) then
@@ -340,7 +340,7 @@ module mod_clm_cnrest
 
     ! bgtr
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'bgtr',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'bgtr',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bgtr') ) then
@@ -354,7 +354,7 @@ module mod_clm_cnrest
 
     ! dayl
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'dayl',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'dayl',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dayl') ) then
@@ -368,7 +368,7 @@ module mod_clm_cnrest
 
     ! prev_dayl
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prev_dayl',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'prev_dayl',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prev_dayl') ) then
@@ -382,7 +382,7 @@ module mod_clm_cnrest
 
     ! annavg_t2m
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'annavg_t2m',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'annavg_t2m',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annavg_t2m') ) then
@@ -396,7 +396,7 @@ module mod_clm_cnrest
 
     ! tempavg_t2m
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'tempavg_t2m',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'tempavg_t2m',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempavg_t2m') ) then
@@ -410,7 +410,7 @@ module mod_clm_cnrest
 
     ! gpp
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'gpp_pepv',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'gpp_pepv',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gpp_pepv') ) then
@@ -424,7 +424,7 @@ module mod_clm_cnrest
 
     ! availc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'availc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'availc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'availc') ) then
@@ -438,7 +438,7 @@ module mod_clm_cnrest
 
     ! xsmrpool_recover
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'xsmrpool_recover',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'xsmrpool_recover',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'xsmrpool_recover') ) then
@@ -454,7 +454,7 @@ module mod_clm_cnrest
 
     if ( use_c13 ) then
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'xsmrpool_c13ratio',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'xsmrpool_c13ratio',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau /= 0 .and. &
@@ -472,7 +472,7 @@ module mod_clm_cnrest
 
     ! alloc_pnow
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'alloc_pnow',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'alloc_pnow',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'alloc_pnow') ) then
@@ -486,7 +486,7 @@ module mod_clm_cnrest
 
     ! c_allometry
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'c_allometry',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'c_allometry',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'c_allometry') ) then
@@ -500,7 +500,7 @@ module mod_clm_cnrest
 
     ! n_allometry
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'n_allometry',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'n_allometry',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'n_allometry') ) then
@@ -514,7 +514,7 @@ module mod_clm_cnrest
 
     ! plant_ndemand
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'plant_ndemand',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'plant_ndemand',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'plant_ndemand') ) then
@@ -530,7 +530,7 @@ module mod_clm_cnrest
 
     ! tempsum_potential_gpp
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'tempsum_potential_gpp',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'tempsum_potential_gpp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -547,7 +547,7 @@ module mod_clm_cnrest
 
     !annsum_potential_gpp
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'annsum_potential_gpp',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'annsum_potential_gpp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -564,7 +564,7 @@ module mod_clm_cnrest
 
     ! tempmax_retransn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'tempmax_retransn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'tempmax_retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -581,7 +581,7 @@ module mod_clm_cnrest
 
     ! annmax_retransn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'annmax_retransn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'annmax_retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -598,7 +598,7 @@ module mod_clm_cnrest
 
     ! avail_retransn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'avail_retransn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'avail_retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -615,7 +615,7 @@ module mod_clm_cnrest
 
     ! plant_nalloc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'plant_nalloc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'plant_nalloc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'plant_nalloc') ) then
@@ -631,7 +631,7 @@ module mod_clm_cnrest
 
     ! plant_calloc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'plant_calloc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'plant_calloc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'plant_calloc') ) then
@@ -647,7 +647,7 @@ module mod_clm_cnrest
 
     ! excess_cflux
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'excess_cflux',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'excess_cflux',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'excess_cflux') ) then
@@ -663,7 +663,7 @@ module mod_clm_cnrest
 
     ! downreg
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'downreg',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'downreg',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
             if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'downreg') ) then
@@ -677,7 +677,7 @@ module mod_clm_cnrest
 
     ! prev_leafc_to_litter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prev_leafc_to_litter',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'prev_leafc_to_litter',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -694,7 +694,7 @@ module mod_clm_cnrest
 
     ! prev_frootc_to_litter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prev_frootc_to_litter',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'prev_frootc_to_litter',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -711,7 +711,7 @@ module mod_clm_cnrest
 
     ! tempsum_npp
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'tempsum_npp',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'tempsum_npp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempsum_npp') ) then
@@ -727,7 +727,7 @@ module mod_clm_cnrest
 
     ! annsum_npp
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'annsum_npp',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'annsum_npp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annsum_npp') ) then
@@ -744,7 +744,7 @@ module mod_clm_cnrest
     if ( use_c13 ) then
       ! rc13_canair
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'rc13_canair',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'rc13_canair',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_canair') ) then
@@ -760,7 +760,7 @@ module mod_clm_cnrest
 
       ! rc13_psnsun
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'rc13_psnsun',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'rc13_psnsun',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_psnsun') ) then
@@ -776,7 +776,7 @@ module mod_clm_cnrest
 
       ! rc13_psnsha
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'rc13_psnsha',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'rc13_psnsha',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_psnsha') ) then
@@ -794,7 +794,7 @@ module mod_clm_cnrest
 #if (defined CROP)
     ! grain_flag
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grain_flag',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grain_flag',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'grain_flag') ) then
@@ -815,7 +815,7 @@ module mod_clm_cnrest
 
     ! leafc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'leafc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'leafc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc') ) then
@@ -829,7 +829,7 @@ module mod_clm_cnrest
 
     ! leafc_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'leafc_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'leafc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc_storage') ) then
@@ -845,7 +845,7 @@ module mod_clm_cnrest
 
     ! leafc_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'leafc_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'leafc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc_xfer') ) then
@@ -859,7 +859,7 @@ module mod_clm_cnrest
 
     ! frootc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'frootc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'frootc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc') ) then
@@ -873,7 +873,7 @@ module mod_clm_cnrest
 
     ! frootc_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'frootc_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'frootc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc_storage') ) then
@@ -889,7 +889,7 @@ module mod_clm_cnrest
 
     !frootc_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'frootc_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'frootc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc_xfer') ) then
@@ -903,7 +903,7 @@ module mod_clm_cnrest
 
     ! livestemc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livestemc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc') ) then
@@ -917,7 +917,7 @@ module mod_clm_cnrest
 
     ! livestemc_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemc_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livestemc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc_storage') ) then
@@ -933,7 +933,7 @@ module mod_clm_cnrest
 
     ! livestemc_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemc_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livestemc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc_xfer') ) then
@@ -949,7 +949,7 @@ module mod_clm_cnrest
 
     ! deadstemc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadstemc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadstemc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc') ) then
@@ -963,7 +963,7 @@ module mod_clm_cnrest
 
     ! deadstemc_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadstemc_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadstemc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc_storage') ) then
@@ -979,7 +979,7 @@ module mod_clm_cnrest
 
     ! deadstemc_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadstemc_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadstemc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc_xfer') ) then
@@ -995,7 +995,7 @@ module mod_clm_cnrest
 
     ! livecrootc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livecrootc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livecrootc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livecrootc') ) then
@@ -1009,7 +1009,7 @@ module mod_clm_cnrest
 
     ! livecrootc_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livecrootc_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livecrootc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -1026,7 +1026,7 @@ module mod_clm_cnrest
 
     ! livecrootc_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livecrootc_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livecrootc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livecrootc_xfer') ) then
@@ -1042,7 +1042,7 @@ module mod_clm_cnrest
 
     ! deadcrootc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadcrootc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadcrootc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadcrootc') ) then
@@ -1056,7 +1056,7 @@ module mod_clm_cnrest
 
     ! deadcrootc_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadcrootc_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadcrootc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -1073,7 +1073,7 @@ module mod_clm_cnrest
 
     ! deadcrootc_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadcrootc_xfer') ) then
@@ -1089,7 +1089,7 @@ module mod_clm_cnrest
 
     ! gresp_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'gresp_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'gresp_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gresp_storage') ) then
@@ -1105,7 +1105,7 @@ module mod_clm_cnrest
 
     ! gresp_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'gresp_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'gresp_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gresp_xfer') ) then
@@ -1119,7 +1119,7 @@ module mod_clm_cnrest
 
     ! cpool
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'cpool',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'cpool',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'cpool') ) then
@@ -1133,7 +1133,7 @@ module mod_clm_cnrest
 
     ! xsmrpool
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'xsmrpool',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'xsmrpool',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'xsmrpool') ) then
@@ -1147,7 +1147,7 @@ module mod_clm_cnrest
 
     ! pft_ctrunc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'pft_ctrunc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'pft_ctrunc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'pft_ctrunc') ) then
@@ -1161,7 +1161,7 @@ module mod_clm_cnrest
 
     ! totvegc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'totvegc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'totvegc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totvegc') ) then
@@ -1180,7 +1180,7 @@ module mod_clm_cnrest
 
       ! leafc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'leafc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'leafc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_13') ) then
@@ -1205,7 +1205,7 @@ module mod_clm_cnrest
 
       ! leafc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'leafc_storage_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'leafc_storage_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_storage_13') ) then
@@ -1233,7 +1233,7 @@ module mod_clm_cnrest
 
       ! leafc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'leafc_xfer_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'leafc_xfer_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_xfer_13') ) then
@@ -1261,7 +1261,7 @@ module mod_clm_cnrest
 
       ! frootc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'frootc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'frootc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_13') ) then
@@ -1287,7 +1287,7 @@ module mod_clm_cnrest
 
       ! frootc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'frootc_storage_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'frootc_storage_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_storage_13') ) then
@@ -1315,7 +1315,7 @@ module mod_clm_cnrest
 
       !frootc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'frootc_xfer_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'frootc_xfer_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_xfer_13') ) then
@@ -1343,7 +1343,7 @@ module mod_clm_cnrest
 
       ! livestemc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livestemc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livestemc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_13') ) then
@@ -1371,7 +1371,7 @@ module mod_clm_cnrest
 
       ! livestemc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livestemc_storage_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livestemc_storage_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_storage_13') ) then
@@ -1401,7 +1401,7 @@ module mod_clm_cnrest
 
       ! livestemc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livestemc_xfer_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livestemc_xfer_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_xfer_13') ) then
@@ -1429,7 +1429,7 @@ module mod_clm_cnrest
 
       ! deadstemc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadstemc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadstemc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_13') ) then
@@ -1457,7 +1457,7 @@ module mod_clm_cnrest
 
       ! deadstemc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadstemc_storage_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadstemc_storage_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_storage_13') ) then
@@ -1487,7 +1487,7 @@ module mod_clm_cnrest
 
       ! deadstemc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadstemc_xfer_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadstemc_xfer_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_xfer_13') ) then
@@ -1515,7 +1515,7 @@ module mod_clm_cnrest
 
       ! livecrootc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livecrootc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livecrootc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_13') ) then
@@ -1543,7 +1543,7 @@ module mod_clm_cnrest
 
       ! livecrootc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livecrootc_storage_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livecrootc_storage_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_storage_13') ) then
@@ -1573,7 +1573,7 @@ module mod_clm_cnrest
 
       ! livecrootc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livecrootc_xfer_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livecrootc_xfer_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_xfer_13') ) then
@@ -1601,7 +1601,7 @@ module mod_clm_cnrest
 
       ! deadcrootc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadcrootc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_13') ) then
@@ -1629,7 +1629,7 @@ module mod_clm_cnrest
 
       ! deadcrootc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadcrootc_storage_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_storage_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_storage_13') ) then
@@ -1659,7 +1659,7 @@ module mod_clm_cnrest
 
       ! deadcrootc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_xfer_13') ) then
@@ -1687,7 +1687,7 @@ module mod_clm_cnrest
 
       ! gresp_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'gresp_storage_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'gresp_storage_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_storage_13') ) then
@@ -1715,7 +1715,7 @@ module mod_clm_cnrest
 
       ! gresp_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'gresp_xfer_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'gresp_xfer_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_xfer_13') ) then
@@ -1743,7 +1743,7 @@ module mod_clm_cnrest
 
       ! cpool
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'cpool_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'cpool_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'cpool_13') ) then
@@ -1769,7 +1769,7 @@ module mod_clm_cnrest
 
       ! xsmrpool
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'xsmrpool_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'xsmrpool_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'xsmrpool_13') ) then
@@ -1795,7 +1795,7 @@ module mod_clm_cnrest
 
       ! pft_ctrunc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'pft_ctrunc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'pft_ctrunc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'pft_ctrunc_13') ) then
@@ -1821,7 +1821,7 @@ module mod_clm_cnrest
 
       ! totvegc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'totvegc_13',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'totvegc_13',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'totvegc_13') ) then
@@ -1853,7 +1853,7 @@ module mod_clm_cnrest
 
       ! leafc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'leafc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'leafc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_14') ) then
@@ -1878,7 +1878,7 @@ module mod_clm_cnrest
 
       ! leafc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'leafc_storage_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'leafc_storage_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_storage_14') ) then
@@ -1906,7 +1906,7 @@ module mod_clm_cnrest
 
       ! leafc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'leafc_xfer_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'leafc_xfer_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_xfer_14') ) then
@@ -1933,7 +1933,7 @@ module mod_clm_cnrest
 
       ! frootc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'frootc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'frootc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_14') ) then
@@ -1960,7 +1960,7 @@ module mod_clm_cnrest
 
       ! frootc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'frootc_storage_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'frootc_storage_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_storage_14') ) then
@@ -1988,7 +1988,7 @@ module mod_clm_cnrest
 
       !frootc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'frootc_xfer_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'frootc_xfer_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_xfer_14') ) then
@@ -2015,7 +2015,7 @@ module mod_clm_cnrest
 
       ! livestemc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livestemc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livestemc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_14') ) then
@@ -2042,7 +2042,7 @@ module mod_clm_cnrest
 
       ! livestemc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livestemc_storage_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livestemc_storage_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_storage_14') ) then
@@ -2070,7 +2070,7 @@ module mod_clm_cnrest
 
       ! livestemc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livestemc_xfer_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livestemc_xfer_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_xfer_14') ) then
@@ -2098,7 +2098,7 @@ module mod_clm_cnrest
 
       ! deadstemc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadstemc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadstemc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_14') ) then
@@ -2125,7 +2125,7 @@ module mod_clm_cnrest
 
       ! deadstemc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadstemc_storage_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadstemc_storage_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_storage_14') ) then
@@ -2153,7 +2153,7 @@ module mod_clm_cnrest
 
       ! deadstemc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadstemc_xfer_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadstemc_xfer_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_xfer_14') ) then
@@ -2181,7 +2181,7 @@ module mod_clm_cnrest
 
       ! livecrootc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livecrootc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livecrootc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_14') ) then
@@ -2208,7 +2208,7 @@ module mod_clm_cnrest
 
       ! livecrootc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livecrootc_storage_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livecrootc_storage_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_storage_14') ) then
@@ -2236,7 +2236,7 @@ module mod_clm_cnrest
 
       ! livecrootc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'livecrootc_xfer_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'livecrootc_xfer_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_xfer_14') ) then
@@ -2264,7 +2264,7 @@ module mod_clm_cnrest
 
       ! deadcrootc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadcrootc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_14') ) then
@@ -2291,7 +2291,7 @@ module mod_clm_cnrest
 
       ! deadcrootc_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadcrootc_storage_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_storage_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_storage_14') ) then
@@ -2319,7 +2319,7 @@ module mod_clm_cnrest
 
       ! deadcrootc_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_xfer_14') ) then
@@ -2347,7 +2347,7 @@ module mod_clm_cnrest
 
       ! gresp_storage
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'gresp_storage_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'gresp_storage_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_storage_14') ) then
@@ -2375,7 +2375,7 @@ module mod_clm_cnrest
 
       ! gresp_xfer
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'gresp_xfer_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'gresp_xfer_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_xfer_14') ) then
@@ -2402,7 +2402,7 @@ module mod_clm_cnrest
 
       ! cpool
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'cpool_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'cpool_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'cpool_14') ) then
@@ -2427,7 +2427,7 @@ module mod_clm_cnrest
 
       ! xsmrpool
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'xsmrpool_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'xsmrpool_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'xsmrpool_14') ) then
@@ -2452,7 +2452,7 @@ module mod_clm_cnrest
 
       ! pft_ctrunc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'pft_ctrunc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'pft_ctrunc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'pft_ctrunc_14') ) then
@@ -2477,7 +2477,7 @@ module mod_clm_cnrest
 
       ! totvegc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'totvegc_14',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'totvegc_14',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'totvegc_14') ) then
@@ -2502,7 +2502,7 @@ module mod_clm_cnrest
 
       ! rc14_atm
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'rc14_atm',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'rc14_atm',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'rc14_atm') ) then
@@ -2529,7 +2529,7 @@ module mod_clm_cnrest
 
     ! leafn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'leafn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'leafn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2544,7 +2544,7 @@ module mod_clm_cnrest
 
     ! leafn_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'leafn_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'leafn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2559,7 +2559,7 @@ module mod_clm_cnrest
 
     ! leafn_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'leafn_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'leafn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2574,7 +2574,7 @@ module mod_clm_cnrest
 
     ! frootn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'frootn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'frootn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2589,7 +2589,7 @@ module mod_clm_cnrest
 
     ! frootn_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'frootn_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'frootn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2606,7 +2606,7 @@ module mod_clm_cnrest
 
     ! frootn_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'frootn_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'frootn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2621,7 +2621,7 @@ module mod_clm_cnrest
 
     ! livestemn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livestemn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2636,7 +2636,7 @@ module mod_clm_cnrest
 
     ! livestemn_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemn_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livestemn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2653,7 +2653,7 @@ module mod_clm_cnrest
 
     ! livestemn_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemn_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livestemn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2670,7 +2670,7 @@ module mod_clm_cnrest
 
     ! deadstemn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadstemn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadstemn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2685,7 +2685,7 @@ module mod_clm_cnrest
 
     !deadstemn_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadstemn_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadstemn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2702,7 +2702,7 @@ module mod_clm_cnrest
 
     !deadstemn_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadstemn_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadstemn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2719,7 +2719,7 @@ module mod_clm_cnrest
 
     ! livecrootn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livecrootn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livecrootn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2734,7 +2734,7 @@ module mod_clm_cnrest
 
     ! livecrootn_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livecrootn_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livecrootn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2751,7 +2751,7 @@ module mod_clm_cnrest
 
     ! livecrootn_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livecrootn_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'livecrootn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2768,7 +2768,7 @@ module mod_clm_cnrest
 
     ! deadcrootn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadcrootn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadcrootn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2783,7 +2783,7 @@ module mod_clm_cnrest
 
     ! deadcrootn_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadcrootn_storage',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadcrootn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2800,7 +2800,7 @@ module mod_clm_cnrest
 
     ! deadcrootn_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'deadcrootn_xfer',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'deadcrootn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2817,7 +2817,7 @@ module mod_clm_cnrest
 
     !retransn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'retransn',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2832,7 +2832,7 @@ module mod_clm_cnrest
 
     ! npool
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'npool',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'npool',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2847,7 +2847,7 @@ module mod_clm_cnrest
 
     ! pft_ntrunc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'pft_ntrunc',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'pft_ntrunc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2866,7 +2866,7 @@ module mod_clm_cnrest
 
     ! decl
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'decl',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'decl',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. &
@@ -2910,7 +2910,7 @@ module mod_clm_cnrest
 
     ! fpg
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fpg',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'fpg',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fpg') ) then
@@ -2924,7 +2924,7 @@ module mod_clm_cnrest
 
     ! annsum_counter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'annsum_counter',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'annsum_counter',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annsum_counter') ) then
@@ -2940,7 +2940,7 @@ module mod_clm_cnrest
 
     ! cannsum_npp
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'cannsum_npp',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'cannsum_npp',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'cannsum_npp') ) then
@@ -2956,7 +2956,7 @@ module mod_clm_cnrest
 
     ! col_lag_npp
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'col_lag_npp',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'col_lag_npp',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'col_lag_npp') ) then
@@ -2972,7 +2972,7 @@ module mod_clm_cnrest
 
     ! cannavg_t2m
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'cannavg_t2m',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'cannavg_t2m',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'cannavg_t2m') ) then
@@ -2989,7 +2989,7 @@ module mod_clm_cnrest
     ! for fire model changed by F. Li and S. Levis
     !  burndate
     if (flag == 'define') then
-      call clm_addvar(clmvar_integer,ncid,'burndate',(/'pft'/), &
+      call clm_addvar(clmvar_integer,ncid,'burndate',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'burndate') ) then
@@ -3003,7 +3003,7 @@ module mod_clm_cnrest
 
     !lfc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'lfc',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'lfc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'lfc') ) then
@@ -3017,7 +3017,7 @@ module mod_clm_cnrest
 
     !wf
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'wf',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'wf',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'wf') ) then
@@ -3031,7 +3031,7 @@ module mod_clm_cnrest
 
     !btran2
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'btran2',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'btran2',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'btran2') ) then
@@ -3045,7 +3045,7 @@ module mod_clm_cnrest
 
     !farea_burned
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'farea_burned',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'farea_burned',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'farea_burned') ) then
@@ -3059,7 +3059,7 @@ module mod_clm_cnrest
 
     !baf_crop
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'baf_crop',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'baf_crop',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'baf_crop') ) then
@@ -3073,7 +3073,7 @@ module mod_clm_cnrest
 
     !baf_peatf
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'baf_peatf',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'baf_peatf',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'baf_peatf') ) then
@@ -3087,7 +3087,7 @@ module mod_clm_cnrest
 
     !fbac
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fbac',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'fbac',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fbac') ) then
@@ -3101,7 +3101,7 @@ module mod_clm_cnrest
 
     !fbac1
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fbac1',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'fbac1',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fbac1') ) then
@@ -3141,7 +3141,7 @@ module mod_clm_cnrest
 
     ! altmax
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'altmax',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'altmax',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'altmax') ) then
@@ -3155,7 +3155,7 @@ module mod_clm_cnrest
 
     ! altmax_lastyear
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'altmax_lastyear',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'altmax_lastyear',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'altmax_lastyear') ) then
@@ -3171,7 +3171,7 @@ module mod_clm_cnrest
 
     ! altmax_indx
     if (flag == 'define') then
-      call clm_addvar(clmvar_integer,ncid,'altmax_indx',(/'column'/), &
+      call clm_addvar(clmvar_integer,ncid,'altmax_indx',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'altmax_indx') ) then
@@ -3187,7 +3187,7 @@ module mod_clm_cnrest
 
     ! altmax_lastyear_indx
     if (flag == 'define') then
-      call clm_addvar(clmvar_integer,ncid,'altmax_lastyear_indx',(/'column'/), &
+      call clm_addvar(clmvar_integer,ncid,'altmax_lastyear_indx',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. &
@@ -3204,7 +3204,7 @@ module mod_clm_cnrest
 
     ! seedc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'seedc',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'seedc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'seedc') ) then
@@ -3218,7 +3218,7 @@ module mod_clm_cnrest
 
     ! totlitc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'totlitc',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'totlitc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totlitc') ) then
@@ -3232,7 +3232,7 @@ module mod_clm_cnrest
 
     ! totcolc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'totcolc',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'totcolc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totcolc') ) then
@@ -3246,7 +3246,7 @@ module mod_clm_cnrest
 
     ! prod10c
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prod10c',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'prod10c',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod10c') ) then
@@ -3260,7 +3260,7 @@ module mod_clm_cnrest
 
     ! prod100c
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prod100c',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'prod100c',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod100c') ) then
@@ -3274,7 +3274,7 @@ module mod_clm_cnrest
 
     ! totsomc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'totsomc',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'totsomc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totsomc') ) then
@@ -3313,7 +3313,7 @@ module mod_clm_cnrest
 
       ! seedc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'seedc_13',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'seedc_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3341,7 +3341,7 @@ module mod_clm_cnrest
 
       ! totlitc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'totlitc_13',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'totlitc_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3364,7 +3364,7 @@ module mod_clm_cnrest
 
       ! totcolc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'totcolc_13',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'totcolc_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3387,7 +3387,7 @@ module mod_clm_cnrest
 
       ! prod10c
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'prod10c_13',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'prod10c_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3410,7 +3410,7 @@ module mod_clm_cnrest
 
       ! prod100c
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'prod100c_13',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'prod100c_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3460,7 +3460,7 @@ module mod_clm_cnrest
 
       ! seedc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'seedc_14',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'seedc_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3488,7 +3488,7 @@ module mod_clm_cnrest
 
       ! totlitc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'totlitc_14',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'totlitc_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3511,7 +3511,7 @@ module mod_clm_cnrest
 
       ! totcolc
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'totcolc_14',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'totcolc_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3534,7 +3534,7 @@ module mod_clm_cnrest
 
       ! prod10c
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'prod10c_14',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'prod10c_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3557,7 +3557,7 @@ module mod_clm_cnrest
 
       ! prod100c
       if (flag == 'define') then
-        call clm_addvar(clmvar_double,ncid,'prod100c_14',(/'column'/), &
+        call clm_addvar(clmvar_double,ncid,'prod100c_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
         if ( ktau == 0 ) then
@@ -3625,7 +3625,7 @@ module mod_clm_cnrest
 
     ! totcoln
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'totcoln',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'totcoln',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totcoln') ) then
@@ -3639,7 +3639,7 @@ module mod_clm_cnrest
 
     ! seedn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'seedn',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'seedn',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'seedn') ) then
@@ -3653,7 +3653,7 @@ module mod_clm_cnrest
 
     ! prod10n
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prod10n',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'prod10n',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod10n') ) then
@@ -3667,7 +3667,7 @@ module mod_clm_cnrest
 
     ! prod100n
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prod100n',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'prod100n',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod100n') ) then
@@ -3834,7 +3834,7 @@ module mod_clm_cnrest
 #if (defined CNDV)
     ! pft type dgvm physical state - crownarea
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'CROWNAREA',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'CROWNAREA',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'CROWNAREA') ) then
@@ -3848,7 +3848,7 @@ module mod_clm_cnrest
 
     ! tempsum_litfall
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'tempsum_litfall',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'tempsum_litfall',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempsum_litfall') ) then
@@ -3864,7 +3864,7 @@ module mod_clm_cnrest
 
     ! annsum_litfall
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'annsum_litfall',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'annsum_litfall',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annsum_litfall') ) then
@@ -3880,7 +3880,7 @@ module mod_clm_cnrest
 
     ! nind
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'nind',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'nind',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'nind') ) then
@@ -3894,7 +3894,7 @@ module mod_clm_cnrest
 
     ! fpcgrid
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fpcgrid',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'fpcgrid',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fpcgrid') ) then
@@ -3908,7 +3908,7 @@ module mod_clm_cnrest
 
     ! fpcgridold
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fpcgridold',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'fpcgridold',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fpcgridold') ) then
@@ -3922,7 +3922,7 @@ module mod_clm_cnrest
 
     ! gridcell type dgvm physical state - tmomin20
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'TMOMIN20',(/'gridcell'/), &
+      call clm_addvar(clmvar_double,ncid,'TMOMIN20',['gridcell'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'TMOMIN20') ) then
@@ -3936,7 +3936,7 @@ module mod_clm_cnrest
 
     ! gridcell type dgvm physical state - agdd20
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'AGDD20',(/'gridcell'/), &
+      call clm_addvar(clmvar_double,ncid,'AGDD20',['gridcell'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'AGDD20') ) then
@@ -3950,7 +3950,7 @@ module mod_clm_cnrest
 
     ! pft type dgvm physical state - t_mo_min
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'T_MO_MIN',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_MO_MIN',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_MO_MIN') ) then
@@ -3964,7 +3964,7 @@ module mod_clm_cnrest
 
     ! present
     if (flag == 'define') then
-      call clm_addvar(clmvar_integer,ncid,'present',(/'pft'/), &
+      call clm_addvar(clmvar_integer,ncid,'present',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'present') ) then
@@ -3990,7 +3990,7 @@ module mod_clm_cnrest
 
     ! leafcmax
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'leafcmax',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'leafcmax',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafcmax') ) then
@@ -4004,7 +4004,7 @@ module mod_clm_cnrest
 
     ! heatstress
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'heatstress',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'heatstress',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'heatstress') ) then
@@ -4018,7 +4018,7 @@ module mod_clm_cnrest
 
     ! greffic
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'greffic',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'greffic',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'greffic') ) then
@@ -4055,7 +4055,7 @@ module mod_clm_cnrest
 #ifdef VERTSOILC
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,name_vr,         &
-              (/'column ','levgrnd'/), long_name=longname, &
+              ['column ','levgrnd'], long_name=longname, &
               units=units,fill_value=1, switchdim=.true.)
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,name_vr) ) then
@@ -4079,7 +4079,7 @@ module mod_clm_cnrest
     ptr1d => data_rl(:,1)
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,varname, &
-              (/'column'/), long_name=longname,   &
+              ['column'], long_name=longname,   &
               units=units,fill_value=1)
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,varname) ) then

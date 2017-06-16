@@ -32,7 +32,7 @@ module mod_miroc_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: mirocvars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
   character(len=64) :: mirocbase1  = '_6hrLev_MIROC5_historical'
   character(len=64) :: mirocbase2  = '_6hrLev_MIROC5_rcp'

@@ -32,8 +32,8 @@ module mod_mkvocef
   integer , parameter :: nvocs = 6
 
   character(len=16) , parameter , dimension(nvocs):: varname = &
-          (/ 'ef_btr' , 'ef_crp' , 'ef_fdt' , &
-             'ef_fet' , 'ef_grs' , 'ef_shr'/)
+          [ 'ef_btr' , 'ef_crp' , 'ef_fdt' , &
+             'ef_fet' , 'ef_grs' , 'ef_shr']
 
   contains
 

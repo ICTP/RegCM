@@ -537,7 +537,7 @@ program sigma2p
           allocate(apvar(ip3d),stat=istatus)
           call checkalloc(istatus,__FILE__,__LINE__,'apvar')
           do ii = 1 , n3d
-            xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
+            xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
             if ( iodyn == 2 ) then
               if (intscheme(i) == 1) then
                 call intlin(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
@@ -552,7 +552,7 @@ program sigma2p
                 call intlog(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
               end if
             end if
-            apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
+            apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,[ip3d])
           end do
           if ( i == tvarid ) then
             tmpvar = xvar
@@ -592,7 +592,7 @@ program sigma2p
             call checkalloc(istatus,__FILE__,__LINE__,'apvar')
             do ii = 1 , n3d
               xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
-                             (/jx,iy,kz/))
+                             [jx,iy,kz])
               if ( iodyn == 2 ) then
                 if (intscheme(i) == 1) then
                   call intlin(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
@@ -607,7 +607,7 @@ program sigma2p
                   call intlog(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
                 end if
               end if
-              apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
+              apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,[ip3d])
             end do
             istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
             call checkncerr(istatus,__FILE__,__LINE__, &

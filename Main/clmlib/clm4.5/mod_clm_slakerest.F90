@@ -44,7 +44,7 @@ module mod_clm_slakerest
 
     if (flag == 'define') then
        call clm_addvar(clmvar_double,ncid,'LAKE_ICEFRAC', &
-            cdims=(/'column','levlak'/), &
+            cdims=['column','levlak'], &
             long_name='lake layer ice fraction',units='kg/kg', switchdim=.true.)
     else if (flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'LAKE_ICEFRAC') ) then
@@ -62,7 +62,7 @@ module mod_clm_slakerest
 
     if (flag == 'define') then
        call clm_addvar(clmvar_double,ncid,'SAVEDTKE1', &
-            cdims=(/'column'/), &
+            cdims=['column'], &
             long_name='top lake layer eddy conductivity', units='W/(m K)')
     else if (flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'SAVEDTKE1') ) then
@@ -78,7 +78,7 @@ module mod_clm_slakerest
 
     if (flag == 'define') then
        call clm_addvar(clmvar_double,ncid,'USTLAKE', &
-            cdims=(/'column'/), &
+            cdims=['column'], &
             long_name='friction velocity for lakes', units='m/s')
     else if (flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'USTLAKE') ) then
@@ -93,7 +93,7 @@ module mod_clm_slakerest
     ! column physical state variable - z0mg
 
     if (flag == 'define') then
-       call clm_addvar(clmvar_double,ncid,'Z0MG', cdims=(/'column'/), &
+       call clm_addvar(clmvar_double,ncid,'Z0MG', cdims=['column'], &
             long_name='ground momentum roughness length', units='m')
     else if (flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'Z0MG') ) then

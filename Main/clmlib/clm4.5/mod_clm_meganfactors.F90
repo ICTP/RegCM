@@ -205,7 +205,7 @@ module mod_clm_meganfactors
     integer(ik4), parameter :: tbl_max_idx = 15  ! 2**N - 1
     integer(ik4), parameter :: gen_hash_key_offset = int(z'000053db',ik4)
     integer(ik4), dimension(0:tbl_max_idx) :: tbl_gen_hash_key = &
-            (/61,59,53,47,43,41,37,31,29,23,17,13,11,7,3,1/)
+            [61,59,53,47,43,41,37,31,29,23,17,13,11,7,3,1]
 
     hash = gen_hash_key_offset
     if ( len(string) /= 19 ) then

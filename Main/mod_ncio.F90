@@ -844,8 +844,8 @@ module mod_ncio
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: qflx
     integer(ik4) , dimension(4) :: istart , icount
     character(len=3) , dimension(12) :: cmon = &
-      (/'jan','feb','mar','apr','may','jun', &
-        'jul','aug','sep','oct','nov','dec'/)
+      ['jan','feb','mar','apr','may','jun', &
+        'jul','aug','sep','oct','nov','dec']
 
     if ( myid == italk ) then
       write(stdout,*) 'Reading SOM data for ',cmon(somrec)

@@ -33,7 +33,7 @@ module mod_hadgem_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: havars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
   character(len=64) :: habase1  = '_6hrLev_HadGEM2-ES_historical'
   character(len=64) :: habase2  = '_6hrLev_HadGEM2-ES_rcp'

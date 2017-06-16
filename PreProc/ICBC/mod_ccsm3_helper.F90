@@ -92,7 +92,7 @@ module mod_ccsm3_helper
     implicit none
     integer(ik4) , intent(inout) :: y , m , d
     integer(ik4) , dimension(12) , parameter :: dpm = &
-            (/31,28,31,30,31,30,31,31,30,31,30,31/)
+            [31,28,31,30,31,30,31,31,30,31,30,31]
     d = d - 1
     if ( d == 0 ) then
       m = m - 1

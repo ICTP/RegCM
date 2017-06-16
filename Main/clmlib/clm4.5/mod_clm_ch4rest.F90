@@ -52,7 +52,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_CH4_SAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='methane soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_CH4_SAT') ) then
@@ -72,7 +72,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_CH4_UNSAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='methane soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_CH4_UNSAT') ) then
@@ -92,7 +92,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_O2_SAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='oxygen soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_O2_SAT') ) then
@@ -112,7 +112,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'CONC_O2_UNSAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='oxygen soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_O2_UNSAT') ) then
@@ -132,7 +132,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2STRESS_SAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='oxygen stress fraction', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2STRESS_SAT') ) then
@@ -152,7 +152,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2STRESS_UNSAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='oxygen stress fraction', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2STRESS_UNSAT') ) then
@@ -172,7 +172,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'LAYER_SAT_LAG', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='lagged saturation status of layer in unsat. zone', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'LAYER_SAT_LAG') ) then
@@ -192,7 +192,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'QFLX_SURF_LAG', &
-              cdims=(/'column '/), &
+              cdims=['column '], &
               long_name='time-lagged surface runoff', units='mm/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'QFLX_SURF_LAG') ) then
@@ -212,7 +212,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'FINUNDATED_LAG', &
-              cdims=(/'column '/), &
+              cdims=['column '], &
               long_name='time-lagged inundated fraction')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'FINUNDATED_LAG') ) then
@@ -234,7 +234,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'FINUNDATED', &
-              cdims=(/'column '/),long_name='inundated fraction')
+              cdims=['column '],long_name='inundated fraction')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'FINUNDATED') ) then
         if ( ktau > 0 ) then
@@ -252,7 +252,7 @@ module mod_clm_ch4rest
     ! column ch4 state variable - annavg_somhr
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'annavg_somhr', &
-              cdims=(/'column '/), &
+              cdims=['column '], &
               long_name='Annual Average SOMHR',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_somhr') ) then
@@ -271,7 +271,7 @@ module mod_clm_ch4rest
     ! column ch4 state variable - annavg_finrw
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'annavg_finrw', &
-              cdims=(/'column '/), &
+              cdims=['column '], &
               long_name='Annual Average Respiration-Weighted FINUNDATED')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_finrw') ) then
@@ -290,7 +290,7 @@ module mod_clm_ch4rest
     ! column ch4 state variable - annsum_counter
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'annsum_counter_ch4', &
-              cdims=(/'column '/), &
+              cdims=['column '], &
               long_name='CH4 Ann. Sum Time Counter')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annsum_counter_ch4') ) then
@@ -309,7 +309,7 @@ module mod_clm_ch4rest
     ! column ch4 state variable - tempavg_somhr
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'tempavg_somhr', &
-              cdims=(/'column '/), &
+              cdims=['column '], &
               long_name='Temp. Average SOMHR',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_somhr') ) then
@@ -328,7 +328,7 @@ module mod_clm_ch4rest
     ! column ch4 state variable - tempavg_finrwi
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'tempavg_finrw', &
-              cdims=(/'column '/), &
+              cdims=['column '], &
               long_name='Temp. Average Respiration-Weighted FINUNDATED')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_finrw') ) then
@@ -347,7 +347,7 @@ module mod_clm_ch4rest
     ! pft ch4 state variable - tempavg_agnpp
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'tempavg_agnpp', &
-              cdims=(/'pft '/), &
+              cdims=['pft '], &
               long_name='Temp. Average AGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_agnpp') ) then
@@ -364,7 +364,7 @@ module mod_clm_ch4rest
     ! pft ch4 state variable - tempavg_bgnpp
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'tempavg_bgnpp', &
-              cdims=(/'pft '/), &
+              cdims=['pft '], &
               long_name='Temp. Average BGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_bgnpp') ) then
@@ -381,7 +381,7 @@ module mod_clm_ch4rest
     ! pft ch4 state variable - annavg_agnpp
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'annavg_agnpp', &
-              cdims=(/'pft '/), &
+              cdims=['pft '], &
               long_name='Ann. Average AGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_agnpp') ) then
@@ -398,7 +398,7 @@ module mod_clm_ch4rest
     ! pft ch4 state variable - annavg_bgnpp
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'annavg_bgnpp', &
-              cdims=(/'pft '/), &
+              cdims=['pft '], &
               long_name='Ann. Average BGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_bgnpp') ) then
@@ -416,7 +416,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2_DECOMP_DEPTH_SAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='O2 consumption during decomposition',units='mol/m3/s', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2_DECOMP_DEPTH_SAT') ) then
@@ -437,7 +437,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'O2_DECOMP_DEPTH_UNSAT', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='O2 consumption during decomposition',units='mol/m3/s', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2_DECOMP_DEPTH_UNSAT') ) then
@@ -459,7 +459,7 @@ module mod_clm_ch4rest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'LAKE_SOILC', &
-              cdims=(/'column ','levgrnd'/), &
+              cdims=['column ','levgrnd'], &
               long_name='lake soil carbon concentration', units='g/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'LAKE_SOILC') ) then

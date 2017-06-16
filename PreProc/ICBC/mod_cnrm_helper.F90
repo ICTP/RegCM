@@ -32,7 +32,7 @@ module mod_cnrm_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: cnrmvars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
   character(len=64) :: cnrmbase1  = '_6hrLev_CNRM-CM5_historical'
   character(len=64) :: cnrmbase2  = '_6hrLev_CNRM-CM5_rcp'

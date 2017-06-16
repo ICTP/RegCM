@@ -99,7 +99,7 @@ module mod_clm_biogeophysrest
       ! pft weight wrt gridcell
 
       if ( flag == 'define' ) then
-        call clm_addvar(clmvar_double,ncid,'PFT_WTGCELL',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'PFT_WTGCELL',['pft'], &
               long_name='pft weight relative to corresponding gridcell', &
               units='')
       else if ( flag == 'read' ) then
@@ -121,7 +121,7 @@ module mod_clm_biogeophysrest
       ! pft weight wrt landunit
 
       if ( flag == 'define' ) then
-        call clm_addvar(clmvar_double,ncid,'PFT_WTLUNIT',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'PFT_WTLUNIT',['pft'], &
               long_name='pft weight relative to corresponding landunit', &
               units='')
       else if ( flag == 'read' ) then
@@ -143,7 +143,7 @@ module mod_clm_biogeophysrest
       ! pft weight wrt column
 
       if ( flag == 'define' ) then
-        call clm_addvar(clmvar_double,ncid,'PFT_WTCOL',(/'pft'/), &
+        call clm_addvar(clmvar_double,ncid,'PFT_WTCOL',['pft'], &
                long_name='pft weight relative to corresponding column', &
                units='')
       else if ( flag == 'read' ) then
@@ -231,7 +231,7 @@ module mod_clm_biogeophysrest
     ! pft energy flux - eflx_lwrad_out
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'EFLX_LWRAD_OUT',(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'EFLX_LWRAD_OUT',['pft'], &
            long_name='emitted infrared (longwave) radiation', units='watt/m^2')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'EFLX_LWRAD_OUT') ) then
@@ -248,7 +248,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - snow levels
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_integer,ncid,'SNLSNO',(/'column'/), &
+      call clm_addvar(clmvar_integer,ncid,'SNLSNO',['column'], &
             long_name='number of snow layers', units='unitless')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'SNLSNO') ) then
@@ -264,7 +264,7 @@ module mod_clm_biogeophysrest
     ! As of clm4_0_76, SNOW_DEPTH is written to restarts.
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'SNOW_DEPTH',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'SNOW_DEPTH',['column'], &
             long_name='snow depth', units='m')
     else if ( flag == 'read' ) then
       if ( ktau /= 0  .and. .not. clm_check_var(ncid,'SNOW_DEPTH') ) then
@@ -279,7 +279,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - int_snow
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'INT_SNOW',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'INT_SNOW',['column'], &
             long_name='accumulated snow', units='mm')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'INT_SNOW') ) then
@@ -298,7 +298,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - wa
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'WA',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'WA',['column'], &
             long_name='water in the unconfined aquifer', units='mm')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'WA') ) then
@@ -313,7 +313,7 @@ module mod_clm_biogeophysrest
     ! gridcell type water flux variable - tws
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'TWS',(/'gridcell'/), &
+      call clm_addvar(clmvar_double,ncid,'TWS',['gridcell'], &
              long_name='total water storage', units='mm/s')
     else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'TWS')
@@ -334,7 +334,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - zwt
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'ZWT',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'ZWT',['column'], &
             long_name='water table depth', units='m')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZWT') ) then
@@ -349,7 +349,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - frost_table
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'FROST_TABLE',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'FROST_TABLE',['column'], &
             long_name='frost table depth', units='m')
     else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'FROST_TABLE')
@@ -371,7 +371,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - zwt_perched
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'ZWT_PERCH',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'ZWT_PERCH',['column'], &
             long_name='perched water table depth', units='m')
     else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'ZWT_PERCH')
@@ -393,7 +393,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - frac_sno_eff
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'frac_sno_eff',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'frac_sno_eff',['column'], &
             long_name='fraction of ground covered by snow (0 to 1)', &
             units='unitless')
     else if ( flag == 'read' ) then
@@ -417,7 +417,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - frac_sno
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'frac_sno',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'frac_sno',['column'], &
             long_name='fraction of ground covered by snow (0 to 1)', &
             units='unitless')
     else if ( flag == 'read' ) then
@@ -433,7 +433,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - dzsno
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'DZSNO',(/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'DZSNO',['column','levsno'], &
             long_name='snow layer thickness', units='m', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'DZSNO') ) then
@@ -454,7 +454,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - zsno
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'ZSNO',(/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'ZSNO',['column','levsno'], &
             long_name='snow layer depth', units='m', switchdim=.true.)
     else if (flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZSNO') ) then
@@ -475,7 +475,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - zisno
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'ZISNO',(/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'ZISNO',['column','levsno'], &
               long_name='snow interface depth', units='m', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZISNO') ) then
@@ -496,7 +496,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - coszen
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'coszen',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'coszen',['column'], &
             long_name='cosine of solar zenith angle',units='unitless')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'coszen') ) then
@@ -512,7 +512,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_roof_dir', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='direct solar absorbed by roof per unit '// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -531,7 +531,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_roof_dif', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='diffuse solar absorbed by roof per unit '// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -550,7 +550,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_sunwall_dir', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='direct solar absorbed by sunwall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -569,7 +569,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_sunwall_dif', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='diffuse solar absorbed by sunwall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -588,7 +588,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_shadewall_dir', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='direct solar absorbed by shadewall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -607,7 +607,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_shadewall_dif', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='diffuse solar absorbed by shadewall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -626,7 +626,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_improad_dir', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='direct solar absorbed by impervious road per unit'// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -645,7 +645,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_improad_dif', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='diffuse solar absorbed by impervious road per unit'// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -664,7 +664,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_perroad_dir', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='direct solar absorbed by pervious road per unit '//&
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -683,7 +683,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'sabs_perroad_dif', &
-                      (/'landunit','numrad  '/), &
+                      ['landunit','numrad  '], &
             long_name='diffuse solar absorbed by pervious road per unit '//&
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -701,7 +701,7 @@ module mod_clm_biogeophysrest
     ! landunit type physical state variable - vf_sr
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'vf_sr', (/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'vf_sr', ['landunit'], &
             long_name='view factor of sky for road',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_sr') ) then
@@ -716,7 +716,7 @@ module mod_clm_biogeophysrest
     ! landunit type physical state variable - vf_wr
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'vf_wr', (/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'vf_wr', ['landunit'], &
             long_name='view factor of one wall for road',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_wr') ) then
@@ -731,7 +731,7 @@ module mod_clm_biogeophysrest
     ! landunit type physical state variable - vf_sw
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'vf_sw', (/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'vf_sw', ['landunit'], &
             long_name='view factor of sky for one wall',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_sw') ) then
@@ -746,7 +746,7 @@ module mod_clm_biogeophysrest
     ! landunit type physical state variable - vf_rw
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'vf_rw', (/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'vf_rw', ['landunit'], &
             long_name='view factor of road for one wall',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_rw') ) then
@@ -761,7 +761,7 @@ module mod_clm_biogeophysrest
     ! landunit type physical state variable - vf_ww
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'vf_ww', (/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'vf_ww', ['landunit'], &
             long_name='view factor of opposing wall for one wall',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_ww') ) then
@@ -776,7 +776,7 @@ module mod_clm_biogeophysrest
     ! landunit type physical state variable - taf
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'taf', (/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'taf', ['landunit'], &
             long_name='urban canopy air temperature',units='K')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'taf') ) then
@@ -791,7 +791,7 @@ module mod_clm_biogeophysrest
     ! landunit type physical state variable - qaf
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'qaf', (/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'qaf', ['landunit'], &
             long_name='urban canopy specific humidity',units='kg/kg')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'qaf') ) then
@@ -806,7 +806,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - albd
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albd', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albd', ['pft   ','numrad'], &
             long_name='surface albedo (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albd') ) then
@@ -825,7 +825,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - albi
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albi', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albi', ['pft   ','numrad'], &
             long_name='surface albedo (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albi') ) then
@@ -844,7 +844,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgrd
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgrd', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgrd', ['column','numrad'], &
             long_name='ground albedo (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgrd') ) then
@@ -859,7 +859,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgri
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgri', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgri', ['column','numrad'], &
             long_name='ground albedo (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgri') ) then
@@ -874,7 +874,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albsod
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albsod', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albsod', ['column','numrad'], &
             long_name='soil albedo (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsod') ) then
@@ -893,7 +893,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albsoi
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albsoi', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albsoi', ['column','numrad'], &
             long_name='soil albedo (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsoi') ) then
@@ -913,7 +913,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgrd_bc
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgrd_bc', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgrd_bc', ['column','numrad'], &
             long_name='ground albedo without BC (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgrd_bc') ) then
@@ -935,7 +935,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgri_bc
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgri_bc', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgri_bc', ['column','numrad'], &
             long_name='ground albedo without BC (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgri_bc') ) then
@@ -957,7 +957,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgrd_pur
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgrd_pur',(/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgrd_pur',['column','numrad'], &
             long_name='pure snow ground albedo (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgrd_pur') ) then
@@ -979,7 +979,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgri_pur
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgri_pur',(/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgri_pur',['column','numrad'], &
             long_name='pure snow ground albedo (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgri_pur') ) then
@@ -1001,7 +1001,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgrd_oc
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgrd_oc', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgrd_oc', ['column','numrad'], &
             long_name='ground albedo without OC (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgrd_oc') ) then
@@ -1023,7 +1023,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgri_oc
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgri_oc', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgri_oc', ['column','numrad'], &
             long_name='ground albedo without OC (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgri_oc') ) then
@@ -1045,7 +1045,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgrd_dst
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgrd_dst', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgrd_dst', ['column','numrad'], &
             long_name='ground albedo without dust (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgrd_dst') ) then
@@ -1067,7 +1067,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albgri_dst
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albgri_dst', (/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albgri_dst', ['column','numrad'], &
            long_name='ground albedo without dust (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'albgri_dst') ) then
@@ -1090,7 +1090,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - h2osfc
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'H2OSFC', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'H2OSFC', ['column'], &
             long_name='surface water',units='kg/m2')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'H2OSFC') ) then
@@ -1109,7 +1109,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - frac_h2osfc
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'FH2OSFC', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'FH2OSFC', ['column'], &
             long_name='fraction of ground covered by h2osfc (0 to 1)',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'FH2OSFC') ) then
@@ -1128,7 +1128,7 @@ module mod_clm_biogeophysrest
    ! column energy state variable - t_h2osfc
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'TH2OSFC', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'TH2OSFC', ['column'], &
             long_name='surface water temperature',units='K')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'TH2OSFC') ) then
@@ -1147,7 +1147,7 @@ module mod_clm_biogeophysrest
    ! column water state variable - h2osno
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'H2OSNO', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'H2OSNO', ['column'], &
             long_name='snow water',units='kg/m2')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSNO') ) then
@@ -1162,7 +1162,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - h2osoi_liq
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'H2OSOI_LIQ', (/'column','levtot'/), &
+      call clm_addvar(clmvar_double,ncid,'H2OSOI_LIQ', ['column','levtot'], &
             long_name='liquid water',units='kg/m2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSOI_LIQ') ) then
@@ -1177,7 +1177,7 @@ module mod_clm_biogeophysrest
     ! column water state variable - h2osoi_ice
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'H2OSOI_ICE', (/'column','levtot'/), &
+      call clm_addvar(clmvar_double,ncid,'H2OSOI_ICE', ['column','levtot'], &
             long_name='ice lens',units='kg/m2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSOI_ICE') ) then
@@ -1192,7 +1192,7 @@ module mod_clm_biogeophysrest
    ! column energy state variable - t_grnd
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_GRND', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'T_GRND', ['column'], &
             long_name='ground temperature',units='K')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND') ) then
@@ -1207,7 +1207,7 @@ module mod_clm_biogeophysrest
    ! column urban energy state variable - eflx_urban_ac
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'URBAN_AC', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'URBAN_AC', ['column'], &
             long_name='urban air conditioning flux',units='W/m^2')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'URBAN_AC') ) then
@@ -1222,7 +1222,7 @@ module mod_clm_biogeophysrest
    ! column urban energy state variable - eflx_urban_heat
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'URBAN_HEAT', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'URBAN_HEAT', ['column'], &
             long_name='urban heating flux',units='W/m^2')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'URBAN_HEAT') ) then
@@ -1238,7 +1238,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_min
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN', ['pft'], &
             long_name='daily minimum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1254,7 +1254,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_max
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX', ['pft'], &
             long_name='daily maximum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1270,7 +1270,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_min_inst
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_INST', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_INST', ['pft'], &
             long_name='instantaneous daily minimum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1288,7 +1288,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_max_inst
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_INST', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_INST', ['pft'], &
             long_name='instantaneous daily maximum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1306,7 +1306,7 @@ module mod_clm_biogeophysrest
     ! pft energy state variable - t_ref2m_u
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_U', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_U', ['pft'], &
             long_name='Urban 2m height surface air temperature',units='K')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_U') ) then
@@ -1321,7 +1321,7 @@ module mod_clm_biogeophysrest
    ! column energy state variable - t_grnd_u
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_GRND_U', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'T_GRND_U', ['column'], &
             long_name='Urban ground temperature',units='K')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND_U') ) then
@@ -1336,7 +1336,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_min_u
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_U', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_U', ['pft'], &
             long_name='urban daily minimum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1352,7 +1352,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_max_u
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_U', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_U', ['pft'], &
             long_name='urban daily maximum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1368,7 +1368,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_min_inst_u
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_INST_U', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_INST_U', ['pft'], &
             long_name='urban instantaneous daily min of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1386,7 +1386,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_max_inst_u
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_INST_U', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_INST_U', ['pft'], &
             long_name='urban instantaneous daily max of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1404,7 +1404,7 @@ module mod_clm_biogeophysrest
     ! pft energy state variable - t_ref2m_r
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_R', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_R', ['pft'], &
             long_name='Rural 2m height surface air temperature',units='K')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_R') ) then
@@ -1419,7 +1419,7 @@ module mod_clm_biogeophysrest
    ! column energy state variable - t_grnd_r
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_GRND_R', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'T_GRND_R', ['column'], &
             long_name='Rural ground temperature',units='K')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND_R') ) then
@@ -1434,7 +1434,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_min_r
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_R', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_R', ['pft'], &
             long_name='rural daily minimum of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1450,7 +1450,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_max_r
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_R', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_R', ['pft'], &
             long_name='rural daily maximum of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1466,7 +1466,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_min_inst_r
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_INST_R', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_INST_R', ['pft'], &
             long_name='rural instantaneous daily min of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1484,7 +1484,7 @@ module mod_clm_biogeophysrest
    ! pft energy state variable - t_ref2m_max_inst_r
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_INST_R', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_INST_R', ['pft'], &
             long_name='rural instantaneous daily max of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
@@ -1502,7 +1502,7 @@ module mod_clm_biogeophysrest
     ! column energy state variable - t_soisno
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_SOISNO', (/'column','levtot'/), &
+      call clm_addvar(clmvar_double,ncid,'T_SOISNO', ['column','levtot'], &
             long_name='soil-snow temperature',units='K', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_SOISNO') ) then
@@ -1517,7 +1517,7 @@ module mod_clm_biogeophysrest
     ! column type energy state variable - t_lake
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_LAKE', (/'column','levlak'/), &
+      call clm_addvar(clmvar_double,ncid,'T_LAKE', ['column','levlak'], &
             long_name='lake temperature',units='K', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_LAKE') ) then
@@ -1532,7 +1532,7 @@ module mod_clm_biogeophysrest
     ! pft physical state variable - frac_veg_nosno_alb
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_integer,ncid,'FRAC_VEG_NOSNO_ALB', (/'pft'/), &
+      call clm_addvar(clmvar_integer,ncid,'FRAC_VEG_NOSNO_ALB', ['pft'], &
             long_name='fraction of vegetation not covered by snow',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'FRAC_VEG_NOSNO_ALB') ) then
@@ -1549,7 +1549,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fwet
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'FWET', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'FWET', ['pft'], &
             long_name='fraction of canopy that is wet',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'FWET') ) then
@@ -1564,7 +1564,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - tlai
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'tlai', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'tlai', ['pft'], &
             long_name='one-sided leaf area index, no burying by snow',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tlai') ) then
@@ -1579,7 +1579,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - tsai
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'tsai', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'tsai', ['pft'], &
             long_name='one-sided stem area index, no burying by snow',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tsai') ) then
@@ -1594,7 +1594,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - tlai_z
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'tlai_z', (/'pft   ','levcan'/), &
+      call clm_addvar(clmvar_double,ncid,'tlai_z', ['pft   ','levcan'], &
             long_name='tlai increment for canopy layer',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tsai') ) then
@@ -1617,7 +1617,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - tsai_z
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'tsai_z', (/'pft   ','levcan'/), &
+      call clm_addvar(clmvar_double,ncid,'tsai_z', ['pft   ','levcan'], &
             long_name='tsai increment for canopy layer',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tsai') ) then
@@ -1640,7 +1640,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - ncan
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_integer,ncid,'ncan', (/'pft'/), &
+      call clm_addvar(clmvar_integer,ncid,'ncan', ['pft'], &
             long_name='number of canopy layer',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'ncan') ) then
@@ -1661,7 +1661,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - nrad
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_integer,ncid,'nrad', (/'pft'/), &
+      call clm_addvar(clmvar_integer,ncid,'nrad', ['pft'], &
             long_name='number of canopy layer above snow',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'nrad') ) then
@@ -1682,7 +1682,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - mlaidiff
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mlaidiff', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'mlaidiff', ['pft'], &
             long_name='difference between lai month one and month two',units='')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'mlaidiff') ) then
@@ -1697,7 +1697,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - elai
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'elai', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'elai', ['pft'], &
             long_name='one-sided leaf area index, with burying by snow', &
             units='')
     else if ( flag == 'read' ) then
@@ -1713,7 +1713,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - esai
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'esai', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'esai', ['pft'], &
             long_name='one-sided stem area index, with burying by snow', &
             units='')
     else if ( flag == 'read' ) then
@@ -1729,7 +1729,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fsun
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fsun', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'fsun', ['pft'], &
             long_name='sunlit fraction of canopy',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'fsun') ) then
@@ -1752,7 +1752,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - vcmaxcintsun
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'vcmaxcintsun', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'vcmaxcintsun', ['pft'], &
             long_name='sunlit canopy scaling coefficient',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'vcmaxcintsun') ) then
@@ -1771,7 +1771,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - vcmaxcintsha
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'vcmaxcintsha', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'vcmaxcintsha', ['pft'], &
             long_name='shaded canopy scaling coefficient',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'vcmaxcintsha') ) then
@@ -1790,7 +1790,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - htop
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'htop', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'htop', ['pft'], &
             long_name='canopy top',units='m')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'htop') ) then
@@ -1805,7 +1805,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - hbot
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'hbot', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'hbot', ['pft'], &
             long_name='canopy botton',units='m')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'hbot') ) then
@@ -1820,7 +1820,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabd
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabd', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'fabd', ['pft   ','numrad'], &
             long_name='flux absorbed by veg per unit direct flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fabd') ) then
@@ -1835,7 +1835,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabi
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabi', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'fabi', ['pft   ','numrad'], &
             long_name='flux absorbed by veg per unit diffuse flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fabi') ) then
@@ -1850,7 +1850,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabd_sun
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabd_sun', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'fabd_sun', ['pft   ','numrad'], &
             long_name='flux absorbed by sunlit leaf per unit direct flux', &
             units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -1870,7 +1870,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabd_sha
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabd_sha', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'fabd_sha', ['pft   ','numrad'], &
             long_name='flux absorbed by shaded leaf per unit direct flux', &
             units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -1890,7 +1890,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabi_sun
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabi_sun', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'fabi_sun', ['pft   ','numrad'], &
             long_name='flux absorbed by sunlit leaf per unit diffuse flux', &
             units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -1910,7 +1910,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabi_sha
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabi_sha', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'fabi_sha', ['pft   ','numrad'], &
             long_name='flux absorbed by shaded leaf per unit diffuse flux', &
             units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -1930,7 +1930,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabd_sun_z
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabd_sun_z', (/'pft   ','levcan'/), &
+      call clm_addvar(clmvar_double,ncid,'fabd_sun_z', ['pft   ','levcan'], &
             long_name='absorbed sunlit leaf direct PAR (per unit lai+sai) '// &
                   'for canopy layer',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -1952,7 +1952,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabd_sha_z
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabd_sha_z', (/'pft   ','levcan'/), &
+      call clm_addvar(clmvar_double,ncid,'fabd_sha_z', ['pft   ','levcan'], &
             long_name='absorbed shaded leaf direct PAR (per unit lai+sai) '// &
                   'for canopy layer',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -1974,7 +1974,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabi_sun_z
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabi_sun_z', (/'pft   ','levcan'/), &
+      call clm_addvar(clmvar_double,ncid,'fabi_sun_z', ['pft   ','levcan'], &
             long_name='absorbed sunlit leaf diffuse PAR (per unit lai+sai) '// &
                   'for canopy layer',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -1996,7 +1996,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fabi_sha_z
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fabi_sha_z', (/'pft   ','levcan'/), &
+      call clm_addvar(clmvar_double,ncid,'fabi_sha_z', ['pft   ','levcan'], &
             long_name='absorbed shaded leaf diffuse PAR (per unit lai+sai) '// &
                   'for canopy layer',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2018,7 +2018,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - fsun_z
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'fsun_z', (/'pft   ','levcan'/), &
+      call clm_addvar(clmvar_double,ncid,'fsun_z', ['pft   ','levcan'], &
             long_name='absorbed shaded leaf diffuse PAR (per unit lai+sai) '// &
                   'for canopy layer',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2040,7 +2040,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - ftdd
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'ftdd', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'ftdd', ['pft   ','numrad'], &
               long_name='down direct flux below veg per unit direct flux', &
               units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2056,7 +2056,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - ftid
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'ftid', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'ftid', ['pft   ','numrad'], &
               long_name='down diffuse flux below veg per unit direct flux', &
               units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2072,7 +2072,7 @@ module mod_clm_biogeophysrest
     ! pft type physical state variable - ftii
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'ftii', (/'pft   ','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'ftii', ['pft   ','numrad'], &
               long_name='down diffuse flux below veg per unit diffuse flux', &
               units='', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2088,7 +2088,7 @@ module mod_clm_biogeophysrest
     ! pft energy state variable - t_veg
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_VEG', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_VEG', ['pft'], &
               long_name='vegetation temperature',units='K')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_VEG') ) then
@@ -2103,7 +2103,7 @@ module mod_clm_biogeophysrest
     ! pft energy state variable - t_ref2m
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'T_REF2M', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'T_REF2M', ['pft'], &
               long_name='2m height surface air temperature',units='K')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'T_REF2M') ) then
@@ -2124,7 +2124,7 @@ module mod_clm_biogeophysrest
     ! pft type water state variable - h2ocan
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'H2OCAN', (/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'H2OCAN', ['pft'], &
               long_name='canopy water',units='kg/m2')
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OCAN') ) then
@@ -2139,7 +2139,7 @@ module mod_clm_biogeophysrest
    ! column irrigation variable - n_irrig_steps_left
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_integer,ncid,'n_irrig_steps_left', (/'column'/), &
+      call clm_addvar(clmvar_integer,ncid,'n_irrig_steps_left', ['column'], &
               long_name='number of irrigation time steps left',units='#')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'n_irrig_steps_left') ) then
@@ -2160,7 +2160,7 @@ module mod_clm_biogeophysrest
    ! column irrigation variable - irrig_rate
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'irrig_rate', (/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'irrig_rate', ['column'], &
               long_name='irrigation rate',units='mm/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'irrig_rate') ) then
@@ -2261,7 +2261,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - snw_rds
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'snw_rds', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'snw_rds', ['column','levsno'], &
               long_name='snow layer effective radius',units='um', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'snw_rds') ) then
@@ -2306,7 +2306,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_bcpho
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_bcpho', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_bcpho', ['column','levsno'], &
               long_name='snow layer hydrophobic black carbon mass', &
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2329,7 +2329,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_bcphi
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_bcphi', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_bcphi', ['column','levsno'], &
               long_name='snow layer hydrophilic black carbon mass', &
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2352,7 +2352,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_ocpho
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_ocpho', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_ocpho', ['column','levsno'], &
               long_name='snow layer hydrophobic organic carbon mass', &
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2375,7 +2375,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_ocphi
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_ocphi', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_ocphi', ['column','levsno'], &
               long_name='snow layer hydrophilic organic carbon mass', &
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2398,7 +2398,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_dst1
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_dst1', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_dst1', ['column','levsno'], &
               long_name='snow dust species 1 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst1') ) then
@@ -2420,7 +2420,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_dst2
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_dst2', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_dst2', ['column','levsno'], &
               long_name='snow dust species 2 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst2') ) then
@@ -2442,7 +2442,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_dst3
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_dst3', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_dst3', ['column','levsno'], &
               long_name='snow dust species 3 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst3') ) then
@@ -2464,7 +2464,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - mss_dst4
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'mss_dst4', (/'column','levsno'/), &
+      call clm_addvar(clmvar_double,ncid,'mss_dst4', ['column','levsno'], &
               long_name='snow dust species 4 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst4') ) then
@@ -2486,7 +2486,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - flx_absdv
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'flx_absdv', (/'column ','levsno1'/), &
+      call clm_addvar(clmvar_double,ncid,'flx_absdv', ['column ','levsno1'], &
               long_name='snow layer flux absorption factors (direct, VIS)', &
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2506,7 +2506,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - flx_absdn
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'flx_absdn', (/'column ','levsno1'/), &
+      call clm_addvar(clmvar_double,ncid,'flx_absdn', ['column ','levsno1'], &
               long_name='snow layer flux absorption factors (direct, NIR)', &
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2526,7 +2526,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - flx_absiv
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'flx_absiv', (/'column ','levsno1'/), &
+      call clm_addvar(clmvar_double,ncid,'flx_absiv', ['column ','levsno1'], &
               long_name='snow layer flux absorption factors (diffuse, VIS)', &
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2546,7 +2546,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - flx_absin
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'flx_absin', (/'column ','levsno1'/), &
+      call clm_addvar(clmvar_double,ncid,'flx_absin', ['column ','levsno1'], &
               long_name='snow layer flux absorption factors (diffuse, NIR)', &
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
@@ -2566,7 +2566,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albsnd_hst
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albsnd_hst',(/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albsnd_hst',['column','numrad'], &
               long_name='snow albedo (direct)',units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsnd_hst') ) then
@@ -2581,7 +2581,7 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - albsni_hst
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'albsni_hst',(/'column','numrad'/), &
+      call clm_addvar(clmvar_double,ncid,'albsni_hst',['column','numrad'], &
               long_name='snow albedo (diffuse)',units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsni_hst') ) then
@@ -2597,7 +2597,7 @@ module mod_clm_biogeophysrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'qflx_snofrz_lyr', &
-              (/'column','levsno'/), &
+              ['column','levsno'], &
               long_name='snow layer ice freezing rate',units='kg m-2 s-1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'qflx_snofrz_lyr') ) then
@@ -2620,7 +2620,7 @@ module mod_clm_biogeophysrest
     ! column type water flux variable - qflx_snow_melt
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'qflx_snow_melt',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'qflx_snow_melt',['column'], &
               long_name='net snow melt',units='mm s-1')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'qflx_snow_melt') ) then
@@ -2642,7 +2642,7 @@ module mod_clm_biogeophysrest
     ! gridcell type water flux variable - qflx_floodg
 
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'qflx_floodg',(/'gridcell'/), &
+      call clm_addvar(clmvar_double,ncid,'qflx_floodg',['gridcell'], &
               long_name='flood water flux',units='mm s-1')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'qflx_floodg') ) then

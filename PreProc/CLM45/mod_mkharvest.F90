@@ -34,8 +34,8 @@ module mod_mkharvest
   integer , parameter :: nvarc = 6
 
   character(len=16) , parameter , dimension(nvarc):: varname = &
-          (/ 'HARVEST_VH1' , 'HARVEST_VH2' , 'HARVEST_SH1' , &
-             'HARVEST_SH2' , 'HARVEST_SH3' , 'GRAZING    '/)
+          [ 'HARVEST_VH1' , 'HARVEST_VH2' , 'HARVEST_SH1' , &
+             'HARVEST_SH2' , 'HARVEST_SH3' , 'GRAZING    ']
 
   contains
 

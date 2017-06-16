@@ -148,7 +148,7 @@ module mod_ncstream_types
     integer(ik4) , dimension(2) :: jparbound
     integer(ik4) , dimension(2) :: iparbound
     integer(ik4) :: global_nj , global_ni , parsize
-    real(rk8) , dimension(2) :: xtime = (/dmissval,dmissval/)
+    real(rk8) , dimension(2) :: xtime = [dmissval,dmissval]
     type(rcm_time_and_date) :: refdate
     character(len=maxunit) :: tunit , tcal
     real(rk8) :: deltat = 1.0_rk8

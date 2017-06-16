@@ -33,7 +33,7 @@ module mod_mklch4
   integer , parameter :: nlch4 = 3
 
   character(len=16) , parameter , dimension(nlch4):: varname = &
-          (/ 'F0  ' , 'P3  ' , 'ZWT0'/)
+          [ 'F0  ' , 'P3  ' , 'ZWT0']
 
   contains
 

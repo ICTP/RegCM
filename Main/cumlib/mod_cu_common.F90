@@ -119,7 +119,7 @@ module mod_cu_common
         call random_seed(size=nseed)
         call cpu_time(cputime)
         allocate(iseed(nseed))
-        iseed = int(cputime) + 37*(/(k-1,k=1,nseed)/)
+        iseed = int(cputime) + 37*[(k-1,k=1,nseed)]
         call random_seed(put=iseed)
         deallocate(iseed)
       else

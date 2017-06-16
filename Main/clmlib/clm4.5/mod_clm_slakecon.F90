@@ -32,7 +32,7 @@ module mod_clm_slakecon
 
   ! albedo frozen lakes by waveband (1=vis, 2=nir)
   ! Also unclear what the reference is for this.
-  real(rk8) , public , parameter :: alblak(numrad) = (/0.60_rk8, 0.40_rk8/)
+  real(rk8) , public , parameter :: alblak(numrad) = [0.60_rk8, 0.40_rk8]
   ! albedo of melting lakes due to puddling, open water, or white ice
   ! From D. Mironov (2010) Boreal Env. Research
   ! To revert albedo of melting lakes to the cold snow-free value, set
@@ -149,7 +149,7 @@ module mod_clm_slakecon
   ! alblakwi used in SurfaceAlbedo. Will be set by lake_melt_icealb in
   ! initSLake.
   ! Namelist for inputting alblakwi
-  real(rk8) , public :: lake_melt_icealb(numrad) = (/ 0.10_rk8, 0.10_rk8/)
+  real(rk8) , public :: lake_melt_icealb(numrad) = [ 0.10_rk8, 0.10_rk8]
 
 end module mod_clm_slakecon
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

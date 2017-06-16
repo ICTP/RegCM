@@ -53,16 +53,16 @@ module mod_clm_histfile
   integer(ik4) , public :: hist_ndens(max_tapes) = 2
   ! namelist: true=> do grid averaging
   logical , public :: hist_dov2xy(max_tapes) = &
-          (/.true.,(.true.,ni=2,max_tapes)/)
+          [.true.,(.true.,ni=2,max_tapes)]
   ! namelist: history write freq(0=monthly)
   integer(ik4) , public :: hist_nhtfrq(max_tapes) = &
-          (/0, (-24, ni=2,max_tapes)/)
+          [0, (-24, ni=2,max_tapes)]
   ! namelist: per tape averaging flag
   character(len=1) , public :: hist_avgflag_pertape(max_tapes) = &
-          (/(' ',ni=1,max_tapes)/)
+          [(' ',ni=1,max_tapes)]
   ! namelist: per tape type1d
   character(len=max_namlen) , public :: hist_type1d_pertape(max_tapes) = &
-          (/(' ',ni=1,max_tapes)/)
+          [(' ',ni=1,max_tapes)]
 #ifdef LCH4
   ! namelist: write CH4 extra diagnostic output
   logical , public :: hist_wrtch4diag = .false.
@@ -1666,21 +1666,21 @@ module mod_clm_histfile
     integer(ik4) , parameter :: nflds = 6 ! Number of 3D time-constant fields
     character(len=16) :: tmpchar
     character(len=*) , parameter :: subname = 'htape_timeconst3D'
-    character(len=*) , parameter :: varnames(nflds) = (/ &
+    character(len=*) , parameter :: varnames(nflds) = [ &
                                                         'ZSOI  ', &
                                                         'DZSOI ', &
                                                         'WATSAT', &
                                                         'SUCSAT', &
                                                         'BSW   ', &
                                                         'HKSAT '  &
-                                                    /)
+                                                    ]
     real(rk8) , pointer :: histil(:,:)      ! temporary
     real(rk8) , pointer :: histol(:,:)
     integer(ik4) , parameter :: nfldsl = 2
-    character(len=*) , parameter :: varnamesl(nfldsl) = (/ &
+    character(len=*) , parameter :: varnamesl(nfldsl) = [ &
                                                           'ZLAKE ', &
                                                           'DZLAKE' &
-                                                        /)
+                                                        ]
     !
     ! Non-time varying 3D fields
     ! Only write out when this subroutine is called
@@ -1715,13 +1715,13 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnames(ifld)),      &
-                   cdims=(/nameg,tmpchar/),   &
+                   cdims=[nameg,tmpchar],   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                   varname=trim(varnames(ifld)),       &
-                  cdims=(/namec,tmpchar/),    &
+                  cdims=[namec,tmpchar],    &
                   long_name=long_name, units=units,   &
                   missing_value=1, fill_value=1)
         end if
@@ -1823,13 +1823,13 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
-                   cdims=(/nameg,tmpchar/),   &
+                   cdims=[nameg,tmpchar],   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
-                   cdims=(/namec,tmpchar/),   &
+                   cdims=[namec,tmpchar],   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         end if
@@ -1918,13 +1918,13 @@ module mod_clm_histfile
       if (mode == 'define') then
         call clm_addvar(clmvar_integer,ncid=nfid(t),varname='numpft')
         call clm_addvar(clmvar_double,ncid=nfid(t), &
-                     varname='levgrnd',cdims=(/'levgrnd'/) , &
+                     varname='levgrnd',cdims=['levgrnd'] , &
                      long_name='coordinate soil levels', units='m')
         call clm_addvar(clmvar_double,ncid=nfid(t), &
-                     varname='levlak',cdims=(/'levlak'/) , &
+                     varname='levlak',cdims=['levlak'] , &
                      long_name='coordinate lake levels', units='m')
         call clm_addvar(clmvar_double,ncid=nfid(t), &
-                     varname='levdcmp',cdims=(/'levdcmp'/) , &
+                     varname='levdcmp',cdims=['levdcmp'] , &
                      long_name='coordinate soil levels', units='m')
       else if ( mode == 'write' ) then
         call clm_writevar(nfid(t),'numpft',maxpatch_pft)
@@ -1951,14 +1951,14 @@ module mod_clm_histfile
       write(basesec ,"(i2.2,':',i2.2,':',i2.2)") hours, minutes, secs
       str = 'hours since ' // basedate // " " // basesec
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='time',cdims=(/'time'/), &
+                      varname='time',cdims=['time'], &
                       long_name='time', units=str)
       call clm_addatt(nfid(t),'calendar', &
                          trim(calendar_str(nextdate)),cvar='time')
       call clm_addatt(nfid(t),'bounds','time_bounds',cvar='time')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                       varname='time_bounds',      &
-                      cdims=(/'hist_interval','time         '/), &
+                      cdims=['hist_interval','time         '], &
                       long_name='history time interval endpoints')
     else if (mode == 'write') then
       call curr_time(nextdate,mdcur,mscur)
@@ -1975,28 +1975,28 @@ module mod_clm_histfile
 
     if ( mode == 'define' .and. tape(t)%ntimes == 1 ) then
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='lon',cdims=(/nameg/), &
+                    varname='lon',cdims=[nameg], &
                     long_name='coordinate longitude', units='degrees_east')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='lat',cdims=(/nameg/), &
+                    varname='lat',cdims=[nameg], &
                     long_name='coordinate latitude', units='degrees_north')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='area',cdims=(/nameg/), &
+                    varname='area',cdims=[nameg], &
                     long_name='grid cell areas', units='km^2')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='topo',cdims=(/nameg/), &
+                    varname='topo',cdims=[nameg], &
                     long_name='grid cell topography', units='m')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='landfrac',cdims=(/nameg/), &
+                    varname='landfrac',cdims=[nameg], &
                     long_name='land fraction', units='1')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='landmask',cdims=(/nameg/), &
+                    varname='landmask',cdims=[nameg], &
                     long_name='land/ocean mask', units='1')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='pftmask',cdims=(/nameg/), &
+                    varname='pftmask',cdims=[nameg], &
                     long_name='pft real/fake mask', units='1')
       call clm_addvar(clmvar_logical,ncid=nfid(t), &
-                    varname='regcm_mask',cdims=(/'jx','iy'/), &
+                    varname='regcm_mask',cdims=['jx','iy'], &
                     long_name='regcm land mask', units='1')
 
     else if ( mode == 'write' ) then
@@ -2106,23 +2106,23 @@ module mod_clm_histfile
         if ( dim2name == 'undefined' ) then
           if ( num2d == 1 ) then
             call clm_addvar(tape(t)%ncprec,nfid(t),varname,    &
-              cdims=(/dim1name,tmpchar/), long_name=long_name, &
+              cdims=[dim1name,tmpchar], long_name=long_name, &
               units=units, cell_method=avgstr, missing_value=1, fill_value=1)
           else
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name,type2d,tmpchar/),            &
+              cdims=[dim1name,type2d,tmpchar],            &
               long_name=long_name, units=units, cell_method=avgstr, &
               missing_value=1, fill_value=1)
           end if
         else
           if ( num2d == 1 ) then
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name,dim2name,tmpchar/), &
+              cdims=[dim1name,dim2name,tmpchar], &
               long_name=long_name, units=units, cell_method=avgstr, &
               missing_value=1, fill_value=1)
           else
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name,dim2name,type2d,tmpchar/), &
+              cdims=[dim1name,dim2name,type2d,tmpchar], &
               long_name=long_name, units=units, cell_method=avgstr, &
               missing_value=1, fill_value=1)
           end if
@@ -2186,61 +2186,61 @@ module mod_clm_histfile
 
       ! Define gridcell info
 
-      call clm_addvar(clmvar_double,nfid(t),'grid1d_lon',cdims=(/nameg/), &
+      call clm_addvar(clmvar_double,nfid(t),'grid1d_lon',cdims=[nameg], &
               long_name='gridcell longitude', units='degrees_east')
-      call clm_addvar(clmvar_double,nfid(t),'grid1d_lat',cdims=(/nameg/), &
+      call clm_addvar(clmvar_double,nfid(t),'grid1d_lat',cdims=[nameg], &
               long_name='gridcell latitude', units='degrees_north')
 
       ! Define landunit info
-      call clm_addvar(clmvar_double,nfid(t),'land1d_lon',cdims=(/namel/), &
+      call clm_addvar(clmvar_double,nfid(t),'land1d_lon',cdims=[namel], &
               long_name='ladunit longitude', units='degrees_east')
-      call clm_addvar(clmvar_double,nfid(t),'land1d_lat',cdims=(/namel/), &
+      call clm_addvar(clmvar_double,nfid(t),'land1d_lat',cdims=[namel], &
               long_name='ladunit latitude', units='degrees_north')
-      call clm_addvar(clmvar_double,nfid(t),'land1d_wtgcell',cdims=(/namel/), &
+      call clm_addvar(clmvar_double,nfid(t),'land1d_wtgcell',cdims=[namel], &
               long_name='landunit weight relative to corresponding gridcell')
       call clm_addvar(clmvar_integer,nfid(t),'land1d_ityplunit', &
-              cdims=(/namel/), &
+              cdims=[namel], &
               long_name='landunit type (vegetated,urban,lake,wetland,glacier)')
       call clm_addvar(clmvar_logical,nfid(t),'land1d_active', &
-              cdims=(/namel/), &
+              cdims=[namel], &
               long_name='true => do computations on this landunit')
 
       ! Define column info
-      call clm_addvar(clmvar_double,nfid(t),'cols1d_lon',cdims=(/namec/), &
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_lon',cdims=[namec], &
               long_name='column longitude', units='degrees_east')
-      call clm_addvar(clmvar_double,nfid(t),'cols1d_lat',cdims=(/namec/), &
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_lat',cdims=[namec], &
               long_name='column latitude', units='degrees_north')
-      call clm_addvar(clmvar_double,nfid(t),'cols1d_wtgcell',cdims=(/namec/), &
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_wtgcell',cdims=[namec], &
               long_name='column weight relative to corresponding gridcell')
-      call clm_addvar(clmvar_double,nfid(t),'cols1d_wtlunit',cdims=(/namec/), &
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_wtlunit',cdims=[namec], &
               long_name='column weight relative to corresponding landunit')
       call clm_addvar(clmvar_integer,nfid(t),'cols1d_itype_lunit', &
-        cdims=(/namec/), &
+        cdims=[namec], &
         long_name='column landunit type (vegetated,urban,lake,wetland,glacier)')
       call clm_addvar(clmvar_logical,nfid(t),'cols1d_active', &
-        cdims=(/namec/), long_name='true => do computations on this column')
+        cdims=[namec], long_name='true => do computations on this column')
 
       ! Define pft info
-      call clm_addvar(clmvar_double,nfid(t),'pfts1d_lon',cdims=(/namep/), &
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_lon',cdims=[namep], &
               long_name='column longitude', units='degrees_east')
-      call clm_addvar(clmvar_double,nfid(t),'pfts1d_lat',cdims=(/namep/), &
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_lat',cdims=[namep], &
               long_name='column latitude', units='degrees_north')
-      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtgcell',cdims=(/namep/), &
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtgcell',cdims=[namep], &
               long_name='pft weight relative to corresponding gridcell')
-      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtlunit',cdims=(/namep/), &
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtlunit',cdims=[namep], &
               long_name='pft weight relative to corresponding landunit')
       call clm_addvar(clmvar_integer,nfid(t),'pfts1d_gridcell', &
-              cdims=(/namep/),long_name='pft gridcell index', &
+              cdims=[namep],long_name='pft gridcell index', &
               missing_value=1,fill_value=1)
-      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtcol',cdims=(/namep/), &
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtcol',cdims=[namep], &
               long_name='pft weight relative to corresponding column')
       call clm_addvar(clmvar_integer,nfid(t),'pfts1d_itypveg', &
-        cdims=(/namep/),long_name='pft vegetation type')
+        cdims=[namep],long_name='pft vegetation type')
       call clm_addvar(clmvar_integer,nfid(t),'pfts1d_itype_lunit', &
-        cdims=(/namep/), &
+        cdims=[namep], &
         long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)')
       call clm_addvar(clmvar_logical,nfid(t),'pfts1d_active', &
-        cdims=(/namep/), &
+        cdims=[namep], &
         long_name='true => do computations on this pft')
 
     else if (mode == 'write') then
@@ -2585,12 +2585,12 @@ module mod_clm_histfile
       call clm_adddim(ncid, 'max_chars', max_chars)
 
       call clm_addvar(clmvar_text,ncid,'locfnh', &
-              cdims=(/'max_chars','ntapes   '/), &
+              cdims=['max_chars','ntapes   '], &
               long_name='History filename',      &
               comment='This variable NOT needed for startup&
                      & simulations')
       call clm_addvar(clmvar_text,ncid,'locfnhr', &
-              cdims=(/'max_chars','ntapes   '/), &
+              cdims=['max_chars','ntapes   '], &
               long_name='Restart history filename',      &
               comment='This variable NOT needed for startup&
                      & simulations')
@@ -2640,35 +2640,35 @@ module mod_clm_histfile
             if ( dim2name == 'undefined' ) then
               if ( num2d == 1 ) then
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
-                  cdims=(/dim1name/),long_name=trim(long_name), &
+                  cdims=[dim1name],long_name=trim(long_name), &
                   units=trim(units))
                 call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
-                  cdims=(/dim1name/),long_name=trim(long_name_acc), &
+                  cdims=[dim1name],long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               else
                 dim2name = type2d
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
-                  cdims=(/dim1name,dim2name/),long_name=trim(long_name), &
+                  cdims=[dim1name,dim2name],long_name=trim(long_name), &
                   units=trim(units))
                 call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
-                  cdims=(/dim1name,dim2name/),long_name=trim(long_name_acc), &
+                  cdims=[dim1name,dim2name],long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               end if
             else
               if ( num2d == 1 ) then
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
-                  cdims=(/dim1name,dim2name/),long_name=trim(long_name), &
+                  cdims=[dim1name,dim2name],long_name=trim(long_name), &
                   units=trim(units))
                 call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
-                  cdims=(/dim1name,dim2name/),long_name=trim(long_name_acc), &
+                  cdims=[dim1name,dim2name],long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               else
                 dim3name = type2d
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
-                  cdims=(/dim1name,dim2name,dim2name/), &
+                  cdims=[dim1name,dim2name,dim2name], &
                   long_name=trim(long_name), units=trim(units))
                 call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
-                  cdims=(/dim1name,dim2name,dim2name/), &
+                  cdims=[dim1name,dim2name,dim2name], &
                   long_name=trim(long_name_acc), units=trim(units_acc))
               end if
             end if
@@ -2693,16 +2693,16 @@ module mod_clm_histfile
                        &" positive is time-steps")
         call clm_addvar(clmvar_integer,ncid_hist(t),'ncprec', &
                   long_name="Flag for data precision", &
-                  flag_values=(/1,2/),valid_range=(/1,2/), &
-                  flag_meanings=(/"single-precision", "double-precision"/))
+                  flag_values=[1,2],valid_range=[1,2], &
+                  flag_meanings=["single-precision", "double-precision"])
         call clm_addvar(clmvar_logical,ncid_hist(t),'dov2xy', &
                   long_name="Output on 2D grid format (TRUE) or vector"&
                            &" format (FALSE)", comment="Namelist item")
         call clm_addvar(clmvar_text,ncid_hist(t),'fincl', &
-                  cdims=(/'fname_lenp2','max_flds   '/), &
+                  cdims=['fname_lenp2','max_flds   '], &
                   long_name="Fieldnames to include",comment="Namelist item")
         call clm_addvar(clmvar_text,ncid_hist(t),'fexcl', &
-                  cdims=(/'fname_lenp2','max_flds   '/), &
+                  cdims=['fname_lenp2','max_flds   '], &
                   long_name="Fieldnames to exclude",comment="Namelist item")
         call clm_addvar(clmvar_integer,ncid_hist(t),'nflds', &
                   long_name="Number of fields on file")
@@ -2713,38 +2713,38 @@ module mod_clm_histfile
         call clm_addvar(clmvar_double,ncid_hist(t),'begtime', &
                 long_name="Beginning time")
         call clm_addvar(clmvar_integer,ncid_hist(t),'num2d', &
-                cdims=(/'max_nflds'/), long_name="Size of second dimension")
+                cdims=['max_nflds'], long_name="Size of second dimension")
         call clm_addvar(clmvar_integer,ncid_hist(t),'hpindex', &
-                cdims=(/'max_nflds'/), long_name="History pointer index")
+                cdims=['max_nflds'], long_name="History pointer index")
         call clm_addvar(clmvar_text,ncid_hist(t),'avgflag', &
-                cdims=(/'len1     ','max_nflds'/), &
+                cdims=['len1     ','max_nflds'], &
                 long_name="Averaging flag", &
                 comment="A=Average, X=Maximum, M=Minimum, I=Instantaneous")
         call clm_addvar(clmvar_text,ncid_hist(t),'name', &
-                cdims=(/'fname_len','max_nflds'/), long_name="Fieldnames")
+                cdims=['fname_len','max_nflds'], long_name="Fieldnames")
         call clm_addvar(clmvar_text,ncid_hist(t),'long_name', &
-                cdims=(/'max_chars','max_nflds'/), &
+                cdims=['max_chars','max_nflds'], &
                 long_name="Long descriptive names for fields")
         call clm_addvar(clmvar_text,ncid_hist(t),'units', &
-                cdims=(/'max_chars','max_nflds'/), &
+                cdims=['max_chars','max_nflds'], &
                 long_name="Units for each history field output")
         call clm_addvar(clmvar_text,ncid_hist(t),'type1d', &
-                cdims=(/'string_length','max_nflds    '/), &
+                cdims=['string_length','max_nflds    '], &
                 long_name="1st dimension type")
         call clm_addvar(clmvar_text,ncid_hist(t),'type1d_out', &
-                cdims=(/'string_length','max_nflds    '/), &
+                cdims=['string_length','max_nflds    '], &
                 long_name="1st output dimension type")
         call clm_addvar(clmvar_text,ncid_hist(t),'type2d', &
-                cdims=(/'string_length','max_nflds    '/), &
+                cdims=['string_length','max_nflds    '], &
                 long_name="2nd dimension type")
         call clm_addvar(clmvar_text,ncid_hist(t),'p2c_scale_type', &
-                cdims=(/'string_length','max_nflds    '/), &
+                cdims=['string_length','max_nflds    '], &
                 long_name="PFT to column scale type")
         call clm_addvar(clmvar_text,ncid_hist(t),'c2l_scale_type', &
-                cdims=(/'string_length','max_nflds    '/), &
+                cdims=['string_length','max_nflds    '], &
                 long_name="column to landunit scale type")
         call clm_addvar(clmvar_text,ncid_hist(t),'l2g_scale_type', &
-                cdims=(/'string_length','max_nflds    '/), &
+                cdims=['string_length','max_nflds    '], &
                 long_name="landunit to gridpoint scale type")
 
         call clm_enddef(ncid_hist(t))

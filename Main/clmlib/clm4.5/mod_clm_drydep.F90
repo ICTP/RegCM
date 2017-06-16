@@ -98,16 +98,16 @@ module mod_clm_drydep
 
   !--- deposition of h2 and CO on soils ---
   real(rk8), parameter, public :: h2_a(NLUse) = &
-                (/  0.000_rk8,  0.000_rk8, 0.270_rk8,  0.000_rk8,  0.000_rk8,  &
-                    0.000_rk8,  0.000_rk8, 0.000_rk8,  0.000_rk8,  0.000_rk8, 0.000_rk8/)
+                [  0.000_rk8,  0.000_rk8, 0.270_rk8,  0.000_rk8,  0.000_rk8,  &
+                    0.000_rk8,  0.000_rk8, 0.000_rk8,  0.000_rk8,  0.000_rk8, 0.000_rk8]
   !--- deposition of h2 and CO on soils ---
   real(rk8), parameter, public :: h2_b(NLUse) = &
-                (/  0.000_rk8,-41.390_rk8, -0.472_rk8,-41.900_rk8,-41.900_rk8,  &
-                  -41.900_rk8,  0.000_rk8,  0.000_rk8,  0.000_rk8,-41.390_rk8,  0.000_rk8/)
+                [  0.000_rk8,-41.390_rk8, -0.472_rk8,-41.900_rk8,-41.900_rk8,  &
+                  -41.900_rk8,  0.000_rk8,  0.000_rk8,  0.000_rk8,-41.390_rk8,  0.000_rk8]
   !--- deposition of h2 and CO on soils ---
   real(rk8), parameter, public :: h2_c(NLUse) = &
-                (/  0.000_rk8, 16.850_rk8, 1.235_rk8, 19.700_rk8, 19.700_rk8, &
-                   19.700_rk8,  0.000_rk8, 0.000_rk8,  0.000_rk8, 17.700_rk8, 1.000_rk8/)
+                [  0.000_rk8, 16.850_rk8, 1.235_rk8, 19.700_rk8, 19.700_rk8, &
+                   19.700_rk8,  0.000_rk8, 0.000_rk8,  0.000_rk8, 17.700_rk8, 1.000_rk8]
 
   !--- deposition of h2 and CO on soils
   !
@@ -251,11 +251,11 @@ module mod_clm_drydep
         0.0006_rk8,0.002_rk8,0.010_rk8,0.030_rk8,0.060_rk8/
 
   !real(rk8), private, dimension(11,5), parameter :: z0xxx = reshape ( &
-  ! (/   1.000,0.250,0.050,1.000,1.000,1.000,0.0006,0.002,0.150,0.100,0.100 ,  &
+  ! [   1.000,0.250,0.050,1.000,1.000,1.000,0.0006,0.002,0.150,0.100,0.100 ,  &
   !      1.000,0.100,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.080,0.080 ,  &
   !      1.000,0.005,0.050,1.000,1.000,1.000,0.0006,0.002,0.100,0.020,0.060 ,  &
   !      1.000,0.001,0.001,1.000,1.000,1.000,0.0006,0.002,0.001,0.001,0.040 ,  &
-  !      1.000,0.030,0.020,1.000,1.000,1.000,0.0006,0.002,0.010,0.030,0.060  /), (/11,5/) )
+  !      1.000,0.030,0.020,1.000,1.000,1.000,0.0006,0.002,0.010,0.030,0.060  ], [11,5] )
 
   !---------------------------------------------------------------------------
   ! public chemical data
@@ -263,7 +263,7 @@ module mod_clm_drydep
 
   !--- data for foxd (reactivity factor for oxidation) ----
   real(rk8), public, parameter :: dfoxd(n_species_table) = &
-          (/  1._rk8     &
+          [  1._rk8     &
              ,1._rk8     &
              ,1._rk8     &
              ,.1_rk8     &
@@ -318,7 +318,7 @@ module mod_clm_drydep
              ,1.e-36_rk8 &
              ,1.e-36_rk8 & ! HCN
              ,1.e-36_rk8 & ! CH3CN
-            /)
+            ]
 
   Interface seq_drydep_setHCoeff                      ! overload subroutine
      Module Procedure set_hcoeff_scalar
@@ -335,7 +335,7 @@ module mod_clm_drydep
   !--- Names of species that can work with ---
   character(len=20) , public , &
           parameter :: species_name_table(n_species_table) = &
-                         (/ 'OX      '                       &
+                         [ 'OX      '                       &
                            ,'H2O2    '                       &
                            ,'OH      '                       &
                            ,'HO2     '                       &
@@ -390,11 +390,11 @@ module mod_clm_drydep
                            ,'HYDRALD '                       &
                            ,'HCN     '                       &
                            ,'CH3CN   '                       &
-                           /)
+                           ]
 
   !--- data for effective Henry's Law coefficient ---
   real(rk8), public, parameter :: dheff(n_species_table*6) = &
-            (/1.15e-2_rk8, 2560._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
+            [1.15e-2_rk8, 2560._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
              ,8.33e4_rk8, 7379._rk8,2.2e-12_rk8,-3730._rk8,0._rk8     ,    0._rk8  &
              ,3.00e1_rk8,    0._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
              ,2.00e3_rk8, 6600._rk8,3.5e-5_rk8,    0._rk8,0._rk8     ,    0._rk8  &
@@ -449,11 +449,11 @@ module mod_clm_drydep
              ,7.00e1_rk8, 6000._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
              ,1.20e1_rk8, 5000._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
              ,5.00e1_rk8, 4000._rk8,0._rk8     ,    0._rk8,0._rk8     ,    0._rk8  &
-            /)
+            ]
 
   real(rk8), private, parameter :: wh2o = amw
   real(rk8), private, parameter :: mol_wgts(n_species_table) = &
-     (/ 47.9981995_rk8, 34.0135994_rk8, 17.0067997_rk8, 33.0061989_rk8, 28.0104008_rk8, &
+     [ 47.9981995_rk8, 34.0135994_rk8, 17.0067997_rk8, 33.0061989_rk8, 28.0104008_rk8, &
         16.0405998_rk8, 47.0320015_rk8, 48.0393982_rk8, 30.0251999_rk8, 46.0246010_rk8, &
         30.0061398_rk8, 46.0055389_rk8, 63.0123405_rk8, 44.0098000_rk8, 17.0289402_rk8, &
         108.010483_rk8, 62.0049400_rk8, 32.0400009_rk8, 79.0117416_rk8, 15.9994001_rk8, &
@@ -463,7 +463,7 @@ module mod_clm_drydep
         72.0614014_rk8, 60.0503998_rk8, 75.0423965_rk8, 44.0922012_rk8, 75.0836029_rk8, &
         58.0768013_rk8, 76.0910034_rk8, 31.9988003_rk8, 33.0061989_rk8, 222.000000_rk8, &
         68.1141968_rk8, 70.0877991_rk8, 70.0877991_rk8, 46.0657997_rk8, 147.125946_rk8, &
-        119.074341_rk8, 162.117935_rk8, 100.112999_rk8, 27.0256_rk8   , 41.0524_rk8  /)
+        119.074341_rk8, 162.117935_rk8, 100.112999_rk8, 27.0256_rk8   , 41.0524_rk8  ]
 
   contains
   !

@@ -83,10 +83,10 @@ module mod_clm_croprest
 
     ! peaklai
     if (flag == 'define') then
-      call clm_addvar(clmvar_integer,ncid,'peaklai',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_integer,ncid,'peaklai',cdims=['pft'], &
             long_name='Flag if at max allowed LAI or not', &
-            flag_values=(/0,1/), valid_range=(/0,1/),     &
-            flag_meanings=(/'NOT-at-peak', 'AT_peak-LAI' /) )
+            flag_values=[0,1], valid_range=[0,1],     &
+            flag_meanings=['NOT-at-peak', 'AT_peak-LAI' ] )
     else if (flag == 'read' ) then
       if ( is_restart() .and. .not. clm_check_var(ncid,'peaklai') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -99,9 +99,9 @@ module mod_clm_croprest
 
     ! idop
     if (flag == 'define') then
-      call clm_addvar(clmvar_integer,ncid,'idop',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_integer,ncid,'idop',cdims=['pft'], &
             long_name='Date of planting',units='jday', &
-            valid_range=(/1,366/) )
+            valid_range=[1,366] )
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'idop') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -114,7 +114,7 @@ module mod_clm_croprest
 
     ! aleaf
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'aleaf',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'aleaf',cdims=['pft'], &
             long_name='leaf allocation coefficient',units='')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'aleaf') ) then
@@ -128,7 +128,7 @@ module mod_clm_croprest
 
     ! aleafi
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'aleafi',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'aleafi',cdims=['pft'], &
             long_name='Saved leaf allocation coefficient from phase 2', &
             units='')
     else if (flag == 'read') then
@@ -143,7 +143,7 @@ module mod_clm_croprest
 
     ! astem
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'astem',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'astem',cdims=['pft'], &
             long_name='stem allocation coefficient',units='')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'astem') ) then
@@ -157,7 +157,7 @@ module mod_clm_croprest
 
     ! astemi
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'astemi',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'astemi',cdims=['pft'], &
             long_name='Saved stem allocation coefficient from phase 2',&
             units='')
     else if (flag == 'read') then
@@ -172,7 +172,7 @@ module mod_clm_croprest
 
     ! htmx
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'htmx',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'htmx',cdims=['pft'], &
             long_name='max height attained by a crop during year',&
             units='m')
     else if (flag == 'read') then
@@ -187,7 +187,7 @@ module mod_clm_croprest
 
     ! hdidx
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'hdidx',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'hdidx',cdims=['pft'], &
             long_name='cold hardening index',units='')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'hdidx') ) then
@@ -201,7 +201,7 @@ module mod_clm_croprest
 
     ! vf
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'vf',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'vf',cdims=['pft'], &
             long_name='vernalization factor',units='')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'vf') ) then
@@ -215,7 +215,7 @@ module mod_clm_croprest
 
     ! cumvd
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'cumvd',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'cumvd',cdims=['pft'], &
             long_name='cumulative vernalization d',units='')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'cumvd') ) then
@@ -229,7 +229,7 @@ module mod_clm_croprest
 
     ! croplive
     if (flag == 'define') then
-      call clm_addvar(clmvar_logical,ncid,'croplive',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_logical,ncid,'croplive',cdims=['pft'], &
             long_name='Flag that crop is alive, but not harvested')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'croplive') ) then
@@ -243,7 +243,7 @@ module mod_clm_croprest
 
     ! cropplant
     if (flag == 'define') then
-      call clm_addvar(clmvar_logical,ncid,'cropplant',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_logical,ncid,'cropplant',cdims=['pft'], &
             long_name='Flag that crop is planted, but not harvested' )
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'cropplant') ) then
@@ -257,8 +257,8 @@ module mod_clm_croprest
 
     ! harvdate
     if (flag == 'define') then
-      call clm_addvar(clmvar_integer,ncid,'harvdate',cdims=(/'pft'/), &
-            long_name='harvest date',units='jday',valid_range=(/1,366/) )
+      call clm_addvar(clmvar_integer,ncid,'harvdate',cdims=['pft'], &
+            long_name='harvest date',units='jday',valid_range=[1,366] )
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'harvdate') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -271,7 +271,7 @@ module mod_clm_croprest
 
     ! gdd1020
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'gdd1020',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'gdd1020',cdims=['pft'], &
       long_name = '20 year average of growing degree-days base &
                   &10C from planting', &
       units='ddays')
@@ -287,7 +287,7 @@ module mod_clm_croprest
 
     ! gdd820
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'gdd820',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'gdd820',cdims=['pft'], &
        long_name = '20 year average of growing degree-days base 8C &
                    &from planting', &
        units='ddays')
@@ -303,7 +303,7 @@ module mod_clm_croprest
 
     ! gdd020
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'gdd020',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'gdd020',cdims=['pft'], &
        long_name = '20 year average of growing degree-days base 0C &
                    &from planting', &
        units='ddays')
@@ -319,7 +319,7 @@ module mod_clm_croprest
 
     ! gddmaturity
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'gddmaturity',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'gddmaturity',cdims=['pft'], &
             long_name='Growing degree days needed to harvest',units='ddays')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'gddmaturity') ) then
@@ -333,7 +333,7 @@ module mod_clm_croprest
 
     ! huileaf
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'huileaf',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'huileaf',cdims=['pft'], &
         long_name='heat unit index needed from planting to leaf emergence',&
         units='')
     else if (flag == 'read') then
@@ -348,7 +348,7 @@ module mod_clm_croprest
 
     ! huigrain
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'huigrain',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'huigrain',cdims=['pft'], &
             long_name='heat unit index needed to reach vegetative maturity', &
             units='')
     else if (flag == 'read') then
@@ -363,7 +363,7 @@ module mod_clm_croprest
 
     ! grainc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainc',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainc',cdims=['pft'], &
             long_name='grain C',units='gC/m2')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc') ) then
@@ -377,7 +377,7 @@ module mod_clm_croprest
 
     ! grainc_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainc_storage',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainc_storage',cdims=['pft'], &
             long_name='grain C storage',units='gC/m2')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_storage') ) then
@@ -393,7 +393,7 @@ module mod_clm_croprest
 
     ! grainc_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainc_xfer',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainc_xfer',cdims=['pft'], &
             long_name='grain C transfer',units='gC/m2')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_xfer') ) then
@@ -407,7 +407,7 @@ module mod_clm_croprest
 
     ! grainn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainn',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainn',cdims=['pft'], &
             long_name='grain N',units='gN/m2')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn') ) then
@@ -421,7 +421,7 @@ module mod_clm_croprest
 
     ! grainn_storage
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainn_storage',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainn_storage',cdims=['pft'], &
             long_name='grain N storage',units='gN/m2')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_storage') ) then
@@ -437,7 +437,7 @@ module mod_clm_croprest
 
     ! grainn_xfer
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainn_xfer',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainn_xfer',cdims=['pft'], &
             long_name='grain N transfer',units='gN/m2')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_xfer') ) then
@@ -452,7 +452,7 @@ module mod_clm_croprest
     ! grainc_xfer_to_grainc
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'grainc_xfer_to_grainc', &
-         cdims=(/'pft'/),long_name='grain C growth from storage', &
+         cdims=['pft'],long_name='grain C growth from storage', &
          units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
@@ -470,7 +470,7 @@ module mod_clm_croprest
     ! livestemc_to_litter
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'livestemc_to_litter', &
-            cdims=(/'pft'/), long_name='live stem C litterfall',units='gC/m2/s')
+            cdims=['pft'], long_name='live stem C litterfall',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
            clm_check_var(ncid,'livestemc_to_litter') ) then
@@ -486,7 +486,7 @@ module mod_clm_croprest
 
     ! grainc_to_food
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainc_to_food',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainc_to_food',cdims=['pft'], &
             long_name='grain C to food',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_to_food') ) then
@@ -503,7 +503,7 @@ module mod_clm_croprest
     ! grainn_xfer_to_grainn
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'grainn_xfer_to_grainn', &
-         cdims=(/'pft'/),long_name='grain N growth from storage', &
+         cdims=['pft'],long_name='grain N growth from storage', &
          units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
@@ -521,7 +521,7 @@ module mod_clm_croprest
     ! livestemn_to_litter
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'livestemn_to_litter', &
-            cdims=(/'pft'/), long_name='livestem N to litter',units='gN/m2/s')
+            cdims=['pft'], long_name='livestem N to litter',units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
            clm_check_var(ncid,'livestemn_to_litter') ) then
@@ -537,7 +537,7 @@ module mod_clm_croprest
 
     ! grainn_to_food
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'grainn_to_food',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'grainn_to_food',cdims=['pft'], &
             long_name='grain N to food',units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_to_food') ) then
@@ -553,7 +553,7 @@ module mod_clm_croprest
 
     ! cpool_to_grainc
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'cpool_to_grainc',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'cpool_to_grainc',cdims=['pft'], &
             long_name='allocation to grain C',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_to_grainc') ) then
@@ -570,7 +570,7 @@ module mod_clm_croprest
     ! cpool_to_grainc_storage
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'cpool_to_grainc_storage', &
-        cdims=(/'pft'/),long_name='allocation to grain C storage',  &
+        cdims=['pft'],long_name='allocation to grain C storage',  &
         units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
@@ -587,7 +587,7 @@ module mod_clm_croprest
 
     ! npool_to_grainn
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'npool_to_grainn',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'npool_to_grainn',cdims=['pft'], &
             long_name='allocation to grain N',units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'npool_to_grainn') ) then
@@ -604,7 +604,7 @@ module mod_clm_croprest
     ! npool_to_grainn_storage
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'npool_to_grainn_storage', &
-        cdims=(/'pft'/), &
+        cdims=['pft'], &
         long_name='allocation to grain N storage',units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
@@ -621,7 +621,7 @@ module mod_clm_croprest
 
     ! cpool_grain_gr
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'cpool_grain_gr',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'cpool_grain_gr',cdims=['pft'], &
             long_name='grain growth respiration',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_grain_gr') ) then
@@ -638,7 +638,7 @@ module mod_clm_croprest
     ! cpool_grain_storage_gr
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'cpool_grain_storage_gr', &
-            cdims=(/'pft'/), &
+            cdims=['pft'], &
             long_name='grain growth respiration to storage',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
@@ -655,7 +655,7 @@ module mod_clm_croprest
 
     ! transfer_grain_gr
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'transfer_grain_gr',cdims=(/'pft'/), &
+      call clm_addvar(clmvar_double,ncid,'transfer_grain_gr',cdims=['pft'], &
             long_name='grain growth respiration from storage',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. &
@@ -673,7 +673,7 @@ module mod_clm_croprest
     ! grainc_storage_to_xfer
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'grainc_storage_to_xfer', &
-            cdims=(/'pft'/), &
+            cdims=['pft'], &
             long_name='grain C shift storage to transfer',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
@@ -691,7 +691,7 @@ module mod_clm_croprest
     ! grainn_storage_to_xfer
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'grainn_storage_to_xfer', &
-            cdims=(/'pft'/), &
+            cdims=['pft'], &
             long_name='grain N shift storage to transfer',units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &

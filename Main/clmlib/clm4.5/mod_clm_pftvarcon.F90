@@ -300,7 +300,7 @@ module mod_clm_pftvarcon
     ! DO NOT CHANGE THE ORDER -- WITHOUT MODIFYING OTHER PARTS OF
     ! THE CODE WHERE THE ORDER MATTERS!
     !
-    character(len=40) , parameter :: expected_pftnames(0:mxpft) = (/ &
+    character(len=40) , parameter :: expected_pftnames(0:mxpft) = [ &
                  'not_vegetated                      '  &
                , 'needleleaf_evergreen_temperate_tree'  &
                , 'needleleaf_evergreen_boreal_tree   '  &
@@ -326,7 +326,7 @@ module mod_clm_pftvarcon
                , 'irrigated_winter_temperate_cereal  '  &
                , 'soybean                            '  &
                , 'irrigated_soybean                  '  &
-    /)
+    ]
 
     ! Set specific vegetation type values
 

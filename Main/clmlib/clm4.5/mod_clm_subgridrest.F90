@@ -104,10 +104,10 @@ module mod_clm_subgridrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'grid1d_lon', &
-              (/'gridcell'/),long_name='gridcell longitude', &
+              ['gridcell'],long_name='gridcell longitude', &
               units='degrees_east')
       call clm_addvar(clmvar_double,ncid,'grid1d_lat', &
-              (/'gridcell'/),long_name='gridcell latitude', &
+              ['gridcell'],long_name='gridcell latitude', &
               units='degrees_north')
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'grid1d_lon',gptr%londeg)
@@ -118,14 +118,14 @@ module mod_clm_subgridrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'land1d_lon', &
-              (/'landunit'/),long_name='landunit longitude', &
+              ['landunit'],long_name='landunit longitude', &
               units='degrees_east')
       call clm_addvar(clmvar_double,ncid,'land1d_lat', &
-              (/'landunit'/),long_name='landunit latitude', &
+              ['landunit'],long_name='landunit latitude', &
               units='degrees_north')
-      call clm_addvar(clmvar_double,ncid,'land1d_wtxy',(/'landunit'/), &
+      call clm_addvar(clmvar_double,ncid,'land1d_wtxy',['landunit'], &
               long_name='landunit weight relative to corresponding gridcell')
-      call clm_addvar(clmvar_integer,ncid,'land1d_ityplun',(/'landunit'/), &
+      call clm_addvar(clmvar_integer,ncid,'land1d_ityplun',['landunit'], &
            long_name='landunit type (vegetated,urban,lake,wetland or glacier)')
     else if (flag == 'write') then
       do l = begl , endl
@@ -144,18 +144,18 @@ module mod_clm_subgridrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'cols1d_lon', &
-              (/'column'/),long_name='column longitude', &
+              ['column'],long_name='column longitude', &
               units='degrees_east')
       call clm_addvar(clmvar_double,ncid,'cols1d_lat', &
-              (/'column'/),long_name='column latitude', &
+              ['column'],long_name='column latitude', &
               units='degrees_north')
-      call clm_addvar(clmvar_double,ncid,'cols1d_wtxy',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'cols1d_wtxy',['column'], &
             long_name='column weight relative to corresponding gridcell')
-      call clm_addvar(clmvar_double,ncid,'cols1d_wtlnd',(/'column'/), &
+      call clm_addvar(clmvar_double,ncid,'cols1d_wtlnd',['column'], &
             long_name='column weight relative to corresponding landunit')
-      call clm_addvar(clmvar_integer,ncid,'cols1d_ityplun',(/'column'/), &
+      call clm_addvar(clmvar_integer,ncid,'cols1d_ityplun',['column'], &
            long_name='column landunit type (veget.,urban,lake,wetland,glacier)')
-      call clm_addvar(clmvar_integer,ncid,'cols1d_ityp',(/'column'/), &
+      call clm_addvar(clmvar_integer,ncid,'cols1d_ityp',['column'], &
               long_name='column type (61-roof,62-sunwall,63-shadewall,'// &
                     '64-impervious road,65-pervious road,1-all other columns)')
     else if ( flag == 'write' ) then
@@ -183,20 +183,20 @@ module mod_clm_subgridrest
 
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'pfts1d_lon', &
-              (/'pft'/),long_name='pft longitude', &
+              ['pft'],long_name='pft longitude', &
               units='degrees_east')
       call clm_addvar(clmvar_double,ncid,'pfts1d_lat', &
-              (/'pft'/),long_name='pft latitude', &
+              ['pft'],long_name='pft latitude', &
               units='degrees_north')
       call clm_addvar(clmvar_double,ncid,'pfts1d_wtxy', &
-            (/'pft'/),long_name='pft weight relative to corresponding gridcell')
+            ['pft'],long_name='pft weight relative to corresponding gridcell')
       call clm_addvar(clmvar_double,ncid,'pfts1d_wtlnd', &
-            (/'pft'/),long_name='pft weight relative to corresponding landunit')
+            ['pft'],long_name='pft weight relative to corresponding landunit')
       call clm_addvar(clmvar_double,ncid,'pfts1d_wtcol', &
-            (/'pft'/),long_name='pft weight relative to corresponding column')
+            ['pft'],long_name='pft weight relative to corresponding column')
       call clm_addvar(clmvar_integer,ncid,'pfts1d_itypveg', &
-              (/'pft'/),long_name='pft vegetation type')
-      call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',(/'pft'/), &
+              ['pft'],long_name='pft vegetation type')
+      call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',['pft'], &
           long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)')
     else if ( flag == 'write' ) then
       do p = begp , endp

@@ -32,7 +32,7 @@ module mod_canesm_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: cavars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
   character(len=64) :: cabase1  = '_6hrLev_CanESM2_historical'
   character(len=64) :: cabase2  = '_6hrLev_CanESM2_rcp'

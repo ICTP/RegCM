@@ -32,7 +32,7 @@ module mod_ipsl_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: ipvars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
   character(len=64) :: ipbase1  = '_6hrLev_IPSL-CM5A-LR_historical'
   character(len=64) :: ipbase2  = '_6hrLev_IPSL-CM5A-LR_rcp'

@@ -4655,7 +4655,7 @@ module mod_clm_nchelper
     if ( myid /= iocpu ) return
 #ifdef DEBUG
     where ( abs(rval) < tiny(0.0) )
-      rval = d_zero
+      rval = 0.0
     end where
 #endif
     istart(2) = nt
@@ -4704,7 +4704,7 @@ module mod_clm_nchelper
     end if
 #ifdef DEBUG
     where ( abs(rval) < tiny(0.0) )
-      rval = d_zero
+      rval = 0.0
     end where
 #endif
     istart(3) = nt
@@ -4762,7 +4762,7 @@ module mod_clm_nchelper
     end if
 #ifdef DEBUG
     where ( abs(rval) < tiny(0.0) )
-      rval = d_zero
+      rval = 0.0
     end where
 #endif
     istart(4) = nt
@@ -5876,9 +5876,9 @@ module mod_clm_nchelper
     call clm_adddim(ncid,'pippo',gcomm_pft%ns)
     call clm_adddim(ncid,'jx',njout)
     call clm_adddim(ncid,'iy',niout)
-    call clm_addvar(clmvar_logical,ncid,'test',(/'pippo'/), &
+    call clm_addvar(clmvar_logical,ncid,'test',['pippo'], &
             long_name='pillo',units='pallo')
-    call clm_addvar(clmvar_integer,ncid,'mask',(/'jx','iy'/), &
+    call clm_addvar(clmvar_integer,ncid,'mask',['jx','iy'], &
             long_name='mask',units='1')
     call clm_enddef(ncid)
     allocate(xval(gcomm_pft%is:gcomm_pft%ie))

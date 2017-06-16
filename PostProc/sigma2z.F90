@@ -528,9 +528,9 @@ program sigma2z
           allocate(azvar(iz3d),stat=istatus)
           call checkalloc(istatus,__FILE__,__LINE__,'azvar')
           do ii = 1 , n3d
-            xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),(/jx,iy,kz/))
+            xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
             call intlin(zvar,xvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
-            azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,(/iz3d/))
+            azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,[iz3d])
           end do
           if ( i == qvarid .and. make_rh ) then
             qazvar = xvar
@@ -568,9 +568,9 @@ program sigma2z
             call checkalloc(istatus,__FILE__,__LINE__,'azvar')
             do ii = 1 , n3d
               xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
-                             (/jx,iy,kz/))
+                             [jx,iy,kz])
               call intlin(zvar,xvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
-              azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,(/iz3d/))
+              azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,[iz3d])
             end do
             istatus = nf90_put_var(ncout, i, azvar, istart(1:iv), icount(1:iv))
             call checkncerr(istatus,__FILE__,__LINE__, &

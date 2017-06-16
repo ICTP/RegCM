@@ -42,13 +42,13 @@ module mod_mkurban
   integer(ik4) , parameter :: nparam = npu2d + npu3d + npu4d
 
   character(len=16) , dimension(npu2d) , public , parameter :: parm2d = &
-    (/'CANYON_HWR      ', 'EM_IMPROAD      ', 'EM_PERROAD      ', &
+    ['CANYON_HWR      ', 'EM_IMPROAD      ', 'EM_PERROAD      ', &
       'EM_ROOF         ', 'EM_WALL         ', 'HT_ROOF         ', &
       'NLEV_IMPROAD    ', 'THICK_ROOF      ', 'THICK_WALL      ', &
       'T_BUILDING_MAX  ', 'T_BUILDING_MIN  ', 'WIND_HGT_CANYON ', &
-      'WTLUNIT_ROOF    ', 'WTROAD_PERV     '/)
+      'WTLUNIT_ROOF    ', 'WTROAD_PERV     ']
   character(len=36) , dimension(npu2d) , public , parameter :: lngn2d = &
-    (/'canyon height to width ratio        ', &
+    ['canyon height to width ratio        ', &
       'emissivity of impervious road       ', &
       'emissivity of pervious road         ', &
       'emissivity of roof                  ', &
@@ -61,38 +61,38 @@ module mod_mkurban
       'minimum intern building temperature ', &
       'height of wind in canyon            ', &
       'fraction of roof                    ', &
-      'fraction of pervious road           '/)
+      'fraction of pervious road           ']
   character(len=4) , dimension(npu2d) , public , parameter :: unit2d = &
-    (/'1   ', '1   ', '1   ', '1   ', '1   ', 'm   ', &
+    ['1   ', '1   ', '1   ', '1   ', '1   ', 'm   ', &
       '1   ', 'm   ', 'm   ', 'K   ', 'K   ', 'm   ', &
-      '1   ', '1   '/)
+      '1   ', '1   ']
   character(len=16) , dimension(npu3d) , public , parameter :: parm3d = &
-    (/'CV_IMPROAD      ', 'CV_ROOF         ', 'CV_WALL         ', &
-      'TK_IMPROAD      ', 'TK_ROOF         ', 'TK_WALL         '/)
+    ['CV_IMPROAD      ', 'CV_ROOF         ', 'CV_WALL         ', &
+      'TK_IMPROAD      ', 'TK_ROOF         ', 'TK_WALL         ']
   character(len=36) , dimension(npu3d) , public , parameter :: lngn3d = &
-    (/'vol heat capacity of impervious road', &
+    ['vol heat capacity of impervious road', &
       'vol heat capacity of roof           ', &
       'vol heat capacity of wall           ', &
       'thermal conductivity of imperv road ', &
       'thermal conductivity of roof        ', &
-      'thermal conductivity of wall        '/)
+      'thermal conductivity of wall        ']
   character(len=8) , dimension(npu3d) , public , parameter :: unit3d = &
-    (/'J/m^3*K ' , 'J/m^3*K ', 'J/m^3*K ', &
-      'W/m*K   ' , 'W/m*K   ', 'W/m*K   '/)
+    ['J/m^3*K ' , 'J/m^3*K ', 'J/m^3*K ', &
+      'W/m*K   ' , 'W/m*K   ', 'W/m*K   ']
   character(len=16) , dimension(npu4d) , public , parameter :: parm4d = &
-    (/'ALB_IMPROAD     ', 'ALB_PERROAD     ', 'ALB_ROOF        ', &
-      'ALB_WALL        '/)
+    ['ALB_IMPROAD     ', 'ALB_PERROAD     ', 'ALB_ROOF        ', &
+      'ALB_WALL        ']
   character(len=36) , dimension(npu4d) , public , parameter :: lngn4d = &
-    (/'albedo of impervious road           ', &
+    ['albedo of impervious road           ', &
       'albedo of pervious road             ', &
       'albedo of roof                      ', &
-      'albedo of wall                      '/)
+      'albedo of wall                      ']
   character(len=2) , dimension(npu4d) , public , parameter :: unit4d = &
-    (/'1 ', '1 ', '1 ', '1 '/)
+    ['1 ', '1 ', '1 ', '1 ']
   character(len=16) , dimension(nparam) :: parmname
 
   integer(ik4) , dimension(nparam) , parameter :: parmdim = &
-    (/3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5/)
+    [3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5]
 
   real(rkx) , parameter :: vcutoff = 40.0_rkx
 

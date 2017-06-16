@@ -1631,10 +1631,10 @@ module mod_ncstream
               end if
               buffer%doublebuff(1:totsize) =  &
                 reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
-                (/totsize/))
+                [totsize])
             else
               buffer%doublebuff(1:totsize) =  &
-                reshape(var%rval(var%j1:var%j2,var%i1:var%i2),(/totsize/))
+                reshape(var%rval(var%j1:var%j2,var%i1:var%i2),[totsize])
             end if
           end if
           nd = 2
@@ -1712,11 +1712,11 @@ module mod_ncstream
               end if
               buffer%doublebuff(1:totsize) = &
                 reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2,is), (/totsize/))
+                  var%k1:var%k2,is), [totsize])
             else
               buffer%doublebuff(1:totsize) = &
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2),(/totsize/))
+                  var%k1:var%k2),[totsize])
             end if
           end if
           nd = 3
@@ -1804,7 +1804,7 @@ module mod_ncstream
             end if
             buffer%doublebuff(1:totsize) = &
               reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                var%k1:var%k2,var%n1:var%n2),(/totsize/))
+                var%k1:var%k2,var%n1:var%n2),[totsize])
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -1927,11 +1927,11 @@ module mod_ncstream
               end if
               buffer%realbuff(1:totsize) =                                   &
                 reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
-                (/totsize/))
+                [totsize])
             else
               buffer%realbuff(1:totsize) =                          &
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
-                (/totsize/))
+                [totsize])
             end if
           end if
           nd = 2
@@ -1997,11 +1997,11 @@ module mod_ncstream
               end if
               buffer%realbuff(1:totsize) =                                   &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2,is), &
-                (/totsize/)),rk4)
+                [totsize]),rk4)
             else
               buffer%realbuff(1:totsize) =                          &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2), &
-                (/totsize/)),rk4)
+                [totsize]),rk4)
             end if
           end if
           nd = 2
@@ -2079,11 +2079,11 @@ module mod_ncstream
               end if
               buffer%realbuff(1:totsize) = &
                 reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2,is), (/totsize/))
+                  var%k1:var%k2,is), [totsize])
             else
               buffer%realbuff(1:totsize) = &
                 reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2),(/totsize/))
+                  var%k1:var%k2),[totsize])
             end if
           end if
           nd = 3
@@ -2161,11 +2161,11 @@ module mod_ncstream
               end if
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval_slice(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2,is), (/totsize/)),rk4)
+                  var%k1:var%k2,is), [totsize]),rk4)
             else
               buffer%realbuff(1:totsize) = &
                 real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2),(/totsize/)),rk4)
+                  var%k1:var%k2),[totsize]),rk4)
             end if
           end if
           nd = 3
@@ -2253,7 +2253,7 @@ module mod_ncstream
             end if
             buffer%realbuff(1:totsize) = &
               reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                var%k1:var%k2,var%n1:var%n2),(/totsize/))
+                var%k1:var%k2,var%n1:var%n2),[totsize])
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -2340,7 +2340,7 @@ module mod_ncstream
             end if
             buffer%realbuff(1:totsize) = &
               real(reshape(var%rval(var%j1:var%j2,var%i1:var%i2, &
-                var%k1:var%k2,var%n1:var%n2),(/totsize/)),rk4)
+                var%k1:var%k2,var%n1:var%n2),[totsize]),rk4)
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -2432,10 +2432,10 @@ module mod_ncstream
               end if
               buffer%intbuff(1:totsize) =                               &
                 reshape(var%ival_slice(var%j1:var%j2,var%i1:var%i2,is), &
-                (/totsize/))
+                [totsize])
             else
               buffer%intbuff(1:totsize) =                               &
-                reshape(var%ival(var%j1:var%j2,var%i1:var%i2),(/totsize/))
+                reshape(var%ival(var%j1:var%j2,var%i1:var%i2),[totsize])
             end if
           end if
           nd = 2
@@ -2513,11 +2513,11 @@ module mod_ncstream
               end if
               buffer%intbuff(1:totsize) =                           &
                 reshape(var%ival_slice(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2,is), (/totsize/))
+                  var%k1:var%k2,is), [totsize])
             else
               buffer%realbuff(1:totsize) =                    &
                 reshape(var%ival(var%j1:var%j2,var%i1:var%i2, &
-                  var%k1:var%k2),(/totsize/))
+                  var%k1:var%k2),[totsize])
             end if
           end if
           nd = 3
@@ -2605,7 +2605,7 @@ module mod_ncstream
             end if
             buffer%intbuff(1:totsize) = &
               reshape(var%ival(var%j1:var%j2,var%i1:var%i2, &
-                var%k1:var%k2,var%n1:var%n2),(/totsize/))
+                var%k1:var%k2,var%n1:var%n2),[totsize])
           end if
           nd = 4
           if ( var%lrecords ) then
@@ -4359,7 +4359,7 @@ program test
   var2read%i1 = 1
   var2read%i2 = 7
 
-  call instream_readvar(ncin,var2read,window=(/4,12,2,8/))
+  call instream_readvar(ncin,var2read,window=[4,12,2,8])
 
   do i = 1 , iy
     print '(16i2)', int(d2dvar(:,i))

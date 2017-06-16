@@ -621,7 +621,7 @@ program clm45_1dto2d
               do n = 1 , vshape(iv,2)
                 call remap(nsg,single_var_2d(:,n),mask,var2d_single)
                 istatus = nf90_put_var(ncoutid,iv,var2d_single, &
-                        start=(/1,1,n/), count=(/jx,iy,1/))
+                        start=[1,1,n], count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               end do
               deallocate(single_var_2d)
@@ -633,7 +633,7 @@ program clm45_1dto2d
                 do m = 1 , vshape(iv,2)
                   call remap(nsg,single_var_3d(:,m,n),mask,var2d_single)
                   istatus = nf90_put_var(ncoutid,iv,var2d_single, &
-                          start=(/1,1,m,n/), count=(/jx,iy,1,1/))
+                          start=[1,1,m,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                 end do
               end do
@@ -656,7 +656,7 @@ program clm45_1dto2d
               do n = 1 , vshape(iv,2)
                 call remap(nsg,double_var_2d(:,n),mask,var2d_double)
                 istatus = nf90_put_var(ncoutid,iv,var2d_double, &
-                        start=(/1,1,n/), count=(/jx,iy,1/))
+                        start=[1,1,n], count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               end do
               deallocate(double_var_2d)
@@ -668,7 +668,7 @@ program clm45_1dto2d
                 do m = 1 , vshape(iv,2)
                   call remap(nsg,double_var_3d(:,m,n),mask,var2d_double)
                   istatus = nf90_put_var(ncoutid,iv,var2d_double, &
-                          start=(/1,1,m,n/), count=(/jx,iy,1,1/))
+                          start=[1,1,m,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                 end do
               end do
@@ -691,7 +691,7 @@ program clm45_1dto2d
               do n = 1 , vshape(iv,2)
                 call remap(nsg,int_var_2d(:,n),mask,var2d_int)
                 istatus = nf90_put_var(ncoutid,iv,var2d_int, &
-                        start=(/1,1,n/), count=(/jx,iy,1/))
+                        start=[1,1,n], count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               end do
               deallocate(int_var_2d)
@@ -703,7 +703,7 @@ program clm45_1dto2d
                 do m = 1 , vshape(iv,2)
                   call remap(nsg,int_var_3d(:,m,n),mask,var2d_int)
                   istatus = nf90_put_var(ncoutid,iv,var2d_int, &
-                          start=(/1,1,m,n/), count=(/jx,iy,1,1/))
+                          start=[1,1,m,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                 end do
               end do
@@ -724,7 +724,7 @@ program clm45_1dto2d
                 call remap(nsg,ip,single_var_1d,itypveg,ipftgcell, &
                            mask,var2d_single)
                 istatus = nf90_put_var(ncoutid,iv,var2d_single, &
-                                       start=(/1,1,ip/),count=(/jx,iy,1/))
+                                       start=[1,1,ip],count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               end do
               deallocate(single_var_1d)
@@ -737,7 +737,7 @@ program clm45_1dto2d
                   call remap(nsg,ip,single_var_2d(:,n),itypveg,ipftgcell, &
                              mask,var2d_single)
                   istatus = nf90_put_var(ncoutid,iv,var2d_single, &
-                          start=(/1,1,ip,n/), count=(/jx,iy,1,1/))
+                          start=[1,1,ip,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                 end do
               end do
@@ -752,7 +752,7 @@ program clm45_1dto2d
                     call remap(nsg,ip,single_var_3d(:,m,n),itypveg,ipftgcell, &
                                mask,var2d_single)
                     istatus = nf90_put_var(ncoutid,iv,var2d_single, &
-                            start=(/1,1,ip,m,n/), count=(/jx,iy,1,1,1/))
+                            start=[1,1,ip,m,n], count=[jx,iy,1,1,1])
                     call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                   end do
                 end do
@@ -769,7 +769,7 @@ program clm45_1dto2d
                 call remap(nsg,ip,double_var_1d,itypveg,ipftgcell, &
                            mask,var2d_double)
                 istatus = nf90_put_var(ncoutid,iv,var2d_double, &
-                                       start=(/1,1,ip/),count=(/jx,iy,1/))
+                                       start=[1,1,ip],count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               end do
               deallocate(double_var_1d)
@@ -782,7 +782,7 @@ program clm45_1dto2d
                   call remap(nsg,ip,double_var_2d(:,n),itypveg,ipftgcell, &
                              mask,var2d_double)
                   istatus = nf90_put_var(ncoutid,iv,var2d_double, &
-                          start=(/1,1,ip,n/), count=(/jx,iy,1,1/))
+                          start=[1,1,ip,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                 end do
               end do
@@ -797,7 +797,7 @@ program clm45_1dto2d
                     call remap(nsg,ip,double_var_3d(:,m,n),itypveg,ipftgcell, &
                                mask,var2d_double)
                     istatus = nf90_put_var(ncoutid,iv,var2d_double, &
-                            start=(/1,1,ip,m,n/), count=(/jx,iy,1,1,1/))
+                            start=[1,1,ip,m,n], count=[jx,iy,1,1,1])
                     call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                   end do
                 end do
@@ -814,7 +814,7 @@ program clm45_1dto2d
                 call remap(nsg,ip,int_var_1d,itypveg,ipftgcell, &
                            mask,var2d_int)
                 istatus = nf90_put_var(ncoutid,iv,var2d_int, &
-                                       start=(/1,1,ip/),count=(/jx,iy,1/))
+                                       start=[1,1,ip],count=[jx,iy,1])
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               end do
               deallocate(int_var_1d)
@@ -827,7 +827,7 @@ program clm45_1dto2d
                   call remap(nsg,ip,int_var_2d(:,n),itypveg,ipftgcell, &
                              mask,var2d_int)
                   istatus = nf90_put_var(ncoutid,iv,var2d_int, &
-                          start=(/1,1,ip,n/), count=(/jx,iy,1,1/))
+                          start=[1,1,ip,n], count=[jx,iy,1,1])
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                 end do
               end do
@@ -842,7 +842,7 @@ program clm45_1dto2d
                     call remap(nsg,ip,int_var_3d(:,m,n),itypveg,ipftgcell, &
                                mask,var2d_int)
                     istatus = nf90_put_var(ncoutid,iv,var2d_int, &
-                            start=(/1,1,ip,m,n/), count=(/jx,iy,1,1,1/))
+                            start=[1,1,ip,m,n], count=[jx,iy,1,1,1])
                     call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
                   end do
                 end do

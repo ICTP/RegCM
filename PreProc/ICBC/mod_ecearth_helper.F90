@@ -32,7 +32,7 @@ module mod_ecearth_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: echvars = &
-            (/'t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ', 'XXX'/)
+            ['t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ', 'XXX']
 
   contains
 

@@ -32,7 +32,7 @@ module mod_gfdl_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: gfdlvars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
   character(len=64) :: gfdlbase1  = '_6hrLev_GFDL-ESM2M_historical'
   character(len=64) :: gfdlbase2  = '_6hrLev_GFDL-ESM2M_rcp'

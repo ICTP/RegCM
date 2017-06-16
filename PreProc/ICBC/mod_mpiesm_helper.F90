@@ -32,7 +32,7 @@ module mod_mpiesm_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: mpievars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps'/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps']
 
   character(len=64) :: mpiebase1  = '_6hrLev_MPI-ESM-MR_historical'
   character(len=64) :: mpiebase2  = '_6hrLev_MPI-ESM-MR_rcp'

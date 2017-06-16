@@ -562,11 +562,11 @@ module mod_clm_accumul
       if ( flag == 'define' ) then
         if ( accum(nf)%numlev == 1 ) then
           call clm_addvar(clmvar_double,ncid,varname, &
-                        (/accum(nf)%type1d/),accum(nf)%desc, &
+                        [accum(nf)%type1d],accum(nf)%desc, &
                         accum(nf)%units)
         else
           call clm_addvar(clmvar_double,ncid,varname, &
-                  (/accum(nf)%type1d,accum(nf)%type2d/), &
+                  [accum(nf)%type1d,accum(nf)%type2d], &
                    accum(nf)%desc,accum(nf)%units)
         end if
       else if ( flag == 'read' ) then

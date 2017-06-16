@@ -33,7 +33,7 @@ module mod_mkvic
   integer , parameter :: nvic = 4
 
   character(len=16) , parameter , dimension(nvic):: varname = &
-          (/ 'binfl' , 'Ds   ' , 'Dsmax' , 'Ws   '/)
+          [ 'binfl' , 'Ds   ' , 'Dsmax' , 'Ws   ']
 
   contains
 

@@ -295,57 +295,57 @@ module mod_clm_cndv
     str = 'days since ' // basedate // " " // basesec
     time = mdcur + mscur/secspday
 
-    call clm_addvar(clmvar_double,ncid,'time',(/'time'/),'time',trim(str))
+    call clm_addvar(clmvar_double,ncid,'time',['time'],'time',trim(str))
 
     ! Define surface grid (coordinate variables, latitude, longitude,
     ! surface type).
 
-    call clm_addvar(clmvar_double,ncid,'longxy',(/'gridcell'/), &
+    call clm_addvar(clmvar_double,ncid,'longxy',['gridcell'], &
           long_name='longitude', units='degrees_east')
-    call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &
+    call clm_addvar(clmvar_double,ncid,'latixy',['gridcell'], &
           long_name='latitude', units='degrees_north')
-    call clm_addvar(clmvar_integer,ncid,'landmask',(/'gridcell'/), &
+    call clm_addvar(clmvar_integer,ncid,'landmask',['gridcell'], &
           long_name='land/ocean mask (0.=ocean and 1.=land)', &
           missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_integer,ncid,'pftxgdc',(/'gridcell'/), &
+    call clm_addvar(clmvar_integer,ncid,'pftxgdc',['gridcell'], &
             long_name='Number of pfts per gridcell', &
             missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_logical,ncid,'regcm_mask',(/'jx','iy'/), &
+    call clm_addvar(clmvar_logical,ncid,'regcm_mask',['jx','iy'], &
           long_name='regcm land mask', units='1')
 
     ! Define time information
 
-    call clm_addvar(clmvar_integer,ncid,'mcdate',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mcdate',['time'], &
          long_name='current date (YYYYMMDD)')
-    call clm_addvar(clmvar_integer,ncid,'mcsec',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mcsec',['time'], &
          long_name='current seconds of current date', units='s')
-    call clm_addvar(clmvar_integer,ncid,'mdcur',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mdcur',['time'], &
          long_name='current day (from base day)')
-    call clm_addvar(clmvar_integer,ncid,'mscur',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mscur',['time'], &
          long_name='current seconds of current day', units='s')
-    call clm_addvar(clmvar_integer,ncid,'nstep',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'nstep',['time'], &
          long_name='time step', units='s')
 
-    call clm_addvar(clmvar_double,ncid,'pfts1d_wtxy',(/'pft'/), &
+    call clm_addvar(clmvar_double,ncid,'pfts1d_wtxy',['pft'], &
             long_name='pft weight relative to corresponding gridcell', &
             missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'pfts1d_gridcell', &
-            (/'pft'/),long_name='pft gridcell index', &
+            ['pft'],long_name='pft gridcell index', &
             missing_value=1,fill_value=1)
     call clm_addvar(clmvar_integer,ncid,'pfts1d_itypveg', &
-            (/'pft'/),long_name='pft vegetation type', &
+            ['pft'],long_name='pft vegetation type', &
             missing_value=1,fill_value=1)
-    call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',(/'pft'/), &
+    call clm_addvar(clmvar_integer,ncid,'pfts1d_ityplun',['pft'], &
          long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)', &
          missing_value=1,fill_value=1)
 
     ! Define time dependent variables
 
-     call clm_addvar(clmvar_double,ncid,'FPCGRID', (/'pft ','time'/), &
+     call clm_addvar(clmvar_double,ncid,'FPCGRID', ['pft ','time'], &
           long_name='plant functional type cover', &
           units='% of vegetated area', &
           missing_value=1,fill_value=1)
-     call clm_addvar(clmvar_double,ncid,'NIND', (/'pft ','time'/), &
+     call clm_addvar(clmvar_double,ncid,'NIND', ['pft ','time'], &
           long_name='number of individuals', &
           units='individuals/m2 vegetated land', &
           missing_value=1,fill_value=1)

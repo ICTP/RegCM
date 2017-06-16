@@ -45,7 +45,7 @@ module mod_clm_surfacealbedo
   ! This is the value used in CAM3 by Pritchard et al., GRL, 35, 2008.
 
   ! albedo land ice by waveband (1=vis, 2=nir)
-  real(rk8) , public :: albice(numrad) = (/ 0.80_rk8, 0.55_rk8 /)
+  real(rk8) , public :: albice(numrad) = [ 0.80_rk8, 0.55_rk8 ]
 
   private :: SoilAlbedo    ! Determine ground surface albedo
   private :: TwoStream     ! Two-stream fluxes for canopy radiative transfer

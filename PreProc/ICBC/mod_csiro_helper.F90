@@ -32,7 +32,7 @@ module mod_csiro_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: csirvars = &
-            (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps ']
 
   character(len=64) :: csirbase1  = '_6hrLev_CSIRO-Mk3-6-0_historical'
   character(len=64) :: csirbase2  = '_6hrLev_CSIRO-Mk3-6-0_rcp'

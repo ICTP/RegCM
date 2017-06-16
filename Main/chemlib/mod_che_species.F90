@@ -33,7 +33,7 @@ module mod_che_species
 
   integer(ik4) , parameter :: ninchcodes = 46
   character(len=8) , dimension(ninchcodes) :: inchtrnames =  &
-   (/'O3      ','NO      ','NO2     ','NO3     ','OH      ', &
+   ['O3      ','NO      ','NO2     ','NO3     ','OH      ', &
      'HO2     ','H2O2    ','HNO2    ','HNO3    ','HNO4    ', &
      'SULF    ','SO4     ','H2SO4   ','HONO    ','N2O5    ', &
      'HC      ','HCR     ','C2H4    ','OLT     ','OLI     ', &
@@ -42,7 +42,7 @@ module mod_che_species
      'XYL     ','NH3     ','PAN     ','ROOH    ','ACET    ', &
      'BENZ    ','CH4     ','MOH     ','EOH     ','ACO2    ', &
      'CO2     ','DMS     ','NOX     ','HOX     ','SOX     ', &
-     'PAR     '/)
+     'PAR     ']
 
   integer(ik4) , parameter :: ich_o3       = 1
   integer(ik4) , parameter :: ich_no       = 2

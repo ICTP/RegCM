@@ -55,7 +55,7 @@ module mod_clm_cndecompcascadecentury
   !! parameters for AD spinup
   ! multipliers for soil decomp during accelerated spinup
   real(rk8), public, parameter :: spinup_vector(nsompools) = &
-           (/ 1.00_rk8, 15.00_rk8, 675.00_rk8 /)
+           [ 1.00_rk8, 15.00_rk8, 675.00_rk8 ]
 
   contains
   !

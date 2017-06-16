@@ -64,13 +64,13 @@ module mod_gn6hnc
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
   integer(ik4) , parameter :: nipl = 38
   real(rkx) , target , dimension(nipl) :: fplev = &
-   (/  1.0_rkx,   2.0_rkx,   3.0_rkx,   5.0_rkx,   7.0_rkx,  10.0_rkx, &
+   [  1.0_rkx,   2.0_rkx,   3.0_rkx,   5.0_rkx,   7.0_rkx,  10.0_rkx, &
       20.0_rkx,  30.0_rkx,  50.0_rkx,  70.0_rkx, 100.0_rkx, 125.0_rkx, &
      150.0_rkx, 175.0_rkx, 200.0_rkx, 225.0_rkx, 250.0_rkx, 300.0_rkx, &
      350.0_rkx, 400.0_rkx, 425.0_rkx, 450.0_rkx, 500.0_rkx, 550.0_rkx, &
      600.0_rkx, 650.0_rkx, 700.0_rkx, 750.0_rkx, 775.0_rkx, 800.0_rkx, &
      825.0_rkx, 850.0_rkx, 875.0_rkx, 900.0_rkx, 925.0_rkx, 950.0_rkx, &
-     975.0_rkx, 1000.0_rkx /)
+     975.0_rkx, 1000.0_rkx ]
 
   integer(ik4) :: npl , nrhlev
   real(rkx) , pointer , dimension(:) :: pplev
@@ -121,28 +121,28 @@ module mod_gn6hnc
   character(len=32) :: cambase = 'sococa.ts1.r1.cam2.h1.'
 
   character(len=3) , target , dimension(nvars) :: cam2vars = &
-                         (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
+                         ['T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS ']
   character(len=3) , target , dimension(nvars) :: ccsmvars = &
-                         (/'T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS '/)
+                         ['T  ' , 'Z3 ' , 'Q  ' , 'U  ' , 'V  ' , 'PS ']
 
   character(len=3) , target , dimension(nvars) :: gfsvars = &
-                         (/'ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps '/)
+                         ['ta ' , 'hga' , 'rha' , 'ua ' , 'va ' , 'ps ']
   character(len=3) , target , dimension(nvars) :: ec5vars = &
-                         (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
+                         ['ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX']
   character(len=5) , target , dimension(nvars) :: jra55vars = &
-               (/'var11' , 'var7 ' , 'var52' , 'var33' , 'var34' , 'XXX  '/)
+               ['var11' , 'var7 ' , 'var52' , 'var33' , 'var34' , 'XXX  ']
 
   character(len=4) , dimension(nvars) :: ccsmfname = &
-               (/'air ' , 'hgt ' , 'shum' , 'uwnd' , 'vwnd' , 'pres'/)
+               ['air ' , 'hgt ' , 'shum' , 'uwnd' , 'vwnd' , 'pres']
 
   character(len=6) , target , dimension(nvars) :: ec5name = &
-    (/'STP   ' , 'GPH   ' , 'RELHUM' , 'U     ' , 'V     ' , 'XXX   '/)
+    ['STP   ' , 'GPH   ' , 'RELHUM' , 'U     ' , 'V     ' , 'XXX   ']
   character(len=8) , target , dimension(nvars) :: jra55name = &
-    (/'011_tmp ','007_hgt ','052_rh  ','033_ugrd','034_vgrd','XXXXXXXX'/)
+    ['011_tmp ','007_hgt ','052_rh  ','033_ugrd','034_vgrd','XXXXXXXX']
 
   character(len=3) , dimension(12) :: mname = &
-                         (/'JAN','FEB','MAR','APR','MAY','JUN', &
-                           'JUL','AUG','SEP','OCT','NOV','DEC'/)
+                         ['JAN','FEB','MAR','APR','MAY','JUN', &
+                           'JUL','AUG','SEP','OCT','NOV','DEC']
 
   character(len=3) , dimension(:) , pointer :: varname
 

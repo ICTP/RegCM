@@ -110,7 +110,7 @@ module mod_sunorbit
 
     ! amplitudes for obliquity cos series
     real(rkx) , parameter :: obamp(poblen) =  &
-          (/   -2462.2214466_rkx, -857.3232075_rkx, -629.3231835_rkx,   &
+          [   -2462.2214466_rkx, -857.3232075_rkx, -629.3231835_rkx,   &
                 -414.2804924_rkx, -311.7632587_rkx,  308.9408604_rkx,   &
                 -162.5533601_rkx, -116.1077911_rkx,  101.1189923_rkx,   &
                  -67.6856209_rkx,   24.9079067_rkx,   22.5811241_rkx,   &
@@ -125,11 +125,11 @@ module mod_sunorbit
                   -1.8468785_rkx,    1.8186742_rkx,    1.7601888_rkx,   &
                   -1.5428851_rkx,    1.4738838_rkx,   -1.4593669_rkx,   &
                    1.4192259_rkx,   -1.1818980_rkx,    1.1756474_rkx,   &
-                  -1.1316126_rkx,    1.0896928_rkx/)
+                  -1.1316126_rkx,    1.0896928_rkx]
 
     ! rates for obliquity cosine series
     real(rkx) , parameter :: obrate(poblen) = &
-            (/  31.609974_rkx, 32.620504_rkx, 24.172203_rkx,   &
+            [  31.609974_rkx, 32.620504_rkx, 24.172203_rkx,   &
                 31.983787_rkx, 44.828336_rkx, 30.973257_rkx,   &
                 43.668246_rkx, 32.246691_rkx, 30.599444_rkx,   &
                 42.681324_rkx, 43.836462_rkx, 47.439436_rkx,   &
@@ -144,11 +144,11 @@ module mod_sunorbit
                  6.801054_rkx, 62.209418_rkx, 20.656133_rkx,   &
                 48.344406_rkx, 55.145460_rkx, 69.000539_rkx,   &
                 11.071350_rkx, 74.291298_rkx, 11.047742_rkx,   &
-                 0.636717_rkx, 12.844549_rkx/)
+                 0.636717_rkx, 12.844549_rkx]
 
     ! phases for obliquity cosine series
     real(rkx) , parameter :: obphas(poblen) = &
-          (/    251.9025_rkx, 280.8325_rkx, 128.3057_rkx,   &
+          [    251.9025_rkx, 280.8325_rkx, 128.3057_rkx,   &
                 292.7252_rkx,  15.3747_rkx, 263.7951_rkx,   &
                 308.4258_rkx, 240.0099_rkx, 222.9725_rkx,   &
                 268.7809_rkx, 316.7998_rkx, 319.6024_rkx,   &
@@ -163,7 +163,7 @@ module mod_sunorbit
                 135.4894_rkx, 114.8750_rkx, 247.0691_rkx,   &
                 256.6114_rkx,  32.1008_rkx, 143.6804_rkx,   &
                  16.8784_rkx, 160.6835_rkx,  27.5932_rkx,   &
-                348.1074_rkx,  82.6496_rkx/)
+                348.1074_rkx,  82.6496_rkx]
 
     ! Cosine/sine series data for computation of eccentricity and fixed vernal
     ! equinox longitude of perihelion (fvelp): amplitude,
@@ -171,40 +171,40 @@ module mod_sunorbit
 
     ! ampl for eccen/fvelp cos/sin series
     real(rkx) , parameter :: ecamp (pecclen) = &
-          (/   0.01860798_rkx,  0.01627522_rkx, -0.01300660_rkx,   &
+          [   0.01860798_rkx,  0.01627522_rkx, -0.01300660_rkx,   &
                0.00988829_rkx, -0.00336700_rkx,  0.00333077_rkx,   &
               -0.00235400_rkx,  0.00140015_rkx,  0.00100700_rkx,   &
                0.00085700_rkx,  0.00064990_rkx,  0.00059900_rkx,   &
                0.00037800_rkx, -0.00033700_rkx,  0.00027600_rkx,   &
                0.00018200_rkx, -0.00017400_rkx, -0.00012400_rkx,   &
-               0.00001250_rkx/)
+               0.00001250_rkx]
 
     ! rates for eccen/fvelp cos/sin series
     real(rkx) , parameter :: ecrate(pecclen) = &
-          (/    4.2072050_rkx,  7.3460910_rkx, 17.8572630_rkx,  &
+          [    4.2072050_rkx,  7.3460910_rkx, 17.8572630_rkx,  &
                17.2205460_rkx, 16.8467330_rkx,  5.1990790_rkx,  &
                18.2310760_rkx, 26.2167580_rkx,  6.3591690_rkx,  &
                16.2100160_rkx,  3.0651810_rkx, 16.5838290_rkx,  &
                18.4939800_rkx,  6.1909530_rkx, 18.8677930_rkx,  &
                17.4255670_rkx,  6.1860010_rkx, 18.4174410_rkx,  &
-                0.6678630_rkx/)
+                0.6678630_rkx]
 
     ! phases for eccen/fvelp cos/sin series
     real(rkx) , parameter :: ecphas(pecclen) = &
-          (/    28.620089_rkx, 193.788772_rkx, 308.307024_rkx,  &
+          [    28.620089_rkx, 193.788772_rkx, 308.307024_rkx,  &
                320.199637_rkx, 279.376984_rkx,  87.195000_rkx,  &
                349.129677_rkx, 128.443387_rkx, 154.143880_rkx,  &
                291.269597_rkx, 114.860583_rkx, 332.092251_rkx,  &
                296.414411_rkx, 145.769910_rkx, 337.237063_rkx,  &
                152.092288_rkx, 126.839891_rkx, 210.667199_rkx,  &
-                72.108838_rkx/)
+                72.108838_rkx]
 
     ! Sine series data for computation of moving vernal equinox longitude of
     ! perihelion: amplitude (arc seconds), rate (arc sec/year), phase (degrees).
 
     ! amplitudes for mvelp sine series
     real(rkx) , parameter :: mvamp (pmvelen) = &
-          (/   7391.0225890_rkx, 2555.1526947_rkx, 2022.7629188_rkx,  &
+          [   7391.0225890_rkx, 2555.1526947_rkx, 2022.7629188_rkx,  &
               -1973.6517951_rkx, 1240.2321818_rkx,  953.8679112_rkx,  &
                -931.7537108_rkx,  872.3795383_rkx,  606.3544732_rkx,  &
                -496.0274038_rkx,  456.9608039_rkx,  346.9462320_rkx,  &
@@ -229,11 +229,11 @@ module mod_sunorbit
                  11.9867234_rkx,   11.9385578_rkx,   11.7030822_rkx,  &
                  11.6018181_rkx,  -11.2617293_rkx,  -10.4664199_rkx,  &
                  10.4333970_rkx,  -10.2377466_rkx,   10.1934446_rkx,  &
-                -10.1280191_rkx,   10.0289441_rkx,  -10.0034259_rkx/)
+                -10.1280191_rkx,   10.0289441_rkx,  -10.0034259_rkx]
 
     ! rates for mvelp sine series
     real(rkx) , parameter :: mvrate(pmvelen) = &
-          (/    31.609974_rkx, 32.620504_rkx, 24.172203_rkx,   &
+          [    31.609974_rkx, 32.620504_rkx, 24.172203_rkx,   &
                  0.636717_rkx, 31.983787_rkx,  3.138886_rkx,   &
                 30.973257_rkx, 44.828336_rkx,  0.991874_rkx,   &
                  0.373813_rkx, 43.668246_rkx, 32.246691_rkx,   &
@@ -258,11 +258,11 @@ module mod_sunorbit
                 65.241008_rkx, 18.870667_rkx, 22.009553_rkx,   &
                 64.604291_rkx, 11.498094_rkx,  0.578834_rkx,   &
                  9.237738_rkx, 49.747842_rkx,  2.147012_rkx,   &
-                 1.196895_rkx,  2.133898_rkx,  0.173168_rkx/)
+                 1.196895_rkx,  2.133898_rkx,  0.173168_rkx]
 
     ! phases for mvelp sine series
     real(rkx) , parameter :: mvphas(pmvelen) = &
-          (/    251.9025_rkx, 280.8325_rkx, 128.3057_rkx,   &
+          [    251.9025_rkx, 280.8325_rkx, 128.3057_rkx,   &
                 348.1074_rkx, 292.7252_rkx, 165.1686_rkx,   &
                 263.7951_rkx,  15.3747_rkx,  58.5749_rkx,   &
                  40.8226_rkx, 308.4258_rkx, 240.0099_rkx,   &
@@ -287,7 +287,7 @@ module mod_sunorbit
                 201.6651_rkx, 294.6547_rkx,  99.8233_rkx,   &
                 213.5577_rkx, 154.1631_rkx, 232.7153_rkx,   &
                 138.3034_rkx, 204.6609_rkx, 106.5938_rkx,   &
-                250.4676_rkx, 332.3345_rkx,  27.3039_rkx/)
+                250.4676_rkx, 332.3345_rkx,  27.3039_rkx]
 
     integer(ik4) :: i       ! Index for series summations
     real(rkx) :: obsum   ! Obliquity series summation
