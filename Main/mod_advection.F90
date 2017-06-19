@@ -115,15 +115,11 @@ module mod_advection
     subroutine start_advect
       implicit none
       integer(ik4) :: i , j , k
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            uavg1(j,i,k) = ua(j,i+1,k)   + ua(j,i,k)
-            uavg2(j,i,k) = ua(j+1,i+1,k) + ua(j+1,i,k)
-            vavg1(j,i,k) = va(j+1,i,k)   + va(j,i,k)
-            vavg2(j,i,k) = va(j+1,i+1,k) + va(j,i+1,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        uavg1(j,i,k) = ua(j,i+1,k)   + ua(j,i,k)
+        uavg2(j,i,k) = ua(j+1,i+1,k) + ua(j+1,i,k)
+        vavg1(j,i,k) = va(j+1,i,k)   + va(j,i,k)
+        vavg2(j,i,k) = va(j+1,i+1,k) + va(j,i+1,k)
       end do
     end subroutine start_advect
     !
@@ -148,58 +144,50 @@ module mod_advection
       !
       if ( .not. upstream_mode ) then
         if ( idynamic == 1 ) then
-          do k = 1 , kz
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
-                ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
-                ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
-                ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
-                vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
-                vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
-                vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-                ucmonb = ucmona + ucmonb
-                ucmonc = ucmonc + ucmona
-                vcmonb = vcmona + vcmonb
-                vcmonc = vcmonc + vcmona
-                uten(j,i,k) = uten(j,i,k) - dmapf(j,i) * &
+          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+            ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
+            ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
+            ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
+            vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
+            vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
+            vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
+            ucmonb = ucmona + ucmonb
+            ucmonc = ucmonc + ucmona
+            vcmonb = vcmona + vcmonb
+            vcmonc = vcmonc + vcmona
+            uten(j,i,k) = uten(j,i,k) - dmapf(j,i) * &
                             ((u(j+1,i,k)+u(j,  i,k)) * ucmonb - &
                              (u(j,  i,k)+u(j-1,i,k)) * ucmonc + &
                              (u(j,i+1,k)+u(j,  i,k)) * vcmonb - &
                              (u(j,  i,k)+u(j,i-1,k)) * vcmonc)
-                vten(j,i,k) = vten(j,i,k) - dmapf(j,i) * &
+            vten(j,i,k) = vten(j,i,k) - dmapf(j,i) * &
                             ((v(j+1,i,k)+v(j,  i,k)) * ucmonb - &
                              (v(j,  i,k)+v(j-1,i,k)) * ucmonc + &
                              (v(j,i+1,k)+v(j,  i,k)) * vcmonb - &
                              (v(j,  i,k)+v(j,i-1,k)) * vcmonc)
-              end do
-            end do
           end do
         else
-          do k = 1 , kz
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
-                divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
-                                   divx(j-1,i,k) + divx(j-1,i-1,k) )
-                ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
-                ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
-                ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
-                vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
-                vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
-                vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-                diag = divd - dmapf(j,i) * &
+          do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+            divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
+                               divx(j-1,i,k) + divx(j-1,i-1,k) )
+            ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
+            ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
+            ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
+            vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
+            vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
+            vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
+            diag = divd - dmapf(j,i) * &
                    ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
-                ucmonb = ucmona + ucmonb
-                ucmonc = ucmonc + ucmona
-                vcmonb = vcmona + vcmonb
-                vcmonc = vcmonc + vcmona
-                uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
+            ucmonb = ucmona + ucmonb
+            ucmonc = ucmonc + ucmona
+            vcmonb = vcmona + vcmonb
+            vcmonc = vcmonc + vcmona
+            uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
                             (u(j+1,i,k) * ucmonb - u(j-1,i,k) * ucmonc + &
                              u(j,i+1,k) * vcmonb - u(j,i-1,k) * vcmonc)
-                vten(j,i,k) = vten(j,i,k) + v(j,i,k) * diag - dmapf(j,i) * &
+            vten(j,i,k) = vten(j,i,k) + v(j,i,k) * diag - dmapf(j,i) * &
                             (v(j+1,i,k) * ucmonb - v(j-1,i,k) * ucmonc + &
                              v(j,i+1,k) * vcmonb - v(j,i-1,k) * vcmonc)
-              end do
-            end do
           end do
         end if
 #ifdef DEBUG
@@ -209,66 +197,58 @@ module mod_advection
       end if
 
       if ( idynamic == 1 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
-              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
-              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
-              vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
-              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
-              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-              ff1 = max(min((u(j+1,i,k)+u(j,i,k))*uchu,upu),-upu)
-              ff2 = max(min((u(j-1,i,k)+u(j,i,k))*uchu,upu),-upu)
-              ff3 = max(min((v(j,i+1,k)+v(j,i,k))*uchu,upu),-upu)
-              ff4 = max(min((v(j,i-1,k)+v(j,i,k))*uchu,upu),-upu)
-              ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
-              ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
-              vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
-              vcmonc = (d_one+ff4)*vcmonc + (d_one-ff4)*vcmona
-              uten(j,i,k) = uten(j,i,k) - dmapf(j,i) * &
+        do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+          ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
+          ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
+          ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
+          vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
+          vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
+          vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
+          ff1 = max(min((u(j+1,i,k)+u(j,i,k))*uchu,upu),-upu)
+          ff2 = max(min((u(j-1,i,k)+u(j,i,k))*uchu,upu),-upu)
+          ff3 = max(min((v(j,i+1,k)+v(j,i,k))*uchu,upu),-upu)
+          ff4 = max(min((v(j,i-1,k)+v(j,i,k))*uchu,upu),-upu)
+          ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
+          ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
+          vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
+          vcmonc = (d_one+ff4)*vcmonc + (d_one-ff4)*vcmona
+          uten(j,i,k) = uten(j,i,k) - dmapf(j,i) * &
                           ((u(j+1,i,k)+u(j,  i,k)) * ucmonb - &
                            (u(j,  i,k)+u(j-1,i,k)) * ucmonc + &
                            (u(j,i+1,k)+u(j,  i,k)) * vcmonb - &
                            (u(j,  i,k)+u(j,i-1,k)) * vcmonc)
-              vten(j,i,k) = vten(j,i,k) - dmapf(j,i) * &
+          vten(j,i,k) = vten(j,i,k) - dmapf(j,i) * &
                           ((v(j+1,i,k)+v(j,  i,k)) * ucmonb - &
                            (v(j,  i,k)+v(j-1,i,k)) * ucmonc + &
                            (v(j,i+1,k)+v(j,  i,k)) * vcmonb - &
                            (v(j,  i,k)+v(j,i-1,k)) * vcmonc)
-            end do
-          end do
         end do
       else
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
-                                 divx(j-1,i,k) + divx(j-1,i-1,k) )
-              ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
-              ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
-              ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
-              vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
-              vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
-              vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
-              diag = divd - dmapf(j,i) * &
+        do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+          divd = d_rfour * ( divx(j,i,k)   + divx(j,i-1,k)   + &
+                             divx(j-1,i,k) + divx(j-1,i-1,k) )
+          ucmona = ua(j,i+1,k)   + d_two*ua(j,i,k)   + ua(j,i-1,k)
+          ucmonb = ua(j+1,i+1,k) + d_two*ua(j+1,i,k) + ua(j+1,i-1,k)
+          ucmonc = ua(j-1,i+1,k) + d_two*ua(j-1,i,k) + ua(j-1,i-1,k)
+          vcmona = va(j+1,i,k)   + d_two*va(j,i,k)   + va(j-1,i,k)
+          vcmonb = va(j+1,i+1,k) + d_two*va(j,i+1,k) + va(j-1,i+1,k)
+          vcmonc = va(j+1,i-1,k) + d_two*va(j,i-1,k) + va(j-1,i-1,k)
+          diag = divd - dmapf(j,i) * &
                   ( ( ucmonb - ucmonc ) + ( vcmonb - vcmonc ) )
-              ff1 = max(min((u(j+1,i,k)+u(j,i,k))*uchu,upu),-upu)
-              ff2 = max(min((u(j-1,i,k)+u(j,i,k))*uchu,upu),-upu)
-              ff3 = max(min((v(j,i+1,k)+v(j,i,k))*uchu,upu),-upu)
-              ff4 = max(min((v(j,i-1,k)+v(j,i,k))*uchu,upu),-upu)
-              ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
-              ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
-              vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
-              vcmonc = (d_one+ff4)*vcmonc + (d_one-ff4)*vcmona
-              uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
+          ff1 = max(min((u(j+1,i,k)+u(j,i,k))*uchu,upu),-upu)
+          ff2 = max(min((u(j-1,i,k)+u(j,i,k))*uchu,upu),-upu)
+          ff3 = max(min((v(j,i+1,k)+v(j,i,k))*uchu,upu),-upu)
+          ff4 = max(min((v(j,i-1,k)+v(j,i,k))*uchu,upu),-upu)
+          ucmonb = (d_one+ff1)*ucmona + (d_one-ff1)*ucmonb
+          ucmonc = (d_one+ff2)*ucmonc + (d_one-ff2)*ucmona
+          vcmonb = (d_one+ff3)*vcmona + (d_one-ff3)*vcmonb
+          vcmonc = (d_one+ff4)*vcmonc + (d_one-ff4)*vcmona
+          uten(j,i,k) = uten(j,i,k) + u(j,i,k) * diag - dmapf(j,i) * &
                           (u(j+1,i,k) * ucmonb - u(j-1,i,k) * ucmonc + &
                            u(j,i+1,k) * vcmonb - u(j,i-1,k) * vcmonc)
-              vten(j,i,k) = vten(j,i,k) + v(j,i,k) * diag - dmapf(j,i) * &
+          vten(j,i,k) = vten(j,i,k) + v(j,i,k) * diag - dmapf(j,i) * &
                           (v(j+1,i,k) * ucmonb - v(j-1,i,k) * ucmonc + &
                            v(j,i+1,k) * vcmonb - v(j,i-1,k) * vcmonc)
-            end do
-          end do
         end do
       end if
 #ifdef DEBUG
@@ -291,19 +271,15 @@ module mod_advection
       !
       ! vertical advection terms : interpolate ua or va to full sigma levels
       !
-      do k = 2 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            qq = d_rfour * (svv(j,i,k)   + svv(j,i-1,k) + &
-                            svv(j-1,i,k) + svv(j-1,i-1,k))
-            uu = qq * (twt(k,1)*ud(j,i,k) + twt(k,2)*ud(j,i,k-1))
-            vv = qq * (twt(k,1)*vd(j,i,k) + twt(k,2)*vd(j,i,k-1))
-            uten(j,i,k-1) = uten(j,i,k-1) - uu*xds(k-1)
-            uten(j,i,k)   = uten(j,i,k)   + uu*xds(k)
-            vten(j,i,k-1) = vten(j,i,k-1) - vv*xds(k-1)
-            vten(j,i,k)   = vten(j,i,k)   + vv*xds(k)
-          end do
-        end do
+      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 2:kz )
+        qq = d_rfour * (svv(j,i,k)   + svv(j,i-1,k) + &
+                        svv(j-1,i,k) + svv(j-1,i-1,k))
+        uu = qq * (twt(k,1)*ud(j,i,k) + twt(k,2)*ud(j,i,k-1))
+        vv = qq * (twt(k,1)*vd(j,i,k) + twt(k,2)*vd(j,i,k-1))
+        uten(j,i,k-1) = uten(j,i,k-1) - uu*xds(k-1)
+        uten(j,i,k)   = uten(j,i,k)   + uu*xds(k)
+        vten(j,i,k-1) = vten(j,i,k-1) - vv*xds(k-1)
+        vten(j,i,k)   = vten(j,i,k)   + vv*xds(k)
       end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -329,35 +305,27 @@ module mod_advection
       call time_begin(subroutine_name,idindx)
 #endif
       if ( .not. upstream_mode ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fx1 = f(j-1,i,k) + f(j,i,k)
-              fx2 = f(j,i,k)   + f(j+1,i,k)
-              fy1 = f(j,i-1,k) + f(j,i,k)
-              fy2 = f(j,i,k)   + f(j,i+1,k)
-              fg(j,i,k) = - xmapf(j,i) * &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          fx1 = f(j-1,i,k) + f(j,i,k)
+          fx2 = f(j,i,k)   + f(j+1,i,k)
+          fy1 = f(j,i-1,k) + f(j,i,k)
+          fy2 = f(j,i,k)   + f(j,i+1,k)
+          fg(j,i,k) = - xmapf(j,i) * &
                      (uavg2(j,i,k)*fx2-uavg1(j,i,k)*fx1 + &
                       vavg2(j,i,k)*fy2-vavg1(j,i,k)*fy1)
-            end do
-          end do
         end do
       else
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ul = uchu / ps(j,i)
-              f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
-              f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
-              fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
-              fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
-              fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
-              fy2 = (d_one+f2)*f(j,i,k)   + (d_one-f2)*f(j,i+1,k)
-              fg(j,i,k) = - xmapf(j,i) * &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          ul = uchu / ps(j,i)
+          f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
+          f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
+          fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
+          fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
+          fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
+          fy2 = (d_one+f2)*f(j,i,k)   + (d_one-f2)*f(j,i+1,k)
+          fg(j,i,k) = - xmapf(j,i) * &
                      (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                       vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-            end do
-          end do
         end do
       end if
       !
@@ -367,39 +335,31 @@ module mod_advection
       ! must not grow further due to advection
       !
       if ( stability_enhance ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( abs(f(j,i+1,k) + f(j,i-1,k) - &
-                       d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
-                if ( (f(j,i,k) > f(j,i+1,k)) .and. &
-                     (f(j,i,k) > f(j,i-1,k)) ) then
-                  fg(j,i,k) = min(fg(j,i,k),d_zero)
-                else if ( (f(j,i,k) < f(j,i+1,k)) .and. &
-                          (f(j,i,k) < f(j,i-1,k)) ) then
-                  fg(j,i,k) = max(fg(j,i,k),d_zero)
-                end if
-              end if
-              if ( abs(f(j+1,i,k) + f(j-1,i,k) - &
-                       d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
-                if ( (f(j,i,k) > f(j+1,i,k)) .and. &
-                     (f(j,i,k) > f(j-1,i,k)) ) then
-                  fg(j,i,k) = min(fg(j,i,k),d_zero)
-                else if ( (f(j,i,k) < f(j+1,i,k)) .and. &
-                          (f(j,i,k) < f(j-1,i,k)) ) then
-                  fg(j,i,k) = max(fg(j,i,k),d_zero)
-                end if
-              end if
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          if ( abs(f(j,i+1,k) + f(j,i-1,k) - &
+                   d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
+            if ( (f(j,i,k) > f(j,i+1,k)) .and. &
+                 (f(j,i,k) > f(j,i-1,k)) ) then
+              fg(j,i,k) = min(fg(j,i,k),d_zero)
+            else if ( (f(j,i,k) < f(j,i+1,k)) .and. &
+                      (f(j,i,k) < f(j,i-1,k)) ) then
+              fg(j,i,k) = max(fg(j,i,k),d_zero)
+            end if
+          end if
+          if ( abs(f(j+1,i,k) + f(j-1,i,k) - &
+                   d_two*f(j,i,k))/ps(j,i) > t_extrema ) then
+            if ( (f(j,i,k) > f(j+1,i,k)) .and. &
+                 (f(j,i,k) > f(j-1,i,k)) ) then
+              fg(j,i,k) = min(fg(j,i,k),d_zero)
+            else if ( (f(j,i,k) < f(j+1,i,k)) .and. &
+                      (f(j,i,k) < f(j-1,i,k)) ) then
+              fg(j,i,k) = max(fg(j,i,k),d_zero)
+            end if
+          end if
         end do
       end if
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,k) = ften(j,i,k) + fg(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        ften(j,i,k) = ften(j,i,k) + fg(j,i,k)
       end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -425,43 +385,35 @@ module mod_advection
           !
           ! for cross point variables on half sigma levels
           !
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                fx1 = f(j-1,i,k) + f(j,i,k)
-                fx2 = f(j,i,k)   + f(j+1,i,k)
-                fy1 = f(j,i-1,k) + f(j,i,k)
-                fy2 = f(j,i,k)   + f(j,i+1,k)
-                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            fx1 = f(j-1,i,k) + f(j,i,k)
+            fx2 = f(j,i,k)   + f(j+1,i,k)
+            fy1 = f(j,i-1,k) + f(j,i,k)
+            fy2 = f(j,i,k)   + f(j,i+1,k)
+            ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
                           (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                            vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-              end do
-            end do
           end do
         else if ( ind == 1 ) then
           !
           ! Interpolate the winds to the full sigma levels
           ! while the advection term is calculated
           !
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
-                         twt(k,2) * uavg1(j,i,k-1) )
-                uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
-                         twt(k,2) * uavg2(j,i,k-1) )
-                vaz1 = ( twt(k,1) * vavg1(j,i,k) + &
-                         twt(k,2) * vavg1(j,i,k-1) )
-                vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
-                         twt(k,2) * vavg2(j,i,k-1) )
-                fx1 = f(j-1,i,k) + f(j,i,k)
-                fx2 = f(j,i,k)   + f(j+1,i,k)
-                fy1 = f(j,i-1,k) + f(j,i,k)
-                fy2 = f(j,i,k)   + f(j,i+1,k)
-                ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
+                     twt(k,2) * uavg1(j,i,k-1) )
+            uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
+                     twt(k,2) * uavg2(j,i,k-1) )
+            vaz1 = ( twt(k,1) * vavg1(j,i,k) + &
+                     twt(k,2) * vavg1(j,i,k-1) )
+            vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
+                     twt(k,2) * vavg2(j,i,k-1) )
+            fx1 = f(j-1,i,k) + f(j,i,k)
+            fx2 = f(j,i,k)   + f(j+1,i,k)
+            fy1 = f(j,i-1,k) + f(j,i,k)
+            fy2 = f(j,i,k)   + f(j,i+1,k)
+            ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
                           (uaz2*fx2-uaz1*fx1 + vaz2*fy2-vaz1*fy1)
-              end do
-            end do
           end do
         else
           call fatal(__FILE__,__LINE__, &
@@ -477,49 +429,41 @@ module mod_advection
         !
         ! for cross point variables on half sigma levels
         !
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ul = uchu / ps(j,i)
-              f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
-              f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
-              fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
-              fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
-              fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
-              fy2 = (d_one+f2)*f(j,i,k)   + (d_one-f2)*f(j,i+1,k)
-              ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          ul = uchu / ps(j,i)
+          f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
+          f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
+          fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
+          fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
+          fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
+          fy2 = (d_one+f2)*f(j,i,k)   + (d_one-f2)*f(j,i+1,k)
+          ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
                         (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                          vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-            end do
-          end do
         end do
       else if ( ind == 1 ) then
         !
         ! Interpolate the winds to the full sigma levels
         ! while the advection term is calculated
         !
-        do k = 2 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ul = uchu / ps(j,i)
-              uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
-                       twt(k,2) * uavg1(j,i,k-1) )
-              uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
-                       twt(k,2) * uavg2(j,i,k-1) )
-              vaz1 = ( twt(k,1) * vavg1(j,i,k) + &
-                       twt(k,2) * vavg1(j,i,k-1) )
-              vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
-                       twt(k,2) * vavg2(j,i,k-1) )
-              f1 = max(min((uaz2+uaz1)*ul,upu),-upu)
-              f2 = max(min((vaz2+vaz1)*ul,upu),-upu)
-              fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
-              fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
-              fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
-              fy2 = (d_one+f2)*f(j,i,k)   + (d_one-f2)*f(j,i+1,k)
-              ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          ul = uchu / ps(j,i)
+          uaz1 = ( twt(k,1) * uavg1(j,i,k) + &
+                   twt(k,2) * uavg1(j,i,k-1) )
+          uaz2 = ( twt(k,1) * uavg2(j,i,k) + &
+                   twt(k,2) * uavg2(j,i,k-1) )
+          vaz1 = ( twt(k,1) * vavg1(j,i,k) + &
+                   twt(k,2) * vavg1(j,i,k-1) )
+          vaz2 = ( twt(k,1) * vavg2(j,i,k) + &
+                   twt(k,2) * vavg2(j,i,k-1) )
+          f1 = max(min((uaz2+uaz1)*ul,upu),-upu)
+          f2 = max(min((vaz2+vaz1)*ul,upu),-upu)
+          fx1 = (d_one+f1)*f(j-1,i,k) + (d_one-f1)*f(j,i,k)
+          fx2 = (d_one+f1)*f(j,i,k)   + (d_one-f1)*f(j+1,i,k)
+          fy1 = (d_one+f2)*f(j,i-1,k) + (d_one-f2)*f(j,i,k)
+          fy2 = (d_one+f2)*f(j,i,k)   + (d_one-f2)*f(j,i+1,k)
+          ften(j,i,k) = ften(j,i,k) - xmapf(j,i) * &
                         (uaz2*fx2-uaz1*fx1 + vaz2*fy2-vaz1*fy1)
-            end do
-          end do
         end do
       else
         call fatal(__FILE__,__LINE__, &
@@ -546,35 +490,27 @@ module mod_advection
       ! for qv:
       !
       if ( .not. upstream_mode ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fx1 = f(j-1,i,k,iv) + f(j,i,k,iv)
-              fx2 = f(j,i,k,iv)   + f(j+1,i,k,iv)
-              fy1 = f(j,i-1,k,iv) + f(j,i,k,iv)
-              fy2 = f(j,i,k,iv)   + f(j,i+1,k,iv)
-              fg(j,i,k) = -xmapf(j,i) * &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          fx1 = f(j-1,i,k,iv) + f(j,i,k,iv)
+          fx2 = f(j,i,k,iv)   + f(j+1,i,k,iv)
+          fy1 = f(j,i-1,k,iv) + f(j,i,k,iv)
+          fy2 = f(j,i,k,iv)   + f(j,i+1,k,iv)
+          fg(j,i,k) = -xmapf(j,i) * &
                      (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                       vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-            end do
-          end do
         end do
       else
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ul = uchu / ps(j,i)
-              f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
-              f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
-              fx1 = (d_one+f1)*f(j-1,i,k,iv) + (d_one-f1)*f(j,i,k,iv)
-              fx2 = (d_one+f1)*f(j,i,k,iv)   + (d_one-f1)*f(j+1,i,k,iv)
-              fy1 = (d_one+f2)*f(j,i-1,k,iv) + (d_one-f2)*f(j,i,k,iv)
-              fy2 = (d_one+f2)*f(j,i,k,iv)   + (d_one-f2)*f(j,i+1,k,iv)
-              fg(j,i,k) = -xmapf(j,i) * &
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          ul = uchu / ps(j,i)
+          f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
+          f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
+          fx1 = (d_one+f1)*f(j-1,i,k,iv) + (d_one-f1)*f(j,i,k,iv)
+          fx2 = (d_one+f1)*f(j,i,k,iv)   + (d_one-f1)*f(j+1,i,k,iv)
+          fy1 = (d_one+f2)*f(j,i-1,k,iv) + (d_one-f2)*f(j,i,k,iv)
+          fy2 = (d_one+f2)*f(j,i,k,iv)   + (d_one-f2)*f(j,i+1,k,iv)
+          fg(j,i,k) = -xmapf(j,i) * &
                         (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                          vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-            end do
-          end do
         end do
       end if
       !
@@ -584,41 +520,31 @@ module mod_advection
       ! must not grow further due to advection
       !
       if ( stability_enhance ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - &
-                   d_two*f(j,i,k,iv)) / &
-                      max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
-                if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
-                     (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
-                  fg(j,i,k) = min(fg(j,i,k),d_zero)
-                else if ( (f(j,i,k,iv) < f(j,i+1,k,iv)) .and. &
-                          (f(j,i,k,iv) < f(j,i-1,k,iv)) ) then
-                  fg(j,i,k) = max(fg(j,i,k),d_zero)
-                end if
-              end if
-              if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - &
-                   d_two*f(j,i,k,iv)) / &
-                      max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
-                if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
-                     (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
-                  fg(j,i,k) = min(fg(j,i,k),d_zero)
-                else if ( (f(j,i,k,iv) < f(j+1,i,k,iv)) .and. &
-                          (f(j,i,k,iv) < f(j-1,i,k,iv)) ) then
-                  fg(j,i,k) = max(fg(j,i,k),d_zero)
-                end if
-              end if
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          if ( abs(f(j,i+1,k,iv) + f(j,i-1,k,iv) - d_two*f(j,i,k,iv)) / &
+                  max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
+            if ( (f(j,i,k,iv) > f(j,i+1,k,iv)) .and. &
+                 (f(j,i,k,iv) > f(j,i-1,k,iv)) ) then
+              fg(j,i,k) = min(fg(j,i,k),d_zero)
+            else if ( (f(j,i,k,iv) < f(j,i+1,k,iv)) .and. &
+                      (f(j,i,k,iv) < f(j,i-1,k,iv)) ) then
+              fg(j,i,k) = max(fg(j,i,k),d_zero)
+            end if
+          end if
+          if ( abs(f(j+1,i,k,iv) + f(j-1,i,k,iv) - d_two*f(j,i,k,iv)) / &
+                  max(f(j,i,k,iv),dlowval) > q_rel_extrema ) then
+            if ( (f(j,i,k,iv) > f(j+1,i,k,iv)) .and. &
+                 (f(j,i,k,iv) > f(j-1,i,k,iv)) ) then
+              fg(j,i,k) = min(fg(j,i,k),d_zero)
+            else if ( (f(j,i,k,iv) < f(j+1,i,k,iv)) .and. &
+                      (f(j,i,k,iv) < f(j-1,i,k,iv)) ) then
+              fg(j,i,k) = max(fg(j,i,k),d_zero)
+            end if
+          end if
         end do
       end if
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,k,iv) = ften(j,i,k,iv) + fg(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        ften(j,i,k,iv) = ften(j,i,k,iv) + fg(j,i,k)
       end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -645,35 +571,27 @@ module mod_advection
       !
       do n = n1 , n2
         if ( .not. upstream_mode ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                fx1 = f(j-1,i,k,n) + f(j,i,k,n)
-                fx2 = f(j,i,k,n)   + f(j+1,i,k,n)
-                fy1 = f(j,i-1,k,n) + f(j,i,k,n)
-                fy2 = f(j,i,k,n)   + f(j,i+1,k,n)
-                fg(j,i,k) = - xmapf(j,i) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            fx1 = f(j-1,i,k,n) + f(j,i,k,n)
+            fx2 = f(j,i,k,n)   + f(j+1,i,k,n)
+            fy1 = f(j,i-1,k,n) + f(j,i,k,n)
+            fy2 = f(j,i,k,n)   + f(j,i+1,k,n)
+            fg(j,i,k) = - xmapf(j,i) * &
                      (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                       vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-              end do
-            end do
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ul = uchu / ps(j,i)
-                f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
-                f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
-                fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)
-                fx2 = (d_one+f1)*f(j,i,k,n)   + (d_one-f1)*f(j+1,i,k,n)
-                fy1 = (d_one+f2)*f(j,i-1,k,n) + (d_one-f2)*f(j,i,k,n)
-                fy2 = (d_one+f2)*f(j,i,k,n)   + (d_one-f2)*f(j,i+1,k,n)
-                fg(j,i,k) = - xmapf(j,i) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            ul = uchu / ps(j,i)
+            f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
+            f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
+            fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)
+            fx2 = (d_one+f1)*f(j,i,k,n)   + (d_one-f1)*f(j+1,i,k,n)
+            fy1 = (d_one+f2)*f(j,i-1,k,n) + (d_one-f2)*f(j,i,k,n)
+            fy2 = (d_one+f2)*f(j,i,k,n)   + (d_one-f2)*f(j,i+1,k,n)
+            fg(j,i,k) = - xmapf(j,i) * &
                            (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                             vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-              end do
-            end do
           end do
         end if
         !
@@ -683,33 +601,27 @@ module mod_advection
         ! must not grow further due to advection
         !
         if ( stability_enhance ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
-                     d_two*f(j,i,k,n)) / &
-                        max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
-                  if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
-                       (f(j,i,k,n) > f(j,i-1,k,n)) ) then
-                    fg(j,i,k) = min(fg(j,i,k),d_zero)
-                  else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
-                            (f(j,i,k,n) < f(j,i-1,k,n)) ) then
-                    fg(j,i,k) = max(fg(j,i,k),d_zero)
-                  end if
-                end if
-                if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
-                     d_two*f(j,i,k,n)) / &
-                        max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
-                  if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
-                       (f(j,i,k,n) > f(j-1,i,k,n)) ) then
-                    fg(j,i,k) = min(fg(j,i,k),d_zero)
-                  else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
-                            (f(j,i,k,n) < f(j-1,i,k,n)) ) then
-                    fg(j,i,k) = max(fg(j,i,k),d_zero)
-                  end if
-                end if
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - d_two*f(j,i,k,n)) / &
+                 max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
+              if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
+                   (f(j,i,k,n) > f(j,i-1,k,n)) ) then
+                fg(j,i,k) = min(fg(j,i,k),d_zero)
+              else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
+                        (f(j,i,k,n) < f(j,i-1,k,n)) ) then
+                fg(j,i,k) = max(fg(j,i,k),d_zero)
+              end if
+            end if
+            if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - d_two*f(j,i,k,n)) / &
+                    max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
+              if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
+                   (f(j,i,k,n) > f(j-1,i,k,n)) ) then
+                fg(j,i,k) = min(fg(j,i,k),d_zero)
+              else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
+                        (f(j,i,k,n) < f(j-1,i,k,n)) ) then
+                fg(j,i,k) = max(fg(j,i,k),d_zero)
+              end if
+            end if
           end do
         end if
         do k = 1 , kz
@@ -744,35 +656,27 @@ module mod_advection
       !
       do n = 1 , ntr
         if ( .not. upstream_mode ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                fx1 = f(j-1,i,k,n)+f(j,i,k,n)
-                fx2 = f(j,i,k,n)  +f(j+1,i,k,n)
-                fy1 = f(j,i-1,k,n)+f(j,i,k,n)
-                fy2 = f(j,i,k,n)  +f(j,i+1,k,n)
-                fg(j,i,k) = - xmapf(j,i) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            fx1 = f(j-1,i,k,n)+f(j,i,k,n)
+            fx2 = f(j,i,k,n)  +f(j+1,i,k,n)
+            fy1 = f(j,i-1,k,n)+f(j,i,k,n)
+            fy2 = f(j,i,k,n)  +f(j,i+1,k,n)
+            fg(j,i,k) = - xmapf(j,i) * &
                     (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                      vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-              end do
-            end do
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ul = uchu / ps(j,i)
-                f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
-                f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
-                fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)
-                fx2 = (d_one+f1)*f(j,i,k,n)   + (d_one-f1)*f(j+1,i,k,n)
-                fy1 = (d_one+f2)*f(j,i-1,k,n) + (d_one-f2)*f(j,i,k,n)
-                fy2 = (d_one+f2)*f(j,i,k,n)   + (d_one-f2)*f(j,i+1,k,n)
-                fg(j,i,k) = - xmapf(j,i) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            ul = uchu / ps(j,i)
+            f1 = max(min((uavg2(j,i,k)+uavg1(j,i,k))*ul,upu),-upu)
+            f2 = max(min((vavg2(j,i,k)+vavg1(j,i,k))*ul,upu),-upu)
+            fx1 = (d_one+f1)*f(j-1,i,k,n) + (d_one-f1)*f(j,i,k,n)
+            fx2 = (d_one+f1)*f(j,i,k,n)   + (d_one-f1)*f(j+1,i,k,n)
+            fy1 = (d_one+f2)*f(j,i-1,k,n) + (d_one-f2)*f(j,i,k,n)
+            fy2 = (d_one+f2)*f(j,i,k,n)   + (d_one-f2)*f(j,i+1,k,n)
+            fg(j,i,k) = - xmapf(j,i) * &
                     (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                      vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-              end do
-            end do
           end do
         end if
         !
@@ -782,41 +686,31 @@ module mod_advection
         ! must not grow further due to advection
         !
         if ( stability_enhance ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - &
-                     d_two*f(j,i,k,n)) / &
-                        max(f(j,i,k,n),mintr) > t_rel_extrema ) then
-                  if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
-                       (f(j,i,k,n) > f(j,i-1,k,n)) ) then
-                    fg(j,i,k) = min(fg(j,i,k),d_zero)
-                  else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
-                            (f(j,i,k,n) < f(j,i-1,k,n)) ) then
-                    fg(j,i,k) = max(fg(j,i,k),d_zero)
-                  end if
-                end if
-                if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - &
-                     d_two*f(j,i,k,n)) / &
-                        max(f(j,i,k,n),mintr) > t_rel_extrema ) then
-                  if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
-                       (f(j,i,k,n) > f(j-1,i,k,n)) ) then
-                    fg(j,i,k) = min(fg(j,i,k),d_zero)
-                  else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
-                            (f(j,i,k,n) < f(j-1,i,k,n)) ) then
-                    fg(j,i,k) = max(fg(j,i,k),d_zero)
-                  end if
-                end if
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - d_two*f(j,i,k,n)) / &
+                    max(f(j,i,k,n),mintr) > t_rel_extrema ) then
+              if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
+                   (f(j,i,k,n) > f(j,i-1,k,n)) ) then
+                fg(j,i,k) = min(fg(j,i,k),d_zero)
+              else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
+                        (f(j,i,k,n) < f(j,i-1,k,n)) ) then
+                fg(j,i,k) = max(fg(j,i,k),d_zero)
+              end if
+            end if
+            if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - d_two*f(j,i,k,n)) / &
+                    max(f(j,i,k,n),mintr) > t_rel_extrema ) then
+              if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
+                   (f(j,i,k,n) > f(j-1,i,k,n)) ) then
+                fg(j,i,k) = min(fg(j,i,k),d_zero)
+              else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
+                        (f(j,i,k,n) < f(j-1,i,k,n)) ) then
+                fg(j,i,k) = max(fg(j,i,k),d_zero)
+              end if
+            end if
           end do
         end if
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k,n) = ften(j,i,k,n) + fg(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          ften(j,i,k,n) = ften(j,i,k,n) + fg(j,i,k)
         end do
       end do
 #ifdef DEBUG
@@ -848,25 +742,17 @@ module mod_advection
 #endif
       if ( ind == 0 ) then
         if ( nk == kz ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                fx = svv(j,i,k) * (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1))
-                ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
-                ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            fx = svv(j,i,k) * (twt(k,1)*f(j,i,k)+twt(k,2)*f(j,i,k-1))
+            ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
+            ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
           end do
         else
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                qq = d_half * (svv(j,i,k) + svv(j,i,k+1))
-                fx = qq * ((f(j,i,k) + f(j,i,k+1)))
-                ften(j,i,k+1) = ften(j,i,k+1) + fx*dds(k+1)
-                ften(j,i,k)   = ften(j,i,k)   - fx*dds(k)
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+            qq = d_half * (svv(j,i,k) + svv(j,i,k+1))
+            fx = qq * ((f(j,i,k) + f(j,i,k+1)))
+            ften(j,i,k+1) = ften(j,i,k+1) + fx*dds(k+1)
+            ften(j,i,k)   = ften(j,i,k)   - fx*dds(k)
           end do
         end if
       else if ( ind == 1 ) then
@@ -874,47 +760,31 @@ module mod_advection
         ! vertical advection terms : interpolate to full sigma levels
         !
         if ( idynamic == 1 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              dotqdot(j,i,1) = d_zero
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+            dotqdot(j,i,1) = d_zero
           end do
-          do k = 2 , nk
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                dotqdot(j,i,k) = svv(j,i,k) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:nk )
+            dotqdot(j,i,k) = svv(j,i,k) * &
                     (twt(k,1)*f(j,i,k)  *(pfs(j,i,k)/phs(j,i,k))  **c287 + &
                      twt(k,2)*f(j,i,k-1)*(pfs(j,i,k)/phs(j,i,k-1))**c287)
-              end do
-            end do
           end do
-          do k = 2 , nk
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                ften(j,i,k-1) = ften(j,i,k-1) - dotqdot(j,i,k)*xds(k-1)
-                ften(j,i,k)   = ften(j,i,k)   + dotqdot(j,i,k)*xds(k)
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:nk )
+            ften(j,i,k-1) = ften(j,i,k-1) - dotqdot(j,i,k)*xds(k-1)
+            ften(j,i,k)   = ften(j,i,k)   + dotqdot(j,i,k)*xds(k)
           end do
         else
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              rdphf = exp(-c287*log(phs(j,i,1)))
-              dotqdot(j,i,1) = f(j,i,1)*rdphf
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+            rdphf = exp(-c287*log(phs(j,i,1)))
+            dotqdot(j,i,1) = f(j,i,1)*rdphf
           end do
-          do k = 2 , nk
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                rdphf = exp(-c287*log(phs(j,i,k)))
-                rdplf = exp( c287*log(pfs(j,i,k)))
-                dotqdot(j,i,k) = f(j,i,k)*rdphf
-                fx = rdplf * svv(j,i,k) * ( twt(k,1) * dotqdot(j,i,k) + &
-                                            twt(k,2) * dotqdot(j,i,k-1) )
-                ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
-                ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:nk )
+            rdphf = exp(-c287*log(phs(j,i,k)))
+            rdplf = exp( c287*log(pfs(j,i,k)))
+            dotqdot(j,i,k) = f(j,i,k)*rdphf
+            fx = rdplf * svv(j,i,k) * ( twt(k,1) * dotqdot(j,i,k) + &
+                                        twt(k,2) * dotqdot(j,i,k-1) )
+            ften(j,i,k-1) = ften(j,i,k-1) - fx*xds(k-1)
+            ften(j,i,k)   = ften(j,i,k)   + fx*xds(k)
           end do
         end if
       end if
@@ -935,22 +805,14 @@ module mod_advection
       call time_begin(subroutine_name,idindx)
 #endif
       fg(:,:,:) = d_zero
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( f(j,i,k,n) > minqv .and. f(j,i,k-1,n) > minqv ) then
-              fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
-            end if
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        if ( f(j,i,k,n) > minqv .and. f(j,i,k-1,n) > minqv ) then
+          fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+        end if
       end do
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
-            ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        ften(j,i,k-1,n) = ften(j,i,k-1,n)-svv(j,i,k)*fg(j,i,k)*xds(k-1)
+        ften(j,i,k,n)   = ften(j,i,k,n)  +svv(j,i,k)*fg(j,i,k)*xds(k)
       end do
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -981,108 +843,80 @@ module mod_advection
       do n = n1 , n2
         fg(:,:,:) = d_zero
         if ( ind == 0 ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( svv(j,i,k) > d_zero ) then
-                  fg(j,i,k) = svv(j,i,k)*f(j,i,k-1,n)
-                else
-                  fg(j,i,k) = svv(j,i,k)*f(j,i,k,n)
-                end if
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            if ( svv(j,i,k) > d_zero ) then
+              fg(j,i,k) = svv(j,i,k)*f(j,i,k-1,n)
+            else
+              fg(j,i,k) = svv(j,i,k)*f(j,i,k,n)
+            end if
           end do
         else if ( ind == 1 ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
-                  fg(j,i,k) = svv(j,i,k) * &
-                      f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
-                  !fg(j,i,k) = svv(j,i,k) * &
-                  !    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
-                end if
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
+              fg(j,i,k) = svv(j,i,k) * &
+                  f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+              !fg(j,i,k) = svv(j,i,k) * &
+              !    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+            end if
           end do
           if ( vert_stability_enhance ) then
-            do k = 2 , kz-1
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
-                       max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
-                    if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
-                         f(j,i,k,n) > f(j,i,k-1,n) ) then
-                      fg(j,i,k) = min(fg(j,i,k),d_zero)
-                    else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
-                              f(j,i,k,n) < f(j,i,k-1,n) ) then
-                      fg(j,i,k) = max(fg(j,i,k),d_zero)
-                    end if
-                  end if
-                end do
-              end do
-            end do
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
-                     max(f(j,i,kz,n),dlowval) > c_rel_extrema ) then
-                  if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
-                    fg(j,i,kz) = min(fg(j,i,kz),d_zero)
-                  else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
-                    fg(j,i,kz) = max(fg(j,i,kz),d_zero)
-                  end if
+            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz-1 )
+              if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
+                   max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
+                if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
+                     f(j,i,k,n) > f(j,i,k-1,n) ) then
+                  fg(j,i,k) = min(fg(j,i,k),d_zero)
+                else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
+                          f(j,i,k,n) < f(j,i,k-1,n) ) then
+                  fg(j,i,k) = max(fg(j,i,k),d_zero)
                 end if
-              end do
+              end if
+            end do
+            do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+              if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
+                   max(f(j,i,kz,n),dlowval) > c_rel_extrema ) then
+                if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
+                  fg(j,i,kz) = min(fg(j,i,kz),d_zero)
+                else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
+                  fg(j,i,kz) = max(fg(j,i,kz),d_zero)
+                end if
+              end if
             end do
           end if
         else if ( ind == 2 ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
-                  fg(j,i,k) = svv(j,i,k) * &
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            if ( f(j,i,k,n) > mintr .and. f(j,i,k-1,n) > mintr ) then
+              fg(j,i,k) = svv(j,i,k) * &
                         (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
-                end if
-              end do
-            end do
+            end if
           end do
           if ( vert_stability_enhance ) then
-            do k = 2 , kz-1
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
-                       max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
-                    if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
-                         f(j,i,k,n) > f(j,i,k-1,n) ) then
-                      fg(j,i,k) = min(fg(j,i,k),d_zero)
-                    else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
-                              f(j,i,k,n) < f(j,i,k-1,n) ) then
-                      fg(j,i,k) = max(fg(j,i,k),d_zero)
-                    end if
-                  end if
-                end do
-              end do
-            end do
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
-                     max(f(j,i,kz,n),dlowval) > t_rel_extrema ) then
-                  if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
-                    fg(j,i,kz) = min(fg(j,i,kz),d_zero)
-                  else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
-                    fg(j,i,kz) = max(fg(j,i,kz),d_zero)
-                  end if
+            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz-1 )
+              if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
+                   max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
+                if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
+                     f(j,i,k,n) > f(j,i,k-1,n) ) then
+                  fg(j,i,k) = min(fg(j,i,k),d_zero)
+                else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
+                          f(j,i,k,n) < f(j,i,k-1,n) ) then
+                  fg(j,i,k) = max(fg(j,i,k),d_zero)
                 end if
-              end do
+              end if
+            end do
+            do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+              if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
+                   max(f(j,i,kz,n),dlowval) > t_rel_extrema ) then
+                if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
+                  fg(j,i,kz) = min(fg(j,i,kz),d_zero)
+                else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
+                  fg(j,i,kz) = max(fg(j,i,kz),d_zero)
+                end if
+              end if
             end do
           end if
         else if ( ind == 3 ) then
-          do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
-              end do
-            end do
+          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+            fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -1121,13 +955,9 @@ module mod_advection
           end do
           fg(:,:,2:kz) = fg(:,:,2:kz) * svv(jci1:jci2,ici1:ici2,2:kz)
         end if
-        do k = 2 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k-1,n) = ften(j,i,k-1,n)-fg(j,i,k)*xds(k-1)
-              ften(j,i,k,n)   = ften(j,i,k,n)  +fg(j,i,k)*xds(k)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+          ften(j,i,k-1,n) = ften(j,i,k-1,n)-fg(j,i,k)*xds(k-1)
+          ften(j,i,k,n)   = ften(j,i,k,n)  +fg(j,i,k)*xds(k)
         end do
       end do
 #ifdef DEBUG
