@@ -327,7 +327,7 @@ module mod_clm_initialize
 
     if ( nsrest == nsrContinue ) then
       call restFile_getfile(fnamer, rdate)
-      call restFile_read( fnamer )
+      call restFile_read( fnamer , rdate )
     else if ( nsrest == nsrStartup ) then
       ! Get initial data from regcm !
       call mkregcminit(adomain)

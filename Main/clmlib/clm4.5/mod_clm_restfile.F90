@@ -141,9 +141,10 @@ module mod_clm_restfile
   !
   ! Read a CLM restart file.
   !
-  subroutine restFile_read( rfile )
+  subroutine restFile_read( rfile , rdate )
     implicit none
     character(len=*), intent(in) :: rfile  ! output netcdf restart file
+    character(len=*), intent(in) :: rdate  ! output netcdf restart date
     type(clm_filetype) :: ncid ! netcdf id
 
     ! Open file
@@ -169,7 +170,7 @@ module mod_clm_restfile
 
     call accumulRest( ncid, flag='read' )
 
-    call hist_restart_ncd (ncid, flag='read')
+    call hist_restart_ncd (ncid, flag='read' , rdate=rdate)
 
     ! Close file
 
