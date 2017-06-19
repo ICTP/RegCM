@@ -153,7 +153,10 @@ module mod_mppparam
                      real4_4d_distribute ,   &
                      integer_2d_distribute , &
                      integer_3d_distribute , &
-                     integer_4d_distribute
+                     integer_4d_distribute , &
+                     logical_2d_distribute , &
+                     logical_3d_distribute , &
+                     logical_4d_distribute
   end interface grid_distribute
 
   interface subgrid_distribute
@@ -1308,14 +1311,14 @@ module mod_mppparam
       ! Allocate to something should fit all
       maximum_buffer_size = jxsg*iysg
       maximum_buffer_size = max(maximum_buffer_size,kzp1)
-      call getmem1d(r8vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
-      call getmem1d(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
-      call getmem1d(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
-      call getmem1d(lvector1,1,maximum_buffer_size,'set_nproc:lvector1')
       call getmem1d(r8vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
       call getmem1d(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
       call getmem1d(i4vector2,1,maximum_buffer_size,'set_nproc:i4vector2')
       call getmem1d(lvector2,1,maximum_buffer_size,'set_nproc:lvector2')
+      call getmem1d(r8vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
+      call getmem1d(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
+      call getmem1d(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
+      call getmem1d(lvector1,1,maximum_buffer_size,'set_nproc:lvector1')
     end if
   end subroutine set_nproc
 
@@ -1431,21 +1434,32 @@ module mod_mppparam
     end if
   end subroutine broadcast_params
 
-  subroutine get_windows
+  integer(ik4) function glosplitw(j1,j2,i1,i2) result(tsize)
     implicit none
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: isize , jsize
+    tsize = 0
+    if ( nproc == 1 ) return
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    tsize = isize*jsize
+    window(1) = i1
+    window(2) = window(1)+isize-1
+    window(3) = j1
+    window(4) = window(3)+jsize-1
     call mpi_gather(window,4,mpi_integer4, &
                     windows,4,mpi_integer4,ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gather error.')
     end if
-  end subroutine get_windows
+  end function glosplitw
 
-  subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
+  subroutine real8_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , rsize , icpu
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1454,15 +1468,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1481,7 +1486,7 @@ module mod_mppparam
       end do
     end if
     call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
-                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
+                      r8vector2,tsize,mpi_real8,ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -1492,68 +1497,14 @@ module mod_mppparam
         ib = ib + 1
       end do
     end do
-  end subroutine real8_2d_distribute
+  end subroutine real8_2d_do_distribute
 
-  subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k) = mg(j,i,k)
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real8_2d_distribute(mg2,ml2,j1,j2,i1,i2)
-      end do
-    end if
-  end subroutine real8_3d_distribute
-
-  subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: i , j , k , n
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
-    if ( nproc == 1 ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              ml(j,i,k,n) = mg(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-    else
-      do n = n1 , n2
-        do k = k1 , k2
-          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
-          call assignpnt(ml,ml2,k,n)
-          call real8_2d_distribute(mg2,ml2,j1,j2,i1,i2)
-        end do
-      end do
-    end if
-  end subroutine real8_4d_distribute
-
-  subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
+  subroutine real4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , rsize , icpu
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1562,15 +1513,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1589,7 +1531,7 @@ module mod_mppparam
       end do
     end if
     call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
-                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
+                      r4vector2,tsize,mpi_real4,ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -1600,68 +1542,14 @@ module mod_mppparam
         ib = ib + 1
       end do
     end do
-  end subroutine real4_2d_distribute
+  end subroutine real4_2d_do_distribute
 
-  subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k) = mg(j,i,k)
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real4_2d_distribute(mg2,ml2,j1,j2,i1,i2)
-      end do
-    end if
-  end subroutine real4_3d_distribute
-
-  subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: i , j , k , n
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    if ( nproc == 1 ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              ml(j,i,k,n) = mg(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-    else
-      do n = n1 , n2
-        do k = k1 , k2
-          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
-          call assignpnt(ml,ml2,k,n)
-          call real4_2d_distribute(mg2,ml2,j1,j2,i1,i2)
-        end do
-      end do
-    end if
-  end subroutine real4_4d_distribute
-
-  subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
+  subroutine integer4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
     implicit none
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1670,15 +1558,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1697,7 +1576,7 @@ module mod_mppparam
       end do
     end if
     call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
-                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
+                      i4vector2,tsize,mpi_integer4,ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -1708,6 +1587,149 @@ module mod_mppparam
         ib = ib + 1
       end do
     end do
+  end subroutine integer4_2d_do_distribute
+
+  subroutine logical_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
+    implicit none
+    logical , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    logical , pointer , dimension(:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    if ( nproc == 1 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          ml(j,i) = mg(j,i)
+        end do
+      end do
+      return
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            lvector1(ib) = mg(j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatterv(lvector1,wincount,windispl,mpi_logical, &
+                      lvector2,tsize,mpi_logical,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        ml(j,i) = lvector2(ib)
+        ib = ib + 1
+      end do
+    end do
+  end subroutine logical_2d_do_distribute
+
+  subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call real8_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
+  end subroutine real8_2d_distribute
+
+  subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real8_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine real8_3d_distribute
+
+  subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null()
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null()
+    integer(ik4) :: tsize , k , n
+    tsize = glosplitw(j1,j2,i1,i2)
+    do n = n1 , n2
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+        call assignpnt(ml,ml2,k,n)
+        call real8_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
+      end do
+    end do
+  end subroutine real8_4d_distribute
+
+  subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call real4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
+  end subroutine real4_2d_distribute
+
+  subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine real4_3d_distribute
+
+  subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize , k , n
+    tsize = glosplitw(j1,j2,i1,i2)
+    do n = n1 , n2
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+        call assignpnt(ml,ml2,k,n)
+        call real4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
+      end do
+    end do
+  end subroutine real4_4d_distribute
+
+  subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
+    implicit none
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call integer4_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
   end subroutine integer_2d_distribute
 
   subroutine integer_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
@@ -1715,24 +1737,15 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml !model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
     integer(ik4) , pointer , dimension(:,:) :: mg2 => null()
     integer(ik4) , pointer , dimension(:,:) :: ml2 => null()
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            ml(j,i,k) = mg(j,i,k)
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call integer_2d_distribute(mg2,ml2,j1,j2,i1,i2)
-      end do
-    end if
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call integer4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
+    end do
   end subroutine integer_3d_distribute
 
   subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -1740,37 +1753,70 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml !model loc
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: i , j , k , n
     integer(ik4) , pointer , dimension(:,:) :: mg2 => null( )
     integer(ik4) , pointer , dimension(:,:) :: ml2 => null( )
-    if ( nproc == 1 ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              ml(j,i,k,n) = mg(j,i,k,n)
-            end do
-          end do
-        end do
+    integer(ik4) :: tsize , k , n
+    tsize = glosplitw(j1,j2,i1,i2)
+    do n = n1 , n2
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+        call assignpnt(ml,ml2,k,n)
+        call integer4_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
       end do
-    else
-      do n = n1 , n2
-        do k = k1 , k2
-          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
-          call assignpnt(ml,ml2,k,n)
-          call integer_2d_distribute(mg2,ml2,j1,j2,i1,i2)
-        end do
-      end do
-    end if
+    end do
   end subroutine integer_4d_distribute
 
-  subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+  subroutine logical_2d_distribute(mg,ml,j1,j2,i1,i2)
+    implicit none
+    logical , pointer , dimension(:,:) , intent(in) :: mg  ! model global
+    logical , pointer , dimension(:,:) , intent(inout) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call logical_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
+  end subroutine logical_2d_distribute
+
+  subroutine logical_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    logical , pointer , dimension(:,:,:) , intent(inout) :: ml !model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    logical , pointer , dimension(:,:) :: mg2 => null()
+    logical , pointer , dimension(:,:) :: ml2 => null()
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call logical_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine logical_3d_distribute
+
+  subroutine logical_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    logical , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
+    logical , pointer , dimension(:,:,:,:) , intent(inout) :: ml !model loc
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    logical , pointer , dimension(:,:) :: mg2 => null( )
+    logical , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize , k , n
+    tsize = glosplitw(j1,j2,i1,i2)
+    do n = n1 , n2
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+        call assignpnt(ml,ml2,k,n)
+        call logical_2d_do_distribute(mg2,ml2,j1,j2,i1,i2,tsize)
+      end do
+    end do
+  end subroutine logical_4d_distribute
+
+  subroutine real8_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
@@ -1791,15 +1837,6 @@ module mod_mppparam
       end if
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1820,7 +1857,7 @@ module mod_mppparam
       end do
     end if
     call mpi_scatterv(r8vector1,wincount,windispl,mpi_real8, &
-                      r8vector2,rsize,mpi_real8,ccio,mycomm,mpierr)
+                      r8vector2,tsize,mpi_real8,ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -1844,15 +1881,15 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_2d_sub_distribute
+  end subroutine real8_2d_do_sub_distribute
 
-  subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+  subroutine real4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
@@ -1873,15 +1910,6 @@ module mod_mppparam
       end if
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -1902,7 +1930,7 @@ module mod_mppparam
       end do
     end if
     call mpi_scatterv(r4vector1,wincount,windispl,mpi_real4, &
-                      r4vector2,rsize,mpi_real4,ccio,mycomm,mpierr)
+                      r4vector2,tsize,mpi_real4,ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -1926,95 +1954,15 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real4_2d_sub_distribute
+  end subroutine real4_2d_do_sub_distribute
 
-  subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
+  subroutine integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
+    integer(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model glb
+    integer(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model loc
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k , n
-    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null()
-    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null()
-    if ( nproc == 1 ) then
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      end if
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real8_2d_sub_distribute(mg2,ml2,j1,j2,i1,i2,mask)
-      end do
-    end if
-  end subroutine real8_3d_sub_distribute
-
-  subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k , n
-    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null()
-    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null()
-    if ( nproc == 1 ) then
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      end if
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real4_2d_sub_distribute(mg2,ml2,j1,j2,i1,i2,mask)
-      end do
-    end if
-  end subroutine real4_3d_sub_distribute
-
-  subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
-    implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
-    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
@@ -2035,15 +1983,79 @@ module mod_mppparam
       end if
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            do n = 1 , nnsg
+              i4vector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
+                      i4vector2,tsize,mpi_integer4,ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    ib = 1
+    if ( present(mask) ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            if ( mask(n,j,i) ) ml(n,j,i) = i4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = i4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine integer4_2d_do_sub_distribute
+
+  subroutine logical_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model glb
+    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model loc
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    if ( nproc == 1 ) then
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = mg(n,j,i)
+            end do
+          end do
+        end do
+      end if
+      return
+    end if
     if ( ccid == ccio ) then
       ib = 1
       do icpu = 0 , nproc-1
@@ -2064,7 +2076,7 @@ module mod_mppparam
       end do
     end if
     call mpi_scatterv(lvector1,wincount,windispl,mpi_logical, &
-                      lvector2,rsize,mpi_logical,ccio,mycomm,mpierr)
+                      lvector2,tsize,mpi_logical,ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -2088,6 +2100,73 @@ module mod_mppparam
         end do
       end do
     end if
+  end subroutine logical_2d_do_sub_distribute
+
+  subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call real8_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
+  end subroutine real8_2d_sub_distribute
+
+  subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call real4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
+  end subroutine real4_2d_sub_distribute
+
+  subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null()
+    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null()
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real8_2d_do_sub_distribute(mg2,ml2,j1,j2,i1,i2,tsize,mask)
+    end do
+  end subroutine real8_3d_sub_distribute
+
+  subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null()
+    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null()
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real4_2d_do_sub_distribute(mg2,ml2,j1,j2,i1,i2,tsize,mask)
+    end do
+  end subroutine real4_3d_sub_distribute
+
+  subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call logical_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
   end subroutine logical_2d_sub_distribute
 
   subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
@@ -2096,80 +2175,9 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model locl
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
-    if ( nproc == 1 ) then
-      if ( present(mask) ) then
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-            if ( mask(n,j,i) ) ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
-        end do
-      else
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i) = mg(n,j,i)
-            end do
-          end do
-        end do
-      end if
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            do n = 1 , nnsg
-              i4vector1(ib) = mg(n,j,i)
-              ib = ib + 1
-            end do
-          end do
-        end do
-      end do
-    end if
-    call mpi_scatterv(i4vector1,wincount,windispl,mpi_integer4, &
-                      i4vector2,rsize,mpi_integer4,ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    ib = 1
-    if ( present(mask) ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-          if ( mask(n,j,i) ) ml(n,j,i) = i4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    else
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = i4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
   end subroutine integer_2d_sub_distribute
 
   subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
@@ -2178,109 +2186,23 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! modl loc
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k , n
     integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
     integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
-    if ( nproc == 1 ) then
-      if ( present(mask) ) then
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                if (mask(n,j,i) ) ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      else
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              do n = 1 , nnsg
-                ml(n,j,i,k) = mg(n,j,i,k)
-              end do
-            end do
-          end do
-        end do
-      end if
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call integer_2d_sub_distribute(mg2,ml2,j1,j2,i1,i2,mask)
-      end do
-    end if
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call integer4_2d_do_sub_distribute(mg2,ml2,j1,j2,i1,i2,tsize,mask)
+    end do
   end subroutine integer_3d_sub_distribute
 
-  subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
-    implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) , intent(in) , optional :: k
-    integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu , rsize
-    kk = 1
-    if ( present(k) ) kk = k
-    if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i,kk) = ml(j,i)
-        end do
-      end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        r8vector2(ib) = ml(j,i)
-        ib = ib + 1
-      end do
-    end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
-                     r8vector1,wincount,windispl,mpi_real8, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            mg(j,i,kk) = r8vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine real8_2d_3d_collect
-
-  subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
+  subroutine real8_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2289,15 +2211,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -2315,7 +2228,7 @@ module mod_mppparam
         ib = ib + 1
       end do
     end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+    call mpi_gatherv(r8vector2,tsize,mpi_real8, &
                      r8vector1,wincount,windispl,mpi_real8, &
                      ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -2333,251 +2246,14 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_2d_collect
+  end subroutine real8_2d_do_collect
 
-  subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            mg(j,i,k) = ml(j,i,k)
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio )  call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real8_2d_collect(ml2,mg2,j1,j2,i1,i2)
-      end do
-    end if
-  end subroutine real8_3d_collect
-
-  subroutine real8_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
-    if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i,k)
-        end do
-      end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        r8vector2(ib) = ml(j,i,k)
-        ib = ib + 1
-      end do
-    end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
-                     r8vector1,wincount,windispl,mpi_real8, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            mg(j,i) = r8vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine real8_3d_2d_collect
-
-  subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: i , j , k , n
-    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
-    if ( nproc == 1 ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              mg(j,i,k,n) = ml(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-    else
-      do n = n1 , n2
-        do k = k1 , k2
-          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
-          call assignpnt(ml,ml2,k,n)
-          call real8_2d_collect(ml2,mg2,j1,j2,i1,i2)
-        end do
-      end do
-    end if
-  end subroutine real8_4d_collect
-
-  subroutine real8_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
-    if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i,k,n)
-        end do
-      end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        r8vector2(ib) = ml(j,i,k,n)
-        ib = ib + 1
-      end do
-    end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
-                     r8vector1,wincount,windispl,mpi_real8, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            mg(j,i) = r8vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine real8_4d_2d_collect
-
-  subroutine real4_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
-    implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) , intent(in) , optional :: k
-    integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu , rsize
-    kk = 1
-    if ( present(k) ) kk = k
-    if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i,kk) = ml(j,i)
-        end do
-      end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        r4vector2(ib) = ml(j,i)
-        ib = ib + 1
-      end do
-    end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
-                     r4vector1,wincount,windispl,mpi_real4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            mg(j,i,kk) = r4vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine real4_2d_3d_collect
-
-  subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
+  subroutine real4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2586,15 +2262,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -2612,7 +2279,7 @@ module mod_mppparam
         ib = ib + 1
       end do
     end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+    call mpi_gatherv(r4vector2,tsize,mpi_real4, &
                      r4vector1,wincount,windispl,mpi_real4, &
                      ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -2630,248 +2297,14 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real4_2d_collect
+  end subroutine real4_2d_do_collect
 
-  subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            mg(j,i,k) = ml(j,i,k)
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real4_2d_collect(ml2,mg2,j1,j2,i1,i2)
-      end do
-    end if
-  end subroutine real4_3d_collect
-
-  subroutine real4_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
-    if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i,k)
-        end do
-      end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        r4vector2(ib) = ml(j,i,k)
-        ib = ib + 1
-      end do
-    end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
-                     r4vector1,wincount,windispl,mpi_real4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            mg(j,i) = r4vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine real4_3d_2d_collect
-
-  subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: i , j , k , n
-    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
-    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
-    if ( nproc == 1 ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              mg(j,i,k,n) = ml(j,i,k,n)
-            end do
-          end do
-        end do
-      end do
-    else
-      do n = n1 , n2
-        do k = k1 , k2
-          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
-          call assignpnt(ml,ml2,k,n)
-          call real4_2d_collect(ml2,mg2,j1,j2,i1,i2)
-        end do
-      end do
-    end if
-  end subroutine real4_4d_collect
-
-  subroutine real4_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
-    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
-    if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i,k,n)
-        end do
-      end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        r4vector2(ib) = ml(j,i,k,n)
-        ib = ib + 1
-      end do
-    end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
-                     r4vector1,wincount,windispl,mpi_real4, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            mg(j,i) = r4vector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine real4_4d_2d_collect
-
-  subroutine logical_2d_collect(ml,mg,j1,j2,i1,i2)
-    implicit none
-    logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
-    if ( nproc == 1 ) then
-      do i = i1 , i2
-        do j = j1 , j2
-          mg(j,i) = ml(j,i)
-        end do
-      end do
-      return
-    end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
-    ib = 1
-    do i = i1 , i2
-      do j = j1 , j2
-        lvector2(ib) = ml(j,i)
-        ib = ib + 1
-      end do
-    end do
-    call mpi_gatherv(lvector2,rsize,mpi_logical, &
-                     lvector1,wincount,windispl,mpi_logical, &
-                     ccio,mycomm,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    if ( ccid == ccio ) then
-      ib = 1
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        do i = window(1) , window(2)
-          do j = window(3) , window(4)
-            mg(j,i) = lvector1(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
-    end if
-  end subroutine logical_2d_collect
-
-  subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
+  subroutine integer4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2880,15 +2313,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -2906,7 +2330,7 @@ module mod_mppparam
         ib = ib + 1
       end do
     end do
-    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
+    call mpi_gatherv(i4vector2,tsize,mpi_integer4, &
                      i4vector1,wincount,windispl,mpi_integer4, &
                      ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -2924,6 +2348,245 @@ module mod_mppparam
         end do
       end do
     end if
+  end subroutine integer4_2d_do_collect
+
+  subroutine logical_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
+    implicit none
+    logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    if ( nproc == 1 ) then
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(j,i) = ml(j,i)
+        end do
+      end do
+      return
+    end if
+    if ( ccid == ccio ) then
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
+    ib = 1
+    do i = i1 , i2
+      do j = j1 , j2
+        lvector2(ib) = ml(j,i)
+        ib = ib + 1
+      end do
+    end do
+    call mpi_gatherv(lvector2,tsize,mpi_logical, &
+                     lvector1,wincount,windispl,mpi_logical, &
+                     ccio,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( ccid == ccio ) then
+      ib = 1
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i) = lvector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine logical_2d_do_collect
+
+  subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call real8_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
+  end subroutine real8_2d_collect
+
+  subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) , intent(in) , optional :: k
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: kk
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    kk = 1
+    if ( present(k) ) kk = k
+    if ( ccid == ccio )  call assignpnt(mg,mg2,kk)
+    call real8_2d_do_collect(ml,mg2,j1,j2,i1,i2,tsize)
+  end subroutine real8_2d_3d_collect
+
+  subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)
+    do k = k1 , k2
+      if ( ccid == ccio )  call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real8_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine real8_3d_collect
+
+  subroutine real8_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call assignpnt(ml,ml2,k)
+    call real8_2d_do_collect(ml2,mg,j1,j2,i1,i2,tsize)
+  end subroutine real8_3d_2d_collect
+
+  subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk8) , pointer , dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize , k , n
+    tsize = glosplitw(j1,j2,i1,i2)
+    do n = n1 , n2
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+        call assignpnt(ml,ml2,k,n)
+        call real8_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+      end do
+    end do
+  end subroutine real8_4d_collect
+
+  subroutine real8_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
+    real(rk8) , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call assignpnt(ml,ml2,k,n)
+    call real8_2d_do_collect(ml2,mg,j1,j2,i1,i2,tsize)
+  end subroutine real8_4d_2d_collect
+
+  subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call real4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
+  end subroutine real4_2d_collect
+
+  subroutine real4_2d_3d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) , intent(in) , optional :: k
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: kk
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    kk = 1
+    if ( present(k) ) kk = k
+    if ( ccid == ccio )  call assignpnt(mg,mg2,kk)
+    call real4_2d_do_collect(ml,mg2,j1,j2,i1,i2,tsize)
+  end subroutine real4_2d_3d_collect
+
+  subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)
+    do k = k1 , k2
+      if ( ccid == ccio )  call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine real4_3d_collect
+
+  subroutine real4_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call assignpnt(ml,ml2,k)
+    call real4_2d_do_collect(ml2,mg,j1,j2,i1,i2,tsize)
+  end subroutine real4_3d_2d_collect
+
+  subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    real(rk4) , pointer , dimension(:,:) :: mg2 => null( )
+    integer(ik4) :: tsize , k , n
+    tsize = glosplitw(j1,j2,i1,i2)
+    do n = n1 , n2
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+        call assignpnt(ml,ml2,k,n)
+        call real4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+      end do
+    end do
+  end subroutine real4_4d_collect
+
+  subroutine real4_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml ! model local
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
+    real(rk4) , pointer , dimension(:,:) :: ml2 => null( )
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call assignpnt(ml,ml2,k,n)
+    call real4_2d_do_collect(ml2,mg,j1,j2,i1,i2,tsize)
+  end subroutine real4_4d_2d_collect
+
+  subroutine logical_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call logical_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
+  end subroutine logical_2d_collect
+
+  subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)
+    call integer4_2d_do_collect(ml,mg,j1,j2,i1,i2,tsize)
   end subroutine integer_2d_collect
 
   subroutine integer_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
@@ -2931,24 +2594,15 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glbl
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k
     integer(ik4) , pointer , dimension(:,:) :: ml2 => null()
     integer(ik4) , pointer , dimension(:,:) :: mg2 => null()
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            mg(j,i,k) = ml(j,i,k)
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call integer_2d_collect(ml2,mg2,j1,j2,i1,i2)
-      end do
-    end if
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)
+    do k = k1 , k2
+      if ( ccid == ccio )  call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call integer4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+    end do
   end subroutine integer_3d_collect
 
   subroutine integer_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -2956,36 +2610,25 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: i , j , k , n
     integer(ik4) , pointer , dimension(:,:) :: ml2 => null( )
     integer(ik4) , pointer , dimension(:,:) :: mg2 => null( )
-    if ( nproc == 1 ) then
-      do n = n1 , n2
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = j1 , j2
-              mg(j,i,k,n) = ml(j,i,k,n)
-            end do
-          end do
-        end do
+    integer(ik4) :: tsize , k , n
+    tsize = glosplitw(j1,j2,i1,i2)
+    do n = n1 , n2
+      do k = k1 , k2
+        if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
+        call assignpnt(ml,ml2,k,n)
+        call integer4_2d_do_collect(ml2,mg2,j1,j2,i1,i2,tsize)
       end do
-    else
-      do n = n1 , n2
-        do k = k1 , k2
-          if ( ccid == ccio ) call assignpnt(mg,mg2,k,n)
-          call assignpnt(ml,ml2,k,n)
-          call integer_2d_collect(ml2,mg2,j1,j2,i1,i2)
-        end do
-      end do
-    end if
+    end do
   end subroutine integer_4d_collect
 
-  subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+  subroutine real8_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2996,15 +2639,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3024,7 +2658,7 @@ module mod_mppparam
         end do
       end do
     end do
-    call mpi_gatherv(r8vector2,rsize,mpi_real8, &
+    call mpi_gatherv(r8vector2,tsize,mpi_real8, &
                      r8vector1,wincount,windispl,mpi_real8, &
                      ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -3044,41 +2678,14 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real8_2d_sub_collect
+  end subroutine real8_2d_do_sub_collect
 
-  subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k , n
-    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null( )
-    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null( )
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              mg(n,j,i,k) = ml(n,j,i,k)
-            end do
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real8_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
-      end do
-    end if
-  end subroutine real8_3d_sub_collect
-
-  subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+  subroutine real4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -3089,15 +2696,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3117,7 +2715,7 @@ module mod_mppparam
         end do
       end do
     end do
-    call mpi_gatherv(r4vector2,rsize,mpi_real4, &
+    call mpi_gatherv(r4vector2,tsize,mpi_real4, &
                      r4vector1,wincount,windispl,mpi_real4, &
                      ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -3137,41 +2735,14 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine real4_2d_sub_collect
+  end subroutine real4_2d_do_sub_collect
 
-  subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+  subroutine integer4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k , n
-    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null( )
-    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null( )
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              mg(n,j,i,k) = ml(n,j,i,k)
-            end do
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call real4_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
-      end do
-    end if
-  end subroutine real4_3d_sub_collect
-
-  subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
-    implicit none
-    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model loc
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glb
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -3182,15 +2753,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3210,7 +2772,7 @@ module mod_mppparam
         end do
       end do
     end do
-    call mpi_gatherv(i4vector2,rsize,mpi_integer4, &
+    call mpi_gatherv(i4vector2,tsize,mpi_integer4, &
                      i4vector1,wincount,windispl,mpi_integer4, &
                      ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -3230,41 +2792,14 @@ module mod_mppparam
         end do
       end do
     end if
-  end subroutine integer_2d_sub_collect
+  end subroutine integer4_2d_do_sub_collect
 
-  subroutine integer_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+  subroutine logical_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
     implicit none
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k , n
-    integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
-    integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              mg(n,j,i,k) = ml(n,j,i,k)
-            end do
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call integer_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
-      end do
-    end if
-  end subroutine integer_3d_sub_collect
-
-  subroutine logical_2d_sub_collect(ml,mg,j1,j2,i1,i2)
-    implicit none
-    logical , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu , rsize
+    logical , pointer , dimension(:,:,:) , intent(in) :: ml  ! model loc
+    logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glb
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -3275,15 +2810,6 @@ module mod_mppparam
       end do
       return
     end if
-    isize = i2-i1+1
-    jsize = j2-j1+1
-    lsize = isize*jsize*nnsg
-    rsize = lsize
-    window(1) = i1
-    window(2) = window(1)+isize-1
-    window(3) = j1
-    window(4) = window(3)+jsize-1
-    call get_windows
     if ( ccid == ccio ) then
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
@@ -3303,7 +2829,7 @@ module mod_mppparam
         end do
       end do
     end do
-    call mpi_gatherv(lvector2,rsize,mpi_logical, &
+    call mpi_gatherv(lvector2,tsize,mpi_logical, &
                      lvector1,wincount,windispl,mpi_logical, &
                      ccio,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -3323,6 +2849,94 @@ module mod_mppparam
         end do
       end do
     end if
+  end subroutine logical_2d_do_sub_collect
+
+  subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call real8_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
+  end subroutine real8_2d_sub_collect
+
+  subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk8) , pointer , dimension(:,:,:) :: ml2 => null( )
+    real(rk8) , pointer , dimension(:,:,:) :: mg2 => null( )
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real8_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine real8_3d_sub_collect
+
+  subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call real4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
+  end subroutine real4_2d_sub_collect
+
+  subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model globl
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rk4) , pointer , dimension(:,:,:) :: ml2 => null( )
+    real(rk4) , pointer , dimension(:,:,:) :: mg2 => null( )
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call real4_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine real4_3d_sub_collect
+
+  subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call integer4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
+  end subroutine integer_2d_sub_collect
+
+  subroutine integer_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
+    integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call integer4_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+    end do
+  end subroutine integer_3d_sub_collect
+
+  subroutine logical_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: tsize
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    call logical_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
   end subroutine logical_2d_sub_collect
 
   subroutine logical_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
@@ -3330,26 +2944,15 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! mdl local
     logical , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! mdl glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
-    integer(ik4) :: i , j , k , n
     logical , pointer , dimension(:,:,:) :: ml2 => null()
     logical , pointer , dimension(:,:,:) :: mg2 => null()
-    if ( nproc == 1 ) then
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              mg(n,j,i,k) = ml(n,j,i,k)
-            end do
-          end do
-        end do
-      end do
-    else
-      do k = k1 , k2
-        if ( ccid == ccio ) call assignpnt(mg,mg2,k)
-        call assignpnt(ml,ml2,k)
-        call logical_2d_sub_collect(ml2,mg2,j1,j2,i1,i2)
-      end do
-    end if
+    integer(ik4) :: tsize , k
+    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    do k = k1 , k2
+      if ( ccid == ccio ) call assignpnt(mg,mg2,k)
+      call assignpnt(ml,ml2,k)
+      call logical_2d_do_sub_collect(ml2,mg2,j1,j2,i1,i2,tsize)
+    end do
   end subroutine logical_3d_sub_collect
 
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
@@ -3766,7 +3369,6 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: isize , jsize , ksize , nsize , ssize
     integer(ik4) :: k , n
     real(rk8) , pointer , dimension(:,:) :: ml2
     do n = n1 , n2
@@ -5221,7 +4823,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var3((n2-1)*nsg+n1,j,i)
               else
-                var2(jj,ii) = dmissval
+                var2(jj,ii) = smissval
               end if
             end do
           end do
@@ -5295,7 +4897,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
               else
-                var2(jj,ii) = dmissval
+                var2(jj,ii) = smissval
               end if
             end do
           end do
@@ -5411,7 +5013,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var2_3(jj,ii,ll) + var3((n2-1)*nsg+n1,j,i)
               else
-                var2_3(jj,ii,ll) = dmissval
+                var2_3(jj,ii,ll) = smissval
               end if
             end do
           end do
@@ -5491,7 +5093,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2_3(jj,ii,ll) = var3((n2-1)*nsg+n1,j,i)
               else
-                var2_3(jj,ii,ll) = dmissval
+                var2_3(jj,ii,ll) = smissval
               end if
             end do
           end do
@@ -5567,7 +5169,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var2(jj,ii) + var4((n2-1)*nsg+n1,j,i,l)
               else
-                var2(jj,ii) = dmissval
+                var2(jj,ii) = smissval
               end if
             end do
           end do
@@ -5643,7 +5245,7 @@ module mod_mppparam
               if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                 var2(jj,ii) = var4((n2-1)*nsg+n1,j,i,l)
               else
-                var2(jj,ii) = dmissval
+                var2(jj,ii) = smissval
               end if
             end do
           end do
@@ -5722,7 +5324,7 @@ module mod_mppparam
                 if ( mask((n2-1)*nsg+n1,j,i) > 0 ) then
                   var3(jj,ii,l) = var4((n2-1)*nsg+n1,j,i,l)
                 else
-                  var3(jj,ii,l) = dmissval
+                  var3(jj,ii,l) = smissval
                 end if
               end do
             end do

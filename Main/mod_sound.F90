@@ -209,61 +209,31 @@ module mod_sound
     !  xxb stores filtered old xxa without xxc term
     !  no asselin filter on boundary
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        rpsb(j,i) = d_one/sfs%psb(j,i)
-      end do
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+      rpsb(j,i) = d_one/sfs%psb(j,i)
     end do
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
-          atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
+      atmc%u(j,i,k) = atm2%u(j,i,k)/sfs%psdotb(j,i)
+      atmc%v(j,i,k) = atm2%v(j,i,k)/sfs%psdotb(j,i)
     end do
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          aten%u(j,i,k,pc_total) = aten%u(j,i,k,pc_total) * dts
-          aten%v(j,i,k,pc_total) = aten%v(j,i,k,pc_total) * dts
-        end do
-      end do
+    do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      aten%u(j,i,k,pc_total) = aten%u(j,i,k,pc_total) * dts
+      aten%v(j,i,k,pc_total) = aten%v(j,i,k,pc_total) * dts
     end do
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) * rpsb(j,i)
-        end do
-      end do
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) * rpsb(j,i)
     end do
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atmc%pp(j,i,k) = atm2%pp(j,i,k) * rpsb(j,i)
-        end do
-      end do
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      atmc%pp(j,i,k) = atm2%pp(j,i,k) * rpsb(j,i)
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          aten%pp(j,i,k,pc_total) = aten%pp(j,i,k,pc_total) * dts
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      aten%pp(j,i,k,pc_total) = aten%pp(j,i,k,pc_total) * dts
     end do
-    do k = 1 , kzp1
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
-        end do
-      end do
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kzp1 )
+      atmc%w(j,i,k) = atm2%w(j,i,k) * rpsb(j,i)
     end do
-    do k = 1 , kzp1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          aten%w(j,i,k,pc_total) = aten%w(j,i,k,pc_total) * dts
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      aten%w(j,i,k,pc_total) = aten%w(j,i,k,pc_total) * dts
     end do
     !
     ! Time Step loop
@@ -271,22 +241,16 @@ module mod_sound
     timeloop: &
     do it = 1 , istep
       if ( it > 1 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          atmc%pp(j,i,k) = atmc%pp(j,i,k) + xkd*pi(j,i,k)
         end do
       end if
       do k = 1 , kz
         kp1 = min(kz,k+1)
         km1 = max(1,k-1)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atmc%t(j,i,k) = (atmc%pp(j,i,km1)-atmc%pp(j,i,kp1)) / &
-                            (atm0%pr(j,i,km1)-atm0%pr(j,i,kp1))
-          end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+          atmc%t(j,i,k) = (atmc%pp(j,i,km1)-atmc%pp(j,i,kp1)) / &
+                          (atm0%pr(j,i,km1)-atm0%pr(j,i,kp1))
         end do
       end do
       call exchange(atmc%t,1,jce1,jce2,ice1,ice2,1,kz)
@@ -294,49 +258,37 @@ module mod_sound
       !
       ! Advance u and v
       !
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            ! Predict u and v
-            rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j-1,i,k) + &
-                                atm1%rho(j,i-1,k) + atm1%rho(j-1,i-1,k))
-            dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j-1,i,k) + &
-                                atmc%t(j,i-1,k) + atmc%t(j-1,i-1,k))
-            ! Divide by map scale factor
-            chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
-            !
-            ! Nonhydrostatic model: pressure gradient term in sigma vertical
-            ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
-            ! 2.3.3, 2.3.4 in the MM5 manual.
-            !
-            atmc%u(j,i,k) = atmc%u(j,i,k) -                          &
-                      chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
-                             atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
-                             atm0%dprddx(j,i,k) * dppdp0)
-            atmc%v(j,i,k) = atmc%v(j,i,k) -                          &
-                      chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
-                             atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
-                             atm0%dprddy(j,i,k) * dppdp0)
-          end do
-        end do
+      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+        ! Predict u and v
+        rho    = d_rfour * (atm1%rho(j,i,k)   + atm1%rho(j-1,i,k) + &
+                            atm1%rho(j,i-1,k) + atm1%rho(j-1,i-1,k))
+        dppdp0 = d_rfour * (atmc%t(j,i,k)   + atmc%t(j-1,i,k) + &
+                            atmc%t(j,i-1,k) + atmc%t(j-1,i-1,k))
+        ! Divide by map scale factor
+        chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
+        !
+        ! Nonhydrostatic model: pressure gradient term in sigma vertical
+        ! coordinanate: 4th RHS term in Eqs. 2.2.1, 2.2.2, 2.2.9, 2.2.10,
+        ! 2.3.3, 2.3.4 in the MM5 manual.
+        !
+        atmc%u(j,i,k) = atmc%u(j,i,k) -                          &
+                  chh * (atmc%pp(j,i,k)   - atmc%pp(j-1,i,k)   + &
+                         atmc%pp(j,i-1,k) - atmc%pp(j-1,i-1,k) - &
+                         atm0%dprddx(j,i,k) * dppdp0)
+        atmc%v(j,i,k) = atmc%v(j,i,k) -                          &
+                  chh * (atmc%pp(j,i,k)   - atmc%pp(j,i-1,k)   + &
+                         atmc%pp(j-1,i,k) - atmc%pp(j-1,i-1,k) - &
+                         atm0%dprddy(j,i,k) * dppdp0)
       end do
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k,pc_total)
-            atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k,pc_total)
-          end do
-        end do
+      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+        atmc%u(j,i,k) = atmc%u(j,i,k) + aten%u(j,i,k,pc_total)
+        atmc%v(j,i,k) = atmc%v(j,i,k) + aten%v(j,i,k,pc_total)
       end do
       call exchange(atmc%u,1,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atmc%v,1,jde1,jde2,ide1,ide2,1,kz)
       if ( it > 1 ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          atmc%pp(j,i,k) = atmc%pp(j,i,k) - xkd*pi(j,i,k)
         end do
       end if
       !
@@ -349,112 +301,102 @@ module mod_sound
       !  (see Hint below). This is joined into the 4th RHS term in Eq. 2.3.7.
       !  Hint: R=Cp-Cv, gamma=Cp/Cv -> 1/gamma+R/Cp=1
       !
-      do k = 1 , kzp1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            wo(j,i,k) = atmc%w(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+        wo(j,i,k) = atmc%w(j,i,k)
       end do
       !
       ! Vertical boundary conditions, w=v.dh/dy at bottom, lid at top
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%w(j,i,kzp1) = d_half * d_rfour * regrav *        &
-                     ((atmc%v(j,i+1,kz)   + atmc%v(j,i,kz) +    &
-                       atmc%v(j+1,i+1,kz) + atmc%v(j+1,i,kz)) * &
-                      ( mddom%ht(j,i+1) - mddom%ht(j,i-1) ) +   &
-                      (atmc%u(j,i+1,kz)   + atmc%u(j,i,kz) +    &
-                       atmc%u(j+1,i+1,kz) + atmc%u(j+1,i,kz)) * &
-                      ( mddom%ht(j+1,i) - mddom%ht(j-1,i))) /   &
-                      ( dx * mddom%msfx(j,i) )
-          e(j,i,kz) = d_zero
-          f(j,i,kz) = atmc%w(j,i,kzp1)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        atmc%w(j,i,kzp1) = d_half * d_rfour * regrav *        &
+                   ((atmc%v(j,i+1,kz)   + atmc%v(j,i,kz) +    &
+                     atmc%v(j+1,i+1,kz) + atmc%v(j+1,i,kz)) * &
+                    ( mddom%ht(j,i+1) - mddom%ht(j,i-1) ) +   &
+                    (atmc%u(j,i+1,kz)   + atmc%u(j,i,kz) +    &
+                     atmc%u(j+1,i+1,kz) + atmc%u(j+1,i,kz)) * &
+                    ( mddom%ht(j+1,i) - mddom%ht(j-1,i))) /   &
+                    ( dx * mddom%msfx(j,i) )
+        e(j,i,kz) = d_zero
+        f(j,i,kz) = atmc%w(j,i,kzp1)
       end do
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          cc(j,i,1)  = xgamma * atm1%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
-          cdd(j,i,1) = xgamma * atm1%pr(j,i,1) * atm0%rho(j,i,1) * &
-                       egrav * dts / (atm0%ps(j,i)*dsigma(1))
-          cj(j,i,1)  = d_half * atm0%rho(j,i,1) * egrav * dts
-          pxup(j,i,1) = 0.0625_rkx *                            &
-                      ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
-                      ( atmc%u(j,i,1)   + atmc%u(j+1,i,1)   +   &
-                        atmc%u(j,i+1,1) + atmc%u(j+1,i+1,1) -   &
-                        atmc%u(j,i,2)   - atmc%u(j+1,i,2)   -   &
-                        atmc%u(j,i+1,2) - atmc%u(j+1,i+1,2) ) / &
-                      ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
-          pyvp(j,i,1) = 0.0625_rkx *                            &
-                      ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
-                      ( atmc%v(j,i,1)   + atmc%v(j+1,i,1)   +   &
-                        atmc%v(j,i+1,1) + atmc%v(j+1,i+1,1) -   &
-                        atmc%v(j,i,2)   - atmc%v(j+1,i,2)   -   &
-                        atmc%v(j,i+1,2) - atmc%v(j+1,i+1,2) ) / &
-                      ( atm0%pr(j,i,1) - atm0%pr(j,i,2) )
-          !
-          ! Zero gradient (free slip) b.c.s on v at top and bottom
-          !
-          ! IG: at the top (k=1), w(x,y,1)=0, dw(x,y,1)/dsigma=0 so
-          ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
-          !
-          ptend(j,i,1) = aten%pp(j,i,1,pc_total) - d_half * cc(j,i,1) * &
-                       ( ( atmc%v(j,i+1,1)   * mddom%msfd(j,i+1)   - &
-                           atmc%v(j,i,1)     * mddom%msfd(j,i)     + &
-                           atmc%v(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
-                           atmc%v(j+1,i,1)   * mddom%msfd(j+1,i)   + &
-                           atmc%u(j+1,i,1)   * mddom%msfd(j+1,i)   - &
-                           atmc%u(j,i,1)     * mddom%msfd(j,i)     + &
-                           atmc%u(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
-                           atmc%u(j,i+1,1)   * mddom%msfd(j,i+1) ) / &
-                       mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
-          tk(j,i,1) = (d_half * atm0%ps(j,i) * atm0%t(j,i,1)) / &
-                      (xgamma * atm0%pr(j,i,1) * atm2%t(j,i,1) * rpsb(j,i))
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        cc(j,i,1)  = xgamma * atm1%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
+        cdd(j,i,1) = xgamma * atm1%pr(j,i,1) * atm0%rho(j,i,1) * &
+                     egrav * dts / (atm0%ps(j,i)*dsigma(1))
+        cj(j,i,1)  = d_half * atm0%rho(j,i,1) * egrav * dts
+        pxup(j,i,1) = 0.0625_rkx *                            &
+                    ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
+                    ( atmc%u(j,i,1)   + atmc%u(j+1,i,1)   +   &
+                      atmc%u(j,i+1,1) + atmc%u(j+1,i+1,1) -   &
+                      atmc%u(j,i,2)   - atmc%u(j+1,i,2)   -   &
+                      atmc%u(j,i+1,2) - atmc%u(j+1,i+1,2) ) / &
+                    ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
+        pyvp(j,i,1) = 0.0625_rkx *                            &
+                    ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
+                    ( atmc%v(j,i,1)   + atmc%v(j+1,i,1)   +   &
+                      atmc%v(j,i+1,1) + atmc%v(j+1,i+1,1) -   &
+                      atmc%v(j,i,2)   - atmc%v(j+1,i,2)   -   &
+                      atmc%v(j,i+1,2) - atmc%v(j+1,i+1,2) ) / &
+                    ( atm0%pr(j,i,1) - atm0%pr(j,i,2) )
+        !
+        ! Zero gradient (free slip) b.c.s on v at top and bottom
+        !
+        ! IG: at the top (k=1), w(x,y,1)=0, dw(x,y,1)/dsigma=0 so
+        ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
+        !
+        ptend(j,i,1) = aten%pp(j,i,1,pc_total) - d_half * cc(j,i,1) * &
+                     ( ( atmc%v(j,i+1,1)   * mddom%msfd(j,i+1)   - &
+                         atmc%v(j,i,1)     * mddom%msfd(j,i)     + &
+                         atmc%v(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
+                         atmc%v(j+1,i,1)   * mddom%msfd(j+1,i)   + &
+                         atmc%u(j+1,i,1)   * mddom%msfd(j+1,i)   - &
+                         atmc%u(j,i,1)     * mddom%msfd(j,i)     + &
+                         atmc%u(j+1,i+1,1) * mddom%msfd(j+1,i+1) - &
+                         atmc%u(j,i+1,1)   * mddom%msfd(j,i+1) ) / &
+                     mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
+        tk(j,i,1) = (d_half * atm0%ps(j,i) * atm0%t(j,i,1)) / &
+                    (xgamma * atm0%pr(j,i,1) * atm2%t(j,i,1) * rpsb(j,i))
       end do
       do k = 2 , kz
         kp1 = min(k+1,kz)
         km1 = k-1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tk(j,i,k) = (d_half * atm0%ps(j,i) * atm0%t(j,i,k)) / &
-                        (xgamma * atm0%pr(j,i,k) * atm2%t(j,i,k) * rpsb(j,i))
-            rofac = (dsigma(km1)*atm0%rho(j,i,k) +    &
-                     dsigma(k)  *atm0%rho(j,i,km1)) / &
-                    (dsigma(km1)*atm1%rho(j,i,k) +    &
-                     dsigma(k)  *atm1%rho(j,i,km1))
-            !
-            ! Set factors for differencing
-            !
-            cc(j,i,k)  = xgamma * atm1%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
-            cdd(j,i,k) = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
-                         egrav * dts / (atm0%ps(j,i)*dsigma(k))
-            cj(j,i,k) = d_half * atm0%rho(j,i,k) * egrav * dts
-            ca(j,i,k) = egrav * dts / (atm0%pr(j,i,k)-atm0%pr(j,i,km1)) * rofac
-            g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
-            g2(j,i,k) = d_one + dsigma(k) * tk(j,i,km1)
-            !
-            ! Implicit w equation coefficient arrays and rhs (ikawa method)
-            !
-            c(j,i,k) = -ca(j,i,k) * (cdd(j,i,km1)-cj(j,i,km1))*g2(j,i,k)*bpxbp
-            b(j,i,k) = d_one + ca(j,i,k) * ( g1(j,i,k) *      &
-                       (cdd(j,i,k) - cj(j,i,k)) + g2(j,i,k) * &
-                       (cdd(j,i,km1) + cj(j,i,km1)) ) * bpxbp
-            aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
-            pyvp(j,i,k) = 0.125_rkx * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
-                          ( atmc%v(j,i,km1)   + atmc%v(j+1,i,km1)   +         &
-                            atmc%v(j,i+1,km1) + atmc%v(j+1,i+1,km1) -         &
-                            atmc%v(j,i,kp1)   - atmc%v(j+1,i,kp1)   -         &
-                            atmc%v(j,i+1,kp1) - atmc%v(j+1,i+1,kp1) ) /       &
-                          ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
-            pxup(j,i,k) = 0.125_rkx * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
-                          ( atmc%u(j,i,km1)   + atmc%u(j+1,i,km1)   +         &
-                            atmc%u(j,i+1,km1) + atmc%u(j+1,i+1,km1) -         &
-                            atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -         &
-                            atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /       &
-                          ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          tk(j,i,k) = (d_half * atm0%ps(j,i) * atm0%t(j,i,k)) / &
+                      (xgamma * atm0%pr(j,i,k) * atm2%t(j,i,k) * rpsb(j,i))
+          rofac = (dsigma(km1)*atm0%rho(j,i,k) +    &
+                   dsigma(k)  *atm0%rho(j,i,km1)) / &
+                  (dsigma(km1)*atm1%rho(j,i,k) +    &
+                   dsigma(k)  *atm1%rho(j,i,km1))
+          !
+          ! Set factors for differencing
+          !
+          cc(j,i,k)  = xgamma * atm1%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
+          cdd(j,i,k) = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
+                       egrav * dts / (atm0%ps(j,i)*dsigma(k))
+          cj(j,i,k) = d_half * atm0%rho(j,i,k) * egrav * dts
+          ca(j,i,k) = egrav * dts / (atm0%pr(j,i,k)-atm0%pr(j,i,km1)) * rofac
+          g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
+          g2(j,i,k) = d_one + dsigma(k) * tk(j,i,km1)
+          !
+          ! Implicit w equation coefficient arrays and rhs (ikawa method)
+          !
+          c(j,i,k) = -ca(j,i,k) * (cdd(j,i,km1)-cj(j,i,km1))*g2(j,i,k)*bpxbp
+          b(j,i,k) = d_one + ca(j,i,k) * ( g1(j,i,k) *      &
+                     (cdd(j,i,k) - cj(j,i,k)) + g2(j,i,k) * &
+                     (cdd(j,i,km1) + cj(j,i,km1)) ) * bpxbp
+          aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
+          pyvp(j,i,k) = 0.125_rkx * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
+                        ( atmc%v(j,i,km1)   + atmc%v(j+1,i,km1)   +         &
+                          atmc%v(j,i+1,km1) + atmc%v(j+1,i+1,km1) -         &
+                          atmc%v(j,i,kp1)   - atmc%v(j+1,i,kp1)   -         &
+                          atmc%v(j,i+1,kp1) - atmc%v(j+1,i+1,kp1) ) /       &
+                        ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
+          pxup(j,i,k) = 0.125_rkx * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
+                        ( atmc%u(j,i,km1)   + atmc%u(j+1,i,km1)   +         &
+                          atmc%u(j,i+1,km1) + atmc%u(j+1,i+1,km1) -         &
+                          atmc%u(j,i,kp1)   - atmc%u(j+1,i,kp1)   -         &
+                          atmc%u(j,i+1,kp1) - atmc%u(j+1,i+1,kp1) ) /       &
+                        ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
         end do
       end do
       !
@@ -463,88 +405,70 @@ module mod_sound
       ! IG: at the bottom (k=kz), w(x,y,kz)=0, dw(x,y,kz)/dsigma=0 so
       ! 3rd and 4th LHS in Eq. 2.5.1.4 vanish.
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          pyvp(j,i,kz) = pyvp(j,i,kz)*d_half
-          pxup(j,i,kz) = pxup(j,i,kz)*d_half
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        pyvp(j,i,kz) = pyvp(j,i,kz)*d_half
+        pxup(j,i,kz) = pxup(j,i,kz)*d_half
       end do
-      do k = 2 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            !
-            ! Nonhydrostatic model.
-            ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
-            !
-            ptend(j,i,k) = aten%pp(j,i,k,pc_total) - d_half * cc(j,i,k) * &
-                           ( (atmc%v(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
-                              atmc%v(j,i,k)     * mddom%msfd(j,i)     +  &
-                              atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              atmc%v(j+1,i,k)   * mddom%msfd(j+1,i)   +  &
-                              atmc%u(j+1,i,k)   * mddom%msfd(j+1,i)   -  &
-                              atmc%u(j,i,k)     * mddom%msfd(j,i)     +  &
-                              atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
-                              atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) ) /  &
-                          mddom%msfx(j,i) - &
-                          d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
-            rhs(j,i,k) = atmc%w(j,i,k) +                                    &
-                    aten%w(j,i,k,pc_total) + ca(j,i,k) * ( bpxbm *          &
-                     ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
-                     ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +             &
-                       (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +   &
-                       (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +   &
-                     ( atmc%pp(j,i,k)   * g1(j,i,k)   -                     &
-                       atmc%pp(j,i,k-1) * g2(j,i,k) ) +                     &
-                     ( g1(j,i,k)*ptend(j,i,k) -                             &
-                       g2(j,i,k)*ptend(j,i,k-1) ) * bp )
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
+        !
+        ! Nonhydrostatic model.
+        ! Presure perturbation tendency: 5th RHS terms in Eq.2.3.8
+        !
+        ptend(j,i,k) = aten%pp(j,i,k,pc_total) - d_half * cc(j,i,k) * &
+                       ( (atmc%v(j,i+1,k)   * mddom%msfd(j,i+1)   -  &
+                          atmc%v(j,i,k)     * mddom%msfd(j,i)     +  &
+                          atmc%v(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
+                          atmc%v(j+1,i,k)   * mddom%msfd(j+1,i)   +  &
+                          atmc%u(j+1,i,k)   * mddom%msfd(j+1,i)   -  &
+                          atmc%u(j,i,k)     * mddom%msfd(j,i)     +  &
+                          atmc%u(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
+                          atmc%u(j,i+1,k)   * mddom%msfd(j,i+1) ) /  &
+                      mddom%msfx(j,i) - &
+                      d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
+        rhs(j,i,k) = atmc%w(j,i,k) +                                    &
+                aten%w(j,i,k,pc_total) + ca(j,i,k) * ( bpxbm *          &
+                 ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
+                 ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +             &
+                   (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +   &
+                   (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +   &
+                 ( atmc%pp(j,i,k)   * g1(j,i,k)   -                     &
+                   atmc%pp(j,i,k-1) * g2(j,i,k) ) +                     &
+                 ( g1(j,i,k)*ptend(j,i,k) -                             &
+                   g2(j,i,k)*ptend(j,i,k-1) ) * bp )
       end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            pi(j,i,k) = atmc%pp(j,i,k)
-            !
-            ! Nonhydrostatic model.
-            ! Presure perturbation tendency: 4th RHS term and last subterm
-            ! in 5th RHS term in Eq. 2.3.8. Also, cf. Eq. 2.5.1.4
-            !
-            atmc%pp(j,i,k) = atmc%pp(j,i,k) + ptend(j,i,k) +         &
-                          ( cj(j,i,k)  * (wo(j,i,k+1) + wo(j,i,k)) + &
-                            cdd(j,i,k) * (wo(j,i,k+1) - wo(j,i,k)) ) * bm
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        pi(j,i,k) = atmc%pp(j,i,k)
+        !
+        ! Nonhydrostatic model.
+        ! Presure perturbation tendency: 4th RHS term and last subterm
+        ! in 5th RHS term in Eq. 2.3.8. Also, cf. Eq. 2.5.1.4
+        !
+        atmc%pp(j,i,k) = atmc%pp(j,i,k) + ptend(j,i,k) +         &
+                      ( cj(j,i,k)  * (wo(j,i,k+1) + wo(j,i,k)) + &
+                        cdd(j,i,k) * (wo(j,i,k+1) - wo(j,i,k)) ) * bm
       end do
       !
       ! Upward calculation of coefficients
       !
-      do k = kz , 2 , -1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            denom = aa(j,i,k)*e(j,i,k) + b(j,i,k)
-            e(j,i,k-1) = -c(j,i,k) / denom
-            f(j,i,k-1) = (rhs(j,i,k) - f(j,i,k)*aa(j,i,k)) / denom
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = kz:2:-1 )
+        denom = aa(j,i,k)*e(j,i,k) + b(j,i,k)
+        e(j,i,k-1) = -c(j,i,k) / denom
+        f(j,i,k-1) = (rhs(j,i,k) - f(j,i,k)*aa(j,i,k)) / denom
       end do
       !
       ! First, set upper boundary condition, either w=0 or radiation
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          wpval(j,i) = d_zero
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        wpval(j,i) = d_zero
       end do
       !
       ! Upper radiative BC, compute the wpval here as in 2.7
       !
       if ( ifupr == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            denom = (cdd(j,i,1) + cj(j,i,1)) * bp
-            estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
-            astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          denom = (cdd(j,i,1) + cj(j,i,1)) * bp
+          estore(j,i) = atmc%pp(j,i,1) + f(j,i,1) * denom
+          astore(j,i) = denom * e(j,i,1) + (cj(j,i,1) - cdd(j,i,1)) * bp
         end do
         call grid_collect(estore,estore_g,jci1,jci2,ici1,ici2)
         call bcast(estore_g)
@@ -627,20 +551,14 @@ module mod_sound
       !
       ! Finished calc of radiation w, apply whichever
       !
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%w(j,i,1) = wpval(j,i)
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        atmc%w(j,i,1) = wpval(j,i)
       end do
       !
       ! Downward sweep calculation of w
       !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        atmc%w(j,i,k+1) = e(j,i,k)*atmc%w(j,i,k) + f(j,i,k)
       end do
       !
       ! Zero-out gradient for W
@@ -680,15 +598,11 @@ module mod_sound
       !
       ! Check CFL
       !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ucrs(j,i,k) = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
-                          atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
-            vcrs(j,i,k) = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
-                          atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        ucrs(j,i,k) = atmc%u(j,i,k) + atmc%u(j,i+1,k) + &
+                      atmc%u(j+1,i,k) + atmc%u(j+1,i+1,k)
+        vcrs(j,i,k) = atmc%v(j,i,k) + atmc%v(j,i+1,k) + &
+                      atmc%v(j+1,i,k) + atmc%v(j+1,i+1,k)
       end do
       cfl = d_zero
       do k = kz , 2 , -1
@@ -740,26 +654,22 @@ module mod_sound
       !
       ! Now compute the new pressure
       !
-      do k =  1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ppold = pi(j,i,k)
-            cddtmp = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
-                     egrav * dts / (atm0%ps(j,i)*dsigma(k))
-            cjtmp = atm0%rho(j,i,k) * egrav * dts * d_half
-            atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
-                          ( cjtmp  * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
-                            cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) ) * bp
-            pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k,pc_total)
-            !
-            ! Compute pressure dp`/dt correction to the temperature
-            !
-            cpm = cpmf(atmc%qx(j,i,k,iqv))
-            dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
-            atm2%t(j,i,k) = atm2%t(j,i,k) + gnu1*dpterm
-            atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+        ppold = pi(j,i,k)
+        cddtmp = xgamma * atm1%pr(j,i,k) * atm0%rho(j,i,k) * &
+                 egrav * dts / (atm0%ps(j,i)*dsigma(k))
+        cjtmp = atm0%rho(j,i,k) * egrav * dts * d_half
+        atmc%pp(j,i,k) = atmc%pp(j,i,k) + &
+                      ( cjtmp  * (atmc%w(j,i,k+1) + atmc%w(j,i,k)) + &
+                        cddtmp * (atmc%w(j,i,k+1) - atmc%w(j,i,k)) ) * bp
+        pi(j,i,k) = atmc%pp(j,i,k) - ppold - aten%pp(j,i,k,pc_total)
+        !
+        ! Compute pressure dp`/dt correction to the temperature
+        !
+        cpm = cpmf(atmc%qx(j,i,k,iqv))
+        dpterm = sfs%psb(j,i)*(atmc%pp(j,i,k)-ppold) / (cpm*atm1%rho(j,i,k))
+        atm2%t(j,i,k) = atm2%t(j,i,k) + gnu1*dpterm
+        atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
       end do
 
       ! End of time loop
@@ -767,31 +677,19 @@ module mod_sound
     !
     ! Apply time filtering technique
     !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          atmc%u(j,i,k) = sfs%psdotb(j,i) * atmc%u(j,i,k)
-          atmc%v(j,i,k) = sfs%psdotb(j,i) * atmc%v(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
+      atmc%u(j,i,k) = sfs%psdotb(j,i) * atmc%u(j,i,k)
+      atmc%v(j,i,k) = sfs%psdotb(j,i) * atmc%v(j,i,k)
     end do
     call timefilter_apply(atm1%u,atm2%u,atmc%u, &
                           atm1%v,atm2%v,atmc%v,gnu1)
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%pp(j,i,k) = sfs%psb(j,i) * atmc%pp(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      atmc%pp(j,i,k) = sfs%psb(j,i) * atmc%pp(j,i,k)
     end do
     call timefilter_apply(atm1%pp,atm2%pp,atmc%pp,gnu1)
     where ( abs(atmc%w) < dlowval ) atmc%w = d_zero
-    do k = 1 , kzp1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kzp1 )
+      atmc%w(j,i,k) = sfs%psb(j,i) * atmc%w(j,i,k)
     end do
     call timefilter_apply(atm1%w,atm2%w,atmc%w,gnu2)
     where ( abs(atm2%w) < dlowval ) atm2%w = d_zero
