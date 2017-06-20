@@ -1,4 +1,5 @@
   ! Latent heat for condensation/sublimation of water in J/kg
+!DIR$ ATTRIBUTES FORCEINLINE :: wlh
   pure real(rkx) function wlh(t)
     implicit none
     real(rkx) , intent(in) :: t

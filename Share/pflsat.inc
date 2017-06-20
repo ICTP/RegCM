@@ -3,6 +3,7 @@
   !             Piotr J. Flatau, et al.,1992:  Polynomial fits to saturation
   !             vapor pressure.  Journal of Applied Meteorology, 31, 1507-1513.
   !
+!DIR$ ATTRIBUTES FORCEINLINE :: pflsat
   pure real(rkx) function pflsat(t) result(es)
     implicit none
     real(rkx) , intent(in) :: t     ! Temperature (K)

@@ -1,6 +1,7 @@
   !
   ! Computes derivative in temperature of saturation pressure
   !
+!DIR$ ATTRIBUTES FORCEINLINE :: pfesdt
   pure real(rkx) function pfesdt(t) result(esdt)
     implicit none
     real(rkx), intent(in)  :: t     ! Temperature (K)

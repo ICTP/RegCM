@@ -1,3 +1,4 @@
+!DIR$ ATTRIBUTES FORCEINLINE :: pfwsat
   pure real(rkx) function pfwsat(t,p,e) result(ws)
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)

@@ -1,4 +1,5 @@
   ! Heat capacity for moist air at constant pressure
+!DIR$ ATTRIBUTES FORCEINLINE :: cpmf
   pure real(rkx) function cpmf(qv)
     implicit none
     real(rkx) , intent(in) :: qv
