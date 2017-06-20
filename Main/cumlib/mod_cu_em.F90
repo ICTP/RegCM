@@ -604,24 +604,30 @@ module mod_cu_em
           sij(i,j) = d_zero
           uent(i,j) = u(n,j)
           vent(i,j) = v(n,j)
+          if (ichem == 1 .and. ichcumtra > 0) then 
           do k = 1 , ntra
             traent(i,j,k) = tra(n,j,k)
           end do
+          end if
         end do
       end do
       qp(1) = q(n,1)
       up(1) = u(n,1)
       vp(1) = v(n,1)
+      if (ichem == 1 .and. ichcumtra > 0) then
       do i = 1 , ntra
         trap(1,i) = tra(n,1,i)
       end do
+      end if
       do i = 2 , nl + 1
         qp(i) = q(n,i-1)
         up(i) = u(n,i-1)
         vp(i) = v(n,i-1)
+      if (ichem ==1 .and. ichcumtra > 0) then
         do j = 1 , ntra
           trap(i,j) = tra(n,i-1,j)
         end do
+      end if
       end do
       !
       ! Find the first model level (ict1) above the parcel's highest level
@@ -735,9 +741,11 @@ module mod_cu_em
             qent(i,j) = sij(i,j)*q(n,i) + (d_one-sij(i,j))*qti
             uent(i,j) = sij(i,j)*u(n,i) + (d_one-sij(i,j))*u(n,nk)
             vent(i,j) = sij(i,j)*v(n,i) + (d_one-sij(i,j))*v(n,nk)
+            if (ichem == 1 .and. ichcumtra > 0) then
             do k = 1 , ntra
               traent(i,j,k) = sij(i,j)*tra(n,i,k) + (d_one-sij(i,j))*tra(n,nk,k)
             end do
+            end if 
             elij(i,j) = altem
             elij(i,j) = max(d_zero,elij(i,j))
             ment(i,j) = m(i)/(d_one-sij(i,j))
@@ -755,9 +763,11 @@ module mod_cu_em
           qent(i,i) = q(n,nk) - ep(i)*clw(i)
           uent(i,i) = u(n,nk)
           vent(i,i) = v(n,nk)
+          if (ichem == 1 .and. ichcumtra > 0) then
           do j = 1 , ntra
             traent(i,i,j) = tra(n,nk,j)
           end do
+          end if
           elij(i,i) = clw(i)
           sij(i,i) = d_one
         end if
@@ -819,9 +829,11 @@ module mod_cu_em
             qent(i,i) = q(n,nk) - ep(i)*clw(i)
             uent(i,i) = u(n,nk)
             vent(i,i) = v(n,nk)
+            if (ichem ==1 .and. ichcumtra >0) then
             do j = 1 , ntra
               traent(i,i,j) = tra(n,nk,j)
             end do
+            end if
             elij(i,i) = clw(i)
             sij(i,i) = d_one
           end if
@@ -918,17 +930,21 @@ module mod_cu_em
                     d_100*regrav*sigd*(ph(n,i)-ph(n,i+1))*(evap(i)/mp(i))
               up(i) = up(i+1)*rat + u(n,i)*(d_one-rat)
               vp(i) = vp(i+1)*rat + v(n,i)*(d_one-rat)
+              if (ichem == 1 .and. ichcumtra>0) then 
               do j = 1 , ntra
                 trap(i,j) = trap(i+1,j)*rat + trap(i,j)*(d_one-rat)
               end do
+              end if
             else if ( mp(i+1) > d_zero ) then
               qp(i) = (gz(i+1)-gz(i)+qp(i+1)*(lv(i+1)+t(n,i+1)*(cl-cpd)) + &
                        cpd*(t(n,i+1)-t(n,i)))/(lv(i)+t(n,i)*(cl-cpd))
               up(i) = up(i+1)
               vp(i) = vp(i+1)
+              if (ichem == 1 .and. ichcumtra >0) then
               do j = 1 , ntra
                 trap(i,j) = trap(i+1,j)
               end do
+              end if
             end if
             qp(i) = min(qp(i),qstm)
             qp(i) = max(qp(i),d_zero)
@@ -966,18 +982,22 @@ module mod_cu_em
       fq(n,1) = fq(n,1) + egrav*am*(q(n,2)-q(n,1))*dpinv
       fu(n,1) = fu(n,1) + egrav*dpinv*(mp(2)*(up(2)-u(n,1))+am*(u(n,2)-u(n,1)))
       fv(n,1) = fv(n,1) + egrav*dpinv*(mp(2)*(vp(2)-v(n,1))+am*(v(n,2)-v(n,1)))
+      if(ichem==1 .and. ichcumtra > 0) then
       do j = 1 , ntra
         ftra(n,1,j) = ftra(n,1,j) + egrav*dpinv * &
                  (mp(2)*(trap(2,j)-tra(n,1,j)) + am*(tra(n,2,j)-tra(n,1,j)))
       end do
+      end if
       do j = 2 , ict
         fq(n,1) = fq(n,1) + egrav*dpinv*ment(j,1)*(qent(j,1)-q(n,1))
         fu(n,1) = fu(n,1) + egrav*dpinv*ment(j,1)*(uent(j,1)-u(n,1))
         fv(n,1) = fv(n,1) + egrav*dpinv*ment(j,1)*(vent(j,1)-v(n,1))
+        if (ichem == 1 .and. ichcumtra > 0) then
         do k = 1 , ntra
           ftra(n,1,k) = ftra(n,1,k) + &
                     egrav*dpinv*ment(j,1)*(traent(j,1,k)-tra(n,1,k))
         end do
+        end if
       end do
       !
       ! Calculate tendencies of potential temperature and mixing ratio
@@ -1019,29 +1039,35 @@ module mod_cu_em
               (amp1*(u(n,i+1)-u(n,i))-ad*(u(n,i)-u(n,i-1)))
         fv(n,i) = fv(n,i) + egrav*dpinv * &
               (amp1*(v(n,i+1)-v(n,i))-ad*(v(n,i)-v(n,i-1)))
+        if (ichem == 1 .and. ichcumtra > 0) then 
         do k = 1 , ntra
           ftra(n,i,k) = ftra(n,i,k) + egrav*dpinv * &
                (amp1*(tra(n,i+1,k)-tra(n,i,k))-ad*(tra(n,i,k)-tra(n,i-1,k)))
         end do
+        end if
         do k = 1 , i - 1
           awat = elij(k,i) - (d_one-ep(i))*clw(i)
           awat = max(awat,d_zero)
           fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i)*(qent(k,i)-awat-q(n,i))
           fu(n,i) = fu(n,i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(n,i))
           fv(n,i) = fv(n,i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(n,i))
+          if (ichem==1 .and. ichcumtra > 0) then
           do j = 1 , ntra
             ftra(n,i,j) = ftra(n,i,j) + &
               egrav*dpinv*ment(k,i)*(traent(k,i,j)-tra(n,i,j))
           end do
+          end if
         end do
         do k = i , ict
           fq(n,i) = fq(n,i) + egrav*dpinv*ment(k,i)*(qent(k,i)-q(n,i))
           fu(n,i) = fu(n,i) + egrav*dpinv*ment(k,i)*(uent(k,i)-u(n,i))
           fv(n,i) = fv(n,i) + egrav*dpinv*ment(k,i)*(vent(k,i)-v(n,i))
+          if(ichem ==1 .and. ichcumtra >0) then
           do j = 1 , ntra
             ftra(n,i,j) = ftra(n,i,j) + &
               egrav*dpinv*ment(k,i)*(traent(k,i,j)-tra(n,i,j))
           end do
+         end if
         end do
         fq(n,i) = fq(n,i) + sigd*evap(i) + egrav * &
                 (mp(i+1)*(qp(i+1)-q(n,i)) - mp(i)*(qp(i)-q(n,i-1)))*dpinv
@@ -1049,10 +1075,12 @@ module mod_cu_em
                 (mp(i+1)*(up(i+1)-u(n,i)) - mp(i)*(up(i)-u(n,i-1)))*dpinv
         fv(n,i) = fv(n,i) + egrav * &
                 (mp(i+1)*(vp(i+1)-v(n,i)) - mp(i)*(vp(i)-v(n,i-1)))*dpinv
+        if(ichem ==1 .and. ichcumtra > 0) then
         do j = 1 , ntra
           ftra(n,i,j) = ftra(n,i,j) + egrav*dpinv * &
              (mp(i+1)*(trap(i+1,j)-tra(n,i,j)) - mp(i)*(trap(i,j)-tra(n,i-1,j)))
         end do
+        end if
       end do
       !
       ! Adjust tendencies at top of convection layer to reflect
@@ -1076,12 +1104,14 @@ module mod_cu_em
       fv(n,ict) = fv(n,ict)*(d_one-frac)
       fv(n,ict-1) = fv(n,ict-1) + frac*fvold * &
                   ((ph(n,ict)-ph(n,ict+1))/(ph(n,ict-1)-ph(n,ict)))
+      if (ichem ==1 .and. ichcumtra >0) then 
       do k = 1 , ntra
         ftraold = ftra(n,ict,k)
         ftra(n,ict,k) = ftra(n,ict,k)*(d_one-frac)
         ftra(n,ict-1,k) = ftra(n,ict-1,k) + frac*ftraold * &
                         (ph(n,ict)-ph(n,ict+1))/(ph(n,ict-1)-ph(n,ict))
       end do
+      end if
       !
       ! Very slightly adjust tendencies to force exact
       ! enthalpy, momentum and tracer conservation
@@ -1102,6 +1132,7 @@ module mod_cu_em
         fu(n,i) = (d_one-cu)*(fu(n,i)-uav)
         fv(n,i) = (d_one-cu)*(fv(n,i)-vav)
       end do
+      if (ichem==1 .and. ichcumtra > 0) then
       do k = 1 , ntra
         traav = d_zero
         do i = 1 , ict
@@ -1112,6 +1143,7 @@ module mod_cu_em
           ftra(n,i,k) = ftra(n,i,k) - traav
         end do
       end do
+      end if
       !
       ! Xu, K.-M., and S. K. Krueger:
       !   Evaluation of cloudiness parameterizations using a cumulus
