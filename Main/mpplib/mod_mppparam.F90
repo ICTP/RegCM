@@ -1310,15 +1310,15 @@ module mod_mppparam
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')
       ! Allocate to something should fit all
       maximum_buffer_size = jxsg*iysg
-      maximum_buffer_size = max(maximum_buffer_size,kzp1)
-      call getmem1d(r8vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
-      call getmem1d(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
-      call getmem1d(i4vector2,1,maximum_buffer_size,'set_nproc:i4vector2')
-      call getmem1d(lvector2,1,maximum_buffer_size,'set_nproc:lvector2')
-      call getmem1d(r8vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
+      maximum_buffer_size = max(maximum_buffer_size,jxpsg*iypsg*kzp1)
+      call getmem1d(r8vector1,1,maximum_buffer_size,'set_nproc:r8vector1')
+      call getmem1d(r8vector2,1,maximum_buffer_size,'set_nproc:r8vector2')
       call getmem1d(r4vector1,1,maximum_buffer_size,'set_nproc:r4vector1')
+      call getmem1d(r4vector2,1,maximum_buffer_size,'set_nproc:r4vector2')
       call getmem1d(i4vector1,1,maximum_buffer_size,'set_nproc:i4vector1')
+      call getmem1d(i4vector2,1,maximum_buffer_size,'set_nproc:i4vector2')
       call getmem1d(lvector1,1,maximum_buffer_size,'set_nproc:lvector1')
+      call getmem1d(lvector2,1,maximum_buffer_size,'set_nproc:lvector2')
     end if
   end subroutine set_nproc
 
@@ -2859,6 +2859,12 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%bandflag ) then
       ssize = nex*isize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -2894,6 +2900,12 @@ module mod_mppparam
     else
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+        end if
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -2912,6 +2924,12 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+        end if
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -2931,6 +2949,12 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -2949,6 +2973,12 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -2967,6 +2997,12 @@ module mod_mppparam
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -2986,6 +3022,12 @@ module mod_mppparam
     end if
     if ( ma%bottomright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3005,6 +3047,12 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3024,6 +3072,12 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3052,6 +3106,12 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%bandflag ) then
       ssize = nex*isize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -3087,6 +3147,12 @@ module mod_mppparam
     else
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+        end if
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3105,6 +3171,12 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+        end if
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3124,6 +3196,12 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3142,6 +3220,12 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3160,6 +3244,12 @@ module mod_mppparam
     end if
     if ( ma%topleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3179,6 +3269,12 @@ module mod_mppparam
     end if
     if ( ma%bottomright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3198,6 +3294,12 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3217,6 +3319,12 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3240,52 +3348,1236 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: k
-    real(rk8) , pointer , dimension(:,:) :: ml2
-    do k = k1 , k2
-      call assignpnt(ml,ml2,k)
-      call real8_2d_exchange(ml2,nex,j1,j2,i1,i2)
-    end do
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+        end if
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call exchange_array(r8vector1,r8vector2,ssize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+        end if
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call exchange_array(r8vector1,r8vector2,ssize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2,ssize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2,ssize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(ib) = ml(j1+j-1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i2+i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(ib) = ml(j2-j+1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i1-i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i2+i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i1-i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_3d_exchange
 
   subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: k
-    real(rk4) , pointer , dimension(:,:) :: ml2
-    do k = k1 , k2
-      call assignpnt(ml,ml2,k)
-      call real4_2d_exchange(ml2,nex,j1,j2,i1,i2)
-    end do
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+        end if
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+        end if
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
   end subroutine real4_3d_exchange
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: k , n
-    real(rk8) , pointer , dimension(:,:) :: ml2
-    do n = n1 , n2
-      do k = k1 , k2
-        call assignpnt(ml,ml2,k,n)
-        call real8_2d_exchange(ml2,nex,j1,j2,i1,i2)
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
       end do
-    end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+        end if
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r8vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call exchange_array(r8vector1,r8vector2,ssize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+        end if
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r8vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call exchange_array(r8vector1,r8vector2,ssize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2,ssize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2,ssize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i2+i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i1-i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r8vector1,r8vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_4d_exchange
 
   subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: k , n
-    real(rk4) , pointer , dimension(:,:) :: ml2
-    do n = n1 , n2
-      do k = k1 , k2
-        call assignpnt(ml,ml2,k,n)
-        call real4_2d_exchange(ml2,nex,j1,j2,i1,i2)
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
       end do
-    end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+        end if
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%right,tag_rl,tag_lr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+        end if
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call exchange_array(r4vector1,r4vector2,ssize,ma%left,tag_lr,tag_rl)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%top,tag_tb,tag_bt)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2,ssize,ma%bottom,tag_bt,tag_tb)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topleft,tag_tlbr,tag_brtl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomright,tag_brtl,tag_tlbr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%topright,tag_trbl,tag_bltr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call exchange_array(r4vector1,r4vector2, &
+                          ssize,ma%bottomleft,tag_bltr,tag_trbl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
   end subroutine real4_4d_exchange
 
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
@@ -3297,6 +4589,12 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%bandflag ) then
       ssize = nex*isize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -3316,6 +4614,9 @@ module mod_mppparam
     else
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3327,6 +4628,9 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+        end if
         call recv_array(r8vector2,ssize,ma%left,tag_lr)
         ib = 1
         do i = i1 , i2
@@ -3339,6 +4643,9 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3350,6 +4657,9 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
       call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
       ib = 1
       do i = 1 , nex
@@ -3361,6 +4671,9 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3372,6 +4685,9 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+      end if
       call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
       ib = 1
       do i = 1 , nex
@@ -3392,6 +4708,12 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%bandflag ) then
       ssize = nex*isize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -3411,6 +4733,9 @@ module mod_mppparam
     else
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3422,6 +4747,9 @@ module mod_mppparam
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+        end if
         call recv_array(r4vector2,ssize,ma%left,tag_lr)
         ib = 1
         do i = i1 , i2
@@ -3434,6 +4762,9 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3445,6 +4776,9 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
       call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
       ib = 1
       do i = 1 , nex
@@ -3456,6 +4790,9 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3467,6 +4804,9 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+      end if
       call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
       ib = 1
       do i = 1 , nex
@@ -3482,52 +4822,578 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: k
-    real(rk8) , pointer , dimension(:,:) :: ml2
-    do k = k1 , k2
-      call assignpnt(ml,ml2,k)
-      call real8_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
-    end do
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(r8vector1,ssize,ma%right,tag_lr)
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+        end if
+        call recv_array(r8vector2,ssize,ma%left,tag_lr)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%top,tag_bt)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(ib) = ml(j2-j+1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%topright,tag_bltr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+      end if
+      call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i1-i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_3d_exchange_left_bottom
 
   subroutine real4_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: k
-    real(rk4) , pointer , dimension(:,:) :: ml2
-    do k = k1 , k2
-      call assignpnt(ml,ml2,k)
-      call real4_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
-    end do
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%right,tag_lr)
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+        end if
+        call recv_array(r4vector2,ssize,ma%left,tag_lr)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%top,tag_bt)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j1-j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
   end subroutine real4_3d_exchange_left_bottom
 
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: k , n
-    real(rk8) , pointer , dimension(:,:) :: ml2
-    do n = n1 , n2
-      do k = k1 , k2
-        call assignpnt(ml,ml2,k,n)
-        call real8_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
       end do
-    end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r8vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call send_array(r8vector1,ssize,ma%right,tag_lr)
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+        end if
+        call recv_array(r8vector2,ssize,ma%left,tag_lr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%top,tag_bt)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%topright,tag_bltr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+      end if
+      call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_4d_exchange_left_bottom
 
   subroutine real4_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: k , n
-    real(rk4) , pointer , dimension(:,:) :: ml2
-    do n = n1 , n2
-      do k = k1 , k2
-        call assignpnt(ml,ml2,k,n)
-        call real4_2d_exchange_left_bottom(ml2,nex,j1,j2,i1,i2)
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
       end do
-    end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,tag_lr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%right,tag_lr)
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+        end if
+        call recv_array(r4vector2,ssize,ma%left,tag_lr)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%top,tag_bt)
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+      end if
+      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
   end subroutine real4_4d_exchange_left_bottom
 
   subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
@@ -3539,6 +5405,12 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%bandflag ) then
       ssize = nex*isize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -3558,6 +5430,9 @@ module mod_mppparam
     else
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3569,6 +5444,9 @@ module mod_mppparam
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+        end if
         call recv_array(r8vector2,ssize,ma%right,tag_rl)
         ib = 1
         do i = i1 , i2
@@ -3581,6 +5459,9 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3592,6 +5473,9 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      end if
       call recv_array(r8vector2,ssize,ma%top,tag_tb)
       ib = 1
       do i = 1 , nex
@@ -3603,6 +5487,9 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3614,6 +5501,9 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+      end if
       call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
       ib = 1
       do i = 1 , nex
@@ -3634,6 +5524,12 @@ module mod_mppparam
     jsize = j2-j1+1
     if ( ma%bandflag ) then
       ssize = nex*isize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -3653,6 +5549,9 @@ module mod_mppparam
     else
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+        end if
         ib = 1
         do i = i1 , i2
           do j = 1 , nex
@@ -3664,6 +5563,9 @@ module mod_mppparam
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+        end if
         call recv_array(r4vector2,ssize,ma%right,tag_rl)
         ib = 1
         do i = i1 , i2
@@ -3676,6 +5578,9 @@ module mod_mppparam
     end if
     if ( ma%bottom /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+      end if
       ib = 1
       do i = 1 , nex
         do j = j1 , j2
@@ -3687,6 +5592,9 @@ module mod_mppparam
     end if
     if ( ma%top /= mpi_proc_null) then
       ssize = nex*jsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+      end if
       call recv_array(r4vector2,ssize,ma%top,tag_tb)
       ib = 1
       do i = 1 , nex
@@ -3698,6 +5606,9 @@ module mod_mppparam
     end if
     if ( ma%bottomleft /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+      end if
       ib = 1
       do i = 1 , nex
         do j = 1 , nex
@@ -3709,6 +5620,9 @@ module mod_mppparam
     end if
     if ( ma%topright /= mpi_proc_null ) then
       ssize = nex*nex
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+      end if
       call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
       ib = 1
       do i = 1 , nex
@@ -3724,52 +5638,578 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: k
-    real(rk8) , pointer , dimension(:,:) :: ml2
-    do k = k1 , k2
-      call assignpnt(ml,ml2,k)
-      call real8_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
-    end do
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(r8vector1,ssize,ma%left,tag_rl)
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+        end if
+        call recv_array(r8vector2,ssize,ma%right,tag_rl)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%bottom,tag_tb)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      call recv_array(r8vector2,ssize,ma%top,tag_tb)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r8vector1(ib) = ml(j1+j-1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%bottomleft,tag_trbl)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+      end if
+      call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i2+i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_3d_exchange_right_top
 
   subroutine real4_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
-    integer(ik4) :: k
-    real(rk4) , pointer , dimension(:,:) :: ml2
-    do k = k1 , k2
-      call assignpnt(ml,ml2,k)
-      call real4_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
-    end do
+    integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+        end if
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%left,tag_rl)
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+        end if
+        call recv_array(r4vector2,ssize,ma%right,tag_rl)
+        ib = 1
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%top,tag_tb)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = 1 , nex
+            ml(j2+j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
   end subroutine real4_3d_exchange_right_top
 
   subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: k , n
-    real(rk8) , pointer , dimension(:,:) :: ml2
-    do n = n1 , n2
-      do k = k1 , k2
-        call assignpnt(ml,ml2,k,n)
-        call real8_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
       end do
-    end do
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r8vector1) < ssize ) then
+          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r8vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call send_array(r8vector1,ssize,ma%left,tag_rl)
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r8vector2) < ssize ) then
+          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+        end if
+        call recv_array(r8vector2,ssize,ma%right,tag_rl)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%bottom,tag_tb)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      call recv_array(r8vector2,ssize,ma%top,tag_tb)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector1) < ssize ) then
+        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r8vector1,ssize,ma%bottomleft,tag_trbl)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r8vector2) < ssize ) then
+        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+      end if
+      call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
   end subroutine real8_4d_exchange_right_top
 
   subroutine real4_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
-    integer(ik4) :: k , n
-    real(rk4) , pointer , dimension(:,:) :: ml2
-    do n = n1 , n2
-      do k = k1 , k2
-        call assignpnt(ml,ml2,k,n)
-        call real4_2d_exchange_right_top(ml2,nex,j1,j2,i1,i2)
+    integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    isize = i2-i1+1
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+    if ( ma%bandflag ) then
+      ssize = nex*isize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
       end do
-    end do
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,tag_rl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector1) < ssize ) then
+          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+        end if
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        call send_array(r4vector1,ssize,ma%left,tag_rl)
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        if ( size(r4vector2) < ssize ) then
+          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+        end if
+        call recv_array(r4vector2,ssize,ma%right,tag_rl)
+        ib = 1
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
+    end if
+    if ( ma%bottom /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+    end if
+    if ( ma%top /= mpi_proc_null) then
+      ssize = nex*jsize*ksize*nsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%top,tag_tb)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+    if ( ma%bottomleft /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector1) < ssize ) then
+        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+    end if
+    if ( ma%topright /= mpi_proc_null ) then
+      ssize = nex*nex*ksize*nsize
+      if ( size(r4vector2) < ssize ) then
+        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+      end if
+      call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    end if
   end subroutine real4_4d_exchange_right_top
 
   subroutine real8_bdy_exchange_left_right(ml,k1,k2)
@@ -3779,6 +6219,12 @@ module mod_mppparam
     integer(ik4) :: ksize , k , ib
     ksize = k2-k1+1
     if ( ma%bandflag ) then
+      if ( size(r8vector1) < ksize ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
+      end if
+      if ( size(r8vector2) < ksize ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
+      end if
       ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(jde2,k)
@@ -3805,6 +6251,12 @@ module mod_mppparam
       end do
     else
       if ( ma%right /= mpi_proc_null) then
+        if ( size(r8vector1) < ksize ) then
+          call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
+        end if
+        if ( size(r8vector2) < ksize ) then
+          call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
+        end if
         ib = 1
         do k = k1 , k2
           r8vector1(ib) = ml(jde2,k)
@@ -3818,6 +6270,12 @@ module mod_mppparam
         end do
       end if
       if ( ma%left /= mpi_proc_null ) then
+        if ( size(r8vector2) < ksize ) then
+          call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
+        end if
+        if ( size(r8vector1) < ksize ) then
+          call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
+        end if
         ib = 1
         do k = k1 , k2
           r8vector1(ib) = ml(jde1,k)
@@ -3840,6 +6298,12 @@ module mod_mppparam
     integer(ik4) :: ksize , k , ib
     ksize = k2-k1+1
     if ( ma%bandflag ) then
+      if ( size(r4vector1) < ksize ) then
+        call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_left_right')
+      end if
+      if ( size(r4vector2) < ksize ) then
+        call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_left_right')
+      end if
       ib = 1
       do k = k1 , k2
         r4vector1(ib) = ml(jde2,k)
@@ -3866,6 +6330,12 @@ module mod_mppparam
       end do
     else
       if ( ma%right /= mpi_proc_null) then
+        if ( size(r4vector1) < ksize ) then
+          call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_left_right')
+        end if
+        if ( size(r4vector2) < ksize ) then
+          call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_left_right')
+        end if
         ib = 1
         do k = k1 , k2
           r4vector1(ib) = ml(jde2,k)
@@ -3879,6 +6349,12 @@ module mod_mppparam
         end do
       end if
       if ( ma%left /= mpi_proc_null ) then
+        if ( size(r4vector2) < ksize ) then
+          call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_left_right')
+        end if
+        if ( size(r4vector1) < ksize ) then
+          call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_left_right')
+        end if
         ib = 1
         do k = k1 , k2
           r4vector1(ib) = ml(jde1,k)
@@ -3901,6 +6377,12 @@ module mod_mppparam
     integer(ik4) :: ksize , k , ib
     ksize = k2-k1+1
     if ( ma%top /= mpi_proc_null) then
+      if ( size(r8vector1) < ksize ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
+      if ( size(r8vector2) < ksize ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
       ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(ide2,k)
@@ -3914,6 +6396,12 @@ module mod_mppparam
       end do
     end if
     if ( ma%bottom /= mpi_proc_null ) then
+      if ( size(r8vector2) < ksize ) then
+        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
+      if ( size(r8vector1) < ksize ) then
+        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_top_bottom')
+      end if
       ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(ide1,k)
@@ -3927,7 +6415,7 @@ module mod_mppparam
       end do
     end if
   end subroutine real8_bdy_exchange_top_bottom
-
+!
   subroutine real4_bdy_exchange_top_bottom(ml,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -3935,6 +6423,12 @@ module mod_mppparam
     integer(ik4) :: ksize , k , ib
     ksize = k2-k1+1
     if ( ma%top /= mpi_proc_null) then
+      if ( size(r4vector1) < ksize ) then
+        call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
+      if ( size(r4vector2) < ksize ) then
+        call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
       ib = 1
       do k = k1 , k2
         r4vector1(ib) = ml(ide2,k)
@@ -3948,6 +6442,12 @@ module mod_mppparam
       end do
     end if
     if ( ma%bottom /= mpi_proc_null ) then
+      if ( size(r4vector2) < ksize ) then
+        call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
+      if ( size(r4vector1) < ksize ) then
+        call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_top_bottom')
+      end if
       ib = 1
       do k = k1 , k2
         r4vector1(ib) = ml(ide1,k)
@@ -3961,7 +6461,6 @@ module mod_mppparam
       end do
     end if
   end subroutine real4_bdy_exchange_top_bottom
-
   subroutine real8_2d_grid_fill_extend1(a,b)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
