@@ -1448,7 +1448,6 @@ module mod_mppparam
     isize = i2-i1+1
     jsize = j2-j1+1
     tsize = isize*jsize*isub
-    if ( ls ) tsize = tsize * nnsg
     window(1) = i1
     window(2) = window(1)+isize-1
     window(3) = j1

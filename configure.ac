@@ -451,7 +451,8 @@ else
   fi
   if test -z "$COMPILER_GNU_TRUE"; then
     if test -z "${osname##Linux}"; then
-      FCFLAGS="-O3 -finline-functions -mtune=native -march=native $FCFLAGS"
+      FCFLAGS="-O3 -finline-functions -mtune=native \
+	       -march=native -floop-parallelize-all $FCFLAGS"
       if eval "test x"$USE_PROF" = x1"; then
         FCFLAGS="-g -pg $FCFLAGS"
       fi
