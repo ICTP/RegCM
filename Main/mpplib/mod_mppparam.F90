@@ -1434,15 +1434,21 @@ module mod_mppparam
     end if
   end subroutine broadcast_params
 
-  integer(ik4) function glosplitw(j1,j2,i1,i2) result(tsize)
+  integer(ik4) function glosplitw(j1,j2,i1,i2,ls) result(tsize)
     implicit none
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-    integer(ik4) :: isize , jsize
+    logical , intent(in) , optional :: ls
+    integer(ik4) :: isize , jsize , lsize , icpu , isub
     tsize = 0
     if ( nproc == 1 ) return
+    isub = 1
+    if ( present(ls) ) then
+      if ( ls ) isub = nnsg
+    end if
     isize = i2-i1+1
     jsize = j2-j1+1
-    tsize = isize*jsize
+    tsize = isize*jsize*isub
+    if ( ls ) tsize = tsize * nnsg
     window(1) = i1
     window(2) = window(1)+isize-1
     window(3) = j1
@@ -1452,6 +1458,16 @@ module mod_mppparam
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gather error.')
     end if
+    if ( ccid == ccio ) then
+      do icpu = 0 , nproc-1
+        window = windows(icpu*4+1:icpu*4+4)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*isub
+        wincount(icpu+1) = lsize
+        windispl(icpu+1) = sum(wincount(1:icpu))
+      end do
+    end if
   end function glosplitw
 
   subroutine real8_2d_do_distribute(mg,ml,j1,j2,i1,i2,tsize)
@@ -1459,7 +1475,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1472,11 +1488,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             r8vector1(ib) = mg(j,i)
@@ -1504,7 +1515,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1517,11 +1528,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             r4vector1(ib) = mg(j,i)
@@ -1549,7 +1555,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1562,11 +1568,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             i4vector1(ib) = mg(j,i)
@@ -1594,7 +1595,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:) , intent(in) :: mg  ! model global
     logical , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -1607,11 +1608,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             lvector1(ib) = mg(j,i)
@@ -1816,7 +1812,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
@@ -1841,11 +1837,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -1889,7 +1880,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
@@ -1914,11 +1905,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -1962,7 +1948,7 @@ module mod_mppparam
     integer(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model loc
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
@@ -1987,11 +1973,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -2035,7 +2016,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model loc
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       if ( present(mask) ) then
         do i = i1 , i2
@@ -2060,11 +2041,6 @@ module mod_mppparam
       ib = 1
       do icpu = 0 , nproc-1
         window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
         do i = window(1) , window(2)
           do j = window(3) , window(4)
             do n = 1 , nnsg
@@ -2109,7 +2085,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real8_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
   end subroutine real8_2d_sub_distribute
 
@@ -2120,7 +2096,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
   end subroutine real4_2d_sub_distribute
 
@@ -2133,7 +2109,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) :: mg2 => null()
     real(rk8) , pointer , dimension(:,:,:) :: ml2 => null()
     integer(ik4) :: tsize , k
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     do k = k1 , k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
@@ -2150,7 +2126,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) :: mg2 => null()
     real(rk4) , pointer , dimension(:,:,:) :: ml2 => null()
     integer(ik4) :: tsize , k
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     do k = k1 , k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
@@ -2165,7 +2141,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call logical_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
   end subroutine logical_2d_sub_distribute
 
@@ -2176,7 +2152,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call integer4_2d_do_sub_distribute(mg,ml,j1,j2,i1,i2,tsize,mask)
   end subroutine integer_2d_sub_distribute
 
@@ -2189,7 +2165,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
     integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
     integer(ik4) :: tsize , k
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     do k = k1 , k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
@@ -2202,7 +2178,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2210,16 +2186,6 @@ module mod_mppparam
         end do
       end do
       return
-    end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
     end if
     ib = 1
     do i = i1 , i2
@@ -2253,7 +2219,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2261,16 +2227,6 @@ module mod_mppparam
         end do
       end do
       return
-    end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
     end if
     ib = 1
     do i = i1 , i2
@@ -2304,7 +2260,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2312,16 +2268,6 @@ module mod_mppparam
         end do
       end do
       return
-    end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
     end if
     ib = 1
     do i = i1 , i2
@@ -2355,7 +2301,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
     logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2363,16 +2309,6 @@ module mod_mppparam
         end do
       end do
       return
-    end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
     end if
     ib = 1
     do i = i1 , i2
@@ -2639,16 +2575,6 @@ module mod_mppparam
       end do
       return
     end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -2695,16 +2621,6 @@ module mod_mppparam
         end do
       end do
       return
-    end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
     end if
     ib = 1
     do i = i1 , i2
@@ -2753,16 +2669,6 @@ module mod_mppparam
       end do
       return
     end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -2810,16 +2716,6 @@ module mod_mppparam
       end do
       return
     end if
-    if ( ccid == ccio ) then
-      do icpu = 0 , nproc-1
-        window = windows(icpu*4+1:icpu*4+4)
-        isize = window(2)-window(1)+1
-        jsize = window(4)-window(3)+1
-        lsize = isize*jsize*nnsg
-        wincount(icpu+1) = lsize
-        windispl(icpu+1) = sum(wincount(1:icpu))
-      end do
-    end if
     ib = 1
     do i = i1 , i2
       do j = j1 , j2
@@ -2857,7 +2753,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real8_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
   end subroutine real8_2d_sub_collect
 
@@ -2869,7 +2765,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) :: ml2 => null( )
     real(rk8) , pointer , dimension(:,:,:) :: mg2 => null( )
     integer(ik4) :: tsize , k
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     do k = k1 , k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
@@ -2883,7 +2779,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call real4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
   end subroutine real4_2d_sub_collect
 
@@ -2895,7 +2791,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) :: ml2 => null( )
     real(rk4) , pointer , dimension(:,:,:) :: mg2 => null( )
     integer(ik4) :: tsize , k
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     do k = k1 , k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
@@ -2909,7 +2805,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call integer4_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
   end subroutine integer_2d_sub_collect
 
@@ -2921,7 +2817,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) :: ml2 => null()
     integer(ik4) , pointer , dimension(:,:,:) :: mg2 => null()
     integer(ik4) :: tsize , k
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     do k = k1 , k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
@@ -2935,7 +2831,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: tsize
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     call logical_2d_do_sub_collect(ml,mg,j1,j2,i1,i2,tsize)
   end subroutine logical_2d_sub_collect
 
@@ -2947,7 +2843,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) :: ml2 => null()
     logical , pointer , dimension(:,:,:) :: mg2 => null()
     integer(ik4) :: tsize , k
-    tsize = glosplitw(j1,j2,i1,i2)*nnsg
+    tsize = glosplitw(j1,j2,i1,i2,.true.)
     do k = k1 , k2
       if ( ccid == ccio ) call assignpnt(mg,mg2,k)
       call assignpnt(ml,ml2,k)
