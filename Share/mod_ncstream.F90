@@ -379,6 +379,7 @@ module mod_ncstream
       if ( .not. associated(xbf) ) return
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
+      if ( allocated(xbf%doublebuff) ) deallocate(xbf%doublebuff)
     end subroutine deallocate_obuffer
 
     subroutine deallocate_ibuffer(xbf)
@@ -387,6 +388,7 @@ module mod_ncstream
       if ( .not. associated(xbf) ) return
       if ( allocated(xbf%intbuff) )  deallocate(xbf%intbuff)
       if ( allocated(xbf%realbuff) ) deallocate(xbf%realbuff)
+      if ( allocated(xbf%doublebuff) ) deallocate(xbf%doublebuff)
     end subroutine deallocate_ibuffer
 
     subroutine outstream_enable(ncout,sigma)
