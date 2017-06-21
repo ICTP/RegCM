@@ -2146,9 +2146,12 @@ module mod_date
       else
         read(cdum,'(i2)',iostat=istat) d
         if ( istat /= 0 ) then
-          write(stderr,*) 'Unrecognized day read from time string.'
-          write(stderr,*) 'Offending timeunit string :',trim(string)
-          return
+          read(cdum,'(i1)',iostat=istat) d
+          if ( istat /= 0 ) then
+            write(stderr,*) 'Unrecognized day read from time string.'
+            write(stderr,*) 'Offending timeunit string :',trim(string)
+            return
+          end if
         end if
         ires = 0
         return

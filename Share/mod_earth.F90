@@ -177,10 +177,7 @@ module mod_earth
 
     real(rkx) :: dlat , dlon
     real(rkx) , allocatable , dimension(:,:) :: xlon360
-    real(rkx) :: maxlat
-    real(rkx) :: minlat
-    real(rkx) :: maxlon
-    real(rkx) :: minlon
+    real(rkx) :: maxlat , minlat , maxlon , minlon , d1 , d2
     integer :: gi , gj , xi , xj , l1 , l2 , i , j , itmp
 
     xi = size(xlon,1)
@@ -205,12 +202,25 @@ module mod_earth
       domain%igstop(2) = 0
     else if ( glon(gi) > 350.0_rkx ) then
       ! Input data is     0 : 360 , xlon is -180 : 180
-      allocate(xlon360(xi,xj))
-      xlon360 = xlon
-      where ( xlon < 0.0_rkx )
-        xlon360 = 360.0_rkx + xlon
-      end where
-      if ( minval(xlon360(1,:)) < maxval(xlon360(xi,:)) ) then
+      if ( (any(xlon(1,:) < 0.0_rkx) .and. any(xlon(1,:) > 0.0_rkx)) .or. &
+           (any(xlon(xi,:) < 0.0_rkx) .and. any(xlon(xi,:) > 0.0_rkx)) .or. &
+           (all(xlon(1,:) < 0.0_rkx) .and. all(xlon(xi,:) > 0.0)) ) then
+        ! Cross Greenwich line
+        minlon = minval(xlon(1,:))
+        maxlon = maxval(xlon(xi,:))
+        if ( minlon < 0.0_rkx ) minlon = minlon + 360.0_rkx
+        if ( maxlon < 0.0_rkx ) maxlon = maxlon + 360.0_rkx
+        domain%ntiles = 2
+        domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
+        domain%igstop(1) = gi
+        domain%igstart(2) = 1
+        domain%igstop(2) = int((maxlon-glon(1))/dlon) + 3
+      else
+        allocate(xlon360(xi,xj))
+        xlon360 = xlon
+        where ( xlon < 0.0_rkx )
+          xlon360 = 360.0_rkx + xlon
+        end where
         domain%ntiles = 1
         minlon = minval(xlon360)
         maxlon = maxval(xlon360)
@@ -218,38 +228,38 @@ module mod_earth
         domain%igstop(1) = int((maxlon-glon(1))/dlon) + 3
         domain%igstart(2) = 0
         domain%igstop(2) = 0
-      else
-        ! Cross Greenwich line
-        minlon = minval(xlon360(1,:))
-        maxlon = maxval(xlon(xi,:))
-        domain%ntiles = 2
-        domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
-        domain%igstop(1) = gi
-        domain%igstart(2) = 1
-        domain%igstop(2) = int((maxlon-glon(1))/dlon) + 3
+        deallocate(xlon360)
       end if
-      deallocate(xlon360)
     else
       ! Input Data is -180 : 180 , xlon is -180 : 180
-      if ( xlon(1,xj)   <= xlon(xi,xj)   .and. &
-           xlon(1,xj/2) <= xlon(xi,xj/2) .and. &
-           xlon(1,1)    <= xlon(xi,1) ) then
-        ! it is not crossing timeline
+      d1 = 0.0_rkx
+      d2 = 0.0_rkx
+      do j = 1 , xj-1
+        d1 = max(abs(xlon(1,j+1)-xlon(1,j)),d1)
+      end do
+      do j = 1 , xj-1
+        d2 = max(abs(xlon(xi,j+1)-xlon(xi,j)),d2)
+      end do
+      if ( d1 < 350.0_rkx .and. d2 < 350.0_rkx .and. &
+          .not. (all(xlon(1,:) > 0.0_rkx) .and. all(xlon(xi,:) < 0.0)) ) then
         domain%ntiles = 1
         domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
         domain%igstop(1) = int((maxlon-glon(1))/dlon) + 3
         domain%igstart(2) = 0
         domain%igstop(2) = 0
       else
+        ! it is crossing timeline
         domain%ntiles = 2
-        minlon = 180.0_rkx
-        do j = 1 , xj
-          if ( xlon(1,j) > 0.0_rkx ) minlon = min(minlon,xlon(1,j))
-        end do
-        maxlon = -180.0_rkx
-        do j = 1 , xj
-          if ( xlon(xi,j) < 0.0_rkx ) maxlon = max(maxlon,xlon(xi,j))
-        end do
+        if ( d1 > 350.0_rkx ) then
+          minlon = minval(xlon(1 ,:),(xlon(1 ,:)>0.0_rkx))
+          maxlon = maxval(xlon(xi,:))
+        else if ( d2 > 350.0_rkx ) then
+          minlon = minval(xlon(1,:))
+          maxlon = maxval(xlon(xi,:),(xlon(xi,:)<0.0_rkx))
+        else
+          maxlon = maxval(xlon(xi,:))
+          minlon = minval(xlon(1,:))
+        end if
         domain%igstart(1) = int((minlon-glon(1))/dlon) - 2
         domain%igstop(1) = gi
         domain%igstart(2) = 1
