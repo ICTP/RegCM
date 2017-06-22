@@ -2252,15 +2252,12 @@ module mod_ncout
               'tendency_of_mixing_ratio_due_to_sedimentation',.true.)
             che_sedten_out => v3dvar_che(che_sedten)%rval
           end if
-
           if ( enable_che3d_vars(che_emten) ) then
             call setup_var(v3dvar_che,che_emten,vsize,'emiten', &
               'kg kg-1 s-1', 'Tendency of tracer due to emission', &
               'tendency_of_mixing_ratio_due_to_emission',.true.)
             che_emten_out => v3dvar_che(che_emten)%rval
           end if
-
-
         else
           enable_che3d_vars(che_cheten:che_emten) = .false.
         end if
@@ -2337,7 +2334,11 @@ module mod_ncout
       if ( myid == iocpu ) then
         kkz = num_soil_layers
         n4dd = 4
-        if ( atm_stream > 0 .or. rad_stream > 0 ) then
+        if ( slaboc_stream > 0 ) then
+          kkz = max(12,kkz)
+        end if
+        if ( atm_stream > 0 .or. rad_stream > 0 .or. &
+             che_stream > 0 .or. opt_stream ) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
@@ -3388,6 +3389,13 @@ module mod_ncout
 
       vp => outstream(istream)%ncvars%vlist(ivar)%vp
 
+#ifdef DEBUG
+      if ( debug_level > 2 ) then
+        write(ndebug,*) &
+                'Writing var ',trim(vp%vname),' at time ',tochar(idate)
+      end if
+#endif
+
       ! If not parallel output, collect data
 
       if ( .not. parallel_out ) then
@@ -3437,41 +3445,38 @@ module mod_ncout
       end if
 
 #ifdef DEBUG
-    if ( debug_level > 2 ) then
-      write(ndebug,*) &
-              'Writing var ',trim(vp%vname),' at time ',tochar(idate)
-    end if
-    select type(vp)
-      type is (ncvariable2d_mixed)
-        where ( abs(vp%rval) < tiny(0.0) )
-          vp%rval = d_zero
-        end where
-        if ( debug_level > 2 ) then
-          write(ndebug,*) 'Max Value : ', maxval(vp%rval)
-          write(ndebug,*) 'Min Value : ', minval(vp%rval)
-        end if
-      type is (ncvariable3d_mixed)
-        where ( abs(vp%rval) < tiny(0.0) )
-          vp%rval = d_zero
-        end where
-        if ( debug_level > 2 ) then
-          write(ndebug,*) 'Max Value : ', maxval(vp%rval)
-          write(ndebug,*) 'Min Value : ', minval(vp%rval)
-        end if
-      type is (ncvariable4d_mixed)
-        where ( abs(vp%rval) < tiny(0.0) )
-          vp%rval = d_zero
-        end where
-        if ( debug_level > 2 ) then
-          write(ndebug,*) 'Max Value : ', maxval(vp%rval)
-          write(ndebug,*) 'Min Value : ', minval(vp%rval)
-        end if
-      class default
-    end select
-    if ( debug_level > 2 ) then
-      flush(ndebug)
-    end if
+      select type(vp)
+        type is (ncvariable2d_mixed)
+          where ( abs(vp%rval) < tiny(0.0) )
+            vp%rval = d_zero
+          end where
+          if ( debug_level > 2 ) then
+            write(ndebug,*) 'Max Value : ', maxval(vp%rval)
+            write(ndebug,*) 'Min Value : ', minval(vp%rval)
+          end if
+        type is (ncvariable3d_mixed)
+          where ( abs(vp%rval) < tiny(0.0) )
+            vp%rval = d_zero
+          end where
+          if ( debug_level > 2 ) then
+            write(ndebug,*) 'Max Value : ', maxval(vp%rval)
+            write(ndebug,*) 'Min Value : ', minval(vp%rval)
+          end if
+        type is (ncvariable4d_mixed)
+          where ( abs(vp%rval) < tiny(0.0) )
+            vp%rval = d_zero
+          end where
+          if ( debug_level > 2 ) then
+            write(ndebug,*) 'Max Value : ', maxval(vp%rval)
+            write(ndebug,*) 'Min Value : ', minval(vp%rval)
+          end if
+        class default
+      end select
+      if ( debug_level > 2 ) then
+        flush(ndebug)
+      end if
 #endif
+
       call outstream_writevar(outstream(istream)%ncout(jfile),vp)
 
       ! Reset pointers

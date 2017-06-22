@@ -882,8 +882,9 @@ module mod_output
           call fill_chem_outvars(itr)
           call write_record_output_stream(che_stream,idatex,itr)
         end do
-        if ( myid == italk ) &
+        if ( myid == italk ) then
           write(stdout,*) 'CHE variables written at ' , tochar(idatex)
+        end if
       end if
     end if
 
