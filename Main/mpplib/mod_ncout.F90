@@ -2338,7 +2338,7 @@ module mod_ncout
           kkz = max(12,kkz)
         end if
         if ( atm_stream > 0 .or. rad_stream > 0 .or. &
-             che_stream > 0 .or. opt_stream ) then
+             che_stream > 0 .or. opt_stream > 0 ) then
           kkz = max(kz,kkz)
         end if
         if ( lak_stream > 0 ) then
