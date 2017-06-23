@@ -2611,9 +2611,13 @@ module mod_clm_typeinit
 #endif
 #ifdef LCH4
     ! New variable for finundated parameterization
-    allocate(cps%zwt0(ibeg:iend))
-    allocate(cps%f0(ibeg:iend))
-    allocate(cps%p3(ibeg:iend))
+    !allocate(cps%zwt0(ibeg:iend))
+    !allocate(cps%f0(ibeg:iend))
+    !allocate(cps%p3(ibeg:iend))
+    allocate(cps%k(ibeg:iend))
+    allocate(cps%q(ibeg:iend))
+    allocate(cps%v(ibeg:iend))
+    allocate(cps%maxf(ibeg:iend))
     ! New variable for methane
     allocate(cps%pH(ibeg:iend))
 #endif
@@ -2793,9 +2797,14 @@ module mod_clm_typeinit
     cps%ust_lake(ibeg:iend) = spval
     ! End new variables for S Lakes
 #ifdef LCH4
-    cps%zwt0(ibeg:iend) = nan
-    cps%f0(ibeg:iend)   = nan
-    cps%p3(ibeg:iend)   = nan
+    !cps%zwt0(ibeg:iend) = nan
+    !cps%f0(ibeg:iend)   = nan
+    !cps%p3(ibeg:iend)   = nan
+    cps%k(ibeg:iend) = nan
+    cps%q(ibeg:iend) = nan
+    cps%v(ibeg:iend) = nan
+    cps%maxf(ibeg:iend) = nan
+
     ! New variable for methane
     cps%pH(ibeg:iend)   = nan
 #endif
@@ -3659,6 +3668,7 @@ module mod_clm_typeinit
     allocate(cnf%f_n2o_nit_vr(ibeg:iend,1:nlevdecomp_full))
     allocate(cnf%f_n2o_tot(ibeg:iend))
     allocate(cnf%f_n2o_tot_vr(ibeg:iend,1:nlevdecomp_full))
+
     allocate(cnf%smin_no3_massdens_vr(ibeg:iend,1:nlevdecomp_full))
     allocate(cnf%soil_bulkdensity(ibeg:iend,1:nlevdecomp_full))
     allocate(cnf%k_nitr_t_vr(ibeg:iend,1:nlevdecomp_full))
@@ -3782,6 +3792,7 @@ module mod_clm_typeinit
     cnf%f_n2o_nit_vr(ibeg:iend,1:nlevdecomp_full) = nan
     cnf%f_n2o_tot(ibeg:iend) = nan
     cnf%f_n2o_tot_vr(ibeg:iend,1:nlevdecomp_full) = nan
+
     cnf%smin_no3_massdens_vr(ibeg:iend,1:nlevdecomp_full) = nan
     cnf%soil_bulkdensity(ibeg:iend,1:nlevdecomp_full) = nan
     cnf%k_nitr_t_vr(ibeg:iend,1:nlevdecomp_full) = nan

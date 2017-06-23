@@ -2367,11 +2367,15 @@ module mod_clm_type
     ! New variables for finundated in methane code
 #ifdef LCH4
     ! coefficient for determining finundated (m)
-    real(rk8) , pointer , dimension(:) :: zwt0
+    !real(rk8) , pointer , dimension(:) :: zwt0
     ! maximum inundated fraction for a gridcell (for methane code)
-    real(rk8) , pointer , dimension(:) :: f0
+    !real(rk8) , pointer , dimension(:) :: f0
     ! coefficient for determining finundated (m)
-    real(rk8) , pointer , dimension(:) :: p3
+    !real(rk8) , pointer , dimension(:) :: p3
+    real(rk8) , pointer , dimension(:) :: k
+    real(rk8) , pointer , dimension(:) :: q
+    real(rk8) , pointer , dimension(:) :: v
+    real(rk8) , pointer , dimension(:) :: maxf
     ! added by Lei Meng for pH effects of methane production
     ! pH values
     real(rk8) , pointer , dimension(:) :: pH
@@ -3247,6 +3251,7 @@ module mod_clm_type
     ! Total N2O flux from nitrification and denitrification
     real(rk8) , pointer , dimension(:,:) :: f_n2o_tot_vr
     real(rk8) , pointer , dimension(:) :: f_n2o_tot
+
     ! immobilization / uptake fluxes
     ! vertically-resolved actual immobilization of NO3 (gN/m3/s)
     real(rk8) , pointer , dimension(:,:) :: actual_immob_no3_vr

@@ -81,7 +81,7 @@ program mksurfdata
 #endif
 #ifdef CN
 #ifdef LCH4
-  use mod_mklch4
+  use mod_mkch4topm
   use mod_mksoilph
 #endif
 #endif
@@ -134,7 +134,7 @@ program mksurfdata
   integer(ik4) :: ilightning , ipopden
   integer(ik4) :: q10
 #ifdef LCH4
-  integer(ik4) :: if0 , ip3 , izwt0
+  integer(ik4) :: k , q , v , maxf
   integer(ik4) :: isoilphvar
 #endif
 #endif
@@ -739,8 +739,8 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ipopden, 'units','counts/km^2')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm units')
 
-  ! samy : reading global gridded Q10 soil respiration parameter
 #if defined(CN)
+  ! samy : reading global gridded Q10 soil respiration parameter
   istatus = nf90_def_var(ncid, 'Q10',regcm_vartype, idims(7),q10)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var Q10')
   istatus = nf90_put_att(ncid, q10, 'long_name', &
@@ -751,12 +751,14 @@ program mksurfdata
 #endif
 
 #ifdef LCH4
-  istatus = nf90_def_var(ncid, 'F0',regcm_vartype,idims(7),if0)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var F0')
-  istatus = nf90_def_var(ncid, 'P3',regcm_vartype,idims(7),ip3)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var P3')
-  istatus = nf90_def_var(ncid, 'ZWT0',regcm_vartype,idims(7),izwt0)
-  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ZWT0')
+  istatus = nf90_def_var(ncid, 'K_PAR',regcm_vartype,idims(7),k)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var K_PAR')
+  istatus = nf90_def_var(ncid, 'XM_PAR',regcm_vartype,idims(7),q)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var XM_PAR')
+  istatus = nf90_def_var(ncid, 'V_PAR',regcm_vartype,idims(7),v)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var V_PAR')
+  istatus = nf90_def_var(ncid, 'MAXF',regcm_vartype,idims(7),maxf)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var MAXF')
   ! samy : for soil ph for CH4 emission
   istatus = nf90_def_var(ncid, 'PH', regcm_vartype, idims(7),isoilphvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var PH')
@@ -765,7 +767,6 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add PH long_name')
   istatus = nf90_put_att(ncid, isoilphvar, 'units','unitless')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add PH units')
-
 #endif
 #endif
 
@@ -1258,22 +1259,24 @@ program mksurfdata
   istatus = nf90_put_var(ncid, q10, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write Q10')
   deallocate(var2d)
-
   write(stdout,*) 'Created SOIL RESPIRATION informations...'
 #endif
 
 #ifdef LCH4
-  allocate(var3d(jxsg,iysg,3))
-  call mklch4('mksrf_ch4inversion.nc',xmask,var3d)
+  allocate(var3d(jxsg,iysg,4))
+  call mkch4topm('mksrf_ch4topm.nc',xmask,var3d)
   call mypack(var3d(:,:,1),gcvar)
-  istatus = nf90_put_var(ncid, if0, gcvar)
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write F0')
+  istatus = nf90_put_var(ncid, k, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write K_PAR')
   call mypack(var3d(:,:,2),gcvar)
-  istatus = nf90_put_var(ncid, ip3, gcvar)
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write P3')
+  istatus = nf90_put_var(ncid, q, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write XM_PAR')
   call mypack(var3d(:,:,3),gcvar)
-  istatus = nf90_put_var(ncid, izwt0, gcvar)
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ZWt0')
+  istatus = nf90_put_var(ncid, v, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write V_PAR')
+  call mypack(var3d(:,:,4),gcvar)
+  istatus = nf90_put_var(ncid, maxf, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write MAXF')
   deallocate(var3d)
 
   ! soil ph

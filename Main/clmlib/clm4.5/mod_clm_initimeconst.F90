@@ -120,11 +120,15 @@ module mod_clm_initimeconst
     real(rk8), pointer :: wtfact(:)
 #ifdef LCH4
     ! coefficient for determining finundated (m)
-    real(rk8), pointer :: zwt0(:)
+    !real(rk8), pointer :: zwt0(:)
     ! maximum inundated fractional area for gridcell
-    real(rk8), pointer :: f0(:)
+    !real(rk8), pointer :: f0(:)
     ! coefficient for determining finundated (m)
-    real(rk8), pointer :: p3(:)
+    !real(rk8), pointer :: p3(:)
+    real(rk8), pointer :: k(:)
+    real(rk8), pointer :: q(:)
+    real(rk8), pointer :: v(:)
+    real(rk8), pointer :: maxf(:)
 #endif
     ! bulk density of dry soil material [kg/m^3]
     real(rk8), pointer :: bd(:,:)
@@ -234,9 +238,13 @@ module mod_clm_initimeconst
     real(rk8) , pointer :: organic3d(:,:) ! read in - organic matter: kg/m3
     real(rk8) , pointer :: gti(:)         ! read in - fmax
 #ifdef LCH4
-    real(rk8) , pointer :: zwt0_in(:)     ! read in - zwt0
-    real(rk8) , pointer :: f0_in(:)       ! read in - f0
-    real(rk8) , pointer :: p3_in(:)       ! read in - p3
+    !real(rk8) , pointer :: zwt0_in(:)     ! read in - zwt0
+    !real(rk8) , pointer :: f0_in(:)       ! read in - f0
+    !real(rk8) , pointer :: p3_in(:)       ! read in - p3
+    real(rk8) , pointer :: k_in(:)
+    real(rk8) , pointer :: q_in(:)
+    real(rk8) , pointer :: v_in(:)
+    real(rk8) , pointer :: maxf_in(:)
     real(rk8) , pointer :: pH_in(:)       ! read in - pH
 #endif
 
@@ -307,9 +315,14 @@ module mod_clm_initimeconst
 
     allocate(soic2d(begg:endg), gti(begg:endg))
 #ifdef LCH4
-    allocate(zwt0_in(begg:endg))
-    allocate(f0_in(begg:endg))
-    allocate(p3_in(begg:endg))
+    !allocate(zwt0_in(begg:endg))
+    !allocate(f0_in(begg:endg))
+    !allocate(p3_in(begg:endg))
+    allocate(k_in(begg:endg))
+    allocate(q_in(begg:endg))
+    allocate(v_in(begg:endg))
+    allocate(maxf_in(begg:endg))
+
     if ( usephfact ) allocate(ph_in(begg:endg))
 #endif
     allocate(lakedepth_in(begg:endg))
@@ -370,9 +383,13 @@ module mod_clm_initimeconst
     wtfact          => clm3%g%l%c%cps%wtfact
     bd              => clm3%g%l%c%cps%bd
 #ifdef LCH4
-    zwt0            => clm3%g%l%c%cps%zwt0
-    f0              => clm3%g%l%c%cps%f0
-    p3              => clm3%g%l%c%cps%p3
+    !zwt0            => clm3%g%l%c%cps%zwt0
+    !f0              => clm3%g%l%c%cps%f0
+    !p3              => clm3%g%l%c%cps%p3
+    k               => clm3%g%l%c%cps%k
+    q               => clm3%g%l%c%cps%q
+    v               => clm3%g%l%c%cps%v
+    maxf            => clm3%g%l%c%cps%maxf
     pH              => clm3%g%l%c%cps%pH
 #endif
     isoicol         => clm3%g%l%c%cps%isoicol
@@ -468,9 +485,13 @@ module mod_clm_initimeconst
     ! Methane code parameters for finundated
 #ifdef LCH4
     if ( .not. fin_use_fsat ) then
-      call clm_readvar(ncid,'ZWT0',zwt0_in,gcomm_gridcell)
-      call clm_readvar(ncid,'F0',f0_in,gcomm_gridcell)
-      call clm_readvar(ncid,'P3',p3_in,gcomm_gridcell)
+      !call clm_readvar(ncid,'ZWT0',zwt0_in,gcomm_gridcell)
+      !call clm_readvar(ncid,'F0',f0_in,gcomm_gridcell)
+      !call clm_readvar(ncid,'P3',p3_in,gcomm_gridcell)
+      call clm_readvar(ncid,'K_PAR',k_in,gcomm_gridcell)
+      call clm_readvar(ncid,'XM_PAR',q_in,gcomm_gridcell)
+      call clm_readvar(ncid,'V_PAR',v_in,gcomm_gridcell)
+      call clm_readvar(ncid,'MAXF',maxf_in,gcomm_gridcell)
     end if
     ! pH factor for methane model
     if ( usephfact ) then
@@ -1017,9 +1038,13 @@ module mod_clm_initimeconst
       ! Parameters for calculation of finundated
 #ifdef LCH4
       if ( .not. fin_use_fsat ) then
-        zwt0(c) = zwt0_in(g)
-        f0(c)   = f0_in(g)
-        p3(c)   = p3_in(g)
+        !zwt0(c) = zwt0_in(g)
+        !f0(c)   = f0_in(g)
+        !p3(c)   = p3_in(g)
+        k(c) = k_in(g)
+        q(c) = q_in(g)
+        v(c) = v_in(g)
+        maxf(c) = maxf_in(g)
       end if
       ! Methane pH factor
       if ( usephfact ) pH(c) = pH_in(g)
@@ -1476,7 +1501,8 @@ module mod_clm_initimeconst
     deallocate(zisoifl,zsoifl,dzsoifl)
     deallocate(temp_ef,efisop2d)
 #ifdef LCH4
-    deallocate(zwt0_in, f0_in, p3_in)
+    !deallocate(zwt0_in, f0_in, p3_in)
+     deallocate(k_in, q_in, v_in, maxf_in)
     if (usephfact) deallocate(pH_in)
 #endif
 

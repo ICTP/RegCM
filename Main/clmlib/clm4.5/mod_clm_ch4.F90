@@ -103,12 +103,11 @@ module mod_clm_ch4
     integer(ik4) , pointer :: ivt(:)
     ! index into column level quantities
     integer(ik4) , pointer :: pcolumn(:)
-    ! decay factor for finundated (m)
-    real(rk8) , pointer :: zwt0(:)
-    ! maximum gridcell fractional inundated area
-    real(rk8) , pointer :: f0(:)
-    ! coefficient for qflx_surf_lag for finunated (s/mm)
-    real(rk8) , pointer :: p3(:)
+    real(rk8) , pointer :: k(:)
+    real(rk8) , pointer :: q(:)
+    real(rk8) , pointer :: v(:)
+    real(rk8) , pointer :: maxf(:)
+
     ! water table depth (m) (from SoilHydrology)
     real(rk8) , pointer :: zwt(:)
     ! perched water table depth (m)
@@ -215,6 +214,7 @@ module mod_clm_ch4
     real(rk8) :: qflxlags               ! Time to lag qflx_surf_lag (s)
     real(rk8) :: redoxlags              ! Redox time lag in s
     real(rk8) :: redoxlags_vertical     ! Vertical redox lag time in s
+    real(rk8) :: epsi
     ! days to lag qflx_surf_lag in the tropics (days)
     real(rk8) , parameter :: qflxlagd = 30._rk8
     ! multiple of qflxlagd for high latitudes
@@ -265,9 +265,10 @@ module mod_clm_ch4
     rootfr_col          => clm3%g%l%c%cps%pps_a%rootfr
     grnd_ch4_cond_col   => clm3%g%l%c%cps%pps_a%grnd_ch4_cond
     totcolch4           => clm3%g%l%c%cch4%totcolch4
-    zwt0                => clm3%g%l%c%cps%zwt0
-    f0                  => clm3%g%l%c%cps%f0
-    p3                  => clm3%g%l%c%cps%p3
+    k                   => clm3%g%l%c%cps%k
+    q                   => clm3%g%l%c%cps%q
+    v                   => clm3%g%l%c%cps%v
+    maxf                => clm3%g%l%c%cps%maxf
     finundated          => clm3%g%l%c%cws%finundated
     zwt                 => clm3%g%l%c%cws%zwt
     zwt_perched         => clm3%g%l%c%cws%zwt_perched
@@ -340,22 +341,24 @@ module mod_clm_ch4
       ! There may be ways to improve this for irrigated crop columns...
       if (fin_use_fsat) then
         finundated(c) = frac_h2osfc(c)
-      else
-      ! FAB fix zwt0(c) > 0. for avoiding too large argument in the exponential
-        if (zwt0(c) > 0.5e-1_rk8) then
-          if (zwt_perched(c) < z(c,nlevsoi)-1.e-5_rk8 .and. &
-              zwt_perched(c) < zwt(c)) then
-            zwt_actual = zwt_perched(c)
-          else
-            zwt_actual = zwt(c)
-          end if
-          finundated(c) = f0(c) * &
-                  exp(-zwt_actual/zwt0(c)) + p3(c)*qflx_surf_lag(c)
-        else
-          finundated(c) = p3(c)*qflx_surf_lag(c)
-        end if
+      !else
       end if
-      finundated(c) = max( min(finundated(c),1._rk8), 0._rk8)
+      if ( zwt_perched(c) < z(c,nlevsoi)-1.e-5_rk8 .and. &
+           zwt_perched(c) < zwt(c)) then
+        zwt_actual = zwt_perched(c)
+      else
+        zwt_actual = zwt(c)
+      end if
+      epsi = (1_rk8 + (v(c)*exp(-k(c)*(zwt_actual - q(c)))))**(-1_rk8/v(c))
+      ! FAB fix zwt0(c) > 0. for avoiding too large argument in the exponential
+      !if ( zwt0(c) > 0.5e-1_rk8 ) then
+      !  finundated(c) = f0(c) * &
+      !       exp(-zwt_actual/zwt0(c)) + p3(c)*qflx_surf_lag(c)
+      !else
+      !  finundated(c) = p3(c)*qflx_surf_lag(c)
+      !end if
+      !finundated(c) = max( min(finundated(c),1._rk8), 0._rk8)
+      finundated(c) = min(epsi, maxf(c))
 
       ! Update lagged finundated for redox calculation
       if (redoxlags > 0._rk8) then

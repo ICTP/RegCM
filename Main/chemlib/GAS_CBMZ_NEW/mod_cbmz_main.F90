@@ -182,7 +182,7 @@ module mod_cbmz_main1
     do while (t < tend)
       call update_rconst()
       call integrate( tin = t, tout = t+dt, rstatus_u = rstate, &
-               icntrl_u = (/ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /))
+               icntrl_u = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
       t = rstate(1)
     end do kron
 

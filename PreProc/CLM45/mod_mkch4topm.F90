@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-module mod_mklch4
+module mod_mkch4topm
 #if defined(CN) && defined(LCH4)
   use mod_realkinds
   use mod_intkinds
@@ -28,18 +28,18 @@ module mod_mklch4
 
   private
 
-  public :: mklch4
+  public :: mkch4topm
 
-  integer , parameter :: nlch4 = 3
+  integer , parameter :: nlch4 = 4
 
   character(len=16) , parameter , dimension(nlch4):: varname = &
-          [ 'F0  ' , 'P3  ' , 'ZWT0']
+          [ 'K_PAR' , 'XM_PAR' , 'V_PAR', 'MAXF' ]
 
   contains
 
-  subroutine mklch4(lch4file,mask,lch4)
+  subroutine mkch4topm(ch4topmfile,mask,lch4)
     implicit none
-    character(len=*) , intent(in) :: lch4file
+    character(len=*) , intent(in) :: ch4topmfile
     real(rkx) , dimension(:,:) , intent(in) :: mask
     real(rkx) , dimension(:,:,:) , intent(out) :: lch4
     integer(ik4) :: n , i , j
@@ -48,7 +48,7 @@ module mod_mklch4
     character(len=256) :: inpfile
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
-                             pthsep//'surface'//pthsep//lch4file
+                             pthsep//'surface'//pthsep//ch4topmfile
 
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
     do n = 1 , nlch4
@@ -69,8 +69,8 @@ module mod_mklch4
       end do
     end do
     call gfclose(gfile)
-  end subroutine mklch4
+  end subroutine mkch4topm
 #endif
 
-end module mod_mklch4
+end module mod_mkch4topm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
