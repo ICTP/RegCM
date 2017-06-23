@@ -290,6 +290,7 @@ module mod_clm_cnallocation
     real(rk8), pointer :: sminn_to_plant(:)
     ! fraction of potential immobilization (no units)
     real(rk8), pointer :: fpi_vr(:,:)
+    real(rk8), pointer , dimension(:,:) :: h2osoi_vol
 #ifndef NITRIF_DENITRIF
     real(rk8), pointer :: sminn_to_denit_excess_vr(:,:)
 #else
@@ -331,6 +332,8 @@ module mod_clm_cnallocation
     real(rk8), pointer :: f_n2o_denit_vr(:,:)
     ! flux of N2O from nitrification [gN/m3/s]
     real(rk8), pointer :: f_n2o_nit_vr(:,:)
+    real(rk8), pointer :: f_n2o_tot_vr(:,:)
+    real(rk8), pointer :: fr_WFPS(:,:)
 #endif
     real(rk8), pointer :: sminn_to_plant_vr(:,:)
     real(rk8), pointer :: supplement_to_sminn_vr(:,:)
@@ -392,6 +395,7 @@ module mod_clm_cnallocation
     retransn                    => clm3%g%l%c%p%pns%retransn
     psnsun                      => clm3%g%l%c%p%pcf%psnsun
     psnsha                      => clm3%g%l%c%p%pcf%psnsha
+    h2osoi_vol                  => clm3%g%l%c%cws%h2osoi_vol
     if ( use_c13 ) then
       c13_psnsun                  => clm3%g%l%c%p%pc13f%psnsun
       c13_psnsha                  => clm3%g%l%c%p%pc13f%psnsha
@@ -521,6 +525,8 @@ module mod_clm_cnallocation
     n2_n2o_ratio_denit_vr  => clm3%g%l%c%cnf%n2_n2o_ratio_denit_vr
     f_n2o_denit_vr         => clm3%g%l%c%cnf%f_n2o_denit_vr
     f_n2o_nit_vr           => clm3%g%l%c%cnf%f_n2o_nit_vr
+    f_n2o_tot_vr           => clm3%g%l%c%cnf%f_n2o_tot_vr
+    fr_WFPS                => clm3%g%l%c%cnf%fr_WFPS
     smin_no3_vr            => clm3%g%l%c%cns%smin_no3_vr
     smin_nh4_vr            => clm3%g%l%c%cns%smin_nh4_vr
 #endif
@@ -1170,6 +1176,13 @@ module mod_clm_cnallocation
                 (1._rk8 + n2_n2o_ratio_denit_vr(c,j))
 
 
+        ! samy : Calculation of total N2O emission from soil to atmosphere (
+        ! retrieved from Dynamical Land Ecosystem Model (DLEM))
+        f_n2o_tot_vr(c,j) = 0.021_rk8 * &
+          ((0.001_rk8 * f_nit_vr(c,j)) + f_denit_vr(c,j)) * &
+          ((10_rk8**(h2osoi_vol(c,j)/fr_WFPS(c,j))*0.026_rk8 - 1.66_rk8) / &
+          (1_rk8 + 10_rk8**(h2osoi_vol(c,j)/fr_WFPS(c,j))*0.026_rk8 - 1.66_rk8)
+
         ! this code block controls the addition of N to sminn pool
         ! to eliminate any N limitation, when Carbon_Only is set.  This lets the
         ! model behave essentially as a carbon-only model, but with the
@@ -1420,12 +1433,12 @@ module mod_clm_cnallocation
       ! samy : the following condition applied to obtain reasonable values
       ! of downregulation
 
-      if ( ivt(p) == nbrdlf_evr_trp_tree ) then
-        plant_calloc(p) = 0.8_rk8 * plant_nalloc(p) * &
-                   (c_allometry(p)/n_allometry(p))
+      if (ivt(p) == nbrdlf_evr_trp_tree) then
+        plant_calloc(p) = 0.9_rk8 * plant_nalloc(p) * &
+                      (c_allometry(p)/n_allometry(p))
       else
-        plant_calloc(p) = 0.7_rk8 * plant_nalloc(p) * &
-          (c_allometry(p)/n_allometry(p))
+        plant_calloc(p) = 0.8_rk8 * plant_nalloc(p) * &
+                      (c_allometry(p)/n_allometry(p))
       end if
 
       excess_cflux(p) = availc(p) - plant_calloc(p)

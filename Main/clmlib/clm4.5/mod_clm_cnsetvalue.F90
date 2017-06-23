@@ -1042,6 +1042,7 @@ module mod_clm_cnsetvalue
         cnf%smin_nh4_to_plant_vr(i,j) = val
         cnf%f_n2o_denit_vr(i,j)  = val
         cnf%f_n2o_nit_vr(i,j)  = val
+        cnf%f_n2o_tot_vr(i,j)  = val
 
         cnf%smin_no3_massdens_vr(i,j) = val
         cnf%k_nitr_t_vr(i,j) = val
@@ -1097,6 +1098,8 @@ module mod_clm_cnsetvalue
       cnf%pot_f_denit(i) = val
       cnf%f_n2o_denit(i) = val
       cnf%f_n2o_nit(i) = val
+      cnf%f_n2o_tot(i) = val
+
       cnf%smin_no3_leached(i) = val
       cnf%smin_no3_runoff(i) = val
 #else

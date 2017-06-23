@@ -5764,6 +5764,11 @@ module mod_clm_histflds
          avgflag='A', long_name='denitrification N2O flux', &
          ptr_col=clm3%g%l%c%cnf%f_n2o_denit)
 
+    ! samy : calculation of total N2O flux from soil to Atmosphere
+    call hist_addfld1d (fname='F_N2O_TOT', units='gN/m^2/s', &
+         avgflag='A', long_name='Total N2O flux', &
+         ptr_col=clm3%g%l%c%cnf%f_n2o_tot)
+
 #endif
 
     call hist_addfld1d (fname='COL_FIRE_NLOSS', units='gN/m^2/s', &

@@ -1454,6 +1454,9 @@ module mod_clm_cnsummary
     real(rk8), pointer :: f_n2o_nit_vr(:,:)
     ! flux of N2o from nitrification [gN/m2/s]
     real(rk8), pointer :: f_n2o_nit(:)
+    ! samy : Total N2O flux from soil to atmosphere
+    real(rk8), pointer :: f_n2o_tot(:)
+    real(rk8), pointer :: f_n2o_tot_vr(:,:)
     real(rk8), pointer :: smin_no3_leached_vr(:,:)
     real(rk8), pointer :: smin_no3_leached(:)
     real(rk8), pointer :: smin_no3_runoff_vr(:,:)
@@ -1622,6 +1625,8 @@ module mod_clm_cnsummary
     f_n2o_nit_vr           => clm3%g%l%c%cnf%f_n2o_nit_vr
     f_n2o_denit            => clm3%g%l%c%cnf%f_n2o_denit
     f_n2o_nit              => clm3%g%l%c%cnf%f_n2o_nit
+    f_n2o_tot              => clm3%g%l%c%cnf%f_n2o_tot
+    f_n2o_tot_vr           => clm3%g%l%c%cnf%f_n2o_tot_vr
     smin_no3_leached_vr    => clm3%g%l%c%cnf%smin_no3_leached_vr
     smin_no3_leached       => clm3%g%l%c%cnf%smin_no3_leached
     smin_no3_runoff_vr     => clm3%g%l%c%cnf%smin_no3_runoff_vr
@@ -1897,6 +1902,9 @@ module mod_clm_cnsummary
         pot_f_denit(c) = pot_f_denit(c) + pot_f_denit_vr(c,j) * dzsoi_decomp(j)
         f_n2o_nit(c) = f_n2o_nit(c) + f_n2o_nit_vr(c,j) * dzsoi_decomp(j)
         f_n2o_denit(c) = f_n2o_denit(c) + f_n2o_denit_vr(c,j) * dzsoi_decomp(j)
+
+        ! samy : Total soil N2O emission to atmosphere
+        f_n2o_tot(c) = f_n2o_tot(c) + f_n2o_tot_vr(c,j) * dzsoi_decomp(j)
 
         ! leaching/runoff flux
         smin_no3_leached(c) = smin_no3_leached(c) + &

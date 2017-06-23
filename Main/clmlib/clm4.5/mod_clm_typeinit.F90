@@ -3657,7 +3657,8 @@ module mod_clm_typeinit
     allocate(cnf%f_n2o_denit_vr(ibeg:iend,1:nlevdecomp_full))
     allocate(cnf%f_n2o_nit(ibeg:iend))
     allocate(cnf%f_n2o_nit_vr(ibeg:iend,1:nlevdecomp_full))
-
+    allocate(cnf%f_n2o_tot(ibeg:iend))
+    allocate(cnf%f_n2o_tot_vr(ibeg:iend,1:nlevdecomp_full))
     allocate(cnf%smin_no3_massdens_vr(ibeg:iend,1:nlevdecomp_full))
     allocate(cnf%soil_bulkdensity(ibeg:iend,1:nlevdecomp_full))
     allocate(cnf%k_nitr_t_vr(ibeg:iend,1:nlevdecomp_full))
@@ -3779,7 +3780,8 @@ module mod_clm_typeinit
     cnf%f_n2o_denit_vr(ibeg:iend,1:nlevdecomp_full) = nan
     cnf%f_n2o_nit(ibeg:iend) = nan
     cnf%f_n2o_nit_vr(ibeg:iend,1:nlevdecomp_full) = nan
-
+    cnf%f_n2o_tot(ibeg:iend) = nan
+    cnf%f_n2o_tot_vr(ibeg:iend,1:nlevdecomp_full) = nan
     cnf%smin_no3_massdens_vr(ibeg:iend,1:nlevdecomp_full) = nan
     cnf%soil_bulkdensity(ibeg:iend,1:nlevdecomp_full) = nan
     cnf%k_nitr_t_vr(ibeg:iend,1:nlevdecomp_full) = nan

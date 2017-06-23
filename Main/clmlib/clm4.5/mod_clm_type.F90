@@ -2386,7 +2386,6 @@ module mod_clm_type
     real(rk8) , pointer , dimension(:) :: forc_pbot
     ! surface air density, downscaled to column (kg/m^3)
     real(rk8) , pointer , dimension(:) :: forc_rho
-
 #ifdef CN
     real(rk8) , pointer , dimension(:) :: q10
 #endif
@@ -3245,7 +3244,9 @@ module mod_clm_type
     real(rk8) , pointer , dimension(:,:) :: f_n2o_nit_vr
     ! flux of N2o from nitrification [gN/m^2/s]
     real(rk8) , pointer , dimension(:) :: f_n2o_nit
-
+    ! Total N2O flux from nitrification and denitrification
+    real(rk8) , pointer , dimension(:,:) :: f_n2o_tot_vr
+    real(rk8) , pointer , dimension(:) :: f_n2o_tot
     ! immobilization / uptake fluxes
     ! vertically-resolved actual immobilization of NO3 (gN/m3/s)
     real(rk8) , pointer , dimension(:,:) :: actual_immob_no3_vr
