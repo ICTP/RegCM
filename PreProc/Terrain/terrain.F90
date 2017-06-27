@@ -782,6 +782,15 @@ program terrain
     ts0 = base_state_temperature(1,iy,1,jx,xlat)
     call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
     call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0,z0)
+    write (stdout,*) 'Vertical Grid Description'
+    write (stdout,*) ''
+    write (stdout,*) '-----------------------------------------'
+    write (stdout,*) 'k        sigma       p(mb)           z(m)'
+    write (stdout,*) '-----------------------------------------'
+    do k = kzp1, 1, -1
+      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), &
+        sum(pr0(:,:,k))/real(jx*iy,rkx), sum(z0(:,:,k))/real(jx*iy,rkx)
+    end do
   end if
 
   write (outname,'(a,i0.3,a)') &
