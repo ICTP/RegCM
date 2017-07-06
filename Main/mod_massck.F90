@@ -44,8 +44,10 @@ module mod_massck
 #endif
 
   real(wrkp) , parameter :: q_zero = 0.0_wrkp
-  real(wrkp) , public :: dryini , watini
-  real(rkx) :: error1 , error2
+  real(wrkp) , public :: dryini = q_zero
+  real(wrkp) , public :: watini = q_zero
+  real(rk8) , public :: dryerror = d_zero
+  real(rk8) , public :: waterror = d_zero
 
   contains
 
@@ -83,7 +85,7 @@ module mod_massck
       do k = 1 , kz
         do i = ice1 , ice2
           west = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k))
-          tdadv = tdadv + dt*3.e4_rkx*dsigma(k)*dx*regrav*west
+          tdadv = tdadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*west
         end do
       end do
     end if
@@ -91,7 +93,7 @@ module mod_massck
       do k = 1 , kz
         do i = ice1 , ice2
           east = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k))
-          tdadv = tdadv - dt*3.e4_rkx*dsigma(k)*dx*regrav*east
+          tdadv = tdadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*east
         end do
       end do
     end if
@@ -99,7 +101,7 @@ module mod_massck
       do k = 1 , kz
         do j = jci1 , jci2
           south = (atm1%v(j+1,ide1,k)+atm1%v(j,ide1,k))
-          tdadv = tdadv + dt*3.e4_rkx*dsigma(k)*dx*regrav*south
+          tdadv = tdadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*south
         end do
       end do
     end if
@@ -107,11 +109,11 @@ module mod_massck
       do k = 1 , kz
         do j = jci1 , jci2
           north = (atm1%v(j+1,ide2,k)+atm1%v(j,ide2,k))
-          tdadv = tdadv - dt*3.e4_rkx*dsigma(k)*dx*regrav*north
+          tdadv = tdadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*north
         end do
       end do
     end if
-    tdrym = tdrym*dxsq*1000.0_rkx*regrav
+    tdrym = tdrym*dxsq*1000.0_wrkp*regrav
     !
     ! Moisture
     !
@@ -150,7 +152,7 @@ module mod_massck
           do i = ice1 , ice2
             west = (atm1%u(jde1,i+1,k)+atm1%u(jde1,i,k)) * &
                  (atm1%qx(jce1,i,k,n)/sfs%psa(jce1,i))
-            tqadv = tqadv + dt*3.e4_rkx*dsigma(k)*dx*regrav*west
+            tqadv = tqadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*west
           end do
         end do
       end if
@@ -159,7 +161,7 @@ module mod_massck
           do i = ice1 , ice2
             east = (atm1%u(jde2,i+1,k)+atm1%u(jde2,i,k)) * &
                  (atm1%qx(jce2,i,k,n)/sfs%psa(jce2,i))
-            tqadv = tqadv - dt*3.e4_rkx*dsigma(k)*dx*regrav*east
+            tqadv = tqadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*east
           end do
         end do
       end if
@@ -168,7 +170,7 @@ module mod_massck
           do j = jci1 , jci2
             south = (atm1%v(j+1,ide1,k)+atm1%v(j,ide1,k)) * &
                  (atm1%qx(j,ice1,k,n)/sfs%psa(j,ice1))
-            tqadv = tqadv + dt*3.e4_rkx*dsigma(k)*dx*regrav*south
+            tqadv = tqadv + dt*3.e4_wrkp*dsigma(k)*dx*regrav*south
           end do
         end do
       end if
@@ -177,19 +179,19 @@ module mod_massck
           do j = jci1 , jci2
             north = (atm1%v(j+1,ide2,k)+atm1%v(j,ide2,k)) * &
                  (atm1%qx(j,ice2,k,n)/sfs%psa(j,ice2))
-            tqadv = tqadv - dt*3.e4_rkx*dsigma(k)*dx*regrav*north
+            tqadv = tqadv - dt*3.e4_wrkp*dsigma(k)*dx*regrav*north
           end do
         end do
       end if
     end do
-    tqmass = tqmass*dxsq*1000.0_rkx*regrav
+    tqmass = tqmass*dxsq*1000.0_wrkp*regrav
 
     call sumall(tdrym,drymass)
     call sumall(tqmass,qmass)
 
     if ( ktau == 0 ) then
-      error1 = d_zero
-      error2 = d_zero
+      dryerror = d_zero
+      waterror = d_zero
       if ( myid == italk ) then
         dryini = drymass
         watini = qmass
@@ -204,21 +206,23 @@ module mod_massck
     call sumall(tqeva,evapm)
 
     if ( myid == italk ) then
+      if ( dryini < dlowval ) dryini = drymass
+      if ( watini < dlowval ) watini = qmass
       drymass = drymass - dryadv
       qmass = qmass + tcrai + tncrai - qadv - evapm
-      error1 = error1 + &
-        (real((drymass-dryini)/dryini,rkx) * d_100) * dt/86400.0_rkx
-      error2 = error2 + &
-        (real((qmass-watini)/watini,rkx) * d_100) * dt/86400.0_rkx
+      dryerror = dryerror + &
+        (real((drymass-dryini)/dryini,rk8) * d_100) * dt/86400.0_rk8
+      waterror = waterror + &
+        (real((qmass-watini)/watini,rk8) * d_100) * dt/86400.0_rk8
       if ( mod(ktau,kday) == 0 ) then
         appdat = tochar(idatex)
         write(stdout,'(a)') &
             ' ********************* MASS CHECK ********************'
         write(stdout,'(a,a23,a,i16)') ' At ', appdat, ', ktau   = ', ktau
         write(stdout,'(a,e12.5,a,f9.5,a)') ' Total dry air   =', drymass, &
-                   ' kg, error = ', error1, ' %'
+                   ' kg, error = ', dryerror, ' %'
         write(stdout,'(a,e12.5,a,f9.5,a)') ' Total water     =', qmass, &
-                   ' kg, error = ', error2, ' %'
+                   ' kg, error = ', waterror, ' %'
         write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', dryadv , ' kg.'
         write(stdout,'(a,e12.5,a)') ' Water boundary      = ', qadv, ' kg.'
         write(stdout,'(a,e12.5,a)') ' Convective rain     = ', tcrai, ' kg.'
@@ -226,8 +230,8 @@ module mod_massck
         write(stdout,'(a,e12.5,a)') ' Ground Evaporation  = ', evapm, ' kg.'
         write(stdout,'(a)') &
             ' *****************************************************'
-        error1 = d_zero
-        error2 = d_zero
+        dryerror = 0.0_rk8
+        waterror = 0.0_rk8
       end if
       dryini = drymass
       watini = qmass

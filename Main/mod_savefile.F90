@@ -345,6 +345,10 @@ module mod_savefile
         dryini = rtmp
         ncstatus = nf90_get_att(ncid,nf90_global,'watini',rtmp)
         watini = rtmp
+        dryerror = rtmp
+        ncstatus = nf90_get_att(ncid,nf90_global,'dryerror',dryerror)
+        waterror = rtmp
+        ncstatus = nf90_get_att(ncid,nf90_global,'waterror',waterror)
       end if
       idt1 = nint(odtsec)
       idt2 = nint(dtsec)
@@ -841,6 +845,10 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot save dryini')
         ncstatus = nf90_put_att(ncid,nf90_global,'watini',real(watini,rk8))
         call check_ok(__FILE__,__LINE__,'Cannot save watini')
+        ncstatus = nf90_put_att(ncid,nf90_global,'dryerror',dryerror)
+        call check_ok(__FILE__,__LINE__,'Cannot save dryerror')
+        ncstatus = nf90_put_att(ncid,nf90_global,'waterror',waterror)
+        call check_ok(__FILE__,__LINE__,'Cannot save waterror')
       end if
 
       ncstatus = nf90_enddef(ncid)
