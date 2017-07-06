@@ -47,6 +47,8 @@ module mod_clm_megan
   character(len=80), public :: shr_megan_fields_token = ''
   character(len=256), public :: shr_megan_factors_file = ''
 
+  integer(ik4) , parameter :: max_specifier_len = 1024
+
   ! MEGAN compound data structure (or user defined type)
   type shr_megan_megcomp_t
     ! MEGAN compound name (in MEGAN input table)
@@ -144,7 +146,7 @@ module mod_clm_megan
     integer(ik4) :: ierr             ! error code
     logical :: exists           ! if file exists or not
     integer(ik4), parameter :: maxspc = 150
-    character(len=2*512) :: megan_specifier(maxspc) = ' '
+    character(len=max_specifier_len) :: megan_specifier(maxspc) = ' '
     logical           :: megan_mapped_emisfctrs = .false.
     character(len=256) :: megan_factors_file = ' '
     character(*),parameter :: F00   = "('(seq_drydep_read) ',2a)"
@@ -175,7 +177,7 @@ module mod_clm_megan
     call bcast(megan_factors_file,256)
     call bcast(megan_mapped_emisfctrs)
     do i = 1 , maxspc
-      call bcast(megan_specifier(i),2*512)
+      call bcast(megan_specifier(i),max_specifier_len)
     end do
 
     shr_megan_factors_file = megan_factors_file
@@ -256,7 +258,7 @@ module mod_clm_megan
     type(parser_items_t), pointer :: items ! items returned
     integer(ik4) :: ndxs(512)
     integer(ik4) :: nelem, j, i
-    character(len=256) :: tmp_str
+    character(len=max_specifier_len) :: tmp_str
 
     j = scan( spec_entry, '=' )
 

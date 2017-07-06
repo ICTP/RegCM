@@ -1787,7 +1787,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , dimension(:,:) , allocatable :: rval
     integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , nv2 , k , mpierr
+    integer(ik4) :: ivarid , nv2 , k , mpierr , kk
     nv2 = size(xval,2)
     allocate(lval(sg%ic(myid+1)))
     if ( myid == iocpu ) then
@@ -1799,18 +1799,20 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
+        kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                           lval,sg%ic(myid+1),mpi_integer4,    &
                           iocpu,sg%icomm,mpierr)
-        xval(:,lbound(xval,2)+(k-1)) = (lval > 0)
+        xval(:,kk) = (lval > 0)
       end do
       deallocate(rval)
     else
       do k = 1 , nv2
+        kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                           lval,sg%ic(myid+1),mpi_integer4, &
                           iocpu,sg%icomm,mpierr)
-        xval(:,lbound(xval,2)+(k-1)) = (lval > 0)
+        xval(:,kk) = (lval > 0)
       end do
     end if
     deallocate(lval)
@@ -1824,7 +1826,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
     integer(ik4) , dimension(:) , allocatable :: lval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3
+    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     allocate(lval(sg%ic(myid+1)))
@@ -1837,21 +1839,25 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
+          kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
                             lval,sg%ic(myid+1),mpi_integer4,      &
                             iocpu,sg%icomm,mpierr)
-          xval(:,lbound(xval,2)+(k-1),lbound(xval,3)+(l-1)) = (lval > 0)
+          xval(:,kk,ll) = (lval > 0)
         end do
       end do
       deallocate(rval)
     else
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
+          kk = lbound(xval,2)+(k-1)
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                             lval,sg%ic(myid+1),mpi_integer4, &
                             iocpu,sg%icomm,mpierr)
-          xval(:,lbound(xval,2)+(k-1),lbound(xval,3)+(l-1)) = (lval > 0)
+          xval(:,kk,ll) = (lval > 0)
         end do
       end do
     end if
@@ -1867,6 +1873,7 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
     integer(ik4) , dimension(:) , allocatable :: lval
     integer(ik4) :: ivarid , mpierr , k , l , n , nv2 , nv3 , nv4
+    integer(ik4) :: kk , ll , nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -1881,26 +1888,30 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
+            kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_integer4, &
                               lval,sg%ic(myid+1),mpi_integer4,        &
                               iocpu,sg%icomm,mpierr)
-            xval(:,lbound(xval,2)+(k-1),lbound(xval,3)+(l-1), &
-                   lbound(xval,4)+(n-1)) = (lval > 0)
+            xval(:,kk,ll,nn) = (lval > 0)
           end do
         end do
       end do
       deallocate(rval)
     else
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
+            kk = lbound(xval,2)+(k-1)
             call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                               lval,sg%ic(myid+1),mpi_integer4, &
                               iocpu,sg%icomm,mpierr)
-            xval(:,lbound(xval,2)+(k-1),lbound(xval,3)+(l-1), &
-                   lbound(xval,4)+(n-1)) = (lval > 0)
+            xval(:,kk,ll,nn) = (lval > 0)
           end do
         end do
       end do
@@ -1938,7 +1949,7 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:) , intent(out) :: xval
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2
+    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -1949,16 +1960,18 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
-        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
-                          xval(:,lbound(xval,2)+(k-1)),       &
-                          sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4,    &
+                          xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                          iocpu,sg%icomm,mpierr)
       end do
       deallocate(rval)
     else
       do k = 1 , nv2
-        call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4, &
-                          xval(:,lbound(xval,2)+(k-1)),  &
-                          sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,         &
+                          xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                          iocpu,sg%icomm,mpierr)
       end do
     end if
   end subroutine clm_readvar_integer_2d_par_sg
@@ -1970,7 +1983,7 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:) , intent(out) :: xval
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3
+    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3 , kk , ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -1982,21 +1995,23 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
-                            xval(:,lbound(xval,2)+(k-1),          &
-                                   lbound(xval,3)+(l-1)),         &
-                            sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4,     &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
       deallocate(rval)
     else
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4, &
-                            xval(:,lbound(xval,2)+(k-1),   &
-                                   lbound(xval,3)+(l-1)),  &
-                            sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,            &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end if
@@ -2010,6 +2025,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
     integer(ik4) :: ivarid ,  mpierr , k , l , n , nv2 , nv3 , nv4
+    integer(ik4) :: kk , ll , nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -2022,26 +2038,28 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
-            call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_integer4, &
-                              xval(:,lbound(xval,2)+(k-1),            &
-                                     lbound(xval,3)+(l-1),            &
-                                     lbound(xval,4)+(n-1)),           &
-                              sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+            kk = lbound(xval,2)+(k-1)
+            call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_integer4,      &
+                              xval(:,kk,ll,nn),sg%ic(myid+1),mpi_integer4, &
+                              iocpu,sg%icomm,mpierr)
           end do
         end do
       end do
       deallocate(rval)
     else
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
-            call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4, &
-                              xval(:,lbound(xval,2)+(k-1),   &
-                                     lbound(xval,3)+(l-1),   &
-                                     lbound(xval,4)+(n-1)),  &
-                              sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+            kk = lbound(xval,2)+(k-1)
+            call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,               &
+                              xval(:,kk,ll,nn),sg%ic(myid+1),mpi_integer4, &
+                              iocpu,sg%icomm,mpierr)
           end do
         end do
       end do
@@ -2080,7 +2098,7 @@ module mod_clm_nchelper
     logical , intent(in) , optional :: switchdim
     real(rk4) , dimension(:,:) , allocatable :: rval
     real(rk4) , dimension(:,:) , allocatable :: sval
-    integer(ik4) :: ivarid ,  mpierr , k , nv2
+    integer(ik4) :: ivarid ,  mpierr , k , nv2 , kk
     logical :: doswitch
     doswitch = .false.
     nv2 = size(xval,2)
@@ -2113,17 +2131,17 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
          'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
-        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4, &
-                          xval(:,lbound(xval,2)+(k-1)),    &
-                          sg%ic(myid+1),mpi_real4,         &
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4,    &
+                          xval(:,kk),sg%ic(myid+1),mpi_real4, &
                           iocpu,sg%icomm,mpierr)
       end do
       deallocate(rval)
     else
       do k = 1 , nv2
-        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
-                          xval(:,lbound(xval,2)+(k-1)), &
-                          sg%ic(myid+1),mpi_real4,      &
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,         &
+                          xval(:,kk),sg%ic(myid+1),mpi_real4, &
                           iocpu,sg%icomm,mpierr)
       end do
     end if
@@ -2136,7 +2154,7 @@ module mod_clm_nchelper
     real(rk4) , dimension(:,:,:) , intent(out) :: xval
     type(subgrid_type) , intent(in) :: sg
     real(rk4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3
+    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3 , kk , ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2148,21 +2166,23 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4, &
-                            xval(:,lbound(xval,2)+(k-1),       &
-                                   lbound(xval,3)+(l-1)),      &
-                            sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4,     &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
       deallocate(rval)
     else
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
-                            xval(:,lbound(xval,2)+(k-1),  &
-                                   lbound(xval,3)+(l-1)), &
-                            sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,            &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end if
@@ -2176,6 +2196,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     real(rk4) , dimension(:,:,:,:) , allocatable :: rval
     integer(ik4) :: ivarid ,  mpierr , k , l , n , nv2 , nv3 , nv4
+    integer(ik4) :: kk , ll , nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -2188,26 +2209,28 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
-            call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real4, &
-                              xval(:,lbound(xval,2)+(k-1),         &
-                                     lbound(xval,3)+(l-1),         &
-                                     lbound(xval,4)+(n-1)),        &
-                              sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+            kk = lbound(xval,2)+(k-1)
+            call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real4,      &
+                              xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real4, &
+                              iocpu,sg%icomm,mpierr)
           end do
         end do
       end do
       deallocate(rval)
     else
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
-            call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
-                              xval(:,lbound(xval,2)+(k-1),  &
-                                     lbound(xval,3)+(l-1),  &
-                                     lbound(xval,4)+(n-1)), &
-                              sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+            kk = lbound(xval,2)+(k-1)
+            call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,               &
+                              xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real4, &
+                              iocpu,sg%icomm,mpierr)
           end do
         end do
       end do
@@ -2246,7 +2269,7 @@ module mod_clm_nchelper
     logical , intent(in) , optional :: switchdim
     real(rk8) , dimension(:,:) , allocatable :: rval
     real(rk8) , dimension(:,:) , allocatable :: sval
-    integer(ik4) :: ivarid ,  mpierr , k , nv2
+    integer(ik4) :: ivarid ,  mpierr , k , nv2 , kk
     logical :: doswitch
     doswitch = .false.
     nv2 = size(xval,2)
@@ -2279,17 +2302,17 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
          'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
-        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8, &
-                          xval(:,lbound(xval,2)+(k-1)),    &
-                          sg%ic(myid+1),mpi_real8,         &
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,    &
+                          xval(:,kk),sg%ic(myid+1),mpi_real8, &
                           iocpu,sg%icomm,mpierr)
       end do
       deallocate(rval)
     else
       do k = 1 , nv2
-        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
-                          xval(:,lbound(xval,2)+(k-1)), &
-                          sg%ic(myid+1),mpi_real8,      &
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,         &
+                          xval(:,kk),sg%ic(myid+1),mpi_real8, &
                           iocpu,sg%icomm,mpierr)
       end do
     end if
@@ -2302,7 +2325,7 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:,:) , intent(out) :: xval
     type(subgrid_type) , intent(in) :: sg
     real(rk8) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3
+    integer(ik4) :: ivarid ,  mpierr , k , l , nv2 , nv3 , kk , ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2314,21 +2337,23 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,   &
-                            xval(:,lbound(xval,2)+(k-1),  &
-                                   lbound(xval,3)+(l-1)), &
-                            sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,     &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
       deallocate(rval)
     else
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
-                            xval(:,lbound(xval,2)+(k-1),  &
-                                   lbound(xval,3)+(l-1)), &
-                            sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,            &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end if
@@ -2342,6 +2367,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     real(rk8) , dimension(:,:,:,:) , allocatable :: rval
     integer(ik4) :: ivarid ,  mpierr , k , l , n , nv2 , nv3 , nv4
+    integer(ik4) :: kk , ll , nn
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     nv4 = size(xval,4)
@@ -2354,26 +2380,28 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
-            call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real8, &
-                              xval(:,lbound(xval,2)+(k-1),         &
-                                     lbound(xval,3)+(l-1),         &
-                                     lbound(xval,4)+(n-1)),        &
-                              sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+            kk = lbound(xval,2)+(k-1)
+            call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real8,      &
+                              xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real8, &
+                              iocpu,sg%icomm,mpierr)
           end do
         end do
       end do
       deallocate(rval)
     else
       do n = 1 , nv4
+        nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
+          ll = lbound(xval,3)+(l-1)
           do k = 1 , nv2
-            call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
-                              xval(:,lbound(xval,2)+(k-1),  &
-                                     lbound(xval,3)+(l-1),  &
-                                     lbound(xval,4)+(n-1)), &
-                              sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+            kk = lbound(xval,2)+(k-1)
+            call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,               &
+                              xval(:,kk,ll,nn),sg%ic(myid+1),mpi_real8, &
+                              iocpu,sg%icomm,mpierr)
           end do
         end do
       end do
@@ -2543,7 +2571,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2
+    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -2560,16 +2588,18 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
-        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
-                          xval(:,lbound(xval,2)+(k-1)),       &
-                          sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4,    &
+                          xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                          iocpu,sg%icomm,mpierr)
       end do
       deallocate(rval)
     else
       do k = 1 , nv2
-        call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4, &
-                          xval(:,lbound(xval,2)+(k-1)),  &
-                          sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,         &
+                          xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                          iocpu,sg%icomm,mpierr)
       end do
     end if
   end subroutine clm_readrec_integer_2d_par_sg
@@ -2582,7 +2612,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3
+    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2602,21 +2632,23 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
-                            xval(:,lbound(xval,2)+(k-1),          &
-                                   lbound(xval,3)+(l-1)),         &
-                            sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4,     &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
       deallocate(rval)
     else
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4, &
-                            xval(:,lbound(xval,2)+(k-1),   &
-                                   lbound(xval,3)+(l-1)),  &
-                            sg%ic(myid+1),mpi_integer4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,            &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_integer4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end if
@@ -2658,7 +2690,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2
+    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -2675,16 +2707,18 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
-        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4, &
-                          xval(:,lbound(xval,2)+(k-1)),    &
-                          sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4,    &
+                          xval(:,kk),sg%ic(myid+1),mpi_real4, &
+                          iocpu,sg%icomm,mpierr)
       end do
       deallocate(rval)
     else
       do k = 1 , nv2
-        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
-                          xval(:,lbound(xval,2)+(k-1)), &
-                          sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,         &
+                          xval(:,kk),sg%ic(myid+1),mpi_real4, &
+                          iocpu,sg%icomm,mpierr)
       end do
     end if
   end subroutine clm_readrec_real4_2d_par_sg
@@ -2697,7 +2731,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3
+    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2717,21 +2751,23 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4, &
-                            xval(:,lbound(xval,2)+(k-1),       &
-                                   lbound(xval,3)+(l-1)),      &
-                            sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4,     &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
       deallocate(rval)
     else
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
-                            xval(:,lbound(xval,2)+(k-1),  &
-                                   lbound(xval,3)+(l-1)), &
-                            sg%ic(myid+1),mpi_real4,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,            &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real4, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end if
@@ -2773,7 +2809,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk8) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , nv2
+    integer(ik4) :: ivarid , mpierr , k , nv2 , kk
     nv2 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(rval(sg%ns,nv2))
@@ -2790,16 +2826,18 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
-        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8, &
-                          xval(:,lbound(xval,2)+(k-1)),    &
-                          sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,    &
+                          xval(:,kk),sg%ic(myid+1),mpi_real8, &
+                          iocpu,sg%icomm,mpierr)
       end do
       deallocate(rval)
     else
       do k = 1 , nv2
-        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
-                          xval(:,lbound(xval,2)+(k-1)), &
-                          sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+        kk = lbound(xval,2)+(k-1)
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,         &
+                          xval(:,kk),sg%ic(myid+1),mpi_real8, &
+                          iocpu,sg%icomm,mpierr)
       end do
     end if
   end subroutine clm_readrec_real8_2d_par_sg
@@ -2812,7 +2850,7 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk8) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3
+    integer(ik4) :: ivarid , mpierr , k , l , nv2 , nv3 , kk , ll
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
@@ -2832,21 +2870,23 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8, &
-                            xval(:,lbound(xval,2)+(k-1),       &
-                                   lbound(xval,3)+(l-1)),      &
-                            sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,     &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
       deallocate(rval)
     else
       do l = 1 , nv3
+        ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
-          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
-                            xval(:,lbound(xval,2)+(k-1),  &
-                                   lbound(xval,3)+(l-1)), &
-                            sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+          kk = lbound(xval,2)+(k-1)
+          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,            &
+                            xval(:,kk,ll),sg%ic(myid+1),mpi_real8, &
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end if
@@ -3733,17 +3773,18 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , k
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     integer(ik4) , dimension(:,:) , allocatable :: rval
     logical , dimension(:) , allocatable :: lval
-    nk = size(xval,2)
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(lval(sg%ns))
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),sg%ic(myid+1),mpi_logical, &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_logical, &
                        lval,sg%ic,sg%id,mpi_logical,iocpu,sg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -3768,21 +3809,21 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
     logical , dimension(:) , allocatable :: lval
-    nk = size(xval,2)
-    nn = size(xval,3)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
       allocate(lval(sg%ns))
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
     end if
-    do n = 1 , nn
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                lbound(xval,3)+(n-1)), &
-                         sg%ic(myid+1),mpi_logical,    &
+    do n = 1 , nv2
+      nn = lbound(xval,3)+(n-1)
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_logical,    &
                          lval,sg%ic,sg%id,mpi_logical,iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -3808,24 +3849,25 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , nl , n , k , l
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
+    integer(ik4) :: nn , kk , ll
     integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
     logical , dimension(:) , allocatable :: lval
-    nk = size(xval,2)
-    nn = size(xval,3)
-    nl = size(xval,4)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
+    nv3 = size(xval,4)
     if ( myid == iocpu ) then
       allocate(lval(sg%ns))
-      allocate(rval(sg%ns,nk,nn,nl))
+      allocate(rval(sg%ns,nv1,nv2,nv3))
       ivarid = searchvar(ncid,vname)
     end if
-    do l = 1 , nl
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                  lbound(xval,3)+(n-1),  &
-                                  lbound(xval,4)+(l-1)), &
-                           sg%ic(myid+1),mpi_logical,    &
+    do l = 1 , nv3
+      ll = lbound(xval,4)+(l-1)
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_logical,    &
                            lval,sg%ic,sg%id,mpi_logical,iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -3877,26 +3919,26 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , k
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     integer(ik4) , dimension(:,:) , allocatable :: rval
-    nk = size(xval,2)
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),       &
-                         sg%ic(myid+1),mpi_integer4,         &
-                         rval(:,k),sg%ic,sg%id,mpi_integer4, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                         rval(:,k),sg%ic,sg%id,mpi_integer4,    &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
     else
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),  &
-                         sg%ic(myid+1),mpi_integer4,    &
-                         rval,sg%ic,sg%id,mpi_integer4, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                         rval,sg%ic,sg%id,mpi_integer4,         &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -3916,19 +3958,19 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , kk , nn
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    nk = size(xval,2)
-    nn = size(xval,3)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                  lbound(xval,3)+(n-1)), &
-                           sg%ic(myid+1),mpi_integer4,   &
-                           rval(:,k,n),sg%ic,sg%id,mpi_integer4,   &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
+                           rval(:,k,n),sg%ic,sg%id,mpi_integer4,     &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -3936,12 +3978,12 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),   &
-                                  lbound(xval,3)+(n-1)),  &
-                           sg%ic(myid+1),mpi_integer4,    &
-                           rval,sg%ic,sg%id,mpi_integer4, &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
+                           rval,sg%ic,sg%id,mpi_integer4,            &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -3962,22 +4004,23 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , nl , n , k , l
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
+    integer(ik4) :: kk , nn , ll
     integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
-    nk = size(xval,2)
-    nn = size(xval,3)
-    nl = size(xval,4)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
+    nv3 = size(xval,4)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn,nl))
+      allocate(rval(sg%ns,nv1,nv2,nv3))
       ivarid = searchvar(ncid,vname)
-      do l = 1 , nl
-        do n = 1 , nn
-          do k = 1 , nk
-            call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),            &
-                                    lbound(xval,3)+(n-1),            &
-                                    lbound(xval,4)+(l-1)),           &
-                                    sg%ic(myid+1),mpi_integer4,      &
-                             rval(:,k,n,l),sg%ic,sg%id,mpi_integer4, &
+      do l = 1 , nv3
+        ll = lbound(xval,4)+(l-1)
+        do n = 1 , nv2
+          nn = lbound(xval,3)+(n-1)
+          do k = 1 , nv1
+            kk = lbound(xval,2)+(k-1)
+            call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_integer4, &
+                             rval(:,k,n,l),sg%ic,sg%id,mpi_integer4,      &
                              iocpu,sg%icomm,mpierr)
             if ( mpierr /= mpi_success ) then
               call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -3986,14 +4029,14 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do l = 1 , nl
-        do n = 1 , nn
-          do k = 1 , nk
-            call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),       &
-                                    lbound(xval,3)+(n-1),       &
-                                    lbound(xval,4)+(l-1)),      &
-                                    sg%ic(myid+1),mpi_integer4, &
-                             rval,sg%ic,sg%id,mpi_integer4,     &
+      do l = 1 , nv3
+        ll = lbound(xval,4)+(l-1)
+        do n = 1 , nv2
+          nn = lbound(xval,3)+(n-1)
+          do k = 1 , nv1
+            kk = lbound(xval,2)+(k-1)
+            call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_integer4, &
+                             rval,sg%ic,sg%id,mpi_integer4,               &
                              iocpu,sg%icomm,mpierr)
             if ( mpierr /= mpi_success ) then
               call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4041,37 +4084,37 @@ module mod_clm_nchelper
     real(rk4) , dimension(:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
     logical , optional , intent(in) :: switchdim
-    integer(ik4) :: ivarid , mpierr , nk , k
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     real(rk4) , dimension(:,:) , allocatable :: rval
     real(rk4) , dimension(:,:) , allocatable :: sval
     logical :: doswitch
     doswitch = .false.
-    nk = size(xval,2)
+    nv1 = size(xval,2)
     if ( present(switchdim) ) then
       if ( switchdim ) then
         doswitch = .true.
         if ( myid == iocpu ) then
-          allocate(sval(nk,sg%ns))
+          allocate(sval(nv1,sg%ns))
         end if
       end if
     end if
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),    &
-                         sg%ic(myid+1),mpi_real4,         &
-                         rval(:,k),sg%ic,sg%id,mpi_real4, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
+                         rval(:,k),sg%ic,sg%id,mpi_real4,    &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
     else
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)), &
-                         sg%ic(myid+1),mpi_real4,      &
-                         rval,sg%ic,sg%id,mpi_real4,   &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
+                         rval,sg%ic,sg%id,mpi_real4,         &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4097,19 +4140,19 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
     real(rk4) , dimension(:,:,:) , allocatable :: rval
-    nk = size(xval,2)
-    nn = size(xval,3)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),       &
-                                  lbound(xval,3)+(n-1)),      &
-                           sg%ic(myid+1),mpi_real4,           &
-                           rval(:,k,n),sg%ic,sg%id,mpi_real4, &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
+                           rval(:,k,n),sg%ic,sg%id,mpi_real4,     &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4117,12 +4160,12 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                  lbound(xval,3)+(n-1)), &
-                           sg%ic(myid+1),mpi_real4,      &
-                           rval,sg%ic,sg%id,mpi_real4,   &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
+                           rval,sg%ic,sg%id,mpi_real4,            &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4143,22 +4186,23 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , nl , n , k , l
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
+    integer(ik4) :: nn , kk , ll
     real(rk4) , dimension(:,:,:,:) , allocatable :: rval
-    nk = size(xval,2)
-    nn = size(xval,3)
-    nl = size(xval,4)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
+    nv3 = size(xval,4)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn,nl))
+      allocate(rval(sg%ns,nv1,nv2,nv3))
       ivarid = searchvar(ncid,vname)
-      do l = 1 , nl
-        do n = 1 , nn
-          do k = 1 , nk
-            call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),         &
-                                    lbound(xval,3)+(n-1),         &
-                                    lbound(xval,4)+(l-1)),        &
-                             sg%ic(myid+1),mpi_real4,             &
-                             rval(:,k,n,l),sg%ic,sg%id,mpi_real4, &
+      do l = 1 , nv3
+        ll = lbound(xval,4)+(l-1)
+        do n = 1 , nv2
+          nn = lbound(xval,3)+(n-1)
+          do k = 1 , nv1
+            kk = lbound(xval,2)+(k-1)
+            call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real4, &
+                             rval(:,k,n,l),sg%ic,sg%id,mpi_real4,      &
                              iocpu,sg%icomm,mpierr)
             if ( mpierr /= mpi_success ) then
               call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4167,14 +4211,14 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do l = 1 , nl
-        do n = 1 , nn
-          do k = 1 , nk
-            call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),         &
-                                    lbound(xval,3)+(n-1),         &
-                                    lbound(xval,4)+(l-1)),        &
-                             sg%ic(myid+1),mpi_real4,             &
-                             rval(:,k,n,l),sg%ic,sg%id,mpi_real4, &
+      do l = 1 , nv3
+        ll = lbound(xval,4)+(l-1)
+        do n = 1 , nv2
+          nn = lbound(xval,3)+(n-1)
+          do k = 1 , nv1
+            kk = lbound(xval,2)+(k-1)
+            call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real4, &
+                             rval(:,k,n,l),sg%ic,sg%id,mpi_real4,      &
                              iocpu,sg%icomm,mpierr)
             if ( mpierr /= mpi_success ) then
               call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4222,37 +4266,37 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
     logical , optional , intent(in) :: switchdim
-    integer(ik4) :: ivarid , mpierr , nk , k
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     real(rk8) , dimension(:,:) , allocatable :: rval
     real(rk8) , dimension(:,:) , allocatable :: sval
     logical :: doswitch
     doswitch = .false.
-    nk = size(xval,2)
+    nv1 = size(xval,2)
     if ( present(switchdim) ) then
       if ( switchdim ) then
         doswitch = .true.
         if ( myid == iocpu ) then
-          allocate(sval(nk,sg%ns))
+          allocate(sval(nv1,sg%ns))
         end if
       end if
     end if
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),    &
-                         sg%ic(myid+1),mpi_real8,         &
-                         rval(:,k),sg%ic,sg%id,mpi_real8, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
+                         rval(:,k),sg%ic,sg%id,mpi_real8,    &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
     else
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)), &
-                         sg%ic(myid+1),mpi_real8,      &
-                         rval,sg%ic,sg%id,mpi_real8,   &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
+                         rval,sg%ic,sg%id,mpi_real8,         &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4278,19 +4322,19 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
     real(rk8) , dimension(:,:,:) , allocatable :: rval
-    nk = size(xval,2)
-    nn = size(xval,3)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),       &
-                                  lbound(xval,3)+(n-1)),      &
-                           sg%ic(myid+1),mpi_real8,           &
-                           rval(:,k,n),sg%ic,sg%id,mpi_real8, &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
+                           rval(:,k,n),sg%ic,sg%id,mpi_real8,     &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4298,12 +4342,12 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                  lbound(xval,3)+(n-1)), &
-                           sg%ic(myid+1),mpi_real8,      &
-                           rval,sg%ic,sg%id,mpi_real8,   &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
+                           rval,sg%ic,sg%id,mpi_real8,            &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4324,22 +4368,23 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:,:,:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
-    integer(ik4) :: ivarid , mpierr , nk , nn , nl , n , k , l
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , nv3 , n , k , l
+    integer(ik4) :: kk , nn , ll
     real(rk8) , dimension(:,:,:,:) , allocatable :: rval
-    nk = size(xval,2)
-    nn = size(xval,3)
-    nl = size(xval,4)
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
+    nv3 = size(xval,4)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn,nl))
+      allocate(rval(sg%ns,nv1,nv2,nv3))
       ivarid = searchvar(ncid,vname)
-      do l = 1 , nl
-        do n = 1 , nn
-          do k = 1 , nk
-            call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),         &
-                                    lbound(xval,3)+(n-1),         &
-                                    lbound(xval,4)+(l-1)),        &
-                             sg%ic(myid+1),mpi_real8,             &
-                             rval(:,k,n,l),sg%ic,sg%id,mpi_real8, &
+      do l = 1 , nv3
+        ll = lbound(xval,4)+(l-1)
+        do n = 1 , nv2
+          nn = lbound(xval,3)+(n-1)
+          do k = 1 , nv1
+            kk = lbound(xval,2)+(k-1)
+            call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real8, &
+                             rval(:,k,n,l),sg%ic,sg%id,mpi_real8,      &
                              iocpu,sg%icomm,mpierr)
             if ( mpierr /= mpi_success ) then
               call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4348,14 +4393,14 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do l = 1 , nl
-        do n = 1 , nn
-          do k = 1 , nk
-            call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                    lbound(xval,3)+(n-1),  &
-                                    lbound(xval,4)+(l-1)), &
-                             sg%ic(myid+1),mpi_real8,      &
-                             rval,sg%ic,sg%id,mpi_real8,   &
+      do l = 1 , nv3
+        ll = lbound(xval,4)+(l-1)
+        do n = 1 , nv2
+          nn = lbound(xval,3)+(n-1)
+          do k = 1 , nv1
+            kk = lbound(xval,2)+(k-1)
+            call mpi_gatherv(xval(:,kk,nn,ll),sg%ic(myid+1),mpi_real8, &
+                             rval,sg%ic,sg%id,mpi_real8,               &
                              iocpu,sg%icomm,mpierr)
             if ( mpierr /= mpi_success ) then
               call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4418,15 +4463,16 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     logical , dimension(:) , allocatable :: lval
     integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , k
-    nk = size(xval,2)
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(lval(sg%ns))
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),sg%ic(myid+1),mpi_logical, &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_logical, &
                        lval,sg%ic,sg%id,mpi_logical,   &
                        iocpu,sg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
@@ -4444,7 +4490,7 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(3) = 1
-    icount(2) = nk
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
@@ -4461,20 +4507,20 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     logical , dimension(:) , allocatable :: lval
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
-    nk = size(xval,2)
-    nn = size(xval,3)
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
       allocate(lval(sg%ns))
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
     end if
-    do n = 1 , nn
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1), &
-                                lbound(xval,3)+(n-1)), &
-                         sg%ic(myid+1),mpi_logical, &
-                         lval,sg%ic,sg%id,mpi_logical,   &
+    do n = 1 , nv2
+      nn = lbound(xval,3)+(n-1)
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_logical, &
+                         lval,sg%ic,sg%id,mpi_logical,            &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4493,8 +4539,8 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(4) = 1
-    icount(3) = nn
-    icount(2) = nk
+    icount(3) = nv2
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
@@ -4540,25 +4586,25 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     integer(ik4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , k
-    nk = size(xval,2)
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),       &
-                         sg%ic(myid+1),mpi_integer4,         &
-                         rval(:,k),sg%ic,sg%id,mpi_integer4, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                         rval(:,k),sg%ic,sg%id,mpi_integer4,    &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
     else
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),  &
-                         sg%ic(myid+1),mpi_integer4,    &
-                         rval,sg%ic,sg%id,mpi_integer4, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
+                         rval,sg%ic,sg%id,mpi_integer4,         &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4570,7 +4616,7 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(3) = 1
-    icount(2) = nk
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
@@ -4586,18 +4632,18 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
-    nk = size(xval,2)
-    nn = size(xval,3)
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),          &
-                                  lbound(xval,3)+(n-1)),         &
-                           sg%ic(myid+1),mpi_integer4,           &
-                           rval(:,k,n),sg%ic,sg%id,mpi_integer4, &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
+                           rval(:,k,n),sg%ic,sg%id,mpi_integer4,     &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4605,12 +4651,12 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),   &
-                                  lbound(xval,3)+(n-1)),  &
-                           sg%ic(myid+1),mpi_integer4,    &
-                           rval,sg%ic,sg%id,mpi_integer4, &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_integer4, &
+                           rval,sg%ic,sg%id,mpi_integer4,            &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4624,8 +4670,8 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(4) = 1
-    icount(3) = nn
-    icount(2) = nk
+    icount(3) = nv2
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
@@ -4676,25 +4722,25 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk4) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , k
-    nk = size(xval,2)
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),    &
-                         sg%ic(myid+1),mpi_real4,         &
-                         rval(:,k),sg%ic,sg%id,mpi_real4, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
+                         rval(:,k),sg%ic,sg%id,mpi_real4,    &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
     else
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)), &
-                         sg%ic(myid+1),mpi_real4,      &
-                         rval,sg%ic,sg%id,mpi_real4,   &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
+                         rval,sg%ic,sg%id,mpi_real4,         &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4711,7 +4757,7 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(3) = 1
-    icount(2) = nk
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
@@ -4727,18 +4773,18 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk4) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
-    nk = size(xval,2)
-    nn = size(xval,3)
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),       &
-                                  lbound(xval,3)+(n-1)),      &
-                           sg%ic(myid+1),mpi_real4,           &
-                           rval(:,k,n),sg%ic,sg%id,mpi_real4, &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
+                           rval(:,k,n),sg%ic,sg%id,mpi_real4,     &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4746,12 +4792,12 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                  lbound(xval,3)+(n-1)), &
-                           sg%ic(myid+1),mpi_real4,      &
-                           rval,sg%ic,sg%id,mpi_real4,   &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real4, &
+                           rval,sg%ic,sg%id,mpi_real4,            &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4770,8 +4816,8 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(4) = 1
-    icount(3) = nn
-    icount(2) = nk
+    icount(3) = nv2
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
@@ -4822,25 +4868,25 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk8) , dimension(:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , k
-    nk = size(xval,2)
+    integer(ik4) :: ivarid , mpierr , nv1 , k , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk))
+      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),    &
-                         sg%ic(myid+1),mpi_real8,         &
-                         rval(:,k),sg%ic,sg%id,mpi_real8, &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
+                         rval(:,k),sg%ic,sg%id,mpi_real8,    &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
     else
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)), &
-                         sg%ic(myid+1),mpi_real8,      &
-                         rval,sg%ic,sg%id,mpi_real8,   &
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
+                         rval,sg%ic,sg%id,mpi_real8,         &
                          iocpu,sg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4857,7 +4903,7 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(3) = 1
-    icount(2) = nk
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
@@ -4873,18 +4919,18 @@ module mod_clm_nchelper
     type(subgrid_type) , intent(in) :: sg
     integer(ik4) , intent(in) :: nt
     real(rk8) , dimension(:,:,:) , allocatable :: rval
-    integer(ik4) :: ivarid , mpierr , nk , nn , n , k
-    nk = size(xval,2)
-    nn = size(xval,3)
+    integer(ik4) :: ivarid , mpierr , nv1 , nv2 , n , k , nn , kk
+    nv1 = size(xval,2)
+    nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nk,nn))
+      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),       &
-                                  lbound(xval,3)+(n-1)),      &
-                           sg%ic(myid+1),mpi_real8,           &
-                           rval(:,k,n),sg%ic,sg%id,mpi_real8, &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
+                           rval(:,k,n),sg%ic,sg%id,mpi_real8,     &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4892,12 +4938,12 @@ module mod_clm_nchelper
         end do
       end do
     else
-      do n = 1 , nn
-        do k = 1 , nk
-          call mpi_gatherv(xval(:,lbound(xval,2)+(k-1),  &
-                                  lbound(xval,3)+(n-1)), &
-                           sg%ic(myid+1),mpi_real8,      &
-                           rval,sg%ic,sg%id,mpi_real8,   &
+      do n = 1 , nv2
+        nn = lbound(xval,3)+(n-1)
+        do k = 1 , nv1
+          kk = lbound(xval,2)+(k-1)
+          call mpi_gatherv(xval(:,kk,nn),sg%ic(myid+1),mpi_real8, &
+                           rval,sg%ic,sg%id,mpi_real8,            &
                            iocpu,sg%icomm,mpierr)
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -4916,8 +4962,8 @@ module mod_clm_nchelper
     istart(2) = 1
     istart(1) = 1
     icount(4) = 1
-    icount(3) = nn
-    icount(2) = nk
+    icount(3) = nv2
+    icount(2) = nv1
     icount(1) = sg%ns
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
@@ -4974,14 +5020,15 @@ module mod_clm_nchelper
     logical , dimension(:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),gg%gc(myid+1),mpi_logical, &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_logical, &
                        lval,gg%gc,gg%gd,mpi_logical,   &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
@@ -5024,19 +5071,20 @@ module mod_clm_nchelper
     logical , dimension(:,:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , k , l , nk , nl , ib , ivarid , mpierr
-    nk = size(xval,2)
-    nl = size(xval,3)
+    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
+    integer(ik4) :: kk , ll
+    nv1 = size(xval,2)
+    nv3 = size(xval,3)
     if ( myid == iocpu ) then
       allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do l = 1 , nl
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1), &
-                                lbound(xval,3)+(l-1)), &
-                         gg%gc(myid+1),mpi_logical, &
-                         lval,gg%gc,gg%gd,mpi_logical,   &
+    do l = 1 , nv3
+      ll = lbound(xval,3)+(l-1)
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_logical, &
+                         lval,gg%gc,gg%gd,mpi_logical,            &
                          iocpu,gg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5119,16 +5167,16 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)), &
-                       gg%gc(myid+1),mpi_integer4, &
-                       ival,gg%gc,gg%gd,mpi_integer4,   &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_integer4, &
+                       ival,gg%gc,gg%gd,mpi_integer4,         &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5166,19 +5214,20 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , l , nk , nl , ib , ivarid , mpierr
-    nk = size(xval,2)
-    nl = size(xval,3)
+    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
+    integer(ik4) :: kk , ll
+    nv1 = size(xval,2)
+    nv3 = size(xval,3)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do l = 1 , nl
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1), &
-                                lbound(xval,3)+(l-1)), &
-                         gg%gc(myid+1),mpi_integer4, &
-                         ival,gg%gc,gg%gd,mpi_integer4,          &
+    do l = 1 , nv3
+      ll = lbound(xval,3)+(l-1)
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_integer4, &
+                         ival,gg%gc,gg%gd,mpi_integer4,            &
                          iocpu,gg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5257,15 +5306,16 @@ module mod_clm_nchelper
     real(rk4) , dimension(:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),gg%gc(myid+1),mpi_real4, &
-                       ival,gg%gc,gg%gd,mpi_real4,   &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real4, &
+                       ival,gg%gc,gg%gd,mpi_real4,         &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5303,19 +5353,20 @@ module mod_clm_nchelper
     real(rk4) , dimension(:,:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , l , nk , nl , ib , ivarid , mpierr
-    nk = size(xval,2)
-    nl = size(xval,3)
+    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
+    integer(ik4) :: kk , ll
+    nv1 = size(xval,2)
+    nv3 = size(xval,3)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do l = 1 , nl
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1), &
-                                lbound(xval,3)+(l-1)), &
-                         gg%gc(myid+1),mpi_real4, &
-                         ival,gg%gc,gg%gd,mpi_real4,          &
+    do l = 1 , nv3
+      ll = lbound(xval,3)+(l-1)
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_real4, &
+                         ival,gg%gc,gg%gd,mpi_real4,            &
                          iocpu,gg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5394,15 +5445,16 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),gg%gc(myid+1),mpi_real8, &
-                       ival,gg%gc,gg%gd,mpi_real8,   &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real8, &
+                       ival,gg%gc,gg%gd,mpi_real8,         &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5440,19 +5492,20 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:,:) , intent(in) :: xval
     type(processor_type) , intent(in) :: gg
     real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , l , nk , nl , ib , ivarid , mpierr
-    nk = size(xval,2)
-    nl = size(xval,3)
+    integer(ik4) :: i , j , k , l , nv1 , nv3 , ib , ivarid , mpierr
+    integer(ik4) :: kk , ll
+    nv1 = size(xval,2)
+    nv3 = size(xval,3)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do l = 1 , nl
-      do k = 1 , nk
-        call mpi_gatherv(xval(:,lbound(xval,2)+(k-1), &
-                                lbound(xval,3)+(l-1)), &
-                         gg%gc(myid+1),mpi_real8, &
-                         ival,gg%gc,gg%gd,mpi_real8,          &
+    do l = 1 , nv3
+      ll = lbound(xval,3)+(l-1)
+      do k = 1 , nv1
+        kk = lbound(xval,2)+(k-1)
+        call mpi_gatherv(xval(:,kk,ll),gg%gc(myid+1),mpi_real8, &
+                         ival,gg%gc,gg%gd,mpi_real8,            &
                          iocpu,gg%icomm,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5580,15 +5633,16 @@ module mod_clm_nchelper
     type(processor_type) , intent(in) :: gg
     integer(ik4) , intent(in) :: nt
     logical , dimension(:) , allocatable :: lval
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),gg%gc(myid+1),mpi_logical, &
-                       lval,gg%gc,gg%gd,mpi_logical,   &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_logical, &
+                       lval,gg%gc,gg%gd,mpi_logical,         &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5633,16 +5687,16 @@ module mod_clm_nchelper
     type(processor_type) , intent(in) :: gg
     integer(ik4) , intent(in) :: nt
     integer(ik4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)), &
-                       gg%gc(myid+1),mpi_integer4, &
-                       ival,gg%gc,gg%gd,mpi_integer4,   &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_integer4, &
+                       ival,gg%gc,gg%gd,mpi_integer4,         &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5724,16 +5778,16 @@ module mod_clm_nchelper
     type(processor_type) , intent(in) :: gg
     integer(ik4) , intent(in) :: nt
     real(rk4) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)), &
-                       gg%gc(myid+1),mpi_real4, &
-                       ival,gg%gc,gg%gd,mpi_real4,   &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real4, &
+                       ival,gg%gc,gg%gd,mpi_real4,         &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
@@ -5815,15 +5869,16 @@ module mod_clm_nchelper
     type(processor_type) , intent(in) :: gg
     integer(ik4) , intent(in) :: nt
     real(rk8) , dimension(:) , allocatable :: ival
-    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
-    nk = size(xval,2)
+    integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
+    nv1 = size(xval,2)
     if ( myid == iocpu ) then
       allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
     end if
-    do k = 1 , nk
-      call mpi_gatherv(xval(:,lbound(xval,2)+(k-1)),gg%gc(myid+1),mpi_real8, &
-                       ival,gg%gc,gg%gd,mpi_real8,   &
+    do k = 1 , nv1
+      kk = lbound(xval,2)+(k-1)
+      call mpi_gatherv(xval(:,kk),gg%gc(myid+1),mpi_real8, &
+                       ival,gg%gc,gg%gd,mpi_real8,         &
                        iocpu,gg%icomm,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
