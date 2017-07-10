@@ -65,7 +65,8 @@ module mod_clm_cnnitrifdenitrif
     real(rk8) :: k_nitr_max ! maximum nitrification rate constant (1/s)
     real(rk8) :: mu, sigma
     real(rk8) :: t
-    real(rk8) :: pH(lbc:ubc)
+    real(rk8) , pointer :: pH(:)
+    ! real(rk8) :: pH(lbc:ubc)
     real(rk8), pointer :: phr_vr(:,:)   ! potential hr (not N-limited)
     real(rk8), pointer :: w_scalar(:,:) ! soil water scalar for decomp
     real(rk8), pointer :: t_scalar(:,:) ! temperature scalar for decomp
@@ -158,9 +159,9 @@ module mod_clm_cnnitrifdenitrif
 #endif
 
     !-- implicit in
-! #ifdef LCH4
-!   pH                       => clm3%g%l%c%cps%pH
-! #endif
+#ifdef LCH4
+    pH                       => clm3%g%l%c%cps%pH
+#endif
     phr_vr                   => clm3%g%l%c%ccf%phr_vr
     w_scalar                 => clm3%g%l%c%ccf%w_scalar
     t_scalar                 => clm3%g%l%c%ccf%t_scalar
@@ -215,7 +216,7 @@ module mod_clm_cnnitrifdenitrif
 
     k_nitr_max =  0.1_rk8 / secspday   ! [1/sec] 10%/day  Parton et al., 2001
 
-    pH(lbc:ubc) = 6.5  !!! set all soils with the same pH as placeholder here
+    !pH(lbc:ubc) = 6.5  !!! set all soils with the same pH as placeholder here
     co2diff_con(1) =   0.1325_rk8
     co2diff_con(2) =   0.0009_rk8
 
