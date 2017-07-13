@@ -39,10 +39,10 @@ module mod_advection
 
   interface hadv
     module procedure hadvuv
-    module procedure hadv_t
-    module procedure hadv_qv
+    module procedure hadvt
+    module procedure hadvqv
     module procedure hadv3d
-    module procedure hadv_qx
+    module procedure hadvqx
     module procedure hadvtr
   end interface hadv
 
@@ -292,7 +292,7 @@ module mod_advection
     !     ften   : is the tendency for variable 'f'.
     !     f      : is p*f.
     !
-    subroutine hadv_t(ften,f)
+    subroutine hadvt(ften,f)
       implicit none
       real(rkx) , pointer , intent (in) , dimension(:,:,:) :: f
       real(rkx) , pointer , intent (inout), dimension(:,:,:) :: ften
@@ -364,7 +364,7 @@ module mod_advection
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
-    end subroutine hadv_t
+    end subroutine hadvt
 
     subroutine hadv3d(ften,f,ind)
       implicit none
@@ -474,7 +474,7 @@ module mod_advection
 #endif
     end subroutine hadv3d
 
-    subroutine hadv_qv(ften,f,iv)
+    subroutine hadvqv(ften,f,iv)
       implicit none
       integer , intent(in) :: iv
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
@@ -482,7 +482,7 @@ module mod_advection
       real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
       integer(ik4) :: i , j , k
 #ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'hadv_qv'
+      character(len=dbgslen) :: subroutine_name = 'hadvqv'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
@@ -549,11 +549,11 @@ module mod_advection
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
-    end subroutine hadv_qv
+    end subroutine hadvqv
     !
     ! Up-wind values are used for non-hydrostatic
     !
-    subroutine hadv_qx(ften,f,n1,n2)
+    subroutine hadvqx(ften,f,n1,n2)
       implicit none
       integer , intent(in) :: n1 , n2
       real(rkx) , pointer , intent (in) , dimension(:,:,:,:) :: f
@@ -562,7 +562,7 @@ module mod_advection
       integer(ik4) :: i , j , k , n
       real(rkx) :: ul , f1 , f2 , fx1 , fx2 , fy1 , fy2
 #ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'hadv_qx'
+      character(len=dbgslen) :: subroutine_name = 'hadvqx'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
@@ -635,7 +635,7 @@ module mod_advection
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
-    end subroutine hadv_qx
+    end subroutine hadvqx
     !
     ! Up-wind values are used
     !
