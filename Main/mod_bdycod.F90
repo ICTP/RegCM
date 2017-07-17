@@ -301,6 +301,7 @@ module mod_bdycod
     if ( idynamic == 2 ) then
       xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
       psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
+      xpsb%b1(:,:) = xpsb%b0(:,:)
     else
       xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
       call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
@@ -384,9 +385,7 @@ module mod_bdycod
     !
     ! Repeat for T2
     !
-    if ( idynamic == 2 ) then
-      xpsb%b1(:,:) = xpsb%b0(:,:)
-    else
+    if ( idynamic == 1 ) then
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
@@ -526,8 +525,6 @@ module mod_bdycod
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
-    else
-      xpsb%b1(:,:) = xpsb%b0(:,:)
     end if
     !
     ! Couple pressure u,v,t,q
@@ -2071,8 +2068,7 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
-      fg1(j,i,k) = nfac * ((bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - f(j,i,k,n))
-      if ( fg1(j,i,k) < 1.0e-14_rkx ) fg1(j,i,k) = d_zero
+      fg1(j,i,k) = nfac*(bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - nfac*f(j,i,k,n)
     end do
 
     if ( ibdy == 1 ) then

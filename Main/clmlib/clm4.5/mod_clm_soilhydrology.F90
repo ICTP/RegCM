@@ -604,7 +604,7 @@ module mod_clm_soilhydrology
             if ( h2osfc(c) >= h2osfc_thresh(c) ) then
               call FracH2oSfc(lbc, ubc, num_hydrologyc, &
                       filter_hydrologyc,frac_h2osfc_temp,1)
-              frac_infclust = (frac_h2osfc_temp(c)-pc)**mu
+              frac_infclust = max((frac_h2osfc_temp(c)-pc),0.0_rk8)**mu
             end if
           else
             frac_infclust = (frac_h2osfc(c)-pc)**mu

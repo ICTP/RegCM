@@ -287,24 +287,15 @@ module mod_tendency
     !
     ! Sum up all tendencies for temperature
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          tten(j,i,k) = tten(j,i,k) + tdyn(j,i,k) + tphy(j,i,k)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      tten(j,i,k) = tten(j,i,k) + tdyn(j,i,k) + tphy(j,i,k)
     end do
     !
     ! Sum up all contribution to water vapor tendencies
     ! This is the last RHS term in Eqs. 2.1.3 and 2.2.5, 2.3.9
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxdyn(j,i,k,iqv) + &
-                             qxphy(j,i,k,iqv)
-        end do
-      end do
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxdyn(j,i,k,iqv) + qxphy(j,i,k,iqv)
     end do
     if ( idynamic == 2 ) then
       !
@@ -344,15 +335,9 @@ module mod_tendency
     end if
 
     if ( ipptls > 0 ) then
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              qxten(j,i,k,n) = qxten(j,i,k,n) + qxdyn(j,i,k,n) + &
-                               qxphy(j,i,k,n)
-            end do
-          end do
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , &
+                      k = 1:kz , n = iqfrst:iqlst)
+        qxten(j,i,k,n) = qxten(j,i,k,n) + qxdyn(j,i,k,n) + qxphy(j,i,k,n)
       end do
       if ( ipptls == 1 ) then
         !
@@ -363,14 +348,10 @@ module mod_tendency
         qxphy(:,:,:,iqc) = d_zero
         tphy(:,:,:) = d_zero
         call condtq
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxphy(j,i,k,iqv)
-              qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + qxphy(j,i,k,iqc)
-              tten(j,i,k) = tten(j,i,k) + tphy(j,i,k)
-            end do
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          tten(j,i,k) = tten(j,i,k) + tphy(j,i,k)
+          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qxphy(j,i,k,iqv)
+          qxten(j,i,k,iqc) = qxten(j,i,k,iqc) + qxphy(j,i,k,iqc)
         end do
       end if
       if ( idiag > 0 ) then
@@ -397,8 +378,8 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          atmc%qx(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv) + &
-                       dt * qxten(j,i,k,iqv),minqv)
+          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt * qxten(j,i,k,iqv)
+          if ( atmc%qx(j,i,k,iqv) < minqv ) atmc%qx(j,i,k,iqv) = minqv
         end do
       end do
     end do

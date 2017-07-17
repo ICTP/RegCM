@@ -1766,7 +1766,7 @@ module mod_vertint
     real(rkx) , dimension(kccm) , intent(in) :: sccm
     real(rkx) , dimension(krcm) , intent(in) :: srcm
     real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
-    real(rkx) :: dp1 , pt1 , rc , rc1 , sc
+    real(rkx) :: dp1 , pt1 , rc1 , rc2 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
     !
     ! INTV1 is for vertical interpolation of U, V, and RH
@@ -1788,9 +1788,9 @@ module mod_vertint
               frcm(i,j,n) = fccm(i,j,kccm)
             else if ( k1 /= kccm ) then
               kp1 = k1 + 1
-              rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
-              rc1 = d_one - rc
-              frcm(i,j,n) = rc1*fccm(i,j,kccm-k1+1)+rc*fccm(i,j,kccm-kp1+1)
+              rc1 = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
+              rc2 = d_one - rc1
+              frcm(i,j,n) = rc2*fccm(i,j,kccm-k1+1)+rc1*fccm(i,j,kccm-kp1+1)
             else
               frcm(i,j,n) = fccm(i,j,1)
             end if
@@ -1811,11 +1811,11 @@ module mod_vertint
               frcm(i,j,n) = fccm(i,j,kccm)
             else if ( k1 /= kccm ) then
               kp1 = k1 + 1
-              rc = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
-              rc1 = d_one - rc
-              frcm(i,j,n) = rc1*log(fccm(i,j,kccm-k1+1)) + &
-                            rc*log(fccm(i,j,kccm-kp1+1))
-              frcm(i,j,n) = exp(frcm(i,j,n))
+              rc1 = (sccm(k1)-sc)/(sccm(k1)-sccm(kp1))
+              rc2 = d_one - rc1
+              frcm(i,j,n) = rc2*log(max(fccm(i,j,kccm-k1+1),minqq)) + &
+                            rc1*log(max(fccm(i,j,kccm-kp1+1),minqq))
+              frcm(i,j,n) = max(exp(frcm(i,j,n)),minqq)
             else
               frcm(i,j,n) = fccm(i,j,1)
             end if

@@ -206,10 +206,10 @@ module mod_massck
     call sumall(tqeva,evapm)
 
     if ( myid == italk ) then
-      if ( dryini < dlowval ) dryini = drymass
-      if ( watini < dlowval ) watini = qmass
       drymass = drymass - dryadv
       qmass = qmass + tcrai + tncrai - qadv - evapm
+      if ( dryini < dlowval ) dryini = drymass
+      if ( watini < dlowval ) watini = qmass
       dryerror = dryerror + &
         (real((drymass-dryini)/dryini,rk8) * d_100) * dt/86400.0_rk8
       waterror = waterror + &

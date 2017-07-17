@@ -839,7 +839,6 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot save idatex')
       ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idatex%calendar)
       call check_ok(__FILE__,__LINE__,'Cannot save calendar')
-
       if ( debug_level > 0 ) then
         ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
         call check_ok(__FILE__,__LINE__,'Cannot save dryini')

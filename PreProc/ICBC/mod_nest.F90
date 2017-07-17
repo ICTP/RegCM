@@ -514,6 +514,7 @@ module mod_nest
     if ( lspch ) then
       call sph2mxr(q,jx_in,iy_in,kz_in)
     end if
+    q = max(minqq,q)
     if ( oidyn == 2 ) then
       istatus = nf90_inq_varid(ncinp, 'ppa', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &

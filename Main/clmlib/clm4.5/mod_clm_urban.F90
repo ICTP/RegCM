@@ -1685,8 +1685,8 @@ module mod_clm_urban
     integer(ik4)  :: iter_dir,iter_dif  ! iteration counter
     real(rk8) :: crit                   ! convergence criterion
     real(rk8) :: err                    ! energy conservation error
-    integer(ik4) , parameter :: n = 50  ! number of interations
-    real(rk8), parameter :: errcrit  = .00001_rk8     ! error criteria
+    integer(ik4) , parameter :: niters = 50  ! number of interations
+    real(rk8), parameter :: errcrit  = 0.00001_rk8     ! error criteria
 
     ! Assign landunit level pointer
 
@@ -1877,7 +1877,7 @@ module mod_clm_urban
 
           ! reflected direct beam
 
-          do iter_dir = 1 , n
+          do iter_dir = 1 , niters
             ! step (1)
 
             stot(fl) = (sunwall_r_road_dir(fl) + &
@@ -1972,7 +1972,7 @@ module mod_clm_urban
             crit = max(road_a_dir(fl), sunwall_a_dir(fl), shadewall_a_dir(fl))
             if (crit < errcrit) exit
           end do
-          if ( iter_dir >= n ) then
+          if ( iter_dir >= niters ) then
             write (stderr,*) 'urban net solar radiation error:'
             write (stderr,*) '            no convergence, direct beam'
             call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -1980,7 +1980,7 @@ module mod_clm_urban
 
           ! reflected diffuse
 
-          do iter_dif = 1 , n
+          do iter_dif = 1 , niters
             ! step (1)
 
             stot(fl) = (sunwall_r_road_dif(fl) + &
@@ -2072,7 +2072,7 @@ module mod_clm_urban
             crit = max(road_a_dif(fl), sunwall_a_dif(fl), shadewall_a_dif(fl))
             if ( crit < errcrit ) exit
           end do
-          if ( iter_dif >= n ) then
+          if ( iter_dif >= niters ) then
             write (stderr,*) 'urban net solar radiation error: '
             write (stderr,*) '             no convergence, diffuse'
             call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -2362,7 +2362,7 @@ module mod_clm_urban
     ! shadewall_e to opposing (sunlit) wall (W/m**2)
     real(rk8) :: shadewall_e_sunwall(num_urbanl)
     integer(ik4)  :: l,fl,iter    ! indices
-    integer(ik4) , parameter :: n = 50  ! number of interations
+    integer(ik4) , parameter :: niters = 50  ! number of interations
     real(rk8) :: crit                   ! convergence criterion (W/m**2)
     real(rk8) :: err                    ! energy conservation error (W/m**2)
     ! weight of impervious road wrt total road
@@ -2378,7 +2378,7 @@ module mod_clm_urban
 
     ! Calculate impervious road
 
-    do l = 1,num_urbanl
+    do l = 1 , num_urbanl
       wtroad_imperv(l) = 1._rk8 - wtroad_perv(l)
     end do
 
@@ -2389,11 +2389,9 @@ module mod_clm_urban
       ! check for conservation (need to convert wall fluxes to ground area).
       ! lwdown (from atmosphere) = lwdown_road + &
       !          (lwdown_sunwall + lwdown_shadewall)*canyon_hwr
-
       lwdown_road(fl)      = lwdown(fl) * vf_sr(l)
       lwdown_sunwall(fl)   = lwdown(fl) * vf_sw(l)
       lwdown_shadewall(fl) = lwdown(fl) * vf_sw(l)
-
       err = lwdown(fl) - (lwdown_road(fl) + &
               (lwdown_shadewall(fl) + lwdown_sunwall(fl))*canyon_hwr(fl))
       if ( abs(err) > 0.10_rk8 ) then
@@ -2517,7 +2515,7 @@ module mod_clm_urban
 
     do fl = 1 , num_urbanl
       l = filter_urbanl(fl)
-      do iter = 1 , n
+      do iter = 1 , niters
         ! step (1)
 
         lwtot(fl) =  (sunwall_r_road(fl) + sunwall_e_road(fl)  &
@@ -2608,7 +2606,7 @@ module mod_clm_urban
         crit = max(road_a(fl), sunwall_a(fl), shadewall_a(fl))
         if ( crit < .001_rk8 ) exit
       end do
-      if (iter >= n) then
+      if ( iter >= niters ) then
         write (stderr,*) 'urban net longwave radiation error: no convergence'
         write (stderr,*) 'Critical = ',crit, ' > 0.001 !'
         call fatal(__FILE__,__LINE__,'clm now stopping')

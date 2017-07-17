@@ -47,6 +47,7 @@ module mod_init
   use mod_constants
   use mod_outvars
   use mod_service
+  use mod_massck
   use mod_sound , only : init_sound
 
   implicit none
@@ -455,6 +456,13 @@ module mod_init
       end if
       if ( idynamic == 2 .and. ifupr == 1 ) then
         call bcast(tmask)
+      end if
+
+      if ( debug_level > 0 ) then
+        call bcast(dryini)
+        call bcast(watini)
+        call bcast(dryerror)
+        call bcast(waterror)
       end if
       !
       ! Init boundary
