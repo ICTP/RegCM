@@ -64,7 +64,7 @@ class mydatetime(object):
     def __repr__(self):
         return "%04d%02d%02d%02d" % (self.year, self.month, self.day, self.hour)
     def __int__(self):
-        return self.year*1000000+self.month*10000+self.day*100+self.hour
+        return int(self.year*1000000+self.month*10000+self.day*100+self.hour)
 
 def diff_month(d1, d2):
     return (d1.year - d2.year)*12 + d1.month - d2.month
@@ -165,11 +165,11 @@ for imon in range(rank,ntasks,size):
     print("Processor "+repr(rank)+" working on "+repr(d1)+" - "+repr(d2))
     nml["globdatparam"]["gdate1"] = int(d1)
     nml["globdatparam"]["gdate2"] = int(d2)
-    nmlfile = tempfile.NamedTemporaryFile(delete=False)
-    nml.write(nmlfile)
-    nmlfile.close()
-    subprocess.call([icbcexec, nmlfile.name], stdout=ofile, stderr=efile)
-    os.unlink(nmlfile.name)
+    nmlfile = os.path.join(os.getcwd( ),
+          os.path.basename(namelist)+'.'+repr(rank)+'.'+repr(imon)+'.in')
+    nml.write(nmlfile,force=True)
+    subprocess.call([icbcexec, nmlfile], stdout=ofile, stderr=efile)
+    os.unlink(nmlfile)
 ofile.close()
 efile.close()
 comm.Barrier()
