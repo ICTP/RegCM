@@ -539,19 +539,13 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             do nsi = -6 , 6
-              inn = max(icross1+1,min(icross2-1,i+nsi))
+              inn = min(max(icross1+1,i+nsi),icross2-1)
               do nsj = -6 , 6
-                jnn = max(jcross1+1,min(jcross2-1,j+nsj))
+                jnn = min(max(jcross1+1,j+nsj),jcross2-1)
                 wpval(j,i) = wpval(j,i) + estore_g(jnn,inn)*tmask(nsj,nsi)
               end do
             end do
           end do
-        end do
-      else if ( ifupr == 2 ) then
-        loc_abar = minval(abs(atmc%w(jci1:jci2,ici1:ici2,2)))
-        call minall(loc_abar,abar)
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-          wpval(j,i) = -abar * sign(d_one,atmc%w(j,i,2))
         end do
       end if
       !
