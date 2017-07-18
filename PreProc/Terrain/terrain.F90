@@ -789,7 +789,7 @@ program terrain
     write (stdout,*) '-----------------------------------------'
     do k = kzp1, 1, -1
       write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), &
-        sum(pr0(:,:,k))/real(jx*iy,rkx), sum(z0(:,:,k))/real(jx*iy,rkx)
+        d_r100*sum(pr0(:,:,k))/real(jx*iy,rkx), sum(z0(:,:,k))/real(jx*iy,rkx)
     end do
   end if
 
