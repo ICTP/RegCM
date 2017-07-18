@@ -96,7 +96,6 @@ module mod_atm_interface
 
   ! Dynamic 2
   real(rkx) , pointer , public , dimension(:,:) :: dpsdxm , dpsdym
-  real(rkx) , pointer , public , dimension(:,:) :: estore , estore_g
   real(rkx) , public , dimension(-6:6,-6:6) :: tmask
 
   ! Surface
@@ -995,11 +994,6 @@ module mod_atm_interface
       if ( idynamic == 2 ) then
         call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
         call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
-        if ( ifupr == 1 ) then
-          call getmem2d(estore,jci1,jci2,ici1,ici2,'storage:estore')
-          call getmem2d(estore_g,jcross1,jcross2, &
-                                 icross1,icross2,'storage:estore_g')
-        end if
       end if
 
     end subroutine allocate_mod_atm_interface

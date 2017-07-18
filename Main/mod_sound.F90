@@ -53,6 +53,7 @@ module mod_sound
   real(rkx) , pointer , dimension(:,:,:) :: pi
   real(rkx) , pointer , dimension(:,:,:) :: e , f
   real(rkx) , pointer , dimension(:,:) :: astore
+  real(rkx) , pointer , dimension(:,:) :: estore , estore_g
   real(rkx) , pointer , dimension(:,:) :: rpsb
   real(rkx) , pointer , dimension(:,:) :: wpval
 
@@ -100,6 +101,9 @@ module mod_sound
     call getmem3d(pi,jci1,jci2,ici1,ici2,1,kz,'sound:pi')
     if ( ifupr == 1 ) then
       call getmem2d(astore,jci1,jci2,ici1,ici2,'sound:astore')
+      call getmem2d(estore,jce1,jce2,ice1,ice2,'storage:estore')
+      call getmem2d(estore_g,jcross1,jcross2, &
+                             icross1,icross2,'storage:estore_g')
     end if
     call getmem2d(wpval,jci1,jci2,ici1,ici2,'sound:wpval')
     call getmem2d(rpsb,jce1,jce2,ice1,ice2,'sound:rpsb')
@@ -476,7 +480,7 @@ module mod_sound
         ! If first time through and upper radiation b.c`s are used
         ! Need to calc some coefficients. RegCM updates every day.
         !
-        if ( ( ktau == 0 .or. mod(ktau,kday) == 0 ) .and. it == 1 ) then
+        if ( ( mod(ktau,kday) == 0 ) .and. it == 1 ) then
           ! Calculating means for upper radiative boundary conditions
           if ( myid == italk ) then
             write(stdout,'(a,i8)') &
@@ -499,39 +503,35 @@ module mod_sound
           call sumall(loc_abar,abar)
           call sumall(loc_rhon,rhon)
           call sumall(loc_xmsf,xmsf)
-          abar = abar*rnpts
-          rhon = rhon*rnpts
-          xmsf = xmsf*rnpts
-          !
-          ! Try to avoid problems coming from computing distributed integrals.
-          !
-          abar = real(int(abar*100000.0_rkx),rkx)/100000.0_rkx
-          rhon = real(int(rhon*100000.0_rkx),rkx)/100000.0_rkx
-          xmsf = real(int(xmsf*100000.0_rkx),rkx)/100000.0_rkx
-          !
-          dxmsfb = d_two/dx/xmsf
-          tmask(:,:) = d_zero
-          do kk = 0 , 6
-            rkk = real(kk,rkx)
-            do ll = 0 , 6
-              rll = real(ll,rkx)
-              xkeff = dxmsfb * sin(mathpi*rkk/12.0_rkx)*cos(mathpi*rll/12.0_rkx)
-              xleff = dxmsfb * sin(mathpi*rll/12.0_rkx)*cos(mathpi*rkk/12.0_rkx)
-              xkleff = sqrt(xkeff*xkeff + xleff*xleff)
-              do i = -6 , 6
-                ri = real(i,rkx)
-                do j = -6 , 6
-                  rj = real(j,rkx)
-                  tmask(j,i) = tmask(j,i) +                            &
-                               (fi(i)*fj(j)*fk(kk)*fl(ll))/144.0_rkx * &
-                               cos(2.0_rkx*mathpi*rkk*ri/12.0_rkx) *   &
-                               cos(2.0_rkx*mathpi*rll*rj/12.0_rkx) *   &
-                               xkleff / (rhon-abar*xkleff)
+          if ( myid == iocpu ) then
+            abar = abar*rnpts
+            rhon = rhon*rnpts
+            xmsf = xmsf*rnpts
+            dxmsfb = d_two/dx/xmsf
+            tmask(:,:) = d_zero
+            do kk = 0 , 6
+              rkk = real(kk,rkx)
+              do ll = 0 , 6
+                rll = real(ll,rkx)
+                xkeff = dxmsfb*sin(mathpi*rkk/12.0_rkx)*cos(mathpi*rll/12.0_rkx)
+                xleff = dxmsfb*sin(mathpi*rll/12.0_rkx)*cos(mathpi*rkk/12.0_rkx)
+                xkleff = sqrt(xkeff*xkeff + xleff*xleff)
+                do i = -6 , 6
+                  ri = real(i,rkx)
+                  do j = -6 , 6
+                    rj = real(j,rkx)
+                    tmask(j,i) = tmask(j,i) +                            &
+                                 (fi(i)*fj(j)*fk(kk)*fl(ll))/144.0_rkx * &
+                                 cos(2.0_rkx*mathpi*rkk*ri/12.0_rkx) *   &
+                                 cos(2.0_rkx*mathpi*rll*rj/12.0_rkx) *   &
+                                 xkleff / (rhon-abar*xkleff)
+                  end do
                 end do
               end do
             end do
-          end do
+          end if
           ! Finished initial coefficient compute (goes in SAV file)
+          call bcast(tmask)
         end if
         !
         ! Apply upper rad cond.
@@ -546,6 +546,12 @@ module mod_sound
               end do
             end do
           end do
+        end do
+      else if ( ifupr == 2 ) then
+        loc_abar = minval(abs(atmc%w(jci1:jci2,ici1:ici2,2)))
+        call minall(loc_abar,abar)
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          wpval(j,i) = -abar * sign(d_one,atmc%w(j,i,2))
         end do
       end if
       !
