@@ -242,6 +242,14 @@ module mod_sound
     !
     ! Time Step loop
     !
+    if ( ifupr == 2 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          wpval(j,i) = 0.75_rkx * atm1%w(j,i,1) * rpsb(j,i) - &
+                       0.75_rkx * atm2%w(j,i,2) * rpsb(j,i)
+        end do
+      end do
+    end if
     timeloop: &
     do it = 1 , istep
       if ( it > 1 ) then
@@ -462,9 +470,11 @@ module mod_sound
       !
       ! First, set upper boundary condition, either w=0 or radiation
       !
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-        wpval(j,i) = d_zero
-      end do
+      if ( ifupr /= 2 ) then
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          wpval(j,i) = d_zero
+        end do
+      end if
       !
       ! Upper radiative BC, compute the wpval here as in 2.7
       !
