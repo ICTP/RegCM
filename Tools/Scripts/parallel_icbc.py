@@ -63,7 +63,7 @@ class mydatetime(object):
         return "%04d%02d%02d%02d" % (self.year, self.month, self.day, self.hour)
     def __repr__(self):
         return "%04d%02d%02d%02d" % (self.year, self.month, self.day, self.hour)
-    def __int__(self):
+    def number(self):
         return int(self.year*1000000+self.month*10000+self.day*100+self.hour)
 
 def diff_month(d1, d2):
@@ -80,8 +80,8 @@ def usage(message):
 
 def monthadd(date, nmon):
     xdate = copy.deepcopy(date)
-    xdate.year = xdate.year + nmon/12
-    xdate.month = xdate.month + (nmon % 12)
+    xdate.year = int(xdate.year + nmon/12)
+    xdate.month = int(xdate.month + (nmon % 12))
     if xdate.month > 12:
         xdate.month = xdate.month - 12
         xdate.year = xdate.year + 1
@@ -163,8 +163,8 @@ for imon in range(rank,ntasks,size):
     else:
         d2 = eomonth(datest, xcal)
     print("Processor "+repr(rank)+" working on "+repr(d1)+" - "+repr(d2))
-    nml["globdatparam"]["gdate1"] = int(d1)
-    nml["globdatparam"]["gdate2"] = int(d2)
+    nml["globdatparam"]["gdate1"] = d1.number( )
+    nml["globdatparam"]["gdate2"] = d2.number( )
     nmlfile = os.path.join(os.getcwd( ),
           os.path.basename(namelist)+'.'+repr(rank)+'.'+repr(imon)+'.in')
     nml.write(nmlfile,force=True)
