@@ -137,8 +137,8 @@ module mod_dynparam
   integer(ik4) :: nspgx = 12
   integer(ik4) :: nspgd = 12
 
-  real(rkx) :: bdy_nm = 0.00031_rkx
-  real(rkx) :: bdy_dm = 0.00007_rkx
+  real(rkx) :: bdy_nm = -1.0_rkx ! 0.0033_rkx
+  real(rkx) :: bdy_dm = -1.0_rkx ! 0.0001_rkx
 
   ! Nudge control coefficients
 

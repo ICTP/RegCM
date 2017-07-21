@@ -640,7 +640,7 @@ module mod_che_bdyco
                 fls3 = f(j,ice1,k,n)   - f(j,i-1,k,n)
                 fls4 = f(j,ici1+1,k,n) - f(j,i+1,k,n)
                 ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                        xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                        xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -661,7 +661,7 @@ module mod_che_bdyco
               fls3 = f(j,ici2-1,k,n) - f(j,i-1,k,n)
               fls4 = f(j,ice2,k,n) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -682,7 +682,7 @@ module mod_che_bdyco
               fls3 = f(jci2-1,i,k,n) - f(j-1,i,k,n)
               fls4 = f(jce2,i,k,n) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -703,7 +703,7 @@ module mod_che_bdyco
               fls3 = f(jce1,i,k,n) - f(j-1,i,k,n)
               fls4 = f(jci1+1,i,k,n) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
-                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -731,7 +731,7 @@ module mod_che_bdyco
               fls3 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
               fls4 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                      xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                      xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -752,7 +752,7 @@ module mod_che_bdyco
               fls3 = (chib0(j,i-1,k,n)+xt*chibt(j,i-1,k,n)) - f(j,i-1,k,n)
               fls4 = (chib0(j,i+1,k,n)+xt*chibt(j,i+1,k,n)) - f(j,i+1,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -773,7 +773,7 @@ module mod_che_bdyco
               fls3 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
               fls4 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
-                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -794,7 +794,7 @@ module mod_che_bdyco
               fls3 = (chib0(j-1,i,k,n)+xt*chibt(j-1,i,k,n)) - f(j-1,i,k,n)
               fls4 = (chib0(j+1,i,k,n)+xt*chibt(j+1,i,k,n)) - f(j+1,i,k,n)
               ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 -  &
-                       xg*rdxsq*(fls1+fls2+fls3+fls4-d_four*fls0)
+                       xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -813,8 +813,16 @@ module mod_che_bdyco
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
-    fnudge = 0.1_rkx/dt2
-    gnudge = (dxsq/dt)/50.0_rkx
+    if ( bdy_nm > d_zero ) then
+      fnudge = bdy_nm
+    else
+      fnudge = 0.1_rkx/dt2
+    end if
+    if ( bdy_dm > d_zero ) then
+      gnudge = bdy_dm
+    else
+      gnudge = d_one/(50.0_rkx*dt2)
+    end if
     do k = 1 , kz
       if ( hsigma(k) < 0.4_rkx ) then
         anudgh(k) = high_nudge

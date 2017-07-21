@@ -160,8 +160,16 @@ module mod_bdycod
     !
     rdtbdy = d_one / dtbdys
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      fnudge = bdy_nm ! /dt
-      gnudge = bdy_dm ! /dt ! The dx**2 is eliminated with the 1/dx**2
+      if ( bdy_nm > d_zero ) then
+        fnudge = bdy_nm
+      else
+        fnudge = 0.1_rkx/dt2
+      end if
+      if ( bdy_dm > d_zero ) then
+        gnudge = bdy_dm
+      else
+        gnudge = d_one/(50.0_rkx*dt2)
+      end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
       do n = 2 , nspgx-1
