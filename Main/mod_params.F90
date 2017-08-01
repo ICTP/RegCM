@@ -110,7 +110,7 @@ module mod_params
       c_rel_extrema , q_rel_extrema , t_rel_extrema
 
     namelist /nonhydroparam/ ifupr , ckh , adyndif , nhbet , nhxkd ,  &
-      ifrayd , rayndamp , rayalpha0 , rayzd , rayhd , itopnudge
+      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -120,9 +120,9 @@ module mod_params
       caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
       rcrit , coef_ccn , abulk
 
-    namelist /microparam/ stats , budget_compute , nssopt ,      &
-      iautoconv , rsemi , vfqr , vfqi , vfqs , auto_rate_khair , &
-      auto_rate_kessl , auto_rate_klepi , rkconv , skconv ,      &
+    namelist /microparam/ stats , budget_compute , nssopt ,  &
+      iautoconv , vfqr , vfqi , vfqs , auto_rate_khair ,     &
+      auto_rate_kessl , auto_rate_klepi , rkconv , skconv ,  &
       rcovpmin , rpecons
 
     namelist /grellparam/ igcc , gcr0 , shrmin , shrmax , edtmin , &
@@ -267,11 +267,10 @@ module mod_params
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     itopnudge = 0
-    ifrayd = 0
-    rayndamp = kz / 6
-    rayalpha0 = 5.0e-3_rkx
-    rayzd = 15000.0_rkx
-    rayhd = 3000.0_rkx
+    ifrayd = 1
+    rayndamp = 5
+    rayalpha0 = 0.001_rkx
+    rayhd = 10000.0_rkx
     !
     ! Rrtm radiation param ;
     !
@@ -330,9 +329,6 @@ module mod_params
                   ! => 2 Khairoutdinov and Kogan (2000)
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
-    rsemi = d_one ! 0 => fully explicit
-                  ! 1 => fully implict
-                  ! 0<rsemi<1 => semi-implicit
     vfqr = 4.0_rkx
     vfqi = 0.15_rkx
     vfqs = 1.0_rkx
@@ -1047,7 +1043,6 @@ module mod_params
       call bcast(ifrayd)
       call bcast(rayndamp)
       call bcast(rayalpha0)
-      call bcast(rayzd)
       call bcast(rayhd)
     end if
 
@@ -1181,7 +1176,6 @@ module mod_params
         call bcast(budget_compute)
         call bcast(nssopt)
         call bcast(iautoconv)
-        call bcast(rsemi)
         call bcast(vfqr)
         call bcast(vfqi)
         call bcast(vfqs)
@@ -2413,6 +2407,7 @@ module mod_params
         use mod_nhinterp
         implicit none
         integer(ik4) :: i , j , k
+        real(rkx) :: ztop
         call nhsetup(ptop,base_state_pressure,logp_lrate,base_state_ts0)
         mddom%ht = mddom%ht * regrav
         call nhbase(ice1,ice2,jce1,jce2,kz,hsigma,mddom%ht, &
@@ -2483,6 +2478,11 @@ module mod_params
         end do
         if ( myid == italk ) then
           write(stdout,*) 'Reference atmosphere calculated.'
+        end if
+        ztop = maxval(atm0%zf)
+        call maxall(ztop,rayzd)
+        if ( myid == italk ) then
+          write(stdout,*) 'Model top at ',rayzd,' m'
         end if
       end subroutine make_reference_atmosphere
 

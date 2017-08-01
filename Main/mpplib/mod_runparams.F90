@@ -438,8 +438,6 @@ module mod_runparams
   integer , public :: nssopt
   ! Choose the autoconversion paramaterization
   integer , public :: iautoconv
-  ! Implict option
-  real(rkx) , public :: rsemi
   ! Fall speed values
   real(rkx) , public :: vfqr
   real(rkx) , public :: vfqi

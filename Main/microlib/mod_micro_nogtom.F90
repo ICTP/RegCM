@@ -932,9 +932,9 @@ module mod_micro_nogtom
           ! Moreover the RH is clipped to the limit of
           ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
           !------------------------------------------------------------------
-          supsat = max((qx0(iqqv)-facl*sqmix)*corqsmix,d_zero) 
+          supsat = max((qx0(iqqv)-facl*sqmix)*corqsmix,d_zero)
           ! e < esi, because for e > esi ice still present
-          subsat = min((qx0(iqqv)-facl*sqmix)*corqsmix,d_zero) 
+          subsat = min((qx0(iqqv)-facl*sqmix)*corqsmix,d_zero)
 
           if ( supsat > dlowval ) then
             if ( ltkgthomo ) then
@@ -959,7 +959,7 @@ module mod_micro_nogtom
 #endif
             end if
           else
-            if ( subsat < d_zero .and. lliq ) then 
+            if ( subsat < d_zero .and. lliq ) then
               ! turn subsaturation into vapor, where there is no cloud
               excess = qlifg + subsat
               if ( excess < d_zero ) then
@@ -978,7 +978,7 @@ module mod_micro_nogtom
               end if
             end if
           end if
-  
+
           !
           ! call addpath(iqql,iqqv,supsatl,qsexp,qsimp,d_zero,qxfg)
           ! call addpath(iqqi,iqqv,supsati,qsexp,qsimp,d_zero,qxfg)
@@ -1082,7 +1082,7 @@ module mod_micro_nogtom
             !------------------------------------------------------------------
             dtdp   = rovcp*tk/mo2mc%phs(j,i,k)
             dpmxdt = dp*oneodt
-            wtot   = mo2mc%pverv(j,i,k)
+            wtot   = 0.0_rkx ! mo2mc%pverv(j,i,k)
             wtot   = min(dpmxdt,max(-dpmxdt,wtot))
             dtdiab = min(dpmxdt*dtdp, &
                        max(-dpmxdt*dtdp,mo2mc%heatrt(j,i,k)))*dt+wlhfocp*ldefr
@@ -1542,15 +1542,15 @@ module mod_micro_nogtom
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
               beta1 = sqrt(mo2mc%phs(j,i,k)/pbot) / &
-                        5.09e-3_rkx*preclr/covpclr(j,i)
+                           5.09e-3_rkx*preclr/covpclr(j,i)
               if ( beta1 >= d_zero ) then
-                beta = egrav*rpecons*d_half*(beta1)**0.5777_rkx
+                beta = d_half*egrav*rpecons*(beta1)**0.5777_rkx
                 denom = d_one + beta*dt*corqsliq
                 dpr = covpclr(j,i) * beta * (qsliq(j,i,k)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
 
                 ! AMT just evaporate all rain if the rainfall is very small
-                if (qxfg(iqqr)<activqx ) dpevap=qxfg(iqqr)
+                if ( qxfg(iqqr) < activqx ) dpevap = qxfg(iqqr)
 
                 !---------------------------------------------------------
                 ! add evaporation term to explicit sink.
@@ -1605,16 +1605,14 @@ module mod_micro_nogtom
               beta1 = sqrt(mo2mc%phs(j,i,k)/pbot) / &
                            5.09e-3_rkx*preclr/covpclr(j,i)
               if ( beta1 >= d_zero ) then
-                beta = egrav*rpecons*(beta1)**0.5777_rkx
-                !rpecons = alpha1
+                beta = d_half*egrav*rpecons*(beta1)**0.5777_rkx
                 denom = d_one + beta*dt*corqsice
-                dpr = covpclr(j,i) * beta * &
-                       (qsice(j,i,k)-qe)/denom*dp*regrav
+                dpr = covpclr(j,i) * beta * (qsice(j,i,k)-qe)/denom*dp*regrav
                 dpevap = dpr*dtgdp
 
                 ! sublimation of  snow
                 ! AMT just evaporate all if snow is very small
-                if (qxfg(iqqr)<activqx ) dpevap=qxfg(iqqr)
+                if ( qxfg(iqqs) < activqx ) dpevap = qxfg(iqqs)
 
                 chng = min(dpevap,qxfg(iqqs))
                 chng = max(chng,d_zero)
@@ -1761,7 +1759,7 @@ module mod_micro_nogtom
           end do
 
           call mysolve
-         
+
           !-------------------------------------------------------------------
           !  Precipitation/sedimentation fluxes to next level
           !  diagnostic precipitation fluxes
@@ -1979,7 +1977,7 @@ module mod_micro_nogtom
     subroutine khairoutdinov_and_kogan
       implicit none
       rainaut = dt*ccover*auto_rate_khair*(ql_incld**(auto_expon_khair))
-      if (rainaut<activqx) rainaut=d_zero
+      if ( rainaut < activqx ) rainaut = d_zero
       qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut
     end subroutine khairoutdinov_and_kogan
 
@@ -2028,7 +2026,7 @@ module mod_micro_nogtom
       end if
 
       ! clean up
-      if (rainaut<activqx) rainaut=d_zero
+      if ( rainaut < activqx ) rainaut = d_zero
 
       if ( ltkgt0 ) then
         qsimp(iqqr,iqql) = qsimp(iqqr,iqql) + rainaut

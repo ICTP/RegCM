@@ -852,10 +852,10 @@ conditions and the base state vertical profile curve shape.
                     ! acoustic damping. In practice, values of
                     ! nhbet = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1)
  nhxkd = 0.1,       ! Time weighting for weighting old/new pp
- ifrayd = 1,        ! Upper levels Rayleigh damper to BC
+ ifrayd = 1,        ! Upper levels Rayleigh damper to BCs
  rayndamp = 4,      ! Number of top levels to apply
- rayalpha0 = 0.0001,! Rate alpha0
- rayzd = 15000.0,   ! Model elevation start
+ rayalpha0 = 0.01,  ! Rate alpha0
+ rayhd = 8000.0,    ! Damping scale depth
  /
 \end{Verbatim}
 }
@@ -926,11 +926,6 @@ This namelist controls the new microphysics scheme.
                             ! => 2 Khairoutdinov and Kogan (2000)
                             ! => 3 Kessler (1969)
                             ! => 4 Sundqvist
- rsemi = 1.0,               ! Implicit/Explicit control 
-                            ! NOT ACTIVATED YET - IT DOES NOT WORK!
-                            ! rsemi == 0 => scheme is fully explicit
-                            ! rsemi == 1 => scheme is fully implicit
-                            ! 0<rsemi<1  => scheme is semi-implicit
  vfqr = 4.0,                ! Rain fall speed (default is 4 m/s)
  vfqi = 0.15,               ! Ice fall speed (default is 0.15 m/s)
  vfqs = 1.0,                ! Snow fall speed (default is 1 m/s)

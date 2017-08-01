@@ -2719,8 +2719,6 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('micro_autoconversion_option',iautoconv))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('micro_semi_implicit_option',rsemi))
-          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_fall_speed_rain',vfqr))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_fall_speed_ice',vfqi))
