@@ -54,7 +54,7 @@ module mod_params
   private
 
   real(rkx) , parameter :: maxdt = 600.0_rkx
-  real(rkx) , parameter :: mindt = 2.0_rkx
+  real(rkx) , parameter :: mindt = 1.0_rkx
 
   public :: param
 
@@ -897,8 +897,10 @@ module mod_params
 
       close(ipunit)
 
-      if ( dt > maxdt .or. dt > 3.0_rkx * ds ) then
-        dt = min(maxdt,3.0_rkx*ds)
+      if ( dt > maxdt ) then
+        write(stderr,*) 'DT very big , ',dt,' s !!!!'
+        write(stderr,*) 'Will reset to ',maxdt,' s !!!!'
+        dt = maxdt
       end if
       if ( dt < mindt ) then
         write(stderr,*) 'DT very small , ',dt,' s !!!!'
