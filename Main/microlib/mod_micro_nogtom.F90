@@ -1082,7 +1082,7 @@ module mod_micro_nogtom
             !------------------------------------------------------------------
             dtdp   = rovcp*tk/mo2mc%phs(j,i,k)
             dpmxdt = dp*oneodt
-            wtot   = 0.0_rkx ! mo2mc%pverv(j,i,k)
+            wtot   = mo2mc%pverv(j,i,k)
             wtot   = min(dpmxdt,max(-dpmxdt,wtot))
             dtdiab = min(dpmxdt*dtdp, &
                        max(-dpmxdt*dtdp,mo2mc%heatrt(j,i,k)))*dt+wlhfocp*ldefr
