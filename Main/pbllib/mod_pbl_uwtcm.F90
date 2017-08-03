@@ -491,16 +491,14 @@ module mod_pbl_uwtcm
           templ = thlx(k)*exnerhl(k)
           temps = templ
           rvls = pfwsat(temps,preshl(k))
-          rvls = max(qwx(k)-minqq,rvls)
           do iteration = 1 , 3
             deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls)/   &
                       (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
             temps = temps + deltat
             rvls = pfwsat(temps,preshl(k))
-            rvls = max(qwx(k)-minqq,rvls)
           end do
-          qcx(k) = min(max(qwx(k)-rvls, d_zero),qwx(k)-minqq)
-          qx(k) = qwx(k)-qcx(k)
+          qcx(k) = max(qwx(k)-rvls, d_zero)
+          qx(k) = max(qwx(k)-qcx(k),minqq)
           thx(k) = (templ + qcx(k)*wlhvocp) * rexnerhl(k)
           uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
           ! Determine the temperature and qc and qv
