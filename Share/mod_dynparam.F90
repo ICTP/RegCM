@@ -126,7 +126,7 @@ module mod_dynparam
   ! Set amount of printout (still unused, sorry)
 
   integer(ik4) :: debug_level = 0
-  integer(ik4) :: dbgfrq = 3600
+  integer(ik4) :: dbgfrq = 24
 
   !###################### I/O control flag ###############################
 

@@ -214,7 +214,7 @@ module mod_massck
         (real((drymass-dryini)/dryini,rk8) * d_100) * dt/86400.0_rk8
       waterror = waterror + &
         (real((qmass-watini)/watini,rk8) * d_100) * dt/86400.0_rk8
-      if ( mod(ktau,kday) == 0 ) then
+      if ( mod(ktau,kday) == 0 .or. mod(ktau,kdbg) == 0 ) then
         appdat = tochar(idatex)
         write(stdout,'(a)') &
             ' ********************* MASS CHECK ********************'

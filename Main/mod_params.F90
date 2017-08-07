@@ -307,10 +307,7 @@ module mod_params
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
     conf      = 1.00_rkx   ! Condensation efficiency
     rcrit     = 13.5_rkx   ! Mean critical radius
-    ! Geometric mean Diameter = 0.15 micron (in mass !)
-    ! standard deviation = 1.6
-    ! Geometric mean Diameter and standard deviation
-    coef_ccn  = 2.4564013565691311e+20_rkx
+    coef_ccn  = 2.5e+20_rkx ! Coefficient determined by assuming a lognormal PMD
     abulk     = 0.9_rkx    ! Bulk activation ratio
     lsrfhack  = .false.  ! Surface radiation hack
     !
@@ -414,7 +411,7 @@ module mod_params
                             ! cloud at which evaporation starts for ocean
     rprc_lnd = 1.4e-3_rkx   ! coefficient for conversion from cloud water
     rprc_ocn = 1.4e-3_rkx   ! coefficient for conversion from cloud water
-    cmtcape = 10800.0_rkx   ! CAPE adjustment timescale
+    cmtcape = 3600.0_rkx   ! CAPE adjustment timescale
     lmfpen    = .true.  ! penetrative conv is switched on
     lmfmid    = .true.  ! midlevel conv is switched on
     lmfdd     = .true.  ! cumulus downdraft is switched on

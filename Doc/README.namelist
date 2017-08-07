@@ -35,19 +35,19 @@
 !
  &dynparam
  gnu1 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.1250,   ! nu factor for Asselin filter in leapfrog step (tracers).
                   ! MM5 manual , equation 2.4.6
-                  ! Default 0.0625 for hydro, 0.1 for nonhydro
+                  ! Default 0.0625,0.1250 for hydro, 0.1,0.1 for nonhydro
  diffu_hgtf = 1, ! Add topographic effect to diffusion
  upstream_mode = .true., ! Add off centering to advection
- upu = 0.1,              ! Maximum off-centering factor to use
- umax = 200.0,           ! Value of P*U for maximum off centering
+ upu = 0.150,            ! Maximum off-centering factor to use
+ umax = 160.0,           ! Value of P*U for maximum off centering
  stability_enhance = .true., ! Do not allow horizontal advection to increase
                              ! tendencies if strong gradients are present
  vert_stability_enhance = .true., ! Same for vertical advection
  t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
- c_rel_extrema = 0.2, ! Maximum gradient fraction for QC for advection to stop
  q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
+ c_rel_extrema = 0.8, ! Maximum gradient fraction for QX for advection to stop
  t_rel_extrema = 0.2, ! Maximum gradient fraction for tracer advection to stop
  /
 !
@@ -68,7 +68,7 @@
  plat = 45.39,     ! Pole latitude (only for rotated Mercator Proj)
  plon = 13.48,     ! Pole longitude (only for rotated Mercator Proj)
  truelatl = 30.0,  ! Lambert true latitude (low latitude side)
- truelath = 60,    ! Lambert true latitude (high latitude side)
+ truelath = 60.0,  ! Lambert true latitude (high latitude side)
  i_band = 0,       ! Use this to enable a tropical band. In this case the ds,
                    ! iproj, clat, clon parameters are not considered.
  /
@@ -79,11 +79,11 @@
  domname  = 'AQWA',           ! Name of the domain/experiment.
                               ! Controls naming of input files
  lresamp = .false.,           ! Do a first resampling before interpolation
- ismthlev = 2,                ! Smoothing level (1-2-1, smoother-desmoother)
- roidem = 1.5,                ! Interpolation radius in ds unit for topography
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
- h2opct = 50.,                ! Surface min H2O percent to be considered water
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
+ ismthlev = 2,                ! Smoothing level (1-2-1, smoother-desmoother)
+ roidem = 1.0,                ! Interpolation radius in ds unit for topography
+ h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
                               ! terrain program the domain bathymetry
  lsmoist     = .false.,       ! Use Satellite Soil Moisture Dataset for
@@ -106,7 +106,7 @@
 !
  &debugparam
  debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
- dbgfrq = 3,      ! Interval for printout if debug_level >= 3
+ dbgfrq = 24,     ! Interval (hours) for printout if debug_level >= 3
  /
 !
 ! Buffer Zone Control relaxation + diffusion term
@@ -127,9 +127,12 @@
 !
 ! ICBC Global data input control
 !
+!   GLOBAL DATA AVAILABLE FROM ICTP FROM:
+!            http://clima-dods.ictp.it/Data/RegCM_Data
+!
  &globdatparam
  ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
+ ssttyp = 'EIN15',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
                              !          EIN75, EIN15, CCSST, CA_XX, HA_XX,
@@ -147,13 +150,11 @@
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
- dirglob = 'input/',         ! Path for ICBC produced input files
- inpglob = 'globdata/',      ! Path for ICBC global input datasets.
+ dirglob = 'input',          ! Path for ICBC produced input files
+ inpglob = 'RegCM_Data',     ! Path for ICBC global input datasets.
  ensemble_run = .false.,     ! If this is a member of a perturbed ensemble
                              ! run. Activate random noise added to input
                              ! ICBC controlled by the perturbparam stanza
-                   ! Look http://users.ictp.it/~pubregcm/RegCM4/globedat.htm
-                   ! on how to download them.
  /
 !
 ! Nesting control
@@ -307,8 +308,8 @@
  iemiss  =          0,  ! Use computed long wave emissivity
  lakemod =          0,  ! Use lake model
  ichem   =          0,  ! Use active aerosol chemical model
- scenario =      'A1B', ! IPCC Scenario to use in A1B,A2,B1,B2
-                        ! RCP Scenarios in RPC2.6,RCP4.5,RCP6,RCP8.5
+ scenario     'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
+                        ! AR4 old CMIP3 scenario to use in A1B, A2, B1, B2
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
@@ -316,7 +317,7 @@
  idesseas =          0, ! Model desert seasonal albedo variability
  iconvlwp =          0, ! Use convective algo for lwp in the large-scale
                         ! This is reset to zero if using ipptls = 2
- icldfrac =          0, ! Cloud fraction algorithm
+ icldfrac =          1, ! Cloud fraction algorithm
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
                         !   2 : Thompson scheme
@@ -359,36 +360,36 @@
                     ! nhbet = 0.2 - 0.4 are used (MM5 manual, Sec. 2.5.1)
  nhxkd = 0.1,       ! Time weighting for weighting old/new pp
  ifrayd = 1,        ! Upper levels Rayleigh damper to BCs
- rayndamp = 4,      ! Number of top levels to apply
- rayalpha0 = 0.01,  ! Rate alpha0
- rayhd = 8000.0,    ! Damping scale depth
+ rayndamp = 5,      ! Number of top levels to apply
+ rayalpha0 = 0.001, ! Rate alpha0
+ rayhd = 10000.0,   ! Damping scale depth
  /
 !
 ! Moisture scheme comtrol (ipptls = 1)
 !
  &subexparam
- ncld      = 1,      ! # of bottom model levels with no clouds (rad only)
- qck1land  = 0.0005, ! Autoconversion Rate for Land
- qck1oce   = 0.0005, ! Autoconversion Rate for Ocean
- gulland   = 0.65,   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
- guloce    = 0.30,   ! Fract of Gultepe eqn (qcth) for ocean
- rhmax     = 1.01,   ! RH at whicn FCC = 1.0
- rhmin     = 0.01,   ! RH min value
- rh0land   = 0.80,   ! Relative humidity threshold for land
- rh0oce    = 0.90,   ! Relative humidity threshold for ocean
- tc0       = 238.0,  ! Below this temp, rh0 begins to approach unity
- cevaplnd  = 1.0e-5, ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
- cevapoce  = 1.0e-5, ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
- caccrlnd  = 6.0,    ! Raindrop accretion rate land  [m3/kg/s]
- caccroce  = 6.0,    ! Raindrop accretion rate ocean [m3/kg/s]
- cllwcv    = 0.3e-3, ! Cloud liquid water content for convective precip.
- clfrcvmax = 0.75,   ! Max cloud fractional cover for convective precip.
- cftotmax  = 0.75,   ! Max total cover cloud fraction for radiation
- conf      = 1.00,   ! Condensation efficiency
- rcrit     = 13.5,   ! Mean critical radius
- coef_ccn  = 2.0,    ! Geometric mean Diameter and standard deviation
- abulk     = 0.9,    ! Bulk activation ratio
- lsrfhack  = .false. ! Surface radiation hack
+ ncld      = 1,       ! # of bottom model levels with no clouds (rad only)
+ qck1land  = 0.0005,  ! Autoconversion Rate for Land
+ qck1oce   = 0.0005,  ! Autoconversion Rate for Ocean
+ gulland   = 0.65,    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
+ guloce    = 0.30,    ! Fract of Gultepe eqn (qcth) for ocean
+ rhmax     = 1.01,    ! RH at whicn FCC = 1.0
+ rhmin     = 0.01,    ! RH min value
+ rh0land   = 0.80,    ! Relative humidity threshold for land
+ rh0oce    = 0.90,    ! Relative humidity threshold for ocean
+ tc0       = 238.0,   ! Below this temp, rh0 begins to approach unity
+ cevaplnd  = 1.0e-5,  ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
+ cevapoce  = 1.0e-5,  ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+ caccrlnd  = 6.0,     ! Raindrop accretion rate land  [m3/kg/s]
+ caccroce  = 6.0,     ! Raindrop accretion rate ocean [m3/kg/s]
+ cllwcv    = 0.3e-3,  ! Cloud liquid water content for convective precip.
+ clfrcvmax = 0.75,    ! Max cloud fractional cover for convective precip.
+ cftotmax  = 0.75,    ! Max total cover cloud fraction for radiation
+ conf      = 1.00,    ! Condensation efficiency
+ rcrit     = 13.5,    ! Mean critical radius
+ coef_ccn  = 2.5e+20, ! Coefficient determined by assuming a lognormal PMD
+ abulk     = 0.9,     ! Bulk activation ratio
+ lsrfhack  = .false.  ! Surface radiation hack
  /
 !
 ! New Microphysics Option (ipptls = 2)
@@ -413,6 +414,7 @@
  auto_rate_kessl = 1.e-3,   ! Autoconversion coefficient for kautoconv=3
  auto_rate_klepi = 0.5e-3,  ! Autoconversion coefficient for kautoconv=1
  rkconv = 1.666e-4,         ! Autoconversion coefficient for kautoconv=4
+ skconv = 1.0-3,            ! Autoconversion coefficient for snow
  rcovpmin = 0.1,            ! Minimum precipitation coverage
  rpecons = 5.547e-5,        ! Evaporation constant Kessler
  /
@@ -551,7 +553,7 @@
                 ! scale. Higher values mean stronger mixing in stable
                 ! conditions
  czero = 5.869, ! Czero constant in UW PBL (eqn 44a and pgs 856-857)
- nuk = 5.0D0,   ! Multiplication factor for diffusion coefficients
+ nuk = 5.0,     ! Multiplication factor for diffusion coefficients
  /
 !
 ! SLAB Ocean model, or q-flux adjusted mixed layer model
@@ -594,6 +596,8 @@
  liqflglw = 1, ! Flag for liquid droplet specification as above but for LW
  icld  = 1,    ! Cloud Overlap hypothesis
  irng = 1,     ! mersenne twister random generator for McICA COH
+ imcica = 1,   ! Cloud optical depth (extinction) is in cloud quantity
+ nradfo = 4,   !
  /
 !
 ! Chemical control parameter
