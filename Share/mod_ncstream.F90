@@ -547,7 +547,7 @@ module mod_ncstream
             write(tempstr(5),'(f9.0)') earthrad
             write(tempstr(6),'(f9.0)') earthrad
             attc%theval = '+proj=omerc +lat_0='//trim(adjustl(tempstr(1)))// &
-              ' +alpha=90.0 +lonc='//trim(adjustl(tempstr(2)))// &
+              ' +alpha=89.999999 +lonc='//trim(adjustl(tempstr(2)))// &
               ' +x_0='//trim(adjustl(tempstr(3)))// &
               ' +y_0='//trim(adjustl(tempstr(4)))// &
               ' +ellps=sphere +a='//trim(adjustl(tempstr(5)))// &
