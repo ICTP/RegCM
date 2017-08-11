@@ -37,7 +37,7 @@ module mod_memutil
   public :: getmem4d , relmem4d
   public :: getmem5d , relmem5d
   public :: assignpnt
-  public :: memshare
+  !public :: memshare
 
   interface assignpnt
     module procedure assignp1d_l
@@ -90,23 +90,23 @@ module mod_memutil
     module procedure assignp5d_d
   end interface assignpnt
 
-  interface memshare
-    module procedure spaceshare_1d_r8r4
-    module procedure spaceshare_1d_r8i4
-    module procedure spaceshare_1d_r8l4
-    module procedure spaceshare_1d_r4i4
-    module procedure spaceshare_1d_r4l4
-    module procedure spaceshare_2d_r8r4
-    module procedure spaceshare_2d_r8i4
-    module procedure spaceshare_2d_r8l4
-    module procedure spaceshare_2d_r4i4
-    module procedure spaceshare_2d_r4l4
-    module procedure spaceshare_3d_r8r4
-    module procedure spaceshare_3d_r8i4
-    module procedure spaceshare_3d_r8l4
-    module procedure spaceshare_3d_r4i4
-    module procedure spaceshare_3d_r4l4
-  end interface memshare
+  !interface memshare
+  !  module procedure spaceshare_1d_r8r4
+  !  module procedure spaceshare_1d_r8i4
+  !  module procedure spaceshare_1d_r8l4
+  !  module procedure spaceshare_1d_r4i4
+  !  module procedure spaceshare_1d_r4l4
+  !  module procedure spaceshare_2d_r8r4
+  !  module procedure spaceshare_2d_r8i4
+  !  module procedure spaceshare_2d_r8l4
+  !  module procedure spaceshare_2d_r4i4
+  !  module procedure spaceshare_2d_r4l4
+  !  module procedure spaceshare_3d_r8r4
+  !  module procedure spaceshare_3d_r8i4
+  !  module procedure spaceshare_3d_r8l4
+  !  module procedure spaceshare_3d_r4i4
+  !  module procedure spaceshare_3d_r4l4
+  !end interface memshare
 
   interface getmem1d
     module procedure getmem1d_l
@@ -3076,155 +3076,155 @@ module mod_memutil
                      lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_d
 
-  subroutine spaceshare_1d_r8r4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_1d_r8r4
+!  subroutine spaceshare_1d_r8r4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:) , intent(in) :: a
+!    real(rk4) , pointer , dimension(:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_1d_r8r4
 
-  subroutine spaceshare_1d_r4i4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk4) , pointer , dimension(:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_1d_r4i4
+!  subroutine spaceshare_1d_r4i4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk4) , pointer , dimension(:) , intent(in) :: a
+!    integer(ik4) , pointer , dimension(:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_1d_r4i4
 
-  subroutine spaceshare_1d_r8i4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_1d_r8i4
+!  subroutine spaceshare_1d_r8i4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:) , intent(in) :: a
+!    integer(ik4) , pointer , dimension(:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_1d_r8i4
 
-  subroutine spaceshare_1d_r4l4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk4) , pointer , dimension(:) , intent(in) :: a
-    logical , pointer , dimension(:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_1d_r4l4
+!  subroutine spaceshare_1d_r4l4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk4) , pointer , dimension(:) , intent(in) :: a
+!    logical , pointer , dimension(:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_1d_r4l4
 
-  subroutine spaceshare_1d_r8l4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:) , intent(in) :: a
-    logical , pointer , dimension(:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_1d_r8l4
+!  subroutine spaceshare_1d_r8l4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:) , intent(in) :: a
+!    logical , pointer , dimension(:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_1d_r8l4
 
-  subroutine spaceshare_2d_r8r4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_2d_r8r4
+!  subroutine spaceshare_2d_r8r4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
+!    real(rk4) , pointer , dimension(:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_2d_r8r4
 
-  subroutine spaceshare_2d_r4i4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_2d_r4i4
+!  subroutine spaceshare_2d_r4i4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
+!    integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_2d_r4i4
 
-  subroutine spaceshare_2d_r8i4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_2d_r8i4
+!  subroutine spaceshare_2d_r8i4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
+!    integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_2d_r8i4
 
-  subroutine spaceshare_2d_r4l4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_2d_r4l4
+!  subroutine spaceshare_2d_r4l4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk4) , pointer , dimension(:,:) , intent(in) :: a
+!    logical , pointer , dimension(:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_2d_r4l4
 
-  subroutine spaceshare_2d_r8l4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_2d_r8l4
+!  subroutine spaceshare_2d_r8l4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:,:) , intent(in) :: a
+!    logical , pointer , dimension(:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_2d_r8l4
 
-  subroutine spaceshare_3d_r8r4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_3d_r8r4
+!  subroutine spaceshare_3d_r8r4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
+!    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_3d_r8r4
 
-  subroutine spaceshare_3d_r4i4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_3d_r4i4
+!  subroutine spaceshare_3d_r4i4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
+!    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_3d_r4i4
 
-  subroutine spaceshare_3d_r8i4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_3d_r8i4
+!  subroutine spaceshare_3d_r8i4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
+!    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_3d_r8i4
 
-  subroutine spaceshare_3d_r4l4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_3d_r4l4
+!  subroutine spaceshare_3d_r4l4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
+!    logical , pointer , dimension(:,:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_3d_r4l4
 
-  subroutine spaceshare_3d_r8l4(a,b)
-    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
-    implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
-    logical , pointer , dimension(:,:,:) , intent(out) :: b
-    type(c_ptr) :: pntr
-    pntr = c_loc(a)
-    call c_f_pointer(pntr,b,shape(a))
-  end subroutine spaceshare_3d_r8l4
+!  subroutine spaceshare_3d_r8l4(a,b)
+!    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
+!    implicit none
+!    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
+!    logical , pointer , dimension(:,:,:) , intent(out) :: b
+!    type(c_ptr) :: pntr
+!    pntr = c_loc(a)
+!    call c_f_pointer(pntr,b,shape(a))
+!  end subroutine spaceshare_3d_r8l4
 
 end module mod_memutil
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
