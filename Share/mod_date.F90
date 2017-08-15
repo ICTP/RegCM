@@ -84,7 +84,7 @@ module mod_date
   end type iatime
 
   interface assignment(=)
-    module procedure initfromintdt , initfromtypedt
+    module procedure initfromintdt , initfromint8dt , initfromtypedt
     module procedure initfromintit ,    &
                      initfromsingleit , &
                      initfromdoubleit , &
@@ -128,7 +128,7 @@ module mod_date
   end interface
 
   interface split_idate
-    module procedure split_i10 , split_rcm_time_and_date , &
+    module procedure split_i10 , split_i10_8 , split_rcm_time_and_date , &
                     split_rcm_time_and_date_complete , split_rcm_date
   end interface
 
@@ -384,28 +384,55 @@ module mod_date
 
   subroutine normidate(idate)
     implicit none
-    integer(ik4) , intent(inout) :: idate
-    if (idate < 10000) idate = idate*1000000+10100
-    if (idate < 1000000) idate = idate*10000+100
-    if (idate < 100000000) idate = idate*100
+    integer(ik8) , intent(inout) :: idate
+    if (idate < 10000_ik8) idate = idate*1000000_ik8+10100_ik8
+    if (idate < 1000000_ik8) idate = idate*10000_ik8+100_ik8
+    if (idate < 100000000_ik8) idate = idate*100_ik8
   end subroutine normidate
 
   subroutine split_i10(idate, iy, im, id, ih)
     implicit none
     integer(ik4) , intent(in) :: idate
     integer(ik4) , intent(out) :: iy , im , id , ih
-    integer(ik4) :: base , iidate
+    integer(ik8) :: base , iidate
+    integer(ik8) :: iy8 , im8 , id8 , ih8
+    iidate = int(idate,ik8)
+    call normidate(iidate)
+    base = iidate
+    iy8 = base/1000000_ik8
+    base = base-iy8*1000000_ik8
+    im8 = base/10000_ik8
+    base = base-im8*10000_ik8
+    id8 = base/100_ik8
+    base = base-id8*100_ik8
+    ih8 = base
+    iy = int(iy8,ik4)
+    im = int(im8,ik4)
+    id = int(id8,ik4)
+    ih = int(ih8,ik4)
+  end subroutine split_i10
+
+  subroutine split_i10_8(idate, iy, im, id, ih)
+    implicit none
+    integer(ik8) , intent(in) :: idate
+    integer(ik4) , intent(out) :: iy , im , id , ih
+    integer(ik8) :: base , iidate
+    integer(ik8) :: iy8 , im8 , id8 , ih8
     iidate = idate
     call normidate(iidate)
     base = iidate
-    iy = base/1000000
-    base = base-iy*1000000
-    im = base/10000
-    base = base-im*10000
-    id = base/100
-    base = base-id*100
-    ih = base
-  end subroutine split_i10
+    iy8 = base/1000000_ik8
+    base = base-iy8*1000000_ik8
+    im8 = base/10000_ik8
+    base = base-im8*10000_ik8
+    id8 = base/100_ik8
+    base = base-id8*100_ik8
+    ih8 = base
+    iy = int(iy8,ik4)
+    im = int(im8,ik4)
+    id = int(id8,ik4)
+    ih = int(ih8,ik4)
+  end subroutine split_i10_8
 
   subroutine initfromintdt(x, i)
     implicit none
@@ -429,6 +456,29 @@ module mod_date
     d%calendar = gregorian
     call date_time_to_internal(d,t,x)
   end subroutine initfromintdt
+
+  subroutine initfromint8dt(x, i)
+    implicit none
+    integer(ik8) , intent(in) :: i
+    type (rcm_time_and_date) , intent(out) :: x
+    type (iadate) :: d
+    type (iatime) :: t
+    call split_i10_8(i, d%year, d%month, d%day, t%hour)
+    if ( d%year < 0 .or. d%year > 10000 ) then
+      call die('mod_date','Inconsistent year in date')
+    end if
+    if ( d%month < 1 .or. d%month > 12 ) then
+      call die('mod_date','Inconsistent month in date')
+    end if
+    if ( d%day < 1 .or. d%day > 31 ) then
+      call die('mod_date','Inconsistent day in date')
+    end if
+    if ( t%hour+1 < 1 .or. t%hour+1 > 24 ) then
+      call die('mod_date','Inconsistent hour in date')
+    end if
+    d%calendar = gregorian
+    call date_time_to_internal(d,t,x)
+  end subroutine initfromint8dt
 
   subroutine initfromintit(x, i)
     implicit none
