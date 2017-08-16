@@ -56,9 +56,9 @@ module mod_ocn_albedo
     implicit none
 !
     real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , &
-                 cf1 , cff , conn , cons ,       &
-                 czeta , czf , dfalbl , dfalbs , dralbl , dralbs , sl , &
-                 sl2 , sli , tdiff , tdiffs
+                 cf1 , cff , conn , cons , wspd , czeta , czf , &
+                 dfalbl , dfalbs , dralbl , dralbs , sl , sl2 , &
+                 sli , tdiff , tdiffs , wfac
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocn_albedo'
@@ -74,19 +74,21 @@ module mod_ocn_albedo
       !
       if ( mask(i) == 1 .or. mask(i) == 3 ) then
         ! ocean albedo depends on zenith angle
+        wspd = sqrt(usw(i)**2+vsw(i)**2)
+        wfac = (d_one+wspd)/45.0_rkx
         if ( czeta >= d_zero ) then
           ! albedo independent of wavelength
-          albg = 0.05_rkx/(czeta+0.15_rkx)
+          albg = 0.05_rkx*(d_one+wfac+(czeta+0.15_rkx)/(d_one+sqrt(wspd)))
           albgs = albg
           albgl = albg
-          albgsd = 0.08_rkx
-          albgld = 0.08_rkx
+          albgsd = 0.06_rkx
+          albgld = 0.06_rkx
         else
-          albg = 0.05_rkx
+          albg = 0.05_rkx * (d_one+wfac)
           albgs = albg
           albgl = albg
-          albgsd = 0.08_rkx
-          albgld = 0.08_rkx
+          albgsd = 0.06_rkx
+          albgld = 0.06_rkx
         end if
       else if ( mask(i) == 2 .or. mask(i) == 4 ) then
         ! Ice over ocean or lake
