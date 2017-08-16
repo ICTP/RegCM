@@ -155,6 +155,7 @@ program test_timing
 
   type(rcm_time_and_date) :: mdate0 , mdate1 , mdate2
   type(rcm_alarm) :: srf_alarm , rad_alarm , cum_alarm
+  type(rcm_alarm) :: srf_output
 
   mdate0 = 1950010100
   mdate1 = 1950010100
@@ -165,6 +166,7 @@ program test_timing
   print *, nowstring( ) , ktau( )
 
   srf_alarm = rcm_alarm(600.0_rkx,.true.)
+  srf_output = rcm_alarm(3600.0_rkx*3.0,.true.)
   rad_alarm = rcm_alarm(1800.0_rkx,.true.)
   cum_alarm = rcm_alarm(300.0_rkx)
 
@@ -178,6 +180,9 @@ program test_timing
     end if
     if ( cum_alarm%act( ) ) then
       print *, 'CUM ', cum_alarm%now , cum_alarm%wt(1)
+    end if
+    if ( srf_output%act( ) ) then
+      print *, 'OUT_SRF' , srf_output%now , srf_output%wt(1)
     end if
   end do
 
