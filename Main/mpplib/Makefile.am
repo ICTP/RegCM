@@ -6,7 +6,8 @@ vpath %.o $(REGCM_ROOT)/Share:.
 noinst_LIBRARIES = libmpp.a
 libmpp_a_SOURCES = mod_mppparam.F90 mod_mpmessage.F90 mod_service.F90 \
                    mod_runparams.F90 mod_outvars.F90 mod_ncout.F90 \
-                   mod_regcm_types.F90 mod_ipcc_scenario.F90
+                   mod_regcm_types.F90 mod_ipcc_scenario.F90 \
+                   mod_timer.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
@@ -30,3 +31,4 @@ mod_runparams.o : mod_runparams.F90 mod_date.o mod_dynparam.o mod_intkinds.o mod
 mod_service.o : mod_service.F90 mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_regcm_types.o : mod_regcm_types.F90 mod_intkinds.o mod_realkinds.o
+mod_timer.o : mod_timer.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_date.o
