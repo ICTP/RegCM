@@ -404,7 +404,7 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            cu_chiten(j,i,k,:) = pxtte(ii,k,:)
+            cu_chiten(j,i,k,:) = pxtte(ii,k,:) - avg_chiten(j,i,k,n)
             ! build for chemistry 3d table of constant precipitation rate
             ! from the surface to the top of the convection
             if ( k > kctop(ii) ) then
