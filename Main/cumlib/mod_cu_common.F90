@@ -49,7 +49,6 @@ module mod_cu_common
   real(rkx) , pointer , dimension(:,:,:) :: cu_raincc
   real(rkx) , pointer , dimension(:,:,:) :: cu_convpr
   real(rkx) , pointer , dimension(:,:,:) :: cu_cldfrc
-  real(rkx) , pointer , dimension(:,:,:) :: cu_cldlwc
   integer(ik4) , pointer , dimension(:,:) :: cu_ktop
   integer(ik4) , pointer , dimension(:,:) :: cu_kbot
 
@@ -86,7 +85,6 @@ module mod_cu_common
     call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
     call getmem4d(avg_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:avg_qten')
     call getmem3d(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
-    call getmem3d(cu_cldlwc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldlwc')
     call getmem2d(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
     call getmem2d(cu_ktop,jci1,jci2,ici1,ici2,'cumulus:ktop')
     call getmem2d(cu_kbot,jci1,jci2,ici1,ici2,'cumulus:kbot')
@@ -101,29 +99,31 @@ module mod_cu_common
       call getmem3d(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:raincc')
     end if
 
-    if ( icumcloud == 2 ) then
-      !
-      ! Free hand draw of a generic ten layer cumulus cloud shape.
-      !
-      fixed_cld_profile(1)  = 0.130_rkx
-      fixed_cld_profile(2)  = 0.125_rkx
-      fixed_cld_profile(3)  = 0.120_rkx
-      fixed_cld_profile(4)  = 0.080_rkx
-      fixed_cld_profile(5)  = 0.080_rkx
-      fixed_cld_profile(6)  = 0.080_rkx
-      fixed_cld_profile(7)  = 0.085_rkx
-      fixed_cld_profile(8)  = 0.085_rkx
-      fixed_cld_profile(9)  = 0.105_rkx
-      fixed_cld_profile(10) = 0.110_rkx
-      if ( addnoise ) then
-        call random_seed(size=nseed)
-        call cpu_time(cputime)
-        allocate(iseed(nseed))
-        iseed = int(cputime) + 37*[(k-1,k=1,nseed)]
-        call random_seed(put=iseed)
-        deallocate(iseed)
-      else
-        cld_profile = fixed_cld_profile
+    if ( any(icup == 1) .or. any(icup == 3) ) then
+      if ( icumcloud == 2 ) then
+        !
+        ! Free hand draw of a generic ten layer cumulus cloud shape.
+        !
+        fixed_cld_profile(1)  = 0.130_rkx
+        fixed_cld_profile(2)  = 0.125_rkx
+        fixed_cld_profile(3)  = 0.120_rkx
+        fixed_cld_profile(4)  = 0.080_rkx
+        fixed_cld_profile(5)  = 0.080_rkx
+        fixed_cld_profile(6)  = 0.080_rkx
+        fixed_cld_profile(7)  = 0.085_rkx
+        fixed_cld_profile(8)  = 0.085_rkx
+        fixed_cld_profile(9)  = 0.105_rkx
+        fixed_cld_profile(10) = 0.110_rkx
+        if ( addnoise ) then
+          call random_seed(size=nseed)
+          call cpu_time(cputime)
+          allocate(iseed(nseed))
+          iseed = int(cputime) + 37*[(k-1,k=1,nseed)]
+          call random_seed(put=iseed)
+          deallocate(iseed)
+        else
+          cld_profile = fixed_cld_profile
+        end if
       end if
     end if
   end subroutine init_mod_cumulus
@@ -135,79 +135,40 @@ module mod_cu_common
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
     scalef = (d_one-clfrcv)
     if ( icumcloud <= 1 ) then
-      iloop1: &
       do i = ici1 , ici2
-        jloop1: &
         do j = jci1 , jci2
-          if ( cuscheme(j,i) /= 1 .and. cuscheme(j,i) /= 3 ) cycle jloop1
           ! The regcm model is top to bottom
           ktop = cu_ktop(j,i)
           kbot = cu_kbot(j,i)
           kclth = kbot - ktop + 1
-          if ( kclth < 2 ) cycle jloop1
+          if ( kclth < 2 ) cycle
           akclth = d_one/real(kclth,rkx)
           do k = ktop , kbot
             cu_cldfrc(j,i,k) = d_one - scalef**akclth
           end do
-        end do jloop1
-      end do iloop1
+        end do
+      end do
     else if ( icumcloud == 2 ) then
       if ( addnoise ) then
         ! Put 25% noise level. Update cld_profile each time.
         call random_number(rnum)
         cld_profile = (0.75_rkx+(rnum/2.0_rkx))*fixed_cld_profile
       end if
-      iloop3: &
       do i = ici1 , ici2
-        jloop3: &
         do j = jci1 , jci2
-          if ( cuscheme(j,i) /= 1 .and. cuscheme(j,i) /= 3 ) cycle jloop3
           ktop = cu_ktop(j,i)
           kbot = cu_kbot(j,i)
           kclth = kbot - ktop + 1
-          if ( kclth < 2 ) cycle jloop3
+          if ( kclth < 2 ) cycle
           scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
                   maxcloud_dp,d_one)
           do k = ktop , kbot
             ikh = max(1,min(10,int((real(k-ktop+1,rkx)/real(kclth,rkx))*d_10)))
             cu_cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
           end do
-        end do jloop3
-      end do iloop3
-    end if
-    if ( icumcloud == 0 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ktop = cu_ktop(j,i)
-          kbot = cu_kbot(j,i)
-          if ( ktop > 1 .and. kbot > 1 ) then
-            do k = ktop , kbot
-              if ( cuscheme(j,i) == 4 ) then
-                cu_cldlwc(j,i,k) = 0.5e-4_rkx
-              else
-                cu_cldlwc(j,i,k) = 0.3e-3_rkx
-              end if
-            end do
-          end if
-        end do
-      end do
-    else
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( cu_cldfrc(j,i,k) > 0.001_rkx ) then
-              cu_cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
-            else
-              cu_cldlwc(j,i,k) = d_zero
-            end if
-          end do
         end do
       end do
     end if
-
-    contains
-
-#include <clwfromt.inc>
 
   end subroutine model_cumulus_cloud
 

@@ -41,7 +41,7 @@ module mod_cloud_xuran
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , qv , qs
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
     integer(ik4) :: i , j , k
-    real(rkx) :: botm , rm , qcld
+    real(rkx) :: botm , rm , qcld , rhrng
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
@@ -56,8 +56,9 @@ module mod_cloud_xuran
             fcc(j,i,k) = lowcld
           else
             qcld = qc(j,i,k)
-            botm = exp(0.49_rkx*log((rhmax-rh(j,i,k))*qs(j,i,k)))
-            rm = exp(0.25_rkx*log(rh(j,i,k)))
+            rhrng = max(d_zero,min(d_one,rh(j,i,k)))
+            botm = exp(0.49_rkx*log((d_one-rhrng)*qs(j,i,k)))
+            rm = exp(0.25_rkx*log(rhrng))
             if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
               fcc(j,i,k) = rm
             else

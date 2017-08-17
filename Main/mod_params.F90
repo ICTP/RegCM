@@ -105,11 +105,12 @@ module mod_params
       islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,      &
       ghg_year_const
 
-    namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , upstream_mode , upu , &
-      umax , stability_enhance , vert_stability_enhance , t_extrema ,    &
-      c_rel_extrema , q_rel_extrema , t_rel_extrema
+    namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
+      upstream_mode , upu , umax , stability_enhance ,             &
+      vert_stability_enhance , t_extrema , c_rel_extrema ,         &
+      q_rel_extrema , t_rel_extrema
 
-    namelist /nonhydroparam/ ifupr , ckh , adyndif , nhbet , nhxkd ,  &
+    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,  &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
@@ -193,7 +194,7 @@ module mod_params
     !
     ! outparam ;
     !
-    ifsave = .false.
+    ifsave = .true.
     ifatm  = .true.
     ifrad  = .true.
     ifsrf  = .true.
@@ -262,8 +263,6 @@ module mod_params
     ! Non hydrostatic param ;
     !
     ifupr = 1
-    ckh = d_one       ! Environmental diffusion tunable parameter
-    adyndif = 1.0_rkx ! Dynamical diffusion tunable parameter
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     itopnudge = 0
@@ -302,7 +301,7 @@ module mod_params
     cevapoce  = 1.0e-5_rkx ! Raindrop ev rate coef ocean [[(kg m-2 s-1)-1/2]/s]
     caccrlnd  = 6.0_rkx    ! Raindrop accretion rate land  [m3/kg/s]
     caccroce  = 6.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
-    cllwcv    = 0.3e-3_rkx   ! Cloud liquid water content for convective precip.
+    cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
     conf      = 1.00_rkx   ! Condensation efficiency
@@ -403,8 +402,8 @@ module mod_params
     entshalp = 2.0_rkx      ! shallow entrainment factor for entrpen
     rcuc_lnd = 0.05_rkx     ! Convective cloud cover for rain evporation
     rcuc_ocn = 0.05_rkx     ! Convective cloud cover for rain evporation
-    rcpec_ocn = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
     rcpec_lnd = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
+    rcpec_ocn = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
     rhebc_lnd = 0.7_rkx     ! Critical relative humidity below
                             ! cloud at which evaporation starts for land
     rhebc_ocn = 0.9_rkx     ! Critical relative humidity below
@@ -600,19 +599,24 @@ module mod_params
         diffu_hgtf = 0
         gnu1 = 0.1000_rkx
         gnu2 = 0.1000_rkx
+        upstream_mode = .true.
+        stability_enhance = .true.
+        vert_stability_enhance = .true.
       else
         diffu_hgtf = 1
-        gnu1 = 0.0625_rkx
-        gnu2 = 0.1250_rkx
+        gnu1 = 0.0600_rkx
+        gnu2 = 0.0600_rkx
+        upstream_mode = .false.
+        stability_enhance = .false.
+        vert_stability_enhance = .false.
       end if
-      upstream_mode = .true.
-      stability_enhance = .true.
-      vert_stability_enhance = .true.
+      ckh = 1.0_rkx
+      adyndif = 1.0_rkx
       upu = 0.150_rkx
       umax = 160.0_rkx
       t_extrema = 5.0_rkx
-      c_rel_extrema = 0.80_rkx
       q_rel_extrema = 0.20_rkx
+      c_rel_extrema = 0.20_rkx
       t_rel_extrema = 0.20_rkx
       rewind(ipunit)
       read (ipunit, nml=dynparam, iostat=iretval, err=104)
@@ -999,6 +1003,8 @@ module mod_params
     call bcast(gnu1)
     call bcast(gnu2)
     call bcast(diffu_hgtf)
+    call bcast(ckh)
+    call bcast(adyndif)
     call bcast(upstream_mode)
     call bcast(upu)
     call bcast(umax)
@@ -1032,8 +1038,6 @@ module mod_params
       call bcast(base_state_pressure)
       call bcast(logp_lrate)
       call bcast(ifupr)
-      call bcast(ckh)
-      call bcast(adyndif)
       call bcast(nhbet)
       call bcast(nhxkd)
       call bcast(itopnudge)

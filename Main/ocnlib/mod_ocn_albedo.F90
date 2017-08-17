@@ -75,20 +75,20 @@ module mod_ocn_albedo
       if ( mask(i) == 1 .or. mask(i) == 3 ) then
         ! ocean albedo depends on zenith angle
         wspd = sqrt(usw(i)**2+vsw(i)**2)
-        wfac = (d_one+wspd)/45.0_rkx
+        wfac = (d_one+wspd)/50.0_rkx
         if ( czeta >= d_zero ) then
           ! albedo independent of wavelength
           albg = 0.05_rkx*(d_one+wfac+(czeta+0.15_rkx)/(d_one+sqrt(wspd)))
           albgs = albg
           albgl = albg
-          albgsd = 0.06_rkx
-          albgld = 0.06_rkx
+          albgsd = 0.06_rkx * (d_one-wfac)
+          albgld = 0.06_rkx * (d_one-wfac)
         else
           albg = 0.05_rkx * (d_one+wfac)
           albgs = albg
           albgl = albg
-          albgsd = 0.06_rkx
-          albgld = 0.06_rkx
+          albgsd = 0.06_rkx * (d_one-wfac)
+          albgld = 0.06_rkx * (d_one-wfac)
         end if
       else if ( mask(i) == 2 .or. mask(i) == 4 ) then
         ! Ice over ocean or lake

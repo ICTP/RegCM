@@ -86,7 +86,7 @@ module mod_diffusion
     xkhmax = dxsq/(64.0_rkx*dtsec)  ! Computation stability
     dydc = adyndif*vonkar*vonkar*dx*d_rfour ! Deformation term coefficient
     if ( idynamic == 1 ) then
-      xkhz = 1.5e-3_rkx*dxsq/dtsec
+      xkhz = ckh * 1.5e-3_rkx*dxsq/dtsec
     else
       ! (Xu et al., MWR, 2001, 502-516)
       xkhz = ckh * dx

@@ -49,7 +49,7 @@ module mod_cloud_subex
     real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
     real(rkx) , intent(in) :: tc0
-    real(rkx) :: rh0adj
+    real(rkx) :: rh0adj , rhrng
     real(rkx) , parameter :: eps = 1.0e-7_rkx
     integer(ik4) :: i , j , k
 
@@ -61,19 +61,20 @@ module mod_cloud_subex
       do i = ici1 , ici2
         do j = jci1 , jci2
           ! Adjusted relative humidity threshold
+          rhrng = min(max(rh(j,i,k),d_zero),d_one)
           if ( t(j,i,k) > tc0 ) then
             rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+            rh0adj = d_one-(d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
           end if
-          rh0adj = max(rhmin+eps,min(rh0adj,rhmax-eps))
+          rh0adj = min(max(rh0adj,d_zero),d_one)
           if ( rh(j,i,k) >= rhmax ) then     ! full cloud cover
             fcc(j,i,k) = hicld
           else if ( rh(j,i,k) <= rhmin ) then
             fcc(j,i,k) = lowcld
           else
             ! Use Sundqvist (1989) formula
-            fcc(j,i,k) = d_one-sqrt(d_one-(rh(j,i,k)-rh0adj)/(rhmax-rh0adj))
+            fcc(j,i,k) = d_one-sqrt(d_one-(rhrng-rh0adj)/(d_one-rh0adj))
           end if
         end do
       end do

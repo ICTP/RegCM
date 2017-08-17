@@ -133,7 +133,7 @@ module mod_pbl_holtbl
     type(pbl_2_mod) , intent(inout) :: p2m
     real(rkx) :: drgdot , kzmax , oblen , ri , sf , sh10 , &
                  ss , uflxsf , uflxsfx , vflxsf , vflxsfx
-    integer(ik4) :: i , j , k , nn , itr
+    integer(ik4) :: i , j , k , nn , itr , iter
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'holtbl'
     integer(ik4) , save :: idindx = 0
@@ -257,38 +257,40 @@ module mod_pbl_holtbl
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ! Compute specific humidity
-        sh10 = m2p%qxatm(j,i,kz,iqv) / (m2p%qxatm(j,i,kz,iqv)+d_one)
         ! "virtual" potential temperature
         if ( hfxv(j,i) >= d_zero ) then
           th10(j,i) = thvx(j,i,kz)
         else
+          ! Compute specific humidity
+          sh10 = m2p%qxatm(j,i,kz,iqv)/(m2p%qxatm(j,i,kz,iqv)+d_one)
           ! first approximation for obhukov length
-          if ( ifaholtth10 == 2 ) then
+          if ( ifaholtth10 == 1 ) then
             th10(j,i) = (0.25_rkx*m2p%tpatm(j,i,kz) + &
                          0.75_rkx*m2p%tgb(j,i))*(d_one+ep1*sh10)
-          else if ( ifaholtth10 == 3 ) then
+          else if ( ifaholtth10 == 2 ) then
             th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
                         log(m2p%za(j,i,kz)*d_r10))
           else
             th10(j,i) = (d_half*(m2p%tpatm(j,i,kz)+m2p%tgb(j,i))) * &
                          (d_one + ep1*sh10)
           end if
-          oblen = -(th10(j,i)*ustr(j,i)**3) /  &
-                  (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
-          if ( oblen >= m2p%za(j,i,kz) ) then
-            th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-               (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
-          else
-            if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
+          do iter = 1 , 5
+            oblen = -(th10(j,i)*ustr(j,i)**3) /  &
+                    (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
+            if ( oblen >= m2p%za(j,i,kz) ) then
               th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
-                  (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
-                  6.0_rkx*log(m2p%za(j,i,kz)/oblen))
+                 (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
             else
-              th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
-                          6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
+              if ( oblen < m2p%za(j,i,kz) .and. oblen > d_10 ) then
+                th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
+                    (log(oblen*d_r10)+d_five/oblen*(oblen-d_10)+         &
+                    6.0_rkx*log(m2p%za(j,i,kz)/oblen))
+              else
+                th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
+                            6.0_rkx*log(m2p%za(j,i,kz)*d_r10)
+              end if
             end if
-          end if
+          end do
         end if
         if ( ifaholt == 1 ) then
           th10(j,i) = max(th10(j,i),m2p%tgb(j,i))  ! gtb add to maximize

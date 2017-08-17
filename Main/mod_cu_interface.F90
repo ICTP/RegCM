@@ -35,7 +35,7 @@ module mod_cu_interface
       avg_chiten
   use mod_cu_common , only : cu_utenx , cu_vtenx , cu_tten , cu_qten , &
       cu_prate , cu_uten , cu_vten , cu_ktop , cu_kbot , cu_cldfrc ,   &
-      cu_cldlwc , cu_qdetr , cu_raincc , cu_convpr , cu_chiten
+      cu_qdetr , cu_raincc , cu_convpr , cu_chiten
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , lutbl , cldefi ,    &
@@ -57,6 +57,7 @@ module mod_cu_interface
   public :: allocate_cumulus
   public :: init_cumulus
   public :: cumulus , shallow_convection
+  public :: cucloud
 
   public :: lutbl
 
@@ -185,6 +186,31 @@ module mod_cu_interface
     call init_mod_cumulus
   end subroutine init_cumulus
 
+  subroutine cucloud
+    implicit none
+    integer(ik4) :: i , j , k
+    if ( any(icup == 1) .or. any(icup == 3) ) then
+      call model_cumulus_cloud(m2c)
+    end if
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),0.0_rkx)
+          if ( cu_cldfrc(j,i,k) > 0.001_rkx ) then
+            c2m%cldlwc(j,i,k) = clwfromt(m2c%tas(j,i,k))
+          else
+            c2m%cldlwc(j,i,k) = d_zero
+          end if
+        end do
+      end do
+    end do
+
+    contains
+
+#include <clwfromt.inc>
+
+  end subroutine cucloud
+
   subroutine cumulus
     implicit none
     integer(ik4) :: i , j , k , n
@@ -209,7 +235,7 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              avg_tten(j,i,k) = m2c%tten(j,i,k)/m2c%psb(j,i) + m2c%heatrt(j,i,k)
+              avg_tten(j,i,k) = m2c%tten(j,i,k)/m2c%psb(j,i)+m2c%heatrt(j,i,k)
             end do
           end do
         end do
@@ -234,7 +260,7 @@ module mod_cu_interface
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                avg_qten(j,i,k,n) = m2c%qxten(j,i,k,n) / m2c%psb(j,i)
+                avg_qten(j,i,k,n) = m2c%qxten(j,i,k,n)/m2c%psb(j,i)
               end do
             end do
           end do
@@ -244,7 +270,7 @@ module mod_cu_interface
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  avg_chiten(j,i,k,n) = m2c%chiten(j,i,k,n) / m2c%psb(j,i)
+                  avg_chiten(j,i,k,n) = m2c%chiten(j,i,k,n)/m2c%psb(j,i)
                 end do
               end do
             end do
@@ -258,12 +284,11 @@ module mod_cu_interface
         cu_uten(:,:,:) = d_zero
         cu_vten(:,:,:) = d_zero
         cu_qten(:,:,:,:) = d_zero
+        cu_cldfrc(:,:,:) = d_zero
         if ( ichem == 1 ) then
           cu_chiten(:,:,:,:) = d_zero
           cu_convpr(:,:,:) = d_zero
         end if
-        cu_cldfrc(:,:,:) = d_zero
-        cu_cldlwc(:,:,:) = d_zero
         if ( any(icup == 5) ) then
           cu_qdetr(:,:,:) = d_zero
           cu_raincc(:,:,:) = d_zero
@@ -311,8 +336,6 @@ module mod_cu_interface
           end select
         end if
 
-        call model_cumulus_cloud(m2c)
-
       end if
 
 
@@ -353,15 +376,6 @@ module mod_cu_interface
               c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
                        cu_qten(j,i,k,n) * m2c%psb(j,i)
             end do
-          end do
-        end do
-      end do
-
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            c2m%cldfrc(j,i,k) = max(cu_cldfrc(j,i,k),1e-10_rkx)
-            c2m%cldlwc(j,i,k) = cu_cldlwc(j,i,k)
           end do
         end do
       end do

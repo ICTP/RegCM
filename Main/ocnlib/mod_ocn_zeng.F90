@@ -27,7 +27,7 @@ module mod_ocn_zeng
   use mod_service
   use mod_ocn_internal
   use mod_runparams , only : iocnrough , iocnzoq , ktau
-  use mod_runparams , only : iocncpl, ntcpl
+  use mod_runparams , only : iocncpl, ntcpl , rhmax , rhmin
   use mod_runparams , only : iwavcpl, zomax, ustarmax
 
   implicit none
@@ -75,9 +75,10 @@ module mod_ocn_zeng
     implicit none
     real(rkx) :: dqh , dth , facttq , lh , q995 , qs , sh , zo , &
                  t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
-    real(rkx) :: dthv , hq , zh , hu , obu , qstar , rb , xdens , &
-                 th , thv , thvstar , tstar , um , visa , zot ,   &
-                 xlv , wc , zeta , zoq , wt1 , wt2
+    real(rkx) :: dthv , hq , zh , hu , obu , qstar , rb , xdens ,   &
+                 th , thv , thvstar , tstar , um , visa , zot ,     &
+                 xlv , wc , zeta , zoq , wt1 , wt2 , rhp , twbulb , &
+                 pcpcool
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
@@ -116,6 +117,7 @@ module mod_ocn_zeng
       th = sts(i)*(p00/sfps(i))**rovcp
       dth = tatm(i) - tgrd(i)
       qs = pfwsat(tgrd(i),sfps(i))*0.98_rkx
+      rhp = min(max(q995/qs,rhmin),rhmax) * d_100
       ! in kg/kg
       dqh = q995 - qs
       thv = th*(d_one+ep1*q995)
@@ -251,9 +253,15 @@ module mod_ocn_zeng
         end if
         obu = hu/zeta
       end do
+      ! Stull 2011
+      twbulb = t995 * atan((rhp+8.313659_rkx)**0.5_rkx) + &
+               atan(t995+rhp) - atan(rhp-1.676331_rkx) +  &
+               0.00391838_rkx*(rhp)**1.5_rkx * atan(0.023101_rkx*rhp) - &
+               4.686035_rkx
+      pcpcool = cpw*prcp(i)*(twbulb-tsurf)
       tau = xdens*ustar*ustar*uv995/um
       lh = -xdens*xlv*qstar*ustar
-      sh = -xdens*cpd*tstar*ustar
+      sh = -xdens*cpd*tstar*ustar + pcpcool
       !
       ! x and y components of tau:
       ! lms%taux=xdens*ustar*ustar*u_x/um
@@ -354,8 +362,9 @@ module mod_ocn_zeng
         tgbrd(i) = sst(i)
       end if ! dcsst
 
-      sent(i)  = sh
-      evpr(i)  = lh*rwlhv
+      tgbrd(i)  = tgbrd(i) - sign(d_one,pcpcool) * sqrt(sqrt(abs(pcpcool)/sigm))
+      sent(i) = sh
+      evpr(i) = lh*rwlhv
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995
