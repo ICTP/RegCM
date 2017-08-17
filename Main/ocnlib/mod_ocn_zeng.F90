@@ -253,12 +253,16 @@ module mod_ocn_zeng
         end if
         obu = hu/zeta
       end do
-      ! Stull 2011
-      twbulb = t995 * atan((rhp+8.313659_rkx)**0.5_rkx) + &
-               atan(t995+rhp) - atan(rhp-1.676331_rkx) +  &
-               0.00391838_rkx*(rhp)**1.5_rkx * atan(0.023101_rkx*rhp) - &
-               4.686035_rkx
-      pcpcool = cpw*prcp(i)*(twbulb-tsurf)
+      if ( iocncpl /= 1 ) then
+        ! Stull 2011
+        twbulb = t995 * atan((rhp+8.313659_rkx)**0.5_rkx) + &
+                 atan(t995+rhp) - atan(rhp-1.676331_rkx) +  &
+                 0.00391838_rkx*(rhp)**1.5_rkx * atan(0.023101_rkx*rhp) - &
+                 4.686035_rkx
+        pcpcool = cpw*prcp(i)*(twbulb-tsurf)
+      else
+        pcpcool = d_zero
+      end if
       tau = xdens*ustar*ustar*uv995/um
       lh = -xdens*xlv*qstar*ustar
       sh = -xdens*cpd*tstar*ustar + pcpcool
