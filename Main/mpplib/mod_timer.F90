@@ -83,23 +83,24 @@ module mod_timer
     idate = mdate1
   end subroutine init_timer
 
-  subroutine step_timer
+  subroutine step_timer( )
+    implicit none
     model_internal_time = model_internal_time + model_timestep
     reached_endtime = model_internal_time >= model_stop_time
     idate = idate + intmdl
   end subroutine step_timer
 
-  character (len=32) function nowstring result(ns)
+  character (len=32) function nowstring( ) result(ns)
     implicit none
     ns = tochar(idate)
   end function nowstring
 
-  integer(ik8) function ktau
+  integer(ik8) function ktau( )
     implicit none
     ktau = model_internal_time/model_timestep
   end function ktau
 
-  integer(ik8) function time_from_start
+  integer(ik8) function time_from_start( )
     implicit none
     time_from_start = model_internal_time
   end function time_from_start

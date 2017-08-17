@@ -188,7 +188,7 @@ module mod_ocn_zeng
       !
       ! main iterations (2-10 iterations would be fine)
       !
-      do nconv = 1 , 10
+      do nconv = 1 , 5
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         !
         ! wind
