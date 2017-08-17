@@ -31,23 +31,28 @@
                 ! 2 = MM5 NON hydrostatical core
  /
 !
-! Dynamical core parameters
+! Dynamical core parameters : Use defaults, be on your own otherwise!
 !
  &dynparam
- gnu1 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.1250,   ! nu factor for Asselin filter in leapfrog step (tracers).
+ gnu1 = 0.0600,   ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.0600,   ! nu factor for Asselin filter in leapfrog step (tracers).
                   ! MM5 manual , equation 2.4.6
-                  ! Default 0.0625,0.1250 for hydro, 0.1,0.1 for nonhydro
- diffu_hgtf = 1, ! Add topographic effect to diffusion
- upstream_mode = .true., ! Add off centering to advection
- upu = 0.150,            ! Maximum off-centering factor to use
- umax = 160.0,           ! Value of P*U for maximum off centering
- stability_enhance = .true., ! Do not allow horizontal advection to increase
-                             ! tendencies if strong gradients are present
- vert_stability_enhance = .true., ! Same for vertical advection
+                  ! Default 0.06,0.06 for hydro, 0.1,0.1 for nonhydro
+ ckh = 1.0,       ! Background diffusion multiplication factor
+ adyndif = 1.0,   ! Dynamical diffusion multiplication factor
+ diffu_hgtf = 1,  ! Add topographic effect to diffusion
+                  ! Default is zero for non-hydrostatic
+ upstream_mode = .false., ! Add off centering to advection, enabled in non-hydro
+ upu = 0.150,             ! Maximum off-centering factor to use
+ umax = 160.0,            ! Value of P*U for maximum off centering
+ stability_enhance = .false., ! Do not allow horizontal advection to increase
+                              ! tendencies if strong gradients are present
+                              ! Enabled in non-hydro
+ vert_stability_enhance = .false., ! Same for vertical advection
+                                   ! Enabled in non-hydro
  t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
  q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
- c_rel_extrema = 0.8, ! Maximum gradient fraction for QX for advection to stop
+ c_rel_extrema = 0.2, ! Maximum gradient fraction for QX for advection to stop
  t_rel_extrema = 0.2, ! Maximum gradient fraction for tracer advection to stop
  /
 !
@@ -350,8 +355,6 @@
  &nonhydroparam
  ifupr = 1,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
- ckh = 1.0,         ! Background diffusion multiplication factor
- adyndif = 1.0,     ! Dynamical diffusion multiplication factor
  nhbet = 0.4,       ! Ikawa beta parameter (0.=centered, 1.=backward)
                     ! determines the time-weighting, where zero gives a
                     ! time-centered average and positive values give a bias
