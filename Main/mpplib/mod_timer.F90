@@ -28,26 +28,31 @@ module mod_timer
 
   private
 
-  public :: init_timer
-  public :: step_timer
-  public :: reached_endtime
-  public :: nowstring
-  public :: ktau
-  public :: time_from_start
-  public :: rcm_alarm
+  public :: rcm_timer , rcm_alarm
+
+  type rcm_timer
+    integer(ik8) :: model_initial_time
+    integer(ik8) :: model_start_time
+    integer(ik8) :: model_stop_time
+    integer(ik8) :: model_timestep
+    integer(ik8) :: model_internal_time
+    logical :: reached_endtime
+    type(rcm_time_and_date) :: idate
+    type(rcm_time_interval) :: intmdl
+    integer(ik4) :: nowinday
+    integer(ik4) :: year , month , day , hour , minute , second
+  contains
+    procedure :: step => step_timer
+    procedure :: str => nowstring
+    procedure :: from_start => time_from_start
+    procedure :: ktau => step_from_start
+  end type rcm_timer
+
+  interface rcm_timer
+    module procedure init_timer
+  end interface rcm_timer
 
   ! Supported precision is 1 second (minimum dt is 1)
-
-  integer(ik8) :: model_initial_time
-  integer(ik8) :: model_start_time
-  integer(ik8) :: model_stop_time
-  integer(ik8) :: model_timestep
-  integer(ik8) :: model_internal_time
-
-  logical :: reached_endtime
-
-  type(rcm_time_and_date) :: idate
-  type(rcm_time_interval) :: intmdl
 
   type rcm_alarm
     real(rkx) :: dt
@@ -56,6 +61,7 @@ module mod_timer
     real(rkx) , dimension(2) :: wt
     integer(ik8) :: now
     logical :: triggered
+    type(rcm_timer) , pointer :: timer
   contains
     procedure :: act => alarm_act
   end type rcm_alarm
@@ -66,56 +72,72 @@ module mod_timer
 
   contains
 
-  subroutine init_timer(mdate0,mdate1,mdate2,mdt)
+  function init_timer(mdate0,mdate1,mdate2,mdt)
     implicit none
     type(rcm_time_and_date) , intent(in) :: mdate0 , mdate1 , mdate2
+    type(rcm_timer) , pointer :: init_timer
     real(rkx) , intent(in) :: mdt
     type(rcm_time_interval) :: tdif
-    model_initial_time = 0
+    allocate(init_timer)
+    init_timer%model_initial_time = 0
     tdif = mdate1 - mdate0
-    model_start_time = int(tohours(tdif)*secph,ik8)
+    init_timer%model_start_time = int(tohours(tdif)*secph,ik8)
     tdif = mdate2 - mdate0
-    model_stop_time = int(tohours(tdif)*secph,ik8)
-    model_timestep = int(mdt,ik8)
-    model_internal_time = model_start_time
-    reached_endtime = model_internal_time >= model_stop_time
-    intmdl = rcm_time_interval(mdt,usec)
-    idate = mdate1
-  end subroutine init_timer
+    init_timer%model_stop_time = int(tohours(tdif)*secph,ik8)
+    init_timer%model_timestep = int(mdt,ik8)
+    init_timer%model_internal_time = init_timer%model_start_time
+    init_timer%reached_endtime = &
+       init_timer%model_internal_time >= init_timer%model_stop_time
+    init_timer%intmdl = rcm_time_interval(mdt,usec)
+    init_timer%idate = mdate1
+    call split_idate(init_timer%idate,init_timer%year, &
+                     init_timer%month,init_timer%day,  &
+                     init_timer%hour,init_timer%minute,init_timer%second)
+    init_timer%nowinday = init_timer%idate%second_of_day
+  end function init_timer
 
-  subroutine step_timer( )
+  subroutine step_timer(t)
     implicit none
-    model_internal_time = model_internal_time + model_timestep
-    reached_endtime = model_internal_time >= model_stop_time
-    idate = idate + intmdl
+    class(rcm_timer) , intent(inout) :: t
+    t%model_internal_time = t%model_internal_time + t%model_timestep
+    t%idate = t%idate + t%intmdl
+    call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
+    t%reached_endtime = t%model_internal_time >= t%model_stop_time
   end subroutine step_timer
 
-  character (len=32) function nowstring( ) result(ns)
+  character (len=32) function nowstring(t) result(ns)
     implicit none
-    ns = tochar(idate)
+    class(rcm_timer) , intent(in) :: t
+    ns = tochar(t%idate)
   end function nowstring
 
-  integer(ik8) function ktau( )
+  integer(ik8) function step_from_start(t)
     implicit none
-    ktau = model_internal_time/model_timestep
-  end function ktau
+    class(rcm_timer) , intent(in) :: t
+    step_from_start = t%model_internal_time/t%model_timestep
+  end function step_from_start
 
-  integer(ik8) function time_from_start( )
+  integer(ik8) function time_from_start(t)
     implicit none
-    time_from_start = model_internal_time
+    class(rcm_timer) , intent(in) :: t
+    time_from_start = t%model_internal_time
   end function time_from_start
 
-  function init_alarm(dt,act0)
+  function init_alarm(t,dt,act0)
     implicit none
+    class(rcm_timer) , pointer , intent(in) :: t
     type(rcm_alarm) :: init_alarm
     real(rkx) , intent(in) :: dt
     logical , intent(in) , optional :: act0
     logical :: lact0
+    init_alarm%timer => null( )
+    if ( .not. associated(t) ) return
+    init_alarm%timer => t
     lact0 = .false.
     if ( present(act0) ) lact0 = act0
     init_alarm%dt = dt
     init_alarm%actint = int(dt,ik8)
-    init_alarm%lastact = model_internal_time
+    init_alarm%lastact = t%model_internal_time
     init_alarm%triggered = lact0
   end function init_alarm
 
@@ -124,10 +146,11 @@ module mod_timer
     real(rkx) :: t1 , t2
     class(rcm_alarm) , intent(inout) :: alarm
     res = .false.
-    t1 = real(model_internal_time,rkx)
+    t1 = real(alarm%timer%model_internal_time,rkx)
     t2 = real(alarm%lastact+alarm%actint,rkx)
     if ( t1 >= t2 ) then
-      alarm%lastact = (model_internal_time/alarm%actint) * alarm%actint
+      alarm%lastact = (alarm%timer%model_internal_time/alarm%actint) * &
+                       alarm%actint
       alarm%triggered = .true.
     end if
     if ( alarm%triggered ) then
@@ -135,7 +158,7 @@ module mod_timer
       alarm%triggered = .false.
       alarm%wt(1) = (t1 - t2)/alarm%dt
       alarm%wt(2) = d_one - alarm%wt(1)
-      alarm%now = model_internal_time
+      alarm%now = alarm%timer%model_internal_time
     end if
   end function alarm_act
 
@@ -149,30 +172,33 @@ subroutine myabort
 end subroutine myabort
 
 program test_timing
+  use mod_intkinds
   use mod_realkinds
   use mod_date
   use mod_timer
   implicit none
 
   type(rcm_time_and_date) :: mdate0 , mdate1 , mdate2
+
+  type(rcm_timer) , pointer :: timer
   type(rcm_alarm) :: srf_alarm , rad_alarm , cum_alarm
   type(rcm_alarm) :: srf_output
 
   mdate0 = 1950010100
   mdate1 = 1950010100
-  mdate2 = 2300010100
+  mdate2 = 2300010100_ik8
 
-  call init_timer(mdate0,mdate1,mdate2,213.0_rkx)
+  timer => rcm_timer(mdate0,mdate1,mdate2,213.0_rkx)
 
-  print *, nowstring( ) , ktau( )
+  print *, timer%str( ) , timer%ktau( )
 
-  srf_alarm = rcm_alarm(600.0_rkx,.true.)
-  srf_output = rcm_alarm(3600.0_rkx*3.0,.true.)
-  rad_alarm = rcm_alarm(1800.0_rkx,.true.)
-  cum_alarm = rcm_alarm(300.0_rkx)
+  srf_alarm = rcm_alarm(timer,600.0_rkx,.true.)
+  srf_output = rcm_alarm(timer,3600.0_rkx*3.0,.true.)
+  rad_alarm = rcm_alarm(timer,1800.0_rkx,.true.)
+  cum_alarm = rcm_alarm(timer,300.0_rkx)
 
-  do while ( .not. reached_endtime )
-    call step_timer
+  do while ( .not. timer%reached_endtime )
+    call timer%step( )
     if ( srf_alarm%act( ) ) then
       print *, 'SRF ', srf_alarm%now , srf_alarm%wt(1)
     end if
@@ -187,7 +213,7 @@ program test_timing
     end if
   end do
 
-  print *, nowstring( ) , ktau( )
+  print *, timer%str( ) , timer%ktau( )
 
 end program test_timing
 #endif

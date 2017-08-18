@@ -71,7 +71,8 @@ module mod_params
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     real(rkx) , dimension(nsplit) :: dtsplit
-    integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
+    integer(ik4) :: i , j , k , kbase , ktop , ns
+    integer(ik8) :: mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan , ipunit
     integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
     integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq

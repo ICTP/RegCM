@@ -418,7 +418,8 @@ module mod_dynparam
     implicit none
     character (len=*) , intent(in) :: filename
     integer(ik4) , intent(out) :: ierr
-    integer(ik4) :: gdate1 , gdate2 , iresult
+    integer(ik8) :: gdate1 , gdate2
+    integer(ik4) :: iresult
     integer(ik4) :: ipunit
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
