@@ -37,6 +37,7 @@ module mod_timer
     integer(ik8) :: model_timestep
     integer(ik8) :: model_internal_time
     logical :: reached_endtime
+    logical :: next_is_endtime
     type(rcm_time_and_date) :: idate
     type(rcm_time_interval) :: intmdl
     integer(ik4) :: nowinday
@@ -64,6 +65,7 @@ module mod_timer
     type(rcm_timer) , pointer :: timer
   contains
     procedure :: act => alarm_act
+    procedure :: will_act => alarm_willact
   end type rcm_alarm
 
   interface rcm_alarm
@@ -88,6 +90,7 @@ module mod_timer
     init_timer%model_internal_time = init_timer%model_start_time
     init_timer%reached_endtime = &
        init_timer%model_internal_time >= init_timer%model_stop_time
+    init_timer%next_is_endtime = .false.
     init_timer%intmdl = rcm_time_interval(mdt,usec)
     init_timer%idate = mdate1
     call split_idate(init_timer%idate,init_timer%year, &
@@ -112,6 +115,8 @@ module mod_timer
       t%second = mod(t%nowinday,60)
     end if
     t%reached_endtime = t%model_internal_time >= t%model_stop_time
+    t%next_is_endtime = (t%model_internal_time + &
+                         t%model_timestep) >= t%model_stop_time
   end subroutine step_timer
 
   character (len=32) function nowstring(t) result(ns)
@@ -135,10 +140,11 @@ module mod_timer
   function init_alarm(t,dt,act0)
     implicit none
     class(rcm_timer) , pointer , intent(in) :: t
-    type(rcm_alarm) :: init_alarm
+    type(rcm_alarm) , pointer :: init_alarm
     real(rkx) , intent(in) :: dt
     logical , intent(in) , optional :: act0
     logical :: lact0
+    allocate(init_alarm)
     init_alarm%timer => null( )
     if ( .not. associated(t) ) return
     init_alarm%timer => t
@@ -155,11 +161,15 @@ module mod_timer
     real(rkx) :: t1 , t2
     class(rcm_alarm) , intent(inout) :: alarm
     res = .false.
+    if ( alarm%now == alarm%timer%model_internal_time ) then
+      res = .true.
+      return
+    end if
     t1 = real(alarm%timer%model_internal_time,rkx)
     t2 = real(alarm%lastact+alarm%actint,rkx)
     if ( t1 >= t2 ) then
-      alarm%lastact = (alarm%timer%model_internal_time/alarm%actint) * &
-                       alarm%actint
+      alarm%lastact = ((alarm%timer%model_internal_time) / &
+                        alarm%actint)*alarm%actint
       alarm%triggered = .true.
     end if
     if ( alarm%triggered ) then
@@ -170,6 +180,18 @@ module mod_timer
       alarm%now = alarm%timer%model_internal_time
     end if
   end function alarm_act
+
+  logical function alarm_willact(alarm) result(res)
+    implicit none
+    real(rkx) :: t1 , t2
+    class(rcm_alarm) , intent(inout) :: alarm
+    res = .false.
+    t1 = real(alarm%timer%model_internal_time+alarm%timer%model_timestep,rkx)
+    t2 = real(alarm%lastact+alarm%actint,rkx)
+    if ( t1 >= t2 ) then
+      res = .true.
+    end if
+  end function alarm_willact
 
 end module mod_timer
 
@@ -194,8 +216,8 @@ program test_timing
   type(rcm_time_and_date) :: mdate0 , mdate1 , mdate2
 
   type(rcm_timer) , pointer :: timer
-  type(rcm_alarm) :: srf_alarm , rad_alarm , cum_alarm
-  type(rcm_alarm) :: srf_output
+  type(rcm_alarm) , pointer :: srf_alarm , rad_alarm , cum_alarm
+  type(rcm_alarm) , pointer :: srf_output
 
   mdate0 = idates(1)
   mdate1 = idates(2)
@@ -205,10 +227,10 @@ program test_timing
 
   print *, timer%str( ) , timer%ktau( )
 
-  srf_alarm = rcm_alarm(timer,600.0_rkx,.true.)
-  srf_output = rcm_alarm(timer,3600.0_rkx*3.0,.true.)
-  rad_alarm = rcm_alarm(timer,1800.0_rkx,.true.)
-  cum_alarm = rcm_alarm(timer,300.0_rkx)
+  srf_alarm  => rcm_alarm(timer,600.0_rkx,.true.)
+  srf_output => rcm_alarm(timer,3600.0_rkx*3.0,.true.)
+  rad_alarm  => rcm_alarm(timer,1800.0_rkx,.true.)
+  cum_alarm  => rcm_alarm(timer,300.0_rkx)
 
   do while ( .not. timer%reached_endtime )
     call timer%step( )
