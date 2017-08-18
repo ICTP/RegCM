@@ -335,15 +335,9 @@ module mod_date
   subroutine second_of_day_to_time(x,t)
     type(rcm_time_and_date) , intent(in) :: x
     type(iatime) , intent(out) :: t
-    integer(ik4) :: i1 , i2
-    i1 = x%second_of_day
-    i2 = i1/3600
-    t%hour = i2
-    i1 = i1-i2*3600
-    i2 = i1/60
-    t%minute = i2
-    i1 = i1-i2*60
-    t%second = i1
+    t%hour = x%second_of_day/3600
+    t%minute = mod(x%second_of_day,3600)/60
+    t%second = mod(x%second_of_day,60)
   end subroutine second_of_day_to_time
 
   subroutine date_time_to_internal(d,t,x)

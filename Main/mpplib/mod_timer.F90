@@ -99,9 +99,18 @@ module mod_timer
   subroutine step_timer(t)
     implicit none
     class(rcm_timer) , intent(inout) :: t
+    integer(ik4) :: tmp1 , tmp2
     t%model_internal_time = t%model_internal_time + t%model_timestep
+    t%nowinday = t%nowinday + t%model_timestep
     t%idate = t%idate + t%intmdl
-    call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
+    if ( t%nowinday > 86400 ) then
+      call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
+      t%nowinday = t%idate%second_of_day
+    else
+      t%hour = t%nowinday/3600
+      t%minute = mod(t%nowinday,3600)/60
+      t%second = mod(t%nowinday,60)
+    end if
     t%reached_endtime = t%model_internal_time >= t%model_stop_time
   end subroutine step_timer
 
@@ -178,15 +187,19 @@ program test_timing
   use mod_timer
   implicit none
 
+  integer(ik8) , dimension(3) :: idates = [ 1950010100_ik8, &
+                                            1950010100_ik8, &
+                                            1951010100_ik8 ]
+
   type(rcm_time_and_date) :: mdate0 , mdate1 , mdate2
 
   type(rcm_timer) , pointer :: timer
   type(rcm_alarm) :: srf_alarm , rad_alarm , cum_alarm
   type(rcm_alarm) :: srf_output
 
-  mdate0 = 1950010100
-  mdate1 = 1950010100
-  mdate2 = 2300010100_ik8
+  mdate0 = idates(1)
+  mdate1 = idates(2)
+  mdate2 = idates(3)
 
   timer => rcm_timer(mdate0,mdate1,mdate2,213.0_rkx)
 
@@ -199,6 +212,8 @@ program test_timing
 
   do while ( .not. timer%reached_endtime )
     call timer%step( )
+    print *, timer%year,timer%month,timer%day, &
+             timer%hour,timer%minute,timer%second
     if ( srf_alarm%act( ) ) then
       print *, 'SRF ', srf_alarm%now , srf_alarm%wt(1)
     end if
@@ -214,6 +229,8 @@ program test_timing
   end do
 
   print *, timer%str( ) , timer%ktau( )
+
+  deallocate(timer)
 
 end program test_timing
 #endif
