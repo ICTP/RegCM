@@ -42,11 +42,14 @@ module mod_timer
     type(rcm_time_interval) :: intmdl
     integer(ik4) :: nowinday
     integer(ik4) :: year , month , day , hour , minute , second
+    character(len=32) :: model_timestring
   contains
     procedure :: step => step_timer
     procedure :: str => nowstring
     procedure :: from_start => time_from_start
     procedure :: ktau => step_from_start
+    procedure :: start => is_start
+    procedure :: integrating => is_integrating
   end type rcm_timer
 
   interface rcm_timer
@@ -81,7 +84,7 @@ module mod_timer
     real(rkx) , intent(in) :: mdt
     type(rcm_time_interval) :: tdif
     allocate(init_timer)
-    init_timer%model_initial_time = 0
+    init_timer%model_initial_time = 0_ik8
     tdif = mdate1 - mdate0
     init_timer%model_start_time = int(tohours(tdif)*secph,ik8)
     tdif = mdate2 - mdate0
@@ -97,6 +100,7 @@ module mod_timer
                      init_timer%month,init_timer%day,  &
                      init_timer%hour,init_timer%minute,init_timer%second)
     init_timer%nowinday = init_timer%idate%second_of_day
+    init_timer%model_timestring = tochar(mdate1)
   end function init_timer
 
   subroutine step_timer(t)
@@ -119,10 +123,27 @@ module mod_timer
                          t%model_timestep) >= t%model_stop_time
   end subroutine step_timer
 
-  character (len=32) function nowstring(t) result(ns)
+  logical function is_start(t)
     implicit none
     class(rcm_timer) , intent(in) :: t
-    ns = tochar(t%idate)
+    is_start = t%model_internal_time == t%model_initial_time
+  end function is_start
+
+  logical function is_integrating(t)
+    implicit none
+    class(rcm_timer) , intent(in) :: t
+    is_integrating = t%model_internal_time /= t%model_initial_time
+  end function is_integrating
+
+  character (len=32) function nowstring(t) result(ns)
+    implicit none
+    class(rcm_timer) , intent(inout) :: t
+    integer(ik8) , save :: last
+    if ( t%model_internal_time /= last ) then
+      t%model_timestring = tochar(t%idate)
+      last = t%model_internal_time
+    end if
+    ns = t%model_timestring
   end function nowstring
 
   integer(ik8) function step_from_start(t)
