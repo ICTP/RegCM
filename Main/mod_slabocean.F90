@@ -91,14 +91,14 @@ module mod_slabocean
       real(rkx) , dimension(5) :: pval , pval1
 #endif
       if ( do_restore_sst ) then
-        stepcount(xmonth) = stepcount(xmonth)+1
+        stepcount(rcmtimer%month) = stepcount(rcmtimer%month)+1
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( ocmask(j,i) == 0 ) then
               qflux_sst(j,i) = (ts1(j,i) - sstemp(j,i)) * &
                 mlcp / (sst_restore_timescale * 86400.0_rkx) ! w/m2
-              qflux_restore_sst(j,i,xmonth) = &
-                qflux_restore_sst(j,i,xmonth) + qflux_sst(j,i)
+              qflux_restore_sst(j,i,rcmtimer%month) = &
+                qflux_restore_sst(j,i,rcmtimer%month) + qflux_sst(j,i)
             end if
           end do
         end do

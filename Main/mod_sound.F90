@@ -161,7 +161,6 @@ module mod_sound
       rkk , ri , rj
     integer(ik4) :: i , j , k , km1 , kp1 , istep , it , iconvec
     logical , save :: cfl_error = .false.
-    character (len=32) :: appdat
     character (len=*) , parameter :: f99003 =    &
           '("CFL>1: CFL = ",f12.4," W = ",f12.4, &
            &"  I = ",i5,"  J = ",i5,"  K = ",i5 )'
@@ -194,7 +193,7 @@ module mod_sound
     ! DTL LONG TIME-STEP (XXB-XXC)
     cfl_error = .false.
     istep = max(int(dt/dtsmax),2)
-    if ( ktau > 1 ) then
+    if ( rcmtimer%integrating( ) ) then
       istep = max(4,istep)
     end if
     dts = dt/real(istep,rkx)
@@ -480,11 +479,11 @@ module mod_sound
         ! If first time through and upper radiation b.c`s are used
         ! Need to calc some coefficients. RegCM updates every day.
         !
-        if ( ( mod(ktau,kday) == 0 ) .and. it == 1 ) then
+        if ( ( alarm_day%act( ) ) .and. it == 1 ) then
           ! Calculating means for upper radiative boundary conditions
           if ( myid == italk ) then
-            write(stdout,'(a,i8)') &
-               ' Updating upper radiative BC coefficients at ktau = ',ktau
+            write(stdout,*) 'At ',trim(rcmtimer%str()), &
+               ': updating upper radiative BC coefficients'
           end if
           atot = d_zero
           rhontot = d_zero
@@ -619,12 +618,12 @@ module mod_sound
           end do
         end do
       end do
-      if ( mod(ktau,krep) == 0 .and. ktau > 0 .and. it == istep ) then
+      if ( mod(ktau,krep) == 0 .and. &
+           rcmtimer%integrating( ) .and. it == istep ) then
         call sumall(total_precip_points,iconvec)
         call maxall(cfl,maxcfl)
         if ( myid == italk ) then
-          appdat = tochar(idatex)
-          write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
+          write(stdout,*) '$$$ ', rcmtimer%str( )
           write(stdout,'(a,e12.5)') ' $$$ max value of CFL = ',maxcfl
           if ( any(icup > 0) ) then
             write(stdout,'(a,i7)') &

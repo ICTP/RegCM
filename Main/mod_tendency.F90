@@ -215,7 +215,6 @@ module mod_tendency
                  rovcpm , cpm , rofac , uaq , vaq , scr1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
-    character (len=32) :: appdat
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tend'
     integer(ik4) , save :: idindx = 0
@@ -278,7 +277,8 @@ module mod_tendency
     ! Compute chemistry tendencies (other than transport)
     !
     if ( ichem == 1 ) then
-      call tractend2(ktau,xyear,xmonth,xday,calday,declin)
+      call tractend2(rcmtimer%ktau( ),rcmtimer%year, &
+                     rcmtimer%month,rcmtimer%day,calday,declin)
     end if
     !
     ! Compute Large scale horizontal diffusion term
@@ -571,7 +571,7 @@ module mod_tendency
       ! are not updated in the other convec scheme,
       ! cf mod_cu_em and mod_cu_tiedke.
       !
-      if ( ktau > 0 .and. mod(ktau,ntcum) == 0 .and. &
+      if ( rcmtimer%integrating( ) .and. mod(ktau,ntcum) == 0 .and. &
            ichcumtra == 1 .and. any(icup == 2 .or. icup == 6) ) then
         call cumtran
       end if
@@ -579,13 +579,10 @@ module mod_tendency
     !
     ! Next timestep ready : increment elapsed forecast time
     !
+    call rcmtimer%step( )
     ktau = ktau + 1
     if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
-    idatex = idatex + intmdl
-    if ( mod(ktau,khour) == 0 ) then
-      call split_idate(idatex,xyear,xmonth,xday,xhour)
-    end if
-    if ( ktau == 2 ) then
+    if ( rcmtimer%ktau( ) == 2 ) then
       dtbat = dt*real(ntsrf,rkx)
       dt = dt2
       rdt = d_one/dt
@@ -595,7 +592,7 @@ module mod_tendency
     !
     ! Print out noise parameter
     !
-    if ( idynamic == 1 .and. ktau > 1 ) then
+    if ( idynamic == 1 .and. rcmtimer%integrating( ) ) then
       if ( is_nan(ptntot) ) then
         maxv = abs(maxval(tten(:,:,:)))
         if ( (maxv/dtsec) > 0.01_rkx ) then ! 50 K per hour
@@ -686,10 +683,9 @@ module mod_tendency
         call sumall(pt2bar,pt2tot)
         call sumall(ptnbar,ptntot)
         if ( myid == italk ) then
-          appdat = tochar(idatex)
           ptntot = ptntot*rptn
           pt2tot = pt2tot*rptn
-          write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
+          write(stdout,*) '$$$ ', rcmtimer%str( )
           write(stdout,'(a,2E12.5)') ' $$$ 1st, 2nd time deriv of ps   = ', &
                 ptntot , pt2tot
           if ( any(icup > 0) ) then
@@ -722,7 +718,7 @@ module mod_tendency
           do j = jci1 , jci2
             check_tt = (aten%t(j,i,k,ipc)-mean_tt)*rpsb(j,i)
             if ( abs(check_tt) > temp_tend_maxval ) then
-              write(stderr,*) 'After ', loc, ' at ktau = ', ktau
+              write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%ktau( )
               write(stderr,*) 'TEMP tendency out of order : ', check_tt
               write(stderr,*) 'At J = ',j
               write(stderr,*) 'At I = ',i
@@ -763,7 +759,7 @@ module mod_tendency
           do j = jci1 , jci2
             check_ww = (ww(j,i,k)-mean_ww)/sfs%psdotb(j,i)
             if ( abs(check_ww) > wind_tend_maxval ) then
-              write(stderr,*) 'After ', loc, ' at ktau = ', ktau
+              write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%ktau( )
               write(stderr,*) 'WIND tendency out of order : ', check_ww
               write(stderr,*) 'At J = ',j
               write(stderr,*) 'At I = ',i
@@ -1428,7 +1424,7 @@ module mod_tendency
       !
       ! Compute bleck (1977) noise parameters:
       !
-      if ( ktau /= 0 ) then
+      if ( rcmtimer%integrating( ) ) then
         ptntot = d_zero
         pt2tot = d_zero
         do i = ici1 , ici2
@@ -1698,21 +1694,21 @@ module mod_tendency
       !       Call radiative transfer package
       !------------------------------------------------
       !
-      if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+      if ( rcmtimer%start() .or. mod(ktau+1,ntrad) == 0 ) then
         ! calculate albedo
         call surface_albedo
         ! Update / init Ozone profiles
         if ( iclimao3 == 1 ) then
-          call updateo3(idatex,scenario)
+          call updateo3(rcmtimer%idate,scenario)
         else
-          if ( ktau == 0 ) call inito3
+          if ( rcmtimer%start() ) call inito3
         end if
         if ( iclimaaer == 1 ) then
-          call updateaerosol(idatex)
+          call updateaerosol(rcmtimer%idate)
         end if
-        loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-        labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
-        call radiation(xyear,loutrad,labsem)
+        loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act( ) )
+        labsem = ( rcmtimer%start() .or. mod(ktau+1,ntabem) == 0 )
+        call radiation(rcmtimer%year,loutrad,labsem)
 #ifdef DEBUG
         call check_temperature_tendency('HEAT',pc_physic)
 #endif
@@ -1731,7 +1727,7 @@ module mod_tendency
       !            Call Surface model
       !------------------------------------------------
       !
-      if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
+      if ( rcmtimer%start() .or. mod(ktau+1,ntsrf) == 0 ) then
         call surface_model
         if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
       end if

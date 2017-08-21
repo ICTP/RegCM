@@ -164,7 +164,6 @@ module mod_regcm_interface
     implicit none
     real(rk8) , intent(in) :: timestr   ! starting time-step
     real(rk8) , intent(in) :: timeend   ! ending   time-step
-    character(len=32) :: appdat
 
     do while ( extime >= timestr .and. extime < timeend )
       !
@@ -172,7 +171,7 @@ module mod_regcm_interface
       !
 #ifdef CPL
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-        if (ktau > 0) then
+        if ( rcmtimer%integrating( ) ) then
           call rcm_get(myid)
         end if
       end if
@@ -184,7 +183,7 @@ module mod_regcm_interface
       !
       ! Boundary code
       !
-      if ( ktau /= mtau ) then
+      if ( .not. rcmtimer%reached_endtime  ) then
         if ( mod(ktau,kbdy) == 0 ) then
           !
           ! Read in new boundary conditions
@@ -214,8 +213,7 @@ module mod_regcm_interface
       extime = extime + real(dtsec,rk8)
       if ( debug_level > 3 ) then
         if ( myid == italk ) then
-          appdat = tochar(idatex)
-          write(6,'(a,a,f12.2)') 'Simulation time: ', appdat, extime
+          write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
         end if
       end if
     end do
@@ -229,11 +227,9 @@ module mod_regcm_interface
 
   subroutine RCM_finalize
     implicit none
-    character(len=32) :: appdat
 
     if ( myid == italk ) then
-      appdat = tochar(idate2)
-      write(stdout,*) 'Restart file for next run is written at time ',appdat
+      write(stdout,*) 'Final time ', trim(rcmtimer%str( )) , ' reached.'
     end if
 
     call close_icbc

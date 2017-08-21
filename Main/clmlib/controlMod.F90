@@ -34,11 +34,7 @@ module controlMod
 !    o nelapse    = nnn, Specify the ending time for the run as an interval
 !                   starting at the current time in either timesteps
 !                   (if positive) or days (if negative).
-!                   Either nestep or (stop_ymd,stop_tod) take precedence.
-!    o nestep     = nnnn, Specify the ending time for the run as an interval
-!                   starting at (start_ymd,start_tod) in either timesteps
-!                   (if positive) or days (if negative).
-!                   (stop_ymd,stop_tod) takes precedence if set.
+!                   Either (stop_ymd,stop_tod) take precedence.
 !    o ref_ymd    = Reference date for time coordinate encoded in yearmmdd format.
 !                   Default value is start_ymd.
 !    o ref_tod    = Reference time of day for time coordinate in seconds since 0Z.
@@ -134,7 +130,7 @@ module controlMod
 !    o rtm_nsteps  = if > 1, average rtm over rtm_nsteps time steps
 !    o nsegspc     = number of segments per clump for decomposition
 !
-! When coupled to CAM: base calendar info, nstep, nestep, nsrest, and time
+! When coupled to CAM: base calendar info, nstep, nsrest, and time
 ! step are input to the land model from CAM. The values in the clm_inparm namelist
 ! are not used.
 !
@@ -288,7 +284,7 @@ contains
 #if (defined OFFLINE) || (defined COUP_CSM)
     namelist /clm_inparm/  &
          ctitle, caseid, nsrest,  &
-         calendar, nelapse, nestep, start_ymd, start_tod,  &
+         calendar, nelapse, start_ymd, start_tod,  &
          stop_ymd, stop_tod, ref_ymd, ref_tod
 
     ! Archive options
@@ -823,7 +819,6 @@ contains
     call mpi_bcast (dtime    , 1, MPI_INTEGER  , 0, mpicom, ier)
 
 #if (defined OFFLINE) || (defined COUP_CSM)
-    call mpi_bcast (nestep   , 1, MPI_INTEGER  , 0, mpicom, ier)
     call mpi_bcast (nelapse  , 1, MPI_INTEGER  , 0, mpicom, ier)
     call mpi_bcast (start_ymd, 1, MPI_INTEGER  , 0, mpicom, ier)
     call mpi_bcast (start_tod, 1, MPI_INTEGER  , 0, mpicom, ier)

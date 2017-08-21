@@ -51,7 +51,7 @@ module mod_clm_regcm
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
     adomain%topo = adomain%topo*regrav
 
-    nextdate = idatex
+    nextdate = rcmtimer%idate
 
     call initialize1( )
 
@@ -89,7 +89,7 @@ module mod_clm_regcm
       end do
     end if
 
-    write(rdate,'(i10)') toint10(idatex)
+    write(rdate,'(i10)') toint10(rcmtimer%idate)
     call initialize2(rdate)
 
     ! If CLM45, the surface emissivity is not used.
@@ -134,8 +134,8 @@ module mod_clm_regcm
     ! Compute NEXT calday
     tdiff = dtsrf
     triff = dtsec
-    nextt = idatex+tdiff
-    nextr = idatex+triff
+    nextt = rcmtimer%idate+tdiff
+    nextr = rcmtimer%idate+triff
     declinp = declin
     caldayp1 = yeardayfrac(nextt)
     call orb_decl(real(yearpoint(nextt),rk8),eccen,mvelpp, &
@@ -150,35 +150,35 @@ module mod_clm_regcm
     nlomon = .false.
     if ( ktau > 0 ) then
       ! Final timestep
-      if ( ktau+1 == mtau ) then
+      if ( rcmtimer%next_is_endtime ) then
         rstwr = .true.
         nlend = .true.
         if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
           nlomon = .true.
         end if
       else
-        if ( ksav > 0 ) then
-          if ( mod(ktau+1,ksav) == 0 ) then
-            rstwr = .true.
-            if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
-              nlomon = .true.
-            end if
-          end if
-        else
-          if ( ksav == 0 ) then
-            if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
-              ! End of the month
-              nlomon = .true.
+        if ( associated(alarm_out_sav) ) then
+          if ( savfrq > 0 ) then
+            if ( alarm_out_sav%will_act( ) ) then
               rstwr = .true.
+              if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+                nlomon = .true.
+              end if
             end if
           else
-            if ( mod(ktau+1,-ksav) == 0 .or. &
+            if ( alarm_out_sav%will_act( ) .or. &
                  (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
               rstwr = .true.
               if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
                 nlomon = .true.
               end if
             end if
+          end if
+        else
+          if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+            ! End of the month
+            nlomon = .true.
+            rstwr = .true.
           end if
         end if
       end if
@@ -289,10 +289,12 @@ module mod_clm_regcm
     ! interface chemistry / surface
 
     if ( ichem /= 1 ) then
-      clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,rcmtimer%year) * &
+                     1.e-6_rk8*clm_a2l%forc_psrf
 ! samy
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-9_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,rcmtimer%year) * &
+                     1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       !clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
@@ -305,10 +307,12 @@ module mod_clm_regcm
       !
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
-      clm_a2l%forc_pco2 = cgas(igh_co2,xyear)*1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,rcmtimer%year) * &
+                     1.e-6_rk8*clm_a2l%forc_psrf
 ! samy
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,xyear)*1.e-9_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,rcmtimer%year) * &
+                     1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       if ( use_c13 ) then
        ! C13O2 partial pressure (Pa)

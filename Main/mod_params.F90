@@ -47,6 +47,7 @@ module mod_params
   use mod_slabocean
   use mod_sldepparam
   use mod_sound
+  use mod_timer
   use mod_timefilter
 
   implicit none
@@ -74,8 +75,10 @@ module mod_params
     integer(ik4) :: i , j , k , kbase , ktop , ns
     integer(ik8) :: mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan , ipunit
+    integer(ik4) :: khour , kday
     integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
     integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq
+    integer(ik8) :: katm , ksrf , ksub , krad , kche , klak , ksav
     integer(ik4) :: n , len_path
     character(len=32) :: appdat
     type(rcm_time_interval) :: bdif
@@ -1382,6 +1385,8 @@ module mod_params
       call bcast(igaschem)
     end if
 
+    rcmtimer => rcm_timer(idate0,idate1,idate2,dt)
+
     if ( iclimaaer == 1 ) then
       call init_aerclima
     end if
@@ -1548,6 +1553,8 @@ module mod_params
 
     ktau = 0
 
+    alarm_hour => rcm_alarm(rcmtimer,3600.0_rkx)
+    alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
     khour = 3600_8/nint(dtsec)
     kday  = 86400_8/nint(dtsec)
     krep  = khour*3
@@ -1562,6 +1569,24 @@ module mod_params
     kdbg  = ndbgfrq/nint(dtsec)
     ksav  = nsavfrq/nint(dtsec)
 
+    if ( abs(savfrq) > 0 ) then
+      alarm_out_sav => rcm_alarm(rcmtimer,secph*abs(savfrq))
+    end if
+    alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
+    alarm_out_rad => rcm_alarm(rcmtimer,secph*radfrq)
+    alarm_out_srf => rcm_alarm(rcmtimer,secph*srffrq)
+    alarm_out_sts => alarm_day
+    if ( lakemod == 1 ) then
+      alarm_out_lak => rcm_alarm(rcmtimer,secph*lakfrq)
+    end if
+    if ( ichem == 1 ) then
+      alarm_out_che => rcm_alarm(rcmtimer,secph*chemfrq)
+      alarm_out_opt => alarm_out_che
+    end if
+    if ( nsg > 1 ) then
+      alarm_out_sub => rcm_alarm(rcmtimer,secph*subfrq)
+    end if
+
     rnsrf_for_srffrq = d_one/(real(ksrf,rkx)*rtsrf)
     rnsrf_for_lakfrq = d_one/(real(klak,rkx)*rtsrf)
     rnsrf_for_subfrq = d_one/(real(ksub,rkx)*rtsrf)
@@ -1572,8 +1597,6 @@ module mod_params
     if ( irrtm == 1 ) rnrad_for_chem = real(ntrad*nradfo,rkx)/real(kche,rkx)
     rsrf_in_atm = real(ntsrf,rkx)/real(katm,rkx)
     rsrffrq_sec = d_one/(srffrq*secph)
-
-    mtau = nint((hspan*secph)/dt)
 
     do ns = 1 , nsplit
       dtsplit(ns) = dt*(d_half/real(nsplit-ns+1,rkx))
@@ -1663,9 +1686,7 @@ module mod_params
       end if
     end if
 
-    idatex = idate1
-    call split_idate(idatex,xyear,xmonth,xday,xhour)
-    kstsoff = khour*xhour
+    kstsoff = khour*rcmtimer%hour
 
     if ( myid == italk ) then
       write(stdout,*) 'Create SAV files : ' , ifsave

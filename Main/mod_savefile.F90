@@ -316,6 +316,7 @@ module mod_savefile
     use netcdf
     implicit none
     type (rcm_time_and_date) , intent(in) :: idate
+    type (rcm_time_and_date) :: idatex
     integer(ik4) :: ncid
     integer(ik4) :: int10d , ical
     integer(ik8) :: idt1 , idt2
@@ -361,6 +362,12 @@ module mod_savefile
       end if
       idatex = int10d
       call setcal(idatex,ical)
+      if ( idatex /= rcmtimer%idate ) then
+        write(stderr,*) 'Mismatch in dates namelist vs SAV file'
+        write(stderr,*) 'idate1 in namelist is ', rcmtimer%str( )
+        write(stderr,*) 'idate  in SAV file is ', tochar(idatex)
+        call fatal(__FILE__,__LINE__,'SAV FILE DO NOT MATCH IDATE1')
+      end if
 
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_u'),atm1_u_io)
       call check_ok(__FILE__,__LINE__,'Cannot read atm1_u')
@@ -835,9 +842,9 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot save ktau')
       ncstatus = nf90_put_att(ncid,nf90_global,'dtsec',dtsec)
       call check_ok(__FILE__,__LINE__,'Cannot save dtsec')
-      ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idatex))
+      ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idate))
       call check_ok(__FILE__,__LINE__,'Cannot save idatex')
-      ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idatex%calendar)
+      ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idate%calendar)
       call check_ok(__FILE__,__LINE__,'Cannot save calendar')
       if ( debug_level > 0 ) then
         ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
@@ -995,7 +1002,7 @@ module mod_savefile
 #endif
 
     if ( myid == iocpu ) then
-      write(stdout,*) 'SAV variables written at ', tochar(idate)
+      write(stdout,*) 'SAV variables written at ', rcmtimer%str( )
     end if
   end subroutine write_savefile
 

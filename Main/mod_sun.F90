@@ -259,17 +259,17 @@ module mod_sun
   subroutine solar1
     implicit none
     real(rkx) :: decdeg , obliq , mvelp
-    integer :: iyear , imonth , iday , ihour
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar1'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    call split_idate(idatex,iyear,imonth,iday,ihour)
-    call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
-    call orb_decl(yearpoint(idatex),eccen,mvelpp,lambm0,obliqr,declin,eccf)
+    call orb_params(rcmtimer%year,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+    call orb_decl(yearpoint(rcmtimer%idate),eccen,mvelpp,lambm0, &
+                  obliqr,declin,eccf)
     decdeg = declin/degrad
-    if ( myid == italk .and. mod(ktau,kday) == 0 ) then
+    if ( myid == italk .and. alarm_day%act( ) ) then
+      write (stdout, *) 'At ',rcmtimer%str( )
       write (stdout,'(a,f12.5,a,f12.8,a)') ' JDay ', calday , &
         ' solar declination angle = ', decdeg , ' degrees'
       write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
@@ -299,8 +299,8 @@ module mod_sun
     !
     ! Update solar constant for today
     !
-    calday = real(yeardayfrac(idatex),rkx)
-    if ( ktau == 0 .or. doing_restart .or. mod(ktau,kday) == 0 ) then
+    calday = real(yeardayfrac(rcmtimer%idate),rkx)
+    if ( rcmtimer%start( ) .or. doing_restart .or. alarm_day%act( ) ) then
       solcon = solar_irradiance( )
       scon = solcon*d_1000
       call solar1( )
@@ -334,18 +334,18 @@ module mod_sun
       if ( calday > dayspy/2.0_rkx ) then
         w2 = calday/dayspy-0.5_rkx
         w1 = 1.0_rkx-w2
-        iyear = xyear
+        iyear = rcmtimer%year
       else
         w1 = 0.5_rkx-calday/dayspy
         w2 = 1.0_rkx-w1
-        iyear = xyear-1
+        iyear = rcmtimer%year-1
       end if
-      if ( xyear < 1610 ) then
+      if ( rcmtimer%year < 1610 ) then
         call fatal(__FILE__,__LINE__,'TSI OUT OF RANGE.')
       end if
-      iidate = xyear*10000+xmonth*100+xday
+      iidate = rcmtimer%year*10000+rcmtimer%month*100+rcmtimer%day
       if ( iidate > 20080630 ) then
-        iyear = mod(xyear,12)+1996
+        iyear = mod(rcmtimer%year,12)+1996
       end if
       solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
     end if

@@ -192,7 +192,7 @@ module mod_clm_driver
     else
       tdif = 0
     end if
-    nextdate = idatex + tdif
+    nextdate = rcmtimer%idate + tdif
 
 #ifdef CN
     ! For dry-deposition need to call CLMSP so that mlaidiff is obtained

@@ -149,7 +149,7 @@ module mod_rad_outrad
       end do
     end do
 
-    if ( ktau == 0 ) return
+    if ( rcmtimer%start( ) ) return
 
     if ( ifopt .and. iaerosol == 1 ) then
       if ( irrtm == 1 ) then

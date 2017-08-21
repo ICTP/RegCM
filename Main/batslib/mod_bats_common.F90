@@ -24,8 +24,8 @@ module mod_bats_common
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ichem , iemiss , rtsrf , ktau , replacemoist
-  use mod_runparams , only : rhmin , rhmax
+  use mod_runparams , only : ichem , iemiss , rtsrf , replacemoist
+  use mod_runparams , only : rcmtimer , rhmin , rhmax
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -71,7 +71,7 @@ module mod_bats_common
     if ( nsg > 1 ) then
       call getmem3d(xqs,1,nnsg,jci1,jci2,ici1,ici2,'bats:xqs')
     end if
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       call c2l_gs(lndcomm,lm%ht,ht)
       call c2l_ss(lndcomm,lm%ht1,hts)
       call c2l_ss(lndcomm,lm%iveg1,lveg)

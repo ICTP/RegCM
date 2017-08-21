@@ -24,6 +24,7 @@ module mod_runparams
   use mod_date
   use mod_dynparam
   use mod_memutil
+  use mod_timer
 
   implicit none
 
@@ -44,9 +45,18 @@ module mod_runparams
   integer(ik4) , public , parameter :: pc_physic     = 3
 
   type(rcm_time_and_date) , save , public :: idate0 , idate1 , idate2
-
-  type(rcm_time_and_date) , save , public :: idatex
-  integer(ik4) , public :: xyear , xmonth , xday , xhour
+  type(rcm_timer) , save , public , pointer :: rcmtimer
+  type(rcm_alarm) , save , public , pointer :: alarm_hour
+  type(rcm_alarm) , save , public , pointer :: alarm_day
+  type(rcm_alarm) , save , public , pointer :: alarm_out_sav
+  type(rcm_alarm) , save , public , pointer :: alarm_out_atm
+  type(rcm_alarm) , save , public , pointer :: alarm_out_rad
+  type(rcm_alarm) , save , public , pointer :: alarm_out_srf
+  type(rcm_alarm) , save , public , pointer :: alarm_out_sts
+  type(rcm_alarm) , save , public , pointer :: alarm_out_che
+  type(rcm_alarm) , save , public , pointer :: alarm_out_lak
+  type(rcm_alarm) , save , public , pointer :: alarm_out_opt
+  type(rcm_alarm) , save , public , pointer :: alarm_out_sub
 
   ! Orbital paramters
   real(rkx) , public :: eccen
@@ -71,15 +81,8 @@ module mod_runparams
 
   ! Step counter. Is zero at idate0, always increasing, never reset.
   integer(ik8) , public :: ktau
-  ! Final number of step for THIS run
-  integer(ik8) , public :: mtau
-  ! How many steps for an hour (updates date fields Y m d H)
-  integer(ik8) , public :: khour
-  ! How many steps for a day (updates date fields Y m d)
-  integer(ik8) , public :: kday
   ! Output k values for I/O operations.
-  integer(ik8) , public :: katm , krad , kche , ksav , kdbg , kbdy , &
-                  ksrf , ksub , klak , krep
+  integer(ik8) , public :: kdbg , kbdy , krep
   ! Step counters to activate surface and radiation schemes
   integer(ik8) , public :: ntsrf , ntrad , ntcum , ntabem , ntche , ntcpl
   real(rkx) , public :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &

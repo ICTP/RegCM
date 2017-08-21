@@ -25,7 +25,7 @@ module mod_mtrxclm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv , solcon , clmfrq , iocnflx , &
-      imask , ilawrence_albedo , ichem , ksrf , xmonth , ktau , rtsrf , &
+      imask , ilawrence_albedo , ichem , ktau , rtsrf , &
       dx , dtsrf , dtrad , igaschem , iaerosol , chtrname , idate1 ,    &
       idate2 , eccen , obliqr , lambm0 , mvelpp
   use mod_mpmessage

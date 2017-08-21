@@ -414,16 +414,10 @@ module mod_clm_initialize
     if (myid == italk) then
       write(stdout,*) 'Successfully initialized the land model'
       if (nsrest == nsrStartup) then
-        write(stdout,*) 'begin initial run at: '
+        write(stdout,*) 'begin initial run at: ', trim(rcmtimer%str( ))
       else
-        write(stdout,*) 'begin continuation run at:'
+        write(stdout,*) 'begin continuation run at:', trim(rcmtimer%str( ))
       end if
-      call curr_date(idatex, yr, mon, day, ncsec)
-      write(stdout,*) '   ktau    = ',ktau
-      write(stdout,*) '   year    = ',yr
-      write(stdout,*) '   month   = ',mon
-      write(stdout,*) '   day     = ',day
-      write(stdout,*) '   seconds = ',ncsec
     endif
 
     if ( nsrest == nsrStartup ) then

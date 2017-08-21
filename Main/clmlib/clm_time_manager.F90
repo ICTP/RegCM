@@ -13,8 +13,9 @@ module clm_time_manager
    use mod_date
    use mod_intkinds , only : ik8
    use mod_mpmessage
-   use mod_runparams , only : idate0 , idate1 , idate2 , idatex , &
-                  ktau , mtau , dtsec , dtsrf , ntsrf , doing_restart
+   use mod_runparams , only : idate0 , idate1 , idate2 , rcmtimer , &
+                  ktau , dtsec , dtsrf , ntsrf , doing_restart
+
    use mod_constants , only : secpd
    use clm_varsur   , only : r2coutfrq
 
@@ -64,7 +65,6 @@ module clm_time_manager
 
 ! Namelist read in only in ccsm and offline modes
    integer, public ::&
-      nestep        = uninit_int,  &! final timestep (or day if negative) number
       nelapse       = uninit_int,  &! number of timesteps (or days if negative) to extend a run
       start_ymd     = uninit_int,  &! starting date for run in yearmmdd format
       start_tod     = 0,           &! starting time of day for run in seconds
@@ -80,8 +80,6 @@ module clm_time_manager
    integer :: cal_type = uninit_int            ! calendar type
 
 ! Private module methods
-
-   private :: calc_nestep
 
 !=========================================================================================
 contains
@@ -105,9 +103,9 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
   logical         , optional, intent(IN) :: perpetual_run_in  ! If in perpetual mode or not
   integer         , optional, intent(IN) :: perpetual_ymd_in  ! Perpetual date (YYYYMMDD)
   !
-  calendar = calstr(idatex%calendar)
+  calendar = calstr(rcmtimer%idate%calendar)
   cordex_refdate = 1949120100
-  call setcal(cordex_refdate,idatex)
+  call setcal(cordex_refdate,rcmtimer%idate)
   ioffset = -idnint(dtsec)*(ntsrf-1)
 
 end subroutine timemgr_init
@@ -124,12 +122,10 @@ subroutine timemgr_restart_io( ncid, flag )
   character(len=*), intent(in) :: flag  ! 'read' or 'write'
   !
 
-  calendar = calstr(idatex%calendar)
+  calendar = calstr(rcmtimer%idate%calendar)
   cordex_refdate = 1949120100
-  call setcal(cordex_refdate,idatex)
+  call setcal(cordex_refdate,rcmtimer%idate)
   ioffset = -idnint(dtsec)*(ntsrf-1)
-
-  call calc_nestep( )
 
 end subroutine timemgr_restart_io
 
@@ -150,28 +146,15 @@ subroutine timemgr_restart( stop_ymd_synclock, stop_tod_synclock )
 
   ! Calculate ending time step
 
-  calendar = calstr(idatex%calendar)
+  calendar = calstr(rcmtimer%idate%calendar)
   cordex_refdate = 1949120100
-  call setcal(cordex_refdate,idatex)
-
-  call calc_nestep( )
+  call setcal(cordex_refdate,rcmtimer%idate)
 
   ! Print configuration summary to log file (stdout).
 
 end subroutine timemgr_restart
 
 !=========================================================================================
-
-subroutine calc_nestep()
-  !---------------------------------------------------------------------------------
-  !
-  ! Calculate ending timestep number
-  ! Calculation of ending timestep number (nestep) assumes a constant stepsize.
-  !
-
-  nestep = (mtau-ktau)/ntsrf
-
-end subroutine calc_nestep
 
 !=========================================================================================
 
@@ -182,7 +165,7 @@ subroutine init_calendar( )
   !
   ! Local variables
   !
-  calendar = calstr(idatex%calendar)
+  calendar = calstr(rcmtimer%idate%calendar)
 
 end subroutine init_calendar
 
@@ -239,7 +222,7 @@ subroutine get_curr_date(yr, mon, day, tod, offset)
     type (rcm_time_and_date) :: id
     type (rcm_time_interval) :: tdif
     integer :: ih
-    id = idatex
+    id = rcmtimer%idate
     ih = ioffset
     if ( present(offset) ) then
       ih = ih + offset
@@ -277,7 +260,7 @@ subroutine get_prev_date(yr, mon, day, tod)
     type (rcm_time_and_date) :: id
     type (rcm_time_interval) :: tdif
     integer :: ih
-    id = idatex
+    id = rcmtimer%idate
     tdif = (ioffset - r2coutfrq*60)
     id = id + tdif
     call split_idate(id,yr,mon,day,ih)
@@ -342,7 +325,7 @@ subroutine get_curr_time(days, seconds)
     type (rcm_time_interval) :: tdif
     real(r8) :: rh
 
-    tdif = idatex - cordex_refdate
+    tdif = rcmtimer%idate - cordex_refdate
     rh = tohours(tdif) + dble(ioffset)/3600.0D0
     days = idint(rh/24.0D0)
     seconds = (rh-days*24.0D0)*3600.0D0
@@ -364,7 +347,7 @@ subroutine get_prev_time(days, seconds)
    type (rcm_time_interval) :: tdif
    real(r8) :: rh
 
-   tdif = idatex - cordex_refdate
+   tdif = rcmtimer%idate - cordex_refdate
    rh = tohours(tdif)
    if ( doing_restart ) then
      rh = rh - r2coutfrq
@@ -387,7 +370,7 @@ real(r8) function get_curr_calday(offset)
                                             ! for previous times.
    type (rcm_time_and_date) :: id
    type (rcm_time_interval) :: tdif
-   id = idatex
+   id = rcmtimer%idate
    if ( present(offset) ) then
      tdif = offset
      id = id + tdif
@@ -409,7 +392,7 @@ real(r8) function get_calday(ymd, tod)
 
    id = ymd
    id%second_of_day = tod
-   call setcal(id,idatex)
+   call setcal(id,rcmtimer%idate)
    get_calday = yeardayfrac(id)
 
 end function get_calday
@@ -420,7 +403,7 @@ logical function is_end_curr_day()
 
 ! Return true if current timestep is last timestep in current day.
 
-   is_end_curr_day = (idatex%second_of_day == int(secpd-dtsec, ik8))
+   is_end_curr_day = (rcmtimer%idate%second_of_day == int(secpd-dtsec, ik8))
 
 end function is_end_curr_day
 
@@ -431,9 +414,9 @@ logical function is_end_curr_month()
 ! Return true if current timestep is last timestep in current month.
 
    type (rcm_time_and_date) :: id
-   id = monlast(idatex)
+   id = monlast(rcmtimer%idate)
    is_end_curr_month = ( &
-      id%days_from_reference == idatex%days_from_reference .and. &
+      id%days_from_reference == rcmtimer%idate%days_from_reference .and. &
       is_end_curr_day() )
 end function is_end_curr_month
 
@@ -463,7 +446,7 @@ logical function is_last_step()
 
 ! Return true on last timestep.
 
-   is_last_step = ( ktau == mtau )
+   is_last_step = rcmtimer%reached_endtime
 
 end function is_last_step
 
@@ -496,8 +479,8 @@ subroutine timemgr_datediff(ymd1, tod1, ymd2, tod2, days)
    id1 = ymd1
    id2 = ymd2
 
-   call setcal(id1,idatex)
-   call setcal(id2,idatex)
+   call setcal(id1,rcmtimer%idate)
+   call setcal(id2,rcmtimer%idate)
 
    tdif = id2-id1
 

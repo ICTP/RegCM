@@ -285,7 +285,7 @@ module mod_bdycod
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
-      som_month = xmonth
+      som_month = rcmtimer%month
       datefound = som_search(som_month)
       if (datefound < 0) then
         appdat = tochar(bdydate1)
@@ -299,7 +299,7 @@ module mod_bdycod
 
     if ( myid == italk ) then
       appdat = tochar(bdydate1)
-      if ( ktau == 0 ) then
+      if ( rcmtimer%start( ) ) then
         write(stdout,*) 'READY IC DATA for ', appdat
       else
         write(stdout,*) 'READY BC DATA for ', appdat
@@ -337,7 +337,7 @@ module mod_bdycod
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
       write(stdout,'(a,i10,a,i8)') ' SEARCH BC data for ', toint10(bdydate2), &
-                      ', ktau = ', ktau
+                      ', step = ', rcmtimer%ktau( )
     end if
     datefound = icbc_search(bdydate2)
     if ( datefound < 0 ) then
@@ -457,7 +457,7 @@ module mod_bdycod
 #endif
 
     update_slabocn = ( islab_ocean == 1 .and. &
-      do_qflux_adj .and. som_month /= xmonth )
+      do_qflux_adj .and. som_month /= rcmtimer%month )
 
     xbctime = d_zero
 
@@ -475,7 +475,7 @@ module mod_bdycod
 
     ! Data are monthly
     if ( update_slabocn ) then
-      som_month = xmonth
+      som_month = rcmtimer%month
       qflb0 = qflb1
       tdif = bdydate1-monfirst(bdydate1)
       xslabtime = tohours(tdif)*secph
@@ -484,7 +484,7 @@ module mod_bdycod
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
       write(stdout,'(a,i10,a,i8)') ' SEARCH BC data for ', toint10(bdydate2), &
-                      ', ktau = ', ktau
+                      ', step = ', rcmtimer%ktau( )
     end if
     datefound = icbc_search(bdydate2)
     if ( datefound < 0 ) then
@@ -875,7 +875,7 @@ module mod_bdycod
     ! shall be skipped.
     !
     xt = xbctime + dt
-    if ( ktau > 1 ) then
+    if ( rcmtimer%integrating( ) ) then
       !
       ! West boundary
       !
@@ -1581,7 +1581,7 @@ module mod_bdycod
     end if
 
     if ( ibltyp == 2 ) then
-      if ( ktau == 0 ) then
+      if ( rcmtimer%start( ) ) then
         if ( ma%has_bdyleft ) then
           atm1%tke(jce1,:,:) = tkemin ! East boundary
           atm2%tke(jce1,:,:) = tkemin ! East boundary

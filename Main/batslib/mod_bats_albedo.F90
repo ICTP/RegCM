@@ -97,16 +97,24 @@ module mod_bats_albedo
     ! In souther emisphere only some points have this class
     !
     if ( ldesseas ) then
-      if ( xmonth == 1 .or. xmonth == 2 .or. xmonth == 12 ) then
+      if ( rcmtimer%month == 1 .or. &
+           rcmtimer%month == 2 .or. &
+           rcmtimer%month == 12 ) then
         solour(1) = 0.12_rkx
       endif
-      if ( xmonth == 3 .or. xmonth == 4 .or. xmonth == 5 ) then
+      if ( rcmtimer%month == 3 .or. &
+           rcmtimer%month == 4 .or. &
+           rcmtimer%month == 5 ) then
         solour(1) = 0.15_rkx
       endif
-      if ( xmonth == 6 .or. xmonth == 7 .or. xmonth == 8) then
+      if ( rcmtimer%month == 6 .or. &
+           rcmtimer%month == 7 .or. &
+           rcmtimer%month == 8) then
         solour(1) = 0.18_rkx
       endif
-      if ( xmonth == 9 .or. xmonth == 10 .or. xmonth == 11) then
+      if ( rcmtimer%month == 9 .or. &
+           rcmtimer%month == 10 .or. &
+           rcmtimer%month == 11) then
         solour(1) = 0.15_rkx
       endif
     end if

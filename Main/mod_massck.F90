@@ -59,7 +59,6 @@ module mod_massck
     real(wrkp) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
     real(wrkp) :: north , south , east , west
     integer(ik4) :: i , j , k , n
-    character (len=32) :: appdat
 
     tdrym = q_zero
     tdadv = q_zero
@@ -189,7 +188,7 @@ module mod_massck
     call sumall(tdrym,drymass)
     call sumall(tqmass,qmass)
 
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       dryerror = d_zero
       waterror = d_zero
       if ( myid == italk ) then
@@ -214,11 +213,10 @@ module mod_massck
         (real((drymass-dryini)/dryini,rk8) * d_100) * dt/86400.0_rk8
       waterror = waterror + &
         (real((qmass-watini)/watini,rk8) * d_100) * dt/86400.0_rk8
-      if ( mod(ktau,kday) == 0 .or. mod(ktau,kdbg) == 0 ) then
-        appdat = tochar(idatex)
+      if ( alarm_day%act( ) .or. mod(ktau,kdbg) == 0 ) then
         write(stdout,'(a)') &
             ' ********************* MASS CHECK ********************'
-        write(stdout,'(a,a23,a,i16)') ' At ', appdat, ', ktau   = ', ktau
+        write(stdout,*) 'At ', trim(rcmtimer%str( ))
         write(stdout,'(a,e12.5,a,f9.5,a)') ' Total dry air   =', drymass, &
                    ' kg, error = ', dryerror, ' %'
         write(stdout,'(a,e12.5,a,f9.5,a)') ' Total water     =', qmass, &

@@ -265,15 +265,11 @@ module mod_init
       !
       ! When restarting, read in the data saved from previous run
       !
-      call read_savefile(idate1)
+      call read_savefile(rcmtimer%idate)
       !
       ! Comunicate the data to other processors
       !
       call bcast(ktau)
-      call bcast(idatex)
-      call split_idate(idatex,xyear,xmonth,xday,xhour)
-
-      mtau = mtau + ktau
 
       call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
       call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
@@ -527,8 +523,8 @@ module mod_init
       ! Report success
       !
       if ( myid == italk ) then
-        appdat = tochar(idatex)
-        write(stdout,*) 'Successfully read restart file at time = ', appdat
+        write(stdout,*) 'Successfully read restart file at time = ', &
+                rcmtimer%str( )
       end if
       !
       ! Setup all timeseps for a restart

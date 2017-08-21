@@ -33,7 +33,6 @@ module mod_clm
   integer(ik4) :: r2comm        ! RegCM MPI communicator
   integer(ik4) :: r2cdtime      ! timestep in seconds
   integer(ik4) :: r2cnsrest     ! 0=initial, 1=restart
-  integer(ik4) :: r2cnestep     ! final timestep (or day if negative) number
   integer(ik4) :: r2cnelapse    ! # of timesteps (or days if negative)
                            ! to extend a run
   integer(ik4) :: r2cnstep      ! current timestep (ktau)

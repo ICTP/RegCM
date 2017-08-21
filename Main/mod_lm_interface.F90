@@ -648,7 +648,7 @@ module mod_lm_interface
                            expfie%shfx(j,i) - lm%rlwf(j,i)
       end do
     end do
-    if ( mod(ktau+1,kday) == 0 ) then
+    if ( alarm_day%will_act( ) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( lm%ldmsk(j,i) > 0 ) then
@@ -863,7 +863,7 @@ module mod_lm_interface
 
     ! Fill accumulators
 
-    if ( ktau > 0 ) then
+    if ( rcmtimer%integrating( ) ) then
       if ( ifatm ) then
         if ( associated(atm_tgb_out) ) &
           atm_tgb_out = atm_tgb_out + sum(lms%tgrd,1)*rdnnsg
@@ -973,7 +973,7 @@ module mod_lm_interface
 
     ! Those are for the output, but collected only at POINT in time
 
-    if ( mod(ktau+1,ksrf) == 0 ) then
+    if ( alarm_out_srf%will_act( ) ) then
 
       if ( ifsrf ) then
         if ( associated(srf_uvdrag_out) ) &

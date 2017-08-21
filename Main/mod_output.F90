@@ -53,7 +53,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche
-    logical :: ldosav , ldolak , ldosub
+    logical :: ldosav , ldolak , ldosub , ldosts
     logical :: ldoslab
     logical :: lstartup
     integer(ik4) :: i , j , k , kk , itr
@@ -66,7 +66,7 @@ module mod_output
 #endif
 
     lstartup = .false.
-    if ( ktau == 0 .or. doing_restart ) then
+    if ( rcmtimer%start( ) .or. doing_restart ) then
       !
       ! Set up static variables (first time in)
       !
@@ -99,7 +99,7 @@ module mod_output
       if ( associated(sts_w10max_out) ) sts_w10max_out = -1.e30_rkx
       if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.e30_rkx
       if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.e30_rkx
-      call newoutfiles(idatex)
+      call newoutfiles(rcmtimer%idate)
       lstartup = .true.
       if ( doing_restart ) then
         doing_restart = .false.
@@ -118,49 +118,62 @@ module mod_output
     ldoche = .false.
     ldosav = .false.
     ldoslab = .false.
+    ldosts = .false.
 
-    if ( ktau > 0 ) then
-      if ( ksav > 0 ) then
-        if ( ktau == mtau .or. mod(ktau,ksav) == 0 ) then
-          ldosav = .true.
+    if ( rcmtimer%integrating( ) ) then
+      if ( associated(alarm_out_sav) ) then
+        if ( savfrq > 0 ) then
+          if ( rcmtimer%reached_endtime .or. alarm_out_sav%act( ) ) then
+            ldosav = .true.
+          end if
+        else
+          if ( rcmtimer%reached_endtime .or. &
+               alarm_out_sav%act( ) .or. &
+               (lfdomonth(rcmtimer%idate) .and. &
+                lmidnight(rcmtimer%idate)) ) then
+            ldosav = .true.
+          end if
         end if
       else
-        if ( ksav == 0 ) then
-          if ( ( ktau == mtau ) .or. &
-               (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
-            ldosav = .true.
-          end if
-        else if ( ksav < 0 ) then
-          if ( ktau == mtau .or. mod(ktau,-ksav) == 0 .or. &
-               (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
-            ldosav = .true.
-          end if
+        if ( ( rcmtimer%reached_endtime ) .or. &
+             (lfdomonth(rcmtimer%idate) .and. &
+              lmidnight(rcmtimer%idate)) ) then
+          ldosav = .true.
         end if
       end if
-      if ( mod(ktau,katm) == 0 ) then
+      if ( alarm_out_atm%act( ) ) then
         ldoatm = .true.
       end if
-      if ( mod(ktau,ksrf) == 0 ) then
+      if ( alarm_out_srf%act( ) ) then
         ldosrf = .true.
       end if
-      if ( mod(ktau,klak) == 0 ) then
-        ldolak= .true.
+      if ( alarm_out_sts%act( ) ) then
+        ldosts = .true.
       end if
-      if ( mod(ktau,ksub) == 0 ) then
-        ldosub= .true.
+      if ( lakemod == 1 ) then
+        if ( alarm_out_lak%act( ) ) then
+          ldolak= .true.
+        end if
       end if
-      if ( mod(ktau,krad) == 0 ) then
+      if ( nsg > 1 ) then
+        if ( alarm_out_sub%act( ) ) then
+          ldosub= .true.
+        end if
+      end if
+      if ( alarm_out_rad%act( ) ) then
         ldorad = .true.
       end if
-      if ( mod(ktau,kche) == 0 ) then
-        ldoche = .true.
+      if ( ichem == 1 ) then
+        if ( alarm_out_che%act( ) ) then
+          ldoche = .true.
+        end if
       end if
-      if ( idatex == idate2 ) then
+      if ( rcmtimer%reached_endtime ) then
         ldoslab = .true.
       end if
     end if
 
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       if ( debug_level > 2 ) then
         ldoatm = .true.
       end if
@@ -619,9 +632,9 @@ module mod_output
           ps_out = d_1000*(ps_out+ptop)
         end if
 
-        call write_record_output_stream(atm_stream,idatex)
+        call write_record_output_stream(atm_stream,rcmtimer%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'ATM variables written at ' , tochar(idatex)
+          write(stdout,*) 'ATM variables written at ' , rcmtimer%str( )
 
         if ( associated(atm_tgb_out) ) atm_tgb_out = d_zero
         if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
@@ -699,9 +712,9 @@ module mod_output
         if ( associated(srf_snowmelt_out) ) &
           srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq
 
-        call write_record_output_stream(srf_stream,idatex)
+        call write_record_output_stream(srf_stream,rcmtimer%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'SRF variables written at ' , tochar(idatex)
+          write(stdout,*) 'SRF variables written at ' , rcmtimer%str( )
 
         if ( associated(srf_tpr_out) ) srf_tpr_out = d_zero
         if ( associated(srf_prcv_out) ) srf_prcv_out = d_zero
@@ -747,9 +760,9 @@ module mod_output
           end where
         end if
 
-        call write_record_output_stream(sub_stream,idatex)
+        call write_record_output_stream(sub_stream,rcmtimer%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'SUB variables written at ' , tochar(idatex)
+          write(stdout,*) 'SUB variables written at ' , rcmtimer%str( )
 
         if ( associated(sub_evp_out) ) sub_evp_out = d_zero
         if ( associated(sub_scv_out) ) sub_scv_out = d_zero
@@ -796,9 +809,9 @@ module mod_output
           lak_evp_out = max(lak_evp_out, d_zero)
         end if
 
-        call write_record_output_stream(lak_stream,idatex)
+        call write_record_output_stream(lak_stream,rcmtimer%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'LAK variables written at ' , tochar(idatex)
+          write(stdout,*) 'LAK variables written at ' , rcmtimer%str( )
 
         if ( associated(lak_tpr_out) )    lak_tpr_out = d_zero
         if ( associated(lak_scv_out) )    lak_scv_out = d_zero
@@ -846,9 +859,9 @@ module mod_output
         if ( associated(opt_aassrlrf_out) ) &
           opt_aassrlrf_out = opt_aassrlrf_out * rnrad_for_chem
 
-        call write_record_output_stream(opt_stream,idatex)
+        call write_record_output_stream(opt_stream,rcmtimer%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'OPT variables written at ' , tochar(idatex)
+          write(stdout,*) 'OPT variables written at ' , rcmtimer%str( )
         if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
         if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
         if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
@@ -880,16 +893,16 @@ module mod_output
         end if
         do itr = 1 , ntr
           call fill_chem_outvars(itr)
-          call write_record_output_stream(che_stream,idatex,itr)
+          call write_record_output_stream(che_stream,rcmtimer%idate,itr)
         end do
         if ( myid == italk ) then
-          write(stdout,*) 'CHE variables written at ' , tochar(idatex)
+          write(stdout,*) 'CHE variables written at ' , rcmtimer%str( )
         end if
       end if
     end if
 
     if ( sts_stream > 0 ) then
-      if ( mod(ktau+kstsoff,ksts) == 0 .and. ktau > kstsoff+2 ) then
+      if ( ldosts ) then
 
         if ( idynamic == 2 ) then
           do i = ici1 , ici2
@@ -922,9 +935,9 @@ module mod_output
           end where
         end if
 
-        call write_record_output_stream(sts_stream,idatex)
+        call write_record_output_stream(sts_stream,rcmtimer%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'STS variables written at ' , tochar(idatex)
+          write(stdout,*) 'STS variables written at ' , rcmtimer%str( )
 
         if ( associated(sts_pcpavg_out) )  sts_pcpavg_out  = d_zero
         if ( associated(sts_t2avg_out) )   sts_t2avg_out   = d_zero
@@ -961,9 +974,9 @@ module mod_output
                              sfs%psa(jci1:jci2,ici1:ici2)
           end do
         end if
-        call write_record_output_stream(rad_stream,idatex)
+        call write_record_output_stream(rad_stream,rcmtimer%idate)
         if ( myid == italk ) &
-          write(stdout,*) 'RAD variables written at ' , tochar(idatex)
+          write(stdout,*) 'RAD variables written at ' , rcmtimer%str( )
       end if
     end if
 
@@ -982,7 +995,7 @@ module mod_output
         call fill_slaboc_outvars
         call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
         if ( myid == italk ) then
-          write(stdout,*) 'SOM variables written at ' , tochar(idatex)
+          write(stdout,*) 'SOM variables written at ' , rcmtimer%str( )
         end if
       end if
     end if
@@ -1129,17 +1142,17 @@ module mod_output
           call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
             jci1,jci2,ici1,ici2,1,12)
         end if
-        call write_savefile(idatex)
+        call write_savefile(rcmtimer%idate)
       end if
     end if
 
-    if ( lfdomonth(idatex) .and. lmidnight(idatex) ) then
-      if ( .not. lstartup .and. idatex /= idate2 ) then
-        call newoutfiles(idatex)
+    if ( lfdomonth(rcmtimer%idate) .and. lmidnight(rcmtimer%idate) ) then
+      if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
+        call newoutfiles(rcmtimer%idate)
 
         ! This must be removed
         ! if ( ifchem .and. myid == iocpu ) then
-        !   call prepare_chem_out(idatex,ifrest)
+        !   call prepare_chem_out(rcmtimer%idate,ifrest)
         ! end if
 
         call checktime(myid)

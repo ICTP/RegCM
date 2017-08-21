@@ -761,14 +761,6 @@ module mod_che_drydep
        if ( ichdrdepo == 1 ) then
          do i = ici1 , ici2
            rdz = d_one / cdzq(j,i,kz)
-
-           ! If using CLM then use the dry deposition velocities coming directly
-           ! from internal CLM calculations
-#ifdef CLM
-           if ( ivegcov(i) == 0 ) then
-             drydepvg(i,:) = cdep_vels(j,i,:)
-           end if
-#endif
            do n = 1 , ntr
              kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
              kav = max(chib(j,i,kz,n)-mintr,d_zero)
@@ -796,13 +788,6 @@ module mod_che_drydep
          end do
        else if ( ichdrdepo == 2 ) then
          do i = ici1 , ici2
-           ! If using CLM then use the dry deposition velocities coming directly
-           ! from internal CLM calculations
-#ifdef CLM
-           if ( ivegcov(i) == 0 ) then
-             drydepvg(i,:)  =  cdep_vels(j,i,:)
-           end if
-#endif
            do n = 1 , ntr
              chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
                                  cpsb(j,i)) * drydepvg(i,n)

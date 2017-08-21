@@ -26,7 +26,7 @@ module mod_ocn_lake
   use mod_realkinds
   use mod_dynparam
   use mod_service
-  use mod_runparams , only : xmonth , ktau
+  use mod_runparams , only : rcmtimer
   use mod_ocn_internal
 
   implicit none
@@ -111,7 +111,7 @@ module mod_ocn_lake
       return
     end if
 
-    if ( ktau /= 0 ) then
+    if ( rcmtimer%integrating( ) ) then
       do lp = 1 , nlakep
         i = ilp(lp)
         idep(lp) = int(max(d_two,min(dhlake(i),real(ndpmax,rkx)))/dz)
