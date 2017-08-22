@@ -76,9 +76,9 @@ module mod_params
     integer(ik8) :: mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan , ipunit
     integer(ik4) :: khour , kday
-    integer(ik8) :: nsavfrq , natmfrq , nradfrq , nchefrq
-    integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq
-    integer(ik8) :: ksub , krad , kche , klak , ksav
+    integer(ik8) :: natmfrq , nradfrq , nchefrq
+    integer(ik8) :: nbdyfrq , nslabfrq
+    integer(ik8) :: kche
     integer(ik4) :: n , len_path
     character(len=32) :: appdat
     type(rcm_time_interval) :: bdif
@@ -1377,7 +1377,7 @@ module mod_params
       call bcast(ismoke)
 
       call chem_config
-! the following param are set according in chem-config !
+      ! the following param are set according in chem-config !
       call bcast(ntr)
       call bcast(nbin)
       call bcast(iaerosol)
@@ -1530,10 +1530,6 @@ module mod_params
     !
     bdydate1 = idate1
 
-    nsavfrq = nint(secpd*savfrq)
-    nradfrq = nint(secph*radfrq)
-    nlakfrq = nint(secph*lakfrq)
-    nsubfrq = nint(secph*subfrq)
     nchefrq = nint(secph*chemfrq)
     nslabfrq = nint(dtbdys)
     nbdyfrq = nint(dtbdys)
@@ -1556,19 +1552,15 @@ module mod_params
 
     khour = 3600_8/nint(dtsec)
     kday  = 86400_8/nint(dtsec)
-    klak  = nlakfrq/nint(dtsec)
-    ksub  = nsubfrq/nint(dtsec)
     ksts  = khour*24
-    krad  = nradfrq/nint(dtsec)
     kche  = nchefrq/nint(dtsec)
-    ksav  = nsavfrq/nint(dtsec)
 
     alarm_out_rep => rcm_alarm(rcmtimer,3.0_rkx*3600.0_rkx)
     if ( debug_level > 0 ) then
       alarm_out_dbg => rcm_alarm(rcmtimer,secph*dbgfrq)
     end if
     if ( abs(savfrq) > 0 ) then
-      alarm_out_sav => rcm_alarm(rcmtimer,secph*abs(savfrq))
+      alarm_out_sav => rcm_alarm(rcmtimer,secpd*abs(savfrq))
     end if
     alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
     alarm_out_rad => rcm_alarm(rcmtimer,secph*radfrq)
@@ -1585,11 +1577,17 @@ module mod_params
       alarm_out_sub => rcm_alarm(rcmtimer,secph*subfrq)
     end if
 
+    syncro_srf => rcm_syncro(rcmtimer,dtsrf)
+    syncro_cum => rcm_syncro(rcmtimer,dtcum)
+    syncro_rad => rcm_syncro(rcmtimer,dtrad*secpm)
+    syncro_emi => rcm_syncro(rcmtimer,dtabem*secph)
+    syncro_che => rcm_syncro(rcmtimer,dtche)
+
     rnsrf_for_srffrq = d_one/(secph*srffrq/dtsec*rtsrf)
-    rnsrf_for_lakfrq = d_one/(real(klak,rkx)*rtsrf)
-    rnsrf_for_subfrq = d_one/(real(ksub,rkx)*rtsrf)
+    rnsrf_for_lakfrq = d_one/(secph*lakfrq/dtsec*rtsrf)
+    rnsrf_for_subfrq = d_one/(secph*subfrq/dtsec*rtsrf)
     rnsrf_for_day = d_one/(real(kday,rkx)*rtsrf)
-    rnrad_for_radfrq = d_one/(real(krad,rkx)*rtrad)
+    rnrad_for_radfrq = d_one/(secph*radfrq/dtsec*rtrad)
     rnrad_for_chem = real(ntrad,rkx)/real(kche,rkx)
 
     if ( irrtm == 1 ) rnrad_for_chem = real(ntrad*nradfo,rkx)/real(kche,rkx)
@@ -1698,13 +1696,13 @@ module mod_params
         write(stdout,*) 'Create CHE files : ' , ifchem
         write(stdout,*) 'Create OPT files : ' , ifopt
       end if
-      if ( nsavfrq == 0 ) then
+      if ( int(savfrq) == 0 ) then
         write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
-      else if ( nsavfrq > 0 ) then
+      else if ( savfrq > d_zero ) then
         write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , savfrq
       else
         write(stdout,'(a,f6.1)') ' Monthly SAV files are written'
-        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , savfrq
+        write(stdout,'(a,f6.1)') ' Frequency in days to create SAV : ' , -savfrq
       end if
       write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ' , atmfrq
       write(stdout,'(a,f6.1)') ' Frequency in hours to create RAD : ' , radfrq

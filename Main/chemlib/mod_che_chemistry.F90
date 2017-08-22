@@ -24,6 +24,7 @@ module mod_che_chemistry
   use mod_dynparam
   use mod_constants
   use mod_runparams , only : iqv , calday
+  !use mod_runparams , only : rcmtimer
   use mod_che_common
   use mod_che_indices
   use mod_che_species
@@ -88,9 +89,9 @@ module mod_che_chemistry
           xrout(:) = d_zero
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
-!  FAB: this fix a stability bug , but the solver might slower 
+!  FAB: this fix a stability bug , but the solver might slower
 !  other option is to transport all the species.
-          !if ( ktau > 0 ) then
+          !if ( rcmtimer%integrating( ) ) then
           !  do ic = 1 , totsp
           !    xrin(ic) = real(chemall(j,i,k,ic),rk8)
           !  end do

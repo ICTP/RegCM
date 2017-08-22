@@ -404,7 +404,7 @@ module mod_che_bdyco
     call time_begin(subroutine_name,idindx)
 #endif
     xt = xbctime + dt
-    if ( ktau > 1 ) then
+    if ( rcmtimer%integrating( ) ) then
       !
       ! West boundary
       !
@@ -450,7 +450,7 @@ module mod_che_bdyco
           end do
         end do
       end if
-    end if  !end if (ktau > 1) test
+    end if ! end if not start
 
     if ( ichebdy == 0 ) then
       ! flux dependent bdy

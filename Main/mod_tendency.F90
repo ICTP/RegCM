@@ -277,8 +277,7 @@ module mod_tendency
     ! Compute chemistry tendencies (other than transport)
     !
     if ( ichem == 1 ) then
-      call tractend2(rcmtimer%ktau( ),rcmtimer%year, &
-                     rcmtimer%month,rcmtimer%day,calday,declin)
+      call tractend2(rcmtimer%year,rcmtimer%month,rcmtimer%day,calday,declin)
     end if
     !
     ! Compute Large scale horizontal diffusion term
@@ -490,7 +489,7 @@ module mod_tendency
         end do
       end do
       !
-      ! Compute u,v,w,pp at ktau+1
+      ! Compute u,v,w,pp at next timestep
       !
       call sound
       !
@@ -505,7 +504,7 @@ module mod_tendency
       end do
     end if
     !
-    ! forecast TKE at at tau+1:
+    ! forecast TKE at at next timestep
     !
     if ( ibltyp == 2 ) then
       ! TAO: Once the full loop above is completed, update the TKE
@@ -571,8 +570,11 @@ module mod_tendency
       ! are not updated in the other convec scheme,
       ! cf mod_cu_em and mod_cu_tiedke.
       !
-      if ( rcmtimer%integrating( ) .and. mod(ktau,ntcum) == 0 .and. &
+      if ( rcmtimer%integrating( ) .and. syncro_cum%act( ) .and. &
            ichcumtra == 1 .and. any(icup == 2 .or. icup == 6) ) then
+        if ( debug_level > 3 .and. myid == italk ) then
+          write(stdout,*) 'Calling cumulus transport at ',trim(rcmtimer%str())
+        end if
         call cumtran
       end if
     end if
@@ -1694,7 +1696,10 @@ module mod_tendency
       !       Call radiative transfer package
       !------------------------------------------------
       !
-      if ( rcmtimer%start() .or. mod(ktau+1,ntrad) == 0 ) then
+      if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
+        if ( debug_level > 3 .and. myid == italk ) then
+          write(stdout,*) 'Calling radiative transfer at ',trim(rcmtimer%str())
+        end if
         ! calculate albedo
         call surface_albedo
         ! Update / init Ozone profiles
@@ -1707,7 +1712,10 @@ module mod_tendency
           call updateaerosol(rcmtimer%idate)
         end if
         loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act( ) )
-        labsem = ( rcmtimer%start() .or. mod(ktau+1,ntabem) == 0 )
+        labsem = ( rcmtimer%start() .or. syncro_emi%will_act( ) )
+        if ( debug_level > 3 .and. labsem .and. myid == italk ) then
+          write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+        end if
         call radiation(rcmtimer%year,loutrad,labsem)
 #ifdef DEBUG
         call check_temperature_tendency('HEAT',pc_physic)
@@ -1727,7 +1735,10 @@ module mod_tendency
       !            Call Surface model
       !------------------------------------------------
       !
-      if ( rcmtimer%start() .or. mod(ktau+1,ntsrf) == 0 ) then
+      if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
+        if ( debug_level > 3 .and. myid == italk ) then
+          write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
+        end if
         call surface_model
         if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
       end if

@@ -45,7 +45,9 @@ module mod_runparams
   integer(ik4) , public , parameter :: pc_physic     = 3
 
   type(rcm_time_and_date) , save , public :: idate0 , idate1 , idate2
+
   type(rcm_timer) , save , public , pointer :: rcmtimer
+
   type(rcm_alarm) , save , public , pointer :: alarm_hour
   type(rcm_alarm) , save , public , pointer :: alarm_day
   type(rcm_alarm) , save , public , pointer :: alarm_out_sav
@@ -62,6 +64,12 @@ module mod_runparams
   type(rcm_alarm) , save , public , pointer :: alarm_out_dbg
 
   type(rcm_alarm) , save , public , pointer :: alarm_in_bdy
+
+  type(rcm_syncro) , save , public , pointer :: syncro_srf
+  type(rcm_syncro) , save , public , pointer :: syncro_rad
+  type(rcm_syncro) , save , public , pointer :: syncro_emi
+  type(rcm_syncro) , save , public , pointer :: syncro_cum
+  type(rcm_syncro) , save , public , pointer :: syncro_che
 
   ! Orbital paramters
   real(rkx) , public :: eccen

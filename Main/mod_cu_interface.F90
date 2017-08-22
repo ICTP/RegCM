@@ -27,7 +27,7 @@ module mod_cu_interface
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-  use mod_mppparam , only : exchange , uvcross2dot
+  use mod_mppparam , only : exchange , uvcross2dot , italk
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
       model_cumulus_cloud , init_mod_cumulus
@@ -228,8 +228,11 @@ module mod_cu_interface
         end do
       end if
 
-      if ( mod(ktau,ntcum) == 0 ) then
+      if ( syncro_cum%act( ) ) then
 
+        if ( debug_level > 3 .and. myid == italk ) then
+          write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
+        end if
         ! Update input cumulus tendencies
 
         do k = 1 , kz

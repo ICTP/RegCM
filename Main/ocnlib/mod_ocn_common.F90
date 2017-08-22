@@ -30,7 +30,7 @@ module mod_ocn_common
   use mod_ocn_lake
   use mod_ocn_zeng
   use mod_ocn_albedo
-  use mod_runparams , only : ktau , iemiss , rtsrf
+  use mod_runparams , only : rcmtimer , iemiss , rtsrf
   use mod_mppparam
 
   implicit none
@@ -95,7 +95,7 @@ module mod_ocn_common
     else
       mask = 1
     end if
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       call c2l_ss(ocncomm,lm%xlat1,lat)
       call c2l_gs(ocncomm,lm%tground2,tgb)
       call c2l_gs(ocncomm,lm%zencos,czenith)

@@ -28,13 +28,20 @@ module mod_timer
 
   private
 
-  public :: rcm_timer , rcm_alarm
+  ! Supported precision is 1 second (minimum dt is 1)
+
+  public :: rcm_timer , rcm_alarm , rcm_syncro
 
   integer(ik4) , parameter :: maxalarms = 64
+  integer(ik4) , parameter :: maxsyncro = 8
 
   type alarmp
     type(rcm_alarm) , pointer :: ap
   end type alarmp
+
+  type syncrop
+    type (rcm_syncro) , pointer :: sp
+  end type syncrop
 
   type rcm_timer
     integer(ik8) :: model_initial_time
@@ -49,8 +56,10 @@ module mod_timer
     integer(ik4) :: nowinday
     integer(ik4) :: year , month , day , hour , minute , second
     character(len=32) :: model_timestring
-    integer :: nalarm = 0
+    integer(ik4) :: nalarm = 0
+    integer(ik4) :: nsyncro = 0
     type(alarmp) , dimension(maxalarms) :: ap
+    type(syncrop) , dimension(maxsyncro) :: sp
   contains
     procedure :: step => step_timer
     procedure :: str => nowstring
@@ -65,7 +74,18 @@ module mod_timer
     module procedure init_timer
   end interface rcm_timer
 
-  ! Supported precision is 1 second (minimum dt is 1)
+  type rcm_syncro
+    integer(ik8) :: frq
+    real(rkx) :: rw
+    class(rcm_timer) , pointer :: timer
+  contains
+    procedure :: act => syncro_act
+    procedure :: will_act => syncro_willact
+  end type rcm_syncro
+
+  interface rcm_syncro
+    module procedure init_syncro
+  end interface rcm_syncro
 
   type rcm_alarm
     real(rkx) :: dt
@@ -76,8 +96,8 @@ module mod_timer
     logical :: triggered
     class(rcm_timer) , pointer :: timer
   contains
-    procedure :: act => alarm_act
     procedure :: check => alarm_check
+    procedure :: act => alarm_act
     procedure :: will_act => alarm_willact
   end type rcm_alarm
 
@@ -144,7 +164,12 @@ module mod_timer
       deallocate(t%ap(i)%ap)
       nullify(t%ap(i)%ap)
     end do
+    do i = 1 , t%nsyncro
+      deallocate(t%sp(i)%sp)
+      nullify(t%sp(i)%sp)
+    end do
     t%nalarm = 0
+    t%nsyncro = 0
   end subroutine cleanup
 
   logical function is_start(t)
@@ -181,6 +206,35 @@ module mod_timer
     class(rcm_timer) , intent(in) :: t
     time_from_start = t%model_internal_time
   end function time_from_start
+
+  function init_syncro(t,dt)
+    implicit none
+    type(rcm_syncro) , pointer :: init_syncro
+    type(rcm_timer) , pointer , intent(inout) :: t
+    real(rkx) , intent(in) :: dt
+    type(rcm_syncro) , pointer :: syncro
+    allocate(syncro)
+    syncro%timer => null( )
+    if ( .not. associated(t) ) return
+    syncro%timer => t
+    syncro%frq = int(dt,ik8)
+    syncro%rw = real(syncro%timer%model_timestep/syncro%frq,rkx)
+    syncro%timer%nsyncro = syncro%timer%nsyncro + 1
+    syncro%timer%sp(syncro%timer%nsyncro)%sp => syncro
+    init_syncro => syncro
+  end function init_syncro
+
+  logical function syncro_act(s) result(res)
+    implicit none
+    class(rcm_syncro) , intent(in) :: s
+    res = (mod(s%timer%model_internal_time,s%frq) == 0)
+  end function syncro_act
+
+  logical function syncro_willact(s) result(res)
+    implicit none
+    class(rcm_syncro) , intent(in) :: s
+    res = (mod(s%timer%model_internal_time+s%timer%model_timestep,s%frq) == 0)
+  end function syncro_willact
 
   function init_alarm(t,dt,act0)
     implicit none

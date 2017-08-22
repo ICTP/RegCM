@@ -25,7 +25,8 @@
   use mod_realkinds
   use mod_constants
   use mod_dynparam
-  use mod_runparams , only : iqv , iqc
+  use mod_runparams , only : iqv , iqc , syncro_che
+  !use mod_runparams , only : rcmtimer , syncro_srf
   use mod_mppparam
   use mod_che_common
   use mod_che_indices
@@ -59,11 +60,10 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(ktau,lyear,lmonth,lday,calday,declin)
+    subroutine tractend2(lyear,lmonth,lday,calday,declin)
       implicit none
       integer(ik4) , intent(in) :: lmonth , lday , lyear
       real(rkx) , intent(in) :: calday , declin
-      integer(ik8) , intent(in) :: ktau
 
       real(rkx) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   shu10 , u10 , v10
@@ -318,7 +318,7 @@
       ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
 #if defined CLM45
       if (idust(1) > 0 .and.  ichdustemd == 3 .and. ichsursrc == 1 ) then
-!        if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) call clm_dust_tend
+!        if ( rcmtimer%start( ) .or. srf_syncro%act( ) ) call clm_dust_tend
          call clm_dust_tend
       end if
 #endif
@@ -512,7 +512,7 @@
       ! ( insure smoothness)
       !
       if ( igaschem == 1 .and. ichsolver > 0 ) then
-        if ( mod(ktau+1,kchsolv) == 0 ) then
+        if ( syncro_che%act( ) ) then
           chemten(:,:,:,:) = d_zero
           do j = jci1 , jci2
             call chemistry(j)
