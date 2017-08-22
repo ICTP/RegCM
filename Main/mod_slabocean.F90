@@ -118,7 +118,7 @@ module mod_slabocean
       ! energy budget in the mixed layer including the q flux therm
       !
 #ifdef DEBUG
-      if ( mod(ktau+1,krep) == 0 ) then
+      if ( alarm_out_rep%will_act( ) ) then
         pval(1) = maxval(ofsw)
         pval(2) = maxval(oflw)
         pval(3) = maxval(ohfx)

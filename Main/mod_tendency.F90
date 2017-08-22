@@ -673,7 +673,7 @@ module mod_tendency
         call fatal(__FILE__,__LINE__,'CFL VIOLATION')
       end if
 
-      if ( mod(ktau,krep) == 0 ) then
+      if ( alarm_out_rep%act( ) ) then
         pt2bar = pt2tot
         ptnbar = ptntot
         iconvec = 0

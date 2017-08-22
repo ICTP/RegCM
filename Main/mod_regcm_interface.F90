@@ -184,7 +184,7 @@ module mod_regcm_interface
       ! Boundary code
       !
       if ( .not. rcmtimer%reached_endtime  ) then
-        if ( mod(ktau,kbdy) == 0 ) then
+        if ( alarm_in_bdy%act( ) ) then
           !
           ! Read in new boundary conditions
           !
@@ -249,6 +249,7 @@ module mod_regcm_interface
       call closeaerosol
     end if
 
+    call rcmtimer%dismiss( )
     call memory_destroy
     call finaltime(myid)
 

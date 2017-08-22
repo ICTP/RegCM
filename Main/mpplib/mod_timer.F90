@@ -30,6 +30,12 @@ module mod_timer
 
   public :: rcm_timer , rcm_alarm
 
+  integer(ik4) , parameter :: maxalarms = 64
+
+  type alarmp
+    type(rcm_alarm) , pointer :: ap
+  end type alarmp
+
   type rcm_timer
     integer(ik8) :: model_initial_time
     integer(ik8) :: model_start_time
@@ -43,6 +49,8 @@ module mod_timer
     integer(ik4) :: nowinday
     integer(ik4) :: year , month , day , hour , minute , second
     character(len=32) :: model_timestring
+    integer :: nalarm = 0
+    type(alarmp) , dimension(maxalarms) :: ap
   contains
     procedure :: step => step_timer
     procedure :: str => nowstring
@@ -50,6 +58,7 @@ module mod_timer
     procedure :: ktau => step_from_start
     procedure :: start => is_start
     procedure :: integrating => is_integrating
+    procedure :: dismiss => cleanup
   end type rcm_timer
 
   interface rcm_timer
@@ -60,14 +69,15 @@ module mod_timer
 
   type rcm_alarm
     real(rkx) :: dt
+    integer(ik8) :: now
     integer(ik8) :: actint
     integer(ik8) :: lastact
     real(rkx) , dimension(2) :: wt
-    integer(ik8) :: now
     logical :: triggered
-    type(rcm_timer) , pointer :: timer
+    class(rcm_timer) , pointer :: timer
   contains
     procedure :: act => alarm_act
+    procedure :: check => alarm_check
     procedure :: will_act => alarm_willact
   end type rcm_alarm
 
@@ -106,7 +116,7 @@ module mod_timer
   subroutine step_timer(t)
     implicit none
     class(rcm_timer) , intent(inout) :: t
-    integer(ik4) :: tmp1 , tmp2
+    integer(ik4) :: i , tmp1 , tmp2
     t%model_internal_time = t%model_internal_time + t%model_timestep
     t%nowinday = t%nowinday + t%model_timestep
     t%idate = t%idate + t%intmdl
@@ -121,7 +131,21 @@ module mod_timer
     t%reached_endtime = t%model_internal_time >= t%model_stop_time
     t%next_is_endtime = (t%model_internal_time + &
                          t%model_timestep) >= t%model_stop_time
+    do i = 1 , t%nalarm
+      call t%ap(i)%ap%check( )
+    end do
   end subroutine step_timer
+
+  subroutine cleanup(t)
+    implicit none
+    class(rcm_timer) , intent(inout) :: t
+    integer(ik4) :: i
+    do i = 1 , t%nalarm
+      deallocate(t%ap(i)%ap)
+      nullify(t%ap(i)%ap)
+    end do
+    t%nalarm = 0
+  end subroutine cleanup
 
   logical function is_start(t)
     implicit none
@@ -160,52 +184,63 @@ module mod_timer
 
   function init_alarm(t,dt,act0)
     implicit none
-    class(rcm_timer) , pointer , intent(in) :: t
     type(rcm_alarm) , pointer :: init_alarm
+    type(rcm_timer) , pointer , intent(inout) :: t
     real(rkx) , intent(in) :: dt
     logical , intent(in) , optional :: act0
     logical :: lact0
-    allocate(init_alarm)
-    init_alarm%timer => null( )
+    type(rcm_alarm) , pointer :: alarm
+    allocate(alarm)
+    alarm%timer => null( )
     if ( .not. associated(t) ) return
-    init_alarm%timer => t
+    alarm%timer => t
     lact0 = .false.
     if ( present(act0) ) lact0 = act0
-    init_alarm%dt = dt
-    init_alarm%actint = int(dt,ik8)
-    init_alarm%lastact = t%model_internal_time
-    init_alarm%triggered = lact0
+    alarm%dt = dt
+    alarm%actint = int(dt,ik8)
+    alarm%lastact = alarm%timer%model_internal_time
+    alarm%triggered = lact0
+    alarm%timer%nalarm = alarm%timer%nalarm + 1
+    alarm%timer%ap(alarm%timer%nalarm)%ap => alarm
+    init_alarm => alarm
   end function init_alarm
 
-  logical function alarm_act(alarm) result(res)
-    implicit none
-    real(rkx) :: t1 , t2
+  subroutine alarm_check(alarm)
     class(rcm_alarm) , intent(inout) :: alarm
-    res = .false.
+    real(rkx) :: t1 , t2
     if ( alarm%now == alarm%timer%model_internal_time ) then
-      res = .true.
       return
     end if
     t1 = real(alarm%timer%model_internal_time,rkx)
     t2 = real(alarm%lastact+alarm%actint,rkx)
     if ( t1 >= t2 ) then
       alarm%lastact = ((alarm%timer%model_internal_time) / &
-                        alarm%actint)*alarm%actint
+      alarm%actint)*alarm%actint
       alarm%triggered = .true.
     end if
     if ( alarm%triggered ) then
-      res = .true.
       alarm%triggered = .false.
       alarm%wt(1) = (t1 - t2)/alarm%dt
       alarm%wt(2) = d_one - alarm%wt(1)
       alarm%now = alarm%timer%model_internal_time
+    end if
+  end subroutine alarm_check
+
+  logical function alarm_act(alarm) result(res)
+    implicit none
+    class(rcm_alarm) , intent(in) :: alarm
+    real(rkx) :: t1 , t2
+    res = .false.
+    if ( alarm%now == alarm%timer%model_internal_time ) then
+      res = .true.
+      return
     end if
   end function alarm_act
 
   logical function alarm_willact(alarm) result(res)
     implicit none
     real(rkx) :: t1 , t2
-    class(rcm_alarm) , intent(inout) :: alarm
+    class(rcm_alarm) , intent(in) :: alarm
     res = .false.
     t1 = real(alarm%timer%model_internal_time+alarm%timer%model_timestep,rkx)
     t2 = real(alarm%lastact+alarm%actint,rkx)

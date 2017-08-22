@@ -319,8 +319,6 @@ module mod_savefile
     type (rcm_time_and_date) :: idatex
     integer(ik4) :: ncid
     integer(ik4) :: int10d , ical
-    integer(ik8) :: idt1 , idt2
-    real(rkx) :: odtsec
     real(rk8) :: rtmp
     character(256) :: ffin
     character(32) :: fbname
@@ -331,10 +329,6 @@ module mod_savefile
       ncstatus = nf90_open(ffin,nf90_nowrite,ncid)
       call check_ok(__FILE__,__LINE__,'Cannot open savefile '//trim(ffin))
 
-      ncstatus = nf90_get_att(ncid,nf90_global,'ktau',ktau)
-      call check_ok(__FILE__,__LINE__,'Cannot get attribute ktau')
-      ncstatus = nf90_get_att(ncid,nf90_global,'dtsec',odtsec)
-      call check_ok(__FILE__,__LINE__,'Cannot get attribute dtsec')
       ncstatus = nf90_get_att(ncid,nf90_global,'idatex',int10d)
       call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
       ncstatus = nf90_get_att(ncid,nf90_global,'calendar',ical)
@@ -350,15 +344,6 @@ module mod_savefile
         ncstatus = nf90_get_att(ncid,nf90_global,'dryerror',dryerror)
         waterror = rtmp
         ncstatus = nf90_get_att(ncid,nf90_global,'waterror',waterror)
-      end if
-      idt1 = nint(odtsec)
-      idt2 = nint(dtsec)
-      if ( idt1 /= idt2 ) then
-        write (stdout,*) 'Recalculating ktau for the new dt'
-        write (stdout,*) 'Restart file ktau is       = ', ktau
-        ktau = (ktau * idt1) / idt2
-        write (stdout,*) 'Actual ktau with new dt is = ', ktau
-        write (stdout,*) 'Done Recalculating ktau for the new dt'
       end if
       idatex = int10d
       call setcal(idatex,ical)
@@ -838,10 +823,6 @@ module mod_savefile
         call mydefvar(ncid,'tmask',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
 
-      ncstatus = nf90_put_att(ncid,nf90_global,'ktau',ktau)
-      call check_ok(__FILE__,__LINE__,'Cannot save ktau')
-      ncstatus = nf90_put_att(ncid,nf90_global,'dtsec',dtsec)
-      call check_ok(__FILE__,__LINE__,'Cannot save dtsec')
       ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idate))
       call check_ok(__FILE__,__LINE__,'Cannot save idatex')
       ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idate%calendar)

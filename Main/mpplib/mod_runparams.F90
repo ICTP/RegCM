@@ -58,6 +58,11 @@ module mod_runparams
   type(rcm_alarm) , save , public , pointer :: alarm_out_opt
   type(rcm_alarm) , save , public , pointer :: alarm_out_sub
 
+  type(rcm_alarm) , save , public , pointer :: alarm_out_rep
+  type(rcm_alarm) , save , public , pointer :: alarm_out_dbg
+
+  type(rcm_alarm) , save , public , pointer :: alarm_in_bdy
+
   ! Orbital paramters
   real(rkx) , public :: eccen
   real(rkx) , public :: obliqr
@@ -81,8 +86,6 @@ module mod_runparams
 
   ! Step counter. Is zero at idate0, always increasing, never reset.
   integer(ik8) , public :: ktau
-  ! Output k values for I/O operations.
-  integer(ik8) , public :: kdbg , kbdy , krep
   ! Step counters to activate surface and radiation schemes
   integer(ik8) , public :: ntsrf , ntrad , ntcum , ntabem , ntche , ntcpl
   real(rkx) , public :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &

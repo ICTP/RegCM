@@ -618,7 +618,7 @@ module mod_sound
           end do
         end do
       end do
-      if ( mod(ktau,krep) == 0 .and. &
+      if ( alarm_out_rep%act( ) .and. &
            rcmtimer%integrating( ) .and. it == istep ) then
         call sumall(total_precip_points,iconvec)
         call maxall(cfl,maxcfl)

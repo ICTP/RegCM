@@ -76,9 +76,9 @@ module mod_params
     integer(ik8) :: mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan , ipunit
     integer(ik4) :: khour , kday
-    integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
+    integer(ik8) :: nsavfrq , natmfrq , nradfrq , nchefrq
     integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq
-    integer(ik8) :: katm , ksrf , ksub , krad , kche , klak , ksav
+    integer(ik8) :: ksub , krad , kche , klak , ksav
     integer(ik4) :: n , len_path
     character(len=32) :: appdat
     type(rcm_time_interval) :: bdif
@@ -1531,10 +1531,7 @@ module mod_params
     bdydate1 = idate1
 
     nsavfrq = nint(secpd*savfrq)
-    natmfrq = nint(secph*atmfrq)
     nradfrq = nint(secph*radfrq)
-    ndbgfrq = nint(secph*dbgfrq)
-    nsrffrq = nint(secph*srffrq)
     nlakfrq = nint(secph*lakfrq)
     nsubfrq = nint(secph*subfrq)
     nchefrq = nint(secph*chemfrq)
@@ -1555,20 +1552,21 @@ module mod_params
 
     alarm_hour => rcm_alarm(rcmtimer,3600.0_rkx)
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
+    alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
+
     khour = 3600_8/nint(dtsec)
     kday  = 86400_8/nint(dtsec)
-    krep  = khour*3
-    kbdy  = nbdyfrq/nint(dtsec)
-    katm  = natmfrq/nint(dtsec)
-    ksrf  = nsrffrq/nint(dtsec)
     klak  = nlakfrq/nint(dtsec)
     ksub  = nsubfrq/nint(dtsec)
     ksts  = khour*24
     krad  = nradfrq/nint(dtsec)
     kche  = nchefrq/nint(dtsec)
-    kdbg  = ndbgfrq/nint(dtsec)
     ksav  = nsavfrq/nint(dtsec)
 
+    alarm_out_rep => rcm_alarm(rcmtimer,3.0_rkx*3600.0_rkx)
+    if ( debug_level > 0 ) then
+      alarm_out_dbg => rcm_alarm(rcmtimer,secph*dbgfrq)
+    end if
     if ( abs(savfrq) > 0 ) then
       alarm_out_sav => rcm_alarm(rcmtimer,secph*abs(savfrq))
     end if
@@ -1587,7 +1585,7 @@ module mod_params
       alarm_out_sub => rcm_alarm(rcmtimer,secph*subfrq)
     end if
 
-    rnsrf_for_srffrq = d_one/(real(ksrf,rkx)*rtsrf)
+    rnsrf_for_srffrq = d_one/(secph*srffrq/dtsec*rtsrf)
     rnsrf_for_lakfrq = d_one/(real(klak,rkx)*rtsrf)
     rnsrf_for_subfrq = d_one/(real(ksub,rkx)*rtsrf)
     rnsrf_for_day = d_one/(real(kday,rkx)*rtsrf)
@@ -1595,7 +1593,7 @@ module mod_params
     rnrad_for_chem = real(ntrad,rkx)/real(kche,rkx)
 
     if ( irrtm == 1 ) rnrad_for_chem = real(ntrad*nradfo,rkx)/real(kche,rkx)
-    rsrf_in_atm = real(ntsrf,rkx)/real(katm,rkx)
+    rsrf_in_atm = real(ntsrf,rkx)/(secph*atmfrq/dtsec)
     rsrffrq_sec = d_one/(srffrq*secph)
 
     do ns = 1 , nsplit
