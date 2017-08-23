@@ -1181,7 +1181,7 @@ module mod_clm_cnallocation
         f_n2o_tot_vr(c,j) = 0.021_rk8 * &
           ((0.001_rk8 * f_nit_vr(c,j)) + f_denit_vr(c,j)) * &
           ((10_rk8**(h2osoi_vol(c,j)/fr_WFPS(c,j))*0.026_rk8 - 1.66_rk8) / &
-          (1_rk8 + 10_rk8**(h2osoi_vol(c,j)/fr_WFPS(c,j))*0.026_rk8 - 1.66_rk8)
+          (1_rk8 + 10_rk8**(h2osoi_vol(c,j)/fr_WFPS(c,j)))*0.026_rk8 - 1.66_rk8)
 
         ! this code block controls the addition of N to sminn pool
         ! to eliminate any N limitation, when Carbon_Only is set.  This lets the

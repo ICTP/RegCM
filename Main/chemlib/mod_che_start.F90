@@ -60,7 +60,6 @@ module mod_che_start
     ! A : Intialise chemistry tracer indices
 
     dtchsolv = dtche
-    kchsolv = ntche
 
     iso2  = 0
     iso4  = 0

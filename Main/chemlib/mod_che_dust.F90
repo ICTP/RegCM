@@ -976,7 +976,6 @@ module mod_che_dust
       ! readius and optical properties
       ! use the same tuning erodibility factor rdstemfac than for
       ! standard scheme
-      ! cdsfrq = real(ntsrf/kche,rkx)
       allocate(sumdflux(jci1:jci2,ici1:ici2))
       sumdflux = d_zero
 #ifdef CLM45

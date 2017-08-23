@@ -2883,7 +2883,7 @@ module mod_clm_pftdyn
         pptr%wtlunit(p) = pptr%wtcol(p)
         pptr%wtgcell(p) = pptr%wtcol(p) * lptr%wtgcell(l)
 
-        if ( mon==1 .and. day==1 .and. sec<=dtsrf .and. ktau > 0 ) then
+        if ( mon==1 .and. day==1 .and. sec<=dtsrf .and. rcmtimer%integrating( ) ) then
           pptr%pdgvs%fpcgridold(p) = pptr%pdgvs%fpcgrid(p)
         end if
       end if

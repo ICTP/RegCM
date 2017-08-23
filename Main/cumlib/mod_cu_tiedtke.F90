@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
-         hsigma , ktau , ichcumtra
+         hsigma , ichcumtra , rcmtimer
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen_lnd , detrpen_ocn , entshalp , entrdd
@@ -536,7 +536,8 @@ module mod_cu_tiedtke
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
             write(stderr,'(a,f12.4,a,i8)') &
-              '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), ' at ktau ', ktau
+              '! LOOKUP PROBLEM FOR T = ',real(ztp1(jl,jk)), &
+              ' at ', rcmtimer%str( )
             lookupoverflow = .true.
           end if
           it = max(min(it,jptlucu2),jptlucu1)

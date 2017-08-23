@@ -67,9 +67,12 @@ module mod_runparams
 
   type(rcm_syncro) , save , public , pointer :: syncro_srf
   type(rcm_syncro) , save , public , pointer :: syncro_rad
+  type(rcm_syncro) , save , public , pointer :: syncro_radfor
   type(rcm_syncro) , save , public , pointer :: syncro_emi
   type(rcm_syncro) , save , public , pointer :: syncro_cum
   type(rcm_syncro) , save , public , pointer :: syncro_che
+
+  type(rcm_syncro) , save , public , pointer :: syncro_cpl
 
   ! Orbital paramters
   real(rkx) , public :: eccen
@@ -92,13 +95,9 @@ module mod_runparams
 
   real(rkx) , public :: solcon , scon
 
-  ! Step counter. Is zero at idate0, always increasing, never reset.
-  integer(ik8) , public :: ktau
   ! Step counters to activate surface and radiation schemes
-  integer(ik8) , public :: ntsrf , ntrad , ntcum , ntabem , ntche , ntcpl
-  real(rkx) , public :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &
-               rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , &
-               rnrad_for_radfrq
+  real(rkx) , public :: rnsrf_for_srffrq , rnsrf_for_day , &
+     rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , rnrad_for_radfrq
   real(rkx) , public :: afdout , cfdout
   ! Step of surface scheme in one atmosphere I/O interval
   real(rkx) , public :: rsrf_in_atm
@@ -107,8 +106,6 @@ module mod_runparams
   ! Model timestep in seconds (real and integer)
   integer(ik8) , public :: ntsec
   real(rkx) , public :: dtsec
-  ! Internal count for how many SRF outputs per day
-  integer(ik8) , public :: ksts , kstsoff
   !
   ! Cumulus scheme index
   integer(ik4) , public :: icup_lnd

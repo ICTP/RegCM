@@ -6,7 +6,7 @@ module mod_clm_balancecheck
   use mod_realkinds
   use mod_stdio
   use mod_mpmessage
-  use mod_runparams , only : ktau , dtsrf
+  use mod_runparams , only : syncro_srf , dtsrf
   use mod_clm_type , only : clm3
   use mod_clm_atmlnd , only : clm_a2l
   use mod_clm_varpar , only : nlevgrnd , nlevsoi , nlevurb
@@ -319,9 +319,9 @@ module mod_clm_balancecheck
     real(rk8) , dimension(lbc:ubc) :: forc_snow_col
 
     character(len=*) , parameter :: f99001 = &
-     "(1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' W/m2')"
+     "(1x,a,' step =',i10,' point =',i6,' imbalance =',f12.6,' W/m2')"
     character(len=*) , parameter :: f99002 = &
-     "(1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' mm')"
+     "(1x,a,' step =',i10,' point =',i6,' imbalance =',f12.6,' mm')"
 
     ! Assign local pointers to derived type scalar members (gridcell-level)
 
@@ -462,18 +462,17 @@ module mod_clm_balancecheck
     end do
 
     if ( found ) then
-      write(stderr,*) 'WARNING:  ktau         : ', ktau
+      write(stderr,*) 'WARNING:  CLM step     : ', syncro_srf%lcount
       write(stderr,*) 'WARNING:  indexc       : ', indexc
       write(stderr,*) 'WARNING:  ctype(indexc): ', ctype(indexc)
       write(stderr,*) 'WARNING:  water balance error ', errh2o(indexc)
       if ( (ctype(indexc) == icol_roof .or.        &
             ctype(indexc) == icol_road_imperv .or. &
             ctype(indexc) == icol_road_perv) .and. &
-            abs(errh2o(indexc)) > 0.10_rk8 .and. (ktau > 2) ) then
+            abs(errh2o(indexc)) > 0.10_rk8 .and. syncro_srf%lcount > 2 ) then
         write(stderr,*) &
               'clm urban model is stopping - error is greater than .10'
-        write(stderr,*) &
-              'ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
+        write(stderr,*)'indexc= ',indexc,' errh2o= ',errh2o(indexc)
         write(stderr,*)'ctype(indexc): ',ctype(indexc)
         write(stderr,*)'forc_rain    = ',forc_rain_col(indexc)
         write(stderr,*)'forc_snow    = ',forc_snow_col(indexc)
@@ -486,10 +485,10 @@ module mod_clm_balancecheck
         write(stderr,*)'qflx_drain   = ',qflx_drain(indexc)
         write(stderr,*)'qflx_snwcp_ice   = ',qflx_snwcp_ice(indexc)
         call fatal(__FILE__,__LINE__,'clm model is stopping')
-      else if ( abs(errh2o(indexc)) > 0.10_rk8 .and. (ktau > 2) ) then
+      else if ( abs(errh2o(indexc)) > 0.10_rk8 .and. &
+                syncro_srf%lcount > 2 ) then
         write(stderr,*)'clm model is stopping - error is greater than .10'
-        write(stderr,*) &
-             'ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
+        write(stderr,*)'indexc= ',indexc,' errh2o= ',errh2o(indexc)
         write(stderr,*)'ctype(indexc): ',ctype(indexc)
         write(stderr,*)'forc_rain    = ',forc_rain_col(indexc)
         write(stderr,*)'forc_snow    = ',forc_snow_col(indexc)
@@ -579,12 +578,12 @@ module mod_clm_balancecheck
     end do
     if ( found ) then
       write(stderr,*) 'WARNING:  snow balance error '
-      write(stderr,*) ' ktau      = ',ktau
+      write(stderr,*) ' CLM step  = ',syncro_srf%lcount
       write(stderr,*) ' indexc    = ',indexc
       write(stderr,*) ' ctype     = ',ctype(indexc)
       write(stderr,*) ' ltype     = ',ltype(clandunit(indexc))
       write(stderr,*) ' errh2osno = ',errh2osno(indexc)
-      if ( abs(errh2osno(indexc)) > 0.1_rk8 .and. (ktau > 2) ) then
+      if ( abs(errh2osno(indexc)) > 0.1_rk8 .and. syncro_srf%lcount > 2 ) then
         write(stderr,*)'clm model is stopping - error is greater than .10'
         write(stderr,*)'snl: ',snl(indexc)
         write(stderr,*)'h2osno: ',h2osno(indexc)
@@ -673,10 +672,10 @@ module mod_clm_balancecheck
         end if
       end if
     end do
-    if ( found  .and. (ktau > 2) ) then
+    if ( found .and. syncro_srf%lcount > 2 ) then
       write(stderr,f99001) &
-         'BalanceCheck: solar radiation balance error', ktau, indexp, &
-         errsol(indexp)
+         'BalanceCheck: solar radiation balance error', &
+         syncro_srf%lcount, indexp, errsol(indexp)
       write(stderr,*)'fsa          = ',fsa(indexp)
       write(stderr,*)'fsr          = ',fsr(indexp)
       write(stderr,*)'forc_solad(1)= ',forc_solad(indexg,1)
@@ -701,10 +700,10 @@ module mod_clm_balancecheck
         end if
       end if
     end do
-    if ( found  .and. (ktau > 2) ) then
+    if ( found  .and. syncro_srf%lcount > 2 ) then
       write(stderr,f99001) &
-          'BalanceCheck: longwave enery balance error',ktau,indexp, &
-          errlon(indexp)
+          'BalanceCheck: longwave enery balance error', &
+          syncro_srf%lcount,indexp,errlon(indexp)
       call fatal(__FILE__,__LINE__,'clm model is stopping')
     end if
 
@@ -719,10 +718,10 @@ module mod_clm_balancecheck
         end if
       end if
     end do
-    if ( found  .and. (ktau > 2) ) then
+    if ( found  .and. syncro_srf%lcount > 2 ) then
       write(stderr,f99001) &
-         'BalanceCheck: surface flux energy balance error',ktau,indexp, &
-         errseb(indexp)
+         'BalanceCheck: surface flux energy balance error', &
+         syncro_srf%lcount,indexp,errseb(indexp)
       write(stderr,*)' sabv           = ',sabv(indexp)
       c = pcolumn(indexp)
       write(stderr,*)' column      = ',c
@@ -746,10 +745,11 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found ) then
-      if (abs(errsoi_col(indexc)) > .10_rk8 .and. (ktau > 2) ) then
+      if (abs(errsoi_col(indexc)) > .10_rk8 .and. syncro_srf%lcount > 2 ) then
         write(stderr,f99001) &
-          'BalanceCheck: soil balance error',ktau,indexc,errsoi_col(indexc)
-        write(stderr,*)'ktau = ',ktau,' indexc= ',indexc, &
+          'BalanceCheck: soil balance error',syncro_srf%lcount, &
+          indexc,errsoi_col(indexc)
+        write(stderr,*)'indexc= ',indexc, &
                 ' errsoi_col= ',errsoi_col(indexc)
         call fatal(__FILE__,__LINE__,'clm model is stopping')
       end if

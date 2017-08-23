@@ -30,6 +30,9 @@ module mod_clm_slakerest
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    logical :: lstart
+
+    lstart = rcmtimer%integrating( )
 
     ! Set pointers into derived type
 
@@ -47,7 +50,7 @@ module mod_clm_slakerest
             cdims=['column','levlak'], &
             long_name='lake layer ice fraction',units='kg/kg', switchdim=.true.)
     else if (flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'LAKE_ICEFRAC') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'LAKE_ICEFRAC') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'LAKE_ICEFRAC', &
@@ -65,7 +68,7 @@ module mod_clm_slakerest
             cdims=['column'], &
             long_name='top lake layer eddy conductivity', units='W/(m K)')
     else if (flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'SAVEDTKE1') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'SAVEDTKE1') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'SAVEDTKE1',cptr%cps%savedtke1,gcomm_column)
@@ -81,7 +84,7 @@ module mod_clm_slakerest
             cdims=['column'], &
             long_name='friction velocity for lakes', units='m/s')
     else if (flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'USTLAKE') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'USTLAKE') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'USTLAKE',cptr%cps%ust_lake,gcomm_column)
@@ -96,7 +99,7 @@ module mod_clm_slakerest
        call clm_addvar(clmvar_double,ncid,'Z0MG', cdims=['column'], &
             long_name='ground momentum roughness length', units='m')
     else if (flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'Z0MG') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'Z0MG') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'Z0MG',cptr%cps%z0mg,gcomm_column)

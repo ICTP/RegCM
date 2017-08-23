@@ -546,7 +546,7 @@ module mod_clm_snicar
                (snw_rds_lcl(i) > snw_rds_max_tbl) ) then
             write (stderr,*) "SNICAR ERROR: snow grain radius of ", &
                     snw_rds_lcl(i), " out of bounds."
-            write (stderr,*) "ktau = ", ktau
+            write (stderr,*) "date = ", trim(rcmtimer%str( ))
             write (stderr,*) "flg_snw_ice= ", flg_snw_ice
             write (stderr,*) "column: ", c_idx, " level: ", i, &
                     " snl(c)= ", snl_lcl
@@ -1090,7 +1090,7 @@ module mod_clm_snicar
           if ( abs(energy_sum) > 0.00001_rk8 ) then
             write (stderr,"(a,e14.7,a,i6,a,i6)") &
                "SNICAR ERROR: Energy conservation error of : ", energy_sum, &
-               " at timestep: ", ktau, " at column: ", c_idx
+               " at : ", trim(rcmtimer%str( )), " at column: ", c_idx
             call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
 
@@ -1099,7 +1099,8 @@ module mod_clm_snicar
           ! Check that albedo is less than 1
           if ( albout_lcl(bnd_idx) > 1.0 ) then
             write (stderr,*) &
-                 "SNICAR ERROR: Albedo > 1.0 at c: ", c_idx, " ktau = ",ktau
+                 "SNICAR ERROR: Albedo > 1.0 at c: ", c_idx, " at ", &
+                 trim(rcmtimer%str( ))
             write (stderr,*) "SNICAR STATS: bnd_idx= ",bnd_idx
             write (stderr,*) "SNICAR STATS: albout_lcl(bnd)= ", &
                     albout_lcl(bnd_idx), " albsfc_lcl(bnd_idx)= ", &

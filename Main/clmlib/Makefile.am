@@ -290,7 +290,7 @@ getdatetime.o:  getdatetime.F90  misc.h preproc.h
 gptl.o:  gptl.c  gptl.h private.h
 gptl_papi.o:  gptl_papi.c  gptl.h private.h
 gptlutil.o:  gptlutil.c  gptl.h private.h
-histFileMod.o:  histFileMod.F90 clm_varsur.o subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o iobinary.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o shr_kind_mod.o CASAMod.o spmdGathScatMod.o shr_const_mod.o decompMod.o domainMod.o clm_time_manager.o ncdio.o misc.h preproc.h clm_varsur.o
+histFileMod.o:  histFileMod.F90 clm_varsur.o subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o iobinary.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o shr_kind_mod.o CASAMod.o spmdGathScatMod.o shr_const_mod.o decompMod.o domainMod.o clm_time_manager.o ncdio.o misc.h preproc.h clm_varsur.o mod_runparams.o
 histFldsMod.o:  histFldsMod.F90 clm_varcon.o clmtype.o histFileMod.o clm_varctl.o RunoffMod.o shr_kind_mod.o CASAMod.o clm_atmlnd.o misc.h preproc.h
 iniTimeConst.o:  iniTimeConst.F90 clm_varsur.o spmdMod.o clm_varvoc.o clm_varcon.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o mod_clm.o fileutils.o shr_kind_mod.o decompMod.o domainMod.o clm_time_manager.o clm_atmlnd.o pftvarcon.o ncdio.o ndepFileMod.o nanMod.o misc.h preproc.h
 inicFileMod.o:  inicFileMod.F90 spmdMod.o clm_varcon.o clmtype.o clm_varpar.o shr_sys_mod.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o decompMod.o ncdio.o misc.h preproc.h

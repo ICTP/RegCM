@@ -47,7 +47,6 @@ module mod_clm_restfile
   public :: restFile_filename   ! Sets restart filename
 
   ! Close restart file and write restart pointer file
-  private :: restFile_closeRestart
   private :: restFile_dimset
   private :: restFile_dimcheck
   private :: restFile_enddef
@@ -129,13 +128,11 @@ module mod_clm_restfile
     ! --------------------------------------------
 
     call restFile_close( ncid )
-    call restFile_closeRestart( rfile )
 
     ! Write out diagnostic info
 
     if (myid == italk) then
-      write(stdout,*) &
-              'Successfully wrote out restart data at ktau = ',ktau+1
+      write(stdout,*) 'Successfully wrote out restart data for CLM 4.5'
     end if
   end subroutine restFile_write
   !
@@ -197,17 +194,6 @@ module mod_clm_restfile
       rfile = finidat
     end if
   end subroutine restFile_getfile
-  !
-  ! Close restart file and write restart pointer file if
-  ! in write mode, otherwise just close restart file if in read mode
-  !
-  subroutine restFile_closeRestart( rfile )
-    implicit none
-    character(len=*) , intent(in) :: rfile  ! local output filename
-    if (myid == italk) then
-      write(stdout,*) 'Successfully wrote local restart file ',trim(rfile)
-    end if
-  end subroutine restFile_closeRestart
 
   subroutine restFile_open( flag, rfile, ncid )
     implicit none
@@ -218,8 +204,7 @@ module mod_clm_restfile
       ! Create new netCDF file (in define mode) and set fill mode
       ! to "no fill" to optimize performance
       if (myid == italk) then
-        write(stdout,*)'Writing restart dataset in ', trim(rfile), &
-                ' at ktau = ', ktau+1
+        write(stdout,*)'Writing restart dataset on ', trim(rfile)
       end if
       call clm_createfile(trim(rfile),ncid)
     else if (flag == 'read') then
@@ -237,11 +222,6 @@ module mod_clm_restfile
     restFile_filename = trim(dirout)//trim(caseid)// &
                         ".clm."//trim(inst_suffix)//&
                         ".r."//trim(rdate)//".nc"
-    if (myid == italk) then
-      write(stdout,*) &
-       'writing restart file ',trim(restFile_filename), &
-       ' for model date = ',rdate
-    end if
   end function restFile_filename
   !
   ! Read/Write initial data from/to netCDF instantaneous initial data file

@@ -24,7 +24,7 @@ module mod_bats_common
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ichem , iemiss , rtsrf , replacemoist
+  use mod_runparams , only : ichem , iemiss , syncro_srf , replacemoist
   use mod_runparams , only : rcmtimer , rhmin , rhmax
   use mod_mppparam
   use mod_mpmessage
@@ -367,7 +367,7 @@ module mod_bats_common
         qs(i) = qs(i)/(d_one+qs(i))
         rhs(i) = sfcp(i)/(rgas*sts(i))
         ! Average over the period
-        prcp(i) = (ncpr0(i) + cpr0(i))*rtsrf
+        prcp(i) = (ncpr0(i) + cpr0(i))*syncro_srf%rw
         !
         ! quantities stored on 2d surface array for bats use only
         !

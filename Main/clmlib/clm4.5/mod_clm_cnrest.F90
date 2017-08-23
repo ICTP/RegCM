@@ -8,7 +8,7 @@ module mod_clm_cnrest
   use mod_dynparam
   use mod_mppparam
   use mod_mpmessage
-  use mod_runparams , only : ktau , ntsrf
+  use mod_runparams , only : rcmtimer , syncro_srf
   use mod_clm_nchelper
   use mod_clm_type
   use mod_clm_decomp
@@ -78,6 +78,9 @@ module mod_clm_cnrest
     logical :: enter_spinup = .false.
     ! flags for comparing the model and restart decomposition cascades
     integer(ik4) :: decomp_cascade_state, restart_file_decomp_cascade_state
+    logical :: lstart
+
+    lstart = rcmtimer%integrating( )
 
     if ( use_c13 ) then
       pcisos => clm3%g%l%c%p%pc13s
@@ -112,7 +115,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'dormant_flag',['pft'], &
             long_name='dormancy flag',units='unitless' )
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dormant_flag') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'dormant_flag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'dormant_flag',pptr%pepv%dormant_flag,gcomm_pft)
@@ -126,7 +129,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'days_active',['pft'], &
             long_name='number of days since last dormancy',units='days' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'days_active') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'days_active') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'days_active',pptr%pepv%days_active,gcomm_pft)
@@ -141,7 +144,7 @@ module mod_clm_cnrest
             long_name='flag if critical growing degree-day sum is exceeded', &
               units='unitless' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_flag') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'onset_flag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'onset_flag',pptr%pepv%onset_flag,gcomm_pft)
@@ -155,7 +158,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'onset_counter',['pft'], &
             long_name='onset days counter',units='sec' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_counter') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'onset_counter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'onset_counter',pptr%pepv%onset_counter,gcomm_pft)
@@ -169,7 +172,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'onset_gddflag',['pft'], &
             long_name='onset flag for growing degree day sum',units='' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gddflag') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'onset_gddflag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'onset_gddflag',pptr%pepv%onset_gddflag,gcomm_pft)
@@ -183,7 +186,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'onset_fdd',['pft'], &
             long_name='onset freezing degree days counter',units='days' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_fdd') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'onset_fdd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'onset_fdd',pptr%pepv%onset_fdd,gcomm_pft)
@@ -197,7 +200,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'onset_gdd',['pft'], &
             long_name='onset growing degree days',units='days' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gdd') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'onset_gdd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
        call clm_readvar(ncid,'onset_gdd',pptr%pepv%onset_gdd,gcomm_pft)
@@ -211,7 +214,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'onset_swi',['pft'], &
             long_name='onset soil water index',units='days' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_swi') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'onset_swi') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'onset_swi',pptr%pepv%onset_swi,gcomm_pft)
@@ -225,7 +228,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'offset_flag',['pft'], &
             long_name='offset flag',units='unitless' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_flag') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'offset_flag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'offset_flag',pptr%pepv%offset_flag,gcomm_pft)
@@ -239,7 +242,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'offset_counter',['pft'], &
             long_name='offset days counter',units='sec' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_counter') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'offset_counter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'offset_counter', &
@@ -255,7 +258,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'offset_fdd',['pft'], &
             long_name='offset freezing degree days counter',units='days' )
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_fdd') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'offset_fdd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'offset_fdd',pptr%pepv%offset_fdd,gcomm_pft)
@@ -269,7 +272,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'offset_swi',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_swi') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'offset_swi') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'offset_swi',pptr%pepv%offset_swi,gcomm_pft)
@@ -284,7 +287,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'fert_counter',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert_counter') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fert_counter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fert_counter',pptr%pepv%fert_counter,gcomm_pft)
@@ -299,7 +302,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'fert',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'fert') ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           call clm_readvar(ncid,'fert',pptr%pnf%fert,gcomm_pft)
@@ -315,7 +318,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'lgsf',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'lgsf') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'lgsf') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'lgsf',pptr%pepv%lgsf,gcomm_pft)
@@ -329,7 +332,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'bglfr',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bglfr') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'bglfr') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'bglfr',pptr%pepv%bglfr,gcomm_pft)
@@ -343,7 +346,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'bgtr',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bgtr') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'bgtr') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'bgtr',pptr%pepv%bgtr,gcomm_pft)
@@ -357,7 +360,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'dayl',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dayl') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'dayl') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'dayl',pptr%pepv%dayl,gcomm_pft)
@@ -371,7 +374,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'prev_dayl',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prev_dayl') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'prev_dayl') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'prev_dayl',pptr%pepv%prev_dayl,gcomm_pft)
@@ -385,7 +388,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'annavg_t2m',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annavg_t2m') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'annavg_t2m') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'annavg_t2m',pptr%pepv%annavg_t2m,gcomm_pft)
@@ -399,7 +402,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'tempavg_t2m',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempavg_t2m') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'tempavg_t2m') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'tempavg_t2m',pptr%pepv%tempavg_t2m,gcomm_pft)
@@ -413,7 +416,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'gpp_pepv',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gpp_pepv') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'gpp_pepv') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'gpp_pepv',pptr%pepv%gpp,gcomm_pft)
@@ -427,7 +430,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'availc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'availc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'availc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'availc',pptr%pepv%availc,gcomm_pft)
@@ -441,7 +444,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'xsmrpool_recover',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'xsmrpool_recover') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'xsmrpool_recover') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'xsmrpool_recover',pptr%pepv%xsmrpool_recover, &
@@ -457,8 +460,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'xsmrpool_c13ratio',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau /= 0 .and. &
-             .not. clm_check_var(ncid,'xsmrpool_c13ratio') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'xsmrpool_c13ratio') ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           call clm_readvar(ncid,'xsmrpool_c13ratio', &
@@ -475,7 +477,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'alloc_pnow',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'alloc_pnow') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'alloc_pnow') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'alloc_pnow',pptr%pepv%alloc_pnow,gcomm_pft)
@@ -489,7 +491,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'c_allometry',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'c_allometry') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'c_allometry') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'c_allometry',pptr%pepv%c_allometry,gcomm_pft)
@@ -503,7 +505,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'n_allometry',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'n_allometry') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'n_allometry') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'n_allometry',pptr%pepv%n_allometry,gcomm_pft)
@@ -517,7 +519,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'plant_ndemand',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'plant_ndemand') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'plant_ndemand') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'plant_ndemand',pptr%pepv%plant_ndemand, &
@@ -533,8 +535,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'tempsum_potential_gpp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'tempsum_potential_gpp') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'tempsum_potential_gpp') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'tempsum_potential_gpp', &
@@ -550,8 +551,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'annsum_potential_gpp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'annsum_potential_gpp') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'annsum_potential_gpp') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'annsum_potential_gpp', &
@@ -567,8 +567,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'tempmax_retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'tempmax_retransn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'tempmax_retransn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'tempmax_retransn', &
@@ -584,8 +583,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'annmax_retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'annmax_retransn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'annmax_retransn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'annmax_retransn', &
@@ -601,8 +599,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'avail_retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'avail_retransn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'avail_retransn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'avail_retransn', &
@@ -618,7 +615,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'plant_nalloc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'plant_nalloc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'plant_nalloc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'plant_nalloc', &
@@ -634,7 +631,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'plant_calloc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'plant_calloc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'plant_calloc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'plant_calloc', &
@@ -650,7 +647,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'excess_cflux',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'excess_cflux') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'excess_cflux') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'excess_cflux', &
@@ -666,7 +663,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'downreg',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-            if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'downreg') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'downreg') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'downreg',pptr%pepv%downreg,gcomm_pft)
@@ -680,8 +677,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'prev_leafc_to_litter',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'prev_leafc_to_litter') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'prev_leafc_to_litter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'prev_leafc_to_litter', &
@@ -697,8 +693,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'prev_frootc_to_litter',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'prev_frootc_to_litter') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'prev_frootc_to_litter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'prev_frootc_to_litter', &
@@ -714,7 +709,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'tempsum_npp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempsum_npp') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'tempsum_npp') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'tempsum_npp', &
@@ -730,7 +725,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'annsum_npp',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annsum_npp') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'annsum_npp') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'annsum_npp', &
@@ -747,7 +742,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'rc13_canair',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_canair') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'rc13_canair') ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           call clm_readvar(ncid,'rc13_canair', &
@@ -763,7 +758,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'rc13_psnsun',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_psnsun') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'rc13_psnsun') ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           call clm_readvar(ncid,'rc13_psnsun', &
@@ -779,7 +774,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'rc13_psnsha',['pft'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_psnsha') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'rc13_psnsha') ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           call clm_readvar(ncid,'rc13_psnsha', &
@@ -797,7 +792,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'grain_flag',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'grain_flag') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'grain_flag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'grain_flag', &
@@ -818,7 +813,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'leafc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'leafc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'leafc',pptr%pcs%leafc,gcomm_pft)
@@ -832,7 +827,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'leafc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'leafc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'leafc_storage', &
@@ -848,7 +843,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'leafc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'leafc_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'leafc_xfer',pptr%pcs%leafc_xfer,gcomm_pft)
@@ -862,7 +857,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'frootc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'frootc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'frootc',pptr%pcs%frootc,gcomm_pft)
@@ -876,7 +871,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'frootc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'frootc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'frootc_storage', &
@@ -892,7 +887,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'frootc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'frootc_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'frootc_xfer',pptr%pcs%frootc_xfer,gcomm_pft)
@@ -906,7 +901,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livestemc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livestemc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livestemc',pptr%pcs%livestemc,gcomm_pft)
@@ -920,7 +915,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livestemc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livestemc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livestemc_storage', &
@@ -936,7 +931,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livestemc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livestemc_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livestemc_xfer', &
@@ -952,7 +947,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadstemc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadstemc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadstemc',pptr%pcs%deadstemc,gcomm_pft)
@@ -966,7 +961,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadstemc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadstemc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadstemc_storage', &
@@ -982,7 +977,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadstemc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadstemc_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadstemc_xfer', &
@@ -998,7 +993,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livecrootc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livecrootc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livecrootc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livecrootc',pptr%pcs%livecrootc,gcomm_pft)
@@ -1012,8 +1007,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livecrootc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'livecrootc_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livecrootc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livecrootc_storage', &
@@ -1029,7 +1023,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livecrootc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livecrootc_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livecrootc_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livecrootc_xfer', &
@@ -1045,7 +1039,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadcrootc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadcrootc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadcrootc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadcrootc',pptr%pcs%deadcrootc,gcomm_pft)
@@ -1059,8 +1053,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadcrootc_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'deadcrootc_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadcrootc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadcrootc_storage', &
@@ -1076,7 +1069,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadcrootc_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadcrootc_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadcrootc_xfer', &
@@ -1092,7 +1085,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'gresp_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gresp_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'gresp_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'gresp_storage', &
@@ -1108,7 +1101,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'gresp_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gresp_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'gresp_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'gresp_xfer',pptr%pcs%gresp_xfer,gcomm_pft)
@@ -1122,7 +1115,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'cpool',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'cpool') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'cpool') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'cpool',pptr%pcs%cpool,gcomm_pft)
@@ -1136,7 +1129,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'xsmrpool',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'xsmrpool') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'xsmrpool') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'xsmrpool',pptr%pcs%xsmrpool,gcomm_pft)
@@ -1150,7 +1143,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'pft_ctrunc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'pft_ctrunc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'pft_ctrunc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'pft_ctrunc',pptr%pcs%pft_ctrunc,gcomm_pft)
@@ -1164,7 +1157,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'totvegc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totvegc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'totvegc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'totvegc',pptr%pcs%totvegc,gcomm_pft)
@@ -1184,7 +1177,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) 'initializing C13 leafc with atmospheric c13 value'
             do i = begp , endp
               if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
@@ -1209,7 +1202,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_storage_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 leafc_storage_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1237,7 +1230,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_xfer_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 leafc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1265,7 +1258,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 frootc_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1291,7 +1284,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_storage_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 frootc_storage_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1319,7 +1312,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_xfer_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 frootc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1347,7 +1340,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 livestemc_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1375,7 +1368,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_storage_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 livestemc_storage_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1405,7 +1398,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_xfer_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 livestemc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1433,7 +1426,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 deadstemc_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1461,7 +1454,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_storage_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 deadstemc_storage_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1491,7 +1484,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_xfer_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 deadstemc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1519,7 +1512,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
               'initializing C13 livecrootc_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1547,7 +1540,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_storage_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 livecrootc_storage_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1577,7 +1570,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_xfer_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 livecrootc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1605,7 +1598,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 deadcrootc_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1633,7 +1626,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_storage_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 deadcrootc_storage_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1663,7 +1656,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_xfer_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 deadcrootc_xfer_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1691,7 +1684,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_storage_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 gresp_storage_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1719,7 +1712,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_xfer_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 gresp_xfer_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1747,7 +1740,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'cpool_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 cpool_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1773,7 +1766,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'xsmrpool_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 xsmrpool_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1799,7 +1792,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'pft_ctrunc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 pft_ctrunc_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1825,7 +1818,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'totvegc_13') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C13 totvegc_13 with atmospheric c13 value'
             do i = begp , endp
@@ -1857,7 +1850,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 leafc_14 with atmospheric c14 value'
             do i = begp , endp
@@ -1882,7 +1875,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_storage_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 leafc_storage_14 with atmospheric c14 value'
             do i = begp , endp
@@ -1910,7 +1903,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'leafc_xfer_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 leafc_xfer_14 with atmospheric c14 value'
             do i = begp , endp
@@ -1937,7 +1930,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 frootc_14 with atmospheric c14 value'
             do i = begp , endp
@@ -1964,7 +1957,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_storage_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 frootc_storage_14 with atmospheric c14 value'
             do i = begp , endp
@@ -1992,7 +1985,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'frootc_xfer_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 frootc_xfer_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2019,7 +2012,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 livestemc_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2046,7 +2039,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_storage_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 livestemc_storage_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2074,7 +2067,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livestemc_xfer_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 livestemc_xfer_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2102,7 +2095,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 deadstemc_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2129,7 +2122,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_storage_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 deadstemc_storage_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2157,7 +2150,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadstemc_xfer_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 deadstemc_xfer_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2185,7 +2178,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 livecrootc_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2212,7 +2205,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_storage_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 livecrootc_storage_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2240,7 +2233,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'livecrootc_xfer_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 livecrootc_xfer_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2268,7 +2261,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 deadcrootc_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2295,7 +2288,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_storage_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 deadcrootc_storage_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2323,7 +2316,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'deadcrootc_xfer_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 deadcrootc_xfer_14 with atmospheric c14 value'
             do i = begp,endp
@@ -2351,7 +2344,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_storage_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 gresp_storage_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2379,7 +2372,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'gresp_xfer_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 gresp_xfer_14 with atmospheric c14 value'
             do i = begp,endp
@@ -2406,7 +2399,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'cpool_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 cpool_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2431,7 +2424,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'xsmrpool_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 xsmrpool_14 with atmospheric c14 value'
             do i = begp , endp
@@ -2456,7 +2449,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'pft_ctrunc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 pft_ctrunc_14 with atmospheric c14 value'
             do i = begp,endp
@@ -2481,7 +2474,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'totvegc_14') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 totvegc_14 with atmospheric c14 value'
             do i = begp,endp
@@ -2506,7 +2499,7 @@ module mod_clm_cnrest
               long_name='',units='')
       else if (flag == 'read') then
         if ( .not. clm_check_var(ncid,'rc14_atm') ) then
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             write(stdout,*) &
              'initializing C14 rc14_atm with atmospheric c14 value'
             do i = begp,endp
@@ -2532,8 +2525,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'leafn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'leafn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'leafn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'leafn',pptr%pns%leafn,gcomm_pft)
@@ -2547,8 +2539,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'leafn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'leafn_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'leafn_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'leafn_storage',pptr%pns%leafn_storage,gcomm_pft)
@@ -2562,8 +2553,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'leafn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'leafn_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'leafn_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'leafn_xfer',pptr%pns%leafn_xfer,gcomm_pft)
@@ -2577,8 +2567,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'frootn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'frootn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'frootn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'frootn',pptr%pns%frootn,gcomm_pft)
@@ -2592,8 +2581,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'frootn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'frootn_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'frootn_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'frootn_storage', &
@@ -2609,8 +2597,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'frootn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'frootn_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'frootn_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'frootn_xfer',pptr%pns%frootn_xfer,gcomm_pft)
@@ -2624,8 +2611,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livestemn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'livestemn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livestemn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livestemn',pptr%pns%livestemn,gcomm_pft)
@@ -2639,8 +2625,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livestemn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'livestemn_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livestemn_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livestemn_storage', &
@@ -2656,8 +2641,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livestemn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'livestemn_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livestemn_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livestemn_xfer', &
@@ -2673,8 +2657,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadstemn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'deadstemn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadstemn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadstemn',pptr%pns%deadstemn,gcomm_pft)
@@ -2688,8 +2671,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadstemn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'deadstemn_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadstemn_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadstemn_storage', &
@@ -2705,8 +2687,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadstemn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'deadstemn_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadstemn_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadstemn_xfer', &
@@ -2722,8 +2703,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livecrootn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'livecrootn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livecrootn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livecrootn',pptr%pns%livecrootn,gcomm_pft)
@@ -2737,8 +2717,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livecrootn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'livecrootn_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livecrootn_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livecrootn_storage', &
@@ -2754,8 +2733,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'livecrootn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'livecrootn_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'livecrootn_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'livecrootn_xfer', &
@@ -2771,8 +2749,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadcrootn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'deadcrootn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadcrootn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadcrootn',pptr%pns%deadcrootn,gcomm_pft)
@@ -2786,8 +2763,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadcrootn_storage',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'deadcrootn_storage') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadcrootn_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadcrootn_storage', &
@@ -2803,8 +2779,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'deadcrootn_xfer',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'deadcrootn_xfer') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'deadcrootn_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'deadcrootn_xfer', &
@@ -2820,8 +2795,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'retransn',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'retransn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'retransn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'retransn',pptr%pns%retransn,gcomm_pft)
@@ -2835,8 +2809,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'npool',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'npool') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'npool') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'npool',pptr%pns%npool,gcomm_pft)
@@ -2850,8 +2823,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'pft_ntrunc',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'pft_ntrunc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'pft_ntrunc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'pft_ntrunc',pptr%pns%pft_ntrunc,gcomm_pft)
@@ -2869,8 +2841,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'decl',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'decl') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'decl') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'decl',cptr%cps%decl,gcomm_column)
@@ -2913,7 +2884,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'fpg',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fpg') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fpg') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fpg',cptr%cps%fpg,gcomm_column)
@@ -2927,7 +2898,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'annsum_counter',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annsum_counter') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'annsum_counter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'annsum_counter', &
@@ -2943,7 +2914,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'cannsum_npp',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'cannsum_npp') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'cannsum_npp') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'cannsum_npp', &
@@ -2959,7 +2930,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'col_lag_npp',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'col_lag_npp') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'col_lag_npp') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'col_lag_npp', &
@@ -2975,7 +2946,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'cannavg_t2m',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'cannavg_t2m') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'cannavg_t2m') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'cannavg_t2m', &
@@ -2992,7 +2963,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_integer,ncid,'burndate',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'burndate') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'burndate') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'burndate',pptr%pps%burndate,gcomm_pft)
@@ -3006,7 +2977,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'lfc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'lfc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'lfc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'lfc',cptr%cps%lfc,gcomm_column)
@@ -3020,7 +2991,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'wf',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'wf') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'wf') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'wf',cptr%cps%wf,gcomm_column)
@@ -3034,7 +3005,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'btran2',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'btran2') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'btran2') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'btran2',pptr%pps%btran2,gcomm_pft)
@@ -3048,7 +3019,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'farea_burned',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'farea_burned') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'farea_burned') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'farea_burned',cptr%cps%farea_burned,gcomm_column)
@@ -3062,7 +3033,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'baf_crop',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'baf_crop') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'baf_crop') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'baf_crop',cptr%cps%baf_crop,gcomm_column)
@@ -3076,7 +3047,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'baf_peatf',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'baf_peatf') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'baf_peatf') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'baf_peatf',cptr%cps%baf_peatf,gcomm_column)
@@ -3090,7 +3061,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'fbac',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fbac') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fbac') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fbac',cptr%cps%fbac,gcomm_column)
@@ -3104,7 +3075,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'fbac1',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fbac1') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fbac1') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fbac1',cptr%cps%fbac1,gcomm_column)
@@ -3144,7 +3115,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'altmax',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'altmax') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'altmax') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'altmax',cptr%cps%altmax,gcomm_column)
@@ -3158,7 +3129,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'altmax_lastyear',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'altmax_lastyear') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'altmax_lastyear') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'altmax_lastyear', &
@@ -3174,7 +3145,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_integer,ncid,'altmax_indx',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'altmax_indx') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'altmax_indx') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'altmax_indx', &
@@ -3190,8 +3161,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_integer,ncid,'altmax_lastyear_indx',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. &
-           clm_check_var(ncid,'altmax_lastyear_indx') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'altmax_lastyear_indx') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'altmax_lastyear_indx', &
@@ -3207,7 +3177,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'seedc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'seedc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'seedc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'seedc',cptr%ccs%seedc,gcomm_column)
@@ -3221,7 +3191,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'totlitc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totlitc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'totlitc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'totlitc',cptr%ccs%totlitc,gcomm_column)
@@ -3235,7 +3205,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'totcolc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totcolc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'totcolc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'totcolc',cptr%ccs%totcolc,gcomm_column)
@@ -3249,7 +3219,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'prod10c',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod10c') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'prod10c') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'prod10c',cptr%ccs%prod10c,gcomm_column)
@@ -3263,7 +3233,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'prod100c',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod100c') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'prod100c') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'prod100c',cptr%ccs%prod100c,gcomm_column)
@@ -3277,7 +3247,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'totsomc',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totsomc') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'totsomc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'totsomc',cptr%ccs%totsomc,gcomm_column)
@@ -3316,7 +3286,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'seedc_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'seedc_13') ) then
             do i = begc,endc
               if (cptr%ccs%seedc(i) /= spval .and. &
@@ -3344,7 +3314,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'totlitc_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'totlitc_13') ) then
             do i = begc , endc
               if (cptr%ccs%totlitc(i) /= spval .and. &
@@ -3367,7 +3337,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'totcolc_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'totcolc_13') ) then
             do i = begc , endc
               if (cptr%ccs%totcolc(i) /= spval .and. &
@@ -3390,7 +3360,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'prod10c_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'prod10c_13') ) then
             do i = begc , endc
               if (cptr%ccs%prod10c(i) /= spval .and. &
@@ -3413,7 +3383,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'prod100c_13',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'prod100c_13') ) then
             do i = begc , endc
               if (cptr%ccs%prod100c(i) /= spval .and. &
@@ -3463,7 +3433,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'seedc_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'seedc_14') ) then
             do i = begc , endc
               if (cptr%ccs%seedc(i) /= spval .and. &
@@ -3491,7 +3461,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'totlitc_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'totlitc_14') ) then
             do i = begc , endc
               if (cptr%ccs%totlitc(i) /= spval .and. &
@@ -3514,7 +3484,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'totcolc_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'totcolc_14') ) then
             do i = begc , endc
               if (cptr%ccs%totcolc(i) /= spval .and. &
@@ -3537,7 +3507,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'prod10c_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'prod10c_14') ) then
             do i = begc , endc
               if (cptr%ccs%prod10c(i) /= spval .and. &
@@ -3560,7 +3530,7 @@ module mod_clm_cnrest
         call clm_addvar(clmvar_double,ncid,'prod100c_14',['column'], &
               long_name='',units='')
       else if (flag == 'read') then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( .not. clm_check_var(ncid,'prod100c_14') ) then
             do i = begc , endc
               if (cptr%ccs%prod100c(i) /= spval .and. &
@@ -3628,7 +3598,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'totcoln',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totcoln') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'totcoln') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'totcoln',cptr%cns%totcoln,gcomm_column)
@@ -3642,7 +3612,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'seedn',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'seedn') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'seedn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'seedn',cptr%cns%seedn,gcomm_column)
@@ -3656,7 +3626,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'prod10n',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod10n') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'prod10n') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'prod10n',cptr%cns%prod10n,gcomm_column)
@@ -3670,7 +3640,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'prod100n',['column'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prod100n') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'prod100n') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'prod100n',cptr%cns%prod100n,gcomm_column)
@@ -3700,8 +3670,7 @@ module mod_clm_cnrest
             &10s column: 0 = CLM-CN denitrification, 10 = Century&
             &denitrification',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. &
-           .not. clm_check_var(ncid,'decomp_cascade_state') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'decomp_cascade_state') ) then
         !!! assume, for sake of backwards compatibility, that if
         !!! decomp_cascade_state is not in the restart file, then
         !!! the current model state is the same as the prior model state
@@ -3741,7 +3710,7 @@ module mod_clm_cnrest
             long_name='Spinup state of the model that wrote this &
             &restart file: 0 = normal model mode, 1 = AD spinup',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'spinup_state') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'spinup_state') ) then
         !!! assume, for sake of backwards compatibility, that if
         !!! decomp_cascade_state is not in the restart file, then
         !!! the current model state is the same as the prior model state
@@ -3777,10 +3746,10 @@ module mod_clm_cnrest
             &spinup_state != restart_file_spinup_state, but &
             &do not know what to do')
       end if
-      if ( ktau >= ntsrf ) then
+      if ( syncro_srf%lcount > 1 ) then
         call fatal(__FILE__,__LINE__,&
             ' CNRest: error in entering/exiting spinup. this should &
-            &occur only when ktau = 1 ')
+            &occur only for first timestep')
       end if
       do k = 1 , ndecomp_pools
         if ( exit_spinup ) then
@@ -3807,7 +3776,7 @@ module mod_clm_cnrest
       end do
     end if
 
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       do i = begp , endp
         if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1._rk8) then
           pcisos%grainc(i) = pcbulks%grainc(i) * c3_r2
@@ -3837,7 +3806,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'CROWNAREA',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'CROWNAREA') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'CROWNAREA') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'CROWNAREA',pptr%pdgvs%crownarea,gcomm_pft)
@@ -3851,7 +3820,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'tempsum_litfall',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempsum_litfall') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'tempsum_litfall') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'tempsum_litfall', &
@@ -3867,7 +3836,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'annsum_litfall',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annsum_litfall') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'annsum_litfall') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'annsum_litfall', &
@@ -3883,7 +3852,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'nind',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'nind') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'nind') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'nind',pptr%pdgvs%nind,gcomm_pft)
@@ -3897,7 +3866,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'fpcgrid',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fpcgrid') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fpcgrid') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fpcgrid',pptr%pdgvs%fpcgrid,gcomm_pft)
@@ -3911,7 +3880,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'fpcgridold',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fpcgridold') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fpcgridold') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fpcgridold',pptr%pdgvs%fpcgridold,gcomm_pft)
@@ -3925,7 +3894,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'TMOMIN20',['gridcell'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'TMOMIN20') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'TMOMIN20') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'TMOMIN20',gptr%gdgvs%tmomin20,gcomm_gridcell)
@@ -3939,7 +3908,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'AGDD20',['gridcell'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'AGDD20') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'AGDD20') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'AGDD20',gptr%gdgvs%agdd20,gcomm_gridcell)
@@ -3953,7 +3922,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'T_MO_MIN',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_MO_MIN') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_MO_MIN') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_MO_MIN',pptr%pdgvs%t_mo_min,gcomm_pft)
@@ -3967,7 +3936,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_integer,ncid,'present',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'present') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'present') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         allocate (iptemp(begp:endp), stat=ier)
@@ -3993,7 +3962,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'leafcmax',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafcmax') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'leafcmax') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'leafcmax',pptr%pcs%leafcmax,gcomm_pft)
@@ -4007,7 +3976,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'heatstress',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'heatstress') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'heatstress') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'heatstress',pptr%pdgvs%heatstress,gcomm_pft)
@@ -4021,7 +3990,7 @@ module mod_clm_cnrest
       call clm_addvar(clmvar_double,ncid,'greffic',['pft'], &
             long_name='',units='')
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'greffic') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'greffic') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'greffic',pptr%pdgvs%greffic,gcomm_pft)
@@ -4050,6 +4019,9 @@ module mod_clm_cnrest
     ! true => variable is on initial dataset (read only)
     real(rk8), pointer :: ptr1d(:)
     character(len=256) :: name_vr
+    logical :: lstart
+
+    lstart = rcmtimer%integrating( )
 
     name_vr = trim(varname)//'_vr'
 #ifdef VERTSOILC
@@ -4058,7 +4030,7 @@ module mod_clm_cnrest
               ['column ','levgrnd'], long_name=longname, &
               units=units,fill_value=1, switchdim=.true.)
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,name_vr) ) then
+      if ( lstart .and. .not. clm_check_var(ncid,name_vr) ) then
         if ( present(lstop) ) then
           if ( .not. lstop ) then
             call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -4082,7 +4054,7 @@ module mod_clm_cnrest
               ['column'], long_name=longname,   &
               units=units,fill_value=1)
     else if (flag == 'read') then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,varname) ) then
+      if ( lstart .and. .not. clm_check_var(ncid,varname) ) then
         if ( present(lstop) ) then
           if ( .not. lstop ) then
             call fatal(__FILE__,__LINE__,'clm now stopping')

@@ -40,6 +40,9 @@ module mod_clm_ch4rest
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
+    logical :: lstart
+
+    lstart = rcmtimer%integrating( )
 
     ! Set pointers into derived type
 
@@ -56,7 +59,7 @@ module mod_clm_ch4rest
               long_name='methane soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_CH4_SAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -76,7 +79,7 @@ module mod_clm_ch4rest
               long_name='methane soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_CH4_UNSAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -96,7 +99,7 @@ module mod_clm_ch4rest
               long_name='oxygen soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_O2_SAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -116,7 +119,7 @@ module mod_clm_ch4rest
               long_name='oxygen soil concentration', units='mol/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'CONC_O2_UNSAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -136,7 +139,7 @@ module mod_clm_ch4rest
               long_name='oxygen stress fraction', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2STRESS_SAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -156,7 +159,7 @@ module mod_clm_ch4rest
               long_name='oxygen stress fraction', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2STRESS_UNSAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -176,7 +179,7 @@ module mod_clm_ch4rest
               long_name='lagged saturation status of layer in unsat. zone', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'LAYER_SAT_LAG') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -196,7 +199,7 @@ module mod_clm_ch4rest
               long_name='time-lagged surface runoff', units='mm/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'QFLX_SURF_LAG') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -216,7 +219,7 @@ module mod_clm_ch4rest
               long_name='time-lagged inundated fraction')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'FINUNDATED_LAG') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -237,7 +240,7 @@ module mod_clm_ch4rest
               cdims=['column '],long_name='inundated fraction')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'FINUNDATED') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -256,7 +259,7 @@ module mod_clm_ch4rest
               long_name='Annual Average SOMHR',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_somhr') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -275,7 +278,7 @@ module mod_clm_ch4rest
               long_name='Annual Average Respiration-Weighted FINUNDATED')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_finrw') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -294,7 +297,7 @@ module mod_clm_ch4rest
               long_name='CH4 Ann. Sum Time Counter')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annsum_counter_ch4') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -313,7 +316,7 @@ module mod_clm_ch4rest
               long_name='Temp. Average SOMHR',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_somhr') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -332,7 +335,7 @@ module mod_clm_ch4rest
               long_name='Temp. Average Respiration-Weighted FINUNDATED')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_finrw') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -351,7 +354,7 @@ module mod_clm_ch4rest
               long_name='Temp. Average AGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_agnpp') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -368,7 +371,7 @@ module mod_clm_ch4rest
               long_name='Temp. Average BGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_bgnpp') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -385,7 +388,7 @@ module mod_clm_ch4rest
               long_name='Ann. Average AGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_agnpp') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -402,7 +405,7 @@ module mod_clm_ch4rest
               long_name='Ann. Average BGNPP',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'annavg_bgnpp') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -420,7 +423,7 @@ module mod_clm_ch4rest
               long_name='O2 consumption during decomposition',units='mol/m3/s', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2_DECOMP_DEPTH_SAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -441,7 +444,7 @@ module mod_clm_ch4rest
               long_name='O2 consumption during decomposition',units='mol/m3/s', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'O2_DECOMP_DEPTH_UNSAT') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else
@@ -463,7 +466,7 @@ module mod_clm_ch4rest
               long_name='lake soil carbon concentration', units='g/m^3', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'LAKE_SOILC') ) then
-        if ( ktau > 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         end if
       else

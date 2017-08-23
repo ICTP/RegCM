@@ -31,6 +31,7 @@ module mod_timer
   ! Supported precision is 1 second (minimum dt is 1)
 
   public :: rcm_timer , rcm_alarm , rcm_syncro
+  public :: operator(/)
 
   integer(ik4) , parameter :: maxalarms = 64
   integer(ik4) , parameter :: maxsyncro = 8
@@ -49,6 +50,7 @@ module mod_timer
     integer(ik8) :: model_stop_time
     integer(ik8) :: model_timestep
     integer(ik8) :: model_internal_time
+    integer(ik8) :: lcount
     logical :: reached_endtime
     logical :: next_is_endtime
     type(rcm_time_and_date) :: idate
@@ -61,10 +63,10 @@ module mod_timer
     type(alarmp) , dimension(maxalarms) :: ap
     type(syncrop) , dimension(maxsyncro) :: sp
   contains
-    procedure :: step => step_timer
+    procedure :: advance => step_timer
     procedure :: str => nowstring
     procedure :: from_start => time_from_start
-    procedure :: ktau => step_from_start
+    procedure :: step => step_from_start
     procedure :: start => is_start
     procedure :: integrating => is_integrating
     procedure :: dismiss => cleanup
@@ -76,9 +78,11 @@ module mod_timer
 
   type rcm_syncro
     integer(ik8) :: frq
+    integer(ik8) :: lcount
     real(rkx) :: rw
     class(rcm_timer) , pointer :: timer
   contains
+    procedure :: check => syncro_check
     procedure :: act => syncro_act
     procedure :: will_act => syncro_willact
   end type rcm_syncro
@@ -87,11 +91,19 @@ module mod_timer
     module procedure init_syncro
   end interface rcm_syncro
 
+  interface operator(/)
+    module procedure ratio_freq_syncro
+    module procedure ratio_freq_alarm
+    module procedure ratio_freq_syncro_alarm
+    module procedure ratio_freq_alarm_syncro
+  end interface operator(/)
+
   type rcm_alarm
     real(rkx) :: dt
     integer(ik8) :: now
     integer(ik8) :: actint
     integer(ik8) :: lastact
+    integer(ik8) :: lcount
     real(rkx) , dimension(2) :: wt
     logical :: triggered
     class(rcm_timer) , pointer :: timer
@@ -113,24 +125,25 @@ module mod_timer
     type(rcm_timer) , pointer :: init_timer
     real(rkx) , intent(in) :: mdt
     type(rcm_time_interval) :: tdif
-    allocate(init_timer)
-    init_timer%model_initial_time = 0_ik8
+    type(rcm_timer) , pointer :: t
+    allocate(t)
+    t%model_initial_time = 0_ik8
     tdif = mdate1 - mdate0
-    init_timer%model_start_time = int(tohours(tdif)*secph,ik8)
+    t%model_start_time = int(tohours(tdif)*secph,ik8)
     tdif = mdate2 - mdate0
-    init_timer%model_stop_time = int(tohours(tdif)*secph,ik8)
-    init_timer%model_timestep = int(mdt,ik8)
-    init_timer%model_internal_time = init_timer%model_start_time
-    init_timer%reached_endtime = &
-       init_timer%model_internal_time >= init_timer%model_stop_time
-    init_timer%next_is_endtime = .false.
-    init_timer%intmdl = rcm_time_interval(mdt,usec)
-    init_timer%idate = mdate1
-    call split_idate(init_timer%idate,init_timer%year, &
-                     init_timer%month,init_timer%day,  &
-                     init_timer%hour,init_timer%minute,init_timer%second)
-    init_timer%nowinday = init_timer%idate%second_of_day
-    init_timer%model_timestring = tochar(mdate1)
+    t%model_stop_time = int(tohours(tdif)*secph,ik8)
+    t%model_timestep = int(mdt,ik8)
+    t%model_internal_time = t%model_start_time
+    t%reached_endtime = t%model_internal_time >= t%model_stop_time
+    t%next_is_endtime = (t%model_internal_time + &
+                         t%model_timestep) >= t%model_stop_time
+    t%intmdl = rcm_time_interval(mdt,usec)
+    t%lcount = t%model_internal_time/t%model_timestep
+    t%idate = mdate1
+    call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
+    t%nowinday = t%idate%second_of_day
+    t%model_timestring = tochar(mdate1)
+    init_timer => t
   end function init_timer
 
   subroutine step_timer(t)
@@ -140,6 +153,7 @@ module mod_timer
     t%model_internal_time = t%model_internal_time + t%model_timestep
     t%nowinday = t%nowinday + t%model_timestep
     t%idate = t%idate + t%intmdl
+    t%lcount = t%lcount + 1
     if ( t%nowinday > 86400 ) then
       call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
       t%nowinday = t%idate%second_of_day
@@ -153,6 +167,9 @@ module mod_timer
                          t%model_timestep) >= t%model_stop_time
     do i = 1 , t%nalarm
       call t%ap(i)%ap%check( )
+    end do
+    do i = 1 , t%nsyncro
+      call t%sp(i)%sp%check( )
     end do
   end subroutine step_timer
 
@@ -175,13 +192,13 @@ module mod_timer
   logical function is_start(t)
     implicit none
     class(rcm_timer) , intent(in) :: t
-    is_start = t%model_internal_time == t%model_initial_time
+    is_start = t%lcount == 0
   end function is_start
 
   logical function is_integrating(t)
     implicit none
     class(rcm_timer) , intent(in) :: t
-    is_integrating = t%model_internal_time /= t%model_initial_time
+    is_integrating = t%lcount > 0
   end function is_integrating
 
   character (len=32) function nowstring(t) result(ns)
@@ -218,11 +235,20 @@ module mod_timer
     if ( .not. associated(t) ) return
     syncro%timer => t
     syncro%frq = int(dt,ik8)
-    syncro%rw = real(syncro%timer%model_timestep/syncro%frq,rkx)
+    syncro%rw = real(syncro%timer%model_timestep,rkx)/dt
     syncro%timer%nsyncro = syncro%timer%nsyncro + 1
     syncro%timer%sp(syncro%timer%nsyncro)%sp => syncro
+    syncro%lcount = syncro%timer%model_internal_time/syncro%frq
     init_syncro => syncro
   end function init_syncro
+
+  subroutine syncro_check(s)
+    implicit none
+    class(rcm_syncro) , intent(inout) :: s
+    if ( mod(s%timer%model_internal_time,s%frq) == 0 ) then
+      s%lcount = s%lcount + 1
+    end if
+  end subroutine syncro_check
 
   logical function syncro_act(s) result(res)
     implicit none
@@ -256,6 +282,7 @@ module mod_timer
     alarm%triggered = lact0
     alarm%timer%nalarm = alarm%timer%nalarm + 1
     alarm%timer%ap(alarm%timer%nalarm)%ap => alarm
+    alarm%lcount = alarm%timer%model_internal_time/alarm%actint
     init_alarm => alarm
   end function init_alarm
 
@@ -277,6 +304,7 @@ module mod_timer
       alarm%wt(1) = (t1 - t2)/alarm%dt
       alarm%wt(2) = d_one - alarm%wt(1)
       alarm%now = alarm%timer%model_internal_time
+      alarm%lcount = alarm%lcount + 1
     end if
   end subroutine alarm_check
 
@@ -302,6 +330,32 @@ module mod_timer
       res = .true.
     end if
   end function alarm_willact
+
+  real(rkx) function ratio_freq_syncro(s1,s2) result(res)
+    implicit none
+    type(rcm_syncro) , intent(in) :: s1 , s2
+    res = s1%frq/s2%frq
+  end function ratio_freq_syncro
+
+  real(rkx) function ratio_freq_alarm(a1,a2) result(res)
+    implicit none
+    type(rcm_alarm) , intent(in) :: a1 , a2
+    res = real(a1%actint,rkx)/real(a2%actint,rkx)
+  end function ratio_freq_alarm
+
+  real(rkx) function ratio_freq_syncro_alarm(s1,a2) result(res)
+    implicit none
+    type(rcm_syncro) , intent(in) :: s1
+    type(rcm_alarm) , intent(in) :: a2
+    res = s1%frq/real(a2%actint,rkx)
+  end function ratio_freq_syncro_alarm
+
+  real(rkx) function ratio_freq_alarm_syncro(a1,s2) result(res)
+    implicit none
+    type(rcm_alarm) , intent(in) :: a1
+    type(rcm_syncro) , intent(in) :: s2
+    res = real(a1%actint,rkx)/s2%frq
+  end function ratio_freq_alarm_syncro
 
 end module mod_timer
 
@@ -335,7 +389,7 @@ program test_timing
 
   timer => rcm_timer(mdate0,mdate1,mdate2,213.0_rkx)
 
-  print *, timer%str( ) , timer%ktau( )
+  print *, timer%str( ) , timer%step( )
 
   srf_alarm  => rcm_alarm(timer,600.0_rkx,.true.)
   srf_output => rcm_alarm(timer,3600.0_rkx*3.0,.true.)
@@ -343,7 +397,7 @@ program test_timing
   cum_alarm  => rcm_alarm(timer,300.0_rkx)
 
   do while ( .not. timer%reached_endtime )
-    call timer%step( )
+    call timer%advance( )
     print *, timer%year,timer%month,timer%day, &
              timer%hour,timer%minute,timer%second
     if ( srf_alarm%act( ) ) then
@@ -360,7 +414,7 @@ program test_timing
     end if
   end do
 
-  print *, timer%str( ) , timer%ktau( )
+  print *, timer%str( ) , timer%step( )
 
   deallocate(timer)
 

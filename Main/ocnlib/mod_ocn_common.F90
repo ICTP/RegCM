@@ -30,7 +30,7 @@ module mod_ocn_common
   use mod_ocn_lake
   use mod_ocn_zeng
   use mod_ocn_albedo
-  use mod_runparams , only : rcmtimer , iemiss , rtsrf
+  use mod_runparams , only : rcmtimer , iemiss , syncro_srf
   use mod_mppparam
 
   implicit none
@@ -184,7 +184,7 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%qfx,evpr)
       call c2l_gs(ocncomm,lm%cprate,cprate)
       call c2l_gs(ocncomm,lm%ncprate,ncprate)
-      prcp = (cprate+ncprate) * rtsrf
+      prcp = (cprate+ncprate) * syncro_srf%rw
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)

@@ -581,11 +581,10 @@ module mod_tendency
     !
     ! Next timestep ready : increment elapsed forecast time
     !
-    call rcmtimer%step( )
-    ktau = ktau + 1
+    call rcmtimer%advance( )
     if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
-    if ( rcmtimer%ktau( ) == 2 ) then
-      dtbat = dt*real(ntsrf,rkx)
+    if ( rcmtimer%lcount == 2 ) then
+      dtbat = dtsrf
       dt = dt2
       rdt = d_one/dt
       dtsq = dt*dt
@@ -720,7 +719,7 @@ module mod_tendency
           do j = jci1 , jci2
             check_tt = (aten%t(j,i,k,ipc)-mean_tt)*rpsb(j,i)
             if ( abs(check_tt) > temp_tend_maxval ) then
-              write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%ktau( )
+              write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%lcount
               write(stderr,*) 'TEMP tendency out of order : ', check_tt
               write(stderr,*) 'At J = ',j
               write(stderr,*) 'At I = ',i
@@ -761,7 +760,7 @@ module mod_tendency
           do j = jci1 , jci2
             check_ww = (ww(j,i,k)-mean_ww)/sfs%psdotb(j,i)
             if ( abs(check_ww) > wind_tend_maxval ) then
-              write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%ktau( )
+              write(stderr,*) 'After ', loc, ' at step = ', rcmtimer%lcount
               write(stderr,*) 'WIND tendency out of order : ', check_ww
               write(stderr,*) 'At J = ',j
               write(stderr,*) 'At I = ',i

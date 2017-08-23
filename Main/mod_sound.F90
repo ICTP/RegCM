@@ -200,10 +200,10 @@ module mod_sound
     !
     ! Calculate the loop boundaries
     !
-    if ( ktau == 0 .or. ktau == 2 ) then
+    if ( rcmtimer%lcount == 0 .or. rcmtimer%lcount == 2 ) then
       if ( myid == italk ) write(stdout,'(a,i2,a,f7.2,a,i3,a,f6.3,a,f6.3)') &
-            ' ktau = ' , ktau , ' : Short time step ' , dts , &
-            ', nstep = ', istep , ', beta = ' , bet , ', xkd = ' , xkd
+            ' mdl step = ' , rcmtimer%lcount , ' : Short step ' , dts , &
+            ', istep = ', istep , ', beta = ' , bet , ', xkd = ' , xkd
     end if
     !
     !  Premultiply the tendency arrays by dts

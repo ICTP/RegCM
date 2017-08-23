@@ -73,8 +73,6 @@ module mod_micro_nogtom
   use mod_runparams , only : auto_rate_khair , auto_rate_kessl , &
                              auto_rate_klepi
   use mod_runparams , only : rkconv , skconv , rcovpmin , rpecons
-  use mod_runparams , only : ktau
-  use mod_runparams , only : rtsrf
 
 #ifdef DEBUG
   use mod_runparams , only : stats

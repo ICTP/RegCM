@@ -287,7 +287,6 @@ module mod_lm_interface
     call allocate_mod_bats_internal(lndcomm)
     call allocate_mod_ocn_internal(ocncomm)
 
-    ntcpl  = nint(cpldt/dtsec)
     if ( idcsst   == 1 ) ldcsst   = .true.
     if ( lakemod  == 1 ) llake    = .true.
     if ( idesseas == 1 ) ldesseas = .true.
@@ -403,7 +402,7 @@ module mod_lm_interface
     call initocn(lm,lms)
 #ifdef CLM
     call initclm(lm,lms)
-    if ( ktau == 0 .and. imask == 2 ) then
+    if ( rcmtimer%start( ) .and. imask == 2 ) then
       ! CLM may have changed the landuse again !
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -438,16 +437,16 @@ module mod_lm_interface
     real(rkx) :: tm , dz , dlnp , z1 , z2 , w1 , w2
 #endif
 #ifdef CLM
-    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act( ) ) then
       r2cdoalb = .true.
     else
       r2cdoalb = .false.
     end if
     ! Timestep used is the same as for bats
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       r2cnstep = 0
     else
-      r2cnstep = int((ktau+1)/ntsrf,ik4)
+      r2cnstep = syncro_srf%lcount + 1
     end if
     call mtrxclm(lm,lms)
 #else
@@ -701,7 +700,7 @@ module mod_lm_interface
           !
           if ( impfie%sst(j,i) < tol ) then
             ! create fixed coupling mask
-            if ( mod(ktau+1, ntcpl*2) == 0 ) then
+            if ( syncro_cpl%lcount == 1 ) then
               cplmsk(j,i) = 1
             end if
             lm%tground1(j,i) = impfie%sst(j,i)
@@ -876,7 +875,7 @@ module mod_lm_interface
         if ( associated(srf_tpr_out) ) &
           srf_tpr_out = srf_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(srf_prcv_out) ) &
-          srf_prcv_out = srf_prcv_out + lm%cprate*rtsrf
+          srf_prcv_out = srf_prcv_out + lm%cprate*syncro_srf%rw
         if ( associated(srf_zpbl_out) ) &
           srf_zpbl_out = srf_zpbl_out + lm%hpbl
         if ( associated(srf_scv_out) ) &

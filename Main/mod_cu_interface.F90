@@ -215,7 +215,7 @@ module mod_cu_interface
     implicit none
     integer(ik4) :: i , j , k , n
 
-    if ( ktau > 0 ) then
+    if ( rcmtimer%integrating( ) ) then
 
       if ( any(icup == 6) ) then
         do k = 1 , kz
@@ -423,7 +423,7 @@ module mod_cu_interface
         end if
       end if
 
-    end if ! ktau > 0
+    end if
 
   end subroutine cumulus
 
@@ -432,7 +432,7 @@ module mod_cu_interface
     implicit none
     integer(ik4) :: i , j , k
 
-    if ( ktau > 0 ) then
+    if ( rcmtimer%integrating( ) ) then
 
       do k = 1 , kz
         do i = ici1 , ici2
@@ -468,7 +468,7 @@ module mod_cu_interface
         end do
       end do
 
-    end if ! ktau > 0
+    end if
   end subroutine shallow_convection
 
 end module mod_cu_interface

@@ -373,7 +373,7 @@ module mod_clm_initialize
     end if
 
     ! Initialize clmtype variables that are obtained from accumulated fields.
-    ! This routine is called in an initial run at ktau=0
+    ! This routine is called in an initial run at first timestep
     ! This routine is also always called for a restart run and must
     ! therefore be called after the restart file is read in
 

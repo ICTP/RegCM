@@ -555,6 +555,10 @@ module mod_clm_accumul
     integer(ik4) :: beg1d , end1d       ! buffer bounds
     real(rk8), pointer :: rbuf1d(:) ! temporary 1d buffer
     character(len=128) :: varname  ! temporary
+    logical :: lstart
+
+    lstart = rcmtimer%integrating( )
+
     do nf = 1 , naccflds
       ! Note = below need to allocate rbuf for single level variables, since
       ! accum(nf)%val is always 2d
@@ -570,7 +574,7 @@ module mod_clm_accumul
                    accum(nf)%desc,accum(nf)%units)
         end if
       else if ( flag == 'read' ) then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,varname) ) then
+        if ( lstart .and. .not. clm_check_var(ncid,varname) ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           beg1d = accum(nf)%beg1d
@@ -594,7 +598,7 @@ module mod_clm_accumul
         call clm_addvar(clmvar_integer,ncid,varname, &
                         long_name='',units='time steps')
       else if ( flag == 'read' ) then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,varname) ) then
+        if ( lstart .and. .not. clm_check_var(ncid,varname) ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           call clm_readvar(ncid,varname,iper)

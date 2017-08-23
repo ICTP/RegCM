@@ -35,7 +35,7 @@ module mod_clm
   integer(ik4) :: r2cnsrest     ! 0=initial, 1=restart
   integer(ik4) :: r2cnelapse    ! # of timesteps (or days if negative)
                            ! to extend a run
-  integer(ik4) :: r2cnstep      ! current timestep (ktau)
+  integer(ik4) :: r2cnstep      ! current timestep
 !
   integer(ik4) :: r2cstart_ymd  ! starting date for run in yearmmdd format
   integer(ik4) :: r2cstart_tod  ! starting time of day for run in seconds

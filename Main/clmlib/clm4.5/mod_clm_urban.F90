@@ -3750,7 +3750,8 @@ module mod_clm_urban
     if ( found ) then
       write(stderr,*)'WARNING:  Total sensible heat does not equal &
               &sum of scaled heat fluxes for urban columns ',&
-            ' ktau = ',ktau,' indexl= ',indexl,' eflx_err= ',eflx_err(indexl)
+            ' at ',trim(rcmtimer%str( )),' indexl= ',indexl, &
+            ' eflx_err= ',eflx_err(indexl)
       if (abs(eflx_err(indexl)) > .01_rk8) then
         write(stderr,*)'error is greater than .01 W/m**2'
         write(stderr,*)'eflx_scale    = ',eflx_scale(indexl)
@@ -3774,7 +3775,8 @@ module mod_clm_urban
     if ( found ) then
       write(stderr,*)'WARNING:  Total water vapor flux does not equal &
               &sum of scaled water vapor fluxes for urban columns ',&
-            ' ktau = ',ktau,' indexl= ',indexl,' qflx_err= ',qflx_err(indexl)
+            ' at ',trim(rcmtimer%str( )),' indexl= ',indexl, &
+            ' qflx_err= ',qflx_err(indexl)
       if (abs(qflx_err(indexl)) > 4.e-9_rk8) then
         write(stderr,*)'error is greater than 4.e-9 kg/m**2/s'
         write(stderr,*)'qflx_scale    = ',qflx_scale(indexl)

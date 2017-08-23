@@ -17,6 +17,7 @@ module histFileMod
   use abortutils  , only : endrun
   use clm_varcon  , only : spval,ispval
   use clm_varsur   , only : r2coutfrq
+  use mod_runparams , only : dtsec
   implicit none
   save
   private
@@ -3632,7 +3633,7 @@ contains
       call get_prev_date (yr, mon, day, sec)
       write(cdate,'(i4.4,"-",i2.2)') yr,mon
    else                        !other
-      call get_curr_date (yr, mon, day, sec)
+      call get_curr_date (yr, mon, day, sec, int(dtsec))
       write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
    endif
    write(hist_index,'(i1.1)') hist_file - 1

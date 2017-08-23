@@ -187,7 +187,7 @@ module mod_clm_driver
 
     cptr => clm3%g%l%c
 
-    if ( ktau > 0 ) then
+    if ( rcmtimer%integrating( ) ) then
       tdif = int(dtsec)
     else
       tdif = 0
@@ -580,7 +580,7 @@ module mod_clm_driver
     call BalanceCheck(begp,endp,begc,endc,begl,endl,begg,endg)
 
 #if (defined CN)
-    if ( ktau < 2 .or. .not. lfirstcall ) then
+    if ( syncro_srf%lcount < 2 .or. .not. lfirstcall ) then
       if ( myid == italk ) then
         write(stdout,*) &
           '--WARNING-- skipping CN balance check for first timestep'
@@ -649,11 +649,11 @@ module mod_clm_driver
 
     ! =======================================================================
     ! Call dv (dynamic vegetation) at last time step of year
-    ! NOTE: monp1, dayp1, and secp1 correspond to ktau+1
+    ! NOTE: monp1, dayp1, and secp1 correspond to next step
     ! =======================================================================
 
 #if (defined CNDV)
-    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) .and. ktau > 0 ) then
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) .and. rcmtimer%integrating( ) ) then
       call split_idate(nextdate,yr,mon,day)
       ncdate = yr*10000 + mon*100 + day
       call split_idate(idate0,yr,mon,day)
@@ -661,7 +661,7 @@ module mod_clm_driver
       kyr = ncdate/10000 - nbdate/10000
       if ( myid == italk ) then
         write(stdout,*) 'End of year. CNDV called now: ncdate=', &
-                       ncdate,' nbdate=',nbdate,' kyr=',kyr,' ktau=', ktau+1
+                       ncdate,' nbdate=',nbdate,' kyr=',kyr
       end if
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
       call dv(begg,endg,begp,endp, &
@@ -683,7 +683,7 @@ module mod_clm_driver
     ! =======================================================================
 
 #if (defined CNDV)
-    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) .and. ktau > 0 )  then
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) .and. rcmtimer%integrating( ) )  then
       call histCNDV()
       if (myid == italk) then
         write(stdout,*) 'Annual CNDV calculations are complete'

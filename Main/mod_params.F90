@@ -75,10 +75,6 @@ module mod_params
     integer(ik4) :: i , j , k , kbase , ktop , ns
     integer(ik8) :: mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan , ipunit
-    integer(ik4) :: khour , kday
-    integer(ik8) :: natmfrq , nradfrq , nchefrq
-    integer(ik8) :: nbdyfrq , nslabfrq
-    integer(ik8) :: kche
     integer(ik4) :: n , len_path
     character(len=32) :: appdat
     type(rcm_time_interval) :: bdif
@@ -1530,30 +1526,12 @@ module mod_params
     !
     bdydate1 = idate1
 
-    nchefrq = nint(secph*chemfrq)
-    nslabfrq = nint(dtbdys)
-    nbdyfrq = nint(dtbdys)
-
     cfdout =  dtsec/(secph*chemfrq)
     afdout =  dtsec/(secph*atmfrq)
-
-    ntsrf = nint(dtsrf/dtsec)
-    rtsrf = d_one/real(ntsrf,rkx)
-    ntrad = nint((dtrad*secpm)/dtsec)
-    rtrad = d_one/real(ntrad,rkx)
-    ntche = nint(dtche/dtsec)
-    ntcum = nint(dtcum/dtsec)
-
-    ktau = 0
 
     alarm_hour => rcm_alarm(rcmtimer,3600.0_rkx)
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
-
-    khour = 3600_8/nint(dtsec)
-    kday  = 86400_8/nint(dtsec)
-    ksts  = khour*24
-    kche  = nchefrq/nint(dtsec)
 
     alarm_out_rep => rcm_alarm(rcmtimer,3.0_rkx*3600.0_rkx)
     if ( debug_level > 0 ) then
@@ -1583,22 +1561,30 @@ module mod_params
     syncro_emi => rcm_syncro(rcmtimer,dtabem*secph)
     syncro_che => rcm_syncro(rcmtimer,dtche)
 
-    rnsrf_for_srffrq = d_one/(secph*srffrq/dtsec*rtsrf)
-    rnsrf_for_lakfrq = d_one/(secph*lakfrq/dtsec*rtsrf)
-    rnsrf_for_subfrq = d_one/(secph*subfrq/dtsec*rtsrf)
-    rnsrf_for_day = d_one/(real(kday,rkx)*rtsrf)
-    rnrad_for_radfrq = d_one/(secph*radfrq/dtsec*rtrad)
-    rnrad_for_chem = real(ntrad,rkx)/real(kche,rkx)
-
-    if ( irrtm == 1 ) rnrad_for_chem = real(ntrad*nradfo,rkx)/real(kche,rkx)
-    rsrf_in_atm = real(ntsrf,rkx)/(secph*atmfrq/dtsec)
+    rnsrf_for_srffrq = syncro_srf/alarm_out_srf
+    rsrf_in_atm = syncro_srf/alarm_out_atm
+    if ( lakemod == 1 ) then
+      rnsrf_for_lakfrq = syncro_srf/alarm_out_lak
+    end if
+    if ( nsg > 1 ) then
+      rnsrf_for_subfrq = syncro_srf/alarm_out_sub
+    end if
+    rnsrf_for_day = syncro_srf/alarm_day
+    rnrad_for_radfrq = syncro_rad/alarm_out_rad
+    rnrad_for_chem = syncro_rad/alarm_out_che
+    if ( irrtm == 1 ) then
+      syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo*secpm)
+      rnrad_for_chem = syncro_radfor/alarm_out_che
+    end if
+    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+      syncro_cpl => rcm_syncro(rcmtimer,cpldt)
+    end if
     rsrffrq_sec = d_one/(srffrq*secph)
 
     do ns = 1 , nsplit
       dtsplit(ns) = dt*(d_half/real(nsplit-ns+1,rkx))
       dtau(ns) = dtsplit(ns)
     end do
-    ntabem = nint(secph*dtabem/dt) !dtabem is time interval abs./emis. calc.
     dt2 = d_two*dt
     dtsq = dt*dt
     dtcb = dt*dt*dt
@@ -1681,8 +1667,6 @@ module mod_params
                    'IDATE0/=IDATE1 ON NON RESTART')
       end if
     end if
-
-    kstsoff = khour*rcmtimer%hour
 
     if ( myid == italk ) then
       write(stdout,*) 'Create SAV files : ' , ifsave
@@ -2336,8 +2320,8 @@ module mod_params
 
       write(stdout,*) &
         'The surface energy budget is used to calculate the ground temperature.'
-      write(stdout,'(a,i4,a)') &
-        ' The radiation is computed every ',ntrad,' time steps.'
+      write(stdout,'(a,f4.0,a)') &
+        ' The radiation is computed every ',dtrad,' minutes.'
 
       if ( iboudy == 0 ) then
         write(stdout,*) 'The lateral boundary conditions are fixed.'

@@ -975,7 +975,7 @@ module mod_savefile
     end if
 
 #ifdef CLM
-    ioff = int(dtsec*dble(ntsrf-1))
+    ioff = dtsrf-dtsec
     filer_rest = restFile_filename(type='netcdf',offset=ioff)
     call restFile_write(filer_rest)
     filer_rest = restFile_filename(type='binary',offset=ioff)

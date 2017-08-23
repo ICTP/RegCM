@@ -1564,7 +1564,7 @@ module mod_clm_histfile
           "NOTE: None of the variables are weighted by land fraction!" )
     else
       if ( myid == italk ) then
-        write(stdout,*) 'Opening netcdf rhtape ',trim(locfnhr(t))
+        write(stdout,*) 'Writing restart dataset on ',trim(locfnhr(t))
       end if
       call clm_createfile(trim(locfnhr(t)),lnfid)
       call clm_addatt(lnfid,'title', &
@@ -1628,14 +1628,8 @@ module mod_clm_histfile
       call clm_adddim(lnfid, 'hist_interval', 2)
       call clm_adddim(lnfid, 'time', clmvar_unlim)
       nfid(t) = lnfid
-      if ( myid == italk ) then
-        write(stdout,*) 'Successfully defined netcdf history file ',t
-      end if
     else
       ncid_hist(t) = lnfid
-      if ( myid == italk ) then
-        write(stdout,*) 'Successfully defined netcdf restart history file ',t
-      end if
     end if
   end subroutine htape_create
   !
@@ -2378,7 +2372,7 @@ module mod_clm_histfile
     do t = 1 , ntapes
 
       ! Skip nstep = 0 if monthly average
-      if ( ktau == 0 ) cycle
+      if ( rcmtimer%start( ) ) cycle
 
       ! Determine if end of history interval
       tape(t)%is_endhist = .false.
@@ -2386,7 +2380,7 @@ module mod_clm_histfile
         if ( nlomon ) tape(t)%is_endhist = .true.
       else
         temp = int((tape(t)%nhtfrq*3600.0)/dtsec, ik8)
-        if ( mod(ktau+1,temp) == 0 ) tape(t)%is_endhist = .true.
+        if ( mod(rcmtimer%lcount+1,temp) == 0 ) tape(t)%is_endhist = .true.
       end if
 
       ! If end of history interval
@@ -2409,7 +2403,7 @@ module mod_clm_histfile
         if ( tape(t)%ntimes == 1 ) then
           locfnh(t) = set_hist_filename(tape(t)%nhtfrq,nlomon,t)
           if ( myid == italk ) then
-            write(stdout,*) 'Creating history file ',t, ' at ktau = ', ktau+1
+            write(stdout,*) 'Creating history file ',locfnh(t)
           end if
           call htape_create (t)
 
@@ -2441,7 +2435,7 @@ module mod_clm_histfile
         end if
 
         if ( myid == italk ) then
-          write(stdout,*) 'CLM History variables written at ktau ', ktau+1
+          write(stdout,*) 'CLM History variables written'
         end if
 
         ! Write history time samples
@@ -2468,8 +2462,7 @@ module mod_clm_histfile
       if ( if_disphist(t) ) then
         if ( tape(t)%ntimes /= 0 ) then
           if ( myid == italk ) then
-            write(stdout,*)  'Closing local history file ',&
-               trim(locfnh(t)),' at ktau = ', ktau+1
+            write(stdout,*)  'Closing local history file ',trim(locfnh(t))
           end if
           call clm_closefile(nfid(t))
           if ( .not. if_stop .and. nlomon ) then
@@ -2845,7 +2838,7 @@ module mod_clm_histfile
       ! Read in namelist information
       !
       call clm_inqdim(ncid,'ntapes',ntapes_onfile)
-      if ( ktau > 0 .and. ntapes_onfile /= ntapes ) then
+      if ( rcmtimer%integrating( ) .and. ntapes_onfile /= ntapes ) then
         write(stderr,*) &
             'ntapes = ', ntapes, ' ntapes_onfile = ', ntapes_onfile
         call fatal(__FILE__,__LINE__, &
@@ -2853,7 +2846,7 @@ module mod_clm_histfile
           'than on restart file!, you can NOT change history options on '// &
           'restart!' )
       end if
-      if ( ktau > 0 .and. ntapes > 0 ) then
+      if ( rcmtimer%integrating( ) .and. ntapes > 0 ) then
         call clm_readvar(ncid,'locfnh',locfnh(1:ntapes))
         call clm_readvar(ncid,'locfnhr',locrest(1:ntapes))
         do t = 1 , ntapes
@@ -2887,7 +2880,7 @@ module mod_clm_histfile
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
       call get_proc_global(numg,numl,numc,nump)
 
-      if ( ktau > 0 ) then
+      if ( rcmtimer%integrating( ) ) then
         do t = 1 , ntapes
           call clm_openfile(locrest(t),ncid_hist(t))
           if ( t == 1 ) then

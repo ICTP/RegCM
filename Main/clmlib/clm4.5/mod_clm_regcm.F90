@@ -105,7 +105,7 @@ module mod_clm_regcm
         end do
       end do
     end do
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       lms%swdiralb = 0.16_rkx
       lms%swdifalb = 0.16_rkx
       lms%lwdiralb = 0.32_rkx
@@ -140,7 +140,7 @@ module mod_clm_regcm
     caldayp1 = yeardayfrac(nextt)
     call orb_decl(real(yearpoint(nextt),rk8),eccen,mvelpp, &
                   lambm0,obliqr,declinp1,eccfp1)
-    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act( ) ) then
       doalb = .true.
     else
       doalb = .false.
@@ -148,7 +148,7 @@ module mod_clm_regcm
     rstwr = .false.
     nlend = .false.
     nlomon = .false.
-    if ( ktau > 0 ) then
+    if ( rcmtimer%integrating( ) ) then
       ! Final timestep
       if ( rcmtimer%next_is_endtime ) then
         rstwr = .true.
@@ -248,7 +248,7 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
     call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
-    temps = (lm%cprate+lm%ncprate) * rtsrf
+    temps = (lm%cprate+lm%ncprate) * syncro_srf%rw
     call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
 
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
@@ -326,89 +326,89 @@ module mod_clm_regcm
       !    of indices unit is kg/m2/s
       ! b) drydeposition BC HL
       !    flux arriving through lm interface are accumulated between
-      !    two surface call : needs to average with rtsrf
+      !    two surface call : needs to average with syncro_srf%rw
       ! c) dry deposition BC HL
       if ( ibchl > 0 ) then
-        temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * rtsrf
+        temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,1) = clm_a2l%notused
       end if
       ! drydeposition BCHB
       if ( ibchb > 0 ) then
-        temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * rtsrf
+        temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,ibchb) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,2) = clm_a2l%notused
       end if
       ! wet dep BC (sum rainout and washout fluxes, sum hb amd hl)
       if ( ibchb > 0 .and. ibchl > 0 ) then
-        temps(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb)  &
-                         +  lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl)) * rtsrf
+        temps(:,:) =  (lm%wetdepflx(jci1:jci2,ici1:ici2,ibchb) + &
+                       lm%wetdepflx(jci1:jci2,ici1:ici2,ibchl)) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,3) = clm_a2l%notused
       end if
       ! drydeposition OC HL
       if ( iochl > 0 ) then
-        temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl)*  rtsrf
+        temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,iochl) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,4) = clm_a2l%notused
       end if
       ! drydeposition OC HB
       if ( iochb > 0 ) then
-        temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) *  rtsrf
+        temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,iochb) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,5) = clm_a2l%notused
       end if
       ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
       if(iochb >0 .and. iochl >0 ) then
-        temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb)   &
-                         +  lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * rtsrf
+        temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb) + &
+                      lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         clm_a2l%forc_aer(:,6) = clm_a2l%notused
       end if
       if ( size(lm%idust) == 4 ) then
        ! wet dep dust 1
-       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) &
-                      +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * rtsrf
+       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) + &
+              lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,7) = clm_a2l%notused
        ! dry dep dust 1
-       temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1))  * rtsrf
+       temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1))*syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,8) = clm_a2l%notused
 
        ! wet dep dust 2
-       temps(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) &
-                      +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2))) * rtsrf
+       temps(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) + &
+               lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2))) * syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,9) = clm_a2l%notused
        ! dry dep dust 2
-       temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2))  * rtsrf
+       temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2))*syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,10) = clm_a2l%notused
 
        ! wet dep dust 3
-       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) &
-                      +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3))) * rtsrf
+       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) + &
+               lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3))) * syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,11) = clm_a2l%notused
        ! dry dep dust 3
-       temps(:,:) =  lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3))  * rtsrf
+       temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3))*syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,12) = clm_a2l%notused
 
        ! wet dep dust 4
-       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) &
-                      +  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4))) * rtsrf
+       temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) + &
+                lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4))) * syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,13) = clm_a2l%notused
        ! dry dep dust 4
-       temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,lm%idust(4))  * rtsrf
+       temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,lm%idust(4))*syncro_srf%rw
        call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
        clm_a2l%forc_aer(:,14) = clm_a2l%notused
       end if
       if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
         temps(:,:) = (lm%drydepflx(jci1:jci2,ici1:ici2,ino) + &
-                      lm%wetdepflx(jci1:jci2,ici1:ici2,ino)) * rtsrf
+                      lm%wetdepflx(jci1:jci2,ici1:ici2,ino)) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
         ! to convert NO flux from mg/m2/day to g/m2/sec,
         ! we multiply by 1.15740741 * 10-8

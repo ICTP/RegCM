@@ -26,9 +26,9 @@ module mod_ocn_zeng
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough , iocnzoq , ktau
-  use mod_runparams , only : iocncpl, ntcpl , rhmax , rhmin
-  use mod_runparams , only : iwavcpl, zomax, ustarmax
+  use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl
+  use mod_runparams , only : iocncpl , rhmax , rhmin
+  use mod_runparams , only : iwavcpl , zomax, ustarmax
 
   implicit none
 
@@ -150,10 +150,12 @@ module mod_ocn_zeng
       !
       flag1 = .true.
       if ( iwavcpl == 1 ) then
-        if ( zoo(i) < tol .and. ktau+1 > ntcpl ) then
-          zo = zoo(i)
-          if ( zo > zomax ) zo = zomax
-          flag1 = .false.
+        if ( syncro_cpl%lcount > 1 ) then
+          if ( zoo(i) < tol .and. syncro_cpl%act( ) ) then
+            zo = zoo(i)
+            if ( zo > zomax ) zo = zomax
+            flag1 = .false.
+          end if
         end if
       end if
       !
@@ -162,10 +164,12 @@ module mod_ocn_zeng
       !
       flag2 = .true.
       if ( iwavcpl == 1 ) then
-        if ( ustr(i) < tol .and. ktau+1 > ntcpl ) then
-          ustar = ustr(i)
-          if ( ustar > ustarmax ) ustar = ustarmax
-          flag2 = .false.
+        if ( syncro_cpl%lcount > 1 ) then
+          if ( ustr(i) < tol .and. syncro_cpl%act( ) ) then
+            ustar = ustr(i)
+            if ( ustar > ustarmax ) ustar = ustarmax
+            flag2 = .false.
+          end if
         end if
       end if
       !
@@ -173,7 +177,7 @@ module mod_ocn_zeng
       !
       do nconv = 1 , 5
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
-        if ( flag2 .or. ktau+1 <= ntcpl ) then
+        if ( flag2 ) then
           ustar = vonkar*um/log(hu/zo)
         end if
       end do
@@ -195,7 +199,7 @@ module mod_ocn_zeng
         !
         ! wind
         !
-        if ( flag2 .or. ktau+1 <= ntcpl ) then
+        if ( flag2 ) then
           zeta = hu/obu
           if ( zeta < -zetam ) then      ! zeta < -1
             ustar = vonkar*um/(log(-zetam*obu/zo)-psi(1,-zetam)+ &
@@ -420,7 +424,7 @@ module mod_ocn_zeng
       real(rkx) , intent (out) :: zo , zoq , zot
       real(rkx) :: cp , charnockog , re , xtq , rt , rq , alph
       ! if surface roughness not provided by wave model
-      if ( flag1 .or. ktau+1 <= ntcpl ) then
+      if ( flag1 ) then
         ! Wave age. The wind here is the mean last N days wind
         cp = 1.2_rkx*um10
         ! Smith et al. (1992), Carlsson et al. (2009)

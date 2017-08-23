@@ -279,7 +279,7 @@ module mod_rrtmg_driver
     tauc_lw(:,:,:) = dlowval
     call prep_dat_rrtm(m2r,iyear)
 
-    lradfor = ( rcmtimer%start( ) .or. mod(ktau+1,ntrad*nradfo) == 0 )
+    lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
 
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.

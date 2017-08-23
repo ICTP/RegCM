@@ -14,7 +14,7 @@ module mod_clm_cnfire
   use mod_realkinds
   use mod_mppparam
   use mod_mpmessage
-  use mod_runparams , only : dtsrf , idate1 , ktau , dtsec
+  use mod_runparams , only : dtsrf , idate1 , dtsec , rcmtimer
   use mod_dynparam
   use mod_stdio
   use mod_date
@@ -379,7 +379,7 @@ module mod_clm_cnfire
     !
     ! On first time-step, just set area burned to zero and exit
     !
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       do fc = 1 , num_soilc
         c = filter_soilc(fc)
         farea_burned(c) = 0._rk8

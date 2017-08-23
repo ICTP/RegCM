@@ -269,8 +269,6 @@ module mod_init
       !
       ! Comunicate the data to other processors
       !
-      ktau = rcmtimer%ktau( )
-
       call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
       call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
       call grid_distribute(atm1_t_io,atm1%t,jce1,jce2,ice1,ice2,1,kz)
@@ -529,7 +527,7 @@ module mod_init
       !
       ! Setup all timeseps for a restart
       !
-      dtbat = dt*real(ntsrf,rkx)
+      dtbat = dtsrf
       dt = dt2
       rdt = d_one/dt
       dtsq = dt*dt

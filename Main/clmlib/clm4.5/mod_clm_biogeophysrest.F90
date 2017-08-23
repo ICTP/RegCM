@@ -72,10 +72,13 @@ module mod_clm_biogeophysrest
     character(len=7) :: filetypes(0:3)
     character(len=32) :: fileusing
     character(len=*) , parameter :: sub = "BiogeophysRest"
+    logical :: lstart
 
     filetypes(:)           = "missing"
     filetypes(nsrStartup)  = "finidat"
     filetypes(nsrContinue) = "restart"
+
+    lstart = rcmtimer%integrating( )
 
     ! Set pointers into derived type
 
@@ -103,7 +106,7 @@ module mod_clm_biogeophysrest
               long_name='pft weight relative to corresponding gridcell', &
               units='')
       else if ( flag == 'read' ) then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'PFT_WTGCELL') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'PFT_WTGCELL') ) then
           call fatal(__FILE__,__LINE__,'clm_now_stopping')
         else
           ! Copy weights calculated from fsurdat/fpftdyn to temp array
@@ -125,7 +128,7 @@ module mod_clm_biogeophysrest
               long_name='pft weight relative to corresponding landunit', &
               units='')
       else if ( flag == 'read' ) then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'PFT_WTLUNIT') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'PFT_WTLUNIT') ) then
           call fatal(__FILE__,__LINE__,'clm_now_stopping')
         else
           ! Copy weights calculated from fsurdat/fpftdyn to temp array
@@ -147,7 +150,7 @@ module mod_clm_biogeophysrest
                long_name='pft weight relative to corresponding column', &
                units='')
       else if ( flag == 'read' ) then
-        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'PFT_WTCOL') ) then
+        if ( lstart .and. .not. clm_check_var(ncid,'PFT_WTCOL') ) then
           call fatal(__FILE__,__LINE__,'clm_now_stopping')
         else
           ! Copy weights calculated from fsurdat/fpftdyn to temp array
@@ -234,7 +237,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'EFLX_LWRAD_OUT',['pft'], &
            long_name='emitted infrared (longwave) radiation', units='watt/m^2')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'EFLX_LWRAD_OUT') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'EFLX_LWRAD_OUT') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'EFLX_LWRAD_OUT', &
@@ -251,7 +254,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_integer,ncid,'SNLSNO',['column'], &
             long_name='number of snow layers', units='unitless')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'SNLSNO') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'SNLSNO') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'SNLSNO',cptr%cps%snl,gcomm_column)
@@ -267,7 +270,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'SNOW_DEPTH',['column'], &
             long_name='snow depth', units='m')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0  .and. .not. clm_check_var(ncid,'SNOW_DEPTH') ) then
+      if ( lstart  .and. .not. clm_check_var(ncid,'SNOW_DEPTH') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'SNOW_DEPTH',cptr%cps%snow_depth,gcomm_column)
@@ -283,7 +286,7 @@ module mod_clm_biogeophysrest
             long_name='accumulated snow', units='mm')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'INT_SNOW') ) then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           cptr%cws%int_snow(:) = 0.0_rk8
         else
           call fatal(__FILE__,__LINE__,'clm_now_stopping')
@@ -301,7 +304,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'WA',['column'], &
             long_name='water in the unconfined aquifer', units='mm')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'WA') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'WA') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'WA',cptr%cws%wa,gcomm_column)
@@ -317,7 +320,7 @@ module mod_clm_biogeophysrest
              long_name='total water storage', units='mm/s')
     else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'TWS')
-      if ( ktau /= 0 .and. .not. readvar ) then
+      if ( lstart .and. .not. readvar ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         if ( readvar ) then
@@ -337,7 +340,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'ZWT',['column'], &
             long_name='water table depth', units='m')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZWT') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'ZWT') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'ZWT',cptr%cws%zwt,gcomm_column)
@@ -353,7 +356,7 @@ module mod_clm_biogeophysrest
             long_name='frost table depth', units='m')
     else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'FROST_TABLE')
-      if ( ktau /= 0 .and. .not. readvar ) then
+      if ( lstart .and. .not. readvar ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         if ( readvar ) then
@@ -375,7 +378,7 @@ module mod_clm_biogeophysrest
             long_name='perched water table depth', units='m')
     else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'ZWT_PERCH')
-      if ( ktau /= 0 .and. .not. readvar ) then
+      if ( lstart .and. .not. readvar ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         if ( readvar ) then
@@ -398,7 +401,7 @@ module mod_clm_biogeophysrest
             units='unitless')
     else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'frac_sno_eff')
-      if ( ktau /= 0 .and. .not. readvar ) then
+      if ( lstart .and. .not. readvar ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         if ( readvar ) then
@@ -421,7 +424,7 @@ module mod_clm_biogeophysrest
             long_name='fraction of ground covered by snow (0 to 1)', &
             units='unitless')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frac_sno') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'frac_sno') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'frac_sno',cptr%cps%frac_sno,gcomm_column)
@@ -436,7 +439,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'DZSNO',['column','levsno'], &
             long_name='snow layer thickness', units='m', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'DZSNO') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'DZSNO') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         allocate(temp2d(begc:endc,-nlevsno+1:0))
@@ -457,7 +460,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'ZSNO',['column','levsno'], &
             long_name='snow layer depth', units='m', switchdim=.true.)
     else if (flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZSNO') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'ZSNO') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         allocate(temp2d(begc:endc,-nlevsno+1:0))
@@ -478,7 +481,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'ZISNO',['column','levsno'], &
               long_name='snow interface depth', units='m', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZISNO') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'ZISNO') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         allocate(temp2d(begc:endc,-nlevsno:-1))
@@ -499,7 +502,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'coszen',['column'], &
             long_name='cosine of solar zenith angle',units='unitless')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'coszen') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'coszen') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'coszen',cptr%cps%coszen,gcomm_column)
@@ -516,7 +519,7 @@ module mod_clm_biogeophysrest
             long_name='direct solar absorbed by roof per unit '// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_roof_dir') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_roof_dir') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_roof_dir',lptr%lps%sabs_roof_dir, &
@@ -535,7 +538,7 @@ module mod_clm_biogeophysrest
             long_name='diffuse solar absorbed by roof per unit '// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_roof_dif') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_roof_dif') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_roof_dif',lptr%lps%sabs_roof_dif, &
@@ -554,7 +557,7 @@ module mod_clm_biogeophysrest
             long_name='direct solar absorbed by sunwall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_sunwall_dir') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_sunwall_dir') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_sunwall_dir',lptr%lps%sabs_sunwall_dir, &
@@ -573,7 +576,7 @@ module mod_clm_biogeophysrest
             long_name='diffuse solar absorbed by sunwall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_sunwall_dif') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_sunwall_dif') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_sunwall_dif',lptr%lps%sabs_sunwall_dif, &
@@ -592,7 +595,7 @@ module mod_clm_biogeophysrest
             long_name='direct solar absorbed by shadewall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_shadewall_dir') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_shadewall_dir') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_shadewall_dir', &
@@ -611,7 +614,7 @@ module mod_clm_biogeophysrest
             long_name='diffuse solar absorbed by shadewall per unit'// &
                 'wall area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_shadewall_dif') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_shadewall_dif') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_shadewall_dif', &
@@ -630,7 +633,7 @@ module mod_clm_biogeophysrest
             long_name='direct solar absorbed by impervious road per unit'// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_improad_dir') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_improad_dir') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_improad_dir', &
@@ -649,7 +652,7 @@ module mod_clm_biogeophysrest
             long_name='diffuse solar absorbed by impervious road per unit'// &
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_improad_dif') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_improad_dif') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_improad_dif', &
@@ -668,7 +671,7 @@ module mod_clm_biogeophysrest
             long_name='direct solar absorbed by pervious road per unit '//&
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_perroad_dir') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_perroad_dir') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_perroad_dir', &
@@ -687,7 +690,7 @@ module mod_clm_biogeophysrest
             long_name='diffuse solar absorbed by pervious road per unit '//&
                 'ground area per unit incident flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_perroad_dif') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'sabs_perroad_dif') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'sabs_perroad_dif', &
@@ -704,7 +707,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'vf_sr', ['landunit'], &
             long_name='view factor of sky for road',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_sr') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'vf_sr') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'vf_sr',lptr%lps%vf_sr,gcomm_landunit)
@@ -719,7 +722,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'vf_wr', ['landunit'], &
             long_name='view factor of one wall for road',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_wr') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'vf_wr') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'vf_wr',lptr%lps%vf_wr,gcomm_landunit)
@@ -734,7 +737,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'vf_sw', ['landunit'], &
             long_name='view factor of sky for one wall',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_sw') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'vf_sw') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'vf_sw',lptr%lps%vf_sw,gcomm_landunit)
@@ -749,7 +752,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'vf_rw', ['landunit'], &
             long_name='view factor of road for one wall',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_rw') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'vf_rw') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'vf_rw',lptr%lps%vf_rw,gcomm_landunit)
@@ -764,7 +767,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'vf_ww', ['landunit'], &
             long_name='view factor of opposing wall for one wall',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_ww') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'vf_ww') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'vf_ww',lptr%lps%vf_ww,gcomm_landunit)
@@ -779,7 +782,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'taf', ['landunit'], &
             long_name='urban canopy air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'taf') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'taf') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'taf',lptr%lps%taf,gcomm_landunit)
@@ -794,7 +797,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'qaf', ['landunit'], &
             long_name='urban canopy specific humidity',units='kg/kg')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'qaf') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'qaf') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'qaf',lptr%lps%qaf,gcomm_landunit)
@@ -809,10 +812,10 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albd', ['pft   ','numrad'], &
             long_name='surface albedo (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albd') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albd') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           do_initsurfalb = .true.
         else
           call clm_readvar(ncid,'albd',pptr%pps%albd,gcomm_pft, switchdim=.true.)
@@ -828,10 +831,10 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albi', ['pft   ','numrad'], &
             long_name='surface albedo (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albi') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albi') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           do_initsurfalb = .true.
         else
           call clm_readvar(ncid,'albi',pptr%pps%albi,gcomm_pft, switchdim=.true.)
@@ -847,7 +850,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albgrd', ['column','numrad'], &
             long_name='ground albedo (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgrd') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albgrd') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'albgrd',cptr%cps%albgrd,gcomm_column, switchdim=.true.)
@@ -862,7 +865,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albgri', ['column','numrad'], &
             long_name='ground albedo (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgri') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albgri') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         call clm_readvar(ncid,'albgri',cptr%cps%albgri,gcomm_column, switchdim=.true.)
@@ -877,10 +880,10 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albsod', ['column','numrad'], &
             long_name='soil albedo (direct) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsod') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albsod') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           do_initsurfalb = .true.
         else
           call clm_readvar(ncid,'albsod',cptr%cps%albsod,gcomm_column, switchdim=.true.)
@@ -896,10 +899,10 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albsoi', ['column','numrad'], &
             long_name='soil albedo (diffuse) (0 to 1)',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsoi') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albsoi') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           do_initsurfalb = .true.
         else
           call clm_readvar(ncid,'albsoi',cptr%cps%albsoi,gcomm_column, switchdim=.true.)
@@ -1094,7 +1097,7 @@ module mod_clm_biogeophysrest
             long_name='surface water',units='kg/m2')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'H2OSFC') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           cptr%cws%h2osfc(begc:endc) = 0.0_rk8
@@ -1113,7 +1116,7 @@ module mod_clm_biogeophysrest
             long_name='fraction of ground covered by h2osfc (0 to 1)',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'FH2OSFC') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           cptr%cps%frac_h2osfc(begc:endc) = 0.0_rk8
@@ -1132,7 +1135,7 @@ module mod_clm_biogeophysrest
             long_name='surface water temperature',units='K')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'TH2OSFC') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           cptr%ces%t_h2osfc(begc:endc) = 274.0_rk8
@@ -1150,7 +1153,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'H2OSNO', ['column'], &
             long_name='snow water',units='kg/m2')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSNO') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'H2OSNO') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'H2OSNO',cptr%cws%h2osno,gcomm_column)
@@ -1165,7 +1168,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'H2OSOI_LIQ', ['column','levtot'], &
             long_name='liquid water',units='kg/m2', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSOI_LIQ') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'H2OSOI_LIQ') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'H2OSOI_LIQ',cptr%cws%h2osoi_liq,gcomm_column, switchdim=.true.)
@@ -1180,7 +1183,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'H2OSOI_ICE', ['column','levtot'], &
             long_name='ice lens',units='kg/m2', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSOI_ICE') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'H2OSOI_ICE') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'H2OSOI_ICE',cptr%cws%h2osoi_ice,gcomm_column, switchdim=.true.)
@@ -1195,7 +1198,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_GRND', ['column'], &
             long_name='ground temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_GRND') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_GRND',cptr%ces%t_grnd,gcomm_column)
@@ -1210,7 +1213,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'URBAN_AC', ['column'], &
             long_name='urban air conditioning flux',units='W/m^2')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'URBAN_AC') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'URBAN_AC') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'URBAN_AC',cptr%cef%eflx_urban_ac,gcomm_column)
@@ -1225,7 +1228,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'URBAN_HEAT', ['column'], &
             long_name='urban heating flux',units='W/m^2')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'URBAN_HEAT') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'URBAN_HEAT') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'URBAN_HEAT', &
@@ -1242,7 +1245,7 @@ module mod_clm_biogeophysrest
             long_name='daily minimum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MIN') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MIN',pptr%pes%t_ref2m_min,gcomm_pft)
@@ -1258,7 +1261,7 @@ module mod_clm_biogeophysrest
             long_name='daily maximum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MAX') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MAX',pptr%pes%t_ref2m_max,gcomm_pft)
@@ -1274,7 +1277,7 @@ module mod_clm_biogeophysrest
             long_name='instantaneous daily minimum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN_INST') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MIN_INST') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MIN_INST', &
@@ -1292,7 +1295,7 @@ module mod_clm_biogeophysrest
             long_name='instantaneous daily maximum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX_INST') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MAX_INST') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MAX_INST', &
@@ -1309,7 +1312,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_REF2M_U', ['pft'], &
             long_name='Urban 2m height surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_U') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_U') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_U',pptr%pes%t_ref2m_u,gcomm_pft)
@@ -1324,7 +1327,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_GRND_U', ['column'], &
             long_name='Urban ground temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND_U') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_GRND_U') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_GRND_U',cptr%ces%t_grnd_u,gcomm_column)
@@ -1340,7 +1343,7 @@ module mod_clm_biogeophysrest
             long_name='urban daily minimum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN_U') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MIN_U') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MIN_U',pptr%pes%t_ref2m_min_u,gcomm_pft)
@@ -1356,7 +1359,7 @@ module mod_clm_biogeophysrest
             long_name='urban daily maximum of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX_U') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MAX_U') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MAX_U',pptr%pes%t_ref2m_max_u,gcomm_pft)
@@ -1372,7 +1375,7 @@ module mod_clm_biogeophysrest
             long_name='urban instantaneous daily min of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN_INST_U') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MIN_INST_U') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MIN_INST_U', &
@@ -1390,7 +1393,7 @@ module mod_clm_biogeophysrest
             long_name='urban instantaneous daily max of average 2 m height '// &
                'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX_INST_U') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MAX_INST_U') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MAX_INST_U', &
@@ -1407,7 +1410,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_REF2M_R', ['pft'], &
             long_name='Rural 2m height surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_R') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_R') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_R',pptr%pes%t_ref2m_r,gcomm_pft)
@@ -1422,7 +1425,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_GRND_R', ['column'], &
             long_name='Rural ground temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND_R') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_GRND_R') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_GRND_R',cptr%ces%t_grnd_r,gcomm_column)
@@ -1438,7 +1441,7 @@ module mod_clm_biogeophysrest
             long_name='rural daily minimum of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN_R') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MIN_R') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MIN_R',pptr%pes%t_ref2m_min_r,gcomm_pft)
@@ -1454,7 +1457,7 @@ module mod_clm_biogeophysrest
             long_name='rural daily maximum of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX_R') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MAX_R') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MAX_R',pptr%pes%t_ref2m_max_r,gcomm_pft)
@@ -1470,7 +1473,7 @@ module mod_clm_biogeophysrest
             long_name='rural instantaneous daily min of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN_INST_R') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MIN_INST_R') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MIN_INST_R', &
@@ -1488,7 +1491,7 @@ module mod_clm_biogeophysrest
             long_name='rural instantaneous daily max of average 2 m height '// &
             'surface air temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX_INST_R') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_REF2M_MAX_INST_R') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_REF2M_MAX_INST_R', &
@@ -1505,7 +1508,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_SOISNO', ['column','levtot'], &
             long_name='soil-snow temperature',units='K', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_SOISNO') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_SOISNO') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_SOISNO',cptr%ces%t_soisno,gcomm_column, switchdim=.true.)
@@ -1520,7 +1523,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_LAKE', ['column','levlak'], &
             long_name='lake temperature',units='K', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_LAKE') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_LAKE') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_LAKE',cptr%ces%t_lake,gcomm_column, switchdim=.true.)
@@ -1535,7 +1538,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_integer,ncid,'FRAC_VEG_NOSNO_ALB', ['pft'], &
             long_name='fraction of vegetation not covered by snow',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'FRAC_VEG_NOSNO_ALB') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'FRAC_VEG_NOSNO_ALB') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'FRAC_VEG_NOSNO_ALB', &
@@ -1552,7 +1555,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'FWET', ['pft'], &
             long_name='fraction of canopy that is wet',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'FWET') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'FWET') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'FWET',pptr%pps%fwet,gcomm_pft)
@@ -1567,7 +1570,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'tlai', ['pft'], &
             long_name='one-sided leaf area index, no burying by snow',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tlai') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'tlai') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'tlai',pptr%pps%tlai,gcomm_pft)
@@ -1582,7 +1585,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'tsai', ['pft'], &
             long_name='one-sided stem area index, no burying by snow',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tsai') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'tsai') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'tsai',pptr%pps%tsai,gcomm_pft)
@@ -1685,7 +1688,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'mlaidiff', ['pft'], &
             long_name='difference between lai month one and month two',units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'mlaidiff') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'mlaidiff') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'mlaidiff',pptr%pps%mlaidiff,gcomm_pft)
@@ -1701,7 +1704,7 @@ module mod_clm_biogeophysrest
             long_name='one-sided leaf area index, with burying by snow', &
             units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'elai') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'elai') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'elai',pptr%pps%elai,gcomm_pft)
@@ -1717,7 +1720,7 @@ module mod_clm_biogeophysrest
             long_name='one-sided stem area index, with burying by snow', &
             units='')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'esai') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'esai') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'esai',pptr%pps%esai,gcomm_pft)
@@ -1733,7 +1736,7 @@ module mod_clm_biogeophysrest
             long_name='sunlit fraction of canopy',units='')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'fsun') ) then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           do p = begp , endp
             if ( is_nan( pptr%pps%fsun(p) ) )then
               pptr%pps%fsun(p) = spval
@@ -1793,7 +1796,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'htop', ['pft'], &
             long_name='canopy top',units='m')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'htop') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'htop') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'htop',pptr%pps%htop,gcomm_pft)
@@ -1808,7 +1811,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'hbot', ['pft'], &
             long_name='canopy botton',units='m')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'hbot') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'hbot') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'hbot',pptr%pps%hbot,gcomm_pft)
@@ -1823,7 +1826,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'fabd', ['pft   ','numrad'], &
             long_name='flux absorbed by veg per unit direct flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fabd') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fabd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fabd',pptr%pps%fabd,gcomm_pft, switchdim=.true.)
@@ -1838,7 +1841,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'fabi', ['pft   ','numrad'], &
             long_name='flux absorbed by veg per unit diffuse flux',units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fabi') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'fabi') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'fabi',pptr%pps%fabi,gcomm_pft, switchdim=.true.)
@@ -2044,7 +2047,7 @@ module mod_clm_biogeophysrest
               long_name='down direct flux below veg per unit direct flux', &
               units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ftdd') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'ftdd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'ftdd',pptr%pps%ftdd,gcomm_pft, switchdim=.true.)
@@ -2060,7 +2063,7 @@ module mod_clm_biogeophysrest
               long_name='down diffuse flux below veg per unit direct flux', &
               units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ftid') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'ftid') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'ftid',pptr%pps%ftid,gcomm_pft, switchdim=.true.)
@@ -2076,7 +2079,7 @@ module mod_clm_biogeophysrest
               long_name='down diffuse flux below veg per unit diffuse flux', &
               units='', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ftii') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'ftii') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'ftii',pptr%pps%ftii,gcomm_pft, switchdim=.true.)
@@ -2091,7 +2094,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'T_VEG', ['pft'], &
               long_name='vegetation temperature',units='K')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_VEG') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'T_VEG') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'T_VEG',pptr%pes%t_veg,gcomm_pft)
@@ -2107,7 +2110,7 @@ module mod_clm_biogeophysrest
               long_name='2m height surface air temperature',units='K')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'T_REF2M') ) then
-        if ( ktau == 0 ) then
+        if ( rcmtimer%start( ) ) then
           if ( allocate_all_vegpfts ) then
             call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
@@ -2127,7 +2130,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'H2OCAN', ['pft'], &
               long_name='canopy water',units='kg/m2')
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OCAN') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'H2OCAN') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'H2OCAN',pptr%pws%h2ocan,gcomm_pft)
@@ -2143,7 +2146,7 @@ module mod_clm_biogeophysrest
               long_name='number of irrigation time steps left',units='#')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'n_irrig_steps_left') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           cptr%cps%n_irrig_steps_left = 0
@@ -2164,7 +2167,7 @@ module mod_clm_biogeophysrest
               long_name='irrigation rate',units='mm/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'irrig_rate') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           cptr%cps%irrig_rate = 0.0_rk8
@@ -2205,7 +2208,7 @@ module mod_clm_biogeophysrest
       ! If initial run -- ensure that water is properly bounded
       ! ------------------------------------------------------------
 
-      if ( ktau == 0 ) then
+      if ( rcmtimer%start( ) ) then
         do c = begc , endc
           l = clandunit(c)
           if ( ctype(c) == icol_sunwall .or. &
@@ -2251,7 +2254,7 @@ module mod_clm_biogeophysrest
     !
     ! Perturb initial conditions if not restart
     !
-    if ( .not. ktau /= 0 .and. flag=='read' .and. pertlim /= 0.0_rk8 ) then
+    if ( .not. lstart .and. flag=='read' .and. pertlim /= 0.0_rk8 ) then
       call perturbIC( lptr )
     end if
     !
@@ -2265,7 +2268,7 @@ module mod_clm_biogeophysrest
               long_name='snow layer effective radius',units='um', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'snw_rds') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           write(stderr,*) 'SNICAR: This is an initial run (not a restart)'
@@ -2311,7 +2314,7 @@ module mod_clm_biogeophysrest
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_bcpho') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_bcpho to zero
@@ -2334,7 +2337,7 @@ module mod_clm_biogeophysrest
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_bcphi') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_bcphi to zero
@@ -2357,7 +2360,7 @@ module mod_clm_biogeophysrest
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_ocpho') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_ocpho to zero
@@ -2380,7 +2383,7 @@ module mod_clm_biogeophysrest
               units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_ocphi') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_ocphi to zero
@@ -2402,7 +2405,7 @@ module mod_clm_biogeophysrest
               long_name='snow dust species 1 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst1') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst1 to zero
@@ -2424,7 +2427,7 @@ module mod_clm_biogeophysrest
               long_name='snow dust species 2 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst2') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst2 to zero
@@ -2446,7 +2449,7 @@ module mod_clm_biogeophysrest
               long_name='snow dust species 3 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst3') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst3 to zero
@@ -2468,7 +2471,7 @@ module mod_clm_biogeophysrest
               long_name='snow dust species 4 mass',units='kg m-2', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'mss_dst4') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize mss_dst4 to zero
@@ -2491,7 +2494,7 @@ module mod_clm_biogeophysrest
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'flx_absdv') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           do_initsurfalb = .true.
@@ -2511,7 +2514,7 @@ module mod_clm_biogeophysrest
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'flx_absdn') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           do_initsurfalb = .true.
@@ -2531,7 +2534,7 @@ module mod_clm_biogeophysrest
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'flx_absiv') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           do_initsurfalb = .true.
@@ -2551,7 +2554,7 @@ module mod_clm_biogeophysrest
               units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'flx_absin') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           do_initsurfalb = .true.
@@ -2569,7 +2572,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albsnd_hst',['column','numrad'], &
               long_name='snow albedo (direct)',units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsnd_hst') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albsnd_hst') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'albsnd_hst',cptr%cps%albsnd_hst,gcomm_column, switchdim=.true.)
@@ -2584,7 +2587,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'albsni_hst',['column','numrad'], &
               long_name='snow albedo (diffuse)',units='1', switchdim=.true.)
     else if ( flag == 'read' ) then
-      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsni_hst') ) then
+      if ( lstart .and. .not. clm_check_var(ncid,'albsni_hst') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'albsni_hst',cptr%cps%albsni_hst,gcomm_column, switchdim=.true.)
@@ -2601,7 +2604,7 @@ module mod_clm_biogeophysrest
               long_name='snow layer ice freezing rate',units='kg m-2 s-1', switchdim=.true.)
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'qflx_snofrz_lyr') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           do c = begc , endc
@@ -2624,7 +2627,7 @@ module mod_clm_biogeophysrest
               long_name='net snow melt',units='mm s-1')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'qflx_snow_melt') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize qflx_snow_melt to zero
@@ -2646,7 +2649,7 @@ module mod_clm_biogeophysrest
               long_name='flood water flux',units='mm s-1')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'qflx_floodg') ) then
-        if ( ktau /= 0 ) then
+        if ( lstart ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           ! initial run, not restart: initialize flood to zero

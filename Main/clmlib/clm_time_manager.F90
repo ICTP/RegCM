@@ -14,7 +14,7 @@ module clm_time_manager
    use mod_intkinds , only : ik8
    use mod_mpmessage
    use mod_runparams , only : idate0 , idate1 , idate2 , rcmtimer , &
-                  ktau , dtsec , dtsrf , ntsrf , doing_restart
+                  syncro_srf , dtsec , dtsrf , doing_restart
 
    use mod_constants , only : secpd
    use clm_varsur   , only : r2coutfrq
@@ -106,7 +106,7 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
   calendar = calstr(rcmtimer%idate%calendar)
   cordex_refdate = 1949120100
   call setcal(cordex_refdate,rcmtimer%idate)
-  ioffset = -idnint(dtsec)*(ntsrf-1)
+  ioffset = -(dtsrf-dtsec)
 
 end subroutine timemgr_init
 
@@ -125,7 +125,7 @@ subroutine timemgr_restart_io( ncid, flag )
   calendar = calstr(rcmtimer%idate%calendar)
   cordex_refdate = 1949120100
   call setcal(cordex_refdate,rcmtimer%idate)
-  ioffset = -idnint(dtsec)*(ntsrf-1)
+  ioffset = -(dtsrf-dtsec)
 
 end subroutine timemgr_restart_io
 
@@ -198,7 +198,7 @@ integer function get_nstep()
 
   ! Return the timestep number.
 
-   get_nstep = (ktau/ntsrf)
+   get_nstep = syncro_srf%lcount + 1
 
 end function get_nstep
 
@@ -426,7 +426,7 @@ logical function is_first_step()
 
 ! Return true on first step of initial run only.
 
-   is_first_step = ( ktau == 0 )
+   is_first_step = rcmtimer%start( )
 
 end function is_first_step
 

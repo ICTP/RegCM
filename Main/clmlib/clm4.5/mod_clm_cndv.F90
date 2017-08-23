@@ -382,7 +382,7 @@ module mod_clm_cndv
     call curr_date(nextdate,yr,mon,day,mcsec)
     mcdate = yr*10000 + mon*100 + day
 
-    iktau = int(ktau,ik4)
+    iktau = int(syncro_srf%lcount,ik4)
     call clm_writevar(ncid,'mcdate',mcdate,nt=1)
     call clm_writevar(ncid,'mcsec',mcsec,nt=1)
     call clm_writevar(ncid,'mdcur',mdcur,nt=1)
@@ -421,7 +421,7 @@ module mod_clm_cndv
     call clm_closefile(ncid)
 
     if (myid == italk) then
-       write(stdout,*) 'Written CNDV history dataset at ktau = ',ktau+1
+       write(stdout,*) 'Written CNDV history dataset'
     end if
 
   end subroutine histCNDV

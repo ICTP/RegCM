@@ -143,7 +143,7 @@ module mod_pbl_holtbl
     !----------------------------------------------------------------------
     !
     ! decouple flux-form variables to give u,v,t,theta,theta-vir.,
-    ! t-vir., qv, and qc at cross points and at ktau-1.
+    ! t-vir., qv, and qc at cross points and at previous timestep
     !
     ! *** note ***
     ! the boundary winds may not be adequately affected by friction,

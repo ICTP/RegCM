@@ -12,7 +12,7 @@ module mod_clm_ch4
   use mod_stdio
   use mod_dynparam , only : dayspy
   use mod_constants , only : secpd
-  use mod_runparams , only : dtsrf , ktau
+  use mod_runparams , only : dtsrf
   use mod_mpmessage
   use mod_clm_type
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a
@@ -666,7 +666,7 @@ module mod_clm_ch4
                          ch4_surf_flux_tot(c)*1000._rk8) ! kg C --> g C
           if ( abs(errch4) > 1.e-7_rk8 ) then ! g C / m^2 / timestep
             write(stderr,*) 'CH4 Conservation Error in CH4Mod driver, &
-                    &nstep, c, errch4 (gC /m^2.timestep)', ktau,c,errch4
+                    &c, errch4 (gC /m^2.timestep)', c,errch4
             g = cgridcell(c)
             write(stderr,*) 'Latdeg,Londeg=',clm3%g%latdeg(g),clm3%g%londeg(g)
             call fatal(__FILE__,__LINE__, &
@@ -688,8 +688,8 @@ module mod_clm_ch4
                            ch4_surf_flux_tot(c)*1000._rk8) ! kg C --> g C
             if ( abs(errch4) > 1.e-7_rk8 ) then ! g C / m^2 / timestep
               write(stderr,*) 'CH4 Conservation Error in CH4Mod driver &
-                      &for lake column, nstep, c, errch4 (gC/m^2.timestep)', &
-                      ktau,c,errch4
+                      &for lake column, c, errch4 (gC/m^2.timestep)', &
+                      c,errch4
               g = cgridcell(c)
               write(stderr,*)'Latdeg,Londeg=',clm3%g%latdeg(g),clm3%g%londeg(g)
               call fatal(__FILE__,__LINE__, &
@@ -2629,8 +2629,8 @@ module mod_clm_ch4
         ch4_surf_diff(c) = ch4_surf_diff(c) - errch4(c)/dtsrf
       else ! errch4 > 1e-8 mol / m^2 / timestep
         write(stderr,*)'CH4 Conservation Error in CH4Mod during &
-                &diffusion, nstep, c, errch4 (mol /m^2.timestep)', &
-                ktau,c,errch4(c)
+                &diffusion, c, errch4 (mol /m^2.timestep)', &
+                c,errch4(c)
         g = cgridcell(c)
         write(stderr,*)'Latdeg,Londeg=',clm3%g%latdeg(g),clm3%g%londeg(g)
         call fatal(__FILE__,__LINE__, &

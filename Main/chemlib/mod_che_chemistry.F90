@@ -38,13 +38,12 @@ module mod_che_chemistry
   private
 
   real(rkx) :: dtchsolv
-  integer(ik8) :: kchsolv
 
   integer(ik4) , parameter :: kmin = 2
   real(rkx) , parameter :: kb = 1.380658e-19_rkx
   real(rkx) , parameter :: mwa = 28.97_rkx
 
-  public :: chemistry , dtchsolv , kchsolv
+  public :: chemistry , dtchsolv
 
   contains
 

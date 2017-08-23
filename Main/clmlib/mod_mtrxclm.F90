@@ -25,7 +25,7 @@ module mod_mtrxclm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv , solcon , clmfrq , iocnflx , &
-      imask , ilawrence_albedo , ichem , ktau , rtsrf , &
+      imask , ilawrence_albedo , ichem , rcmtimer , syncro_srf , &
       dx , dtsrf , dtrad , igaschem , iaerosol , chtrname , idate1 ,    &
       idate2 , eccen , obliqr , lambm0 , mvelpp
   use mod_mpmessage
@@ -169,7 +169,7 @@ module mod_mtrxclm
     !
     numdays = dayspy
     r2comm = mycomm
-    if ( ktau > 0 ) then
+    if ( rcmtimer%integrating( ) ) then
       r2cnsrest = 1
     else
       r2cnsrest = 0
@@ -248,7 +248,7 @@ module mod_mtrxclm
     r2cxlat = r2cxlatd*degrad
     r2cxlon = r2cxlond*degrad
 
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       !
       !    Gather values of each nproc work_in array and fill
       !      work_out(jx*iy) array.
@@ -264,8 +264,8 @@ module mod_mtrxclm
       call fill_frame(lm%sfps,r2cpsb)
       call fill_frame(lm%cprate,r2crnc)
       call fill_frame(lm%ncprate,r2crnnc)
-      r2crnc = r2crnc * rtsrf
-      r2crnnc = r2crnnc * rtsrf
+      r2crnc = r2crnc * syncro_srf%rw
+      r2crnnc = r2crnnc * syncro_srf%rw
       call fill_frame(lm%swdir,r2csols)
       call fill_frame(lm%lwdir,r2csoll)
       call fill_frame(lm%swdif,r2csolsd)
@@ -341,7 +341,7 @@ module mod_mtrxclm
     if ( myid == iocpu ) write (stdout,*) 'Successfully  make atmospheric grid'
 
     ! Initialize radiation and atmosphere variables
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       call rcmdrv()
     end if
 
@@ -351,7 +351,7 @@ module mod_mtrxclm
           if ( ichem == 1 ) then
             lm%svegfrac2d(j,i) = clm_fracveg(j,i)
           end if
-          if ( ktau == 0 ) then
+          if ( rcmtimer%start( ) ) then
             ! Set initial albedos to clm dry soil values for mid-colored soils
             lms%swdiralb(n,j,i) = 0.16_rkx
             lms%swdifalb(n,j,i) = 0.16_rkx
@@ -379,7 +379,7 @@ module mod_mtrxclm
     ! Initialize ldmsk1 now that clm has determined the land sea mask
     ! Initialize accumulation variables at zero
 
-    if ( ktau == 0 ) then
+    if ( rcmtimer%start( ) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
@@ -513,8 +513,8 @@ module mod_mtrxclm
       call fill_frame(lm%sfps,r2cpsb)
       call fill_frame(lm%cprate,r2crnc)
       call fill_frame(lm%ncprate,r2crnnc)
-      r2crnc = r2crnc * rtsrf
-      r2crnnc = r2crnnc * rtsrf
+      r2crnc = r2crnc * syncro_srf%rw
+      r2crnnc = r2crnnc * syncro_srf%rw
       call fill_frame(lm%swdir,r2csols)
       call fill_frame(lm%lwdir,r2csoll)
       call fill_frame(lm%swdif,r2csolsd)

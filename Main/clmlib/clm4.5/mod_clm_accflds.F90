@@ -439,9 +439,9 @@ module mod_clm_accflds
     ! Don't do any accumulation if nstep is zero
     ! (only applies to coupled or cam mode)
 
-    if ( ktau < ntsrf ) return
+    if ( syncro_srf%lcount < 1 ) return
 
-    kkincr = ktau / ntsrf
+    kkincr = syncro_srf%lcount + 1
 
     ! NOTE: currently only single level pft fields are used below
     ! Variables are declared above that should make it easy to incorporate
@@ -923,7 +923,7 @@ module mod_clm_accflds
 
     ! Determine time step
 
-    kkincr = ktau / ntsrf
+    kkincr = syncro_srf%lcount + 1
 
     ! Initialize 2m ref temperature max and min values
 
