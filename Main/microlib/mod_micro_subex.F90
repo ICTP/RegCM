@@ -149,7 +149,8 @@ module mod_micro_subex
             tcel = mo2mc%t(j,i,k) - tzero   ![C][avg]
             ! In cloud mixing ratio [kg/kg]
             qcincl = mo2mc%qcn(j,i,k)/mo2mc%fcc(j,i,k)
-            qcth(j,i,k) = cgul(j,i)*(d_10**(-0.489_rkx+0.0134_rkx*tcel))*d_r1000
+            qcth(j,i,k) = cgul(j,i) * &
+               (d_10**(-0.48911_rkx+0.01344_rkx*tcel))*d_r1000
             ! Use same function of Lemus et al., 1997 as in lwc computation
             !qcth(j,i,k) = cgul(j,i) * &
             !      clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000

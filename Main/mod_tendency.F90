@@ -2051,7 +2051,8 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            store(j,i,k) = store(j,i,k) + (ten(j,i,k,indx)-ten0(j,i,k))*afdout
+            store(j,i,k) = store(j,i,k) + &
+              (ten(j,i,k,indx)-ten0(j,i,k)) * alarm_out_atm%rw
           end do
         end do
       end do
@@ -2060,7 +2061,7 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          store(j,i,k) = store(j,i,k) + ten(j,i,k,indx)*afdout
+          store(j,i,k) = store(j,i,k) + ten(j,i,k,indx) * alarm_out_atm%rw
         end do
       end do
     end do
@@ -2078,7 +2079,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             store(j,i,k) = store(j,i,k) + &
-                    (qen(j,i,k,idgq,indx)-qen0(j,i,k))*afdout
+                    (qen(j,i,k,idgq,indx)-qen0(j,i,k)) * alarm_out_atm%rw
           end do
         end do
       end do
@@ -2087,7 +2088,7 @@ module mod_tendency
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          store(j,i,k) = store(j,i,k) + qen(j,i,k,idgq,indx)*afdout
+          store(j,i,k) = store(j,i,k) + qen(j,i,k,idgq,indx) * alarm_out_atm%rw
         end do
       end do
     end do
@@ -2106,7 +2107,7 @@ module mod_tendency
           do i = ici1 , ici2
             do j = jci1 , jci2
               store(j,i,k,n) = store(j,i,k,n) + &
-                  (chiten(j,i,k,n,indx)-chiten0(j,i,k,n))*afdout
+                  (chiten(j,i,k,n,indx)-chiten0(j,i,k,n)) * alarm_out_atm%rw
             end do
           end do
         end do
@@ -2117,7 +2118,8 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            store(j,i,k,n) = store(j,i,k,n) + chiten(j,i,k,n,indx)*afdout
+            store(j,i,k,n) = store(j,i,k,n) + &
+                      chiten(j,i,k,n,indx) * alarm_out_atm%rw
           end do
         end do
       end do

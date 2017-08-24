@@ -332,6 +332,9 @@ module mod_che_start
 #endif
 
     end do
+
+    cfdout = alarm_out_che%rw
+
     !
     ! define now correspndance between boundary species indices and
     ! determine tracer indices corresponding to ch boundary conditions

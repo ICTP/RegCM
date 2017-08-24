@@ -1520,17 +1520,14 @@ module mod_params
     dtbat = dt
     rdt   = d_one/dt
     dtbdys = real(ibdyfrq,rkx)*secph
-    ntsec = nint(dt)
     !
-    ! Reset the options/calculate variables using namelist info:
+    ! Reset the options/calculate variables using namelist info
     !
     bdydate1 = idate1
 
-    cfdout =  dtsec/(secph*chemfrq)
-    afdout =  dtsec/(secph*atmfrq)
-
     alarm_hour => rcm_alarm(rcmtimer,3600.0_rkx)
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
+
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
 
     alarm_out_rep => rcm_alarm(rcmtimer,3.0_rkx*3600.0_rkx)
@@ -1560,6 +1557,12 @@ module mod_params
     syncro_rad => rcm_syncro(rcmtimer,dtrad*secpm)
     syncro_emi => rcm_syncro(rcmtimer,dtabem*secph)
     syncro_che => rcm_syncro(rcmtimer,dtche)
+    if ( irrtm == 1 ) then
+      syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo*secpm)
+    end if
+    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+      syncro_cpl => rcm_syncro(rcmtimer,cpldt)
+    end if
 
     rnsrf_for_srffrq = syncro_srf/alarm_out_srf
     rsrf_in_atm = syncro_srf/alarm_out_atm
@@ -1573,11 +1576,7 @@ module mod_params
     rnrad_for_radfrq = syncro_rad/alarm_out_rad
     rnrad_for_chem = syncro_rad/alarm_out_che
     if ( irrtm == 1 ) then
-      syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo*secpm)
       rnrad_for_chem = syncro_radfor/alarm_out_che
-    end if
-    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-      syncro_cpl => rcm_syncro(rcmtimer,cpldt)
     end if
     rsrffrq_sec = d_one/(srffrq*secph)
 

@@ -98,13 +98,11 @@ module mod_runparams
   ! Step counters to activate surface and radiation schemes
   real(rkx) , public :: rnsrf_for_srffrq , rnsrf_for_day , &
      rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , rnrad_for_radfrq
-  real(rkx) , public :: afdout , cfdout
   ! Step of surface scheme in one atmosphere I/O interval
   real(rkx) , public :: rsrf_in_atm
   ! One over seconds in one surface I/O interval
   real(rkx) , public :: rsrffrq_sec
-  ! Model timestep in seconds (real and integer)
-  integer(ik8) , public :: ntsec
+  ! Model base timestep in seconds
   real(rkx) , public :: dtsec
   !
   ! Cumulus scheme index

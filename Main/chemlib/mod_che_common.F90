@@ -36,6 +36,8 @@ module mod_che_common
 
   public
 
+  real(rkx) :: cfdout
+
   integer(ik4) , parameter :: sbin = 2
   integer(ik4) , parameter :: maxntr = 50
 

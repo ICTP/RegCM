@@ -104,6 +104,7 @@ module mod_timer
     integer(ik8) :: actint
     integer(ik8) :: lastact
     integer(ik8) :: lcount
+    real(rkx) :: rw
     real(rkx) , dimension(2) :: wt
     logical :: triggered
     class(rcm_timer) , pointer :: timer
@@ -283,6 +284,7 @@ module mod_timer
     alarm%timer%nalarm = alarm%timer%nalarm + 1
     alarm%timer%ap(alarm%timer%nalarm)%ap => alarm
     alarm%lcount = alarm%timer%model_internal_time/alarm%actint
+    alarm%rw = real(alarm%timer%model_timestep,rkx)/dt
     init_alarm => alarm
   end function init_alarm
 
