@@ -1465,7 +1465,7 @@ module mod_params
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
 
-    if ( abs(savfrq) > 0 ) then
+    if ( abs(savfrq) > d_zero ) then
       alarm_out_sav => rcm_alarm(rcmtimer,secpd*abs(savfrq))
     end if
     alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
@@ -1509,9 +1509,11 @@ module mod_params
     end if
     rnsrf_for_day = syncro_srf/alarm_day
     rnrad_for_radfrq = syncro_rad/alarm_out_rad
-    rnrad_for_chem = syncro_rad/alarm_out_che
-    if ( irrtm == 1 ) then
-      rnrad_for_chem = syncro_radfor/alarm_out_che
+    if ( ichem == 1 ) then
+      rnrad_for_chem = syncro_rad/alarm_out_che
+      if ( irrtm == 1 ) then
+        rnrad_for_chem = syncro_radfor/alarm_out_che
+      end if
     end if
     rsrffrq_sec = d_one/(srffrq*secph)
 

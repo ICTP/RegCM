@@ -54,7 +54,7 @@ module mod_micro_subex
   real(rkx) , parameter :: thog = d_1000*regrav
   real(rkx) , parameter :: uch = thog*secph
   real(rkx) , parameter :: pptmin = 0.0_rkx
-  real(rkx) , parameter :: actcld = 0.1_rkx
+  real(rkx) , parameter :: actcld = 0.2_rkx
   real(rkx) , parameter :: accrfrc = 0.5_rkx
 
   contains

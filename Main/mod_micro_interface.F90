@@ -352,7 +352,7 @@ module mod_micro_interface
           tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
 #ifdef DEBUG
           if ( tmp3 < d_zero ) then
-            write(stderr,*) 'Time ktau = ', ktau
+            write(stderr,*) 'Time step = ', rcmtimer%lcount
             write(stderr,*) 'Consistency TEMPERATURE ERROR in condtq (T < 0K)'
             write(stderr,*) 'At global J : ',j
             write(stderr,*) 'At global I : ',i
