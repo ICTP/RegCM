@@ -632,7 +632,7 @@ module mod_output
           ps_out = d_1000*(ps_out+ptop)
         end if
 
-        call write_record_output_stream(atm_stream,rcmtimer%idate)
+        call write_record_output_stream(atm_stream,alarm_out_atm%idate)
         if ( myid == italk ) &
           write(stdout,*) 'ATM variables written at ' , rcmtimer%str( )
 
@@ -712,7 +712,7 @@ module mod_output
         if ( associated(srf_snowmelt_out) ) &
           srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq
 
-        call write_record_output_stream(srf_stream,rcmtimer%idate)
+        call write_record_output_stream(srf_stream,alarm_out_srf%idate)
         if ( myid == italk ) &
           write(stdout,*) 'SRF variables written at ' , rcmtimer%str( )
 
@@ -760,7 +760,7 @@ module mod_output
           end where
         end if
 
-        call write_record_output_stream(sub_stream,rcmtimer%idate)
+        call write_record_output_stream(sub_stream,alarm_out_sub%idate)
         if ( myid == italk ) &
           write(stdout,*) 'SUB variables written at ' , rcmtimer%str( )
 
@@ -809,7 +809,7 @@ module mod_output
           lak_evp_out = max(lak_evp_out, d_zero)
         end if
 
-        call write_record_output_stream(lak_stream,rcmtimer%idate)
+        call write_record_output_stream(lak_stream,alarm_out_lak%idate)
         if ( myid == italk ) &
           write(stdout,*) 'LAK variables written at ' , rcmtimer%str( )
 
@@ -859,7 +859,7 @@ module mod_output
         if ( associated(opt_aassrlrf_out) ) &
           opt_aassrlrf_out = opt_aassrlrf_out * rnrad_for_chem
 
-        call write_record_output_stream(opt_stream,rcmtimer%idate)
+        call write_record_output_stream(opt_stream,alarm_out_che%idate)
         if ( myid == italk ) &
           write(stdout,*) 'OPT variables written at ' , rcmtimer%str( )
         if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
@@ -893,7 +893,7 @@ module mod_output
         end if
         do itr = 1 , ntr
           call fill_chem_outvars(itr)
-          call write_record_output_stream(che_stream,rcmtimer%idate,itr)
+          call write_record_output_stream(che_stream,alarm_out_che%idate,itr)
         end do
         if ( myid == italk ) then
           write(stdout,*) 'CHE variables written at ' , rcmtimer%str( )
@@ -935,7 +935,7 @@ module mod_output
           end where
         end if
 
-        call write_record_output_stream(sts_stream,rcmtimer%idate)
+        call write_record_output_stream(sts_stream,alarm_out_sts%idate)
         if ( myid == italk ) &
           write(stdout,*) 'STS variables written at ' , rcmtimer%str( )
 
@@ -974,7 +974,7 @@ module mod_output
                              sfs%psa(jci1:jci2,ici1:ici2)
           end do
         end if
-        call write_record_output_stream(rad_stream,rcmtimer%idate)
+        call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ' , rcmtimer%str( )
       end if
@@ -1142,7 +1142,7 @@ module mod_output
           call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
             jci1,jci2,ici1,ici2,1,12)
         end if
-        call write_savefile(rcmtimer%idate)
+        call write_savefile(alarm_out_sav%idate)
       end if
     end if
 

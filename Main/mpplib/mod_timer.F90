@@ -108,6 +108,8 @@ module mod_timer
     real(rkx) , dimension(2) :: wt
     logical :: triggered
     class(rcm_timer) , pointer :: timer
+    type(rcm_time_and_date) :: idate
+    type(rcm_time_interval) :: intalm
   contains
     procedure :: check => alarm_check
     procedure :: act => alarm_act
@@ -278,6 +280,8 @@ module mod_timer
     lact0 = .false.
     if ( present(act0) ) lact0 = act0
     alarm%dt = dt
+    alarm%idate = alarm%timer%idate
+    alarm%intalm = rcm_time_interval(dt,usec)
     alarm%actint = int(dt,ik8)
     alarm%lastact = alarm%timer%model_internal_time
     alarm%triggered = lact0
@@ -303,6 +307,7 @@ module mod_timer
     end if
     if ( alarm%triggered ) then
       alarm%triggered = .false.
+      alarm%idate = alarm%idate + alarm%intalm
       alarm%wt(1) = (t1 - t2)/alarm%dt
       alarm%wt(2) = d_one - alarm%wt(1)
       alarm%now = alarm%timer%model_internal_time

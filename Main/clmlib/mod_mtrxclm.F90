@@ -192,7 +192,7 @@ module mod_mtrxclm
     ! regcm: dtrad is in minutes
     ! clm: irad is (+) iterations or (-) hours
     ! clm: hours gets converted to seconds then divided by dtime
-    r2cirad = idint(dtrad*minph/r2cdtime)
+    r2cirad = idint(dtrad/r2cdtime)
     ! write output
     if ( ifsrf ) then
       r2cwrtdia = .true.

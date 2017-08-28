@@ -54,7 +54,6 @@ module mod_params
 
   private
 
-  real(rkx) , parameter :: maxdt = 600.0_rkx
   real(rkx) , parameter :: mindt = 1.0_rkx
 
   public :: param
@@ -894,47 +893,35 @@ module mod_params
 
       close(ipunit)
 
-      if ( dt > maxdt ) then
-        write(stderr,*) 'DT very big , ',dt,' s !!!!'
-        write(stderr,*) 'Will reset to ',maxdt,' s !!!!'
-        dt = maxdt
-      end if
       if ( dt < mindt ) then
-        write(stderr,*) 'DT very small , ',dt,' s !!!!'
-      end if
-
-      dt = check_against_outparams(dt,1.0_rkx)
-      if ( dtcum < d_zero ) dtcum = dt
-
-      if ( dt < 2.0_rkx ) then
+        write(stderr,*) 'Minimum dt allowed is ',mindt,' seconds.'
         call fatal(__FILE__,__LINE__, &
-           'Cannot match all output frequencies with chosen dt')
+                   'DT TOO SMALL')
       end if
-      if ( dtsrf < dt ) then
-        if ( dt > 600.0_rkx ) then
-          dtsrf = dt
-        else
-          dtsrf = min(int(600.0_rkx / dt) * dt + dt,600.0_rkx)
-          dtsrf = check_against_outparams(dtsrf,dt)
-        end if
+
+      dt = check_against_outparams(dt,mindt)
+
+      if ( dtcum < d_zero ) dtcum = dt
+      if ( dtsrf < 1.0_rkx ) dtsrf = 600.0_rkx
+      if ( dtcum < 1.0_rkx ) dtcum = 300.0_rkx
+      if ( dtche < 1.0_rkx ) dtche = 900.0_rkx
+      if ( dtrad < 1.0_rkx ) then
+        dtrad = 1800.0_rkx
+      else
+        dtrad = dtrad * 60.0_rkx
       end if
-      if ( dtcum < dt ) then
-        if ( dt > 300.0_rkx ) then
-          dtcum = dt
-        else
-          dtcum = min(int(300.0_rkx / dt) * dt + dt,300.0_rkx)
-          dtcum = check_against_outparams_cum(dtcum,dt)
-        end if
+      if ( dtabem < 1.0_rkx ) then
+        dtabem = 64800.0_rkx
+      else
+        dtabem = dtabem * 3600.0_rkx
       end if
-      if ( dtrad*60.0_rkx < dt ) then
-        dtrad = int(1800.0 / dt) * dt + dt
-        dtrad = check_against_outparams_rad(dtrad,dt)
-        dtrad = dtrad / 60.0_rkx
-      end if
-      if ( dtabem*3600.0_rkx < dt ) then
-        dtabem = int(1080.0_rkx / dtrad) * dtrad
-        dtabem = dtabem / 60.0_rkx
-      end if
+
+      dtsrf = int(dtsrf / dt) * dt
+      dtcum = int(dtcum / dt) * dt
+      dtrad = int(dtrad / dt) * dt
+      dtche = int(dtche / dt) * dt
+      dtabem = int(dtabem / dtrad) * dtrad
+
     end if
     !
     ! communicate to all processors
@@ -1431,39 +1418,7 @@ module mod_params
     call allocate_mod_diffusion
 
     if ( myid == italk ) then
-      if ( mod(nint(dtrad*60.0_rkx),nint(dt)) /= 0 ) then
-        write (stderr,*) 'DTRAD=' , dtrad , ' DT=' , dt
-        call fatal(__FILE__,__LINE__, &
-                'DTRAD /= N*DT : INCONSISTENT RADIATION TIMESTEP SPECIFIED')
-      end if
-      if ( mod(nint(dtsrf),nint(dt)) /= 0 ) then
-        write (stderr,*) 'DTSRF=' , dtsrf , ' DT=' , dt
-        call fatal(__FILE__,__LINE__, &
-                'DTSRF /= N*DT : INCONSISTENT SURFACE TIMESTEP SPECIFIED')
-      end if
-      if ( mod(nint(dtcum),nint(dt)) /= 0 ) then
-        write (stderr,*) 'DTCUM=' , dtcum , ' DT=' , dt
-        call fatal(__FILE__,__LINE__, &
-                'DTCUM /= N*DT : INCONSISTENT CUMULUS TIMESTEP SPECIFIED')
-      end if
-      if ( nint(dtcum) > nint(dtsrf) ) then
-        write (stderr,*) 'DTCUM=' , dtcum , ' DTSRF=' , dtsrf
-        call fatal(__FILE__,__LINE__, &
-                'DTCUM > DTSRF : INCONSISTENT CUMULUS TIMESTEP SPECIFIED')
-      end if
-      if ( ichem == 1 .and. ichsolver /= 0 ) then
-        if ( mod(nint(dtche),nint(dt)) /= 0 ) then
-          write (stderr,*) 'DTCHE=' , dtche , ' DT=' , dt
-          call fatal(__FILE__,__LINE__, &
-                  'DTCHE /= N*DT : INCONSISTENT CHEMISTRY TIMESTEP SPECIFIED')
-        end if
-      end if
       if ( ifsrf ) then
-        if ( mod(nint(srffrq*secph),nint(dtsrf)) /= 0 ) then
-          write (stderr,*) 'SRFFRQ=' , srffrq , ' DTSRF=' , dtsrf
-          call fatal(__FILE__,__LINE__, &
-                     'INCONSISTENT SURFACE OUTPUT FREQUENCY SPECIFIED')
-        end if
         if ( ifsts .and. srffrq > 24.0_rkx ) then
           call fatal(__FILE__,__LINE__, &
                      'NEED SRF FREQUENCY LESS THAN 24H FOR STS OUTPUT')
@@ -1474,29 +1429,11 @@ module mod_params
                      'TO ENABLE STS, ENABLE SRF OUTPUT IS REQUIRED')
         end if
       end if
-      if ( mod(nint(dtabem*secph),nint(dt)) /= 0 ) then
-        write (stderr,*) 'DTABEM=' , dtabem , ' DT=' , dt
-        call fatal(__FILE__,__LINE__, &
-                   'INCONSISTENT ABS/EMS TIMESTEPS SPECIFIED')
-      end if
-      if ( mod(nint(dtabem*60.0_rkx),nint(dtrad)) /= 0 ) then
-        write (stderr,*) 'DTABEM=' , dtabem , ' DTRAD=' , dtrad
-        call fatal(__FILE__,__LINE__,                                   &
-                   'INCONSISTENT LONGWAVE/SHORTWAVE RADIATION'//        &
-                   ' TIMESTEPS SPECIFIED')
-      end if
       if ( ichem == 1 ) then
         if ( chemfrq <= d_zero ) then
           write (stderr,*) 'CHEMFRQ=', chemfrq
           call fatal(__FILE__,__LINE__, &
                      'CHEMFRQ CANNOT BE ZERO')
-        end if
-        if ( ichsolver /= 0 ) then
-          if ( mod(nint(chemfrq*secph),nint(dtche)) /= 0 ) then
-            write (stderr,*) 'CHEMFRQ=' , chemfrq , ' DTCHE=', dtche
-            call fatal(__FILE__,__LINE__, &
-                       'INCONSISTENT CHEMISTRY OUTPUT FREQUENCY SPECIFIED')
-          end if
         end if
       end if
       if ( isladvec == 1 ) then
@@ -1525,9 +1462,7 @@ module mod_params
     !
     bdydate1 = idate1
 
-    alarm_hour => rcm_alarm(rcmtimer,3600.0_rkx)
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
-
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
 
     alarm_out_rep => rcm_alarm(rcmtimer,3.0_rkx*3600.0_rkx)
@@ -1554,8 +1489,8 @@ module mod_params
 
     syncro_srf => rcm_syncro(rcmtimer,dtsrf)
     syncro_cum => rcm_syncro(rcmtimer,dtcum)
-    syncro_rad => rcm_syncro(rcmtimer,dtrad*secpm)
-    syncro_emi => rcm_syncro(rcmtimer,dtabem*secph)
+    syncro_rad => rcm_syncro(rcmtimer,dtrad)
+    syncro_emi => rcm_syncro(rcmtimer,dtabem)
     syncro_che => rcm_syncro(rcmtimer,dtche)
     if ( irrtm == 1 ) then
       syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo*secpm)
@@ -1588,10 +1523,8 @@ module mod_params
     dtsq = dt*dt
     dtcb = dt*dt*dt
 
-    intmdl = rcm_time_interval(nint(dt),usec)
     intbdy = rcm_time_interval(ibdyfrq,uhrs)
     intsom = rcm_time_interval(1,umnt)
-    deltmx = dt
 
     if ( myid == italk ) then
       appdat = tochar(idate0)
@@ -1757,9 +1690,9 @@ module mod_params
       write(stdout,'(a,f12.6)') '  time step for cumulus   '// &
             'model in seconds : ' , dtcum
       write(stdout,'(a,f12.6)') '  time step for radiation '// &
-            'model in minutes : ' , dtrad
+            'model in seconds : ' , dtrad
       write(stdout,'(a,f12.6)') '  time step for emission  '// &
-            'model in hours   : ' , dtabem
+            'model in seconds : ' , dtabem
       if ( ichem == 1 ) then
         write(stdout,'(a,f12.6)') '  time step for chemistry '// &
               'model in seconds : ' , dtche
@@ -2551,113 +2484,12 @@ module mod_params
         newdt = int(dt/dec)*dec
         do
           if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
-            newdt = newdt - dec
+            newdt = newdt + dec
             cycle
-          else
-            if ( gcd_rec(int(newdt), int(atmfrq*secph)) < newdt ) then
-              newdt = newdt - dec
-              cycle
-            else
-              if ( gcd_rec(int(newdt), int(srffrq*secph)) < newdt ) then
-                newdt = newdt - dec
-                cycle
-              else
-                if ( gcd_rec(int(newdt), int(radfrq*secph)) < newdt ) then
-                  newdt = newdt - dec
-                  cycle
-                else
-                  if ( ichem == 1 ) then
-                    if ( gcd_rec(int(newdt), int(chemfrq*secph)) < newdt ) then
-                      newdt = newdt - dec
-                      cycle
-                    else
-                      exit
-                    end if
-                  end if
-                  exit
-                end if
-                exit
-              end if
-              exit
-            end if
-            exit
           end if
+          exit
         end do
       end function check_against_outparams
-
-      real(rkx) function check_against_outparams_cum(dt,dec) result(newdt)
-        implicit none
-        real(rkx) , intent(in) :: dt , dec
-        newdt = int(dt/dec)*dec
-        do
-          if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
-            newdt = newdt - dec
-            cycle
-          else
-            if ( gcd_rec(int(newdt), int(atmfrq*secph)) < newdt ) then
-              newdt = newdt - dec
-              cycle
-            else
-              if ( gcd_rec(int(newdt), int(srffrq*secph)) < newdt ) then
-                newdt = newdt - dec
-                cycle
-              else
-                if ( gcd_rec(int(newdt), int(radfrq*secph)) < newdt ) then
-                  newdt = newdt - dec
-                  cycle
-                else
-                  if ( gcd_rec(int(newdt), int(dtsrf*secph)) < newdt ) then
-                    newdt = newdt - dec
-                    cycle
-                  else
-                    if ( ichem == 1 ) then
-                      if ( gcd_rec(int(newdt), &
-                                   int(chemfrq*secph)) < newdt ) then
-                        newdt = newdt - dec
-                        cycle
-                      else
-                        exit
-                      end if
-                      exit
-                    end if
-                    exit
-                  end if
-                  exit
-                end if
-                exit
-              end if
-              exit
-            end if
-            exit
-          end if
-        end do
-      end function check_against_outparams_cum
-
-      real(rkx) function check_against_outparams_rad(dt,dec) result(newdt)
-        implicit none
-        real(rkx) , intent(in) :: dt , dec
-        newdt = int(dt/dec)*dec
-        do
-          if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
-            newdt = newdt - dec
-            cycle
-          else
-            if ( gcd_rec(int(newdt), int(radfrq*secph)) < newdt ) then
-              newdt = newdt - dec
-              cycle
-            else
-              exit
-            end if
-            exit
-          end if
-        end do
-      end function check_against_outparams_rad
-
-      real(rkx) function check_against_outparams_abe(dt,dec) result(newdt)
-        implicit none
-        real(rkx) , intent(in) :: dt , dec
-        newdt = int(dt/dec) * dec
-      end function check_against_outparams_abe
 
   end subroutine param
 

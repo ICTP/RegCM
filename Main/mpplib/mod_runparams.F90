@@ -48,7 +48,6 @@ module mod_runparams
 
   type(rcm_timer) , save , public , pointer :: rcmtimer
 
-  type(rcm_alarm) , save , public , pointer :: alarm_hour
   type(rcm_alarm) , save , public , pointer :: alarm_day
   type(rcm_alarm) , save , public , pointer :: alarm_out_sav
   type(rcm_alarm) , save , public , pointer :: alarm_out_atm
@@ -84,11 +83,10 @@ module mod_runparams
   type(rcm_time_and_date) , save , public :: bdydate1 , bdydate2
   type(rcm_time_and_date) , save , public :: somdate1 , somdate2
 
-  type(rcm_time_interval) , save , public :: intmdl
   type(rcm_time_interval) , save , public :: intbdy
   type(rcm_time_interval) , save , public :: intsom
 
-  real(rkx) , public :: declin , deltmx
+  real(rkx) , public :: declin
   real(rkx) , public :: xbctime
   real(rkx) , public :: calday , twodt
   real(rk8) , public :: xslabtime
