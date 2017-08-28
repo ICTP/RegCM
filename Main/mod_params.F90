@@ -1465,10 +1465,6 @@ module mod_params
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
 
-    alarm_out_rep => rcm_alarm(rcmtimer,3.0_rkx*3600.0_rkx)
-    if ( debug_level > 0 ) then
-      alarm_out_dbg => rcm_alarm(rcmtimer,secph*dbgfrq)
-    end if
     if ( abs(savfrq) > 0 ) then
       alarm_out_sav => rcm_alarm(rcmtimer,secpd*abs(savfrq))
     end if
@@ -1487,11 +1483,15 @@ module mod_params
       alarm_out_sub => rcm_alarm(rcmtimer,secph*subfrq)
     end if
 
+    syncro_rep => rcm_syncro(rcmtimer,3.0_rkx*3600.0_rkx)
     syncro_srf => rcm_syncro(rcmtimer,dtsrf)
     syncro_cum => rcm_syncro(rcmtimer,dtcum)
     syncro_rad => rcm_syncro(rcmtimer,dtrad)
     syncro_emi => rcm_syncro(rcmtimer,dtabem)
     syncro_che => rcm_syncro(rcmtimer,dtche)
+    if ( debug_level > 0 ) then
+      syncro_dbg => rcm_syncro(rcmtimer,secph*dbgfrq)
+    end if
     if ( irrtm == 1 ) then
       syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo*secpm)
     end if

@@ -517,7 +517,7 @@
           do j = jci1 , jci2
             call chemistry(j)
           end do
-          if ( myid == italk .and. alarm_out_rep%will_act( ) ) then
+          if ( myid == italk .and. syncro_rep%will_act( ) ) then
             write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2surf : ', &
               minval(jphoto(:,:,kz,jvNO2 )),  maxval(jphoto(:,:,kz,jvNO2 ))
           end if

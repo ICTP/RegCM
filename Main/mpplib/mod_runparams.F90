@@ -59,11 +59,10 @@ module mod_runparams
   type(rcm_alarm) , save , public , pointer :: alarm_out_opt
   type(rcm_alarm) , save , public , pointer :: alarm_out_sub
 
-  type(rcm_alarm) , save , public , pointer :: alarm_out_rep
-  type(rcm_alarm) , save , public , pointer :: alarm_out_dbg
-
   type(rcm_alarm) , save , public , pointer :: alarm_in_bdy
 
+  type(rcm_syncro) , save , public , pointer :: syncro_dbg
+  type(rcm_syncro) , save , public , pointer :: syncro_rep
   type(rcm_syncro) , save , public , pointer :: syncro_srf
   type(rcm_syncro) , save , public , pointer :: syncro_rad
   type(rcm_syncro) , save , public , pointer :: syncro_radfor
