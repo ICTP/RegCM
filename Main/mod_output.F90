@@ -122,7 +122,7 @@ module mod_output
 
     if ( rcmtimer%integrating( ) ) then
       if ( associated(alarm_out_sav) ) then
-        if ( savfrq > 0 ) then
+        if ( savfrq > d_zero ) then
           if ( rcmtimer%reached_endtime .or. alarm_out_sav%act( ) ) then
             ldosav = .true.
           end if
@@ -1142,7 +1142,7 @@ module mod_output
           call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
             jci1,jci2,ici1,ici2,1,12)
         end if
-        call write_savefile(alarm_out_sav%idate)
+        call write_savefile(rcmtimer%idate)
       end if
     end if
 
