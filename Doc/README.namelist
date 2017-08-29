@@ -635,6 +635,7 @@
  ichdustemd = 1, ! Choice for parametrisation of dust emission size distribution
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
                  ! 2 = use the the revised soil granulometry + Kok et al., 2011
+                 ! 3 = use the the CLM4.5 dust emission module.
  ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
  idirect   = 1,  ! Choice to enable or not aerosol feedbacks on radiation and
                  ! dynamics (aerosol direct and semi direct effcts):
