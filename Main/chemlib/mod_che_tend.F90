@@ -317,7 +317,7 @@
       ! OPTION for using CLM45 dust emission scheme
       ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
 #if defined CLM45
-      if (idust(1) > 0 .and.  ichdustemd == 3 .and. ichsursrc == 1 ) then
+      if ( idust(1) > 0 .and. ichdustemd == 3 .and. ichsursrc == 1 ) then
 !        if ( rcmtimer%start( ) .or. srf_syncro%act( ) ) call clm_dust_tend
          call clm_dust_tend
       end if

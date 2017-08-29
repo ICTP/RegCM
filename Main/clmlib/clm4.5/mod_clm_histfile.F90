@@ -2403,7 +2403,7 @@ module mod_clm_histfile
         if ( tape(t)%ntimes == 1 ) then
           locfnh(t) = set_hist_filename(tape(t)%nhtfrq,nlomon,t)
           if ( myid == italk ) then
-            write(stdout,*) 'Creating history file ',locfnh(t)
+            write(stdout,*) 'Creating history file ',trim(locfnh(t))
           end if
           call htape_create (t)
 
