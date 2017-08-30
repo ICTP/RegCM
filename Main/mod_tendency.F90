@@ -1664,9 +1664,6 @@ module mod_tendency
         if ( ichem == 1 .and. ichdiag > 0 ) then
           call ten2diag(aten%chi,cconvdiag,pc_physic,chiten0)
         end if
-        ! save cumulus cloud fraction for chemistry before it is
-        ! overwritten in cldfrac
-        if ( ichem == 1 ) convcldfra(:,:,:) = cldfra(:,:,:)
       end if
       !
       !------------------------------------------------
@@ -1678,8 +1675,14 @@ module mod_tendency
           ten0 = tphy
           qen0 = qxphy(:,:,:,idgq)
         end if
-        ! Clouds and large scale precipitation
+        ! Cumulus clouds
         call cucloud
+        ! Save cumulus cloud fraction for chemistry before it is
+        ! overwritten in cldfrac
+        if ( ichem == 1 ) then
+          convcldfra(:,:,:) = cldfra(:,:,:)
+        end if
+        ! Clouds and large scale precipitation
         call cldfrac
         call microscheme
         if ( idiag > 0 ) then

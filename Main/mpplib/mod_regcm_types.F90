@@ -643,7 +643,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: qxx  ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: qs     ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: rh     ! from atms
-    real(rkx) , pointer , dimension(:,:,:) :: fcc    ! Cloud cover
     real(rkx) , pointer , dimension(:,:,:) :: heatrt ! radiation heat rate
     real(rkx) , pointer , dimension(:,:,:) :: qdetr  ! conv. detr. water
     real(rkx) , pointer , dimension(:,:,:) :: ccn    ! CCN from chem
@@ -652,9 +651,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: qin    ! qxx(:,:,:,iqi)
     real(rkx) , pointer , dimension(:,:,:) :: qsn    ! qxx(:,:,:,iqs)
     real(rkx) , pointer , dimension(:,:,:) :: qrn    ! qxx(:,:,:,iqr)
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk ! mddom
   end type mod_2_micro
 
   type micro_2_mod
+    real(rkx) , pointer , dimension(:,:,:) :: fcc     ! Cloud cover
     real(rkx) , pointer , dimension(:,:) :: rainnc    ! sfc
     real(rkx) , pointer , dimension(:,:) :: lsmrnc    ! sfc
     real(rkx) , pointer , dimension(:,:) :: snownc    ! sfc

@@ -45,7 +45,7 @@ module mod_micro_subex
 
   real(rkx) :: maxlat
   real(rkx) , pointer , dimension(:,:) :: pptsum
-  real(rkx) , pointer , dimension(:,:,:) :: dqc , qcth
+  real(rkx) , pointer , dimension(:,:,:) :: dqc
 
   logical :: l_lat_hack = .false.
   public :: allocate_subex , init_subex , subex
@@ -54,7 +54,7 @@ module mod_micro_subex
   real(rkx) , parameter :: thog = d_1000*regrav
   real(rkx) , parameter :: uch = thog*secph
   real(rkx) , parameter :: pptmin = 0.0_rkx
-  real(rkx) , parameter :: actcld = 0.2_rkx
+  real(rkx) , parameter :: actcld = 0.01_rkx
   real(rkx) , parameter :: accrfrc = 0.5_rkx
 
   contains
@@ -74,7 +74,6 @@ module mod_micro_subex
     call getmem2d(caccr,jci1,jci2,ici1,ici2,'subex:caccr')
     call getmem2d(pptsum,jci1,jci2,ici1,ici2,'subex:pptsum')
     call getmem3d(dqc,jci1,jci2,ici1,ici2,1,kz,'subex:dqc')
-    call getmem3d(qcth,jci1,jci2,ici1,ici2,1,kz,'subex:qcth')
   end subroutine allocate_subex
 
   subroutine init_subex(xlat)
@@ -105,7 +104,7 @@ module mod_micro_subex
     type(micro_2_mod) , intent(out) :: mc2mo
     real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
-                rhcs , tcel , prainx
+                rhcs , tcel , prainx , qcth
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !
@@ -115,24 +114,33 @@ module mod_micro_subex
     if ( l_lat_hack ) then
       call sun_cevap
     end if
+    if ( idiag > 0 ) then
+      mc2mo%dia_qcr(:,:,:) = d_zero
+      mc2mo%dia_qcl(:,:,:) = d_zero
+    end if
     if ( lsecind ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ! include aerosol second indirect effect on threshold
-            ! auto-conversion
-            ! rcrit is a critical cloud radius for cloud
-            ! water undergoing autoconversion
-            ! ccn = number of ccn /m3
-            ! In cloud mixing ratio [kg/kg]
-            qcincl = mo2mc%qcn(j,i,k)/mo2mc%fcc(j,i,k)
-            qcth(j,i,k) = mo2mc%ccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
-                          ((rcrit*1e-6_rkx)**3)*rhow
-            if ( idiag > 0 ) then
-              mc2mo%dia_qcr(j,i,k) = qcth(j,i,k)
-              mc2mo%dia_qcl(j,i,k) = qcincl
+            afc = mc2mo%fcc(j,i,k)
+            if ( afc > actcld ) then
+              ! include aerosol second indirect effect on threshold
+              ! auto-conversion
+              ! rcrit is a critical cloud radius for cloud
+              ! water undergoing autoconversion
+              ! ccn = number of ccn /m3
+              ! In cloud mixing ratio [kg/kg]
+              qcincl = mo2mc%qcn(j,i,k)/afc
+              qcth = mo2mc%ccn(j,i,k)*(4.0_rkx/3.0_rkx)*mathpi * &
+                    ((rcrit*1e-6_rkx)**3)*rhow
+              if ( idiag > 0 ) then
+                mc2mo%dia_qcr(j,i,k) = qcth
+                mc2mo%dia_qcl(j,i,k) = qcincl
+              end if
+              dqc(j,i,k) = max(qcincl - qcth,d_zero)
+            else
+              dqc(j,i,k) = d_zero
             end if
-            dqc(j,i,k) = max(qcincl - qcth(j,i,k),d_zero)
           end do
         end do
       end do
@@ -146,15 +154,20 @@ module mod_micro_subex
             !   - The factor of cgul accounts for the fact that the Gultepe
             !     and Isaac equation is for mean cloud water while qcth is the
             !     theshhold for auto-conversion.
-            tcel = mo2mc%t(j,i,k) - tzero   ![C][avg]
-            ! In cloud mixing ratio [kg/kg]
-            qcincl = mo2mc%qcn(j,i,k)/mo2mc%fcc(j,i,k)
-            qcth(j,i,k) = cgul(j,i) * &
-               (d_10**(-0.48911_rkx+0.01344_rkx*tcel))*d_r1000
-            ! Use same function of Lemus et al., 1997 as in lwc computation
-            !qcth(j,i,k) = cgul(j,i) * &
-            !      clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000
-            dqc(j,i,k) = max(qcincl - qcth(j,i,k),d_zero)
+            afc = mc2mo%fcc(j,i,k)
+            if ( afc > actcld ) then
+              ! In cloud mixing ratio [kg/kg]
+              qcincl = mo2mc%qcn(j,i,k)/afc
+              !tcel = mo2mc%t(j,i,k) - tzero   ![C][avg]
+              !qcth = cgul(j,i) * &
+              !   (d_10**(-0.48911_rkx+0.01344_rkx*tcel))*d_r1000
+              ! Use same function of Lemus et al., 1997 as in lwc computation
+              qcth = cgul(j,i) * &
+                    clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000
+              dqc(j,i,k) = max(qcincl - qcth,d_zero)
+            else
+              dqc(j,i,k) = d_zero
+            end if
           end do
         end do
       end do
@@ -180,13 +193,13 @@ module mod_micro_subex
     !   maximum precipation rate (total cloud water/dt)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        afc = mo2mc%fcc(j,i,1) ![frac][avg]
-        qcw = mo2mc%qcn(j,i,1) ![kg/kg][avg]
+        afc = mc2mo%fcc(j,i,1)     ![frac][avg]
+        qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
         pptnew = d_zero
+        pptmax = 0.95_rkx*qcw/dt   ![kg/kg/s][avg]
         if ( afc > actcld ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
-          pptmax = max((qcw-qcth(j,i,1)*afc),d_zero)/dt     ![kg/kg/s][avg]
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = min(pptmax,qck1(j,i)*dqc(j,i,1)*afc)     ![kg/kg/s][avg]
           ! 1ag. Compute the amount of cloud water removed by raindrop
@@ -231,9 +244,10 @@ module mod_micro_subex
           pptnew = d_zero
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
-          dpovg = dsigma(k)*mo2mc%psb(j,i)*thog          ![kg/m2][avg]
-          qcw = mo2mc%qcn(j,i,k)                   ![kg/kg][avg]
-          afc = mo2mc%fcc(j,i,k)                        ![frac][avg]
+          dpovg = dsigma(k)*mo2mc%psb(j,i)*thog       ![kg/m2][avg]
+          qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
+          afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
+          pptmax = 0.95_rkx*qcw/dt                    ![kg/kg/s][avg]
           if ( pptsum(j,i) > d_zero ) then
             pptkm1 = pptsum(j,i)/dpovg             ![kg/kg/s][avg]
           else
@@ -270,7 +284,6 @@ module mod_micro_subex
           if ( afc > actcld ) then ! if there is a cloud
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]
-            pptmax = max(qcw-qcth(j,i,k)*afc,d_zero)/dt   ![kg/kg/s][avg]
             ! 1bdd. Compute the gridcell average autoconversion [kg/kg/s]
             pptnew = min(pptmax,qck1(j,i)*dqc(j,i,k)*afc) ![kg/kg/s][avg]
             ! 1bf. Compute the amount of cloud water removed by raindrop
@@ -355,6 +368,7 @@ module mod_micro_subex
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <clwfromt.inc>
 
     pure real(rkx) function season_factor(lat) result(sf)
       implicit none
@@ -369,7 +383,7 @@ module mod_micro_subex
         theta = twopi*calday/dayspy
       end if
       delta = 0.006918_rkx - 0.399912_rkx*cos(theta) + &
-              0.070257_rkx*sin(theta) -              &
+              0.070257_rkx*sin(theta) -                &
               0.006758_rkx*cos(2.0_rkx*theta) +        &
               0.000907_rkx*sin(2.0_rkx*theta) -        &
               0.002697_rkx*cos(3.0_rkx*theta) +        &

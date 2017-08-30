@@ -32,17 +32,17 @@ module mod_cloud_subex
 
   contains
   !
-  ! This subroutine computes the fractional cloud coverage and      c
-  ! Both are use in radiation.                                      c
-  !                                                                 c
-  ! The fractional coverage of large scale clouds is a function of  c
-  ! relative humidity, using the relationship of sundqvist et       c
-  ! al., 1989.  The relative humidity at which clouds begin to      c
-  ! form is lower over land than ocean, due to the greater number   c
-  ! of cloud condensation nucleii.                                  c
-  !                                                                 c
-  ! See Pal et al (2000) for more info.                             c
-  !                                                                 c
+  ! This subroutine computes the fractional cloud coverage
+  ! which is used in radiation.
+  !
+  ! The fractional coverage of large scale clouds is a function of
+  ! relative humidity, using the relationship of sundqvist et
+  ! al., 1989.  The relative humidity at which clouds begin to
+  ! form is lower over land than ocean, due to the greater number
+  ! of cloud condensation nucleii.
+  !
+  ! See Pal et al (2000) for more info.
+  !
   subroutine subex_cldfrac(t,p,qv,rh,tc0,rh0,fcc)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , p , qv , rh

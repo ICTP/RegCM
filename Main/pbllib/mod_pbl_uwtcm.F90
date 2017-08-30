@@ -240,7 +240,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac
+    real(rkx) :: temps , templ , tempqc , deltat , rvls , pfac , rpfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
@@ -491,9 +491,10 @@ module mod_pbl_uwtcm
           templ = thlx(k)*exnerhl(k)
           temps = templ
           rvls = pfwsat(temps,preshl(k))
-          do iteration = 1 , 3
+          do
             deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls)/   &
-                      (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
+                     (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
+            if ( abs(deltat) < 0.01_rkx ) exit
             temps = temps + deltat
             rvls = pfwsat(temps,preshl(k))
           end do

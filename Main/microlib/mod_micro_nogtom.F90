@@ -514,7 +514,7 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          fccfg(j,i,k) = min(hicld,max(mo2mc%fcc(j,i,k),lowcld))
+          fccfg(j,i,k) = min(hicld,max(mc2mo%fcc(j,i,k),lowcld))
         end do
       end do
     end do

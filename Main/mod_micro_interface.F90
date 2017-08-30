@@ -33,6 +33,7 @@ module mod_micro_interface
   use mod_cloud_subex
   use mod_cloud_xuran
   use mod_cloud_thomp
+  use mod_cloud_guli2007
 
   implicit none
 
@@ -118,6 +119,7 @@ module mod_micro_interface
     use mod_che_interface
     implicit none
 
+    call assignpnt(mddom%ldmsk,mo2mc%ldmsk)
     call assignpnt(mddom%xlat,mo2mc%xlat)
     call assignpnt(sfs%psb,mo2mc%psb)
     call assignpnt(atms%pb3d,mo2mc%phs)
@@ -132,7 +134,6 @@ module mod_micro_interface
     call assignpnt(atms%qsb3d,mo2mc%qs)
     call assignpnt(heatrt,mo2mc%heatrt)
     call assignpnt(q_detr,mo2mc%qdetr)
-    call assignpnt(fcc,mo2mc%fcc)
 
     call assignpnt(atms%qxb3d,mo2mc%qvn,iqv)
     call assignpnt(atms%qxb3d,mo2mc%qcn,iqc)
@@ -153,6 +154,7 @@ module mod_micro_interface
       end if
     end if
 
+    call assignpnt(fcc,mc2mo%fcc)
     call assignpnt(aten%qx,mc2mo%qxten,pc_physic)
     call assignpnt(aten%t,mc2mo%tten,pc_physic)
     call assignpnt(sfs%rainnc,mc2mo%rainnc)
@@ -175,7 +177,6 @@ module mod_micro_interface
   end subroutine init_micro
 
   subroutine microscheme
-    use mod_atm_interface
     implicit none
     select case ( ipptls )
       case (1)
@@ -194,19 +195,30 @@ module mod_micro_interface
   ! radiation.
   !
   subroutine cldfrac
-    use mod_atm_interface , only : mddom , atms , cldlwc , cldfra
+    use mod_atm_interface , only : atms , cldlwc , cldfra
     implicit none
     real(rkx) :: exlwc
     integer(ik4) :: i , j , k , ichi
 
     if ( ipptls > 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
+      if ( icldfrac == 3 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              totc(j,i,k) = mo2mc%qcn(j,i,k) + mo2mc%qin(j,i,k) + &
+                            mo2mc%qrn(j,i,k) + mo2mc%qsn(j,i,k)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              totc(j,i,k) = (mo2mc%qcn(j,i,k) + alphaice*mo2mc%qin(j,i,k))
+            end do
+          end do
+        end do
+      end if
     else
       do k = 1 , kz
         do i = ici1 , ici2
@@ -220,14 +232,16 @@ module mod_micro_interface
     select case ( icldfrac )
       case (1)
         call xuran_cldfrac(mo2mc%phs,totc,mo2mc%qvn, &
-                           mo2mc%qs,mo2mc%rh,mo2mc%fcc)
+                           mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (2)
-        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn,     &
-                           totc,mo2mc%qsn,mo2mc%qin,mddom%ldmsk, &
-                           ds,mo2mc%fcc)
+        call thomp_cldfrac(mo2mc%phs,mo2mc%t,mo2mc%rho,mo2mc%qvn, &
+                           totc,mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
+                           ds,mc2mo%fcc)
+      case (3)
+        call gulisa_cldfrac(totc,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           mo2mc%rh,tc0,rh0,mo2mc%fcc)
+                           mo2mc%rh,tc0,rh0,mc2mo%fcc)
     end select
 
     !------------------------------------------
@@ -238,12 +252,12 @@ module mod_micro_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( mddom%ldmsk(j,i) == 0 ) then
+            if ( mo2mc%ldmsk(j,i) == 0 ) then
               if ( mo2mc%phs(j,i,k) >= 70000.0_rkx ) then
                 ! Klein, S. A., and D. L. Hartmann,
                 ! The seasonal cycle of low stratiform clouds,
                 ! J. Climate, 6, 1587-1606, 1993
-                mo2mc%fcc(j,i,k) = max(mo2mc%fcc(j,i,k), &
+                mc2mo%fcc(j,i,k) = max(mc2mo%fcc(j,i,k), &
                       (atms%th700(j,i)-atms%th3d(j,i,k)) * &
                            0.057_rkx - 0.5573_rkx)
               end if
@@ -256,7 +270,7 @@ module mod_micro_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          mo2mc%fcc(j,i,k) = max(min(mo2mc%fcc(j,i,k),hicld),lowcld)
+          mc2mo%fcc(j,i,k) = max(min(mc2mo%fcc(j,i,k),hicld),lowcld)
         end do
       end do
     end do
@@ -272,7 +286,7 @@ module mod_micro_interface
           exlwc = dlowval
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          if ( mo2mc%fcc(j,i,k) > lowcld+eps ) then
+          if ( mc2mo%fcc(j,i,k) > lowcld+eps ) then
             if ( iconvlwp == 1 ) then
               ! Apply the parameterisation based on temperature to the
               ! the large scale clouds.
@@ -280,23 +294,23 @@ module mod_micro_interface
             else
               ! NOTE : IN CLOUD HERE IS NEEDED !!!
               ! In g / m^3
-              exlwc = ((totc(j,i,k)*d_1000)/mo2mc%fcc(j,i,k))*mo2mc%rho(j,i,k)
+              exlwc = ((totc(j,i,k)*d_1000)/mc2mo%fcc(j,i,k))*mo2mc%rho(j,i,k)
             end if
             if ( .false. ) then
               ! Scaling for CF
               ! Implements CF scaling as in Liang GRL 32, 2005
               ! doi: 10.1029/2004GL022301
-              ichi = int(mo2mc%fcc(j,i,k)*real(nchi-1,rkx))
+              ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
               exlwc = exlwc * chis(ichi)
             end if
           end if
           if ( cldfra(j,i,k) > lowcld+eps .or. &
-               mo2mc%fcc(j,i,k) > lowcld+eps ) then
+               mc2mo%fcc(j,i,k) > lowcld+eps ) then
             ! get maximum cloud fraction between cumulus and large scale
-            cldlwc(j,i,k) = (exlwc * mo2mc%fcc(j,i,k) + &
+            cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
                             cldlwc(j,i,k) * cldfra(j,i,k)) / &
-                            (cldfra(j,i,k) + mo2mc%fcc(j,i,k))
-            cldfra(j,i,k) = max(cldfra(j,i,k),mo2mc%fcc(j,i,k))
+                            (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
+            cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
           else
             cldfra(j,i,k) = lowcld
             cldlwc(j,i,k) = dlowval

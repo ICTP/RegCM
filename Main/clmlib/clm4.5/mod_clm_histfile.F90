@@ -1555,9 +1555,6 @@ module mod_clm_histfile
     ! Create new netCDF file. It will be in define mode
 
     if ( .not. lhistrest ) then
-      if (myid == italk) then
-        write(stdout,*) 'Opening htape ', trim(locfnh(t))
-      end if
       call clm_createfile(trim(locfnh(t)),lnfid)
       call clm_addatt(lnfid,'title','CLM History file information')
       call clm_addatt(lnfid,'comment', &
