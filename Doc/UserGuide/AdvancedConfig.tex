@@ -108,15 +108,14 @@ core is used in the model.
  ckh = 1.0,       ! Background diffusion multiplication factor
  adyndif = 1.0,   ! Dynamical diffusion multiplication factor
  diffu_hgtf = 1,  ! Add topographic effect to diffusion
-                  ! Default is zero for non-hydrostatic
- upstream_mode = .false., ! Add off centering to advection, enabled in non-hydro
+ upstream_mode = .true.,  ! Add off centering to advection
  upu = 0.150,             ! Maximum off-centering factor to use
  umax = 160.0,            ! Value of P*U for maximum off centering
  stability_enhance = .false., ! Do not allow horizontal advection to increase
                               ! tendencies if strong gradients are present
-                              ! Enabled in non-hydro
+                              ! Enabled by default in non-hydro
  vert_stability_enhance = .false., ! Same for vertical advection
-                                   ! Enabled in non-hydro
+                                   ! Enabled by default in non-hydro
  t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
  q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
  c_rel_extrema = 0.2, ! Maximum gradient fraction for QX for advection to stop

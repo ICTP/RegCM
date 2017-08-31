@@ -594,18 +594,17 @@ module mod_params
 #endif
       end if
 
+      upstream_mode = .true.
       if ( idynamic == 2 ) then
-        diffu_hgtf = 0
         gnu1 = 0.1000_rkx
         gnu2 = 0.1000_rkx
-        upstream_mode = .true.
+        diffu_hgtf = 0
         stability_enhance = .true.
         vert_stability_enhance = .true.
       else
-        diffu_hgtf = 1
         gnu1 = 0.0600_rkx
         gnu2 = 0.0600_rkx
-        upstream_mode = .false.
+        diffu_hgtf = 1
         stability_enhance = .false.
         vert_stability_enhance = .false.
       end if
