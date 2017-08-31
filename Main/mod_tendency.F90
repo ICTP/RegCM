@@ -1500,7 +1500,7 @@ module mod_tendency
         qen0 = qxdyn(:,:,:,iqv)
       end if
       call diffu_x(tdyn,atms%tb3d)
-      call diffu_x(qxdyn,atms%qxb3d,1,nqx,1.66_rkx)
+      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_one)
       if ( idiag > 0 ) then
         call ten2diag(aten%t,tdiag%dif,pc_dynamic,ten0)
         call ten2diag(aten%qx,qdiag%dif,pc_dynamic,qen0)

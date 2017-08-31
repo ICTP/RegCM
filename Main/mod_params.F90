@@ -286,7 +286,7 @@ module mod_params
     ! Subexparam ;
     ! From Pal et al, 2000
     !
-    ncld      = 1        ! # of bottom model levels with no clouds (rad only)
+    ncld      = 0        ! # of bottom model levels with no clouds (rad only)
     qck1land  = 0.0005_rkx ! Autoconversion Rate for Land
     qck1oce   = 0.0005_rkx ! Autoconversion Rate for Ocean
     gulland   = 0.65_rkx   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)

@@ -371,7 +371,7 @@
 ! Moisture scheme comtrol (ipptls = 1)
 !
  &subexparam
- ncld      = 1,       ! # of bottom model levels with no clouds (rad only)
+ ncld      = 0,       ! # of bottom model levels with no clouds (rad only)
  qck1land  = 0.0005,  ! Autoconversion Rate for Land
  qck1oce   = 0.0005,  ! Autoconversion Rate for Ocean
  gulland   = 0.65,    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
