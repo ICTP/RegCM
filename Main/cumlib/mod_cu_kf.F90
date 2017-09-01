@@ -61,9 +61,9 @@ module mod_cu_kf
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
   !    JAH & KA (U.S. EPA) -- May 2013
   !
-  integer(ik4) , parameter :: kfnt = 500
-  integer(ik4) , parameter :: kfnp = 440
-  integer(ik4) , parameter :: kfna = 600
+  integer(ik4) , parameter :: kfnt = 250
+  integer(ik4) , parameter :: kfnp = 220
+  integer(ik4) , parameter :: kfna = 200
   real(rkx) , dimension(kfnt,kfnp) , private , save :: ttab , qstab
   real(rkx) , dimension(kfnp) , private , save :: the0k
   real(rkx) , dimension(kfna) , private , save :: alu
@@ -223,7 +223,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          tke(k,np) = d_half * (m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
+          tke(k,np) = d_half*(m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
         end do
       end do
     else
@@ -373,7 +373,7 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rkx) :: qslcl , rhlcl , dqssdt    !jfb
-    integer , parameter :: maxiter = 100
+    integer(ik4) , parameter :: maxiter = 100
 
     kl = kte
     kx = kte
@@ -633,7 +633,7 @@ module mod_cu_kf
           !
           dttot = dtlcl + dtrh
           if ( dttot > 1.0e-4_rkx ) then
-            gdt = d_two*egrav*dttot*500.0_rkx/tven ! Kain (2004) Eq. 3  (sort of)
+            gdt = d_two*egrav*dttot*500.0_rkx/tven ! Kain (2004) Eq. 3 (sort of)
             wlcl = d_one + d_half*sqrt(gdt)
             wlcl = min(wlcl,3.0_rkx)
           else
@@ -1489,9 +1489,9 @@ module mod_cu_kf
           der(nk) = der2(nk)*ainc
           ddr(nk) = ddr2(nk)*ainc
         end do
-      end if  ! Otherwise for deep convection
-              ! use iterative procedure to find mass fluxes...
-
+      end if
+      ! Otherwise for deep convection
+      ! use iterative procedure to find mass fluxes...
       iter: &
       do ncount = 1 , maxiter
         !
@@ -1564,7 +1564,7 @@ module mod_cu_kf
           qg(nk) = qpa(nk)
         end do
         !
-        ! Check to see if mixing ratio dips below zero anywhere;  if so, borrow
+        ! Check to see if mixing ratio dips below zero anywhere; if so, borrow
         ! moisture from adjacent layers to bring it back up above zero
         !
         do nk = 2 , ltop
@@ -1902,9 +1902,9 @@ module mod_cu_kf
           ddfrc = ddr(k)*timec*emsd(k)
           defrc = -der(k)*timec*emsd(k)
           write(stdout,1075) p0(k,np)/d_100,dp(k)/d_100,dtt,dr,omg(k),     &
-                  domgdp(k)*1.0e4_rkx, umf(k)/1.0e6_rkx,uefrc,udfrc,dmf(k)/1.0e6_rkx, &
-                  defrc,ddfrc,ems(k)/1.0e11_rkx,w0avg(k,np)*1.0e2_rkx,             &
-                  detlq(k)*timec*emsd(K)*1.0e3_rkx,detic(k)*timec*emsd(k)*1.0e3_rkx
+           domgdp(k)*1.0e4_rkx, umf(k)/1.0e6_rkx,uefrc,udfrc,dmf(k)/1.0e6_rkx, &
+           defrc,ddfrc,ems(k)/1.0e11_rkx,w0avg(k,np)*1.0e2_rkx,             &
+           detlq(k)*timec*emsd(K)*1.0e3_rkx,detic(k)*timec*emsd(k)*1.0e3_rkx
    1075   format(F8.2,3(F8.2),2(F8.3),F8.2,2F8.3,F8.2,6F8.3)
         end do
         write(stdout,1085) 'K','P','Z','T0','TG','DT','TU','TD','Q0','QG', &
@@ -2387,9 +2387,10 @@ module mod_cu_kf
       indlu = max(1, min(kfna-1,int(tp)+1))
       avalue = (indlu-1)*aincb + astrt
       aintrp = (a1-avalue)/aincb
-      tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
+      tlog = aintrp*alu(indlu+1) + (d_one-aintrp)*alu(indlu)
       tdpt = (cliq-dliq*tlog)/(bliq-tlog)
-      tsat = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-t00)-4.36e-4_rkx*(t1-t00))*(t1-tdpt)
+      tsat = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-t00) - &
+                     4.36e-4_rkx*(t1-t00))*(t1-tdpt)
       tht = t1*(p00/p1)**(0.2854_rkx*(d_one-0.28_rkx*q1))
       tht1 = tht*exp((c1/tsat-c2)*q1*(d_one+c4*q1))
     end function envirtht
@@ -2411,9 +2412,9 @@ module mod_cu_kf
     ! maximum bottom pressure (pascals)
     real(rkx) , parameter :: pbot = 1.1e5_rkx
     ! equivalent potential temperature increment
-    real(rkx) , parameter :: dth = 0.5_rkx
+    real(rkx) , parameter :: dth = 1.0_rkx
     ! tolerance for accuracy of temperature
-    real(rkx) , parameter :: toler = 0.0001_rkx
+    real(rkx) , parameter :: toler = 0.001_rkx
 
     ! top pressure (pascals)
     plutop = max(ptop*d_1000,5000.0_rkx)

@@ -174,9 +174,7 @@ module mod_output
     end if
 
     if ( rcmtimer%start( ) ) then
-      if ( debug_level > 2 ) then
-        ldoatm = .true.
-      end if
+      ldoatm = .true.
     end if
 
     if ( atm_stream > 0 ) then
@@ -483,8 +481,13 @@ module mod_output
           atm_tsn_out = sfs%snownc/(atmfrq*secph)
         end if
 
-        if ( associated(atm_tgb_out) ) &
-          atm_tgb_out = atm_tgb_out * rsrf_in_atm
+        if ( rcmtimer%start( ) ) then
+          if ( associated(atm_tgb_out) ) &
+            atm_tgb_out = sfs%tga(jci1:jci2,ici1:ici2)
+        else
+          if ( associated(atm_tgb_out) ) &
+            atm_tgb_out = atm_tgb_out * rsrf_in_atm
+        end if
         if ( associated(atm_tsw_out) ) then
           where ( mddom%ldmsk > 0 )
             atm_tsw_out = atm_tsw_out * rsrf_in_atm
