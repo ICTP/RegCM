@@ -92,7 +92,7 @@ module mod_cu_kf
   real(rkx) , parameter :: t00 = tzero
 
   real(rkx) , parameter :: astrt = 1.0e-3_rkx
-  real(rkx) , parameter :: aincb = 0.0250_rkx
+  real(rkx) , parameter :: aincb = 0.0750_rkx
 
   real(rkx) , parameter :: c1 = 3374.6525_rkx
   real(rkx) , parameter :: c2 = 2.5403_rkx
