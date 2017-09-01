@@ -93,6 +93,7 @@ module mod_cu_kf
 
   real(rkx) , parameter :: astrt = 1.0e-3_rkx
   real(rkx) , parameter :: aincb = 0.0750_rkx
+  real(rkx) , parameter :: atoler = 0.001_rkx
 
   real(rkx) , parameter :: c1 = 3374.6525_rkx
   real(rkx) , parameter :: c2 = 2.5403_rkx
@@ -2413,8 +2414,6 @@ module mod_cu_kf
     real(rkx) , parameter :: pbot = 1.1e5_rkx
     ! equivalent potential temperature increment
     real(rkx) , parameter :: dth = 1.0_rkx
-    ! tolerance for accuracy of temperature
-    real(rkx) , parameter :: toler = 0.001_rkx
 
     ! top pressure (pascals)
     plutop = max(ptop*d_1000,5000.0_rkx)
@@ -2465,7 +2464,7 @@ module mod_cu_kf
         t0 = tgues
         iter1: &
         do itcnt = 1 , 11
-          if ( abs(t1-t0) < toler ) then
+          if ( abs(t1-t0) < atoler ) then
             exit iter1
           end if
           es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
