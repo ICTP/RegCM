@@ -59,6 +59,7 @@ module mod_sound
 
   real(rkx) , dimension(-6:6) :: fi , fj
   real(rkx) , dimension(0:6) :: fk , fl
+  real(rkx) :: xmsf
 
   !
   !  BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
@@ -114,7 +115,9 @@ module mod_sound
   subroutine init_sound
     implicit none
     integer(ik4) :: i
-    real(rkx) :: maxt , loc_maxt
+    real(rkx) :: maxt , loc_maxt , loc_xmsf
+
+    rnpts = d_one/real((nicross-2)*(njcross-2),rkx)
 
     if ( ifupr == 1 ) then
       !
@@ -136,6 +139,10 @@ module mod_sound
       fj(-6) = d_half
       fi(6) = d_half
       fj(6) = d_half
+
+      loc_xmsf = sum(mddom%msfx(jci1:jci2,ici1:ici2))
+      call sumall(loc_xmsf,xmsf)
+      xmsf = xmsf*rnpts
     end if
     bet = nhbet
     xkd = nhxkd
@@ -151,7 +158,6 @@ module mod_sound
     bm = (d_one-bet)*d_half
     bpxbp = bp*bp
     bpxbm = bp*bm
-    rnpts = d_one/real((nicross-2)*(njcross-2),rkx)
   end subroutine init_sound
 
   subroutine sound
@@ -168,8 +174,8 @@ module mod_sound
     ! Variables to implement upper radiative bc
     !
     real(rkx) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
-                 xkleff , xleff , xmsftot , xmsf
-    real(rkx) :: loc_abar , loc_rhon , loc_xmsf
+                 xkleff , xleff
+    real(rkx) :: loc_abar , loc_rhon
     integer(ik4) :: inn , jnn , ll , kk , nsi , nsj
     !
     ! HT IS G*(TERR. HT.)
@@ -487,25 +493,21 @@ module mod_sound
           end if
           atot = d_zero
           rhontot = d_zero
-          xmsftot = d_zero
           do i = ici1 , ici2
             do j = jci1 , jci2
               atot = atot + astore(j,i)
               ensq = egrav*egrav/cpd/(atm2%t(j,i,1) * rpsb(j,i))
               rhontot = rhontot + atm1%rho(j,i,1)*sqrt(ensq)
-              xmsftot = xmsftot + mddom%msfx(j,i)
             end do
           end do
           loc_abar = atot
           loc_rhon = rhontot
-          loc_xmsf = xmsftot
           call sumall(loc_abar,abar)
           call sumall(loc_rhon,rhon)
-          call maxall(loc_xmsf,xmsf)
           if ( myid == iocpu ) then
             abar = abar*rnpts
             rhon = rhon*rnpts
-            dxmsfb = d_two/dx/xmsf
+            dxmsfb = d_two/dxsq/xmsf
             tmask(:,:) = d_zero
             do kk = 0 , 6
               rkk = real(kk,rkx)
