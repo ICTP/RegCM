@@ -501,11 +501,10 @@ module mod_sound
           loc_xmsf = xmsftot
           call sumall(loc_abar,abar)
           call sumall(loc_rhon,rhon)
-          call sumall(loc_xmsf,xmsf)
+          call maxall(loc_xmsf,xmsf)
           if ( myid == iocpu ) then
             abar = abar*rnpts
             rhon = rhon*rnpts
-            xmsf = xmsf*rnpts
             dxmsfb = d_two/dx/xmsf
             tmask(:,:) = d_zero
             do kk = 0 , 6

@@ -481,12 +481,16 @@ module mod_output
           atm_tsn_out = sfs%snownc/(atmfrq*secph)
         end if
 
-        if ( rcmtimer%start( ) ) then
-          if ( associated(atm_tgb_out) ) &
+        if ( associated(atm_tgb_out) ) then
+          if ( rcmtimer%start( ) ) then
             atm_tgb_out = sfs%tga(jci1:jci2,ici1:ici2)
-        else
-          if ( associated(atm_tgb_out) ) &
-            atm_tgb_out = atm_tgb_out * rsrf_in_atm
+          else
+            if ( atmfrq > dtsrf ) then
+              atm_tgb_out = atm_tgb_out * rsrf_in_atm
+            else
+              atm_tgb_out = sfs%tga(jci1:jci2,ici1:ici2)
+            end if
+          end if
         end if
         if ( associated(atm_tsw_out) ) then
           where ( mddom%ldmsk > 0 )
