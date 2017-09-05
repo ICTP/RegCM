@@ -4,12 +4,11 @@
     real(rkx) , intent(in) :: t             ! Temperature (K)
     real(rkx) , intent(in) :: p             ! Pressure (Pa)
     real(rkx) , intent(in) , optional :: e  ! Saturated vapor pressure (Pa)
-    real(rkx) :: es , ws
+    real(rkx) :: es
     if ( present(e) ) then
       es = e
     else
       es = pfesat(t)
     end if
-    ws = ep2 * es / (p - es)
-    qs = ws / ( 1.0_rkx + ws )
+    qs = ep2 * es / (p - 0.378_rkx * es)
   end function pfqsat
