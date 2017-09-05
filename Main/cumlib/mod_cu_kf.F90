@@ -2208,6 +2208,7 @@ module mod_cu_kf
       !
       dqevap = qs - qu
       if ( dqevap > d_zero ) dqevap = min(qice,dqevap)
+      if ( dqevap < d_zero ) dqevap = max(-qu,dqevap)
       qice = qice - dqevap
       qu = qu + dqevap
       pii = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qu))
