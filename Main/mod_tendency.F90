@@ -1500,7 +1500,7 @@ module mod_tendency
         qen0 = qxdyn(:,:,:,iqv)
       end if
       call diffu_x(tdyn,atms%tb3d)
-      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_two)
+      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_one)
       if ( idiag > 0 ) then
         call ten2diag(aten%t,tdiag%dif,pc_dynamic,ten0)
         call ten2diag(aten%qx,qdiag%dif,pc_dynamic,qen0)
@@ -1515,7 +1515,7 @@ module mod_tendency
       end if
       if ( ichem == 1 ) then
         if ( ichdiag > 0 ) chiten0 = chidyn
-        call diffu_x(chidyn,atms%chib3d,1,ntr,d_two)
+        call diffu_x(chidyn,atms%chib3d,1,ntr,d_one)
         if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_dynamic,chiten0)
       end if
       if ( ibltyp == 2 ) then

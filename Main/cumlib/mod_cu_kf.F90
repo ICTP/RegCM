@@ -195,7 +195,6 @@ module mod_cu_kf
         t0(k,np) = m2c%tas(j,i,kk)
         z0(k,np) = m2c%zas(j,i,kk)
         q0(k,np) = m2c%qxas(j,i,kk,iqv)
-        ql0(k,np) = m2c%qxas(j,i,kk,iqc)
         p0(k,np) = m2c%pas(j,i,kk)
         rho(k,np) = m2c%rhoas(j,i,kk)
         dzq(k,np) = m2c%dzq(j,i,kk)
@@ -212,22 +211,24 @@ module mod_cu_kf
       end do
     end do
 
-    if ( ipptls > 1 ) then
-      do k = 1 , kz
-        kk = kzp1 - k
-        do np = 1 , nipoi
-          i = imap(np)
-          j = jmap(np)
-          qi0(k,np) = m2c%qxas(j,i,kk,iqi)
-          qr0(k,np) = m2c%qxas(j,i,kk,iqr)
-          qs0(k,np) = m2c%qxas(j,i,kk,iqs)
-        end do
-      end do
-    else
-      qi0(:,:) = d_zero
-      qr0(:,:) = d_zero
-      qs0(:,:) = d_zero
-    end if
+    !if ( ipptls > 1 ) then
+    !  do k = 1 , kz
+    !    kk = kzp1 - k
+    !    do np = 1 , nipoi
+    !      i = imap(np)
+    !      j = jmap(np)
+    !      ql0(k,np) = m2c%qxas(j,i,kk,iqc)
+    !      qi0(k,np) = m2c%qxas(j,i,kk,iqi)
+    !      qr0(k,np) = m2c%qxas(j,i,kk,iqr)
+    !      qs0(k,np) = m2c%qxas(j,i,kk,iqs)
+    !    end do
+    !  end do
+    !else
+    ql0(:,:) = d_zero
+    qi0(:,:) = d_zero
+    qr0(:,:) = d_zero
+    qs0(:,:) = d_zero
+    !end if
 
     if ( ibltyp == 2 ) then
       do k = 1 , kz
