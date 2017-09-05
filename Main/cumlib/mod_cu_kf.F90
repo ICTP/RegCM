@@ -236,7 +236,8 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          tke(k,np) = d_half*(m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
+          tke(k,np) = max(d_half * &
+                    (m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1)),kf_tkemax)
         end do
       end do
     else
@@ -1177,8 +1178,8 @@ module mod_cu_kf
       if ( ishall == 1 ) then
         timec = max(d_half*(kf_max_dtcape+kf_min_dtcape)-300.0_rkx,300.0_rkx)
       end if
-      nic = max(nint(timec/dt),1)
-      timec = real(nic,rkx)*dt
+      nic = max(nint(timec/dtcum),1)
+      timec = real(nic,rkx)*dtcum
       !
       ! Compute wind shear and precipitation efficiency.
       !
