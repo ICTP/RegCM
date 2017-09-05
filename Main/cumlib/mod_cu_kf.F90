@@ -26,7 +26,7 @@ module mod_cu_kf
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls , ibltyp , dt
+  use mod_runparams , only : dx , dxsq , ipptls , ibltyp , dt , dtcum
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
   use mod_runparams , only : kf_entrate , kf_convrate , kf_min_pef , kf_max_pef
   use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
@@ -72,8 +72,8 @@ module mod_cu_kf
   integer(ik4) :: nipoi
 
   integer(ik4) , dimension(:) , pointer :: imap , jmap
-  real(rkx) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , qv0 , p0
-  real(rkx) , dimension(:,:) , pointer :: ql0 , qi0 , qr0 , qs0
+  real(rkx) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , q0 , p0
+  real(rkx) , dimension(:,:) , pointer :: qes , ql0 , qi0 , qr0 , qs0
   real(rkx) , dimension(:,:) , pointer :: rho , dzq , w0avg , tke
   real(rkx) , dimension(:) , pointer :: pratec
   real(rkx) , dimension(:,:) , pointer :: qc_kf , qi_kf
@@ -135,7 +135,8 @@ module mod_cu_kf
     call getmem2d(v0,1,kz,1,nipoi,'mod_cu_kf:v0')
     call getmem2d(t0,1,kz,1,nipoi,'mod_cu_kf:t0')
     call getmem2d(z0,1,kz,1,nipoi,'mod_cu_kf:z0')
-    call getmem2d(qv0,1,kz,1,nipoi,'mod_cu_kf:qv0')
+    call getmem2d(q0,1,kz,1,nipoi,'mod_cu_kf:q0')
+    call getmem2d(qes,1,kz,1,nipoi,'mod_cu_kf:qes')
     call getmem2d(ql0,1,kz,1,nipoi,'mod_cu_kf:ql0')
     call getmem2d(qi0,1,kz,1,nipoi,'mod_cu_kf:qi0')
     call getmem2d(qr0,1,kz,1,nipoi,'mod_cu_kf:qr0')
@@ -170,6 +171,7 @@ module mod_cu_kf
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
     integer :: i , j ,  k , kk , np
+    real(rkx) :: es
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'kfdrv'
     integer(ik4) , save :: idindx = 0
@@ -192,12 +194,21 @@ module mod_cu_kf
         v0(k,np) = m2c%vas(j,i,kk)
         t0(k,np) = m2c%tas(j,i,kk)
         z0(k,np) = m2c%zas(j,i,kk)
-        qv0(k,np) = m2c%qxas(j,i,kk,iqv)
+        q0(k,np) = m2c%qxas(j,i,kk,iqv)
         ql0(k,np) = m2c%qxas(j,i,kk,iqc)
         p0(k,np) = m2c%pas(j,i,kk)
         rho(k,np) = m2c%rhoas(j,i,kk)
         dzq(k,np) = m2c%dzq(j,i,kk)
-        w0avg(k,np) = kfwavg(j,i,kk)
+        w0avg(k,np) = kfwavg(j,i,kk) / dtcum * dt
+      end do
+    end do
+
+    do k = 1 , kz
+      do np = 1 , nipoi
+        es = aliq * exp((bliq*t0(k,np)-cliq)/(t0(k,np)-dliq))
+        qes(k,np) = ep2 * es/(p0(k,np)-es)
+        q0(k,np) = min(qes(k,np),q0(k,np))
+        q0(k,np) = max(0.000001_rkx,q0(k,np))
       end do
     end do
 
@@ -276,16 +287,6 @@ module mod_cu_kf
           cu_qten(j,i,kk,iqs) = dqsdt(k,np)
         end do
       end do
-    else
-      do k = 1 , kz
-        kk = kz - k + 1
-        do np = 1 , nipoi
-          i = imap(np)
-          j = jmap(np)
-          cu_qten(j,i,kk,iqc) = cu_qten(j,i,kk,iqc) + &
-            dqrdt(k,np) + dqidt(k,np) + dqsdt(k,np)
-        end do
-      end do
     end if
 
     ! Build for chemistry 3d table of constant precipitation rate
@@ -325,17 +326,16 @@ module mod_cu_kf
     logical , intent(in) :: f_qi , f_qs
     logical , intent(in) :: warm_rain
 
-    real(rkx) , dimension(kts:kte) :: q0 , tv0 , tu , tvu , qu , tz ,  &
-            tvd , qd , qes , tg , tvg , qg , wu , wd , ems , emsd ,  &
-            umf , uer , udr , dmf , der , ddr , umf2 , uer2 , udr2 , &
-            dmf2 , der2 , ddr2 , dza , thta0 , thetee , thtau ,      &
-            theteu , thtad , theted , qliq , qice , qlqout ,         &
-            qicout , detlq , detic , detlq2 ,      &
-            detic2 , ratio2
-    real(rkx) , dimension(kts:kte) :: domgdp , exn , tvqu , dp , rh ,  &
-            eqfrc , wspd , qdt , fxm , thtag , thpa , thfxout ,      &
-            thfxin , qpa , qfxout , qfxin , qlpa , qlfxin , qlfxout ,&
-            qipa , qifxin , qifxout , qrpa , qrfxin , qrfxout ,      &
+    real(rkx) , dimension(kts:kte) :: tv0 , tu , tvu , qu , tz , tvd , &
+            qd , tg , tvg , qg , wu , wd , ems , emsd , umf , uer ,    &
+            udr , dmf , der , ddr , umf2 , uer2 , udr2 , dmf2 , der2 , &
+            ddr2 , dza , thta0 , thetee , thtau , theteu , thtad ,     &
+            theted , qliq , qice , qlqout , qicout , detlq , detic ,   &
+            detlq2 , detic2 , ratio2
+    real(rkx) , dimension(kts:kte) :: domgdp , exn , tvqu , dp , rh , &
+            eqfrc , wspd , qdt , fxm , thtag , thpa , thfxout ,       &
+            thfxin , qpa , qfxout , qfxin , qlpa , qlfxin , qlfxout , &
+            qipa , qifxin , qifxout , qrpa , qrfxin , qrfxout ,       &
             qspa , qsfxin , qsfxout , qlg , qig , qrg , qsg
 
     real(rkx) , dimension(kts:kte+1) :: omg
@@ -344,20 +344,20 @@ module mod_cu_kf
             tgu , qgu , thteeg
 
     real(rkx) :: fbfrc , p300 , dpthmx , qmix , zmix , pmix , tmix , emix , &
-            tlog , tdpt , tlcl , tvlcl , plcl , es , dlp , tenv , qenv ,  &
-            tven , zlcl , wkl , trppt , dtlcl , gdt , wlcl , wtw ,        &
-            rholcl , au0 , vmflcl , upold , upnew , abe , wklcl , ttemp , &
-            frc1 , qnewic , rl , be , boterm , enterm , dzz , rei , ee2 , &
-            ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,      &
-            tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,    &
-            timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,     &
-            peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt ,             &
-            dtmp , t1rh , qsrh , pptflx , cpr , cndtnf , updinc ,         &
-            aincm2 , ddinc , aincmx , aincm1 , ainc , tder2 , pptfl2 ,    &
-            fabe , stab , dtt , dtt1 , dtime , tma , tmb , tmm , bcoeff , &
-            acoeff , topomg , cpm , dq , abeg , dabe , dfda ,             &
-            frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,    &
-            err2 , relerr , fabeold , aincold , uefrc , ddfrc , tdc ,     &
+            tlog , tdpt , tlcl , tvlcl , plcl , es , dlp , tenv , qenv ,    &
+            tven , zlcl , wkl , trppt , dtlcl , gdt , wlcl , wtw ,          &
+            rholcl , au0 , vmflcl , upold , upnew , abe , wklcl , ttemp ,   &
+            frc1 , qnewic , rl , be , boterm , enterm , dzz , rei , ee2 ,   &
+            ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,        &
+            tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,      &
+            timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,       &
+            peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt ,               &
+            dtmp , t1rh , qsrh , pptflx , cpr , cndtnf , updinc ,           &
+            aincm2 , ddinc , aincmx , aincm1 , ainc , tder2 , pptfl2 ,      &
+            fabe , stab , dtt , dtt1 , dtime , tma , tmb , tmm , bcoeff ,   &
+            acoeff , topomg , cpm , dq , abeg , dabe , dfda ,               &
+            frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,      &
+            err2 , relerr , fabeold , aincold , uefrc , ddfrc , tdc ,       &
             defrc , rhbar , dmffrc , dilbe
     real(rkx) :: tp , avalue , aintrp , qfrz , qss , pptmlt , dtmelt , &
             rhh , evac , binc
@@ -369,8 +369,8 @@ module mod_cu_kf
     integer(ik4) :: ncheck
     integer(ik4) , dimension(kts:kte) :: kcheck
     integer(ik4) :: istop , ml , l5 , kmix , low , lc , llfc , nlayrs , &
-            nk , kpbl , klcl , lcl , let , iflag , nk1 , ltop , nj ,  &
-            ltop1 , ltopm1 , kstart , lfs , nd , nic , ldb , ldt ,    &
+            nk , kpbl , klcl , lcl , let , iflag , nk1 , ltop , nj ,    &
+            ltop1 , ltopm1 , kstart , lfs , nd , nic , ldb , ldt ,      &
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rkx) :: qslcl , rhlcl , dqssdt    !jfb
@@ -388,6 +388,8 @@ module mod_cu_kf
       ! FIELD.  "FBFRC" IS THE FRACTION OF AVAILABLE       ! PPT FB MODS
       ! PRECIPITATION TO BE FED BACK (0.0 - 1.0)...        ! PPT FB MODS
       fbfrc = d_zero                                       ! PPT FB MODS
+      pptflx = d_zero
+      umf(:) = d_zero
       ! mods to allow shallow convection...
       ishall = 0
       llfc = 1
@@ -407,13 +409,9 @@ module mod_cu_kf
         ! Saturation vapor pressure (ES) is calculated following Buck (1981)
         ! If q0 is above saturation value, reduce it to saturation level.
         !
-        es = aliq * exp((bliq*t0(k,np)-cliq)/(t0(k,np)-dliq))
-        qes(k) = ep2 * es/(p0(k,np)-es)
-        q0(k) = min(qes(k),qv0(k,np))
-        q0(k) = max(0.000001_rkx,q0(k))
-        rh(k) = q0(k) / qes(k)
+        rh(k) = q0(k,np) / qes(k,np)
         dilfrc(k) = d_one
-        tv0(k) = t0(k,np) * (d_one + ep1*q0(k))
+        tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
         ! dp is the pressure interval between full sigma levels
         dp(k) = rho(k,np)*egrav*dzq(k,np)
         ! If Turbulent Kinetic Energy (TKE) is available from turbulent
@@ -525,7 +523,7 @@ module mod_cu_kf
         !
         do nk = lc , kpbl
           tmix = tmix + dp(nk)*t0(nk,np)
-          qmix = qmix + dp(nk)*q0(nk)
+          qmix = qmix + dp(nk)*q0(nk,np)
           zmix = zmix + dp(nk)*z0(nk,np)
           pmix = pmix + dp(nk)*p0(nk,np)
         end do
@@ -541,8 +539,8 @@ module mod_cu_kf
         ainc = aincb
         a1 = emix/aliq
         tp = (a1-astrt)/ainc
-        indlu = max(1, min(kfna-1,int(tp)+1))
-        avalue = (indlu-1)*ainc + astrt
+        indlu = inrange(int(tp)+1,1,kfna-1)
+        avalue = real(indlu-1,rkx)*ainc + astrt
         aintrp = (a1-avalue)/ainc
         tlog = aintrp*alu(indlu+1) + (d_one-aintrp)*alu(indlu)
         tdpt = (cliq-dliq*tlog) / (bliq-tlog)
@@ -557,15 +555,15 @@ module mod_cu_kf
           if ( zlcl <= z0(nk,np) ) exit findklcl1
         end do findklcl1
         if ( zlcl > z0(kl,np) ) cycle modelpoints
-
         k = max(1,klcl-1)
+
         ! Calculate DLP using Z instead of log(P)
         dlp = (zlcl-z0(k,np)) / (z0(klcl,np)-z0(k,np))
         !
         ! Estimate environmental temperature and mixing ratio at the lcl.
         !
         tenv = t0(k,np) + (t0(klcl,np)-t0(k,np))*dlp
-        qenv = q0(k) + (q0(klcl)-q0(k))*dlp
+        qenv = q0(k,np) + (q0(klcl,np)-q0(k,np))*dlp
         tven = tenv*(d_one + ep1*qenv)
         !
         ! Check to see if cloud is buoyant using fritsch-chappell trigger
@@ -603,8 +601,8 @@ module mod_cu_kf
           ! as described in Narita and Ohmori (2007, 12th Mesoscale Conf.)
           ! for now, just assume U00 = 0.75.
           ! !!!!!! for MM5, SET DTRH = 0. !!!!!!!!
-          qslcl = qes(k) + (qes(klcl)-qes(k))*dlp
-          rhlcl = qenv/qslcl
+          qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
+          rhlcl = max(qenv/qslcl,d_one)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
           if ( rhlcl >= 0.75_rkx .and. rhlcl <= 0.95_rkx ) then
             dtrh = 0.25_rkx*(rhlcl-0.75_rkx)*qmix/dqssdt
@@ -649,11 +647,11 @@ module mod_cu_kf
           ! make RAD a function of background vertical velocity.
           ! (Kain (2004) Eq. 6)
           if ( wkl < d_zero ) then
-            rad = d_1000
+            rad = 1000.0_rkx
           else if ( wkl > 0.1_rkx ) then
             rad = 2000.0_rkx
           else
-            rad = d_1000 + d_1000*wkl/0.1_rkx
+            rad = 1000.0_rkx + 1000.0_rkx * wkl/0.1_rkx
           end if
           !
           ! Compute updraft properties
@@ -730,13 +728,12 @@ module mod_cu_kf
             !
             if ( tu(nk1) <= ttfrz ) then
               if ( tu(nk1) > tbfrz ) then
-                if ( ttemp > ttfrz ) ttemp = ttfrz
                 frc1 = (ttemp-tu(nk1))/(ttemp-tbfrz)
+                ttemp = tu(nk1)
               else
                 frc1 = d_one
                 iflag = 1
               end if
-              ttemp = tu(nk1)
               !
               ! Determine the effects of liquid water freezing when temperature
               ! is below ttfrz.
@@ -778,7 +775,7 @@ module mod_cu_kf
             !
             ! Calculate value of theta-e in environment to entrain into updraft
             !
-            thetee(nk1) = envirtht(p0(nk1,np),t0(nk1,np),q0(nk1))
+            thetee(nk1) = envirtht(p0(nk1,np),t0(nk1,np),q0(nk1,np))
             !
             ! rei is the rate of environmental inflow.
             !
@@ -809,7 +806,7 @@ module mod_cu_kf
               f1 = 0.95_rkx
               f2 = d_one - f1
               thttmp = f1*thetee(nk1) + f2*theteu(nk1)
-              qtmp = f1*q0(nk1) + f2*qu(nk1)
+              qtmp = f1*q0(nk1,np) + f2*qu(nk1)
               tmpliq = f2*qliq(nk1)
               tmpice = f2*qice(nk1)
               call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
@@ -823,7 +820,7 @@ module mod_cu_kf
                 f1 = 0.10_rkx
                 f2 = d_one - f1
                 thttmp = f1*thetee(nk1) + f2*theteu(nk1)
-                qtmp = f1*q0(nk1) + f2*qu(nk1)
+                qtmp = f1*q0(nk1,np) + f2*qu(nk1)
                 tmpliq = f2*qliq(nk1)
                 tmpice = f2*qice(nk1)
                 call tpmix2(p0(nk1,np),thttmp,ttmp,qtmp, &
@@ -893,7 +890,7 @@ module mod_cu_kf
               detlq(nk1) = qliq(nk1)*udr(nk1)
               detic(nk1) = qice(nk1)*udr(nk1)
               qdt(nk1) = qu(nk1)
-              qu(nk1) = (upold*qu(nk1) + uer(nk1)*q0(nk1)) / upnew
+              qu(nk1) = (upold*qu(nk1) + uer(nk1)*q0(nk1,np)) / upnew
               theteu(nk1) = (theteu(nk1)*upold + thetee(nk1)*uer(nk1)) / upnew
               qliq(nk1) = qliq(nk1)*upold/upnew
               qice(nk1) = qice(nk1)*upold/upnew
@@ -1105,7 +1102,7 @@ module mod_cu_kf
         detlq(nk) = d_zero
         detic(nk) = d_zero
         ratio2(nk) = d_zero
-        thetee(nk) = envirtht(p0(nk,np),t0(nk,np),q0(nk))
+        thetee(nk) = envirtht(p0(nk,np),t0(nk,np),q0(nk,np))
         eqfrc(nk) = d_one
       end do
       ltop1 = min(kx,ltop+1)
@@ -1140,7 +1137,7 @@ module mod_cu_kf
         ems(nk) = d_zero
         emsd(nk) = d_zero
         tg(nk) = t0(nk,np)
-        qg(nk) = q0(nk)
+        qg(nk) = q0(nk,np)
         qlg(nk) = d_zero
         qig(nk) = d_zero
         qrg(nk) = d_zero
@@ -1157,7 +1154,7 @@ module mod_cu_kf
         !
         exn(nk) = (p00/p0(nk,np))**(0.2854_rkx*(d_one-0.28_rkx*qdt(nk)))
         thtau(nk) = tu(nk)*exn(nk)
-        exn(nk) = (p00/p0(nk,np))**(0.2854_rkx*(d_one-0.28_rkx*q0(nk)))
+        exn(nk) = (p00/p0(nk,np))**(0.2854_rkx*(d_one-0.28_rkx*q0(nk,np)))
         thta0(nk) = t0(nk,np)*exn(nk)
         ddilfrc(nk) = d_one/dilfrc(nk)
         omg(nk) = d_zero
@@ -1248,7 +1245,7 @@ module mod_cu_kf
         !
         if ( (p0(kstart,np)-p0(lfs,np)) > 50.0e2_rkx ) then
           theted(lfs) = thetee(lfs)
-          qd(lfs) = q0(lfs)
+          qd(lfs) = q0(lfs,np)
           !
           ! Call tpmix2dd to find wet-bulb temp, qv
           !
@@ -1272,7 +1269,7 @@ module mod_cu_kf
             ddr(nd) = d_zero
             dmf(nd) = dmf(nd1) + der(nd)
             theted(nd) = (theted(nd1)*dmf(nd1) + thetee(nd)*der(nd))/dmf(nd)
-            qd(nd) = (qd(nd1)*dmf(nd1) + q0(nd)*der(nd))/dmf(nd)
+            qd(nd) = (qd(nd1)*dmf(nd1) + q0(nd,np)*der(nd))/dmf(nd)
             dptt = dptt + dp(nd)
             rhbar = rhbar + rh(nd)*dp(nd)
           end do
@@ -1369,7 +1366,7 @@ module mod_cu_kf
       if ( tder < d_one ) then
         pptflx = trppt
         cpr = trppt
-        tder = 0.
+        tder = d_zero
         cndtnf = d_zero
         updinc = d_one
         ldb = lfs
@@ -1519,7 +1516,7 @@ module mod_cu_kf
         dtime = timec/real(nstep,rkx)
         do nk = 1 , ltop
           thpa(nk) = thta0(nk)
-          qpa(nk) = q0(nk)
+          qpa(nk) = q0(nk,np)
           fxm(nk) = omg(nk)*dxsq*regrav
         end do
         !
@@ -1557,7 +1554,7 @@ module mod_cu_kf
                        thtad(nk)-thfxout(nk)-(uer(nk)-der(nk))*thta0(nk))*  &
                        dtime*emsd(nk)
             qpa(nk) = qpa(nk)+(qfxin(nk)+udr(nk)*qdt(nk)+ddr(nk)*qd(nk)-    &
-                      qfxout(nk)-(uer(nk)-der(nk))*q0(nk))*dtime*emsd(nk)
+                      qfxout(nk)-(uer(nk)-der(nk))*q0(nk,np))*dtime*emsd(nk)
           end do
         end do
         do nk = 1 , ltop
@@ -1636,8 +1633,8 @@ module mod_cu_kf
           binc = aincb
           a1 = emix/aliq
           tp = (a1-astrt)/binc
-          indlu = max(1, min(kfna-1,int(tp)+1))
-          avalue = (indlu-1)*binc+astrt
+          indlu = inrange(int(tp)+1,1,kfna-1)
+          avalue = real(indlu-1,rkx)*binc + astrt
           aintrp = (a1-avalue)/binc
           tlog = aintrp*alu(indlu+1)+(d_one-aintrp)*alu(indlu)
           tdpt = (cliq-dliq*tlog)/(bliq-tlog)
@@ -1897,7 +1894,7 @@ module mod_cu_kf
           k = ltop - nk + 1
           dtt = (tg(k)-t0(k,np))*86400.0_rkx/timec
           rl = xlv0-xlv1*tg(k)
-          dr = -(qg(k)-q0(k))*rl*86400.0_rkx/(timec*cpd)
+          dr = -(qg(k)-q0(k,np))*rl*86400.0_rkx/(timec*cpd)
           udfrc = udr(k)*timec*emsd(k)
           uefrc = uer(k)*timec*emsd(k)
           ddfrc = ddr(k)*timec*emsd(k)
@@ -1923,11 +1920,11 @@ module mod_cu_kf
             es = aliq*exp((bliq*tg(k)-cliq)/(tg(k)-dliq))
           end if
           qgs = es*ep2/(p0(k,np)-es)
-          rh0 = q0(k)/qes(k)
-          rhg = qg(k)/qgs
+          rh0 = max(q0(k,np)/qes(k,np),d_one)
+          rhg = max(qg(k)/qgs,d_one)
           write(stdout,1090) k,p0(k,np)/d_100,z0(k,np),t0(k,np)-t00, &
-                  tg(k)-t00,dtt,tuc,tdc,q0(k)*d_1000,qg(k)*d_1000,   &
-                  (qg(k)-q0(k))*d_1000,qu(k)*d_1000,QD(K)*d_1000,    &
+                  tg(k)-t00,dtt,tuc,tdc,q0(k,np)*d_1000,qg(k)*d_1000,   &
+                  (qg(k)-q0(k,np))*d_1000,qu(k)*d_1000,QD(K)*d_1000,    &
                   qlg(k)*d_1000,qig(k)*d_1000,qrg(k)*d_1000,         &
                   qsg(k)*d_1000,rh0,rhg
    1090   format(I3,F7.2,F7.0,10F7.2,4F7.3,2F8.3)
@@ -1939,7 +1936,7 @@ module mod_cu_kf
         do nk = 1 , kl
           k = kl - nk + 1
           write(stdout,'(8f11.3)') p0(k,np)/d_100,t0(k,np)-t00, &
-                  q0(k)*d_1000,u0(k,np),v0(k,np),w0avg(k,np)*d_100, &
+                  q0(k,np)*d_1000,u0(k,np),v0(k,np),w0avg(k,np)*d_100, &
                   dp(k),tke(k,np)
         end do
         if ( istop == 1 ) then
@@ -1954,26 +1951,29 @@ module mod_cu_kf
       qinit = d_zero
       qfnl = d_zero
       do nk = 1 , ltop
-        qinit = qinit + (q0(nk)+ql0(nk,np)+qi0(nk,np)+ &
+        qinit = qinit + (q0(nk,np)+ql0(nk,np)+qi0(nk,np)+ &
                          qr0(nk,np)+qs0(nk,np))*ems(nk)/dxsq
         qfnl = qfnl + (qg(nk)+qlg(nk)+qig(nk)+qrg(nk)+qsg(nk))*ems(nk)/dxsq
       end do
-      qfnl = qfnl + pptflx*timec*(d_one-fbfrc)/dxsq  !  ppt fb mods
+      qfnl = qfnl + pptflx*(d_one-fbfrc)*timec/dxsq  !  ppt fb mods
       err2 = (qfnl-qinit)*d_100/qinit
       if ( abs(err2) > 0.05_rkx .and. istop == 0 ) then
         istop = 1
         iprnt = .true.
         write(stdout,1110) qinit , qfnl , err2
-        write(stdout,'(a,f12.3)') 'PPTFLX = ',(pptflx*(d_one-fbfrc)*timec)/dxsq
+        write(stdout,'(a,2f12.3)') 'FBFRC , PPTFLX = ',fbfrc,(pptflx*timec)/dxsq
         write(stdout,'(a,i6,a,i2)') 'LEVELS = ', kl,', ISHALLOW = ',ishall
         write(stdout,'(a,i2)') 'NCOUNT : ',ncount
         do nk = 1 , kl
           k = kl - nk + 1
-          write(stdout,'(8f12.3)') p0(k,np)/d_100,t0(k,np)-t00, &
-                  q0(k)*d_1000,u0(k,np),v0(k,np),w0avg(k,np),   &
-                  dp(k)/d_100,tke(k,np)
-          write(stdout,'(5f12.3)') qg(nk)*d_1000,qlg(nk)*d_1000, &
-                  qig(nk)*d_1000,qrg(nk)*d_1000,qsg(nk)*d_1000
+          write(stdout,'(7f12.3)') p0(k,np)/d_100,t0(k,np)-t00, &
+                  u0(k,np),v0(k,np),w0avg(k,np),dp(k)/d_100,tke(k,np)
+          write(stdout,'(a,5f12.3)') 'INITIAL : ', &
+                  q0(k,np)*d_1000,ql0(k,np)*d_1000, &
+                  qi0(k,np)*d_1000,qr0(k,np)*d_1000,qs0(k,np)*d_1000
+          write(stdout,'(a,5f12.3)') 'FINAL   : ', &
+                  qg(k)*d_1000,qlg(k)*d_1000, &
+                  qig(k)*d_1000,qrg(k)*d_1000,qsg(k)*d_1000
         end do
       end if
       if ( pptflx > d_zero ) then
@@ -2044,7 +2044,7 @@ module mod_cu_kf
              & IEXICE, IICE NOT ALLOWED')
         end if
         dtdt(k,np) = (tg(k)-t0(k,np))/timec
-        dqdt(k,np) = (qg(k)-q0(k))/timec
+        dqdt(k,np) = (qg(k)-q0(k,np))/timec
       end do
       pratec(np) = pptflx*(d_one-fbfrc)/dxsq
       ktop(np) = ltop
@@ -2064,6 +2064,12 @@ module mod_cu_kf
 
     contains
 
+    pure integer(ik4) function inrange(iv,f,l) result(ind)
+      implicit none
+      integer(ik4) , intent(in) :: iv , f , l
+      ind = max(f, min(l,int(iv)))
+    end function inrange
+
     subroutine tpmix2(p,thes,tu,qu,qliq,qice,qnewlq,qnewic)
       implicit none
       real(rkx) , intent(in) :: p , thes
@@ -2081,7 +2087,7 @@ module mod_cu_kf
       !
       tp = (p-plutop) * rdpr
       qq = tp - int(tp)
-      iptb = max(1, min(kfnp-1,int(tp)+1))
+      iptb = inrange(int(tp)+1,1,kfnp-1)
       !
       !*********************************
       ! base and scaling factor for the
@@ -2091,7 +2097,7 @@ module mod_cu_kf
       bth = (the0k(iptb+1) - the0k(iptb))*qq+the0k(iptb)
       tth = (thes-bth) * rdthk
       pp = tth - aint(tth)
-      ithtb = max(1, min(kfnt-1,int(tth)+1))
+      ithtb = inrange(int(tth)+1,1,kfnt-1)
 
       t00 = ttab(ithtb  ,iptb  )
       t10 = ttab(ithtb+1,iptb  )
@@ -2201,6 +2207,7 @@ module mod_cu_kf
       ! at the new temperature to the saturation value
       !
       dqevap = qs - qu
+      if ( dqevap > d_zero ) dqevap = min(qice,dqevap)
       qice = qice - dqevap
       qu = qu + dqevap
       pii = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qu))
@@ -2385,8 +2392,8 @@ module mod_cu_kf
       !
       a1 = ee/aliq
       tp = (a1-astrt)/aincb
-      indlu = max(1, min(kfna-1,int(tp)+1))
-      avalue = (indlu-1)*aincb + astrt
+      indlu = inrange(int(tp)+1,1,kfna-1)
+      avalue = real(indlu-1,rkx)*aincb + astrt
       aintrp = (a1-avalue)/aincb
       tlog = aintrp*alu(indlu+1) + (d_one-aintrp)*alu(indlu)
       tdpt = (cliq-dliq*tlog)/(bliq-tlog)

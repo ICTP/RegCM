@@ -312,7 +312,6 @@ module mod_cu_interface
               call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
-              kfwavg(:,:,:) = d_zero
           end select
         else
           select case ( icup_lnd )
@@ -324,7 +323,6 @@ module mod_cu_interface
               call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
-              kfwavg(:,:,:) = d_zero
           end select
           select case ( icup_ocn )
             case (2)
@@ -335,8 +333,11 @@ module mod_cu_interface
               call tiedtkedrv(m2c)
             case (6)
               call kfdrv(m2c)
-              kfwavg(:,:,:) = d_zero
           end select
+        end if
+
+        if ( any(icup == 6 ) ) then
+          kfwavg(:,:,:) = d_zero
         end if
 
       end if
