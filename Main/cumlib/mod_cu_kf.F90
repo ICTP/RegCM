@@ -1717,6 +1717,15 @@ module mod_cu_kf
         aincold = ainc
         fabeold = fabe
         topomg = (udr(ltop)-uer(ltop))*dp(ltop)*emsd(ltop)
+        if ( abs(topomg-omg(ltop)) > 1.0e-3_rkx .and. ncount > 2 ) then
+          write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
+          write (stderr, *) 'MASS DOES NOT BALANCE IN KF SCHEME'
+          write (stderr, *) 'NCOUNT = ', ncount
+          if ( ncount == maxiter ) istop = 1
+          iprnt = .true.
+        else
+          iprnt = .false.
+        end if
         if ( ainc/aincmx > 0.999_rkx .and. fabe > 1.05_rkx-stab ) then
           exit iter
         end if
@@ -1760,15 +1769,6 @@ module mod_cu_kf
           !
           ! Go back up for another iteration.
           !
-        end if
-        if ( abs(topomg-omg(ltop)) > 1.0e-3_rkx .and. ncount > 1 ) then
-          iprnt = .true.
-          write (stderr, *) 'POSSIBLE INSTABILITY IN KF CODE'
-          write (stderr, *) 'MASS DOES NOT BALANCE IN KF SCHEME'
-          write (stderr, *) 'NCOUNT = ', ncount
-          if ( ncount == maxiter ) istop = 1
-        else
-          iprnt = .false.
         end if
       end do iter
       ! Get the cloud fraction for layer NK+1=NK1
@@ -1960,7 +1960,7 @@ module mod_cu_kf
       end do
       qfnl = qfnl + pptflx*(d_one-fbfrc)*timec/dxsq  !  ppt fb mods
       err2 = (qfnl-qinit)*d_100/qinit
-      if ( abs(err2) > 0.05_rkx .and. istop == 0 ) then
+      if ( abs(err2) > 0.10_rkx .and. istop == 0 ) then
         istop = 1
         iprnt = .true.
         write(stdout,1110) qinit , qfnl , err2
@@ -2060,7 +2060,7 @@ module mod_cu_kf
 1035 format(1X,'PEF(WS)=',F5.2,'(CB)=',F5.2,'LC,LET=',2I3,'WKL=', &
             F6.3,'VWS=',F5.2)
 1080 format(2X,'LFS,LDB,LDT =',3I3,' TIMEC, TADVEC, NSTEP=',      &
-            2(1X,F5.0),I3,'NCOUNT, FABE, AINC=',I2,1X,F6.3,F6.2)
+            2(1X,F8.2),I3,' NCOUNT, FABE, AINC=',I2,1X,F6.3,F6.2)
 1085 format(A3,16A7,2A8)
 1110 format(' ','INITIAL WATER =',E12.5,' FINAL WATER =',E12.5,   &
             ' TOTAL WATER CHANGE =',F8.2,'%')
