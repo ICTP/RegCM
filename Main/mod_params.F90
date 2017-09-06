@@ -440,7 +440,7 @@ module mod_params
     atwo  = 10.0_rkx
     rstbl = 1.5_rkx
     czero = 5.869_rkx
-    nuk   = 5.0_rkx
+    nuk   = 1.0_rkx
     !
     ! holtslagparam ;
     ! Settings from C. Torma

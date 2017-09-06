@@ -211,24 +211,24 @@ module mod_cu_kf
       end do
     end do
 
-    !if ( ipptls > 1 ) then
-    !  do k = 1 , kz
-    !    kk = kzp1 - k
-    !    do np = 1 , nipoi
-    !      i = imap(np)
-    !      j = jmap(np)
-    !      ql0(k,np) = m2c%qxas(j,i,kk,iqc)
-    !      qi0(k,np) = m2c%qxas(j,i,kk,iqi)
-    !      qr0(k,np) = m2c%qxas(j,i,kk,iqr)
-    !      qs0(k,np) = m2c%qxas(j,i,kk,iqs)
-    !    end do
-    !  end do
-    !else
-    ql0(:,:) = d_zero
-    qi0(:,:) = d_zero
-    qr0(:,:) = d_zero
-    qs0(:,:) = d_zero
-    !end if
+    if ( .false. ) then
+      do k = 1 , kz
+        kk = kzp1 - k
+        do np = 1 , nipoi
+          i = imap(np)
+          j = jmap(np)
+          ql0(k,np) = m2c%qxas(j,i,kk,iqc)
+          qi0(k,np) = m2c%qxas(j,i,kk,iqi)
+          qr0(k,np) = m2c%qxas(j,i,kk,iqr)
+          qs0(k,np) = m2c%qxas(j,i,kk,iqs)
+        end do
+      end do
+    else
+      ql0(:,:) = d_zero
+      qi0(:,:) = d_zero
+      qr0(:,:) = d_zero
+      qs0(:,:) = d_zero
+    end if
 
     if ( ibltyp == 2 ) then
       do k = 1 , kz
@@ -236,8 +236,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          tke(k,np) = max(d_half * &
-                    (m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1)),kf_tkemax)
+          tke(k,np) = d_half*(m2c%tkeas(j,i,kk)+m2c%tkeas(j,i,kk+1))
         end do
       end do
     else
@@ -376,7 +375,7 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rkx) :: qslcl , rhlcl , dqssdt    !jfb
-    integer(ik4) , parameter :: maxiter = 100
+    integer(ik4) , parameter :: maxiter = 10
 
     kl = kte
     kx = kte
@@ -1281,7 +1280,7 @@ module mod_cu_kf
           ! Calculate melting effect
           ! first, compute total frozen precipitation generated.
           !
-          pptmlt = 0.
+          pptmlt = d_zero
           do nk = klcl , ltop
             pptmlt = pptmlt + pptice(nk,np)
           end do
@@ -1352,7 +1351,7 @@ module mod_cu_kf
               ddr(nd) = -dmf(kstart)*dp(nd)/dpdd
               der(nd) = d_zero
               dmf(nd) = dmf(nd1)+ddr(nd)
-              tder = tder + (qsd(ND)-qd(nd))*ddr(nd)
+              tder = tder + (qsd(nd)-qd(nd))*ddr(nd)
               qd(nd) = qsd(nd)
               thtad(nd) = tz(nd) * &
                       (p00/p0(nd,np))**(0.2854_rkx*(d_one-0.28_rkx*qd(nd)))
@@ -1436,7 +1435,7 @@ module mod_cu_kf
       ! into convective drafts from a given layer is no more than is available
       ! in that layer initially
       !
-      aincmx = d_1000
+      aincmx = d_10
       lmax = max(klcl,lfs)
       do nk = lc , lmax
         if ( (uer(nk)-der(nk)) > 1.0e-3_rkx ) then
@@ -1476,7 +1475,7 @@ module mod_cu_kf
         !
         ! find the maximum TKE value between LC and KLCL...
         evac = d_half*maxval(tke(lc:klcl,np))*0.1_rkx
-        ainc = evac*dpthmx*dxsq/(vmflcl*egrav*timec)
+        ainc = min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),aincmx)
         tder = tder2*ainc
         pptflx = pptfl2*ainc
         do nk = 1 , ltop
@@ -1500,13 +1499,13 @@ module mod_cu_kf
         ! Determine omega value necessary at top and bottom of each layer to
         ! satisfy mass continuity.
         !
-        dtt = timec/d_two
+        dtt = timec
         do nk = 1 , ltop
           domgdp(nk) = -(uer(nk)-der(nk)-udr(nk)-ddr(nk))*emsd(nk)
           if ( nk > 1 ) then
             omg(nk) = omg(nk-1) - dp(nk-1)*domgdp(nk-1)
             absomg = abs(omg(nk))
-            absomgtc = absomg*timec/d_two
+            absomgtc = absomg*timec
             frdp = 0.75_rkx*dp(nk-1)
             if ( absomgtc > frdp ) then
               dtt1 = frdp/absomg
@@ -1514,7 +1513,7 @@ module mod_cu_kf
             end if
           end if
         end do
-        nstep = nint(timec/dtt)
+        nstep = min(max(nint(d_one+timec/dtt),1),4)
         dtime = timec/real(nstep,rkx)
         do nk = 1 , ltop
           thpa(nk) = thta0(nk)
@@ -1524,6 +1523,7 @@ module mod_cu_kf
         !
         ! Do an upstream/forward-in-time advection of theta, qv
         !
+        advection: &
         do ntc = 1 , nstep
           !
           ! Assign theta and q values at the top and bottom of each layer
@@ -1558,7 +1558,7 @@ module mod_cu_kf
             qpa(nk) = qpa(nk)+(qfxin(nk)+udr(nk)*qdt(nk)+ddr(nk)*qd(nk)-    &
                       qfxout(nk)-(uer(nk)-der(nk))*q0(nk,np))*dtime*emsd(nk)
           end do
-        end do
+        end do advection
         do nk = 1 , ltop
           thtag(nk) = thpa(nk)
           qg(nk) = qpa(nk)
@@ -1723,6 +1723,7 @@ module mod_cu_kf
         if ( fabe <= 1.05_rkx-stab .and. fabe >= 0.95_rkx-stab ) then
           exit iter
         else
+          if ( ncount == maxiter ) exit iter
           !
           ! If more than 10% of the original cape remains, increase the
           ! convective mass flux by the factor ainc:
@@ -2346,7 +2347,7 @@ module mod_cu_kf
       !
       tp = (p-plutop) * rdpr
       qq = tp - aint(tp)
-      iptb = max(1, min(kfnp-1,int(tp)+1))
+      iptb = inrange(int(tp)+1,1,kfnp-1)
       !
       !**********************************
       ! base and scaling factor for the
@@ -2357,7 +2358,7 @@ module mod_cu_kf
       bth = (the0k(iptb+1)-the0k(iptb)) * qq + the0k(iptb)
       tth = (thes-bth) * rdthk
       pp = tth - aint(tth)
-      ithtb = max(1, min(kfnt-1,int(tth)+1))
+      ithtb = inrange(int(tth)+1,1,kfnt-1)
 
       t00 = ttab(ithtb  ,iptb  )
       t10 = ttab(ithtb+1,iptb  )
