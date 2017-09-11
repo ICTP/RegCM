@@ -214,15 +214,17 @@ module mod_cu_interface
   subroutine cumulus
     implicit none
     integer(ik4) :: i , j , k , n
+    real(rkx) :: w1
 
     if ( rcmtimer%integrating( ) ) then
 
       if ( any(icup == 6) ) then
+        w1 = dt/600.0_rkx ! 10 minutes running average
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              kfwavg(j,i,k) = kfwavg(j,i,k) + &
-                            d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
+              kfwavg(j,i,k) = (d_one - w1) * kfwavg(j,i,k) + &
+                            w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
             end do
           end do
         end do
@@ -334,10 +336,6 @@ module mod_cu_interface
             case (6)
               call kfdrv(m2c)
           end select
-        end if
-
-        if ( any(icup == 6 ) ) then
-          kfwavg(:,:,:) = d_zero
         end if
 
       end if

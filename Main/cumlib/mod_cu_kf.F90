@@ -198,7 +198,7 @@ module mod_cu_kf
         p0(k,np) = m2c%pas(j,i,kk)
         rho(k,np) = m2c%rhoas(j,i,kk)
         dzq(k,np) = m2c%dzq(j,i,kk)
-        w0avg(k,np) = kfwavg(j,i,kk) / dtcum * dt
+        w0avg(k,np) = kfwavg(j,i,kk)
       end do
     end do
 
@@ -352,14 +352,13 @@ module mod_cu_kf
             ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,        &
             tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,      &
             timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,       &
-            peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt ,               &
-            dtmp , t1rh , qsrh , pptflx , cpr , cndtnf , updinc ,           &
-            aincm2 , ddinc , aincmx , aincm1 , ainc , tder2 , pptfl2 ,      &
-            fabe , stab , dtt , dtt1 , dtime , tma , tmb , tmm , bcoeff ,   &
-            acoeff , topomg , cpm , dq , abeg , dabe , dfda ,               &
-            frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,      &
-            err2 , relerr , fabeold , aincold , uefrc , ddfrc , tdc ,       &
-            defrc , rhbar , dmffrc , dilbe
+            peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt , dtmp , t1rh , &
+            qsrh , pptflx , cpr , cndtnf , updinc , ddinc , aincmx ,        &
+            aincm1 , ainc , tder2 , pptfl2 , fabe , stab , dtt , dtt1 ,     &
+            dtime , tma , tmb , tmm , bcoeff , acoeff , topomg , cpm , dq , &
+            abeg , dabe , dfda , frc2 , dr , udfrc , tuc , qgs , rh0 ,      &
+            rhg , qinit , qfnl , err2 , relerr , fabeold , aincold ,        &
+            uefrc , ddfrc , tdc , defrc , rhbar , dmffrc , dilbe
     real(rkx) :: tp , avalue , aintrp , qfrz , qss , pptmlt , dtmelt , &
             rhh , evac , binc
     integer(ik4) :: indlu , nu , nuchm , nnn , klfs
@@ -415,9 +414,8 @@ module mod_cu_kf
         tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
         ! dp is the pressure interval between full sigma levels
         dp(k) = rho(k,np)*egrav*dzq(k,np)
-        ! If Turbulent Kinetic Energy (TKE) is available from turbulent
-        ! mixing scheme use it for shallow convection.
-        ! For now, assume it is not available
+        ! Limit maximum wind speeds
+        wspd(k) = sqrt(u0(k,np)*u0(k,np) + v0(k,np)*v0(k,np))
         cldhgt(k) = d_zero
         if ( p0(k,np) >= d_half*p0(1,np) ) l5 = k
         if ( p0(k,np) >= p300) llfc = k
@@ -582,8 +580,7 @@ module mod_cu_kf
         else
           wklcl = 0.02_rkx          ! units of m/s
         end if
-        wkl = (w0avg(k,np) + &
-                (w0avg(klcl,np) - w0avg(k,np))*dlp)*dx/25.0e3_rkx - wklcl
+        wkl = (w0avg(k,np) + (w0avg(klcl,np) - w0avg(k,np))*dlp) - wklcl
         if ( wkl < 0.0001_rkx ) then
           dtlcl = d_zero
         else
@@ -1164,9 +1161,6 @@ module mod_cu_kf
       ! Compute convective time scale(timec). the mean wind at the lcl
       ! and midtroposphere is used.
       !
-      wspd(klcl) = sqrt(u0(klcl,np)*u0(klcl,np) + v0(klcl,np)*v0(klcl,np))
-      wspd(l5) = sqrt(u0(l5,np)*u0(l5,np) + v0(l5,np)*v0(l5,np))
-      wspd(ltop) = sqrt(u0(ltop,np)*u0(ltop,np) + v0(ltop,np)*v0(ltop,np))
       vconv = d_half*(wspd(klcl)+wspd(l5))
       timec = dx/vconv
       tadvec = timec
@@ -1179,6 +1173,7 @@ module mod_cu_kf
       end if
       nic = max(nint(timec/dtcum),1)
       timec = real(nic,rkx)*dtcum
+      aincmx = d_one
       !
       ! Compute wind shear and precipitation efficiency.
       !
@@ -1380,7 +1375,6 @@ module mod_cu_kf
           tz(ndk) = d_zero
           qd(ndk) = d_zero
         end do
-        aincm2 = d_100
       else
         ddinc = -dmffrc*umf(klcl)/dmf(kstart)
         updinc = d_one
@@ -1435,7 +1429,7 @@ module mod_cu_kf
       ! into convective drafts from a given layer is no more than is available
       ! in that layer initially
       !
-      aincmx = d_10
+      aincmx = d_100
       lmax = max(klcl,lfs)
       do nk = lc , lmax
         if ( (uer(nk)-der(nk)) > 1.0e-3_rkx ) then
@@ -1444,7 +1438,10 @@ module mod_cu_kf
         end if
       end do
       ainc = d_one
-      if ( aincmx < ainc ) ainc = aincmx
+      if ( aincmx < ainc ) then
+        ainc = aincmx
+        aincmx = d_one
+      end if
       !
       ! Save the relevent variables for a unit updraft and downdraft. They will
       ! be iteratively adjusted by the factor ainc to satisfy the stabilization
