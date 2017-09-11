@@ -473,7 +473,7 @@ module mod_pbl_uwtcm
           ! Calculate nsquared Set N^2 based on the updated potential
           ! temperature profile (this is for the semi-implicit integration)
           call n2(uimp1,uimp2,kz)
-          !call pblhgt(uimp1,uimp2,kz,m2p%ktrop(j,i),kpbconv)
+          call pblhgt(uimp1,uimp2,kz,m2p%ktrop(j,i),kpbconv)
           thx_t = uimp1(kz) + wlhvocp * rexnerhl(kz) * qcx(kz)
           tvcon = (d_one + ep1*qx(kz)-qcx(kz))
           thvx_t = thx_t*tvcon
