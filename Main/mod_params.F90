@@ -595,27 +595,25 @@ module mod_params
       end if
 
       upstream_mode = .true.
+      stability_enhance = .true.
+      vert_stability_enhance = .true.
       if ( idynamic == 2 ) then
         gnu1 = 0.1000_rkx
         gnu2 = 0.1000_rkx
         diffu_hgtf = 0
-        stability_enhance = .true.
-        vert_stability_enhance = .true.
       else
         gnu1 = 0.0600_rkx
         gnu2 = 0.0600_rkx
         diffu_hgtf = 1
-        stability_enhance = .false.
-        vert_stability_enhance = .false.
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx
       upu = 0.150_rkx
       umax = 160.0_rkx
       t_extrema = 5.0_rkx
-      q_rel_extrema = 0.20_rkx
-      c_rel_extrema = 0.20_rkx
-      t_rel_extrema = 0.20_rkx
+      q_rel_extrema = 0.50_rkx
+      c_rel_extrema = 0.50_rkx
+      t_rel_extrema = 0.50_rkx
       rewind(ipunit)
       read (ipunit, nml=dynparam, iostat=iretval, err=104)
       if ( iretval /= 0 ) then

@@ -491,10 +491,9 @@ module mod_pbl_uwtcm
           templ = thlx(k)*exnerhl(k)
           temps = templ
           rvls = pfwsat(temps,preshl(k))
-          do
+          do iteration = 1 , 2
             deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls)/   &
                      (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
-            if ( abs(deltat) < 0.01_rkx ) exit
             temps = temps + deltat
             rvls = pfwsat(temps,preshl(k))
           end do

@@ -541,12 +541,13 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-    ! FAB: if grid point storm detected chiten = 0 after tractend2
-    ! update total tendency only if chiten ne zero
-              if(chiten(j,i,k,itr) .ne. d_zero) then
-                 chiten(j,i,k,itr) = chiten(j,i,k,itr) + &
-                                   chidyn(j,i,k,itr) + chiphy(j,i,k,itr)
-              end if
+              ! FAB: if grid point storm detected chiten = 0 after tractend2
+              ! update total tendency only if chiten ne zero
+              ! if( chiten(j,i,k,itr) .ne. d_zero ) then
+              chiten(j,i,k,itr) = &
+                  chiten(j,i,k,itr) + chidyn(j,i,k,itr) + &
+                                      chiphy(j,i,k,itr)
+              ! end if
             end do
           end do
         end do
@@ -1500,7 +1501,8 @@ module mod_tendency
         qen0 = qxdyn(:,:,:,iqv)
       end if
       call diffu_x(tdyn,atms%tb3d)
-      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_one)
+      call diffu_x(qxdyn,atms%qxb3d,iqv,iqv,d_one)
+      call diffu_x(qxdyn,atms%qxb3d,iqfrst,iqlst,d_two)
       if ( idiag > 0 ) then
         call ten2diag(aten%t,tdiag%dif,pc_dynamic,ten0)
         call ten2diag(aten%qx,qdiag%dif,pc_dynamic,qen0)
@@ -1515,7 +1517,7 @@ module mod_tendency
       end if
       if ( ichem == 1 ) then
         if ( ichdiag > 0 ) chiten0 = chidyn
-        call diffu_x(chidyn,atms%chib3d,1,ntr,d_one)
+        call diffu_x(chidyn,atms%chib3d,1,ntr,d_five)
         if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_dynamic,chiten0)
       end if
       if ( ibltyp == 2 ) then

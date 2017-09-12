@@ -542,13 +542,13 @@
       ! set tracer total tracer tendency to zero if so ..
       ! threshold 0.005 mm/s = 432 mm/d
       !
-      do j = jci1 , jci2
-        do i = ici1 , ici2
-          if ( maxval(convprec(i,:,j) + prec(i,:,j)) > 0.001_rkx ) then
-            chiten (j,i,:,:) = d_zero
-          end if
-        end do
-      end do
+      !do j = jci1 , jci2
+      !  do i = ici1 , ici2
+      !    if ( maxval(convprec(i,:,j) + prec(i,:,j)) > 0.001_rkx ) then
+      !      chiten (j,i,:,:) = d_zero
+      !    end if
+      !  end do
+      !end do
       !
       ! diagnostics
       ! tracer instantaneous burden for diag
