@@ -2251,7 +2251,7 @@ module mod_params
 
       write(stdout,*) &
         'The surface energy budget is used to calculate the ground temperature.'
-      write(stdout,'(a,f4.0,a)') &
+      write(stdout,'(a,f5.0,a)') &
         ' The radiation is computed every ',dtrad,' minutes.'
 
       if ( iboudy == 0 ) then
