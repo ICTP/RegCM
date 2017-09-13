@@ -388,7 +388,7 @@ module mod_micro_interface
                (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
           end if
           qvs = pfwsat(tmp3,pres)
-          rhc = min(max(qvcs/qvs,rhmin),rhmax)
+          rhc = min(max(qvcs/qvs,d_zero),d_one)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
 
@@ -396,15 +396,15 @@ module mod_micro_interface
           if ( tmp3 > tc0 ) then
             rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
-            rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
+            rh0adj = d_one - (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
           end if
-          rh0adj = max(rhmin,min(rh0adj,rhmax))
+          rh0adj = max(d_zero,min(rh0adj,d_one-0.001_rkx))
           if ( rhc < rh0adj ) then      ! Low cloud cover
             dqv = conf * (qvcs - qvs)
-          else if ( rhc >= rhmax ) then ! Full cloud cover
+          else if ( rhc >= d_one ) then ! Full cloud cover
             dqv = conf * (qvcs - qvs)
           else
-            fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+            fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(d_one-rh0adj))
             if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
               fccc = fccc * max(0.15_rkx, min(d_one,qvcs/0.003_rkx))
             end if

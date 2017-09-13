@@ -576,19 +576,28 @@ module mod_init
               t = atm1%t(j,i,k) / sfs%psa(j,i)
               p = atm1%pr(j,i,k)
               qs = pfwsat(t,p)
-              qv = atm1%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx
+              qv = atm1%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx*sigma(k)
               if ( qv > qs ) then
-                rh = min(max((qv/qs),rhmin),rhmax)
-                if ( rh > rh0(j,i) ) then
-                  pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
-                  dens = p / (rgas*t)
-                  atm1%qx(j,i,k,iqv) = qs * sfs%psa(j,i)
+                rh = min(max((qv/qs),d_zero),d_one)
+                pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
+                dens = p/(rgas*t)
+                atm1%qx(j,i,k,iqv) = qs * sfs%psa(j,i)
+                atm2%qx(j,i,k,iqv) = atm1%qx(j,i,k,iqv)
+                if ( t > tzero-2.0_rkx ) then
                   atm1%qx(j,i,k,iqc) = pfcc * dens * &
-                               clwfromt(t)/d_1000 * sfs%psa(j,i)
-                  atm2%qx(j,i,k,iqv) = atm1%qx(j,i,k,iqv)
-                  atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
+                                 clwfromt(t)/d_1000 * sfs%psa(j,i)
+                  atm1%qx(j,i,k,iqi) = 1.0e-10_rkx * sfs%psa(j,i)
+                else
+                  atm1%qx(j,i,k,iqc) = 1.0e-10_rkx * sfs%psa(j,i)
+                  atm1%qx(j,i,k,iqi) = pfcc * dens * &
+                                 clwfromt(t)/d_1000 * sfs%psa(j,i)
                 end if
+              else
+                atm1%qx(j,i,k,iqc) = 1.0e-10_rkx * sfs%psa(j,i)
+                atm1%qx(j,i,k,iqi) = 1.0e-10_rkx * sfs%psa(j,i)
               end if
+              atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
+              atm2%qx(j,i,k,iqi) = atm1%qx(j,i,k,iqi)
             end do
           end do
         end do

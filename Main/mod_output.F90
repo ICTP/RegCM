@@ -247,7 +247,7 @@ module mod_output
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
+                atm_rh_out(j,i,k) = d_100 * min(d_one,max(d_zero, &
                    (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
                    pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
               end do
@@ -507,7 +507,7 @@ module mod_output
                 kk = kzp1 - k
                 p1d(kk) = atm1%pr(j,i,k)
                 t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
-                rh1d(kk) = min(rhmax,max(rhmin, &
+                rh1d(kk) = min(d_one,max(d_zero, &
                    (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
                    pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
               end do

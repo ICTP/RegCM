@@ -852,7 +852,7 @@ module mod_advection
           end do
         else if ( ind == 1 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-            if ( f(j,i,k,n) > minqx .and. f(j,i,k-1,n) > minqx ) then
+            if ( f(j,i,k,n) > d_zero .and. f(j,i,k-1,n) > d_zero ) then
               fg(j,i,k) = svv(j,i,k) * &
                   f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
               !fg(j,i,k) = svv(j,i,k) * &

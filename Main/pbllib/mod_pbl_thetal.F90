@@ -308,7 +308,7 @@ module mod_pbl_thetal
       ! have it be consistent with the threshold for determining
       ! when tprev+deltat is consistent enough with thetal
       ! qcthresh = mindt*myexner/wlhvocp
-      qcthresh = minqx
+      qcthresh = 1.0e-8_rkx
 
       do iteration = 1 , imax
         ! if the air is undersaturated, then thetal is just the normal

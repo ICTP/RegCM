@@ -230,8 +230,8 @@ module mod_pbl_uwtcm
     call getmem1d(kbot,1,kz,'mod_uwtcm:kbot')
 
     rczero = d_one/czero
-    tkefac = czero**(d_two/d_three)
-    b1 = czero*d_two**(d_three/d_two)
+    tkefac = czero**(2.0_rkx/3.0_rkx)
+    b1 = czero*d_two**(3.0_rkx/2.0_rkx)
   end subroutine init_mod_pbl_uwtcm
 
   subroutine uwtcm(m2p,p2m)
@@ -381,7 +381,7 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tskx * rexnerfl(kzp1)
         ! Calculate the saturation mixing ratio just above the surface
-        q0s = pfwsat((0.9_rkx*tskx+0.1_rkx*tx(kz)),presfl(kzp1))
+        q0s = pfwsat(tskx,presfl(kzp1))
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
@@ -422,7 +422,8 @@ module mod_pbl_uwtcm
         !richnum = nsquar/max(svs,1.0e-8_rkx)
 
         ! Calculate the boundary layer height
-        call pblhgt(thlx,qwx,kz,m2p%ktrop(j,i),kpbconv)
+        !call pblhgt(thlx,qwx,kz,m2p%ktrop(j,i),kpbconv)
+        call pblhgt(thlx,qwx,kz,3,kpbconv)
         ! call pblhgt_tao(kzp1,kpbconv)
 
 !*******************************************************************************
@@ -800,7 +801,7 @@ module mod_pbl_uwtcm
       integer(ik4) , intent(in) :: ktmax
       real(rkx) , intent(in) , dimension(ktmax) :: thlxin , qwxin
       ! local variables
-      real(rkx) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
+      real(rkx) :: tempv , tvbl , rcld , qcbl , tvab , thvxfl , dtvdz
       integer(ik4) :: k
 
       do k = 2 , ktmax
@@ -808,8 +809,8 @@ module mod_pbl_uwtcm
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
         rvls = pfwsat(templ,presfl(k))
-        temps = templ + (qwxin(k)-rvls)/(cpowlhv +    &
-                         ep2*wlhv*rvls/(rgas*templ*templ))
+        qcbl = max(qwxin(k)-rvls,d_zero)
+        temps = templ + qcbl/(cpowlhv + ep2*wlhv*rvls/(rgas*templ*templ))
         rvls = pfwsat(temps,presfl(k))
         rcldb(k) = max(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) *    &
@@ -818,8 +819,8 @@ module mod_pbl_uwtcm
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
         rvls = pfwsat(templ,presfl(k))
-        temps = templ+(qwxin(k-1)-rvls) / &
-                       (cpowlhv+ep2*wlhv*rvls/(rgas*templ*templ))
+        qcbl = max(qwxin(k-1)-rvls,d_zero)
+        temps = templ + qcbl/(cpowlhv + ep2*wlhv*rvls/(rgas*templ*templ))
         rvls = pfwsat(temps,presfl(k))
         rcld = max(qwxin(k-1)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcld) *    &
@@ -865,12 +866,13 @@ module mod_pbl_uwtcm
         ! TAO: Added the -0.28 minimum for the G function, as stated
         ! in Galperin (1988), eq 30
         gh = max(min(gh,0.0233_rkx),-0.28_rkx)
-        sm(k) = a1 * (d_one - d_three*c1 - d_six*a1ob1 - d_three*a2*gh*   &
-                     ((b2-d_three*a2)*(d_one - d_six*a1ob1) -             &
-                       d_three*c1 * (b2 + d_six*a1))) /                   &
-                     ((d_one - d_three*a2*gh * (d_six*a1 + b2)) *         &
-                      (d_one - d_nine*a1*a2*gh))
-        sh(k) = a2 * (d_one-d_six*a1ob1) / (d_one-d_three*a2*gh*(d_six*a1+b2))
+        sm(k) = a1 * (d_one - 3.0_rkx*c1 - 6.0_rkx*a1ob1 - 3.0_rkx*a2*gh*   &
+                     ((b2-3.0_rkx*a2)*(d_one - 6.0_rkx*a1ob1) -             &
+                       3.0_rkx*c1 * (b2 + 6.0_rkx*a1))) /                   &
+                     ((d_one - 3.0_rkx*a2*gh * (6.0_rkx*a1 + b2)) *         &
+                      (d_one - 9.0_rkx*a1*a2*gh))
+        sh(k) = a2 * (d_one-6.0_rkx*a1ob1) / &
+                     (d_one-3.0_rkx*a2*gh*(6.0_rkx*a1+b2))
 
         ! kzm(k) = min(bbls(k)*sqrt(2*tke(k))*sm(k),10000.0_rkx)
         ! kth(k) = min(bbls(k)*sqrt(2*tke(k))*sh(k),10000.0_rkx)

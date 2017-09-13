@@ -387,7 +387,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt * qxten(j,i,k,n)
-            if ( atmc%qx(j,i,k,n) < minqx ) atmc%qx(j,i,k,n) = d_zero
+            if ( atmc%qx(j,i,k,n) < d_zero ) atmc%qx(j,i,k,n) = d_zero
           end do
         end do
       end do
@@ -422,7 +422,7 @@ module mod_tendency
     end if
     call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu1)
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1,sfs%psb)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,iqfrst,iqlst,minqx)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,iqfrst,iqlst,d_zero)
     !
     if ( idynamic == 1 ) then
       !

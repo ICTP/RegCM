@@ -25,7 +25,7 @@ module mod_bats_common
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : ichem , iemiss , syncro_srf , replacemoist
-  use mod_runparams , only : rcmtimer , rhmin , rhmax
+  use mod_runparams , only : rcmtimer
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -357,7 +357,7 @@ module mod_bats_common
 
       do i = ilndbeg , ilndend
         xqs0 = pfwsat(ts0(i),p0(i))
-        rh0 = min(max(qs0(i)/xqs0,rhmin),rhmax)
+        rh0 = min(max(qs0(i)/xqs0,d_zero),d_one)
         solvt = swd0(i) + swf0(i)
         sts(i) = ts0(i)-lrate*regrav*dzh(i)
         sfcp(i) = p0(i)*(sts(i)/ts0(i))

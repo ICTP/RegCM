@@ -398,15 +398,25 @@ module mod_cu_tiedtke
     end if
 
     if ( ichem == 1 .and. ichcumtra == 1 .and. &
-             .not. any(icup == 2 .or. icup == 6) ) then
+         .not. any(icup == 2 .or. icup == 6) ) then
+      do n = 1 , ntr
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            if ( ktype(ii) > 0 ) then
+              i = imap(ii)
+              j = jmap(ii)
+              cu_chiten(j,i,k,n) = pxtte(ii,k,n) - avg_chiten(j,i,k,n)
+            end if
+          end do
+        end do
+      end do
+      ! build for chemistry 3d table of precipitation rate
+      ! from the surface to the top of the convection
       do k = 1 , kz
         do ii = 1 , nipoi
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            cu_chiten(j,i,k,:) = pxtte(ii,k,:) - avg_chiten(j,i,k,:)
-            ! build for chemistry 3d table of constant precipitation rate
-            ! from the surface to the top of the convection
             if ( k > kctop(ii) ) then
               cu_convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
             end if

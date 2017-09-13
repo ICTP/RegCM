@@ -2252,7 +2252,7 @@ module mod_params
       write(stdout,*) &
         'The surface energy budget is used to calculate the ground temperature.'
       write(stdout,'(a,f5.0,a)') &
-        ' The radiation is computed every ',dtrad,' minutes.'
+        ' The radiation is computed every ',dtrad/60.0_rkx,' minutes.'
 
       if ( iboudy == 0 ) then
         write(stdout,*) 'The lateral boundary conditions are fixed.'

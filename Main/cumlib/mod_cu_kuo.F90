@@ -30,7 +30,7 @@ module mod_cu_kuo
   use mod_cu_common
   use mod_constants
   use mod_service
-  use mod_runparams , only : iqv , dt , ichem , dsigma , hsigma , qcon , rhmax , rhmin
+  use mod_runparams , only : iqv , dt , ichem , dsigma , hsigma , qcon
   use mod_regcm_types
 
   implicit none
@@ -222,7 +222,7 @@ module mod_cu_kuo
                 ee = svp1*exp(svp2*(tux(k)-svpt0)/(tux(k)-svp3))
                 qs = ep2*ee/(pux(k)-ee)
                 rh = qux(k)/qs
-                rh = max(min(rh,rhmax),rhmin)
+                rh = max(min(rh,d_one),d_zero)
                 xsav = (d_one-rh)*qs
                 qwght(k) = xsav
                 sumb = sumb + qs*dsigma(k)

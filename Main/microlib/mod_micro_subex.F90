@@ -261,7 +261,7 @@ module mod_micro_subex
           if ( pptkm1 > pptmin ) then
             ! 2bca. Compute the clear sky relative humidity
             rhcs = (mo2mc%rh(j,i,k)-afc*rhmax)/(d_one-afc)    ![frac][clr]
-            rhcs = max(min(rhcs,rhmax),rhmin)            ![frac][clr]
+            rhcs = max(min(rhcs,d_one),d_zero)                ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
             rdevap = xcevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(d_one-afc)
             qs = pfwsat(mo2mc%t(j,i,k),mo2mc%phs(j,i,k))  ![kg/kg][avg]

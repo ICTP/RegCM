@@ -27,8 +27,8 @@ module mod_ocn_zeng
   use mod_service
   use mod_ocn_internal
   use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl
-  use mod_runparams , only : iocncpl , rhmax , rhmin
-  use mod_runparams , only : iwavcpl , zomax, ustarmax
+  use mod_runparams , only : iocncpl , iwavcpl
+  use mod_runparams , only : zomax , ustarmax
 
   implicit none
 
@@ -117,7 +117,7 @@ module mod_ocn_zeng
       th = sts(i)*(p00/sfps(i))**rovcp
       dth = tatm(i) - tgrd(i)
       qs = pfwsat(tgrd(i),sfps(i))*0.98_rkx
-      rhp = min(max(q995/qs,rhmin),rhmax) * d_100
+      rhp = min(max(q995/qs,d_zero),d_one) * d_100
       ! in kg/kg
       dqh = q995 - qs
       thv = th*(d_one+ep1*q995)
