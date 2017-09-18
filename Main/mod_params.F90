@@ -118,7 +118,7 @@ module mod_params
     namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,  &
       rhmax , rhmin , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , &
       caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
-      rcrit , coef_ccn , abulk
+      rcrit , coef_ccn , abulk , cmaxf
 
     namelist /microparam/ stats , budget_compute , nssopt ,  &
       iautoconv , vfqr , vfqi , vfqs , auto_rate_khair ,     &
@@ -304,6 +304,7 @@ module mod_params
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
     conf      = 1.00_rkx   ! Condensation efficiency
+    cmaxf     = 0.95_rkx   ! Maximum precipitation rate as qc/dt * cmaxf
     rcrit     = 13.5_rkx   ! Mean critical radius
     coef_ccn  = 2.5e+20_rkx ! Coefficient determined by assuming a lognormal PMD
     abulk     = 0.9_rkx    ! Bulk activation ratio
@@ -1152,6 +1153,7 @@ module mod_params
       call bcast(caccroce)
       call bcast(cftotmax)
       call bcast(conf)
+      call bcast(cmaxf)
       call bcast(rcrit)
       call bcast(coef_ccn)
       call bcast(abulk)
@@ -1897,6 +1899,8 @@ module mod_params
         end if
         write(stdout,'(a,f11.6)') &
             '  Maximum total cloud cover for rad : ', cftotmax
+        write(stdout,'(a,f11.6)') &
+            '  Multiplier for max precipitation  : ', cmaxf
         write(stdout,'(a,f11.6)') &
             '  Condensation threshold            : ', conf
         write(stdout,'(a,l11)') &

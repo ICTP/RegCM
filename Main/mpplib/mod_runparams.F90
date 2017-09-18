@@ -410,6 +410,7 @@ module mod_runparams
   real(rkx) , public :: tc0
   real(rkx) , public :: cllwcv   ! Cloud liquid water content
                                  ! for convective precip.
+  real(rkx) , public :: cmaxf    ! Maximum precipitation rate as qc/dt * cmaxf
   real(rkx) , public :: clfrcvmax
   real(rkx) , public :: cftotmax ! Maximum total cloud fraction for radiation
   real(rkx) , public :: conf     ! Condensation threshold.

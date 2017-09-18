@@ -387,6 +387,7 @@
  cllwcv    = 0.3e-3,  ! Cloud liquid water content for convective precip.
  clfrcvmax = 0.75,    ! Max cloud fractional cover for convective precip.
  cftotmax  = 0.75,    ! Max total cover cloud fraction for radiation
+ cmaxf     = 0.95,    ! Multiplicative factor for pptmax = qc/dt
  conf      = 1.00,    ! Condensation efficiency
  rcrit     = 13.5,    ! Mean critical radius
  coef_ccn  = 2.5e+20, ! Coefficient determined by assuming a lognormal PMD
