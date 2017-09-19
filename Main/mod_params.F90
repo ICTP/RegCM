@@ -899,20 +899,25 @@ module mod_params
 
       dt = check_against_outparams(dt,mindt)
 
-      if ( dtcum < d_zero ) dtcum = dt
-      if ( dtsrf < 1.0_rkx ) dtsrf = 600.0_rkx
-      if ( dtcum < 1.0_rkx ) dtcum = 300.0_rkx
-      if ( dtche < 1.0_rkx ) dtche = 900.0_rkx
-      if ( dtrad < 1.0_rkx ) then
+      if ( dtsrf <= 0.0_rkx ) dtsrf = 600.0_rkx
+      if ( dtcum <= 0.0_rkx ) dtcum = 300.0_rkx
+      if ( dtche <= 0.0_rkx ) dtche = 900.0_rkx
+      if ( dtrad <= 0.0_rkx ) then
         dtrad = 1800.0_rkx
       else
         dtrad = dtrad * 60.0_rkx
       end if
-      if ( dtabem < 1.0_rkx ) then
+      if ( dtabem <= 0.0_rkx ) then
         dtabem = 64800.0_rkx
       else
         dtabem = dtabem * 3600.0_rkx
       end if
+
+      if ( dtcum < dt ) dtcum = dt
+      if ( dtsrf < dt ) dtsrf = dt
+      if ( dtche < dt ) dtche = dt
+      if ( dtrad < dt ) dtrad = dt
+      if ( dtabem < dt ) dtabem = dt
 
       dtsrf = int(dtsrf / dt) * dt
       dtcum = int(dtcum / dt) * dt
