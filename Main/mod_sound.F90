@@ -635,9 +635,6 @@ module mod_sound
       if ( cfl < d_one ) then
         cfl_error = .false.
       end if
-      if ( cfl_error ) then
-        call fatal(__FILE__,__LINE__,'CFL violation')
-      end if
       if ( cfl > d_one ) then
         do k = kz , 2 , -1
           do i = ici1 , ici2
@@ -650,6 +647,9 @@ module mod_sound
           end do
         end do
         cfl_error = .true.
+      end if
+      if ( cfl_error ) then
+        call fatal(__FILE__,__LINE__,'CFL violation')
       end if
       !
       ! Now compute the new pressure

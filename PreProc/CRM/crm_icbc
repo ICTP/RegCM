@@ -1,0 +1,434 @@
+#!/usr/bin/env python
+"""
+crm_icbc - Generates initial and boundary conditions for a RegCM CRM simulation.
+
+Takes a namelist file as input and produces ICBC files compatible with RegCM.  This program is used for idealized cloud-resolving model simulations in lieu of the terrain/sst/icbc programs.  It can take previous regcm runs as input: it generates ICBCs from the average thermodynamic profiles in the runs.  If no input files are given, average profiles from the TOGA COARE tropical field campaign are used.
+
+crm_icbc requires that the Python 'f90nml', 'netCDF4', 'numpy', 'scipy', and 'dateutil' libararies are installed: try fixing this by e.g., `pip install f90nml netCDF4 numpy scipy dateutil`.
+
+Written by Travis A. O'Brien <TAOBrien@lbl.gov>
+
+"""
+from __future__ import division
+import argparse
+import datetime
+import os,errno
+import pickle
+import calendar
+from numpy import random
+
+def mkdir_p(path):
+    """ A dummy function that behaves like mkdir -p """
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
+
+#*******************************************************************************
+#*******************************************************************************
+#********************** Parse command line arguments ***************************
+#*******************************************************************************
+#*******************************************************************************
+parser = argparse.ArgumentParser( \
+                                description = "Generate TOGA COARE initial and boundary conditions for a RegCM CRM simulation", \
+                                formatter_class = argparse.RawDescriptionHelpFormatter, \
+                                epilog = __doc__)
+
+parser.add_argument('--clobber','-c', \
+                  help="Clobber existing output file",default=False,action='store_true')
+parser.add_argument('--quiet','-q', \
+                  help="Suppress diagnostic printing output",default=False,action='store_true')
+parser.add_argument('inputfile',nargs='*',help="RegCM namelist file(s)")
+parser.add_argument('--coriolisforce','-f', \
+                  help="Coriolis parameter",type=float,default = 0.0)
+parser.add_argument('--surfacetemp','-t', \
+                  help="Surface temperature",type=float,default = 300.15)
+parser.add_argument('--addnoise2d', \
+                  help="Adds noise to the temperature field; same perterbation applied along y-axis",default = False, action = 'store_true')
+parser.add_argument('--noaddnoise', \
+                  help="Don't add noise to the temperature field",default = False, action = 'store_true')
+parser.add_argument('--hydrostatic', \
+                  help="Generate B/Cs for a hydrostatic dynamical core",default = False, action = 'store_true')
+parser.add_argument('--regcmatmfiles', \
+                  help="RegCM ATM files from which to generate ICBCs--use these instead of TOGA COARE ICBCs",nargs='*')
+parser.add_argument('--domainfile', \
+                  help="RegCM DOMAIN files from which to get reference profiles--use these instead of TOGA COARE ICBCs",default=None)
+
+parsed_args = vars(parser.parse_args())
+input_files = parsed_args['inputfile'][:]
+coriolis_parameter = parsed_args['coriolisforce']
+ts = parsed_args['surfacetemp']
+do_clobber = parsed_args['clobber']
+be_verbose = not parsed_args['quiet']
+add_noise_2d = parsed_args['addnoise2d']
+add_noise = not parsed_args['noaddnoise']
+do_hydrostatic = parsed_args['hydrostatic']
+input_domain_file = parsed_args['domainfile']
+
+# Check if we are using RegCM files to generate the soundings
+use_toga_coare = True
+if parsed_args['regcmatmfiles'] is not None:
+    regcmatmfiles = parsed_args['regcmatmfiles'][:]
+    use_toga_coare = False
+
+    if input_domain_file is None and not do_hydrostatic:
+        print("Error: --domainfile is required along with --regcmatmfiles for nonhydrostatic runs")
+        parser.print_help()
+        quit()
+else:
+    regcmatmfiles = []
+
+# check that we have namelist files for input
+if(len(input_files) == 0):
+  print("Error: a namelist file must be specified\n")
+  parser.print_help()
+  quit()
+  
+# import non-standard Python libraries 
+# this is intentionally done after the command line parsing stage
+# so that we have a chance to print help before any missing libraries
+# cause import errors.
+try:
+    import f90nml
+except:
+    parser.print_help()
+    raise(ImportError,"Error: the f90nml library failed to load\n")
+try:
+    import netCDF4 as nc
+except:
+    parser.print_help()
+    raise(ImportError,"Error: the netCDF4 library failed to load\n")
+try:
+    import scipy.interpolate
+except:
+    parser.print_help()
+    raise(ImportError,"Error: the scipy.interpolate library failed to load\n")
+try:
+    from numpy import *
+except:
+    parser.print_help()
+    raise(ImportError,"Error: the numpy library failed to load\n")
+try:
+    from dateutil.relativedelta import relativedelta
+except:
+    parser.print_help()
+    raise(ImportError,"Error: the dateutil library failed to load\n")
+
+def vprint(msg):
+    """ Prints a message only if in verbose mode """
+    if be_verbose:
+        print(msg)
+
+
+# import helper functions
+from initialize_domain import initialize_domain, reference_profiles, nonhydrostatic_pressure2
+from initialize_icbc import initialize_icbc
+import constants as c
+
+# get the path of this script
+script_path = os.path.dirname(os.path.abspath(__file__))
+# check if necessary files are present
+sigma_interpolator_file = "{}/sigma_interpolator.pk".format(script_path)
+toga_interpolator_file = "{}/toga_sounding_interpolators.pk".format(script_path)
+
+if use_toga_coare:
+    try:
+        with open(sigma_interpolator_file,'rb') as fin:
+            sigma_interp_knots = pickle.load(fin,encoding='bytes')
+    except:
+        try:
+            with open(sigma_interpolator_file,'rb') as fin:
+                sigma_interp_knots = pickle.load(fin)
+        except:
+            raise(RuntimeError,"Could not load the sigma-level interpolator from `{}`; does it exist?".format(sigma_interpolator_file))
+
+    try:
+        with open(toga_interpolator_file,'rb') as fin:
+            toga_interp_knots = pickle.load(fin,encoding='bytes')
+    except:
+        try:
+            with open(toga_interpolator_file,'rb') as fin:
+                toga_interp_knots = pickle.load(fin)
+        except:
+            raise(RuntimeError,"Could not load the toga interpolator from `{}`; does it exist?".format(toga_interpolator_file))
+else:
+    # if we are using RegCM input files, get average profiles from the input files
+    for i,atm_file in enumerate(regcmatmfiles):
+        with nc.Dataset(atm_file,'r') as fin:
+            # if this is the first loop, initialize the summation variables and get
+            # dimension information
+            if i == 0:
+                t = sum(fin.variables['ta'][:],axis=(0,2,3))
+                qv = sum(fin.variables['qas'][:],axis=(0,2,3))
+                pp = sum(fin.variables['ppa'][:],axis=(0,2,3))
+                ps = sum(fin.variables['ps'][:])
+                jx_rcm = len(fin.dimensions['jx'])
+                iy_rcm = len(fin.dimensions['iy'])
+                kz_rcm = len(fin.dimensions['kz'])
+                time_step_sum = len(fin.dimensions['time'])
+            else:
+                # continue adding to the running average
+                t += sum(fin.variables['ta'][:],axis=(0,2,3))
+                qv += sum(fin.variables['qas'][:],axis=(0,2,3))
+                pp += sum(fin.variables['ppa'][:],axis=(0,2,3))
+                ps += sum(fin.variables['ps'][:])
+                time_step_sum += len(fin.dimensions['time'])
+
+    # normalize the running averages
+    denominator = time_step_sum*jx_rcm*iy_rcm
+    for var in (t,qv,pp,ps):
+        var /= denominator
+
+    if not do_hydrostatic:
+        # extract nonhydrostatic reference profiles from the domain file
+        with nc.Dataset(input_domain_file,'r') as fin:
+            ps0 = average(fin.variables['ps0'][:])
+            pr0 = average(fin.variables['pr0'][:],axis=(1,2))
+            t0 = average(fin.variables['t0'][:],axis=(1,2))
+            rho0 = average(fin.variables['rho0'][:],axis=(1,2))
+            z0 = average(fin.variables['z0'][:],axis=(1,2))
+            ts0 = fin.base_state_surface_temperature
+            sigma = fin.variables['sigma'][:]
+
+
+
+# Loop over namelist files
+for nml_file in input_files:
+
+    #******************************************
+    # Extract information from the namelist
+    #******************************************
+
+    # Open the namelist file
+    try:
+        current_nml = f90nml.read(nml_file)
+    except:
+        raise RuntimeError("Error opening `{}` as a namelist file".format(nml_file))
+
+    # Get the ICBC path
+    icbc_directory = current_nml['terrainparam']['dirter']
+
+    # Get the domain name
+    domain_name = current_nml['terrainparam']['domname']
+
+    # Get domain geometry
+    iy = current_nml['dimparam']['iy']
+    jx = current_nml['dimparam']['jx']
+    kz = current_nml['dimparam']['kz']
+    dx = float(current_nml['geoparam']['ds'])*1000
+    ptop = current_nml['geoparam']['ptop']
+
+    # TODO check that the domain vertical geometry is compatible with the regcm input files
+    if not use_toga_coare:
+        if kz_rcm != kz:
+            print("Error: kz in the files indicated by --rcmatmfiles does not match with kz in the namelist")
+            quit()
+
+    # Get CRM mode flag
+    try:
+        is_crm = bool(current_nml['geoparam']['i_crm'])
+    except:
+        is_crm = False
+
+    if not is_crm:
+        print("Warning: i_crm is not set to 1 in the geoparam namelist; RegCM will fail on these ICBCs w/o this set.")
+
+
+    # Get ICBC start/end dates and frequency
+    bc_start_date_str = str(current_nml['globdatparam']['gdate1'])
+    bc_end_date_str = str(current_nml['globdatparam']['gdate2'])
+    bc_frequency = int(current_nml['globdatparam']['ibdyfrq'])
+
+    # Parse the start/end dates
+    bc_start_date = datetime.datetime.strptime(bc_start_date_str,'%Y%m%d%H')
+    bc_end_date = datetime.datetime.strptime(bc_end_date_str,'%Y%m%d%H')
+
+    # Create the input directory if needed
+    mkdir_p(icbc_directory)
+
+    #******************************************
+    # Create the DOMAIN file
+    #******************************************
+    if use_toga_coare:
+        ts0 = scipy.interpolate.splev(1.0,toga_interp_knots[b't'])
+    domain_file_path = initialize_domain(icbc_directory,domain_name,iy,jx,kz,dx,ptop,ts0,do_clobber,be_verbose,do_hydrostatic)
+    
+    with nc.Dataset(domain_file_path,'r+') as fout:
+        #****************************
+        # Write custom run variables
+        #****************************
+        # horizontal grid
+        domain_size_jx = jx*dx
+        domain_size_iy = iy*dx
+        jx_bound = domain_size_jx/2 - dx/2
+        iy_bound = domain_size_iy/2 - dx/2
+        fout.variables['jx'][:] = linspace(-jx_bound,jx_bound,jx)
+        fout.variables['iy'][:] = linspace(-iy_bound,iy_bound,iy)
+
+        # vertical grid
+        if use_toga_coare:
+            kz_levels_normalized = arange(kz+1)/kz
+            sigma = scipy.interpolate.splev(kz_levels_normalized,sigma_interp_knots)
+            sigma[0] = 0
+            sigma[-1] = 1
+        # otherwise, sigma from the regcm file is used
+
+        # save sigma
+        fout.variables['sigma'][:] = sigma
+
+
+        if not do_hydrostatic:
+            
+            if use_toga_coare:
+                # set reference profiles based on input sounding
+                # get surface pressure
+                psp = scipy.interpolate.splev(1.0,toga_interp_knots[b'pp'])
+                ps = 101325 + psp
+                # set the reference surface pressure
+                ps0 = ps
+                # calculate level pressures
+                pr0 = (ps0-ptop*1000) * sigma + ptop*1000
+                # set reference temperatures
+                t = scipy.interpolate.splev(sigma,toga_interp_knots[b't'])
+                t0 = t
+                # calculate reference density
+                rho0 = pr0/c.rgas/t0
+
+                # calculate reference height
+                z0 = zeros(kz+1)
+                rovg = c.rgas/c.egrav
+                # integrate the hypsometric equation to get a hydrostatically balanced
+                # reference state
+                z0[kz] = 0
+                for k in range(kz,0,-1):
+                    dz = rovg*t[k]*log(pr0[k]/pr0[k-1])
+                    z0[k-1] = z0[k] + dz
+
+
+                # get reference profiles
+                ps0 = 101325.
+                pr0, t0, rho0, z0 = reference_profiles(sigma,ptop*1000,101325)
+
+
+            # write the reference profiles
+            fout.variables['ps0'][:] = ps0
+            fout.variables['pr0'][:] = pr0[:,newaxis,newaxis]*ones([kz+1,iy,jx])
+            fout.variables['t0'][:] = t0[:,newaxis,newaxis]*ones([kz+1,iy,jx])
+            fout.variables['rho0'][:] = rho0[:,newaxis,newaxis]*ones([kz+1,iy,jx])
+            fout.variables['z0'][:] = z0[:,newaxis,newaxis]*ones([kz+1,iy,jx])
+
+        # write the coriolis force
+        fout.variables['coriol'][:] = coriolis_parameter
+
+    #***********************
+    # Create the ICBC Files
+    #***********************
+    # set the time span of the run
+    run_delta = relativedelta(bc_end_date,bc_start_date)
+    # set the number of months (files)
+    number_of_months = run_delta.months + 12*run_delta.years
+    # create a dummy variable for incrementing months
+    one_month = relativedelta(months=1)
+
+    # set the start time for the current ICBC file
+    current_file_start = datetime.datetime(bc_start_date.year, bc_start_date.month,1)
+
+    for i in range(number_of_months + 1):
+
+        # set the number of seconds in the current file
+        if i == number_of_months:
+        # if this is the last month, don't assume it is a full month
+            number_of_seconds = (bc_end_date - current_file_start).total_seconds()
+        else:
+        # if this is a full month
+            # get the number of seconds in the month
+            number_of_seconds = ((current_file_start + one_month) - current_file_start).total_seconds()
+        # divide it by the b/c interval to get the number of steps
+        # (making sure there is at least 1 step)
+        nstep = max(int(number_of_seconds/(3600*bc_frequency)),1)
+
+
+        # initialize the ICBC file
+        icbc_file_path = initialize_icbc(icbc_directory, \
+                                         domain_name, \
+                                         iy, \
+                                         jx, \
+                                         kz, \
+                                         dx, \
+                                         ptop, \
+                                         current_file_start, \
+                                         bc_start_date, \
+                                         nstep, \
+                                         bc_frequency, \
+                                         do_clobber, \
+                                         be_verbose, \
+                                         do_hydrostatic)
+
+        # write the ICBCs
+        with nc.Dataset(icbc_file_path,"r+") as fout:
+            #****************************
+            # Write custom run variables
+            #****************************
+            fout.variables['jx'][:] = linspace(-jx_bound,jx_bound,jx)
+            fout.variables['iy'][:] = linspace(-iy_bound,iy_bound,iy)
+
+            # vertical grid
+            # calculate half-sigma levels
+            sigma_half = 0.5*(sigma[1:] + sigma[:-1])
+            fout.variables['sigma'][:] = sigma_half
+
+            # surface temperature
+            fout.variables["ts"][:] = ts 
+
+            # surface pressure
+            if use_toga_coare:
+                if do_hydrostatic:
+                    ps = 101325
+                else:
+                    psp = scipy.interpolate.splev(1.0,toga_interp_knots[b'pp'])
+                    ps = 101325 + psp
+                
+            fout.variables["ps"][:] = ps/100
+
+            # temperature
+            if use_toga_coare:
+                t = scipy.interpolate.splev(sigma_half,toga_interp_knots[b't'])
+            temp_out = ones(shape(fout.variables['t'][:]))*t[newaxis,:,newaxis,newaxis]
+
+            if add_noise_2d or add_noise:
+                if add_noise_2d:
+                    shape_3d = (1,kz,1,jx)
+                else:
+                    shape_3d = (1,kz,iy,jx)
+
+                # seed the random number generator
+                random.seed(0)
+                # generate the noise
+                noise = random.rand(*shape_3d)
+                # re-scale the noise
+                noise = (noise-0.5)*1e-3
+                # add the noise to temperature
+                temp_out += ones(shape(fout.variables['t'][:]))*noise
+
+            fout.variables["t"][:] = temp_out
+
+            # humidity
+            if use_toga_coare:
+                qv = scipy.interpolate.splev(sigma_half,toga_interp_knots[b'q'])
+                # set the minimum value of humidity to 0
+                ineg = nonzero(qv < 0)[0]
+                qv[ineg] = 0.0
+            fout.variables["qv"][:] = ones(shape(fout.variables['qv'][:]))*qv[newaxis,:,newaxis,newaxis]
+
+            if not use_toga_coare:
+                fout.variables["pp"][:] = ones(shape(fout.variables['pp'][:]))*pp[newaxis,:,newaxis,newaxis]
+
+
+        # set the current date for the next iteration
+        current_file_start += one_month
+
+
+        
+

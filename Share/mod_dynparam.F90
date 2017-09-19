@@ -71,6 +71,7 @@ module mod_dynparam
   ! Control flag for tropical band option.
 
   integer(ik4) :: i_band
+  integer(ik4) :: i_crm
 
   ! Control flag for creating bathymetry for lake model
   !    (Hostetler, etal. 1991, 1993a,b, 1995)
@@ -425,7 +426,7 @@ module mod_dynparam
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-      plon , truelatl, truelath , i_band
+      plon , truelatl, truelath , i_band, i_crm
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
@@ -482,12 +483,18 @@ module mod_dynparam
     end if
 
     i_band = 0
+    i_crm = 0
     rewind(ipunit)
     read(ipunit, nml=geoparam, iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error reading geoparam namelist in ',trim(filename)
       ierr = 3
       return
+    end if
+
+!   Ensure that band mode is active if CRM mode is active
+    if ( i_crm == 1 ) then
+      i_band = 1
     end if
 
 !   Setup all convenience dimensions
@@ -532,11 +539,19 @@ module mod_dynparam
     idot1 = 1
     idot2 = iy
     icross1 = 1
-    icross2 = iym1
-    iout1 = 2
-    iout2 = iym2
-    ioutsg1 = nsg+1
-    ioutsg2 = iym2*nsg
+    if ( i_crm == 1 ) then
+      icross2 = iy
+      iout1 = 1
+      iout2 = iy
+      ioutsg1 = 1
+      ioutsg2 = iy*nsg
+    else
+      icross2 = iym1
+      iout1 = 2
+      iout2 = iym2
+      ioutsg1 = nsg+1
+      ioutsg2 = iym2*nsg
+    end if 
     njcross = jcross2-jcross1+1
     nicross = icross2-icross1+1
     njdot = jdot2-jdot1+1
@@ -548,11 +563,17 @@ module mod_dynparam
 
     nveg = 22
 
-    if ( i_band.eq.1 ) then
-      ds = (2.0_rkx*mathpi*erkm)/real(jx,rkx)
+    if ( i_crm == 1) then
       iproj = 'NORMER'
       clat  =   0.0_rkx
       clon  = 180.0_rkx
+    else
+      if ( i_band.eq.1 ) then
+        ds = (2.0_rkx*mathpi*erkm)/real(jx,rkx)
+        iproj = 'NORMER'
+        clat  =   0.0_rkx
+        clon  = 180.0_rkx
+      end if
     end if
 
     ! Defaults to have SAME behaviour of V3 if not specified

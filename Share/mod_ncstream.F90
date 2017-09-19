@@ -316,6 +316,7 @@ module mod_ncstream
       stream%zero_time     = hourdiff(tt,reference_date)
       stream%l_bound       = params%l_bound
       stream%l_band        = params%l_band
+      stream%l_crm         = params%l_crm 
       stream%l_sync        = params%l_sync
       stream%l_subgrid     = params%l_subgrid
       stream%l_full_sigma  = params%l_full_sigma
@@ -830,7 +831,7 @@ module mod_ncstream
           the_name = 'jx'
           pdim = jx_dim
         case ('IY','iy')
-          if ( stream%l_bound ) then
+          if ( stream%l_bound .or. stream%l_crm ) then
             ! this is the number of dot points WITH bondary
             num = iy
           else

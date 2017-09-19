@@ -245,7 +245,7 @@ module mod_domain
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read dimension IY')
     icheck = iy
-    if ( lb ) icheck = icheck - 3
+    if ( lb .and. i_crm /= 1 ) icheck = icheck - 3
     if ( ls ) icheck = icheck * nsg
     if ( icheck /= iyy ) then
       write(stderr,*) 'DOMAIN FILE : ', iyy

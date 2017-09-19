@@ -48,6 +48,7 @@ module mod_regcm_types
 
   type model_area
     logical :: bandflag
+    logical :: crmflag
     logical :: has_bdy
     logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
     logical :: has_bdytopleft , has_bdytopright

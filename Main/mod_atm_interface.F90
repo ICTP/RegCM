@@ -391,84 +391,86 @@ module mod_atm_interface
       ba%bnorth(:,:) = .false.
       ba%bwest(:,:) = .false.
       ba%beast(:,:) = .false.
-      if ( ma%bandflag ) then
-        ! Check for South boundary
-        do i = i1 , i2
-          if ( i >= igbb1 .and. i <= igbb2 ) then
-            do j = j1 , j2
-              if ( j < jgbl1 .and. j > jgbr2 ) cycle
-              ba%ibnd(j,i) = i-igbb1+2
-              ba%bsouth(j,i) = .true.
-              ba%ns = ba%ns+1
-            end do
-          end if
-        end do
-        ! North Boundary
-        do i = i1 , i2
-          if ( i >= igbt1 .and. i <= igbt2 ) then
-            do j = j1 , j2
-              if ( j < jgbl1 .and. j > jgbr2 ) cycle
-              ba%ibnd(j,i) = igbt2-i+2
-              ba%bnorth(j,i) = .true.
-              ba%nn = ba%nn+1
-            end do
-          end if
-        end do
-      else
-        ! Check for South boundary
-        do i = i1 , i2
-          if ( i >= igbb1 .and. i <= igbb2 ) then
-            do j = j1 , j2
-              if ( j >= jgbl1 .and. j <= jgbr2 ) then
-                if ( j <= jgbl2 .and. i >= j ) cycle
-                if ( j >= jgbr1 .and. i >= (jgbr2-j+2) ) cycle
+      if (.not. ma%crmflag ) then
+        if ( ma%bandflag ) then
+          ! Check for South boundary
+          do i = i1 , i2
+            if ( i >= igbb1 .and. i <= igbb2 ) then
+              do j = j1 , j2
+                if ( j < jgbl1 .and. j > jgbr2 ) cycle
                 ba%ibnd(j,i) = i-igbb1+2
                 ba%bsouth(j,i) = .true.
                 ba%ns = ba%ns+1
-              end if
-            end do
-          end if
-        end do
-        ! North Boundary
-        do i = i1 , i2
-          if ( i >= igbt1 .and. i <= igbt2 ) then
-            do j = j1 , j2
-              if ( j >= jgbl1 .and. j <= jgbr2 ) then
-                if ( j <= jgbl2 .and. (igbt2-i+2) >= j ) cycle
-                if ( j >= jgbr1 .and. (igbt2-i) >= (jgbr2-j) ) cycle
+              end do
+            end if
+          end do
+          ! North Boundary
+          do i = i1 , i2
+            if ( i >= igbt1 .and. i <= igbt2 ) then
+              do j = j1 , j2
+                if ( j < jgbl1 .and. j > jgbr2 ) cycle
                 ba%ibnd(j,i) = igbt2-i+2
                 ba%bnorth(j,i) = .true.
                 ba%nn = ba%nn+1
+              end do
+            end if
+          end do
+        else
+          ! Check for South boundary
+          do i = i1 , i2
+            if ( i >= igbb1 .and. i <= igbb2 ) then
+              do j = j1 , j2
+                if ( j >= jgbl1 .and. j <= jgbr2 ) then
+                  if ( j <= jgbl2 .and. i >= j ) cycle
+                  if ( j >= jgbr1 .and. i >= (jgbr2-j+2) ) cycle
+                  ba%ibnd(j,i) = i-igbb1+2
+                  ba%bsouth(j,i) = .true.
+                  ba%ns = ba%ns+1
+                end if
+              end do
+            end if
+          end do
+          ! North Boundary
+          do i = i1 , i2
+            if ( i >= igbt1 .and. i <= igbt2 ) then
+              do j = j1 , j2
+                if ( j >= jgbl1 .and. j <= jgbr2 ) then
+                  if ( j <= jgbl2 .and. (igbt2-i+2) >= j ) cycle
+                  if ( j >= jgbr1 .and. (igbt2-i) >= (jgbr2-j) ) cycle
+                  ba%ibnd(j,i) = igbt2-i+2
+                  ba%bnorth(j,i) = .true.
+                  ba%nn = ba%nn+1
+                end if
+              end do
+            end if
+          end do
+          ! West boundary
+          do i = i1 , i2
+            if ( i < igbb1 .or. i > igbt2 ) cycle
+            do j = j1 , j2
+              if ( j >= jgbl1 .and. j <= jgbl2 ) then
+                if ( i < igbb2 .and. j > i ) cycle
+                if ( i > igbt1 .and. j > (igbt2-i+2) ) cycle
+                ba%ibnd(j,i) = j-jgbl1+2
+                ba%bwest(j,i) = .true.
+                ba%nw = ba%nw+1
               end if
             end do
-          end if
-        end do
-        ! West boundary
-        do i = i1 , i2
-          if ( i < igbb1 .or. i > igbt2 ) cycle
-          do j = j1 , j2
-            if ( j >= jgbl1 .and. j <= jgbl2 ) then
-              if ( i < igbb2 .and. j > i ) cycle
-              if ( i > igbt1 .and. j > (igbt2-i+2) ) cycle
-              ba%ibnd(j,i) = j-jgbl1+2
-              ba%bwest(j,i) = .true.
-              ba%nw = ba%nw+1
-            end if
           end do
-        end do
-        ! East boundary
-        do i = i1 , i2
-          if ( i < igbb1 .or. i > igbt2 ) cycle
-          do j = j1 , j2
-            if ( j >= jgbr1 .and. j <= jgbr2 ) then
-              if ( i < igbb2 .and. (jgbr2-j+2) > i ) cycle
-              if ( i > igbt1 .and. (jgbr2-j) > (igbt2-i) ) cycle
-              ba%ibnd(j,i) = jgbr2-j+2
-              ba%beast(j,i) = .true.
-              ba%ne = ba%ne+1
-            end if
+          ! East boundary
+          do i = i1 , i2
+            if ( i < igbb1 .or. i > igbt2 ) cycle
+            do j = j1 , j2
+              if ( j >= jgbr1 .and. j <= jgbr2 ) then
+                if ( i < igbb2 .and. (jgbr2-j+2) > i ) cycle
+                if ( i > igbt1 .and. (jgbr2-j) > (igbt2-i) ) cycle
+                ba%ibnd(j,i) = jgbr2-j+2
+                ba%beast(j,i) = .true.
+                ba%ne = ba%ne+1
+              end if
+            end do
           end do
-        end do
+        end if
       end if
       ba%havebound = (ba%ns /= 0 .or. ba%nn /= 0 .or. &
                       ba%nw /= 0 .or. ba%ne /= 0)

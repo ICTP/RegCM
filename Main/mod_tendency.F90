@@ -360,8 +360,11 @@ module mod_tendency
     end if
     if ( idynamic == 2 ) then
       if ( ifrayd == 1 ) then
-        call raydamp(atms%za,atm2%t,tten,xtb)
-        call raydamp(atms%za,atm2%qx,qxten,xqb)
+        ! don't damp T/Q if in CRM mode
+        if ( i_crm /= 1 ) then
+          call raydamp(atms%za,atm2%t,tten,xtb)
+          call raydamp(atms%za,atm2%qx,qxten,xqb)
+        end if
       end if
     end if
     !
@@ -462,9 +465,16 @@ module mod_tendency
       ! Decouple before calling sound
       !
       if ( ifrayd == 1 ) then
-        call raydamp(atms%za,atm2%u,atm2%v,uten,vten,xub,xvb)
-        call raydamp(atms%za,atm2%pp,ppten,xppb)
-        call raydamp(atms%zq,atm2%w,wten,d_zero)
+        if ( i_crm == 1 ) then
+          ! TAO damp velocities to 0 if using CRM mode
+          call raydamp(atms%za,atm2%u,atm2%v,uten,vten,d_zero)
+          call raydamp(atms%za,atm2%pp,ppten,d_zero)
+          call raydamp(atms%zq,atm2%w,wten,d_zero)
+        else
+          call raydamp(atms%za,atm2%u,atm2%v,uten,vten,xub,xvb)
+          call raydamp(atms%za,atm2%pp,ppten,xppb)
+          call raydamp(atms%zq,atm2%w,wten,d_zero)
+        end if
       end if
       do k = 1 , kz
         do i = idi1 , idi2

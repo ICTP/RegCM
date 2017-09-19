@@ -80,6 +80,8 @@ module mod_ncstream_types
     logical :: l_bound = .false.
     ! BAND output has no East or West boundary.
     logical :: l_band  = .false.
+    ! CRM output has no boundaries
+    logical :: l_crm  = .false.
     ! If this is a subgrid output file.
     logical :: l_subgrid = .false.
     ! If the vertical coordinate is on full sigma levels
@@ -165,12 +167,14 @@ module mod_ncstream_types
     ! Defaults is output from model, i.e.:
     !   -) normal grid, not subgrid
     !   -) BAND output, no E/W boundary
+    !   -) CRM output now boundaries
     !   -) no boundary on cross points
     !   -) half sigma level on vertical
     !
     logical :: l_keep = .false.
     logical :: l_bound = .false.
     logical :: l_band  = .false.
+    logical :: l_crm  = .false.
     logical :: l_subgrid = .false.
     logical :: l_full_sigma = .false.
     real(rk8) :: zero_time = 0.0D0

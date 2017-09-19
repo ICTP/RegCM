@@ -469,7 +469,12 @@ module mod_ncout
     else
       global_out_jend = jx-3
     end if
-    global_out_iend = iy - 3
+    if ( ma%crmflag ) then
+      ! No boundary on North-South direction
+      global_out_iend = iy - 1
+    else
+      global_out_iend = iy - 3
+    end if
 
     nstream = 0
 
@@ -2299,6 +2304,7 @@ module mod_ncout
 
       outstream(nstream)%opar%pname = 'RegCM Model'
       outstream(nstream)%opar%l_band = (i_band == 1)
+      outstream(nstream)%opar%l_crm  = (i_crm  == 1)
 
       if ( parallel_out ) then
         outstream(nstream)%opar%mpi_comm = mycomm

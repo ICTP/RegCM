@@ -75,6 +75,8 @@
  truelath = 60.0,  ! Lambert true latitude (high latitude side)
  i_band = 0,       ! Use this to enable a tropical band. In this case the ds,
                    ! iproj, clat, clon parameters are not considered.
+ i_crm = 0,        ! Use this to enable doubly-periodic domains for idealized
+                   ! simulations.  Forces i_band = 1.
  /
 !
 ! DOMAIN terrain generation parameters
@@ -343,6 +345,8 @@
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
  itweak =            0, ! Enable tweak scenario
+ ifixsolar =         0, ! Fix the solar constant to fixedsolarval (no diurnal or seasonal cycle)
+ fixedsolarval =  343., ! The constant solar value for ifixsolar = 1
  /
 !
 ! Non-hydrostatic core option

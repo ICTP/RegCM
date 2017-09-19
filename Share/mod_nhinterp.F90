@@ -353,9 +353,9 @@ module mod_nhinterp
     ! horizontal wind fields (u and v).
     !
     subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,u,v,tv, &
-                   ps,psdot,ps0,xmsfx,w,wtop,ds,iband)
+                   ps,psdot,ps0,xmsfx,w,wtop,ds,iband,icrm)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband, icrm
       real(rkx) , pointer , intent(in) , dimension(:) :: sigma , dsigma
       real(rkx) , pointer , intent(in) , dimension(:,:) :: xmsfx
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
@@ -410,8 +410,26 @@ module mod_nhinterp
       end do
       do i = i1 , i2
         do j = j1 , j2
-          ip = min(i+1,i2)
-          im = max(i-1,i1)
+          if ( icrm /= 1 ) then
+            ip = min(i+1,i2)
+            im = max(i-1,i1)
+          else
+            if ( i == i2-1 ) then
+              ip = i2
+            else if ( i == i2 ) then
+              ip = i1
+            else
+              ip = i + 1
+            end if
+            if ( i == i1+1 ) then
+              im = i1
+            else if ( i == i1 ) then
+              im = i2
+            else
+              im = i - 1
+            end if
+          end if
+
           if ( iband /= 1 ) then
             jp = min(j+1,j2)
             jm = max(j-1,j1)

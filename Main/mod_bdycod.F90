@@ -91,6 +91,7 @@ module mod_bdycod
     module procedure raydamp3f
     module procedure raydampuv
     module procedure raydampqv
+    module procedure raydampuv_c
   end interface raydamp
 
   logical , parameter :: bdyflow = .true.
@@ -2910,6 +2911,32 @@ module mod_bdycod
       end do
     end do
   end subroutine raydampuv
+
+  subroutine raydampuv_c(z,u,v,uten,vten,sval)
+  implicit none
+  real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+  real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
+  real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
+  real(rkx) , intent(in) :: sval
+  real(rkx) :: zz
+  integer(ik4) :: i , j , k
+  do k = 1 , min(kz,rayndamp)
+    do i = idi1 , idi2
+      do j = jdi1 , jdi2
+        zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
+        uten(j,i,k) = uten(j,i,k) + tau(zz) * (sval-u(j,i,k))
+      end do
+    end do
+  end do
+  do k = 1 , min(kz,rayndamp)
+    do i = idi1 , idi2
+      do j = jdi1 , jdi2
+        zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
+        vten(j,i,k) = vten(j,i,k) + tau(zz) * (sval-v(j,i,k))
+      end do
+    end do
+  end do
+  end subroutine raydampuv_c
 
   subroutine raydamp3f(z,var,vten,sval)
     implicit none

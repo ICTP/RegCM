@@ -267,6 +267,12 @@ module mod_sun
     call orb_params(rcmtimer%year,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
     call orb_decl(yearpoint(rcmtimer%idate),eccen,mvelpp,lambm0, &
                   obliqr,declin,eccf)
+    ! If we are fixing the solar constant, then fix the declination
+    ! angle and eccentricity factor to constant values
+    if ( ifixsolar == 1 ) then
+      declin = 0.0
+      eccf = 1.0
+    end if
     decdeg = declin/degrad
     if ( myid == italk .and. alarm_day%act( ) ) then
       write (stdout, *) 'At ',rcmtimer%str( )
@@ -301,7 +307,12 @@ module mod_sun
     !
     calday = real(yeardayfrac(rcmtimer%idate),rkx)
     if ( rcmtimer%start( ) .or. doing_restart .or. alarm_day%act( ) ) then
-      solcon = solar_irradiance( )
+      if ( ifixsolar == 1 ) then
+        ! Fix the solar constant; no diurnal or seasonal variability
+        solcon = fixedsolarval
+      else
+        solcon = solar_irradiance( )
+      end if
       scon = solcon*d_1000
       call solar1( )
     end if
