@@ -92,7 +92,7 @@ module mod_ecens
     read (dattyp(4:4),'(i1)') mdlver
     read (dattyp(5:5),'(i1)') ensnum
     fmon = monfirst(globidate1)
-    ifmon = toint10(fmon)/100
+    ifmon = int(toint10(fmon),ik4)/100
     write (fname,'(a,i1,a,i0.8,a,a,a,a,a,i1,a,i0.8,a,i0.2,a)') &
     'ENS', mdlver, pthsep, ifmon , pthsep, trim(ensbase), '.', 'hgt', &
                   '.', ensnum, '.', ifmon, '.', 0, '.nc'
@@ -347,7 +347,7 @@ module mod_ecens
     if ( lfirst .or. (idate > ilastdate) ) then
       do kkrec = 1 , 5
         fmon = monfirst(idate)
-        ifmon = toint10(fmon)/100
+        ifmon = int(toint10(fmon),ik4)/100
         write (fname,'(a,i1,a,i0.8,a,a,a,a,a,i1,a,i0.8,a,i0.2,a)') &
            'ENS', mdlver, pthsep, ifmon , pthsep, trim(ensbase), '.', &
            trim(vfname(kkrec)), '.', ensnum, '.', ifmon, '.', 0, '.nc'

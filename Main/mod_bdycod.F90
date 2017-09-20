@@ -387,7 +387,7 @@ module mod_bdycod
 
     if ( myid == italk ) then
       write (stdout,*) 'READY  BC from     ' , &
-            toint10(bdydate1) , ' to ' , toint10(bdydate2)
+            tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
     end if
 
     bdydate1 = bdydate2
@@ -627,7 +627,7 @@ module mod_bdycod
 
     if ( myid == italk ) then
       write (stdout,*) 'READY  BC from     ' , &
-            toint10(bdydate1) , ' to ' , toint10(bdydate2)
+            tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
     end if
 
     bdydate1 = bdydate2

@@ -1058,6 +1058,7 @@ module mod_date
       z = -((-d%year*1000000)+d%month*10000+d%day*100+t%hour)
     end if
     write(cdat,'(i11.0)') z
+    cdat = adjustl(cdat)
   end function tochar10
 
   integer(ik8) function toint10(x) result(z)

@@ -89,8 +89,8 @@ module mod_sst_eh5om
 
     itbc = rcm_time_interval(idtbc,uhrs)
 
-    g1  = toint10(globidate1)
-    g2  = toint10(globidate2)
+    g1  = int(toint10(globidate1),ik4)
+    g2  = int(toint10(globidate2),ik4)
 
     there = .false.
     fname = 'unknown'
@@ -171,7 +171,7 @@ module mod_sst_eh5om
     inquire(iolength=ilenrec) offset , xscale , ivar
 
     do it = 1 , nsteps
-      i1 = toint10(idate)
+      i1 = int(toint10(idate),ik4)
       call getname(i1,fname,it_base)
       open (11,file=fname, form='unformatted',recl=ilenrec, &
         access='direct', action='read',status='old')

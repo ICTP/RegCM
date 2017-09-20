@@ -187,7 +187,7 @@ module mod_che_bdyco
       chbdydate2 = chbdydate2 + intbdy
 
       if ( myid == italk ) then
-        write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
+        write (stdout,*) 'SEARCH CHBC data for ', tochar10(chbdydate2)
       end if
 
       datefound = chbc_search(chbdydate2)
@@ -223,7 +223,7 @@ module mod_che_bdyco
 
       if ( myid == italk ) then
         write (stdout,*) 'READY  CHBC from     ' , &
-            toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
+            tochar10(chbdydate1) , ' to ' , tochar10(chbdydate2)
       end if
 
       chbdydate1 = chbdydate2
@@ -304,7 +304,7 @@ module mod_che_bdyco
       chib0(:,:,:,:) = chib1(:,:,:,:)
 
       if ( myid == italk ) then
-        write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
+        write (stdout,*) 'SEARCH CHBC data for ', tochar10(chbdydate2)
       end if
 
       datefound = chbc_search(chbdydate2)
@@ -377,7 +377,7 @@ module mod_che_bdyco
 
       if ( myid == italk ) then
         write (stdout,*) 'READY  CHBC from     ' , &
-            toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
+            tochar10(chbdydate1) , ' to ' , tochar10(chbdydate2)
       end if
       chbdydate1 = chbdydate2
     else
