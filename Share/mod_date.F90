@@ -292,7 +292,6 @@ module mod_date
       x%days_from_reference = id + idayofyear(d) - 1
     else
       icorrection = 1
-      if ( d%year <= 1000 ) icorrection = 2
       x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - &
         icorrection
     end if
@@ -379,9 +378,15 @@ module mod_date
   subroutine normidate(idate)
     implicit none
     integer(ik8) , intent(inout) :: idate
-    if (idate < 10000_ik8) idate = idate*1000000_ik8+10100_ik8
-    if (idate < 1000000_ik8) idate = idate*10000_ik8+100_ik8
-    if (idate < 100000000_ik8) idate = idate*100_ik8
+    if ( idate > 0_ik8 ) then
+      if (idate < 10000_ik8) idate = idate*1000000_ik8+10100_ik8
+      if (idate < 1000000_ik8) idate = idate*10000_ik8+100_ik8
+      if (idate < 100000000_ik8) idate = idate*100_ik8
+    else
+      if (idate > -10000_ik8) idate = idate*1000000_ik8-10100_ik8
+      if (idate > -1000000_ik8) idate = idate*10000_ik8-100_ik8
+      if (idate > -100000000_ik8) idate = idate*100_ik8
+    end if
   end subroutine normidate
 
   subroutine split_i10(idate, iy, im, id, ih)
@@ -416,7 +421,7 @@ module mod_date
     call normidate(iidate)
     base = iidate
     iy8 = base/1000000_ik8
-    base = base-iy8*1000000_ik8
+    base = abs(base-iy8*1000000_ik8)
     im8 = base/10000_ik8
     base = base-im8*10000_ik8
     id8 = base/100_ik8
@@ -435,7 +440,7 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call split_i10(i, d%year, d%month, d%day, t%hour)
-    if ( d%year < 0 .or. d%year > 10000 ) then
+    if ( d%year <= -10000 .or. d%year >= 10000 ) then
       call die('mod_date','Inconsistent year in date')
     end if
     if ( d%month < 1 .or. d%month > 12 ) then
@@ -458,7 +463,7 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call split_i10_8(i, d%year, d%month, d%day, t%hour)
-    if ( d%year < 0 .or. d%year > 10000 ) then
+    if ( d%year <= -10000 .or. d%year >= 10000 ) then
       call die('mod_date','Inconsistent year in date')
     end if
     if ( d%month < 1 .or. d%month > 12 ) then
@@ -1033,7 +1038,11 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    z = d%year*1000000+d%month*10000+d%day*100+t%hour;
+    if ( d%year > 0 ) then
+      z = d%year*1000000+d%month*10000+d%day*100+t%hour
+    else
+      z = (-d%year*1000000)+d%month*10000+d%day*100+t%hour
+    end if
     write(cdat,'(i10)') z
   end function tochar10
 
@@ -1043,7 +1052,11 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    z = d%year*1000000+d%month*10000+d%day*100+t%hour;
+    if ( d%year > 0 ) then
+      z = d%year*1000000+d%month*10000+d%day*100+t%hour
+    else
+      z = (-d%year*1000000)+d%month*10000+d%day*100+t%hour
+    end if
   end function toint10
 
   logical function lfdoyear(x) result(l11)
@@ -1085,7 +1098,7 @@ module mod_date
     call check_cal(x,y)
     call days_from_reference_to_date(x,d1)
     call days_from_reference_to_date(y,d2)
-    z = (d1%year-d2%year)*12+(d1%month-d2%month)
+    z = abs((d1%year-d2%year))*12+(d1%month-d2%month)
   end function imondiff
 
   real(rk8) function hourdiff(x,y) result(z)

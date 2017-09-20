@@ -43,6 +43,7 @@ module mod_rrtmg_driver
   use mod_rad_outrad
   use mod_mpmessage
   use mod_runparams
+  use mod_mppparam , only : italk
   use mod_regcm_types
 
   implicit none
@@ -702,8 +703,10 @@ module mod_rrtmg_driver
     ! Transform in mass mixing ratios (g/g) for trcmix
     !
     if ( iyear < 1850 ) then
-      write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
+      if ( rcmtimer%start( ) .and. myid == italk ) then
+        write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
+        write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
+      end if
       co2vmr(:,:)   = cgas(2,1850) * 1.0e-6_rkx
       ch40 = cgas(igh_ch4,1850)*1.0e-9_rkx*(amch4/amd)
       n2o0 = cgas(igh_n2o,1850)*1.0e-9_rkx*(amn2o/amd)
@@ -716,8 +719,10 @@ module mod_rrtmg_driver
       cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
       cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
     else
-      write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
+      if ( rcmtimer%start( ) .and. myid == italk ) then
+        write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
+        write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
+      end if
       co2vmr(:,:)   = cgas(2,2100) * 1.0e-6_rkx
       ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
       n2o0 = cgas(igh_n2o,2100)*1.0e-9_rkx*(amn2o/amd)

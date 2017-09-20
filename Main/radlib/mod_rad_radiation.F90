@@ -24,8 +24,9 @@ module mod_rad_radiation
   use mod_dynparam
   use mod_mpmessage
   use mod_service
-  use mod_runparams , only : idirect , ichem , iclimaaer
+  use mod_runparams , only : idirect , ichem , iclimaaer , rcmtimer
   use mod_runparams , only : scon , cftotmax , lsrfhack
+  use mod_mppparam , only : italk
   use mod_memutil
   use mod_ipcc_scenario
 
@@ -683,8 +684,10 @@ module mod_rad_radiation
     ! appropriate:
     !
     if ( iyear < 1850 ) then
-      write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
+      if ( rcmtimer%start( ) .and. myid == italk ) then
+        write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
+        write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
+      end if
       co2vmr = cgas(igh_co2,1850)*1.0e-6_rkx
       co2mmr = co2vmr*(amco2/amd)
       ch40 = cgas(igh_ch4,1850)*1.0e-9_rkx*(amch4/amd)
@@ -699,8 +702,10 @@ module mod_rad_radiation
       cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
       cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
     else
-      write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
-      write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
+      if ( rcmtimer%start( ) .and. myid == italk ) then
+        write (stderr,*) 'Loading gas scenario for simulation year: ', iyear
+        write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
+      end if
       co2vmr = cgas(igh_co2,2100)*1.0e-6_rkx
       co2mmr = co2vmr*(amco2/amd)
       ch40 = cgas(igh_ch4,2100)*1.0e-9_rkx*(amch4/amd)
