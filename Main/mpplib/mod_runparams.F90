@@ -125,9 +125,9 @@ module mod_runparams
   ! Wave model switch indexes
   integer(ik4) , public :: iwavcpl
   ! Radiation switch controls
-  integer(ik4) , public :: idirect , iindirect , iemiss , isolconst, ifixsolar
-  ! Fixed solar constant for ifixsolar=1
-  real(rkx), public :: fixedsolarval
+  integer(ik4) , public :: idirect , iindirect , iemiss , isolconst , ifixsolar
+  ! Fixed solar constant for ifixsolar = 1
+  real(rkx) , public :: fixedsolarval
   ! Semi-Langrangian advection for tracers
   integer(ik4) , public :: isladvec
   integer(ik4) , public :: iqmsl

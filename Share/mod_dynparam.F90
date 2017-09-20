@@ -426,7 +426,7 @@ module mod_dynparam
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-      plon , truelatl, truelath , i_band, i_crm
+      plon , truelatl, truelath , i_band , i_crm
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
@@ -563,7 +563,7 @@ module mod_dynparam
 
     nveg = 22
 
-    if ( i_crm == 1) then
+    if ( i_crm == 1 ) then
       iproj = 'NORMER'
       clat  =   0.0_rkx
       clon  = 180.0_rkx

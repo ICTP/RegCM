@@ -102,7 +102,7 @@ module mod_params
       scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat , &
       icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud , &
       islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,      &
-      ghg_year_const, ifixsolar, fixedsolarval
+      ghg_year_const , ifixsolar , fixedsolarval
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , upu , umax , stability_enhance ,             &

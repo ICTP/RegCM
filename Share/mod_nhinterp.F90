@@ -355,7 +355,7 @@ module mod_nhinterp
     subroutine nhw(i1,i2,j1,j2,kxs,sigma,dsigma,u,v,tv, &
                    ps,psdot,ps0,xmsfx,w,wtop,ds,iband,icrm)
       implicit none
-      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband, icrm
+      integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kxs , iband , icrm
       real(rkx) , pointer , intent(in) , dimension(:) :: sigma , dsigma
       real(rkx) , pointer , intent(in) , dimension(:,:) :: xmsfx
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0 , psdot
@@ -429,7 +429,6 @@ module mod_nhinterp
               im = i - 1
             end if
           end if
-
           if ( iband /= 1 ) then
             jp = min(j+1,j2)
             jm = max(j-1,j1)
@@ -449,6 +448,7 @@ module mod_nhinterp
               jm = j - 1
             end if
           end if
+
           mdv(:) = d_zero
           do l = 1 , kxs
             ua = u(j ,i ,l) * psdot(j,i)  + &

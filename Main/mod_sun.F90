@@ -270,8 +270,8 @@ module mod_sun
     ! If we are fixing the solar constant, then fix the declination
     ! angle and eccentricity factor to constant values
     if ( ifixsolar == 1 ) then
-      declin = 0.0
-      eccf = 1.0
+      declin = 0.0_rkx
+      eccf = 1.0_rkx
     end if
     decdeg = declin/degrad
     if ( myid == italk .and. alarm_day%act( ) ) then
