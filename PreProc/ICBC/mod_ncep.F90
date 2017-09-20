@@ -239,7 +239,7 @@ module mod_ncep
     use netcdf
     implicit none
     integer(ik4) :: i , j , k , inet , it , kkrec , istatus
-    character(len=256) :: pathaddname
+    character(len=256) , save :: pathaddname
     character(len=5) , dimension(5) :: varname
     real(rkx) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
@@ -301,7 +301,7 @@ module mod_ncep
       istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Variable '//varname(kkrec)// &
-                      'read error in file'//trim(pathaddname))
+                      'read error in file '//trim(pathaddname))
       if ( kkrec == 1 ) then
         do k = 1 , klev
           do j = 1 , jlat
@@ -355,7 +355,7 @@ module mod_ncep
     implicit none
     type(rcm_time_and_date) , intent (in) :: idate
     integer(ik4) :: i , ilev , inet , it , j , kkrec , k , nlev , istatus
-    character(len=256) :: pathaddname
+    character(len=256) , save :: pathaddname
     character(len=5) , dimension(5) :: varname
     real(rkx) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
@@ -423,7 +423,7 @@ module mod_ncep
       istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Variable '//varname(kkrec)// &
-                      'read error in file'//trim(pathaddname))
+                      'read error in file '//trim(pathaddname))
       xscale = xscl(kkrec)
       xadd = xoff(kkrec)
       do ilev = 1 , nlev
