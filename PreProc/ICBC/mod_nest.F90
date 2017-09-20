@@ -105,7 +105,7 @@ module mod_nest
     real(rkx) :: tlp , pr0_in , maxps , minps
 
     imf = monfirst(globidate1)
-    write (fillin,'(a,i10)') 'ATM.', toint10(imf)
+    write (fillin,'(a,a)') 'ATM.', trim(tochar10(imf))
 
     if ( coarsedir(1:5) == '     ' ) then
       inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
@@ -382,7 +382,7 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close')
       imf = monfirst(idate)
-      write (fillin,'(a,i10)') 'ATM.', toint10(imf)
+      write (fillin,'(a,a)') 'ATM.', trim(tochar10(imf))
       if ( coarsedir(1:5) == '     ' ) then
         inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
       else
@@ -419,7 +419,7 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close '//trim(inpfile))
       imf = prevmon(idate)
-      write (fillin,'(a,i10)') 'ATM.', toint10(imf)
+      write (fillin,'(a,a)') 'ATM.', trim(tochar10(imf))
       if ( coarsedir(1:5) == '     ' ) then
         inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
       else
@@ -460,7 +460,7 @@ module mod_nest
       end if
     end do
     if ( irec < 0 ) then
-      write (stderr,*) 'Error : time ', tochar(idate), ' not in file'
+      write (stderr,*) 'Error : time ', trim(tochar(idate)), ' not in file'
       call die('get_nest')
     end if
 
@@ -550,7 +550,7 @@ module mod_nest
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable ts read error')
 
-    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    write (stdout,*) 'READ IN fields at DATE:' , trim(tochar(idate))
     !
     ! Calculate Heights on sigma surfaces.
     !

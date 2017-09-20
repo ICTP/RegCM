@@ -79,7 +79,7 @@ module mod_ch_fnest
     logical , intent(in) :: dochem , dooxcl , doaero
     type(direntry) , pointer , dimension(:) :: listf => null()
     type(rcm_time_and_date) :: imf
-    character(len=10) :: cdate
+    character(len=11) :: cdate
     character(len=256) :: fname , icbcfilename
     integer(ik4) :: fnum , nf , is , ie , ip , i , j , k
     real(rkx) , dimension(2) :: trlat
@@ -100,9 +100,9 @@ module mod_ch_fnest
     fnum = size(listf)
     fchem = 0
     imf = monfirst(idate)
-    write(cdate,'(i10)') toint10(imf)
-    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-           trim(domname), '_ICBC.', toint10(idate), '.nc'
+    write(cdate,'(a)') tochar10(imf)
+    write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+           trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
     do nf = 1 , fnum
       if ( index(listf(nf)%ename,trim(cname)) /= 0 .and. &
            index(listf(nf)%ename,'.nc') /= 0 .and. &
@@ -133,7 +133,7 @@ module mod_ch_fnest
     write(cbase,'(a,a1,a,a1)') trim(cdir),pthsep,trim(cname),'_'
     do nf = 1 , fchem
       write(fname,'(a,a,a1,a,a)') trim(cbase), trim(chnames(nf)), &
-                  '.', cdate, '.nc'
+                  '.', trim(cdate), '.nc'
       istatus = nf90_open(fname,nf90_nowrite,ncid(nf))
       call checkncerr(istatus,__FILE__,__LINE__, &
               'Error open file chemical '//trim(fname))
@@ -340,7 +340,7 @@ module mod_ch_fnest
   subroutine get_fnest(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: cdate
+    character(len=11) :: cdate
     character(len=256) :: fname , icbcfilename
     type(rcm_time_and_date) :: imf
     integer(ik4) :: nf , i , j , k , l , crec , k0
@@ -351,11 +351,11 @@ module mod_ch_fnest
 
     if ( idate > itimes(nrec) ) then
       imf = monfirst(idate)
-      write(cdate,'(i10)') toint10(imf)
+      write(cdate,'(a)') tochar10(imf)
       do nf = 1 , fchem
         istatus = nf90_close(ncid(nf))
         write(fname,'(a,a,a1,a,a)') trim(cbase), trim(chnames(nf)), &
-                  '.', cdate, '.nc'
+                  '.', trim(cdate), '.nc'
         istatus = nf90_open(fname,nf90_nowrite,ncid(nf))
         call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error open file chemical '//trim(fname))
@@ -385,11 +385,11 @@ module mod_ch_fnest
       end do
     else if ( idate < itimes(1) ) then
       imf = prevmon(idate)
-      write(cdate,'(i10)') toint10(imf)
+      write(cdate,'(a)') tochar10(imf)
       do nf = 1 , fchem
         istatus = nf90_close(ncid(nf))
         write(fname,'(a,a,a1,a,a)') trim(cbase), trim(chnames(nf)), &
-                  '.', cdate, '.nc'
+                  '.', trim(cdate), '.nc'
         istatus = nf90_open(fname,nf90_nowrite,ncid(nf))
         call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error open file chemical '//trim(fname))
@@ -423,8 +423,8 @@ module mod_ch_fnest
       istatus = nf90_close(ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close ICBC file')
-      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-             trim(domname), '_ICBC.', toint10(idate), '.nc'
+      write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+             trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
       istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open ICBC file '//trim(icbcfilename))

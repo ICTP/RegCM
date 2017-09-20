@@ -253,8 +253,8 @@ module mod_wrtoxd
     integer(ik4) :: ivar
 
     call outstream_dispose(ncoutch)
-    write (ofname,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, trim(domname), &
-      '_CHBC.', toint10(idate1), '.nc'
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, trim(domname), &
+      '_CHBC.', trim(tochar10(idate1)), '.nc'
     opar%fname = ofname
     opar%pname = 'chem_icbc'
     opar%zero_date = idate1
@@ -287,8 +287,8 @@ module mod_wrtoxd
     integer(ik4) :: ivar
 
     call outstream_dispose(ncoutox)
-    write (ofname,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, trim(domname), &
-      '_OXBC.', toint10(idate1), '.nc'
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, trim(domname), &
+      '_OXBC.', trim(tochar10(idate1)), '.nc'
     opar%fname = ofname
     opar%pname = 'chem_icbc'
     opar%zero_date = idate1
@@ -322,8 +322,8 @@ module mod_wrtoxd
     integer(ik4) :: ivar
 
     call outstream_dispose(ncoutae)
-    write (ofname,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, trim(domname), &
-      '_AEBC.', toint10(idate1), '.nc'
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, trim(domname), &
+      '_AEBC.', trim(tochar10(idate1)), '.nc'
     opar%fname = ofname
     opar%pname = 'chem_icbc'
     opar%zero_date = idate1

@@ -74,8 +74,8 @@ module mod_ox_icbc
 
     oxifile = trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
               'oxid_3d_64x128_L26_c030722.nc'
-    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-           trim(domname), '_ICBC.', toint10(idate), '.nc'
+    write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+           trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
 
     write(stdout,*) 'Opening ',trim(oxifile)
     istatus = nf90_open(oxifile, nf90_nowrite, ncid)
@@ -203,8 +203,8 @@ module mod_ox_icbc
       istatus = nf90_close(ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close ICBC file')
-      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-             trim(domname), '_ICBC.', toint10(idate), '.nc'
+      write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+             trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
       istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open ICBC file '//trim(icbcfilename))

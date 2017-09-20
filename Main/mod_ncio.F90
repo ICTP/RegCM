@@ -466,7 +466,7 @@ module mod_ncio
 
   subroutine open_icbc(idate)
     type(rcm_time_and_date) , intent(in) :: idate
-    character(len=10) :: ctime
+    character(len=11) :: ctime
     integer(ik4) :: idimid , itvar , i , chkdiff
     real(rkx) , dimension(:) , allocatable :: icbc_nctime
     character(len=64) :: icbc_timeunits , icbc_timecal
@@ -475,8 +475,9 @@ module mod_ncio
       return
     end if
     call close_icbc
-    write (ctime, '(i10)') toint10(idate)
-    icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//ctime//'.nc'
+    write (ctime, '(a)') tochar10(idate)
+    icbcname = trim(dirglob)//pthsep//trim(domname)// &
+               '_ICBC.'//trim(ctime)//'.nc'
     call openfile_withname(icbcname,ibcin)
     ibcrec = 1
     ibcnrec = 0

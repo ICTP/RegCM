@@ -1358,7 +1358,7 @@ module mod_rad_aerosol
       character(len=256) :: aefile
       real(rkx) , allocatable , dimension(:) :: xtime
       character(len=64) :: timeunits , timecal
-      character(len=10) :: ctime
+      character(len=11) :: ctime
 
       if ( .not. do_parallel_netcdf_in ) then
         if ( myid /= iocpu ) then
@@ -1371,8 +1371,9 @@ module mod_rad_aerosol
 
       call close_aerclima
 
-      write (ctime, '(i10)') toint10(idate)
-      aefile = trim(dirglob)//pthsep//trim(domname)//'_AEBC.'//ctime//'.nc'
+      write (ctime, '(a)') tochar10(idate)
+      aefile = trim(dirglob)//pthsep//trim(domname)// &
+               '_AEBC.'//trim(ctime)//'.nc'
 
       write (stdout, *) 'Opening aerosol file : '//trim(aefile)
 

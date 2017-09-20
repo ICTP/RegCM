@@ -1096,7 +1096,7 @@ module mod_che_ncio
     subroutine open_chbc(idate)
       implicit none
       type(rcm_time_and_date) , intent(in) :: idate
-      character(len=10) :: ctime
+      character(len=11) :: ctime
       integer(ik4) :: ibcid , idimid , itvar , i , chkdiff
       real(rkx) , dimension(:) , allocatable :: icbc_nctime
       character(len=64) :: icbc_timeunits , icbc_timecal
@@ -1107,21 +1107,24 @@ module mod_che_ncio
       end if
 
       call close_chbc
-      write (ctime, '(i10)') toint10(idate)
+      write (ctime, '(a)') tochar10(idate)
       if ( igaschem == 1 ) then
-        icbcname = trim(dirglob)//pthsep//trim(domname)//'_CHBC.'//ctime//'.nc'
+        icbcname = trim(dirglob)//pthsep//trim(domname)// &
+                   '_CHBC.'//trim(ctime)//'.nc'
         call openfile_withname(icbcname,ichin)
         call check_dims(ichin)
         ibcid = ichin
       end if
       if ( iaerosol == 1 ) then
-        icbcname = trim(dirglob)//pthsep//trim(domname)//'_AEBC.'//ctime//'.nc'
+        icbcname = trim(dirglob)//pthsep//trim(domname)// &
+                   '_AEBC.'//trim(ctime)//'.nc'
         call openfile_withname(icbcname,iaein)
         call check_dims(iaein)
         ibcid = iaein
       end if
       if ( ioxclim == 1 ) then
-        icbcname = trim(dirglob)//pthsep//trim(domname)//'_OXBC.'//ctime//'.nc'
+        icbcname = trim(dirglob)//pthsep//trim(domname)// &
+                   '_OXBC.'//trim(ctime)//'.nc'
         call openfile_withname(icbcname,ioxin)
         call check_dims(iaein)
         ibcid = ioxin

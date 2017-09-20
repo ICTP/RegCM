@@ -97,8 +97,8 @@ module mod_ch_icbc_clim
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
        'mz4_19990401.nc'
-    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-           trim(domname), '_ICBC.', toint10(idate), '.nc'
+    write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+           trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
 
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -223,8 +223,8 @@ module mod_ch_icbc_clim
       istatus = nf90_close(ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close ICBC file')
-      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-             trim(domname), '_ICBC.', toint10(idate), '.nc'
+      write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+             trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
       istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open ICBC file '//trim(icbcfilename))

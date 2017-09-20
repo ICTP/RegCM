@@ -324,7 +324,7 @@ module mod_savefile
     character(32) :: fbname
 
     if ( myid == iocpu ) then
-      write (fbname, '(a,i10)') 'SAV.', toint10(idate)
+      write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
       ffin = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
       ncstatus = nf90_open(ffin,nf90_nowrite,ncid)
       call check_ok(__FILE__,__LINE__,'Cannot open savefile '//trim(ffin))
@@ -591,7 +591,7 @@ module mod_savefile
 #endif
 
     if ( myid == iocpu ) then
-      write (fbname, '(a,i10)') 'SAV.', toint10(idate)
+      write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
       ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
 
       ! Use 64-bit offset format file, instead of a netCDF classic format file.

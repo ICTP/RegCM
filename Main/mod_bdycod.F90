@@ -337,7 +337,7 @@ module mod_bdycod
 
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
-      write(stdout,'(a,i10,a,i8)') ' SEARCH BC data for ', toint10(bdydate2), &
+      write(stdout,'(a,a,a,i8)') ' SEARCH BC data for ', tochar10(bdydate2), &
                       ', step = ', rcmtimer%lcount
     end if
     datefound = icbc_search(bdydate2)
@@ -484,7 +484,7 @@ module mod_bdycod
 
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
-      write(stdout,'(a,i10,a,i8)') ' SEARCH BC data for ', toint10(bdydate2), &
+      write(stdout,'(a,a,a,i8)') ' SEARCH BC data for ', tochar10(bdydate2), &
                       ', step = ', rcmtimer%lcount
     end if
     datefound = icbc_search(bdydate2)

@@ -170,8 +170,8 @@ module mod_write
     character(len=256) :: ofname
 
     call outstream_dispose(ncout)
-    write (ofname,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-      trim(domname), '_ICBC.', toint10(idate1), '.nc'
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+      trim(domname), '_ICBC.', trim(tochar10(idate1)), '.nc'
     opar%fname = ofname
     opar%pname = 'icbc'
     opar%zero_date = idate1

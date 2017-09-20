@@ -96,8 +96,8 @@ module mod_ae_icbc
        trim(inpglob)//pthsep//'AERGLOB'//pthsep// &
        trim(scendir(iscen))//pthsep//'aero_1.9x2.5_L26_', &
        iyear, '-', iyear+9, '.nc'
-    write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-            trim(domname), '_ICBC.', toint10(idate), '.nc'
+    write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+            trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
 
     write(stdout,*) 'Opening ',trim(aefilename)
     istatus = nf90_open(aefilename,nf90_nowrite, ncid)
@@ -249,8 +249,8 @@ module mod_ae_icbc
       istatus = nf90_close(ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close ICBC file')
-      write (icbcfilename,'(a,a,a,a,i10,a)') trim(dirglob), pthsep, &
-              trim(domname), '_ICBC.', toint10(idate), '.nc'
+      write (icbcfilename,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+              trim(domname), '_ICBC.', trim(tochar10(idate)), '.nc'
       istatus = nf90_open(icbcfilename,nf90_nowrite, ncicbc)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open ICBC file '//trim(icbcfilename))

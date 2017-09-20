@@ -609,19 +609,33 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    write (cdat,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
-       d%year, d%month, d%day, t%hour, t%minute, t%second
+    if ( d%year > 0 ) then
+      write (cdat, &
+        '(" ",i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
+         d%year, d%month, d%day, t%hour, t%minute, t%second
+    else
+      write (cdat, &
+        '("-",i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
+         -d%year, d%month, d%day, t%hour, t%minute, t%second
+    end if
   end function tochar
 
   function toiso8601(x) result(cdat)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
-    character (len=20) :: cdat
+    character (len=21) :: cdat ! Accomodate for - sign
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    write (cdat,'(i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2,"Z")') &
-       d%year, d%month, d%day, t%hour, t%minute, t%second
+    if ( d%year > 0 ) then
+      write (cdat, &
+         '(" ",i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2,"Z")') &
+         d%year, d%month, d%day, t%hour, t%minute, t%second
+    else
+      write (cdat, &
+         '("-",i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2,"Z")') &
+         -d%year, d%month, d%day, t%hour, t%minute, t%second
+    end if
   end function toiso8601
 
   subroutine print_rcm_time_and_date(x)
@@ -1033,7 +1047,7 @@ module mod_date
   function tochar10(x) result(cdat)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
-    character (len=10) :: cdat
+    character (len=11) :: cdat
     integer(ik4) :: z
     type (iadate) :: d
     type (iatime) :: t
@@ -1041,12 +1055,12 @@ module mod_date
     if ( d%year > 0 ) then
       z = d%year*1000000+d%month*10000+d%day*100+t%hour
     else
-      z = (-d%year*1000000)+d%month*10000+d%day*100+t%hour
+      z = -((-d%year*1000000)+d%month*10000+d%day*100+t%hour)
     end if
-    write(cdat,'(i10)') z
+    write(cdat,'(i11.0)') z
   end function tochar10
 
-  integer(ik4) function toint10(x) result(z)
+  integer(ik8) function toint10(x) result(z)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
@@ -1055,7 +1069,7 @@ module mod_date
     if ( d%year > 0 ) then
       z = d%year*1000000+d%month*10000+d%day*100+t%hour
     else
-      z = (-d%year*1000000)+d%month*10000+d%day*100+t%hour
+      z = -((-d%year*1000000)+d%month*10000+d%day*100+t%hour)
     end if
   end function toint10
 

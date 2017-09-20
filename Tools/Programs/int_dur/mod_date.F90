@@ -19,6 +19,8 @@
 
 module mod_date
 
+  implicit none
+
   private
 
   integer , parameter :: ik8 = selected_int_kind(R=18)
@@ -54,6 +56,7 @@ module mod_date
   integer(ik4) , public , parameter :: ucnt = 7
 
   integer(ik4) , parameter :: reference_year = 1900
+  integer(ik4) , parameter :: cordex_refdate = 1949120100
 
   character (len=16) , public , dimension(7) :: cintstr
   character (len=12) , public , dimension(3) :: calstr
@@ -62,7 +65,7 @@ module mod_date
 
   type rcm_time_and_date
     integer(ik4) :: calendar = gregorian
-    integer(ik4) :: days_from_reference = 0
+    integer(ik8) :: days_from_reference = 0
     integer(ik4) :: second_of_day = 0
   end type rcm_time_and_date
 
@@ -85,8 +88,11 @@ module mod_date
   end type iatime
 
   interface assignment(=)
-    module procedure initfromintdt , initfromtypedt
-    module procedure initfromintit , initfromdbleit , initfromtypeit
+    module procedure initfromintdt , initfromint8dt , initfromtypedt
+    module procedure initfromintit ,    &
+                     initfromsingleit , &
+                     initfromdoubleit , &
+                     initfromtypeit
   end interface assignment(=)
 
   interface operator(==)
@@ -126,7 +132,20 @@ module mod_date
   end interface
 
   interface split_idate
-    module procedure split_i10 , split_rcm_time_and_date
+    module procedure split_i10 , split_i10_8 , split_rcm_time_and_date , &
+                    split_rcm_time_and_date_complete , split_rcm_date
+  end interface
+
+  interface date_is
+    module procedure full_date_is , daymon_is
+  end interface date_is
+
+  interface time_is
+    module procedure time_complete_is , time_of_day_is
+  end interface time_is
+
+  interface timeval2date
+    module procedure timeval2date_single , timeval2date_double
   end interface
 
   public :: timeval2ym
@@ -135,15 +154,20 @@ module mod_date
   public :: operator(>) , operator(<) , operator(>=) , &
             operator(<=) , operator(/=)
   public :: print_rcm_time_and_date , print_rcm_time_interval
-  public :: setcal
-  public :: tochar , toint10 , tohours
+  public :: setcal , set_timeunit
+  public :: tochar , toint10 , tochar10 , tohours , toiso8601
   public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
   public :: hourdiff , nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek
   public :: timeval2date , lfdomonth , lfdoyear , lmidnight , yeardayfrac
-  public :: split_idate , julianday , lleap
+  public :: split_idate , julianday
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
+  public :: date_is , time_is
+  public :: curr_date , ref_date , curr_time , calendar_str
+  public :: date_in_scenario
+  public :: ndaypm , yeardays , yearpoint
+  public :: lleap
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -152,9 +176,21 @@ module mod_date
 
   contains
 
-  function lleap(iyear)
+  pure integer(ik4) function ndaypm(y,m,cal)
     implicit none
-    logical :: lleap
+    integer(ik4) , intent(in) :: y , m , cal
+    select case (cal)
+      case (gregorian)
+        ndaypm = mdays_leap(y, m)
+      case (noleap)
+        ndaypm = mlen(m)
+      case (y360)
+        ndaypm = 30
+    end select
+  end function ndaypm
+
+  pure logical function lleap(iyear)
+    implicit none
     integer(ik4) , intent(in) :: iyear
     if ( mod(iyear,400) == 0 .or.  &
         ( mod(iyear,4) == 0 .and. mod(iyear,100) /= 0 ) ) then
@@ -164,7 +200,7 @@ module mod_date
     end if
   end function lleap
 
-  integer(ik4) function mdays_leap(iyear, imon) result(mdays)
+  pure integer(ik4) function mdays_leap(iyear, imon) result(mdays)
     implicit none
     integer(ik4) , intent(in) :: iyear , imon
     if (imon /= 2) then
@@ -193,9 +229,11 @@ module mod_date
 
   subroutine idayofyear_to_monthdate(j,y,c,m,d)
     implicit none
-    integer(ik4) , intent(in) :: j , y , c
+    integer(ik8) , intent(in) :: j
+    integer(ik4) , intent(in) :: y , c
     integer(ik4) , intent(out) :: m , d
-    integer(ik4) :: id , md
+    integer(ik8) :: id
+    integer(ik4) :: md
     id = j
     m = 1
     d = 1
@@ -218,7 +256,7 @@ module mod_date
           md = mdays_leap(y,m)
         end do
     end select
-    d = id
+    d = int(id,ik4)
   end subroutine idayofyear_to_monthdate
 
   integer(ik4) function idayofyear(x) result(id)
@@ -241,7 +279,8 @@ module mod_date
   subroutine date_to_days_from_reference(d,x)
     type(iadate) , intent(in) :: d
     type(rcm_time_and_date) , intent(inout) :: x
-    integer(ik4) :: ny , ipm , id , iy
+    integer(ik4) :: ny , ipm , iy , icorrection
+    integer(ik8) :: id
     x%calendar = d%calendar
     ny = d%year - reference_year
     ipm = isign(1,ny)
@@ -257,21 +296,24 @@ module mod_date
     if ( ipm > 0 ) then
       x%days_from_reference = id + idayofyear(d) - 1
     else
-      x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - 1
+      icorrection = 1
+      x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - &
+        icorrection
     end if
   end subroutine date_to_days_from_reference
 
   subroutine days_from_reference_to_date(x,d)
     type(rcm_time_and_date) , intent(in) :: x
     type(iadate) , intent(out) :: d
-    integer(ik4) :: id , ipm , iy
+    integer(ik4) :: iy
+    integer(ik8) :: ipm , id
     d%calendar = x%calendar
     id = x%days_from_reference
-    ipm = isign(1,id)
+    ipm = sign(1_ik8,id)
     d%year = reference_year
     iy = yeardays(d%year,d%calendar)
     do while ((id*ipm) >= iy)
-      d%year = d%year + ipm
+      d%year = d%year + int(ipm,ik4)
       id = id - ipm*iy
       iy = yeardays(d%year,d%calendar)
     end do
@@ -279,7 +321,11 @@ module mod_date
       call idayofyear_to_monthdate(id+1,d%year,d%calendar,d%month,d%day)
     else
       d%year = d%year - 1
-      id = yeardays(d%year,d%calendar)+id
+      if ( id > 0 ) then
+        id = yeardays(d%year,d%calendar)+id
+      else
+        id = yeardays(d%year,d%calendar)+id+1
+      end if
       call idayofyear_to_monthdate(id,d%year,d%calendar,d%month,d%day)
     end if
   end subroutine days_from_reference_to_date
@@ -293,15 +339,9 @@ module mod_date
   subroutine second_of_day_to_time(x,t)
     type(rcm_time_and_date) , intent(in) :: x
     type(iatime) , intent(out) :: t
-    integer(ik4) :: i1 , i2
-    i1 = x%second_of_day
-    i2 = i1/3600
-    t%hour = i2
-    i1 = i1-i2*3600
-    i2 = i1/60
-    t%minute = i2
-    i1 = i1-i2*60
-    t%second = i1
+    t%hour = x%second_of_day/3600
+    t%minute = mod(x%second_of_day,3600)/60
+    t%second = mod(x%second_of_day,60)
   end subroutine second_of_day_to_time
 
   subroutine date_time_to_internal(d,t,x)
@@ -342,28 +382,61 @@ module mod_date
 
   subroutine normidate(idate)
     implicit none
-    integer(ik4) , intent(inout) :: idate
-    if (idate < 10000) idate = idate*1000000+10100
-    if (idate < 1000000) idate = idate*10000+100
-    if (idate < 100000000) idate = idate*100
+    integer(ik8) , intent(inout) :: idate
+    if ( idate > 0_ik8 ) then
+      if (idate < 10000_ik8) idate = idate*1000000_ik8+10100_ik8
+      if (idate < 1000000_ik8) idate = idate*10000_ik8+100_ik8
+      if (idate < 100000000_ik8) idate = idate*100_ik8
+    else
+      if (idate > -10000_ik8) idate = idate*1000000_ik8-10100_ik8
+      if (idate > -1000000_ik8) idate = idate*10000_ik8-100_ik8
+      if (idate > -100000000_ik8) idate = idate*100_ik8
+    end if
   end subroutine normidate
 
   subroutine split_i10(idate, iy, im, id, ih)
     implicit none
     integer(ik4) , intent(in) :: idate
     integer(ik4) , intent(out) :: iy , im , id , ih
-    integer(ik4) :: base , iidate
+    integer(ik8) :: base , iidate
+    integer(ik8) :: iy8 , im8 , id8 , ih8
+    iidate = int(idate,ik8)
+    call normidate(iidate)
+    base = iidate
+    iy8 = base/1000000_ik8
+    base = base-iy8*1000000_ik8
+    im8 = base/10000_ik8
+    base = base-im8*10000_ik8
+    id8 = base/100_ik8
+    base = base-id8*100_ik8
+    ih8 = base
+    iy = int(iy8,ik4)
+    im = int(im8,ik4)
+    id = int(id8,ik4)
+    ih = int(ih8,ik4)
+  end subroutine split_i10
+
+  subroutine split_i10_8(idate, iy, im, id, ih)
+    implicit none
+    integer(ik8) , intent(in) :: idate
+    integer(ik4) , intent(out) :: iy , im , id , ih
+    integer(ik8) :: base , iidate
+    integer(ik8) :: iy8 , im8 , id8 , ih8
     iidate = idate
     call normidate(iidate)
     base = iidate
-    iy = base/1000000
-    base = base-iy*1000000
-    im = base/10000
-    base = base-im*10000
-    id = base/100
-    base = base-id*100
-    ih = base
-  end subroutine split_i10
+    iy8 = base/1000000_ik8
+    base = abs(base-iy8*1000000_ik8)
+    im8 = base/10000_ik8
+    base = base-im8*10000_ik8
+    id8 = base/100_ik8
+    base = base-id8*100_ik8
+    ih8 = base
+    iy = int(iy8,ik4)
+    im = int(im8,ik4)
+    id = int(id8,ik4)
+    ih = int(ih8,ik4)
+  end subroutine split_i10_8
 
   subroutine initfromintdt(x, i)
     implicit none
@@ -372,7 +445,7 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call split_i10(i, d%year, d%month, d%day, t%hour)
-    if ( d%year < 0 .or. d%year > 10000 ) then
+    if ( d%year <= -10000 .or. d%year >= 10000 ) then
       write(0,*) 'Inconsistent year in date'
       stop
     end if
@@ -392,6 +465,33 @@ module mod_date
     call date_time_to_internal(d,t,x)
   end subroutine initfromintdt
 
+  subroutine initfromint8dt(x, i)
+    implicit none
+    integer(ik8) , intent(in) :: i
+    type (rcm_time_and_date) , intent(out) :: x
+    type (iadate) :: d
+    type (iatime) :: t
+    call split_i10_8(i, d%year, d%month, d%day, t%hour)
+    if ( d%year <= -10000 .or. d%year >= 10000 ) then
+      write(0,*) 'Inconsistent year in date'
+      stop
+    end if
+    if ( d%month < 1 .or. d%month > 12 ) then
+      write(0,*) 'Inconsistent month in date'
+      stop
+    end if
+    if ( d%day < 1 .or. d%day > 31 ) then
+      write(0,*) 'Inconsistent day in date'
+      stop
+    end if
+    if ( t%hour+1 < 1 .or. t%hour+1 > 24 ) then
+      write(0,*) 'Inconsistent hour in date'
+      stop
+    end if
+    d%calendar = gregorian
+    call date_time_to_internal(d,t,x)
+  end subroutine initfromint8dt
+
   subroutine initfromintit(x, i)
     implicit none
     type (rcm_time_interval) , intent(out) :: x
@@ -400,19 +500,29 @@ module mod_date
     x%iunit = usec
   end subroutine initfromintit
 
-  subroutine initfromdbleit(x, d)
+  subroutine initfromsingleit(x, d)
+    implicit none
+    type (rcm_time_interval) , intent(out) :: x
+    real(rk4) , intent(in) :: d
+    x%ival = int(d,ik8)
+    x%iunit = usec
+  end subroutine initfromsingleit
+
+  subroutine initfromdoubleit(x, d)
     implicit none
     type (rcm_time_interval) , intent(out) :: x
     real(rk8) , intent(in) :: d
-    x%ival = d
+    x%ival = int(d,ik8)
     x%iunit = usec
-  end subroutine initfromdbleit
+  end subroutine initfromdoubleit
 
   subroutine set_caltype(x, y)
     implicit none
     type (rcm_time_and_date) , intent(inout) :: x
     type (rcm_time_and_date) , intent(in) :: y
-    x%calendar = y%calendar
+    if ( y%calendar /= x%calendar) then
+      call set_calint(x,y%calendar)
+    end if
   end subroutine set_caltype
 
   subroutine set_calint(x, c)
@@ -442,13 +552,19 @@ module mod_date
     type (rcm_time_and_date) , intent(inout) :: x
     character (len=*) , intent(in) :: c
     integer(ik4) :: ic
-    if ( c == 'gregorian' ) then
+    if ( c == 'gregorian' .or. &
+         c == 'standard' ) then
       ic = gregorian
-    else if ( c(1:6) == 'noleap' .or.   &
-              c(1:8) == 'days_365' .or. &
-              c(1:7) == '365_day' ) then
+    else if ( c == 'noleap' .or.   &
+              c == 'days_365' .or. &
+              c == 'day_365' .or.  &
+              c == '365_days' .or. &
+              c == '365_day' ) then
       ic = noleap
-    else if ( c(1:7) == 'days_360' ) then
+    else if ( c == 'days_360' .or. &
+              c == 'day_360' .or.  &
+              c == '360_days' .or. &
+              c == '360_day' ) then
       ic = y360
     else
       write (0,*) 'Unknown calendar, using Julian/Gregorian'
@@ -506,9 +622,34 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    write (cdat,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
-       d%year, d%month, d%day, t%hour, t%minute, t%second
+    if ( d%year > 0 ) then
+      write (cdat, &
+        '(" ",i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
+         d%year, d%month, d%day, t%hour, t%minute, t%second
+    else
+      write (cdat, &
+        '("-",i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
+         -d%year, d%month, d%day, t%hour, t%minute, t%second
+    end if
   end function tochar
+
+  function toiso8601(x) result(cdat)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    character (len=21) :: cdat ! Accomodate for - sign
+    type (iadate) :: d
+    type (iatime) :: t
+    call internal_to_date_time(x,d,t)
+    if ( d%year > 0 ) then
+      write (cdat, &
+         '(" ",i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2,"Z")') &
+         d%year, d%month, d%day, t%hour, t%minute, t%second
+    else
+      write (cdat, &
+         '("-",i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2,"Z")') &
+         -d%year, d%month, d%day, t%hour, t%minute, t%second
+    end if
+  end function toiso8601
 
   subroutine print_rcm_time_and_date(x)
     implicit none
@@ -713,27 +854,27 @@ module mod_date
     select case (y%iunit)
       case (usec)
         tmp = tmp + z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference + tmp
       case (umin)
         tmp = tmp*i8spm+z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference + tmp
       case (uhrs)
         tmp = tmp*i8sph+z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
@@ -743,38 +884,43 @@ module mod_date
       case (umnt)
         call days_from_reference_to_date(x,d)
         ! Adjust date of the month: This is really a trick...
+        ! It is to have 14 as February middle month for Gregorian.
         select case (z%calendar)
           case (gregorian)
-            dm = dble(d%day)/dble(mdays_leap(d%year, d%month))
+            dm = real(d%day-1,rk8)/real(mdays_leap(d%year, d%month),rk8)
           case (noleap)
-            dm = dble(d%day)/dble(mlen(d%month))
+            dm = real(d%day-1,rk8)/real(mlen(d%month),rk8)
+          case default
+            dm = real(d%day-1,rk8)/30.0_rk8
         end select
-        d%month = d%month+mod(tmp,i8mpy)
+        d%month = d%month+int(mod(tmp,i8mpy),ik4)
         call adjustpm(d%month,d%year,12)
         tmp = tmp/i8mpy
-        d%year = d%year+tmp
+        d%year = d%year+int(tmp,ik4)
         ! Adjust date of the month: This is really a trick...
+        ! It is to have 14 as February middle month for Gregorian.
         select case (z%calendar)
           case (gregorian)
-            d%day = idnint(dble(mdays_leap(d%year, d%month)) * dm)
+            d%day = nint(real(mdays_leap(d%year, d%month),rk8) * dm)+1
           case (noleap)
-            d%day = idnint(dble(mlen(d%month)) * dm)
+            d%day = nint(real(mlen(d%month),rk8) * dm)+1
+          case default
+            d%day = nint(30.0_rk8*dm)+1
         end select
         call date_to_days_from_reference(d,z)
       case (uyrs)
         call days_from_reference_to_date(x,d)
-        d%year = d%year+tmp
+        d%year = d%year+int(tmp,ik4)
         call date_to_days_from_reference(d,z)
       case (ucnt)
         call days_from_reference_to_date(x,d)
-        d%year = d%year+i8ypc*tmp
+        d%year = d%year+int(i8ypc*tmp,ik4)
         call date_to_days_from_reference(d,z)
     end select
   end function add_interval
 
-  function julianday(iy, im, id)
+  real(rk8) function julianday(iy, im, id)
     implicit none
-    real(rk8) :: julianday
     integer(ik4) , intent(in) :: iy , im , id
     integer(ik4) :: ia , ib , iiy , iim
     iiy = iy
@@ -789,15 +935,14 @@ module mod_date
     else
       ib = 0
     end if
-    julianday = dint(365.25D+00*dble(iiy+4716)) + &
-                dint(30.6001D+00*dble(iim+1))   + &
-                dble(id + ib) - 1524.5D+00
+    julianday = int(365.25_rk8*real(iiy+4716,rk8)) + &
+                int(30.6001_rk8*real(iim+1,rk8))   + &
+                real(id + ib,rk8) - 1524.5_rk8
     contains
-      function lcaltype(iy, im, id)
+      logical function lcaltype(iy, im, id)
       implicit none
-      logical :: lcaltype
-      integer(ik4) :: icaltype
       integer(ik4) , intent(in) :: iy , im , id
+      integer(ik4) :: icaltype
       ! Standard Julian/Gregorian switch
       ! Return true  if before 1582-10-04
       !        false if after  1582-10-15
@@ -824,15 +969,14 @@ module mod_date
           end if
         end if
       end if
-      if (icaltype == 1) then
-        lcaltype = .false.
-      else if (icaltype == 2) then
+      lcaltype = .false.
+      if (icaltype == 2) then
         lcaltype = .true.
       else
         write (0, *) 'year  = ', iy
         write (0, *) 'month = ', im
         write (0, *) 'day   = ', id
-        write(0,*) 'Day non existent, inside Julian/Gregorian jump'
+        write (0,*) 'Day non existent, inside Julian/Gregorian jump'
         stop
       end if
     end function lcaltype
@@ -871,27 +1015,27 @@ module mod_date
     select case (y%iunit)
       case (usec)
         tmp = tmp - z%second_of_day
-        z%second_of_day = mod(tmp,i8spd)
+        z%second_of_day = int(mod(tmp,i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd+z%second_of_day,ik4)
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference - tmp
       case (umin)
         tmp = tmp*i8spm - z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
-        if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
+        if ( z%second_of_day > 0 ) then
+          z%second_of_day = int(i8spd,ik4)-z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference - tmp
       case (uhrs)
         tmp = tmp*i8sph - z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
-        if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
+        if ( z%second_of_day > 0 ) then
+          z%second_of_day = int(i8spd,ik4)-z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
@@ -900,28 +1044,48 @@ module mod_date
         z%days_from_reference = z%days_from_reference - tmp
       case (umnt)
         call days_from_reference_to_date(x,d)
-        d%month = d%month-mod(tmp,i8mpy)
+        d%month = d%month-int(mod(tmp,i8mpy),ik4)
         call adjustmp(d%month,d%year,12)
-        d%year = d%year-tmp/i8mpy
+        d%year = d%year-int(tmp/i8mpy,ik4)
         call date_to_days_from_reference(d,z)
       case (uyrs)
         call days_from_reference_to_date(x,d)
-        d%year = d%year-tmp
+        d%year = d%year-int(tmp,ik4)
         call date_to_days_from_reference(d,z)
       case (ucnt)
         call days_from_reference_to_date(x,d)
-        d%year = d%year-i8ypc*tmp
+        d%year = d%year-int(i8ypc*tmp,ik4)
         call date_to_days_from_reference(d,z)
     end select
   end function sub_interval
 
-  integer(ik4) function toint10(x) result(z)
+  function tochar10(x) result(cdat)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    character (len=11) :: cdat
+    integer(ik4) :: z
+    type (iadate) :: d
+    type (iatime) :: t
+    call internal_to_date_time(x,d,t)
+    if ( d%year > 0 ) then
+      z = d%year*1000000+d%month*10000+d%day*100+t%hour
+    else
+      z = -((-d%year*1000000)+d%month*10000+d%day*100+t%hour)
+    end if
+    write(cdat,'(i11.0)') z
+  end function tochar10
+
+  integer(ik8) function toint10(x) result(z)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    z = d%year*1000000+d%month*10000+d%day*100+t%hour;
+    if ( d%year > 0 ) then
+      z = d%year*1000000+d%month*10000+d%day*100+t%hour
+    else
+      z = -((-d%year*1000000)+d%month*10000+d%day*100+t%hour)
+    end if
   end function toint10
 
   logical function lfdoyear(x) result(l11)
@@ -963,15 +1127,15 @@ module mod_date
     call check_cal(x,y)
     call days_from_reference_to_date(x,d1)
     call days_from_reference_to_date(y,d2)
-    z = (d1%year-d2%year)*12+(d1%month-d2%month)
+    z = abs((d1%year-d2%year))*12+(d1%month-d2%month)
   end function imondiff
 
   real(rk8) function hourdiff(x,y) result(z)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x , y
     call check_cal(x,y)
-    z = dble(x%days_from_reference-y%days_from_reference)*24.0D0 + &
-        dble(x%second_of_day-y%second_of_day)/3600.0D0
+    z = real(x%days_from_reference-y%days_from_reference,rk8)*24.0_rk8 + &
+        real(x%second_of_day-y%second_of_day,rk8)/3600.0_rk8
   end function hourdiff
 
   logical function lfhomonth(x) result(lf)
@@ -995,7 +1159,7 @@ module mod_date
     end if
     call days_from_reference_to_date(x,d)
     jd = julianday(d%year, d%month, d%day)
-    iday = idint(dmod(jd+1.5D+00, 7.0D+00))+1
+    iday = int(mod(jd+1.5_rk8, 7.0_rk8))+1
   end function idayofweek
 
   function setmidnight(x) result(mx)
@@ -1150,16 +1314,16 @@ module mod_date
     real(rk8) , intent(in) :: xval
     character(*) , intent(in) :: cunit
     integer(ik4) , intent(out) :: year , month
+    integer(ik4) :: istat , aunit
     type (iadate) , save :: d
     type (iatime) :: t
-    character(len=16) :: cdum
 
     character(len=64) , save :: csave
     data csave /'months since XXXX-XX-XX XX:XX:XX XXX'/
 
     if (csave == cunit) then
-      year = d%year+idint(xval/12.0D0)
-      month = d%month+idint(mod(xval,12.0D0))
+      year = d%year+int(xval/12.0_rk8)
+      month = d%month+int(mod(xval,12.0_rk8))
       if ( month > 12 ) then
         month = month - 12
         year = year + 1
@@ -1169,36 +1333,15 @@ module mod_date
       end if
       return
     end if
-    if (cunit(1:6) == 'months') then
-      ! Unit is months since reference
-      if (len_trim(cunit) >= 31) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, &
-          cdum, t%hour, cdum, t%minute, cdum, t%second
-      else if (len_trim(cunit) >= 28) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, &
-          cdum, t%hour, cdum, t%minute
-      else if (len_trim(cunit) >= 25) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-      else if (len_trim(cunit) >= 22) then
-        read(cunit,'(a13,i4,a1,i2,a1,i2)') &
-          cdum, d%year, cdum, d%month, cdum, d%day
-      else if (len_trim(cunit) >= 19) then
-        read(cunit,'(a13,i4,a1,i2)') &
-          cdum, d%year, cdum, d%month
-      else
-        write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2YM'
-        stop
-      end if
-    else
-      write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2YM'
+    istat = parse_timestring(cunit,aunit,d%year,d%month,d%day, &
+                             t%hour,t%minute,t%second)
+    if ( istat /= 0 .or. aunit /= umnt ) then
+      write(0,*) 'TIME UNIT ERROR IN timeval2ym'
       stop
     end if
     csave = cunit
-    year = d%year+idint(xval/12.0D0)
-    month = d%month+idint(mod(xval,12.0D0))
+    year = d%year+int(xval/12.0_rk8)
+    month = d%month+int(mod(xval,12.0_rk8))
     if ( month > 12 ) then
       month = month - 12
       year = year + 1
@@ -1208,7 +1351,97 @@ module mod_date
     end if
   end subroutine timeval2ym
 
-  function timeval2date(xval,cunit,ccal) result(dd)
+  function timeval2date_single(xval,cunit,ccal) result(dd)
+    implicit none
+    real(rk4) , intent(in) :: xval
+    character(*) , intent(in) :: cunit
+    character(*) , intent(in) :: ccal
+
+    type (rcm_time_and_date) :: dd
+    type (rcm_time_interval) :: z , zz
+    character(len=64) , save :: csave
+    character(len=16) , save :: csavecal
+    integer(ik4) , save :: iunit
+    type (rcm_time_and_date) , save :: dref
+    type (iadate) :: d
+    type (iatime) :: t
+    integer(ik4) :: istat
+
+    data csave/'none'/
+    data csavecal/'none'/
+
+    t%hour = 0
+    t%minute = 0
+    t%second = 0
+
+    if ( csave == cunit .and. csavecal == ccal ) then
+      z = abs(xval)
+      z%iunit = iunit
+      if ( xval >= 0.0_rk8 ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
+      ! Some datasets have fraction of days as hours.
+      ! I.e. 15.5 days from a date means 15 days + 12 hours.
+      ! Never seen fraction of minutes or hours.
+      ! Months fraction are almost nonsense.
+      if (iunit == uday) then
+        zz%ival = (int((abs(xval)-abs(real(z%ival,rk8)))*24.0_rk8))
+        zz%iunit = uhrs
+        if ( zz%ival /= 0 ) then
+          if ( xval >= 0.0_rk8 ) then
+            dd = dd + zz
+          else
+            dd = dd - zz
+          end if
+        end if
+      end if
+    else
+      csave = cunit
+      csavecal = ccal
+      z = abs(xval)
+      istat = parse_timestring(cunit,iunit,d%year,d%month,d%day, &
+                               t%hour,t%minute,t%second)
+      if ( istat /= 0 ) then
+        write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
+        stop
+      end if
+      if ( csavecal(1:6) == 'noleap' .or.   &
+           csavecal(1:8) == 'days_365' .or. &
+           csavecal(1:7) == '365_day' ) then
+        d%calendar = noleap
+      else if (csavecal(1:7) == '360_day') then
+        d%calendar = y360
+      else
+        d%calendar = gregorian
+      end if
+      call date_time_to_internal(d,t,dref)
+      z%iunit = iunit
+      if ( xval >= 0.0_rk8 ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
+      ! Some datasets have fraction of days as hours.
+      ! I.e. 15.5 days from a date means 15 days + 12 hours.
+      ! Never seen fraction of minutes or hours.
+      ! Months fraction are almost nonsense.
+      if (iunit == uday) then
+        zz%ival = int((abs(xval)-abs(real(z%ival,rk8)))*24.0_rk8)
+        zz%iunit = uhrs
+        if ( zz%ival > 0 ) then
+          if ( xval > 0 ) then
+            dd = dd + zz
+          else if ( xval < 0 ) then
+            dd = dd -zz
+          end if
+        end if
+      end if
+    end if
+  end function timeval2date_single
+
+  function timeval2date_double(xval,cunit,ccal) result(dd)
     implicit none
     real(rk8) , intent(in) :: xval
     character(*) , intent(in) :: cunit
@@ -1217,181 +1450,86 @@ module mod_date
     type (rcm_time_and_date) :: dd
     type (rcm_time_interval) :: z , zz
     character(len=64) , save :: csave
-    character(len=16) :: safeccal
+    character(len=16) , save :: csavecal
     integer(ik4) , save :: iunit
     type (rcm_time_and_date) , save :: dref
-    character(len=16) :: cdum
     type (iadate) :: d
     type (iatime) :: t
     integer(ik4) :: istat
 
     data csave/'none'/
+    data csavecal/'none'/
 
     t%hour = 0
     t%minute = 0
     t%second = 0
 
-    safeccal = ccal
-
-    if (csave == cunit) then
-      z = xval
+    if ( csave == cunit .and. csavecal == ccal ) then
+      z = abs(xval)
       z%iunit = iunit
-      dd = dref + z
+      if ( xval >= 0.0_rk8 ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
       ! Some datasets have fraction of days as hours.
       ! I.e. 15.5 days from a date means 15 days + 12 hours.
       ! Never seen fraction of minutes or hours.
       ! Months fraction are almost nonsense.
       if (iunit == uday) then
-        zz%ival = idint((xval-dble(z%ival))*24.0D0)
+        zz%ival = (int((abs(xval)-abs(real(z%ival,rk8)))*24.0_rk8))
         zz%iunit = uhrs
         if ( zz%ival /= 0 ) then
-          dd = dd + zz
+          if ( xval >= 0.0_rk8 ) then
+            dd = dd + zz
+          else
+            dd = dd - zz
+          end if
         end if
       end if
     else
       csave = cunit
-      z = xval
-      if (cunit(1:5) == 'hours') then
-        ! Unit is hours since reference
-        if (len_trim(cunit) >= 30) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)',iostat=istat) &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-          if ( istat /= 0 ) then
-            ! Erain fix
-            read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)',iostat=istat) &
-              cdum, d%year, cdum, d%month, cdum, d%day, &
-              cdum, t%hour, cdum, t%minute, cdum, t%second
-            if ( istat /= 0 ) then
-              write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
-              stop
-            end if
-          end if
-        else if (len_trim(cunit) >= 27) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 24) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
-          stop
-        end if
-        iunit = uhrs
-      else if (cunit(1:7) == 'minutes') then
-        ! Unit is minutes since reference
-        if (len_trim(cunit) >= 32) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 29) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 26) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
-          stop
-        end if
-        iunit = umin
-      else if (cunit(1:7) == 'seconds') then
-        ! Unit is seconds since reference
-        if (len_trim(cunit) >= 32) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 29) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 26) then
-          read(cunit,'(a14,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else
-          write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
-          stop
-        end if
-        iunit = usec
-      else if (cunit(1:4) == 'days') then
-        ! Unit is days since reference
-        if (len_trim(cunit) >= 30) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 27) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 24) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else if (len_trim(cunit) >= 21) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else if (len_trim(cunit) >= 19) then
-          read(cunit,'(a11,i4,a1,i1,a1,i1)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else
-          write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
-          stop
-        end if
-        iunit = uday
-      else if (cunit(1:6) == 'months') then
-        ! Unit is months since reference
-        if (len_trim(cunit) >= 31) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
-        else if (len_trim(cunit) >= 28) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute
-        else if (len_trim(cunit) >= 25) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, cdum, t%hour
-        else if (len_trim(cunit) >= 22) then
-          read(cunit,'(a13,i4,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day
-        else if (len_trim(cunit) >= 19) then
-          read(cunit,'(a13,i4,a1,i2)') &
-            cdum, d%year, cdum, d%month
-        else
-          write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
-          stop
-        end if
-        iunit = umnt
-      else
+      csavecal = ccal
+      z = abs(xval)
+      istat = parse_timestring(cunit,iunit,d%year,d%month,d%day, &
+                               t%hour,t%minute,t%second)
+      if ( istat /= 0 ) then
         write(0,*) 'CANNOT PARSE TIME UNIT IN TIMEVAL2DATE'
         stop
       end if
-      if ( safeccal(1:6) == 'noleap' .or.   &
-           safeccal(1:8) == 'days_365' .or. &
-           safeccal(1:7) == '365_day' ) then
+      if ( csavecal(1:6) == 'noleap' .or.   &
+           csavecal(1:8) == 'days_365' .or. &
+           csavecal(1:7) == '365_day' ) then
         d%calendar = noleap
-      else if (safeccal(1:7) == '360_day') then
+      else if (csavecal(1:7) == '360_day') then
         d%calendar = y360
       else
         d%calendar = gregorian
       end if
       call date_time_to_internal(d,t,dref)
       z%iunit = iunit
-      dd = dref + z
+      if ( xval >= 0.0_rk8 ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
       ! Some datasets have fraction of days as hours.
       ! I.e. 15.5 days from a date means 15 days + 12 hours.
       ! Never seen fraction of minutes or hours.
       ! Months fraction are almost nonsense.
       if (iunit == uday) then
-        zz%ival = idint((xval-dble(z%ival))*24.0D0)
+        zz%ival = int((abs(xval)-abs(real(z%ival,rk8)))*24.0_rk8)
         zz%iunit = uhrs
-        if (zz%ival /= 0) then
-          dd = dd + zz
+        if ( zz%ival > 0 ) then
+          if ( xval > 0 ) then
+            dd = dd + zz
+          else if ( xval < 0 ) then
+            dd = dd -zz
+          end if
         end if
       end if
     end if
-  end function timeval2date
+  end function timeval2date_double
 !
   logical function interval_greater(x, y)
     implicit none
@@ -1688,18 +1826,53 @@ module mod_date
     type (rcm_time_interval) , intent(in) :: x
     select case (x%iunit)
       case (usec)
-        hs = dble(x%ival)/3600.0D0
+        hs = real(x%ival,rk8)/3600.0_rk8
       case (umin)
-        hs = dble(x%ival)/60.0D0
+        hs = real(x%ival,rk8)/60.0_rk8
       case (uhrs)
-        hs = dble(x%ival)
+        hs = real(x%ival,rk8)
       case (uday)
-        hs = dble(x%ival)*24.0D0
+        hs = real(x%ival,rk8)*24.0_rk8
       case default
+        hs = 0.0_rk8
         write(0,*) 'Interval unit conversion depend on calendar'
         stop
     end select
   end function tohours
+
+  real(rk8) function yearpoint(x)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    type (iadate) :: d
+    type (iatime) :: t
+    integer(ik4) :: id , i
+    real(rk8) :: lc
+    call internal_to_date_time(x,d,t)
+    id = d%day
+    select case (x%calendar)
+      case (gregorian)
+        do i = 1 , d%month-1
+          id = id + mdays_leap(d%year, i)
+        end do
+        yearpoint = real(id,rk8)
+        if ( lleap(d%year) ) then
+          lc = -(yearpoint+1095_rk8)/1461_rk8
+        else if ( lleap(d%year+1) ) then
+          lc = -(yearpoint+730_rk8)/1461_rk8
+        else if ( lleap(d%year+2) ) then
+          lc = -(yearpoint+365_rk8)/1461_rk8
+        else
+          lc = -yearpoint/1461_rk8
+        end if
+        yearpoint = yearpoint+lc
+      case (noleap)
+        id = id + sum(mlen(1:d%month-1))
+        yearpoint = real(id,rk8)
+      case (y360)
+        id = id + 30*(d%month-1)
+        yearpoint = real(id,rk8)
+    end select
+  end function yearpoint
 
   real(rk8) function yeardayfrac(x)
     implicit none
@@ -1707,8 +1880,10 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    yeardayfrac = dble(idayofyear(d)) + dble(t%hour)/24.0D+00 + &
-                  dble(t%minute/1440.0D0) + dble(t%second/86400.0D0)-1.0D0
+    yeardayfrac = real(idayofyear(d),rk8) + &
+                  real(t%hour,rk8)/24.0_rk8 + &
+                  real(t%minute/1440.0_rk8,rk8) + &
+                  real(t%second/86400.0_rk8,rk8) - 1.0_rk8
   end function yeardayfrac
 
   integer(ik4) function getyear(x)
@@ -1759,6 +1934,68 @@ module mod_date
     getsecond = t%second
   end function getsecond
 
+  subroutine ref_date(iy,im,id,isec)
+    implicit none
+    integer(ik4) , intent(out) :: iy , im , id , isec
+    iy = 1949
+    im = 12
+    id = 1
+    isec = 0
+  end subroutine ref_date
+
+  subroutine curr_date(x,iy,im,id,isec,offset)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iy , im , id , isec
+    integer(ik4) , intent(in) , optional :: offset
+    type (rcm_time_interval) :: tdif
+    type (rcm_time_and_date) :: y
+    type(iadate) :: d
+    if ( present(offset) ) then
+      tdif = offset
+      y = x + tdif
+    else
+      y = x
+    end if
+    call days_from_reference_to_date(y,d)
+    iy = d%year
+    im = d%month
+    id = d%day
+    isec = y%second_of_day
+  end subroutine curr_date
+
+  ! Returns days and seconds from cordex reference date
+  subroutine curr_time(x,iday,isec)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iday , isec
+    type (rcm_time_and_date) , save :: y
+    logical , save :: isinit = .false.
+    if ( .not. isinit ) then
+      y = cordex_refdate
+      call set_caltype(y,x)
+      isinit = .true.
+    else
+      if ( x%calendar /= y%calendar ) then
+        y = cordex_refdate
+        call set_caltype(y,x)
+      end if
+    end if
+    iday = int(x%days_from_reference - y%days_from_reference,ik4)
+    isec = x%second_of_day
+  end subroutine curr_time
+
+  subroutine split_rcm_date(x,iy,im,id)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iy , im , id
+    type(iadate) :: d
+    call days_from_reference_to_date(x,d)
+    iy = d%year
+    im = d%month
+    id = d%day
+  end subroutine split_rcm_date
+
   subroutine split_rcm_time_and_date(x,iy,im,id,ih)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
@@ -1772,5 +2009,347 @@ module mod_date
     ih = t%hour
   end subroutine split_rcm_time_and_date
 
+  subroutine split_rcm_time_and_date_complete(x,iy,im,id,ih,imm,iss)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iy , im , id , ih , imm , iss
+    type(iadate) :: d
+    type(iatime) :: t
+    call internal_to_date_time(x,d,t)
+    iy = d%year
+    im = d%month
+    id = d%day
+    ih = t%hour
+    imm = t%minute
+    iss = t%second
+  end subroutine split_rcm_time_and_date_complete
+
+  logical function full_date_is(x,y,m,d)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: y , m , d
+    integer(ik4) :: iy , im , id
+    call split_rcm_date(x,iy,im,id)
+    full_date_is = ( y == iy .and. m == im .and. d == id )
+  end function full_date_is
+
+  logical function daymon_is(x,m,d)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: m , d
+    integer(ik4) :: iy , im , id
+    call split_rcm_date(x,iy,im,id)
+    daymon_is = ( m == im .and. d == id )
+  end function daymon_is
+
+  logical function time_complete_is(x,h,m,s,delta)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: h , m , s
+    real(rk8) , optional , intent(in) :: delta
+    type(iatime) :: t
+    type (rcm_time_and_date) :: y
+    t%hour = h
+    t%minute = m
+    t%second = s
+    call time_to_second_of_day(t,y)
+    if ( present(delta) ) then
+      time_complete_is = ( abs(y%second_of_day - x%second_of_day) < delta )
+    else
+      time_complete_is = ( y%second_of_day == x%second_of_day )
+    end if
+  end function time_complete_is
+
+  logical function time_of_day_is(x,s,delta)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: s
+    real(rk8) , optional , intent(in) :: delta
+    if ( present(delta) ) then
+      time_of_day_is = ( abs(s - x%second_of_day) < delta )
+    else
+      time_of_day_is = ( s == x%second_of_day )
+    end if
+  end function time_of_day_is
+
+  character(len=16) function calendar_str(x) result(calstr)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    select case (x%calendar)
+      case(gregorian)
+        calstr = 'gregorian'
+      case(noleap)
+        calstr = 'noleap'
+      case(y360)
+        calstr = '360_day'
+      case default
+        write(0,*) 'Unknown Calendar!!!'
+        stop
+    end select
+  end function calendar_str
+
+  logical function date_in_scenario(x,cmip_cycle,l2006)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: cmip_cycle
+    logical , optional , intent(in) :: l2006
+    integer(ik4) :: iy , im , id
+    call split_rcm_date(x,iy,im,id)
+    if ( cmip_cycle == 3 ) then
+      date_in_scenario = ( iy > 2000 )
+    else ! Assume CMIP5
+      if ( present(l2006) ) then
+        if ( l2006 ) then
+          date_in_scenario = ( iy > 2005 )
+        else
+          date_in_scenario = ( iy > 2005 .or. ( iy == 2005 .and. im == 12 ) )
+        end if
+      else
+        date_in_scenario = ( iy > 2005 .or. ( iy == 2005 .and. im == 12 ) )
+      end if
+    end if
+  end function date_in_scenario
+
+  integer(ik4) function parse_timestring(string,aunit, &
+                                         y,m,d,h,minu,seco) result(ires)
+    implicit none
+    character(len=*) :: string
+    integer(ik4) , intent(out) :: aunit
+    integer(ik4) , intent(out) :: y , m , d , h , minu , seco
+    integer(ik4) :: ip , istat
+    character(len=128) :: cdum , cdum1
+    character(len=1) :: cdiv
+
+    ires = -1
+    aunit = -1
+
+    cdum(:) = ' '
+    cdum1(:) = ' '
+
+    y = 1900
+    m = 1
+    d = 1
+    h = 0
+    minu = 0
+    seco = 0
+
+    if ( string(1:5) == 'hours' ) then
+      aunit = uhrs
+      ip = 13
+    else if ( string(1:6) == 'months' ) then
+      aunit = umnt
+      ip = 14
+    else if ( string(1:4) == 'days' ) then
+      aunit = uday
+      ip = 12
+    else if ( string(1:7) == 'minutes' ) then
+      aunit = umin
+      ip = 15
+    else if ( string(1:7) == 'seconds' ) then
+      aunit = usec
+      ip = 15
+    else if ( string(1:5) == 'years' ) then
+      aunit = uyrs
+      ip = 13
+    else
+      write(0,*) 'Unrecognized unit of measure for time string.'
+      write(0,*) 'Offending timeunit string :',trim(string)
+    end if
+
+    if ( len_trim(string(ip:)) >= 6 ) then
+      read(string(ip:),'(i4,a1,a)',iostat=istat) y , cdiv , cdum
+      if ( istat /= 0 ) then
+        write(0,*) 'Unrecognized year read from time string.'
+        write(0,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      if ( cdiv /= '-' ) then
+        write(0,*) 'Unrecognized year read from time string.'
+        write(0,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+    else
+      read(string(ip:),'(i4)',iostat=istat) y
+      if ( istat /= 0 ) then
+        write(0,*) 'Unrecognized year read from time string.'
+        write(0,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == '-' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) m , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized month read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) m , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized month read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) m
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized month read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) m
+      if ( istat /= 0 ) then
+        write(0,*) 'Unrecognized month read from time string.'
+        write(0,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    cdum = cdum1
+    cdum1(:) = ' '
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == ' ' .or. cdum(2:2) == 'T' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) d , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized day read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. &
+                cdum(3:3) == ' ' .or. cdum(3:3) == 'T' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) d , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized day read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) d
+        if ( istat /= 0 ) then
+          read(cdum,'(i1)',iostat=istat) d
+          if ( istat /= 0 ) then
+            write(0,*) 'Unrecognized day read from time string.'
+            write(0,*) 'Offending timeunit string :',trim(string)
+            return
+          end if
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) d
+      if ( istat /= 0 ) then
+        write(0,*) 'Unrecognized day read from time string.'
+        write(0,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    cdum = cdum1
+    cdum1(:) = ' '
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == ':' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) h , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized hour read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) h , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized hour read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) h
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized hour read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) h
+      if ( istat /= 0 ) then
+        write(0,*) 'Unrecognized hour read from time string.'
+        write(0,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    cdum = cdum1
+    cdum1(:) = ' '
+
+    if ( len_trim(cdum) > 1 ) then
+      if ( cdum(2:2) == ':' ) then
+        read(cdum,'(i1,a1,a)',iostat=istat) minu , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized minute read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else if ( len_trim(cdum) > 2 .and. cdum(3:3) == '-' ) then
+        read(cdum,'(i2,a1,a)',iostat=istat) minu , cdiv , cdum1
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized minute read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      else
+        read(cdum,'(i2)',iostat=istat) minu
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized minute read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+        ires = 0
+        return
+      end if
+    else
+      read(cdum,'(i1)',iostat=istat) minu
+      if ( istat /= 0 ) then
+        write(0,*) 'Unrecognized minute read from time string.'
+        write(0,*) 'Offending timeunit string :',trim(string)
+        return
+      end if
+      ires = 0
+      return
+    end if
+
+    if ( len_trim(cdum1) > 1 ) then
+      read(cdum1,'(i2)',iostat=istat) seco
+      if ( istat /= 0 ) then
+        read(cdum1,'(i1)', iostat=istat) seco
+        if ( istat /= 0 ) then
+          write(0,*) 'Unrecognized second read from time string.'
+          write(0,*) 'Offending timeunit string :',trim(string)
+          return
+        end if
+      end if
+    end if
+    ires = 0
+  end function parse_timestring
+
 end module mod_date
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

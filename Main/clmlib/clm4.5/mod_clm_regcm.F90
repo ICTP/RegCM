@@ -89,7 +89,7 @@ module mod_clm_regcm
       end do
     end if
 
-    write(rdate,'(i10)') toint10(rcmtimer%idate)
+    write(rdate,'a') tochar10(rcmtimer%idate)
     call initialize2(rdate)
 
     ! If CLM45, the surface emissivity is not used.
@@ -183,7 +183,7 @@ module mod_clm_regcm
         end if
       end if
       if ( rstwr .and. myid == italk ) then
-        write(rdate,'(i10)') toint10(nextr)
+        write(rdate,'(a)') tochar10(nextr)
         write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
       end if
     end if

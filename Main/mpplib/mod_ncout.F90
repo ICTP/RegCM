@@ -2419,8 +2419,8 @@ module mod_ncout
             trim(dirglob)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
         else
-          write (fbname,'(a,a,i10)') trim(outstream(i)%cname_base(j)) , &
-            '.', toint10(idate)
+          write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
+            '.', trim(tochar10(idate))
           outstream(i)%opar%fname = &
             trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
