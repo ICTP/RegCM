@@ -89,7 +89,7 @@ module mod_clm_regcm
       end do
     end if
 
-    write(rdate,'a') tochar10(rcmtimer%idate)
+    write(rdate,'(a)') tochar10(rcmtimer%idate)
     call initialize2(rdate)
 
     ! If CLM45, the surface emissivity is not used.
