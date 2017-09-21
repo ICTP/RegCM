@@ -81,6 +81,7 @@ module mod_sst_gnhnc
     integer(ik4) :: year , month , day , hour
 
     call split_idate(globidate1, year, month, day, hour)
+
     if ( ssttyp(1:3) == 'MP_' ) then
       call find_mpiesm_sst(inpfile,globidate1)
       varname(2) = 'tos'
@@ -230,6 +231,9 @@ module mod_sst_gnhnc
     idatef = globidate2
     tdif = idatef-idateo
     nsteps = int(tohours(tdif))/6 + 1
+
+    write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
+    write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
     write (stdout,*) 'NSTEPS = ', nsteps
 
     call open_sstfile(idateo)

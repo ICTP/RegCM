@@ -208,21 +208,21 @@ module mod_date
     end if
   end function mdays_leap
 
-  integer(ik4) function yeardays(y,c)
+  pure integer(ik4) function yeardays(y,c) result(yd)
     implicit none
     integer(ik4) , intent(in) :: y , c
     select case (c)
       case (noleap)
-        yeardays = 365
+        yd = 365
       case (y360)
-        yeardays = 360
+        yd = 360
       case default
-        yeardays = 365
-        if ( lleap(y) ) yeardays = 366
+        yd = 365
+        if ( lleap(y) ) yd = 366
     end select
   end function yeardays
 
-  subroutine idayofyear_to_monthdate(j,y,c,m,d)
+  pure subroutine idayofyear_to_monthdate(j,y,c,m,d)
     implicit none
     integer(ik8) , intent(in) :: j
     integer(ik4) , intent(in) :: y , c
@@ -231,7 +231,6 @@ module mod_date
     integer(ik4) :: md
     id = j
     m = 1
-    d = 1
     select case (c)
       case (noleap)
         do while (id > mlen(m))
@@ -254,7 +253,7 @@ module mod_date
     d = int(id,ik4)
   end subroutine idayofyear_to_monthdate
 
-  integer(ik4) function idayofyear(x) result(id)
+  pure integer(ik4) function idayofyear(x) result(id)
     implicit none
     type (iadate) , intent(in) :: x
     integer(ik4) :: i
@@ -271,58 +270,57 @@ module mod_date
     end select
   end function idayofyear
 
-  subroutine date_to_days_from_reference(d,x)
+  pure subroutine date_to_days_from_reference(d,x)
     type(iadate) , intent(in) :: d
     type(rcm_time_and_date) , intent(inout) :: x
-    integer(ik4) :: ny , ipm , iy , icorrection
+    integer(ik4) :: ny , iy
     integer(ik8) :: id
     x%calendar = d%calendar
     ny = d%year - reference_year
-    ipm = isign(1,ny)
-    ny = ny*ipm
-    if ( ipm < 0 ) ny = ny-1
     iy = reference_year
     id = 0
-    do while (ny > 0)
-      id = id + ipm*yeardays(iy,d%calendar)
-      iy = iy + ipm
-      ny = ny - 1
-    end do
-    if ( ipm > 0 ) then
-      x%days_from_reference = id + idayofyear(d) - 1
+    if ( ny > 0 ) then
+      do while ( ny > 0 )
+        id = id + yeardays(iy,d%calendar)
+        iy = iy + 1
+        ny = ny - 1
+      end do
     else
-      icorrection = 1
-      x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - &
-        icorrection
+      do while ( ny < 0 )
+        id = id - yeardays(iy-1,d%calendar)
+        iy = iy - 1
+        ny = ny + 1
+      end do
     end if
+    x%days_from_reference = id + idayofyear(d)
   end subroutine date_to_days_from_reference
 
-  subroutine days_from_reference_to_date(x,d)
+  pure subroutine days_from_reference_to_date(x,d)
     type(rcm_time_and_date) , intent(in) :: x
     type(iadate) , intent(out) :: d
     integer(ik4) :: iy
-    integer(ik8) :: ipm , id
+    integer(ik8) :: id
     d%calendar = x%calendar
     id = x%days_from_reference
-    ipm = sign(1_ik8,id)
     d%year = reference_year
-    iy = yeardays(d%year,d%calendar)
-    do while ((id*ipm) >= iy)
-      d%year = d%year + int(ipm,ik4)
-      id = id - ipm*iy
+    if ( id > 0 ) then
       iy = yeardays(d%year,d%calendar)
-    end do
-    if (id >= 0) then
-      call idayofyear_to_monthdate(id+1,d%year,d%calendar,d%month,d%day)
+      do while ( id > iy )
+        d%year = d%year + 1
+        id = id - iy
+        iy = yeardays(d%year,d%calendar)
+      end do
     else
       d%year = d%year - 1
-      if ( id > 0 ) then
-        id = yeardays(d%year,d%calendar)+id
-      else
-        id = yeardays(d%year,d%calendar)+id+1
-      end if
-      call idayofyear_to_monthdate(id,d%year,d%calendar,d%month,d%day)
+      iy = yeardays(d%year,d%calendar)
+      do while ( id < -iy )
+        d%year = d%year - 1
+        id = id + iy
+        iy = yeardays(d%year,d%calendar)
+      end do
+      if ( id <= 0 ) id = id + iy
     end if
+    call idayofyear_to_monthdate(id,d%year,d%calendar,d%month,d%day)
   end subroutine days_from_reference_to_date
 
   subroutine time_to_second_of_day(t,x)
@@ -512,7 +510,7 @@ module mod_date
     end if
   end subroutine set_caltype
 
-  subroutine set_calint(x, c)
+  pure subroutine set_calint(x, c)
     implicit none
     type (rcm_time_and_date) , intent(inout) :: x
     integer(ik4) , intent(in) :: c
@@ -527,7 +525,6 @@ module mod_date
         case (y360)
           d%calendar = c
         case default
-          write (stderr,*) 'Unknown calendar, using Julian/Gregorian'
           d%calendar = gregorian
       end select
       call date_to_days_from_reference(d,x)
@@ -669,7 +666,7 @@ module mod_date
     isequalidt = isequaldt(x,yy)
   end function isequalidt
 
-  logical function isequalit(x, y)
+  pure logical function isequalit(x, y)
     implicit none
     type (rcm_time_interval) , intent(in) :: x
     type (rcm_time_interval) , intent(in) :: y
@@ -1048,16 +1045,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     character (len=11) :: cdat
-    integer(ik4) :: z
-    type (iadate) :: d
-    type (iatime) :: t
-    call internal_to_date_time(x,d,t)
-    if ( d%year > 0 ) then
-      z = d%year*1000000+d%month*10000+d%day*100+t%hour
-    else
-      z = -((-d%year*1000000)+d%month*10000+d%day*100+t%hour)
-    end if
-    write(cdat,'(i11.0)') z
+    write(cdat,'(i11.0)') toint10(x)
     cdat = adjustl(cdat)
   end function tochar10
 
@@ -1068,9 +1056,9 @@ module mod_date
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
     if ( d%year > 0 ) then
-      z = d%year*1000000+d%month*10000+d%day*100+t%hour
+      z = d%year*1000000_ik8+d%month*10000+d%day*100+t%hour
     else
-      z = -((-d%year*1000000)+d%month*10000+d%day*100+t%hour)
+      z = -((-d%year)*1000000_ik8+d%month*10000+d%day*100+t%hour)
     end if
   end function toint10
 
