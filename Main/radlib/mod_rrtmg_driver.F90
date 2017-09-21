@@ -703,7 +703,8 @@ module mod_rrtmg_driver
     ! Transform in mass mixing ratios (g/g) for trcmix
     !
     if ( iyear < 1850 ) then
-      if ( rcmtimer%start( ) .and. myid == italk ) then
+      if ( rcmtimer%start( ) .and. scenario /= 'CONST'  &
+           .and. myid == italk ) then
         write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
         write (stderr,*) 'USING year 1850 value for Greenhouse Gases.'
       end if
@@ -719,7 +720,8 @@ module mod_rrtmg_driver
       cfc110 = cgas(igh_cfc11,iyear)*1.0e-12_rkx*(amcfc11/amd)
       cfc120 = cgas(igh_cfc12,iyear)*1.0e-12_rkx*(amcfc12/amd)
     else
-      if ( rcmtimer%start( ) .and. myid == italk ) then
+      if ( rcmtimer%start( ) .and. scenario /= 'CONST'  &
+           .and. myid == italk ) then
         write(stderr,*) 'Loading gas scenario for simulation year: ', iyear
         write (stderr,*) 'USING year 2100 value for Greenhouse Gases.'
       end if
