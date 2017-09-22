@@ -318,15 +318,19 @@ module mod_sun
       scon = solcon*d_1000
       call solar1( )
     end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        xxlat = mddom%xlat(j,i)*degrad
-        xxlon = mddom%xlon(j,i)*degrad
-        coszrs(j,i) = orb_cosz(calday,xxlat,xxlon,declin)
-        coszrs(j,i) = max(0.0_rkx,coszrs(j,i))
-        coszrs(j,i) = min(1.0_rkx,coszrs(j,i))
+    if ( ifixsolar == 1 ) then
+      coszrs(:,:) = 1.0
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          xxlat = mddom%xlat(j,i)*degrad
+          xxlon = mddom%xlon(j,i)*degrad
+          coszrs(j,i) = orb_cosz(calday,xxlat,xxlon,declin)
+          coszrs(j,i) = max(0.0_rkx,coszrs(j,i))
+          coszrs(j,i) = min(1.0_rkx,coszrs(j,i))
+        end do
       end do
-    end do
+    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
