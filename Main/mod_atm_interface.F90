@@ -696,7 +696,7 @@ module mod_atm_interface
       call getmem3d(atm%tf,jce1,jce2,ice1,ice2,1,kzp1,'reference:tf')
       call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'reference:pf')
       call getmem3d(atm%rhof,jce1,jce2,ice1,ice2,1,kzp1,'reference:rhof')
-      call getmem3d(atm%zf,jce1,jce2,ice1,ice2,1,kzp1,'reference:zf')
+      call getmem3d(atm%zf,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'reference:zf')
       call getmem3d(atm%dzf,jce1,jce2,ice1,ice2,1,kzp1,'reference:dzf')
       call getmem3d(atm%dprddx,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddx')
       call getmem3d(atm%dprddy,jdi1,jdi2,idi1,idi2,1,kz,'reference:dprddy')
@@ -850,8 +850,8 @@ module mod_atm_interface
       end if
       call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
       if ( idynamic == 1 ) then
+        call getmem3d(ax%zq,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'slice:zq')
         call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
-        call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
         call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
       else
         call assignpnt(a0%z,atms%za)

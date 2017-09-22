@@ -197,12 +197,12 @@ module mod_slice
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         atms%zq(j,i,kzp1) = d_zero
       end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = kz:1:-1 )
+      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = kz:1:-1 )
         cell = ptop * rpsb(j,i)
         atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tb3d(j,i,k) *  &
                       log((sigma(k+1)+cell)/(sigma(k)+cell))
       end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
         atms%za(j,i,k) = d_half*(atms%zq(j,i,k) + atms%zq(j,i,k+1))
       end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )

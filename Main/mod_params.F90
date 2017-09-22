@@ -2368,13 +2368,13 @@ module mod_params
         call exchange(atm0%pr,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange(atm0%t,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange(atm0%z,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(atm0%zf,1,jce1,jce2,ice1,ice2,1,kzp1)
         call exchange(atm0%rho,1,jce1,jce2,ice1,ice2,1,kz)
         call psc2psd(atm0%ps,atm0%psdot)
         call exchange(atm0%psdot,1,jde1,jde2,ide1,ide2)
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              atm0%z(j,i,k) = d_half*(atm0%zf(j,i,k) + atm0%zf(j,i,k+1))
               atm0%dzf(j,i,k) = atm0%zf(j,i,k) - atm0%zf(j,i,k+1)
             end do
           end do
