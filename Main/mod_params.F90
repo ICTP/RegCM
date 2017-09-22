@@ -102,7 +102,7 @@ module mod_params
       scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat , &
       icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud , &
       islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,      &
-      ghg_year_const , ifixsolar , fixedsolarval
+      ghg_year_const , ifixsolar , fixedsolarval , year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , upu , umax , stability_enhance ,             &
@@ -255,6 +255,7 @@ module mod_params
     iclimao3 = 0
     iclimaaer = 0
     isolconst = 0
+    year_offset = 0
     ifixsolar = 0
     fixedsolarval = 343.0_rkx
     icumcloud = 1
@@ -1118,6 +1119,7 @@ module mod_params
     call bcast(isolconst)
     call bcast(ifixsolar)
     call bcast(fixedsolarval)
+    call bcast(year_offset)
     call bcast(icumcloud)
     call bcast(islab_ocean)
     call bcast(itweak)

@@ -73,6 +73,7 @@ module mod_runparams
   type(rcm_syncro) , save , public , pointer :: syncro_cpl
 
   ! Orbital paramters
+  real(rkx) , public :: year_offset
   real(rkx) , public :: eccen
   real(rkx) , public :: obliqr
   real(rkx) , public :: lambm0

@@ -259,12 +259,14 @@ module mod_sun
   subroutine solar1
     implicit none
     real(rkx) :: decdeg , obliq , mvelp
+    integer(ik4) :: iyear
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar1'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    call orb_params(rcmtimer%year,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+    iyear = rcmtimer%year + year_offset
+    call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
     call orb_decl(yearpoint(rcmtimer%idate),eccen,mvelpp,lambm0, &
                   obliqr,declin,eccf)
     ! If we are fixing the solar constant, then fix the declination
@@ -351,12 +353,12 @@ module mod_sun
         w2 = 1.0_rkx-w1
         iyear = rcmtimer%year-1
       end if
-      if ( rcmtimer%year < 1610 ) then
-        call fatal(__FILE__,__LINE__,'TSI OUT OF RANGE.')
-      end if
       iidate = rcmtimer%year*10000+rcmtimer%month*100+rcmtimer%day
       if ( iidate > 20080630 ) then
         iyear = mod(rcmtimer%year,12)+1996
+      end if
+      if ( iidate < 16100101 ) then
+        iyear = 1610 + mod(rcmtimer%year,12)
       end if
       solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
     end if
