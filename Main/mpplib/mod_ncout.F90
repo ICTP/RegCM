@@ -2671,9 +2671,13 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('cumulus_cloud_model',icumcloud))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('fix_solar_parameters',ifixsolar))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('sun_year_offset',year_offset))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('fix_solar_parameters',ifixsolar))
+        if ( ifixsolar == 1 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('fixed_solar_constant',fixedsolarval))
+        end if
         if ( ipptls == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('subex_bottom_level_with_no_clouds',ncld))
