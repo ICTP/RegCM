@@ -73,6 +73,11 @@ module mod_mksst
       istatus = nf90_inquire_dimension(ncst, idimid, len=ntime)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error time dimension '//trim(sstfile))
+      if ( ntime == 0 ) then
+        write (stderr,*) 'No timesteps for SST data in SST file '// &
+                    trim(sstfile)
+        call die('readsst')
+      end if
       istatus = nf90_inq_varid(ncst, "time", itvar)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error time var '//trim(sstfile))
