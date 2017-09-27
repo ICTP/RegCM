@@ -211,8 +211,8 @@ module mod_cu_kf
       end do
     end do
 
-    !if ( ipptls > 1 ) then
-    if ( .false. ) then
+    ! WRF does not push input hydrometeors
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         kk = kzp1 - k
         do np = 1 , nipoi
@@ -220,8 +220,8 @@ module mod_cu_kf
           j = jmap(np)
           ql0(k,np) = m2c%qxas(j,i,kk,iqc)
           qi0(k,np) = m2c%qxas(j,i,kk,iqi)
-          qr0(k,np) = m2c%qxas(j,i,kk,iqr)
-          qs0(k,np) = m2c%qxas(j,i,kk,iqs)
+          qr0(k,np) = d_zero ! m2c%qxas(j,i,kk,iqr)
+          qs0(k,np) = d_zero ! m2c%qxas(j,i,kk,iqs)
         end do
       end do
     else
@@ -267,8 +267,7 @@ module mod_cu_kf
       call fatal(__FILE__,__LINE__,'Not implemented kf_trigger == 2')
     end if
 
-    !if ( ipptls > 1 ) then
-    if ( .false. ) then
+    if ( ipptls > 1 ) then
       call kfpara(1,kz,1,nipoi,.true.,.true.,.false.)
     else
       call kfpara(1,kz,1,nipoi,.false.,.false.,.true.)
@@ -286,8 +285,7 @@ module mod_cu_kf
       end do
     end do
 
-    !if ( ipptls > 1 ) then
-    if ( .false. ) then
+    if ( ipptls > 1 ) then
       do k = 1 , kz
         kk = kz - k + 1
         do np = 1 , nipoi
