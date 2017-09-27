@@ -219,7 +219,7 @@ module mod_cu_interface
     if ( rcmtimer%integrating( ) ) then
 
       if ( any(icup == 6) ) then
-        w1 = dt/600.0_rkx ! 10 minutes running average
+        w1 = d_one / 8.0_rkx ! 8 timestep average
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -339,7 +339,6 @@ module mod_cu_interface
         end if
 
       end if
-
 
       ! Sum cumulus tendencies
 

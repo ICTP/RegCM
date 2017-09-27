@@ -2710,7 +2710,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_condensation_threshold',conf))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_pptmax_factor',cmaxf))
+            ncattribute_real8('subex_timescale',dtls))
           call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
           call outstream_addatt(outstream(i)%ncout(j), &

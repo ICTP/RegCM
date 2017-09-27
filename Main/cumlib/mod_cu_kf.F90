@@ -211,6 +211,7 @@ module mod_cu_kf
       end do
     end do
 
+    !if ( ipptls > 1 ) then
     if ( .false. ) then
       do k = 1 , kz
         kk = kzp1 - k
@@ -224,10 +225,17 @@ module mod_cu_kf
         end do
       end do
     else
-      ql0(:,:) = d_zero
-      qi0(:,:) = d_zero
-      qr0(:,:) = d_zero
-      qs0(:,:) = d_zero
+      do k = 1 , kz
+        kk = kzp1 - k
+        do np = 1 , nipoi
+          i = imap(np)
+          j = jmap(np)
+          ql0(k,np) = m2c%qxas(j,i,kk,iqc)
+          qi0(k,np) = d_zero
+          qr0(k,np) = d_zero
+          qs0(k,np) = d_zero
+        end do
+      end do
     end if
 
     if ( ibltyp == 2 ) then
@@ -259,7 +267,8 @@ module mod_cu_kf
       call fatal(__FILE__,__LINE__,'Not implemented kf_trigger == 2')
     end if
 
-    if ( ipptls > 1 ) then
+    !if ( ipptls > 1 ) then
+    if ( .false. ) then
       call kfpara(1,kz,1,nipoi,.true.,.true.,.false.)
     else
       call kfpara(1,kz,1,nipoi,.false.,.false.,.true.)
@@ -277,7 +286,8 @@ module mod_cu_kf
       end do
     end do
 
-    if ( ipptls > 1 ) then
+    !if ( ipptls > 1 ) then
+    if ( .false. ) then
       do k = 1 , kz
         kk = kz - k + 1
         do np = 1 , nipoi
@@ -349,7 +359,7 @@ module mod_cu_kf
             tven , zlcl , wkl , trppt , dtlcl , gdt , wlcl , wtw ,          &
             rholcl , au0 , vmflcl , upold , upnew , abe , wklcl , ttemp ,   &
             frc1 , qnewic , rl , be , boterm , enterm , dzz , rei , ee2 ,   &
-            ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,        &
+            ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice , shinc ,&
             tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,      &
             timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,       &
             peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt , dtmp , t1rh , &
@@ -409,7 +419,7 @@ module mod_cu_kf
         ! Saturation vapor pressure (ES) is calculated following Buck (1981)
         ! If q0 is above saturation value, reduce it to saturation level.
         !
-        rh(k) = q0(k,np) / qes(k,np)
+        rh(k) = max(min(d_one,q0(k,np)/qes(k,np)),d_zero)
         dilfrc(k) = d_one
         tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
         ! dp is the pressure interval between full sigma levels
@@ -580,7 +590,7 @@ module mod_cu_kf
         else
           wklcl = 0.02_rkx          ! units of m/s
         end if
-        wkl = (w0avg(k,np) + (w0avg(klcl,np) - w0avg(k,np))*dlp) - wklcl
+        wkl = (w0avg(k,np)+(w0avg(klcl,np)-w0avg(k,np))*dlp)/25.0e3_rkx - wklcl
         if ( wkl < 0.0001_rkx ) then
           dtlcl = d_zero
         else
@@ -600,15 +610,9 @@ module mod_cu_kf
           ! for now, just assume U00 = 0.75.
           ! !!!!!! for MM5, SET DTRH = 0. !!!!!!!!
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
-          rhlcl = max(qenv/qslcl,d_one)
+          rhlcl = max(min(qenv/qslcl,d_one),d_zero)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
-          if ( rhlcl >= 0.75_rkx .and. rhlcl <= 0.95_rkx ) then
-            dtrh = 0.25_rkx*(rhlcl-0.75_rkx)*qmix/dqssdt
-          else if ( rhlcl > 0.95_rkx ) then
-            dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
-          else
-            dtrh = d_zero
-          end if
+          dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
         end if   ! kf_trigger 3
 
         kf_trigger2: &
@@ -651,6 +655,7 @@ module mod_cu_kf
           else
             rad = 1000.0_rkx + 1000.0_rkx * wkl/0.1_rkx
           end if
+          rad = rad * d_two
           !
           ! Compute updraft properties
           !
@@ -1173,7 +1178,6 @@ module mod_cu_kf
       end if
       nic = max(nint(timec/dtcum),1)
       timec = real(nic,rkx)*dtcum
-      aincmx = d_one
       !
       ! Compute wind shear and precipitation efficiency.
       !
@@ -1429,18 +1433,17 @@ module mod_cu_kf
       ! into convective drafts from a given layer is no more than is available
       ! in that layer initially
       !
-      aincmx = d_100
       lmax = max(klcl,lfs)
+      ainc = d_one
+      aincmx = d_1000
       do nk = lc , lmax
         if ( (uer(nk)-der(nk)) > 1.0e-3_rkx ) then
           aincm1 = ems(nk)/((uer(nk)-der(nk))*timec)
           aincmx = min(aincmx,aincm1)
         end if
       end do
-      ainc = d_one
       if ( aincmx < ainc ) then
         ainc = aincmx
-        aincmx = d_one
       end if
       !
       ! Save the relevent variables for a unit updraft and downdraft. They will
@@ -1472,18 +1475,18 @@ module mod_cu_kf
         !
         ! find the maximum TKE value between LC and KLCL...
         evac = d_half*maxval(tke(lc:klcl,np))*0.1_rkx
-        ainc = min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),aincmx)
-        tder = tder2*ainc
-        pptflx = pptfl2*ainc
+        shinc = max(0.1,min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),d_one))
+        tder = tder2*shinc
+        pptflx = pptfl2*shinc
         do nk = 1 , ltop
-          umf(nk) = umf2(nk)*ainc
-          dmf(nk) = dmf2(nk)*ainc
-          detlq(nk) = detlq2(nk)*ainc
-          detic(nk) = detic2(nk)*ainc
-          udr(nk) = udr2(nk)*ainc
-          uer(nk) = uer2(nk)*ainc
-          der(nk) = der2(nk)*ainc
-          ddr(nk) = ddr2(nk)*ainc
+          umf(nk) = umf2(nk)*shinc
+          dmf(nk) = dmf2(nk)*shinc
+          detlq(nk) = detlq2(nk)*shinc
+          detic(nk) = detic2(nk)*shinc
+          udr(nk) = udr2(nk)*shinc
+          uer(nk) = uer2(nk)*shinc
+          der(nk) = der2(nk)*shinc
+          ddr(nk) = ddr2(nk)*shinc
         end do
       end if
       ! Otherwise for deep convection

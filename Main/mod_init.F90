@@ -586,15 +586,15 @@ module mod_init
                 if ( t > tzero-2.0_rkx ) then
                   atm1%qx(j,i,k,iqc) = pfcc * dens * &
                                  clwfromt(t)/d_1000 * sfs%psa(j,i)
-                  atm1%qx(j,i,k,iqi) = 1.0e-10_rkx * sfs%psa(j,i)
+                  atm1%qx(j,i,k,iqi) = d_zero
                 else
-                  atm1%qx(j,i,k,iqc) = 1.0e-10_rkx * sfs%psa(j,i)
+                  atm1%qx(j,i,k,iqc) = d_zero
                   atm1%qx(j,i,k,iqi) = pfcc * dens * &
                                  clwfromt(t)/d_1000 * sfs%psa(j,i)
                 end if
               else
-                atm1%qx(j,i,k,iqc) = 1.0e-10_rkx * sfs%psa(j,i)
-                atm1%qx(j,i,k,iqi) = 1.0e-10_rkx * sfs%psa(j,i)
+                atm1%qx(j,i,k,iqc) = d_zero
+                atm1%qx(j,i,k,iqi) = d_zero
               end if
               atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
               atm2%qx(j,i,k,iqi) = atm1%qx(j,i,k,iqi)

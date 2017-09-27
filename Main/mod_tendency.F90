@@ -390,7 +390,9 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt * qxten(j,i,k,n)
-            if ( atmc%qx(j,i,k,n) < d_zero ) atmc%qx(j,i,k,n) = d_zero
+            if ( atmc%qx(j,i,k,n) < 1.0e-14_rkx * sfs%psc(j,i) ) then
+              atmc%qx(j,i,k,n) = d_zero
+            end if
           end do
         end do
       end do
