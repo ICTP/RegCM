@@ -653,7 +653,6 @@ module mod_cu_kf
           else
             rad = 1000.0_rkx + 1000.0_rkx * wkl/0.1_rkx
           end if
-          rad = rad * d_two
           !
           ! Compute updraft properties
           !
