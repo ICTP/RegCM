@@ -2892,21 +2892,24 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     type(v3dbound) , intent(in) :: ubnd , vbnd
-    real(rkx) :: zz
+    real(rkx) :: zz , xt , bval
     integer(ik4) :: i , j , k
+    xt = xbctime + dt
     do k = 1 , min(kz,rayndamp)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
+          bval = ubnd%b0(j,i,k) + xt*ubnd%bt(j,i,k)
           zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          uten(j,i,k) = uten(j,i,k) + tau(zz) * (ubnd%b1(j,i,k)-u(j,i,k))
+          uten(j,i,k) = uten(j,i,k) + tau(zz) * (bval-u(j,i,k))
         end do
       end do
     end do
     do k = 1 , min(kz,rayndamp)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
+          bval = vbnd%b0(j,i,k) + xt*vbnd%bt(j,i,k)
           zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          vten(j,i,k) = vten(j,i,k) + tau(zz) * (vbnd%b1(j,i,k)-v(j,i,k))
+          vten(j,i,k) = vten(j,i,k) + tau(zz) * (bval-v(j,i,k))
         end do
       end do
     end do
@@ -2960,11 +2963,14 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: vten
     type(v3dbound) , intent(in) :: bnd
+    real(rkx) :: xt , bval
     integer(ik4) :: i , j , k
+    xt = xbctime + dt
     do k = 1 , min(kz,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k))*(bnd%b1(j,i,k)-var(j,i,k))
+          bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
+          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k))*(bval-var(j,i,k))
         end do
       end do
     end do
@@ -2977,11 +2983,14 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: vten
     type(v3dbound) , intent(in) :: bnd
     integer(ik4) :: i , j , k
+    real(rkx) :: xt , bval
+    xt = xbctime + dt
     do k = 1 , min(kz,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
+          bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
           vten(j,i,k,iqv) = vten(j,i,k,iqv) + &
-                  tau(z(j,i,k))*(bnd%b1(j,i,k)-var(j,i,k,iqv))
+                  tau(z(j,i,k))*(bval-var(j,i,k,iqv))
         end do
       end do
     end do
