@@ -604,7 +604,7 @@ module mod_params
       if ( idynamic == 2 ) then
         gnu1 = 0.1000_rkx
         gnu2 = 0.1000_rkx
-        diffu_hgtf = 0
+        diffu_hgtf = 1
       else
         gnu1 = 0.0600_rkx
         gnu2 = 0.0600_rkx
