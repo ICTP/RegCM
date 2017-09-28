@@ -435,18 +435,18 @@ module mod_intldtr
     integer , parameter :: nbmax = 100
     real(rkx) :: xx , yy , incx , incy , rincx , rincy , dd , drcm
 
-    incy = (grdltma-grdltmn)/dble(nlatin-1)
+    incy = (grdltma-grdltmn)/real(nlatin-1,rkx)
     if ( lcrosstime ) then
       if ( grdlnmn > grdlnma ) then
-        incx = ((360.0_rkx+grdlnma)-grdlnmn)/dble(nlonin-1)
+        incx = ((360.0_rkx+grdlnma)-grdlnmn)/real(nlonin-1,rkx)
       else
-        incx = (grdlnma-grdlnmn)/dble(nlonin-1)
+        incx = (grdlnma-grdlnmn)/real(nlonin-1,rkx)
       end if
     else if ( grdlnmn > grdlnma ) then
-      incx = (grdlnma+(360.0_rkx-grdlnmn))/dble(nlonin-1)
+      incx = (grdlnma+(360.0_rkx-grdlnmn))/real(nlonin-1,rkx)
       grdlnmn = -(360.0_rkx-grdlnmn)
     else
-      incx = (grdlnma-grdlnmn)/dble(nlonin-1)
+      incx = (grdlnma-grdlnmn)/real(nlonin-1,rkx)
     end if
     rincx = d_one/incx
     rincy = d_one/incy

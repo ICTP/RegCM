@@ -265,7 +265,7 @@ module mod_sun
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    iyear = rcmtimer%year + year_offset
+    iyear = rcmtimer%year + int(year_offset,ik4)
     call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
     call orb_decl(yearpoint(rcmtimer%idate),eccen,mvelpp,lambm0, &
                   obliqr,declin,eccf)

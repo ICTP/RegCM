@@ -1410,7 +1410,7 @@ module mod_params
 
     call allocate_radiation
 
-    call allocate_mod_che_common(isladvec)
+    call allocate_mod_che_common
     call allocate_mod_che_mppio
     call allocate_mod_che_dust
     call allocate_mod_che_bdyco

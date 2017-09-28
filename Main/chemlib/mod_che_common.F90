@@ -115,9 +115,8 @@ module mod_che_common
 
   contains
 
-  subroutine allocate_mod_che_common(isladvec)
+  subroutine allocate_mod_che_common
     implicit none
-    integer(ik4) , intent(in) :: isladvec
 
     if ( ichem == 1 ) then
 

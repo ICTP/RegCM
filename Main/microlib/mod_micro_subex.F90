@@ -104,7 +104,8 @@ module mod_micro_subex
     type(micro_2_mod) , intent(out) :: mc2mo
     real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
-                rhcs , tcel , prainx , qcth
+                rhcs , prainx , qcth
+    ! real(rkx) :: tcel
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !

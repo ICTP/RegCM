@@ -73,7 +73,6 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg , sfice_temp , t , p , qs , qv , rh , pfcc , dens
-    character(len=32) :: appdat
     real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'

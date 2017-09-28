@@ -94,7 +94,7 @@ module mod_capecin
     real(rkx) :: th2 , p2 , t2 , qv2 , ql2 , qi2 , b2 , pi2 , thv2
     real(rkx) :: thlast , fliq , fice , tbar , qvbar , qlbar , qibar
     real(rkx) :: lhv , lhs , lhf , rm , cpm
-    real(rk8) :: avgth , avgqv
+    real(rkx) :: avgth , avgqv
 
     real(rkx), parameter :: lv1   = wlhv+(cpw-cpv)*tzero
     real(rkx), parameter :: lv2   = cpw-cpv

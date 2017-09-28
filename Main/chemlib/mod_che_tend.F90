@@ -60,10 +60,10 @@
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-    subroutine tractend2(lyear,lmonth,lday,calday,declin)
+    subroutine tractend2(lmonth,lday,declin)
       implicit none
-      integer(ik4) , intent(in) :: lmonth , lday , lyear
-      real(rkx) , intent(in) :: calday , declin
+      integer(ik4) , intent(in) :: lmonth , lday
+      real(rkx) , intent(in) :: declin
 
       real(rkx) :: facb , facs , fact , facv , pres10 , qsat10 , &
                   shu10 , u10 , v10
@@ -88,7 +88,6 @@
       real(rkx) , dimension (1) :: polrftab
       integer(ik4) , dimension (1) :: poltab
       integer(ik4) :: i , j , k , n , ibin
-      logical, save :: lfcall=.true.
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS

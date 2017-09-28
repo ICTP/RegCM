@@ -50,7 +50,6 @@ module mod_cloud_subex
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
     real(rkx) , intent(in) :: tc0
     real(rkx) :: rh0adj , rhrng
-    real(rkx) , parameter :: eps = 1.0e-7_rkx
     integer(ik4) :: i , j , k
 
     !-----------------------------------------

@@ -277,7 +277,7 @@ module mod_tendency
     ! Compute chemistry tendencies (other than transport)
     !
     if ( ichem == 1 ) then
-      call tractend2(rcmtimer%year,rcmtimer%month,rcmtimer%day,calday,declin)
+      call tractend2(rcmtimer%month,rcmtimer%day,declin)
     end if
     !
     ! Compute Large scale horizontal diffusion term

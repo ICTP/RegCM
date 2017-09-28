@@ -2587,7 +2587,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2634,7 +2634,7 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2681,7 +2681,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model loc
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glb
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2728,7 +2728,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(in) :: ml  ! model loc
     logical , pointer , dimension(:,:,:) , intent(inout) :: mg ! model glb
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , tsize
-    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    integer(ik4) :: ib , i , j , n , icpu
     if ( nproc == 1 ) then
       do i = i1 , i2
         do j = j1 , j2
@@ -2966,32 +2966,32 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-up exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !******************************************************
         ! (4) Send top boundary to bottom side of top neighbor
@@ -2999,32 +2999,32 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-down exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !**************************************************************************
         ! (5) Send bottom-right boundary to top-left side of bottom-right neighbor
@@ -3040,130 +3040,130 @@ module mod_mppparam
         end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j2-j+1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send down-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottomright,ma%topleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !**********************************************************************
         ! (6) Send top-left boundary to bottom-right side of top-left neighbor
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j1+j-1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send up-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topleft,ma%bottomright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !*************************************************************************
         ! (7) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !***********************************************************************
         ! (8) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
 
-      end if 
+
+
+      end if
 
 
     else
@@ -3436,32 +3436,32 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-up exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !******************************************************
         ! (4) Send top boundary to bottom side of top neighbor
@@ -3469,32 +3469,32 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-down exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !**************************************************************************
         ! (5) Send bottom-right boundary to top-left side of bottom-right neighbor
@@ -3510,130 +3510,130 @@ module mod_mppparam
         end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j2-j+1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send down-right exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottomright,ma%topleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !**********************************************************************
         ! (6) Send top-left boundary to bottom-right side of top-left neighbor
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j1+j-1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send up-left exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%topleft,ma%bottomright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !*************************************************************************
         ! (7) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !***********************************************************************
         ! (8) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
 
-      end if 
+
+
+      end if
 
 
     else
@@ -3916,7 +3916,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -3925,14 +3925,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-up exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -3941,7 +3941,7 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !******************************************************
         ! (4) Send top boundary to bottom side of top neighbor
@@ -3949,7 +3949,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -3958,14 +3958,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-down exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -3974,7 +3974,7 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !**************************************************************************
         ! (5) Send bottom-right boundary to top-left side of bottom-right neighbor
@@ -3990,7 +3990,7 @@ module mod_mppparam
         end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -3999,14 +3999,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send down-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottomright,ma%topleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4015,14 +4015,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !**********************************************************************
         ! (6) Send top-left boundary to bottom-right side of top-left neighbor
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4031,14 +4031,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send up-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topleft,ma%bottomright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4047,14 +4047,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !*************************************************************************
         ! (7) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4063,14 +4063,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4079,14 +4079,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !***********************************************************************
         ! (8) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4095,14 +4095,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4111,9 +4111,9 @@ module mod_mppparam
             end do
           end do
         end do
-        
 
-      end if 
+
+      end if
 
 
     else
@@ -4427,7 +4427,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -4436,14 +4436,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-up exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -4452,7 +4452,7 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !******************************************************
         ! (4) Send top boundary to bottom side of top neighbor
@@ -4460,7 +4460,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -4469,14 +4469,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-down exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -4485,7 +4485,7 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !**************************************************************************
         ! (5) Send bottom-right boundary to top-left side of bottom-right neighbor
@@ -4501,7 +4501,7 @@ module mod_mppparam
         end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4510,14 +4510,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send down-right exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottomright,ma%topleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-left boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4526,14 +4526,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !**********************************************************************
         ! (6) Send top-left boundary to bottom-right side of top-left neighbor
         !**********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4542,14 +4542,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send up-left exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%topleft,ma%bottomright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-right boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4558,14 +4558,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !*************************************************************************
         ! (7) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4574,14 +4574,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4590,14 +4590,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !***********************************************************************
         ! (8) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4606,14 +4606,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -4622,9 +4622,9 @@ module mod_mppparam
             end do
           end do
         end do
-        
 
-      end if 
+
+      end if
 
 
     else
@@ -5145,7 +5145,7 @@ module mod_mppparam
           end do
         end do
 
-      end if 
+      end if
 
 
     else
@@ -5699,7 +5699,7 @@ module mod_mppparam
           end do
         end do
 
-      end if 
+      end if
 
 
     else
@@ -6023,66 +6023,66 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-down exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !***********************************************************************
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
 
-      end if 
+
+
+      end if
 
 
     else
@@ -6230,66 +6230,66 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-down exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !***********************************************************************
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
 
-      end if 
+
+
+      end if
 
 
     else
@@ -6442,7 +6442,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -6451,14 +6451,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-down exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -6467,14 +6467,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !***********************************************************************
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -6483,14 +6483,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -6499,9 +6499,9 @@ module mod_mppparam
             end do
           end do
         end do
-        
 
-      end if 
+
+      end if
 
 
     else
@@ -6666,7 +6666,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -6675,14 +6675,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-down exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%top,ma%bottom,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -6691,14 +6691,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !***********************************************************************
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
         !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -6707,14 +6707,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send up-right exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%topright,ma%bottomleft,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the bottom-left boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -6723,9 +6723,9 @@ module mod_mppparam
             end do
           end do
         end do
-        
 
-      end if 
+
+      end if
 
 
     else
@@ -6953,7 +6953,7 @@ module mod_mppparam
           end do
         end do
 
-      end if 
+      end if
 
 
     else
@@ -7194,7 +7194,7 @@ module mod_mppparam
           end do
         end do
 
-      end if 
+      end if
 
 
     else
@@ -7365,66 +7365,66 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-up exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !*************************************************************************
         ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                     ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
 
-      end if 
+
+
+      end if
 
 
     else
@@ -7572,66 +7572,66 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send-up exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = j1 , j2
             ml(j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
 
         !*************************************************************************
         ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        
-        
+
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                     ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
-        
+
+
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
-        
-        
 
-      end if 
+
+
+      end if
 
 
     else
@@ -7783,7 +7783,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7792,14 +7792,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-up exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -7808,14 +7808,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !*************************************************************************
         ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7824,14 +7824,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r8vector1,r8vector2, &
                                     ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -7840,9 +7840,9 @@ module mod_mppparam
             end do
           end do
         end do
-        
 
-      end if 
+
+      end if
 
 
     else
@@ -8006,7 +8006,7 @@ module mod_mppparam
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8015,14 +8015,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send-up exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                    ssize,ma%bottom,ma%top,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8031,14 +8031,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
 
         !*************************************************************************
         ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
         !*************************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8047,14 +8047,14 @@ module mod_mppparam
             end do
           end do
         end do
-        
+
         ! do the send down-left exchange
         call cyclic_exchange_array(r4vector1,r4vector2, &
                                     ssize,ma%bottomleft,ma%topright,__LINE__)
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-        
+
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8063,9 +8063,9 @@ module mod_mppparam
             end do
           end do
         end do
-        
 
-      end if 
+
+      end if
 
 
     else
@@ -8293,7 +8293,7 @@ module mod_mppparam
           end do
         end do
 
-      end if 
+      end if
 
 
     else
@@ -8533,7 +8533,7 @@ module mod_mppparam
           end do
         end do
 
-      end if 
+      end if
 
 
     else

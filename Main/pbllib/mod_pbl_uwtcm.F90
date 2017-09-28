@@ -240,7 +240,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , tempqc , deltat , rvls , pfac , rpfac
+    real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0

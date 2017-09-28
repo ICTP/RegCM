@@ -1473,7 +1473,7 @@ module mod_cu_kf
         !
         ! find the maximum TKE value between LC and KLCL...
         evac = d_half*maxval(tke(lc:klcl,np))*0.1_rkx
-        shinc = max(0.1,min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),d_one))
+        shinc = max(0.1_rkx,min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),d_one))
         tder = tder2*shinc
         pptflx = pptfl2*shinc
         do nk = 1 , ltop

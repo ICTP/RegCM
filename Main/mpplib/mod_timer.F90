@@ -140,7 +140,7 @@ module mod_timer
     t%reached_endtime = t%model_internal_time >= t%model_stop_time
     t%next_is_endtime = (t%model_internal_time + &
                          t%model_timestep) >= t%model_stop_time
-    t%intmdl = rcm_time_interval(mdt,usec)
+    t%intmdl = rcm_time_interval(int(mdt,ik8),usec)
     t%lcount = t%model_internal_time/t%model_timestep
     t%idate = mdate1
     call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
@@ -152,9 +152,9 @@ module mod_timer
   subroutine step_timer(t)
     implicit none
     class(rcm_timer) , intent(inout) :: t
-    integer(ik4) :: i , tmp1 , tmp2
+    integer(ik4) :: i
     t%model_internal_time = t%model_internal_time + t%model_timestep
-    t%nowinday = t%nowinday + t%model_timestep
+    t%nowinday = t%nowinday + int(t%model_timestep,ik4)
     t%idate = t%idate + t%intmdl
     t%lcount = t%lcount + 1
     if ( t%nowinday > 86400 ) then
@@ -235,13 +235,14 @@ module mod_timer
     type(rcm_syncro) , pointer :: syncro
     allocate(syncro)
     syncro%timer => null( )
-    if ( .not. associated(t) ) return
-    syncro%timer => t
-    syncro%frq = int(dt,ik8)
-    syncro%rw = real(syncro%timer%model_timestep,rkx)/dt
-    syncro%timer%nsyncro = syncro%timer%nsyncro + 1
-    syncro%timer%sp(syncro%timer%nsyncro)%sp => syncro
-    syncro%lcount = syncro%timer%model_internal_time/syncro%frq
+    if ( associated(t) ) then
+      syncro%timer => t
+      syncro%frq = int(dt,ik8)
+      syncro%rw = real(syncro%timer%model_timestep,rkx)/dt
+      syncro%timer%nsyncro = syncro%timer%nsyncro + 1
+      syncro%timer%sp(syncro%timer%nsyncro)%sp => syncro
+      syncro%lcount = syncro%timer%model_internal_time/syncro%frq
+    end if
     init_syncro => syncro
   end function init_syncro
 
@@ -275,20 +276,21 @@ module mod_timer
     type(rcm_alarm) , pointer :: alarm
     allocate(alarm)
     alarm%timer => null( )
-    if ( .not. associated(t) ) return
-    alarm%timer => t
-    lact0 = .false.
-    if ( present(act0) ) lact0 = act0
-    alarm%dt = dt
-    alarm%idate = alarm%timer%idate
-    alarm%intalm = rcm_time_interval(dt,usec)
-    alarm%actint = int(dt,ik8)
-    alarm%lastact = alarm%timer%model_internal_time
-    alarm%triggered = lact0
-    alarm%timer%nalarm = alarm%timer%nalarm + 1
-    alarm%timer%ap(alarm%timer%nalarm)%ap => alarm
-    alarm%lcount = alarm%timer%model_internal_time/alarm%actint
-    alarm%rw = real(alarm%timer%model_timestep,rkx)/dt
+    if ( associated(t) ) then
+      alarm%timer => t
+      lact0 = .false.
+      if ( present(act0) ) lact0 = act0
+      alarm%dt = dt
+      alarm%idate = alarm%timer%idate
+      alarm%intalm = rcm_time_interval(int(dt,ik8),usec)
+      alarm%actint = int(dt,ik8)
+      alarm%lastact = alarm%timer%model_internal_time
+      alarm%triggered = lact0
+      alarm%timer%nalarm = alarm%timer%nalarm + 1
+      alarm%timer%ap(alarm%timer%nalarm)%ap => alarm
+      alarm%lcount = alarm%timer%model_internal_time/alarm%actint
+      alarm%rw = real(alarm%timer%model_timestep,rkx)/dt
+    end if
     init_alarm => alarm
   end function init_alarm
 
@@ -318,7 +320,6 @@ module mod_timer
   logical function alarm_act(alarm) result(res)
     implicit none
     class(rcm_alarm) , intent(in) :: alarm
-    real(rkx) :: t1 , t2
     res = .false.
     if ( alarm%now == alarm%timer%model_internal_time ) then
       res = .true.
@@ -341,7 +342,7 @@ module mod_timer
   real(rkx) function ratio_freq_syncro(s1,s2) result(res)
     implicit none
     type(rcm_syncro) , intent(in) :: s1 , s2
-    res = s1%frq/s2%frq
+    res = real(s1%frq,rkx)/real(s2%frq,rkx)
   end function ratio_freq_syncro
 
   real(rkx) function ratio_freq_alarm(a1,a2) result(res)
@@ -354,14 +355,14 @@ module mod_timer
     implicit none
     type(rcm_syncro) , intent(in) :: s1
     type(rcm_alarm) , intent(in) :: a2
-    res = s1%frq/real(a2%actint,rkx)
+    res = real(s1%frq,rkx)/real(a2%actint,rkx)
   end function ratio_freq_syncro_alarm
 
   real(rkx) function ratio_freq_alarm_syncro(a1,s2) result(res)
     implicit none
     type(rcm_alarm) , intent(in) :: a1
     type(rcm_syncro) , intent(in) :: s2
-    res = real(a1%actint,rkx)/s2%frq
+    res = real(a1%actint,rkx)/real(s2%frq,rkx)
   end function ratio_freq_alarm_syncro
 
 end module mod_timer

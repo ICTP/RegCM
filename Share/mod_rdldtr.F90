@@ -131,7 +131,7 @@ module mod_rdldtr
     nlon = sum(gdomain%ni)
 
     inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(dble(iores*60.0_rkx)),1)
+    iopsec = max(int(real(iores,rkx)*60.0_rkx),1)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -144,7 +144,7 @@ module mod_rdldtr
 
     delta = 0.0_rkx
     if ( ifrac > 1 ) then
-      delta = (dble(iopsec)/2.0_rkx) / 3600.0_rkx
+      delta = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
     end if
 
     grdlnmn = glon(gdomain%igstart(1)) + delta
@@ -259,7 +259,7 @@ module mod_rdldtr
     nlon = sum(gdomain%ni)
 
     inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(dble(iores*60.0_rkx)),1)
+    iopsec = max(int(real(iores,rkx)*60.0_rkx),1)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -272,7 +272,7 @@ module mod_rdldtr
 
     delta = 0.0_rkx
     if ( ifrac > 1 ) then
-      delta = (dble(iopsec)/2.0_rkx) / 3600.0_rkx
+      delta = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
     end if
 
     grdlnmn = glon(gdomain%igstart(1)) + delta
@@ -389,7 +389,7 @@ module mod_rdldtr
     nlon = sum(gdomain%ni)
 
     inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(dble(iores*60.0_rkx)),1)
+    iopsec = max(int(real(iores,rkx)*60.0_rkx),1)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -402,7 +402,7 @@ module mod_rdldtr
 
     delta = 0.0_rkx
     if ( ifrac > 1 ) then
-      delta = (dble(iopsec)/2.0_rkx) / 3600.0_rkx
+      delta = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
     end if
 
     grdlnmn = glon(gdomain%igstart(1)) + delta
@@ -931,10 +931,12 @@ module mod_rdldtr
     integer(ik4) , dimension(:,:) , allocatable :: vread
     integer(ik4) :: nlat , nlon , itile , ivar , iti , itf
     integer(ik4) , dimension(2) :: istart , icount
+    real(rkx) :: unused
 
     nlat = gfile%gdomain%nj
     nlon = sum(gfile%gdomain%ni)
     allocate(vread(nlon,nlat))
+    unused = rdef
 
     istatus = nf90_inq_varid(gfile%ncid, vname, ivar)
     call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
