@@ -172,7 +172,7 @@ module mod_diffusion
                vd(j,i,k)   - vd(j+1,i,k)
         dwdz = wx(j,i,k) - wx(j,i,k+1)
         duv = sqrt((dudx-dvdy)*(dudx-dvdy) + &
-                   (dvdx+dudy)*(dvdx+dudy) + dwdz*dwdz)
+                   (dvdx+dudy)*(dvdx+dudy) - dwdz*dwdz)
         xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
       end do
     end if

@@ -291,7 +291,7 @@ module mod_params
     !
     ncld      = 0        ! # of bottom model levels with no clouds (rad only)
     qck1land  = 0.0005_rkx ! Autoconversion Rate for Land
-    qck1oce   = 0.0005_rkx ! Autoconversion Rate for Ocean
+    qck1oce   = 0.0003_rkx ! Autoconversion Rate for Ocean
     gulland   = 0.65_rkx   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
     guloce    = 0.30_rkx   ! Fract of Gultepe eqn (qcth) for ocean
     rhmax     = 1.01_rkx   ! RH at whicn FCC = 1.0
@@ -302,12 +302,12 @@ module mod_params
     cevaplnd  = 1.0e-5_rkx ! Raindrop ev rate coef land [[(kg m-2 s-1)-1/2]/s]
     cevapoce  = 1.0e-5_rkx ! Raindrop ev rate coef ocean [[(kg m-2 s-1)-1/2]/s]
     caccrlnd  = 6.0_rkx    ! Raindrop accretion rate land  [m3/kg/s]
-    caccroce  = 6.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
+    caccroce  = 4.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
     conf      = 1.00_rkx   ! Condensation efficiency
-    dtls      = 300.0_rkx  ! SUBEX timescale for Qc removal (pptmax = qc/dtls)
+    dtls      = 3600.0_rkx ! SUBEX timescale for Qc removal (pptmax = qc/dtls)
     rcrit     = 13.5_rkx   ! Mean critical radius
     coef_ccn  = 2.5e+20_rkx ! Coefficient determined by assuming a lognormal PMD
     abulk     = 0.9_rkx    ! Bulk activation ratio
