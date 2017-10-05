@@ -266,7 +266,8 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(nhbh0%ps,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
+      call read_icbc(nhbh0%ps,ts0,mddom%ldmsk,xub%b0,xvb%b0, &
+                     xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -282,7 +283,7 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+      call read_icbc(xpsb%b0,ts0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -351,7 +352,8 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(nhbh1%ps,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      call read_icbc(nhbh1%ps,ts1,mddom%ldmsk,xub%b1,xvb%b1, &
+                     xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -367,7 +369,7 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,ts1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -497,7 +499,8 @@ module mod_bdycod
       end if
     end if
     if ( idynamic == 2 ) then
-      call read_icbc(nhbh1%ps,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
+      call read_icbc(nhbh1%ps,ts1,mddom%ldmsk,xub%b1,xvb%b1, &
+                     xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -513,7 +516,7 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,ts1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if
 
     if ( update_slabocn ) then

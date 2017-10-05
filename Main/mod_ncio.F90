@@ -576,10 +576,11 @@ module mod_ncio
     end if
   end subroutine open_som
 
-  subroutine read_icbc(ps,ts,u,v,t,qv,pp,ww)
+  subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,pp,ww)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ps
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ts
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ilnd
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: t
@@ -810,7 +811,9 @@ module mod_ncio
       if ( itweak_sst == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
-            ts(j,i) = ts(j,i) + sst_tweak
+            if ( ilnd(j,i) == 0 ) then
+              ts(j,i) = ts(j,i) + sst_tweak
+            end if
           end do
         end do
       end if
