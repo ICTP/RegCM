@@ -101,8 +101,8 @@ core is used in the model.
 ! Dynamical core parameters : Use defaults, be on your own otherwise!
 !
  &dynparam
- gnu1 = 0.0600,   ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.0600,   ! nu factor for Asselin filter in leapfrog step (tracers).
+ gnu1 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.0625,   ! nu factor for Asselin filter in leapfrog step (tracers).
                   ! MM5 manual , equation 2.4.6
                   ! Default 0.06,0.06 for hydro, 0.1,0.1 for nonhydro
  ckh = 1.0,       ! Background diffusion multiplication factor
@@ -816,6 +816,7 @@ sensitivity experiments to select the best scheme for your application.
                         !   0 : Original SUBEX
                         !   1 : Xu-Randall empirical
                         !   2 : Thompson scheme
+                        !   3 : Gultepe-Isaac scheme
  icldmstrat =        1, ! Simulate stratocumulus clouds
  icumcloud =         1, ! Formulas to use for cumulus clouds (cf and lwc)
                         ! Cloud fractions, only if mass fluxes are not
