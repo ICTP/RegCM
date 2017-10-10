@@ -115,11 +115,11 @@ module mod_micro_subex
     if ( l_lat_hack ) then
       call sun_cevap
     end if
-    if ( idiag > 0 ) then
-      mc2mo%dia_qcr(:,:,:) = d_zero
-      mc2mo%dia_qcl(:,:,:) = d_zero
-    end if
     if ( lsecind ) then
+      if ( idiag > 0 ) then
+        mc2mo%dia_qcr(:,:,:) = d_zero
+        mc2mo%dia_qcl(:,:,:) = d_zero
+      end if
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2

@@ -458,17 +458,17 @@ module mod_output
           if ( idiag > 0 ) then
             if ( associated(atm_qcrit_out) ) then
               do k = 1 , kz
-                atm_qcrit_out(:,:,k) = qdiag%qcr(jce1:jce2,ice1:ice2,k)
+                atm_qcrit_out(:,:,k) = qdiag%qcr(jci1:jci2,ici1:ici2,k)
               end do
             end if
             if ( associated(atm_qincl_out) ) then
               do k = 1 , kz
-                atm_qincl_out(:,:,k) = qdiag%qcl(jce1:jce2,ice1:ice2,k)
+                atm_qincl_out(:,:,k) = qdiag%qcl(jci1:jci2,ici1:ici2,k)
               end do
             end if
             if ( associated(atm_autoconvr_out) ) then
               do k = 1 , kz
-                atm_autoconvr_out(:,:,k) = qdiag%acr(jce1:jce2,ice1:ice2,k)
+                atm_autoconvr_out(:,:,k) = qdiag%acr(jci1:jci2,ici1:ici2,k)
               end do
             end if
           end if

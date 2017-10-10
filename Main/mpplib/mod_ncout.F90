@@ -667,8 +667,8 @@ module mod_ncout
         else
           enable_atm3d_vars(atm_ccnnum) = .false.
         end if
-        if ( .false. .and. idiag > 0 .and. &
-             ichem == 1 .and. iaerosol == 1 ) then
+        if ( idiag > 0 .and. &
+             ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
           if ( enable_atm3d_vars(atm_qcrit) ) then
             call setup_var(v3dvar_atm,atm_qcrit,vsize, &
               'qcrit','Kg kg-1','Critical water mixing ratio', &
@@ -2715,7 +2715,7 @@ module mod_ncout
          ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
-          if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+          if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('mean_critical_radius',rcrit))
             call outstream_addatt(outstream(i)%ncout(j), &

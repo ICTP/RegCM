@@ -6087,6 +6087,11 @@ module mod_cu_tiedtke
               if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
                 dnoprc = ccn(n,k)*(4.0_rkx/3.0_rkx)*mathpi * &
                          ((rcrit*1e-6_rkx)**3)*rhow
+                if ( ldland(n) ) then
+                  prcdgw = rprc_lnd*regrav
+                else
+                  prcdgw = rprc_ocn*regrav
+                end if
               else
                 if ( ldland(n) ) then
                   dnoprc = 5.e-4_rkx

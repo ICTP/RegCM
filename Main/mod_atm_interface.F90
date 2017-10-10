@@ -734,7 +734,7 @@ module mod_atm_interface
       call getmem3d(dia%dif,jci1,jci2,ici1,ici2,1,kz,'tendiag:dif')
       call getmem3d(dia%rad,jci1,jci2,ici1,ici2,1,kz,'tendiag:rad')
       call getmem3d(dia%lsc,jci1,jci2,ici1,ici2,1,kz,'tendiag:lsc')
-      if ( .false. .and. ichem == 1 .and. iaerosol == 1 ) then
+      if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
         call getmem3d(dia%qcl,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcl')
         call getmem3d(dia%qcr,jci1,jci2,ici1,ici2,1,kz,'tendiag:qcr')
         call getmem3d(dia%acr,jci1,jci2,ici1,ici2,1,kz,'tendiag:acr')
