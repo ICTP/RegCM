@@ -855,9 +855,7 @@ module mod_advection
             if ( f(j,i,k,n)   > 1.0e-10_rkx*ps(j,i) .and. &
                  f(j,i,k-1,n) > 1.0e-10_rkx*ps(j,i) ) then
               fg(j,i,k) = svv(j,i,k) * &
-                  f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
-              !fg(j,i,k) = svv(j,i,k) * &
-              !    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+                  (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
             end if
           end do
           if ( vert_stability_enhance ) then
