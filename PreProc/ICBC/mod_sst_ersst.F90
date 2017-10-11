@@ -214,7 +214,7 @@ module mod_sst_ersst
         if (work(i,j) /= xmiss) then
           sst(i,j) = real(work(i,j),rkx)*xscale + xadd
           ! Respect convention for ice
-          if ( sst(i,j) < 271.5_rkx ) sst(i,j) = 271.0_rkx
+          if ( sst(i,j) < 271.46_rkx ) sst(i,j) = 271.46_rkx
         else
           sst(i,j) = -9999.0_rkx
         end if

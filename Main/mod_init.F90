@@ -72,7 +72,7 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: rdnnsg , sfice_temp , t , p , qs , qv , rh , pfcc , dens
+    real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens
     real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
@@ -169,10 +169,10 @@ module mod_init
               if ( cplmsk(j,i) /= 0 ) cycle
             end if
             if ( isocean(mddom%lndcat(j,i)) ) then
-              if ( ts0(j,i) <= icetemp ) then
-                sfs%tga(j,i) = icetemp
-                sfs%tgb(j,i) = icetemp
-                ts0(j,i) = icetemp
+              if ( ts0(j,i) <= icetriggert ) then
+                sfs%tga(j,i) = icetriggert
+                sfs%tgb(j,i) = icetriggert
+                ts0(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
                 do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
@@ -197,10 +197,10 @@ module mod_init
               if ( cplmsk(j,i) /= 0 ) cycle
             end if
             if ( islake(mddom%lndcat(j,i)) ) then
-              if ( ts0(j,i) <= icetemp ) then
-                sfs%tga(j,i) = icetemp
-                sfs%tgb(j,i) = icetemp
-                ts0(j,i) = icetemp
+              if ( ts0(j,i) <= icetriggert ) then
+                sfs%tga(j,i) = icetriggert
+                sfs%tgb(j,i) = icetriggert
+                ts0(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
                 do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
@@ -465,7 +465,6 @@ module mod_init
       ! Update ground temperature on Ocean/Lakes
       !
       if ( islab_ocean == 0 ) then
-        sfice_temp = icetemp
         if ( idcsst == 1 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -491,10 +490,10 @@ module mod_init
               if ( iocncpl == 1 ) then
                 if ( cplmsk(j,i) /= 0 ) cycle
               end if
-              if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
-                sfs%tga(j,i) = sfice_temp
-                sfs%tgb(j,i) = sfice_temp
-                ts1(j,i) = icetemp
+              if ( ts1(j,i) <= icetriggert .and. mddom%ldmsk(j,i) == 0 ) then
+                sfs%tga(j,i) = icetriggert
+                sfs%tgb(j,i) = icetriggert
+                ts1(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
                 do n = 1 , nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
@@ -502,7 +501,8 @@ module mod_init
                     lms%sfice(n,j,i) = 0.50_rkx ! 10 cm
                   end if
                 end do
-              else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
+              else if ( ts1(j,i) > icetriggert .and. &
+                        mddom%ldmsk(j,i) == 2 ) then
                 ! Decrease the surface ice to melt it
                 sfs%tga(j,i) = ts1(j,i)
                 sfs%tgb(j,i) = ts1(j,i)

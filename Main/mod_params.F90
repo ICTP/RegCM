@@ -928,6 +928,14 @@ module mod_params
       dtche = int(dtche / dt) * dt
       dtabem = int(dtabem / dtrad) * dtrad
 
+      if ( iseaice == 1 ) then
+        select case (ssttyp)
+          case ('EIN15','EIN75','EIXXX')
+            icetriggert = 271.46_rkx
+          case default
+            icetriggert = 271.35_rkx
+        end select
+      end if
     end if
     !
     ! communicate to all processors
@@ -1109,6 +1117,7 @@ module mod_params
     call bcast(ghg_year_const)
     call bcast(idcsst)
     call bcast(iseaice)
+    call bcast(icetriggert)
     call bcast(idesseas)
     call bcast(iconvlwp)
     call bcast(icldfrac)

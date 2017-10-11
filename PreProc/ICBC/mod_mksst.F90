@@ -40,6 +40,7 @@ module mod_mksst
   real(rkx) , dimension(:,:) , pointer :: work1 , work2
   real(rkx) , dimension(:,:) , pointer :: work3 , work4
   real(rkx) , dimension(:) , pointer :: xtime
+  real(rkx) :: icet
 
   data lopen/.false./
   character(len=256) :: sstfile
@@ -62,6 +63,12 @@ module mod_mksst
 
     call split_idate(idate,iyy,im,id,ih)
 
+    select case (ssttyp)
+      case ('EIN15','EIN75','EIXXX')
+        icet = 271.46_rkx
+      case default
+        icet = 271.35_rkx
+    end select
     if (.not. lopen) then
       sstfile=trim(dirglob)//pthsep//trim(domname)//'_SST.nc'
       istatus = nf90_open(sstfile, nf90_nowrite, ncst)
@@ -232,12 +239,12 @@ module mod_mksst
             wt = 1.0_rkx/sqrt(real(i-ip,rkx)**2+real(j-jp,rkx)**2)
             distsig = sign(1.0_rkx,xlat(jp,ip)-xlat(j,i))
             if ( (xlat(jp,ip) - xlat(j,i)) > 2.0_rkx*epsilon(d_zero) ) then
-              nearn = nearn + (max(icetemp,sst(j,i) - lrate * &
+              nearn = nearn + (max(icet,sst(j,i) - lrate * &
                (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))) - distsig * &
                gcdist_simple(xlat(jp,ip),xlon(jp,ip), &
                              xlat(j,i),xlon(jp,ip))/100.0_rkx))*wt
             else
-              nearn = nearn + max(icetemp,sst(j,i) - lrate * &
+              nearn = nearn + max(icet,sst(j,i) - lrate * &
                (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))))*wt
             end if
             wtsum = wtsum + wt

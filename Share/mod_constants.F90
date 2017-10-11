@@ -354,8 +354,7 @@ module mod_constants
   ! Molecular heat diffusion coefficient in water
   real(rkx) , parameter :: hdmw = 1.3889e-7_rkx  ! m^2/s
 
-  ! Seaice temperature from ICBC trigger value
-  real(rkx) , parameter :: icetemp = 271.38_rkx
+  ! Seaice minimum depth value
   real(rkx) , parameter :: iceminh = 0.01_rkx
 
   ! Allowed range for cloud fraction

@@ -119,6 +119,7 @@ module mod_runparams
   integer(ik4) , public :: idcsst
   ! Sea Ice scheme index
   integer(ik4) , public :: iseaice
+  real(rkx) , public :: icetriggert
   ! Seasonal albedo for desert index
   integer(ik4) , public :: idesseas
   ! Ocean model switch indexes

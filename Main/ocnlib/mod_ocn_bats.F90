@@ -24,6 +24,7 @@ module mod_ocn_bats
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
+  use mod_runparams , only : icetriggert
   use mod_constants
 
   implicit none
@@ -118,7 +119,7 @@ module mod_ocn_bats
       if ( mask(i) /= 2 ) cycle
 
       ! Update surface temperature from the input SST
-      if ( tgb(i) >= icetemp ) then
+      if ( tgb(i) >= icetriggert ) then
         tgrd(i) = tgb(i)
       end if
 
