@@ -99,10 +99,11 @@ module mod_params
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
       iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
-      scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat , &
-      icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud , &
-      islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,      &
-      ghg_year_const , ifixsolar , fixedsolarval , year_offset
+      scenario ,  idcsst , ipcpcool , iseaice , idesseas , iconvlwp ,   &
+      icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer ,            &
+      isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval , &
+      wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,   &
+      year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , upu , umax , stability_enhance ,             &
@@ -245,6 +246,7 @@ module mod_params
     scenario = 'RCP4.5'
     ghg_year_const = 1950
     idcsst = 0
+    ipcpcool = 0
     iseaice = 0
     idesseas = 0
     iconvlwp = 0
@@ -1116,6 +1118,7 @@ module mod_params
     call bcast(scenario,8)
     call bcast(ghg_year_const)
     call bcast(idcsst)
+    call bcast(ipcpcool)
     call bcast(iseaice)
     call bcast(icetriggert)
     call bcast(idesseas)

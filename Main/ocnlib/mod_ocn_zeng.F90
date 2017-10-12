@@ -26,7 +26,7 @@ module mod_ocn_zeng
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
-  use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl
+  use mod_runparams , only : iocnrough , iocnzoq , syncro_cpl , ipcpcool
   use mod_runparams , only : iocncpl , iwavcpl
   use mod_runparams , only : zomax , ustarmax
 
@@ -64,7 +64,7 @@ module mod_ocn_zeng
 
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
-  logical :: flag1 , flag2
+  logical :: flag1 , flag2 , lpcpcool
 
   contains
   !
@@ -92,6 +92,8 @@ module mod_ocn_zeng
 
     wt1 = (threedays-dtocn)/threedays
     wt2 = dtocn/threedays
+
+    lpcpcool = ( ipcpcool == 1 .and. iocncpl /= 1 )
 
     do i = iocnbeg , iocnend
       if ( mask(i) /= 1 ) cycle
@@ -257,7 +259,7 @@ module mod_ocn_zeng
         end if
         obu = hu/zeta
       end do
-      if ( iocncpl /= 1 ) then
+      if ( lpcpcool ) then
         ! Stull 2011
         twbulb = t995 * atan((rhp+8.313659_rkx)**0.5_rkx) + &
                  atan(t995+rhp) - atan(rhp-1.676331_rkx) +  &
