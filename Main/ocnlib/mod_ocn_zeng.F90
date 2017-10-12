@@ -271,7 +271,7 @@ module mod_ocn_zeng
       end if
       tau = xdens*ustar*ustar*uv995/um
       lh = -xdens*xlv*qstar*ustar
-      sh = -xdens*cpd*tstar*ustar + pcpcool
+      sh = -xdens*cpd*tstar*ustar - pcpcool
       !
       ! x and y components of tau:
       ! lms%taux=xdens*ustar*ustar*u_x/um
@@ -372,7 +372,7 @@ module mod_ocn_zeng
         tgbrd(i) = sst(i)
       end if ! dcsst
 
-      tgbrd(i)  = tgbrd(i) - sign(d_one,pcpcool) * sqrt(sqrt(abs(pcpcool)/sigm))
+      tgbrd(i) = tgbrd(i) - sign(d_one,pcpcool) * sqrt(sqrt(abs(pcpcool)/sigm))
       sent(i) = sh
       evpr(i) = lh*rwlhv
       ! Back out Drag Coefficient
