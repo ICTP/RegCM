@@ -107,7 +107,7 @@ core is used in the model.
                   ! Default 0.06,0.06 for hydro, 0.1,0.1 for nonhydro
  ckh = 1.0,       ! Background diffusion multiplication factor
  adyndif = 1.0,   ! Dynamical diffusion multiplication factor
- diffu_hgtf = 1,  ! Add topographic effect to diffusion
+ diffu_hgtf = 0,  ! Add topographic effect to diffusion
  upstream_mode = .true.,  ! Add off centering to advection
  upu = 0.150,             ! Maximum off-centering factor to use
  umax = 160.0,            ! Value of P*U for maximum off centering
@@ -808,7 +808,7 @@ sensitivity experiments to select the best scheme for your application.
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
  idcsst   =          0, ! Use diurnal cycle sst scheme
- ipcpcool =          0, ! Precipitation cooling effect over ocean surface
+ ipcpcool =          1, ! Precipitation cooling effect over ocean surface
  iseaice  =          0, ! Model seaice effects
  idesseas =          0, ! Model desert seasonal albedo variability
  iconvlwp =          0, ! Use convective algo for lwp in the large-scale
