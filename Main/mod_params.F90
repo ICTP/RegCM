@@ -246,7 +246,7 @@ module mod_params
     scenario = 'RCP4.5'
     ghg_year_const = 1950
     idcsst = 0
-    ipcpcool = 0
+    ipcpcool = 1
     iseaice = 0
     idesseas = 0
     iconvlwp = 0
@@ -603,14 +603,13 @@ module mod_params
       upstream_mode = .true.
       stability_enhance = .true.
       vert_stability_enhance = .true.
+      diffu_hgtf = 0
       if ( idynamic == 2 ) then
         gnu1 = 0.1000_rkx
         gnu2 = 0.1000_rkx
-        diffu_hgtf = 1
       else
         gnu1 = 0.0625_rkx
         gnu2 = 0.0625_rkx
-        diffu_hgtf = 1
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx

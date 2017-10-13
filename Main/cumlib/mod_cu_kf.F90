@@ -355,7 +355,7 @@ module mod_cu_kf
             tven , zlcl , wkl , trppt , dtlcl , gdt , wlcl , wtw ,          &
             rholcl , au0 , vmflcl , upold , upnew , abe , wklcl , ttemp ,   &
             frc1 , qnewic , rl , be , boterm , enterm , dzz , rei , ee2 ,   &
-            ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice , shinc ,&
+            ud2 , ttmp , f1 , f2 , thttmp , qtmp , tmpliq , tmpice ,        &
             tu95 , tu10 , ee1 , ud1 , dptt , qnewlq , dumfdp , vconv ,      &
             timec , shsign , vws , pef , cbh , rcbh , pefcbh , peff ,       &
             peff2 , tder , tadvec , dpdd , rdd , a1 , dssdt , dtmp , t1rh , &
@@ -420,7 +420,6 @@ module mod_cu_kf
         tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
         ! dp is the pressure interval between full sigma levels
         dp(k) = rho(k,np)*egrav*dzq(k,np)
-        ! Limit maximum wind speeds
         wspd(k) = sqrt(u0(k,np)*u0(k,np) + v0(k,np)*v0(k,np))
         cldhgt(k) = d_zero
         if ( p0(k,np) >= d_half*p0(1,np) ) l5 = k
@@ -733,11 +732,11 @@ module mod_cu_kf
             if ( tu(nk1) <= ttfrz ) then
               if ( tu(nk1) > tbfrz ) then
                 frc1 = (ttemp-tu(nk1))/(ttemp-tbfrz)
-                ttemp = tu(nk1)
               else
                 frc1 = d_one
                 iflag = 1
               end if
+              ttemp = tu(nk1)
               !
               ! Determine the effects of liquid water freezing when temperature
               ! is below ttfrz.
@@ -1476,18 +1475,18 @@ module mod_cu_kf
         !
         ! find the maximum TKE value between LC and KLCL...
         evac = d_half*maxval(tke(lc:klcl,np))*0.1_rkx
-        shinc = max(0.1_rkx,min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),d_one))
-        tder = tder2*shinc
-        pptflx = pptfl2*shinc
+        ainc = max(0.1_rkx,min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),d_one))
+        tder = tder2*ainc
+        pptflx = pptfl2*ainc
         do nk = 1 , ltop
-          umf(nk) = umf2(nk)*shinc
-          dmf(nk) = dmf2(nk)*shinc
-          detlq(nk) = detlq2(nk)*shinc
-          detic(nk) = detic2(nk)*shinc
-          udr(nk) = udr2(nk)*shinc
-          uer(nk) = uer2(nk)*shinc
-          der(nk) = der2(nk)*shinc
-          ddr(nk) = ddr2(nk)*shinc
+          umf(nk) = umf2(nk)*ainc
+          dmf(nk) = dmf2(nk)*ainc
+          detlq(nk) = detlq2(nk)*ainc
+          detic(nk) = detic2(nk)*ainc
+          udr(nk) = udr2(nk)*ainc
+          uer(nk) = uer2(nk)*ainc
+          der(nk) = der2(nk)*ainc
+          ddr(nk) = ddr2(nk)*ainc
         end do
       end if
       ! Otherwise for deep convection
