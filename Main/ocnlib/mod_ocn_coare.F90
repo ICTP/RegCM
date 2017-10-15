@@ -337,7 +337,9 @@ module mod_ocn_coare
         !
         ! heat fluxes
         sent(i) = hsb
-        evpr(i) = hlb/Le
+        evpr(i) = max(hlb/Le,d_zero)
+        if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
+        if ( evpr(i) < dlowval ) evpr(i) = d_zero
 
         ! drag coefficents
         facttq = log(z995*d_half)/log(z995/zo)

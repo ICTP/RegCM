@@ -374,7 +374,7 @@ module mod_ocn_zeng
 
       tgbrd(i) = tgbrd(i) - sign(d_one,pcpcool) * sqrt(sqrt(abs(pcpcool)/sigm))
       sent(i) = sh
-      evpr(i) = lh*rwlhv
+      evpr(i) = max(lh*rwlhv,d_zero)
       ! Back out Drag Coefficient
       facttq = log(z995*d_half)/log(z995/zo)
       drag(i) = ustar**2*rhox(i)/uv995

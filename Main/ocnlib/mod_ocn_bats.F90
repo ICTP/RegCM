@@ -78,10 +78,10 @@ module mod_ocn_bats
       zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
 
       ! Update output variables
-      evpr(i) = -drag(i)*delq
+      evpr(i) = max(-drag(i)*delq,d_zero)
       sent(i) = -drag(i)*cpd*delt
       if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
-      if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
+      if ( evpr(i) < dlowval ) evpr(i) = d_zero
       fact = log(ht(i)*d_half)/log(ht(i)/zoce)
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
@@ -139,7 +139,7 @@ module mod_ocn_bats
       else
         ps = d_zero
       end if
-      sncv(i) = sncv(i) + dtocn*(ps-evpr(i))
+      sncv(i) = sncv(i) + dtocn*ps
 
       ! Update Snow age
       if ( sncv(i) < dlowval ) then
@@ -203,12 +203,13 @@ module mod_ocn_bats
       ! The ground temperature and heat fluxes for lake are computed
       ! in the lake model
       qs = qv(i)/(d_one+qv(i))
-      qgrd = pfqsat(tgrd(i),sfps(i))
+      ! Assume core sea ice temperature to be -8 C
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
       rsd1 = shice*sficemm*d_r1000
       if ( sncv(i) > d_zero ) then
         ! include snow heat capacity
+        qgrd = pfqsat(263.15_rkx,sfps(i))
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000
         ! subsurface heat flux through ice
         ! Following Maykut and Untersteiner (1971) and Semtner (1976)
@@ -217,6 +218,7 @@ module mod_ocn_bats
         fss = ksnow * (tgbrd(i)-tgrd(i)) / (d_one + rsi)
       else
         ! Slack, 1980
+        qgrd = pfqsat(253.15_rkx,sfps(i))
         fss = 2.14_rkx*(tgbrd(i)-tgrd(i))/sficemm
       end if
       if ( icpl(i) == 0 ) then
@@ -227,20 +229,20 @@ module mod_ocn_bats
         sncv(i) = d_zero
         scvk(i) = d_zero
         snag(i) = d_zero
-        delq = qs - qgrd
-        evpr(i) = -drag(i)*delq
-        sent(i) = -drag(i)*cpd*delt
         if ( icpl(i) == 0 ) then
           tgrd(i) = tgb(i)
           tgbrd(i) = tgb(i)
           sfice(i) = d_zero
           mask(i) = 1
         end if
+        qgrd = pfqsat(tgrd(i),sfps(i))
+        delq = qs - qgrd
+        evpr(i) = max(-drag(i)*delq,d_zero)
+        sent(i) = -drag(i)*cpd*delt
       else
         ! assume lead ocean temp is icetriggert
         ! flux of heat and moisture through leads
-        ! sat. mixing ratio at t=-2.0C is 3.3e-3
-        qice = 3.3e-3_rkx * stdp/sfps(i)
+        qice = pfqsat(icetriggert,sfps(i))
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*icetriggert)/cdrx
@@ -248,7 +250,8 @@ module mod_ocn_bats
         delt = sts(i) - tgrnd
         delq = qs - qgrnd
         ! output fluxes, averaged over leads and ice
-        evpr(i) = fact*delq
+        evpr(i) = max(fact*delq,d_zero)
+        sncv(i) = sncv(i) - dtocn*evpr(i)
         sent(i) = fact*cpd*delt
         hrl = rhox(i)*vspda*clead * (qice-qs)
         hsl = rhox(i)*vspda*clead * (icetriggert-sts(i))*cpd
@@ -293,7 +296,6 @@ module mod_ocn_bats
         end if
       end if
       if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
-      if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
       fact = log(ht(i)*d_half)/log(ht(i)/zoce)
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
