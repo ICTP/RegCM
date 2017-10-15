@@ -208,8 +208,9 @@ module mod_ocn_bats
       sficemm = sfice(i)*d_1000
       rsd1 = shice*sficemm*d_r1000
       if ( sncv(i) > d_zero ) then
+        ! Assume ground temperature as -4 C
+        qgrd = pfqsat(269.15_rkx,sfps(i))
         ! include snow heat capacity
-        qgrd = pfqsat(263.15_rkx,sfps(i))
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000
         ! subsurface heat flux through ice
         ! Following Maykut and Untersteiner (1971) and Semtner (1976)
@@ -217,8 +218,9 @@ module mod_ocn_bats
         ksnow = 7.0e-4_rkx*rhosw3/sncv(i)
         fss = ksnow * (tgbrd(i)-tgrd(i)) / (d_one + rsi)
       else
+        ! Assume ground temperature as -8 C
+        qgrd = pfqsat(265.15_rkx,sfps(i))
         ! Slack, 1980
-        qgrd = pfqsat(253.15_rkx,sfps(i))
         fss = 2.14_rkx*(tgbrd(i)-tgrd(i))/sficemm
       end if
       if ( icpl(i) == 0 ) then
