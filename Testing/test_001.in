@@ -28,8 +28,7 @@
  inpter = '/set/this/to/where/your/surface/dataset/is',
  /
  &debugparam
- debug_level = 1,
- dbgfrq = 3,
+ debug_level = 0,
  /
  &boundaryparam
  nspgx  = 12,

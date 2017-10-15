@@ -28,7 +28,7 @@
  inpter = 'RCMDATA',
  /
  &debugparam
- debug_level = 1
+ debug_level = 0
  /
  &boundaryparam
  nspgx  = 12,
