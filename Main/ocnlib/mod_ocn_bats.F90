@@ -121,7 +121,10 @@ module mod_ocn_bats
       ! Update surface temperature from the input SST
       if ( tgb(i) >= icetriggert ) then
         tgrd(i) = tgb(i)
+      else
+        tgrd(i) = icetriggert
       end if
+      tgbrd(i) = icetriggert
 
       uv995 = sqrt(usw(i)**2+vsw(i)**2)
 
@@ -132,8 +135,6 @@ module mod_ocn_bats
         ps = prcp(i)
       else
         ps = d_zero
-        ! All is melting
-        sm(i) = prcp(i)
       end if
       sncv(i) = sncv(i) + dtocn*(ps-evpr(i))
 
@@ -184,7 +185,7 @@ module mod_ocn_bats
       rhosw = 0.10_rkx*(d_one+d_three*age)
       rhosw3 = rhosw**3
       cdrn = (vonkar/log(ht(i)/zsno))**2
-      ribl = (d_one-271.5_rkx/sts(i))*ht(i)*egrav/ribd
+      ribl = (d_one-icetriggert/sts(i))*ht(i)*egrav/ribd
       if ( ribl < d_zero ) then
         clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
       else
@@ -198,7 +199,6 @@ module mod_ocn_bats
       ! in the lake model
       qs = qv(i)/(d_one+qv(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
-      tgbrd(i) = -d_two + tzero
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
       rsd1 = shice*sficemm*d_r1000
@@ -226,18 +226,19 @@ module mod_ocn_bats
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
         if ( icpl(i) == 0 ) then
-          tgrd(i) = tzero
+          tgrd(i) = tgb(i)
+          tgbrd(i) = tgb(i)
           sfice(i) = d_zero
           mask(i) = 1
         end if
       else
-        ! assume lead ocean temp is -1.8c
+        ! assume lead ocean temp is icetriggert
         ! flux of heat and moisture through leads
-        ! sat. mixing ratio at t=-1.8c is 3.3e-3
+        ! sat. mixing ratio at t=-2.0C is 3.3e-3
         qice = 3.3e-3_rkx * stdp/sfps(i)
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
-        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8_rkx))/cdrx
+        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*icetriggert)/cdrx
         fact = -drag(i)
         delt = sts(i) - tgrnd
         delq = qs - qgrnd
@@ -245,7 +246,7 @@ module mod_ocn_bats
         evpr(i) = fact*delq
         sent(i) = fact*cpd*delt
         hrl = rhox(i)*vspda*clead * (qice-qs)
-        hsl = rhox(i)*vspda*clead * (tzero-1.8_rkx-sts(i))*cpd
+        hsl = rhox(i)*vspda*clead * (icetriggert-sts(i))*cpd
         ! get fluxes over ice for sublimation (subrout snow)
         ! and melt (below) calculation
         fseng = (sent(i)-aarea*hsl)/(d_one-aarea)
@@ -255,6 +256,7 @@ module mod_ocn_bats
         ! snow melt
         if ( tgrd(i) >= tzero ) sm(i) = sm(i) + (hs+fss)/wlhf
         if ( sm(i) <= d_zero ) sm(i) = d_zero
+        if ( sm(i) * dtocn > sncv(i) ) sm(i) = sncv(i)/dtocn
         smc4 = sm(i)*dtocn
         sncv(i) = sncv(i) - sm(i) * dtocn
         ! all snow removed, melt ice
@@ -271,7 +273,8 @@ module mod_ocn_bats
             scvk(i) = d_zero
             snag(i) = d_zero
             if ( icpl(i) == 0 ) then
-              tgrd(i) = tzero
+              tgrd(i) = tgb(i)
+              tgbrd(i) = tgb(i)
               sfice(i) = d_zero
               mask(i) = 1
             end if
@@ -279,9 +282,9 @@ module mod_ocn_bats
         else
           ! snow or ice with no snow melting
           tg = tgrd(i) + bb
-          if ( tg >= tzero ) tgrd(i) = tzero
-          if ( tg < tzero ) tgrd(i) = tg
-          tgb(i) = tgrd(i)
+          tg = min(tg,icetriggert)
+          tgrd(i) = tg
+          tgb(i) = tg
         end if
       end if
       if ( abs(sent(i)) < dlowval ) sent(i) = d_zero

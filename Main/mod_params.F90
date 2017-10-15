@@ -932,9 +932,9 @@ module mod_params
       if ( iseaice == 1 ) then
         select case (ssttyp)
           case ('EIN15','EIN75','EIXXX')
-            icetriggert = 271.46_rkx
+            icetriggert = 271.465_rkx
           case default
-            icetriggert = 271.35_rkx
+            icetriggert = 271.355_rkx
         end select
       end if
     end if
