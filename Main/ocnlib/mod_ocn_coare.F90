@@ -341,6 +341,8 @@ module mod_ocn_coare
 
         ! drag coefficents
         facttq = log(z995*d_half)/log(z995/zo)
+        ustr(i) = usr
+        zoo(i) = zo
         drag(i) = usr**2*rhox(i)/uv995
 
         ! wind stress components

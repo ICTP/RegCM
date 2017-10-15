@@ -59,7 +59,7 @@ module mod_ocn_common
         call coare3_drv
     end select
     if ( llake ) call lakedrv
-    call seaice
+    if ( lseaice ) call seaice
     call ocn_interf(lm,lms,2)
     call ocn_albedo
   end subroutine vecocn

@@ -39,7 +39,7 @@ module mod_ocn_bats
     implicit none
     real(rkx) :: ribd , cdrn , rib , qgrd
     real(rkx) :: qs , delq , delt , fact , factuv
-    real(rkx) :: cdrmin , cdrx , ribn
+    real(rkx) :: cdrmin , cdrx , ribn , vspda
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocnbats'
@@ -62,6 +62,7 @@ module mod_ocn_bats
       delq = qs - qgrd
       ! Comnpute drag coefficient over ocean
       ribd = usw(i)**2 + vsw(i)**2 + wtur**2
+      vspda = sqrt(ribd)
       cdrn = (vonkar/log(ht(i)/zoce))**2
       ribn = ht(i)*egrav*(d_one - tgrd(i)/sts(i))
       rib = ribn/ribd
@@ -73,6 +74,8 @@ module mod_ocn_bats
       cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
       if ( cdrx < cdrmin ) cdrx = cdrmin
       drag(i) = cdrx*sqrt(ribd)*rhox(i)
+      ustr(i) = sqrt((vspda*drag(i))/rhox(i))
+      zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
 
       ! Update output variables
       evpr(i) = -drag(i)*delq
@@ -193,6 +196,8 @@ module mod_ocn_bats
       end if
       cdrx = (d_one-aarea)*cdr + aarea*clead
       drag(i) = cdrx*vspda*rhox(i)
+      ustr(i) = sqrt((vspda*drag(i))/rhox(i))
+      zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
 
       ! Update now the other variables
       ! The ground temperature and heat fluxes for lake are computed
