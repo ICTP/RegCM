@@ -59,6 +59,7 @@ module mod_output
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell
+    type(rcm_time_and_date) :: lastout
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -100,6 +101,7 @@ module mod_output
       if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.e30_rkx
       if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.e30_rkx
       call newoutfiles(rcmtimer%idate)
+      lastout = rcmtimer%idate
       lstartup = .true.
       if ( doing_restart ) then
         doing_restart = .false.
@@ -1156,13 +1158,8 @@ module mod_output
     if ( lfdomonth(rcmtimer%idate) .and. lmidnight(rcmtimer%idate) ) then
       if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
         call newoutfiles(rcmtimer%idate)
-
-        ! This must be removed
-        ! if ( ifchem .and. myid == iocpu ) then
-        !   call prepare_chem_out(rcmtimer%idate,ifrest)
-        ! end if
-
-        call checktime(myid)
+        call checktime(myid,tochar10(lastout))
+        lastout = rcmtimer%idate
       end if
     end if
 
