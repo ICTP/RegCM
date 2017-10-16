@@ -122,7 +122,12 @@ module mod_diffusion
       call minall(minval(hgfact),minxkh)
       if ( myid == 0 ) then
         write(stdout,'(a,e13.6,a,e13.6,a)') &
-          ' Computed hor. diff. coef. range = ',minxkh,' -',maxxkh,' m^2 s-1'
+          ' Computed background diff. coeff. = ',minxkh,' -',maxxkh,' m^2 s-1'
+      end if
+    else
+      if ( myid == 0 ) then
+        write(stdout,'(a,e13.6,a)') &
+          ' Computed background diff. coeff. = ', xkhz, ' m^2 s-1'
       end if
     end if
     call assignpnt(sfs%psb,pc)

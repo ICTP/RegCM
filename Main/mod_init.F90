@@ -486,7 +486,7 @@ module mod_init
             end if
             ! Sea ice correction
             if ( iseaice == 1 ) then
-              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+              if ( islake(mddom%lndcat(j,i)) ) cycle
               if ( iocncpl == 1 ) then
                 if ( cplmsk(j,i) /= 0 ) cycle
               end if
