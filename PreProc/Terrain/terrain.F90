@@ -337,17 +337,6 @@ program terrain
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
 
-    ! grell smoothing to eliminate 2 delx wave (6/90):
-    if ( ismthlev == 1 ) then
-      call smth121(htgrid_s,jxsg,iysg)
-    else if ( ismthlev == 2 ) then
-      call smtdsmt(htgrid_s,jxsg,iysg)
-    else
-      do ism = 1 , ismthlev
-        call smth121(htgrid_s,jxsg,iysg)
-      end do
-    end if
-
     do i = 1 , iysg
       do j = 1 , jxsg
         snowam_s(j,i) = 0.0
@@ -549,20 +538,6 @@ program terrain
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
 
-  ! preliminary heavy smoothing of boundaries
-  if ( smthbdy ) call smthtr(htgrid,jx,iy,nspgx)
-
-  ! grell smoothing to eliminate 2 delx wave (6/90):
-  if ( ismthlev == 1 ) then
-    call smth121(htgrid,jx,iy)
-  else if ( ismthlev == 2 ) then
-    call smtdsmt(htgrid,jx,iy)
-  else
-    do ism = 1 , ismthlev
-      call smth121(htgrid,jx,iy)
-    end do
-  end if
-
   do i = 1 , iy
     do j = 1 , jx
       snowam(j,i) = 0.0
@@ -622,6 +597,20 @@ program terrain
     end where
   else
     smoist = smissval
+  end if
+
+  ! preliminary heavy smoothing of boundaries
+  if ( smthbdy ) call smthtr(htgrid,jx,iy,nspgx)
+
+  ! grell smoothing to eliminate 2 delx wave (6/90):
+  if ( ismthlev == 1 ) then
+    call smth121(htgrid,jx,iy)
+  else if ( ismthlev == 2 ) then
+    call smtdsmt(htgrid,jx,iy)
+  else
+    do ism = 1 , ismthlev
+      call smth121(htgrid,jx,iy)
+    end do
   end if
 
   if ( ibndry ) then
@@ -716,6 +705,18 @@ program terrain
     else
       smoist_s = smissval
     end if
+
+    ! grell smoothing to eliminate 2 delx wave (6/90):
+    if ( ismthlev == 1 ) then
+      call smth121(htgrid_s,jxsg,iysg)
+    else if ( ismthlev == 2 ) then
+      call smtdsmt(htgrid_s,jxsg,iysg)
+    else
+      do ism = 1 , ismthlev
+        call smth121(htgrid_s,jxsg,iysg)
+      end do
+    end if
+
     if ( ibndry ) then
       do j = 1 , jxsg
         htgrid_s(j,1) = htgrid_s(j,2)
