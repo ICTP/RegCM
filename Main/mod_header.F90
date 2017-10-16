@@ -96,12 +96,12 @@ module mod_header
       call cpu_time(check_time)
       write (stdout,*) 'Elapsed seconds of run for this month : ', &
                 (check_time-last_time)
-      last_time = check_time
       open(newunit=iunit,file=trim(ctime)//'.txt',form='formatted', &
            status='replace',action='write')
       write(iunit,*) 'Elapsed seconds of run for this month : ', &
             (check_time-last_time)
       close(iunit)
+      last_time = check_time
     end if
   end subroutine checktime
 
