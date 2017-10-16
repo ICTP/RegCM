@@ -396,13 +396,19 @@ module mod_micro_interface
           else ! high cloud (less subgrid variability)
             rh0adj = d_one - (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
           end if
-          rh0adj = max(d_zero,min(rh0adj,d_one-0.001_rkx))
+          rh0adj = max(d_zero,min(rh0adj,d_one))
           if ( rhc < rh0adj ) then      ! Low cloud cover
             dqv = conf * (qvcs - qvs)
           else if ( rhc >= d_one ) then ! Full cloud cover
             dqv = conf * (qvcs - qvs)
           else
-            fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(d_one-rh0adj))
+            if ( rh0adj >= rhmax ) then
+              fccc = hicld
+            else if ( rh0adj <= rhmin ) then
+              fccc = lowcld
+            else
+              fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+            end if
             if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
               fccc = fccc * max(0.15_rkx, min(d_one,qvcs/0.003_rkx))
             end if

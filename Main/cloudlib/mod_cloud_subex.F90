@@ -73,7 +73,7 @@ module mod_cloud_subex
             fcc(j,i,k) = lowcld
           else
             ! Use Sundqvist (1989) formula
-            fcc(j,i,k) = d_one-sqrt(d_one-(rhrng-rh0adj)/(d_one-rh0adj))
+            fcc(j,i,k) = d_one-sqrt(d_one-(rhrng-rh0adj)/(rhmax-rh0adj))
           end if
         end do
       end do
