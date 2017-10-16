@@ -219,7 +219,7 @@ module mod_cu_interface
     if ( rcmtimer%integrating( ) ) then
 
       if ( any(icup == 6) ) then
-        w1 = d_one / 8.0_rkx ! 8 timestep average
+        w1 = real(max(int(1200.0_rkx/dt),1),rkx)
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
