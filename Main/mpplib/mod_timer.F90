@@ -327,13 +327,15 @@ module mod_timer
     end if
   end function alarm_act
 
-  logical function alarm_willact(alarm) result(res)
+  logical function alarm_willact(alarm,dt) result(res)
     implicit none
-    real(rkx) :: t1 , t2
     class(rcm_alarm) , intent(in) :: alarm
+    real(rkx) , intent(in) :: dt
+    integer(ik8) :: t1 , t2 , idt
     res = .false.
-    t1 = real(alarm%timer%model_internal_time+alarm%timer%model_timestep,rkx)
-    t2 = real(alarm%lastact+alarm%actint,rkx)
+    idt = int(dt,ik8)
+    t1 = alarm%timer%model_internal_time+idt
+    t2 = alarm%lastact+alarm%actint
     if ( t1 >= t2 ) then
       res = .true.
     end if

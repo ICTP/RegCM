@@ -647,7 +647,7 @@ module mod_lm_interface
                            expfie%shfx(j,i) - lm%rlwf(j,i)
       end do
     end do
-    if ( alarm_day%will_act( ) ) then
+    if ( alarm_day%will_act(dtsrf) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( lm%ldmsk(j,i) > 0 ) then
@@ -972,7 +972,7 @@ module mod_lm_interface
 
     ! Those are for the output, but collected only at POINT in time
 
-    if ( alarm_out_srf%will_act( ) ) then
+    if ( alarm_out_srf%will_act(dtsrf) ) then
 
       if ( ifsrf ) then
         if ( associated(srf_uvdrag_out) ) &

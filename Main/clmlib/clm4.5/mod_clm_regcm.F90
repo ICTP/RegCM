@@ -140,7 +140,7 @@ module mod_clm_regcm
     caldayp1 = yeardayfrac(nextt)
     call orb_decl(real(yearpoint(nextt),rk8),eccen,mvelpp, &
                   lambm0,obliqr,declinp1,eccfp1)
-    if ( rcmtimer%start( ) .or. syncro_rad%will_act( ) ) then
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act() ) then
       doalb = .true.
     else
       doalb = .false.
@@ -159,14 +159,14 @@ module mod_clm_regcm
       else
         if ( associated(alarm_out_sav) ) then
           if ( savfrq > 0 ) then
-            if ( alarm_out_sav%will_act( ) ) then
+            if ( alarm_out_sav%will_act(dtsrf) ) then
               rstwr = .true.
               if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
                 nlomon = .true.
               end if
             end if
           else
-            if ( alarm_out_sav%will_act( ) .or. &
+            if ( alarm_out_sav%will_act(dtsrf) .or. &
                  (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
               rstwr = .true.
               if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
