@@ -236,7 +236,7 @@ module mod_regcm_interface
     if ( ichem == 1 ) call close_chbc
     call dispose_output_streams
     call checktime(myid,trim(dirout)//pthsep//trim(domname)// &
-                       '.'//tochar10(rcmtimer%idate))
+                       '.'//tochar10(lastout))
 
 #ifdef CLM
     call t_prf('timing_all',mpicom)
