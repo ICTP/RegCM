@@ -77,7 +77,7 @@ module mod_smooth
           do j = 2 , je
             cell = slab(j,i)
             aplus = slab(j+1,i)
-            slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+            slab(j,i) = max(cell + xnu(kp)*( (asv+aplus)/d_two - cell),d_zero)
             asv = cell
           end do
         end do
@@ -87,7 +87,7 @@ module mod_smooth
           do i = 2 , ie
             cell = slab(j,i)
             aplus = slab(j,i+1)
-            slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+            slab(j,i) = max(cell + xnu(kp)*((asv+aplus)/d_two - cell),d_zero)
             asv = cell
           end do
         end do
@@ -122,7 +122,7 @@ module mod_smooth
             aplus = slab(j+1,i)
             if ( (i <= nsp) .or. (i >= iem) .and. &
                  (j <= nsp) .or. (j >= jem) ) then
-              slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell)
+              slab(j,i) = max(cell + xnu(kp)*( (asv+aplus)/d_two - cell),d_zero)
             end if
             asv = cell
           end do
@@ -135,7 +135,7 @@ module mod_smooth
             aplus = slab(j,i+1)
             if ( (i <= nsp) .or. (i >= iem) .and. &
                  (j <= nsp) .or. (j >= jem) ) then
-              slab(j,i) = cell + xnu(kp)*((asv+aplus)/d_two - cell)
+              slab(j,i) = max(cell + xnu(kp)*((asv+aplus)/d_two - cell),d_zero)
             end if
             asv = cell
           end do
@@ -171,7 +171,7 @@ module mod_smooth
     !
     ! Apply filter
     !
-    npass = 3
+    npass = 2
     call smther(slab1,nj,ni,nsp,npass)
     !
     ! Remove negative elevation points

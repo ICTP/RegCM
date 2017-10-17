@@ -59,7 +59,7 @@ module mod_output
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell
-    type(rcm_time_and_date) :: lastout
+    type(rcm_time_and_date) , save :: lastout
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0

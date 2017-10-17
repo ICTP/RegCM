@@ -122,13 +122,13 @@ module mod_ocn_zeng
       rhp = min(max(q995/qs,d_zero),d_one) * d_100
       ! in kg/kg
       dqh = q995 - qs
-      thv = th*(d_one+ep1*q995)
       ! virtual potential T
+      thv = th*(d_one+ep1*q995)
       dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
-      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*qs))
       ! density
-      xlv = (2.501_rkx-0.00237_rkx*tsurf)*1.0e6_rkx
+      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*qs))
       ! J/kg
+      xlv = wlh(tgrd(i))
       !
       ! Kinematic viscosity of dry air (m2/s)
       !   Andreas (1989) CRREL Rep. 89-11
@@ -196,7 +196,7 @@ module mod_ocn_zeng
       !
       ! main iterations (2-10 iterations would be fine)
       !
-      do nconv = 1 , 5
+      do nconv = 1 , 10
         call ocnrough(zo,zot,zoq,ustar,um10(i),wc,visa)
         !
         ! wind
@@ -250,7 +250,7 @@ module mod_ocn_zeng
         thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
         zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
-          um = max(uv995,0.1_rkx)
+          um = max(uv995,0.5_rkx)
           zeta = min(d_two,max(zeta,minz))
         else                   !unstable
           wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
@@ -399,6 +399,7 @@ module mod_ocn_zeng
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <wlh.inc>
 
     !
     ! stability function for rb < 0
@@ -463,6 +464,7 @@ module mod_ocn_zeng
           zo = charnockog*ustar*ustar
         end if
       end if
+      zo = max(zo,1.0e-5_rkx)
       re = (ustar*zo)/visa
       if ( iocnzoq == 2 ) then
         zoq = min(4.0e-4_rkx, 2.0e-4_rkx*re**(-3.3_rkx))

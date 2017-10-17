@@ -551,7 +551,7 @@ module mod_dynparam
       iout2 = iym2
       ioutsg1 = nsg+1
       ioutsg2 = iym2*nsg
-    end if 
+    end if
     njcross = jcross2-jcross1+1
     nicross = icross2-icross1+1
     njdot = jdot2-jdot1+1
@@ -589,8 +589,8 @@ module mod_dynparam
     smthbdy = .false.
     h2ohgt = .true.
     h2opct = 50.0_rkx
-    roidem = 1.0_rkx
-    ismthlev = 2
+    roidem = 1.5_rkx
+    ismthlev = 1
     rewind(ipunit)
     read(ipunit, nml=terrainparam, iostat=iresult)
     if ( iresult /= 0 ) then

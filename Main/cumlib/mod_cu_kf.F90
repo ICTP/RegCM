@@ -91,7 +91,7 @@ module mod_cu_kf
 
   real(rkx) , parameter :: astrt = 1.0e-3_rkx
   real(rkx) , parameter :: aincb = 0.0250_rkx
-  real(rkx) , parameter :: atoler = 0.001_rkx
+  real(rkx) , parameter :: atoler = 0.00001_rkx
 
   real(rkx) , parameter :: c1 = 3374.6525_rkx
   real(rkx) , parameter :: c2 = 2.5403_rkx
@@ -292,6 +292,16 @@ module mod_cu_kf
           cu_qten(j,i,kk,iqr) = dqrdt(k,np)
           cu_qten(j,i,kk,iqi) = dqidt(k,np)
           cu_qten(j,i,kk,iqs) = dqsdt(k,np)
+        end do
+      end do
+    else
+      do k = 1 , kz
+        kk = kz - k + 1
+        do np = 1 , nipoi
+          i = imap(np)
+          j = jmap(np)
+          cu_qten(j,i,kk,iqc) = cu_qten(j,i,kk,iqc) + &
+                      dqrdt(k,np) + dqidt(k,np) + dqsdt(k,np)
         end do
       end do
     end if
@@ -585,7 +595,8 @@ module mod_cu_kf
         else
           wklcl = 0.02_rkx          ! units of m/s
         end if
-        wkl = (w0avg(k,np)+(w0avg(klcl,np)-w0avg(k,np))*dlp)/25.0e3_rkx - wklcl
+        wkl = (w0avg(k,np)+(w0avg(klcl,np)-w0avg(k,np))*dlp) * &
+                   dx/25.0e3_rkx - wklcl
         if ( wkl < 0.0001_rkx ) then
           dtlcl = d_zero
         else
@@ -603,7 +614,7 @@ module mod_cu_kf
           ! the threshold RH for condensation (U00).
           ! as described in Narita and Ohmori (2007, 12th Mesoscale Conf.)
           ! for now, just assume U00 = 0.75.
-          ! !!!!!! for MM5, SET DTRH = 0. !!!!!!!!
+          ! !!!!!! for MM5, SET DTRH = 0.0 !!!!!!!!
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
@@ -1174,7 +1185,8 @@ module mod_cu_kf
       timec = min(kf_max_dtcape,timec)
       ! shallow convection TIMEC
       if ( ishall == 1 ) then
-        timec = max(d_half*(kf_max_dtcape+kf_min_dtcape)-300.0_rkx,300.0_rkx)
+        ! Narita and Ohmori, 2007
+        timec = 600.0_rkx
       end if
       nic = max(nint(timec/dt),1)
       timec = real(nic,rkx)*dt

@@ -381,7 +381,9 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt * qxten(j,i,k,iqv)
-          if ( atmc%qx(j,i,k,iqv) < minqv ) atmc%qx(j,i,k,iqv) = minqv
+          if ( atmc%qx(j,i,k,iqv) < minqq * sfs%psc(j,i) ) then
+            atmc%qx(j,i,k,iqv) = minqq * sfs%psc(j,i)
+          end if
         end do
       end do
     end do
@@ -426,9 +428,10 @@ module mod_tendency
       call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu1)
     end if
     call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu1)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1,sfs%psb)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2, &
-                          iqfrst,iqlst,1.0e-14_rkx,sfs%psb)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
+                          0.53_rkx,sfs%psa,sfs%psb)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
+                          iqfrst,iqlst,1.0e-14_rkx,sfs%psa,sfs%psb)
     !
     if ( idynamic == 1 ) then
       !
@@ -575,8 +578,8 @@ module mod_tendency
           end do
         end do
       end do
-      call timefilter_apply(atm1%chi,atm2%chi,atmc%chi, &
-                            gnu2,1,ntr,mintr,sfs%psb)
+      call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,0.53_rkx, &
+                            1,nqx,mintr,sfs%psa,sfs%psb)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
@@ -1515,7 +1518,7 @@ module mod_tendency
         qen0 = qxdyn(:,:,:,iqv)
       end if
       call diffu_x(tdyn,atms%tb3d)
-      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_one)
+      call diffu_x(qxdyn,atms%qxb3d,1,nqx,d_two)
       if ( idiag > 0 ) then
         call ten2diag(aten%t,tdiag%dif,pc_dynamic,ten0)
         call ten2diag(aten%qx,qdiag%dif,pc_dynamic,qen0)
@@ -1530,7 +1533,7 @@ module mod_tendency
       end if
       if ( ichem == 1 ) then
         if ( ichdiag > 0 ) chiten0 = chidyn
-        call diffu_x(chidyn,atms%chib3d,1,ntr,d_five)
+        call diffu_x(chidyn,atms%chib3d,1,ntr,d_two)
         if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_dynamic,chiten0)
       end if
       if ( ibltyp == 2 ) then

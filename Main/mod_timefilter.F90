@@ -199,7 +199,7 @@ module mod_timefilter
     end do
   end subroutine filter_ra_qv
 
-  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,psa,psb,low)
+  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low,psa,psb)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin

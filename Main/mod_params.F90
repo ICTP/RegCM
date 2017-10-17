@@ -188,7 +188,7 @@ module mod_params
     dt = 100.0_rkx  ! time step in seconds
     dtrad = 0.0_rkx ! time interval in min solar rad caluclated
     dtsrf = 0.0_rkx ! time interval at which bats is called (secs)
-    dtcum = -1.0_rkx ! time interval at which cumulus is called (secs)
+    dtcum = 0.0_rkx ! time interval at which cumulus is called (secs)
     dtabem = 0.0_rkx ! time interval absorption-emission calculated (hours)
     dtche = 900.0_rkx ! time interval at which bats is called (secs)
     !
@@ -609,12 +609,12 @@ module mod_params
         gnu2 = 0.1000_rkx
       else
         gnu1 = 0.0625_rkx
-        gnu2 = 0.0625_rkx
+        gnu2 = 0.1000_rkx
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx
       upu = 0.150_rkx
-      umax = 160.0_rkx
+      umax = 100.0_rkx
       t_extrema = 5.0_rkx
       q_rel_extrema = 0.50_rkx
       c_rel_extrema = 0.50_rkx

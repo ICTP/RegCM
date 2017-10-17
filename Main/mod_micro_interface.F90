@@ -371,10 +371,16 @@ module mod_micro_interface
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = max((atm2%qx(j,i,k,iqv) + &
-                   dt*aten%qx(j,i,k,iqv,pc_total)),qvmin)/sfs%psc(j,i)
-          qccs = max((atm2%qx(j,i,k,iqc) + &
-                   dt*aten%qx(j,i,k,iqc,pc_total)),d_zero)/sfs%psc(j,i)
+          qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
+          qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
+          if ( qvcs < minqq * sfs%psc(j,i) ) then
+            qvcs = minqq * sfs%psc(j,i)
+          end if
+          if ( qccs < 1.0e-14 * sfs%psc(j,i) ) then
+            qccs = d_zero
+          end if
+          qvcs = qvcs /sfs%psc(j,i)
+          qccs = qccs /sfs%psc(j,i)
           !
           ! 2.  Compute the cloud condensation/evaporation term.
           !

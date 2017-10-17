@@ -34,16 +34,16 @@
 ! Dynamical core parameters : Use defaults, be on your own otherwise!
 !
  &dynparam
- gnu1 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.0625,   ! nu factor for Asselin filter in leapfrog step (tracers).
-                  ! MM5 manual , equation 2.4.6
-                  ! Default 0.0625,0.0625 for hydro, 0.1,0.1 for nonhydro
- ckh = 1.0,       ! Background diffusion multiplication factor
- adyndif = 1.0,   ! Dynamical diffusion multiplication factor
- diffu_hgtf = 0,  ! Add topographic effect to diffusion
+ gnu1 = 0.06,    ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.10,    ! nu factor for Asselin filter in leapfrog step (tracers).
+                 ! MM5 manual , equation 2.4.6
+                 ! Default 0.06,0.1 for hydro, 0.1,0.1 for nonhydro
+ ckh = 1.0,      ! Background diffusion multiplication factor
+ adyndif = 1.0,  ! Dynamical diffusion multiplication factor
+ diffu_hgtf = 0, ! Add topographic effect to diffusion
  upstream_mode = .true.,  ! Add off centering to advection
  upu = 0.150,             ! Maximum off-centering factor to use
- umax = 160.0,            ! Value of P*U for maximum off centering
+ umax = 100.0,            ! Value of U for maximum off centering
  stability_enhance = .false., ! Do not allow horizontal advection to increase
                               ! tendencies if strong gradients are present
                               ! Enabled by default in non-hydro
@@ -87,8 +87,8 @@
  lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
- ismthlev = 2,                ! Smoothing level (1-2-1, smoother-desmoother)
- roidem = 1.0,                ! Interpolation radius in ds unit for topography
+ ismthlev = 1,                ! Smoothing level (1-2-1, smoother-desmoother)
+ roidem = 1.5,                ! Interpolation radius in ds unit for topography
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
                               ! terrain program the domain bathymetry
@@ -206,9 +206,8 @@
  dtrad  =     0.,   ! time interval solar radiation calculated (minutes)
  dtabem =     0.,   ! time interval absorption-emission calculated (hours)
  dtsrf  =     0.,   ! time interval at which land model is called (seconds)
- dtcum  =   -1.0,   ! time interval at which cumuls is called (seconds)
-                    ! By default use same timestep as dynamical core.
- dtche  =   900.,   ! time interval at which chem model is called (seconds)
+ dtcum  =     0.,   ! time interval at which cumuls is called (seconds)
+ dtche  =     0.,   ! time interval at which chem model is called (seconds)
  /
 !
 ! Model Output control

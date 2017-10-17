@@ -81,19 +81,19 @@ module mod_ocn_albedo
         ! Solar zenith dependence from Briegleb et al., [1986]
         albg = 0.026_rkx / (czeta**1.7_rkx + 0.065_rkx) + &
                0.15_rkx * (czeta-0.1_rkx)*(czeta-0.5_rkx)*(czeta-1.0_rkx)
-        if ( czeta < 0.12_rkx ) then
+        if ( czeta > 0.01_rkx .and. czeta < 0.12_rkx ) then
           ! Katsaros et al [1985] , reduction by wind waves at low angles.
           albg = max(0.05_rkx,albg*(d_one - 0.036_rkx*wspd))
         end if
-        ! Koepke [1984] - Whitecapping
+        ! Koepke [1984] - Increase by whitecapping
         albg = albg + 0.22_rkx * wfac
         albgs = albg
         albgl = albg
-        albgsd = 0.06_rkx - 0.01 * wfac
-        albgld = 0.06_rkx - 0.01 * wfac
+        albgsd = 0.06_rkx + 0.01 * wfac
+        albgld = 0.06_rkx + 0.01 * wfac
       else if ( mask(i) == 2 .or. mask(i) == 4 ) then
         ! Ice over ocean or lake
-        tdiffs = sts(i) - tzero
+        tdiffs = sts(i) - icetriggert
         tdiff = max(tdiffs,d_zero)
         tdiffs = min(tdiff,20.0_rkx)
         albgl = sical1 - 1.1e-2_rkx*tdiffs
