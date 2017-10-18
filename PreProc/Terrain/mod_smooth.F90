@@ -201,20 +201,21 @@ module mod_smooth
     real(rkx) , dimension(nj,ni) :: xtn
     real(rkx) :: np , sump
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
-    integer , parameter :: npass = 1
+    integer , parameter :: npass = 2
 
+    xtn(:,:) = d_zero
     do ipass = 1 , npass
-      do i = 1 , ni
-        do j = 1 , nj
+      do i = 2 , ni-1
+        do j = 2 , nj-1
           if ( mask(j,i) < 1.0_rkx ) then
-            np = 4.0_rkx
-            sump = 4.0_rkx * xt(j,i)
+            np = 1.0_rkx
+            sump = d_zero
             do ii = i-1 , i+1
               do jj = j-1 , j+1
-                iii = max(1,min(ii,ni))
-                jjj = max(1,min(jj,nj))
-                sump = sump + xt(jjj,iii)
-                np = np + 1
+                if ( xt(jj,ii) > 0.0_rkx ) then
+                  sump = sump + xt(jj,ii)
+                  np = np + 1
+                end if
               end do
             end do
             xtn(j,i) = sump/np
