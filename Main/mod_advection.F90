@@ -847,8 +847,8 @@ module mod_advection
           end do
         else if ( ind == 1 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-            if ( f(j,i,k,n)   > 1.0e-14_rkx*ps(j,i) .and. &
-                 f(j,i,k-1,n) > 1.0e-14_rkx*ps(j,i) ) then
+            if ( f(j,i,k,n)   > minqq * ps(j,i) .and. &
+                 f(j,i,k-1,n) > minqq * ps(j,i) ) then
               fg(j,i,k) = svv(j,i,k) * &
                   (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
             end if

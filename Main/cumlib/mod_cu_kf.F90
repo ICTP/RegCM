@@ -202,6 +202,10 @@ module mod_cu_kf
 
     do k = 1 , kz
       do np = 1 , nipoi
+        !
+        ! Saturation vapor pressure (ES) is calculated following Buck (1981)
+        ! If q0 is above saturation value, reduce it to saturation level.
+        !
         es = aliq * exp((bliq*t0(k,np)-cliq)/(t0(k,np)-dliq))
         qes(k,np) = ep2 * es/(p0(k,np)-es)
         q0(k,np) = min(qes(k,np),q0(k,np))
@@ -421,10 +425,6 @@ module mod_cu_kf
       !
       ml = 0
       do k = 1 , kx
-        !
-        ! Saturation vapor pressure (ES) is calculated following Buck (1981)
-        ! If q0 is above saturation value, reduce it to saturation level.
-        !
         rh(k) = max(min(d_one,q0(k,np)/qes(k,np)),d_zero)
         dilfrc(k) = d_one
         tv0(k) = t0(k,np) * (d_one + ep1*q0(k,np))
@@ -595,10 +595,10 @@ module mod_cu_kf
         else
           wklcl = 0.02_rkx          ! units of m/s
         end if
-        wkl = (w0avg(k,np)+(w0avg(klcl,np)-w0avg(k,np))*dlp) * &
-                   dx/25.0e3_rkx - wklcl
-        if ( wkl < 0.0001_rkx ) then
-          dtlcl = d_zero
+        wkl = (w0avg(k,np) + &
+                (w0avg(klcl,np)-w0avg(k,np))*dlp) * dx/25.0e3_rkx - wklcl
+        if ( wkl < 0.1_rkx ) then
+          dtlcl = 0.0_rkx
         else
           dtlcl = 4.64_rkx*wkl**0.33_rkx  ! Kain (2004) Eq. 1
         end if
@@ -607,13 +607,12 @@ module mod_cu_kf
           dtlcl = max(tpart_h(klcl,np) + tpart_v(klcl,np), d_zero)
         end if
 
-        dtrh = d_zero
+        dtrh = -0.001
         if ( kf_trigger == 3 ) then
           !
           ! for ETA model, give parcel an extra temperature perturbation based
           ! the threshold RH for condensation (U00).
           ! as described in Narita and Ohmori (2007, 12th Mesoscale Conf.)
-          ! for now, just assume U00 = 0.75.
           ! !!!!!! for MM5, SET DTRH = 0.0 !!!!!!!!
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
@@ -622,12 +621,10 @@ module mod_cu_kf
             dtrh = 0.25_rkx*(rhlcl-0.75_rkx)*qmix/dqssdt
           else if ( rhlcl > 0.95_rkx ) then
             dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
-          else
-            dtrh = d_zero
           end if
         end if   ! kf_trigger 3
 
-        kf_trigger2: &
+        triggering: &
         if ( tlcl+dtlcl+dtrh < tenv ) then
           !
           ! Parcel not buoyant, CYCLE back to start of trigger and
@@ -1015,7 +1012,7 @@ module mod_cu_kf
               end do
             end if
           end if
-        end if kf_trigger2
+        end if triggering
       end do usl
 
       if ( ishall == 1 ) then

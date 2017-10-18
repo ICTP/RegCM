@@ -76,7 +76,7 @@ module mod_slice
         do i = ice1ga , ice2ga
           do j = jce1ga , jce2ga
             atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
-            if ( atms%qxb3d(j,i,k,n) < 1.0e-14_rkx ) then
+            if ( atms%qxb3d(j,i,k,n) < minqq ) then
               atms%qxb3d(j,i,k,n) = d_zero
             end if
           end do
@@ -151,7 +151,7 @@ module mod_slice
       atms%wb3d(:,:,1) = d_zero
       atms%wb3d(:,:,kzp1) = d_zero
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-        atms%wb3d(j,i,k) = d_half*regrav * &
+        atms%wb3d(j,i,k) = -d_half*regrav * &
                    (atms%wpx3d(j,i,k-1)/atms%rhob3d(j,i,k-1) + &
                     atms%wpx3d(j,i,k)/atms%rhob3d(j,i,k))
       end do

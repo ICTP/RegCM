@@ -219,11 +219,11 @@ module mod_cu_interface
     if ( rcmtimer%integrating( ) ) then
 
       if ( any(icup == 6) ) then
-        w1 = d_one/real(max(int(1200.0_rkx/dt),1),rkx)
+        w1 = d_one/real(max(int(900.0_rkx/dtsec),1),rkx)
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              kfwavg(j,i,k) = (d_one - w1) * kfwavg(j,i,k) + &
+              kfwavg(j,i,k) = (d_one-w1) * kfwavg(j,i,k) + &
                             w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
             end do
           end do
