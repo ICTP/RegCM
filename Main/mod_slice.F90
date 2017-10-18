@@ -151,7 +151,7 @@ module mod_slice
       atms%wb3d(:,:,1) = d_zero
       atms%wb3d(:,:,kzp1) = d_zero
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-        atms%wb3d(j,i,k) = -d_half*regrav * &
+        atms%wb3d(j,i,k) = d_half*regrav * &
                    (atms%wpx3d(j,i,k-1)/atms%rhob3d(j,i,k-1) + &
                     atms%wpx3d(j,i,k)/atms%rhob3d(j,i,k))
       end do
