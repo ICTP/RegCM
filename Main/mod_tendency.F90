@@ -579,7 +579,7 @@ module mod_tendency
         end do
       end do
       call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,0.53_rkx, &
-                            1,nqx,mintr,sfs%psa,sfs%psb)
+                            1,ntr,mintr,sfs%psa,sfs%psb)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
