@@ -203,7 +203,7 @@ module mod_smooth
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
     integer , parameter :: npass = 2
 
-    xtn(:,:) = d_zero
+    xtn(:,:) = xt(:,:)
     do ipass = 1 , npass
       do i = 2 , ni-1
         do j = 2 , nj-1
