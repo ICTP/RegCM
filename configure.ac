@@ -84,11 +84,33 @@ fi
 USE_KNL="0"
 AC_ARG_ENABLE(knl,
   AC_HELP_STRING([--enable-knl],
-                 [Compile with knl flags.]),
+                 [Compile with Xeon Phi flags.]),
                  [USE_KNL="1"]
 )
 if eval "test x"$USE_KNL" = x1"; then
   AM_CPPFLAGS="\$(DEFINE)KNL $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+USE_SKL="0"
+AC_ARG_ENABLE(skl,
+  AC_HELP_STRING([--enable-skl],
+                 [Compile with Sky Lake flags.]),
+                 [USE_SKL="1"]
+)
+if eval "test x"$USE_SKL" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)SKL $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+USE_BDW="0"
+AC_ARG_ENABLE(bdw,
+  AC_HELP_STRING([--enable-bdw],
+                 [Compile with AVX2 flags.]),
+                 [USE_BDW="1"]
+)
+if eval "test x"$USE_BDW" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)BDW $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -367,6 +389,14 @@ if test -z "$COMPILER_INTEL_TRUE"; then
   AC_SUBST(LIBS)
   if eval "test x"$USE_KNL" = x1"; then
     FCFLAGS="$FCFLAGS -axMIC-AVX512"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_SKL" = x1"; then
+    FCFLAGS="$FCFLAGS -axCORE-AVX512"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_BDW" = x1"; then
+    FCFLAGS="$FCFLAGS -axCORE-AVX2"
     AC_SUBST(FCFLAGS)
   fi
 fi
