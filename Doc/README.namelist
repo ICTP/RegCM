@@ -34,10 +34,10 @@
 ! Dynamical core parameters : Use defaults, be on your own otherwise!
 !
  &dynparam
- gnu1 = 0.06,    ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.10,    ! nu factor for Asselin filter in leapfrog step (tracers).
+ gnu1 = 0.0625,  ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.1000,  ! nu factor for Asselin filter in leapfrog step (tracers).
                  ! MM5 manual , equation 2.4.6
-                 ! Default 0.06,0.1 for hydro, 0.1,0.1 for nonhydro
+                 ! Default 0.0625,0.1 for hydro, 0.1,0.1 for nonhydro
  ckh = 1.0,      ! Background diffusion multiplication factor
  adyndif = 1.0,  ! Dynamical diffusion multiplication factor
  diffu_hgtf = 0, ! Add topographic effect to diffusion
@@ -213,22 +213,22 @@
 ! Model Output control
 !
  &outparam
- ifsave  = .true. ,           ! Create SAV files for restart
- savfrq  =     0.,            ! Frequency in days to create them (0 = monthly)
- ifatm   = .true. ,           ! Output ATM ?
- atmfrq  =     6.,            ! Frequency in hours to write to ATM
- ifrad   = .true. ,           ! Output RAD ?
- radfrq  =     6.,            ! Frequency in hours to write to RAD
- ifsts   = .true. ,           ! Output STS (frequence is daily) ?
- ifsrf   = .true. ,           ! Output SRF ?
- srffrq  =     3.,            ! Frequency in hours to write to SRF
- ifsub   = .true. ,           ! Output SUB ?
- subfrq  =     6.,            ! Frequency in hours to write to SUB
- iflak   = .true.,            ! Output LAK ?
- lakfrq  =     6.,            ! Frequency in hours to write to LAK
- ifchem  = .true.,            ! Output CHE ?
- ifopt   = .false.,           ! Output OPT ?
- chemfrq =     6.,            ! Frequency in hours to write to CHE
+ ifsave  = .true. ,  ! Create SAV files for restart
+ savfrq  =     0.,   ! Frequency in days to create them (0 = monthly)
+ ifatm   = .true. ,  ! Output ATM ?
+ atmfrq  =     6.,   ! Frequency in hours to write to ATM
+ ifrad   = .true. ,  ! Output RAD ?
+ radfrq  =     6.,   ! Frequency in hours to write to RAD
+ ifsts   = .true. ,  ! Output STS (frequence is daily) ?
+ ifsrf   = .true. ,  ! Output SRF ?
+ srffrq  =     3.,   ! Frequency in hours to write to SRF
+ ifsub   = .true. ,  ! Output SUB ?
+ subfrq  =     6.,   ! Frequency in hours to write to SUB
+ iflak   = .true.,   ! Output LAK ?
+ lakfrq  =     6.,   ! Frequency in hours to write to LAK
+ ifchem  = .true.,   ! Output CHE ?
+ ifopt   = .false.,  ! Output OPT ?
+ chemfrq =     6.,   ! Frequency in hours to write to CHE
  enable_atm_vars = 67*.true., ! Mask to eventually disable variables ATM
  enable_srf_vars = 35*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 25*.true., ! Mask to eventually disable variables RAD
@@ -536,14 +536,14 @@
  ricr_ocn = 0.25,  ! Critical Richardson Number over Ocean
  ricr_lnd = 0.25,  ! Critical Richardson Number over Land
  zhnew_fac = 0.25, ! Multiplicative factor for zzhnew in holtpbl
- ifaholtth10 = 1,  ! First approximation for obhukov length, th10 formula:
+ ifaholtth10 = 0,  ! First approximation for obhukov length, th10 formula:
                    !      1 => 0.5 * (t+tg) * (1+0.61*q)
                    !      2 => (0.25*t + 0.75*tg) * (1+0.61*q)
                    !      3 => theta + hf/(k*us)*log(z/10)
                    ! t = air temp., tg = ground temp., q = wv mix. ratio
                    ! hf = total heat flux, z = elevation
                    ! theta = virt. pot. t
- ifaholt = 1,      ! th10 final adjustment:
+ ifaholt = 0,      ! th10 final adjustment:
                    !      0 => no adjustment
                    !      1 => max(th10,tg)
                    !      2 => min(th10,tg)

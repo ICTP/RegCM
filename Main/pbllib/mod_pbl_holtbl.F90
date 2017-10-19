@@ -243,8 +243,9 @@ module mod_pbl_holtbl
         ! convert surface fluxes to kinematic units
         xhfx(j,i) = m2p%hfx(j,i)/(cpd*m2p%rhox2d(j,i))
         xqfx(j,i) = m2p%qfx(j,i)/m2p%rhox2d(j,i)
-        ! compute virtual heat flux at surface
+        ! Compute virtual heat flux at surface. Make it never exactly zero.
         hfxv(j,i) = xhfx(j,i) + 0.61_rkx *m2p%tpatm(j,i,kz)*xqfx(j,i)
+        hfxv(j,i) = hfxv(j,i) + sign(0.1_rkx,hfxv(j,i))
         ! limit coriolis parameter to value at 10 deg. latitude
         pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
       end do
@@ -258,7 +259,7 @@ module mod_pbl_holtbl
     do i = ici1 , ici2
       do j = jci1 , jci2
         ! "virtual" potential temperature
-        if ( hfxv(j,i) >= d_zero ) then
+        if ( hfxv(j,i) > d_zero ) then
           th10(j,i) = thvx(j,i,kz)
         else
           ! Compute specific humidity
@@ -274,9 +275,8 @@ module mod_pbl_holtbl
             th10(j,i) = (d_half*(m2p%tpatm(j,i,kz)+m2p%tgb(j,i))) * &
                          (d_one + ep1*sh10)
           end if
-          do iter = 1 , 5
-            oblen = -(th10(j,i)*ustr(j,i)**3) /  &
-                    (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
+          do iter = 1 , 10
+            oblen = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
             if ( oblen >= m2p%za(j,i,kz) ) then
               th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
                  (log(m2p%za(j,i,kz)*d_r10)+d_five/oblen*(m2p%za(j,i,kz)-d_10))
@@ -298,8 +298,7 @@ module mod_pbl_holtbl
           th10(j,i) = min(th10(j,i),m2p%tgb(j,i))  ! gtb add to minimize
         end if
         ! obklen compute obukhov length
-        obklen(j,i) = -(th10(j,i)*ustr(j,i)**3) / &
-                (gvk*(hfxv(j,i)+sign(1.0e-10_rkx,hfxv(j,i))))
+        obklen(j,i) = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
       end do
     end do
 
@@ -1008,7 +1007,7 @@ module mod_pbl_holtbl
             zzhnew2 = d_zero
           end if
           fak1 = ustr(j,i)*p2m%zpbl(j,i)*vonkar
-          if ( hfxv(j,i) <= d_zero ) then
+          if ( hfxv(j,i) < d_zero ) then
             ! stable and neutral conditions
             ! igroup = 1
             ! prevent pblk from becoming too small in very stable

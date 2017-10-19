@@ -232,7 +232,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          ql0(k,np) = m2c%qxas(j,i,kk,iqc)
+          ql0(k,np) = d_zero
           qi0(k,np) = d_zero
           qr0(k,np) = d_zero
           qs0(k,np) = d_zero
@@ -282,7 +282,6 @@ module mod_cu_kf
         j = jmap(np)
         cu_tten(j,i,kk) = dtdt(k,np)
         cu_qten(j,i,kk,iqv) = dqdt(k,np)
-        cu_qten(j,i,kk,iqc) = dqcdt(k,np)
         cu_cldfrc(j,i,k) = max(cldfra_sh_kf(k,np),cldfra_dp_kf(k,np))
       end do
     end do
@@ -293,6 +292,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
+          cu_qten(j,i,kk,iqc) = dqcdt(k,np)
           cu_qten(j,i,kk,iqr) = dqrdt(k,np)
           cu_qten(j,i,kk,iqi) = dqidt(k,np)
           cu_qten(j,i,kk,iqs) = dqsdt(k,np)
@@ -304,8 +304,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          cu_qten(j,i,kk,iqc) = cu_qten(j,i,kk,iqc) + &
-                      dqrdt(k,np) + dqidt(k,np) + dqsdt(k,np)
+          cu_qten(j,i,kk,iqc) = dqcdt(k,np)+dqidt(k,np)
         end do
       end do
     end if
@@ -739,6 +738,7 @@ module mod_cu_kf
             !
             if ( tu(nk1) <= ttfrz ) then
               if ( tu(nk1) > tbfrz ) then
+                if ( ttemp > ttfrz ) ttemp = ttfrz
                 frc1 = (ttemp-tu(nk1))/(ttemp-tbfrz)
               else
                 frc1 = d_one
@@ -1484,7 +1484,7 @@ module mod_cu_kf
         !
         ! find the maximum TKE value between LC and KLCL...
         evac = d_half*maxval(tke(lc:klcl,np))*0.1_rkx
-        ainc = max(0.1_rkx,min(evac*dpthmx*dxsq/(vmflcl*egrav*timec),d_one))
+        ainc = evac*dpthmx*dxsq/(vmflcl*egrav*timec)
         tder = tder2*ainc
         pptflx = pptfl2*ainc
         do nk = 1 , ltop

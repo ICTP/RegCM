@@ -1078,14 +1078,14 @@ $1$.
  ricr_ocn = 0.25,  ! Critical Richardson Number over Ocean
  ricr_lnd = 0.25,  ! Critical Richardson Number over Land
  zhnew_fac = 0.25, ! Multiplicative factor for zzhnew in holtpbl
- ifaholtth10 = 1,  ! First approximation for obhukov length, th10 formula:
+ ifaholtth10 = 0,  ! First approximation for obhukov length, th10 formula:
                    !      1 => 0.5 * (t+tg) * (1+0.61*q)
                    !      2 => (0.25*t + 0.75*tg) * (1+0.61*q)
                    !      3 => theta + hf/(k*us)*log(z/10)
                    ! t = air temp., tg = ground temp., q = wv mix. ratio
                    ! hf = total heat flux, z = elevation
                    ! theta = virt. pot. t
- ifaholt = 1,      ! th10 final adjustment:
+ ifaholt = 0,      ! th10 final adjustment:
                    !      0 => no adjustment
                    !      1 => max(th10,tg)
                    !      2 => min(th10,tg)

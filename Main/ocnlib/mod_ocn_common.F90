@@ -99,11 +99,12 @@ module mod_ocn_common
       call c2l_ss(ocncomm,lm%xlat1,lat)
       call c2l_gs(ocncomm,lm%tground2,tgb)
       call c2l_gs(ocncomm,lm%zencos,czenith)
+      if ( llake .or. lseaice ) then
+        call c2l_ss(ocncomm,lms%sfice,sfice)
+        call c2l_ss(ocncomm,lms%sncv,sncv)
+      end if
       tgrd = tgb
       tgbrd = tgb
-      if ( llake .or. lseaice ) then
-        call c2l_gs(ocncomm,lm%snowam,sncv)
-      end if
       if ( iemiss == 1 .and. (llake .or. lseaice) ) then
         where ( xmask == 0 )
           emiss = ocn_sfcemiss

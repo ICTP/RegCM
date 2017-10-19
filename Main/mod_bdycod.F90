@@ -608,7 +608,7 @@ module mod_bdycod
               do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = 0.50_rkx
+                  lms%sfice(n,j,i) = 1.00_rkx
                 end if
               end do
             else if ( ts1(j,i) > icetriggert .and. mddom%ldmsk(j,i) == 2 ) then

@@ -201,7 +201,7 @@ module mod_smooth
     real(rkx) , dimension(nj,ni) :: xtn
     real(rkx) :: np , sump
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
-    integer , parameter :: npass = 2
+    integer , parameter :: npass = 1
 
     xtn(:,:) = xt(:,:)
     do ipass = 1 , npass

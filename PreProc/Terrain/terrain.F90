@@ -683,15 +683,10 @@ program terrain
     end if
 
     ! grell smoothing to eliminate 2 delx wave (6/90):
-    if ( ismthlev == 1 ) then
+    call smtdsmt(htgrid_s,jxsg,iysg)
+    do ism = 2 , ismthlev
       call smth121(htgrid_s,jxsg,iysg)
-    else if ( ismthlev == 2 ) then
-      call smtdsmt(htgrid_s,jxsg,iysg)
-    else
-      do ism = 1 , ismthlev
-        call smth121(htgrid_s,jxsg,iysg)
-      end do
-    end if
+    end do
 
     if (lakedpth) then
       where ( mask_s > 1.0 )

@@ -177,8 +177,10 @@ module mod_init
                 do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
                     mdsub%ldmsk(n,j,i) = 2
-                    lms%sfice(n,j,i) = 0.50_rkx ! This is in m -> 10 cm
-                    lms%sncv(n,j,i) = 10.0_rkx  ! 1 cm of snow over the ice
+                    lms%sfice(n,j,i) = 1.00_rkx ! This is in m
+                    lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
+                    lms%scvk(n,j,i) = 0.2_rkx
+                    lms%snag(n,j,i) = 0.1_rkx
                   end if
                 end do
               end if
@@ -205,6 +207,9 @@ module mod_init
                 do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
                     mdsub%ldmsk(n,j,i) = 2
+                    lms%sncv(n,j,i) = 1.0_rkx  ! 1 mm of snow over the ice
+                    lms%scvk(n,j,i) = 0.2_rkx
+                    lms%snag(n,j,i) = 0.1_rkx
                   end if
                 end do
               end if
