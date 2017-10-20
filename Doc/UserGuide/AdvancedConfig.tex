@@ -261,11 +261,11 @@ later when the model calculates climatic parameters.
  &terrainparam
  domname  = 'AQWA',           ! Name of the domain/experiment.
                               ! Controls naming of input files
- lresamp = .false.,           ! Do a first resampling before interpolation
+ lresamp = .true.,            ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  ismthlev = 1,                ! Smoothing level (1-2-1, smoother-desmoother)
- roidem = 1.5,                ! Interpolation radius in ds unit for topography
+ roidem = 1.0,                ! Interpolation radius in ds unit for topography
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
                               ! terrain program the domain bathymetry
