@@ -226,7 +226,7 @@ program terrain
     write(stdout,*) 'Determined Subgrid coordinate range'
 
     if ( lresamp ) then
-      ntypec_s = nint(longitude_circle(minval(abs(xlat)))/(36.0_rkx*dsnsg))
+      ntypec_s = int(dsnsg/6.0_rkx)
       if ( ntypec_s > 0 ) then
         do while ( mod(3600,ntypec_s*60) /= 0 .and. ntypec_s > 1 )
           ntypec_s = ntypec_s - 1
@@ -416,7 +416,7 @@ program terrain
   write(stdout,*)'Determined Grid coordinate range'
 
   if ( lresamp ) then
-    ntypec = nint(longitude_circle(minval(abs(xlat)))/(36.0_rkx*ds))
+    ntypec = int(ds/6.0_rkx)
     if ( ntypec > 0 ) then
       do while ( mod(3600,ntypec*60) /= 0 .and. ntypec > 1 )
         ntypec = ntypec - 1

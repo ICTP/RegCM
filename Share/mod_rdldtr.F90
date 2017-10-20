@@ -111,7 +111,7 @@ module mod_rdldtr
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , inpsec , iopsec , ifrac
     integer(ik4) , dimension(2) :: istart , icount
-    real(rkx) :: delta
+    real(rkx) :: deltalat , deltalon
     real(rkx) , allocatable , dimension(:,:) :: readbuf
 
 #ifdef DEBUG
@@ -131,7 +131,7 @@ module mod_rdldtr
     nlon = sum(gdomain%ni)
 
     inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(real(iores,rkx)*60.0_rkx),1)
+    iopsec = max(int(real(iores,rkx)*60.0_rkx),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -139,19 +139,23 @@ module mod_rdldtr
     write(stderr,*) 'IFRAC  = ', ifrac
 #endif
 
-    nlatin = (nlat/ifrac)
-    nlonin = (nlon/ifrac)
-
-    delta = 0.0_rkx
     if ( ifrac > 1 ) then
-      delta = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      nlatin = (nlat/ifrac) - 1
+      nlonin = (nlon/ifrac) - 1
+      deltalat = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      deltalon = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+    else
+      nlatin = nlat
+      nlonin = nlon
+      deltalat = 0.0_rkx
+      deltalon = 0.0_rkx
     end if
 
-    grdlnmn = glon(gdomain%igstart(1)) + delta
-    grdlnma = glon(gdomain%igstart(gdomain%ntiles) + &
-                   gdomain%ni(gdomain%ntiles)-1) - delta
-    grdltmn = glat(gdomain%jgstart) + delta
-    grdltma = glat(gdomain%jgstart+gdomain%nj-1) - delta
+    grdlnmn = glon(gdomain%igstart(1)) + deltalon
+    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rkx) / 3600.0_rkx
+    grdltmn = glat(gdomain%jgstart) + deltalat
+    grdltma = grdltmn + real((nlatin-1)*iopsec,rkx) / 3600.0_rkx
+
     deallocate(glat)
     deallocate(glon)
 
@@ -226,7 +230,7 @@ module mod_rdldtr
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , n , inpsec , iopsec , ifrac , nd
     integer(ik4) , dimension(3) :: idims , istart , icount
-    real(rkx) :: delta
+    real(rkx) :: deltalat , deltalon
     real(rkx) , allocatable , dimension(:,:,:) :: readbuf
 
 #ifdef DEBUG
@@ -259,7 +263,7 @@ module mod_rdldtr
     nlon = sum(gdomain%ni)
 
     inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(real(iores,rkx)*60.0_rkx),1)
+    iopsec = max(int(real(iores,rkx)*60.0_rkx),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -267,19 +271,23 @@ module mod_rdldtr
     write(stderr,*) 'IFRAC  = ', ifrac
 #endif
 
-    nlatin = (nlat/ifrac)
-    nlonin = (nlon/ifrac)
-
-    delta = 0.0_rkx
     if ( ifrac > 1 ) then
-      delta = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      nlatin = (nlat/ifrac) - 1
+      nlonin = (nlon/ifrac) - 1
+      deltalat = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      deltalon = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+    else
+      nlatin = nlat
+      nlonin = nlon
+      deltalat = 0.0_rkx
+      deltalon = 0.0_rkx
     end if
 
-    grdlnmn = glon(gdomain%igstart(1)) + delta
-    grdlnma = glon(gdomain%igstart(gdomain%ntiles) + &
-                   gdomain%ni(gdomain%ntiles)-1) - delta
-    grdltmn = glat(gdomain%jgstart) + delta
-    grdltma = glat(gdomain%jgstart+gdomain%nj-1) - delta
+    grdlnmn = glon(gdomain%igstart(1)) + deltalon
+    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rkx) / 3600.0_rkx
+    grdltmn = glat(gdomain%jgstart) + deltalat
+    grdltma = grdltmn + real((nlatin-1)*iopsec,rkx) / 3600.0_rkx
+
     deallocate(glat)
     deallocate(glon)
 
@@ -362,7 +370,7 @@ module mod_rdldtr
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , inpsec , iopsec , ifrac , nd
     integer(ik4) , dimension(3) :: istart , icount
-    real(rkx) :: delta
+    real(rkx) :: deltalat , deltalon
     real(rkx) , allocatable , dimension(:,:) :: readbuf
 
 #ifdef DEBUG
@@ -389,7 +397,7 @@ module mod_rdldtr
     nlon = sum(gdomain%ni)
 
     inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(real(iores,rkx)*60.0_rkx),1)
+    iopsec = max(int(real(iores,rkx)*60.0_rkx),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -397,19 +405,22 @@ module mod_rdldtr
     write(stderr,*) 'IFRAC  = ', ifrac
 #endif
 
-    nlatin = (nlat/ifrac)
-    nlonin = (nlon/ifrac)
-
-    delta = 0.0_rkx
     if ( ifrac > 1 ) then
-      delta = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      nlatin = (nlat/ifrac) - 1
+      nlonin = (nlon/ifrac) - 1
+      deltalat = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      deltalon = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+    else
+      nlatin = nlat
+      nlonin = nlon
+      deltalat = 0.0_rkx
+      deltalon = 0.0_rkx
     end if
 
-    grdlnmn = glon(gdomain%igstart(1)) + delta
-    grdlnma = glon(gdomain%igstart(gdomain%ntiles) + &
-                   gdomain%ni(gdomain%ntiles)-1) - delta
-    grdltmn = glat(gdomain%jgstart) + delta
-    grdltma = glat(gdomain%jgstart+gdomain%nj-1) - delta
+    grdlnmn = glon(gdomain%igstart(1)) + deltalon
+    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rkx) / 3600.0_rkx
+    grdltmn = glat(gdomain%jgstart) + deltalat
+    grdltma = grdltmn + real((nlatin-1)*iopsec,rkx) / 3600.0_rkx
 
     deallocate(glat)
     deallocate(glon)
@@ -568,28 +579,30 @@ module mod_rdldtr
     integer(ik4) , intent(in) :: nlatin , nlonin
     real(rkx) , dimension(nlon,nlat) , intent(in) :: readbuf
     real(rkx) , dimension(nlonin,nlatin) , intent(out) :: values
-    integer(ik4) :: nfrac , np , i , j
+    integer(ik4) :: nfrac , np , i , j , ib , jb
     real(rkx) , allocatable , dimension(:) :: copybuf
 
     write(stdout,'(a)',advance='no') ' Resampling'
-    nfrac = ifrac*ifrac
+    nfrac = (ifrac+1)*(ifrac+1)
     allocate(copybuf(nfrac))
     select case (imeth)
       case (1)
         do i = 1 , nlatin
           if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          ib = (i-1)*ifrac+1
           do j = 1 , nlonin
-            call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
-                         (i-1)*ifrac+1,ifrac,iband)
+            jb = (j-1)*ifrac+1
+            call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             values(j,i) = sum(copybuf)/real(size(copybuf),rkx)
           end do
         end do
       case (2)
         do i = 1 , nlatin
           if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          ib = (i-1)*ifrac+1
           do j = 1 , nlonin
-            call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
-                         (i-1)*ifrac+1,ifrac,iband)
+            jb = (j-1)*ifrac+1
+            call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             call qsort(copybuf)
             !values(j,i) = 0.5*(copybuf(nfrac/2)+copybuf(nfrac/2+1))
             values(j,i) = copybuf(max(nfrac/2,1))
@@ -598,18 +611,20 @@ module mod_rdldtr
       case (3)
         do i = 1 , nlatin
           if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          ib = (i-1)*ifrac+1
           do j = 1 , nlonin
-            call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
-                         (i-1)*ifrac+1,ifrac,iband)
+            jb = (j-1)*ifrac+1
+            call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             values(j,i) = real(mpindex(copybuf),rkx)
           end do
         end do
       case (4)
         do i = 1 , nlatin
           if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          ib = (i-1)*ifrac+1
           do j = 1 , nlonin
-            call fillbuf(copybuf,readbuf,nlon,nlat,(j-1)*ifrac+1,&
-                         (i-1)*ifrac+1,ifrac,iband)
+            jb = (j-1)*ifrac+1
+            call fillbuf(copybuf,readbuf,nlon,nlat,jb,ib,ifrac+1,iband)
             call qsort(copybuf)
             np = (ifrac*ifrac)/4
             values(j,i) = sum(copybuf(1+np:size(copybuf)-np+1)) / &
@@ -618,9 +633,11 @@ module mod_rdldtr
         end do
       case default
         do i = 1 , nlatin
+        ib = (i-1)*ifrac+1 + ifrac/2
           if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
           do j = 1 , nlonin
-            values(j,i) = readbuf((j-1)*ifrac+1,(i-1)*ifrac+1)
+            jb = (j-1)*ifrac+1 + ifrac/2
+            values(j,i) = readbuf(jb,ib)
           end do
         end do
     end select
@@ -694,7 +711,7 @@ module mod_rdldtr
     real(rkx) :: temp , pivot
 
     np = size(a)
-    pivot = (a(1) + a(np))/2.0E0
+    pivot = (a(1) + a(np))/2.0_rkx
     left = 0
     right = np + 1
 
