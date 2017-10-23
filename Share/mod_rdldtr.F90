@@ -579,16 +579,17 @@ module mod_rdldtr
     integer(ik4) , intent(in) :: nlatin , nlonin
     real(rkx) , dimension(nlon,nlat) , intent(in) :: readbuf
     real(rkx) , dimension(nlonin,nlatin) , intent(out) :: values
-    integer(ik4) :: nfrac , np , i , j , ib , jb
+    integer(ik4) :: nfrac , np , i , j , ib , jb , iprint
     real(rkx) , allocatable , dimension(:) :: copybuf
 
     write(stdout,'(a)',advance='no') ' Resampling'
+    iprint = max(nlatin/20,5)
     nfrac = (ifrac+1)*(ifrac+1)
     allocate(copybuf(nfrac))
     select case (imeth)
       case (1)
         do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
           do j = 1 , nlonin
             jb = (j-1)*ifrac+1
@@ -598,7 +599,7 @@ module mod_rdldtr
         end do
       case (2)
         do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
           do j = 1 , nlonin
             jb = (j-1)*ifrac+1
@@ -610,7 +611,7 @@ module mod_rdldtr
         end do
       case (3)
         do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
           do j = 1 , nlonin
             jb = (j-1)*ifrac+1
@@ -620,7 +621,7 @@ module mod_rdldtr
         end do
       case (4)
         do i = 1 , nlatin
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           ib = (i-1)*ifrac+1
           do j = 1 , nlonin
             jb = (j-1)*ifrac+1
@@ -634,7 +635,7 @@ module mod_rdldtr
       case default
         do i = 1 , nlatin
         ib = (i-1)*ifrac+1 + ifrac/2
-          if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+          if (mod(i,iprint) == 0) write(stdout,'(a)',advance='no') '.'
           do j = 1 , nlonin
             jb = (j-1)*ifrac+1 + ifrac/2
             values(j,i) = readbuf(jb,ib)
@@ -642,6 +643,7 @@ module mod_rdldtr
         end do
     end select
     deallocate(copybuf)
+    write(stdout,'(a)',advance='no') new_line('a')
   end subroutine resampling
 
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,iband)

@@ -51,10 +51,6 @@ module mod_humid
 
   contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-#include <sig2p.inc>
-
   subroutine sph2mxr_double(q,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
@@ -118,6 +114,13 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <sig2p.inc>
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine mxr2rh
 
   subroutine mxr2rh_o_double(t,q,ps,sigma,ptop,im,jm,km)
@@ -147,6 +150,12 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine mxr2rh_o_double
 
   subroutine mxr2rh_o_single(t,q,ps,sigma,ptop,im,jm,km)
@@ -177,6 +186,12 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine mxr2rh_o_single
 
   subroutine mxr2rhfv(t,q,p3d,ni,nj,nk,mval)
@@ -203,6 +218,12 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine mxr2rhfv
 
   subroutine mxr2rh_o_double_nonhydro(t,q,p3d,ni,nj,nk)
@@ -224,6 +245,12 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine mxr2rh_o_double_nonhydro
 
   subroutine mxr2rh_o_single_nonhydro(t,q,p3d,ni,nj,nk)
@@ -245,6 +272,12 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine mxr2rh_o_single_nonhydro
 
   subroutine rh2mxr_p1d(t,q,p,ni,nj,nk)
@@ -267,6 +300,12 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine rh2mxr_p1d
 
   subroutine rh2mxr_p3d(t,q,ps,ptop,sigma,ni,nj,nk)
@@ -292,6 +331,12 @@ module mod_humid
         end do
       end do
     end do
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
   end subroutine rh2mxr_p3d
 
   subroutine ecmwf_rh2mxr(t,q,ps,ptop,sigma,ni,nj,nk)
