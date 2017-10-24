@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 24 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 28 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 6
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -261,6 +261,10 @@ module mod_ncout
   integer(ik4) , parameter :: srf_ustar    = 27
   integer(ik4) , parameter :: srf_zo       = 28
   integer(ik4) , parameter :: srf_rhoa     = 29
+  integer(ik4) , parameter :: srf_totcf    = 30
+  integer(ik4) , parameter :: srf_wspd     = 31
+  integer(ik4) , parameter :: srf_taux     = 32
+  integer(ik4) , parameter :: srf_tauy     = 33
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -323,7 +327,7 @@ module mod_ncout
   integer(ik4) , parameter :: rad_clrls  = 12
   integer(ik4) , parameter :: rad_solin  = 13
   integer(ik4) , parameter :: rad_sabtp  = 14
-  integer(ik4) , parameter :: rad_totcf  = 15
+  integer(ik4) , parameter :: rad_totwv  = 15
   integer(ik4) , parameter :: rad_totcl  = 16
   integer(ik4) , parameter :: rad_totci  = 17
   integer(ik4) , parameter :: rad_firtp  = 18
@@ -554,7 +558,7 @@ module mod_ncout
         if ( idiag > 0 .or. icosp == 1 ) then
           if ( enable_atm2d_vars(atm_tpr) ) then
             call setup_var(v2dvar_atm,atm_tpr,vsize,'pr','kg m-2 s-1', &
-              'Total rain precipitation flux','precipitation_flux',.true., &
+              'Precipitation','precipitation_flux',.true., &
               'time: mean')
             atm_tpr_out => v2dvar_atm(atm_tpr)%rval
           end if
@@ -573,7 +577,7 @@ module mod_ncout
         end if
         if ( enable_atm2d_vars(atm_tgb) ) then
           call setup_var(v2dvar_atm,atm_tgb,vsize,'ts','K', &
-            'Groud surface temperature','soil_temperature',.true.,'time: mean')
+            'Surface Temperature','surface_temperature',.true.)
           atm_tgb_out => v2dvar_atm(atm_tgb)%rval
         end if
         if ( idiag > 0 ) then
@@ -642,7 +646,7 @@ module mod_ncout
         end if
         if ( enable_atm3d_vars(atm_qv) ) then
           call setup_var(v3dvar_atm,atm_qv,vsize,'qas','kg kg-1', &
-            'Specific humidity in air','specific_humidity',.true.)
+            'Specific Humidity','specific_humidity',.true.)
           atm_qv_out => v3dvar_atm(atm_qv)%rval
         end if
         if ( enable_atm3d_vars(atm_qc) ) then
@@ -1099,6 +1103,18 @@ module mod_ncout
             'Surface wind stress','surface_downward_stress',.true.)
           srf_uvdrag_out => v2dvar_srf(srf_uvdrag)%rval
         end if
+        if ( enable_srf2d_vars(srf_taux) ) then
+          call setup_var(v2dvar_srf,srf_taux,vsize,'tauu','Pa', &
+            'Surface Downward Eastward Wind Stress', &
+            'surface_downward_eastward_stress',.true.,'time: mean')
+          srf_taux_out => v2dvar_srf(srf_taux)%rval
+        end if
+        if ( enable_srf2d_vars(srf_tauy) ) then
+          call setup_var(v2dvar_srf,srf_tauy,vsize,'tauv','Pa', &
+            'Surface Downward Northward Wind Stress', &
+            'surface_downward_northward_stress',.true.,'time: mean')
+          srf_tauy_out => v2dvar_srf(srf_tauy)%rval
+        end if
         if ( enable_srf2d_vars(srf_ustar) ) then
           call setup_var(v2dvar_srf,srf_ustar,vsize,'ustar','m s-1', &
             'Surface friction velocity','friction_velocity',.true.)
@@ -1116,7 +1132,7 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_tg) ) then
           call setup_var(v2dvar_srf,srf_tg,vsize,'ts','K', &
-            'Ground surface temperature','surface_temperature',.true.)
+            'Surface Temperature','surface_temperature',.true.)
           srf_tg_out => v2dvar_srf(srf_tg)%rval
         end if
         if ( enable_srf2d_vars(srf_tlef) ) then
@@ -1127,19 +1143,17 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_tpr) ) then
           call setup_var(v2dvar_srf,srf_tpr,vsize,'pr','kg m-2 s-1', &
-            'Total precipitation flux','precipitation_flux',.true., &
-            'time: mean')
+            'Precipitation','precipitation_flux',.true.,'time: mean')
           srf_tpr_out => v2dvar_srf(srf_tpr)%rval
         end if
         if ( enable_srf2d_vars(srf_evp) ) then
           call setup_var(v2dvar_srf,srf_evp,vsize,'evspsbl','kg m-2 s-1', &
-            'Total evapotranspiration flux','water_evaporation_flux',.true., &
-            'time: mean')
+            'Evaporation','water_evaporation_flux',.true.,'time: mean')
           srf_evp_out => v2dvar_srf(srf_evp)%rval
         end if
         if ( enable_srf2d_vars(srf_scv) ) then
-          call setup_var(v2dvar_srf,srf_scv,vsize,'snv','kg m-2', &
-            'Liquid water equivalent of snow thickness', &
+          call setup_var(v2dvar_srf,srf_scv,vsize,'snw','kg m-2', &
+            'Liquid Water Equivalent of Surface Snow Amount', &
             'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
             l_fill=.true.)
           srf_scv_out => v2dvar_srf(srf_scv)%rval
@@ -1152,19 +1166,19 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_flw) ) then
           call setup_var(v2dvar_srf,srf_flw,vsize,'rsnl','W m-2', &
-            'Net upward longwave energy flux', &
+            'Net Upward Longwave Radiation', &
             'net_upward_longwave_flux_in_air',.true.,'time: mean')
           srf_flw_out => v2dvar_srf(srf_flw)%rval
         end if
         if ( enable_srf2d_vars(srf_fsw) ) then
           call setup_var(v2dvar_srf,srf_fsw,vsize,'rsns','W m-2', &
-            'Net downward shortwave energy flux', &
+            'Net Downward Shortwave Radiation', &
             'net_downward_shortwave_flux_in_air',.true.,'time: mean')
           srf_fsw_out => v2dvar_srf(srf_fsw)%rval
         end if
         if ( enable_srf2d_vars(srf_fld) ) then
-          call setup_var(v2dvar_srf,srf_fld,vsize,'rsdl','W m-2', &
-            'Surface downward longwave flux in air', &
+          call setup_var(v2dvar_srf,srf_fld,vsize,'rlds','W m-2', &
+            'Surface Downwelling Longwave Radiation', &
             'surface_downwelling_longwave_flux_in_air',.true.,'time: mean')
           srf_fld_out => v2dvar_srf(srf_fld)%rval
         end if
@@ -1177,7 +1191,7 @@ module mod_ncout
         if ( all(icup > 0) ) then
           if ( enable_srf2d_vars(srf_prcv) ) then
             call setup_var(v2dvar_srf,srf_prcv,vsize,'prc','kg m-2 s-1', &
-              'Convective precipitation flux','convective_rainfall_flux', &
+              'Convective Precipitation','convective_precipitation_flux', &
               .true.,'time: mean')
             srf_prcv_out => v2dvar_srf(srf_prcv)%rval
           end if
@@ -1186,7 +1200,7 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &
-            'Atmospheric Boundary Layer thickness', &
+            'Height of Boundary Layer', &
             'atmosphere_boundary_layer_thickness',.true.)
           srf_zpbl_out => v2dvar_srf(srf_zpbl)%rval
         end if
@@ -1204,8 +1218,18 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_sund) ) then
           call setup_var(v2dvar_srf,srf_sund,vsize,'sund','s', &
-            'Duration of sunshine','duration_of_sunshine',.true.,'time: sum')
+            'Duration of Sunshine','duration_of_sunshine',.true.,'time: sum')
           srf_sund_out => v2dvar_srf(srf_sund)%rval
+        end if
+        if ( enable_srf2d_vars(srf_totcf) ) then
+          call setup_var(v2dvar_srf,srf_totcf,vsize,'clt','%', &
+            'Total Cloud Fraction','cloud_area_fraction',.true.,'time: mean')
+          srf_totcf_out => v2dvar_srf(srf_totcf)%rval
+        end if
+        if ( enable_srf2d_vars(srf_wspd) ) then
+          call setup_var(v2dvar_srf,srf_wspd,vsize,'sfcWind','m/s', &
+            'Near-Surface Wind Speed','wind_speed',.true.)
+          srf_wspd_out => v2dvar_srf(srf_wspd)%rval
         end if
         if ( iseaice == 1 ) then
           if ( enable_srf2d_vars(srf_seaice) ) then
@@ -1217,8 +1241,8 @@ module mod_ncout
           enable_srf2d_vars(srf_seaice) = .false.
         end if
         if ( enable_srf2d_vars(srf_snowmelt) ) then
-          call setup_var(v2dvar_srf,srf_snowmelt,vsize,'smelt','kg m-2', &
-            'Snow Melt','surface_snow_melt_amount',.true.,'time: mean')
+          call setup_var(v2dvar_srf,srf_snowmelt,vsize,'snm','kg m-2 s-1', &
+            'Surface Snow Melt','surface_snow_melt_flux',.true.,'time: mean')
           srf_snowmelt_out => v2dvar_srf(srf_snowmelt)%rval
         end if
         if ( idiag > 0 ) then
@@ -1237,13 +1261,13 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_srunoff) ) then
           call setup_var(v2dvar_srf,srf_srunoff,vsize,'mrros','kg m-2 s-1', &
-            'Surface Runoff flux','runoff_flux',.true.,'time: mean', &
+            'Surface Runoff','runoff_flux',.true.,'time: mean', &
             l_fill=.true.)
           srf_srunoff_out => v2dvar_srf(srf_srunoff)%rval
         end if
         if ( enable_srf2d_vars(srf_trunoff) ) then
           call setup_var(v2dvar_srf,srf_trunoff,vsize,'mrro','kg m-2 s-1', &
-            'Total Runoff flux','runoff_flux',.true.,'time: mean', &
+            'Total Runoff','runoff_flux',.true.,'time: mean', &
             l_fill=.true.)
           srf_trunoff_out => v2dvar_srf(srf_trunoff)%rval
         end if
@@ -1256,29 +1280,27 @@ module mod_ncout
         v3dvar_srf(srf_rh2m)%axis = 'xy2'
         if ( enable_srf3d_vars(srf_u10m) ) then
           call setup_var(v3dvar_srf,srf_u10m,vsize,'uas','m s-1', &
-            'Anemometric zonal (westerly) wind component', &
-            'eastward_wind',.true.)
+            'Eastward Near-Surface Wind','eastward_wind',.true.)
           srf_u10m_out => v3dvar_srf(srf_u10m)%rval
         end if
         if ( enable_srf3d_vars(srf_v10m) ) then
           call setup_var(v3dvar_srf,srf_v10m,vsize,'vas','m s-1', &
-            'Anenometric meridional (southerly) wind component' , &
-            'northward_wind',.true.)
+            'Northward Near-Surface Wind','northward_wind',.true.)
           srf_v10m_out => v3dvar_srf(srf_v10m)%rval
         end if
         if ( enable_srf3d_vars(srf_t2m) ) then
           call setup_var(v3dvar_srf,srf_t2m,vsize,'tas','K', &
-            'Near surface air temperature','air_temperature',.true.)
+            'Near-Surface Air Temperature','air_temperature',.true.)
           srf_t2m_out => v3dvar_srf(srf_t2m)%rval
         end if
         if ( enable_srf3d_vars(srf_q2m) ) then
           call setup_var(v3dvar_srf,srf_q2m,vsize,'qas','1', &
-            'Near surface air specific humidity','specific_humidity',.true.)
+            'Near-Surface Specific Humidity','specific_humidity',.true.)
           srf_q2m_out => v3dvar_srf(srf_q2m)%rval
         end if
         if ( enable_srf3d_vars(srf_rh2m) ) then
           call setup_var(v3dvar_srf,srf_rh2m,vsize,'hurs','%', &
-            'Near surface relative humidity','relative_humidity',.true.)
+            'Near-Surface Relative Humidity','relative_humidity',.true.)
           srf_rh2m_out => v3dvar_srf(srf_rh2m)%rval
         end if
         vsize%k2 = num_soil_layers
@@ -1337,52 +1359,51 @@ module mod_ncout
 
         if ( enable_sts2d_vars(sts_tgmax) ) then
           call setup_var(v2dvar_sts,sts_tgmax,vsize,'tsmax','K', &
-            'Maximum surface temperature','surface_temperature', &
+            'Maximum ground temperature','surface_temperature', &
             .true.,'time: maximum')
           sts_tgmax_out => v2dvar_sts(sts_tgmax)%rval
         end if
         if ( enable_sts2d_vars(sts_tgmin) ) then
           call setup_var(v2dvar_sts,sts_tgmin,vsize,'tsmin','K', &
-            'Minimum surface temperature','surface_temperature', &
+            'Minimum ground temperature','surface_temperature', &
             .true.,'time: minimum')
           sts_tgmin_out => v2dvar_sts(sts_tgmin)%rval
         end if
         if ( enable_sts2d_vars(sts_pcpmax) ) then
           call setup_var(v2dvar_sts,sts_pcpmax,vsize,'prmax','kg m-2 s-1', &
-            'Maximum total precipitation flux','precipitation_flux', &
+            'Maximum Precipitation','precipitation_flux', &
             .true.,'time: maximum')
           sts_pcpmax_out => v2dvar_sts(sts_pcpmax)%rval
         end if
         if ( enable_sts2d_vars(sts_pcpavg) ) then
           call setup_var(v2dvar_sts,sts_pcpavg,vsize,'pr','kg m-2 s-1', &
-            'Mean total precipitation flux','precipitation_flux', &
-            .true.,'time: mean')
+            'Precipitation','precipitation_flux',.true.,'time: mean')
           sts_pcpavg_out => v2dvar_sts(sts_pcpavg)%rval
         end if
         if ( enable_sts2d_vars(sts_sund) ) then
           call setup_var(v2dvar_sts,sts_sund,vsize,'sund','s', &
-            'Duration of sunshine','duration_of_sunshine',.true.,'time: sum')
+            'Duration of Sunshine','duration_of_sunshine',.true.,'time: sum')
           sts_sund_out => v2dvar_sts(sts_sund)%rval
         end if
         if ( enable_sts2d_vars(sts_psmin) ) then
           call setup_var(v2dvar_sts,sts_psmin,vsize,'psmin','hPa', &
-            'Minimum of surface pressure','air_pressure',.true.,'time: minimum')
+            'Minimum of Surface Pressure','air_pressure',.true.,'time: minimum')
           sts_psmin_out => v2dvar_sts(sts_psmin)%rval
         end if
         if ( enable_sts2d_vars(sts_psavg) ) then
-          call setup_var(v2dvar_sts,sts_psavg,vsize,'psavg','hPa', &
-            'Mean surface pressure','air_pressure',.true.,'time: mean')
+          call setup_var(v2dvar_sts,sts_psavg,vsize,'psavg','Pa', &
+            'Surface Air Pressure','air_pressure',.true.,'time: mean')
           sts_psavg_out => v2dvar_sts(sts_psavg)%rval
         end if
         if ( enable_sts2d_vars(sts_srunoff) ) then
           call setup_var(v2dvar_sts,sts_srunoff,vsize,'mrros','kg m-2 s-1', &
-            'Surface Runoff flux','runoff_flux',.true.,'time: mean', &
+            'Surface Runoff','runoff_flux',.true.,'time: mean', &
             l_fill=.true.)
           sts_srunoff_out => v2dvar_sts(sts_srunoff)%rval
         end if
         if ( enable_sts2d_vars(sts_trunoff) ) then
           call setup_var(v2dvar_sts,sts_trunoff,vsize,'mrro','kg m-2 s-1', &
-            'Bottom Runoff flux','runoff_flux',.true.,'time: mean', &
+            'Total Runoff','runoff_flux',.true.,'time: mean', &
             l_fill=.true.)
           sts_trunoff_out => v2dvar_sts(sts_trunoff)%rval
         end if
@@ -1394,25 +1415,26 @@ module mod_ncout
         v3dvar_sts(sts_w10max)%axis = 'xyw'
         if ( enable_sts3d_vars(sts_t2max) ) then
           call setup_var(v3dvar_sts,sts_t2max,vsize,'tasmax','K', &
-            'Maximum 2 meter temperature','air_temperature',.true., &
-            'time: maximum')
+            'Daily Maximum Near-Surface Air Temperature','air_temperature', &
+            .true., 'time: maximum')
           sts_t2max_out => v3dvar_sts(sts_t2max)%rval
         end if
         if ( enable_sts3d_vars(sts_t2min) ) then
           call setup_var(v3dvar_sts,sts_t2min,vsize,'tasmin','K', &
-            'Minimum 2 meter temperature','air_temperature',.true., &
-            'time: minimum')
+            'Daily Minimum Near-Surface Air Temperature','air_temperature', &
+            .true., 'time: maximum')
           sts_t2min_out => v3dvar_sts(sts_t2min)%rval
         end if
         if ( enable_sts3d_vars(sts_t2avg) ) then
           call setup_var(v3dvar_sts,sts_t2avg,vsize,'tas','K', &
-            'Mean 2 meter temperature','air_temperature',.true., &
+            'Near-Surface Air Temperature','air_temperature',.true., &
             'time: mean')
           sts_t2avg_out => v3dvar_sts(sts_t2avg)%rval
         end if
         if ( enable_sts3d_vars(sts_w10max) ) then
           call setup_var(v3dvar_sts,sts_w10max,vsize,'sfcWindmax','m s-1', &
-            'Maximum speed of 10m wind','wind_speed',.true.,'time: maximum')
+            'Daily Maximum Near-Surface Wind Speed','wind_speed',.true., &
+            'time: maximum')
           sts_w10max_out => v3dvar_sts(sts_w10max)%rval
         end if
 
@@ -1491,7 +1513,7 @@ module mod_ncout
         end if
         if ( enable_sub2d_vars(sub_tg) ) then
           call setup_var(v2dvar_sub,sub_tg,vsize,'ts','K', &
-            'Ground temperature','surface_temperature',.true.)
+            'Surface Temperature','surface_temperature',.true.)
           sub_tg_out => v2dvar_sub(sub_tg)%rval
         end if
         if ( enable_sub2d_vars(sub_tlef) ) then
@@ -1502,32 +1524,31 @@ module mod_ncout
         end if
         if ( enable_sub2d_vars(sub_evp) ) then
           call setup_var(v2dvar_sub,sub_evp,vsize,'evspsbl','kg m-2 s-1', &
-            'Total evapotranspiration flux','water_evaporation_flux',.true., &
-            'time: mean')
+            'Evaporation','water_evaporation_flux',.true.,'time: mean')
           sub_evp_out => v2dvar_sub(sub_evp)%rval
         end if
         if ( enable_sub2d_vars(sub_scv) ) then
-          call setup_var(v2dvar_sub,sub_scv,vsize,'snv','kg m-2', &
-            'Liquid water equivalent of snow thickness', &
+          call setup_var(v2dvar_sub,sub_scv,vsize,'snw','kg m-2', &
+            'Liquid Water Equivalent of Surface Snow Amount', &
             'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
             l_fill=.true.)
           sub_scv_out => v2dvar_sub(sub_scv)%rval
         end if
         if ( enable_sub2d_vars(sub_sena) ) then
           call setup_var(v2dvar_sub,sub_sena,vsize,'hfss','W m-2', &
-            'Sensible heat flux','surface_upward_sensible_heat_flux', &
-            .true.,'time: mean')
+            'Surface Upward Sensible Heat Flux', &
+            'surface_upward_sensible_heat_flux',.true.,'time: mean')
           sub_sena_out => v2dvar_sub(sub_sena)%rval
         end if
         if ( enable_sub2d_vars(sub_srunoff) ) then
           call setup_var(v2dvar_sub,sub_srunoff,vsize,'mrros','kg m-2 day-1', &
-            'Surface Runoff flux','runoff_flux',.true.,'time: mean', &
+            'Surface Runoff','runoff_flux',.true.,'time: mean', &
             l_fill=.true.)
           sub_srunoff_out => v2dvar_sub(sub_srunoff)%rval
         end if
         if ( enable_sub2d_vars(sub_trunoff) ) then
           call setup_var(v2dvar_sub,sub_trunoff,vsize,'mrro','kg m-2 day-1', &
-            'Total Runoff flux','runoff_flux',.true.,'time: mean', &
+            'Total Runoff','runoff_flux',.true.,'time: mean', &
             l_fill=.true.)
           sub_trunoff_out => v2dvar_sub(sub_trunoff)%rval
         end if
@@ -1556,7 +1577,7 @@ module mod_ncout
         end if
         if ( enable_sub3d_vars(sub_q2m) ) then
           call setup_var(v3dvar_sub,sub_q2m,vsize,'qas','1', &
-            '2 meter air specific humidity','specific_humidity',.true.)
+            'Near-Surface Specific Humidity','specific_humidity',.true.)
           sub_q2m_out => v3dvar_sub(sub_q2m)%rval
         end if
         vsize%k2 = num_soil_layers
@@ -1618,13 +1639,13 @@ module mod_ncout
 
         if ( enable_rad2d_vars(rad_frsa) ) then
           call setup_var(v2dvar_rad,rad_frsa,vsize,'rsns','W m-2', &
-            'Surface net downward shortwave flux', &
+            'Surface Net Downward Shortwave Flux', &
             'surface_net_downward_shortwave_flux', .true.)
           rad_frsa_out => v2dvar_rad(rad_frsa)%rval
         end if
         if ( enable_rad2d_vars(rad_frla) ) then
           call setup_var(v2dvar_rad,rad_frla,vsize,'rsnl','W m-2', &
-            'Surface net upward longwave flux', &
+            'Surface Net Upward Longwave Flux', &
             'surface_net_upward_longwave_flux', .true.)
           rad_frla_out => v2dvar_rad(rad_frla)%rval
         end if
@@ -1664,10 +1685,10 @@ module mod_ncout
             'toa_net_upward_shortwave_flux',.true.)
           rad_sabtp_out => v2dvar_rad(rad_sabtp)%rval
         end if
-        if ( enable_rad2d_vars(rad_totcf) ) then
-          call setup_var(v2dvar_rad,rad_totcf,vsize,'clt','1', &
-            'Total cloud fraction','cloud_area_fraction',.true.)
-          rad_totcf_out => v2dvar_rad(rad_totcf)%rval
+        if ( enable_rad2d_vars(rad_totwv) ) then
+          call setup_var(v2dvar_rad,rad_totwv,vsize,'prw','kg m-2', &
+            'Water Vapor Path','atmosphere_water_vapor_content',.true.)
+          rad_totwv_out => v2dvar_rad(rad_totwv)%rval
         end if
         if ( enable_rad2d_vars(rad_totcl) ) then
           call setup_var(v2dvar_rad,rad_totcl,vsize,'clwvi','kg m-2', &
@@ -1804,17 +1825,17 @@ module mod_ncout
 
         if ( enable_lak2d_vars(lak_tg) ) then
           call setup_var(v2dvar_lak,lak_tg,vsize,'ts','K', &
-            'Ground temperature','surface_temperature',.true.)
+            'Surface Temperature','surface_temperature',.true.)
           lak_tg_out => v2dvar_lak(lak_tg)%rval
         end if
         if ( enable_lak2d_vars(lak_tpr) ) then
           call setup_var(v2dvar_lak,lak_tpr,vsize,'pr','kg m-2 day-1', &
-            'Total precipitation flux','precipitation_flux',.true.,'time: mean')
+            'Precipitation','precipitation_flux',.true.,'time: mean')
           lak_tpr_out => v2dvar_lak(lak_tpr)%rval
         end if
         if ( enable_lak2d_vars(lak_scv) ) then
-          call setup_var(v2dvar_lak,lak_scv,vsize,'snv','kg m-2', &
-            'Liquid water equivalent snow depth', &
+          call setup_var(v2dvar_lak,lak_scv,vsize,'snw','kg m-2', &
+            'Liquid Water Equivalent of Surface Snow Amount', &
             'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
             l_fill=.true.)
           lak_scv_out => v2dvar_lak(lak_scv)%rval
@@ -1836,14 +1857,14 @@ module mod_ncout
           lak_fsw_out => v2dvar_lak(lak_fsw)%rval
         end if
         if ( enable_lak2d_vars(lak_fld) ) then
-          call setup_var(v2dvar_lak,lak_fld,vsize,'rsdl','W m-2', &
-            'Downward longwave flux at surface in air', &
+          call setup_var(v2dvar_lak,lak_fld,vsize,'rlds','W m-2', &
+            'Surface Downwelling Longwave Radiation', &
             'surface_downwelling_longwave_flux_in_air',.true.)
           lak_fld_out => v2dvar_lak(lak_fld)%rval
         end if
         if ( enable_lak2d_vars(lak_sina) ) then
           call setup_var(v2dvar_lak,lak_sina,vsize,'rsds','W m-2', &
-            'Downward shortwave flux at surface in air', &
+            'Surface Downwelling Shortwave Radiation', &
             'surface_downwelling_shortwave_flux_in_air',.true.)
           lak_sina_out => v2dvar_lak(lak_sina)%rval
         end if
@@ -1860,9 +1881,8 @@ module mod_ncout
           lak_aldifs_out => v2dvar_lak(lak_aldifs)%rval
         end if
         if ( enable_lak2d_vars(lak_evp) ) then
-          call setup_var(v2dvar_lak,lak_evp,vsize,'evspsbl','mm s-1', &
-            'Water evaporation flux', &
-            'water_evaporation_flux_where_sea_ice',.true.)
+          call setup_var(v2dvar_lak,lak_evp,vsize,'evspsbl','kg m-2 s-1', &
+            'Evaporation','water_evaporation_flux_where_sea_ice',.true.)
           lak_evp_out => v2dvar_lak(lak_evp)%rval
         end if
         if ( enable_lak2d_vars(lak_ice) ) then
@@ -3165,7 +3185,7 @@ module mod_ncout
       call setup_var(var,topo,vsize,'topo','m', &
         'Surface Model Elevation','surface_altitude')
       call setup_var(var,ps,vsize,'ps','Pa', &
-        'Surface Pressure','surface_air_pressure',.true.)
+        'Surface Air Pressure','surface_air_pressure',.true.)
       xlon_out => var(xlon)%rval
       xlat_out => var(xlat)%rval
       mask_out => var(mask)%rval

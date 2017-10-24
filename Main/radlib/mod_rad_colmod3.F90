@@ -43,10 +43,10 @@ module mod_rad_colmod3
   real(rkx) , parameter :: nearone  = 0.99_rkx
   !
   real(rkx) , pointer , dimension(:) :: alb , albc , &
-    flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq ,  &
-    fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,      &
-    sols , solsd , ps , ts , emiss , totcf , totcl , totci , xptrop , &
-    dlat , czen
+    flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq , &
+    fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,     &
+    sols , solsd , ps , ts , emiss , totcf , totcl , totwv , totci ,  &
+    xptrop , dlat , czen
   real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos
   real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos
   real(rkx) , pointer , dimension(:) :: adirsw , adifsw , adirlw , adiflw
@@ -92,6 +92,7 @@ module mod_rad_colmod3
     call getmem1d(sols,1,npr,'colmod3:sols')
     call getmem1d(solsd,1,npr,'colmod3:solsd')
     call getmem1d(totcf,1,npr,'colmod3:totcf')
+    call getmem1d(totwv,1,npr,'colmod3:totwv')
     call getmem1d(totcl,1,npr,'colmod3:totcl')
     call getmem1d(totci,1,npr,'colmod3:totci')
     call getmem1d(ps,1,npr,'colmod3:ps')
@@ -432,10 +433,10 @@ module mod_rad_colmod3
     ! subroutine radout() copies back the data to RegCM for surface
     ! computations and output purposes.
     !
-    call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,  &
-                flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,     &
-                totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,      &
-                aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,     &
+    call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,   &
+                flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,      &
+                totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo, &
+                aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,      &
                 gtota3d,deltaz,outtaucl,outtauci,r2m)
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
@@ -473,6 +474,7 @@ module mod_rad_colmod3
 
     totci(:) = d_zero
     totcl(:) = d_zero
+    totwv(:) = d_zero
     do k = 1 , kz
       do n = 1 , npr
         ! Define liquid drop size
@@ -529,8 +531,10 @@ module mod_rad_colmod3
         end if
         ! Turn off ice radiative properties by setting fice = 0.0
         ! fice(n,k) = d_zero
+        rhoa = pmidm1(n,k)* amdk / (tm1(n,k) * 8.314_rkx)
         totcl(n) = totcl(n) + (clwp(n,k)*cld(n,k)*(d_one-fice(n,k)))*d_r1000
         totci(n) = totci(n) + (clwp(n,k)*cld(n,k)*fice(n,k))*d_r1000
+        totwv(n) = totwv(n) + qm1(n,k)*rhoa*deltaz(n,k)*d_r1000
       end do
     end do
 

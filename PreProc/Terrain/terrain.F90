@@ -93,6 +93,7 @@ program terrain
   !type(globalfile) :: gfile
   character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
   character(len=*) , parameter :: f99002 = '(a,a,a,a)'
+  logical :: laround0 = .true.
 
   data ibndry /.true./
 
@@ -120,6 +121,7 @@ program terrain
   integer(ik4) :: topo_interp_method = 6
   integer(ik4) :: class_interp_method = 4
   integer(ik4) :: percent_interp_method = 5
+  integer(ik4) :: moist_interp_method = 1
 
   call header(1)
   !
@@ -297,6 +299,7 @@ program terrain
       end if
       write(stdout,*)'Satellite soil moisture data successfully read in'
       mmx = (2*minval(shape(values))/2+1)**2
+      laround0 = .true.
       do i = 1 , nlatin
         do j = 1 , nlonin
           if ( values(j,i) < d_zero ) then
@@ -305,7 +308,7 @@ program terrain
         end do
       end do
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,smoist_s,values, &
-                  topo_interp_method,rdem=roidem)
+                  moist_interp_method)
       call relmem2d(values)
       write(stdout,*)'Interpolated soil moisture on SUBGRID'
     end if
@@ -498,6 +501,7 @@ program terrain
     end if
     write(stdout,*)'Satellite soil moisture data successfully read in'
     mmx = (2*minval(shape(values))/2+1)**2
+    laround0 = .true.
     do i = 1 , nlatin
       do j = 1 , nlonin
         if ( values(j,i) < d_zero ) then
@@ -505,8 +509,7 @@ program terrain
         end if
       end do
     end do
-    call interp(ds,jx,iy,xlat,xlon,smoist,values, &
-                topo_interp_method,rdem=roidem)
+    call interp(ds,jx,iy,xlat,xlon,smoist,values,moist_interp_method)
     call relmem2d(values)
     write(stdout,*)'Interpolated soil moisture on model GRID'
   end if
@@ -814,28 +817,32 @@ program terrain
     real(rkx) , dimension(:,:) , intent(inout) :: xx
     real(rkx) , dimension (mmx) :: vals
     integer(ik4) :: ii , jj , js , is , ip , il , maxil
-    real(rkx) :: mincc , maxcc , countcc
-    countcc = 1.0_rkx
-    maxcc = 0.0_rkx
-    mincc = 0.0_rkx
-    do ii = 1 , imax
-      do jj = 1 , jmax
-        if ( xx(jj,ii) > 0.0_rkx ) then
-          countcc = countcc + 1.0_rkx
-          if ( maxcc < xx(jj,ii) ) maxcc = xx(jj,ii)
-          if ( mincc > xx(jj,ii) ) mincc = xx(jj,ii)
-        end if
+    real(rkx) :: countcc
+    real(rkx) , save :: mincc , maxcc
+    if ( laround0 ) then
+      countcc = 1.0_rkx
+      maxcc = 0.0_rkx
+      mincc = 0.0_rkx
+      do ii = 1 , imax
+        do jj = 1 , jmax
+          if ( xx(jj,ii) > 0.0_rkx ) then
+            countcc = countcc + 1.0_rkx
+            if ( maxcc < xx(jj,ii) ) maxcc = xx(jj,ii)
+            if ( mincc > xx(jj,ii) ) mincc = xx(jj,ii)
+          end if
+        end do
       end do
-    end do
-    if ( countcc > 0.0_rkx ) then
-      mincc = mincc / countcc
-      maxcc = maxcc / countcc
+      if ( countcc > 0.0_rkx ) then
+        mincc = mincc / countcc
+        maxcc = maxcc / countcc
+      end if
+      laround0 = .false.
     end if
     maxil = minval(shape(xx))/2
     il = 1
     do
       ip = 0
-      vals(:) = 0.0_rkx
+      vals(:) = d_zero
       do ii = i - il , i + il
         do jj = j - il , j + il
           is = ii
@@ -844,14 +851,14 @@ program terrain
           if ( js > jmax ) js = 2*jmax - js
           if ( is < 1 ) is = 1-is
           if ( is > imax ) is = 2*imax - is
-          if ( xx(js,is) > 0.0 ) then
+          if ( xx(js,is) > d_zero ) then
             ip = ip + 1
             vals(ip) = vals(ip) + xx(js,is)
           end if
         end do
       end do
       if ( ip > 0 ) then
-        xx(j,i) = sum(vals(:))/real(ip)
+        xx(j,i) = sum(vals(1:ip))/real(ip,rkx)
         exit
       else
         il = il + 1

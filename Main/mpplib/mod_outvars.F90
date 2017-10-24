@@ -109,6 +109,8 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocc_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_taux_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_tauy_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_ustar_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_zo_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_rhoa_out => null()
@@ -132,6 +134,8 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_seaice_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_srunoff_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_trunoff_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_totcf_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_wspd_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: srf_u10m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_v10m_out => null()
@@ -178,7 +182,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: rad_clrlt_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_solin_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_sabtp_out => null()
-  real(rkx) , dimension(:,:) , pointer :: rad_totcf_out => null()
+  real(rkx) , dimension(:,:) , pointer :: rad_totwv_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_totcl_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_totci_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_firtp_out => null()

@@ -53,9 +53,9 @@ module mod_rrtmg_driver
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
   real(rkx) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
-         clrss , firtp , frla , clrlt , clrls , empty1 , abv , sol ,  &
-         sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,   &
-         asdif , aldir , aldif , czen , dlat , xptrop , totcf ,       &
+         clrss , firtp , frla , clrlt , clrls , empty1 , abv , sol ,   &
+         sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,    &
+         asdif , aldir , aldif , czen , dlat , xptrop , totcf , totwv, &
          totcl , totci
 
   real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint,   &
@@ -168,6 +168,7 @@ module mod_rrtmg_driver
     call getmem1d(xptrop,1,npr,'rrtmg:xptrop')
     call getmem1d(ioro,1,npr,'rrtmg:ioro')
     call getmem1d(totcf,1,npr,'rrtmg:totcf')
+    call getmem1d(totwv,1,npr,'rrtmg:totwv')
     call getmem1d(totcl,1,npr,'rrtmg:totlf')
     call getmem1d(totci,1,npr,'rrtmg:totif')
 
@@ -440,13 +441,20 @@ module mod_rrtmg_driver
 
     totci(:) = sum(clwp_int*cld_int*fice,2)*d_r1000
     totcl(:) = sum(clwp_int*cld_int*(d_one-fice),2)*d_r1000
+    totwv(:) = d_zero
+    do k = 1 , kz
+      do n = 1 , npr
+        totwv(n) =  totwv(n) + &
+          (h2ommr(n,k)*play(n,k)/(rgas*tlay(n,k))*deltaz(n,k))
+      end do
+    end do
 
-    call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,            &
-                firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,  &
-                solld,totcf,totcl,totci,cld_int,clwp_int,abv,     &
-                sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
-                tauasc3d,gtota3d,dzr,outtaucl,outtauci,r2a, &
-                 asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
+    call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,              &
+                firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,    &
+                solld,totwv,totcf,totcl,totci,cld_int,clwp_int,abv, &
+                sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
+                tauasc3d,gtota3d,dzr,outtaucl,outtauci,r2a,         &
+                asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
   end subroutine rrtmg_driver
 
   subroutine prep_dat_rrtm(m2r,iyear)

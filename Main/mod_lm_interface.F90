@@ -519,6 +519,18 @@ module mod_lm_interface
       end do
     end do
 
+#ifndef CLM45
+    do n = 1 , nnsg
+      do i = ici1, ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) > 0 ) then
+            lms%taux(n,j,i) = lms%drag(n,j,i) * (lms%u10m(n,j,i)/lm%uatm(j,i))
+            lms%tauy(n,j,i) = lms%drag(n,j,i) * (lms%v10m(n,j,i)/lm%vatm(j,i))
+          end if
+        end do
+      end do
+    end do
+#endif
     lm%hfx = sum(lms%sent,1)*rdnnsg
     lm%qfx = sum(lms%evpr,1)*rdnnsg
     lm%uvdrag = sum(lms%drag,1)*rdnnsg
@@ -864,8 +876,6 @@ module mod_lm_interface
 
     if ( rcmtimer%integrating( ) ) then
       if ( ifatm ) then
-        if ( associated(atm_tgb_out) ) &
-          atm_tgb_out = atm_tgb_out + sum(lms%tgrd,1)*rdnnsg
         if ( associated(atm_tsw_out) ) &
           atm_tsw_out = atm_tsw_out + sum(lms%tsw,1)*rdnnsg
       end if
@@ -904,6 +914,10 @@ module mod_lm_interface
           srf_sina_out = srf_sina_out + lm%solinc
         if ( associated(srf_snowmelt_out) ) &
           srf_snowmelt_out = srf_snowmelt_out + sum(lms%snwm,1)*rdnnsg
+        if ( associated(srf_taux_out) ) &
+          srf_taux_out = srf_taux_out + sum(lms%taux,1)*rdnnsg
+        if ( associated(srf_tauy_out) ) &
+          srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
       end if
       if ( ifsub ) then
         call reorder_add_subgrid(lms%sfcp,sub_ps_out)

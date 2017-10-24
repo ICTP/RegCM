@@ -45,10 +45,10 @@ module mod_rad_outrad
 
   subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,         &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
-                    totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
-                    aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz,   &
-                    outtaucl,outtauci,r2m,asaeradfo,asaeradfos,asaerlwfo,&
-                    asaerlwfos)
+                    totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
+                    aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
+                    deltaz,outtaucl,outtauci,r2m,asaeradfo,asaeradfos,   &
+                    asaerlwfo,asaerlwfos)
     implicit none
     !
     ! copy radiation output quantities to model buffer
@@ -83,7 +83,8 @@ module mod_rad_outrad
     real(rkx) , pointer , dimension(:) :: clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa ,      &
                 sabtp , slwd , solin , soll , solld ,      &
-                sols , solsd , totcf , totcl , totci , abv , sol
+                sols , solsd , totcf , totcl , totci ,     &
+                totwv , abv , sol
     real(rkx) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
     real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
     real(rkx) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
@@ -174,6 +175,10 @@ module mod_rad_outrad
       end if
     end if
 
+    if ( associated(srf_totcf_out) ) then
+      call copy2d_add(totcf,srf_totcf_out)
+    end if
+
     if ( ifrad ) then
       if ( lout ) then
         call copy3d(cld,rad_cld_out)
@@ -191,7 +196,7 @@ module mod_rad_outrad
         call copy2d(clrls,rad_clrls_out)
         call copy2d(solin,rad_solin_out)
         call copy2d(sabtp,rad_sabtp_out)
-        call copy2d(totcf,rad_totcf_out)
+        call copy2d(totwv,rad_totwv_out)
         call copy2d(totcl,rad_totcl_out)
         call copy2d(totci,rad_totci_out)
         call copy2d(firtp,rad_firtp_out)

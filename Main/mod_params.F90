@@ -1530,6 +1530,7 @@ module mod_params
     end if
     rnsrf_for_day = syncro_srf/alarm_day
     rnrad_for_radfrq = syncro_rad/alarm_out_rad
+    rnrad_for_srffrq = syncro_rad/alarm_out_srf
     if ( ichem == 1 ) then
       rnrad_for_chem = syncro_rad/alarm_out_che
       if ( irrtm == 1 ) then

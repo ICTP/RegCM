@@ -485,15 +485,7 @@ module mod_output
         end if
 
         if ( associated(atm_tgb_out) ) then
-          if ( rcmtimer%start( ) ) then
-            atm_tgb_out = sfs%tga(jci1:jci2,ici1:ici2)
-          else
-            if ( atmfrq > dtsrf ) then
-              atm_tgb_out = atm_tgb_out * rsrf_in_atm
-            else
-              atm_tgb_out = sfs%tga(jci1:jci2,ici1:ici2)
-            end if
-          end if
+          atm_tgb_out = srf_tg_out
         end if
         if ( associated(atm_tsw_out) ) then
           where ( mddom%ldmsk > 0 )
@@ -646,7 +638,6 @@ module mod_output
         if ( myid == italk ) &
           write(stdout,*) 'ATM variables written at ' , rcmtimer%str( )
 
-        if ( associated(atm_tgb_out) ) atm_tgb_out = d_zero
         if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
         sfs%rainc  = d_zero
         sfs%rainnc = d_zero
@@ -719,8 +710,22 @@ module mod_output
           srf_fld_out = srf_fld_out*rnsrf_for_srffrq
         if ( associated(srf_sina_out) ) &
           srf_sina_out = srf_sina_out*rnsrf_for_srffrq
+        if ( associated(srf_taux_out) ) &
+          srf_taux_out = srf_taux_out*rnsrf_for_srffrq
+        if ( associated(srf_tauy_out) ) &
+          srf_tauy_out = srf_tauy_out*rnsrf_for_srffrq
         if ( associated(srf_snowmelt_out) ) &
-          srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq
+          srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq / &
+                             alarm_out_srf%dt
+        if ( associated(srf_wspd_out) .and. &
+             associated(srf_u10m_out) .and. &
+             associated(srf_v10m_out) ) &
+          srf_wspd_out = sqrt(srf_u10m_out(:,:,1)*srf_u10m_out(:,:,1) + &
+                              srf_v10m_out(:,:,1)*srf_v10m_out(:,:,1))
+
+        if ( associated(srf_totcf_out) ) then
+          srf_totcf_out = srf_totcf_out * rnrad_for_srffrq * d_100
+        end if
 
         call write_record_output_stream(srf_stream,alarm_out_srf%idate)
         if ( myid == italk ) &
@@ -739,7 +744,10 @@ module mod_output
         if ( associated(srf_fld_out) ) srf_fld_out = d_zero
         if ( associated(srf_sina_out) ) srf_sina_out = d_zero
         if ( associated(srf_sund_out) ) srf_sund_out = d_zero
+        if ( associated(srf_taux_out) ) srf_taux_out = d_zero
+        if ( associated(srf_tauy_out) ) srf_tauy_out = d_zero
         if ( associated(srf_snowmelt_out) ) srf_snowmelt_out = d_zero
+        if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
       end if
     end if
 
