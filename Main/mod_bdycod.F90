@@ -164,12 +164,12 @@ module mod_bdycod
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
-        fnudge = 0.1_rkx/dt2
+        fnudge = 0.1_rkx/(dtsec*2.0_rkx)
       end if
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
-        gnudge = d_one/(50.0_rkx*dt2)
+        gnudge = d_one/(50.0_rkx*dtsec)
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then

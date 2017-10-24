@@ -367,16 +367,15 @@ module mod_ein
           do kkrec = 1 , 5
             if ( kkrec == 3 ) then
               write(inname,'(i4,a,a,i4,a)') &
-                year, pthsep, trim(fname(6))//'.', year, hname(k4)//'nc'
+                year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
               pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
-              if ( istatus == nf90_noerr ) then
-                lqas = .true.
-              else
+              if ( istatus /= nf90_noerr ) then
                 write(inname,'(i4,a,a,i4,a)') &
-                  year, pthsep, trim(fname(kkrec))//'.', year, hname(k4)//'nc'
+                  year, pthsep, trim(fname(6))//'.', year, hname(k4)//'nc'
                 pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
                 istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,k4))
+                lqas = .true.
               end if
             else
               write(inname,'(i4,a,a,i4,a)') &

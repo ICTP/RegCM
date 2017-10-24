@@ -105,7 +105,7 @@ module mod_micro_subex
     real(rkx) :: dpovg , afc , pptacc , pptkm1 , pptmax ,       &
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
                 rhcs , prainx , qcth
-    ! real(rkx) :: tcel
+    real(rkx) :: tcel
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !
@@ -159,12 +159,12 @@ module mod_micro_subex
             if ( afc > actcld ) then
               ! In cloud mixing ratio [kg/kg]
               qcincl = mo2mc%qcn(j,i,k)/afc
-              !tcel = mo2mc%t(j,i,k) - tzero   ![C][avg]
-              !qcth = cgul(j,i) * &
-              !   (d_10**(-0.48911_rkx+0.01344_rkx*tcel))*d_r1000
-              ! Use same function of Lemus et al., 1997 as in lwc computation
+              tcel = mo2mc%t(j,i,k) - tzero   ![C][avg]
               qcth = cgul(j,i) * &
-                    clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000
+                 (d_10**(-0.48911_rkx+0.01344_rkx*tcel))*d_r1000
+              ! Use same function of Lemus et al., 1997 as in lwc computation
+              !qcth = cgul(j,i) * &
+              !      clwfromt(mo2mc%t(j,i,k))/mo2mc%rho(j,i,k)*d_r1000
               dqc(j,i,k) = max(qcincl - qcth,d_zero)
             else
               dqc(j,i,k) = d_zero

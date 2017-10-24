@@ -89,8 +89,8 @@ module mod_ocn_albedo
         albg = albg + 0.22_rkx * wfac
         albgs = albg
         albgl = albg
-        albgsd = 0.06_rkx + 0.01 * wfac
-        albgld = 0.06_rkx + 0.01 * wfac
+        albgsd = 0.05_rkx + 0.11 * wfac
+        albgld = 0.05_rkx
       else if ( mask(i) == 2 .or. mask(i) == 4 ) then
         ! Ice over ocean or lake
         tdiffs = sts(i) - icetriggert

@@ -232,7 +232,7 @@ module mod_cu_kf
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-          ql0(k,np) = d_zero
+          ql0(k,np) = m2c%qxas(j,i,kk,iqc)
           qi0(k,np) = d_zero
           qr0(k,np) = d_zero
           qs0(k,np) = d_zero

@@ -237,8 +237,8 @@ module mod_micro_nogtom
 
   real(rkx) , parameter :: activqx = 1.0e-8_rkx
   real(rkx) , parameter :: clfeps = 1.0e-6_rkx
-  real(rkx) , parameter :: zerocf = lowcld
-  real(rkx) , parameter :: onecf  = hicld
+  real(rkx) , parameter :: zerocf = 1.0e-2_rkx
+  real(rkx) , parameter :: onecf  = 0.99_rkx
 
   abstract interface
     subroutine voidsub
@@ -514,7 +514,7 @@ module mod_micro_nogtom
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          fccfg(j,i,k) = min(hicld,max(mc2mo%fcc(j,i,k),lowcld))
+          fccfg(j,i,k) = min(d_one,max(mc2mo%fcc(j,i,k),d_zero))
         end do
       end do
     end do
@@ -871,9 +871,14 @@ module mod_micro_nogtom
           !--------------------------------
           ! in-cloud consensate amount
           !--------------------------------
-          tmpa = d_one/max(ccover,lowcld)
-          ql_incld = qxfg(iqql)*tmpa
-          qi_incld = qxfg(iqqi)*tmpa
+          if ( ccover > zerocf ) then
+            tmpa = d_one/ccover
+            ql_incld = qxfg(iqql)*tmpa
+            qi_incld = qxfg(iqqi)*tmpa
+          else
+            ql_incld = d_zero
+            qi_incld = d_zero
+          end if
           qli_incld  = ql_incld + qi_incld
 
           !------------------------------------------------------------------
@@ -1024,8 +1029,8 @@ module mod_micro_nogtom
           ! update the diagnostic cloud cover and logicals
           !------------------------------------------------
 
-          ccover=d_one-SQRT(MAX(d_zero,d_one-qx0(iqqv)/sqmix)/0.4)
-          ccover=MIN(MAX(ccover,lowcld),hicld)
+          ccover = d_one-sqrt(max(d_zero,d_one-qx0(iqqv)/sqmix)/0.4_rkx)
+          ccover = max(ccover,d_zero)
 
           lcloud    = ( ccover >= zerocf )
           lnocloud  = ( .not. lcloud )
@@ -1033,11 +1038,15 @@ module mod_micro_nogtom
           !--------------------------------
           ! in-cloud consensate amount
           !--------------------------------
-          tmpa = d_one/max(ccover,lowcld)
-          ql_incld = qxfg(iqql)*tmpa
-          qi_incld = qxfg(iqqi)*tmpa
+          if ( ccover > zerocf ) then
+            tmpa = d_one/ccover
+            ql_incld = qxfg(iqql)*tmpa
+            qi_incld = qxfg(iqqi)*tmpa
+          else
+            ql_incld = d_zero
+            qi_incld = d_zero
+          end if
           qli_incld  = ql_incld + qi_incld
-
 
           !------------------------------------------------------------------
           ! Turn on/off microphysics
@@ -1313,9 +1322,14 @@ module mod_micro_nogtom
 #endif
             end if
 
-            tmpa = d_one/max(ccover,lowcld)
-            ql_incld = qxfg(iqql)*tmpa
-            qi_incld = qxfg(iqqi)*tmpa
+            if ( ccover > zerocf ) then
+              tmpa = d_one/ccover
+              ql_incld = qxfg(iqql)*tmpa
+              qi_incld = qxfg(iqqi)*tmpa
+            else
+              ql_incld = d_zero
+              qi_incld = d_zero
+            end if
 
             !---------------------------------------------------------------
             ! Precip cover overlap using MAX-RAN Overlap
@@ -1338,7 +1352,7 @@ module mod_micro_nogtom
             if ( qpretot > dlowval ) then
               covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
                              (d_one - max(ccover,lccover)) / &
-                             (d_one - min(lccover,hicld)))
+                             (d_one - min(lccover,onecf)))
               covptot(j,i) = max(covptot(j,i),rcovpmin)
             else
               covptot(j,i) = d_zero ! no flux - reset cover
@@ -1349,7 +1363,7 @@ module mod_micro_nogtom
             !---------------------------------------------------------------
             !   WARM PHASE AUTOCONVERSION
             !---------------------------------------------------------------
-            if ( ql_incld > activqx .and. ccover>lowcld) then
+            if ( ql_incld > activqx .and. ccover > zerocf ) then
 #ifdef __PGI
               select case (iautoconv)
                 case (1) ! Klein & Pincus (2000)
@@ -1380,7 +1394,7 @@ module mod_micro_nogtom
             !------------
             if ( ltklt0 ) then
               ! Snow Autoconversion rate follow Lin et al. 1983
-              if ( qi_incld > activqx .and. ccover > lowcld ) then
+              if ( qi_incld > activqx .and. ccover > zerocf ) then
                 alpha1 = min(dt*skconv*exp(0.025_rkx*tc),qi_incld)
                 arg = (qi_incld/rlcritsnow)**2
                 if ( arg < 25.0_rkx ) then

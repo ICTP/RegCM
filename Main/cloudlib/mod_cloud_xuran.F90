@@ -53,7 +53,7 @@ module mod_cloud_xuran
           if ( rh(j,i,k) >= rhmax ) then  ! full cloud cover
             fcc(j,i,k) = hicld
           else if ( rh(j,i,k) <= rhmin ) then
-            fcc(j,i,k) = lowcld
+            fcc(j,i,k) = d_zero
           else
             qcld = qc(j,i,k)
             rhrng = max(d_zero,min(d_one,rh(j,i,k)))

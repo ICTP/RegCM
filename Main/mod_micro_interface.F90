@@ -50,7 +50,6 @@ module mod_micro_interface
 
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   real(rkx) , parameter :: alphaice = d_one
-  real(rkx) , parameter :: eps = 1.0e-7_rkx
 
   integer(ik4) , parameter :: nchi = 256
   real(rkx) , dimension(0:nchi-1) :: chis
@@ -270,7 +269,7 @@ module mod_micro_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          mc2mo%fcc(j,i,k) = max(min(mc2mo%fcc(j,i,k),hicld),lowcld)
+          mc2mo%fcc(j,i,k) = max(min(mc2mo%fcc(j,i,k),hicld),d_zero)
         end do
       end do
     end do
@@ -283,10 +282,10 @@ module mod_micro_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          exlwc = dlowval
+          exlwc = d_zero
           ! Cloud Water Volume
           ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-          if ( mc2mo%fcc(j,i,k) > lowcld+eps ) then
+          if ( mc2mo%fcc(j,i,k) > lowcld ) then
             if ( iconvlwp == 1 ) then
               ! Apply the parameterisation based on temperature to the
               ! the large scale clouds.
@@ -302,18 +301,17 @@ module mod_micro_interface
             ichi = int(mc2mo%fcc(j,i,k)*real(nchi-1,rkx))
             exlwc = exlwc * chis(ichi)
           end if
-          if ( cldfra(j,i,k) > lowcld+eps .or. &
-               mc2mo%fcc(j,i,k) > lowcld+eps ) then
+          if ( cldfra(j,i,k) > lowcld ) then
             ! get maximum cloud fraction between cumulus and large scale
             cldlwc(j,i,k) = (exlwc * mc2mo%fcc(j,i,k) + &
                             cldlwc(j,i,k) * cldfra(j,i,k)) / &
                             (cldfra(j,i,k) + mc2mo%fcc(j,i,k))
             cldfra(j,i,k) = max(cldfra(j,i,k),mc2mo%fcc(j,i,k))
           else
-            cldfra(j,i,k) = lowcld
-            cldlwc(j,i,k) = dlowval
+            cldfra(j,i,k) = mc2mo%fcc(j,i,k)
+            cldlwc(j,i,k) = exlwc
           end if
-          cldfra(j,i,k) = min(max(cldfra(j,i,k),lowcld),cftotmax)
+          cldfra(j,i,k) = max(cldfra(j,i,k),d_zero)
         end do
       end do
     end do
@@ -348,10 +346,9 @@ module mod_micro_interface
     !
     ! rhc    - Relative humidity at ktau+1
     ! rh0adj - Adjusted relative humidity threshold at ktau+1
-    ! fccc   - Cloud fraction at ktau+1
     !
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
-    real(rkx) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
+    real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
                r1 , rh0adj , rhc
     integer(ik4) :: i , j , k
 
@@ -376,7 +373,7 @@ module mod_micro_interface
           if ( qvcs < minqq * sfs%psc(j,i) ) then
             qvcs = minqq * sfs%psc(j,i)
           end if
-          if ( qccs < 1.0e-14 * sfs%psc(j,i) ) then
+          if ( qccs < minqq * sfs%psc(j,i) ) then
             qccs = d_zero
           end if
           qvcs = qvcs /sfs%psc(j,i)
@@ -400,9 +397,9 @@ module mod_micro_interface
           if ( tmp3 > tc0 ) then
             rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
-            rh0adj = d_one - (d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
+            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
           end if
-          rh0adj = max(d_zero,min(rh0adj,d_one))
+          rh0adj = max(d_zero,min(rh0adj,rhmax))
           if ( rhc < rh0adj ) then      ! Low cloud cover
             dqv = conf * (qvcs - qvs)
           else if ( rhc >= d_one ) then ! Full cloud cover
@@ -411,17 +408,15 @@ module mod_micro_interface
             if ( rh0adj >= rhmax ) then
               fccc = hicld
             else if ( rh0adj <= rhmin ) then
-              fccc = lowcld
+              fccc = d_zero
             else
               fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
-            end if
-            if ( pres >= 75000.0_rkx .and. qvcs <= 0.003_rkx ) then
-              fccc = fccc * max(0.15_rkx, min(d_one,qvcs/0.003_rkx))
             end if
             fccc = min(max(fccc,d_zero),d_one)
             qvc_cld = max((mo2mc%qs(j,i,k) + &
                      dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
-            dqv = conf * fccc * (qvc_cld - qvs) ! qv diff between predicted qv_c
+            ! qv diff between predicted qv_c
+            dqv = conf * fccc * (qvc_cld - qvs)
           end if
 
           ! 2c. Compute the water vapor in excess of saturation

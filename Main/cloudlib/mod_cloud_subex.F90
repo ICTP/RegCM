@@ -64,13 +64,13 @@ module mod_cloud_subex
           if ( t(j,i,k) > tc0 ) then
             rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
-            rh0adj = d_one-(d_one-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
+            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-t(j,i,k)))
           end if
-          rh0adj = min(max(rh0adj,d_zero),d_one)
+          rh0adj = min(max(rh0adj,d_zero),rhmax)
           if ( rh(j,i,k) >= rhmax ) then     ! full cloud cover
             fcc(j,i,k) = hicld
           else if ( rh(j,i,k) <= rhmin ) then
-            fcc(j,i,k) = lowcld
+            fcc(j,i,k) = d_zero
           else
             ! Use Sundqvist (1989) formula
             fcc(j,i,k) = d_one-sqrt(d_one-(rhrng-rh0adj)/(rhmax-rh0adj))
