@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 28 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 29 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 6
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -265,6 +265,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_wspd     = 31
   integer(ik4) , parameter :: srf_taux     = 32
   integer(ik4) , parameter :: srf_tauy     = 33
+  integer(ik4) , parameter :: srf_psl      = 34
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -609,12 +610,12 @@ module mod_ncout
         vsize%k2 = kz
         if ( enable_atm3d_vars(atm_u) ) then
           call setup_var(v3dvar_atm,atm_u,vsize,'ua','m s-1', &
-            'Zonal component of wind (westerly)','eastward_wind',.true.)
+            'Eastward Wind','eastward_wind',.true.)
           atm_u_out => v3dvar_atm(atm_u)%rval
         end if
         if ( enable_atm3d_vars(atm_v) ) then
           call setup_var(v3dvar_atm,atm_v,vsize,'va','m s-1', &
-            'Meridional component of wind (southerly)','northward_wind',.true.)
+            'Northward Wind','northward_wind',.true.)
           atm_v_out => v3dvar_atm(atm_v)%rval
         end if
         if ( enable_atm3d_vars(atm_t) ) then
@@ -625,12 +626,12 @@ module mod_ncout
         if ( idynamic == 2 ) then
           if ( enable_atm3d_vars(atm_w) ) then
             call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
-              'Vertical component of wind','upward_wind',.true.)
+              'Vertical Component of Wind','upward_wind',.true.)
             atm_w_out => v3dvar_atm(atm_w)%rval
           end if
           if ( enable_atm3d_vars(atm_pp) ) then
             call setup_var(v3dvar_atm,atm_pp,vsize,'ppa','Pa', &
-              'Pressure perturbation', &
+              'Pressure Perturbation', &
               'difference_of_air_pressure_from_model_reference',.true.)
             atm_pp_out => v3dvar_atm(atm_pp)%rval
           end if
@@ -638,7 +639,7 @@ module mod_ncout
         else
           if ( enable_atm3d_vars(atm_omega) ) then
             call setup_var(v3dvar_atm,atm_omega,vsize,'omega','hPa s-1', &
-              'Pressure velocity','lagrangian_tendency_of_air_pressure',.true.)
+              'Pressure Velocity','lagrangian_tendency_of_air_pressure',.true.)
             atm_omega_out => v3dvar_atm(atm_omega)%rval
           end if
           enable_atm3d_vars(atm_w) = .false.
@@ -651,7 +652,7 @@ module mod_ncout
         end if
         if ( enable_atm3d_vars(atm_qc) ) then
           call setup_var(v3dvar_atm,atm_qc,vsize,'clw','kg kg-1', &
-            'Mass fraction of cloud liquid water', &
+            'Mass Fraction of Cloud Liquid Water', &
             'mass_fraction_of_cloud_liquid_water_in_air',.true.)
           atm_qc_out => v3dvar_atm(atm_qc)%rval
         end if
@@ -664,8 +665,8 @@ module mod_ncout
         if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
           if ( enable_atm3d_vars(atm_ccnnum) ) then
             call setup_var(v3dvar_atm,atm_ccnnum,vsize, &
-               'ccnnum','1/cm^3','Cloud condensation nuclei', &
-               'cloud condensation nuclei',.true.)
+               'ccnnum','1/cm^3','Cloud Condensation Nuclei', &
+               'cloud_condensation_nuclei',.true.)
             atm_ccnnum_out => v3dvar_atm(atm_ccnnum)%rval
           end if
         else
@@ -676,19 +677,19 @@ module mod_ncout
           if ( enable_atm3d_vars(atm_qcrit) ) then
             call setup_var(v3dvar_atm,atm_qcrit,vsize, &
               'qcrit','Kg kg-1','Critical water mixing ratio', &
-              'critical water mixing ratio',.true.)
+              'critical_water_mixing_ratio',.true.)
             atm_qcrit_out => v3dvar_atm(atm_qcrit)%rval
           end if
           if ( enable_atm3d_vars(atm_qincl) ) then
             call setup_var(v3dvar_atm,atm_qincl,vsize, &
               'qincl','kg kg-1','Water mixing ratio in cloud', &
-              'water mixing ratio in cloud',.true.)
+              'water_mixing_ratio_in_cloud',.true.)
             atm_qincl_out => v3dvar_atm(atm_qincl)%rval
           end if
           if ( enable_atm3d_vars(atm_autoconvr) ) then
             call setup_var(v3dvar_atm,atm_autoconvr,vsize, &
               'autoconvr','kg kg-1 s-1','Autoconversion rate', &
-              'autoconversion rate',.true.)
+              'autoconversion_rate',.true.)
             atm_autoconvr_out => v3dvar_atm(atm_autoconvr)%rval
           end if
         else
@@ -699,20 +700,20 @@ module mod_ncout
         if ( ipptls > 1 ) then
           if ( enable_atm3d_vars(atm_qi) ) then
             call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
-              'Mass fraction of ice', &
+              'Mass Fraction of Ice', &
               'mass_fraction_of_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
           if ( icosp == 1 .or. idiag > 0 ) then
             if ( enable_atm3d_vars(atm_qr) ) then
               call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
-                'Mass fraction of rain', &
+                'Mass Fraction of Rain', &
                 'mass_fraction_of_rain',.true.)
               atm_qr_out => v3dvar_atm(atm_qr)%rval
             end if
             if ( enable_atm3d_vars(atm_qs) ) then
               call setup_var(v3dvar_atm,atm_qs,vsize,'cls','kg kg-1', &
-                'Mass fraction of snow', &
+                'Mass Fraction of Snow', &
                 'mass_fraction_of_snow_in_air',.true.)
               atm_qs_out => v3dvar_atm(atm_qs)%rval
             end if
@@ -739,7 +740,7 @@ module mod_ncout
             if ( enable_atm3d_vars(atm_rainls) ) then
               call setup_var(v3dvar_atm,atm_rainls,vsize, &
                  'rainls','kg m-2 s-1', &
-                 'Large scale precipitation at each level', &
+                 'Large Scale Precipitation at Each Level', &
                  'large_scale_precipitation',.true.)
               atm_rainls_out => v3dvar_atm(atm_rainls)%rval
             end if
@@ -747,7 +748,7 @@ module mod_ncout
               if ( enable_atm3d_vars(atm_raincc) ) then
                 call setup_var(v3dvar_atm,atm_raincc,vsize, &
                   'raincc','kg m-2 s-1', &
-                  'Convective precipitation at each level', &
+                  'Convective Precipitation at Each Level', &
                   'convective_precipitation',.true.)
                 atm_raincc_out => v3dvar_atm(atm_raincc)%rval
               end if
@@ -763,104 +764,87 @@ module mod_ncout
             ! stats variables
             if ( enable_atm3d_vars(atm_stats_supw) ) then
               call setup_var(v3dvar_atm,atm_stats_supw,vsize,'st_supw','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_supw_out => v3dvar_atm(atm_stats_supw)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_supc) ) then
               call setup_var(v3dvar_atm,atm_stats_supc,vsize,'st_supc','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_supc_out => v3dvar_atm(atm_stats_supc)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_detw) ) then
               call setup_var(v3dvar_atm,atm_stats_detw,vsize,'st_detw','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_detw_out => v3dvar_atm(atm_stats_detw)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_detc) ) then
               call setup_var(v3dvar_atm,atm_stats_detc,vsize,'st_detc','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_detc_out => v3dvar_atm(atm_stats_detc)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_erow) ) then
               call setup_var(v3dvar_atm,atm_stats_erow,vsize,'st_erow','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_erow_out => v3dvar_atm(atm_stats_erow)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_eroc) ) then
               call setup_var(v3dvar_atm,atm_stats_eroc,vsize,'st_eroc','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_eroc_out => v3dvar_atm(atm_stats_eroc)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_evw) )  then
               call setup_var(v3dvar_atm,atm_stats_evw,vsize,'st_evw','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_evw_out => v3dvar_atm(atm_stats_evw)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_evc) ) then
               call setup_var(v3dvar_atm,atm_stats_evc,vsize,'st_evc','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_evc_out => v3dvar_atm(atm_stats_evc)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_con1w) ) then
               call setup_var(v3dvar_atm,atm_stats_con1w,vsize,'st_con1w','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_con1w_out => v3dvar_atm(atm_stats_con1w)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_con1c) ) then
               call setup_var(v3dvar_atm,atm_stats_con1c,vsize,'st_con1c','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_con1c_out => v3dvar_atm(atm_stats_con1c)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_dep) ) then
               call setup_var(v3dvar_atm,atm_stats_dep,vsize,'st_dep','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_dep_out => v3dvar_atm(atm_stats_dep)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_melt) ) then
               call setup_var(v3dvar_atm,atm_stats_melt,vsize,'st_mlt','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_melt_out=> v3dvar_atm(atm_stats_melt)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_frz) ) then
               call setup_var(v3dvar_atm,atm_stats_frz,vsize,'st_frz','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_frz_out=> v3dvar_atm(atm_stats_frz)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_rainev) ) then
               call setup_var(v3dvar_atm,atm_stats_rainev,vsize,'st_ev_rn','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_rainev_out=> v3dvar_atm(atm_stats_rainev)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_snowev) ) then
               call setup_var(v3dvar_atm,atm_stats_snowev,vsize,'st_ev_sn','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_snowev_out=> v3dvar_atm(atm_stats_snowev)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_autocw) ) then
               call setup_var(v3dvar_atm,atm_stats_autocw,vsize,'st_au_rn','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_autocw_out=> v3dvar_atm(atm_stats_autocw)%rval
             end if
             if ( enable_atm3d_vars(atm_stats_autocc) ) then
               call setup_var(v3dvar_atm,atm_stats_autocc,vsize,'st_au_sn','', &
-              '',&
-              '',.true.)
+              '','',.true.)
               atm_stats_autocc_out=> v3dvar_atm(atm_stats_autocc)%rval
             end if
           else !stats
@@ -907,25 +891,25 @@ module mod_ncout
         if ( icosp > 0 ) then
           if ( enable_atm3d_vars(atm_zf) ) then
             call setup_var(v3dvar_atm,atm_zf,vsize,'zf','m', &
-              'Height at full levels', &
+              'Height at Full Levels', &
               'height_full_levels',.true.)
             atm_zf_out => v3dvar_atm(atm_zf)%rval
           end if
           if ( enable_atm3d_vars(atm_zh) ) then
             call setup_var(v3dvar_atm,atm_zh,vsize,'zh','m', &
-              'Height at half levels', &
+              'Height at Half Levels', &
               'height_half_levels',.true.)
             atm_zh_out => v3dvar_atm(atm_zh)%rval
           end if
           if ( enable_atm3d_vars(atm_pf) ) then
             call setup_var(v3dvar_atm,atm_pf,vsize,'pf','Pa', &
-              'Pressure at full levels', &
+              'Pressure at Full Levels', &
               'pressure_full_levels',.true.)
             atm_pf_out => v3dvar_atm(atm_pf)%rval
           end if
           if ( enable_atm3d_vars(atm_ph) ) then
             call setup_var(v3dvar_atm,atm_ph,vsize,'ph','Pa', &
-              'Pressure at half levels', &
+              'Pressure at Half Levels', &
               'pressure_half_levels',.true.)
             atm_ph_out => v3dvar_atm(atm_ph)%rval
           end if
@@ -940,69 +924,69 @@ module mod_ncout
           ! FAB : flag properly
           if ( enable_atm3d_vars(atm_tten_adh) ) then
             call setup_var(v3dvar_atm,atm_tten_adh,vsize,'ttenadh','K.s-1', &
-             'temperature_tendency_due_to_horizontal_advection', &
-             'Temperature tendency due to horizontal advection',.true.)
+             'Temperature tendency due to horizontal advection', &
+             'temperature_tendency_due_to_horizontal_advection',.true.)
             atm_tten_adh_out => v3dvar_atm(atm_tten_adh)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_adv) ) then
             call setup_var(v3dvar_atm,atm_tten_adv,vsize,'ttenadv','K.s-1', &
-             'temperature_tendency_due_to_vertical_advection', &
-             'Temperature tendency due to vertical advection',.true.)
+             'Temperature tendency due to vertical advection', &
+             'temperature_tendency_due_to_vertical_advection',.true.)
             atm_tten_adv_out => v3dvar_atm(atm_tten_adv)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_tbl) ) then
             call setup_var(v3dvar_atm,atm_tten_tbl,vsize,'ttentbl','K.s-1', &
-             'temperature_tendency_due_to_surface_boundary_layer', &
-             'Temperature tendency due to surface boundary layer',.true.)
+             'Temperature tendency due to surface boundary layer', &
+             'temperature_tendency_due_to_surface_boundary_layer',.true.)
             atm_tten_tbl_out => v3dvar_atm(atm_tten_tbl)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_dif) ) then
             call setup_var(v3dvar_atm,atm_tten_dif,vsize,'ttendif','K.s-1', &
-             'temperature_tendency_due_to_diffusion', &
-             'Temperature tendency due to diffusion',.true.)
+             'Temperature tendency due to diffusion', &
+             'temperature_tendency_due_to_diffusion',.true.)
             atm_tten_dif_out => v3dvar_atm(atm_tten_dif)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_bdy) ) then
             call setup_var(v3dvar_atm,atm_tten_bdy,vsize,'ttenbdy','K.s-1', &
-             'temperature_tendency_due_to_boundary_conditions', &
-             'Temperature tendency due to boundary conditions',.true.)
+             'Temperature tendency due to boundary conditions', &
+             'temperature_tendency_due_to_boundary_conditions',.true.)
             atm_tten_bdy_out => v3dvar_atm(atm_tten_bdy)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_con) ) then
             call setup_var(v3dvar_atm,atm_tten_con,vsize,'ttencon','K.s-1', &
-             'temperature_tendency_due_to_convection', &
-             'Temperature tendency due to convection',.true.)
+             'Temperature tendency due to convection', &
+             'temperature_tendency_due_to_convection',.true.)
             atm_tten_con_out => v3dvar_atm(atm_tten_con)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_adi) ) then
             call setup_var(v3dvar_atm,atm_tten_adi,vsize,'ttenadi','K.s-1', &
-             'temperature_tendency_due_to_adiabatic', &
-             'Temperature tendency due to adiabatic',.true.)
+             'Temperature tendency due to adiabatic', &
+             'temperature_tendency_due_to_adiabatic',.true.)
             atm_tten_adi_out => v3dvar_atm(atm_tten_adi)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_rad) ) then
             call setup_var(v3dvar_atm,atm_tten_rad,vsize,'ttenrad','K.s-1', &
-             'temperature_tendency_due_to_radiation_heating', &
-             'Temperature tendency due to radiation heating',.true.)
+             'Temperature tendency due to radiation heating', &
+             'temperature_tendency_due_to_radiation_heating',.true.)
             atm_tten_rad_out => v3dvar_atm(atm_tten_rad)%rval
           end if
           if ( enable_atm3d_vars(atm_tten_lsc) ) then
             call setup_var(v3dvar_atm,atm_tten_lsc,vsize,'ttenlsc','K.s-1', &
-             'temperature_tendency_due_to_large_scale_latent_heat_exchange', &
              'Temperature tendency due to large scale latent heat exchange', &
+             'temperature_tendency_due_to_large_scale_latent_heat_exchange', &
              .true.)
             atm_tten_lsc_out => v3dvar_atm(atm_tten_lsc)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_adh) ) then
             call setup_var(v3dvar_atm,atm_qten_adh,vsize,'qtenadh','s-1', &
-             'mixing_ratio_tendency_due_to_horizontal_advection', &
-             'Mixing ratio tendency due to horizontal advection',.true.)
+             'Mixing ratio tendency due to horizontal advection', &
+             'mixing_ratio_tendency_due_to_horizontal_advection',.true.)
             atm_qten_adh_out => v3dvar_atm(atm_qten_adh)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_adv) ) then
             call setup_var(v3dvar_atm,atm_qten_adv,vsize,'qtenadv','s-1', &
-             'mixing_ratio_tendency_due_to_vertical_advection', &
-             'Mixing ratio tendency due to vertical advection',.true.)
+             'Mixing ratio tendency due to vertical advection', &
+             'mixing_ratio_tendency_due_to_vertical_advection',.true.)
             atm_qten_adv_out => v3dvar_atm(atm_qten_adv)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_tbl) ) then
@@ -1013,38 +997,38 @@ module mod_ncout
           end if
           if ( enable_atm3d_vars(atm_qten_dif) ) then
             call setup_var(v3dvar_atm,atm_qten_dif,vsize,'qtendif','s-1', &
-             'mixing_ratio_tendency_due_to_diffusion', &
-             'Mixing ratio tendency due to diffusion',.true.)
+             'Mixing ratio tendency due to diffusion', &
+             'mixing_ratio_tendency_due_to_diffusion',.true.)
             atm_qten_dif_out => v3dvar_atm(atm_qten_dif)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_bdy) ) then
             call setup_var(v3dvar_atm,atm_qten_bdy,vsize,'qtenbdy','s-1', &
-             'mixing_ratio_tendency_due_to_boundary_conditions', &
-             'Mixing ratio tendency due to boundary conditions',.true.)
+             'Mixing ratio tendency due to boundary conditions', &
+             'mixing_ratio_tendency_due_to_boundary_conditions',.true.)
             atm_qten_bdy_out => v3dvar_atm(atm_qten_bdy)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_con) ) then
             call setup_var(v3dvar_atm,atm_qten_con,vsize,'qtencon','s-1', &
-             'mixing_ratio_tendency_due_to_convection', &
-             'Mixing ratio tendency due to convection',.true.)
+             'Mixing ratio tendency due to convection', &
+             'mixing_ratio_tendency_due_to_convection',.true.)
             atm_qten_con_out => v3dvar_atm(atm_qten_con)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_adi) ) then
             call setup_var(v3dvar_atm,atm_qten_adi,vsize,'qtenadi','s-1', &
-             'mixing_ratio_tendency_due_to_adiabatic', &
-             'Mixing ratio tendency due to adiabatic',.true.)
+             'Mixing ratio tendency due to adiabatic', &
+             'mixing_ratio_tendency_due_to_adiabatic',.true.)
             atm_qten_adi_out => v3dvar_atm(atm_qten_adi)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_rad) ) then
             call setup_var(v3dvar_atm,atm_qten_rad,vsize,'qtenrad','s-1', &
-             'mixing_ratio_tendency_due_to_radiation_heating', &
-             'Mixing ratio tendency due to radiation heating',.true.)
+             'Mixing ratio tendency due to radiation heating', &
+             'mixing_ratio_tendency_due_to_radiation_heating',.true.)
             atm_qten_rad_out => v3dvar_atm(atm_qten_rad)%rval
           end if
           if ( enable_atm3d_vars(atm_qten_lsc) ) then
             call setup_var(v3dvar_atm,atm_qten_lsc,vsize,'qtenlsc','s-1', &
-             'mixing_ratio_tendency_due_to_large_scale_latent_heat_exchange', &
              'Mixing ratio tendency due to large scale latent heat exchange', &
+             'mixing_ratio_tendency_due_to_large_scale_latent_heat_exchange', &
              .true.)
             atm_qten_lsc_out => v3dvar_atm(atm_qten_lsc)%rval
           end if
@@ -1100,7 +1084,7 @@ module mod_ncout
 
         if ( enable_srf2d_vars(srf_uvdrag) ) then
           call setup_var(v2dvar_srf,srf_uvdrag,vsize,'tau','N m-2', &
-            'Surface wind stress','surface_downward_stress',.true.)
+            'Surface Downward Wind Stress','surface_downward_stress',.true.)
           srf_uvdrag_out => v2dvar_srf(srf_uvdrag)%rval
         end if
         if ( enable_srf2d_vars(srf_taux) ) then
@@ -1114,6 +1098,11 @@ module mod_ncout
             'Surface Downward Northward Wind Stress', &
             'surface_downward_northward_stress',.true.,'time: mean')
           srf_tauy_out => v2dvar_srf(srf_tauy)%rval
+        end if
+        if ( enable_srf2d_vars(srf_psl) ) then
+          call setup_var(v2dvar_srf,srf_psl,vsize,'psl','Pa', &
+            'Sea Level Pressure','air_pressure_at_sea_level',.true.)
+          srf_mslp_out => v2dvar_srf(srf_psl)%rval
         end if
         if ( enable_srf2d_vars(srf_ustar) ) then
           call setup_var(v2dvar_srf,srf_ustar,vsize,'ustar','m s-1', &
@@ -1508,7 +1497,7 @@ module mod_ncout
 
         if ( enable_sub2d_vars(sub_uvdrag) ) then
           call setup_var(v2dvar_sub,sub_uvdrag,vsize,'tau','N m-2', &
-            'Surface wind stress','surface_downward_stress',.true.)
+            'Surface Downward Wind Stress','surface_downward_stress',.true.)
           sub_uvdrag_out => v2dvar_sub(sub_uvdrag)%rval
         end if
         if ( enable_sub2d_vars(sub_tg) ) then
@@ -1560,19 +1549,17 @@ module mod_ncout
         v3dvar_sub(sub_q2m)%axis = 'xy2'
         if ( enable_sub3d_vars(sub_u10m) ) then
           call setup_var(v3dvar_sub,sub_u10m,vsize,'uas','m s-1', &
-            '10 meter zonal wind component (westerly)', &
-            'eastward_wind',.true.)
+            'Eastward Wind','eastward_wind',.true.)
           sub_u10m_out => v3dvar_sub(sub_u10m)%rval
         end if
         if ( enable_sub3d_vars(sub_v10m) ) then
           call setup_var(v3dvar_sub,sub_v10m,vsize,'vas','m s-1', &
-            '10 meter meridional wind component (southerly)', &
-            'northward_wind',.true.)
+            'Northward wind','northward_wind',.true.)
           sub_v10m_out => v3dvar_sub(sub_v10m)%rval
         end if
         if ( enable_sub3d_vars(sub_t2m) ) then
           call setup_var(v3dvar_sub,sub_t2m,vsize,'tas','K', &
-            '2 meter air temperature','air_temperature',.true.)
+            'Air Temperature','air_temperature',.true.)
           sub_t2m_out => v3dvar_sub(sub_t2m)%rval
         end if
         if ( enable_sub3d_vars(sub_q2m) ) then
@@ -1692,13 +1679,13 @@ module mod_ncout
         end if
         if ( enable_rad2d_vars(rad_totcl) ) then
           call setup_var(v2dvar_rad,rad_totcl,vsize,'clwvi','kg m-2', &
-            'Total columnar liquid water content', &
+            'Condensed Water Path', &
             'atmosphere_cloud_condensed_water_content',.true.)
           rad_totcl_out => v2dvar_rad(rad_totcl)%rval
         end if
         if ( enable_rad2d_vars(rad_totci) ) then
           call setup_var(v2dvar_rad,rad_totci,vsize,'clivi','kg m-2', &
-            'Total columnar ice water content', &
+            'Ice Water Path', &
             'atmosphere_ice_condensed_water_content',.true.)
           rad_totci_out => v2dvar_rad(rad_totci)%rval
         end if

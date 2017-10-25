@@ -136,6 +136,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_trunoff_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_totcf_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_wspd_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_mslp_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: srf_u10m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_v10m_out => null()

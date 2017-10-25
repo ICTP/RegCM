@@ -85,6 +85,8 @@ module mod_lm_interface
     thatm , qvatm , zatm
 #endif
 
+  real(rkx) , pointer , dimension(:,:) :: slp , sfp , slp1
+
   type(lm_exchange) :: lm
   type(lm_state) :: lms
 
@@ -251,6 +253,9 @@ module mod_lm_interface
       call getmem3d(lms%tskin,1,nnsg,jci1,jci2,ici1,ici2,'sst:tskin')
       call getmem3d(lms%sst,1,nnsg,jci1,jci2,ici1,ici2,'sst:sst')
     end if
+    call getmem2d(sfp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:sfp')
+    call getmem2d(slp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp')
+    call getmem2d(slp1,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp1')
   end subroutine allocate_surface_model
 
   subroutine init_surface_model
@@ -1045,6 +1050,10 @@ module mod_lm_interface
             end where
           end do
         end if
+        if ( associated(srf_mslp_out) ) then
+          call mslp
+          srf_mslp_out(jci1:jci2,ici1:ici2) = slp(jci1:jci2,ici1:ici2)
+        end if
       end if
 
       if ( ifsub ) then
@@ -1109,6 +1118,57 @@ module mod_lm_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+
+    subroutine mslp
+      implicit none
+      integer(ik4) :: i , j , n
+      real(rkx) :: tstar , hstar , alpha , raval , mval , mall
+      integer(ik4) , parameter :: niter = 20
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: mask
+
+      ! Follow Kallen 1996
+      alpha = lrate*rgas/egrav
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          tstar = lm%tatm(j,i)
+          if ( tstar < 255.0_rkx ) then
+            tstar = (tstar+255.0_rkx)*0.5_rkx
+          else if ( tstar > 290.5_rkx ) then
+            tstar = 290.5_rkx + (0.005_rkx*(tstar-290.5_rkx))**2
+          end if
+          hstar = lm%ht(j,i)/(rgas*tstar)
+          raval = d_half*alpha*hstar
+          slp(j,i) = lm%sfps(j,i) * &
+               exp(hstar*(1.0_rkx - raval + (raval*raval)/3.0_rkx))
+        end do
+      end do
+      ! Gauss Siedel Filtering
+      mval = d_half*(maxval(lm%sfps)-minval(lm%sfps))
+      call sumall(mval,mall)
+      mval = mall/real(nproc,rkx)
+      sfp(jce1:jce2,ice1:ice2) = lm%sfps(jce1:jce2,ice1:ice2)
+      call exchange(slp,1,jce1,jce2,ice1,ice2)
+      call exchange(sfp,1,jce1,jce2,ice1,ice2)
+      slp1 = slp
+      mask = d_zero
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          mask(j,i) = (sfp(j,i-1)+sfp(j,i+1) + &
+                       sfp(j-1,i)+sfp(j+1,i) - &
+                       4.0_rkx*sfp(j,i))/mval
+        end do
+      end do
+      do n = 1 , niter
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            slp1(j,i) = d_rfour*(slp1(j,i-1)+slp(j,i+1) + &
+                                 slp1(j-1,i)+slp(j+1,i)-mask(j,i))
+          end do
+        end do
+        call exchange(slp1,1,jce1,jce2,ice1,ice2)
+        slp(:,:) = slp1
+      end do
+    end subroutine mslp
 
   end subroutine collect_output
 
