@@ -2624,6 +2624,7 @@ module mod_clm_typeinit
 
 #ifdef CN
     allocate(cps%q10(ibeg:iend))
+    allocate(cps%ndep(ibeg:iend))
 #endif
 
     allocate(cps%irrig_rate(ibeg:iend))
@@ -2811,6 +2812,7 @@ module mod_clm_typeinit
 
 #ifdef CN
     cps%q10(ibeg:iend) = nan
+    cps%ndep(ibeg:iend) = nan
 #endif
 
     cps%irrig_rate(ibeg:iend) = nan

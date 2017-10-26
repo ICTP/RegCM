@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-module mod_mkq10soil
+module mod_mkndep
 #if defined(CN)
   use mod_realkinds
   use mod_intkinds
@@ -28,44 +28,44 @@ module mod_mkq10soil
 
   private
 
-  public :: mkq10soil
+  public :: mkndep
 
-  character(len=16) , parameter :: varname = 'q10'
+  character(len=16) , parameter :: varname = 'ndep'
 
   real(rkx) :: vmin = 0.0_rkx
 
   contains
 
-  subroutine mkq10soil(q10soilfile,mask,q10soil)
+  subroutine mkndep(ndepfile,mask,ndep)
     implicit none
-    character(len=*) , intent(in) :: q10soilfile
+    character(len=*) , intent(in) :: ndepfile
     real(rkx) , dimension(:,:) , intent(in) :: mask
-    real(rkx) , dimension(:,:) , intent(out) :: q10soil
+    real(rkx) , dimension(:,:) , intent(out) :: ndep
     integer(ik4) :: i , j
     type(globalfile) :: gfile
     character(len=256) :: inpfile
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
-                             pthsep//'surface'//pthsep//q10soilfile
+                             pthsep//'surface'//pthsep//ndepfile
     call gfopen(gfile,inpfile,xlat,xlon,ds*nsg,roidem,i_band)
-    call gfread(gfile,varname,q10soil,h_missing_value)
+    call gfread(gfile,varname,ndep,h_missing_value)
     call gfclose(gfile)
 
     do i = 1 , iysg
       do j = 1 , jxsg
         if ( mask(j,i) < 0.5_rkx ) then
-          q10soil(j,i) = h_missing_value
+          ndep(j,i) = h_missing_value
         else
-          if ( q10soil(j,i) > h_missing_value ) then
-            q10soil(j,i) = max(d_zero,q10soil(j,i))
+          if ( ndep(j,i) > h_missing_value ) then
+            ndep(j,i) = max(d_zero,ndep(j,i))
           else
-            call bestaround(q10soil,i,j)
-            q10soil(j,i) = max(d_zero,q10soil(j,i))
+            call bestaround(ndep,i,j)
+            ndep(j,i) = max(d_zero,ndep(j,i))
           end if
         end if
       end do
     end do
-  end subroutine mkq10soil
+  end subroutine mkndep
 #endif
-end module mod_mkq10soil
+end module mod_mkndep
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

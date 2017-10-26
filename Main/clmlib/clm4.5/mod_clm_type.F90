@@ -2392,6 +2392,7 @@ module mod_clm_type
     real(rk8) , pointer , dimension(:) :: forc_rho
 #ifdef CN
     real(rk8) , pointer , dimension(:) :: q10
+    real(rk8) , pointer , dimension(:) :: ndep
 #endif
   end type column_pstate_type
 

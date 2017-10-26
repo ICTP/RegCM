@@ -143,6 +143,7 @@ module mod_clm_initimeconst
     integer(ik4) , pointer :: isoicol(:)  ! soil color class
 #ifdef CN
     real(rk8) , pointer :: q10(:)
+    real(rk8) , pointer :: ndep(:)
 #endif
 
     ! added by F. Li and S. Levis
@@ -250,6 +251,7 @@ module mod_clm_initimeconst
 
 #ifdef CN
     real(rk8) , pointer :: q10_in(:)
+    real(rk8) , pointer :: ndep_in(:)
 #endif
 
     real(rk8) , pointer :: lakedepth_in(:) ! read in - lakedepth
@@ -330,6 +332,7 @@ module mod_clm_initimeconst
     allocate(lakefetch_in(begg:endg))
 #ifdef CN
     allocate(q10_in(begg:endg))
+    allocate(ndep_in(begg:endg))
 #endif
 
     allocate(temp_ef(begg:endg),efisop2d(6,begg:endg))
@@ -396,6 +399,7 @@ module mod_clm_initimeconst
 
 #ifdef CN
     q10            => clm3%g%l%c%cps%q10
+    ndep           => clm3%g%l%c%cps%ndep
 #endif
 
     ! added by F. Li and S. Levis
@@ -502,6 +506,7 @@ module mod_clm_initimeconst
 
 #ifdef CN
     call clm_readvar(ncid,'Q10',q10_in,gcomm_gridcell)
+    call clm_readvar(ncid,'NDEP',ndep_in,gcomm_gridcell)
 #endif
 
     ! Read lakedepth
@@ -1052,6 +1057,7 @@ module mod_clm_initimeconst
 
 #ifdef CN
        q10(c) = q10_in(g)
+       ndep(c) = ndep_in(g)
 #endif
 
       ! Lake data
@@ -1508,6 +1514,7 @@ module mod_clm_initimeconst
 
 #ifdef CN
     deallocate(q10_in)
+    deallocate(ndep_in)
 #endif
 
     deallocate(lakedepth_in)

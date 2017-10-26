@@ -41,25 +41,31 @@ module mod_clm_cnndynamics
   !
   subroutine CNNDeposition( lbc, ubc )
     use mod_clm_type
-    use mod_clm_atmlnd , only : clm_a2l
+    !use mod_clm_atmlnd , only : clm_a2l
     implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
-    real(rk8) , pointer :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
-    integer(ik4) , pointer :: gridcell(:) ! index into gridcell level quantities
+    !real(rk8) , pointer :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
+    real(rk8) , pointer :: ndep(:) !nitrogen deposition rate (gN/m2/year)
+    ! index into gridcell level quantities
+    ! integer(ik4) , pointer :: gridcell(:)
+    !nitrogen deposition rate (gN/m2/second)
     real(rk8), pointer :: ndep_to_sminn(:)
-    integer(ik4) :: g , c  ! indices
+    ! integer(ik4) :: g , c  ! indices
+    integer(ik4) :: c
 
     ! Assign local pointers to derived type arrays (in)
-    forc_ndep     => clm_a2l%forc_ndep
-    gridcell      => clm3%g%l%c%gridcell
+    !forc_ndep     => clm_a2l%forc_ndep
+    !gridcell      => clm3%g%l%c%gridcell
 
     ! Assign local pointers to derived type arrays (out)
     ndep_to_sminn => clm3%g%l%c%cnf%ndep_to_sminn
+    ndep          => clm3%g%l%c%cps%ndep
 
     ! Loop through columns
     do c = lbc , ubc
-      g = gridcell(c)
-      ndep_to_sminn(c) = forc_ndep(g)
+      !g = gridcell(c)
+      !ndep_to_sminn(c) = forc_ndep(g)
+      ndep_to_sminn(c) = ndep(c)
     end do
   end subroutine CNNDeposition
   !
