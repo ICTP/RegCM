@@ -153,39 +153,43 @@ module mod_rad_outrad
       end do
     end do
 
-    kh1 = 2
-    kl2 = kzp1
-    n = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        hif = d_one
-        mif = d_one
-        lof = d_one
-        do k = 2 , kz-1
-          if ( m2r%phatms(j,i,k) <= 44000.0_rkx ) then
-            kh2 = k
-            km1 = k+1
-          else if ( m2r%phatms(j,i,k) > 44000.0_rkx .and. &
-                    m2r%phatms(j,i,k) <= 68000.0_rkx ) then
-            km2 = k
-            kl1 = k+1
-          end if
+    if ( ifrad .and. associated(rad_higcl_out) .and. &
+                     associated(rad_midcl_out) .and. &
+                     associated(rad_lowcl_out) ) then
+      kh1 = 2
+      kl2 = kzp1
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          hif = d_one
+          mif = d_one
+          lof = d_one
+          do k = 2 , kz-1
+            if ( m2r%phatms(j,i,k) <= 44000.0_rkx ) then
+              kh2 = k
+              km1 = k+1
+            else if ( m2r%phatms(j,i,k) > 44000.0_rkx .and. &
+                      m2r%phatms(j,i,k) <= 68000.0_rkx ) then
+              km2 = k
+              kl1 = k+1
+            end if
+          end do
+          do k = kh1 , kh2
+            hif = hif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+          end do
+          do k = km1 , km2
+            mif = mif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+          end do
+          do k = kl1 , kl2
+            lof = lof*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+          end do
+          rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
+          rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
+          rad_lowcl_out(j,i) = rad_lowcl_out(j,i) + d_one - lof
+          n = n + 1
         end do
-        do k = kh1 , kh2
-          hif = hif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
-        end do
-        do k = km1 , km2
-          mif = mif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
-        end do
-        do k = kl1 , kl2
-          lof = lof*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
-        end do
-        rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
-        rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
-        rad_lowcl_out(j,i) = rad_lowcl_out(j,i) + d_one - lof
-        n = n + 1
       end do
-    end do
+    end if
 
     if ( rcmtimer%start( ) ) return
 
