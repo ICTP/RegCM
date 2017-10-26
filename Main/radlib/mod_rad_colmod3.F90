@@ -437,7 +437,7 @@ module mod_rad_colmod3
                 flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,      &
                 totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo, &
                 aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,      &
-                gtota3d,deltaz,outtaucl,outtauci,r2m)
+                gtota3d,deltaz,outtaucl,outtauci,r2m,m2r)
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif

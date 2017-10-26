@@ -76,7 +76,7 @@ module mod_ncout
   integer(ik4) , parameter :: nlak3dvars = 1
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
-  integer(ik4) , parameter :: nrad2dvars = 13 + nbase
+  integer(ik4) , parameter :: nrad2dvars = 16 + nbase
   integer(ik4) , parameter :: nrad3dvars = 5
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
@@ -332,6 +332,9 @@ module mod_ncout
   integer(ik4) , parameter :: rad_totcl  = 16
   integer(ik4) , parameter :: rad_totci  = 17
   integer(ik4) , parameter :: rad_firtp  = 18
+  integer(ik4) , parameter :: rad_higcl  = 19
+  integer(ik4) , parameter :: rad_midcl  = 20
+  integer(ik4) , parameter :: rad_lowcl  = 21
 
   integer(ik4) , parameter :: rad_pp     = 1
   integer(ik4) , parameter :: rad_cld    = 2
@@ -1694,6 +1697,24 @@ module mod_ncout
             'Top of atmosphere net upward longwave flux', &
             'toa_net_upward_longwave_flux',.true.)
           rad_firtp_out => v2dvar_rad(rad_firtp)%rval
+        end if
+        if ( enable_rad2d_vars(rad_higcl) ) then
+          call setup_var(v2dvar_rad,rad_higcl,vsize,'clh','%', &
+            'High Level Cloud Fraction', &
+            'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
+          rad_higcl_out => v2dvar_rad(rad_higcl)%rval
+        end if
+        if ( enable_rad2d_vars(rad_midcl) ) then
+          call setup_var(v2dvar_rad,rad_midcl,vsize,'clm','%', &
+            'Mid Level Cloud Fraction', &
+            'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
+          rad_midcl_out => v2dvar_rad(rad_midcl)%rval
+        end if
+        if ( enable_rad2d_vars(rad_lowcl) ) then
+          call setup_var(v2dvar_rad,rad_lowcl,vsize,'cll','%', &
+            'Low Level Cloud Fraction', &
+            'cloud_area_fraction_in_atmosphere_layer',.true.,'time: mean')
+          rad_lowcl_out => v2dvar_rad(rad_lowcl)%rval
         end if
 
         vsize%k2 = kz

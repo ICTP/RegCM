@@ -992,9 +992,18 @@ module mod_output
                              sfs%psa(jci1:jci2,ici1:ici2)
           end do
         end if
+        if ( associated(rad_higcl_out) ) &
+          rad_higcl_out = rad_higcl_out * rnrad_for_radfrq * d_100
+        if ( associated(rad_midcl_out) ) &
+          rad_midcl_out = rad_midcl_out * rnrad_for_radfrq * d_100
+        if ( associated(rad_lowcl_out) ) &
+          rad_lowcl_out = rad_lowcl_out * rnrad_for_radfrq * d_100
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ' , rcmtimer%str( )
+        if ( associated(rad_higcl_out) ) rad_higcl_out = d_zero
+        if ( associated(rad_midcl_out) ) rad_midcl_out = d_zero
+        if ( associated(rad_lowcl_out) ) rad_lowcl_out = d_zero
       end if
     end if
 

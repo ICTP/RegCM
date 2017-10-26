@@ -47,8 +47,8 @@ module mod_rad_outrad
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
-                    deltaz,outtaucl,outtauci,r2m,asaeradfo,asaeradfos,   &
-                    asaerlwfo,asaerlwfos)
+                    deltaz,outtaucl,outtauci,r2m,m2r,                    &
+                    asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
     implicit none
     !
     ! copy radiation output quantities to model buffer
@@ -99,10 +99,13 @@ module mod_rad_outrad
                 asaeradfo , asaeradfos , aerlwfo , aerlwfos ,    &
                 asaerlwfo , asaerlwfos , deltaz , outtaucl ,     &
                 outtauci
+    type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
 
     integer(ik4) :: i , j , k , n
+    integer(ik4) :: kh1 , kh2 , km1 , km2 , kl1 , kl2
     integer(ik4) :: visband
+    real(rkx) :: hif , mif , lof
     !
     ! total heating rate in deg/s
     !
@@ -146,6 +149,40 @@ module mod_rad_outrad
         r2m%solvl(j,i) = soll(n)
         r2m%solvld(j,i) = solld(n)
         r2m%sinc(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
+        n = n + 1
+      end do
+    end do
+
+    kh1 = 2
+    kl2 = kzp1
+    n = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        hif = d_one
+        mif = d_one
+        lof = d_one
+        do k = 2 , kz-1
+          if ( m2r%phatms(j,i,k) <= 44000.0_rkx ) then
+            kh2 = k
+            km1 = k+1
+          else if ( m2r%phatms(j,i,k) > 44000.0_rkx .and. &
+                    m2r%phatms(j,i,k) <= 68000.0_rkx ) then
+            km2 = k
+            kl1 = k+1
+          end if
+        end do
+        do k = kh1 , kh2
+          hif = hif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+        end do
+        do k = km1 , km2
+          mif = mif*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+        end do
+        do k = kl1 , kl2
+          lof = lof*(d_one - max(cld(n,k-1),cld(n,k)))/(d_one-cld(n,k-1))
+        end do
+        rad_higcl_out(j,i) = rad_higcl_out(j,i) + d_one - hif
+        rad_midcl_out(j,i) = rad_midcl_out(j,i) + d_one - mif
+        rad_lowcl_out(j,i) = rad_lowcl_out(j,i) + d_one - lof
         n = n + 1
       end do
     end do
