@@ -37,6 +37,7 @@ program sst
   use mod_sst_ersst
   use mod_sst_fvgcm
   use mod_sst_gnmnc
+  use mod_sst_gndnc
   use mod_sst_gnhnc
 
   implicit none
@@ -138,6 +139,12 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
+  else if ( ssttyp(1:3) == 'NO_' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gndnc
   else if ( ssttyp == 'EIXXX' .or. ssttyp == 'CCSM3' ) then
     if ( ical /= noleap ) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'

@@ -178,11 +178,11 @@ module mod_sst_gnhnc
     call get_window(glat,glon,xlat,xlon,i_band,gdomain)
     grev(1:jlat) = glat
     jlat = gdomain%nj
-    call getmem1d(glat,1,jlat,'mod_ein:glat')
+    call getmem1d(glat,1,jlat,'mod_gnhnc_sst:glat')
     glat = grev(gdomain%jgstart:gdomain%jgstop)
     grev(1:ilon) = glon
     ilon = sum(gdomain%ni)
-    call getmem1d(glon,1,ilon,'mod_ein:glon')
+    call getmem1d(glon,1,ilon,'mod_gnhnc_sst:glon')
     glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
