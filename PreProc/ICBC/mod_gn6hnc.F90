@@ -52,6 +52,7 @@ module mod_gn6hnc
   use mod_gfdl_helper
   use mod_cnrm_helper
   use mod_mpiesm_helper
+  use mod_noresm_helper
   use mod_ecearth_helper
 
   private
@@ -168,6 +169,10 @@ module mod_gn6hnc
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from a T file.
       call find_canesm_dim(pathaddname)
+    else if ( dattyp(1:3) == 'NO_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from a T file.
+      call find_noresm_dim(pathaddname)
     else if ( dattyp(1:3) == 'IP_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from a T file.
@@ -453,6 +458,40 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
+    else if ( dattyp(1:3) == 'NO_' ) then
+      istatus = nf90_inq_varid(inet1,'a',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find a var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read a var')
+      istatus = nf90_inq_varid(inet1,'b',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
+      istatus = nf90_inq_varid(inet1,'p0',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find p0 var')
+      istatus = nf90_get_var(inet1,ivar1,p0)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read p0 var')
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      call find_noresm_topo(pathaddname)
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'orog',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
     else if ( dattyp(1:3) == 'CA_' ) then
       istatus = nf90_inq_varid(inet1,'ap',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -725,12 +764,12 @@ module mod_gn6hnc
     end if
     timlen = 1
     call getmem1d(itimes,1,1,'mod_gn6hnc:itimes')
-    itimes(1) = 1870010100 ! This set to a "Prehistorical" date
+    itimes(1) = 1500010100 ! This set to a "Prehistorical" date
     if ( dattyp(1:3) == 'HA_' ) then
       ! HadGEM datasets has different times for PS and vertical variables.
       pstimlen = 1
       call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
-      ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
+      ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), y360)
       call setcal(ipstimes(1), y360)
       if ( glon(1) > glon(nulon) ) then
@@ -740,18 +779,25 @@ module mod_gn6hnc
           end if
         end do
       end if
+    else if ( dattyp(1:3) == 'NO_' ) then
+      ! NorESM1-M dataset has different times for PS and vertical variables.
+      pstimlen = 1
+      call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
+      ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
+      call setcal(itimes(1), noleap)
+      call setcal(ipstimes(1), noleap)
     else if ( dattyp(1:3) == 'CS_' ) then
       ! CSIRO datasets has different times for PS and vertical variables.
       pstimlen = 1
       call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
-      ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
+      ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), noleap)
       call setcal(ipstimes(1), noleap)
     else if ( dattyp(1:3) == 'MI_' ) then
       ! MIROC5 datasets has different times for PS and vertical variables.
       pstimlen = 1
       call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
-      ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
+      ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), noleap)
       call setcal(ipstimes(1), noleap)
     else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' .or. &
@@ -813,7 +859,8 @@ module mod_gn6hnc
       ! CanESM and IPSL are read bottom -> top
       if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
            dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-           dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' ) then
+           dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' .or. &
+           dattyp(1:3) == 'NO_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
         call top2btm(tvar,nlon,nlat,klev)
@@ -1295,6 +1342,47 @@ module mod_gn6hnc
           write (stdout,*) 'Open file ', trim(pathaddname)
         end if
       end if
+      ! NorESM1-M dataset has PS files with different times.
+      if ( dattyp(1:3) == 'NO_' ) then
+        if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
+          if ( inet(6) > 0 ) then
+            istatus = nf90_close(inet(6))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
+          end if
+          call find_noresm_file(pathaddname,novars(6),idate)
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error open '//trim(pathaddname))
+          istatus = nf90_inq_dimid(inet(6),'time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
+          istatus = nf90_inquire_dimension(inet(6),timid, len=pstimlen)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error inquire dim time')
+          istatus = nf90_inq_varid(inet(6),'time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time')
+          istatus = nf90_get_att(inet(6),timid,'units',cunit)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time units')
+          istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time calendar')
+          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          istatus = nf90_get_var(inet(6),timid,xtimes)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time')
+          do it = 1 , pstimlen
+            ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
+          end do
+          istatus = nf90_inq_varid(inet(6), trim(novars(6)), ivar(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var '//trim(novars(6)))
+          write (stdout,*) 'Open file ', trim(pathaddname)
+        end if
+      end if
       ! CSIRO dataset has PS files with different times.
       if ( dattyp(1:3) == 'CS_' ) then
         if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
@@ -1393,9 +1481,10 @@ module mod_gn6hnc
             if ( dattyp(1:3) == 'HA_' .or. &
                  dattyp(1:3) == 'CS_' .or. &
                  dattyp(1:3) == 'MI_' .or. &
-                 dattyp(1:3) == 'IP_' ) then
+                 dattyp(1:3) == 'IP_' .or. &
+                 dattyp(1:3) == 'NO_' ) then
               do i = 1 , nfiles-1
-                if ( havars(i) /= 'XXX' ) then
+                if ( varname(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
                   call checkncerr(istatus,__FILE__,__LINE__, &
                                   'Error close file')
@@ -1403,7 +1492,7 @@ module mod_gn6hnc
               end do
             else
               do i = 1 , nfiles
-                if ( havars(i) /= 'XXX' ) then
+                if ( varname(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
                   call checkncerr(istatus,__FILE__,__LINE__, &
                                   'Error close file')
@@ -1465,6 +1554,18 @@ module mod_gn6hnc
             end if
           end do
           varname => havars
+        else if ( dattyp(1:3) == 'NO_' ) then
+          ! 6 month files, one for each variable
+          do i = 1 , nfiles-1
+            if ( novars(i) /= 'XXX' ) then
+              call find_noresm_file(pathaddname,novars(i),idate)
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error open '//trim(pathaddname))
+              write (stdout,*) 'Open file ', trim(pathaddname)
+            end if
+          end do
+          varname => novars
         else if ( dattyp(1:3) == 'CA_' ) then
           ! yearly files, one for each variable
           do i = 1 , nfiles
@@ -1473,8 +1574,8 @@ module mod_gn6hnc
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
               call checkncerr(istatus,__FILE__,__LINE__, &
                               'Error open '//trim(pathaddname))
+              write (stdout,*) 'Open file ', trim(pathaddname)
             end if
-            write (stdout,*) 'Open file ', trim(pathaddname)
           end do
           varname => cavars
         else if ( dattyp(1:3) == 'IP_' ) then
@@ -1602,7 +1703,8 @@ module mod_gn6hnc
                         'Error read var '//varname(6))
         psvar(:,:) = psvar(:,:)*0.01_rkx
       else if ( dattyp(1:3) == 'CS_' .or. &
-                dattyp(1:3) == 'MI_' ) then
+                dattyp(1:3) == 'MI_' .or. &
+                dattyp(1:3) == 'NO_' ) then
         tdif = idate - ipstimes(1)
         itps = nint(tohours(tdif))/6 + 1
         istart(3) = itps
@@ -1664,7 +1766,8 @@ module mod_gn6hnc
         psvar(:,:) = psvar(:,:)*0.01
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
       else if ( dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-                dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' ) then
+                dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' .or. &
+                dattyp(1:3) == 'NO_' ) then
         do k = 1, klev
           pp3d(:,:,k) = ak(k)*p0 + bk(k)*psvar(:,:)
         end do
@@ -1679,7 +1782,8 @@ module mod_gn6hnc
       if ( dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
            dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'GF_' .or. &
            dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'CS_' .or. &
-           dattyp(1:3) == 'MI_' .or. dattyp(1:3) == 'MP' ) then
+           dattyp(1:3) == 'MI_' .or. dattyp(1:3) == 'MP_' .or. &
+           dattyp(1:3) == 'NO_' ) then
         call sph2mxr(qvar,nlon,nlat,klev)
       end if
 

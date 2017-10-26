@@ -101,12 +101,18 @@ module mod_noresm_helper
     character(len=10) :: d1 , d2
     integer(ik4) :: y , m , d , h
     call split_idate(idate,y,m,d,h)
-    if ( m <= 6 ) then
+    if ( var == 'ps' ) then
+      y = y/10*10
       write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
-      write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 6, 30, 18
+      write(d2,'(i0.4,i0.2,i0.2,i0.2)') y+9, 12, 31, 18
     else
-      write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 7, 1, 0
-      write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 31, 18
+      if ( m <= 6 ) then
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 6, 30, 18
+      else
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 7, 1, 0
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 31, 18
+      end if
     end if
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       call assemble_path(noresm_filename,'RF',var,d1,d2)
