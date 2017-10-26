@@ -216,8 +216,10 @@ module mod_rad_outrad
       end if
     end if
 
-    if ( associated(srf_totcf_out) ) then
-      call copy2d_add(totcf,srf_totcf_out)
+    if ( ifsrf ) then
+      if ( associated(srf_totcf_out) ) then
+        call copy2d_add(totcf,srf_totcf_out)
+      end if
     end if
 
     if ( ifrad ) then
