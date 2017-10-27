@@ -36,6 +36,7 @@ module mod_sst_gnmnc
   use mod_gfdl_helper
   use mod_cnrm_helper
   use mod_ecearth_helper
+  use mod_ccsm4_helper
   use netcdf
 
   private
@@ -128,6 +129,9 @@ module mod_sst_gnmnc
       varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'CN_' ) then
       call find_cnrm_sst(inpfile,imm1)
+      varname(2) = 'tos'
+    else if ( ssttyp(1:3) == 'CC_' ) then
+      call find_ccsm4_sst(inpfile,imm1)
       varname(2) = 'tos'
     else
       call die('gnmnc_sst','Unknown ssttyp: '//ssttyp,1)
@@ -226,7 +230,8 @@ module mod_sst_gnmnc
     if ( firstpass ) then
       if ( ssttyp(1:3) /= 'IP_' .and. &
            ssttyp(1:3) /= 'CN_' .and. &
-           ssttyp(1:3) /= 'MI_' ) then
+           ssttyp(1:3) /= 'MI_' .and. &
+           ssttyp(1:3) /= 'CC_' ) then
         istatus = nf90_inq_dimid(inet1,'lat',latid)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find dim lat')
@@ -282,7 +287,8 @@ module mod_sst_gnmnc
       if ( ssttyp(1:3) /= 'CA_' .and. ssttyp(1:3) /= 'CN_' .and. &
            ssttyp(1:3) /= 'CS_' .and. ssttyp(1:3) /= 'GF_' .and. &
            ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'EC_' .and. &
-           ssttyp(1:3) /= 'HA_' .and. ssttyp(1:3) /= 'MI_' ) then
+           ssttyp(1:3) /= 'HA_' .and. ssttyp(1:3) /= 'MI_' .and. &
+           ssttyp(1:3) /= 'CC_' ) then
         call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
         call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
         istatus = nf90_get_var(inet1,latid,glat)
@@ -293,29 +299,15 @@ module mod_sst_gnmnc
                         'Error read var lon')
         call h_interpolator_create(hint,glat,glon,xlat,xlon)
       else
-        if ( ssttyp(1:3) /= 'CN_' .and. ssttyp(1:3) /= 'IP_' .and. &
-             ssttyp(1:3) /= 'MI_' ) then
-          call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
-          call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
-          istatus = nf90_get_var(inet1,latid,glat)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var lat')
-          istatus = nf90_get_var(inet1,lonid,glon)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var lon')
-          call h_interpolator_create(hint,glat,glon,xlat,xlon)
-        else
-          call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
-          call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
-          istatus = nf90_get_var(inet1,latid,glat2)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var lat')
-          istatus = nf90_get_var(inet1,lonid,glon2)
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                          'Error read var lon')
-          call h_interpolator_create(hint,glat2,glon2,xlat,xlon)
-        end if
-
+        call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
+        call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
+        istatus = nf90_get_var(inet1,latid,glat2)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var lat')
+        istatus = nf90_get_var(inet1,lonid,glon2)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var lon')
+        call h_interpolator_create(hint,glat2,glon2,xlat,xlon)
       end if
 
       firstpass = .false.
@@ -388,6 +380,9 @@ module mod_sst_gnmnc
         lswitch = .true.
       else if ( ssttyp(1:3) == 'CN_' ) then
         call find_cnrm_sst(inpfile,idate)
+        lswitch = .true.
+      else if ( ssttyp(1:3) == 'CC_' ) then
+        call find_ccsm4_sst(inpfile,idate)
         lswitch = .true.
       end if
       if ( lswitch ) then

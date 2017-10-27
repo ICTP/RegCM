@@ -133,6 +133,12 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
+  else if ( ssttyp(1:3) == 'CC_' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
   else if ( ssttyp(1:3) == 'MP_' .or. ssttyp == 'E5_A2' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'
