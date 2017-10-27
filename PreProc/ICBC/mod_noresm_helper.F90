@@ -106,15 +106,23 @@ module mod_noresm_helper
     integer(ik4) :: y , m , d , h
     call split_idate(idate,y,m,d,h)
     if ( var == 'ps' ) then
-      if ( y >= 2000 .and. y < 2006 ) then
-        write(d1,'(i0.4,i0.2,i0.2,i0.2)') 2000, 1, 1, 0
-        write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2005, 12, 31, 18
-      else if ( y >= 2006 ) then
-        y = y/10*10+6
+      if ( y < 2000 ) then
+        y = y/10*10
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
         write(d2,'(i0.4,i0.2,i0.2,i0.2)') y+9, 12, 31, 18
+      else if ( y >= 2000 .and. y < 2006 ) then
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') 2000, 1, 1, 0
+        write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2005, 12, 31, 18
+      else if ( y >= 2006 .and. y < 2100 ) then
+        y = y/10*10+6
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
+        if ( y == 2096 ) then
+          write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2100, 12, 31, 18
+        else
+          write(d2,'(i0.4,i0.2,i0.2,i0.2)') y+9, 12, 31, 18
+        end if
       else
-        y = y/10*10
+        y = y/10*10+1
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
         write(d2,'(i0.4,i0.2,i0.2,i0.2)') y+9, 12, 31, 18
       end if
