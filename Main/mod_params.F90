@@ -307,7 +307,7 @@ module mod_params
     caccroce  = 4.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
-    cftotmax  = 0.99_rkx   ! Max total cover cloud fraction for radiation
+    cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
     conf      = 1.00_rkx   ! Condensation efficiency
     dtls      = 3600.0_rkx ! SUBEX timescale for Qc removal (pptmax = qc/dtls)
     rcrit     = 13.5_rkx   ! Mean critical radius
