@@ -49,9 +49,8 @@ module mod_sst_gnmnc
   integer(ik4) :: timid
   integer(ik4) :: istatus
   integer(ik4) , dimension(3) :: istart , icount
-  integer(ik4) , dimension(1) :: istart_t , icount_t
-  real(rkx) , pointer ::  work1(:)
-  real(rkx) , pointer , dimension (:, :) :: work2 , work3
+  real(rkx) , pointer , dimension(:) ::  work1
+  real(rkx) , pointer , dimension (:,:) :: work2 , work3
   real(rkx) , pointer , dimension(:,:) :: sst
   type(rcm_time_and_date) , save :: fidate1
   character(len=64) :: cunit , ccal
@@ -219,7 +218,7 @@ module mod_sst_gnmnc
     implicit none
     character(len=*) , intent(in) :: fname
     integer(ik4) :: istatus
-    integer(ik4) :: latid , lonid
+    integer(ik4) :: latid , lonid , ndims
     logical , save :: firstpass = .true.
 
     istatus = nf90_open(fname,nf90_nowrite,inet1)
@@ -228,67 +227,42 @@ module mod_sst_gnmnc
     write (stdout,*) 'Opened ', trim(fname)
 
     if ( firstpass ) then
-      if ( ssttyp(1:3) /= 'IP_' .and. &
-           ssttyp(1:3) /= 'CN_' .and. &
-           ssttyp(1:3) /= 'MI_' .and. &
-           ssttyp(1:3) /= 'CC_' ) then
-        istatus = nf90_inq_dimid(inet1,'lat',latid)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim lat')
-        istatus = nf90_inq_dimid(inet1,'lon',lonid)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim lon')
-        istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error inquire dim lat')
-        istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error inquire dim lon')
-      else if ( ssttyp(1:3) == 'MI_' ) then
-        istatus = nf90_inq_dimid(inet1,'rlat',latid)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim rlat')
-        istatus = nf90_inq_dimid(inet1,'rlon',lonid)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim rlon')
-        istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error inquire dim rlat')
-        istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error inquire dim rlon')
-      else
+      istatus = nf90_inq_dimid(inet1,'lat',latid)
+      if ( istatus /= nf90_noerr ) then
         istatus = nf90_inq_dimid(inet1,'j',latid)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim j')
-        istatus = nf90_inq_dimid(inet1,'i',lonid)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim i')
-        istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error inquire dim j')
-        istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
-        call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error inquire dim i')
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_dimid(inet1,'rlat',latid)
+        end if
       end if
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim lat/j/rlat')
+      istatus = nf90_inq_dimid(inet1,'lon',lonid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(inet1,'i',lonid)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_dimid(inet1,'rlon',lonid)
+        end if
+      end if
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim lon/i/rlon')
+      istatus = nf90_inquire_dimension(inet1,latid,len=jlat)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim lat')
+      istatus = nf90_inquire_dimension(inet1,lonid,len=ilon)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error inquire dim lon')
+
       istatus = nf90_inq_varid(inet1,'lat',latid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var lat')
       istatus = nf90_inq_varid(inet1,'lon',lonid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var lon')
-      istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var '//varname(1))
-      istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var '//varname(2))
 
-      if ( ssttyp(1:3) /= 'CA_' .and. ssttyp(1:3) /= 'CN_' .and. &
-           ssttyp(1:3) /= 'CS_' .and. ssttyp(1:3) /= 'GF_' .and. &
-           ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'EC_' .and. &
-           ssttyp(1:3) /= 'HA_' .and. ssttyp(1:3) /= 'MI_' .and. &
-           ssttyp(1:3) /= 'CC_' ) then
+      istatus = nf90_inquire_variable(inet1, latid, ndims=ndims)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'INQUIRE LAT ERROR')
+      if ( ndims == 1 ) then
         call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
         call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
         istatus = nf90_get_var(inet1,latid,glat)
@@ -299,12 +273,20 @@ module mod_sst_gnmnc
                         'Error read var lon')
         call h_interpolator_create(hint,glat,glon,xlat,xlon)
       else
+        if ( ssttyp(1:3) == 'IP_' ) then
+          ilon = ilon - 2
+          jlat = jlat - 2
+        end if
+        istart(1) = 1
+        istart(2) = 1
+        icount(1) = ilon
+        icount(2) = jlat
         call getmem2d(glat2,1,ilon,1,jlat,'mod_gnmnc_sst:glat2')
         call getmem2d(glon2,1,ilon,1,jlat,'mod_gnmnc_sst:glon2')
-        istatus = nf90_get_var(inet1,latid,glat2)
+        istatus = nf90_get_var(inet1,latid,glat2,istart(1:2),icount(1:2))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var lat')
-        istatus = nf90_get_var(inet1,lonid,glon2)
+        istatus = nf90_get_var(inet1,lonid,glon2,istart(1:2),icount(1:2))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var lon')
         call h_interpolator_create(hint,glat2,glon2,xlat,xlon)
@@ -314,6 +296,13 @@ module mod_sst_gnmnc
 
     end if
 
+    istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var '//varname(1))
+    istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error find var '//varname(2))
+
     istatus = nf90_inq_dimid(inet1,'time',timid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find dim time')
@@ -322,9 +311,7 @@ module mod_sst_gnmnc
                     'Error inquire dim time')
     call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
 
-    istart_t(1) = 1
-    icount_t(1) = timlen
-    istatus = nf90_get_var(inet1,ivar2(1),work1,istart_t,icount_t)
+    istatus = nf90_get_var(inet1,ivar2(1),work1)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(1))
     istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
