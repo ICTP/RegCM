@@ -20,7 +20,7 @@
 
 subroutine myabort
   implicit none
-  call abort
+  stop ' Execution terminated because of runtime error'
 end subroutine myabort
 
 program icbc
