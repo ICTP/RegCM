@@ -107,9 +107,11 @@ module mod_ccsm4_helper
       if ( y == 1950 .and. m < 4 ) then
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 6
       else
+        m = (m-1)/3*3+1
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, (m-1)/3*3+1, 1, 0
       end if
-      write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 31, 18
+      m = m + 2
+      write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, m, ndaypm(y,m,noleap), 18
     end if
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       call assemble_path(ccsm4_filename,'RF',var,d1,d2)

@@ -189,7 +189,7 @@ program icbc
 
   if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. dattyp == 'CCSM3' .or. &
       dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'GF_' .or. &
-      dattyp(1:3) == 'NO_' ) then
+      dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
     if (ical /= noleap ) then
       write(stderr,*) 'Calendar should be set to noleap'
       call die('icbc','Calendar mismatch',1)

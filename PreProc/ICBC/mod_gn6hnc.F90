@@ -54,6 +54,7 @@ module mod_gn6hnc
   use mod_mpiesm_helper
   use mod_noresm_helper
   use mod_ecearth_helper
+  use mod_ccsm4_helper
 
   private
 
@@ -169,6 +170,10 @@ module mod_gn6hnc
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from a T file.
       call find_canesm_dim(pathaddname)
+    else if ( dattyp(1:3) == 'CC_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from a T file.
+      call find_ccsm4_dim(pathaddname)
     else if ( dattyp(1:3) == 'NO_' ) then
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from a T file.
@@ -458,7 +463,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
-    else if ( dattyp(1:3) == 'NO_' ) then
+    else if ( dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find a var')
@@ -482,7 +487,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      call find_noresm_topo(pathaddname)
+      if ( dattyp(1:3) == 'NO_' ) then
+        call find_noresm_topo(pathaddname)
+      else if ( dattyp(1:3) == 'CC_' ) then
+        call find_ccsm4_topo(pathaddname)
+      end if
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -779,22 +788,10 @@ module mod_gn6hnc
           end if
         end do
       end if
-    else if ( dattyp(1:3) == 'NO_' ) then
-      ! NorESM1-M dataset has different times for PS and vertical variables.
-      pstimlen = 1
-      call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
-      ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
-      call setcal(itimes(1), noleap)
-      call setcal(ipstimes(1), noleap)
-    else if ( dattyp(1:3) == 'CS_' ) then
-      ! CSIRO datasets has different times for PS and vertical variables.
-      pstimlen = 1
-      call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
-      ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
-      call setcal(itimes(1), noleap)
-      call setcal(ipstimes(1), noleap)
-    else if ( dattyp(1:3) == 'MI_' ) then
-      ! MIROC5 datasets has different times for PS and vertical variables.
+    else if ( dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' .or. &
+              dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' ) then
+      ! NorESM1-M, CCSM4, CSIRO and MIROC dataset have different times for PS
+      ! and vertical variables.
       pstimlen = 1
       call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
       ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
@@ -860,7 +857,7 @@ module mod_gn6hnc
       if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
            dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
            dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' .or. &
-           dattyp(1:3) == 'NO_' ) then
+           dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
         call top2btm(tvar,nlon,nlat,klev)
@@ -1383,6 +1380,47 @@ module mod_gn6hnc
           write (stdout,*) 'Open file ', trim(pathaddname)
         end if
       end if
+      ! CCSM4 dataset has PS files with different times.
+      if ( dattyp(1:3) == 'CC_' ) then
+        if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
+          if ( inet(6) > 0 ) then
+            istatus = nf90_close(inet(6))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
+          end if
+          call find_ccsm4_file(pathaddname,ccsm4vars(6),idate)
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error open '//trim(pathaddname))
+          istatus = nf90_inq_dimid(inet(6),'time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
+          istatus = nf90_inquire_dimension(inet(6),timid, len=pstimlen)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error inquire dim time')
+          istatus = nf90_inq_varid(inet(6),'time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var time')
+          istatus = nf90_get_att(inet(6),timid,'units',cunit)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time units')
+          istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time calendar')
+          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          istatus = nf90_get_var(inet(6),timid,xtimes)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time')
+          do it = 1 , pstimlen
+            ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
+          end do
+          istatus = nf90_inq_varid(inet(6), trim(ccsm4vars(6)), ivar(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var '//trim(ccsm4vars(6)))
+          write (stdout,*) 'Open file ', trim(pathaddname)
+        end if
+      end if
       ! CSIRO dataset has PS files with different times.
       if ( dattyp(1:3) == 'CS_' ) then
         if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
@@ -1482,7 +1520,8 @@ module mod_gn6hnc
                  dattyp(1:3) == 'CS_' .or. &
                  dattyp(1:3) == 'MI_' .or. &
                  dattyp(1:3) == 'IP_' .or. &
-                 dattyp(1:3) == 'NO_' ) then
+                 dattyp(1:3) == 'NO_' .or. &
+                 dattyp(1:3) == 'CC_' ) then
               do i = 1 , nfiles-1
                 if ( varname(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
@@ -1566,6 +1605,18 @@ module mod_gn6hnc
             end if
           end do
           varname => novars
+        else if ( dattyp(1:3) == 'CC_' ) then
+          ! 3 month files, one for each variable
+          do i = 1 , nfiles-1
+            if ( ccsm4vars(i) /= 'XXX' ) then
+              call find_ccsm4_file(pathaddname,ccsm4vars(i),idate)
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error open '//trim(pathaddname))
+              write (stdout,*) 'Open file ', trim(pathaddname)
+            end if
+          end do
+          varname => ccsm4vars
         else if ( dattyp(1:3) == 'CA_' ) then
           ! yearly files, one for each variable
           do i = 1 , nfiles
@@ -1704,7 +1755,8 @@ module mod_gn6hnc
         psvar(:,:) = psvar(:,:)*0.01_rkx
       else if ( dattyp(1:3) == 'CS_' .or. &
                 dattyp(1:3) == 'MI_' .or. &
-                dattyp(1:3) == 'NO_' ) then
+                dattyp(1:3) == 'NO_' .or. &
+                dattyp(1:3) == 'CC_' ) then
         tdif = idate - ipstimes(1)
         itps = nint(tohours(tdif))/6 + 1
         istart(3) = itps
@@ -1767,7 +1819,7 @@ module mod_gn6hnc
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
       else if ( dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
                 dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' .or. &
-                dattyp(1:3) == 'NO_' ) then
+                dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
         do k = 1, klev
           pp3d(:,:,k) = ak(k)*p0 + bk(k)*psvar(:,:)
         end do
@@ -1783,7 +1835,7 @@ module mod_gn6hnc
            dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'GF_' .or. &
            dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'CS_' .or. &
            dattyp(1:3) == 'MI_' .or. dattyp(1:3) == 'MP_' .or. &
-           dattyp(1:3) == 'NO_' ) then
+           dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
         call sph2mxr(qvar,nlon,nlat,klev)
       end if
 
