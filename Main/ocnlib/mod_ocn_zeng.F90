@@ -59,6 +59,7 @@ module mod_ocn_zeng
 
   real(rkx) , parameter :: zetat = 0.465_rkx
   real(rkx) , parameter :: zetam = 1.574_rkx
+  real(rkx) , parameter :: minw = 0.1_rkx
 
   real(rkx) , parameter :: threedays = 86400.0_rkx*3.0_rkx  ! 3 days
 
@@ -142,7 +143,7 @@ module mod_ocn_zeng
       ustar = 0.06_rkx
       wc = d_half
       if ( dthv >= d_zero ) then
-        um = max(uv995,0.1_rkx)
+        um = max(uv995,minw)
       else
         um = sqrt(uv995*uv995+wc*wc)
       end if
@@ -250,7 +251,7 @@ module mod_ocn_zeng
         thvstar = tstar*(d_one+ep1*q995) + ep1*th*qstar
         zeta = vonkar*egrav*thvstar*hu/(ustar**2*thv)
         if ( zeta >= d_zero ) then   !neutral or stable
-          um = max(uv995,0.5_rkx)
+          um = max(uv995,minw)
           zeta = min(d_two,max(zeta,minz))
         else                   !unstable
           wc = zbeta*(-egrav*ustar*thvstar*zi/thv)**onet
@@ -464,7 +465,7 @@ module mod_ocn_zeng
           zo = charnockog*ustar*ustar
         end if
       end if
-      zo = max(zo,1.0e-5_rkx)
+      zo = max(zo,1.0e-6_rkx)
       re = (ustar*zo)/visa
       if ( iocnzoq == 2 ) then
         zoq = min(4.0e-4_rkx, 2.0e-4_rkx*re**(-3.3_rkx))
