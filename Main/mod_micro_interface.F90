@@ -389,7 +389,7 @@ module mod_micro_interface
                (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
           end if
           qvs = pfwsat(tmp3,pres)
-          rhc = min(max(qvcs/qvs,d_zero),d_one)
+          rhc = min(max(qvcs/qvs,d_zero),rhmax)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
 
@@ -402,7 +402,7 @@ module mod_micro_interface
           rh0adj = max(d_zero,min(rh0adj,rhmax))
           if ( rhc < rh0adj ) then      ! Low cloud cover
             dqv = conf * (qvcs - qvs)
-          else if ( rhc >= d_one ) then ! Full cloud cover
+          else if ( rhc >= rhmax ) then ! Full cloud cover
             dqv = conf * (qvcs - qvs)
           else
             if ( rh0adj >= rhmax ) then

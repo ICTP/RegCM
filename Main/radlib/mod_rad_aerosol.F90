@@ -1577,9 +1577,6 @@ module mod_rad_aerosol
       do k = 1 , kz
         do n = n1 , n2
           path(n,k) = (pint(n,k+1)-pint(n,k))*regravgts
-          if ( rh(n,k) < d_zero .or. rh(n,k) > d_one ) then
-            write(stderr,*) n , k , rh(n,k) , '  RH WARNING !!!!!'
-          end if
         end do
       end do
 
@@ -1643,11 +1640,11 @@ module mod_rad_aerosol
                      kscoef(ns,2)/(rh0+kscoef(ns,3)) + &
                      kscoef(ns,4)/(rh0+kscoef(ns,5)))
                 wa(n,k,itr) = d_one - wsbase(ns) * exp(wscoef(ns,1) + &
-                  wscoef(ns,2) / (rh(n,k)+wscoef(ns,3)) +             &
-                  wscoef(ns,4) / (rh(n,k)+wscoef(ns,5)))
+                  wscoef(ns,2) / (rh0+wscoef(ns,3)) +             &
+                  wscoef(ns,4) / (rh0+wscoef(ns,5)))
                 ga(n,k,itr) = gsbase(ns) * exp(gscoef(ns,1) + &
-                  gscoef(ns,2) / (rh(n,k)+gscoef(ns,3)) +     &
-                  gscoef(ns,4) / (rh(n,k)+gscoef(ns,5)))
+                  gscoef(ns,2) / (rh0+gscoef(ns,3)) +     &
+                  gscoef(ns,4) / (rh0+gscoef(ns,5)))
                 fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
               end do
             end do
@@ -1677,9 +1674,10 @@ module mod_rad_aerosol
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+                rh0 = min(0.99_rkx,max(d_zero,rh(n,k)))
                 ! Humidity effect !
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hl(ns) * &
-                              (d_one-rh(n,k))**(-0.25_rkx)
+                              (d_one-rh0)**(-0.25_rkx)
                 wa(n,k,itr) = wsoc_hl(ns)
                 ga(n,k,itr) = gsoc_hl(ns)
                 fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
@@ -1689,9 +1687,10 @@ module mod_rad_aerosol
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+                rh0 = min(0.99_rkx,max(d_zero,rh(n,k)))
                 ! Humidity effect !
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hl(ns) * &
-                              (d_one-rh(n,k))**(-0.20_rkx)
+                              (d_one-rh0)**(-0.20_rkx)
                 wa(n,k,itr) = wsbc_hl(ns)
                 ga(n,k,itr) = gsbc_hl(ns)
                 fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
@@ -1722,8 +1721,9 @@ module mod_rad_aerosol
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+                rh0 = min(0.99_rkx,max(d_zero,rh(n,k)))
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm1(ns) * &
-                              (d_one-rh(n,k))**(-0.15_rkx)
+                              (d_one-rh0)**(-0.15_rkx)
                 wa(n,k,itr) = wssm1(ns)
                 ga(n,k,itr) = gssm1(ns)
                 fa(n,k,itr) = gssm1(ns)*gssm1(ns)
@@ -1733,8 +1733,9 @@ module mod_rad_aerosol
             do k = 1 , kz
               do n = n1 , n2
                 uaer(n,k,itr) = aermmr(n,k,itr)*path(n,k)
+                rh0 = min(0.99_rkx,max(d_zero,rh(n,k)))
                 tx(n,k,itr) = d10e5*uaer(n,k,itr)*kssm2(ns) * &
-                              (d_one-rh(n,k))**(-0.25_rkx)
+                              (d_one-rh0)**(-0.25_rkx)
                 wa(n,k,itr) = wssm2(ns)
                 ga(n,k,itr) = gssm2(ns)
                 fa(n,k,itr) = gssm2(ns)*gssm2(ns)

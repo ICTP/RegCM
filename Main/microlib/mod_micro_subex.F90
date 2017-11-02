@@ -50,11 +50,12 @@ module mod_micro_subex
   logical :: l_lat_hack = .false.
   public :: allocate_subex , init_subex , subex
 
+  real(rkx) , parameter :: minqc = 0.0_rkx
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: thog = d_1000*regrav
   real(rkx) , parameter :: uch = thog*secph
   real(rkx) , parameter :: pptmin = 0.0_rkx
-  real(rkx) , parameter :: actcld = 0.01_rkx
+  real(rkx) , parameter :: actcld = 0.0_rkx
   real(rkx) , parameter :: accrfrc = 0.5_rkx
 
   contains
@@ -208,7 +209,7 @@ module mod_micro_subex
           !      is formed, only half of the precipitation is assumed to
           !      accrete. 1aga. Compute the amount of water remaining in the
           !      cloud [kg/kg]
-          qcleft = max(qcw - pptnew*dt,d_zero) ![kg/kg][avg]
+          qcleft = max(qcw - pptnew*dt,minqc) ![kg/kg][avg]
           ! 1agb. Add fraction of the new precipitation can accrete.
           pptkm1 = accrfrc*pptnew/afc*mo2mc%rho(j,i,1)*dt  ![kg/m3][cld]
           ! 1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
@@ -261,10 +262,10 @@ module mod_micro_subex
           !    gridcell (i.e. the gridcell average precipitation is used).
           if ( pptkm1 > pptmin ) then
             ! 2bca. Compute the clear sky relative humidity
-            rhcs = (mo2mc%rh(j,i,k)-afc)/(d_one-afc)    ![frac][clr]
-            rhcs = max(min(rhcs,d_one),d_zero)                ![frac][clr]
+            rhcs = (mo2mc%rh(j,i,k)-afc*rhmax)/(d_one-afc)    ![frac][clr]
+            rhcs = max(min(rhcs,rhmax),rhmin)                ![frac][clr]
             ! 2bcb. Raindrop evaporation [kg/kg/s]
-            rdevap = xcevap(j,i)*(d_one-rhcs)*sqrt(pptsum(j,i))*(d_one-afc)
+            rdevap = xcevap(j,i)*(rhmax-rhcs)*sqrt(pptsum(j,i))*(d_one-afc)
             qs = pfwsat(mo2mc%t(j,i,k),mo2mc%phs(j,i,k))  ![kg/kg][avg]
             rdevap = min((qs-mo2mc%qvn(j,i,k))/dt,rdevap) ![kg/kg/s][avg]
             rdevap = min(max(rdevap,d_zero),pptkm1)       ![kg/kg/s][avg]
@@ -291,7 +292,7 @@ module mod_micro_subex
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
             ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
-            qcleft = max(qcw-pptnew*dt,d_zero)             ![kg/kg][avg]
+            qcleft = max(qcw-pptnew*dt,minqc)             ![kg/kg][avg]
             ! 1bfb. Add fraction of the new precipitation to the accumulated
             !       precipitation [kg/m3]
             ! [kg/m3][cld]

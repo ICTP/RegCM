@@ -782,7 +782,7 @@ module mod_rrtmg_driver
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rh(n,k) = max(min(m2r%rhatms(j,i,k),0.99_rkx),d_zero)
+            rh(n,k) = m2r%rhatms(j,i,k)
             n = n + 1
           end do
         end do

@@ -213,7 +213,7 @@ module mod_slice
     do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
       atms%qsb3d(j,i,k) = pfwsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
       atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
-      atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),d_zero),d_one)
+      atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),rhmin),rhmax)
     end do
 
     contains

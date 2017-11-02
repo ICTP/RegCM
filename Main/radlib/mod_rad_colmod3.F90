@@ -753,7 +753,7 @@ module mod_rad_colmod3
       do i = ici1 , ici2
         do j = jci1 , jci2
           tm1(n,k) = m2r%tatms(j,i,k)
-          rh1(n,k) = max(min(m2r%rhatms(j,i,k),nearone),d_zero)
+          rh1(n,k) = m2r%rhatms(j,i,k)
           n = n + 1
         end do
       end do

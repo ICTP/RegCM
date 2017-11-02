@@ -73,24 +73,41 @@ module mod_ocn_albedo
       !================================================================
       !
       if ( mask(i) == 1 .or. mask(i) == 3 ) then
-        wspd = sqrt(usw(i)**2+vsw(i)**2)
-        ! Monahan and O'Muircheartaigh [1980]
-        ! Fraction of whitecapping function of windspeed
-        wfac = 2.95e-6_rkx * wspd**3.52
-        ! Ocean albedo depends on zenith angle.
-        ! Solar zenith dependence from Briegleb et al., [1986]
-        albg = 0.026_rkx / (czeta**1.7_rkx + 0.065_rkx) + &
-               0.15_rkx * (czeta-0.1_rkx)*(czeta-0.5_rkx)*(czeta-1.0_rkx)
-        if ( czeta > 0.01_rkx .and. czeta < 0.12_rkx ) then
-          ! Katsaros et al [1985] , reduction by wind waves at low angles.
-          albg = max(0.05_rkx,albg*(d_one - 0.036_rkx*wspd))
+        if ( iwhitecap == 1 ) then
+          wspd = sqrt(usw(i)**2+vsw(i)**2)
+          ! Monahan and O'Muircheartaigh [1980]
+          ! Fraction of whitecapping function of windspeed
+          wfac = 2.95e-6_rkx * wspd**3.52
+          ! Ocean albedo depends on zenith angle.
+          ! Solar zenith dependence from Briegleb et al., [1986]
+          albg = 0.026_rkx / (czeta**1.7_rkx + 0.065_rkx) + &
+                 0.15_rkx * (czeta-0.1_rkx)*(czeta-0.5_rkx)*(czeta-1.0_rkx)
+          if ( czeta > 0.01_rkx .and. czeta < 0.12_rkx ) then
+            ! Katsaros et al [1985] , reduction by wind waves at low angles.
+            albg = max(0.05_rkx,albg*(d_one - 0.036_rkx*wspd))
+          end if
+          ! Koepke [1984] - Increase by whitecapping
+          albg = albg + 0.22_rkx * wfac
+          albgs = albg
+          albgl = albg
+          albgsd = 0.05_rkx + 0.11 * wfac
+          albgld = 0.05_rkx
+        else
+          if ( czeta >= d_zero ) then
+            ! albedo independent of wavelength
+            albg = 0.05_rkx/(czeta+0.15_rkx)
+            albgs = albg
+            albgl = albg
+            albgsd = 0.08_rkx
+            albgld = 0.08_rkx
+          else
+            albg = 0.05_rkx
+            albgs = albg
+            albgl = albg
+            albgsd = 0.08_rkx
+            albgld = 0.08_rkx
+          end if
         end if
-        ! Koepke [1984] - Increase by whitecapping
-        albg = albg + 0.22_rkx * wfac
-        albgs = albg
-        albgl = albg
-        albgsd = 0.05_rkx + 0.11 * wfac
-        albgld = 0.05_rkx
       else if ( mask(i) == 2 .or. mask(i) == 4 ) then
         ! Ice over ocean or lake
         tdiffs = sts(i) - icetriggert

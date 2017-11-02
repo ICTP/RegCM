@@ -1031,7 +1031,7 @@ module mod_lm_interface
                 ps = lms%sfcp(n,j,i)
                 qs = pfwsat(tas,ps)
                 srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1) + &
-                              min(max((qas/qs),d_zero),d_one)*d_100
+                              min(max((qas/qs),rhmin),rhmax)*d_100
               end do
             end do
           end do

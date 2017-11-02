@@ -99,8 +99,8 @@ module mod_params
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
       iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
-      scenario ,  idcsst , ipcpcool , iseaice , idesseas , iconvlwp ,   &
-      icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer ,            &
+      scenario ,  idcsst , ipcpcool , iwhitecap , iseaice , idesseas ,  &
+      iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , &
       isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval , &
       wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,   &
       year_offset
@@ -154,7 +154,7 @@ module mod_params
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
     namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
-      ifaholtth10 , ifaholt
+      ifaholtth10 , ifaholt , holtth10iter
 
 #ifdef CLM
     namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
@@ -246,7 +246,8 @@ module mod_params
     scenario = 'RCP4.5'
     ghg_year_const = 1950
     idcsst = 0
-    ipcpcool = 1
+    ipcpcool = 0
+    iwhitecap = 0
     iseaice = 0
     idesseas = 0
     iconvlwp = 0
@@ -309,7 +310,7 @@ module mod_params
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
     conf      = 1.00_rkx   ! Condensation efficiency
-    dtls      = 3600.0_rkx ! SUBEX timescale for Qc removal (pptmax = qc/dtls)
+    dtls      = 300.0_rkx  ! SUBEX timescale for Qc removal (pptmax = qc/dtls)
     rcrit     = 13.5_rkx   ! Mean critical radius
     coef_ccn  = 2.5e+20_rkx ! Coefficient determined by assuming a lognormal PMD
     abulk     = 0.9_rkx    ! Bulk activation ratio
@@ -454,8 +455,9 @@ module mod_params
     ricr_ocn = 0.25_rkx
     ricr_lnd = 0.25_rkx
     zhnew_fac = 0.25_rkx
-    ifaholtth10 = 0
-    ifaholt = 0
+    ifaholtth10 = 1
+    ifaholt = 1
+    holtth10iter = 1
     !
     ! slabocparam ;
     !
@@ -603,18 +605,19 @@ module mod_params
       upstream_mode = .true.
       stability_enhance = .true.
       vert_stability_enhance = .true.
-      diffu_hgtf = 0
       if ( idynamic == 2 ) then
         gnu1 = 0.1000_rkx
         gnu2 = 0.1000_rkx
+        diffu_hgtf = 0
       else
         gnu1 = 0.0625_rkx
-        gnu2 = 0.1000_rkx
+        gnu2 = 0.1250_rkx
+        diffu_hgtf = 1
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx
       upu = 0.150_rkx
-      umax = 100.0_rkx
+      umax = 160.0_rkx
       t_extrema = 5.0_rkx
       q_rel_extrema = 0.50_rkx
       c_rel_extrema = 0.50_rkx
@@ -1118,6 +1121,7 @@ module mod_params
     call bcast(ghg_year_const)
     call bcast(idcsst)
     call bcast(ipcpcool)
+    call bcast(iwhitecap)
     call bcast(iseaice)
     call bcast(icetriggert)
     call bcast(idesseas)
@@ -1331,6 +1335,7 @@ module mod_params
       call bcast(zhnew_fac)
       call bcast(ifaholtth10)
       call bcast(ifaholt)
+      call bcast(holtth10iter)
     end if
     if ( ibltyp == 2 ) then
       call bcast(iuwvadv)

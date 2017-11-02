@@ -119,6 +119,7 @@ module mod_runparams
   ! Diurnal cycle SST index
   integer(ik4) , public :: idcsst
   integer(ik4) , public :: ipcpcool
+  integer(ik4) , public :: iwhitecap
   ! Sea Ice scheme index
   integer(ik4) , public :: iseaice
   real(rkx) , public :: icetriggert
@@ -371,6 +372,7 @@ module mod_runparams
   real(rkx) , public :: zhnew_fac
   integer(ik4) , public :: ifaholtth10
   integer(ik4) , public :: ifaholt
+  integer(ik4) , public :: holtth10iter
 
   ! Chemistry nameliste option
 

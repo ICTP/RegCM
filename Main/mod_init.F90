@@ -582,7 +582,7 @@ module mod_init
               qs = pfwsat(t,p)
               qv = atm1%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx*sigma(k)
               if ( qv > qs ) then
-                rh = min(max((qv/qs),d_zero),d_one)
+                rh = min(max((qv/qs),rhmin),rhmax)
                 pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
                 dens = p/(rgas*t)
                 atm1%qx(j,i,k,iqv) = qs * sfs%psa(j,i)

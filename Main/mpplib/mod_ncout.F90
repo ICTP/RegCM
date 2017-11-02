@@ -2681,6 +2681,10 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('diurnal_cycle_sst_scheme',idcsst))
         call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('ocean_precipitaion_cooling_effect',ipcpcool))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('ocean_albedo_from_whitecapping',iwhitecap))
+        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('simple_sea_ice_scheme',iseaice))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('seasonal_desert_albedo',idesseas))
@@ -2969,6 +2973,8 @@ module mod_ncout
             ncattribute_integer('holtslag_th10_estimate',ifaholtth10))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('holtslag_th10_maximize',ifaholt))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('holtslag_th10_niteration',holtth10iter))
         end if
         if ( ibltyp == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

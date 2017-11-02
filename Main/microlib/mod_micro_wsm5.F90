@@ -229,7 +229,7 @@ module mod_micro_wsm5
           t(n,kk) = mo2mc%t(j,i,k)
           qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
           qs(n,kk) = mo2mc%qs(j,i,k)
-          rh(n,kk) = mo2mc%rh(j,i,k)
+          rh(n,kk) = max(d_zero,min(d_one,mo2mc%rh(j,i,k)))
           qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc)
           qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi)
           qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)

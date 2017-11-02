@@ -272,8 +272,8 @@ module mod_clm_regcm
       satq = pfwsat(real(clm_a2l%forc_t(i),rkx), &
                     real(clm_a2l%forc_pbot(i),rkx),satp)
       clm_a2l%forc_rh(i) = clm_a2l%forc_q(i)/satq
-      clm_a2l%forc_rh(i) = min(real(d_one,rk8), clm_a2l%forc_rh(i))
-      clm_a2l%forc_rh(i) = max(real(d_zero,rk8), clm_a2l%forc_rh(i))
+      clm_a2l%forc_rh(i) = min(real(rhmax,rk8), clm_a2l%forc_rh(i))
+      clm_a2l%forc_rh(i) = max(real(rhmin,rk8), clm_a2l%forc_rh(i))
       clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0_rk8
       if ( clm_a2l%forc_t(i)-tfrz < tcrit ) then
         clm_a2l%forc_snow(i) = clm_a2l%rainf(i)

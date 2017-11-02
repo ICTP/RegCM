@@ -26,6 +26,7 @@ module mod_cu_bm
   use mod_service
   use mod_cu_common
   use mod_runparams , only : iqv , dt , ichem , hsigma , dsigma
+  use mod_runparams , only : rhmin , rhmax
   use mod_regcm_types
 
 !*****************************************************************
@@ -796,8 +797,8 @@ module mod_cu_bm
         qsatk(l) = pfwsat(tk(l),pk(l))
       end do
       do l = ltp1 , lbm1
-        rhl = min(max(qk(l)/qsatk(l),d_zero),d_one)
-        rhh = min(max(qk(kdp(l))/qsatk(kdp(l)),d_zero),d_one)
+        rhl = min(max(qk(l)/qsatk(l),rhmin),rhmax)
+        rhh = min(max(qk(kdp(l))/qsatk(kdp(l)),rhmin),rhmax)
         if ( rhh+rhf < rhl ) ltsh = l
       end do
       ltop(j,i) = ltsh

@@ -26,7 +26,7 @@ module mod_pbl_holtbl
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
-    ichdrdepo , dsigma , zhnew_fac , ifaholtth10 , ifaholt
+    ichdrdepo , dsigma , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -275,7 +275,7 @@ module mod_pbl_holtbl
             th10(j,i) = (d_half*(m2p%tpatm(j,i,kz)+m2p%tgb(j,i))) * &
                          (d_one + ep1*sh10)
           end if
-          do iter = 1 , 10
+          do iter = 1 , holtth10iter
             oblen = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))
             if ( oblen >= m2p%za(j,i,kz) ) then
               th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
