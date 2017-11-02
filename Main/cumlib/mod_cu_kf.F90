@@ -606,7 +606,7 @@ module mod_cu_kf
           dtlcl = max(tpart_h(klcl,np) + tpart_v(klcl,np), d_zero)
         end if
 
-        dtrh = -0.001
+        dtrh = 0.0_rkx
         if ( kf_trigger == 3 ) then
           !
           ! for ETA model, give parcel an extra temperature perturbation based
