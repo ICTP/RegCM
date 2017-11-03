@@ -1165,6 +1165,26 @@ module mod_lm_interface
                                  slp1(j-1,i)+slp(j+1,i)-mask(j,i))
           end do
         end do
+        if ( ma%has_bdyleft ) then
+          do i = ici1 , ici2
+            slp1(jce1,i) = slp1(jci1,i)
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do i = ici1 , ici2
+            slp1(jce2,i) = slp1(jci2,i)
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do j = jce1 , jce2
+            slp1(j,ice1) = slp1(j,ici1)
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do j = jce1 , jce2
+            slp1(j,ice2) = slp1(j,ici2)
+          end do
+        end if
         call exchange(slp1,1,jce1,jce2,ice1,ice2)
         slp(:,:) = slp1
       end do
