@@ -118,7 +118,7 @@ module mod_rdldtr
     write(stdout,*) 'Opening '//trim(cfile)
 #endif
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error: '//trim(cfile))
 
     call read_geolocation(cfile)
 
@@ -237,7 +237,7 @@ module mod_rdldtr
     write(stdout,*) 'Opening '//trim(cfile)
 #endif
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error: '//trim(cfile))
 
     call read_geolocation(cfile)
 
@@ -377,7 +377,7 @@ module mod_rdldtr
     write(stdout,*) 'Opening '//trim(cfile)
 #endif
     istatus = nf90_open(cfile, nf90_nowrite, ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error: '//trim(cfile))
 
     call read_geolocation(cfile)
 
@@ -758,7 +758,7 @@ module mod_rdldtr
     write(stdout,*) 'Opening '//trim(cfile)
 #endif
     istatus = nf90_open(cfile, nf90_nowrite, gfile%ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error')
+    call checkncerr(istatus,__FILE__,__LINE__,'NetCDF Error: '//trim(cfile))
 
     istatus = nf90_inq_dimid(gfile%ncid,'lat',idimid)
     if ( istatus /= nf90_noerr ) then
