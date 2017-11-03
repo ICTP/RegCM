@@ -1,4 +1,6 @@
   ! Latent heat for condensation/sublimation of water in J/kg
+  ! Rogers & Yau (1989)
+  ! Empirical Cube Polynomial Fit valid for T in range -40,40
 !DIR$ ATTRIBUTES FORCEINLINE :: wlh
   pure real(rkx) function wlh(t)
     implicit none
