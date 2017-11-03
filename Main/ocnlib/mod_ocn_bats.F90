@@ -31,7 +31,10 @@ module mod_ocn_bats
 
   private
 
-  public :: ocnbats , seaice
+  public :: ocnbats , seaice , bgicetemp
+
+  ! Assume ground temperature of -20.0 C
+  real(rkx) , parameter :: bgicetemp = tzero - 20.0_rkx
 
   contains
 
@@ -107,7 +110,7 @@ module mod_ocn_bats
     real(rkx) :: ps , qs , delq , delt , rhosw , ribl
     real(rkx) :: bb , fact , fss , hrl , hs , hsl
     real(rkx) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
-    real(rkx) :: ksnow , rsi , uv995 , sficemm
+    real(rkx) :: ksnow , rsi , uv995 , sficemm , tau , xdens
     real(rkx) :: arg , arg2 , age1 , age2 , tage
     real(rkx) :: cdrmin , cdrx , clead , dela , dela0 , dels
     real(rkx) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
@@ -125,7 +128,7 @@ module mod_ocn_bats
       if ( tgb(i) >= icetriggert ) then
         tgrd(i) = tgb(i)
       else
-        tgrd(i) = icetriggert
+        tgrd(i) = bgicetemp
       end if
       tgbrd(i) = icetriggert
 
@@ -203,13 +206,11 @@ module mod_ocn_bats
       ! The ground temperature and heat fluxes for lake are computed
       ! in the lake model
       qs = qv(i)/(d_one+qv(i))
-      ! Assume core sea ice temperature to be -8 C
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
       rsd1 = shice*sficemm*d_r1000
+      qgrd = pfqsat(bgicetemp,sfps(i))
       if ( sncv(i) > d_zero ) then
-        ! Assume ground temperature as -4 C
-        qgrd = pfqsat(269.15_rkx,sfps(i))
         ! include snow heat capacity
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000
         ! subsurface heat flux through ice
@@ -218,8 +219,6 @@ module mod_ocn_bats
         ksnow = 7.0e-4_rkx*rhosw3/sncv(i)
         fss = ksnow * (tgbrd(i)-tgrd(i)) / (d_one + rsi)
       else
-        ! Assume ground temperature as -8 C
-        qgrd = pfqsat(265.15_rkx,sfps(i))
         ! Slack, 1980
         fss = 2.14_rkx*(tgbrd(i)-tgrd(i))/sficemm
       end if
@@ -302,8 +301,10 @@ module mod_ocn_bats
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
-      taux(i) = dmissval
-      tauy(i) = dmissval
+      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*qv(i)))
+      tau = xdens*ustr(i)*ustr(i)
+      taux(i) = tau*(usw(i)/uv995)
+      tauy(i) = tau*(vsw(i)/uv995)
       t2m(i) = sts(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do

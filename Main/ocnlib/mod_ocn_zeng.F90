@@ -127,7 +127,7 @@ module mod_ocn_zeng
       thv = th*(d_one+ep1*q995)
       dthv = dth*(d_one+ep1*q995) + ep1*th*dqh
       ! density
-      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*qs))
+      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*q995))
       ! J/kg
       xlv = wlh(tgrd(i))
       !
@@ -465,7 +465,7 @@ module mod_ocn_zeng
           zo = charnockog*ustar*ustar
         end if
       end if
-      zo = max(zo,1.0e-6_rkx)
+      zo = max(zo,1.0e-8_rkx)
       re = (ustar*zo)/visa
       if ( iocnzoq == 2 ) then
         zoq = min(4.0e-4_rkx, 2.0e-4_rkx*re**(-3.3_rkx))

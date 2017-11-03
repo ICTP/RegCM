@@ -96,15 +96,18 @@ module mod_ocn_common
       mask = 1
     end if
     if ( rcmtimer%start( ) ) then
+      tgrd = tgb
+      tgbrd = tgb
       call c2l_ss(ocncomm,lm%xlat1,lat)
       call c2l_gs(ocncomm,lm%tground2,tgb)
       call c2l_gs(ocncomm,lm%zencos,czenith)
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lms%sfice,sfice)
         call c2l_ss(ocncomm,lms%sncv,sncv)
+        where ( xmask /= 0 )
+          tgrd = bgicetemp
+        end where
       end if
-      tgrd = tgb
-      tgbrd = tgb
       if ( iemiss == 1 .and. (llake .or. lseaice) ) then
         where ( xmask == 0 )
           emiss = ocn_sfcemiss
