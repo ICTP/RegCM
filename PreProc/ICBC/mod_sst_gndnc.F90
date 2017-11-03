@@ -68,6 +68,8 @@ module mod_sst_gndnc
     implicit none
     real(rkx) , pointer , dimension(:,:) :: glat
     real(rkx) , pointer , dimension(:,:) :: glon
+    real(rkx) , pointer , dimension(:) :: glat1
+    real(rkx) , pointer , dimension(:) :: glon1
     type(rcm_time_and_date) :: idate , idatef , idateo
     type(rcm_time_interval) :: tdif
     integer(ik4) :: k , nsteps , latid , lonid
@@ -78,6 +80,12 @@ module mod_sst_gndnc
     if ( ssttyp(1:3) == 'NO_' ) then
       call find_noresm_sst(inpfile,globidate1)
       varname(2) = 'tos'
+    else if ( ssttyp == 'TMIST' ) then
+      write (inpfile,'(a,i0.4,a)') &
+         trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
+            'tmisst', year, '.nc'
+      varname(1) = 'TIME'
+      varname(2) = 'SST'
     else
       call die('gndnc_sst','Unknown ssttyp: '//ssttyp,1)
     end if
@@ -93,6 +101,7 @@ module mod_sst_gndnc
       if ( istatus /= nf90_noerr ) then
         istatus = nf90_inq_dimid(inet1,'j',latid)
         if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_dimid(inet1,'LAT',latid)
           call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error find dim lat')
         end if
@@ -104,8 +113,12 @@ module mod_sst_gndnc
       if ( istatus /= nf90_noerr ) then
         istatus = nf90_inq_dimid(inet1,'i',lonid)
         if ( istatus /= nf90_noerr ) then
-          call checkncerr(istatus,__FILE__,__LINE__, &
-                        'Error find dim lon')
+          istatus = nf90_inq_dimid(inet1,'LON',lonid)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_dimid(inet1,'LONN719_720',lonid)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error find dim lon')
+          end if
         end if
       end if
     end if
@@ -117,8 +130,11 @@ module mod_sst_gndnc
                     'Error inquire dim lon')
 
     istatus = nf90_inq_dimid(inet1,'time',timid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error find dim time')
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(inet1,'TIME',timid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find dim time')
+    end if
     istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error inquire dim time')
@@ -128,14 +144,23 @@ module mod_sst_gndnc
     istatus = nf90_inq_varid(inet1,'lat',latid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(inet1,'latitude',latid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var lat')
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(inet1,'LAT',latid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var lat')
+      end if
     end if
     istatus = nf90_inq_varid(inet1,'lon',lonid)
     if ( istatus /= nf90_noerr ) then
       istatus = nf90_inq_varid(inet1,'longitude',lonid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find var lon')
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(inet1,'LON',lonid)
+        if ( istatus /= nf90_noerr ) then
+          istatus = nf90_inq_varid(inet1,'LONN719_720',lonid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var lon')
+        end if
+      end if
     end if
     istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -144,17 +169,27 @@ module mod_sst_gndnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var '//varname(2))
 
-    call getmem2d(glat,1,ilon,1,jlat,'mod_gndnc_sst:glat')
-    call getmem2d(glon,1,ilon,1,jlat,'mod_gndnc_sst:glon')
-
-    istatus = nf90_get_var(inet1,latid,glat)
-    call checkncerr(istatus,__FILE__,__LINE__, &
+    if ( ssttyp(1:3) == 'NO_' ) then
+      call getmem2d(glat,1,ilon,1,jlat,'mod_gndnc_sst:glat')
+      call getmem2d(glon,1,ilon,1,jlat,'mod_gndnc_sst:glon')
+      istatus = nf90_get_var(inet1,latid,glat)
+      call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var lat')
-    istatus = nf90_get_var(inet1,lonid,glon)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read var lon')
-
-    call h_interpolator_create(hint,glat,glon,xlat,xlon)
+      istatus = nf90_get_var(inet1,lonid,glon)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var lon')
+      call h_interpolator_create(hint,glat,glon,xlat,xlon)
+    else
+      call getmem1d(glat1,1,jlat,'mod_gndnc_sst:glat')
+      call getmem1d(glon1,1,ilon,'mod_gndnc_sst:glon')
+      istatus = nf90_get_var(inet1,latid,glat1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var lat')
+      istatus = nf90_get_var(inet1,lonid,glon1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var lon')
+      call h_interpolator_create(hint,glat1,glon1,xlat,xlon)
+    end if
 
     call getmem2d(workf,1,ilon,1,jlat,'mod_gndnc_sst:workf')
     call getmem2d(sst,1,ilon,1,jlat,'mod_gndnc_sst:sst')
@@ -169,8 +204,13 @@ module mod_sst_gndnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(1)//' units')
     istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+    if ( istatus /= nf90_noerr ) then
+      ccal = 'gregorian'
+    end if
+    if ( ssttyp == 'TMIST' ) then
+      work = work - 2
+    end if
     fidate1 = timeval2date(work(1),cunit,ccal)
-
     idateo = globidate1
     idatef = globidate2
     tdif = idatef-idateo
@@ -221,6 +261,10 @@ module mod_sst_gndnc
       call split_idate(idate, year, month, day, hour)
       if ( ssttyp(1:3) == 'NO_' ) then
         call find_noresm_sst(inpfile,idate)
+      else if ( ssttyp == 'TMIST' ) then
+        write (inpfile,'(a,i0.4,a)') &
+           trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
+              'tmisst', year, '.nc'
       end if
       istatus = nf90_open(inpfile,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -233,8 +277,11 @@ module mod_sst_gndnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//varname(2))
       istatus = nf90_inq_dimid(inet1,'time',timid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find dim time')
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_dimid(inet1,'TIME',timid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
+      end if
       istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error inquire dim time')
@@ -249,6 +296,9 @@ module mod_sst_gndnc
                       'Error read var '//varname(1)//' units')
       istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
       if ( istatus /= nf90_noerr ) ccal = 'gregorian'
+      if ( ssttyp == 'TMIST' ) then
+        work = work - 2
+      end if
       fidate1 = timeval2date(work(1),cunit,ccal)
       tdif = idate-fidate1
       it = int(tohours(tdif))/24 + 1
@@ -260,15 +310,27 @@ module mod_sst_gndnc
     icount(3) = 1
     istart(3) = it
     call getworkf(2,workf)
-    do j = 1 , jlat
-      do i = 1 , ilon
-        if (workf(i,j) < 0.9E+20 ) then
-          sst(i,j) = workf(i,j)
-        else
-          sst(i,j) = -9999.0
-        end if
+    if ( ssttyp == 'TMIST' ) then
+      do j = 1 , jlat
+        do i = 1 , ilon
+          if (workf(i,j) > 0.0_rkx ) then
+            sst(i,j) = workf(i,j) + 273.15_rkx
+          else
+            sst(i,j) = -9999.0_rkx
+          end if
+        end do
       end do
-    end do
+    else
+      do j = 1 , jlat
+        do i = 1 , ilon
+          if (workf(i,j) < 0.9E+20_rkx ) then
+            sst(i,j) = workf(i,j)
+          else
+            sst(i,j) = -9999.0_rkx
+          end if
+        end do
+      end do
+    end if
 
     contains
 
