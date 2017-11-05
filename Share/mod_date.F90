@@ -1045,7 +1045,13 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     character (len=11) :: cdat
-    write(cdat,'(i11.0)') toint10(x)
+    integer(ik8) :: ival
+    ival = toint10(x)
+    if ( ival > 0 ) then
+      write(cdat,'(i0.10)') ival
+    else
+      write(cdat,'(i0.10)') ival
+    end if
     cdat = adjustl(cdat)
   end function tochar10
 
@@ -1055,7 +1061,7 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    if ( d%year > 0 ) then
+    if ( d%year >= 0 ) then
       z = d%year*1000000_ik8+d%month*10000+d%day*100+t%hour
     else
       z = -((-d%year)*1000000_ik8+d%month*10000+d%day*100+t%hour)
