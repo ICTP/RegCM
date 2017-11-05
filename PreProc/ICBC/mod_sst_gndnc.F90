@@ -207,6 +207,9 @@ module mod_sst_gndnc
     if ( istatus /= nf90_noerr ) then
       ccal = 'gregorian'
     end if
+    ! TMI SST is from ferret which uses mixed Julian/Gregorian calendar
+    ! with the 2-day shift that was made historically when the Gregorian
+    ! calendar was introduced. We do not.
     if ( ssttyp == 'TMIST' ) then
       work = work - 2
     end if
@@ -296,6 +299,9 @@ module mod_sst_gndnc
                       'Error read var '//varname(1)//' units')
       istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
       if ( istatus /= nf90_noerr ) ccal = 'gregorian'
+      ! TMI SST is from ferret which uses mixed Julian/Gregorian calendar
+      ! with the 2-day shift that was made historically when the Gregorian
+      ! calendar was introduced. We do not.
       if ( ssttyp == 'TMIST' ) then
         work = work - 2
       end if
