@@ -250,7 +250,7 @@ module mod_date
           md = mdays_leap(y,m)
         end do
     end select
-    d = int(id,ik4)
+    d = int(id,ik4) + 1
   end subroutine idayofyear_to_monthdate
 
   pure integer(ik4) function idayofyear(x) result(id)
@@ -292,7 +292,7 @@ module mod_date
         ny = ny + 1
       end do
     end if
-    x%days_from_reference = id + idayofyear(d)
+    x%days_from_reference = id + idayofyear(d) - 1
   end subroutine date_to_days_from_reference
 
   pure subroutine days_from_reference_to_date(x,d)
@@ -310,7 +310,7 @@ module mod_date
         id = id - iy
         iy = yeardays(d%year,d%calendar)
       end do
-    else
+    else if ( id < 0 ) then
       d%year = d%year - 1
       iy = yeardays(d%year,d%calendar)
       do while ( id < -iy )
@@ -373,20 +373,6 @@ module mod_date
     end if
   end subroutine adjustmp
 
-  subroutine normidate(idate)
-    implicit none
-    integer(ik8) , intent(inout) :: idate
-    if ( idate > 0_ik8 ) then
-      if (idate < 10000_ik8) idate = idate*1000000_ik8+10100_ik8
-      if (idate < 1000000_ik8) idate = idate*10000_ik8+100_ik8
-      if (idate < 100000000_ik8) idate = idate*100_ik8
-    else
-      if (idate > -10000_ik8) idate = idate*1000000_ik8-10100_ik8
-      if (idate > -1000000_ik8) idate = idate*10000_ik8-100_ik8
-      if (idate > -100000000_ik8) idate = idate*100_ik8
-    end if
-  end subroutine normidate
-
   subroutine split_i10(idate, iy, im, id, ih)
     implicit none
     integer(ik4) , intent(in) :: idate
@@ -394,10 +380,9 @@ module mod_date
     integer(ik8) :: base , iidate
     integer(ik8) :: iy8 , im8 , id8 , ih8
     iidate = int(idate,ik8)
-    call normidate(iidate)
     base = iidate
     iy8 = base/1000000_ik8
-    base = base-iy8*1000000_ik8
+    base = abs(base-iy8*1000000_ik8)
     im8 = base/10000_ik8
     base = base-im8*10000_ik8
     id8 = base/100_ik8
@@ -416,7 +401,6 @@ module mod_date
     integer(ik8) :: base , iidate
     integer(ik8) :: iy8 , im8 , id8 , ih8
     iidate = idate
-    call normidate(iidate)
     base = iidate
     iy8 = base/1000000_ik8
     base = abs(base-iy8*1000000_ik8)
@@ -439,15 +423,31 @@ module mod_date
     type (iatime) :: t
     call split_i10(i, d%year, d%month, d%day, t%hour)
     if ( d%year <= -10000 .or. d%year >= 10000 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
       call die('mod_date','Inconsistent year in date')
     end if
     if ( d%month < 1 .or. d%month > 12 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
       call die('mod_date','Inconsistent month in date')
     end if
     if ( d%day < 1 .or. d%day > 31 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
       call die('mod_date','Inconsistent day in date')
     end if
     if ( t%hour+1 < 1 .or. t%hour+1 > 24 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
       call die('mod_date','Inconsistent hour in date')
     end if
     d%calendar = gregorian
@@ -606,7 +606,7 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    if ( d%year > 0 ) then
+    if ( d%year >= 0 ) then
       write (cdat, &
         '(" ",i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2," UTC")') &
          d%year, d%month, d%day, t%hour, t%minute, t%second
@@ -624,7 +624,7 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
-    if ( d%year > 0 ) then
+    if ( d%year >= 0 ) then
       write (cdat, &
          '(" ",i0.4,"-",i0.2,"-",i0.2,"T",i0.2,":",i0.2,":",i0.2,"Z")') &
          d%year, d%month, d%day, t%hour, t%minute, t%second
@@ -2320,5 +2320,4 @@ module mod_date
   end function parse_timestring
 
 end module mod_date
-
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
