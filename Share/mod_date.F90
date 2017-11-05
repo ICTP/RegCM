@@ -305,7 +305,7 @@ module mod_date
     d%year = reference_year
     if ( id > 0 ) then
       iy = yeardays(d%year,d%calendar)
-      do while ( id > iy )
+      do while ( id >= iy )
         d%year = d%year + 1
         id = id - iy
         iy = yeardays(d%year,d%calendar)
