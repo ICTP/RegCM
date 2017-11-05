@@ -229,7 +229,7 @@ module mod_date
     integer(ik4) , intent(out) :: m , d
     integer(ik8) :: id
     integer(ik4) :: md
-    id = j
+    id = j + 1
     m = 1
     select case (c)
       case (noleap)
@@ -250,7 +250,7 @@ module mod_date
           md = mdays_leap(y,m)
         end do
     end select
-    d = int(id,ik4) + 1
+    d = int(id,ik4)
   end subroutine idayofyear_to_monthdate
 
   pure integer(ik4) function idayofyear(x) result(id)
