@@ -19,6 +19,41 @@ A namelist in the namelist file is identified with a starting \verb=&= character
 followed by namelist name, and ends on a single line with the \verb=\=
 character.
 
+\subsection{coreparam namelist}
+\label{coreparam}
+
+This namelist controls which dynamical core is used in the model.
+
+{\footnotesize
+\begin{Verbatim}
+ &coreparam
+ idynamic = 1,  ! Choice of dynamical core
+                ! 1 = MM4 hydrostatic core
+                ! 2 = MM5 NON hydrostatic core
+ /
+\end{Verbatim}
+}
+
+\begin{enumerate}
+\item For details about the two dynamical cores, refer to the Reference Manual.
+\item The hydrostatic core is cheaper computationally, but physically it should
+be limited to resolution greater than $15 km$. For higher resolution, the non
+hydrostatic core should be used.
+\item The output variables of the two dynamical cores differ in the ATM files
+because of the different state variables used. Vertical levels also differ.
+\item The ICBC for the non-hydrostatic cannot be used for the hydrostatic run
+and the other way round.
+\item Nesting using the \verb=FNEST= option is supported in these
+configurations:
+\begin{enumerate}
+\item hydrostatic nested into hydrostatic
+\item non-hydrostatic nested into hydrostatic
+\item non-hydrostatic nested into non-hydrostatic
+\end{enumerate}
+\item Selecting the non-hydrostatic core, the nonhydroparam namelist is read
+in.
+\end{enumerate}
+
 \subsection{dimparam namelist}
 \label{dimparam}
 
@@ -50,18 +85,17 @@ memory space to store the model internal variables.
 The things you need to know here:
 
 \begin{enumerate}
-\item In the current version 4.5 the model parallelizes execution dividing
+\item In the current version the model parallelizes execution dividing
 the work between the processors, with the minimum work per processor is 9
 points or a box $3\times3$, so the maximum theorical number of processors which
-can be used in a parallel run for the above configuration is roughly $150$,
-but for the communication overhead the optimal would be around $12$ or a
-$10\times10$ patch per processor.
+can be used in a parallel run for the above configuration is limited by
+the domain the overall number of horizontal grid points.
 \item If a custom number of sigma level is chosen (not 14, 18, 23 or 41), the
 actual sigma values are calculated mimimizing the $a,b$ coefficients for the 
 equation:
 
 \begin{equation}
-	d\sigma(i) = max(dsmax*a^{i-1}*b^{0.5*(i-2)*(i-1)},dsmin)
+  d\sigma(i) = max(dsmax*a^{i-1}*b^{0.5*(i-2)*(i-1)},dsmin)
 \end{equation}
 
 derived from the recursive relation:
@@ -71,7 +105,7 @@ derived from the recursive relation:
 \end{equation}
 
 where $a(i) = b*a(i-1)$. We at ICTP normally use 23 levels for the
-non-hydrostatic core and 18 for the hydrostatic core.
+non-hydrostatic core and 18 for the hydrostatic core at 50 km.
 \item Specifying an $nsg$ number greater than one triggers the subgrid
 BATS/CLM45 model on. There is no plan to extend this feature to CLM3.5 model.
 This affects only surface variable calculations. All dynamical
@@ -82,70 +116,6 @@ grid.
 a particular domain decomposition for any particular hardware architecture.
 Normally the algorithm in the model code should be able to fix the
 supposedly optimally balanced decomposition.
-\end{enumerate}
-
-\subsection{coreparam namelist}
-\label{coreparam}
-
-This namelist is new to the RegCM 4.5 version, and controls which dynamical
-core is used in the model.
-
-{\footnotesize
-\begin{Verbatim}
- &coreparam
- idynamic = 1,  ! Choice of dynamical core
-                ! 1 = MM4 hydrostatic core
-                ! 2 = MM5 NON hydrostatic core
- /
-!
-! Dynamical core parameters : Use defaults, be on your own otherwise!
-!
- &dynparam
- gnu1 = 0.0625,   ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.1000,   ! nu factor for Asselin filter in leapfrog step (tracers).
-                  ! MM5 manual , equation 2.4.6
-                  ! Default 0.06,0.1 for hydro, 0.1,0.1 for nonhydro
- ckh = 1.0,       ! Background diffusion multiplication factor
- adyndif = 1.0,   ! Dynamical diffusion multiplication factor
- diffu_hgtf = 0,  ! Add topographic effect to diffusion
- upstream_mode = .true.,  ! Add off centering to advection
- upu = 0.150,             ! Maximum off-centering factor to use
- umax = 100.0,            ! Value of U for maximum off centering
- stability_enhance = .false., ! Do not allow horizontal advection to increase
-                              ! tendencies if strong gradients are present
-                              ! Enabled by default in non-hydro
- vert_stability_enhance = .false., ! Same for vertical advection
-                                   ! Enabled by default in non-hydro
- t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
- q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
- c_rel_extrema = 0.2, ! Maximum gradient fraction for QX for advection to stop
- t_rel_extrema = 0.2, ! Maximum gradient fraction for tracer advection to stop
- /
-\end{Verbatim}
-}
-
-The things you need to know here:
-
-\begin{enumerate}
-\item For details about the two dynamical cores, refer to the Reference Manual.
-\item The hydrostatic core is cheaper computationally, but physically it should
-be limited to resolution greater than $15 km$. For higher resolution, the non
-hydrostatic core is to be used.
-\item The Asselin filter parameter is default to $0.0625$ for hydrostatic and
-to $0.1$ for the non-hydrostatic core.
-\item The output variables of the two dynamical cores differ in the ATM files
-because of the different state variables used. Vertical levels also differ.
-\item The ICBC for the non-hydrostatic cannot be used for the hydrostatic run
-and the other way round.
-\item Nesting using the \verb=FNEST= option is supported in these
-configurations:
-\begin{enumerate}
-\item hydrostatic nested into hydrostatic
-\item non-hydrostatic nested into hydrostatic
-\item non-hydrostatic nested into non-hydrostatic
-\end{enumerate}
-\item Selecting the non-hydrostatic core, the nonhydroparam namelist is read
-in.
 \end{enumerate}
 
 \subsection{geoparam namelist}
@@ -183,7 +153,7 @@ affect the model behavior, at least in adjacent areas.
  &geoparam
  iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
                    ! 'LAMCON', Lambert conformal.
-                   ! 'POLSTR', Polar stereographic. (Doesn't work)
+                   ! 'POLSTR', Polar stereographic.
                    ! 'NORMER', Normal  Mercator.
                    ! 'ROTMER', Rotated Mercator.
  ds = 60.0,        ! Grid point horizontal resolution in km
@@ -198,6 +168,8 @@ affect the model behavior, at least in adjacent areas.
  truelath = 60.0,  ! Lambert true latitude (high latitude side)
  i_band = 0,       ! Use this to enable a tropical band. In this case the ds,
                    ! iproj, clat, clon parameters are not considered.
+ i_crm = 0,        ! Use this to enable doubly-periodic domains for idealized
+                   ! simulations.  Forces i_band = 1.
  /
 \end{Verbatim}
 }
@@ -261,11 +233,11 @@ later when the model calculates climatic parameters.
  &terrainparam
  domname  = 'AQWA',           ! Name of the domain/experiment.
                               ! Controls naming of input files
- lresamp = .true.,            ! Do a first resampling before interpolation
+ lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
- h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  ismthlev = 1,                ! Smoothing level (1-2-1, smoother-desmoother)
  roidem = 1.0,                ! Interpolation radius in ds unit for topography
+ h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
                               ! terrain program the domain bathymetry
@@ -333,106 +305,6 @@ initialize the soil moisture content in an initial run. Note that for this
 a \verb=DOMAIN= file created for a CLM45 run cannot be used for a BATS run.
 \end{enumerate}
 
-\subsection{debugparam namelist}
-
-This namelist is used by all RegCM programs to enable/disable some debug
-printout.  In the current release this flag is honored only by the model
-itself. If you are not a developer you may find this flags useless.
-
-{\footnotesize
-\begin{Verbatim}
- &debugparam
- debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
- dbgfrq = 24.0,   ! Interval for printout if debug_level >= 3 (masscheck)
- /
-\end{Verbatim}
-}
-
-Just note that with current implementation, the output file syncing is left
-to the netCDF library. If You want to examine step by step the output while
-the model is running, set the \verb=debug_level= at value 3.
-
-\subsection{boundaryparam namelist}
-
-Being a limited area model, in order to be run RegCM4 requires the provision
-of meteorological initial and time dependent lateral boundary conditions,
-typically for wind components, temperature, water vapor and surface pressure.
-These are obtained by interpolation from output from reanalysis of observations
-or global climate model simulations, which thus “drive” the regional climate
-model.
-
-The lateral boundary conditions (LBC) are provided through the so called
-relaxation/diffusion technique which consists of:
-
-\begin{enumerate}
-\item selecting a lateral buffer zone of n grid point width (\verb=nspgx=)
-\item interpolating the driving large scale fields onto the model grid
-\item applying the relaxation + diffusion term
-\begin{equation}
-\frac{\partial \alpha}{\partial t} = F(n)F_1 * (\alpha_{LBC}-\alpha_{mod}) -
-    F(n)F2 * \Delta_2(\alpha_{LBC}-\alpha_{mod})
-\end{equation}
-where $\alpha$ is a prognostic variable (wind components, temperature, water
-vapor, surface pressure). The first term on the rhs is a Newtonian relaxation
-term which brings the model solution ($mod$) towards the LBC field ($LBC$)
-and the second term diffuses the differences between model solution and LBC.
-$F(n)$ is an exponential function given by:
-\begin{equation}
-F(n) = exp\left(\frac{-(n-1)}{anudge(k)}\right)
-\end{equation}
-Where $n$ is the grid point distance from the boundary (varying from $1$ to
-$nspgx$): $n-1$ is the outermost grid point, $n=2$ the adjacent one etc.
-The $anudge$ array determines the strength of the LBC forcing and depends on
-the model level $k$. In practice $F(n)$ is equal to 1 at the outermost grid
-point row and decreases exponentially to $0$ at the internal edge of the buffer
-zone ($nspgd$) at a rate determined by $anudge$. Larger buffer zones and larger
-values of $anudge$ will yield a greater forcing by the LBC.  
-\end{enumerate}
-
-Typically for domain sizes of $~100$ grid points we use a buffer zone width
-of $10-12$ grid points, for large domains this buffer zone can increase to
-values of $15$ or even $20$.
-
-In the model $anudge$ has three increasing values from the lower, to the mid
-and higher troposphere. For example for $nspgx = 10$ we use $anudge$ equals to
-$1, 2, 3$ for the lower, mid and upper troposphere, respectively.
-
-This allows a stronger forcing in the upper troposphere to insure a greater
-consistency of large scale circulations with the forcing LBC while allowing
-more freedom to the model in the lower troposphere where local high resolution
-forcings (e.g. complex topography) are more important.
-
-For nspgx of $15-20$, for example, $anudge$ values could be increased to
-$2,3,4$ or even $2,4,6$. As a rule of thumb, the choice of the number of
-$nspgx$ points and the maximum $anudge$ value should follow the conditions:
-
-\begin{align}
-	2\ nspgx &< 0.25\ min(IY,JX) \\
-	anudge &\le \frac{(nspgx-1)}{3}
-\end{align}
-
-Most notably to have roughly the same buffer zone in doubling the resolution,
-you should double the number of $nspgx$ points and increase up to double the
-value of $anudge$.
-
-{\footnotesize
-\begin{Verbatim}
- &boundaryparam
- nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
-              ! the boundary sponge or relaxation boundary conditions.
- nspgd  = 12, ! nspgd-1 represent the number of dot point slices on
-              ! the boundary sponge or relaxation boundary conditions.
- high_nudge   =     3.0, ! Nudge value high range
- medium_nudge =     2.0, ! Nudge value medium range
- low_nudge    =     1.0  ! Nudge value low range
- bdy_nm = -1.0, ! Newtonian term, Eq. 7 Giorgi et al, 1993
-                ! Default is to use the formulation 1/dt
- bdy_dm = -1.0, ! Reverse of diffusion term, Eq. 8 Giorgi et al, 1993 
-                ! Default is to use the formulation 1/(50*dt)
- /
-\end{Verbatim}
-}
-
 \subsection{globdatparam namelist}
 \label{globparam}
 
@@ -442,32 +314,36 @@ tell them how to build initial and bondary conditions.
 {\footnotesize
 \begin{Verbatim}
 !
+! ICBC Global data input control
+!
 !   GLOBAL DATA AVAILABLE FROM ICTP FROM:
 !            http://clima-dods.ictp.it/Data/RegCM_Data
 !
  &globdatparam
  ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
+ ssttyp = 'EIN75',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
                              !          EIN75, EIN15, CCSST, CA_XX, HA_XX,
                              !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
- dattyp = 'EIN15',           ! Type of global analysis datasets used
+ dattyp = 'EIN75',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
                              !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
                              !          IP_XX, GF_XX, CN_XX, MP_XX
- chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
+                             ! with XX for CMIP5 datasets in 26, 45, 85
+ chemtyp = 'MZ6HR',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
- calendar = 'gregorian',     ! Calendar to use (gregorian, noleap or 360_day)
+ calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
  dirglob = 'input',          ! Path for ICBC produced input files
  inpglob = 'RegCM_Data',     ! Path for ICBC global input datasets.
  ensemble_run = .false.,     ! If this is a member of a perturbed ensemble
                              ! run. Activate random noise added to input
+                             ! ICBC controlled by the perturbparam stanza
  /
 \end{Verbatim}
 }
@@ -525,44 +401,6 @@ a \verb=domname=, i.e. like \verb=ATM.YYYYMMDDHH.nc=.
  /
 \end{Verbatim}
 }
-
-\subsection{perturbparam namelist}
-
-This namelist lets you control to which input field and of what fractional
-level a perturbation is added at ICBC stage on the input fields.
-It is read by the ICBC program if the \verb=ensemble_run= parameter in the
-\verb=globdatparam= namelist is set to \verb=true=.
-
-{\footnotesize
-\begin{Verbatim}
-!
-! Perturbation control for ensembles
-!
- &perturbparam
- lperturb_topo = .false.,     ! Add perturbation to surface elevation
- perturb_frac_topo = 0.001D0, ! Fractional value of the perturbation on topo
- lperturb_ts = .false.,       ! Add perturbation to surface temeprature
- perturb_frac_ts = 0.001D0,   ! Fractional value of the perturbation on ts
- lperturb_ps = .false.,       ! Add perturbation to surface pressure
- perturb_frac_ps = 0.001D0,   ! Fractional value of the perturbation on ps
- lperturb_t  = .false.,       ! Add perturbation to temperature
- perturb_frac_t  = 0.001D0,   ! Fractional value of the perturbation on t
- lperturb_q  = .false.,       ! Add perturbation to humidity mixing ratio
- perturb_frac_q  = 0.001D0,   ! Fractional value of the perturbation on q
- lperturb_u  = .false.,       ! Add perturbation to zonal velocity
- perturb_frac_u  = 0.001D0,   ! Fractional value of the perturbation on u
- lperturb_v  = .false.,       ! Add perturbation to meridional velocity
- perturb_frac_v  = 0.001D0,   ! Fractional value of the perturbation on v
- /
-\end{Verbatim}
-}
-
-Things you need to know here:
-
-\begin{enumerate}
-\item The \verb=perturb_frac= should not exceed a percent of the field value.
-The algorithm detail of the applied noise can be found in \cite{tao_ense}.
-\end{enumerate}
 
 \subsection{restartparam namelist}
 
@@ -667,35 +505,39 @@ written in the files.
 
 {\footnotesize
 \begin{Verbatim}
+!
+! Model Output control
+!
  &outparam
- ifsave  = .true. ,           ! Create SAV files for restart
- savfrq  =     0.,            ! Frequency in days to create them (0 = monthly)
- ifatm   = .true. ,           ! Output ATM ?
- atmfrq  =     6.,            ! Frequency in hours to write to ATM
- ifrad   = .true. ,           ! Output RAD ?
- radfrq  =     6.,            ! Frequency in hours to write to RAD
- ifsts   = .true. ,           ! Output STS (frequence is daily) ?
- ifsrf   = .true. ,           ! Output SRF ?
- srffrq  =     3.,            ! Frequency in hours to write to SRF
- ifsub   = .true. ,           ! Output SUB ?
- subfrq  =     6.,            ! Frequency in hours to write to SUB
- iflak   = .true.,            ! Output LAK ?
- lakfrq  =     6.,            ! Frequency in hours to write to LAK
- ifchem  = .true.,            ! Output CHE ?
- ifopt   = .false.,           ! Output OPT ?
- chemfrq =     6.,            ! Frequency in hours to write to CHE
- enable_atm_vars = 67*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 35*.true., ! Mask to eventually disable variables SRF
- enable_rad_vars = 25*.true., ! Mask to eventually disable variables RAD
+ ifsave  = .true. ,  ! Create SAV files for restart
+ savfrq  =     0.,   ! Frequency in days to create them (0 = monthly)
+ ifatm   = .true. ,  ! Output ATM ?
+ atmfrq  =     6.,   ! Frequency in hours to write to ATM
+ ifrad   = .true. ,  ! Output RAD ?
+ radfrq  =     6.,   ! Frequency in hours to write to RAD
+ ifsts   = .true. ,  ! Output STS (frequence is daily) ?
+ ifsrf   = .true. ,  ! Output SRF ?
+ srffrq  =     3.,   ! Frequency in hours to write to SRF
+ ifsub   = .true. ,  ! Output SUB ?
+ subfrq  =     6.,   ! Frequency in hours to write to SUB
+ iflak   = .true.,   ! Output LAK ?
+ lakfrq  =     6.,   ! Frequency in hours to write to LAK
+ ifchem  = .true.,   ! Output CHE ?
+ ifopt   = .false.,  ! Output OPT ?
+ chemfrq =     6.,   ! Frequency in hours to write to CHE
+ enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
+ enable_srf_vars = 40*.true., ! Mask to eventually disable variables SRF
+ enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
  enable_lak_vars = 18*.true., ! Mask to eventually disable variables LAK
- enable_opt_vars = 19*.true., ! Mask to eventually disable variables OPT
+ enable_opt_vars = 20*.true., ! Mask to eventually disable variables OPT
  enable_che_vars = 26*.true., ! Mask to eventually disable variables CHE
  dirout  = './output',        ! Path where all output will be placed
  lsync   = .false.,           ! If sync of output files at every timestep is
                               ! requested. Note, it has a performance impact.
                               ! Enabled by default if debug_level > 2
+ icosp = 0,                   ! Enable COSP needed fields in output in the ATM
  idiag = 0,                   ! Enable tendency diagnostic output in the ATM
                               ! file. NOTE: output file gets HUGE.
  do_parallel_netcdf_in  = .false., ! This enables paralell input
@@ -802,7 +644,7 @@ sensitivity experiments to select the best scheme for your application.
  iemiss  =          0,  ! Use computed long wave emissivity
  lakemod =          0,  ! Use lake model
  ichem   =          0,  ! Use active aerosol chemical model
- scenario =   'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
+ scenario     'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
                         ! AR4 old CMIP3 scenario to use in A1B, A2, B1, B2
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
@@ -819,9 +661,10 @@ sensitivity experiments to select the best scheme for your application.
                         !   2 : Thompson scheme
                         !   3 : Gultepe-Isaac scheme
  icldmstrat =        1, ! Simulate stratocumulus clouds
- icumcloud =         1, ! Formulas to use for cumulus clouds (cf and lwc)
-                        ! Cloud fractions, only if mass fluxes are not
-                        ! available (Kuo and BM):
+ icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
+                        ! clouds (cf and lwc) cloud fractions
+                        ! It is only used only if mass fluxes are not
+                        ! available (Kuo and BM).
                         !   0,1 => cf = 1-(1-clfrcv)**(1/kdepth)
                         !   2   => cf = cloud profile
                         ! Liquid water content:
@@ -836,9 +679,50 @@ sensitivity experiments to select the best scheme for your application.
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
  itweak =            0, ! Enable tweak scenario
- \
+ ifixsolar =         0, ! Fix the solar constant to fixedsolarval
+                        ! (no diurnal or seasonal cycle)
+ fixedsolarval =  343., ! The constant solar value for ifixsolar = 1
+ /
 \end{Verbatim}
 }
+
+\subsection{dynparam namelist}
+\label{dynparam}
+
+This namelist controls some fine tuning parameters for the dynamical cores.
+
+{\footnotesize
+\begin{Verbatim}
+!
+! Dynamical core parameters : Use defaults, be on your own otherwise!
+!
+ &dynparam
+ gnu1 = 0.0625,  ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.1250,  ! nu factor for Asselin filter in leapfrog step (tracers).
+                 ! MM5 manual , equation 2.4.6
+                 ! Default 0.0625,0.1 for hydro, 0.1,0.1 for nonhydro
+ ckh = 1.0,      ! Background diffusion multiplication factor
+ adyndif = 1.0,  ! Dynamical diffusion multiplication factor
+ diffu_hgtf = 1, ! Add topographic effect to diffusion
+                 ! It is set to zero default in the non-hydrostatic
+ upstream_mode = .true.,  ! Add off centering to advection
+ upu = 0.150,             ! Maximum off-centering factor to use
+ umax = 160.0,            ! Value of U for maximum off centering
+ stability_enhance = .false., ! Do not allow horizontal advection to increase
+                              ! tendencies if strong gradients are present
+                              ! Enabled by default in non-hydro
+ vert_stability_enhance = .false., ! Same for vertical advection
+                                   ! Enabled by default in non-hydro
+ t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
+ q_rel_extrema = 0.5, ! Maximum gradient fraction for QV for advection to stop
+ c_rel_extrema = 0.5, ! Maximum gradient fraction for QX for advection to stop
+ t_rel_extrema = 0.5, ! Maximum gradient fraction for tracer advection to stop
+ /
+\end{Verbatim}
+}
+
+Best leave this parameters as they are if you do not have problematic
+instability issues.
 
 \subsection{referenceatm and nonhydroparam namelist}
 
@@ -872,6 +756,87 @@ conditions and the base state vertical profile curve shape.
 \begin{enumerate}
 \item The upper radiative boundary layer option has a high computational cost.
 \end{enumerate}
+
+\subsection{boundaryparam namelist}
+
+Being a limited area model, in order to be run RegCM4 requires the provision
+of meteorological initial and time dependent lateral boundary conditions,
+typically for wind components, temperature, water vapor and surface pressure.
+These are obtained by interpolation from output from reanalysis of observations
+or global climate model simulations, which thus drive the regional climate
+model.
+
+The lateral boundary conditions (LBC) are provided through the so called
+relaxation/diffusion technique which consists of:
+
+\begin{enumerate}
+\item selecting a lateral buffer zone of n grid point width (\verb=nspgx=)
+\item interpolating the driving large scale fields onto the model grid
+\item applying the relaxation + diffusion term
+\begin{equation}
+\frac{\partial \alpha}{\partial t} = F(n)F_1 * (\alpha_{LBC}-\alpha_{mod}) -
+    F(n)F2 * \Delta_2(\alpha_{LBC}-\alpha_{mod})
+\end{equation}
+where $\alpha$ is a prognostic variable (wind components, temperature, water
+vapor, surface pressure). The first term on the rhs is a Newtonian relaxation
+term which brings the model solution ($mod$) towards the LBC field ($LBC$)
+and the second term diffuses the differences between model solution and LBC.
+$F(n)$ is an exponential function given by:
+\begin{equation}
+F(n) = exp\left(\frac{-(n-1)}{anudge(k)}\right)
+\end{equation}
+Where $n$ is the grid point distance from the boundary (varying from $1$ to
+$nspgx$): $n-1$ is the outermost grid point, $n=2$ the adjacent one etc.
+The $anudge$ array determines the strength of the LBC forcing and depends on
+the model level $k$. In practice $F(n)$ is equal to 1 at the outermost grid
+point row and decreases exponentially to $0$ at the internal edge of the buffer
+zone ($nspgd$) at a rate determined by $anudge$. Larger buffer zones and larger
+values of $anudge$ will yield a greater forcing by the LBC.  
+\end{enumerate}
+
+Typically for domain sizes of $~100$ grid points we use a buffer zone width
+of $10-12$ grid points, for large domains this buffer zone can increase to
+values of $15$ or even $20$.
+
+In the model $anudge$ has three increasing values from the lower, to the mid
+and higher troposphere. For example for $nspgx = 10$ we use $anudge$ equals to
+$1, 2, 3$ for the lower, mid and upper troposphere, respectively.
+
+This allows a stronger forcing in the upper troposphere to insure a greater
+consistency of large scale circulations with the forcing LBC while allowing
+more freedom to the model in the lower troposphere where local high resolution
+forcings (e.g. complex topography) are more important.
+
+For nspgx of $15-20$, for example, $anudge$ values could be increased to
+$2,3,4$ or even $2,4,6$. As a rule of thumb, the choice of the number of
+$nspgx$ points and the maximum $anudge$ value should follow the conditions:
+
+\begin{align}
+	2\ nspgx &< 0.25\ min(IY,JX) \\
+	anudge &\le \frac{(nspgx-1)}{3}
+\end{align}
+
+Most notably to have roughly the same buffer zone in doubling the resolution,
+you should double the number of $nspgx$ points and increase up to double the
+value of $anudge$.
+
+{\footnotesize
+\begin{Verbatim}
+ &boundaryparam
+ nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
+              ! the boundary sponge or relaxation boundary conditions.
+ nspgd  = 12, ! nspgd-1 represent the number of dot point slices on
+              ! the boundary sponge or relaxation boundary conditions.
+ high_nudge   =     3.0, ! Nudge value high range
+ medium_nudge =     2.0, ! Nudge value medium range
+ low_nudge    =     1.0  ! Nudge value low range
+ bdy_nm = -1.0, ! Newtonian term, Eq. 7 Giorgi et al, 1993
+                ! Default is to use the formulation 1/dt
+ bdy_dm = -1.0, ! Reverse of diffusion term, Eq. 8 Giorgi et al, 1993 
+                ! Default is to use the formulation 1/(50*dt)
+ /
+\end{Verbatim}
+}
 
 \subsection{subexparam namelist}
 
@@ -984,7 +949,7 @@ selected number is $2, 4, 5$.
  htmin = -250.0,     ! Min convective heating
  htmax = 500.0,      ! Max convective heating
  skbmax = 0.4,       ! Max cloud base height in sigma
- dtauc = 30.0D0      ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+ dtauc = 30.0        ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
  /
 
  &emanparam
@@ -1079,17 +1044,18 @@ $1$.
  ricr_ocn = 0.25,  ! Critical Richardson Number over Ocean
  ricr_lnd = 0.25,  ! Critical Richardson Number over Land
  zhnew_fac = 0.25, ! Multiplicative factor for zzhnew in holtpbl
- ifaholtth10 = 0,  ! First approximation for obhukov length, th10 formula:
+ ifaholtth10 = 1,  ! First approximation for obhukov length, th10 formula:
                    !      1 => 0.5 * (t+tg) * (1+0.61*q)
                    !      2 => (0.25*t + 0.75*tg) * (1+0.61*q)
                    !      3 => theta + hf/(k*us)*log(z/10)
                    ! t = air temp., tg = ground temp., q = wv mix. ratio
                    ! hf = total heat flux, z = elevation
                    ! theta = virt. pot. t
- ifaholt = 0,      ! th10 final adjustment:
+ ifaholt = 1,      ! th10 final adjustment:
                    !      0 => no adjustment
                    !      1 => max(th10,tg)
                    !      2 => min(th10,tg)
+ holtth10iter = 1, ! Iterations in th10 computation
  /
 \end{Verbatim}
 }
@@ -1129,12 +1095,50 @@ model.
                            ! from an already created climatology
  do_restore_sst = .true.,  ! Create during the run the SLAB Ocean model surface
                            ! fluxes climatology to be used in a subsequent run
- sst_restore_timescale = 5.0D0,  ! Time interval in days in building the
-                                 ! q-flux adjustment
- mixed_layer_depth     = 50.0D0, ! Depth in meters of the Ocean mixed layer.
+ sst_restore_timescale = 5.0,  ! Time interval in days in building the
+                               ! q-flux adjustment
+ mixed_layer_depth     = 50.0, ! Depth in meters of the Ocean mixed layer.
  /
 \end{Verbatim}
 }
+
+\subsection{perturbparam namelist}
+
+This namelist lets you control to which input field and of what fractional
+level a perturbation is added at ICBC stage on the input fields.
+It is read by the ICBC program if the \verb=ensemble_run= parameter in the
+\verb=globdatparam= namelist is set to \verb=true=.
+
+{\footnotesize
+\begin{Verbatim}
+!
+! Perturbation control for ensembles
+!
+ &perturbparam
+ lperturb_topo = .false.,   ! Add perturbation to surface elevation
+ perturb_frac_topo = 0.001, ! Fractional value of the perturbation on topo
+ lperturb_ts = .false.,     ! Add perturbation to surface temeprature
+ perturb_frac_ts = 0.001,   ! Fractional value of the perturbation on ts
+ lperturb_ps = .false.,     ! Add perturbation to surface pressure
+ perturb_frac_ps = 0.001,   ! Fractional value of the perturbation on ps
+ lperturb_t  = .false.,     ! Add perturbation to temperature
+ perturb_frac_t  = 0.001,   ! Fractional value of the perturbation on t
+ lperturb_q  = .false.,     ! Add perturbation to humidity mixing ratio
+ perturb_frac_q  = 0.001,   ! Fractional value of the perturbation on q
+ lperturb_u  = .false.,     ! Add perturbation to zonal velocity
+ perturb_frac_u  = 0.001,   ! Fractional value of the perturbation on u
+ lperturb_v  = .false.,     ! Add perturbation to meridional velocity
+ perturb_frac_v  = 0.001,   ! Fractional value of the perturbation on v
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The \verb=perturb_frac= should not exceed a percent of the field value.
+The algorithm detail of the applied noise can be found in \cite{tao_ense}.
+\end{enumerate}
 
 \subsection{tweakparam namelist}
 
@@ -1148,11 +1152,11 @@ Is enabled if itweak is $1$ in \ref{physicsparam}.
  itweak_temperature = 0,      ! Enable adding temperature_tweak to input T
  itweak_solar_irradiance = 0, ! Add solar_tweak to solar constant
  itweak_greenhouse_gases = 0, ! Multiply gas_tweak_factors to GG concentrations
- sst_tweak = 0.0D0,           ! In K
- temperature_tweak = 0.0D0,   ! In K
- solar_tweak = 0.0D0,         ! In W m-2 (1367.0 is default solar)
- gas_tweak_factors = 1.0D0, 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0,
- !                   CO2    CH4     N2O     CFC11   CFC12
+ sst_tweak = 0.0,           ! In K
+ temperature_tweak = 0.0,   ! In K
+ solar_tweak = 0.0,         ! In W m-2 (1367.0 is default solar)
+ gas_tweak_factors = 1.0, 1.0 , 1.0 , 1.0 , 1.0,
+ !                   CO2  CH4   N2O   CFC11 CFC12
 \end{Verbatim}
 }
 
@@ -1445,6 +1449,25 @@ treatment of convective transport than the simple mixing hypothesis used with
 other schemes.
 The UW planetary boundary layer option integrate directly the emission and
 deposition flux terms as part of the calculation of trurbulent tracer tendency.
+
+\subsection{debugparam namelist}
+
+This namelist is used by all RegCM programs to enable/disable some debug
+printout.  In the current release this flag is honored only by the model
+itself. If you are not a developer you may find this flags useless.
+
+{\footnotesize
+\begin{Verbatim}
+ &debugparam
+ debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
+ dbgfrq = 24.0,   ! Interval for printout if debug_level >= 3 (masscheck)
+ /
+\end{Verbatim}
+}
+
+Just note that with current implementation, the output file syncing is left
+to the netCDF library. If You want to examine step by step the output while
+the model is running, set the \verb=debug_level= at value 3.
 
 \section{The CLM options}
 \label{clm}

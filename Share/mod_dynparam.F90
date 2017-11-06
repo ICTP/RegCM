@@ -585,7 +585,7 @@ module mod_dynparam
     tersrc = 'GMTED'
     smsrc = 'ESACCI'
 
-    lresamp = .true.
+    lresamp = .false.
     smthbdy = .false.
     h2ohgt = .true.
     h2opct = 50.0_rkx

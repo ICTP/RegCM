@@ -1,10 +1,18 @@
 !-----------------------------------------------------------------------
 !
-! This README details namelist parameters for RegCM V4
+! This README details namelist parameters for RegCM V4.7
 !
 !-----------------------------------------------------------------------
 !
-! DOMAIN dimension Stanza
+! Choice of the dynamical core
+!
+ &coreparam
+ idynamic = 1,  ! Choice of dynamical core
+                ! 1 = MM4 hydrostatical core
+                ! 2 = MM5 NON hydrostatical core
+ /
+!
+! Domain dimension
 !
  &dimparam 
  iy     = 34,   ! This is number of points in the N/S direction
@@ -23,39 +31,7 @@
                 ! decomposition.
  /
 !
-! Choice of the dynamical core
-!
- &coreparam
- idynamic = 1,  ! Choice of dynamical core
-                ! 1 = MM4 hydrostatical core
-                ! 2 = MM5 NON hydrostatical core
- /
-!
-! Dynamical core parameters : Use defaults, be on your own otherwise!
-!
- &dynparam
- gnu1 = 0.0625,  ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.1000,  ! nu factor for Asselin filter in leapfrog step (tracers).
-                 ! MM5 manual , equation 2.4.6
-                 ! Default 0.0625,0.1 for hydro, 0.1,0.1 for nonhydro
- ckh = 1.0,      ! Background diffusion multiplication factor
- adyndif = 1.0,  ! Dynamical diffusion multiplication factor
- diffu_hgtf = 0, ! Add topographic effect to diffusion
- upstream_mode = .true.,  ! Add off centering to advection
- upu = 0.150,             ! Maximum off-centering factor to use
- umax = 100.0,            ! Value of U for maximum off centering
- stability_enhance = .false., ! Do not allow horizontal advection to increase
-                              ! tendencies if strong gradients are present
-                              ! Enabled by default in non-hydro
- vert_stability_enhance = .false., ! Same for vertical advection
-                                   ! Enabled by default in non-hydro
- t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
- q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
- c_rel_extrema = 0.2, ! Maximum gradient fraction for QX for advection to stop
- t_rel_extrema = 0.2, ! Maximum gradient fraction for tracer advection to stop
- /
-!
-! DOMAIN geolocation Stanza
+! Domain geolocation
 !
  &geoparam
  iproj = 'LAMCON', ! Domain cartographic projection. Supported values are:
@@ -79,16 +55,16 @@
                    ! simulations.  Forces i_band = 1.
  /
 !
-! DOMAIN terrain generation parameters
+! Domain terrain generation parameters
 !
  &terrainparam
  domname  = 'AQWA',           ! Name of the domain/experiment.
                               ! Controls naming of input files
- lresamp = .true.,           ! Do a first resampling before interpolation
+ lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
- h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  ismthlev = 1,                ! Smoothing level (1-2-1, smoother-desmoother)
  roidem = 1.0,                ! Interpolation radius in ds unit for topography
+ h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
                               ! terrain program the domain bathymetry
@@ -108,29 +84,6 @@
  moist_filename = 'moist.nc', ! Read initial moisture and snow from this file
  /
 !
-! Debug I/O printout level.
-!
- &debugparam
- debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
- dbgfrq = 24,     ! Interval (hours) for printout if debug_level >= 3
- /
-!
-! Buffer Zone Control relaxation + diffusion term
-!
- &boundaryparam
- nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
-              ! the boundary sponge or relaxation boundary conditions.
- nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 
-              ! the boundary sponge or relaxation boundary conditions.
- high_nudge =    3.0D0, ! Nudge value high range
- medium_nudge =  2.0D0, ! Nudge value medium range
- low_nudge =     1.0D0  ! Nudge value low range
- bdy_nm = -1.0, ! Newtonian term, Eq. 7 Giorgi et al, 1993
-                ! Default is to use the formulation 1/dt
- bdy_dm = -1.0, ! Reverse of diffusion term, Eq. 8 Giorgi et al, 1993 
-                ! Default is to use the formulation 1/(50*dt)
- /
-!
 ! ICBC Global data input control
 !
 !   GLOBAL DATA AVAILABLE FROM ICTP FROM:
@@ -138,12 +91,12 @@
 !
  &globdatparam
  ibdyfrq =     6,            ! boundary condition interval (hours)
- ssttyp = 'EIN15',           ! Type of Sea Surface Temperature used
+ ssttyp = 'EIN75',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
                              !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
                              !          EIN75, EIN15, CCSST, CA_XX, HA_XX,
                              !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
- dattyp = 'EIN15',           ! Type of global analysis datasets used
+ dattyp = 'EIN75',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
                              !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
@@ -168,25 +121,6 @@
  &fnestparam
  coarse_outdir = 'globdata/RegCM', ! Coarse domain output dir if FNEST
  coarse_domname = 'EUROPE',        ! Coarse domain domname
- /
-!
-! Perturbation control for ensembles
-!
- &perturbparam
- lperturb_topo = .false.,     ! Add perturbation to surface elevation
- perturb_frac_topo = 0.001D0, ! Fractional value of the perturbation on topo
- lperturb_ts = .false.,       ! Add perturbation to surface temeprature
- perturb_frac_ts = 0.001D0,   ! Fractional value of the perturbation on ts
- lperturb_ps = .false.,       ! Add perturbation to surface pressure
- perturb_frac_ps = 0.001D0,   ! Fractional value of the perturbation on ps
- lperturb_t  = .false.,       ! Add perturbation to temperature
- perturb_frac_t  = 0.001D0,   ! Fractional value of the perturbation on t
- lperturb_q  = .false.,       ! Add perturbation to humidity mixing ratio
- perturb_frac_q  = 0.001D0,   ! Fractional value of the perturbation on q
- lperturb_u  = .false.,       ! Add perturbation to zonal velocity
- perturb_frac_u  = 0.001D0,   ! Fractional value of the perturbation on u
- lperturb_v  = .false.,       ! Add perturbation to meridional velocity
- perturb_frac_v  = 0.001D0,   ! Fractional value of the perturbation on v
  /
 !
 ! Model start/restart control
@@ -229,13 +163,13 @@
  ifchem  = .true.,   ! Output CHE ?
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
- enable_atm_vars = 67*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 35*.true., ! Mask to eventually disable variables SRF
- enable_rad_vars = 25*.true., ! Mask to eventually disable variables RAD
+ enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
+ enable_srf_vars = 40*.true., ! Mask to eventually disable variables SRF
+ enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
  enable_lak_vars = 18*.true., ! Mask to eventually disable variables LAK
- enable_opt_vars = 19*.true., ! Mask to eventually disable variables OPT
+ enable_opt_vars = 20*.true., ! Mask to eventually disable variables OPT
  enable_che_vars = 26*.true., ! Mask to eventually disable variables CHE
  dirout  = './output',        ! Path where all output will be placed
  lsync   = .false.,           ! If sync of output files at every timestep is
@@ -330,9 +264,10 @@
                         !   2 : Thompson scheme
                         !   3 : Gultepe-Isaac scheme
  icldmstrat =        1, ! Simulate stratocumulus clouds
- icumcloud =         1, ! Formulas to use for cumulus clouds (cf and lwc)
-                        ! Cloud fractions, only if mass fluxes are not
-                        ! available (Kuo and BM):
+ icumcloud =         1, ! Kuo and Betts Miller formula to use for cumulus
+                        ! clouds (cf and lwc) cloud fractions
+                        ! It is only used only if mass fluxes are not
+                        ! available (Kuo and BM).
                         !   0,1 => cf = 1-(1-clfrcv)**(1/kdepth)
                         !   2   => cf = cloud profile
                         ! Liquid water content:
@@ -347,8 +282,34 @@
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
  itweak =            0, ! Enable tweak scenario
- ifixsolar =         0, ! Fix the solar constant to fixedsolarval (no diurnal or seasonal cycle)
+ ifixsolar =         0, ! Fix the solar constant to fixedsolarval
+                        ! (no diurnal or seasonal cycle)
  fixedsolarval =  343., ! The constant solar value for ifixsolar = 1
+ /
+!
+! Dynamical core parameters : Use defaults, be on your own otherwise!
+!
+ &dynparam
+ gnu1 = 0.0625,  ! nu factor for Asselin filter in leapfrog step.
+ gnu2 = 0.1250,  ! nu factor for Asselin filter in leapfrog step (tracers).
+                 ! MM5 manual , equation 2.4.6
+                 ! Default 0.0625,0.1 for hydro, 0.1,0.1 for nonhydro
+ ckh = 1.0,      ! Background diffusion multiplication factor
+ adyndif = 1.0,  ! Dynamical diffusion multiplication factor
+ diffu_hgtf = 1, ! Add topographic effect to diffusion
+                 ! It is set to zero default in the non-hydrostatic
+ upstream_mode = .true.,  ! Add off centering to advection
+ upu = 0.150,             ! Maximum off-centering factor to use
+ umax = 160.0,            ! Value of U for maximum off centering
+ stability_enhance = .false., ! Do not allow horizontal advection to increase
+                              ! tendencies if strong gradients are present
+                              ! Enabled by default in non-hydro
+ vert_stability_enhance = .false., ! Same for vertical advection
+                                   ! Enabled by default in non-hydro
+ t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
+ q_rel_extrema = 0.5, ! Maximum gradient fraction for QV for advection to stop
+ c_rel_extrema = 0.5, ! Maximum gradient fraction for QX for advection to stop
+ t_rel_extrema = 0.5, ! Maximum gradient fraction for tracer advection to stop
  /
 !
 ! Non-hydrostatic core option
@@ -373,12 +334,28 @@
  rayhd = 10000.0,   ! Damping scale depth
  /
 !
+! Buffer Zone Control relaxation + diffusion term
+!
+ &boundaryparam
+ nspgx  = 12, ! nspgx-1 represent the number of cross point slices on
+              ! the boundary sponge or relaxation boundary conditions.
+ nspgd  = 12, ! nspgd-1 represent the number of dot point slices on 
+              ! the boundary sponge or relaxation boundary conditions.
+ high_nudge =    3.0, ! Nudge value high range
+ medium_nudge =  2.0, ! Nudge value medium range
+ low_nudge =     1.0  ! Nudge value low range
+ bdy_nm = -1.0, ! Newtonian term, Eq. 7 Giorgi et al, 1993
+                ! Default is to use the formulation 1/dt
+ bdy_dm = -1.0, ! Reverse of diffusion term, Eq. 8 Giorgi et al, 1993 
+                ! Default is to use the formulation 1/(50*dt)
+ /
+!
 ! Moisture scheme comtrol (ipptls = 1)
 !
  &subexparam
  ncld      = 0,       ! # of bottom model levels with no clouds (rad only)
  qck1land  = 0.0005,  ! Autoconversion Rate for Land
- qck1oce   = 0.0003,  ! Autoconversion Rate for Ocean
+ qck1oce   = 0.0005,  ! Autoconversion Rate for Ocean
  gulland   = 0.65,    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
  guloce    = 0.30,    ! Fract of Gultepe eqn (qcth) for ocean
  rhmax     = 1.01,    ! RH at whicn FCC = 1.0
@@ -393,7 +370,7 @@
  cllwcv    = 0.3e-3,  ! Cloud liquid water content for convective precip.
  clfrcvmax = 0.75,    ! Max cloud fractional cover for convective precip.
  cftotmax  = 0.75,    ! Max total cover cloud fraction for radiation
- dtls      = 3600.0,  ! Timescale for Qc removal (pptmax = qc/dtls)
+ dtls      = 300.0,   ! Timescale for Qc removal (pptmax = qc/dtls)
  conf      = 1.00,    ! Condensation efficiency
  rcrit     = 13.5,    ! Mean critical radius
  coef_ccn  = 2.5e+20, ! Coefficient determined by assuming a lognormal PMD
@@ -456,7 +433,7 @@
  htmin = -250.0,     ! Min convective heating
  htmax = 500.0,      ! Max convective heating
  skbmax = 0.4,       ! Max cloud base height in sigma
- dtauc = 30.0D0      ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+ dtauc = 30.0        ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
  /
 !
 ! Emanuel Cumuls scheme control
@@ -537,17 +514,18 @@
  ricr_ocn = 0.25,  ! Critical Richardson Number over Ocean
  ricr_lnd = 0.25,  ! Critical Richardson Number over Land
  zhnew_fac = 0.25, ! Multiplicative factor for zzhnew in holtpbl
- ifaholtth10 = 0,  ! First approximation for obhukov length, th10 formula:
+ ifaholtth10 = 1,  ! First approximation for obhukov length, th10 formula:
                    !      1 => 0.5 * (t+tg) * (1+0.61*q)
                    !      2 => (0.25*t + 0.75*tg) * (1+0.61*q)
                    !      3 => theta + hf/(k*us)*log(z/10)
                    ! t = air temp., tg = ground temp., q = wv mix. ratio
                    ! hf = total heat flux, z = elevation
                    ! theta = virt. pot. t
- ifaholt = 0,      ! th10 final adjustment:
+ ifaholt = 1,      ! th10 final adjustment:
                    !      0 => no adjustment
                    !      1 => max(th10,tg)
                    !      2 => min(th10,tg)
+ holtth10iter = 1, ! Iterations in th10 computation
  /
 !
 ! UW PBL scheme control
@@ -572,9 +550,9 @@
                            ! from an already created climatology
  do_restore_sst = .true.,  ! Create during the run the SLAB Ocean model surface
                            ! fluxes climatology to be used in a subsequent run
- sst_restore_timescale = 5.0D0,  ! Time interval in days in building the
-                                 ! q-flux adjustment
- mixed_layer_depth     = 50.0D0, ! Depth in meters of the Ocean mixed layer.
+ sst_restore_timescale = 5.0,  ! Time interval in days in building the
+                               ! q-flux adjustment
+ mixed_layer_depth     = 50.0, ! Depth in meters of the Ocean mixed layer.
  /
 !
 ! RRTM Radiation scheme parameters
@@ -688,6 +666,25 @@
                         !      each coupling time step
  /
 !
+! Perturbation control for ensembles
+!
+ &perturbparam
+ lperturb_topo = .false.,   ! Add perturbation to surface elevation
+ perturb_frac_topo = 0.001, ! Fractional value of the perturbation on topo
+ lperturb_ts = .false.,     ! Add perturbation to surface temeprature
+ perturb_frac_ts = 0.001,   ! Fractional value of the perturbation on ts
+ lperturb_ps = .false.,     ! Add perturbation to surface pressure
+ perturb_frac_ps = 0.001,   ! Fractional value of the perturbation on ps
+ lperturb_t  = .false.,     ! Add perturbation to temperature
+ perturb_frac_t  = 0.001,   ! Fractional value of the perturbation on t
+ lperturb_q  = .false.,     ! Add perturbation to humidity mixing ratio
+ perturb_frac_q  = 0.001,   ! Fractional value of the perturbation on q
+ lperturb_u  = .false.,     ! Add perturbation to zonal velocity
+ perturb_frac_u  = 0.001,   ! Fractional value of the perturbation on u
+ lperturb_v  = .false.,     ! Add perturbation to meridional velocity
+ perturb_frac_v  = 0.001,   ! Fractional value of the perturbation on v
+ /
+!
 ! Tweaking parameters
 !
  &tweakparam
@@ -695,11 +692,11 @@
  itweak_temperature = 0,      ! Enable adding temperature_tweak to input T
  itweak_solar_irradiance = 0, ! Add solar_tweak to solar constant
  itweak_greenhouse_gases = 0, ! Multiply gas_tweak_factors to GG concentrations
- sst_tweak = 0.0D0,           ! In K
- temperature_tweak = 0.0D0,   ! In K
- solar_tweak = 0.0D0,         ! In W m-2 (1367.0 is default solar)
- gas_tweak_factors = 1.0D0, 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0,
- !                   CO2    CH4     N2O     CFC11   CFC12
+ sst_tweak = 0.0,             ! In K
+ temperature_tweak = 0.0,     ! In K
+ solar_tweak = 0.0,           ! In W m-2 (1367.0 is default solar)
+ gas_tweak_factors = 1.0, 1.0 , 1.0 , 1.0 , 1.0,
+ !                   CO2  CH4   N2O   CFC11 CFC12
  /
 !
 ! CLM 4.5 parameters
@@ -720,5 +717,12 @@
  enable_megan_emission = .false.,
  enable_urban_landunit = .true.,
  enable_more_crop_pft = .false.,
+ /
+!
+! Debug I/O printout level.
+!
+ &debugparam
+ debug_level = 0, ! Currently value of 2 and 3 control previous DIAG flag
+ dbgfrq = 24,     ! Interval (hours) for printout if debug_level >= 3
  /
 ! ####################################################################

@@ -444,7 +444,7 @@ module mod_params
     ! Original settings from Travis O'Brian
     !
     iuwvadv = 0
-    atwo  = 10.0_rkx
+    atwo  = 15.0_rkx
     rstbl = 1.5_rkx
     czero = 5.869_rkx
     nuk   = 5.0_rkx
