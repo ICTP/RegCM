@@ -198,7 +198,7 @@ module mod_micro_subex
         afc = mc2mo%fcc(j,i,1)     ![frac][avg]
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
         pptnew = d_zero
-        pptmax = qcw/dtls          ![kg/kg/s][avg]
+        pptmax = qcw/dt          ![kg/kg/s][avg]
         if ( afc > actcld ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
@@ -249,7 +249,7 @@ module mod_micro_subex
           dpovg = dsigma(k)*mo2mc%psb(j,i)*thog       ![kg/m2][avg]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
-          pptmax = qcw/dtls                           ![kg/kg/s][avg]
+          pptmax = qcw/dt                           ![kg/kg/s][avg]
           if ( pptsum(j,i) > d_zero ) then
             pptkm1 = pptsum(j,i)/dpovg             ![kg/kg/s][avg]
           else

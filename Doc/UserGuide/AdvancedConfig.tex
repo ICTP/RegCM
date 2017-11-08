@@ -526,7 +526,7 @@ written in the files.
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
  enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 40*.true., ! Mask to eventually disable variables SRF
+ enable_srf_vars = 41*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
@@ -865,7 +865,6 @@ The parameters below are the ones currently used at ICTP.
  clfrcvmax = 0.75,    ! Max cloud fractional cover for convective precip.
  cftotmax  = 0.75,    ! Max total cover cloud fraction for radiation
  conf      = 1.00,    ! Condensation efficiency
- dtls      = 300.0,   ! Timescale for Qc removal (pptmax = qc/dtls)
  rcrit     = 13.5,    ! Mean critical radius
  coef_ccn  = 2.5e+20, ! Coefficient determined by assuming a lognormal PMD
  abulk     = 0.9,     ! Bulk activation ratio

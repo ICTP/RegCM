@@ -144,6 +144,7 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: srf_q2m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_rh2m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_smw_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_ws100_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: sts_tgmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: sts_tgmin_out => null()

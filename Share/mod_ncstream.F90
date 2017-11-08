@@ -316,7 +316,7 @@ module mod_ncstream
       stream%zero_time     = hourdiff(tt,reference_date)
       stream%l_bound       = params%l_bound
       stream%l_band        = params%l_band
-      stream%l_crm         = params%l_crm 
+      stream%l_crm         = params%l_crm
       stream%l_sync        = params%l_sync
       stream%l_subgrid     = params%l_subgrid
       stream%l_full_sigma  = params%l_full_sigma
@@ -604,6 +604,15 @@ module mod_ncstream
         stvar%lev10m_var%lrecords = .false.
         call outstream_addvar(ncout,stvar%lev10m_var)
       end if
+      if ( stream%l_has100mlev ) then
+        stvar%lev100m_var%vname = 'm100'
+        stvar%lev100m_var%vunit = 'm'
+        stvar%lev100m_var%axis = 'w'
+        stvar%lev100m_var%long_name = 'Height level'
+        stvar%lev100m_var%standard_name = 'height'
+        stvar%lev100m_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%lev100m_var)
+      end if
       if ( stream%l_hassoillev ) then
         stvar%levsoil_var%vname = 'soil_layer'
         stvar%levsoil_var%vunit = 'm'
@@ -713,6 +722,10 @@ module mod_ncstream
       if ( stream%l_has10mlev ) then
         buffer%doublebuff(1) = 10.0_rk8
         call outstream_writevar(ncout,stvar%lev10m_var,nocopy)
+      end if
+      if ( stream%l_has100mlev ) then
+        buffer%doublebuff(1) = 100.0_rk8
+        call outstream_writevar(ncout,stvar%lev100m_var,nocopy)
       end if
       if ( stream%l_hassoillev ) then
 #ifdef CLM45
@@ -874,6 +887,11 @@ module mod_ncstream
           the_name = 'm10'
           pdim = h10m_level_dim
           stream%l_has10mlev = .true.
+        case ('100M','100m','lev100m','100mlev','lev_100m')
+          num = 1
+          the_name = 'm100'
+          pdim = h100m_level_dim
+          stream%l_has100mlev = .true.
         case ('NSOIL','nsoil','n_soil_layer','nlay','layers')
           num = num_soil_layers
           the_name = 'soil_layer'
@@ -1491,6 +1509,12 @@ module mod_ncstream
             end if
             id_dim(ic) = stream%id_dims(h10m_level_dim)
             len_dim(ic) = stream%len_dims(h10m_level_dim)
+          case ('W')
+            if ( stream%id_dims(h100m_level_dim) < 0 ) then
+              call add_dimension(stream,'100m')
+            end if
+            id_dim(ic) = stream%id_dims(h100m_level_dim)
+            len_dim(ic) = stream%len_dims(h100m_level_dim)
           case ('s')
             if ( stream%id_dims(soil_layer_dim) < 0 ) then
               call add_dimension(stream,'nsoil')

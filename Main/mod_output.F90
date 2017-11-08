@@ -60,7 +60,7 @@ module mod_output
     logical :: lstartup
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
-    real(rkx) :: cell
+    real(rkx) :: cell , zz , zz1 , ww
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -725,6 +725,51 @@ module mod_output
 
         if ( associated(srf_totcf_out) ) then
           srf_totcf_out = srf_totcf_out * rnrad_for_srffrq * d_100
+        end if
+
+        if ( associated(srf_ws100_out) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              cell = ptop / sfs%psa(j,i)
+              zz = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                     log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+              if ( zz > 100.0_rkx ) then
+                srf_ws100_out(j,i,1) = sqrt( &
+                  (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
+                            atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
+                            sfs%psa(j,i))**2 + &
+                  (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
+                            atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
+                            sfs%psa(j,i))**2)
+              else
+                vertloop: &
+                do k = kz-1 , 1 , -1
+                  zz1 = zz + rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
+                        log((sigma(k+1)+cell)/(sigma(k)+cell))
+                  if ( zz1 > 100.0_rkx ) then
+                    ww = (100.0_rkx-zz)/(zz1-zz)
+                    srf_ws100_out(j,i,1) = &
+                      ww * sqrt( &
+                        (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                  atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
+                                  sfs%psa(j,i))**2 + &
+                        (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                  atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
+                                  sfs%psa(j,i))**2) + &
+                      (d_one - ww) * sqrt( &
+                        (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
+                                  atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
+                                  sfs%psa(j,i))**2 + &
+                        (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
+                                  atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
+                                  sfs%psa(j,i))**2)
+                    exit vertloop
+                  end if
+                  zz = zz1
+                end do vertloop
+              end if
+            end do
+          end do
         end if
 
         call write_record_output_stream(srf_stream,alarm_out_srf%idate)
