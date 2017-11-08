@@ -247,7 +247,7 @@
  iemiss  =          0,  ! Use computed long wave emissivity
  lakemod =          0,  ! Use lake model
  ichem   =          0,  ! Use active aerosol chemical model
- scenario     'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
+ scenario =   'RCP4.5', ! AR5 RCP scenario in RPC2.6, RCP4.5, RCP6.0, RCP8.5
                         ! AR4 old CMIP3 scenario to use in A1B, A2, B1, B2
                         ! CONST scenario at year ghg_year_const
  ghg_year_const = 1950, ! Year to use for a constant GHG concentration values
