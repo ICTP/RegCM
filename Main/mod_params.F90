@@ -250,8 +250,8 @@ module mod_params
     iwhitecap = 0
     iseaice = 0
     idesseas = 0
-    iconvlwp = 0
-    icldfrac = 1
+    iconvlwp = 1
+    icldfrac = 0
     icldmstrat = 1
     irrtm = 0
     islab_ocean = 0
