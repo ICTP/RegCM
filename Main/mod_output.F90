@@ -178,6 +178,9 @@ module mod_output
 
     if ( rcmtimer%start( ) ) then
       ldoatm = .true.
+      if ( ichem == 1 ) then
+        ldoche = .true.
+      end if
     end if
 
     if ( atm_stream > 0 ) then
@@ -887,7 +890,7 @@ module mod_output
       end if
     end if
 
-    if ( opt_stream > 0 ) then
+    if ( opt_stream > 0 .and. rcmtimer%integrating( ) ) then
       if ( ldoche ) then
         if ( idynamic == 2 ) then
           do i = ici1 , ici2

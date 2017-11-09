@@ -106,7 +106,7 @@ module mod_ch_fnest
     do nf = 1 , fnum
       if ( index(listf(nf)%ename,trim(cname)) /= 0 .and. &
            index(listf(nf)%ename,'.nc') /= 0 .and. &
-           index(listf(nf)%ename,cdate) /= 0 .and. &
+           index(listf(nf)%ename,trim(cdate)) /= 0 .and. &
            index(listf(nf)%ename,'ATM') == 0 .and. &
            index(listf(nf)%ename,'SRF') == 0 .and. &
            index(listf(nf)%ename,'STS') == 0 .and. &
@@ -117,7 +117,7 @@ module mod_ch_fnest
            index(listf(nf)%ename,'LAK') == 0 ) then
         fchem = fchem + 1
         is = len_trim(cname) + 2
-        ie = index(listf(nf)%ename,cdate) - 2
+        ie = index(listf(nf)%ename,trim(cdate)) - 2
         j = 1
         chnames(fchem)(:) = ' '
         do i = is , ie
