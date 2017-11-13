@@ -325,7 +325,7 @@ module mod_nest
     end do
 
     minps = d_half * (plev(2)+plev(1)) * d_r1000
-    if ( ptop < minps ) then
+    if ( ptop-minps > 1.0_rkx ) then
       write(stderr,*) 'ERROR : top pressure lower than COARSE top'
       write(stderr,*) 'ERROR : Extrapolation will be performed.'
       write(stderr,*) 'MINIMUM SUGGESTED PTOP is ', minps
