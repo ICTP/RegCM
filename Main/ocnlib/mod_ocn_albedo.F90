@@ -84,7 +84,7 @@ module mod_ocn_albedo
                  0.15_rkx * (czeta-0.1_rkx)*(czeta-0.5_rkx)*(czeta-1.0_rkx)
           if ( czeta > 0.01_rkx .and. czeta < 0.12_rkx ) then
             ! Katsaros et al [1985] , reduction by wind waves at low angles.
-            albg = max(0.05_rkx,albg*(d_one - 0.036_rkx*wspd))
+            albg = max(0.05_rkx,albg*(d_one - 0.0036_rkx*wspd))
           end if
           ! Koepke [1984] - Increase by whitecapping
           albg = albg + 0.22_rkx * wfac

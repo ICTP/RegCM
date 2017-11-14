@@ -291,6 +291,7 @@ module mod_cu_tiedtke
 
     ! Transform to specific humidity
     pqm1(:,:) = pqm1(:,:)/(d_one + pqm1(:,:))
+    pqte(:,:) = pqte(:,:)/(d_one + pqte(:,:))
 
     nskmax = nint(17747.5/ds)
     if ( iconv == 4 ) then
@@ -312,7 +313,7 @@ module mod_cu_tiedtke
         j = jmap(ii)
         ! 1st guess pressure at full levels
         paphp1(ii,k) = m2c%pasf(j,i,k)
-        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav !   geopotential
+        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav ! geopotential
       end do
     end do
 
