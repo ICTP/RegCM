@@ -869,9 +869,9 @@ module mod_ncstream
           num = nf90_unlimited
           the_name = 'time'
           pdim = time_dim
-        case ('TBOUND','time_bounds','Time_bounds','TimeBounds','TB')
+        case ('TBOUND','time_bounds','Time_bounds','TimeBounds','TB','bnds')
           num = 2
-          the_name = 'time_bounds'
+          the_name = 'bnds'
           pdim = time_bound_dim
         case ('NTEX','ntex','ITEX','itex','texture','textures')
           num = ntex
