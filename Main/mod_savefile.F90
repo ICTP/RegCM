@@ -42,7 +42,7 @@ module mod_savefile
   public :: write_savefile
 
   integer(ik4) , parameter :: maxdims = 17
-  integer(ik4) , parameter :: maxvars = 108
+  integer(ik4) , parameter :: maxvars = 128
   integer(ik4) :: ncstatus
 
   integer(ik4) , parameter :: idjcross = 1
@@ -144,6 +144,11 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:) :: tbase_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: kfwavg_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_tten_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_uten_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_vten_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: cu_avg_qten_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: cu_avg_chiten_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: qflux_restore_sst_io
 
@@ -289,6 +294,20 @@ module mod_savefile
         call getmem3d(kfwavg_io,jcross1,jcross2, &
                                 icross1,icross2,1,kz,'kfwavg_io')
       end if
+      call getmem3d(cu_avg_tten_io,jcross1,jcross2, &
+                                   icross1,icross2,1,kz,'cu_avg_tten_io')
+      if ( any(icup == 5) ) then
+        call getmem3d(cu_avg_uten_io,jcross1,jcross2, &
+                                     icross1,icross2,1,kz,'cu_avg_uten_io')
+        call getmem3d(cu_avg_vten_io,jcross1,jcross2, &
+                                     icross1,icross2,1,kz,'cu_avg_vten_io')
+      end if
+      call getmem4d(cu_avg_qten_io,jcross1,jcross2, &
+                       icross1,icross2,1,kz,1,nqx,'cu_avg_qten_io')
+      if ( ichem == 1 ) then
+        call getmem4d(cu_avg_chiten_io,jcross1,jcross2, &
+                         icross1,icross2,1,kz,1,ntr,'cu_avg_chiten_io')
+      end if
 #ifdef CLM
       if ( imask == 2 ) then
         call getmem2d(lndcat_io,jcross1,jcross2,icross1,icross2,'lndcat_io')
@@ -417,6 +436,24 @@ module mod_savefile
       if ( any(icup == 6) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'kfwavg'),kfwavg_io)
         call check_ok(__FILE__,__LINE__,'Cannot read kfwavg')
+      end if
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_tten'),cu_avg_tten_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_tten')
+      if ( any(icup == 5) ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_uten'), &
+                                cu_avg_uten_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_uten')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_vten'), &
+                                cu_avg_vten_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_vten')
+      end if
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_qten'), &
+                              cu_avg_qten_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_qten')
+      if ( ichem == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_chiten'), &
+                                cu_avg_chiten_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_chiten')
       end if
       if ( idcsst == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sst'),sst_io)
@@ -692,6 +729,17 @@ module mod_savefile
       if ( any(icup == 6) ) then
         call mydefvar(ncid,'kfwavg',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
+      call mydefvar(ncid,'cu_avg_tten',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      if ( any(icup == 5) ) then
+        call mydefvar(ncid,'cu_avg_uten',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'cu_avg_vten',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      wrkdim(4) = dimids(idnqx)
+      call mydefvar(ncid,'cu_avg_qten',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      if ( ichem == 1 ) then
+        wrkdim(4) = dimids(idntr)
+        call mydefvar(ncid,'cu_avg_chiten',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      end if
       if ( any(icup == 4) ) then
         call mydefvar(ncid,'cbmf2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
@@ -875,6 +923,15 @@ module mod_savefile
       end if
       if ( any(icup == 6) ) then
         call myputvar(ncid,'kfwavg',kfwavg_io,varids,ivcc)
+      end if
+      call myputvar(ncid,'cu_avg_tten',cu_avg_tten_io,varids,ivcc)
+      if ( any(icup == 5) ) then
+        call myputvar(ncid,'cu_avg_uten',cu_avg_uten_io,varids,ivcc)
+        call myputvar(ncid,'cu_avg_vten',cu_avg_vten_io,varids,ivcc)
+      end if
+      call myputvar(ncid,'cu_avg_qten',cu_avg_qten_io,varids,ivcc)
+      if ( ichem == 1 ) then
+        call myputvar(ncid,'cu_avg_chiten',cu_avg_chiten_io,varids,ivcc)
       end if
       if ( any(icup == 4) ) then
         call myputvar(ncid,'cbmf2d',cbmf2d_io,varids,ivcc)

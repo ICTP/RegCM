@@ -33,9 +33,9 @@ module mod_cu_interface
       model_cumulus_cloud , init_mod_cumulus
   use mod_cu_common , only : avg_tten , avg_uten , avg_vten , avg_qten , &
       avg_chiten
-  use mod_cu_common , only : cu_utenx , cu_vtenx , cu_tten , cu_qten , &
-      cu_prate , cu_uten , cu_vten , cu_ktop , cu_kbot , cu_cldfrc ,   &
-      cu_qdetr , cu_raincc , cu_convpr , cu_chiten
+  use mod_cu_common , only : cu_uten , cu_vten , cu_tten , cu_qten , &
+      cu_prate , cu_ktop , cu_kbot , cu_cldfrc , cu_qdetr , cu_raincc , &
+      cu_convpr , cu_chiten
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , lutbl , cldefi ,    &
@@ -66,6 +66,11 @@ module mod_cu_interface
   public :: cldefi
   public :: tbase
   public :: kfwavg
+  public :: avg_tten
+  public :: avg_uten
+  public :: avg_vten
+  public :: avg_qten
+  public :: avg_chiten
   public :: twght
   public :: vqflx
   public :: shrmax2d
@@ -216,19 +221,71 @@ module mod_cu_interface
     integer(ik4) :: i , j , k , n
     real(rkx) :: w1
 
-    if ( rcmtimer%integrating( ) ) then
+    if ( any(icup == 6) ) then
+      w1 = d_one/real(max(int(900.0_rkx/dtsec),1),rkx)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            kfwavg(j,i,k) = (d_one-w1) * kfwavg(j,i,k) + &
+                          w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
+          end do
+        end do
+      end do
+    end if
 
-      if ( any(icup == 6) ) then
-        w1 = d_one/real(max(int(900.0_rkx/dtsec),1),rkx)
+    w1 = d_one/real(max(int(dtcum/dtsec),1),rkx)
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          avg_tten(j,i,k) = (d_one-w1) * avg_tten(j,i,k) + &
+                        w1 * m2c%tten(j,i,k)/m2c%psb(j,i)+m2c%heatrt(j,i,k)
+        end do
+      end do
+    end do
+
+    if ( any(icup == 5) ) then
+      call exchange(m2c%uten,1,jdi1,jdi2,idi1,idi2,1,kz)
+      call exchange(m2c%vten,1,jdi1,jdi2,idi1,idi2,1,kz)
+      do k = 1 , kz
+        do i = icii1 , icii2
+          do j = jcii1 , jcii2
+            avg_uten(j,i,k) = (d_one-w1) * avg_uten(j,i,k) + &
+                w1 * d_rfour * &
+                    (m2c%uten(j,i,k)   + m2c%uten(j+1,i,k) + &
+                     m2c%uten(j,i+1,k) + m2c%uten(j+1,i+1,k)) / m2c%psb(j,i)
+            avg_vten(j,i,k) = (d_one-w1) * avg_vten(j,i,k) + &
+                w1 * d_rfour * &
+                    (m2c%vten(j,i,k)   + m2c%vten(j+1,i,k) + &
+                     m2c%vten(j,i+1,k) + m2c%vten(j+1,i+1,k)) / m2c%psb(j,i)
+          end do
+        end do
+      end do
+    end if
+    do n = 1 , nqx
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_qten(j,i,k,n) = (d_one-w1) * avg_qten(j,i,k,n) + &
+                          w1 * m2c%qxten(j,i,k,n)/m2c%psb(j,i)
+          end do
+        end do
+      end do
+    end do
+    if ( ichem == 1 ) then
+      do n = 1 , ntr
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              kfwavg(j,i,k) = (d_one-w1) * kfwavg(j,i,k) + &
-                            w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
+              avg_chiten(j,i,k,n) = (d_one-w1) * avg_chiten(j,i,k,n) + &
+                             w1 * m2c%chiten(j,i,k,n)/m2c%psb(j,i)
             end do
           end do
         end do
-      end if
+      end do
+    end if
+
+    if ( rcmtimer%integrating( ) ) then
 
       if ( syncro_cum%act( ) ) then
 
@@ -236,51 +293,6 @@ module mod_cu_interface
           write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
         end if
         ! Update input cumulus tendencies
-
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              avg_tten(j,i,k) = m2c%tten(j,i,k)/m2c%psb(j,i)+m2c%heatrt(j,i,k)
-            end do
-          end do
-        end do
-
-        if ( any(icup == 5) ) then
-          call exchange(m2c%uten,1,jdi1,jdi2,idi1,idi2,1,kz)
-          call exchange(m2c%vten,1,jdi1,jdi2,idi1,idi2,1,kz)
-          do k = 1 , kz
-            do i = icii1 , icii2
-              do j = jcii1 , jcii2
-                avg_uten(j,i,k) = d_rfour * &
-                    (m2c%uten(j,i,k)   + m2c%uten(j+1,i,k) + &
-                     m2c%uten(j,i+1,k) + m2c%uten(j+1,i+1,k)) / m2c%psb(j,i)
-                avg_vten(j,i,k) = d_rfour * &
-                    (m2c%vten(j,i,k)   + m2c%vten(j+1,i,k) + &
-                     m2c%vten(j,i+1,k) + m2c%vten(j+1,i+1,k)) / m2c%psb(j,i)
-              end do
-            end do
-          end do
-        end if
-        do n = 1 , nqx
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                avg_qten(j,i,k,n) = m2c%qxten(j,i,k,n)/m2c%psb(j,i)
-              end do
-            end do
-          end do
-        end do
-        if ( ichem == 1 ) then
-          do n = 1 , ntr
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  avg_chiten(j,i,k,n) = m2c%chiten(j,i,k,n)/m2c%psb(j,i)
-                end do
-              end do
-            end do
-          end do
-        end if
 
         cu_prate(:,:) = d_zero
         cu_ktop(:,:) = 0
@@ -338,6 +350,15 @@ module mod_cu_interface
           end select
         end if
 
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              cu_uten(j,i,k) = cu_uten(j,i,k) * m2c%psb(j,i)
+              cu_vten(j,i,k) = cu_vten(j,i,k) * m2c%psb(j,i)
+            end do
+          end do
+        end do
+
       end if
 
       ! Sum cumulus tendencies
@@ -359,16 +380,7 @@ module mod_cu_interface
         end do
       end do
 
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            cu_utenx(j,i,k) = cu_uten(j,i,k) * m2c%psb(j,i)
-            cu_vtenx(j,i,k) = cu_vten(j,i,k) * m2c%psb(j,i)
-          end do
-        end do
-      end do
-
-      call uvcross2dot(cu_utenx,cu_vtenx,c2m%uten,c2m%vten)
+      call uvcross2dot(cu_uten,cu_vten,c2m%uten,c2m%vten)
 
       do n = 1 , nqx
         do k = 1 , kz

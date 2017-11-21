@@ -409,7 +409,7 @@ module mod_params
     rcuc_ocn = 0.05_rkx     ! Convective cloud cover for rain evporation
     rcpec_lnd = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
     rcpec_ocn = 5.55e-5_rkx ! Coefficient for rain evaporation below cloud
-    rhebc_lnd = 0.7_rkx     ! Critical relative humidity below
+    rhebc_lnd = 0.8_rkx     ! Critical relative humidity below
                             ! cloud at which evaporation starts for land
     rhebc_ocn = 0.9_rkx     ! Critical relative humidity below
                             ! cloud at which evaporation starts for ocean

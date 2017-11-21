@@ -56,11 +56,6 @@ module mod_cu_tiedtke
   real(rkx) :: rmfcfl ! Massflux multiple of cfl stability criterium
   integer(ik4) :: nk350 , nk060 , nk950
 
-  real(rkx) , parameter :: rlpal1 = 0.15_rkx  ! Smoothing coefficient
-  real(rkx) , parameter :: rlpal2 = 20.0_rkx  ! Smoothing coefficient
-
-  ! Use CFL mass flux limit (1) or absolut limit (0)
-  real(rkx) , parameter :: rmflic = 1.0_rkx
   ! Mass flux solver for momentum (1) or no (0)
   real(rkx) , parameter :: rmfsoluv = 1.0_rkx
   ! Mass flux solver for T and q (1) or no (0)
@@ -68,14 +63,13 @@ module mod_cu_tiedtke
   ! Mass flux solver for tracer (1) or no (0)
   real(rkx) , parameter :: rmfsolct = 1.0_rkx
 
+  ! Use CFL mass flux limit (1) or absolut limit (0)
+  real(rkx) , parameter :: rmflic = 1.0_rkx
   ! Value of absolut mass flux limit
   real(rkx) , parameter :: rmflia = 0.0_rkx
 
   ! Relaxation time for melting of snow
-  real(rkx) , parameter :: rtaumel = 5.0_rkx*3600.0_rkx ! five hours
-
-  ! Factor for time step weighting in *vdf....*
-  real(rkx) , parameter :: rvdifts = 1.5_rkx
+  real(rkx) , parameter :: rtaumel = 5.0_rkx*3600.0_rkx*1.5_rkx
 
   ! Updraught velocity perturbation for implicit (m/s)
   real(rkx) , parameter :: ruvper = 0.3_rkx
@@ -263,7 +257,7 @@ module mod_cu_tiedtke
         i = imap(ii)
         j = jmap(ii)
         papp1(ii,k) = m2c%pas(j,i,k)       ! Pressure in Pa
-        xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
+        xpg(ii,k)   = m2c%zas(j,i,k)*egrav + m2c%ht(j,i) ! geopotential
         ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
         pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
         pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
@@ -313,7 +307,7 @@ module mod_cu_tiedtke
         j = jmap(ii)
         ! 1st guess pressure at full levels
         paphp1(ii,k) = m2c%pasf(j,i,k)
-        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav ! geopotential
+        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav + m2c%ht(j,i) ! geopotential
       end do
     end do
 
@@ -4734,12 +4728,7 @@ module mod_cu_tiedtke
           dh = egrav*max(dh,1.e5_rkx*dqmin)
           if ( dhpbl(n) > d_zero ) then
             mfub(n) = dhpbl(n)/dh
-            ! EPS: temporary solution for explicit
-            if ( dt > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
-              mfub(n) = min(mfub(n),3.0_rkx*mfmax)
-            else
-              mfub(n) = min(mfub(n),mfmax)
-            end if
+            mfub(n) = min(mfub(n),mfmax)
           else
             mfub(n) = mfmax*0.1_rkx
             ldcum(n) = .false.
@@ -4874,12 +4863,7 @@ module mod_cu_tiedtke
           else
             mfub1(n) = mfub(n)
           end if
-          ! Temporary solution for explicit
-          if ( dt > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero ) then
-            mfub1(n) = min(mfub1(n),3.0_rkx*mfmax)
-          else
-            mfub1(n) = min(mfub1(n),mfmax)
-          end if
+          mfub1(n) = min(mfub1(n),mfmax)
           if ( lmfwstar ) mfub1(n) = mf_shal(n)
         end if
         ! Mid-level convection
@@ -5363,7 +5347,8 @@ module mod_cu_tiedtke
         do k = nk - 1 , 2 , -1
           do n = n1 , n2
             if ( lldcum(n) ) then
-              if ( abs(mfudr(n,k)) < almostzero .and. mfudr(n,k-1) > d_zero ) then
+              if ( abs(mfudr(n,k)) < almostzero .and. &
+                       mfudr(n,k-1) > d_zero ) then
                 mfudr(n,k) = d_half*mfudr(n,k-1)
               end if
             end if
@@ -5776,7 +5761,7 @@ module mod_cu_tiedtke
       real(rkx) , dimension(np) :: dpmean
       real(rkx) , dimension(np) :: zoentr , xph
       logical , dimension(np) :: llflag , llflaguv , llo1
-      logical :: llo3 , llo4
+      logical :: llo3
       integer(ik4) :: icall , ik , is , k , n , ikb
       integer(ik4) :: nll , nlm
       integer(ik4) , dimension(np) :: nlx
@@ -5914,7 +5899,6 @@ module mod_cu_tiedtke
         ! Do adiabatic ascent for entraining/detraining plume
         ! ---------------------------------------------------
         if ( llo3 ) then
-          llo4 = dt > 1800.0_rkx .and. abs(rmfcfl-d_one) < almostzero
           do n = n1 , n2
             qold(n) = d_zero
           end do
@@ -5929,7 +5913,6 @@ module mod_cu_tiedtke
             end if
             if ( k < kcbot(n) ) then
               mfmax = (pf(n,k)-pf(n,k-1))*cons2*rmflic + rmflia
-              if ( ktype(n) == 2 .and. llo4 ) mfmax = mfmax*3.0_rkx
               zxs = max(mfu(n,k+1)-mfmax,d_zero)
               wmean(n) = wmean(n) + kineu(n,k+1)*(ph(n,k+1)-ph(n,k))
               dpmean(n) = dpmean(n) + ph(n,k+1) - ph(n,k)

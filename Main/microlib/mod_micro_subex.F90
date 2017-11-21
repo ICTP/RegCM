@@ -50,7 +50,7 @@ module mod_micro_subex
   logical :: l_lat_hack = .false.
   public :: allocate_subex , init_subex , subex
 
-  real(rkx) , parameter :: minqc = 0.0_rkx
+  real(rkx) , parameter :: remfrc = 0.0_rkx
   real(rkx) , parameter :: rhow = 1000.0_rkx
   real(rkx) , parameter :: thog = d_1000*regrav
   real(rkx) , parameter :: uch = thog*secph
@@ -107,6 +107,7 @@ module mod_micro_subex
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
                 rhcs , prainx , qcth
     real(rkx) :: tcel
+    real(rkx) :: minqc
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !
@@ -199,6 +200,7 @@ module mod_micro_subex
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
         pptnew = d_zero
         pptmax = qcw/dt          ![kg/kg/s][avg]
+        minqc = remfrc * qcw
         if ( afc > actcld ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
@@ -249,7 +251,8 @@ module mod_micro_subex
           dpovg = dsigma(k)*mo2mc%psb(j,i)*thog       ![kg/m2][avg]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
-          pptmax = qcw/dt                           ![kg/kg/s][avg]
+          pptmax = qcw/dt                             ![kg/kg/s][avg]
+          minqc = remfrc * qcw
           if ( pptsum(j,i) > d_zero ) then
             pptkm1 = pptsum(j,i)/dpovg             ![kg/kg/s][avg]
           else

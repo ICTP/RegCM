@@ -346,6 +346,17 @@ module mod_init
       if ( any(icup == 6) ) then
         call grid_distribute(kfwavg_io,kfwavg,jci1,jci2,ici1,ici2,1,kz)
       end if
+      call grid_distribute(cu_avg_tten_io,avg_tten,jci1,jci2,ici1,ici2,1,kz)
+      if ( any(icup == 5) ) then
+        call grid_distribute(cu_avg_uten_io,avg_uten,jci1,jci2,ici1,ici2,1,kz)
+        call grid_distribute(cu_avg_vten_io,avg_vten,jci1,jci2,ici1,ici2,1,kz)
+      end if
+      call grid_distribute(cu_avg_qten_io,avg_qten,jci1,jci2, &
+                           ici1,ici2,1,kz,1,nqx)
+      if ( ichem == 1 ) then
+        call grid_distribute(cu_avg_chiten_io,avg_chiten,jci1,jci2, &
+                             ici1,ici2,1,kz,1,ntr)
+      end if
 
       if ( irrtm == 0 ) then
         call grid_distribute(gasabsnxt_io,gasabsnxt, &
