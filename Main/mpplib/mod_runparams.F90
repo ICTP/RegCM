@@ -194,8 +194,7 @@ module mod_runparams
   ! Advection tuning
 
   logical , public :: upstream_mode
-  real(rkx) , public :: upu
-  real(rkx) , public :: umax
+  real(rkx) , public :: uoffc
 
   logical , public :: stability_enhance
   logical , public :: vert_stability_enhance

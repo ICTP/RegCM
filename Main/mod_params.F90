@@ -106,7 +106,7 @@ module mod_params
       year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
-      upstream_mode , upu , umax , stability_enhance ,             &
+      upstream_mode , uoffc , stability_enhance ,                  &
       vert_stability_enhance , t_extrema , c_rel_extrema ,         &
       q_rel_extrema , t_rel_extrema
 
@@ -615,8 +615,7 @@ module mod_params
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx
-      upu = 0.150_rkx
-      umax = 160.0_rkx
+      uoffc = 0.250_rkx
       t_extrema = 5.0_rkx
       q_rel_extrema = 0.50_rkx
       c_rel_extrema = 0.50_rkx
@@ -1010,8 +1009,7 @@ module mod_params
     call bcast(ckh)
     call bcast(adyndif)
     call bcast(upstream_mode)
-    call bcast(upu)
-    call bcast(umax)
+    call bcast(uoffc)
     call bcast(stability_enhance)
     call bcast(vert_stability_enhance)
     call bcast(t_extrema)

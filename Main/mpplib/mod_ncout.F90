@@ -2589,9 +2589,7 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_logical('upstream_mode',upstream_mode))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('off_centering_max',upu))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('wind_intensity_for_off_max',umax))
+          ncattribute_real8('off_centering_max',uoffc))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_logical('stability_enhance',stability_enhance))
         call outstream_addatt(outstream(i)%ncout(j), &
