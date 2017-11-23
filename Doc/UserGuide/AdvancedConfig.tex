@@ -706,8 +706,7 @@ This namelist controls some fine tuning parameters for the dynamical cores.
  diffu_hgtf = 1, ! Add topographic effect to diffusion
                  ! It is set to zero default in the non-hydrostatic
  upstream_mode = .true.,  ! Add off centering to advection
- upu = 0.150,             ! Maximum off-centering factor to use
- umax = 160.0,            ! Value of U for maximum off centering
+ uoffc = 0.250,           ! Maximum off-centering factor to use
  stability_enhance = .false., ! Do not allow horizontal advection to increase
                               ! tendencies if strong gradients are present
                               ! Enabled by default in non-hydro
@@ -988,8 +987,8 @@ selected number is $2, 4, 5$.
  rcuc_ocn = 0.05,     ! Convective cloud cover for rain evporation iconv=4
  rcpec_lnd = 5.55e-5, ! Coefficient for rain evaporation below cloud iconv=4
  rcpec_ocn = 5.55e-5, ! Coefficient for rain evaporation below cloud iconv=4
- rhebc_lnd = 0.7,     ! Critical rh below cloud for evaporation iconv=4
- rhebc_ocn = 0.9,     ! Critical rh below cloud for evaporation iconv=4
+ rhebc_lnd = 0.8,     ! Critical rh below cloud for evaporation iconv=4
+ rhebc_ocn = 0.8,     ! Critical rh below cloud for evaporation iconv=4
  rprc_lnd = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
  rprc_ocn = 1.4e-3,   ! conversion coefficient from cloud water iconv=4
  cmtcape = 3600.0,    ! CAPE adjustment timescale iconv=[1,2,3]
