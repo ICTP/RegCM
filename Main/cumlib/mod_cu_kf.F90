@@ -50,7 +50,7 @@ module mod_cu_kf
   !
   integer , parameter :: kf_trigger = 3
   !
-  public :: allocate_mod_cu_kf , kfdrv , kf_lutab , kfwavg
+  public :: allocate_mod_cu_kf , kfdrv , kf_lutab
   !
   !  V3.3: A new trigger function is added based Ma and Tan (2009):
   !   Ma, L.-M. and Z.-M. Tan, 2009: Improving the behavior of
@@ -84,8 +84,6 @@ module mod_cu_kf
   real(rkx) , dimension(:,:) , pointer :: dqdt , dtdt , dqcdt
   real(rkx) , dimension(:,:) , pointer :: tpart_h , tpart_v
 
-  real(rkx) , dimension(:,:,:) , pointer :: kfwavg
-
   ! IPPTLS == 2
   real(rkx) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
 
@@ -105,7 +103,6 @@ module mod_cu_kf
   subroutine allocate_mod_cu_kf
     implicit none
     integer(ik4) :: ii , i , j
-    call getmem3d(kfwavg,jci1,jci2,ici1,ici2,1,kz,'mod_cu_kf:kfwavg')
     nipoi = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -196,7 +193,7 @@ module mod_cu_kf
         p0(k,np) = m2c%pas(j,i,kk)
         rho(k,np) = m2c%rhoas(j,i,kk)
         dzq(k,np) = m2c%dzq(j,i,kk)
-        w0avg(k,np) = kfwavg(j,i,kk)
+        w0avg(k,np) = avg_ww(j,i,kk)
       end do
     end do
 

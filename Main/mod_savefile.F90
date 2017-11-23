@@ -143,7 +143,7 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: cldefi_io
   real(rkx) , public , pointer , dimension(:,:,:) :: tbase_io
 
-  real(rkx) , public , pointer , dimension(:,:,:) :: kfwavg_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_ww_io
   real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_tten_io
   real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_uten_io
   real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_vten_io
@@ -290,9 +290,9 @@ module mod_savefile
         call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
         call getmem3d(tbase_io,jcross1,jcross2,icross1,icross2,1,kz,'tbase_io')
       end if
-      if ( any(icup == 6) ) then
-        call getmem3d(kfwavg_io,jcross1,jcross2, &
-                                icross1,icross2,1,kz,'kfwavg_io')
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        call getmem3d(cu_avg_ww_io,jcross1,jcross2, &
+                                   icross1,icross2,1,kz,'cu_avg_ww_io')
       end if
       call getmem3d(cu_avg_tten_io,jcross1,jcross2, &
                                    icross1,icross2,1,kz,'cu_avg_tten_io')
@@ -433,9 +433,9 @@ module mod_savefile
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cbmf2d'),cbmf2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read cbmf2d')
       end if
-      if ( any(icup == 6) ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'kfwavg'),kfwavg_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read kfwavg')
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_ww'),cu_avg_ww_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_ww')
       end if
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_tten'),cu_avg_tten_io)
       call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_tten')
@@ -726,8 +726,8 @@ module mod_savefile
         call mydefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
         call mydefvar(ncid,'tbase',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
-      if ( any(icup == 6) ) then
-        call mydefvar(ncid,'kfwavg',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        call mydefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
       call mydefvar(ncid,'cu_avg_tten',regcm_vartype,wrkdim,1,3,varids,ivcc)
       if ( any(icup == 5) ) then
@@ -921,8 +921,8 @@ module mod_savefile
         call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
         call myputvar(ncid,'tbase',tbase_io,varids,ivcc)
       end if
-      if ( any(icup == 6) ) then
-        call myputvar(ncid,'kfwavg',kfwavg_io,varids,ivcc)
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)
       end if
       call myputvar(ncid,'cu_avg_tten',cu_avg_tten_io,varids,ivcc)
       if ( any(icup == 5) ) then

@@ -42,6 +42,7 @@ module mod_cu_common
   real(rkx) , pointer , dimension(:,:,:,:) :: avg_qten
   real(rkx) , pointer , dimension(:,:,:,:) :: cu_chiten
   real(rkx) , pointer , dimension(:,:,:,:) :: avg_chiten
+  real(rkx) , pointer , dimension(:,:,:) :: avg_ww
   real(rkx) , pointer , dimension(:,:) :: cu_prate
   real(rkx) , pointer , dimension(:,:,:) :: cu_qdetr
   real(rkx) , pointer , dimension(:,:,:) :: cu_raincc
@@ -72,10 +73,6 @@ module mod_cu_common
 
     call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
     call getmem3d(avg_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_tten')
-    if ( any(icup == 5) ) then
-      call getmem3d(avg_uten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_uten')
-      call getmem3d(avg_vten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_vten')
-    end if
     call getmem3d(cu_uten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:utenx')
     call getmem3d(cu_vten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:vtenx')
     call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
@@ -91,8 +88,13 @@ module mod_cu_common
       call getmem3d(cu_convpr,jci1,jci2,ici1,ici2,1,kz,'cumulus:convpr')
     end if
     if ( any(icup == 5) ) then
+      call getmem3d(avg_uten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_uten')
+      call getmem3d(avg_vten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_vten')
       call getmem3d(cu_qdetr,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:qdetr')
       call getmem3d(cu_raincc,jdi1,jdi2,idi1,idi2,1,kz,'cumulus:raincc')
+    end if
+    if ( any(icup == 5) .or. any(icup == 6) ) then
+      call getmem3d(avg_ww,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_ww')
     end if
 
     if ( any(icup == 1) .or. any(icup == 3) ) then

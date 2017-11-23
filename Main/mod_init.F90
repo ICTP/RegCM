@@ -343,8 +343,8 @@ module mod_init
       if ( any(icup == 4) ) then
         call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
       end if
-      if ( any(icup == 6) ) then
-        call grid_distribute(kfwavg_io,kfwavg,jci1,jci2,ici1,ici2,1,kz)
+      if ( any(icup == 6) .or. any(icup == 5 ) ) then
+        call grid_distribute(cu_avg_ww_io,avg_ww,jci1,jci2,ici1,ici2,1,kz)
       end if
       call grid_distribute(cu_avg_tten_io,avg_tten,jci1,jci2,ici1,ici2,1,kz)
       if ( any(icup == 5) ) then
@@ -634,13 +634,15 @@ module mod_init
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                kfwavg(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+                avg_ww(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
               end do
             end do
           end do
         else
-          kfwavg(:,:,:) = d_zero
+          avg_ww(:,:,:) = d_zero
         end if
+      else if ( any(icup == 5) ) then
+        avg_ww(:,:,:) = d_zero
       end if
     end if
     !

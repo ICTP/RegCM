@@ -35,7 +35,7 @@ module mod_cu_interface
       avg_chiten
   use mod_cu_common , only : cu_uten , cu_vten , cu_tten , cu_qten , &
       cu_prate , cu_ktop , cu_kbot , cu_cldfrc , cu_qdetr , cu_raincc , &
-      cu_convpr , cu_chiten
+      cu_convpr , cu_chiten , avg_ww
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , lutbl , cldefi ,    &
@@ -65,7 +65,7 @@ module mod_cu_interface
   public :: cbmf2d
   public :: cldefi
   public :: tbase
-  public :: kfwavg
+  public :: avg_ww
   public :: avg_tten
   public :: avg_uten
   public :: avg_vten
@@ -226,7 +226,7 @@ module mod_cu_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            kfwavg(j,i,k) = (d_one-w1) * kfwavg(j,i,k) + &
+            avg_ww(j,i,k) = (d_one-w1) * avg_ww(j,i,k) + &
                           w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
           end do
         end do
@@ -245,6 +245,13 @@ module mod_cu_interface
     end do
 
     if ( any(icup == 5) ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_ww(j,i,k) = (d_one-w1)*avg_ww(j,i,k) + w1*m2c%wpas(j,i,k)
+          end do
+        end do
+      end do
       call exchange(m2c%uten,1,jdi1,jdi2,idi1,idi2,1,kz)
       call exchange(m2c%vten,1,jdi1,jdi2,idi1,idi2,1,kz)
       do k = 1 , kz

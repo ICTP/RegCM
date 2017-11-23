@@ -1126,8 +1126,8 @@ module mod_output
         if ( any(icup == 4) ) then
           call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
         end if
-        if ( any(icup == 6) ) then
-          call grid_collect(kfwavg,kfwavg_io,jci1,jci2,ici1,ici2,1,kz)
+        if ( any(icup == 6) .or. any(icup == 5) ) then
+          call grid_collect(avg_ww,cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz)
         end if
         call grid_collect(avg_tten,cu_avg_tten_io,jci1,jci2,ici1,ici2,1,kz)
         if ( any(icup == 5) ) then
