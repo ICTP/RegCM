@@ -107,7 +107,6 @@ module mod_micro_subex
                 pptnew , qcleft , qcw , qs , rdevap , qcincl ,  &
                 rhcs , prainx , qcth
     real(rkx) :: tcel
-    real(rkx) :: minqc
     integer(ik4) :: i , j , k , kk
     logical :: lsecind
     !
@@ -199,8 +198,7 @@ module mod_micro_subex
         afc = mc2mo%fcc(j,i,1)     ![frac][avg]
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
         pptnew = d_zero
-        pptmax = qcw/dt          ![kg/kg/s][avg]
-        minqc = remfrc * qcw
+        pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
         if ( afc > actcld ) then ! if there is a cloud
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
@@ -211,7 +209,7 @@ module mod_micro_subex
           !      is formed, only half of the precipitation is assumed to
           !      accrete. 1aga. Compute the amount of water remaining in the
           !      cloud [kg/kg]
-          qcleft = max(qcw - pptnew*dt,minqc) ![kg/kg][avg]
+          qcleft = max(qcw - pptnew*dt,d_zero) ![kg/kg][avg]
           ! 1agb. Add fraction of the new precipitation can accrete.
           pptkm1 = accrfrc*pptnew/afc*mo2mc%rho(j,i,1)*dt  ![kg/m3][cld]
           ! 1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
@@ -251,8 +249,7 @@ module mod_micro_subex
           dpovg = dsigma(k)*mo2mc%psb(j,i)*thog       ![kg/m2][avg]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
-          pptmax = qcw/dt                             ![kg/kg/s][avg]
-          minqc = remfrc * qcw
+          pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
           if ( pptsum(j,i) > d_zero ) then
             pptkm1 = pptsum(j,i)/dpovg             ![kg/kg/s][avg]
           else
@@ -295,7 +292,7 @@ module mod_micro_subex
             !      accretion [kg/kg/s].  In the layer where the precipitation
             !      is formed, only half of the precipitation can accrete.
             ! 1bfa. Compute the amount of water remaining in the cloud [kg/kg]
-            qcleft = max(qcw-pptnew*dt,minqc)             ![kg/kg][avg]
+            qcleft = max(qcw-pptnew*dt,d_zero)             ![kg/kg][avg]
             ! 1bfb. Add fraction of the new precipitation to the accumulated
             !       precipitation [kg/m3]
             ! [kg/m3][cld]

@@ -1288,7 +1288,7 @@ module mod_ncout
           srf_t2m_out => v3dvar_srf(srf_t2m)%rval
         end if
         if ( enable_srf3d_vars(srf_q2m) ) then
-          call setup_var(v3dvar_srf,srf_q2m,vsize,'qas','1', &
+          call setup_var(v3dvar_srf,srf_q2m,vsize,'huss','1', &
             'Near-Surface Specific Humidity','specific_humidity',.true.)
           srf_q2m_out => v3dvar_srf(srf_q2m)%rval
         end if
@@ -1573,7 +1573,7 @@ module mod_ncout
           sub_t2m_out => v3dvar_sub(sub_t2m)%rval
         end if
         if ( enable_sub3d_vars(sub_q2m) ) then
-          call setup_var(v3dvar_sub,sub_q2m,vsize,'qas','1', &
+          call setup_var(v3dvar_sub,sub_q2m,vsize,'huss','1', &
             'Near-Surface Specific Humidity','specific_humidity',.true.)
           sub_q2m_out => v3dvar_sub(sub_q2m)%rval
         end if
