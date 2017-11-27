@@ -76,7 +76,7 @@ bMethod1 = True
   dlat = frcmdom->dlat
   dlon = frcmdom->dlon
   landuse = frcmdom->landuse
-  sigma = frcmdom->sigma
+  sigma = frcmdom->kz
   ptop = frcmdom->ptop
   clon = dble2flt(frcmdom@longitude_of_projection_origin)
   xvec = frcmdom->jx
@@ -187,7 +187,7 @@ do while(bProcessingDates)
     filevardef(ficbc,varNames4D,varTypes4D,dims4D)
     filevardef(ficbc,varNames3D,varTypes3D,dims3D)
     filevardef(ficbc,varNames2D,varTypes2D,dims2D)
-    filevardef(ficbc,"sigma","float","kz")
+    filevardef(ficbc,"kz","float","kz")
     filevardef(ficbc,"iy","float","iy")
     filevardef(ficbc,"jx","float","jx")
     filevardef(ficbc,"time","double","time")
@@ -237,7 +237,7 @@ do while(bProcessingDates)
     ;Take the file out of define mode
     setfileoption(ficbc,"DefineMode",False)
     ;Write out static variables
-    ficbc->sigma = sigmahalf
+    ficbc->kz = sigmahalf
     ficbc->jx = xvec
     ficbc->iy = yvec
     ficbc->xlat = xlat

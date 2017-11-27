@@ -2756,7 +2756,7 @@ module mod_ncstream
       stvar%iy_var%long_name = 'y-coordinate in Cartesian system'
       stvar%iy_var%standard_name = 'projection_y_coordinate'
       stvar%iy_var%axis = 'y'
-      stvar%sigma_var%vname = 'sigma'
+      stvar%sigma_var%vname = 'kz'
       stvar%sigma_var%vunit = '1'
       if ( stream%l_full_sigma ) then
         stvar%sigma_var%long_name = "Sigma at full model layers"
@@ -2791,10 +2791,10 @@ module mod_ncstream
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       if ( idynamic == 2 ) then
         attc%aname = 'formula'
-        attc%theval = 'p(n,k,j,i) = ptop+sigma(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
+        attc%theval = 'p(n,k,j,i) = ptop+kz(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
       else
         attc%aname = 'formula_terms'
-        attc%theval = 'sigma: sigma ps: ps ptop: ptop'
+        attc%theval = 'sigma: kz ps: ps ptop: ptop'
       end if
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       attc%aname = '_CoordinateAxisType'

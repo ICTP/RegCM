@@ -240,7 +240,7 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire variable')
     if (varname == 'time') then
       itvarid = i
-    else if (varname == 'sigma' .or. varname == 'lev') then
+    else if (varname == 'kz' .or. varname == 'sigma' .or. varname == 'lev') then
       varname = 'zlev'
       ikvarid = i
     else if (varname == 'ptop') then
@@ -373,11 +373,14 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding grid_mapping')
   end if
 
-  istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+  istatus = nf90_inq_varid(ncid, "kz", ivarid)
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+  end if
   if ( istatus /= nf90_noerr ) then
     istatus = nf90_inq_varid(ncid, "lev", ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error reading variable sigma or lev.')
+                    'Error searching variable kz, sigma or lev.')
     call memory_init
     call init_sigma(kz,0.05_rkx,0.01_rkx)
     do k = 1 , kz
@@ -386,7 +389,8 @@ program sigma2z
     call memory_destroy
   else
     istatus = nf90_get_var(ncid, ivarid, sigma)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error reading variable kz, sigma or lev.')
     if ( sigma(1) < dlowval ) then
       ! Fix for a buggy RegCM 4.3.x revision
       allocate(sigfix(kz+1))

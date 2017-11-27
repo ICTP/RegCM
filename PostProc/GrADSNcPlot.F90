@@ -446,7 +446,10 @@ program ncplot
     call checkalloc(istatus,__FILE__,__LINE__, &
                     'level')
     if (lsigma) then
-      istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+      istatus = nf90_inq_varid(ncid, "kz", ivarid)
+      if ( istatus /= nf90_noerr ) then
+        istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+      end if
     else
       istatus = nf90_inq_varid(ncid, "lev", ivarid)
       if (istatus /= nf90_noerr) then

@@ -109,7 +109,7 @@ module mod_ncio
       else
         replacemoist = .false.
       end if
-      call read_var1d_static(idmin,'sigma',sigma)
+      call read_var1d_static(idmin,'kz',sigma)
       call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
       xlat(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
@@ -191,7 +191,7 @@ module mod_ncio
           replacemoist = .false.
         end if
         call bcast(replacemoist)
-        call read_var1d_static(idmin,'sigma',sigma)
+        call read_var1d_static(idmin,'kz',sigma)
         call bcast(sigma)
         call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)

@@ -293,15 +293,15 @@ program readregcm
       write (6,*) 'Memory error allocating sigma'
       stop
     end if
-    istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+    istatus = nf90_inq_varid(ncid, "kz", ivarid)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error : sigma variable undefined'
+      write (6,*) 'Error : kz variable undefined'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
     istatus = nf90_get_var(ncid, ivarid, sigma)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading sigma variable'
+      write (6,*) 'Error reading kz variable'
       write (6,*) nf90_strerror(istatus)
       stop
     end if

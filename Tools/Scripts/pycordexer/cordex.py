@@ -794,7 +794,10 @@ if 'vertint' in lookup[variable]:
   else:
     ps = ncf.variables['ps']
     ptop = ncf.variables['ptop'][:]
-    sigma = ncf.variables['sigma'][:]
+    try:
+      sigma = ncf.variables['kz'][:]
+    except:
+      sigma = ncf.variables['sigma'][:]
 
 avars = []
 addvar = []

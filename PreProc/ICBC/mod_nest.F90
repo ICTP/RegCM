@@ -178,7 +178,10 @@ module mod_nest
     call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
     call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
 
-    istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
+    istatus = nf90_inq_varid(ncinp, 'kz', ivarid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable sigma error')
     istatus = nf90_get_var(ncinp, ivarid, sigma_in)

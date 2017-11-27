@@ -120,7 +120,7 @@ begin
       print("Calculating Pressure...")
     end if
     ps    = fhatm->ps
-    sigma = fhatm->sigma
+    sigma = fhatm->kz
     ptop  = fhatm->ptop
     time = fhatm->time
 

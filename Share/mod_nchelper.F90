@@ -273,9 +273,9 @@ module mod_nchelper
     integer(ik4) , intent(in) , dimension(:) :: idims
     integer(ik4) , intent(out) , dimension(2) :: izvar
 
-    incstat = nf90_def_var(ncid, 'sigma', nf90_double, idims(3), izvar(1))
+    incstat = nf90_def_var(ncid, 'kz', nf90_double, idims(3), izvar(1))
     call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error adding variable sigma')
+                    'Error adding variable kz')
     incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
                            'atmosphere_sigma_coordinate')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -300,7 +300,7 @@ module mod_nchelper
                              'Error adding sigma formula')
     else
       incstat = nf90_put_att(ncid, izvar(1), 'formula_terms', &
-                             'sigma: sigma ps: ps ptop: ptop')
+                             'kz: sigma ps: ps ptop: ptop')
       call checkncerr(incstat,__FILE__,__LINE__, &
                              'Error adding sigma formula_terms')
     end if

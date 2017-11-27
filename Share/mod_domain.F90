@@ -67,7 +67,7 @@ module mod_domain
     logical :: has_dhlake = .true.
     call check_domain(ncid)
     call allocate_domain( )
-    call read_var1d_static(ncid,'sigma',mddom_io%sigma)
+    call read_var1d_static(ncid,'kz',mddom_io%sigma)
     call read_var2d_static(ncid,'xlat',mddom_io%xlat)
     call read_var2d_static(ncid,'xlon',mddom_io%xlon)
     call read_var2d_static(ncid,'dlat',mddom_io%dlat)
@@ -108,7 +108,7 @@ module mod_domain
     else
       call check_domain(ncid)
     end if
-    call read_var1d_static(ncid,'sigma',sigma)
+    call read_var1d_static(ncid,'kz',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
     if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
@@ -149,7 +149,7 @@ module mod_domain
     else
       call check_domain(ncid)
     end if
-    call read_var1d_static(ncid,'sigma',sigma)
+    call read_var1d_static(ncid,'kz',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
     if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)

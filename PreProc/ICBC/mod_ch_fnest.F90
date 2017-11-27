@@ -194,7 +194,10 @@ module mod_ch_fnest
     call getmem1d(sigma_in,1,kz_in,'init_fnest:sigma_in')
     call getmem3d(mxc,1,jx_in,1,iy_in,1,kz_in,'init_fnest:mxc')
 
-    istatus = nf90_inq_varid(ncid(1), 'sigma', ivarid)
+    istatus = nf90_inq_varid(ncid(1), 'kz', ivarid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(ncid(1), 'sigma', ivarid)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable sigma error')
     istatus = nf90_get_var(ncid(1), ivarid, sigma_in)
