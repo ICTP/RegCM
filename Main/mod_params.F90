@@ -610,14 +610,14 @@ module mod_params
         diffu_hgtf = 0
       else
         gnu1 = 0.0625_rkx
-        gnu2 = 0.1250_rkx
+        gnu2 = 0.0625_rkx
         diffu_hgtf = 1
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx
       uoffc = 0.250_rkx
       t_extrema = 5.0_rkx
-      q_rel_extrema = 0.50_rkx
+      q_rel_extrema = 0.20_rkx
       c_rel_extrema = 0.50_rkx
       t_rel_extrema = 0.50_rkx
       rewind(ipunit)

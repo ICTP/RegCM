@@ -291,22 +291,20 @@
 !
  &dynparam
  gnu1 = 0.0625,  ! nu factor for Asselin filter in leapfrog step.
- gnu2 = 0.1250,  ! nu factor for Asselin filter in leapfrog step (tracers).
+ gnu2 = 0.0625,  ! nu factor for Asselin filter in leapfrog step (tracers).
                  ! MM5 manual , equation 2.4.6
-                 ! Default 0.0625,0.1 for hydro, 0.1,0.1 for nonhydro
+                 ! Default 0.0625 for hydro, 0.1 for nonhydro
  ckh = 1.0,      ! Background diffusion multiplication factor
  adyndif = 1.0,  ! Dynamical diffusion multiplication factor
  diffu_hgtf = 1, ! Add topographic effect to diffusion
                  ! It is set to zero default in the non-hydrostatic
  upstream_mode = .true.,  ! Add off centering to advection
  uoffc = 0.250,           ! Maximum off-centering factor to use
- stability_enhance = .false., ! Do not allow horizontal advection to increase
-                              ! tendencies if strong gradients are present
-                              ! Enabled by default in non-hydro
- vert_stability_enhance = .false., ! Same for vertical advection
-                                   ! Enabled by default in non-hydro
+ stability_enhance = .true., ! Do not allow horizontal advection to increase
+                             ! tendencies if strong gradients are present
+ vert_stability_enhance = .true., ! Same for vertical advection
  t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
- q_rel_extrema = 0.5, ! Maximum gradient fraction for QV for advection to stop
+ q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
  c_rel_extrema = 0.5, ! Maximum gradient fraction for QX for advection to stop
  t_rel_extrema = 0.5, ! Maximum gradient fraction for tracer advection to stop
  /
@@ -513,9 +511,9 @@
  ricr_lnd = 0.25,  ! Critical Richardson Number over Land
  zhnew_fac = 0.25, ! Multiplicative factor for zzhnew in holtpbl
  ifaholtth10 = 1,  ! First approximation for obhukov length, th10 formula:
-                   !      1 => 0.5 * (t+tg) * (1+0.61*q)
-                   !      2 => (0.25*t + 0.75*tg) * (1+0.61*q)
-                   !      3 => theta + hf/(k*us)*log(z/10)
+                   !      0 => 0.5 * (t+tg) * (1+0.61*q)
+                   !      1 => (0.25*t + 0.75*tg) * (1+0.61*q)
+                   !      2 => theta + hf/(k*us)*log(z/10)
                    ! t = air temp., tg = ground temp., q = wv mix. ratio
                    ! hf = total heat flux, z = elevation
                    ! theta = virt. pot. t
