@@ -199,10 +199,10 @@ module mod_ch_fnest
       istatus = nf90_inq_varid(ncid(1), 'sigma', ivarid)
     end if
     call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable sigma error')
+                    'variable sigma or kz error')
     istatus = nf90_get_var(ncid(1), ivarid, sigma_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable sigma read error')
+                    'variable sigma or kz read error')
     istatus = nf90_inq_varid(ncid(1), 'xlat', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable xlat error')

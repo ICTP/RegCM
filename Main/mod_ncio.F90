@@ -89,6 +89,7 @@ module mod_ncio
     real(rkx) , dimension(:,:) , pointer :: rspace
     logical :: has_snow = .true.
     logical :: has_dhlake = .true.
+    logical :: lerror
 
     dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     if ( myid == italk ) then
@@ -109,7 +110,11 @@ module mod_ncio
       else
         replacemoist = .false.
       end if
-      call read_var1d_static(idmin,'kz',sigma)
+      lerror = .true.
+      call read_var1d_static(idmin,'kz',sigma,lerror)
+      if ( .not. lerror ) then
+        call read_var1d_static(idmin,'sigma',sigma)
+      end if
       call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
       xlat(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
@@ -191,7 +196,11 @@ module mod_ncio
           replacemoist = .false.
         end if
         call bcast(replacemoist)
-        call read_var1d_static(idmin,'kz',sigma)
+        lerror = .true.
+        call read_var1d_static(idmin,'kz',sigma,lerror)
+        if ( .not. lerror ) then
+          call read_var1d_static(idmin,'sigma',sigma)
+        end if
         call bcast(sigma)
         call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)

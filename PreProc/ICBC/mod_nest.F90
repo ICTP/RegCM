@@ -183,10 +183,10 @@ module mod_nest
       istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
     end if
     call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable sigma error')
+                    'variable sigma or kz error')
     istatus = nf90_get_var(ncinp, ivarid, sigma_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable sigma read error')
+                    'variable sigma or kz read error')
     if ( sigma_in(1) < dlowval ) then
       ! Fix V. 4.3.x bug in sigma levels
       allocate(sigfix(kz_in+1))

@@ -63,11 +63,16 @@ module mod_domain
   subroutine read_domain_type(ncid)
     implicit none
     integer(ik4) , intent(in) :: ncid
-    logical :: has_snow = .true.
-    logical :: has_dhlake = .true.
+    logical :: has_snow , has_dhlake , has_kz
+    has_snow = .true.
+    has_dhlake = .true.
+    has_kz = .true.
     call check_domain(ncid)
     call allocate_domain( )
-    call read_var1d_static(ncid,'kz',mddom_io%sigma)
+    call read_var1d_static(ncid,'kz',mddom_io%sigma,has_kz)
+    if ( .not. has_kz ) then
+      call read_var1d_static(ncid,'sigma',mddom_io%sigma)
+    end if
     call read_var2d_static(ncid,'xlat',mddom_io%xlat)
     call read_var2d_static(ncid,'xlon',mddom_io%xlon)
     call read_var2d_static(ncid,'dlat',mddom_io%dlat)
@@ -101,14 +106,19 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: snowam
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: hlake
     logical , intent(in) , optional :: lsubgrid
-    logical :: has_snow = .true.
-    logical :: has_dhlake = .true.
+    logical :: has_snow , has_dhlake , has_kz
+    has_snow = .true.
+    has_dhlake = .true.
+    has_kz = .true.
     if ( present(lsubgrid) ) then
       call check_domain(ncid,lsubgrid=lsubgrid)
     else
       call check_domain(ncid)
     end if
-    call read_var1d_static(ncid,'kz',sigma)
+    call read_var1d_static(ncid,'kz',sigma,has_kz)
+    if ( .not. has_kz ) then
+      call read_var1d_static(ncid,'sigma',sigma)
+    end if
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
     if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
@@ -142,14 +152,19 @@ module mod_domain
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: snowam
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: hlake
     logical , intent(in) , optional :: lsubgrid
-    logical :: has_snow = .true.
-    logical :: has_dhlake = .true.
+    logical :: has_snow , has_dhlake , has_kz
+    has_snow = .true.
+    has_dhlake = .true.
+    has_kz = .true.
     if ( present(lsubgrid) ) then
       call check_domain(ncid,lsubgrid=lsubgrid)
     else
       call check_domain(ncid)
     end if
-    call read_var1d_static(ncid,'kz',sigma)
+    call read_var1d_static(ncid,'kz',sigma,has_kz)
+    if ( .not. has_kz ) then
+      call read_var1d_static(ncid,'sigma',sigma)
+    end if
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
     if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
