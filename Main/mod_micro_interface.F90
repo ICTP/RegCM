@@ -349,7 +349,7 @@ module mod_micro_interface
     !
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
-               r1 , rh0adj , rhc
+               r1 , rh0adj , rhc , wwlh
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
@@ -390,8 +390,9 @@ module mod_micro_interface
           end if
           qvs = pfwsat(tmp3,pres)
           rhc = min(max(qvcs/qvs,d_zero),rhmax)
+          wwlh = wlh(tmp3)
 
-          r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
+          r1 = d_one/(d_one+wwlh*wwlh*qvs/(rwat*cpd*tmp3*tmp3))
 
           ! 2b. Compute the relative humidity threshold at ktau+1
           if ( tmp3 > tc0 ) then
@@ -438,7 +439,7 @@ module mod_micro_interface
             aten%qx(j,i,k,iqc,pc_physic) = &
                 aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
             aten%t(j,i,k,pc_physic) = &
-                aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wlhvocp
+                aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wwlh*rcpd
           end if
         end do
       end do
@@ -448,6 +449,7 @@ module mod_micro_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <wlh.inc>
 
   end subroutine condtq
 

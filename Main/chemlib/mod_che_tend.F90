@@ -348,9 +348,9 @@
       !
       ! linox emissions
       if ( ichlinox == 1 .and. ino > 0 ) then
-       do j = jci1 , jci2
+        do j = jci1 , jci2
           call linox_em(j,ivegcov(:,j))
-       end do
+        end do
       end if
 
 

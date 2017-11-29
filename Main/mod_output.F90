@@ -705,6 +705,8 @@ module mod_output
         end if
         if ( associated(srf_sena_out) ) &
           srf_sena_out = srf_sena_out*rnsrf_for_srffrq
+        if ( associated(srf_lena_out) ) &
+          srf_lena_out = srf_lena_out*rnsrf_for_srffrq
         if ( associated(srf_flw_out) ) &
           srf_flw_out = srf_flw_out*rnsrf_for_srffrq
         if ( associated(srf_fsw_out) ) &
@@ -787,6 +789,7 @@ module mod_output
         if ( associated(srf_srunoff_out) ) srf_srunoff_out = d_zero
         if ( associated(srf_trunoff_out) ) srf_trunoff_out = d_zero
         if ( associated(srf_sena_out) ) srf_sena_out = d_zero
+        if ( associated(srf_lena_out) ) srf_lena_out = d_zero
         if ( associated(srf_flw_out) ) srf_flw_out = d_zero
         if ( associated(srf_fsw_out) ) srf_fsw_out = d_zero
         if ( associated(srf_fld_out) ) srf_fld_out = d_zero

@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 29 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 30 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 7
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -244,28 +244,29 @@ module mod_ncout
   integer(ik4) , parameter :: srf_evp      = 10
   integer(ik4) , parameter :: srf_scv      = 11
   integer(ik4) , parameter :: srf_sena     = 12
-  integer(ik4) , parameter :: srf_flw      = 13
-  integer(ik4) , parameter :: srf_fsw      = 14
-  integer(ik4) , parameter :: srf_fld      = 15
-  integer(ik4) , parameter :: srf_sina     = 16
-  integer(ik4) , parameter :: srf_prcv     = 17
-  integer(ik4) , parameter :: srf_zpbl     = 18
-  integer(ik4) , parameter :: srf_aldirs   = 19
-  integer(ik4) , parameter :: srf_aldifs   = 20
-  integer(ik4) , parameter :: srf_sund     = 21
-  integer(ik4) , parameter :: srf_seaice   = 22
-  integer(ik4) , parameter :: srf_snowmelt = 23
-  integer(ik4) , parameter :: srf_dew      = 24
-  integer(ik4) , parameter :: srf_srunoff  = 25
-  integer(ik4) , parameter :: srf_trunoff  = 26
-  integer(ik4) , parameter :: srf_ustar    = 27
-  integer(ik4) , parameter :: srf_zo       = 28
-  integer(ik4) , parameter :: srf_rhoa     = 29
-  integer(ik4) , parameter :: srf_totcf    = 30
-  integer(ik4) , parameter :: srf_wspd     = 31
-  integer(ik4) , parameter :: srf_taux     = 32
-  integer(ik4) , parameter :: srf_tauy     = 33
-  integer(ik4) , parameter :: srf_psl      = 34
+  integer(ik4) , parameter :: srf_lena     = 13
+  integer(ik4) , parameter :: srf_flw      = 14
+  integer(ik4) , parameter :: srf_fsw      = 15
+  integer(ik4) , parameter :: srf_fld      = 16
+  integer(ik4) , parameter :: srf_sina     = 17
+  integer(ik4) , parameter :: srf_prcv     = 18
+  integer(ik4) , parameter :: srf_zpbl     = 19
+  integer(ik4) , parameter :: srf_aldirs   = 20
+  integer(ik4) , parameter :: srf_aldifs   = 21
+  integer(ik4) , parameter :: srf_sund     = 22
+  integer(ik4) , parameter :: srf_seaice   = 23
+  integer(ik4) , parameter :: srf_snowmelt = 24
+  integer(ik4) , parameter :: srf_dew      = 25
+  integer(ik4) , parameter :: srf_srunoff  = 26
+  integer(ik4) , parameter :: srf_trunoff  = 27
+  integer(ik4) , parameter :: srf_ustar    = 28
+  integer(ik4) , parameter :: srf_zo       = 29
+  integer(ik4) , parameter :: srf_rhoa     = 30
+  integer(ik4) , parameter :: srf_totcf    = 31
+  integer(ik4) , parameter :: srf_wspd     = 32
+  integer(ik4) , parameter :: srf_taux     = 33
+  integer(ik4) , parameter :: srf_tauy     = 34
+  integer(ik4) , parameter :: srf_psl      = 35
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -1110,17 +1111,17 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_ustar) ) then
           call setup_var(v2dvar_srf,srf_ustar,vsize,'ustar','m s-1', &
-            'Surface friction velocity','friction_velocity',.true.)
+            'Surface Friction Velocity','friction_velocity',.true.)
           srf_ustar_out => v2dvar_srf(srf_ustar)%rval
         end if
         if ( enable_srf2d_vars(srf_zo) ) then
           call setup_var(v2dvar_srf,srf_zo,vsize,'zo','m', &
-            'Surface roughness length','roughness_length',.true.)
+            'Surface Roughness Length','roughness_length',.true.)
           srf_zo_out => v2dvar_srf(srf_zo)%rval
         end if
         if ( enable_srf2d_vars(srf_rhoa) ) then
           call setup_var(v2dvar_srf,srf_rhoa,vsize,'rhoa','kg m-3', &
-            'Surface air density','air_density',.true.)
+            'Surface Air Density','air_density',.true.)
           srf_rhoa_out => v2dvar_srf(srf_rhoa)%rval
         end if
         if ( enable_srf2d_vars(srf_tg) ) then
@@ -1130,7 +1131,7 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_tlef) ) then
           call setup_var(v2dvar_srf,srf_tlef,vsize,'tf','K', &
-            'Foliage canopy temperature','canopy_temperature',  &
+            'Foliage Canopy Temperature','canopy_temperature',  &
             .true.,l_fill=.true.)
           srf_tlef_out => v2dvar_srf(srf_tlef)%rval
         end if
@@ -1153,9 +1154,17 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_sena) ) then
           call setup_var(v2dvar_srf,srf_sena,vsize,'hfss','W m-2', &
-            'Sensible heat flux','surface_upward_sensible_heat_flux', &
+            'Surface Upward Sensible Heat Flux', &
+            'surface_upward_sensible_heat_flux', &
             .true.,'time: mean')
           srf_sena_out => v2dvar_srf(srf_sena)%rval
+        end if
+        if ( enable_srf2d_vars(srf_lena) ) then
+          call setup_var(v2dvar_srf,srf_lena,vsize,'hfls','W m-2', &
+            'Surface Upward Latent Heat Flux', &
+            'surface_upward_latent_heat_flux', &
+            .true.,'time: mean')
+          srf_lena_out => v2dvar_srf(srf_lena)%rval
         end if
         if ( enable_srf2d_vars(srf_flw) ) then
           call setup_var(v2dvar_srf,srf_flw,vsize,'rsnl','W m-2', &
@@ -1177,7 +1186,7 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_sina) ) then
           call setup_var(v2dvar_srf,srf_sina,vsize,'rsds','W m-2', &
-            'Surface downward shortwave flux in air', &
+            'Surface Downward Shortwave Flux', &
             'surface_downwelling_shortwave_flux_in_air',.true.,'time: mean')
           srf_sina_out => v2dvar_srf(srf_sina)%rval
         end if
@@ -1193,19 +1202,19 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &
-            'Height of Boundary Layer', &
+            'Boundary Layer Thickness', &
             'atmosphere_boundary_layer_thickness',.true.)
           srf_zpbl_out => v2dvar_srf(srf_zpbl)%rval
         end if
         if ( enable_srf2d_vars(srf_aldirs) ) then
           call setup_var(v2dvar_srf,srf_aldirs,vsize,'aldirs','1', &
-            'Surface albedo to direct shortwave radiation', &
+            'Surface Albedo to Direct Shortwave Radiation', &
             'surface_albedo_short_wave_direct',.true.)
           srf_aldirs_out => v2dvar_srf(srf_aldirs)%rval
         end if
         if ( enable_srf2d_vars(srf_aldifs) ) then
           call setup_var(v2dvar_srf,srf_aldifs,vsize,'aldifs','1', &
-            'Surface albedo to diffuse shortwave radiation', &
+            'Surface Albedo to Diffuse Shortwave Radiation', &
             'surface_albedo_short_wave_diffuse',.true.)
           srf_aldifs_out => v2dvar_srf(srf_aldifs)%rval
         end if
@@ -1242,7 +1251,7 @@ module mod_ncout
           if ( enable_srf2d_vars(srf_evp) ) then
             if ( enable_srf2d_vars(srf_dew) ) then
               call setup_var(v2dvar_srf,srf_dew,vsize,'mdew','kg m-2 s-1', &
-                'Surface deposition','surface_deposition_flux', &
+                'Surface Deposition','surface_deposition_flux', &
                 .true.,'time: mean')
               srf_dew_out => v2dvar_srf(srf_dew)%rval
             end if
@@ -1299,14 +1308,14 @@ module mod_ncout
         end if
         if ( enable_srf3d_vars(srf_ws100) ) then
           call setup_var(v3dvar_srf,srf_ws100,vsize,'ws100','m/s', &
-            'Wind speed at 100 meter elevation','wind_speed',.true.)
+            'Wind Speed at 100 meter Elevation','wind_speed',.true.)
           srf_ws100_out => v3dvar_srf(srf_ws100)%rval
         end if
         vsize%k2 = num_soil_layers
         v3dvar_srf(srf_smw)%axis = 'xys'
         if ( enable_srf3d_vars(srf_smw) ) then
           call setup_var(v3dvar_srf,srf_smw,vsize,'mrso','kg m-2', &
-            'Moisture content of the soil layers', &
+            'Moisture Content of the Soil Layers', &
             'soil_moisture_content_in_layers',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
         end if
@@ -1358,13 +1367,13 @@ module mod_ncout
 
         if ( enable_sts2d_vars(sts_tgmax) ) then
           call setup_var(v2dvar_sts,sts_tgmax,vsize,'tsmax','K', &
-            'Maximum ground temperature','surface_temperature', &
+            'Maximum Ground Temperature','surface_temperature', &
             .true.,'time: maximum')
           sts_tgmax_out => v2dvar_sts(sts_tgmax)%rval
         end if
         if ( enable_sts2d_vars(sts_tgmin) ) then
           call setup_var(v2dvar_sts,sts_tgmin,vsize,'tsmin','K', &
-            'Minimum ground temperature','surface_temperature', &
+            'Minimum Ground Temperature','surface_temperature', &
             .true.,'time: minimum')
           sts_tgmin_out => v2dvar_sts(sts_tgmin)%rval
         end if
@@ -1857,7 +1866,8 @@ module mod_ncout
         end if
         if ( enable_lak2d_vars(lak_sena) ) then
           call setup_var(v2dvar_lak,lak_sena,vsize,'hfss','W m-2', &
-            'Sensible heat flux','surface_upward_sensible_heat_flux',.true.)
+            'Surface Upward Sensible Heat Flux', &
+            'surface_upward_sensible_heat_flux',.true.)
           lak_sena_out => v2dvar_lak(lak_sena)%rval
         end if
         if ( enable_lak2d_vars(lak_flw) ) then

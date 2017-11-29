@@ -60,10 +60,10 @@
  &terrainparam
  domname  = 'AQWA',           ! Name of the domain/experiment.
                               ! Controls naming of input files
- lresamp = .true.,            ! Do a first resampling before interpolation
+ lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
  ismthlev = 1,                ! Smoothing level (1-2-1, smoother-desmoother)
- roidem = 1.0,                ! Interpolation radius in ds unit for topography
+ roidem = 1.5,                ! Interpolation radius in ds unit for topography
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
@@ -103,7 +103,7 @@
                              !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
                              !          IP_XX, GF_XX, CN_XX, MP_XX
                              ! with XX for CMIP5 datasets in 26, 45, 85
- chemtyp = 'MZ6HR',          ! Type of Global Chemistry boundary conditions
+ chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
  gdate1 = 1990060100,        ! Start date for ICBC data generation
@@ -164,7 +164,7 @@
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
  enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 41*.true., ! Mask to eventually disable variables SRF
+ enable_srf_vars = 42*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
@@ -350,7 +350,7 @@
 ! Moisture scheme comtrol (ipptls = 1)
 !
  &subexparam
- ncld      = 0,       ! # of bottom model levels with no clouds (rad only)
+ ncld      = 1,       ! # of bottom model levels with no clouds (rad only)
  qck1land  = 0.0005,  ! Autoconversion Rate for Land
  qck1oce   = 0.0005,  ! Autoconversion Rate for Ocean
  gulland   = 0.65,    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
@@ -617,18 +617,21 @@
                  ! 2 = use the the revised soil granulometry + Kok et al., 2011
                  ! 3 = use the the CLM4.5 dust emission module.
  ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
- idirect   = 1,  ! Choice to enable or not aerosol feedbacks on radiation and
+ ismoke = 0,     ! Consider emissions from fires (smoke tracer)
+ idirect   = 0,  ! Choice to enable or not aerosol feedbacks on radiation and
                  ! dynamics (aerosol direct and semi direct effcts):
+                 ! 0 = no coupling to dynamic and thermodynamic.
                  ! 1 = no coupling to dynamic and thermodynamic. However
                  !     the clear sky surface and top of atmosphere 
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
- ismoke = 0,     ! Consider emissions from fires (smoke tracer)
  iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
- rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
  ichjphcld = 1,  ! Impact of cloud aod on photolysis coef
- ichbion = 0,    ! ???????????????????????????????????///
+ ichlinox = 1,   ! LINOX emission considered
+ ichbion = 0,    ! NOx and NH3 emissions from soil manure (Potter et. al 2010)
+ rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
+ rocemfac = 1.33,! OC correction factor to increase emissions for SOA
  /
 !
 ! CLM parameters

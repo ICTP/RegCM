@@ -280,7 +280,7 @@ module mod_micro_subex
             ! 2bcf. Compute the temperature tendency [K/s*cb]
             ![k/s*cb][avg]
             mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                                       wlhvocp*rdevap*mo2mc%psb(j,i)
+                    wlh(mo2mc%t(j,i,k))*rcpd*rdevap*mo2mc%psb(j,i)
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
           if ( afc > actcld ) then ! if there is a cloud
@@ -371,6 +371,7 @@ module mod_micro_subex
 #include <pfesat.inc>
 #include <pfwsat.inc>
 #include <clwfromt.inc>
+#include <wlh.inc>
 
     pure real(rkx) function season_factor(lat) result(sf)
       implicit none

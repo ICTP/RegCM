@@ -233,10 +233,10 @@ later when the model calculates climatic parameters.
  &terrainparam
  domname  = 'AQWA',           ! Name of the domain/experiment.
                               ! Controls naming of input files
- lresamp = .true.,            ! Do a first resampling before interpolation
+ lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
  ismthlev = 1,                ! Smoothing level (1-2-1, smoother-desmoother)
- roidem = 1.0,                ! Interpolation radius in ds unit for topography
+ roidem = 1.5,                ! Interpolation radius in ds unit for topography
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
  lakedpth    = .false.,       ! If using lakemod (see below), produce from
@@ -333,7 +333,7 @@ tell them how to build initial and bondary conditions.
                              !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
                              !          IP_XX, GF_XX, CN_XX, MP_XX
                              ! with XX for CMIP5 datasets in 26, 45, 85
- chemtyp = 'MZ6HR',          ! Type of Global Chemistry boundary conditions
+ chemtyp = 'MZCLM',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
  gdate1 = 1990060100,        ! Start date for ICBC data generation
@@ -526,7 +526,7 @@ written in the files.
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
  enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 41*.true., ! Mask to eventually disable variables SRF
+ enable_srf_vars = 42*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
@@ -844,7 +844,7 @@ The parameters below are the ones currently used at ICTP.
 {\footnotesize
 \begin{Verbatim}
  &subexparam
- ncld      = 0,       ! # of bottom model levels with no clouds (rad only)
+ ncld      = 1,       ! # of bottom model levels with no clouds (rad only)
  qck1land  = 0.0005,  ! Autoconversion Rate for Land
  qck1oce   = 0.0005,  ! Autoconversion Rate for Ocean
  gulland   = 0.65,    ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
@@ -1208,7 +1208,7 @@ This namelist controls the chemistry and aerosol options in the RegCM model.
                            ! One in :
                            !   DUST   : Activate 4 dust bins scheme
                            !   SSLT   : Activate 2 bins Sea salt scheme
-                           !   DUSS   : Activate DUST +SSLT
+                           !   DUSS   : Activate DUST + SSLT
                            !   DU12   : Activate 12 dust bins scheme
                            !   CARB   : Activate 4 species black/anthropic
                            !            carbon simulations
@@ -1218,37 +1218,38 @@ This namelist controls the chemistry and aerosol options in the RegCM model.
                            !   CBMZ   : Activate gas phase and sulfate
                            !   DCCB   : Activate CBMZ +DUST +CARB
                            !   POLLEN : Activate POLLEN transport scheme
- ichsolver = 1,  ! Activate the gas phase chemical solver CBMZ
- ichsursrc = 1,  ! Enable the emissions fluxes.
+ ichsolver = 1,  ! Activate the chemical solver
+ ichsursrc = 1,  ! Enable the emissions
  ichdrdepo = 1,  ! 1 = enable tracer surface dry deposition. For dust,
                  !     it is calculated by a size settling and dry
                  !     deposition scheme. For other aerosol,a dry
                  !     deposition velocity is simply prescribed further.
- ichebdy = 1,    ! Enable reading of chemical boundary conditions, otherwise
-                 ! put 0 in boundary conditions.
- ichcumtra = 1,  ! 1 = enable tracer convective transport.
- ichremlsc = 1,  ! 1 = enable tracer rainout     
- ichremcvc = 1,  ! 1 = enable tracer washout 
+ ichebdy = 1,    ! Enable boundary conditions read
+ ichcumtra = 1,  ! 1 = enable tracer convective transport and mixing.
+ ichremlsc = 1,  ! 1 = wet removal of chemical species (washout and rainout
+                 !     by total rain) is enabled
+ ichremcvc = 1,  ! 1 = wet removal of chemical species (washout and rainout
+                 !     by convective rain) is enabled
  ichdustemd = 1, ! Choice for parametrisation of dust emission size distribution
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
-                 ! 2 = use a revised soil granulometry ref + 
-                 !     Kok et al emission size distribution :
-                 !     Menut et al.,2012; + Kok et al., 2011
+                 ! 2 = use the the revised soil granulometry + Kok et al., 2011
                  ! 3 = use the the CLM4.5 dust emission module.
- ichdiag = 0,    ! 1 = enable writing of additional tracer tendency
-                 ! diagnostics in the output
- idirect   = 1,  ! CHoice to enable or not aerosol feedbacks on radiation and
-                 ! dynamics (aerosol direct and semi direct effects)
-                 ! possible choice 1 or 2:
+ ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
+ ismoke = 0,     ! Consider emissions from fires (smoke tracer)
+ idirect   = 0,  ! Choice to enable or not aerosol feedbacks on radiation and
+                 ! dynamics (aerosol direct and semi direct effcts):
+                 ! 0 = no coupling to dynamic and thermodynamic.
                  ! 1 = no coupling to dynamic and thermodynamic. However
                  !     the clear sky surface and top of atmosphere 
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
- iindirect = 0,  ! Enable sulfate first indirect effect in radiation scheme
-                 ! based on Qian et al., 2001 
- rdstemfac = 1.0,! Dust emission adjustment factor ( soil erodibility)
-                 ! linearly reduce or increase the dust flux
+ iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
+ ichjphcld = 1,  ! Impact of cloud aod on photolysis coef
+ ichlinox = 1,   ! LINOX emission considered
+ ichbion = 0,    ! NOx and NH3 emissions from soil manure (Potter et. al 2010)
+ rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
+ rocemfac = 1.33,! OC correction factor to increase emissions for SOA
  /
 \end{Verbatim}
 }

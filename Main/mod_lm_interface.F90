@@ -645,7 +645,7 @@ module mod_lm_interface
         expfie%lwrd(j,i) = lm%rlwf(j,i)
         expfie%dlwr(j,i) = lm%dwrlwf(j,i)
         expfie%dswr(j,i) = lm%swdif(j,i)+lm%swdir(j,i)
-        expfie%lhfx(j,i) = sum(lms%evpr(:,j,i))*rdnnsg*wlhv
+        expfie%lhfx(j,i) = sum(lms%evpr(:,j,i)*wlh(lms%tgrd(:,j,i)))
         expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
         expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
         expfie%wndu(j,i) = sum(lms%u10m(:,j,i))*rdnnsg
@@ -679,6 +679,11 @@ module mod_lm_interface
       runoffcount = d_zero
       lm%dailyrnf(:,:,:) = d_zero
     end if
+
+    contains
+
+#include <wlh.inc>
+
   end subroutine export_data_from_surface
 !
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
@@ -909,6 +914,9 @@ module mod_lm_interface
         if ( associated(srf_sena_out) ) then
           srf_sena_out = srf_sena_out + sum(lms%sent,1)*rdnnsg
         end if
+        if ( associated(srf_lena_out) ) then
+          srf_lena_out = srf_lena_out + sum(lms%evpr*wlh(lms%tgrd),1)*rdnnsg
+        end if
         if ( associated(srf_flw_out) ) &
           srf_flw_out = srf_flw_out + lm%rlwf
         if ( associated(srf_fsw_out) ) &
@@ -1118,6 +1126,7 @@ module mod_lm_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <wlh.inc>
 
     subroutine mslp
       implicit none

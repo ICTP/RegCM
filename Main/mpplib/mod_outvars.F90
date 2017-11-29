@@ -120,6 +120,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_dew_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_scv_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_sena_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_lena_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_flw_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_fsw_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_fld_out => null()
