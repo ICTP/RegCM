@@ -435,25 +435,31 @@ module mod_savefile
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_ww'),cu_avg_ww_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_ww')
+        if ( ncstatus /= nf_noerr ) cu_avg_ww_io = 0.0_rkx
+        ! call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_ww')
       end if
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_tten'),cu_avg_tten_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_tten')
+      if ( ncstatus /= nf_noerr ) cu_avg_tten_io = 0.0_rkx
+      ! call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_tten')
       if ( any(icup == 5) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_uten'), &
                                 cu_avg_uten_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_uten')
+        if ( ncstatus /= nf_noerr ) cu_avg_uten_io = 0.0_rkx
+        !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_uten')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_vten'), &
                                 cu_avg_vten_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_vten')
+        if ( ncstatus /= nf_noerr ) cu_avg_vten_io = 0.0_rkx
+        !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_vten')
       end if
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_qten'), &
                               cu_avg_qten_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_qten')
+      if ( ncstatus /= nf_noerr ) cu_avg_qten_io = 0.0_rkx
+      !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_qten')
       if ( ichem == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_chiten'), &
                                 cu_avg_chiten_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_chiten')
+        if ( ncstatus /= nf_noerr ) cu_avg_chiten_io = 0.0_rkx
+        !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_chiten')
       end if
       if ( idcsst == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sst'),sst_io)
