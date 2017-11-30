@@ -61,7 +61,7 @@ module mod_ncout
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 30 + nbase
-  integer(ik4) , parameter :: nsrf3dvars = 7
+  integer(ik4) , parameter :: nsrf3dvars = 8
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
   integer(ik4) , parameter :: nsts2dvars = 9 + nbase
@@ -274,7 +274,8 @@ module mod_ncout
   integer(ik4) , parameter :: srf_q2m    = 4
   integer(ik4) , parameter :: srf_rh2m   = 5
   integer(ik4) , parameter :: srf_smw    = 6
-  integer(ik4) , parameter :: srf_ws100  = 7
+  integer(ik4) , parameter :: srf_ua100  = 7
+  integer(ik4) , parameter :: srf_va100  = 8
 
   integer(ik4) , parameter :: sts_xlon    = 1
   integer(ik4) , parameter :: sts_xlat    = 2
@@ -651,7 +652,7 @@ module mod_ncout
           enable_atm3d_vars(atm_pp) = .false.
         end if
         if ( enable_atm3d_vars(atm_qv) ) then
-          call setup_var(v3dvar_atm,atm_qv,vsize,'qas','kg kg-1', &
+          call setup_var(v3dvar_atm,atm_qv,vsize,'hus','kg kg-1', &
             'Specific Humidity','specific_humidity',.true.)
           atm_qv_out => v3dvar_atm(atm_qv)%rval
         end if
@@ -1280,7 +1281,8 @@ module mod_ncout
         v3dvar_srf(srf_t2m)%axis = 'xy2'
         v3dvar_srf(srf_q2m)%axis = 'xy2'
         v3dvar_srf(srf_rh2m)%axis = 'xy2'
-        v3dvar_srf(srf_ws100)%axis = 'xyW'
+        v3dvar_srf(srf_ua100)%axis = 'xyW'
+        v3dvar_srf(srf_va100)%axis = 'xyW'
         if ( enable_srf3d_vars(srf_u10m) ) then
           call setup_var(v3dvar_srf,srf_u10m,vsize,'uas','m s-1', &
             'Eastward Near-Surface Wind','eastward_wind',.true.)
@@ -1306,10 +1308,15 @@ module mod_ncout
             'Near-Surface Relative Humidity','relative_humidity',.true.)
           srf_rh2m_out => v3dvar_srf(srf_rh2m)%rval
         end if
-        if ( enable_srf3d_vars(srf_ws100) ) then
-          call setup_var(v3dvar_srf,srf_ws100,vsize,'ws100','m/s', &
-            'Wind Speed at 100 meter Elevation','wind_speed',.true.)
-          srf_ws100_out => v3dvar_srf(srf_ws100)%rval
+        if ( enable_srf3d_vars(srf_ua100) ) then
+          call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
+            'Eastward Wind at 100m','eastward_wind',.true.)
+          srf_ua100_out => v3dvar_srf(srf_ua100)%rval
+        end if
+        if ( enable_srf3d_vars(srf_va100) ) then
+          call setup_var(v3dvar_srf,srf_va100,vsize,'va100m','m/s', &
+            'Northward Wind at 100m','northward_wind',.true.)
+          srf_va100_out => v3dvar_srf(srf_va100)%rval
         end if
         vsize%k2 = num_soil_layers
         v3dvar_srf(srf_smw)%axis = 'xys'

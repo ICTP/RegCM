@@ -503,12 +503,15 @@ module mod_nest
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable t/ta read error')
     lspch = .true.
-    istatus = nf90_inq_varid(ncinp, 'qas', ivarid)
+    istatus = nf90_inq_varid(ncinp, 'hus', ivarid)
     if ( istatus /= nf90_noerr ) then
-      lspch = .false.
-      istatus = nf90_inq_varid(ncinp, 'qv', ivarid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable qv/qas missing')
+      istatus = nf90_inq_varid(ncinp, 'qas', ivarid)
+      if ( istatus /= nf90_noerr ) then
+        lspch = .false.
+        istatus = nf90_inq_varid(ncinp, 'qv', ivarid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable qv/qas/hus missing')
+      end if
     end if
     istatus = nf90_get_var(ncinp, ivarid, q, istart, icount)
     call checkncerr(istatus,__FILE__,__LINE__, &

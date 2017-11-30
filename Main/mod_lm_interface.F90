@@ -1001,6 +1001,12 @@ module mod_lm_interface
 
     if ( alarm_out_srf%will_act(dtsrf) ) then
 
+      if ( ifatm ) then
+        if ( associated(atm_tgb_out) ) then
+          atm_tgb_out = sum(lms%tgbb,1)*rdnnsg
+        end if
+      end if
+
       if ( ifsrf ) then
         if ( associated(srf_uvdrag_out) ) &
           srf_uvdrag_out = sum(lms%drag,1)*rdnnsg

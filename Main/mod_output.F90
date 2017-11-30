@@ -486,10 +486,10 @@ module mod_output
         if ( associated(atm_tsn_out) ) then
           atm_tsn_out = sfs%snownc/(atmfrq*secph)
         end if
-
-        if ( associated(atm_tgb_out) ) then
-          atm_tgb_out = srf_tg_out
+        if ( associated(atm_tgb_out) .and. rcmtimer%lcount == 0 ) then
+          atm_tgb_out = ts0(jci1:jci2,ici1:ici2)
         end if
+
         if ( associated(atm_tsw_out) ) then
           where ( mddom%ldmsk > 0 )
             atm_tsw_out = atm_tsw_out * rsrf_in_atm
@@ -732,20 +732,22 @@ module mod_output
           srf_totcf_out = srf_totcf_out * rnrad_for_srffrq * d_100
         end if
 
-        if ( associated(srf_ws100_out) ) then
+        if ( associated(srf_ua100_out) .and. &
+             associated(srf_va100_out) ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               cell = ptop / sfs%psa(j,i)
               zz = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
                      log((sigma(kzp1)+cell)/(sigma(kz)+cell))
               if ( zz > 100.0_rkx ) then
-                srf_ws100_out(j,i,1) = sqrt( &
+                srf_ua100_out(j,i,1) = &
                   (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
                             atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
-                            sfs%psa(j,i))**2 + &
+                            sfs%psa(j,i))
+                srf_va100_out(j,i,1) = &
                   (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
                             atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
-                            sfs%psa(j,i))**2)
+                            sfs%psa(j,i))
               else
                 vertloop: &
                 do k = kz-1 , 1 , -1
@@ -753,21 +755,24 @@ module mod_output
                         log((sigma(k+1)+cell)/(sigma(k)+cell))
                   if ( zz1 > 100.0_rkx ) then
                     ww = (100.0_rkx-zz)/(zz1-zz)
-                    srf_ws100_out(j,i,1) = &
-                      ww * sqrt( &
-                        (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
-                                  atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
-                                  sfs%psa(j,i))**2 + &
-                        (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
-                                  atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
-                                  sfs%psa(j,i))**2) + &
-                      (d_one - ww) * sqrt( &
-                        (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
-                                  atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
-                                  sfs%psa(j,i))**2 + &
-                        (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
-                                  atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
-                                  sfs%psa(j,i))**2)
+                    srf_ua100_out(j,i,1) = &
+                      ww * &
+                         (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                   atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
+                                   sfs%psa(j,i)) + &
+                      (d_one - ww) * &
+                         (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
+                                   atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
+                                   sfs%psa(j,i))
+                    srf_va100_out(j,i,1) = &
+                      ww * &
+                         (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                   atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
+                                   sfs%psa(j,i)) + &
+                      (d_one - ww) * &
+                         (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
+                                   atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
+                                   sfs%psa(j,i))
                     exit vertloop
                   end if
                   zz = zz1
