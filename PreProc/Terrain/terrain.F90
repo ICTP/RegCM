@@ -77,6 +77,7 @@ program terrain
   use mod_sigma
   use mod_nhinterp
   use mod_earth
+  use mod_stdatm
 
   implicit none
   character(len=256) :: char_lnd , char_tex , char_lak
@@ -88,7 +89,7 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
-  real(rkx) :: psig , zsig , pstar , tswap
+  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig
   real(rkx) :: ts0
   !type(globalfile) :: gfile
   character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
@@ -151,23 +152,7 @@ program terrain
   call init_sigma(kz,dsmax,dsmin)
   sigma(:) = sigma_coordinate(:)
 
-  if ( idynamic == 1 ) then
-    ! Write the levels out to the screen
-    write (stdout,*) 'Vertical Grid Description'
-    write (stdout,*) ''
-    pstar = stdpmb - d_10*ptop
-    zsig = d_zero
-    psig = pstar*sigma(kz+1) + d_10*ptop
-    write (stdout,*) '-----------------------------------------'
-    write (stdout,*) 'k        sigma       p(mb)           z(m)'
-    write (stdout,*) '-----------------------------------------'
-    write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') kz+1, sigma(kz+1), psig, zsig
-    do k = kz, 1, -1
-      psig = pstar*sigma(k) + d_10*ptop
-      zsig = zsig+rgas*stdt*pstar*sigma_delta(k)/(psig*egrav)
-      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), psig, zsig
-    end do
-  else if ( idynamic == 2 ) then
+  if ( idynamic == 2 ) then
     write(stdout, *) 'Using non hydrostatic parameters'
     write(stdout, '(a,f10.2)') ' base_state_pressure    = ', base_state_pressure
     write(stdout, '(a,f10.2)') ' logp_lrate             = ', logp_lrate
@@ -775,18 +760,41 @@ program terrain
 
   call read_moist(moist_filename,rmoist,snowam,jx,iy,num_soil_layers,lrmoist)
 
-  if ( idynamic == 2 ) then
+  if ( idynamic == 1 ) then
+    ! Write the levels out to the screen
+    write (stdout,*) 'Vertical Grid Description (T estimated)'
+    write (stdout,*) ''
+    write (stdout,*) '--------------------------------------------------'
+    write (stdout,*) 'k        sigma       p(mb)           z(m)     T(K)'
+    write (stdout,*) '--------------------------------------------------'
+    pstar = stdpmb - d_10*ptop
+    zsig = d_zero
+    tsig = stdatm_val(xlat(jx/2,iy/2),stdpmb,istdatm_tempk)
+    psig = pstar*sigma(kz+1) + d_10*ptop
+    write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') &
+             kz+1, sigma(kz+1), psig, zsig, tsig
+    do k = kz, 1, -1
+      psig = pstar*sigma(k) + d_10*ptop
+      psig1 = pstar*d_half*(sigma(k)+sigma(k+1)) + d_10*ptop
+      tsig = stdatm_val(xlat(jx/2,iy/2),psig1,istdatm_tempk)
+      psig1 = pstar*sigma(k+1) + d_10*ptop
+      zsig = zsig + rovg*tsig*log(psig1/psig)
+      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') &
+             k, sigma(k), psig, zsig, tsig
+    end do
+  else
     ts0 = base_state_temperature(1,iy,1,jx,xlat)
     call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
     call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0,z0)
-    write (stdout,*) 'Vertical Grid Description'
+    write (stdout,*) 'Vertical Grid Description (mean over domain)'
     write (stdout,*) ''
-    write (stdout,*) '-----------------------------------------'
-    write (stdout,*) 'k        sigma       p(mb)           z(m)'
-    write (stdout,*) '-----------------------------------------'
+    write (stdout,*) '--------------------------------------------------'
+    write (stdout,*) 'k        sigma       p(mb)           z(m)     T(K)'
+    write (stdout,*) '--------------------------------------------------'
     do k = kzp1, 1, -1
-      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2)') k, sigma(k), &
-        d_r100*sum(pr0(:,:,k))/real(jx*iy,rkx), sum(z0(:,:,k))/real(jx*iy,rkx)
+      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigma(k), &
+        d_r100*sum(pr0(:,:,k))/real(jx*iy,rkx), &
+        sum(z0(:,:,k))/real(jx*iy,rkx), sum(t0(:,:,k))/real(jx*iy,rkx)
     end do
   end if
 
