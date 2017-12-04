@@ -36,7 +36,7 @@ module mod_smooth
     real(rkx) , intent(inout) , dimension(jx,iy) :: htgrid
     integer(ik4) :: n , i , j
     real(rkx) , dimension(jx,iy) :: hscr
-    integer(ik4) , parameter :: npass = 2
+    integer(ik4) , parameter :: npass = 1
     !
     ! PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
     ! 2DX WAVES FROM THE FIELDS htgrid.
@@ -46,6 +46,7 @@ module mod_smooth
       do i = 1 , iy
         do j = 2 , jx - 2
           hscr(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
+          if ( hscr(j,i) < d_one ) hscr(j,i) = d_zero
         end do
       end do
       do i = 2 , iy - 2
@@ -81,7 +82,8 @@ module mod_smooth
           do j = 2 , je
             cell = slab(j,i)
             aplus = slab(j+1,i)
-            slab(j,i) = max(cell + xnu(kp)*( (asv+aplus)/d_two - cell),d_zero)
+            slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell )
+            if ( slab(j,i) < d_one ) slab(j,i) = d_zero
             asv = cell
           end do
         end do
@@ -91,7 +93,8 @@ module mod_smooth
           do i = 2 , ie
             cell = slab(j,i)
             aplus = slab(j,i+1)
-            slab(j,i) = max(cell + xnu(kp)*((asv+aplus)/d_two - cell),d_zero)
+            slab(j,i) = cell + xnu(kp)*( (asv+aplus)/d_two - cell )
+            if ( slab(j,i) < d_one ) slab(j,i) = d_zero
             asv = cell
           end do
         end do
@@ -216,7 +219,7 @@ module mod_smooth
             sump = d_zero
             do ii = i-1 , i+1
               do jj = j-1 , j+1
-                if ( xt(jj,ii) > 0.0_rkx ) then
+                if ( mask(jj,ii) > 1.0_rkx ) then
                   sump = sump + xt(jj,ii)
                   np = np + 1
                 end if
@@ -231,6 +234,7 @@ module mod_smooth
       end do
       xt(:,:) = xtn(:,:)
     end do
+    call smth121(xt,nj,ni)
   end subroutine h2oelev
 
   subroutine remove_high_gradients(nj,ni,xt)

@@ -62,7 +62,7 @@
                               ! Controls naming of input files
  lresamp = .false.,           ! Do a first resampling before interpolation
  smthbdy = .false.,           ! Perform extra smoothing in boundaries
- ismthlev = 1,                ! Smoothing level (1-2-1, smoother-desmoother)
+ ismthlev = 0,                ! Smoothing level (additional 1-2-1 smoother)
  roidem = 1.5,                ! Interpolation radius in ds unit for topography
  h2ohgt = .true.,             ! Allow water points to have hgt greater than 0
  h2opct = 50.0,               ! Surface min H2O percent to be considered water
