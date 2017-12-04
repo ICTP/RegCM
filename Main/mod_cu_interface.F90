@@ -433,8 +433,8 @@ module mod_cu_interface
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + &
-                                       c2m%q_detr(j,i,k) * m2c%psb(j,i) / dt
+                c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + rdt * &
+                                       c2m%q_detr(j,i,k) * m2c%psb(j,i)
               end do
             end do
           end do

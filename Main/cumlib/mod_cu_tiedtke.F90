@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
-         hsigma , ichcumtra , rcmtimer
+         hsigma , sigma , ichcumtra , rcmtimer , dxsq
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen_lnd , detrpen_ocn , entshalp , entrdd
@@ -330,6 +330,7 @@ module mod_cu_tiedtke
 
     kctop(:) = 0
     kcbot(:) = 0
+    pmfu(:,:) = d_zero
 
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
@@ -363,8 +364,7 @@ module mod_cu_tiedtke
           cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqte(ii,k)) - &
                                avg_qten(j,i,k,iqv)
           cu_qten(j,i,k,iqc) = pxlte(ii,k) - avg_qten(j,i,k,iqc)
-          cu_qdetr(j,i,k) = (zlude(ii,k)/(d_one-zlude(ii,k))) * dt * egrav / &
-                         (paphp1(ii,k+1)-paphp1(ii,k))
+          cu_qdetr(j,i,k) = zlude(ii,k)*dt*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
       end do
@@ -428,11 +428,14 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         do k = kctop(ii) , kcbot(ii)
           if ( ktype(ii) == 1 ) then
-            cu_cldfrc(j,i,k) = 0.140_rkx*log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.140_rkx * &
+                         log(d_one+(500.0_rkx*pmfu(ii,k)/dxsq))
           else if ( ktype(ii) == 2 ) then
-            cu_cldfrc(j,i,k) = 0.105_rkx*log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.105_rkx * &
+                         log(d_one+(500.0_rkx*pmfu(ii,k)/dxsq))
           else
-            cu_cldfrc(j,i,k) = 0.070_rkx*log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = 0.070_rkx * &
+                         log(d_one+(500.0_rkx*pmfu(ii,k)/dxsq))
           end if
           cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),clfrcv)
         end do
@@ -527,17 +530,16 @@ module mod_cu_tiedtke
     ! 1. CALCULATE T,Q AND QS AT MAIN LEVELS
     ! --------------------------------------
     !
-    do jk = 1 , klev
-      do jl = 1 , kproma
-        ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-        zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
-        zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
-        zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
-        zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
-        ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
-        zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
-        zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
-        if ( iconv /= 4 ) then
+    if ( iconv /= 4 ) then
+      do jk = 1 , klev
+        do jl = 1 , kproma
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
+          zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+          zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
           it = int(ztp1(jl,jk)*d_1000)
           if ( it < jptlucu1 .or. it > jptlucu2 ) then
             write(stderr,'(a,f12.4,a,i8)') &
@@ -549,21 +551,35 @@ module mod_cu_tiedtke
           zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
           zqsat(jl,jk) = min(qsmax,zqsat(jl,jk))
           zqsat(jl,jk) = zqsat(jl,jk)/(d_one-ep1*zqsat(jl,jk))
-        end if
+          ztvp1(jl,jk) = ztp1(jl,jk)*d_one+ep1*(zqp1(jl,jk)-zxp1(jl,jk))
+        end do
       end do
-
       if ( lookupoverflow ) then
         call fatal(__FILE__,__LINE__, &
                    'Cumulus Tables lookup error: OVERFLOW')
       end if
+    else
+      do jk = 1 , klev
+        do jl = 1 , kproma
+          ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
+          zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
+          zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
+          zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
+          zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
+          zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
+          zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
+        end do
+      end do
+    end if
 
-      do jt = 1 , ktrac
+    do jt = 1 , ktrac
+      do jk = 1 , klev
         do jl = 1 , kproma
           zxtp1(jl,jk,jt) = max(d_zero,pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt)
         end do
       end do
-
     end do
+
     do jl = 1 , kproma
       zrain(jl) = d_zero
       locum(jl) = .false.
@@ -633,19 +649,26 @@ module mod_cu_tiedtke
       ! backed out of the conserved variables used in the turbulence scheme.
       ! I presume REGCM's turbulence scheme already or can easily provide these
       ! quantities...
-      ! Will only set for now fluxes at surface
-      !pqhfl(:,klev+1) = pqhfla(:)
-      !pahfs(:,klev+1) = pshfla(:)
+      !
       ! ### for this test case we just specify an arbitrary decrease of
       ! turb. fluxes with height ###
-      !do jk = klev , 1 , -1
-      !  pqhfl(:,jk) = 0.9_rkx*pqhfl(:,jk+1)
-      !  pahfs(:,jk) = 0.9_rkx*pahfs(:,jk+1)
+      !do jk = klev+1 , 1 , -1
+      !  pqhfl(:,jk) = pqhfla(:) * exp(-egrav*(d_one-sigma(jk)))
+      !  pahfs(:,jk) = pshfla(:) * exp(-egrav*(d_one-sigma(jk)))
       !end do
+      !
+      ! Set to zero BL fluxes: we call BL after CU
+      !
       pqhfl = d_zero
       pahfs = d_zero
+      !
+      ! Reset to zero output precipitation fluxes
+      !
       pmflxr = d_zero
       pmflxs = d_zero
+      !
+      ! Call scheme
+      !
       call ntiedtke(1,kproma,kbdim,klev,ldland,ztp1,zqp1,          &
                     zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                     pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
@@ -5562,10 +5585,12 @@ module mod_cu_tiedtke
       do k = 2 , nk
         do n = n1 , n2
           if ( wmask(n,k) ) then
-            if ( k == ktop(n)-1 ) then
-              u(n,k) = r(n,k)/(b(n,k)+almostzero)
-            else if ( k > ktop(n)-1 ) then
-              u(n,k) = (r(n,k)-a(n,k)*u(n,k-1))/(b(n,k)+almostzero)
+            if ( abs(b(n,k)) > almostzero ) then
+              if ( k == ktop(n)-1 ) then
+                u(n,k) = r(n,k)/b(n,k)
+              else if ( k > ktop(n)-1 ) then
+                u(n,k) = (r(n,k)-a(n,k)*u(n,k-1))/b(n,k)
+              end if
             end if
           end if
         end do

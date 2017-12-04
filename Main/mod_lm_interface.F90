@@ -880,7 +880,7 @@ module mod_lm_interface
     integer(ik4) :: k
 #endif
     integer(ik4) :: i , j , n
-    real(rkx) :: qas , tas , ps , qs
+    real(rkx) :: qas , tas , uas , ps , qs , es , desdt , rh , lat
 
     ! Fill accumulators
 
@@ -931,6 +931,22 @@ module mod_lm_interface
           srf_taux_out = srf_taux_out + sum(lms%taux,1)*rdnnsg
         if ( associated(srf_tauy_out) ) &
           srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
+        if ( associated(srf_evpot_out) ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tas = sum(lms%tgrd(:,j,i))*rdnnsg
+              ps = sum(lms%sfcp(:,j,i))*rdnnsg
+              es = pfesat(tas)
+              qs = pfwsat(tas,ps,es)
+              qas = sum(lms%q2m(:,j,i))*rdnnsg
+              uas = sum(sqrt(lms%u10m(:,j,i)**2+lms%v10m(:,j,i)**2))*rdnnsg
+              rh = min(max((qas/qs),d_zero),d_one)
+              desdt = pfesdt(tas)
+              lat = lm%xlat(j,i) * degrad
+              srf_evpot_out(j,i) = evpt(tas,ps,rh*es,es,desdt,lat,declin,uas)
+            end do
+          end do
+        end if
       end if
       if ( ifsub ) then
         call reorder_add_subgrid(lms%sfcp,sub_ps_out)
@@ -1132,7 +1148,9 @@ module mod_lm_interface
 
 #include <pfesat.inc>
 #include <pfwsat.inc>
+#include <pqderiv.inc>
 #include <wlh.inc>
+#include <evpt.inc>
 
     subroutine mslp
       implicit none

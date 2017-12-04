@@ -68,6 +68,7 @@ module mod_ocn_common
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
+    integer(ik4) :: i
     ! Set up Masks for lake and sea ice
     if ( lcoup ) then
       call c2l_gs(ocncomm,lm%icplmsk,icpl)
@@ -99,6 +100,8 @@ module mod_ocn_common
       tgrd = tgb
       tgbrd = tgb
       call c2l_ss(ocncomm,lm%xlat1,lat)
+      call c2l_ss(ocncomm,lm%ht1,topo)
+      call c2l_ss(ocncomm,lm%iveg1,omask)
       call c2l_gs(ocncomm,lm%tground2,tgb)
       call c2l_gs(ocncomm,lm%zencos,czenith)
       if ( llake .or. lseaice ) then
@@ -121,6 +124,8 @@ module mod_ocn_common
       um10 = 1.0_rkx ! Assume a mean of 1m/s wind for init.
     else
       call c2l_ss(ocncomm,lm%xlat1,lat)
+      call c2l_ss(ocncomm,lm%ht1,topo)
+      call c2l_ss(ocncomm,lm%iveg1,omask)
       call c2l_ss(ocncomm,lms%tgrd,tgrd)
       call c2l_ss(ocncomm,lms%tgbrd,tgbrd)
       call c2l_ss(ocncomm,lms%emisv,emiss)
@@ -158,7 +163,8 @@ module mod_ocn_common
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer , intent(in) :: ivers
+    integer(ik4) , intent(in) :: ivers
+    integer(ik4) :: i
     if ( ivers == 1 ) then
       ! RegCM -> OCN
       if ( llake .or. lseaice ) then
@@ -184,6 +190,15 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%dwrlwf,dwrlwf)
       call c2l_gs(ocncomm,lm%zencos,czenith)
       call c2l_gs(ocncomm,lm%sfps,sfps)
+      do i = 1 , nocnp
+        ! CORRECT FOR TOPOGRAPHY OVER WATER THE SURFACE FLUXES !
+        if ( omask(i) == 15 .and. topo(i) > d_zero ) then
+          sfps(i) = sfps(i) + topo(i)
+          rhox(i) = sfps(i)/(rgas*tgb(i))
+          tatm(i) = sfps(i)/(rgas*rhox(i))
+          sts(i) = tatm(i)
+        end if
+      end do
       call c2l_gs(ocncomm,lm%hfx,sent)
       call c2l_gs(ocncomm,lm%qfx,evpr)
       call c2l_gs(ocncomm,lm%cprate,cprate)

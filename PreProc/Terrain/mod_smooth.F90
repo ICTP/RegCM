@@ -218,7 +218,7 @@ module mod_smooth
                 end if
               end do
             end do
-            xtn(j,i) = sump/np
+            xtn(j,i) = min(sump/np,100.0_rkx)
           else
             xtn(j,i) = xt(j,i)
           end if

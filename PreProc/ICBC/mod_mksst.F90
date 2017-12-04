@@ -155,19 +155,19 @@ module mod_mksst
       do i = 1 , iy
         do j = 1 , jx
           if ( (landuse(j,i) > 14.9 .and. landuse(j,i) < 15.1) ) then
-            if ( work1(j,i) > -900.0 ) then
+            if ( work1(j,i) > -900.0_rkx ) then
               tsccm(j,i) = work1(j,i)
               if (lhasice) then
-                if ( work3(j,i) > -900.0) then
-                  if ( work3(j,i) > 35. ) then
-                    tsccm(j,i) = 271.0
+                if ( work3(j,i) > -900.0_rkx) then
+                  if ( work3(j,i) > 35._rkx ) then
+                    tsccm(j,i) = 271.0_rkx
                   end if
                 end if
               end if
             else
               ! Find nearest water points
               a = nearn(j,i,work1)
-              if ( a > -900.0 ) tsccm(j,i) = a
+              if ( a > -900.0_rkx ) tsccm(j,i) = a
             end if
           end if
         end do
@@ -192,13 +192,14 @@ module mod_mksst
       wt = real(tohours(ks1)/tohours(ks2),rkx)
       do i = 1 , iy
         do j = 1 , jx
-          if ( (landuse(j,i) > 14.9 .and. landuse(j,i) < 15.1) ) then
-            if ( (work1(j,i) > -900.0 .and. work2(j,i) > -900.0) ) then
-              tsccm(j,i) = wt*work1(j,i) + (1.0-wt)*work2(j,i)
+          if ( (landuse(j,i) > 14.9_rkx .and. landuse(j,i) < 15.1_rkx) ) then
+            if ( (work1(j,i) > -900.0_rkx .and. work2(j,i) > -900.0_rkx) ) then
+              tsccm(j,i) = wt*work1(j,i) + (1.0_rkx-wt)*work2(j,i)
               if (lhasice) then
-                if ( work3(j,i) > -900.0 .and. work4(j,i) > -900.0 ) then
-                  if ( wt*work3(j,i)+(1-wt)*work4(j,i) > 35. ) then
-                    tsccm(j,i) = 271.0
+                if ( work3(j,i) > -900.0_rkx .and. &
+                     work4(j,i) > -900.0_rkx ) then
+                  if ( wt*work3(j,i)+(1-wt)*work4(j,i) > 35.0_rkx ) then
+                    tsccm(j,i) = 271.0_rkx
                   endif
                 end if
               end if
@@ -206,7 +207,9 @@ module mod_mksst
               a = nearn(j,i,work1)
               b = nearn(j,i,work2)
               ! Find nearest water points
-              if ( a > -900 .and. b > -900) tsccm(j,i) = a*wt + (1.0-wt)*b
+              if ( a > -900_rkx .and. b > -900_rkx) then
+                tsccm(j,i) = a*wt + (1.0_rkx-wt)*b
+              end if
             end if
           end if
         end do
@@ -235,18 +238,20 @@ module mod_mksst
           if ( j == jp .and. i == ip ) cycle
           if ( i < 1 .or. i > iy ) cycle
           if ( j < 1 .or. j > jx ) cycle
-          if ( sst(j,i) > -900.0 ) then
+          if ( sst(j,i) > -900.0_rkx ) then
             wt = 1.0_rkx/sqrt(real(i-ip,rkx)**2+real(j-jp,rkx)**2)
-            distsig = sign(1.0_rkx,xlat(jp,ip)-xlat(j,i))
-            if ( (xlat(jp,ip) - xlat(j,i)) > 2.0_rkx*epsilon(d_zero) ) then
-              nearn = nearn + (max(icet,sst(j,i) - lrate * &
-               (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))) - distsig * &
-               gcdist_simple(xlat(jp,ip),xlon(jp,ip), &
-                             xlat(j,i),xlon(jp,ip))/100.0_rkx))*wt
-            else
-              nearn = nearn + max(icet,sst(j,i) - lrate * &
-               (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))))*wt
-            end if
+            !distsig = sign(1.0_rkx,xlat(jp,ip)-xlat(j,i))
+            !if ( (xlat(jp,ip) - xlat(j,i)) > 2.0_rkx*epsilon(d_zero) ) then
+            !  nearn = nearn + (max(icet,sst(j,i) - lrate * &
+            !   (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))) - distsig * &
+            !   gcdist_simple(xlat(jp,ip),xlon(jp,ip), &
+            !                 xlat(j,i),xlon(jp,ip))/100.0_rkx))*wt
+            !else
+            !  nearn = nearn + max(icet,sst(j,i) - lrate * &
+            !   (max(0.0_rkx,topogm(jp,ip)-topogm(j,i))))*wt
+            !  nearn = nearn + max(icet,sst(j,i))*wt
+            !end if
+            nearn = nearn + max(icet,sst(j,i))*wt
             wtsum = wtsum + wt
             np = np + 1
           end if

@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 30 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 31 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 8
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -267,6 +267,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_taux     = 33
   integer(ik4) , parameter :: srf_tauy     = 34
   integer(ik4) , parameter :: srf_psl      = 35
+  integer(ik4) , parameter :: srf_evpot    = 36
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -1109,6 +1110,12 @@ module mod_ncout
           call setup_var(v2dvar_srf,srf_psl,vsize,'psl','Pa', &
             'Sea Level Pressure','air_pressure_at_sea_level',.true.)
           srf_mslp_out => v2dvar_srf(srf_psl)%rval
+        end if
+        if ( enable_srf2d_vars(srf_evpot) ) then
+          call setup_var(v2dvar_srf,srf_evpot,vsize,'evspsblpot','kg m-2 s-1', &
+            'Potential Evapotranspiration','water_potential_evaporation_flux', &
+            .true.,'time: mean')
+          srf_evpot_out => v2dvar_srf(srf_evpot)%rval
         end if
         if ( enable_srf2d_vars(srf_ustar) ) then
           call setup_var(v2dvar_srf,srf_ustar,vsize,'ustar','m s-1', &

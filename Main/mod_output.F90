@@ -731,6 +731,9 @@ module mod_output
         if ( associated(srf_totcf_out) ) then
           srf_totcf_out = srf_totcf_out * rnrad_for_srffrq * d_100
         end if
+        if ( associated(srf_evpot_out) ) then
+          srf_evpot_out = srf_evpot_out*rnsrf_for_srffrq
+        end if
 
         if ( associated(srf_ua100_out) .and. &
              associated(srf_va100_out) ) then
@@ -804,6 +807,7 @@ module mod_output
         if ( associated(srf_tauy_out) ) srf_tauy_out = d_zero
         if ( associated(srf_snowmelt_out) ) srf_snowmelt_out = d_zero
         if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
+        if ( associated(srf_evpot_out) ) srf_evpot_out = d_zero
       end if
     end if
 
