@@ -34,21 +34,25 @@ module mod_smooth
     implicit none
     integer(ik4) , intent(in) :: jx , iy
     real(rkx) , intent(inout) , dimension(jx,iy) :: htgrid
-    integer(ik4) :: i , j
+    integer(ik4) :: n , i , j
     real(rkx) , dimension(jx,iy) :: hscr
+    integer(ik4) , parameter :: npass = 2
     !
     ! PURPOSE :  PERFORMS THE 1-2-1 SMOOTHING TO REMOVE PRIMARILY THE
     ! 2DX WAVES FROM THE FIELDS htgrid.
     !
     hscr(:,:) = htgrid(:,:)
-    do i = 2 , iy - 2
-      do j = 2 , jx - 2
-        hscr(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
+    do n = 1 , npass
+      do i = 1 , iy
+        do j = 2 , jx - 2
+          hscr(j,i) = d_rfour*(d_two*htgrid(j,i)+htgrid(j+1,i)+htgrid(j-1,i))
+        end do
       end do
-    end do
-    do i = 2 , iy - 2
-      do j = 2 , jx - 2
-        htgrid(j,i) = d_rfour*(d_two*hscr(j,i)+hscr(j,i+1)+hscr(j,i-1))
+      do i = 2 , iy - 2
+        do j = 1 , jx
+          htgrid(j,i) = d_rfour*(d_two*hscr(j,i)+hscr(j,i+1)+hscr(j,i-1))
+          if ( htgrid(j,i) < d_one ) htgrid(j,i) = d_zero
+        end do
       end do
     end do
   end subroutine smth121
@@ -219,6 +223,7 @@ module mod_smooth
               end do
             end do
             xtn(j,i) = min(sump/np,100.0_rkx)
+            if ( xtn(j,i) < 1.0_rkx ) xtn(j,i) = 0.0_rkx
           else
             xtn(j,i) = xt(j,i)
           end if

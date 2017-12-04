@@ -353,7 +353,6 @@
         end do
       end if
 
-
       ! update emission tendencies from external inventories
       ! handle biogenic emission fluxes coming from CLM45
       if ( ichsursrc == 1 ) then

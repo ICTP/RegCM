@@ -591,9 +591,11 @@ program terrain
   ! preliminary heavy smoothing of boundaries
   if ( smthbdy ) call smthtr(htgrid,jx,iy,nspgx)
 
-  ! grell smoothing to eliminate 2 delx wave (6/90):
+  ! grell smoothing to eliminate 2 delx wave
   call smtdsmt(htgrid,jx,iy)
-  do ism = 2 , ismthlev
+
+  ! Additional Smoothing using 1-2-1 smoother
+  do ism = 1 , ismthlev
     call smth121(htgrid,jx,iy)
   end do
 
@@ -670,9 +672,11 @@ program terrain
       call h2oelev(jxsg,iysg,htgrid_s,mask_s)
     end if
 
-    ! grell smoothing to eliminate 2 delx wave (6/90):
+    ! grell smoothing to eliminate 2 delx wave
     call smtdsmt(htgrid_s,jxsg,iysg)
-    do ism = 2 , ismthlev
+
+    ! Additional Smoothing using 1-2-1 smoother
+    do ism = 1 , ismthlev
       call smth121(htgrid_s,jxsg,iysg)
     end do
 
