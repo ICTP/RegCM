@@ -200,35 +200,38 @@ module mod_smooth
     deallocate(jj)
   end subroutine smthtr
 
-  subroutine h2oelev(nj,ni,xt,mask)
+  subroutine h2oelev(nj,ni,xt,lnd)
     implicit none
     integer(ik4) , intent(in) :: nj , ni
-    real(rkx) , intent(in) , dimension(nj,ni) :: mask
+    real(rkx) , intent(in) , dimension(nj,ni) :: lnd
     real(rkx) , intent(inout) , dimension(nj,ni) :: xt
     real(rkx) , dimension(nj,ni) :: xtn
+    logical , dimension(nj,ni) :: mask
     real(rkx) :: np , sump
     integer(ik4) :: i , j , ii , jj , iii , jjj , ipass
     integer , parameter :: npass = 1
+    real(rkx) , parameter :: hgtmax = 100.0_rkx
+    real(rkx) , parameter :: hgtmin = 1.0_rkx
 
+    mask = (lnd > 14.5_rkx .and. lnd < 15.5_rkx)
     xtn(:,:) = xt(:,:)
     do ipass = 1 , npass
       do i = 2 , ni-1
         do j = 2 , nj-1
-          if ( mask(j,i) < 1.0_rkx ) then
-            np = 1.0_rkx
-            sump = d_zero
+          if ( mask(j,i) ) then
+            np = 0.0_rkx
+            sump = 0.0_rkx
             do ii = i-1 , i+1
               do jj = j-1 , j+1
-                if ( mask(jj,ii) > 1.0_rkx ) then
+                if ( .not. mask(jj,ii) ) then
                   sump = sump + xt(jj,ii)
                   np = np + 1
                 end if
               end do
             end do
-            xtn(j,i) = min(sump/np,100.0_rkx)
-            if ( xtn(j,i) < 1.0_rkx ) xtn(j,i) = 0.0_rkx
-          else
-            xtn(j,i) = xt(j,i)
+            if ( np > 0.0 ) then
+              xtn(j,i) = max(min(sump/np,hgtmax),hgtmin)
+            end if
           end if
         end do
       end do
