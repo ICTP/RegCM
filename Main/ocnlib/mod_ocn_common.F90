@@ -190,15 +190,6 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%dwrlwf,dwrlwf)
       call c2l_gs(ocncomm,lm%zencos,czenith)
       call c2l_gs(ocncomm,lm%sfps,sfps)
-      do i = 1 , nocnp
-        ! CORRECT FOR TOPOGRAPHY OVER WATER THE SURFACE FLUXES !
-        if ( omask(i) == 15 .and. topo(i) > d_zero ) then
-          sfps(i) = sfps(i) + topo(i)
-          rhox(i) = sfps(i)/(rgas*tgb(i))
-          tatm(i) = sfps(i)/(rgas*rhox(i))
-          sts(i) = tatm(i)
-        end if
-      end do
       call c2l_gs(ocncomm,lm%hfx,sent)
       call c2l_gs(ocncomm,lm%qfx,evpr)
       call c2l_gs(ocncomm,lm%cprate,cprate)

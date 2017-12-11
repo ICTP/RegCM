@@ -22,7 +22,7 @@
 The idea that \ac{LAMs} could be used for regional studies was originally
 proposed by \citet{Dickinson_89} and \citet{Giorgi_90}.
 
-This idea was based on the concept of one-way nesting, in which large scale
+It was based on the concept of one-way nesting, in which large scale
 meteorological fields from \ac{GCM} runs provide initial and time-dependent
 meteorological \ac{LBCs} for high resolution \ac{RCM} simulations, with no
 feedback from the \ac{RCM} to the driving \ac{GCM}.
@@ -107,10 +107,10 @@ One of the problems in this formulation is that the scheme uses the cloud
 fractional cover to produce grid box mean cloud properties which are then
 treated as if the entire grid box was covered by an effectively thinner
 cloud layer. However, because of the non-linear nature of radiative transfer,
-this approach tends to produce a ‘grayer’ mean grid box than if separate
+this approach tends to produce a grayer mean grid box than if separate
 cloudy and clear sky fractional fluxes were calculated. By taking advantage
 of the fact that the scheme also calculates clear sky fluxes for diagnostic
-purposes, in i\ac{RegCM}4 we modified this radiative cloud representation by
+purposes, in \ac{RegCM}4 we modified this radiative cloud representation by
 first calculating the total cloud cover at a given grid point and then
 calculating the surface fluxes separately for the cloudy and clear sky
 portions of the grid box.

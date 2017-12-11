@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.6
 
 from netCDF4 import num2date, date2num , Dataset
 from vertint import mod_vertint
@@ -10,7 +10,7 @@ import time
 import os
 import uuid
 
-ICTP_Model_id = 'RegCM4-5'
+ICTP_Model_id = 'RegCM4-6'
 ICTP_Model = 'ICTP-'+ICTP_Model_id
 ICTP_Model_Version = 'v4'
 
@@ -862,6 +862,8 @@ if newtime:
       else:
         newtimebnds[:,0] = times[:] - ff/2
         newtimebnds[:,1] = times[:] + ff/2
+else:
+    newtime[:] = times[:]
 
 xfac = unitcorrect(oldunits,lookup[variable]['units'])
 

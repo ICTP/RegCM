@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.6
 
 """
 This small program is computing time means of netcdf file variables
@@ -19,7 +19,6 @@ compressed in disk.
   import time
   from netcdftime import datetime , utime
   import os
-  from string import join
 
   names = { 'day' : 'day',
             'mon' : 'month' }
@@ -31,7 +30,8 @@ compressed in disk.
     print('No timesteps in file !')
     sys.exit(0)
   if times.units.find('hours') >= 0:
-    dates = num2date(times[:]-0.01, units=times.units, calendar=times.calendar)
+    xt = times[:]-0.01
+    dates = num2date(xt, units=times.units, calendar=times.calendar)
   else:
     dates = num2date(times[:], units=times.units, calendar=times.calendar)
   d1 = datetime(dates[0].year,dates[0].month,dates[0].day)
@@ -51,9 +51,10 @@ compressed in disk.
       print('How to make daily mean on day or monthly dataset?')
       sys.exit(-1)
     try:
-      nco = Dataset(join(pieces[0:7],'_')+'_'+window+'_'+f1+'12-'+f2+'12.nc',
+      nco = Dataset(str.join('_',pieces[0:7])+'_'+window+'_'+f1+'12-'+f2+'12.nc',
                     'w', format='NETCDF4_CLASSIC')
     except:
+      print(str.join('_',pieces[0:7])+'_'+window+'_'+f1+'12-'+f2+'12.nc')
       raise RuntimeError('Cannot open output file')
     tunit = 'days since 1949-12-01 00:00:00 UTC'
   elif window == 'mon':
@@ -61,7 +62,7 @@ compressed in disk.
       print('How to make monthly mean on monthly dataset?')
       sys.exit(-1)
     try:
-      nco = Dataset(join(pieces[0:7],'_')+'_'+window+'_'+f1+'-'+f2+'.nc',
+      nco = Dataset(str.join('_',pieces[0:7])+'_'+window+'_'+f1+'-'+f2+'.nc',
                     'w', format='NETCDF4_CLASSIC')
     except:
       raise RuntimeError('Cannot open output file')
@@ -99,7 +100,7 @@ compressed in disk.
         'y' in ncf.variables[var].dimensions):
       nco.createVariable(var,nctype,ncf.variables[var].dimensions,
                          shuffle=True,fletcher32=True,
-                         zlib=True,complevel=9)
+                         zlib=True,complevel=9,fill_value=1.0e+20)
     else:
       if var == 'time_bnds':
         pass
@@ -139,7 +140,8 @@ compressed in disk.
           nco.variables[var].setncattr('cell_methods', 'time: mean')
       for attr in ncf.variables[var].ncattrs():
         if attr != 'cell_methods':
-          nco.variables[var].setncattr(attr,getattr(ncf.variables[var],attr))
+          if attr != '_FillValue':
+            nco.variables[var].setncattr(attr,getattr(ncf.variables[var],attr))
 
   if window == 'day':
     rc = cdftime.date2num(dates)
