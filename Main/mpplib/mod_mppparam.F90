@@ -1383,8 +1383,6 @@ module mod_mppparam
     call bcast(dayspy)
     call bcast(vernal_equinox)
 
-    call bcast(nsplit)
-
     call bcast(ibdyfrq)
 
     ! Setup all convenience dimensions

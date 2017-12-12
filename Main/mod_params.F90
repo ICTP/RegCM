@@ -70,7 +70,6 @@ module mod_params
                wkp1 , xbot , xtop , xx , yy
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
-    real(rkx) , dimension(nsplit) :: dtsplit
     integer(ik4) :: i , j , k , kbase , ktop , ns
     integer(ik8) :: mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan , ipunit
@@ -109,6 +108,8 @@ module mod_params
       upstream_mode , uoffc , stability_enhance ,                  &
       vert_stability_enhance , t_extrema , c_rel_extrema ,         &
       q_rel_extrema , t_rel_extrema
+
+    namelist /hydroparam/ nsplit , lstand
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,  &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge
@@ -264,6 +265,11 @@ module mod_params
     icumcloud = 1
     temp_tend_maxval = 5.0_rkx*(dt/secpm)
     wind_tend_maxval = 5.0_rkx*(dt/secpm)
+    !
+    ! Hydrostatic param ;
+    !
+    nsplit = 2
+    lstand = .true.
     !
     ! Non hydrostatic param ;
     !
@@ -640,6 +646,16 @@ module mod_params
           write(stdout,*) 'Read nonhydroparam OK'
 #endif
         end if
+      else
+        rewind(ipunit)
+        read (ipunit, nml=hydroparam, iostat=iretval, err=106)
+        if ( iretval /= 0 ) then
+          write(stdout,*) 'Using default hydrostatc parameters.'
+#ifdef DEBUG
+        else
+          write(stdout,*) 'Read hydroparam OK'
+#endif
+        end if
       end if
 
       ! Hack. permanently disable seasonal albedo.
@@ -665,7 +681,7 @@ module mod_params
 
       if ( ipptls > 0 ) then
         rewind(ipunit)
-        read (ipunit, nml=subexparam, iostat=iretval, err=106)
+        read (ipunit, nml=subexparam, iostat=iretval, err=107)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default subex parameter.'
 #ifdef DEBUG
@@ -675,7 +691,7 @@ module mod_params
         end if
         if ( ipptls == 2 ) then
           rewind(ipunit)
-          read (ipunit, nml=microparam, iostat=iretval, err=107)
+          read (ipunit, nml=microparam, iostat=iretval, err=108)
           if ( iretval /= 0 ) then
             write(stdout,*) 'Using default microphysical parameter.'
 #ifdef DEBUG
@@ -705,7 +721,7 @@ module mod_params
 
       if ( any(icup == 2) ) then
         rewind(ipunit)
-        read (ipunit, nml=grellparam, iostat=iretval, err=108)
+        read (ipunit, nml=grellparam, iostat=iretval, err=109)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Grell parameter.'
 #ifdef DEBUG
@@ -716,7 +732,7 @@ module mod_params
       end if
       if ( any(icup == 4) ) then
         rewind(ipunit)
-        read (ipunit, nml=emanparam, iostat=iretval, err=109)
+        read (ipunit, nml=emanparam, iostat=iretval, err=110)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default MIT parameter.'
 #ifdef DEBUG
@@ -727,7 +743,7 @@ module mod_params
       end if
       if ( any(icup == 5) ) then
         rewind(ipunit)
-        read (ipunit, nml=tiedtkeparam, iostat=iretval, err=110)
+        read (ipunit, nml=tiedtkeparam, iostat=iretval, err=111)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Tiedtke parameter.'
 #ifdef DEBUG
@@ -738,7 +754,7 @@ module mod_params
       end if
       if ( any(icup == 6) ) then
         rewind(ipunit)
-        read (ipunit, nml=kfparam, iostat=iretval, err=111)
+        read (ipunit, nml=kfparam, iostat=iretval, err=112)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Kain Fritsch parameter.'
 #ifdef DEBUG
@@ -773,7 +789,7 @@ module mod_params
       end if
       if ( ibltyp == 1 ) then
         rewind(ipunit)
-        read (ipunit, nml=holtslagparam, iostat=iretval, err=112)
+        read (ipunit, nml=holtslagparam, iostat=iretval, err=113)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Holtslag parameter.'
 #ifdef DEBUG
@@ -784,7 +800,7 @@ module mod_params
       end if
       if ( ibltyp == 2 ) then
         rewind(ipunit)
-        read (ipunit, nml=uwparam, iostat=iretval, err=113)
+        read (ipunit, nml=uwparam, iostat=iretval, err=114)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default UW PBL parameter.'
 #ifdef DEBUG
@@ -795,7 +811,7 @@ module mod_params
       end if
       if ( irrtm == 1 ) then
         rewind(ipunit)
-        read (ipunit, nml=rrtmparam, iostat=iretval, err=114)
+        read (ipunit, nml=rrtmparam, iostat=iretval, err=115)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default RRTM parameter.'
 #ifdef DEBUG
@@ -807,7 +823,7 @@ module mod_params
 
       if ( islab_ocean == 1 ) then
         rewind(ipunit)
-        read (ipunit, nml=slabocparam, iostat=iretval, err=115)
+        read (ipunit, nml=slabocparam, iostat=iretval, err=116)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default SLAB Ocean parameter.'
 #ifdef DEBUG
@@ -835,7 +851,7 @@ module mod_params
 
       if ( ichem == 1 ) then
         rewind(ipunit)
-        read (ipunit, chemparam, iostat=iretval, err=116)
+        read (ipunit, chemparam, iostat=iretval, err=117)
         if ( iretval /= 0 ) then
           write(stderr,*) 'Error reading chemparam namelist'
           call fatal(__FILE__,__LINE__, &
@@ -851,7 +867,7 @@ module mod_params
       end if
 #ifdef CLM
       rewind(ipunit)
-      read (ipunit , clmparam, iostat=iretval, err=117)
+      read (ipunit , clmparam, iostat=iretval, err=118)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default CLM parameter.'
 #ifdef DEBUG
@@ -862,7 +878,7 @@ module mod_params
 #endif
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         rewind(ipunit)
-        read (ipunit , cplparam, iostat=iretval, err=118)
+        read (ipunit , cplparam, iostat=iretval, err=119)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Coupling parameter.'
 #ifdef DEBUG
@@ -874,7 +890,7 @@ module mod_params
 
       if ( itweak == 1 ) then
         rewind(ipunit)
-        read (ipunit , tweakparam, iostat=iretval, err=119)
+        read (ipunit , tweakparam, iostat=iretval, err=120)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Tweak parameters absent.'
           write(stdout,*) 'Disable tweaking.'
@@ -1047,6 +1063,9 @@ module mod_params
       call bcast(rayndamp)
       call bcast(rayalpha0)
       call bcast(rayhd)
+    else
+      call bcast(nsplit)
+      call bcast(lstand)
     end if
 
     ! Check if really do output
@@ -2344,22 +2363,23 @@ module mod_params
 103 call fatal(__FILE__,__LINE__, 'Error reading PHYSICSPARAM')
 104 call fatal(__FILE__,__LINE__, 'Error reading DYNPARAM')
 105 call fatal(__FILE__,__LINE__, 'Error reading NONHYDROPARAM')
-106 call fatal(__FILE__,__LINE__, 'Error reading SUBEXPARAM')
-107 call fatal(__FILE__,__LINE__, 'Error reading MICROPARAM')
-108 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
-109 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
-110 call fatal(__FILE__,__LINE__, 'Error reading TIEDTKEPARAM')
-111 call fatal(__FILE__,__LINE__, 'Error reading KFPARAM')
-112 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
-113 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
-114 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
-115 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
-116 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
+106 call fatal(__FILE__,__LINE__, 'Error reading HYDROPARAM')
+107 call fatal(__FILE__,__LINE__, 'Error reading SUBEXPARAM')
+108 call fatal(__FILE__,__LINE__, 'Error reading MICROPARAM')
+109 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
+110 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
+111 call fatal(__FILE__,__LINE__, 'Error reading TIEDTKEPARAM')
+112 call fatal(__FILE__,__LINE__, 'Error reading KFPARAM')
+113 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
+114 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
+115 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
+116 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
+117 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
 #ifdef CLM
-117 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
+118 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
 #endif
-118 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
-119 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
+119 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
+120 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
 
     contains
 

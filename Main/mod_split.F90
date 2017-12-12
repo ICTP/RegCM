@@ -75,7 +75,6 @@ module mod_split
     implicit none
     real(rkx) :: eps , eps1 , fac , pdlog
     integer(ik4) :: i , j , k , l , n , ns
-    logical :: lstand
     real(rkx) :: rnpts , lxps , ltbark , lxms , xmsf
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spinit'
@@ -95,7 +94,6 @@ module mod_split
     !
     call allocate_mod_vmodes
     !
-    lstand = .true.
     if ( .not. lstand ) then
       !
       ! compute xps and tbarh for use in vmodes.
@@ -128,7 +126,7 @@ module mod_split
     !
     ! Compute vertical modes.
     !
-    call vmodes(lstand)
+    call vmodes
     !
     ! Compute am and an.
     !

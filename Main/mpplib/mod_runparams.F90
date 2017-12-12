@@ -175,7 +175,7 @@ module mod_runparams
 
   integer(ik4) , public :: kchi , kclo , kcmd
 
-  real(rkx) , pointer , dimension(:) , public :: dtau
+  real(rkx) , pointer , dimension(:) , public :: dtau , dtsplit
   real(rkx) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
   real(rkx) , pointer , dimension(:) , public :: sigma
   real(rkx) , pointer , dimension(:,:) , public :: twt
@@ -185,6 +185,11 @@ module mod_runparams
   ! Moisture from previous run
 
   logical , public :: replacemoist = .false.
+
+  ! Number od split exp modes
+
+  integer(ik4) , public :: nsplit
+  logical , public :: lstand
 
   ! Asselin filter parameter
 
@@ -489,7 +494,8 @@ module mod_runparams
     call getmem1d(qcon,1,kz,'mod_runparams:qcon')
     call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
     call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
-    call getmem1d(dtau,1,nsplit,'mod_runparams:nsplit')
+    call getmem1d(dtau,1,nsplit,'mod_runparams:dtau')
+    call getmem1d(dtsplit,1,nsplit,'mod_runparams:dtsplit')
   end subroutine allocate_mod_runparams
 
   logical function iswater(a)

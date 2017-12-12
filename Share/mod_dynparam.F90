@@ -147,10 +147,6 @@ module mod_dynparam
   real(rkx) :: medium_nudge = 2.0_rkx
   real(rkx) :: low_nudge    = 1.0_rkx
 
-  ! Number od split exp modes
-
-  integer(ik4) :: nsplit
-
   ! Type of global analysis datasets used in Pre processing
   ! One in: ECMWF,ERA40,ERAIN,EIN75,EIN15,EIM25,ERAHI,NNRP1,NNRP2,
   !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
@@ -623,9 +619,6 @@ module mod_dynparam
     ! Just double check ;)
     nspgx = max(nspgx,3)
     nspgd = max(nspgd,3)
-
-    ! Removed modesparam. It must not be changed, so avoid cluttering.
-    nsplit = 2
 
     ibdyfrq = 6 ! Convenient default
     calendar = 'gregorian'

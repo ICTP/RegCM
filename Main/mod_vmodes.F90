@@ -50,7 +50,7 @@ module mod_vmodes
   real(rkx) , pointer , dimension(:,:) :: tau
   real(rkx) , pointer , dimension(:,:) :: varpa1
   real(rkx) , pointer , dimension(:,:) :: hydroc , hydros
-!
+
   contains
 
   subroutine allocate_mod_vmodes
@@ -85,9 +85,8 @@ module mod_vmodes
   !           tbarh and xps in that case).  Otherwise, xps and tbarh must
   !           be defined on input.
   !
-  subroutine vmodes(lstand)
+  subroutine vmodes
     implicit none
-    logical , intent(in) :: lstand
     integer(ik4) :: ier , k , k1 , k2 , l , mm , numerr
     logical :: lhydro , lprint , lsigma
     real(rkx) :: ps2 , x
@@ -96,7 +95,7 @@ module mod_vmodes
                    e1 , e2 , e3 , g1 , g2 , g3 , s1 , s2 , w1 , w2 , x1
     real(rkx) , dimension(kzp1,kz) :: w3
     real(rkx) , dimension(kzp1) :: tbarf , thetaf
-    real(rkx) , dimension(kz) :: thetah , tweigh
+    real(rkx) , dimension(kz) :: tweigh
     real(rkx) :: alpha1 , alpha2
     real(rkx) , dimension(kz) :: cpfac , sdsigma , hweigh
     real(rkx) , dimension(kzp1,kzp1) :: varpa2
@@ -124,7 +123,6 @@ module mod_vmodes
     w1 = d_zero
     w2 = d_zero
     x1 = d_zero
-    thetah = d_zero
     tweigh = d_zero
     tbarf = d_zero
     thetaf = d_zero
@@ -181,15 +179,6 @@ module mod_vmodes
     call vchekt
     !
     ! determine thermodynamic matrix
-    !
-    ! compute thetah
-    ! this array is never used: it is only computed and printed out
-    ! the  following line causes a segfault on IBM SP6 when compiled
-    ! with -q check because it uses F90 syntax arrays with different sizes
-    ! S.C. 21/05/2010
-    ! I therefore decided to comment out this line
-    ! thetah = tbarh*((sigmah+ptop/pd)**(-rovcp))
-    !
     ! compute tbarf and thetaf
     !
     do k = 2 , kz
@@ -456,7 +445,6 @@ module mod_vmodes
       call vprntv(hbar,kz,'hbar    ')
       call vprntv(sigmah,kzp1,'sigmah  ')
       call vprntv(tbarf,kzp1,'tbarf   ')
-      call vprntv(thetah,kz,'thetah  ')
       call vprntv(thetaf,kzp1,'thetaf  ')
       call vprntv(hweigh,kz,'hweigh  ')
       write(stdout,'(a,1x,1E16.5,a,1x,1E16.5)') 'alpha1 = ',alpha1, &

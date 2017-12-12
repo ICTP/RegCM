@@ -17,7 +17,23 @@
 
 \newpage
 
-\chapter{Model Physics}
+\chapter{Model Equations}
+
+The RegCM model solves a set of primitive dynamical equations describing
+the atmospheric motion, with parametrizations for physical processes as per:
+
+\begin{itemize}
+	\item Radiation (Short Wave and Long Wave)
+	\item Convection
+	\item Turbolent Diffusion
+	\item Moist (Clouds and Precipitation)
+	\item Fluxes exchange with surface (Soil model and Ocean fluxes)
+	\item Tracer transport and chemistry (Aerosols and full chemistry)
+\end{itemize}
+
+The dynamical equations are discretized using finite differences technique
+on a three dimensional computation grid with fixed horizontal resolution
+and terrain following vertical coordinate.
 
 \section{Dynamics}
 The model has two dynamical cores:
@@ -26,6 +42,9 @@ The model has two dynamical cores:
 \item Hydrostatic equation solver
 \item Non-hydrostatic equation solver
 \end{itemize}
+
+The primitive equations for the two solvers are different and have different
+prognostic variables used to identify the atmospheric state.
 
 \subsection{Hydrostatic dynamical core}
 The hydrostatic model dynamic equations and numerical discretization are
@@ -60,7 +79,8 @@ where $u$ and $v$ are the eastward and northward components of
 velocity, $\phi$ is geopotential height, $f$ is the coriolis parameter,
 $m$ is the map scale factor for the chosen projection, and $F_H$ and $F_V$
 represent the effects of horizontal and vertical diffusion, and
-$p^{\ast} = p_s-p_t$.  \\
+$p^{\ast} = p_s-p_t$, i.e. the difference between surface and model top
+pressure.  \\
 
 In the equation \ref{hydro1} - \ref{hydro2}, $\dot{\sigma}$ is the total
 derivative of the vertical coordinate $\sigma$ over time $t$:
@@ -171,6 +191,9 @@ the virtual temperature $T_v$,
 
 where $T_v = T(1 + 0.608q_v)$, $q_v$, is the water vapor mixing ratio, and
 $q_x$ are the mixing ratios of all condensed water species.
+
+\subsubsection{Split-explicit timestep for fast waves removal}
+
 
 \newpage
 
