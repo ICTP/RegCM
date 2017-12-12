@@ -74,8 +74,9 @@ module mod_split
   subroutine spinit
     implicit none
     real(rkx) :: eps , eps1 , fac , pdlog
-    integer(ik4) :: i , ijlx , j , k , l , n , ns
+    integer(ik4) :: i , j , k , l , n , ns
     logical :: lstand
+    real(rkx) :: rnpts , lxps , ltbark , lxms , xmsf
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spinit'
     integer(ik4) , save :: idindx = 0
@@ -99,22 +100,29 @@ module mod_split
       !
       ! compute xps and tbarh for use in vmodes.
       !
-      xps = d_zero
-      ijlx = (jce2-jce1+1)*(ice2-ice1+1)
-      do k = 1 , kz
-        tbarh(k) = d_zero
-      end do
+      rnpts = d_one/real((nicross*njcross),rkx)
+      lxps = d_zero
+      lxms = d_zero
       do i = ice1 , ice2
         do j = jce1 , jce2
-          xps = xps + sfs%psa(j,i)/ijlx
+          lxms = lxms + rnpts/(mddom%msfx(j,i)*mddom%msfx(j,i))
+          lxps = lxps + rnpts*sfs%psa(j,i) / &
+                   (mddom%msfx(j,i)*mddom%msfx(j,i))
         end do
       end do
+      call sumall(lxps,xps)
+      call sumall(lxms,xmsf)
+      xps = xps / xmsf
       do k = 1 , kz
+        ltbark = d_zero
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tbarh(k) = tbarh(k) + atm1%t(j,i,k)/(sfs%psa(j,i)*ijlx)
+            ltbark = ltbark + rnpts*atm1%t(j,i,k) / &
+                         (sfs%psa(j,i)*mddom%msfx(j,i)*mddom%msfx(j,i))
           end do
         end do
+        call sumall(ltbark,tbarh(k))
+        tbarh(k) = tbarh(k)/xmsf
       end do
     end if
     !
