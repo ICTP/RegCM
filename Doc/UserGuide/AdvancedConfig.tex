@@ -754,6 +754,23 @@ conditions and the base state vertical profile curve shape.
 \item The upper radiative boundary layer option has a high computational cost.
 \end{enumerate}
 
+\subsection{hydroparam namelist}
+
+These namelist controls hydrostatic core split explicit scheme for
+fast wave removal. User is not advised to change the default values.
+
+{\footnotesize
+\begin{Verbatim}
+!
+! Hydrostatic core option
+!
+ &hydroparam
+ nsplit = 2,      ! Number of split explicit timesteps
+ lstand = .true., ! Use standard atmosphere for vertical modes linearization
+ /
+\end{Verbatim}
+}
+
 \subsection{boundaryparam namelist}
 
 Being a limited area model, in order to be run RegCM4 requires the provision

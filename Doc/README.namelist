@@ -331,6 +331,13 @@
  rayhd = 10000.0,   ! Damping scale depth
  /
 !
+! Hydrostatic core option
+!
+ &hydroparam
+ nsplit = 2,      ! Number of split explicit timesteps
+ lstand = .true., ! Use standard atmosphere for vertical modes linearization
+ /
+!
 ! Buffer Zone Control relaxation + diffusion term
 !
  &boundaryparam

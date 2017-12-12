@@ -53,7 +53,7 @@ described by \cite{Grell_94}.
 \subsubsection{Horizontal Momentum Equations}
 
 \begin{gather}
-\label{hydro1}
+\label{hydro_mom1}
 	\frac{\partial{p^{\ast}u}}{\partial{t}} =
 	-m^2 \left[ \frac{\partial{p^{\ast}uu/m}}{\partial{x}} + 
 		\frac{\partial{p^{\ast}vu/m}}{\partial{y}} \right] -
@@ -63,7 +63,7 @@ described by \cite{Grell_94}.
 			\frac{\partial{p^{\ast}}}{\partial{x}} +
 			\frac{\partial{\phi}}{\partial{x}} \right] +
 	p^{\ast}fv + F_Hu + F_Vu \\
-\label{hydro2}
+\label{hydro_mom2}
 	\frac{\partial{p^{\ast}v}}{\partial{t}} = 
 	-m^2 \left[ \frac{\partial{p^{\ast}uv/m}}{\partial{x}} +
 		\frac{\partial{p^{\ast}vv/m}}{\partial{y}} \right] -
@@ -82,7 +82,7 @@ represent the effects of horizontal and vertical diffusion, and
 $p^{\ast} = p_s-p_t$, i.e. the difference between surface and model top
 pressure.  \\
 
-In the equation \ref{hydro1} - \ref{hydro2}, $\dot{\sigma}$ is the total
+In the equation \ref{hydro_mom1} - \ref{hydro_mom2}, $\dot{\sigma}$ is the total
 derivative of the vertical coordinate $\sigma$ over time $t$:
 
 \begin{equation}
@@ -138,7 +138,7 @@ level in the model:
 \end{eqnarray}
 
 where $\sigma^\prime$ is a dummy variable of integration and
-$\dot{\sigma}(\sigma=0)=0$.
+$\dot{\sigma}(\sigma=0)=0$, $\dot{\sigma}(\sigma=1)= 0$.
 
 \subsubsection{Thermodynamic Equation and Equation for Omega ${\bf (\omega)}$}
 
@@ -154,8 +154,8 @@ The thermodynamic equation is
 	\frac{p^{\ast}Q}{c_{p}} + F_HT + F_VT
 \end{eqnarray}
 
-where, given $c_{pd}$ the heat capacity of dry air and $q_v$ the water vapor
-mixing ratio:
+where, given $c_{pd}$ the heat capacity of dry air and
+$q_v$ the water vapor mixing ratio:
 
 \begin{equation}
 c_{p} = c_{pd} \left( 1 + 0.8q_v \right)
@@ -167,7 +167,8 @@ $F_VT$ represents the effect of vertical mixing and dry convective adjustment,
 and $\omega$ is
 
 \begin{equation}
-\omega = p^{\ast} \dot{\sigma} + \sigma \frac{dp^{\ast}}{dt}
+	\omega = \frac{dp}{dt} = p^{\ast} \dot{\sigma} +
+	          \sigma \frac{dp^{\ast}}{dt}
 \end{equation}
 
 where:
@@ -185,6 +186,7 @@ The hydrostatic equation is used to compute the geopotential heights from
 the virtual temperature $T_v$,
 
 \begin{eqnarray}
+\label{hydrostatic_equation}
 \frac{\partial{\phi}}{\partial{\ln(\sigma + p_t / p^{\ast})}} =
 -RT_v \left[ 1 + \frac{\sum{q_x}}{1 + q_v} \right]^{-1}
 \end{eqnarray}
@@ -194,6 +196,216 @@ $q_x$ are the mixing ratios of all condensed water species.
 
 \subsubsection{Split-explicit timestep for fast waves removal}
 
+The hydrostatic model equations above (\ref{hydro_mom1}-
+\ref{hydrostatic_equation}) can be linearized about a state at rest,
+with:
+
+\begin{gather}
+\label{reference_atm}
+	\mean{u} = 0 \nonumber \\
+	\mean{v} = 0 \nonumber \\
+	T = \mean{T} \nonumber \\
+	f_0 = \mean{f} \nonumber \\
+	p^{\ast} = \mean{p}
+\end{gather}
+
+The linearized equations are:
+
+\begin{gather}
+	\label{linearized}
+	\frac{\partial u}{\partial t} =
+	     f_0 v - \frac{\partial}{\partial x} (\phi^{\prime} +
+	     R\mean{T}\ln^{\prime}(\sigma p^{\ast} + p_t)) \\
+	\frac{\partial v}{\partial t} =
+	     - f_0 u - \frac{\partial}{\partial y} (\phi^{\prime} +
+	     R\mean{T}\ln^{\prime}(\sigma p^{\ast} + p_t)) \\
+	\frac{\partial T^\prime}{\partial t} =
+	   - \dot{\sigma} \frac{\partial \mean{T}}{\partial \sigma} +
+	   \frac{\kappa \mean{T}}{\sigma + \frac{p_t}{\mean{p}}}
+	   \frac{\omega}{\mean{p}} \\
+	\label{2111}
+	\frac{\partial}{\partial t} \ln^{\prime}\left(\sigma p^{\ast} +
+	   p_t\right) = \frac{\sigma}{\sigma+\frac{p_t}{\mean{p}}}
+	      \frac{\partial}{\partial t}
+	      \ln\left(\frac{p^{\ast}}{\mean{p}}\right) \\
+	\phi^{\prime} = \phi_S - R \int_0^1 T^{\prime}
+	  d \left[ \ln(\sigma \mean{p}+p_t)\right] -
+	  R \int_0^1 \mean{T} d \left[ \ln^{\prime}
+	  (\sigma p^{\ast}+p_t) \right] \\
+	\dot{\sigma} = \sigma \int_0^1 \left(\frac{\partial u}{\partial x} +
+	\frac{\partial v}{\partial y} \right) d\sigma -
+	\int_0^{\sigma} \left(\frac{\partial u}{\partial x} +
+	\frac{\partial v}{\partial y}\right) d\sigma^{\prime} \\
+	\label{last_linearized}
+	\frac{\omega}{\mean{p}} = \dot{\sigma} - \sigma
+	\int_0^1 \left(\frac{\partial u}{\partial x} +
+	\frac{\partial v}{\partial y}\right) d\sigma
+\end{gather}
+
+where
+
+\begin{gather}
+	T^{\prime}(x,y,t,\sigma) = T(x,y,t,\sigma) -
+	   \mean{T}(\sigma) \nonumber \\
+	\ln^{\prime}(\sigma p^{\ast} + p_t) = \ln(\sigma p^{\ast} + p_t) -
+	  \ln(\sigma \mean{p} + p_t) \nonumber \\
+	\kappa = \frac{R}{c_p} \nonumber
+\end{gather}
+
+Substituting now coordinates $u,v$ with horizontal vorticity $\zeta$ and
+divergence $\delta$ defined as:
+
+\begin{gather}
+	\zeta = \frac{\partial v}{\partial x} -
+	        \frac{\partial u}{\partial y} \\
+        \delta = \frac{\partial u}{\partial x} +
+                 \frac{\partial v}{\partial y}
+\end{gather}
+
+and defining the stream function $\psi$ and the velocity potential $\chi$
+by:
+
+\begin{gather}
+	\left(\frac{\partial^2}{\partial x^2} +
+	      \frac{\partial^2}{\partial y^2}\right) \psi = 
+	      \nabla^2 \psi = \zeta \\
+	\left(\frac{\partial^2}{\partial x^2} +
+	      \frac{\partial^2}{\partial y^2}\right) \chi = 
+	      \nabla ^2 \chi = \delta \\
+	u = \frac{\partial \chi}{\partial x} -
+	    \frac{\partial \psi}{\partial y} \\
+	v = \frac{\partial \chi}{\partial y} +
+	    \frac{\partial \psi}{\partial x}
+\end{gather}
+
+we obtain:
+
+\begin{gather}
+	\frac{\partial \zeta}{\partial t} = -f_0 \delta \\
+	\frac{\partial \delta}{\partial t} = f_0 \zeta -
+	  \nabla^2\left[\phi^{\prime} + R \mean{T}
+	  \ln^{\prime}\left(\sigma p^{\ast} + p_t\right)\right] \\
+	\label{2124}
+	\frac{\partial T^{\prime}}{\partial t} = \bm{A} \delta \\
+	\label{2125}
+	\phi^{\prime} = \phi_S + R \bm{B} T^{\prime} +
+	    R \bm{C} \ln^{\prime} \left(\sigma p^{\ast} + p_t\right)
+\end{gather}
+
+where $\bm{A}, \bm{B}, \bm{C}$ are integral-differential operators in $\sigma$
+function of $\mean{T}$ and $\frac{p_t}{\mean{p}}$.
+
+Defining now the pseudo-geopotential $h$ as:
+
+\begin{gather}
+	h = \phi^{\prime} + R \mean{T} \ln^{\prime}
+	    \left(\sigma p^{\ast} + p_t\right)
+\end{gather}
+
+combining \ref{2125}, \ref{2124} and \ref{2111}, we can derive time tendency
+of this pseudo-geopotential $h$ as:
+
+\begin{gather}
+	\frac{\partial h}{\partial t} = - \tau(\delta)
+\end{gather}
+
+with $\tau$ is the integral $\sigma$-coordinate operator:
+
+\begin{gather}
+	\tau( ) = -R \bm{B}\bm{A}( ) + R \left( \bm{C} + \mean{T} \right)
+	  \frac{\sigma}{\sigma + \frac{p_t}{\mean{p}}}
+	  \int_0^1 ( ) d\sigma
+\end{gather}
+
+The complete nonlinear equations may be written as:
+
+\begin{gather}
+	\frac{\partial \zeta}{\partial t} = -f_0 \delta + N_{\zeta} \\
+	\frac{\partial \delta}{\partial t} = f_0 \zeta -
+	   \nabla^2 h + N_{\delta} \\
+	\frac{\partial h}{\partial t} = - \tau(\delta) + N_{h} \\
+	\frac{\partial p^{\ast}}{\partial t} = -
+	   \int_0^1 \left(\frac{\partial p^{\ast}u}{\partial x} +
+	   \frac{\partial p^{\ast} v}{\partial y} \right) d\sigma
+\end{gather}
+
+where the non linear terms contains also horizontal variations of $f$.
+
+If we now impose the conditions:
+
+\begin{itemize}
+	\item the primitive equations have slow behavior
+	\item the time tendencies of the amplitudes of gravitational waves are
+		negligible compared with other terms in the prognostic equations
+	\item the linearized potential vorticity $PV$ is unchanged
+\end{itemize}
+
+we have:
+
+\begin{gather}
+	f_0 \zeta - \nabla^2 h = -N_{\delta} \\
+	\frac{\partial}{\partial t}\left( f_0 \zeta - \nabla^2 h\right) = 0 \\
+	\frac{\partial PV}{\partial t} = 
+	 \frac{\partial \left(\zeta - f_0 \tau^{-1}(h)\right)}{\partial t} = 0
+\end{gather}
+
+The complete set of equations for the balance condition is:
+
+\begin{gather}
+	\label{balance_condition_1}
+	\left(f_0^2 \tau^{-1} - \nabla^2\right) \zeta =
+	    -f_0\tau^{-1} N_{\delta} - \nabla^2 PV \\
+	\label{balance_condition_2}
+	\left(f_0^2 \tau^{-1} - \nabla^2\right) \delta =
+	    \tau^{-1}\left(f_0 N_{\zeta} - \nabla^2 N_h \right) \\
+	\label{balance_condition_3}
+	h = \tau f_0^{-1}\left(\zeta - PV\right)
+\end{gather}
+
+The equations \ref{balance_condition_1}, \ref{balance_condition_2} and
+\ref{balance_condition_3} are solved iteratively, assuming a first guess if
+the three fields, computing the $N_{(\zeta,\delta,h)}$ and then solving
+them with those values. The process is repeated until convergence (smaller
+time step).
+
+Assuming:
+
+\begin{gather}
+	\zeta^N = \zeta^0 + \Delta \zeta \\
+	\delta^N = \delta^0 + \Delta \delta \\
+	h^N = h^0 + \Delta h
+\end{gather}
+
+the tendencies are:
+
+\begin{gather}
+	\frac{\partial \zeta}{\partial t} = -f_0 \delta^0 + N_{\zeta^0} \\
+	\frac{\partial \delta}{\partial t} = f_0 \zeta^0 -
+		 \nabla^2 h^0 + N_{\delta^0} \\
+	\frac{\partial h}{\partial t} = -\tau(\delta^0) + N_{h^0}
+\end{gather}
+
+then the changes to compute next timelevel are:
+
+\begin{gather}
+	\label{nextlev1}
+	\left(f_0^2\tau^{-1}-\nabla^2\right) \Delta\zeta =
+	-f_0 \tau^{-1} \left(f_0 \zeta^0-\nabla^2 h^0 + N_{\delta^0} \right) \\
+	\label{nextlev2}
+	\left(f_0^2\tau^{-1}-\nabla^2\right) \Delta\delta =
+	\tau^{-1} \left(f_0 (-f_0 \delta^0 + N_{\zeta^0}) -
+	\nabla^2(-\tau(\delta^0) + N_{h^0})\right) \\
+	\label{nextlev3}
+	\Delta h = \tau f_0^{-1} \Delta \zeta
+\end{gather}
+
+To solve the equations \ref{nextlev1}, \ref{nextlev2}, \ref{nextlev3} we need
+to invert the three dimensional differential operator $f_0^2\tau^{-1}-\nabla^2$,
+but being $\tau$ function only of $\sigma$ and $\nabla^2$ only of $x,y$, we can
+separate horizontal and vertical coordinates.
+In particular, we can use a transformation in terms of the eigenvectors of
+$\tau$, which are called the vertical structure functions or vertical modes
+of the linearized primitive equations \ref{linearized} - \ref{last_linearized}.
 
 \newpage
 
