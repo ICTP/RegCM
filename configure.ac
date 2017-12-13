@@ -114,6 +114,17 @@ if eval "test x"$USE_BDW" = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
+USE_NHL="0"
+AC_ARG_ENABLE(nhl,
+  AC_HELP_STRING([--enable-nhl],
+                 [Compile with SSE 4.2 flags.]),
+                 [USE_NHL="1"]
+)
+if eval "test x"$USE_NHL" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)NHL $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 USE_PROF="0"
 AC_ARG_ENABLE(profile,
   AC_HELP_STRING([--enable-profile],
@@ -377,6 +388,22 @@ if test -z "$COMPILER_GNU_TRUE"; then
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
+  if eval "test x"$USE_KNL" = x1"; then
+    FCFLAGS="$FCFLAGS -march=knl"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_SKL" = x1"; then
+    FCFLAGS="$FCFLAGS -march=skylake-avx512"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_BDW" = x1"; then
+    FCFLAGS="$FCFLAGS -march=broadwell"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_NHL" = x1"; then
+    FCFLAGS="$FCFLAGS -march=nehalem"
+    AC_SUBST(FCFLAGS)
+  fi
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="-convert big_endian -assume byterecl \
@@ -397,6 +424,10 @@ if test -z "$COMPILER_INTEL_TRUE"; then
   fi
   if eval "test x"$USE_BDW" = x1"; then
     FCFLAGS="$FCFLAGS -axCORE-AVX2"
+    AC_SUBST(FCFLAGS)
+  fi
+  if eval "test x"$USE_NHL" = x1"; then
+    FCFLAGS="$FCFLAGS -axSSE4.2"
     AC_SUBST(FCFLAGS)
   fi
 fi
