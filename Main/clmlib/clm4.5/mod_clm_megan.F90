@@ -106,7 +106,7 @@ module mod_clm_megan
   ! namelist information for the driver, CLM, and CAM.
   !
   ! Namelist variables:
-  !   megan_specifier, megan_mapped_emisfctrs, megan_factors_file
+  !   megan_specifier, shr_megan_mapped_emisfctrs, megan_factors_file
   !
   ! megan_specifier is a series of strings where each string contains one
   !  CAM chemistry constituent name (left of = sign) and one or more MEGAN
@@ -118,7 +118,7 @@ module mod_clm_megan
   ! megan_factors_file read by CLM contains valid MEGAN compound names,
   !  MEGAN class groupings and scalar emission factors
   !
-  ! megan_mapped_emisfctrs switch is used to tell the MEGAN model to use
+  ! shr_megan_mapped_emisfctrs switch is used to tell the MEGAN model to use
   !  mapped emission factors read in from the CLM surface data input file
   !  rather than the scalar factors from megan_factors_file
   !
@@ -147,12 +147,11 @@ module mod_clm_megan
     logical :: exists           ! if file exists or not
     integer(ik4), parameter :: maxspc = 150
     character(len=max_specifier_len) :: megan_specifier(maxspc) = ' '
-    logical           :: megan_mapped_emisfctrs = .false.
     character(len=256) :: megan_factors_file = ' '
     character(*),parameter :: F00   = "('(seq_drydep_read) ',2a)"
 
     namelist /megan_emis_nl/ megan_specifier , megan_factors_file ,  &
-                     megan_mapped_emisfctrs , shr_megan_megcomps_n , &
+                     shr_megan_mapped_emisfctrs , shr_megan_megcomps_n , &
                      shr_megan_mechcomps_n
 
     if ( myid == iocpu ) then
@@ -175,13 +174,12 @@ module mod_clm_megan
     call bcast(shr_megan_megcomps_n)
     call bcast(shr_megan_mechcomps_n)
     call bcast(megan_factors_file,256)
-    call bcast(megan_mapped_emisfctrs)
+    call bcast(shr_megan_mapped_emisfctrs)
     do i = 1 , maxspc
       call bcast(megan_specifier(i),max_specifier_len)
     end do
 
     shr_megan_factors_file = megan_factors_file
-    shr_megan_mapped_emisfctrs = megan_mapped_emisfctrs
 
     write(*,*)'test01 ',megan_factors_file
     ! parse the namelist info and initialize the module data
