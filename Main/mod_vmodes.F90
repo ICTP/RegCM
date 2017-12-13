@@ -67,23 +67,21 @@ module mod_vmodes
     call getmem2d(hydros,1,kz,1,kz,'vmodes:hydros')
   end subroutine allocate_mod_vmodes
   !
-  !----------------------------------------------------------------------
-  !
-  ! This subroutine determines the vertical modes of the PSU/NCAR meso-
-  ! scale model designated MM4.  It also computes associated transform
+  ! This subroutine determines the vertical modes of the PSU/NCAR
+  ! mesoscale model MM4. It also computes associated transform
   ! matrices used by the initialization software used with MM4.
-  ! Adapted to be used in RegCM.
   !
-  !----------------------------------------------------------------------
+  ! For further info see: NCAR Tech Note by Errico and Bates, 1988.
+  !   Implicit Normal-Mode Initialization of the PSU/NCAR Mesoscale Model
+  !   NCAR/TN-312+IA
+  !
+  ! VMODES subroutine desctiption is in Part 2
   !
   ! Programmed by Ronald M. Errico at NCAR,  Dec 1984.
   ! Revised by Ronald Errico and Gary Bates, Nov 1987.
   ! Revised by Ronald Errico,                Mar 1988.
-  ! For further info see: NCAR Tech Note by Errico and Bates, 1988.
   !
-  ! lstand = .true. if standard atmosphere t to be used (ignore input
-  !           tbarh and xps in that case).  Otherwise, xps and tbarh must
-  !           be defined on input.
+  ! Adapted to be used in RegCM
   !
   subroutine vmodes
     implicit none
@@ -148,7 +146,7 @@ module mod_vmodes
     ! set arrays describing vertical structure
     ! set reference pressures
     !
-    if ( lstand ) xps = d_100
+    if ( lstand ) xps = stdpcb
     ! standard xps in cb; otherwise xps set in tav
     pd = xps - ptop
     lsigma = .false.
@@ -196,7 +194,8 @@ module mod_vmodes
       end if
     end do
     !
-    ! define matrices for determination of thermodynamic matrix
+    ! Define matrices for determination of thermodynamic matrix
+    !
     !
     do l = 1 , kz
       do k = 1 , kz
@@ -207,8 +206,8 @@ module mod_vmodes
     end do
 
     do k = 1 , kz
-      a3(k,k) = -tbarh(k)
       d1(k,k) = sigma(k+1) - sigma(k)
+      a3(k,k) = -tbarh(k)
       d2(k,k) = rovcp*tbarh(k)/(sigmah(k)+ptop/pd)
       s1(k,k) = sigma(k)
       s2(k,k) = sigmah(k)
@@ -498,7 +497,7 @@ module mod_vmodes
       real(rkx) , parameter :: zstrat = 10769.0_rkx
       real(rkx) :: p0 , fac , p , z
       integer(ik4) :: k
-      p0 = stdp*d_r1000
+      p0 = stdpcb
       fac = rgas*lrate*regrav
       do k = 1 , kz
         p = sigmah(k)*pd + ptop
