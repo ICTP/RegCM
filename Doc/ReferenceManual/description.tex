@@ -223,7 +223,11 @@ The linearized equations are:
 	   - \dot{\sigma} \frac{\partial \mean{T}}{\partial \sigma} +
 	   \frac{\kappa \mean{T}}{\sigma + \frac{p_t}{\mean{p}}}
 	   \frac{\omega}{\mean{p}} \\
-	\label{2111}
+	\label{2111a}
+	\frac{\partial \ln\left(\frac{p^{\ast}}{\mean{p}}\right)}{\partial t} =
+	-\int_0^1\left(\frac{\partial u}{\partial x} +
+	\frac{\partial v}{\partial y} \right) d\sigma \\
+	\label{2111b}
 	\frac{\partial}{\partial t} \ln^{\prime}\left(\sigma p^{\ast} +
 	   p_t\right) = \frac{\sigma}{\sigma+\frac{p_t}{\mean{p}}}
 	      \frac{\partial}{\partial t}
@@ -256,8 +260,10 @@ Substituting now coordinates $u,v$ with horizontal vorticity $\zeta$ and
 divergence $\delta$ defined as:
 
 \begin{gather}
+	\label{vorticity}
 	\zeta = \frac{\partial v}{\partial x} -
 	        \frac{\partial u}{\partial y} \\
+	\label{divergence}
         \delta = \frac{\partial u}{\partial x} +
                  \frac{\partial v}{\partial y}
 \end{gather}
@@ -298,11 +304,12 @@ function of $\mean{T}$ and $\frac{p_t}{\mean{p}}$.
 Defining now the pseudo-geopotential $h$ as:
 
 \begin{gather}
+	\label{pseudogeop}
 	h = \phi^{\prime} + R \mean{T} \ln^{\prime}
 	    \left(\sigma p^{\ast} + p_t\right)
 \end{gather}
 
-combining \ref{2125}, \ref{2124} and \ref{2111}, we can derive time tendency
+combining \ref{2125}, \ref{2124} and \ref{2111a}, we can derive time tendency
 of this pseudo-geopotential $h$ as:
 
 \begin{gather}
@@ -320,9 +327,12 @@ with $\tau$ is the integral $\sigma$-coordinate operator:
 The complete nonlinear equations may be written as:
 
 \begin{gather}
+	\label{cmplnonlin1}
 	\frac{\partial \zeta}{\partial t} = -f_0 \delta + N_{\zeta} \\
+	\label{cmplnonlin2}
 	\frac{\partial \delta}{\partial t} = f_0 \zeta -
 	   \nabla^2 h + N_{\delta} \\
+	\label{cmplnonlin3}
 	\frac{\partial h}{\partial t} = - \tau(\delta) + N_{h} \\
 	\frac{\partial p^{\ast}}{\partial t} = -
 	   \int_0^1 \left(\frac{\partial p^{\ast}u}{\partial x} +
@@ -337,7 +347,8 @@ If we now impose the conditions:
 	\item the primitive equations have slow behavior
 	\item the time tendencies of the amplitudes of gravitational waves are
 		negligible compared with other terms in the prognostic equations
-	\item the linearized potential vorticity $PV$ is unchanged
+	\item the linearized potential vorticity
+		$\eta = \zeta - f_0 \tau^{-1}(h)$ is unchanged
 \end{itemize}
 
 we have:
@@ -345,7 +356,7 @@ we have:
 \begin{gather}
 	f_0 \zeta - \nabla^2 h = -N_{\delta} \\
 	\frac{\partial}{\partial t}\left( f_0 \zeta - \nabla^2 h\right) = 0 \\
-	\frac{\partial PV}{\partial t} = 
+	\frac{\partial \eta}{\partial t} = 
 	 \frac{\partial \left(\zeta - f_0 \tau^{-1}(h)\right)}{\partial t} = 0
 \end{gather}
 
@@ -354,12 +365,12 @@ The complete set of equations for the balance condition is:
 \begin{gather}
 	\label{balance_condition_1}
 	\left(f_0^2 \tau^{-1} - \nabla^2\right) \zeta =
-	    -f_0\tau^{-1} N_{\delta} - \nabla^2 PV \\
+	    -f_0\tau^{-1} N_{\delta} - \nabla^2 \eta \\
 	\label{balance_condition_2}
 	\left(f_0^2 \tau^{-1} - \nabla^2\right) \delta =
 	    \tau^{-1}\left(f_0 N_{\zeta} - \nabla^2 N_h \right) \\
 	\label{balance_condition_3}
-	h = \tau f_0^{-1}\left(\zeta - PV\right)
+	h = \tau f_0^{-1}\left(\zeta - \eta\right)
 \end{gather}
 
 The equations \ref{balance_condition_1}, \ref{balance_condition_2} and
@@ -406,6 +417,161 @@ separate horizontal and vertical coordinates.
 In particular, we can use a transformation in terms of the eigenvectors of
 $\tau$, which are called the vertical structure functions or vertical modes
 of the linearized primitive equations \ref{linearized} - \ref{last_linearized}.
+For the finite number of discrete $kz$ $\sigma$ levels, the operator $\tau^{-1}$
+is defined as a $kz\times kz$ matrix withe the normal modes $\bm{z_i}$ as the
+$kz$-dimensional vectors satisfying the equation:
+
+\begin{gather}
+	\left( g H_i - \tau \right) \bm{z_i} = 0
+\end{gather}
+
+where $H_i$ are the corresponding eigenvalues, called the equivalent depths,
+because when the vertical profile $\mean{T}(\sigma)$ is statically stable the
+values of $H_i$ are positive valued and bounded.
+
+The problem has $kz$ independent solutions, and given as $\bm{Z}$ the
+$kx\times kz$ matrix whose columns are the eigenvectors $\bm{z_i}$ and
+$\bm{H}$ the diagonal matrix of correspondingly ordered $H_i$, it can
+be rewritten as:
+
+\begin{gather}
+	g\bm{H}\bm{Z} = \tau \bm{Z}
+\end{gather}
+
+If we represent the three dimensional field $\zeta$, $\delta$ and $h$ as one
+dimensional vectors of two dimensional fields:
+
+\begin{gather}
+	\bm{\zeta}(x,y,t) = (\zeta(x,y,\sigma_1,t),\zeta(x,y,\sigma_2,t),
+	       \dots,\zeta(x,y,\sigma_{kz},t))^\top \\
+	\bm{\delta}(x,y,t) = (\delta(x,y,\sigma_1,t),\delta(x,y,\sigma_2,t),
+	       \dots,\delta(x,y,\sigma_{kz},t))^\top \\
+	\bm{h}(x,y,t) = (h(x,y,\sigma_1,t),h(x,y,\sigma_2,t),
+	       \dots,h(x,y,\sigma_{kz},t))^\top
+\end{gather}
+
+having computed the $\bm{Z}$ matrix, we can transform from the $\sigma$
+coordinates to the vertical-model amplitudes with:
+
+\begin{gather}
+	\label{hatz1}
+	\hat{\bm{\zeta}} = \bm{Z^{-1}} \bm{\zeta} \\
+	\label{hatz2}
+	\hat{\bm{\delta}} = \bm{Z^{-1}} \bm{\delta} \\
+	\label{hatz3}
+	\hat{\bm{h}} = \bm{Z^{-1}} \bm{h} \\
+	\nonumber \\
+	\bm{\zeta} = \bm{Z} \hat{\bm{\zeta}} \\
+	\bm{\delta} = \bm{Z} \hat{\bm{\delta}} \\
+	\bm{h} = \bm{Z} \hat{\bm{h}}
+\end{gather}
+
+with the $\bm{I}$ identity matrix $kz\times kz$ as:
+
+\begin{gather}
+	\bm{I} = \bm{Z}\bm{Z^{-1}}
+\end{gather}
+
+In terms of the above defined vertical mode amplitudes, the complete
+non-linear equations in \ref{cmplnonlin1} - \ref{cmplnonlin3} can be
+rewritten as:
+
+\begin{gather}
+	\frac{\partial \hat{\zeta}_i}{\partial t} = - f_0 \hat{\delta}_i +
+	   \hat{N}_{\zeta_i} \\
+	\frac{\partial \hat{\delta}_i}{\partial t} = f_0 \hat{\zeta}_i -
+	   \nabla^2 \hat{h}_i + \hat{N}_{\delta_i} \\
+	\frac{\partial \hat{h}_i}{\partial t} = -g H_i \hat{\delta}_i +
+	   \hat{N}_{h_i}
+\end{gather}
+
+Ignoring the non-linear terms $N$, we can thus, for discrete $\sigma_i$,
+replace the three dimensional operator $(f_0^2\tau^{-1} - \nabla^2)$ with
+a set of two-dimensional operators $(\lambda_i - \nabla^2)$ where
+
+\begin{gather}
+	\lambda_i = \frac{f_0^2}{gH_i}
+\end{gather}
+
+which are the squared inverse of the Rossby radius of deformation
+corresponding to the $H_i$ dephts.
+The balanced fields are thus obtained by iterating:
+
+\begin{gather}
+	\label{to_be_iterated1}
+	\left( \lambda_i - \nabla^2 \right) \Delta \hat{\zeta}_i =
+	   \frac{\lambda}{f_0} \frac{\partial \hat{\delta}}{\partial t} \\
+	\label{to_be_iterated2}
+	\left( \lambda_i - \nabla^2 \right) \Delta \hat{\delta}_i =
+	   \frac{\lambda}{f_0^2} \left( f_0 
+	   \frac{\partial \hat{\zeta}}{\partial t} -
+	   \nabla^2 \frac{\partial \hat{h}}{\partial t} \right) \\
+	\label{to_be_iterated3}
+	\Delta \hat{h}_i = f_0 \lambda^{-1} \Delta \hat{\zeta}_i
+\end{gather}
+
+Using the relations:
+
+\begin{gather}
+	\Delta \left( \ln p\right) = \int_0^1 \tau^{-1} \Delta h d\sigma \\
+	p^N = p^0 \exp^{\left( \Delta \ln p \right)}
+\end{gather}
+
+the temperature changes can be computed as:
+
+\begin{gather}
+	\label{tchange}
+	\Delta T = \frac{1}{R} \bm{B}^{-1} \left[ \Delta h - R
+	\left( \bm{C} + \mean{T}\right) \ln \left(
+	\frac{\sigma p^N + p_t}{\sigma p^0 + p_t}\right) \right]
+\end{gather}
+
+Defining now a shorter timestep $\hat{\Delta} t$, the sequence
+to balance the dynamic fields and thus remove the fast wave components,
+known the matrix $\bm{Z}$, are thus:
+
+\begin{enumerate}
+	\item \label{step1} Compute $\zeta$, $\delta$ and $h$ from the model
+		variables $u$, $v$, $T$, $p^{\ast}$ at time $t$ using
+		equation \ref{vorticity}, \ref{divergence} and
+		\ref{pseudogeop}
+	\item \label{step2} Compute $\hat{\zeta}$, $\hat{\delta}$, $\hat{h}$
+		from $\zeta$, $\delta$ and $h$ using \ref{hatz1}, \ref{hatz2}
+		and \ref{hatz3}
+	\item Compute the new values of the prognostic variables
+		$u$, $v$, $T$, $p^{\ast}$ at $t = t + \Delta t$ using
+		model dynamic and physic
+	\item Repeat the steps \ref{step1}, \ref{step2} for the new timestep
+	\item Compute the tendencies of $\hat{\zeta}$, $\hat{\delta}$, $\hat{h}$
+		using the two discrete timesteps and short timestep
+		$\hat{\Delta} t$ as in:
+		\begin{gather}
+			\frac{\partial \hat{\zeta}}{\partial t} = 
+			\left[ \frac{\left( \hat{\zeta}_{t+\hat{\Delta} t} -
+			     \hat{\zeta}_t \right)}{\hat{\Delta} t} \right] \\
+			\frac{\partial \hat{\delta}}{\partial t} = 
+			\left[ \frac{\left( \hat{\delta}_{t+\hat{\Delta} t} -
+			     \hat{\delta}_t \right)}{\hat{\Delta} t} \right] \\
+			\frac{\partial \hat{h}}{\partial t} = 
+			\left[ \frac{\left( \hat{h}_{t+\Delta t} -
+			     \hat{h}_t \right)}{\hat{\Delta} t} \right]
+		\end{gather}
+	\item Compute the right hand side of \ref{to_be_iterated1},
+		\ref{to_be_iterated2}, \ref{to_be_iterated3}
+	\item Solve the equations \ref{to_be_iterated1}, \ref{to_be_iterated2}
+		for $\Delta \hat{\zeta}_i$ and $\Delta \hat{\delta}_i$
+	\item Compute $\Delta \hat{h}_i$ using \ref{to_be_iterated3}
+	\item Compute velocity modifications in terms of $\Delta \hat{\psi}$
+		and $\Delta \hat{\chi}$ corresponding to the computed
+		$\Delta \hat{\zeta}_i$ and $\Delta \hat{\delta}_i$ using the
+		definitions of stream function and velocity potential
+	\item Transform those to modifications in $\Delta u$ and $\Delta v$
+		and $\Delta h$
+	\item Compute $\Delta p$ using \ref{2111a} and \ref{2111b} or
+		\cite{Daley} variational analysis
+	\item Compute changes to $T$ using \ref{tchange}
+	\item Compute updated fields and iterate
+\end{enumerate}
 
 \newpage
 

@@ -221,6 +221,7 @@ module mod_constants
   real(rkx) , parameter :: p00 = 1.000000e5_rkx
   real(rkx) , parameter :: stdp = 1.013250e5_rkx
   real(rkx) , parameter :: stdpmb = 1013.250_rkx
+  real(rkx) , parameter :: stdpcb = 101.3250_rkx
   real(rkx) , parameter :: stdt = 288.15_rkx
   real(rkx) , parameter :: stdrho = 1.28_rkx
   real(rkx) , parameter :: lrate = 0.00649_rkx ! K/m from MSL up to 11 km
@@ -347,7 +348,7 @@ module mod_constants
 
   ! Pressure gradient force calculations (Why not standard atmosphere?)
   real(rkx) , parameter :: t00pg = 287.0_rkx       ! stdt ?
-  real(rkx) , parameter :: p00pg = 101.325_rkx     ! stdp ?
+  real(rkx) , parameter :: p00pg = 101.325_rkx     ! stdpcb ?
   real(rkx) , parameter :: alam  = 6.5e-3_rkx      ! Lapse rate ?
   real(rkx) , parameter :: pgfaa1 = alam*rgas*regrav ! Utility constant
 
