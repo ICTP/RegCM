@@ -941,8 +941,23 @@ module mod_params
       if ( dtabem < dt ) dtabem = dt
 
       dtsrf = int(dtsrf / dt) * dt
+      do while ( mod(86400.0_rkx,dtsrf) > d_zero )
+        dtsrf = dtsrf - dt
+      end do
+      dtsrf = int(dtsrf / dt) * dt
+
       dtcum = int(dtcum / dt) * dt
+      do while ( mod(86400.0_rkx,dtcum) > d_zero )
+        dtcum = dtcum - dt
+      end do
+      dtcum = int(dtcum / dt) * dt
+
       dtrad = int(dtrad / dt) * dt
+      do while ( mod(86400.0_rkx,dtrad) > d_zero )
+        dtrad = dtrad - dt
+      end do
+      dtrad = int(dtrad / dt) * dt
+
       dtche = int(dtche / dt) * dt
       dtabem = int(dtabem / dtrad) * dtrad
 

@@ -158,7 +158,7 @@ module mod_clm_regcm
         end if
       else
         if ( associated(alarm_out_sav) ) then
-          if ( savfrq > 0 ) then
+          if ( savfrq > d_zero ) then
             if ( alarm_out_sav%will_act(dtsrf) ) then
               rstwr = .true.
               if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
