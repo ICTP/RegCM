@@ -1784,14 +1784,14 @@ module mod_cu_kf
       if ( ishall == 1 )  then
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
-          xcldfra = 0.07_rkx*log(d_one+(500.0_rkx*umf_new))
+          xcldfra = 0.14_rkx*log(d_one+(500.0_rkx*umf_new))
           xcldfra = max(0.01_rkx,xcldfra)
-          cldfra_sh_kf(nk,np) = min(d_half*clfrcv,xcldfra)
+          cldfra_sh_kf(nk,np) = min(clfrcv,xcldfra)
         end do
       else
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
-          xcldfra = 0.14_rkx*log(d_one+(500.0_rkx*umf_new))
+          xcldfra = 0.28_rkx*log(d_one+(500.0_rkx*umf_new))
           xcldfra = max(0.01_rkx,xcldfra)
           cldfra_dp_kf(nk,np) = min(clfrcv,xcldfra)
         end do
