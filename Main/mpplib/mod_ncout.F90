@@ -2739,9 +2739,33 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('fixed_solar_constant',fixedsolarval))
         end if
-        if ( ipptls == 1 ) then
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('cloud_bottom_level_with_no_clouds',ncld))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_rh_with_fcc_one',rhmax))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_rh_threshold_for_land',rh0land))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_rh_threshold_for_ocean',rh0oce))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_rh1_limit_temperature',tc0))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_cloud_fraction_maximum',cftotmax))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_condensation_threshold',conf))
+        call outstream_addatt(outstream(i)%ncout(j), &
+        ncattribute_real8('cloud_cloud_fraction_max_for_convection',clfrcvmax))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_cloud_liqwat_max_for_convection',cllwcv))
+        if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('subex_bottom_level_with_no_clouds',ncld))
+            ncattribute_real8('mean_critical_radius',rcrit))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('geometric_mean_d_and_s',coef_ccn))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('bulk_activation_ratio',abulk))
+        end if
+        if ( ipptls == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_auto_conversion_rate_for_land',qck1land))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2751,14 +2775,6 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
            ncattribute_real8('subex_gultepe_factor_when_rain_for_ocean',guloce))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_rh_with_fcc_one',rhmax))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_rh_threshold_for_land',rh0land))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_rh_threshold_for_ocean',rh0oce))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_limit_temperature',tc0))
-          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_land_raindrop_evaporation_rate',cevaplnd))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_ocean_raindrop_evaporation_rate',cevapoce))
@@ -2766,22 +2782,6 @@ module mod_ncout
             ncattribute_real8('subex_land_raindrop_accretion_rate',caccrlnd))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_ocean_raindrop_accretion_rate',caccroce))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_cloud_fraction_maximum',cftotmax))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_condensation_threshold',conf))
-          call outstream_addatt(outstream(i)%ncout(j), &
-         ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
-          if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('mean_critical_radius',rcrit))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('geometric_mean_d_and_s',coef_ccn))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('bulk_activation_ratio',abulk))
-          end if
         else if ( ipptls == 2 ) then
 #ifdef DEBUG
           call outstream_addatt(outstream(i)%ncout(j), &

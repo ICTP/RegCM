@@ -46,6 +46,7 @@ module mod_micro_interface
   type(mod_2_micro) :: mo2mc
   type(micro_2_mod) :: mc2mo
 
+  real(rkx) , pointer , dimension(:,:) :: rh0
   real(rkx) , pointer , dimension(:,:,:) :: totc
 
   real(rkx) , parameter :: qvmin = 1.0e-8_rkx
@@ -62,8 +63,9 @@ module mod_micro_interface
     implicit none
     integer(ik4) :: i
     real(rkx) :: cf
-    call allocate_subex
-    if ( ipptls == 2 ) then
+    if ( ipptls == 1 ) then
+      call allocate_subex
+    else if ( ipptls == 2 ) then
       call allocate_mod_nogtom
 #ifdef DEBUG
       if ( stats ) then
@@ -106,6 +108,7 @@ module mod_micro_interface
     else if ( ipptls == 3 ) then
       call allocate_mod_wsm5
     end if
+    call getmem2d(rh0,jci1,jci2,ici1,ici2,'subex:rh0')
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'subex:totc')
     do i = 1 , nchi
       cf = real(i-1)/real(nchi-1)

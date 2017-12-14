@@ -40,7 +40,7 @@ module mod_micro_subex
   !
   ! Precip sum beginning from top
   !
-  real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
+  real(rkx) , public , pointer , dimension(:,:) :: qck1 , cgul , &
     cevap , xcevap , caccr
 
   real(rkx) :: maxlat
@@ -65,7 +65,6 @@ module mod_micro_subex
     ! Those not. Note the external, internal change.
     call getmem2d(qck1,jci1,jci2,ici1,ici2,'subex:qck1')
     call getmem2d(cgul,jci1,jci2,ici1,ici2,'subex:cgul')
-    call getmem2d(rh0,jci1,jci2,ici1,ici2,'subex:rh0')
     call getmem2d(cevap,jci1,jci2,ici1,ici2,'subex:cevap')
     if ( l_lat_hack ) then
       call getmem2d(xcevap,jci1,jci2,ici1,ici2,'subex:xcevap')

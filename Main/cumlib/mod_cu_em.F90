@@ -1153,7 +1153,7 @@ module mod_cu_em
       !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
       !
       do i = icb , ict
-        cldfra(n,i) = 0.105_rkx * &
+        cldfra(n,i) = 0.300_rkx * &
                 log(d_one+(500.0_rkx*d_half*(mp(i)+mp(i+1)/dxsq)))
         cldfra(n,i) = min(max(0.0_rkx,cldfra(n,i)),clfrcv)
       end do

@@ -117,10 +117,11 @@ module mod_params
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
 
-    namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,  &
-      rhmax , rhmin , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , &
-      caccroce , tc0 , cllwcv , clfrcvmax , cftotmax , conf , lsrfhack ,  &
-      rcrit , coef_ccn , abulk
+    namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 , &
+      cllwcv , clfrcvmax , cftotmax , lsrfhack , rcrit , coef_ccn , abulk
+
+    namelist /subexparam/ qck1land , qck1oce , gulland , guloce ,  &
+      cevaplnd , cevapoce , caccrlnd , caccroce , conf
 
     namelist /microparam/ stats , budget_compute , nssopt ,  &
       iautoconv , vfqr , vfqi , vfqs , auto_rate_khair ,     &
@@ -298,28 +299,31 @@ module mod_params
     ! Subexparam ;
     ! From Pal et al, 2000
     !
-    ncld      = 1        ! # of bottom model levels with no clouds (rad only)
     qck1land  = 0.0005_rkx ! Autoconversion Rate for Land
     qck1oce   = 0.0005_rkx ! Autoconversion Rate for Ocean
     gulland   = 0.65_rkx   ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
     guloce    = 0.30_rkx   ! Fract of Gultepe eqn (qcth) for ocean
+    cevaplnd  = 1.0e-5_rkx ! Raindrop ev rate coef land [[(kg m-2 s-1)-1/2]/s]
+    cevapoce  = 1.0e-5_rkx ! Raindrop ev rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+    caccrlnd  = 6.0_rkx    ! Raindrop accretion rate land  [m3/kg/s]
+    caccroce  = 4.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
+    conf      = 1.00_rkx   ! Condensation efficiency
+    !
+    ! Cloud fraction control algorithm
+    !
+    ncld      = 1        ! # of bottom model levels with no clouds (rad only)
     rhmax     = 1.01_rkx   ! RH at whicn FCC = 1.0
     rhmin     = 0.01_rkx   ! RH min value
     rh0land   = 0.80_rkx   ! Relative humidity threshold for land
     rh0oce    = 0.90_rkx   ! Relative humidity threshold for ocean
     tc0       = 238.0_rkx  ! Below this temp, rh0 begins to approach unity
-    cevaplnd  = 1.0e-5_rkx ! Raindrop ev rate coef land [[(kg m-2 s-1)-1/2]/s]
-    cevapoce  = 1.0e-5_rkx ! Raindrop ev rate coef ocean [[(kg m-2 s-1)-1/2]/s]
-    caccrlnd  = 6.0_rkx    ! Raindrop accretion rate land  [m3/kg/s]
-    caccroce  = 4.0_rkx    ! Raindrop accretion rate ocean [m3/kg/s]
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
-    conf      = 1.00_rkx   ! Condensation efficiency
     rcrit     = 13.5_rkx   ! Mean critical radius
     coef_ccn  = 2.5e+20_rkx ! Coefficient determined by assuming a lognormal PMD
     abulk     = 0.9_rkx    ! Bulk activation ratio
-    lsrfhack  = .false.  ! Surface radiation hack
+    lsrfhack  = .false.    ! Surface radiation hack
     !
     ! microparam ;
     ! From original Nogerotto settings
@@ -679,9 +683,28 @@ module mod_params
         end if
       end if
 
-      if ( ipptls > 0 ) then
+      rewind(ipunit)
+      read (ipunit, nml=cldparam, iostat=iretval, err=107)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default cloud parameter.'
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read cldparam OK'
+#endif
+      end if
+      if ( cftotmax < 0.0 ) then
+          cftotmax = 0.1_rkx
+      else if ( cftotmax >= 1.0_rkx ) then
+        cftotmax = 0.99_rkx
+      end if
+      if ( icldfrac > 1 .and. ipptls < 2 ) then
+        write(stdout,*) 'Will set icldfrac == 0 : missing hydrometeors'
+        icldfrac = 0
+      end if
+
+      if ( ipptls == 1 ) then
         rewind(ipunit)
-        read (ipunit, nml=subexparam, iostat=iretval, err=107)
+        read (ipunit, nml=subexparam, iostat=iretval, err=108)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default subex parameter.'
 #ifdef DEBUG
@@ -689,39 +712,28 @@ module mod_params
           write(stdout,*) 'Read subexparam OK'
 #endif
         end if
-        if ( ipptls == 2 ) then
-          rewind(ipunit)
-          read (ipunit, nml=microparam, iostat=iretval, err=108)
-          if ( iretval /= 0 ) then
-            write(stdout,*) 'Using default microphysical parameter.'
+      else if ( ipptls == 2 ) then
+        rewind(ipunit)
+        read (ipunit, nml=microparam, iostat=iretval, err=109)
+        if ( iretval /= 0 ) then
+          write(stdout,*) 'Using default microphysical parameter.'
 #ifdef DEBUG
-          else
-            write(stdout,*) 'Read microparam OK'
-#endif
-          end if
-          if ( budget_compute ) then
-            write(stdout,*) 'Will check the total enthalpy and moisture'
-          end if
-          if ( cftotmax < 0.99_rkx ) then
-            write(stdout,*) 'Will set cftotmax == 0.99'
-            cftotmax = 0.99_rkx
-          end if
         else
-          if ( cftotmax < 0.0 ) then
-            cftotmax = 0.1_rkx
-          else if ( cftotmax >= 1.0_rkx ) then
-            cftotmax = 0.99_rkx
-          end if
+          write(stdout,*) 'Read microparam OK'
+#endif
         end if
-        if ( icldfrac > 1 .and. ipptls < 2 ) then
-          write(stdout,*) 'Will set icldfrac == 0 : missing hydrometeors'
-          icldfrac = 0
+        if ( budget_compute ) then
+          write(stdout,*) 'Will check the total enthalpy and moisture'
+        end if
+        if ( cftotmax < 0.99_rkx ) then
+          write(stdout,*) 'Will set cftotmax == 0.99'
+          cftotmax = 0.99_rkx
         end if
       end if
 
       if ( any(icup == 2) ) then
         rewind(ipunit)
-        read (ipunit, nml=grellparam, iostat=iretval, err=109)
+        read (ipunit, nml=grellparam, iostat=iretval, err=110)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Grell parameter.'
 #ifdef DEBUG
@@ -732,7 +744,7 @@ module mod_params
       end if
       if ( any(icup == 4) ) then
         rewind(ipunit)
-        read (ipunit, nml=emanparam, iostat=iretval, err=110)
+        read (ipunit, nml=emanparam, iostat=iretval, err=111)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default MIT parameter.'
 #ifdef DEBUG
@@ -743,7 +755,7 @@ module mod_params
       end if
       if ( any(icup == 5) ) then
         rewind(ipunit)
-        read (ipunit, nml=tiedtkeparam, iostat=iretval, err=111)
+        read (ipunit, nml=tiedtkeparam, iostat=iretval, err=112)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Tiedtke parameter.'
 #ifdef DEBUG
@@ -754,7 +766,7 @@ module mod_params
       end if
       if ( any(icup == 6) ) then
         rewind(ipunit)
-        read (ipunit, nml=kfparam, iostat=iretval, err=112)
+        read (ipunit, nml=kfparam, iostat=iretval, err=113)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Kain Fritsch parameter.'
 #ifdef DEBUG
@@ -789,7 +801,7 @@ module mod_params
       end if
       if ( ibltyp == 1 ) then
         rewind(ipunit)
-        read (ipunit, nml=holtslagparam, iostat=iretval, err=113)
+        read (ipunit, nml=holtslagparam, iostat=iretval, err=114)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Holtslag parameter.'
 #ifdef DEBUG
@@ -800,7 +812,7 @@ module mod_params
       end if
       if ( ibltyp == 2 ) then
         rewind(ipunit)
-        read (ipunit, nml=uwparam, iostat=iretval, err=114)
+        read (ipunit, nml=uwparam, iostat=iretval, err=115)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default UW PBL parameter.'
 #ifdef DEBUG
@@ -811,7 +823,7 @@ module mod_params
       end if
       if ( irrtm == 1 ) then
         rewind(ipunit)
-        read (ipunit, nml=rrtmparam, iostat=iretval, err=115)
+        read (ipunit, nml=rrtmparam, iostat=iretval, err=116)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default RRTM parameter.'
 #ifdef DEBUG
@@ -823,7 +835,7 @@ module mod_params
 
       if ( islab_ocean == 1 ) then
         rewind(ipunit)
-        read (ipunit, nml=slabocparam, iostat=iretval, err=116)
+        read (ipunit, nml=slabocparam, iostat=iretval, err=117)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default SLAB Ocean parameter.'
 #ifdef DEBUG
@@ -851,7 +863,7 @@ module mod_params
 
       if ( ichem == 1 ) then
         rewind(ipunit)
-        read (ipunit, chemparam, iostat=iretval, err=117)
+        read (ipunit, chemparam, iostat=iretval, err=118)
         if ( iretval /= 0 ) then
           write(stderr,*) 'Error reading chemparam namelist'
           call fatal(__FILE__,__LINE__, &
@@ -867,7 +879,7 @@ module mod_params
       end if
 #ifdef CLM
       rewind(ipunit)
-      read (ipunit , clmparam, iostat=iretval, err=118)
+      read (ipunit , clmparam, iostat=iretval, err=119)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default CLM parameter.'
 #ifdef DEBUG
@@ -878,7 +890,7 @@ module mod_params
 #endif
       if ( iocncpl == 1 .or. iwavcpl == 1 ) then
         rewind(ipunit)
-        read (ipunit , cplparam, iostat=iretval, err=119)
+        read (ipunit , cplparam, iostat=iretval, err=120)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default Coupling parameter.'
 #ifdef DEBUG
@@ -890,7 +902,7 @@ module mod_params
 
       if ( itweak == 1 ) then
         rewind(ipunit)
-        read (ipunit , tweakparam, iostat=iretval, err=120)
+        read (ipunit , tweakparam, iostat=iretval, err=121)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Tweak parameters absent.'
           write(stdout,*) 'Disable tweaking.'
@@ -1192,44 +1204,46 @@ module mod_params
     call bcast(ilawrence_albedo)
 #endif
 
-    if ( ipptls > 0 ) then
-      call bcast(ncld)
+    !
+    ! Cloud parameters
+    !
+    call bcast(ncld)
+    call bcast(rhmax)
+    call bcast(rhmin)
+    call bcast(rh0oce)
+    call bcast(rh0land)
+    call bcast(tc0)
+    call bcast(cftotmax)
+    call bcast(rcrit)
+    call bcast(coef_ccn)
+    call bcast(abulk)
+    call bcast(lsrfhack)
+
+    if ( ipptls == 1 ) then
       call bcast(qck1land)
       call bcast(qck1oce)
       call bcast(gulland)
       call bcast(guloce)
-      call bcast(rhmin)
-      call bcast(rhmax)
-      call bcast(rhmin)
-      call bcast(rh0oce)
-      call bcast(rh0land)
-      call bcast(tc0)
       call bcast(cevaplnd)
       call bcast(cevapoce)
       call bcast(caccrlnd)
       call bcast(caccroce)
-      call bcast(cftotmax)
       call bcast(conf)
-      call bcast(rcrit)
-      call bcast(coef_ccn)
-      call bcast(abulk)
-      call bcast(lsrfhack)
-      if ( ipptls == 2 ) then
-        call bcast(stats)
-        call bcast(budget_compute)
-        call bcast(nssopt)
-        call bcast(iautoconv)
-        call bcast(vfqr)
-        call bcast(vfqi)
-        call bcast(vfqs)
-        call bcast(auto_rate_khair)
-        call bcast(auto_rate_kessl)
-        call bcast(auto_rate_klepi)
-        call bcast(rcovpmin)
-        call bcast(rpecons)
-        call bcast(rkconv)
-        call bcast(skconv)
-      end if
+    else if ( ipptls == 2 ) then
+      call bcast(stats)
+      call bcast(budget_compute)
+      call bcast(nssopt)
+      call bcast(iautoconv)
+      call bcast(vfqr)
+      call bcast(vfqi)
+      call bcast(vfqs)
+      call bcast(auto_rate_khair)
+      call bcast(auto_rate_kessl)
+      call bcast(auto_rate_klepi)
+      call bcast(rcovpmin)
+      call bcast(rpecons)
+      call bcast(rkconv)
+      call bcast(skconv)
     end if
 
     if ( ipptls > 1 ) then
@@ -1904,33 +1918,36 @@ module mod_params
         write(stdout,'(a,f11.6)') '  nuk       = ', nuk
         write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
       end if
-      if ( ipptls > 0 ) then
+      write(stdout,*) 'Cloud fraction schemes parameters'
+      write(stdout,'(a,i2)' )   '  # of bottom no cloud model levels : ',ncld
+      write(stdout,'(a,f11.6)') '  Maximum relative humidity         : ' ,rhmax
+      write(stdout,'(a,f11.6)') '  Minimum relative humidity         : ' ,rhmin
+      if ( icldfrac == 0 ) then
+        write(stdout,'(a,f11.6)') '  RH0 temperature threshold         : ' ,tc0
+        write(stdout,'(a,f11.6,a,f11.6)')                      &
+            '  Relative humidity thresholds: Land = ',rh0land, &
+            ' Ocean = ',rh0oce
+      end if
+      write(stdout,'(a,f11.6)') &
+          '  Maximum total cloud cover for rad : ', cftotmax
+      write(stdout,'(a,l11)') &
+          '  Surface radiation hack            : ', lsrfhack
+      if ( ipptls == 1 ) then
         !
         ! specify the constants used in the model.
-        !     conf   : condensation threshold.
-        !     qcth   : threshold for the onset of autoconversion.
-        !     qck1oce  : constant autoconversion rate for ocean.
-        !     qck1land : constant autoconversion rate for land.
+        !     conf  : condensation efficiency
+        !     qcth  : threshold for the onset of autoconversion
+        !     qck1  : constant autoconversion rate
         ! all the other constants are used to compute the cloud
         ! microphysical parameterization (ref. orville & kopp, 1977 jas).
         !
         write(stdout,*) 'SUBEX large scale precipitation parameters'
-        write(stdout,'(a,i2)' )   '  # of bottom no cloud model levels : ',ncld
         write(stdout,'(a,f11.6,a,f11.6)')                      &
             '  Auto-conversion rate:         Land = ',qck1land,&
             ' Ocean = ',qck1oce
         write(stdout,'(a,f11.6,a,f11.6)')                      &
-            '  Relative humidity thresholds: Land = ',rh0land, &
-            ' Ocean = ',rh0oce
-        write(stdout,'(a,f11.6,a,f11.6)')                      &
             '  Gultepe factors:              Land = ',gulland ,&
             ' Ocean = ',guloce
-        write(stdout,'(a,f11.6)') &
-            '  Maximum relative humidity         : ' , rhmax
-        write(stdout,'(a,f11.6)') &
-            '  Minimum relative humidity         : ' , rhmin
-        write(stdout,'(a,f11.6)') &
-            '  RH0 temperature threshold         : ' , tc0
         if ( cevaplnd <= d_zero ) then
           write (stdout,*) '  Land raindrop evaporation not included'
         else
@@ -1956,19 +1973,7 @@ module mod_params
             '  Ocean Raindrop Accretion Rate     : ', caccroce
         end if
         write(stdout,'(a,f11.6)') &
-            '  Maximum total cloud cover for rad : ', cftotmax
-        write(stdout,'(a,f11.6)') &
-            '  Condensation threshold            : ', conf
-        write(stdout,'(a,l11)') &
-            '  Surface radiation hack            : ', lsrfhack
-        if ( .false. .and. ichem == 1 ) then
-          write(stdout,'(a,l11)') &
-              '  Critical Mean Radius              : ', rcrit
-          write(stdout,'(a,l11)') &
-              '  CCN Diameter and sigma            : ', coef_ccn
-          write(stdout,'(a,l11)') &
-              '  Bulk Activation Ratio             : ', abulk
-        end if
+            '  Condensation efficiency           : ', conf
       end if
     end if
 
@@ -2228,20 +2233,29 @@ module mod_params
       if ( pk <= chibot ) kchi = k
     end do
 
-    if ( ipptls > 0 ) then
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
+             mddom%lndcat(j,i) < 15.5_rkx) then
+          rh0(j,i)   = rh0oce
+        else
+          rh0(j,i)   = rh0land
+        end if
+      end do
+    end do
+
+    if ( ipptls == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
                mddom%lndcat(j,i) < 15.5_rkx) then
             qck1(j,i)  = qck1oce  ! OCEAN
             cgul(j,i)  = guloce
-            rh0(j,i)   = rh0oce
             cevap(j,i) = cevapoce
             caccr(j,i) = caccroce
           else
             qck1(j,i)  = qck1land ! LAND
             cgul(j,i)  = gulland
-            rh0(j,i)   = rh0land
             cevap(j,i) = cevaplnd
             caccr(j,i) = caccrlnd
           end if
@@ -2379,22 +2393,23 @@ module mod_params
 104 call fatal(__FILE__,__LINE__, 'Error reading DYNPARAM')
 105 call fatal(__FILE__,__LINE__, 'Error reading NONHYDROPARAM')
 106 call fatal(__FILE__,__LINE__, 'Error reading HYDROPARAM')
-107 call fatal(__FILE__,__LINE__, 'Error reading SUBEXPARAM')
-108 call fatal(__FILE__,__LINE__, 'Error reading MICROPARAM')
-109 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
-110 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
-111 call fatal(__FILE__,__LINE__, 'Error reading TIEDTKEPARAM')
-112 call fatal(__FILE__,__LINE__, 'Error reading KFPARAM')
-113 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
-114 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
-115 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
-116 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
-117 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
+107 call fatal(__FILE__,__LINE__, 'Error reading CLDPARAM')
+108 call fatal(__FILE__,__LINE__, 'Error reading SUBEXPARAM')
+109 call fatal(__FILE__,__LINE__, 'Error reading MICROPARAM')
+110 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
+111 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
+112 call fatal(__FILE__,__LINE__, 'Error reading TIEDTKEPARAM')
+113 call fatal(__FILE__,__LINE__, 'Error reading KFPARAM')
+114 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
+115 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
+116 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
+117 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
+118 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
 #ifdef CLM
-118 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
+119 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
 #endif
-119 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
-120 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
+120 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
+121 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
 
     contains
 
