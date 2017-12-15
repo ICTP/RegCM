@@ -1078,27 +1078,32 @@ module mod_cu_grell
     !
     ! feedback
     !
+    do n = 1 , nap
+      if ( xac(n) >= d_zero ) then
+        outtes = dellat(n,kbcon(n))*xmb(n)*secpd
+        if ( (outtes > htmax(n)) ) then
+          xmb(n) = 1.001_rkx*htmax(n)/(dellat(n,kbcon(n))*secpd)
+        else if ( outtes < htmin(n) ) then
+          xmb(n) = 1.001_rkx*htmin(n)/(dellat(n,kbcon(n))*secpd)
+        end if
+      end if
+    end do
     do k = 1 , kz
       do n = 1 , nap
         if ( xac(n) >= d_zero ) then
           if ( k <= ktop(n) ) then
-            outtes = dellat(n,k)*xmb(n)*secpd
-            if ( (outtes > htmax(n)) .or. (outtes < htmin(n)) ) then
-              xmb(n) = d_zero
-              xac(n) = -d_one
-              cldf(n,k) = d_zero
-            else
-              outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
-              outq(n,k) = outq(n,k) + dellaq(n,k)*xmb(n)
-              !
-              ! Xu, K.-M., and S. K. Krueger:
-              !   Evaluation of cloudiness parameterizations using a cumulus
-              !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
-              !
+            outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
+            outq(n,k) = outq(n,k) + dellaq(n,k)*xmb(n)
+            !
+            ! Xu, K.-M., and S. K. Krueger:
+            !   Evaluation of cloudiness parameterizations using a cumulus
+            !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
+            !
+            pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
+            if ( k >= kbcon(n) ) then
               mflx = max(d_100*(p(n,k)/(rgas*t(n,k)))*dellah(n,k)*xmb(n),d_zero)
               cldf(n,k) = kfac_deep*log(d_one+(500.0_rkx*mflx))
               cldf(n,k) = min(max(0.01_rkx,cldf(n,k)),clfrcv)
-              pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
             end if
           end if
         end if
