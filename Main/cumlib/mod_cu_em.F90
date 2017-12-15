@@ -25,9 +25,10 @@ module mod_cu_em
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,  &
-    damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs , &
-    tlcrit , iqv , ichem , dxsq , clfrcv , rdt, ichcumtra
+  use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,    &
+    damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs ,   &
+    tlcrit , iqv , ichem , dxsq , clfrcv , rdt , ichcumtra , kfac_deep, &
+    kfac_shal
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -416,7 +417,7 @@ module mod_cu_em
     real(rkx) , pointer , dimension(:,:) , intent(out) :: cldfra , ppcp
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: ftra
 
-    real(rkx) :: ad , afac , ahmax , ahmin , alt , altem , am , amp1 ,   &
+    real(rkx) :: ad , afac , ahmax , ahmin , alt , altem , am ,          &
                  anum , asij , awat , b6 , bf2 , bsum , by , byp , c6 ,  &
                  cape , capem , cbmfold , chi , coeff , cpinv , cwat ,   &
                  damps , dbo , dbosum , defrac , dei , delm , delp ,     &
@@ -428,7 +429,8 @@ module mod_cu_em
                  tvx , tvy , uav , vav , wdtrain
     real(rkx) , dimension(nd+1) :: clw , cpn , ep , evap , gz , h , hm , &
                                    hp , lv , lvcp , m , mp , qp , sigp , &
-                                   th , tp , tv , tvp , up , vp , water , wt
+                                   th , tp , tv , tvp , up , vp ,        &
+                                   water , wt , amp1
     integer(ik4) :: n , nl , i , ihmin , icb , ict , ict1 , j , jtt , k , nk
     integer(ik4) , dimension(nd+1) :: nent
     real(rkx) , dimension(nd+1,nd+1) :: elij , ment , qent , sij , uent , vent
@@ -1008,28 +1010,28 @@ module mod_cu_em
       ! First find the net saturated updraft and downdraft mass fluxes
       ! through each level
       !
+      amp1(:) = d_zero
       do i = 2 , ict
         dpinv = 0.01_rkx/(ph(n,i)-ph(n,i+1))
         cpinv = d_one/cpn(i)
-        amp1 = d_zero
         ad = d_zero
         if ( i >= nk ) then
           do k = i + 1 , ict + 1
-            amp1 = amp1 + m(k)
+            amp1(i) = amp1(i) + m(k)
           end do
         end if
         do k = 1 , i
           do j = i + 1 , ict + 1
-            amp1 = amp1 + ment(k,j)
+            amp1(i) = amp1(i) + ment(k,j)
           end do
         end do
-        if ( (d_two*egrav*dpinv*amp1) >= rdt ) iflag = 4
+        if ( (d_two*egrav*dpinv*amp1(i)) >= rdt ) iflag = 4
         do k = 1 , i - 1
           do j = i , ict
             ad = ad + ment(j,k)
           end do
         end do
-        ft(n,i) = ft(n,i) + egrav*dpinv*(amp1*(t(n,i+1)-t(n,i)+ &
+        ft(n,i) = ft(n,i) + egrav*dpinv*(amp1(i)*(t(n,i+1)-t(n,i)+ &
               (gz(i+1)-gz(i))*cpinv)-ad*(t(n,i)-t(n,i-1)+ &
               (gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i)*evap(i)
         ft(n,i) = ft(n,i) + egrav*dpinv*ment(i,i) * &
@@ -1037,15 +1039,15 @@ module mod_cu_em
         ft(n,i) = ft(n,i) + sigd*wt(i+1)*(cl-cpd)*water(i+1) * &
               (t(n,i+1)-t(n,i))*dpinv*cpinv
         fq(n,i) = fq(n,i) + egrav*dpinv * &
-              (amp1*(q(n,i+1)-q(n,i))-ad*(q(n,i)-q(n,i-1)))
+              (amp1(i)*(q(n,i+1)-q(n,i))-ad*(q(n,i)-q(n,i-1)))
         fu(n,i) = fu(n,i) + egrav*dpinv * &
-              (amp1*(u(n,i+1)-u(n,i))-ad*(u(n,i)-u(n,i-1)))
+              (amp1(i)*(u(n,i+1)-u(n,i))-ad*(u(n,i)-u(n,i-1)))
         fv(n,i) = fv(n,i) + egrav*dpinv * &
-              (amp1*(v(n,i+1)-v(n,i))-ad*(v(n,i)-v(n,i-1)))
+              (amp1(i)*(v(n,i+1)-v(n,i))-ad*(v(n,i)-v(n,i-1)))
         if ( chemcutran ) then
           do k = 1 , ntra
             ftra(n,i,k) = ftra(n,i,k) + egrav*dpinv * &
-               (amp1*(tra(n,i+1,k)-tra(n,i,k))-ad*(tra(n,i,k)-tra(n,i-1,k)))
+               (amp1(i)*(tra(n,i+1,k)-tra(n,i,k))-ad*(tra(n,i,k)-tra(n,i-1,k)))
           end do
         end if
         do k = 1 , i - 1
@@ -1153,9 +1155,9 @@ module mod_cu_em
       !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
       !
       do i = icb , ict
-        cldfra(n,i) = 0.300_rkx * &
-                log(d_one+(500.0_rkx*d_half*(mp(i)+mp(i+1)/dxsq)))
-        cldfra(n,i) = min(max(0.0_rkx,cldfra(n,i)),clfrcv)
+        cldfra(n,i) = kfac_deep * &
+                log(d_one+(500.0_rkx*d_half*egrav*(amp1(i)+amp1(i+1))))
+        cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),clfrcv)
       end do
       kcb(n) = icb
       kct(n) = ict

@@ -31,6 +31,7 @@ module mod_cu_kf
   use mod_runparams , only : kf_entrate , kf_convrate , kf_min_pef , kf_max_pef
   use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
   use mod_runparams , only : kf_tkemax
+  use mod_runparams , only : kfac_shal , kfac_deep
   use mod_runparams , only : ichem , clfrcv
   use mod_service
 
@@ -1781,17 +1782,22 @@ module mod_cu_kf
         end if
       end do iter
       ! Get the cloud fraction for layer NK+1=NK1
+      !
+      ! Xu, K.-M., and S. K. Krueger:
+      !   Evaluation of cloudiness parameterizations using a cumulus
+      !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
+      !
       if ( ishall == 1 )  then
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
-          xcldfra = 0.150_rkx*log(d_one+(500.0_rkx*umf_new))
+          xcldfra = kfac_shal*log(d_one+(500.0_rkx*umf_new))
           xcldfra = max(0.01_rkx,xcldfra)
-          cldfra_sh_kf(nk,np) = min(d_half*clfrcv,xcldfra)
+          cldfra_sh_kf(nk,np) = min(clfrcv,xcldfra)
         end do
       else
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
-          xcldfra = 0.300_rkx*log(d_one+(500.0_rkx*umf_new))
+          xcldfra = kfac_deep*log(d_one+(500.0_rkx*umf_new))
           xcldfra = max(0.01_rkx,xcldfra)
           cldfra_dp_kf(nk,np) = min(clfrcv,xcldfra)
         end do

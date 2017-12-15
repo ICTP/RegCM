@@ -2757,6 +2757,10 @@ module mod_ncout
         ncattribute_real8('cloud_cloud_fraction_max_for_convection',clfrcvmax))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_cloud_liqwat_max_for_convection',cllwcv))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_shallow_convective_cf_param',kfac_shal))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_deep_convective_cf_param',kfac_deep))
         if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mean_critical_radius',rcrit))

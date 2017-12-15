@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
-         hsigma , sigma , ichcumtra , rcmtimer , dxsq
+         hsigma , sigma , ichcumtra , rcmtimer , kfac_deep , kfac_shal
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen_lnd , detrpen_ocn , entshalp , entrdd
@@ -420,6 +420,11 @@ module mod_cu_tiedtke
       end do
     end if
 
+    !
+    ! Xu, K.-M., and S. K. Krueger:
+    !   Evaluation of cloudiness parameterizations using a cumulus
+    !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
+    !
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
         i = imap(ii)
@@ -428,16 +433,11 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         do k = kctop(ii) , kcbot(ii)
           if ( ktype(ii) == 1 ) then
-            cu_cldfrc(j,i,k) = 0.300_rkx * &
-                         log(d_one+(500.0_rkx*pmfu(ii,k)/dxsq))
-          else if ( ktype(ii) == 2 ) then
-            cu_cldfrc(j,i,k) = 0.200_rkx * &
-                         log(d_one+(500.0_rkx*pmfu(ii,k)/dxsq))
+            cu_cldfrc(j,i,k) = kfac_deep * log(d_one+(500.0_rkx*pmfu(ii,k)))
           else
-            cu_cldfrc(j,i,k) = 0.150_rkx * &
-                         log(d_one+(500.0_rkx*pmfu(ii,k)/dxsq))
+            cu_cldfrc(j,i,k) = kfac_shal * log(d_one+(500.0_rkx*pmfu(ii,k)))
           end if
-          cu_cldfrc(j,i,k) = min(max(0.0_rkx,cu_cldfrc(j,i,k)),clfrcv)
+          cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),clfrcv)
         end do
       end if
     end do

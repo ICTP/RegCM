@@ -366,10 +366,12 @@
  cllwcv    = 0.3e-3,  ! Cloud liquid water content for convective precip.
  clfrcvmax = 0.75,    ! Max cloud fractional cover for convective precip.
  cftotmax  = 0.75,    ! Max total cover cloud fraction for radiation
+ kfac_shal = 0.07,    ! Factor cumulus mass flux - cloud fraction - shallow
+ kfac_deep = 0.14,    ! Factor cumulus mass flux - cloud fraction - deep
+ lsrfhack  = .false.  ! Surface radiation hack
  rcrit     = 13.5,    ! Mean critical radius ! 
  coef_ccn  = 2.5e+20, ! Coefficient determined by assuming a lognormal PMD
  abulk     = 0.9,     ! Bulk activation ratio
- lsrfhack  = .false.  ! Surface radiation hack
  /
 !
 ! Moisture scheme comtrol (ipptls = 1)

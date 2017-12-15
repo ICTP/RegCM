@@ -117,8 +117,9 @@ module mod_params
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
 
-    namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 , &
-      cllwcv , clfrcvmax , cftotmax , lsrfhack , rcrit , coef_ccn , abulk
+    namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 ,  &
+      cllwcv , clfrcvmax , cftotmax , kfac_shal , kfac_deep , lsrfhack , &
+      rcrit , coef_ccn , abulk
 
     namelist /subexparam/ qck1land , qck1oce , gulland , guloce ,  &
       cevaplnd , cevapoce , caccrlnd , caccroce , conf
@@ -320,10 +321,12 @@ module mod_params
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
+    kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
+    kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
+    lsrfhack  = .false.    ! Surface radiation hack
     rcrit     = 13.5_rkx   ! Mean critical radius
     coef_ccn  = 2.5e+20_rkx ! Coefficient determined by assuming a lognormal PMD
     abulk     = 0.9_rkx    ! Bulk activation ratio
-    lsrfhack  = .false.    ! Surface radiation hack
     !
     ! microparam ;
     ! From original Nogerotto settings
@@ -1930,6 +1933,10 @@ module mod_params
       end if
       write(stdout,'(a,f11.6)') &
           '  Maximum total cloud cover for rad : ', cftotmax
+      write(stdout,'(a,f11.6)') &
+          '  Conv. CF UMF factor deep cumulus  : ', kfac_deep
+      write(stdout,'(a,f11.6)') &
+          '  Conv. CF UMF factor shallow cumul : ', kfac_shal
       write(stdout,'(a,l11)') &
           '  Surface radiation hack            : ', lsrfhack
       if ( ipptls == 1 ) then
@@ -2195,13 +2202,14 @@ module mod_params
     !
     ! Convective Cloud Cover
     !
-    afracl = 0.25_rkx    ! frac. cover for conv. precip. when dx=dxlarg
+    afracl = 0.25_rkx  ! frac. cover for conv. precip. when dx=dxlarg
     afracs = clfrcvmax !   "     "    "    "      "     "   dx=dxsmal
     dlargc = 100.0_rkx
     dsmalc = 10.0_rkx
     dxtemc = min(max(ds,dsmalc),dlargc)
     clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
     clfrcv = min(clfrcv,d_one)
+    clfrcv = max(clfrcv,afracl)
     if ( myid == italk ) then
       write(stdout,*) &
         'Convective Cloud Cover parameters after resolution scaling'

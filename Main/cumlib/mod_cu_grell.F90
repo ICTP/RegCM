@@ -27,6 +27,7 @@ module mod_cu_grell
   use mod_constants
   use mod_mpmessage
   use mod_runparams , only : iqv , dt , dtcum , igcc , ichem , clfrcv , gcr0
+  use mod_runparams , only : kfac_deep
   use mod_regcm_types
 
   implicit none
@@ -1089,9 +1090,14 @@ module mod_cu_grell
             else
               outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
               outq(n,k) = outq(n,k) + dellaq(n,k)*xmb(n)
-              mflx = max((p(n,k)/(rgas*t(n,k))) * dellah(n,k)*xmb(n),d_zero)
-              cldf(n,k) = 0.105_rkx*log(d_one+(500.0_rkx*mflx))
-              cldf(n,k) = min(max(0.0_rkx,cldf(n,k)),clfrcv)
+              !
+              ! Xu, K.-M., and S. K. Krueger:
+              !   Evaluation of cloudiness parameterizations using a cumulus
+              !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
+              !
+              mflx = max(d_100*(p(n,k)/(rgas*t(n,k)))*dellah(n,k)*xmb(n),d_zero)
+              cldf(n,k) = kfac_deep*log(d_one+(500.0_rkx*mflx))
+              cldf(n,k) = min(max(0.01_rkx,cldf(n,k)),clfrcv)
               pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
             end if
           end if

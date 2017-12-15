@@ -403,29 +403,35 @@ module mod_runparams
   integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , &
                            iano3 , iisop , ich4 , ism1 , ism2 , ino
 
+
+  ! Cloud control parameters
+
+  integer(ik4) , public :: ncld   ! # of bottom model levels with no clouds
+  logical , public :: lsrfhack    ! Surface radiation hack
+  real(rkx) , public :: rhmin     ! Minimum value for relative humidity
+  real(rkx) , public :: rhmax     ! Maximum value for relative humidity
+  real(rkx) , public :: rh0land   ! Trigger value for RH for land (SUBEX)
+  real(rkx) , public :: rh0oce    ! Trigger value for RH for ocean (SUBEX)
+  real(rkx) , public :: tc0       ! Temperature at which cloud are high (SUBEX)
+  real(rkx) , public :: cllwcv    ! Cloud liquid water content (Kuo, Grell)
+  real(rkx) , public :: clfrcvmax ! Maximum non-scaled convetive cloud fraction
+  real(rkx) , public :: cftotmax  ! Maximum total cloud fraction for radiation
+  real(rkx) , public :: kfac_shal ! Convective cloud fraction factor for
+                                  ! empirical relationship with mass flux
+  real(rkx) , public :: kfac_deep ! Convective cloud fraction factor for
+                                  ! empirical relationship with mass flux
+
   ! Large scale SUBEX parameters
 
-  integer(ik4) , public :: ncld ! # of bottom model levels with no clouds
-  logical , public :: lsrfhack ! Surface radiation hack
   real(rkx) , public :: qck1land
   real(rkx) , public :: qck1oce
   real(rkx) , public :: gulland
   real(rkx) , public :: guloce
-  real(rkx) , public :: rhmin
-  real(rkx) , public :: rhmax
-  real(rkx) , public :: rh0land
-  real(rkx) , public :: rh0oce
   real(rkx) , public :: caccrlnd
   real(rkx) , public :: cevaplnd
   real(rkx) , public :: caccroce
   real(rkx) , public :: cevapoce
-  real(rkx) , public :: tc0
-  real(rkx) , public :: cllwcv   ! Cloud liquid water content
-                                 ! for convective precip.
-  real(rkx) , public :: dtls     ! Timescale for Qc removal
-  real(rkx) , public :: clfrcvmax
-  real(rkx) , public :: cftotmax ! Maximum total cloud fraction for radiation
-  real(rkx) , public :: conf     ! Condensation threshold.
+  real(rkx) , public :: conf     ! Condensation efficiency.
 
   !
   ! SLAB ocean parameters
