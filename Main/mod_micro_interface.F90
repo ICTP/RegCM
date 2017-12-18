@@ -240,7 +240,7 @@ module mod_micro_interface
                            totc,mo2mc%qsn,mo2mc%qin,mo2mc%ldmsk,  &
                            ds,mc2mo%fcc)
       case (3)
-        call gulisa_cldfrac(totc,mc2mo%fcc)
+        call gulisa_cldfrac(mo2mc%qvn,mo2mc%qs,totc,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            mo2mc%rh,tc0,rh0,mc2mo%fcc)
