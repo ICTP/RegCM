@@ -700,7 +700,7 @@ module mod_params
       else if ( cftotmax >= 1.0_rkx ) then
         cftotmax = 0.99_rkx
       end if
-      if ( icldfrac > 1 .and. ipptls < 2 ) then
+      if ( icldfrac == 2 .and. ipptls < 2 ) then
         write(stdout,*) 'Will set icldfrac == 0 : missing hydrometeors'
         icldfrac = 0
       end if

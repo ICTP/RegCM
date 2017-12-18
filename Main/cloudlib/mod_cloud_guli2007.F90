@@ -55,7 +55,7 @@ module mod_cloud_guli2007
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qgkg = qt(j,i,k)*d_100
+          qgkg = qt(j,i,k)*d_1000
           s10 = 0.28_rkx + qgkg ** 0.49_rkx
           r10 = qgkg/s10
           s100 = 0.18_rkx + qgkg ** 0.48_rkx
@@ -71,12 +71,12 @@ module mod_cloud_guli2007
           end if
           if ( r100 < 0.12_rkx ) then
             cs100 = d_zero
-          else if ( r10 > 1.85_rkx ) then
+          else if ( r100 > 1.85_rkx ) then
             cs100 = d_one
           else
-            cs100 = -0.0913_rkx + 0.7213_rkx * r10 +     &
-                                  0.1060_rkx * r10*r10 - &
-                                  0.0946_rkx * r10*r10*r10
+            cs100 = -0.0913_rkx + 0.7213_rkx * r100 +     &
+                                  0.1060_rkx * r100*r100 - &
+                                  0.0946_rkx * r100*r100*r100
           end if
           if ( ds <= 10.0_rkx ) then
             fcc(j,i,k) = cs10
