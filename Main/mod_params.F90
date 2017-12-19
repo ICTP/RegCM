@@ -119,7 +119,7 @@ module mod_params
 
     namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 ,  &
       cllwcv , clfrcvmax , cftotmax , kfac_shal , kfac_deep , lsrfhack , &
-      rcrit , coef_ccn , abulk
+      larcticcorr , rcrit , coef_ccn , abulk
 
     namelist /subexparam/ qck1land , qck1oce , gulland , guloce ,  &
       cevaplnd , cevapoce , caccrlnd , caccroce , conf
@@ -324,6 +324,7 @@ module mod_params
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
     lsrfhack  = .false.    ! Surface radiation hack
+    larcticcorr = .true.   ! Vavrus and Waliser Arctic cloud correction
     rcrit     = 13.5_rkx   ! Mean critical radius
     coef_ccn  = 2.5e+20_rkx ! Coefficient determined by assuming a lognormal PMD
     abulk     = 0.9_rkx    ! Bulk activation ratio
@@ -1217,10 +1218,13 @@ module mod_params
     call bcast(rh0land)
     call bcast(tc0)
     call bcast(cftotmax)
+    call bcast(clfrcvmax)
+    call bcast(cllwcv)
     call bcast(rcrit)
     call bcast(coef_ccn)
     call bcast(abulk)
     call bcast(lsrfhack)
+    call bcast(larcticcorr)
 
     if ( ipptls == 1 ) then
       call bcast(qck1land)
@@ -1281,8 +1285,6 @@ module mod_params
       end if
     end if
 
-    call bcast(clfrcvmax)
-    call bcast(cllwcv)
 
     if ( any(icup == 2) ) then
       call bcast(igcc)
@@ -1939,6 +1941,8 @@ module mod_params
           '  Conv. CF UMF factor shallow cumul : ', kfac_shal
       write(stdout,'(a,l11)') &
           '  Surface radiation hack            : ', lsrfhack
+      write(stdout,'(a,l11)') &
+          '  Vavrus-Waliser Arctic cloud fix   : ', larcticcorr
       if ( ipptls == 1 ) then
         !
         ! specify the constants used in the model.

@@ -1694,7 +1694,9 @@ module mod_tendency
           qen0 = qxphy(:,:,:,idgq)
         end if
         ! Cumulus clouds
-        call cucloud
+        if ( icldfrac /= 2 ) then
+          call cucloud
+        end if
         ! Save cumulus cloud fraction for chemistry before it is
         ! overwritten in cldfrac
         if ( ichem == 1 ) then

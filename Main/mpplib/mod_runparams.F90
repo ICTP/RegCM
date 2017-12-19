@@ -403,11 +403,11 @@ module mod_runparams
   integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , &
                            iano3 , iisop , ich4 , ism1 , ism2 , ino
 
-
   ! Cloud control parameters
 
   integer(ik4) , public :: ncld   ! # of bottom model levels with no clouds
   logical , public :: lsrfhack    ! Surface radiation hack
+  logical , public :: larcticcorr ! Vavrus and Valiser Arctic correction
   real(rkx) , public :: rhmin     ! Minimum value for relative humidity
   real(rkx) , public :: rhmax     ! Maximum value for relative humidity
   real(rkx) , public :: rh0land   ! Trigger value for RH for land (SUBEX)

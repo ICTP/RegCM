@@ -85,18 +85,20 @@ module mod_cloud_subex
     ! An Improved Parameterization for Simulating Arctic Cloud Amount
     ! in the CCSM3 Climate Model, J. Climate
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! clouds below 750hPa, extremely cold conditions,
-          !  when no cld microphy
-          if ( p(j,i,k) >= 75000.0_rkx .and. qv(j,i,k) <= 0.003_rkx ) then
-            fcc(j,i,k) = fcc(j,i,k) * &
-                  max(0.15_rkx,min(d_one,qv(j,i,k)/0.003_rkx))
-          end if
+    if ( larcticcorr ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! clouds below 750hPa, extremely cold conditions,
+            !  when no cld microphy
+            if ( p(j,i,k) >= 75000.0_rkx .and. qv(j,i,k) <= 0.003_rkx ) then
+              fcc(j,i,k) = fcc(j,i,k) * &
+                    max(0.15_rkx,min(d_one,qv(j,i,k)/0.003_rkx))
+            end if
+          end do
         end do
       end do
-    end do
+    end if
 
   end subroutine subex_cldfrac
 

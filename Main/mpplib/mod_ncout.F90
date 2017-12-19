@@ -2769,6 +2769,10 @@ module mod_ncout
           ncattribute_real8('cloud_shallow_convective_cf_param',kfac_shal))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_deep_convective_cf_param',kfac_deep))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_logical('cloud_surface_radiation_hack',lsrfhack))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_logical('cloud_arctic_cloud_correction',larcticcorr))
         if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mean_critical_radius',rcrit))
