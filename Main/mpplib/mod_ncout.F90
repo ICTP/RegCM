@@ -2730,6 +2730,8 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('large_scale_cloud_fraction_scheme',icldfrac))
         call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('ocean_stratiform_clouds_scheme',icldmstrat))
+        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('rrtm_radiation_scheme_activated',irrtm))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('climatic_ozone_input_dataset',iclimao3))
