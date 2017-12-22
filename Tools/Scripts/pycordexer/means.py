@@ -168,6 +168,8 @@ compressed in disk.
       tbnds[it,1] = np.max(times[indx])+diff
 
   for var in ncf.variables:
+    if var == 'crs':
+      continue
     if 'time' not in ncf.variables[var].dimensions:
       nco.variables[var][:] = ncf.variables[var][:]
     else:
