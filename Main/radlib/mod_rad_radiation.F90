@@ -25,7 +25,7 @@ module mod_rad_radiation
   use mod_mpmessage
   use mod_service
   use mod_runparams , only : idirect , ichem , iclimaaer , rcmtimer
-  use mod_runparams , only : scon , cftotmax , lsrfhack , scenario
+  use mod_runparams , only : scon , cftotmax , lsrfhack , scenario , mincld
   use mod_mppparam , only : italk
   use mod_memutil
   use mod_ipcc_scenario
@@ -137,7 +137,7 @@ module mod_rad_radiation
   ! khiv    - Cloud highest level index
   ! khivm   - khiv(n) - 1
   integer(ik4) , pointer , dimension(:) :: khiv , khivm , klov
-  logical , pointer , dimension(:) :: seldo , done , start
+  logical , pointer , dimension(:) :: skip , done , start
   !
   ! These arrays are defined for kz model layers; 0 refers to the
   ! extra layer on top:
@@ -502,8 +502,6 @@ module mod_rad_radiation
   real(rkx) , parameter :: mxarg = 25.0_rkx
 #endif
 
-  real(rkx) , parameter :: mindplh2o =  1.0e-16_rkx
-
   contains
 
   subroutine allocate_mod_rad_radiation
@@ -530,7 +528,7 @@ module mod_rad_radiation
     call getmem1d(ux,1,npoints,'rad:ux')
     call getmem1d(taugab,1,npoints,'rad:taugab')
     call getmem1d(tauray,1,npoints,'rad:tauray')
-    call getmem1d(seldo,1,npoints,'rad:seldo')
+    call getmem1d(skip,1,npoints,'rad:skip')
     call getmem1d(khiv,1,npoints,'rad:khiv')
     call getmem1d(khivm,1,npoints,'rad:khivm')
     call getmem1d(klov,1,npoints,'rad:klov')
@@ -926,7 +924,7 @@ module mod_rad_radiation
         !           fsnsc(n) * (1-maxval(cld(n,:)))
         ! random overlap assumption is tocf(n)
         ! Now average btw rand ov and maximum cloud cover as fil suggest
-        totcf(n) =  d_half * ( totcf(n) + maxval(cld(n,:)) )
+        ! totcf(n) =  d_half * ( totcf(n) + maxval(cld(n,:)) )
         ! abv is proportional to fsns in radcsw : Calculate the factor
         if ( fsns(n) > d_zero ) then
           betafac = abv(n) / fsns(n)
@@ -1880,16 +1878,16 @@ module mod_rad_radiation
     end do
     do k = 1 , kz
       do n = n1 , n2
-        if ( .not.done(n) .and. cld(n,kzp2-k) > d_zero ) then
+        if ( .not. done(n) .and. cld(n,kzp2-k) > d_zero ) then
           done(n) = .true.
           klov(n) = k
         end if
       end do
     end do
     where ( klov > 0 )
-      seldo = .true.
+      skip = .false.
     elsewhere
-      seldo = .false.
+      skip = .true.
     end where
     do n = n1 , n2
       khiv(n) = klov(n)
@@ -1897,7 +1895,7 @@ module mod_rad_radiation
     end do
     do k = kz , 1 , -1
       do n = n1 , n2
-        if ( .not. seldo(n) ) cycle
+        if ( skip(n) ) cycle
         if ( .not.done(n) .and. cld(n,kzp2-k) > d_zero ) then
           done(n) = .true.
           khiv(n) = k
@@ -1911,7 +1909,7 @@ module mod_rad_radiation
     ! Note: Vertical indexing here proceeds from bottom to top
     !
     do n = n1 , n2
-      if ( .not. seldo(n) ) cycle
+      if ( skip(n) ) cycle
       do k = klov(n) , khiv(n)
         fclt4(n,kzp1-k) = stebol*tint4(n,kzp2-k)
         fclb4(n,kzp1-k) = stebol*tint4(n,kzp3-k)
@@ -2079,16 +2077,16 @@ module mod_rad_radiation
     ! those locations where there are clouds
     ! (total cloud fraction <= 1.e-3 treated as clear)
     !
-    where ( tclrsf(:,kzp1) < verynearone )
-      seldo = .true.
+    where ( tclrsf(:,kzp1) > mincld )
+      skip = .false.
     elsewhere
-      seldo = .false.
+      skip = .true.
     end where
     !
     ! Compute downflux at level 1 for cloudy sky
     !
     do n = n1 , n2
-      if ( .not. seldo(n) ) cycle
+      if ( skip(n) ) cycle
       !
       ! First clear sky flux plus flux from cloud at level 1
       !
@@ -2105,7 +2103,7 @@ module mod_rad_radiation
       km2 = kzp2 - km
       km4 = kzp4 - km
       do n = n1 , n2
-        if ( .not. seldo(n) ) cycle
+        if ( skip(n) ) cycle
         if ( km <= khiv(n) ) then
           tmp1 = cld(n,km2)*tclrsf(n,kz)*rtclrsf(n,km2)
           fdl(n,kzp1) = fdl(n,kzp1) + (fclb4(n,km1)-s(n,kzp1,km4))*tmp1
@@ -2120,7 +2118,7 @@ module mod_rad_radiation
       k2 = kzp2 - k
       k3 = kzp3 - k
       do n = n1 , n2
-        if ( .not. seldo(n) ) cycle
+        if ( skip(n) ) cycle
         if ( k >= klov(n) .and. k <= khivm(n) ) then
           ful(n,k2) = fsul(n,k2)*(tclrsf(n,kzp1)*rtclrsf(n,k1))
         end if
@@ -2130,7 +2128,7 @@ module mod_rad_radiation
         km2 = kzp2 - km
         km3 = kzp3 - km
         do n = n1 , n2
-          if ( .not. seldo(n) ) cycle
+          if ( skip(n) ) cycle
           if ( k <= khivm(n) .and. km >= klov(n) .and. km <= khivm(n)) then
             ful(n,k2) = ful(n,k2) + (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3)) * &
                         cld(n,km2)*(tclrsf(n,km1)*rtclrsf(n,k1))
@@ -2146,7 +2144,7 @@ module mod_rad_radiation
         start(n) = .false.
       end do
       do n = n1 , n2
-        if ( .not. seldo(n) ) cycle
+        if ( skip(n) ) cycle
         if ( k >= khiv(n) ) then
           start(n) = .true.
           ful(n,k2) = fsul(n,k2)*tclrsf(n,kzp1)*rtclrsf(n,kzp1-khiv(n))
@@ -2157,7 +2155,7 @@ module mod_rad_radiation
         km2 = kzp2 - km
         km3 = kzp3 - km
         do n = n1 , n2
-          if ( .not. seldo(n) ) cycle
+          if ( skip(n) ) cycle
           if ( start(n) .and. km >= klov(n) .and. km <= khiv(n) ) then
             ful(n,k2) = ful(n,k2) + (cld(n,km2)*tclrsf(n,km1)* &
                   rtclrsf(n,kzp1-khiv(n)))*(fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3))
@@ -2173,7 +2171,7 @@ module mod_rad_radiation
       k2 = kzp2 - k
       k3 = kzp3 - k
       do n = n1 , n2
-        if ( .not. seldo(n) ) cycle
+        if ( skip(n) ) cycle
         if ( k <= khivm(n) ) fdl(n,k2) = d_zero
       end do
       do km = k + 1 , khighest
@@ -2181,7 +2179,7 @@ module mod_rad_radiation
         km2 = kzp2 - km
         km4 = kzp4 - km
         do n = n1 , n2
-          if ( .not. seldo(n) ) cycle
+          if ( skip(n) ) cycle
           if ( k <= khiv(n) .and. &
                km >= max0(k+1,klov(n)) .and. km <= khiv(n) ) then
             fdl(n,k2) = fdl(n,k2)+(cld(n,km2)*tclrsf(n,k1)*rtclrsf(n,km2)) * &
@@ -2190,7 +2188,7 @@ module mod_rad_radiation
         end do
       end do ! km = k+1 , khighest
       do n = n1 , n2
-        if ( .not. seldo(n) ) cycle
+        if ( skip(n) ) cycle
         if ( k <= khivm(n) ) then
           fdl(n,k2) = fdl(n,k2) + &
                   fsdl(n,k2)*(tclrsf(n,k1)*rtclrsf(n,kzp1-khiv(n)))
@@ -2235,7 +2233,7 @@ module mod_rad_radiation
 #endif
     contains
 
-      integer(ik4) function intmax(imax)
+      pure integer(ik4) function intmax(imax)
         implicit none
         integer(ik4) , pointer , dimension(:) , intent(in) :: imax
         integer(ik4) :: i , n , is , ie , mx
@@ -3007,9 +3005,6 @@ module mod_rad_radiation
         if ( k1 /= k2 ) then
           do n = n1 , n2
             dplh2o = plh2o(n,k1) - plh2o(n,k2)
-            if ( abs(dplh2o) < mindplh2o ) then
-              dplh2o = sign(dplh2o,mindplh2o)
-            end if
             ux(n) = abs(dplh2o)
             sqrtu = sqrt(ux(n))
             ds2c = abs(s2c(n,k1)-s2c(n,k2))

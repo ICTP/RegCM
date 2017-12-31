@@ -800,13 +800,17 @@ module mod_rad_colmod3
     !   - NOT on the topmost two layers
     !   - Starting from ncld levels from the surface
     !
-    kmaxcld = 2
+    kmaxcld = 3
     kmincld = kz-ncld
+    cld(:,:) = d_zero
     do k = kmaxcld , kmincld
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cld(n,k) = min(m2r%cldfrc(j,i,k),cftotmax)
+          ! Use Maximum Random Overlap assumption
+          cld(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                       (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
+          cld(n,k) = min(cld(n,k),cftotmax)
           ! Convert liquid water content into liquid water path
           clwp(n,k) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
           n = n + 1

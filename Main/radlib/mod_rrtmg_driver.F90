@@ -99,6 +99,8 @@ module mod_rrtmg_driver
 
   integer(ik4) :: permuteseed = 1 , mypid
 
+  logical , parameter :: luse_max_rnovl = .true.
+
   contains
 
   subroutine allocate_mod_rad_rrtmg
@@ -424,21 +426,21 @@ module mod_rrtmg_driver
     empty2 = dmissval
 
     ! Calculate cloud parameters
-    totcf(:) = d_one
-    do k = 1 , kz
-      totcf(:) = totcf*(d_one-cld_int(:,k))
+    do n = 1 , npr
+      totcf(n) = d_one
+      if ( luse_max_rnovl ) then
+        do k = 2 , kz
+          totcf(n) = totcf(n) * (d_one - max(cld_int(n,k-1),cld_int(n,k)))/ &
+                                (d_one - cld_int(n,k-1))
+        end do
+      else
+        do k = 1 , kz
+          totcf(n) = totcf(n)*(d_one-cld_int(n,k))
+        end do
+      end if
+      totcf(n) = d_one - totcf(n)
     end do
-    totcf(:) = d_one - totcf(:)
-    totcf(:) = d_half * ( totcf(:) + maxval(cld_int(:,:),2) )
-    if ( lsrfhack ) then
-      where ( totcf > cftotmax )
-        totcf = cftotmax
-      end where
-      where ( totcf < d_zero )
-        totcf = d_zero
-      end where
-    end if
-
+    !totcf(:) = d_half * ( totcf(:) + maxval(cld_int(:,:),2) )
     totci(:) = sum(clwp_int*cld_int*fice,2)*d_r1000
     totcl(:) = sum(clwp_int*cld_int*(d_one-fice),2)*d_r1000
     totwv(:) = d_zero
