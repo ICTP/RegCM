@@ -29,7 +29,7 @@ compressed in disk.
   if len(times) < 1:
     print('No timesteps in file !')
     sys.exit(0)
-  if times.units.find('hours') >= 0:
+  if times.units.find('hours since') == 0:
     xt = times[:]-0.01
     dates = num2date(xt, units=times.units, calendar=times.calendar)
   else:
@@ -82,7 +82,7 @@ compressed in disk.
       nco.setncattr(attr,getattr(ncf,attr))
 
   for dim in ncf.dimensions:
-    if ( ncf.dimensions[dim].isunlimited() ):
+    if ( ncf.dimensions[dim].isunlimited() or dim == 'time' ):
       nco.createDimension(dim)
     else:
       nco.createDimension(dim,len(ncf.dimensions[dim]))
@@ -157,15 +157,24 @@ compressed in disk.
     dic = np.unique(ic)
     for it in range(0,len(dic)):
       indx = (ic == dic[it]) 
-      nco.variables['time'][it] = np.median(times[indx])
-    if times.units.find('hours') > 0:
-      diff = 12.0
+      if times.units.find('hours since') == 0:
+        hh = (times[1]-times[0])/48.0
+        nco.variables['time'][it] = np.median(times[indx])/24.0 - hh
+      else:
+        nco.variables['time'][it] = np.median(times[indx])
+    if times.units.find('hours since') == 0:
+      diff = (times[1]-times[0])/2.0
     else:
       diff = 0.5
     for it in range(0,len(dic)):
       indx = (ic == dic[it]) 
-      tbnds[it,0] = np.min(times[indx])-diff
-      tbnds[it,1] = np.max(times[indx])+diff
+      if times.units.find('hours since') == 0:
+        hh = (times[1]-times[0])/48.0
+        tbnds[it,0] = (np.min(times[indx])-diff)/24.0 - hh
+        tbnds[it,1] = (np.max(times[indx])+diff)/24.0 - hh
+      else:
+        tbnds[it,0] = np.min(times[indx])-diff
+        tbnds[it,1] = np.max(times[indx])+diff
 
   for var in ncf.variables:
     if var == 'crs':
