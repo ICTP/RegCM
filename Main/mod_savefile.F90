@@ -337,7 +337,7 @@ module mod_savefile
     type (rcm_time_and_date) , intent(in) :: idate
     type (rcm_time_and_date) :: idatex
     integer(ik4) :: ncid
-    integer(ik4) :: int10d , ical
+    integer(ik4) :: int10d , ical , varid
     real(rk8) :: rtmp
     character(256) :: ffin
     character(32) :: fbname
@@ -434,32 +434,52 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot read cbmf2d')
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_ww'),cu_avg_ww_io)
-        if ( ncstatus /= nf90_noerr ) cu_avg_ww_io = 0.0_rkx
-        ! call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_ww')
+        ncstatus = nf90_inq_varid(ncid,'cu_avg_ww',varid)
+        if ( ncstatus /= nf90_noerr ) then
+          cu_avg_ww_io = 0.0_rkx
+        else
+          ncstatus = nf90_get_var(ncid,varid,cu_avg_ww_io)
+          call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_ww')
+        end if
       end if
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_tten'),cu_avg_tten_io)
-      if ( ncstatus /= nf90_noerr ) cu_avg_tten_io = 0.0_rkx
-      ! call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_tten')
+      ncstatus = nf90_inq_varid(ncid,'cu_avg_tten',varid)
+      if ( ncstatus /= nf90_noerr ) then
+        cu_avg_tten_io = 0.0_rkx
+      else
+        ncstatus = nf90_get_var(ncid,varid,cu_avg_tten_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_tten')
+      end if
       if ( any(icup == 5) ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_uten'), &
-                                cu_avg_uten_io)
-        if ( ncstatus /= nf90_noerr ) cu_avg_uten_io = 0.0_rkx
-        !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_uten')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_vten'), &
-                                cu_avg_vten_io)
-        if ( ncstatus /= nf90_noerr ) cu_avg_vten_io = 0.0_rkx
-        !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_vten')
+        ncstatus = nf90_inq_varid(ncid,'cu_avg_uten',varid)
+        if ( ncstatus /= nf90_noerr ) then
+          cu_avg_uten_io = 0.0_rkx
+        else
+          ncstatus = nf90_get_var(ncid,varid,cu_avg_uten_io)
+          call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_uten')
+        end if
+        ncstatus = nf90_inq_varid(ncid,'cu_avg_vten',varid)
+        if ( ncstatus /= nf90_noerr ) then
+          cu_avg_vten_io = 0.0_rkx
+        else
+          ncstatus = nf90_get_var(ncid,varid,cu_avg_vten_io)
+          call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_vten')
+        end if
       end if
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_qten'), &
-                              cu_avg_qten_io)
-      if ( ncstatus /= nf90_noerr ) cu_avg_qten_io = 0.0_rkx
-      !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_qten')
+      ncstatus = nf90_inq_varid(ncid,'cu_avg_qten',varid)
+      if ( ncstatus /= nf90_noerr ) then
+        cu_avg_qten_io = 0.0_rkx
+      else
+        ncstatus = nf90_get_var(ncid,varid,cu_avg_qten_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_qten')
+      end if
       if ( ichem == 1 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cu_avg_chiten'), &
-                                cu_avg_chiten_io)
-        if ( ncstatus /= nf90_noerr ) cu_avg_chiten_io = 0.0_rkx
-        !call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_chiten')
+        ncstatus = nf90_inq_varid(ncid,'cu_avg_chiten',varid)
+        if ( ncstatus /= nf90_noerr ) then
+          cu_avg_chiten_io = 0.0_rkx
+        else
+          ncstatus = nf90_get_var(ncid,varid,cu_avg_chiten_io)
+          call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_chiten')
+        end if
       end if
       if ( idcsst == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sst'),sst_io)
