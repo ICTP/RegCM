@@ -153,13 +153,13 @@ module mod_lm_interface
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'lm:emisv')
 #ifdef CLM45
-    call getmem2d(patm,jci1,jci2,ici1,ici2,'lm:patm')
-    call getmem2d(tatm,jci1,jci2,ici1,ici2,'lm:tatm')
-    call getmem2d(uatm,jci1,jci2,ici1,ici2,'lm:uatm')
-    call getmem2d(vatm,jci1,jci2,ici1,ici2,'lm:vatm')
-    call getmem2d(thatm,jci1,jci2,ici1,ici2,'lm:thatm')
-    call getmem2d(qvatm,jci1,jci2,ici1,ici2,'lm:qvatm')
-    call getmem2d(zatm,jci1,jci2,ici1,ici2,'lm:zatm')
+    call getmem2d(patm,jce1,jce2,ice1,ice2,'lm:patm')
+    call getmem2d(tatm,jce1,jce2,ice1,ice2,'lm:tatm')
+    call getmem2d(uatm,jce1,jce2,ice1,ice2,'lm:uatm')
+    call getmem2d(vatm,jce1,jce2,ice1,ice2,'lm:vatm')
+    call getmem2d(thatm,jce1,jce2,ice1,ice2,'lm:thatm')
+    call getmem2d(qvatm,jce1,jce2,ice1,ice2,'lm:qvatm')
+    call getmem2d(zatm,jce1,jce2,ice1,ice2,'lm:zatm')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
     call getmem4d(lms%drydepvels,1,nnsg,jci1,jci2, &
@@ -456,8 +456,8 @@ module mod_lm_interface
     call mtrxclm(lm,lms)
 #else
 #ifdef CLM45
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ice1 , ice2
+      do j = jce1 , jce2
         zatm(j,i) = atms%za(j,i,kz)
         patm(j,i) = atms%pb3d(j,i,kz)
         tatm(j,i) = atms%tb3d(j,i,kz)
@@ -943,7 +943,7 @@ module mod_lm_interface
               rh = min(max((qas/qs),d_zero),d_one)
               desdt = pfesdt(tas)
               lat = lm%xlat(j,i) * degrad
-              srf_evpot_out(j,i) = evpt(tas,ps,rh*es,es,desdt,lat,declin,uas)
+              srf_evpot_out(j,i) = evpt(ps,rh*es,es,desdt,lat,declin,uas)
             end do
           end do
         end if

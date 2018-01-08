@@ -147,7 +147,7 @@ module mod_rrtmg_driver
     call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
     call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
-    call getmem2d(cld_int,1,npr,1,kz,'rrtmg:cld_int')
+    call getmem2d(cld_int,1,npr,1,kzp1,'rrtmg:cld_int')
     call getmem2d(empty2,1,npr,1,kth,'rrtmg:empty2')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
     call getmem1d(aeradfos,1,npr,'rrtmg:aeradfos')
@@ -276,7 +276,7 @@ module mod_rrtmg_driver
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout
-    integer(ik4) :: k , kj , n , i , j
+    integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld
     logical :: lradfor
 
     ! from water path and cloud radius / tauc_LW is not requested
@@ -414,9 +414,23 @@ module mod_rrtmg_driver
       kj = kzp1-k
       qrs(:,kj) = swhr(:,k) / secpd
       qrl(:,kj) = lwhr(:,k) / secpd
-      cld_int(:,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics
-      clwp_int(:,kj) = clwp(:,k)
       dzr(:,kj) = deltaz(:,k)
+      clwp_int(:,kj) = clwp(:,k)
+    end do
+
+    kmaxcld = 3
+    kmincld = kz-ncld
+    cld_int(:,:) = d_zero
+    do k = kmaxcld , kmincld
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                        (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
+          cld_int(n,k) = min(cld_int(n,k),cftotmax)
+          n = n + 1
+        end do
+      end do
     end do
 
     ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
@@ -429,7 +443,7 @@ module mod_rrtmg_driver
     do n = 1 , npr
       totcf(n) = d_one
       if ( luse_max_rnovl ) then
-        do k = 2 , kz
+        do k = 2 , kzp1
           totcf(n) = totcf(n) * (d_one - max(cld_int(n,k-1),cld_int(n,k)))/ &
                                 (d_one - cld_int(n,k-1))
         end do

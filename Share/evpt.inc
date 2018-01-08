@@ -1,9 +1,8 @@
   ! Potential Evapotranspiration
   ! Shuttleworth, J., Putting the vap' into evaporation (1993)
   ! Return value in kg m-2 s-1
-  pure real(rkx) function evpt(t,p,e,es,m,d,l,u)
+  pure real(rkx) function evpt(p,e,es,m,d,l,u)
     implicit none
-    real(rkx) , intent(in) :: t   ! Temperature in K
     real(rkx) , intent(in) :: p   ! Pressure in Pa
     real(rkx) , intent(in) :: e   ! Vapor pressure in Pa
     real(rkx) , intent(in) :: es  ! Saturation vapor pressure in Pa
