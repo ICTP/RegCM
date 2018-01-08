@@ -146,8 +146,8 @@ module mod_rrtmg_driver
     call getmem1d(slwd,1,npr,'rrtmg:slwd')
     call getmem2d(qrs,1,npr,1,kth,'rrtmg:qrs')
     call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
-    call getmem2d(clwp_int,1,npr,1,kth,'rrtmg:clwp_int')
-    call getmem2d(cld_int,1,npr,1,kth,'rrtmg:cld_int')
+    call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
+    call getmem2d(cld_int,1,npr,1,kz,'rrtmg:cld_int')
     call getmem2d(empty2,1,npr,1,kth,'rrtmg:empty2')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
     call getmem1d(aeradfos,1,npr,'rrtmg:aeradfos')
@@ -360,13 +360,13 @@ module mod_rrtmg_driver
                            cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
                            ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                            taucmcl_lw)
-      call rrtmg_lw(npr,kth,icld,0,lradfor, idirect,play,plev,tlay,tlev,    &
-                    tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,  &
-                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,  &
-                    inflglw,iceflglw,liqflglw,cldfmcl_lw,          &
-                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,      &
-                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,  &
-                    lwdflxc,lwhrc,duflx_dt,duflxc_dt,aerlwfo,      &
+      call rrtmg_lw(npr,kth,icld,0,lradfor,idirect,play,plev,tlay,tlev, &
+                    tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,       &
+                    cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf,       &
+                    inflglw,iceflglw,liqflglw,cldfmcl_lw,               &
+                    taucmcl_lw,ciwpmcl_lw,clwpmcl_lw,reicmcl,           &
+                    relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc,       &
+                    lwdflxc,lwhrc,duflx_dt,duflxc_dt,aerlwfo,           &
                     aerlwfos,asaerlwfo,asaerlwfos)
     else
       call rrtmg_lw_nomcica(npr,kth,icld,0,play,plev,tlay,tlev,tsfc,       &
@@ -386,13 +386,13 @@ module mod_rrtmg_driver
 
     solin(:) = swdflx(:,kth)
     frsa(:)  = swdflx(:,1) - swuflx(:,1)
-    sabtp(:) = swdflx(:,kzp1) - swuflx(:,kzp1)
-    clrst(:) = swdflxc(:,kzp1) - swuflxc(:,kzp1)
+    sabtp(:) = swdflx(:,kth) - swuflx(:,kth)
+    clrst(:) = swdflxc(:,kth) - swuflxc(:,kth)
     clrss(:) = swdflxc(:,1) - swuflxc(:,1)
 
-    firtp(:) = -d_one * (lwdflx(:,kzp1) - lwuflx(:,kzp1))
+    firtp(:) = -d_one * (lwdflx(:,kth) - lwuflx(:,kth))
     frla(:)  = -d_one * (lwdflx(:,1) - lwuflx(:,1))
-    clrlt(:) = -d_one * (lwdflxc(:,kzp1) - lwuflxc(:,kzp1))
+    clrlt(:) = -d_one * (lwdflxc(:,kth) - lwuflxc(:,kth))
     clrls(:) = -d_one * (lwdflxc(:,1) - lwuflxc(:,1))
 
     ! coupling with BATS
@@ -441,19 +441,24 @@ module mod_rrtmg_driver
       totcf(n) = d_one - totcf(n)
     end do
     !totcf(:) = d_half * ( totcf(:) + maxval(cld_int(:,:),2) )
-    totci(:) = sum(clwp_int*cld_int*fice,2)*d_r1000
-    totcl(:) = sum(clwp_int*cld_int*(d_one-fice),2)*d_r1000
     totwv(:) = d_zero
+    totci(:) = d_zero
+    totcl(:) = d_zero
     do k = 1 , kz
+      kj = kzp1-k
       do n = 1 , npr
+        totci(n) = totci(n) + &
+           clwp_int(n,k)*cld_int(n,k)*fice(n,kj)*d_r1000
+        totcl(n) = totcl(n) + &
+           clwp_int(n,k)*cld_int(n,k)*(d_one-fice(n,kj))*d_r1000
         totwv(n) =  totwv(n) + &
-          (h2ommr(n,k)*play(n,k)/(rgas*tlay(n,k))*deltaz(n,k))
+          h2ommr(n,k)*play(n,k)/(rgas*tlay(n,k))*deltaz(n,k)*d_r10
       end do
     end do
 
     call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,              &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,    &
-                solld,totwv,totcf,totcl,totci,cld_int,clwp_int,abv, &
+                solld,totcf,totwv,totcl,totci,cld_int,clwp_int,abv, &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
                 tauasc3d,gtota3d,dzr,outtaucl,outtauci,r2m,m2r,     &
                 asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
@@ -528,8 +533,8 @@ module mod_rrtmg_driver
     ! for eachRRTM SW band
     !
     data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
-    ! CONVENTION : RRTMG driver takes layering form botom to TOA.
-    ! regcm consider Top to bottom
+    ! CONVENTION : RRTMG driver takes layering from bottom to TOA.
+    ! Regcm consider TOA to bottom
 
     ! surface pressure and scaled pressure, from which level are computed
     ! RRTM SW takes pressure in mb,hpa
@@ -673,11 +678,11 @@ module mod_rrtmg_driver
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,k) = stdatm_val(calday,m2r%xlat(j,i), &
-                                   play(n,k),istdatm_qdens) / &
-                        stdatm_val(calday,m2r%xlat(j,i), &
-                                   play(n,k),istdatm_airdn)
-          h2ovmr(n,k) = h2ommr(n,k) * rep2
+          h2ommr(n,k) = d_zero !stdatm_val(calday,m2r%xlat(j,i), &
+                        !           play(n,k),istdatm_qdens) / &
+                        !stdatm_val(calday,m2r%xlat(j,i), &
+                        !           play(n,k),istdatm_airdn)
+          h2ovmr(n,k) = d_zero ! h2ommr(n,k) * rep2
           n = n + 1
         end do
       end do
@@ -831,8 +836,8 @@ module mod_rrtmg_driver
     end do
     do k = kzp1 , kth
       do n = 1 , npr
-        deltaz(n,k) = rgas*tlay(n,k)*(plev(n,k) - &
-                      plev(n,k+1))/(egrav*play(n,k))
+        deltaz(n,k) = rgas*regrav*tlay(n,k)/play(n,k) * &
+                (plev(n,k)-plev(n,k+1))
       end do
     end do
     !
@@ -888,7 +893,7 @@ module mod_rrtmg_driver
       end do
     end do
     !
-    call cldefr_rrtm(tlay,rel,rei,fice,play)
+    call cldefr_rrtm(tlay,play,rel,rei,fice)
     !
     ! partition of total water path betwwen liquide and ice.
     ! now clwp is liquide only !
@@ -1028,11 +1033,10 @@ module mod_rrtmg_driver
 !
 ! for now we use for RRTM the same param as in standard rad
 !
-  subroutine cldefr_rrtm(t,rel,rei,fice,pmid)
+  subroutine cldefr_rrtm(t,pmid,rel,rei,fice)
     implicit none
-    real(rkx) , pointer , dimension(:,:) :: fice , pmid , rei , rel , t
-    intent (in) pmid , t
-    intent (inout) fice , rei , rel
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: pmid , t
+    real(rkx) , pointer , dimension(:,:) , intent(out) :: fice , rei , rel
     integer(ik4) :: k , n
     real(rkx) :: pnrml , weight
     ! real(rkx) :: tpara

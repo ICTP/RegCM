@@ -531,9 +531,9 @@ module mod_rad_colmod3
         end if
         ! Turn off ice radiative properties by setting fice = 0.0
         ! fice(n,k) = d_zero
-        rhoa = pmidm1(n,k)* amdk / (tm1(n,k) * 8.314_rkx)
         totcl(n) = totcl(n) + (clwp(n,k)*cld(n,k)*(d_one-fice(n,k)))*d_r1000
         totci(n) = totci(n) + (clwp(n,k)*cld(n,k)*fice(n,k))*d_r1000
+        rhoa = pmidm1(n,k) * amdk / (tm1(n,k) * 8.314_rkx)
         totwv(n) = totwv(n) + qm1(n,k)*rhoa*deltaz(n,k)*d_r1000
       end do
     end do
