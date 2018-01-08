@@ -273,8 +273,16 @@ module mod_cu_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            avg_qten(j,i,k,n) = (d_one-w1) * avg_qten(j,i,k,n) + &
-                          w1 * m2c%qxten(j,i,k,n)/m2c%psb(j,i)
+            if ( abs(m2c%qxten(j,i,k,n)) > dlowval ) then
+              avg_qten(j,i,k,n) = (d_one-w1) * avg_qten(j,i,k,n) + &
+                            w1 * m2c%qxten(j,i,k,n)/m2c%psb(j,i)
+            else
+              if ( abs(avg_qten(j,i,k,n)) > dlowval ) then
+                avg_qten(j,i,k,n) = (d_one-w1) * avg_qten(j,i,k,n)
+              else
+                avg_qten(j,i,k,n) = d_zero
+              end if
+            end if
           end do
         end do
       end do
