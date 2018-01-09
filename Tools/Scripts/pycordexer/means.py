@@ -141,8 +141,8 @@ compressed in disk.
                     nco.variables[var].setncattr('cell_methods',
                                                'time: minimum within days '+
                                                'time: mean over days')
-              else:
-                  nco.variables[var].setncattr('cell_methods', 'time: mean')
+            else:
+                nco.variables[var].setncattr('cell_methods', 'time: mean')
             for attr in ncf.variables[var].ncattrs():
                 if attr != 'cell_methods':
                     if attr != '_FillValue':
