@@ -53,15 +53,15 @@ module mod_rrtmg_driver
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
   real(rkx) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
-         clrss , firtp , frla , clrlt , clrls , empty1 , abv , sol ,   &
-         sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,    &
-         asdif , aldir , aldif , czen , dlat , xptrop , totcf , totwv, &
-         totcl , totci
+         clrss , firtp , frla , clrlt , clrls , abv , sol , sols ,     &
+         soll , solsd , solld , slwd , tsfc , psfc , asdir , asdif ,   &
+         aldir , aldif , czen , dlat , xptrop , totcf , totwv, totcl , &
+         totci
 
-  real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint,   &
-    rh , cld_int , empty2 , tlay , h2ovmr , o3vmr , co2vmr , play ,      &
-    ch4vmr , n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr , &
-    reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel,cldf ,    &
+  real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint, &
+    rh , cld_int , tlay , h2ovmr , o3vmr , co2vmr , play , ch4vmr ,    &
+    n2ovmr , o2vmr , cfc11vmr , cfc12vmr , cfc22vmr,  ccl4vmr ,        &
+    reicmcl , relqmcl , swhr , swhrc , ciwp , clwp , rei , rel,cldf ,  &
     lwhr , lwhrc , duflx_dt , duflxc_dt , ql1 , qi1
 
   real(rkx) , pointer , dimension(:,:) :: plev , tlev , swuflx , swdflx , &
@@ -137,7 +137,6 @@ module mod_rrtmg_driver
     call getmem1d(frla,1,npr,'rrtmg:frla')
     call getmem1d(clrlt,1,npr,'rrtmg:clrlt')
     call getmem1d(clrls,1,npr,'rrtmg:clrls')
-    call getmem1d(empty1,1,npr,'rrtmg:empty1')
     call getmem1d(solin,1,npr,'rrtmg:solin')
     call getmem1d(sols,1,npr,'rrtmg:sols')
     call getmem1d(soll,1,npr,'rrtmg:soll')
@@ -148,7 +147,6 @@ module mod_rrtmg_driver
     call getmem2d(qrl,1,npr,1,kth,'rrtmg:qrl')
     call getmem2d(clwp_int,1,npr,1,kz,'rrtmg:clwp_int')
     call getmem2d(cld_int,1,npr,1,kzp1,'rrtmg:cld_int')
-    call getmem2d(empty2,1,npr,1,kth,'rrtmg:empty2')
     call getmem1d(aeradfo,1,npr,'rrtmg:aeradfo')
     call getmem1d(aeradfos,1,npr,'rrtmg:aeradfos')
     call getmem1d(asaeradfo,1,npr,'rrtmg:aseradfo')
@@ -284,6 +282,7 @@ module mod_rrtmg_driver
     call prep_dat_rrtm(m2r,iyear)
 
     lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
+    lradfor = .true.
 
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
@@ -399,7 +398,7 @@ module mod_rrtmg_driver
     !  r2m%sabveg set to frsa (as in standard version : potential inconsistency
     !  if soil fraction is large)
     ! solar is normally the visible band only total incident surface flux
-    abv(:) = frsa(:)
+    abv(:) = frsa(:) + frla(:)
     sol(:) = swdvisflx(:,1)
     ! surface SW incident
     sols(:) =  swddiruviflx(:,1)
@@ -433,12 +432,6 @@ module mod_rrtmg_driver
       end do
     end do
 
-    ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
-    ! in RAD files : these are diagnostics that are passed to radout but
-    ! not used furthermore
-    empty1 = dmissval
-    empty2 = dmissval
-
     ! Calculate cloud parameters
     do n = 1 , npr
       totcf(n) = d_one
@@ -470,12 +463,16 @@ module mod_rrtmg_driver
       end do
     end do
 
+    ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
+    ! in RAD files
+
     call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,              &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,    &
                 solld,totcf,totwv,totcl,totci,cld_int,clwp_int,abv, &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
                 tauasc3d,gtota3d,dzr,outtaucl,outtauci,r2m,m2r,     &
                 asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
+
   end subroutine rrtmg_driver
 
   subroutine prep_dat_rrtm(m2r,iyear)
@@ -934,7 +931,7 @@ module mod_rrtmg_driver
 
 #if defined(CLM45) || defined(CLM)
     ! TS is the radiant temeprature
-    emis_surf(:,:) = d_one
+    emis_surf(:,:) = 1.0_rkx
 #else
     do k = 1 , nbndlw
       n = 1

@@ -70,6 +70,8 @@
       real(kind=rb) :: wtsum, wtsm(mg)        !
       real(kind=rb) :: tfn , mxarg
 
+      real(kind=rb), parameter :: expeps = 1.e-20_rb   ! Smallest value for exponential table
+
 ! ------- Definitions -------
 !     Arrays for 10000-point look-up tables:
 !     TAU_TBL Clear-sky optical depth (used in cloudy radiative transfer)
@@ -121,15 +123,15 @@
       tau_tbl(0) = 0.0_rb
       tau_tbl(ntbl) = 1.e10_rb
       exp_tbl(0) = 1.0_rb
-      exp_tbl(ntbl) = 1.e-7_rb
+      exp_tbl(ntbl) = expeps
       tfn_tbl(0) = 0.0_rb
       tfn_tbl(ntbl) = 1.0_rb
       bpade = 1.0_rb / pade
       do itr = 1 , ntbl-1
-         tfn = float(itr) / float(ntbl)
+         tfn = real(itr,rb) / real(ntbl,rb)
          tau_tbl(itr) = bpade * tfn / (1._rb - tfn)
          if ( tau_tbl(itr) .ge. mxarg ) then
-           exp_tbl(itr) = 1.e-7_rb
+           exp_tbl(itr) = expeps
          else
            exp_tbl(itr) = max(exp(-tau_tbl(itr)),1.e-7_rb)
          end if

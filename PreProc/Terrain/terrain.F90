@@ -551,33 +551,29 @@ program terrain
   end do
   deallocate(tmptex)
 
-  where ( htgrid < 0.0 )
-    htgrid = 0.0
+  where ( htgrid < 0.0_rkx )
+    htgrid = 0.0_rkx
   end where
-  where ( lndout > 13.5 .and. lndout < 15.5 )
-    mask = 0.0
+  where ( lndout > 13.5_rkx .and. lndout < 15.5_rkx )
+    mask = 0.0_rkx
   elsewhere
-    mask = 2.0
+    mask = 2.0_rkx
   end where
-  where ( lndout > 14.5 .and. lndout < 15.5 )
-    htgrid = 0.0
-  end where
-  ! Correction for Black Sea
-  where ( xlat > 40.0 .and. xlat < 47.2 .and. &
-          xlon > 26.5 .and. xlon < 42.0 .and. &
-          lndout > 13.5 .and. lndout < 14.5 )
-    htgrid = 0.0
-  end where
+  if ( .not. h2ohgt ) then
+    where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx )
+      htgrid = 0.0_rkx
+    end where
+  end if
   if (lakedpth) then
     where ( mask > 1.0 )
-      dpth = 0.0
+      dpth = 0.0_rkx
     end where
-    where (mask < 1.0 .and. dpth < 2.0)
-      dpth = 2.0
+    where (mask < 1.0_rkx .and. dpth < 2.0_rkx)
+      dpth = 2.0_rkx
     end where
   end if
   if ( lsmoist ) then
-    where ( mask == 0 )
+    where ( mask < 1.0_rkx )
       smoist = smissval
     end where
   else
@@ -587,17 +583,13 @@ program terrain
   ! Preliminary heavy smoothing of boundaries
   if ( smthbdy ) call smthtr(htgrid,jx,iy,nspgx)
 
+  ! Grell smoothing to eliminate 2 delx wave
+  call smtdsmt(htgrid,jx,iy)
+
   ! Smoothing using 1-2-1 smoother
   do ism = 1 , ismthlev
     call smth121(htgrid,jx,iy)
   end do
-
-  if ( h2ohgt ) then
-    call h2oelev(jx,iy,htgrid,lndout)
-  end if
-
-  ! Grell smoothing to eliminate 2 delx wave
-  call smtdsmt(htgrid,jx,iy)
 
   if ( ibndry ) then
     do j = 1 , jx
@@ -650,42 +642,34 @@ program terrain
   write(stdout,*) 'Fudging data (if requested) succeeded'
 
   if ( nsg > 1 ) then
-    where ( htgrid_s < 0.0 )
-      htgrid_s = 0.0
+    where ( htgrid_s < 0.0_rkx )
+      htgrid_s = 0.0_rkx
     end where
-    where ( lndout_s > 13.5 .and. lndout_s < 15.5 )
-      mask_s = 0.0
+    where ( lndout_s > 13.5_rkx .and. lndout_s < 15.5_rkx )
+      mask_s = 0.0_rkx
     elsewhere
-      mask_s = 2.0
+      mask_s = 2.0_rkx
     end where
-    where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
-      htgrid_s = 0.0
-    end where
-    ! Correction for Black Sea
-    where ( xlat_s > 40.0 .and. xlat_s < 47.2 .and. &
-            xlon_s > 26.5 .and. xlon_s < 42.0 .and. &
-            lndout_s > 13.5 .and. lndout_s < 14.5 )
-      htgrid_s = 0.0
-    end where
+    if ( .not. h2ohgt ) then
+      where ( lndout_s > 14.5_rkx .and. lndout_s < 15.5_rkx )
+        htgrid_s = 0.0_rkx
+      end where
+    end if
+
+    ! Grell smoothing to eliminate 2 delx wave
+    call smtdsmt(htgrid_s,jxsg,iysg)
 
     ! Smoothing using 1-2-1 smoother
     do ism = 1 , ismthlev
       call smth121(htgrid_s,jxsg,iysg)
     end do
 
-    if ( h2ohgt ) then
-      call h2oelev(jxsg,iysg,htgrid_s,lndout_s)
-    end if
-
-    ! Grell smoothing to eliminate 2 delx wave
-    call smtdsmt(htgrid_s,jxsg,iysg)
-
     if (lakedpth) then
-      where ( mask_s > 1.0 )
-        dpth_s = 0.0
+      where ( mask_s > 1.0_rkx )
+        dpth_s = 0.0_rkx
       end where
-      where ( mask_s < 1.0 .and. dpth_s < 2.0 )
-        dpth_s = 2.0
+      where ( mask_s < 1.0_rkx .and. dpth_s < 2.0_rkx )
+        dpth_s = 2.0_rkx
       end where
     end if
     if ( lakedpth ) then
@@ -695,7 +679,7 @@ program terrain
                     trim(char_lak))
     end if
     if ( lsmoist ) then
-      where ( mask_s == 0 )
+      where ( mask_s < 1.0_rkx )
         smoist_s = smissval
       end where
     else

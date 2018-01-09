@@ -296,7 +296,7 @@ module mcica_subcol_gen_lw
       logical,  dimension(nsubcol, ncol, nlay) :: iscloudy   ! flag that says whether a gridbox is cloudy
 
 ! Indices
-      integer(kind=im) :: ilev, isubcol, i, n, ngbm         ! indices
+      integer(kind=im) :: ilev, isubcol, i, n ! indices
 
 !------------------------------------------------------------------------------------------
 
@@ -473,7 +473,6 @@ module mcica_subcol_gen_lw
 ! where there is a cloud, define the subcolumn cloud properties,
 ! otherwise set these to zero
 
-      ngbm = ngb(1) - 1
       do ilev = 1,nlay
          do i = 1, ncol
             do isubcol = 1, nsubcol
@@ -481,7 +480,6 @@ module mcica_subcol_gen_lw
                   cld_stoch(isubcol,i,ilev) = 1._rb
                   clwp_stoch(isubcol,i,ilev) = clwp(i,ilev)
                   ciwp_stoch(isubcol,i,ilev) = ciwp(i,ilev)
-                  !n = ngb(isubcol) - ngbm
                   n = ngb(isubcol)
                   tauc_stoch(isubcol,i,ilev) = tauc(n,i,ilev)
 !                  ssac_stoch(isubcol,i,ilev) = ssac(n,i,ilev)

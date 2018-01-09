@@ -200,7 +200,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 43) index = 42
-                     fint = factor - float(index)
+                     fint = factor - real(index,rb)
                      ib = ngb(ig)
                      abscoice(ig) = &
                          absice2(index,ib) + fint * &
@@ -214,7 +214,7 @@
                      factor = (radice - 2._rb)/3._rb
                      index = int(factor)
                      if (index .eq. 46) index = 45
-                     fint = factor - float(index)
+                     fint = factor - real(index,rb)
                      ib = ngb(ig)
                      abscoice(ig) = &
                          absice3(index,ib) + fint * &
@@ -236,7 +236,7 @@
                   index = int(radliq - 1.5_rb)
                   if (index .eq. 0) index = 1
                   if (index .eq. 58) index = 57
-                  fint = radliq - 1.5_rb - float(index)
+                  fint = radliq - 1.5_rb - real(index,rb)
                   ib = ngb(ig)
                   abscoliq(ig) = &
                         absliq1(index,ib) + fint * &

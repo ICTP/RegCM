@@ -586,7 +586,7 @@ module mod_dynparam
     h2ohgt = .true.
     h2opct = 50.0_rkx
     roidem = 1.5_rkx
-    ismthlev = 0
+    ismthlev = 1
     rewind(ipunit)
     read(ipunit, nml=terrainparam, iostat=iresult)
     if ( iresult /= 0 ) then

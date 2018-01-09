@@ -1033,7 +1033,7 @@
 !
       do ib = jpb1,jpb2
 !         solvar(ib) = 1._rb
-         solvar(ib) = scon / rrsw_scon
+         solvar(ib) = rrsw_scon / scon
          adjflux(ib) = adjflx * solvar(ib)
       enddo
 

@@ -151,40 +151,40 @@
 
       stpfac = 296._rb/1013._rb
 
-      indbound = nint(tbound - 159._rb)
+      indbound = int(tbound - 159._rb)
       if (indbound .lt. 1) then
          indbound = 1
       elseif (indbound .gt. 180) then
          indbound = 180
       endif
-      tbndfrac = tbound - 159._rb - float(indbound)
-      indlev0 = nint(tz(0) - 159._rb)
+      tbndfrac = tbound - 159._rb - real(indbound,rb)
+      indlev0 = int(tz(0) - 159._rb)
       if (indlev0 .lt. 1) then
          indlev0 = 1
       elseif (indlev0 .gt. 180) then
          indlev0 = 180
       endif
-      t0frac = tz(0) - 159._rb - float(indlev0)
+      t0frac = tz(0) - 159._rb - real(indlev0,rb)
       laytrop = 0
 
 ! Begin layer loop
 !  Calculate the integrated Planck functions for each band at the
 !  surface, level, and layer temperatures.
       do lay = 1, nlayers
-         indlay = nint(tavel(lay) - 159._rb)
+         indlay = int(tavel(lay) - 159._rb)
          if (indlay .lt. 1) then
             indlay = 1
          elseif (indlay .gt. 180) then
             indlay = 180
          endif
-         tlayfrac = tavel(lay) - 159._rb - float(indlay)
-         indlev = nint(tz(lay)-159._rb)
+         tlayfrac = tavel(lay) - 159._rb - real(indlay,rb)
+         indlev = int(tz(lay)-159._rb)
          if (indlev .lt. 1) then
             indlev = 1
          elseif (indlev .gt. 180) then
             indlev = 180
          endif
-         tlevfrac = tz(lay) - 159._rb - float(indlev)
+         tlevfrac = tz(lay) - 159._rb - real(indlev,rb)
 
 ! Begin spectral band loop
          do iband = 1, 15
@@ -277,14 +277,14 @@
          elseif (jt(lay) .gt. 4) then
             jt(lay) = 4
          endif
-         ft = ((tavel(lay)-tref(jp(lay)))/15._rb) - float(jt(lay)-3)
+         ft = ((tavel(lay)-tref(jp(lay)))/15._rb) - real(jt(lay)-3,rb)
          jt1(lay) = int(3._rb + (tavel(lay)-tref(jp1))/15._rb)
          if (jt1(lay) .lt. 1) then
             jt1(lay) = 1
          elseif (jt1(lay) .gt. 4) then
             jt1(lay) = 4
          endif
-         ft1 = ((tavel(lay)-tref(jp1))/15._rb) - float(jt1(lay)-3)
+         ft1 = ((tavel(lay)-tref(jp1))/15._rb) - real(jt1(lay)-3,rb)
          water = wkl(1,lay)/coldry(lay)
          scalefac = pavel(lay) * stpfac / tavel(lay)
 
@@ -296,14 +296,14 @@
          forfac(lay) = scalefac / (1.0_rb+water)
          factor = (332.0_rb-tavel(lay))/36.0_rb
          indfor(lay) = min(2, max(1, int(factor)))
-         forfrac(lay) = factor - float(indfor(lay))
+         forfrac(lay) = factor - real(indfor(lay),rb)
 
 !  Set up factors needed to separately include the water vapor
 !  self-continuum in the calculation of absorption coefficient.
          selffac(lay) = water * forfac(lay)
          factor = (tavel(lay)-188.0_rb)/7.2_rb
          indself(lay) = min(9, max(1, int(factor)-7))
-         selffrac(lay) = factor - float(indself(lay) + 7)
+         selffrac(lay) = factor - real(indself(lay) + 7,rb)
 
 !  Set up factors needed to separately include the minor gases
 !  in the calculation of absorption coefficient
@@ -312,7 +312,7 @@
              *(wbroad(lay)/(coldry(lay)+wkl(1,lay)))
          factor = (tavel(lay)-180.8_rb)/7.2_rb
          indminor(lay) = min(18, max(1, int(factor)))
-         minorfrac(lay) = factor - float(indminor(lay))
+         minorfrac(lay) = factor - real(indminor(lay),rb)
 
 !  Setup reference ratio to be used in calculation of binary
 !  species parameter in lower atmosphere.
@@ -366,7 +366,7 @@
              * (wbroad(lay)/(coldry(lay)+wkl(1,lay)))
          factor = (tavel(lay)-180.8_rb)/7.2_rb
          indminor(lay) = min(18, max(1, int(factor)))
-         minorfrac(lay) = factor - float(indminor(lay))
+         minorfrac(lay) = factor - real(indminor(lay),rb)
 
 !  Setup reference ratio to be used in calculation of binary
 !  species parameter in upper atmosphere.

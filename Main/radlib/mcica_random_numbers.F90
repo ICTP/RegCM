@@ -196,7 +196,7 @@ contains
     nFirstLoop = max(blockSize, size(seed))
     do k = 1, nFirstLoop
        i = mod(k + nWraps, blockSize)
-       j = mod(k - 1,      size(seed))
+       j = mod(k - 1_im,      size(seed))
        if(i == 0) then
          twister%state(i) = twister%state(blockSize - 1)
          twister%state(1) = ieor(twister%state(1),                                 &
@@ -217,7 +217,7 @@ contains
     !
     ! Walk through the state array, beginning where we left off in the block above
     !
-    do i = mod(nFirstLoop, blockSize) + nWraps + 1, blockSize - 1
+    do i = mod(nFirstLoop, blockSize) + nWraps + 1_im, blockSize - 1_im
       twister%state(i) = ieor(twister%state(i),                                 &
                               ieor(twister%state(i-1),                          &
                                    ishft(twister%state(i-1), -30_im)) * 1566083941_im) - i ! Non-linear
