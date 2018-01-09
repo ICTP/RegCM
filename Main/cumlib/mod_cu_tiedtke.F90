@@ -433,9 +433,14 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         do k = kctop(ii) , kcbot(ii)
           if ( ktype(ii) == 1 ) then
-            cu_cldfrc(j,i,k) = kfac_deep * log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = kfac_deep * &
+                           log(d_one+(500.0_rkx*pmfu(ii,k)))
+          else if ( ktype(ii) == 2 ) then
+            cu_cldfrc(j,i,k) = d_half*(kfac_deep+kfac_shal) * &
+                           log(d_one+(500.0_rkx*pmfu(ii,k)))
           else
-            cu_cldfrc(j,i,k) = kfac_shal * log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = kfac_shal * &
+                           log(d_one+(500.0_rkx*pmfu(ii,k)))
           end if
           cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),clfrcv)
         end do

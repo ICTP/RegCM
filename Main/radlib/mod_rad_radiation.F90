@@ -2078,9 +2078,9 @@ module mod_rad_radiation
     ! (total cloud fraction <= 1.e-3 treated as clear)
     !
     where ( tclrsf(:,kzp1) > mincld )
-      skip = .false.
-    elsewhere
       skip = .true.
+    elsewhere
+      skip = .false.
     end where
     !
     ! Compute downflux at level 1 for cloudy sky
