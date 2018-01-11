@@ -390,18 +390,18 @@ module mod_params
     elcrit_ocn = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
-    entp = 1.5_rkx        ! Coefficient of mixing in the entrainment formulation
+    entp = 0.06_rkx       ! Coefficient of mixing in the entrainment formulation
     sigd = 0.05_rkx       ! Fractional area covered by unsaturated dndraft
-    sigs = 0.12_rkx       ! Fraction of precipitation falling outside of cloud
+    sigs = 0.15_rkx       ! Fraction of precipitation falling outside of cloud
     omtrain = 50.0_rkx    ! Fall speed of rain (P/s)
     omtsnow = 5.5_rkx     ! Fall speed of snow (P/s)
     coeffr = 1.0_rkx      ! Coefficient governing the rate of rain evaporation
     coeffs = 0.8_rkx      ! Coefficient governing the rate of snow evaporation
     cu = 0.7_rkx          ! Coefficient governing convective momentum transport
     betae = 10.0_rkx      ! Controls downdraft velocity scale
-    dtmax = 0.9_rkx    ! Max negative parcel temperature perturbation below LFC
-    alphae = 0.2_rkx   ! Controls the approach rate to quasi-equilibrium
-    damp = 0.1_rkx     ! Controls the approach rate to quasi-equilibrium
+    dtmax = 0.65_rkx    ! Max negative parcel temperature perturbation below LFC
+    alphae = 0.02_rkx   ! Controls the approach rate to quasi-equilibrium
+    damp = 0.01_rkx     ! Controls the approach rate to quasi-equilibrium
     epmax_ocn = 0.999_rkx ! Maximum precipitation efficiency over land
     epmax_lnd = 0.999_rkx ! Maximum precipitation efficiency over ocean
     !
