@@ -425,11 +425,11 @@ module mod_cu_em
                  fuold , fvold , plcl , qp1 , qsm , qstm , qti , rat ,   &
                  rdcp , revap , rh , scrit , sigt , sjmax , sjmin ,      &
                  smid , smin , stemp , tca , traav , tvaplcl , tvpplcl , &
-                 tvx , tvy , uav , vav , wdtrain
+                 tvx , tvy , uav , vav , wdtrain , amp1
     real(rkx) , dimension(nd+1) :: clw , cpn , ep , evap , gz , h , hm , &
                                    hp , lv , lvcp , m , mp , qp , sigp , &
                                    th , tp , tv , tvp , up , vp ,        &
-                                   water , wt , amp1
+                                   water , wt
     integer(ik4) :: n , nl , i , ihmin , icb , ict , ict1 , j , jtt , k , nk
     integer(ik4) , dimension(nd+1) :: nent
     real(rkx) , dimension(nd+1,nd+1) :: elij , ment , qent , sij , uent , vent
@@ -1009,28 +1009,28 @@ module mod_cu_em
       ! First find the net saturated updraft and downdraft mass fluxes
       ! through each level
       !
-      amp1(:) = d_zero
       do i = 2 , ict
         dpinv = 0.01_rkx/(ph(n,i)-ph(n,i+1))
         cpinv = d_one/cpn(i)
         ad = d_zero
+        amp1 = d_zero
         if ( i >= nk ) then
           do k = i + 1 , ict + 1
-            amp1(i) = amp1(i) + m(k)
+            amp1 = amp1 + m(k)
           end do
         end if
         do k = 1 , i
           do j = i + 1 , ict + 1
-            amp1(i) = amp1(i) + ment(k,j)
+            amp1 = amp1 + ment(k,j)
           end do
         end do
-        if ( (d_two*egrav*dpinv*amp1(i)) >= rdt ) iflag = 4
+        if ( (d_two*egrav*dpinv*amp1) >= rdt ) iflag = 4
         do k = 1 , i - 1
           do j = i , ict
             ad = ad + ment(j,k)
           end do
         end do
-        ft(n,i) = ft(n,i) + egrav*dpinv*(amp1(i)*(t(n,i+1)-t(n,i)+ &
+        ft(n,i) = ft(n,i) + egrav*dpinv*(amp1*(t(n,i+1)-t(n,i)+ &
               (gz(i+1)-gz(i))*cpinv)-ad*(t(n,i)-t(n,i-1)+ &
               (gz(i)-gz(i-1))*cpinv)) - sigd*lvcp(i)*evap(i)
         ft(n,i) = ft(n,i) + egrav*dpinv*ment(i,i) * &
@@ -1038,15 +1038,15 @@ module mod_cu_em
         ft(n,i) = ft(n,i) + sigd*wt(i+1)*(cl-cpd)*water(i+1) * &
               (t(n,i+1)-t(n,i))*dpinv*cpinv
         fq(n,i) = fq(n,i) + egrav*dpinv * &
-              (amp1(i)*(q(n,i+1)-q(n,i))-ad*(q(n,i)-q(n,i-1)))
+              (amp1*(q(n,i+1)-q(n,i))-ad*(q(n,i)-q(n,i-1)))
         fu(n,i) = fu(n,i) + egrav*dpinv * &
-              (amp1(i)*(u(n,i+1)-u(n,i))-ad*(u(n,i)-u(n,i-1)))
+              (amp1*(u(n,i+1)-u(n,i))-ad*(u(n,i)-u(n,i-1)))
         fv(n,i) = fv(n,i) + egrav*dpinv * &
-              (amp1(i)*(v(n,i+1)-v(n,i))-ad*(v(n,i)-v(n,i-1)))
+              (amp1*(v(n,i+1)-v(n,i))-ad*(v(n,i)-v(n,i-1)))
         if ( chemcutran ) then
           do k = 1 , ntra
             ftra(n,i,k) = ftra(n,i,k) + egrav*dpinv * &
-               (amp1(i)*(tra(n,i+1,k)-tra(n,i,k))-ad*(tra(n,i,k)-tra(n,i-1,k)))
+               (amp1*(tra(n,i+1,k)-tra(n,i,k))-ad*(tra(n,i,k)-tra(n,i-1,k)))
           end do
         end if
         do k = 1 , i - 1
@@ -1154,8 +1154,7 @@ module mod_cu_em
       !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
       !
       do i = icb , ict
-        cldfra(n,i) = kfac_deep * &
-                log(d_one+(500.0_rkx*d_half*egrav*(amp1(i)+amp1(i+1))))
+        cldfra(n,i) = kfac_deep * log(d_one+(500.0_rkx*d_half*(m(i)+m(i+1))))
         cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),clfrcv)
       end do
       kcb(n) = icb
