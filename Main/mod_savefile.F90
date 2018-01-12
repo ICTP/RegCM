@@ -141,7 +141,6 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:) :: hstor_io
 
   real(rkx) , public , pointer , dimension(:,:) :: cldefi_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: tbase_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_ww_io
   real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_tten_io
@@ -288,7 +287,6 @@ module mod_savefile
       end if
       if ( any(icup == 3) ) then
         call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
-        call getmem3d(tbase_io,jcross1,jcross2,icross1,icross2,1,kz,'tbase_io')
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
         call getmem3d(cu_avg_ww_io,jcross1,jcross2, &
@@ -426,8 +424,6 @@ module mod_savefile
       if ( any(icup == 3) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cldefi'),cldefi_io)
         call check_ok(__FILE__,__LINE__,'Cannot read cldefi')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tbase'),tbase_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read tbase')
       end if
       if ( any(icup == 4) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cbmf2d'),cbmf2d_io)
@@ -750,7 +746,6 @@ module mod_savefile
       wrkdim(3) = dimids(idkh)
       if ( any(icup == 3) ) then
         call mydefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'tbase',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
         call mydefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -945,7 +940,6 @@ module mod_savefile
       call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
       if ( any(icup == 3) ) then
         call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
-        call myputvar(ncid,'tbase',tbase_io,varids,ivcc)
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
         call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)

@@ -1132,7 +1132,6 @@ module mod_output
           call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
         end if
         if ( any(icup == 3) ) then
-          call grid_collect(tbase,tbase_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
         end if
         if ( any(icup == 4) ) then

@@ -415,19 +415,19 @@ if test -z "$COMPILER_INTEL_TRUE"; then
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
   AC_SUBST(LIBS)
   if eval "test x"$USE_KNL" = x1"; then
-    FCFLAGS="$FCFLAGS -axMIC-AVX512"
+    FCFLAGS="$FCFLAGS -xMIC-AVX512"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$USE_SKL" = x1"; then
-    FCFLAGS="$FCFLAGS -axCORE-AVX512"
+    FCFLAGS="$FCFLAGS -xCORE-AVX512"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$USE_BDW" = x1"; then
-    FCFLAGS="$FCFLAGS -axCORE-AVX2"
+    FCFLAGS="$FCFLAGS -xCORE-AVX2"
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$USE_NHL" = x1"; then
-    FCFLAGS="$FCFLAGS -axSSE4.2"
+    FCFLAGS="$FCFLAGS -xSSE4.2"
     AC_SUBST(FCFLAGS)
   fi
 fi

@@ -2322,8 +2322,6 @@ module mod_params
       call compute_full_coriolis_coefficients
     end if
 
-    if ( any(icup == 3) ) call lutbl(ptop)
-
     if ( iboudy < 0 .or. iboudy > 5 ) then
       call fatal(__FILE__,__LINE__, &
                  'UNSUPPORTED BDY SCHEME.')

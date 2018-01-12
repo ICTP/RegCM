@@ -337,7 +337,6 @@ module mod_init
       end if
 
       if ( any(icup == 3) ) then
-        call grid_distribute(tbase_io,tbase,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
       end if
       if ( any(icup == 4) ) then
@@ -618,17 +617,6 @@ module mod_init
         end do
       end if
       !
-      ! Initialize the tbase for BM cumulus scheme
-      !
-      if ( any(icup == 3) ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              tbase(j,i,k) = ts00 + tlp*log(atm1%pr(j,i,k))
-            end do
-          end do
-        end do
-      end if
       if ( any(icup == 6) ) then
         if ( idynamic == 2 ) then
           do k = 1 , kz

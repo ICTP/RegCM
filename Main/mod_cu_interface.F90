@@ -38,8 +38,7 @@ module mod_cu_interface
       cu_convpr , cu_chiten , avg_ww
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
   use mod_cu_tables , only : init_convect_tables
-  use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , lutbl , cldefi ,    &
-      tbase
+  use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , cldefi
   use mod_cu_em , only : allocate_mod_cu_em , cupemandrv , cbmf2d ,        &
       elcrit2d , epmax2d
   use mod_cu_kuo , only : allocate_mod_cu_kuo , cupara , twght , vqflx , k700
@@ -59,12 +58,9 @@ module mod_cu_interface
   public :: cumulus , shallow_convection
   public :: cucloud
 
-  public :: lutbl
-
   public :: cuscheme
   public :: cbmf2d
   public :: cldefi
-  public :: tbase
   public :: avg_ww
   public :: avg_tten
   public :: avg_uten

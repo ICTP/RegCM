@@ -64,32 +64,26 @@ module mod_cu_bm
 
   private
 
-  integer(ik4) , parameter :: itb = 100
-  integer(ik4) , parameter :: jtb = 150
-
-  real(rkx) :: pl , mxarg
-  real(rkx) , pointer , dimension(:,:,:) :: tbase
+  real(rkx) :: mxarg
   real(rkx) , pointer , dimension(:,:) :: cldefi
   real(rkx) , pointer , dimension(:,:,:) :: ape , q , qqmod , t , &
                                            tmod , tref , z0
   real(rkx) , pointer , dimension(:) :: apek , apesk , difq , dift , ddzq , &
          fpk , pdp , pk , psk , qk , qrefk , qsatk , therk , thsk ,       &
          thvref , tk , trefk
-  real(rkx) , pointer , dimension(:,:) :: cldhgt , dsp0 , dspb , dspt , p , &
-         pbot , prtop , psp , xsm , thbt , thesp , ths , tthbt , tthes
-  integer(ik4) , pointer , dimension(:,:) :: ifbuoy , lbot , ltop , ml
-  integer(ik4) , pointer , dimension(:) :: kdp , nbotd , nbots , ndpthd ,      &
-         ndpths , ntopd , ntops , ideep , ishal , jdeep , jshal
+  real(rkx) , pointer , dimension(:,:) :: cldhgt , dsp0 , dspb , dspt , &
+         psp , xsm , thbt , thesp , ths , tthbt , tthes
+  integer(ik4) , pointer , dimension(:,:) :: ifbuoy , ml
+  integer(ik4) , pointer , dimension(:) :: kdp , ideep , ishal , jdeep , jshal
 
-  public :: bmpara , lutbl , allocate_mod_cu_bm
-  public :: tbase , cldefi
+  public :: bmpara , allocate_mod_cu_bm
+  public :: cldefi
 
   contains
 
   subroutine allocate_mod_cu_bm
     implicit none
     integer(ik4) :: intall
-    call getmem3d(tbase,jci1,jci2,ici1,ici2,1,kz,'cu_bm:tbase')
     call getmem2d(cldefi,jci1,jci2,ici1,ici2,'cu_bm:cldefi')
     call getmem1d(apek,1,kz,'cu_bm:apek')
     call getmem1d(apesk,1,kz,'cu_bm:apesk')
@@ -109,12 +103,6 @@ module mod_cu_bm
     call getmem1d(tk,1,kz,'cu_bm:tk')
     call getmem1d(trefk,1,kz,'cu_bm:trefk')
     call getmem1d(kdp,1,kz,'cu_bm:kdp')
-    call getmem1d(nbotd,1,kz,'cu_bm:nbotd')
-    call getmem1d(nbots,1,kz,'cu_bm:nbots')
-    call getmem1d(ndpthd,1,kz,'cu_bm:ndpthd')
-    call getmem1d(ndpths,1,kz,'cu_bm:ndpths')
-    call getmem1d(ntopd,1,kz,'cu_bm:ntopd')
-    call getmem1d(ntops,1,kz,'cu_bm:ntops')
     call getmem3d(ape,jci1,jci2,ici1,ici2,1,kz,'cu_bm:ape')
     call getmem3d(q,jci1,jci2,ici1,ici2,1,kz,'cu_bm:q')
     call getmem3d(qqmod,jci1,jci2,ici1,ici2,1,kz,'cu_bm:qqmod')
@@ -123,16 +111,11 @@ module mod_cu_bm
     call getmem3d(tref,jci1,jci2,ici1,ici2,1,kz,'cu_bm:tref')
     call getmem3d(z0,jci1,jci2,ici1,ici2,1,kz,'cu_bm:z0')
     call getmem2d(ifbuoy,jci1,jci2,ici1,ici2,'cu_bm:ifbuoy')
-    call getmem2d(lbot,jci1,jci2,ici1,ici2,'cu_bm:lbot')
-    call getmem2d(ltop,jci1,jci2,ici1,ici2,'cu_bm:ltop')
     call getmem2d(ml,jci1,jci2,ici1,ici2,'cu_bm:ml')
     call getmem2d(cldhgt,jci1,jci2,ici1,ici2,'cu_bm:cldhgt')
     call getmem2d(dsp0,jci1,jci2,ici1,ici2,'cu_bm:dsp0')
     call getmem2d(dspb,jci1,jci2,ici1,ici2,'cu_bm:dspb')
     call getmem2d(dspt,jci1,jci2,ici1,ici2,'cu_bm:dspt')
-    call getmem2d(p,jci1,jci2,ici1,ici2,'cu_bm:p')
-    call getmem2d(pbot,jci1,jci2,ici1,ici2,'cu_bm:pbot')
-    call getmem2d(prtop,jci1,jci2,ici1,ici2,'cu_bm:prtop')
     call getmem2d(psp,jci1,jci2,ici1,ici2,'cu_bm:psp')
     call getmem2d(xsm,jci1,jci2,ici1,ici2,'cu_bm:xsm')
     call getmem2d(thbt,jci1,jci2,ici1,ici2,'cu_bm:thbt')
@@ -156,7 +139,6 @@ module mod_cu_bm
     real(rkx) , parameter :: h10e5 = 100000.0_rkx
     real(rkx) , parameter :: d608 = 0.608_rkx
     real(rkx) , parameter :: dm2859 = -rovcp
-    real(rkx) , parameter :: row = d_1000
     real(rkx) , parameter :: stresh = 1.10_rkx
     real(rkx) , parameter :: stabs = 1.0_rkx
     real(rkx) , parameter :: stabd = 0.90_rkx
@@ -171,15 +153,15 @@ module mod_cu_bm
     real(rkx) , parameter :: pshu = 45000.0_rkx
     real(rkx) , parameter :: zno = 750.0_rkx
     real(rkx) , parameter :: zsh = 3999.0_rkx
+    real(rkx) , parameter :: fsl = 0.90_rkx
     real(rkx) , parameter :: fss = 0.60_rkx
     real(rkx) , parameter :: efimn = 0.20_rkx
     real(rkx) , parameter :: efmnt = 0.70_rkx
     real(rkx) , parameter :: fcc1 = 0.50_rkx
     real(rkx) , parameter :: fcp = h1 - fcc1
-    real(rkx) , parameter :: dspbfl = -3875.0_rkx
-    real(rkx) , parameter :: dsp0fl = -5875.0_rkx
-    real(rkx) , parameter :: dsptfl = -1875.0_rkx
-    real(rkx) , parameter :: fsl = 1.0_rkx
+    real(rkx) , parameter :: dspbfl = -4843.75_rkx
+    real(rkx) , parameter :: dsp0fl = -7050.0_rkx
+    real(rkx) , parameter :: dsptfl = -2250.0_rkx
     real(rkx) , parameter :: dspbfs = -3875.0_rkx
     real(rkx) , parameter :: dsp0fs = -5875.0_rkx
     real(rkx) , parameter :: dsptfs = -1875.0_rkx
@@ -205,34 +187,32 @@ module mod_cu_bm
     real(rkx) , parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
     real(rkx) , parameter :: cporng = d_one/dm2859
     real(rkx) , parameter :: elocp = wlhvocp
-    real(rkx) , parameter :: cprlg = cpd/(row*egrav*wlhv)
+    real(rkx) , parameter :: cprlg = cpd/(rhoh2o*egrav*wlhv)
     logical , save :: efinit = .false.
-    logical , parameter :: unis = .false.
-    logical , parameter :: unil = .true.
-    logical , parameter :: oct90 = .true.
-!
-    real(rkx) :: ak , apekl , avrgt , avrgtl , cthrs , den , dentpy , &
+
+    real(rkx) :: avrgt , avrgtl , cthrs , den , dentpy , es , &
                dhdt , difql , diftl , dpkl , dpmix , dqref , drheat , &
                dsp , dsp0k , dspbk , dsptk , dst , dstq , dtdeta ,    &
                ee , efi , fefi , fptk , hcorr , otsum , pdiff ,       &
-               pflag , pk0 , pkb , pkl , pkt , potsum , pratec ,      &
-               preck , psfck , psum , pthrs , ptpk , qnew ,  qotsum , &
+               pflag , pk0 , pkb , pkt , potsum , pratec ,      &
+               preck , psum , pthrs , ptpk , qnew ,  qotsum , &
                qrfkl , qrftp , qs , qsum , rdpsum , rhh , rhl ,       &
                rotsum , rtbar , smix , sumde , sumdp , sumdt , tauk , &
                tcorr , tdpt , thskl , thtpk , thvmkl , tlcl , trfkl , &
-               tskl , ztop
-    integer(ik4) :: i , j , iter , ivi , k , kb , kbaseb , khdeep ,    &
+               tskl , ztop , dthem , rdp0t , pbot , trel
+    integer(ik4) :: i , j , iter , ivi , k , kbaseb , khdeep ,    &
                khshal , kk , l , l0 , l0m1 , lb , lbm1 , lbtk , lcor , &
-               lqm , lshu , ltp1 , ltpk , ltsh , n , ndeep , ndepth ,  &
-               ndstn , ndstp , nshal , nswap
+               lqm , lshu , ltp1 , ltpk , ltsh , n , &
+               ndstn , ndstp , nshal
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bmpara'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
+    trel = 3000.0_rkx
     tauk = dt/trel
-    cthrs = (6.350_rkx/secpd)*dt/cprlg
+    cthrs = (0.00635_rkx/secpd)*dt/cprlg
     !
     ! xsm is surface mask: =1 water; =0 land
     !
@@ -256,15 +236,7 @@ module mod_cu_bm
     !
     ! lb is currently set to kz-1
     !
-    lb = kz - 1
-    do k = 1 , kz
-      ntopd(k) = 0
-      nbotd(k) = 0
-      ntops(k) = 0
-      nbots(k) = 0
-      ndpths(k) = 0
-      ndpthd(k) = 0
-    end do
+    lb = kzm1
     !
     ! find melting level...
     !
@@ -273,13 +245,13 @@ module mod_cu_bm
         ml(j,i) = kzp1
       end do
     end do
-
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           t(j,i,k) = m2c%tas(j,i,k)
-          q(j,i,k) = max(m2c%qxas(j,i,k,iqv),minqq)
+          q(j,i,k) = m2c%qxas(j,i,k,iqv)
           ape(j,i,k) = (m2c%pas(j,i,k)/h10e5)**dm2859
+          z0(j,i,k) = m2c%zas(j,i,k)
         end do
       end do
     end do
@@ -292,7 +264,7 @@ module mod_cu_bm
     end do
     do i = ici1 , ici2
       do j = jci1 , jci2
-        lbot(j,i) = kz
+        cu_kbot(j,i) = kz
         thesp(j,i) = d_zero
         thbt(j,i) = d_zero
         psp(j,i) = 9.5e4_rkx
@@ -302,30 +274,20 @@ module mod_cu_bm
         ifbuoy(j,i) = 0
       end do
     end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        z0(j,i,kz) = d_half*m2c%dzq(j,i,kz)
-        do k = kz - 1 , 1 , -1
-          z0(j,i,k) = z0(j,i,k+1) + d_half*(m2c%dzq(j,i,k)+m2c%dzq(j,i,k+1))
-        end do
-      end do
-    end do
     !
     ! search for maximum buoyancy level
     !
-    do kb = 1 , kz
+    do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pkl = m2c%pas(j,i,kb)
-          psfck = m2c%pas(j,i,kz)
-          if ( pkl >= psfck-pbm ) then
-            tthbt(j,i) = t(j,i,kb)*ape(j,i,kb)
-            ee = pkl*q(j,i,kb)/(ep2+q(j,i,kb))
-            tdpt = d_one/(rtzero-rwat*rwlhv*log(ee/611._rkx))
-            tdpt = min(tdpt,t(j,i,kb))
+          if ( m2c%pas(j,i,k) >= m2c%psf(j,i)-pbm ) then
+            tthbt(j,i) = t(j,i,k)*ape(j,i,k)
+            ee = m2c%pas(j,i,k)*q(j,i,k)/(ep2+q(j,i,k))
+            tdpt = d_one/(rtzero-rwat*rwlhv*log(ee/611.0_rkx))
+            tdpt = min(tdpt,t(j,i,k))
             tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
-                           4.36e-4_rkx*(t(j,i,kb)-tzero))*(t(j,i,kb)-tdpt)
-            tthes(j,i) = tthbt(j,i)*exp(elocp*q(j,i,kb)/tlcl)
+                           4.36e-4_rkx*(t(j,i,k)-tzero))*(t(j,i,k)-tdpt)
+            tthes(j,i) = tthbt(j,i)*exp(elocp*q(j,i,k)/tlcl)
             ! check for maximum buoyancy
             if ( tthes(j,i) > thesp(j,i) ) then
               psp(j,i) = h10e5*(tthbt(j,i)/tlcl)**cporng
@@ -340,30 +302,26 @@ module mod_cu_bm
     ! choose cloud base as model level just below psp
     !
     do k = 1 , kzm1
-      ak = hsigma(k)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p(j,i) = m2c%pas(j,i,k)
           ! cloud bottom cannot be above pqm
-          if ( p(j,i) < psp(j,i) .and. p(j,i) >= pqm ) lbot(j,i) = k + 1
+          if ( m2c%pas(j,i,k) < psp(j,i) .and. &
+               m2c%pas(j,i,k) >= pqm ) cu_kbot(j,i) = k + 1
         end do
       end do
     end do
     !
-    ! warning: lbot must not be gt kz-1 in shallow convection
+    ! warning: cu_kbot must not be gt kz-1 in shallow convection
     ! make sure the cloud base is at least 25 mb above the surface
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        pbot(j,i) = m2c%pas(j,i,lbot(j,i))
-        psfck = m2c%pas(j,i,kz)
-        if ( pbot(j,i) >= psfck-pone .or. lbot(j,i) >= kz ) then
+        pbot = m2c%pas(j,i,cu_kbot(j,i))
+        if ( pbot >= m2c%psf(j,i)-pone .or. cu_kbot(j,i) >= kz ) then
           ! cloud bottom is at the surface so recalculate cloud bottom
           do k = 1 , kzm1
-            p(j,i) = m2c%pas(j,i,k)
-            if ( p(j,i) < psfck-pone ) lbot(j,i) = k
+            if ( m2c%pas(j,i,k) < m2c%psf(j,i)-pone ) cu_kbot(j,i) = k
           end do
-          pbot(j,i) = m2c%pas(j,i,lbot(j,i))
         end if
       end do
     end do
@@ -372,8 +330,7 @@ module mod_cu_bm
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prtop(j,i) = pbot(j,i)
-        ltop(j,i) = lbot(j,i)
+        cu_ktop(j,i) = cu_kbot(j,i)
       end do
     end do
     do ivi = 1 , kz
@@ -381,66 +338,36 @@ module mod_cu_bm
       ! find environmental saturation equiv pot temp...
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p(j,i) = m2c%pas(j,i,l)
-          qs = pfwsat(t(j,i,l),p(j,i))
+          es = aliq*exp((bliq*t(j,i,l)-cliq)/(t(j,i,l)-dliq))
+          qs = ep2 * es/(m2c%pas(j,i,l)-es)
           ths(j,i) = t(j,i,l)*ape(j,i,l)*exp(elocp*qs/t(j,i,l))
         end do
       end do
       ! buoyancy check
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( l <= lbot(j,i) ) then
+          if ( l <= cu_kbot(j,i) ) then
             if ( thesp(j,i) > ths(j,i) ) ifbuoy(j,i) = 1
             if ( thesp(j,i) > ths(j,i)-1.5_rkx .and. &
-                 ifbuoy(j,i) == 1 ) ltop(j,i) = l + 1
+                 ifbuoy(j,i) == 1 ) cu_ktop(j,i) = l + 1
           end if
         end do
       end do
     end do
     !
-    ! cloud top pressure
+    ! define and smooth dsps and cldefi
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prtop(j,i) = m2c%pas(j,i,ltop(j,i))
+        efi = cldefi(j,i)
+        dspb(j,i) = ((efi-efimn)*slopbs+dspbss)*xsm(j,i) + &
+                    ((efi-efimn)*slopbl+dspbsl)*(h1-xsm(j,i))
+        dsp0(j,i) = ((efi-efimn)*slop0s+dsp0ss)*xsm(j,i) + &
+                    ((efi-efimn)*slop0l+dsp0sl)*(h1-xsm(j,i))
+        dspt(j,i) = ((efi-efimn)*slopts+dsptss)*xsm(j,i) + &
+                    ((efi-efimn)*sloptl+dsptsl)*(h1-xsm(j,i))
       end do
     end do
-    !
-    ! define and smooth dsps and cldefi
-    !
-    if ( unis ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          efi = cldefi(j,i)
-          dspb(j,i) = (efi-efimn)*slopbs + dspbss
-          dsp0(j,i) = (efi-efimn)*slop0s + dsp0ss
-          dspt(j,i) = (efi-efimn)*slopts + dsptss
-        end do
-      end do
-    else
-      if ( .not. unil ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            efi = cldefi(j,i)
-            dspb(j,i) = ((efi-efimn)*slopbs+dspbss)*xsm(j,i) +    &
-                      ((efi-efimn)*slopbl+dspbsl)*(h1-xsm(j,i))
-            dsp0(j,i) = ((efi-efimn)*slop0s+dsp0ss)*xsm(j,i) +    &
-                      ((efi-efimn)*slop0l+dsp0sl)*(h1-xsm(j,i))
-            dspt(j,i) = ((efi-efimn)*slopts+dsptss)*xsm(j,i) +    &
-                      ((efi-efimn)*sloptl+dsptsl)*(h1-xsm(j,i))
-          end do
-        end do
-      else
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            efi = cldefi(j,i)
-            dspb(j,i) = ((efi-efimn)*slopbl+dspbsl)
-            dsp0(j,i) = ((efi-efimn)*slop0l+dsp0sl)
-            dspt(j,i) = ((efi-efimn)*sloptl+dsptsl)
-          end do
-        end do
-      end if
-    end if
     !
     ! initialize changes of t and q due to convection
     !
@@ -456,14 +383,12 @@ module mod_cu_bm
     ! clean up and gather deep convection points
     !
     khdeep = 0
-    nswap = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( ltop(j,i) > lbot(j,i) ) then
-          ltop(j,i) = lbot(j,i)
-          prtop(j,i) = pbot(j,i)
+        if ( cu_ktop(j,i) > cu_kbot(j,i) ) then
+          cu_ktop(j,i) = cu_kbot(j,i)
         end if
-        cldhgt(j,i) = z0(j,i,ltop(j,i)) - z0(j,i,lbot(j,i))
+        cldhgt(j,i) = z0(j,i,cu_ktop(j,i)) - z0(j,i,cu_kbot(j,i))
         ! cloud is less than 90 mb deep or less than 3 sigma layers deep
         if ( cldhgt(j,i) < zno ) then
           cldefi(j,i) = avgefi*xsm(j,i) + stefi*(h1-xsm(j,i))
@@ -486,8 +411,8 @@ module mod_cu_bm
       dentpy = d_zero
       avrgt = d_zero
       preck = d_zero
-      ltpk = ltop(j,i)
-      lbtk = lbot(j,i)
+      ltpk = cu_ktop(j,i)
+      lbtk = cu_kbot(j,i)
       !
       !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
       !dcdcdcdcdcdc  deep convection   dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
@@ -507,13 +432,11 @@ module mod_cu_bm
         trefk(k) = t(j,i,k)
         qk(k) = q(j,i,k)
         qrefk(k) = q(j,i,k)
-        pkl = m2c%pas(j,i,k)
-        tref(j,i,k) = tpfc(pkl,thesp(j,i),t(j,i,k),ape(j,i,k))
-        pk(k) = pkl
-        psk(k) = pkl
-        apekl = ape(j,i,k)
-        apek(k) = apekl
-        therk(k) = tref(j,i,k)*apekl
+        tref(j,i,k) = tpfc(m2c%pas(j,i,k),thesp(j,i),t(j,i,k),ape(j,i,k))
+        pk(k) = m2c%pas(j,i,k)
+        psk(k) = m2c%pas(j,i,k)
+        apek(k) = ape(j,i,k)
+        therk(k) = tref(j,i,k)*ape(j,i,k)
       end do
       !
       ! deep convection reference temperature profile
@@ -528,14 +451,29 @@ module mod_cu_bm
       l0 = lb
       l0m1 = l0-1
       pk0 = pk(lb)
-      tprofbfl: &
+      rdp0t = d_zero
+      dthem = d_zero
       do l = ltpk , lbm1
         ivi = ltpk + lbm1 - l
-        trefk(ivi) = ((therk(ivi)-therk(ivi+1))*stabd + &
-                       trefk(ivi+1)*apek(ivi+1))/apek(ivi)
+        if ( trefk(ivi+1) <= 274.16_rkx ) then
+          rdp0t = h1/(pk0-pkt)
+          dthem = therk(l0) - trefk(l0)*apek(l0)
+          exit
+        else
+          trefk(ivi) = ((therk(ivi)-therk(ivi+1))*stabd + &
+                         trefk(ivi+1)*apek(ivi+1))/apek(ivi)
+        end if
         l0 = ivi
         pk0 = pk(l0)
-      end do tprofbfl
+      end do
+      if ( l0 /= ltpk ) then
+        l0m1 = l0-1
+        do l = ltpk , l0m1
+          trefk(l) = (therk(l)-(pk(l)-pkt)*dthem*rdp0t)/apek(l)
+        end do
+      else
+        l0m1 = l0-1
+      end if
       !
       ! deep convection reference humidity profile
       !
@@ -543,12 +481,14 @@ module mod_cu_bm
         !
         ! saturation pressure difference
         !
-        if ( pkb-pk0 < pfrz ) then
-          dsp = dspc
-        else if ( l < l0 ) then
-          dsp = ((pk0-pk(l))*dsptk+(pk(l)-pkt)*dsp0k)/(pk0-pkt)
+        if ( pkb-pk0 > pfrz ) then
+          if ( l < l0 ) then
+            dsp = ((pk0-pk(l))*dsptk+(pk(l)-pkt)*dsp0k)/(pk0-pkt)
+          else
+            dsp = ((pkb-pk(l))*dsp0k+(pk(l)-pk0)*dspbk)/(pkb-pk0)
+          end if
         else
-          dsp = ((pkb-pk(l))*dsp0k+(pk(l)-pk0)*dspbk)/(pkb-pk0)
+          dsp = dspc
         end if
         !
         ! humidity profile
@@ -623,23 +563,16 @@ module mod_cu_bm
       dentpy = dentpy + dentpy
       avrgt = avrgt/(sumdp+sumdp)
       if ( dentpy < epsntp .or. preck <= d_zero ) then
-        if ( oct90 ) then
-          cldefi(j,i) = efimn
-        else
-          cldefi(j,i) = efimn*xsm(j,i) + stefi*(h1-xsm(j,i))
-        end if
-        ztop = z0(j,i,lbot(j,i)) + zsh - 0.000001_rkx
+        cldefi(j,i) = efimn*xsm(j,i) + stefi*(h1-xsm(j,i))
+        ztop = z0(j,i,cu_kbot(j,i)) + zsh - 0.000001_rkx
         do l = 1 , lb
-          if ( z0(j,i,l) >= ztop ) ltop(j,i) = l + 1
+          if ( z0(j,i,l) >= ztop ) cu_ktop(j,i) = l + 1
         end do
-        prtop(j,i) = pk(ltop(j,i))
         !
         ! cloud must be at least 2 layers thick
         !
-        if ( lbot(j,i)-ltop(j,i) < 2 ) ltop(j,i) = lbot(j,i) - 2
-        prtop(j,i) = pk(ltop(j,i))
-        cldhgt(j,i) = z0(j,i,ltop(j,i)) - z0(j,i,lbot(j,i))
-        nswap = nswap + 1
+        if ( cu_kbot(j,i)-cu_ktop(j,i) < 2 ) cu_ktop(j,i) = cu_kbot(j,i) - 2
+        cldhgt(j,i) = z0(j,i,cu_ktop(j,i)) - z0(j,i,cu_kbot(j,i))
         cycle
       end if
       !
@@ -654,15 +587,7 @@ module mod_cu_bm
       !
       ! unified or separate land/sea conv.
       !
-      if ( .not.(oct90) ) then
-        efi = cldefi(j,i)*fcp + efi*fcc1
-      else if ( unis ) then
-        efi = cldefi(j,i)*fcp + efi*fcc1
-      else if ( .not.unil ) then
-        efi = (cldefi(j,i)*fcp+efi*fcc1)*xsm(j,i) + h1 - xsm(j,i)
-      else
-        efi = h1
-      end if
+      efi = (cldefi(j,i)*fcp+efi*fcc1)*xsm(j,i) + h1 - xsm(j,i)
       if ( efi > h1 ) efi = h1
       if ( efi < efimn ) efi = efimn
       cldefi(j,i) = efi
@@ -691,21 +616,6 @@ module mod_cu_bm
     !dcdcdcdcdcdc  end of deep convection  dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
     !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
     !
-    ndeep = 0
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ltpk = ltop(j,i)
-        lbtk = lbot(j,i)
-        ptpk = prtop(j,i)
-        if ( cldhgt(j,i) >= zsh ) then
-          ndeep = ndeep + 1
-          ndepth = lb - ltpk
-          ntopd(ltpk) = ntopd(ltpk) + 1
-          nbotd(lb) = nbotd(lb) + 1
-          if ( ndepth > 0 ) ndpthd(ndepth) = ndpthd(ndepth) + 1
-        end if
-      end do
-    end do
     !
     ! gather shallow convection points
     !
@@ -714,7 +624,8 @@ module mod_cu_bm
     ndstp = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( cldhgt(j,i) >= zno .and. ltop(j,i) <= lbot(j,i)-2 ) then
+        if ( cldhgt(j,i) >= zno .and. &
+             cu_ktop(j,i) <= cu_kbot(j,i)-2 ) then
           if ( cldhgt(j,i) < zsh ) then
             khshal = khshal + 1
             ishal(khshal) = i
@@ -738,11 +649,9 @@ module mod_cu_bm
         qk(k) = q(j,i,k)
         qrefk(k) = q(j,i,k)
         qsatk(k) = q(j,i,k)
-        pkl = m2c%pas(j,i,k)
-        pk(k) = pkl
-        apekl = ape(j,i,k)
-        apek(k) = apekl
-        thvmkl = t(j,i,k)*apekl*(q(j,i,k)*d608+h1)
+        pk(k) = m2c%pas(j,i,k)
+        apek(k) = ape(j,i,k)
+        thvmkl = t(j,i,k)*ape(j,i,k)*(q(j,i,k)*d608+h1)
         thvref(k) = thvmkl
         pdp(k) = pk(k) - pmn
       end do
@@ -769,10 +678,10 @@ module mod_cu_bm
       !
       ! search for shallow cloud top
       !
-      lbtk = lbot(j,i)
+      lbtk = cu_kbot(j,i)
       ltsh = lbtk
       lbm1 = lbtk - 1
-      ztop = z0(j,i,lbot(j,i)) + zsh - 0.000001_rkx
+      ztop = z0(j,i,cu_kbot(j,i)) + zsh - 0.000001_rkx
       !
       ! cloud top is level just above pbtk-psh
       !
@@ -794,28 +703,26 @@ module mod_cu_bm
       end if
       ltp1 = ltpk + 1
       do l = ltpk , lbtk
-        qsatk(l) = pfwsat(tk(l),pk(l))
+        es = aliq*exp((bliq*tk(l)-cliq)/(tk(l)-dliq))
+        qsatk(l) = ep2 * es/(pk(l)-es)
       end do
       do l = ltp1 , lbm1
         rhl = min(max(qk(l)/qsatk(l),rhmin),rhmax)
         rhh = min(max(qk(kdp(l))/qsatk(kdp(l)),rhmin),rhmax)
         if ( rhh+rhf < rhl ) ltsh = l
       end do
-      ltop(j,i) = ltsh
-      prtop(j,i) = pk(ltsh)
+      cu_ktop(j,i) = ltsh
       ltp1 = ltsh
       ltpk = ltsh - 1
-      cldhgt(j,i) = z0(j,i,ltop(j,i)) - z0(j,i,lbot(j,i))
+      cldhgt(j,i) = z0(j,i,cu_ktop(j,i)) - z0(j,i,cu_kbot(j,i))
       ! if cloud is not at least 90 mb or 3 sigma layers deep, then no cloud
-      if ( cldhgt(j,i) < zno .or. ltop(j,i) > lbot(j,i)-2 ) then
-        ltop(j,i) = lbot(j,i)
-        prtop(j,i) = pbot(j,i)
+      if ( cldhgt(j,i) < zno .or. cu_ktop(j,i) > cu_kbot(j,i)-2 ) then
+        cu_ktop(j,i) = cu_kbot(j,i)
         cycle
       end if
       ! scaling potential temperature & table index at top
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
-      pkl = m2c%pas(j,i,ltp1)
-      ee = pkl*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
+      ee = m2c%pas(j,i,ltp1)*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
       tdpt = d_one/(rtzero-rwat*rwlhv*log(ee/611._rkx))
       tdpt = min(tdpt,t(j,i,ltp1))
       tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
@@ -880,8 +787,7 @@ module mod_cu_bm
       ! ensure positive entropy change
       !
       if ( dst > d_zero ) then
-        prtop(j,i) = pbot(j,i)
-        ltop(j,i) = lbot(j,i)
+        cu_ktop(j,i) = cu_kbot(j,i)
         ndstp = ndstp + 1
         cycle
       else
@@ -892,8 +798,7 @@ module mod_cu_bm
       !
       den = potsum - psum
       if ( -den/psum < 0.00005_rkx ) then
-        ltop(j,i) = lbot(j,i)
-        prtop(j,i) = pbot(j,i)
+        cu_ktop(j,i) = cu_kbot(j,i)
         cycle
       else
         !
@@ -905,8 +810,7 @@ module mod_cu_bm
       ! humidity doesn`t increase with height
       !
       if ( dqref < d_zero ) then
-        ltop(j,i) = lbot(j,i)
-        prtop(j,i) = pbot(j,i)
+        cu_ktop(j,i) = cu_kbot(j,i)
         cycle
       end if
       !
@@ -921,8 +825,7 @@ module mod_cu_bm
         ! supersaturation not allowed
         qnew = (qrfkl-qk(l))*tauk + qk(l)
         if ( qnew > qsatk(l)*stresh ) then
-          ltop(j,i) = lbot(j,i)
-          prtop(j,i) = pbot(j,i)
+          cu_ktop(j,i) = cu_kbot(j,i)
           exit shallow
         end if
         thvref(l) = trefk(l)*apek(l)*(qrfkl*d608+h1)
@@ -934,8 +837,7 @@ module mod_cu_bm
       do l = ltp1 , lbtk
         dtdeta = (thvref(l-1)-thvref(l))/(hsigma(l)-hsigma(l-1))
         if ( dtdeta < epsth ) then
-          ltop(j,i) = lbot(j,i)
-          prtop(j,i) = pbot(j,i)
+          cu_ktop(j,i) = cu_kbot(j,i)
           exit shallow
         end if
       end do
@@ -962,30 +864,6 @@ module mod_cu_bm
     !scscscscscsc  end of shallow convection   scscscscscscscscscscscscscscs
     !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
     !
-
-    nshal = 0
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ltpk = ltop(j,i)
-        lbtk = lbot(j,i)
-        ptpk = prtop(j,i)
-        ! no shallow convection if cloud is not at least 90 mb or 3 sigma
-        ! layers deep
-        if ( cldhgt(j,i) >= zno ) then
-          if ( cldhgt(j,i) < zsh ) then
-            nshal = nshal + 1
-            ntops(ltpk) = ntops(ltpk) + 1
-            nbots(lbtk) = nbots(lbtk) + 1
-            ndepth = lbtk - ltpk
-            if ( ndepth > 0 ) ndpths(ndepth) = ndpths(ndepth) + 1
-          end if
-          ! find cloud fractional cover and liquid water content
-          kbaseb = min0(lbtk,kzm2)
-          cu_ktop(j,i) = ltpk
-          cu_kbot(j,i) = kbaseb
-        end if
-      end do
-    end do
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -999,44 +877,41 @@ module mod_cu_bm
 #endif
     contains
 
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
       !
       ! Calculates tpfc
       !
-      real(rkx) function tpfc(press,thetae,tgs,pi)
+      pure real(rkx) function tpfc(press,thetae,tgs,pi)
         implicit none
         real(rkx) , intent(in) :: pi , press , tgs , thetae
-        real(rkx) :: qs , dtx , f1 , fo , rl , rp , t1 , tguess
+        real(rkx) :: qs , dtx , f1 , fo , rp , t1 , tguess
+        real(rkx) :: es
+        real(rkx) , parameter :: rl461 = wlhv/rwat
+        real(rkx) , parameter :: rl1004 = wlhv/cpd
         integer(ik4) :: iloop
         !
         ! iteratively extract temperature from equivalent potential temperature.
         !
-        rl = elocp
         rp = thetae/pi
-        qs = pfwsat(tgs,press)
-        fo = tgs*exp(rl*qs/tgs) - rp
+        es = 611.0_rkx * exp(rl461*(rtzero-d_one/tgs))
+        qs = ep2*es/(press-es)
+        fo = tgs * exp(rl1004*qs/tgs) - rp
         t1 = tgs - d_half*fo
         tguess = tgs
         iloop = 0
         do
-          qs = pfwsat(t1,press)
-          rl = elocp
-          f1 = t1*exp(rl*qs/t1) - rp
+          es = 611.0_rkx * exp(rl461*(rtzero-d_one/t1))
+          qs = ep2*es/(press-es)
+          f1 = t1*exp(rl1004*qs/t1) - rp
           if ( abs(f1) < 0.1_rkx ) then
             tpfc = t1
             exit
           else
-            dtx = f1*(t1-tguess)/(f1-fo)
+            dtx = f1 * (t1-tguess)/(f1-fo)
             tguess = t1
             fo = f1
             t1 = t1 - dtx
             iloop = iloop + 1
-            if ( iloop > 10 .or. abs(dtx) > 100.0_rkx ) then
-              write(stderr,*) 'Convergence problem at line ',__LINE__, &
-                      ' in file ',__FILE__ , dtx , iloop
-              write(stderr,*) press , thetae , tgs , rl , qs , pi
+            if ( iloop > 10 ) then
               tpfc = t1
               exit
             end if
@@ -1045,225 +920,6 @@ module mod_cu_bm
       end function tpfc
 
   end subroutine bmpara
-  !
-  ! Look up table (calculated version)
-  !
-  subroutine lutbl(ptop)
-    implicit none
-    real(rkx) , parameter :: eps = 2.0e-12_rkx ! little number
-    real(rkx) :: ptop
-    intent (in) ptop
-    real(rkx) :: ape , xdp , dqs , dth , dthe , p , pt , qs , qs0k , &
-               sqsk , sthek , th , the0k
-    real(rkx) , dimension(jtb) :: pnew , pold , qsnew , qsold ,  &
-               thenew , theold , tnew , told , y2p , y2t
-    integer(ik4) :: kp , kpm , kpm1 , kth , kthm , kthm1
-    real(rkx) , parameter :: thl = 210.0_rkx
-    real(rkx) , parameter :: thh = 385.0_rkx
-    real(rkx) , parameter :: ph = 105000.0_rkx
-    !
-    ! coarse look-up table for saturation point
-    !
-    ! ptop in pascal
-    pt = ptop*d_1000
-
-    kthm = jtb
-    kpm = itb
-    kthm1 = kthm - 1
-    kpm1 = kpm - 1
-
-    pl = pt
-
-    dth = (thh-thl)/real(kthm-1,rkx)
-    xdp = (ph-pl)/real(kpm-1,rkx)
-
-    th = thl - dth
-
-    do kth = 1 , kthm
-      th = th + dth
-      p = pl - xdp
-      do kp = 1 , kpm
-        p = p + xdp
-        ape = (100000.0_rkx/p)**(rovcp)
-        qsold(kp) = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
-        pold(kp) = p
-      end do
-
-      qs0k = qsold(1)
-      sqsk = qsold(kpm) - qsold(1)
-      qsold(1) = d_zero
-      qsold(kpm) = d_one
-
-      do kp = 2 , kpm1
-        qsold(kp) = (qsold(kp)-qs0k)/sqsk
-        ! fix due to cyber half prec. limitation
-        if ( (qsold(kp)-qsold(kp-1)) < eps ) then
-          qsold(kp) = qsold(kp-1) + eps
-        end if
-      end do
-
-      qsnew(1) = d_zero
-      qsnew(kpm) = d_one
-      dqs = d_one/real(kpm-1,rkx)
-
-      do kp = 2 , kpm1
-        qsnew(kp) = qsnew(kp-1) + dqs
-      end do
-
-      y2p(1) = d_zero
-      y2p(kpm) = d_zero
-
-      call spline(kpm,qsold,pold,y2p,kpm,qsnew,pnew)
-
-    end do
-    !
-    ! coarse look-up table for t(p) from constant the
-    !
-    p = pl - xdp
-    do kp = 1 , kpm
-      p = p + xdp
-      th = thl - dth
-      do kth = 1 , kthm
-        th = th + dth
-        ape = (100000.0_rkx/p)**(rovcp)
-        qs = pq0/p*exp(c3les*(th-tzero*ape)/(th-c4les*ape))
-        told(kth) = th/ape
-        theold(kth) = th*exp(eliwv*qs/(cpd*told(kth)))
-      end do
-
-      the0k = theold(1)
-      sthek = theold(kthm) - theold(1)
-      theold(1) = d_zero
-      theold(kthm) = d_one
-
-      do kth = 2 , kthm1
-        theold(kth) = (theold(kth)-the0k)/sthek
-        ! fix due to cyber half prec. limitation
-        if ( (theold(kth)-theold(kth-1)) < eps ) then
-          theold(kth) = theold(kth-1) + eps
-        end if
-      end do
-
-      thenew(1) = d_zero
-      thenew(kthm) = d_one
-      dthe = d_one/real(kthm-1,rkx)
-
-      do kth = 2 , kthm1
-        thenew(kth) = thenew(kth-1) + dthe
-      end do
-
-      y2t(1) = d_zero
-      y2t(kthm) = d_zero
-
-      call spline(kthm,theold,told,y2t,kthm,thenew,tnew)
-    end do
-
-    contains
-    !
-    !*****************************************************************
-    !                                                                *
-    !  This is a one-dimensional cubic spline fitting routine        *
-    !  programed for a small scalar machine.                         *
-    !                                                                *
-    !  Programer: Z. Janjic, Yugoslav Fed. Hydromet. Inst., Beograd  *
-    !                                                                *
-    !  nold - number of given values of the function.  must be ge 3. *
-    !  xold - locations of the points at which the values of the     *
-    !         function are given.  must be in ascending order.       *
-    !  yold - the given values of the function at the points xold.   *
-    !  y2   - the second derivatives at the points xold.  if natural *
-    !         spline is fitted y2(1)=0. and y2(nold)=0. must be      *
-    !         specified.                                             *
-    !  nnew - number of values of the function to be calculated.     *
-    !  xnew - locations of the points at which the values of the     *
-    !         function are calculated.  xnew(k) must be ge xold(1)   *
-    !         and le xold(nold).                                     *
-    !  ynew - the values of the function to be calculated.           *
-    !  p, q - auxiliary vectors of the length nold-2.                *
-    !                                                                *
-    !*****************************************************************
-    !
-    subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
-      implicit none
-      integer(ik4) :: nnew , nold
-      real(rkx) , dimension(nold) :: xold , yold , y2
-      real(rkx) , dimension(nnew) :: xnew, ynew
-      intent (in) nnew , nold , xnew , xold , yold
-      intent (out) ynew
-      intent (inout) y2
-      real(rkx) , dimension(nold-2) :: p , q
-      real(rkx) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
-                   dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
-      integer(ik4) :: k , k1 , k2 , kold , noldm1
-      ak = d_zero
-      bk = d_zero
-      ck = d_zero
-      noldm1 = nold - 1
-      dxl = xold(2) - xold(1)
-      dxr = xold(3) - xold(2)
-      dydxl = (yold(2)-yold(1))/dxl
-      dydxr = (yold(3)-yold(2))/dxr
-      rtdxc = d_half/(dxl+dxr)
-      p(1) = rtdxc*(6.0_rkx*(dydxr-dydxl)-dxl*y2(1))
-      q(1) = -rtdxc*dxr
-      if ( nold == 3 ) then
-        k = noldm1
-      else
-        k = 3
-        do
-          dxl = dxr
-          dydxl = dydxr
-          dxr = xold(k+1) - xold(k)
-          dydxr = (yold(k+1)-yold(k))/dxr
-          dxc = dxl + dxr
-          den = d_one/(dxl*q(k-2)+dxc+dxc)
-          p(k-1) = den*(6.0_rkx*(dydxr-dydxl)-dxl*p(k-2))
-          q(k-1) = -den*dxr
-          k = k + 1
-          if ( k >= nold ) then
-            k = noldm1
-            exit
-          end if
-        end do
-      end if
-      do
-        y2(k) = p(k-1) + q(k-1)*y2(k+1)
-        k = k - 1
-        if ( k <= 1 ) then
-          k1 = 1
-          exit
-        end if
-      end do
- 100  continue
-      xk = xnew(k1)
-      do k2 = 2 , nold
-        if ( xold(k2) > xk ) then
-          kold = k2 - 1
-          if ( k1 == 1 ) go to 200
-          if ( k /= kold ) go to 200
-          go to 300
-        end if
-      end do
-      ynew(k1) = yold(nold)
-      go to 400
- 200  continue
-      k = kold
-      y2k = y2(k)
-      y2kp1 = y2(k+1)
-      dx = xold(k+1) - xold(k)
-      rdx = d_one/dx
-      ak = (d_five/d_three)*rdx*(y2kp1-y2k)
-      bk = d_half*y2k
-      ck = rdx*(yold(k+1)-yold(k))-(d_five/d_three)*dx*(y2kp1+y2k+y2k)
- 300  continue
-      x = xk - xold(k)
-      xsq = x*x
-      ynew(k1) = ak*xsq*x + bk*xsq + ck*x + yold(k)
- 400  continue
-      k1 = k1 + 1
-      if ( k1 <= nnew ) go to 100
-    end subroutine spline
-  end subroutine lutbl
 
 end module mod_cu_bm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

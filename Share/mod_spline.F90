@@ -38,6 +38,7 @@ module mod_spline
 
   public :: splini , spline , splint
   public :: splie2 , splin2
+  public :: spline1d
 
   contains
     !
@@ -280,6 +281,99 @@ module mod_spline
       call spline(x1a,yytmp,1.e30_rkx,1.e30_rkx,y2tmp)
       call splint(x1a,yytmp,y2tmp,x1,y)
     end subroutine splin2
+    !
+    !  This is a one-dimensional cubic spline fitting routine
+    !
+    !  Programer: Z. Janjic, Yugoslav Fed. Hydromet. Inst., Beograd
+    !  Recoded in F90 by Graziano Giuliani
+    !
+    !  nold - number of given values of the function. Must be >= 3.
+    !  nnew - number of values of the function to be calculated.
+    !  xold - locations of the points at which the values of the
+    !         function are given. Must be in ascending order.
+    !  yold - the given values of the function at the points xold.
+    !  y2   - the second derivatives at the points xold. If natural
+    !         spline is fitted y2(1)=0. and y2(nold)=0. Must be
+    !         specified.
+    !  xnew - locations of the points at which the values of the
+    !         function are calculated. xnew(k) must be >= xold(1)
+    !         and <= xold(nold).
+    !  ynew - the values of the function to be calculated.
+    !
+    subroutine spline1d(nold,xold,yold,y2,nnew,xnew,ynew)
+      implicit none
+      integer(ik4) , intent(in) :: nnew , nold
+      real(rkx) , intent(in) , dimension(nold) :: xold , yold
+      real(rkx) , intent(in) , dimension(nnew) :: xnew
+      real(rkx) , intent(inout) , dimension(nold) :: y2
+      real(rkx) , intent(out) , dimension(nnew) :: ynew
+      real(rkx) , dimension(nold-2) :: p , q
+      real(rkx) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
+                   dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
+      real(rkx) , parameter :: afac = 6.0_rkx
+      real(rkx) , parameter :: bfac = d_one/afac
+      integer(ik4) :: k , k1 , k2 , kold , noldm1
+
+      noldm1 = nold - 1
+      dxl = xold(2) - xold(1)
+      dxr = xold(3) - xold(2)
+      dydxl = (yold(2)-yold(1))/dxl
+      dydxr = (yold(3)-yold(2))/dxr
+      rtdxc = d_half/(dxl+dxr)
+      p(1) = rtdxc*(bfac*(dydxr-dydxl)-dxl*y2(1))
+      q(1) = -rtdxc*dxr
+      if ( nold > 3 ) then
+        do k = 3 , nold
+          dxl = dxr
+          dydxl = dydxr
+          dxr = xold(k+1) - xold(k)
+          dydxr = (yold(k+1)-yold(k))/dxr
+          dxc = dxl + dxr
+          den = d_one/(dxl*q(k-2)+dxc+dxc)
+          p(k-1) = den*(bfac*(dydxr-dydxl)-dxl*p(k-2))
+          q(k-1) = -den*dxr
+        end do
+      end if
+      do k = noldm1 , 2 , -1
+        y2(k) = p(k-1) + q(k-1)*y2(k+1)
+      end do
+      k = -1
+      elmloop: &
+      do k1 = 1 , nnew
+        xk = xnew(k1)
+        if ( xk < xold(1) ) then
+          ynew(k1) = yold(1)
+          cycle elmloop
+        end if
+        if ( xk >= xold(nold) ) then
+          ynew(k1) = yold(nold)
+          cycle elmloop
+        end if
+        do k2 = 2 , nold
+          if ( xold(k2) <= xk ) cycle
+          kold = k2 - 1
+          exit
+        end do
+        if ( k == kold ) then
+          x = xk - xold(k)
+          xsq = x*x
+          ynew(k1) = ak*xsq*x + bk*xsq + ck*x + yold(k)
+          cycle elmloop
+        end if
+        k = kold
+        y2k = y2(k)
+        y2kp1 = y2(k+1)
+        dx = xold(k+1)-xold(k)
+        rdx = d_one/dx
+        ak = bfac*rdx*(y2kp1-y2k)
+        bk = d_half*y2k
+        ck = rdx*(yold(k+1)-yold(k)) - bfac*dx*(y2kp1+y2k+y2k)
+        x = xk - xold(k)
+        xsq = x*x
+        ynew(k1) = ak*xsq*x + bk*xsq + ck*x + yold(k)
+      end do elmloop
+    end subroutine spline1d
 
 end module mod_spline
+
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

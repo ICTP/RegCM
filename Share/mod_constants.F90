@@ -303,7 +303,6 @@ module mod_constants
   real(rkx) , parameter :: g3pb = g4pb/(3.0_rkx+bvt)
   real(rkx) , parameter :: g5pb = 1.8273_rkx
   real(rkx) , parameter :: vtc = avt*g4pb/6.0_rkx
-  real(rkx) , parameter :: trel = 3000.0_rkx
 
   ! Dynamic parameters
   ! alpha = .2495 in brown-campana; = 0. in split explicit
