@@ -93,7 +93,7 @@ module mod_params
       enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
       enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
       enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
-      do_parallel_netcdf_out , idiag , icosp
+      do_parallel_netcdf_out , idiag , icosp , deflate_level
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
@@ -1035,6 +1035,7 @@ module mod_params
     call bcast(do_parallel_netcdf_in)
 #ifdef NETCDF4_HDF5
     call bcast(do_parallel_netcdf_out)
+    call bcast(deflate_level)
 #else
     do_parallel_netcdf_out = .false.
 #endif

@@ -1126,12 +1126,13 @@ module mod_ncstream
             'Cannot define variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
         end if
-#if ! defined(NETCDF4_HDF5) && defined (NETCDF4_COMPRESS)
+#if defined(NETCDF4_HDF5)
+#if defined (NETCDF4_COMPRESS)
         if ( ndims > 3 ) then
           if ( stream%l_keep ) then
             ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
           else
-            ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,9)
+            ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,deflate_level)
           end if
           if ( ncstat /= nf90_noerr ) then
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -1142,7 +1143,6 @@ module mod_ncstream
           end if
         end if
 #endif
-#if defined(NETCDF4_HDF5)
         ! This forces collective I/O on time dependent variables.
         if ( stream%l_parallel .and. var%lrecords ) then
           ncstat = nf90_var_par_access(stream%id,var%id,nf90_collective)

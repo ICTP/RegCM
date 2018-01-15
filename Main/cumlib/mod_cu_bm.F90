@@ -171,7 +171,8 @@ module mod_cu_bm
     real(rkx) , parameter :: dspbss = dspbfs*fss
     real(rkx) , parameter :: dsp0ss = dsp0fs*fss
     real(rkx) , parameter :: dsptss = dsptfs*fss
-    real(rkx) , parameter :: epsntp = 0.0010_rkx
+    ! Control if Deep Convection activated.
+    real(rkx) , parameter :: epsntp = 1.0e-5_rkx
     real(rkx) , parameter :: efifc = 5.0_rkx
     real(rkx) , parameter :: avgefi = (efimn+1.0_rkx)*d_half
     real(rkx) , parameter :: dspc = -3000.0_rkx
@@ -210,7 +211,7 @@ module mod_cu_bm
     call time_begin(subroutine_name,idindx)
 #endif
 
-    trel = 3000.0_rkx
+    trel = 1800.0_rkx ! Half an hour. Was 3000
     tauk = dt/trel
     cthrs = (0.00635_rkx/secpd)*dt/cprlg
     !

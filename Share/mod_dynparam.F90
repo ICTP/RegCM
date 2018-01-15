@@ -358,10 +358,11 @@ module mod_dynparam
 #ifdef NETCDF4_HDF5
   integer(ik4) :: iomode = ior(nf90_clobber, &
                                ior(nf90_netcdf4,nf90_classic_model))
-  integer(ik4) :: deflate_level = 3
 #else
   integer(ik4) :: iomode = ior(nf90_clobber, nf90_64bit_offset)
 #endif
+
+  integer(ik4) :: deflate_level = 1
 
   ! Model output control parameters
 
