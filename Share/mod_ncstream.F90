@@ -1132,14 +1132,16 @@ module mod_ncstream
           if ( stream%l_keep ) then
             ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
           else
-            ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,deflate_level)
-          end if
-          if ( ncstat /= nf90_noerr ) then
-            write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-            write(stderr,*) nf90_strerror(ncstat)
-            call die('nc_stream', &
-              'Cannot set compression on variable '//trim(var%vname)// &
-              ' in file '//trim(stream%filename), 1)
+            if ( .not. stream%l_parallel ) then
+              ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,deflate_level)
+              if ( ncstat /= nf90_noerr ) then
+                write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+                write(stderr,*) nf90_strerror(ncstat)
+                call die('nc_stream', &
+                  'Cannot set compression on variable '//trim(var%vname)// &
+                  ' in file '//trim(stream%filename), 1)
+              end if
+            end if
           end if
         end if
 #endif
