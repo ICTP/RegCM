@@ -331,9 +331,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable xlat')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on xlat')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'latitude')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -350,9 +352,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable xlon')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on xlon')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'longitude')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -378,9 +382,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable dlat')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on dlat')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'latitude')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -397,9 +403,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable dlon')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on dlon')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'longitude')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -426,9 +434,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable topo')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on topo')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', &
                            'surface_altitude')
@@ -449,9 +459,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable mask')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on mask')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', &
                            'land_binary_mask')
@@ -480,9 +492,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable landuse')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on landuse')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'legend',            &
               '1  => Crop/mixed farming'//char(10)//              &
@@ -536,9 +550,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable xmap')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on xmap')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'map_factor')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -558,9 +574,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable dmap')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on dmap')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'map_factor')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -580,9 +598,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable coriol')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on coriol')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', &
                            'coriolis_parameter')
@@ -612,9 +632,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable snowam')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on snowam')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'snowfall_amount')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -644,9 +666,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable dhlake')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on dhlake')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'depth')
     call checkncerr(incstat,__FILE__,__LINE__, &
@@ -678,9 +702,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable texture')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on texture')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'legend',   &
             '1  => Sand'//char(10)//                     &
@@ -724,9 +750,11 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable texture_fract')
 #ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
     incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error setting deflate on text_fract')
+#endif
 #endif
     incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', &
                            'soil_type_fraction')
@@ -1676,6 +1704,13 @@ module mod_nchelper
     incstat = nf90_def_var(ncid, varname, regcm_vartype, idims, ivars(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable '//varname)
+#ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
+    incstat = nf90_def_var_deflate(ncid, ivars(ipnt), 1, 1, deflate_level)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on xlat')
+#endif
+#endif
     incstat = nf90_put_att(ncid, ivars(ipnt), 'long_name',long_name)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error long_name to '//varname)
