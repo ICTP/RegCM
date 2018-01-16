@@ -509,7 +509,7 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(in) :: g
     real(rkx) , dimension(:,:) , intent(out) :: f
     integer(ik4) :: i , j , ni , nj , n , si , sj
-    real(rkx) :: gsum , gwgt
+    real(rkx) :: gsum , gwgt , gmax , gmin
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_2d','Non conforming shape for source',1)
@@ -520,7 +520,8 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
-!$OMP PARALLEL DO PRIVATE(gsum,gwgt,si,sj)
+    gmax = maxval(g)
+    gmin = minval(g)
     do i = 1 , ni
       do j = 1 , nj
         gsum = d_zero
@@ -540,8 +541,8 @@ module mod_kdinterp
         end if
       end do
     end do
-!$OMP END PARALLEL DO
     call smtdsmt(f)
+    f = max(gmin,min(gmax,f))
   end subroutine interp_2d
 
   subroutine interp_3d(h_i,g,f)
@@ -556,9 +557,11 @@ module mod_kdinterp
       write(stderr,*) 'DIMENSION 3 f = ',size(f,3)
       call die('interp_3d','Non conforming shapes',1)
     end if
+!$OMP PARALLEL DO
     do n = 1 , n3
       call interp_2d(h_i,g(:,:,n),f(:,:,n))
     end do
+!$OMP END PARALLEL DO
   end subroutine interp_3d
 
   subroutine interp_4d(h_i,g,f)

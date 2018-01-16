@@ -908,6 +908,7 @@ program mksurfdata
   call mkglacier('mksrf_glacier.nc',xmask,var3d(:,:,1))
   call mkwetland('mksrf_lanwat.nc',xmask,var3d(:,:,2),var3d(:,:,3))
   call mkurban_base('mksrf_urban.nc',xmask,var3d(:,:,4:iurbmax))
+  var3d = nint(var3d)
   if ( .not. enable_urban_landunit ) then
     write (stderr,*) 'Disable URBAN Areas in CLM4.5 Model !'
     var3d(:,:,4:iurbmax) = 0.0_rkx
@@ -976,6 +977,7 @@ program mksurfdata
 
   allocate(var3d(jxsg,iysg,npft))
   call mkpft(pftfile,xmask,var3d(:,:,:))
+  var3d = nint(var3d)
 
   ! Here adjustment !
   do i = igstart , igstop

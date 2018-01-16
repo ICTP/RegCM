@@ -911,16 +911,17 @@ module mod_clm_initgridcells
             wtcol2lunit = wtlunit_roof
           else if (m == npatch+1) then
             ctype = icol_sunwall
-            wtcol2lunit = (1. - wtlunit_roof)/3
+            wtcol2lunit = (1.0_rk8 - wtlunit_roof)/3.0_rk8
           else if (m == npatch+2) then
             ctype = icol_shadewall
-            wtcol2lunit = (1. - wtlunit_roof)/3
+            wtcol2lunit = (1.0_rk8 - wtlunit_roof)/3.0_rk8
           else if (m == npatch+3) then
             ctype = icol_road_imperv
-            wtcol2lunit = ((1. - wtlunit_roof)/3) * (1.-wtroad_perv)
+            wtcol2lunit = ((1.0_rk8 - wtlunit_roof)/3.0_rk8) * &
+                          (1.0_rk8-wtroad_perv)
           else if (m == npatch+4) then
             ctype = icol_road_perv
-            wtcol2lunit = ((1. - wtlunit_roof)/3) * (wtroad_perv)
+            wtcol2lunit = ((1.0_rk8 - wtlunit_roof)/3.0_rk8) * (wtroad_perv)
           end if
 
           ci = ci + 1
