@@ -352,8 +352,8 @@ AM_CONDITIONAL(OSNAME_LINUX, [ test -z "${osname##Linux}" ] )
 FCPROG=`echo $FC | cut -d " " -f 1`
 AC_SUBST(FCPROG)
 
-AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xxlf200*}" -o \
-                                    -z "${FCPROG##xbgxlf200*}" ] )
+AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xlf200*}" -o \
+                                    -z "${FCPROG##bgxlf200*}" ] )
 AM_CONDITIONAL(COMPILER_CRAY, [ test -z "${FCPROG##xftn*}" ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
                                     -z "${FCPROG##\/gfortran*}" -o \

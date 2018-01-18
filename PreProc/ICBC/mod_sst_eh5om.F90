@@ -47,7 +47,7 @@ module mod_sst_eh5om
   integer(ik4) , parameter :: a13 = 2094010100
   integer(ik4) , parameter :: a14 = 2100123118
 
-  type(rcm_time_and_date) :: ieh5ostart
+  type(rcm_time_and_date) , save :: ieh5ostart
 
   type(h_interpolator) :: hint
 

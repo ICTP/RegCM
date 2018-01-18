@@ -1121,7 +1121,7 @@ module mod_che_isorropia
     calaou = .true.
     calain = .true.
     frst = .true.
-    scase = '??'
+    scase = 'aa'
     sulratw = 2._rkx
     sodrat = zero
     crnarat = zero
@@ -1414,7 +1414,7 @@ module mod_che_isorropia
     calaou = .true.
     calain = .true.
     frst = .true.
-    scase = '??'
+    scase = 'aa'
     sulratw = 2._rkx
     sodrat = zero
     crnarat = zero
@@ -1785,7 +1785,7 @@ module mod_che_isorropia
     calaou = .true.
     calain = .true.
     frst = .true.
-    scase = '??'
+    scase = 'aa'
     sulratw = 2._rkx
     crnarat = zero
     crrat = zero
@@ -2321,7 +2321,7 @@ module mod_che_isorropia
     calaou = .true.
     calain = .true.
     frst = .true.
-    scase = '??'
+    scase = 'aa'
     sulratw = 2._rkx
     so4rat = 2._rkx
     crnarat = 2._rkx
