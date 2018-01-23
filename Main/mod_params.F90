@@ -118,8 +118,8 @@ module mod_params
       iceflglw , liqflglw , icld , irng , imcica , nradfo
 
     namelist /cldparam/ ncld , rhmax , rhmin , rh0oce , rh0land , tc0 ,  &
-      cllwcv , clfrcvmax , cftotmax , kfac_shal , kfac_deep , lsrfhack , &
-      larcticcorr , rcrit , coef_ccn , abulk
+      cllwcv , clfrcvmax , cftotmax , kfac_shal , kfac_deep , k2_const , &
+      lsrfhack , larcticcorr , rcrit , coef_ccn , abulk
 
     namelist /subexparam/ qck1land , qck1oce , gulland , guloce ,  &
       cevaplnd , cevapoce , caccrlnd , caccroce , conf
@@ -129,7 +129,7 @@ module mod_params
       auto_rate_kessl , auto_rate_klepi , rkconv , skconv ,  &
       rcovpmin , rpecons
 
-    namelist /grellparam/ igcc , gcr0 , shrmin , shrmax , edtmin , &
+    namelist /grellparam/ igcc , shrmin , shrmax , edtmin , &
       edtmax , edtmino , edtmaxo , edtminx , edtmaxx , pbcmax ,    &
       mincld , htmin , htmax , skbmax , dtauc, shrmin_ocn ,        &
       shrmax_ocn , edtmin_ocn, edtmax_ocn, edtmino_ocn ,           &
@@ -321,6 +321,7 @@ module mod_params
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
+    k2_const  = 10.0_rkx   ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
     lsrfhack  = .false.    ! Surface radiation hack
@@ -359,7 +360,6 @@ module mod_params
     ! Taken from MM5 Grell implementation
     !
     igcc = 2               ! Closure scheme
-    gcr0 = 0.0020_rkx      ! Conversion rate from cloud to rain
     edtmin      = 0.20_rkx ! Minimum Precipitation Efficiency land
     edtmin_ocn  = 0.20_rkx ! Minimum Precipitation Efficiency ocean
     edtmax      = 0.80_rkx ! Maximum Precipitation Efficiency land
@@ -376,12 +376,12 @@ module mod_params
     shrmin_ocn  = 0.30_rkx ! Minimum Shear effect on precip eff. ocean
     shrmax      = 0.90_rkx ! Maximum Shear effect on precip eff. land
     shrmax_ocn  = 0.90_rkx ! Maximum Shear effect on precip eff. ocean
-    pbcmax = 50.0_rkx      ! Max depth (mb) of stable layer b/twn LCL & LFC
-    mincld = 150.0_rkx     ! Min cloud depth (mb).
+    pbcmax = 100.0_rkx     ! Max depth (mb) of stable layer b/twn LCL & LFC
+    mincld = 50.0_rkx      ! Min cloud depth (mb).
     htmin = -250.0_rkx     ! Min convective heating
     htmax = 500.0_rkx      ! Max convective heating
-    skbmax = 0.4_rkx       ! Max cloud base height in sigma
-    dtauc = 30.0_rkx  ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+    skbmax = 0.1_rkx       ! Max cloud base height in sigma
+    dtauc = 60.0_rkx ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
     !
     ! emanparam ;
     ! From Kerry Emanuel convect 4.3c original code
@@ -1226,6 +1226,9 @@ module mod_params
     call bcast(abulk)
     call bcast(lsrfhack)
     call bcast(larcticcorr)
+    call bcast(k2_const)
+    call bcast(kfac_shal)
+    call bcast(kfac_deep)
 
     if ( ipptls == 1 ) then
       call bcast(qck1land)
@@ -1289,7 +1292,6 @@ module mod_params
 
     if ( any(icup == 2) ) then
       call bcast(igcc)
-      call bcast(gcr0)
       call bcast(shrmin)
       call bcast(shrmax)
       call bcast(edtmin)
@@ -1939,7 +1941,9 @@ module mod_params
       write(stdout,'(a,f11.6)') &
           '  Conv. CF UMF factor deep cumulus  : ', kfac_deep
       write(stdout,'(a,f11.6)') &
-          '  Conv. CF UMF factor shallow cumul : ', kfac_shal
+          '  Conv. CF UMF factor deep cumulus  : ', kfac_deep
+      write(stdout,'(a,f11.6)') &
+          '  Conv. CF UMF factor k2            : ', k2_const
       write(stdout,'(a,l11)') &
           '  Surface radiation hack            : ', lsrfhack
       write(stdout,'(a,l11)') &
@@ -2063,7 +2067,6 @@ module mod_params
       end do
       if ( myid == italk ) then
         write(stdout,*) 'Grell Convection Scheme used.'
-        write(stdout,'(a,f11.6)') '  Conversion rate : ' , gcr0
         write(stdout,'(a,f11.6)') '  Max Shear       : ' , shrmax
         write(stdout,'(a,f11.6)') '  Min Shear       : ' , shrmin
         write(stdout,'(a,f11.6)') '  Max PPT eff     : ' , edtmax

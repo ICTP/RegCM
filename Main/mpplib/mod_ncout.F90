@@ -2772,6 +2772,8 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('cloud_deep_convective_cf_param',kfac_deep))
         call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_real8('cloud_k2_convective_cf_param',k2_const))
+        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_logical('cloud_surface_radiation_hack',lsrfhack))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_logical('cloud_arctic_cloud_correction',larcticcorr))
@@ -2835,8 +2837,6 @@ module mod_ncout
         if ( any(icup == 2) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('grell_scheme_closure',igcc))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('grell_cloud_conversion_rate',gcr0))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('grell_min_shear_on_precip',shrmin))
           call outstream_addatt(outstream(i)%ncout(j), &

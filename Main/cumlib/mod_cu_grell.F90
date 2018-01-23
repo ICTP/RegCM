@@ -26,8 +26,8 @@ module mod_cu_grell
   use mod_cu_common
   use mod_constants
   use mod_mpmessage
-  use mod_runparams , only : iqv , dt , dtcum , igcc , ichem , clfrcv , gcr0
-  use mod_runparams , only : kfac_deep
+  use mod_runparams , only : iqv , dt2 , igcc , ichem , clfrcv
+  use mod_runparams , only : kfac_deep , kfac_shal , k2_const
   use mod_regcm_types
 
   implicit none
@@ -35,7 +35,7 @@ module mod_cu_grell
   private
 
   real(rkx) , parameter :: xacact = -0.99999_rkx
-  real(rkx) , parameter :: zdetr = 1250.0_rkx
+  real(rkx) , parameter :: zdetr = 650.0_rkx
 
   real(rkx) , pointer , dimension(:,:) :: outq , outt , p , po ,  &
                               q , qo , t , tn , vsp
@@ -47,11 +47,11 @@ module mod_cu_grell
   real(rkx) , pointer , dimension(:) :: pratec , psur , ter11 , qcrit
   integer(ik4) , pointer , dimension(:) :: kdet
   integer(ik4) , pointer , dimension(:) :: kmin , k22 , kb , kbcon , &
-              kds , ktop , iac , jac
+              ktop , iac , jac
   real(rkx) , pointer , dimension(:) :: xac , xao , bu , buo , edt ,  &
-              edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,       &
-              pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,   &
-              qkb , qkbo , vshear , xxac , xhcd , xhkb , xmb ,      &
+              edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,         &
+              pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,     &
+              qkb , qkbo , vshear , sdp , xxac , xhcd , xhkb , xmb ,  &
               xpwcav , xpwcev , xqcd , xqck , xqkb
 
   real(rkx) , pointer , dimension(:) :: dtauc , pbcmax ,   &
@@ -125,7 +125,6 @@ module mod_cu_grell
     call getmem1d(k22,1,ncp,'cu_grell:k22')
     call getmem1d(kb,1,ncp,'cu_grell:kb')
     call getmem1d(kbcon,1,ncp,'cu_grell:kbcon')
-    call getmem1d(kds,1,ncp,'cu_grell:kds')
     call getmem1d(ktop,1,ncp,'cu_grell:ktop')
     call getmem1d(iac,1,ncp,'cu_grell:iac')
     call getmem1d(jac,1,ncp,'cu_grell:jac')
@@ -191,6 +190,7 @@ module mod_cu_grell
     call getmem1d(qkb,1,ncp,'cu_grell:qkb')
     call getmem1d(qkbo,1,ncp,'cu_grell:qkbo')
     call getmem1d(vshear,1,ncp,'cu_grell:vshear')
+    call getmem1d(sdp,1,ncp,'cu_grell:sdp')
     call getmem1d(xxac,1,ncp,'cu_grell:xxac')
     call getmem1d(xhcd,1,ncp,'cu_grell:xhcd')
     call getmem1d(xhkb,1,ncp,'cu_grell:xhkb')
@@ -206,6 +206,8 @@ module mod_cu_grell
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
     integer(ik4) :: i , j , k , kk , n
+    ! gcr0   = conversion rate (cloud to rain)
+    ! real(rkx) , parameter :: gcr0 = 0.002_rkx
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cuparan'
     integer(ik4) , save :: idindx = 0
@@ -234,7 +236,6 @@ module mod_cu_grell
     ktop(:)  = 1
     kbcon(:) = 1
     kb(:)    = 1
-    kds(:)   = 1
     kmin(:)  = 1
 
     dby(:,:) = d_zero
@@ -296,6 +297,7 @@ module mod_cu_grell
     qkb(:) = d_zero
     qkbo(:) = d_zero
     vshear(:) = d_zero
+    sdp(:) = d_zero
     xxac(:) = d_zero
     xhcd(:) = d_zero
     xhkb(:) = d_zero
@@ -360,8 +362,8 @@ module mod_cu_grell
         t(n,k) = m2c%tas(j,i,kk)
         q(n,k) = m2c%qxas(j,i,kk,iqv)
         po(n,k) = p(n,k)
-        tn(n,k) = t(n,k) + avg_tten(j,i,kk) * dt
-        qo(n,k) = q(n,k) + avg_qten(j,i,kk,iqv) * dt
+        tn(n,k) = t(n,k) + avg_tten(j,i,kk) * dt2
+        qo(n,k) = q(n,k) + avg_qten(j,i,kk,iqv) * dt2
         if ( qo(n,k) < minqq ) qo(n,k) = minqq
         qcrit(n) = qcrit(n) + avg_qten(j,i,kk,iqv)
       end do
@@ -435,12 +437,12 @@ module mod_cu_grell
   subroutine cup
     implicit none
     real(rkx) :: adw , aup , detdo , detdoq , dg , dh ,   &
-               dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
+               dhh , dp_s , dq , dt , dv1 , dv1q , dv2 , dv2q , &
                dv3 , dv3q , dz , dz1 , dz2 , dzo , f ,  &
                agamma , agamma0 , agamma1 , agamma2 , agammo ,   &
                agammo0 , mbdt , outtes , pbcdif , qrch , qrcho , &
                tvbar , tvbaro , xk , mflx
-    integer(ik4) :: n , k , kbcono , kk , lpt
+    integer(ik4) :: n , k , kbcono , kk
     logical :: foundtop
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cup'
@@ -475,20 +477,19 @@ module mod_cu_grell
     ! hkb    = moist static energy at originating level
     ! dellat = change of temperature per unit mass flux of cloud ensemble
     ! dellaq = change of q per unit mass flux of cloud ensemble
-    ! gcr0   = conversion rate (cloud to rain)
     ! pwc    = condensate that will fall out at that level
     ! pwcav  = totan normalized integrated condensate (I1)
     ! pwcev  = total normalized integrated evaoprate (I2)
     ! pwcd   = evaporate at that level
     !
-    mbdt = dtcum * 5.0e-03_rkx
+    mbdt = dt2 * 5.0e-03_rkx
     !
     ! environmental conditions, first heights
     !
     do k = 1 , kz
       do n = 1 , nap
-        qes(n,k) = pfwsat(t(n,k),p(n,k)*d_100)
-        qeso(n,k) = pfwsat(tn(n,k),po(n,k)*d_100)
+        qes(n,k) = max(pfwsat(t(n,k),p(n,k)*d_100),minqq)
+        qeso(n,k) = max(pfwsat(tn(n,k),po(n,k)*d_100),minqq)
         q(n,k) = min(q(n,k),qes(n,k))
         qo(n,k) = min(qo(n,k),qeso(n,k))
         tv(n,k) = t(n,k) * (d_one + ep1*q(n,k))
@@ -543,10 +544,10 @@ module mod_cu_grell
           xac(n) = -d_one
           cycle
         end if
-        hkb(n) = he(n,k22(n))
-        qkb(n) = q(n,k22(n))
-        hkbo(n) = heo(n,k22(n))
-        qkbo(n) = qo(n,k22(n))
+        hkb(n) = d_half*(he(n,k22(n))+he(n,k22(n)+1))
+        qkb(n) = d_half*(q(n,k22(n))+q(n,k22(n)+1))
+        hkbo(n) = d_half*(heo(n,k22(n))+heo(n,k22(n)+1))
+        qkbo(n) = d_half*(qo(n,k22(n))+qo(n,k22(n)+1))
         qck(n) = qkb(n)
         qcko(n) = qkbo(n)
       end if
@@ -580,7 +581,7 @@ module mod_cu_grell
           ! after large-scale forcing is applied, possible lid should
           ! be removed!!!
           !
-          kbcono = kb(n)
+          kbcono = kbcon(n)
           removelid: do
             if ( kbcono > kbmax(n) ) then
               xac(n) = -d_one
@@ -593,17 +594,18 @@ module mod_cu_grell
             end if
             exit removelid
           end do removelid
-          pbcdif = -p(n,kbcono) + p(n,kb(n))
+          kbcon(n) = kbcono
+          pbcdif = -p(n,kbcon(n)) + p(n,kb(n))
           if ( pbcdif > pbcmax(n) ) then
             k22(n) = k22(n) + 1
             if ( k22(n) >= kbmax(n) ) then
               xac(n) = -d_one
               cycle pointloop
             end if
-            hkb(n) = he(n,k22(n))
-            qkb(n) = q(n,k22(n))
-            hkbo(n) = heo(n,k22(n))
-            qkbo(n) = qo(n,k22(n))
+            hkb(n) = d_half*(he(n,k22(n))+he(n,k22(n)+1))
+            qkb(n) = d_half*(q(n,k22(n))+q(n,k22(n)+1))
+            hkbo(n) = d_half*(heo(n,k22(n))+heo(n,k22(n)+1))
+            qkbo(n) = d_half*(qo(n,k22(n))+qo(n,k22(n)+1))
             qck(n) = qkb(n)
             qcko(n) = qkbo(n)
             cycle cloudbase
@@ -616,7 +618,6 @@ module mod_cu_grell
     ! downdraft originating level
     !
     call minimi(he,kb,kz,kmin)
-    call maximi1(vsp,1,kz,kds)
     !
     ! static control
     !
@@ -628,8 +629,6 @@ module mod_cu_grell
           xac(n) = -d_one
           cycle
         end if
-        if ( kds(n) >= kz ) kds(n) = kz - 1
-        if ( kds(n) <= kbcon(n) ) kds(n) = kbcon(n)
         dby(n,kz) = hkb(n) - hes(n,kz)
         dbyo(n,kz) = hkbo(n) - heso(n,kz)
       end if
@@ -646,10 +645,9 @@ module mod_cu_grell
       if ( xac(n) > xacact ) then
         foundtop = .false.
         findtop: &
-        do k = 2 , kz - kbcon(n) - 1
-          kk = kz - k + 1
-          if ( dby(n,kk) >= d_zero ) then
-            ktop(n) = kk + 1
+        do k = kbcon(n) , kz
+          if ( dby(n,k) <= d_zero ) then
+            ktop(n) = k
             foundtop = .true.
             exit findtop
           end if
@@ -677,9 +675,12 @@ module mod_cu_grell
               agamma = wlhvocp*(wlhv/(rwat*(t(n,k)**2)))*qes(n,k)
               agamma0 = wlhvocp*(wlhv/(rwat*(t(n,k-1)**2)))*qes(n,k-1)
               qrch = qes(n,k) + rwlhv*(agamma/(d_one+agamma))*dby(n,k)
-              qc(n,k) = (qck(n)-qrch)/(d_one+gcr0*dz) + qrch
-              pwc(n,k) = gcr0*dz*(qc(n,k)-qrch)
-              qck(n) = qc(n,k)
+!              qc(n,k) = (qck(n)-qrch)/(d_one+gcr0*dz) + qrch
+!              pwc(n,k) = gcr0*dz*(qc(n,k)-qrch)
+!              qck(n) = qc(n,k)
+              qc(n,k) = qck(n)
+              pwc(n,k) = qck(n)-qrch
+              qck(n) = qrch
               pwcav(n) = pwcav(n) + pwc(n,k)
               dz1 = z(n,k) - z(n,k-1)
               xac(n) = xac(n) + dz1*(egrav/(cpd*(d_half*(t(n,k)+t(n,k-1))))) * &
@@ -689,9 +690,12 @@ module mod_cu_grell
               agammo = wlhvocp*(wlhv/(rwat*(tn(n,k)**2)))*qeso(n,k)
               agammo0 = wlhvocp*(wlhv/(rwat*(tn(n,k-1)**2)))*qeso(n,k-1)
               qrcho = qeso(n,k) + rwlhv*(agammo/(d_one+agammo))*dbyo(n,k)
-              qco(n,k) = (qcko(n)-qrcho)/(d_one+gcr0*dzo) + qrcho
-              pwco(n,k) = gcr0*dzo*(qco(n,k)-qrcho)
-              qcko(n) = qco(n,k)
+!              qco(n,k) = (qcko(n)-qrcho)/(d_one+gcr0*dzo) + qrcho
+!              pwco(n,k) = gcr0*dzo*(qco(n,k)-qrcho)
+!              qcko(n) = qco(n,k)
+              qco(n,k) = qcko(n)
+              pwco(n,k) = qcko(n)-qrcho
+              qcko(n) = qrcho
               pwcavo(n) = pwcavo(n) + pwco(n,k)
               xao(n) = xao(n) + &
                   dz2*(egrav/(cpd*(d_half*(tn(n,k)+tn(n,k-1))))) * &
@@ -705,17 +709,19 @@ module mod_cu_grell
     do n = 1 , nap
       if ( xac(n) > xacact ) then
         k = ktop(n)
-        dz = d_half*(z(n,k)-z(n,k-1))
-        agamma = wlhvocp*(wlhv/(rwat*(t(n,k)**2)))*qes(n,k)
-        qrch = qes(n,k) + rwlhv*(agamma/(d_one+agamma))*dby(n,k)
-        qc(n,k) = qes(n,k)
-        pwc(n,k) = (qrch-qes(n,k))
+!        dz = d_half*(z(n,k)-z(n,k-1))
+!        agamma = wlhvocp*(wlhv/(rwat*(t(n,k)**2)))*qes(n,k)
+!        qrch = qes(n,k) + rwlhv*(agamma/(d_one+agamma))*dby(n,k)
+!        qc(n,k) = qes(n,k)
+!        pwc(n,k) = (qrch-qes(n,k))
+        pwc(n,k) = (qck(n)-qes(n,k))
         pwcav(n) = pwcav(n) + pwc(n,k)
-        dz = d_half*(zo(n,k)-zo(n,k-1))
-        agamma = wlhvocp*(wlhv/(rwat*(tn(n,k)**2)))*qeso(n,k)
-        qrcho = qeso(n,k) + rwlhv*(agamma/(d_one+agamma))*dbyo(n,k)
-        qco(n,k) = qeso(n,k)
-        pwco(n,k) = (qrcho-qeso(n,k))
+!        dz = d_half*(zo(n,k)-zo(n,k-1))
+!        agamma = wlhvocp*(wlhv/(rwat*(tn(n,k)**2)))*qeso(n,k)
+!        qrcho = qeso(n,k) + rwlhv*(agamma/(d_one+agamma))*dbyo(n,k)
+!        qco(n,k) = qeso(n,k)
+!        pwco(n,k) = (qrcho-qeso(n,k))
+        pwco(n,k) = (qcko(n)-qeso(n,k))
         pwcavo(n) = pwcavo(n) + pwco(n,k)
       end if
     end do
@@ -724,23 +730,26 @@ module mod_cu_grell
     !
     ! determine downdraft strength in terms of windshear
     !
-    do kk = 1 , kz/2
+    do kk = 1 , kz-1
       do n = 1 , nap
         if ( xac(n) > xacact ) then
-          vshear(n) = vshear(n) + &
-               abs((vsp(n,kk+1)-vsp(n,kk))/(z(n,kk+1)-z(n,kk)))
+          if ( kk <= min(ktop(n),kz-1) .and. kk >= kbcon(n) ) then
+            vshear(n) = vshear(n) + &
+                 (vsp(n,kk+1)-vsp(n,kk)/(z(n,kk+1)-z(n,kk))) * &
+                 (po(n,kk)-po(n,kk+1))
+            sdp(n) = sdp(n) + po(n,kk)-po(n,kk+1)
+          end if
         end if
       end do
     end do
     do n = 1 , nap
       if ( xac(n) > xacact ) then
-        vshear(n) = d_1000*vshear(n)/real(kz/2,rkx)
+        vshear(n) = vshear(n) * d_1000/sdp(n)
         edt(n) = d_one - &
            (1.591_rkx-0.639_rkx*vshear(n)+0.0953_rkx*(vshear(n)**2) - &
             0.00496_rkx*(vshear(n)**3))
         if ( edt(n) > shrmax(n) ) edt(n) = shrmax(n)
         if ( edt(n) < shrmin(n) ) edt(n) = shrmin(n)
-
         edto(n) = edt(n)
         edtx(n) = edt(n)
         qrcd(n,kz) = qes(n,kz)
@@ -762,8 +771,8 @@ module mod_cu_grell
             dz = -d_half*(z(n,kk)-z(n,kk+2))
             bu(n) = bu(n) + dz*(hcd(n)-d_half*(hes(n,kk)+hes(n,kk+1)))
             dq = d_half*(qes(n,kk)+qes(n,kk+1))
-            xdt = d_half*(t(n,kk)+t(n,kk+1))
-            agamma = wlhvocp*(wlhv/(rwat*(xdt**2)))*dq
+            dt = d_half*(t(n,kk)+t(n,kk+1))
+            agamma = wlhvocp*(wlhv/(rwat*(dt**2)))*dq
             dh = hcd(n) - d_half*(hes(n,kk)+hes(n,kk+1))
             qrcd(n,kk) = dq + rwlhv*(agamma/(d_one+agamma))*dh
             pwcd(n,kk) = dkk(n,kk)*(qcd(n)-qrcd(n,kk))
@@ -772,8 +781,8 @@ module mod_cu_grell
             dz = d_half*(zo(n,kk+2)-zo(n,kk))
             buo(n) = buo(n) + dz*(hcdo(n)-(heso(n,kk)+heso(n,kk+1))*d_half)
             dq = d_half*(qeso(n,kk)+qeso(n,kk+1))
-            xdt = d_half*(tn(n,kk)+tn(n,kk+1))
-            agamma = wlhvocp*(wlhv/(rwat*(xdt**2)))*dq
+            dt = d_half*(tn(n,kk)+tn(n,kk+1))
+            agamma = wlhvocp*(wlhv/(rwat*(dt**2)))*dq
             dh = hcdo(n) - d_half*(heso(n,kk)+heso(n,kk+1))
             qrcdo(n,kk) = dq + rwlhv*(agamma/(d_one+agamma))*dh
             pwcdo(n,kk) = dkk(n,kk)*(qcdo(n)-qrcdo(n,kk))
@@ -807,15 +816,15 @@ module mod_cu_grell
         k = 1
         dz = d_half*(z(n,2)-z(n,1))
         dp_s = 50.0_rkx*(psur(n)-p(n,2))
-        dellah(n,1) = edt(n)*(dkk(n,1)*hcd(n)-dkk(n,1) * &
+        dellah(n,1) = edt(n)*(dkk(n,2)*hcd(n)-dkk(n,2) * &
                       d_half*(he(n,1)+he(n,2)))*egrav/dp_s
-        dellaq(n,1) = edt(n)*(dkk(n,1)*qrcd(n,1)-dkk(n,1) * &
+        dellaq(n,1) = edt(n)*(dkk(n,2)*qrcd(n,2)-dkk(n,1) * &
                       d_half*(q(n,1)+q(n,2)))*egrav/dp_s
         xhe(n,k) = dellah(n,k)*mbdt + he(n,k)
         xq(n,k) = dellaq(n,k)*mbdt + q(n,k)
         dellat(n,k) = rcpd*(dellah(n,k)-wlhv*dellaq(n,k))
         xt(n,k) = (mbdt*rcpd)*(dellah(n,k)-wlhv*dellaq(n,k))+t(n,k)
-        if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0e-08_rkx
+        if ( xq(n,k) <= d_zero ) xq(n,k) = minqq
       end if
     end do
 
@@ -833,8 +842,8 @@ module mod_cu_grell
             ! specifiy detrainment of downdraft, has to be consistent
             ! with zd calculations in soundd.
             !
-            detdo = (d_one-dkk(n,k))*(hcd(n)-dv2)
-            detdoq = (d_one-dkk(n,k))*(qrcd(n,k)-dv2q)
+            detdo = (dkk(n,kk+1)-dkk(n,k))*(hcd(n)-dv2)
+            detdoq = (dkk(n,k+1)-dkk(n,k))*(qrcd(n,k)-dv2q)
             dz = d_half*(z(n,k+1)-z(n,k-1))
             !
             ! changed due to subsidence and entrainment
@@ -843,16 +852,23 @@ module mod_cu_grell
             if ( k <= k22(n) ) aup = d_zero
             adw = d_one
             if ( k > kmin(n) ) adw = d_zero
-            dp_s = 50.0_rkx*(p(n,k-1)-p(n,k+1))
-            dellah(n,k) = ((aup-adw*edt(n)) * (dv1-dv2)+(aup-adw*edt(n)) * &
-                  (dv2-dv3))*egrav/dp_s + adw*edt(n)*detdo*egrav/dp_s
-            dellaq(n,k) = ((aup-adw*edt(n)) * (dv1q-dv2q)+(aup-adw*edt(n)) * &
-               (dv2q-dv3q))*egrav/dp_s + adw*edt(n)*detdoq*egrav/dp_s
+            !dp_s = 50.0_rkx*(p(n,k-1)-p(n,k+1))
+            !dellah(n,k) = ((aup-adw*edt(n)) * (dv1-dv2)+(aup-adw*edt(n)) * &
+            !      (dv2-dv3))*egrav/dp_s + adw*edt(n)*detdo*egrav/dp_s
+            !dellaq(n,k) = ((aup-adw*edt(n)) * (dv1q-dv2q)+(aup-adw*edt(n)) * &
+            !   (dv2q-dv3q))*egrav/dp_s + adw*edt(n)*detdoq*egrav/dp_s
+            dp_s = d_one/(50.0_rkx*(p(n,k-1)-p(n,k+1)))
+            dellah(n,k) = ((aup-adw*dkk(n,k+1)*edt(n))*(dv1-dv2)+ &
+                           (aup-adw*dkk(n,k)*edt(n))*(dv2-dv3))*  &
+                    egrav*dp_s+adw*edt(n)*detdo*egrav*dp_s
+            dellaq(n,k) = ((aup-adw*dkk(n,k+1)*edt(n))*(dv1q-dv2q)+ &
+                           (aup-adw*dkk(n,k)*edt(n))*(dv2q-dv3q))*  &
+                    egrav*dp_s+adw*edt(n)*detdoq*egrav*dp_s
             xhe(n,k) = dellah(n,k)*mbdt + he(n,k)
             xq(n,k) = dellaq(n,k)*mbdt + q(n,k)
             dellat(n,k) = rcpd*(dellah(n,k)-wlhv*dellaq(n,k))
             xt(n,k) = (mbdt*rcpd)*(dellah(n,k) - wlhv*dellaq(n,k)) + t(n,k)
-            if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0e-08_rkx
+            if ( xq(n,k) <= d_zero ) xq(n,k) = minqq
           end if
         end if
       end do
@@ -862,21 +878,20 @@ module mod_cu_grell
     !
     do n = 1 , nap
       if ( xac(n) > xacact ) then
-        lpt = ktop(n)
-        dp_s = d_100*(p(n,lpt-1)-p(n,lpt))
-        dv1 = d_half*(he(n,lpt)+he(n,lpt-1))
-        dellah(n,lpt) = (hkb(n)-dv1)*egrav/dp_s
-        dv1 = d_half*(q(n,lpt)+q(n,lpt-1))
-        dellaq(n,lpt) = (qes(n,lpt)-dv1)*egrav/dp_s
-        k = lpt
+        k = ktop(n)
+        dp_s = d_100*(p(n,k-1)-p(n,k))
+        dv1 = d_half*(he(n,k)+he(n,k-1))
+        dellah(n,k) = (hkb(n)-dv1)*egrav/dp_s
+        dv1 = d_half*(q(n,k)+q(n,k-1))
+        dellaq(n,k) = (qes(n,k)-dv1)*egrav/dp_s
         xhe(n,k) = dellah(n,k)*mbdt + he(n,k)
         xq(n,k) = dellaq(n,k)*mbdt + q(n,k)
         dellat(n,k) = rcpd*(dellah(n,k)-wlhv*dellaq(n,k))
         xt(n,k) = (mbdt*rcpd)*(dellah(n,k)-wlhv*dellaq(n,k)) + t(n,k)
-        if ( xq(n,k) <= d_zero ) xq(n,k) = 1.0e-08_rkx
+        if ( xq(n,k) <= d_zero ) xq(n,k) = minqq
         xhkb(n) = dellah(n,kbcon(n))*mbdt + hkb(n)
         xqkb(n) = dellaq(n,kbcon(n))*mbdt + qkb(n)
-        if ( xqkb(n) <= d_zero ) xqkb(n) = 1.0e-08_rkx
+        if ( xqkb(n) <= d_zero ) xqkb(n) = minqq
       end if
     end do
     !
@@ -946,9 +961,12 @@ module mod_cu_grell
             agamma = wlhvocp*(wlhv/(rwat*(xt(n,k)**2)))*xqes(n,k)
             agamma0 = wlhvocp*(wlhv/(rwat*(xt(n,k-1)**2)))*xqes(n,k-1)
             qrch = xqes(n,k) + rwlhv*(agamma/(d_one+agamma))*xdby(n,k)
-            xqc(n,k) = (xqck(n)-qrch)/(d_one+gcr0*dz) + qrch
-            xpwc(n,k) = gcr0*dz*(xqc(n,k)-qrch)
-            xqck(n) = xqc(n,k)
+!            xqc(n,k) = (xqck(n)-qrch)/(d_one+gcr0*dz) + qrch
+!            xpwc(n,k) = gcr0*dz*(xqc(n,k)-qrch)
+!            xqck(n) = xqc(n,k)
+            xqc(n,k) = xqck(n)
+            xpwc(n,k) = xqck(n)-qrch
+            xqck(n) = qrch
             xpwcav(n) = xpwcav(n) + xpwc(n,k)
             xxac(n) = xxac(n) + &
               dz1*(egrav/(cpd*(d_half*(xt(n,k)+xt(n,k-1))))) * &
@@ -960,13 +978,14 @@ module mod_cu_grell
     do n = 1 , nap
       if ( xac(n) >= d_zero ) then
         k = ktop(n)
-        dz = d_half*(xz(n,k)-xz(n,k-1))
-        agamma = (wlhvocp)*(wlhv/(rwat*(xt(n,k)**2)))*xqes(n,k)
-        qrch = xqes(n,k) + rwlhv*(agamma/(d_one+agamma))*xdby(n,k)
-        xqc(n,k) = xqes(n,k)
-        xpwc(n,k) = (qrch-xqes(n,k))
+!        dz = d_half*(xz(n,k)-xz(n,k-1))
+!        agamma = (wlhvocp)*(wlhv/(rwat*(xt(n,k)**2)))*xqes(n,k)
+!        qrch = xqes(n,k) + rwlhv*(agamma/(d_one+agamma))*xdby(n,k)
+!        xpwc(n,k) = (qrch-xqes(n,k))
+!        xqc(n,k) = xqes(n,k)
+        xpwc(n,k) = (xqck(n)-xqes(n,k))
         xpwcav(n) = xpwcav(n) + xpwc(n,k)
-        xqrcd(n,kz) = xqes(n,kz)
+!        xqrcd(n,kz) = xqes(n,kz)
         xhcd(n) = d_half*(xhe(n,kmin(n))+xhe(n,kmin(n)+1))
         xqcd(n) = d_half*(xq(n,kmin(n))+xq(n,kmin(n)+1))
         xpwcev(n) = d_zero
@@ -985,8 +1004,8 @@ module mod_cu_grell
             dz = -d_half*(xz(n,kk)-xz(n,kk+2))
             bu(n) = bu(n) + dz*(xhcd(n)-d_half*(xhes(n,kk)+xhes(n,kk+1)))
             dq = d_half*(xqes(n,kk)+xqes(n,kk+1))
-            xdt = d_half*(xt(n,kk)+xt(n,kk+1))
-            agamma = wlhvocp*(wlhv/(rwat*(xdt**2)))*dq
+            dt = d_half*(xt(n,kk)+xt(n,kk+1))
+            agamma = wlhvocp*(wlhv/(rwat*(dt**2)))*dq
             dh = xhcd(n) - d_half*(xhes(n,kk)+xhes(n,kk+1))
             xqrcd(n,kk) = dq + rwlhv*(agamma/(d_one+agamma))*dh
             xpwcd(n,kk) = dkk(n,kk)*(xqcd(n)-xqrcd(n,kk))
@@ -1023,34 +1042,34 @@ module mod_cu_grell
             agamma1 = wlhvocp*(wlhv/(rwat*(t(n,kk)**2)))*qes(n,kk)
             agamma2 = wlhvocp*(wlhv/(rwat*(t(n,kk+1)**2)))*qes(n,kk+1)
             dhh = hcd(n)
-            xdt = d_half*(t(n,kk)+t(n,kk+1))
+            dt = d_half*(t(n,kk)+t(n,kk+1))
             dg = d_half*(agamma1+agamma2)
             dh = d_half*(hes(n,kk)+hes(n,kk+1))
             dz = (z(n,kk)-z(n,kk+1))*dkk(n,kk)
-            xac(n) = xac(n)+edt(n)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+            xac(n) = xac(n)+edt(n)*dz*(egrav/(cpd*dt))*((dhh-dh)/(d_one+dg))
             !
             ! modified by larger scale
             !
             agamma1 = wlhvocp*(wlhv/(rwat*(tn(n,kk)**2)))*qeso(n,kk)
             agamma2 = wlhvocp*(wlhv/(rwat*(tn(n,kk+1)**2)))*qeso(n,kk+1)
             dhh = hcdo(n)
-            xdt = d_half*(tn(n,kk)+tn(n,kk+1))
+            dt = d_half*(tn(n,kk)+tn(n,kk+1))
             dg = d_half*(agamma1+agamma2)
             dh = d_half*(heso(n,kk)+heso(n,kk+1))
             dz = (zo(n,kk)-zo(n,kk+1))*dkk(n,kk)
-            xao(n) = xao(n)+edto(n)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+            xao(n) = xao(n)+edto(n)*dz*(egrav/(cpd*dt))*((dhh-dh)/(d_one+dg))
             !
             ! modified by cloud
             !
             agamma1 = wlhvocp*(wlhv/(rwat*(xt(n,kk)**2)))*xqes(n,kk)
             agamma2 = wlhvocp*(wlhv/(rwat*(xt(n,kk+1)**2)))*xqes(n,kk+1)
             dhh = xhcd(n)
-            xdt = d_half*(xt(n,kk)+xt(n,kk+1))
+            dt = d_half*(xt(n,kk)+xt(n,kk+1))
             dg = d_half*(agamma1+agamma2)
             dh = d_half*(xhes(n,kk)+xhes(n,kk+1))
             dz = (xz(n,kk)-xz(n,kk+1))*dkk(n,kk)
             xxac(n) = xxac(n) + edtx(n)*dz * &
-                      (egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
+                      (egrav/(cpd*dt))*((dhh-dh)/(d_one+dg))
           end if
         end if
       end do
@@ -1063,9 +1082,9 @@ module mod_cu_grell
         f  = -d_one
         xk = -d_one
         if ( igcc == 1 ) then
-          f = (xao(n)-xac(n))/dtcum ! Arakawa-Schubert closure
+          f = (xao(n)-xac(n))/dt2 ! Arakawa-Schubert closure
         else if ( igcc == 2 ) then
-          f = xac(n)/dtauc(n)    ! Fritsch-Chappell closure
+          f = xac(n)/dtauc(n)       ! Fritsch-Chappell closure
         end if
         xk = (xxac(n)-xac(n))/mbdt
         if ( f <= d_zero .or. xk >= d_zero ) then
@@ -1081,10 +1100,10 @@ module mod_cu_grell
     do n = 1 , nap
       if ( xac(n) >= d_zero ) then
         outtes = dellat(n,kbcon(n))*xmb(n)*secpd
-        if ( (outtes > htmax(n)) ) then
-          xmb(n) = 1.001_rkx*htmax(n)/(dellat(n,kbcon(n))*secpd)
+        if ( outtes > htmax(n) ) then
+          xmb(n) = 1.001_rkx*htmax(n)/outtes*xmb(n)
         else if ( outtes < htmin(n) ) then
-          xmb(n) = 1.001_rkx*htmin(n)/(dellat(n,kbcon(n))*secpd)
+          xmb(n) = 1.001_rkx*htmin(n)/outtes*xmb(n)
         end if
       end if
     end do
@@ -1094,16 +1113,21 @@ module mod_cu_grell
           if ( k <= ktop(n) ) then
             outt(n,k) = outt(n,k) + dellat(n,k)*xmb(n)
             outq(n,k) = outq(n,k) + dellaq(n,k)*xmb(n)
+            pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
             !
             ! Xu, K.-M., and S. K. Krueger:
             !   Evaluation of cloudiness parameterizations using a cumulus
             !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
             !
-            pratec(n) = pratec(n) + (pwc(n,k)+edt(n)*pwcd(n,k))*xmb(n)
             if ( k >= kbcon(n) ) then
               mflx = max(d_100*(p(n,k)/(rgas*t(n,k)))*dellah(n,k)*xmb(n),d_zero)
-              cldf(n,k) = kfac_deep*log(d_one+(500.0_rkx*mflx))
-              cldf(n,k) = min(max(0.01_rkx,cldf(n,k)),clfrcv)
+              if ( z(n,ktop(n))-z(n,kbcon(n)) > 2000.0_rkx ) then
+                cldf(n,k) = kfac_deep*log(d_one+k2_const*mflx)
+                cldf(n,k) = max(0.01,min(0.6,cldf(n,k)))
+              else
+                cldf(n,k) = kfac_shal*log(d_one+k2_const*mflx)
+                cldf(n,k) = max(0.01,min(0.2,cldf(n,k)))
+              end if
             end if
           end if
         end if

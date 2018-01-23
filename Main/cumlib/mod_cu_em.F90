@@ -27,7 +27,8 @@ module mod_cu_em
   use mod_memutil
   use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,    &
     damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs ,   &
-    tlcrit , iqv , ichem , clfrcv , rdt , ichcumtra , kfac_deep
+    tlcrit , iqv , ichem , clfrcv , rdt , ichcumtra
+  use mod_runparams , only : k2_const , kfac_shal , kfac_deep
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -51,7 +52,7 @@ module mod_cu_em
   real(rkx) , pointer , dimension(:) :: cbmf , pret , qprime , &
     tprime , wd , elcrit , epmax
   real(rkx) , pointer , dimension(:,:) :: fq , ft , fu , fv , pcup , &
-    qcup , qscup , tcup , ucup , vcup , cldfra , phcup , ppcp
+    qcup , qscup , tcup , ucup , vcup , zcup , cldfra , phcup , ppcp
   real(rkx) , pointer , dimension(:,:,:) :: ftra , tra
   integer(ik4) , pointer , dimension(:) :: iflag , kbase , ktop , &
     imap , jmap
@@ -90,6 +91,7 @@ module mod_cu_em
     call getmem2d(tcup,1,ncp,1,kz,'emanuel:tcup')
     call getmem2d(ucup,1,ncp,1,kz,'emanuel:ucup')
     call getmem2d(vcup,1,ncp,1,kz,'emanuel:vcup')
+    call getmem2d(zcup,1,ncp,1,kz,'emanuel:zcup')
     call getmem2d(cldfra,1,ncp,1,kz,'emanuel:cldfra')
     call getmem2d(ppcp,1,ncp,1,kz,'emanuel:ppcp')
     if ( ichem == 1 ) then
@@ -141,6 +143,7 @@ module mod_cu_em
         qscup(n,k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))        ! [kg/kg]
         ucup(n,k) = m2c%uas(j,i,kk)                                   ! [m/s]
         vcup(n,k) = m2c%vas(j,i,kk)                                   ! [m/s]
+        zcup(n,k) = m2c%zas(j,i,kk)                                   ! [m/s]
         pcup(n,k) = m2c%pas(j,i,kk)*d_r100                            ! [hPa]
         fu(n,k) = d_zero
         fv(n,k) = d_zero
@@ -1153,10 +1156,19 @@ module mod_cu_em
       !   Evaluation of cloudiness parameterizations using a cumulus
       !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
       !
-      do i = icb , ict
-        cldfra(n,i) = kfac_deep * log(d_one+(500.0_rkx*d_half*(m(i)+m(i+1))))
-        cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),clfrcv)
-      end do
+      ! Identify Deep concection if cloud depth is > 2000m
+      !
+      if ( zcup(n,ict) - zcup(n,icb) >= 2000.0_rkx ) then
+        do i = icb , ict
+          cldfra(n,i) = kfac_deep*log(d_one+(k2_const*d_half*(m(i)+m(i+1))))
+          cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),0.6_rkx)
+        end do
+      else
+        do i = icb , ict
+          cldfra(n,i) = kfac_shal*log(d_one+(k2_const*d_half*(m(i)+m(i+1))))
+          cldfra(n,i) = min(max(0.01_rkx,cldfra(n,i)),0.2_rkx)
+        end do
+      end if
       kcb(n) = icb
       kct(n) = ict
     end do pointloop

@@ -235,7 +235,7 @@ module mod_cu_interface
       do i = ici1 , ici2
         do j = jci1 , jci2
           avg_tten(j,i,k) = (d_one-w1) * avg_tten(j,i,k) + &
-                        w1 * m2c%tten(j,i,k)/m2c%psb(j,i)+m2c%heatrt(j,i,k)
+                        w1 * (m2c%tten(j,i,k)/m2c%psb(j,i)+m2c%heatrt(j,i,k))
         end do
       end do
     end do

@@ -97,31 +97,29 @@ module mod_cu_common
       call getmem3d(avg_ww,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_ww')
     end if
 
-    if ( any(icup == 1) .or. any(icup == 3) ) then
-      if ( icumcloud == 2 ) then
-        !
-        ! Free hand draw of a generic ten layer cumulus cloud shape.
-        !
-        fixed_cld_profile(1)  = 0.130_rkx
-        fixed_cld_profile(2)  = 0.125_rkx
-        fixed_cld_profile(3)  = 0.120_rkx
-        fixed_cld_profile(4)  = 0.080_rkx
-        fixed_cld_profile(5)  = 0.080_rkx
-        fixed_cld_profile(6)  = 0.080_rkx
-        fixed_cld_profile(7)  = 0.085_rkx
-        fixed_cld_profile(8)  = 0.085_rkx
-        fixed_cld_profile(9)  = 0.105_rkx
-        fixed_cld_profile(10) = 0.110_rkx
-        if ( addnoise ) then
-          call random_seed(size=nseed)
-          call cpu_time(cputime)
-          allocate(iseed(nseed))
-          iseed = int(cputime) + 37*[(k-1,k=1,nseed)]
-          call random_seed(put=iseed)
-          deallocate(iseed)
-        else
-          cld_profile = fixed_cld_profile
-        end if
+    if ( icumcloud == 2 ) then
+      !
+      ! Free hand draw of a generic ten layer cumulus cloud shape.
+      !
+      fixed_cld_profile(1)  = 0.130_rkx
+      fixed_cld_profile(2)  = 0.125_rkx
+      fixed_cld_profile(3)  = 0.120_rkx
+      fixed_cld_profile(4)  = 0.080_rkx
+      fixed_cld_profile(5)  = 0.080_rkx
+      fixed_cld_profile(6)  = 0.080_rkx
+      fixed_cld_profile(7)  = 0.085_rkx
+      fixed_cld_profile(8)  = 0.085_rkx
+      fixed_cld_profile(9)  = 0.105_rkx
+      fixed_cld_profile(10) = 0.110_rkx
+      if ( addnoise ) then
+        call random_seed(size=nseed)
+        call cpu_time(cputime)
+        allocate(iseed(nseed))
+        iseed = int(cputime) + 37*[(k-1,k=1,nseed)]
+        call random_seed(put=iseed)
+        deallocate(iseed)
+      else
+        cld_profile = fixed_cld_profile
       end if
     end if
   end subroutine init_mod_cumulus

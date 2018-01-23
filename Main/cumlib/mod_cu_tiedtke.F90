@@ -30,7 +30,8 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
-         hsigma , sigma , ichcumtra , rcmtimer , kfac_deep , kfac_shal
+         hsigma , sigma , ichcumtra , rcmtimer
+  use mod_runparams , only : k2_const , kfac_deep , kfac_shal
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
   use mod_runparams , only : detrpen_lnd , detrpen_ocn , entshalp , entrdd
@@ -425,6 +426,10 @@ module mod_cu_tiedtke
     !   Evaluation of cloudiness parameterizations using a cumulus
     !   ensemble model, Mon. Wea. Rev., 119, 342-367, 1991.
     !
+    !   KTYPE = 1 => DEEP CONVECTION
+    !   KTYPE = 2 => SHALLOW CONVECTION
+    !   KTYPE = 3 => MIDLEVEL CONVECTION
+    !
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
         i = imap(ii)
@@ -433,16 +438,16 @@ module mod_cu_tiedtke
         cu_kbot(j,i) = kcbot(ii)
         do k = kctop(ii) , kcbot(ii)
           if ( ktype(ii) == 1 ) then
-            cu_cldfrc(j,i,k) = kfac_deep * &
-                           log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = kfac_deep*log(d_one+k2_const*pmfu(ii,k))
+            cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),0.6_rkx)
           else if ( ktype(ii) == 2 ) then
-            cu_cldfrc(j,i,k) = d_half*(kfac_deep+kfac_shal) * &
-                           log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = kfac_shal*log(d_one+k2_const*pmfu(ii,k))
+            cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),0.2_rkx)
           else
-            cu_cldfrc(j,i,k) = kfac_shal * &
-                           log(d_one+(500.0_rkx*pmfu(ii,k)))
+            cu_cldfrc(j,i,k) = d_half*(kfac_deep+kfac_shal) * &
+                           log(d_one+k2_const*pmfu(ii,k))
+            cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),0.4_rkx)
           end if
-          cu_cldfrc(j,i,k) = min(max(0.01_rkx,cu_cldfrc(j,i,k)),clfrcv)
         end do
       end if
     end do

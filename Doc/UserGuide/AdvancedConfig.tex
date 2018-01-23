@@ -871,6 +871,7 @@ This namelist controls the cloud fraction algorithms.
  cllwcv    = 0.3e-3,  ! Cloud liquid water content for convective precip.
  clfrcvmax = 0.75,    ! Max cloud fractional cover for convective precip.
  cftotmax  = 0.75,    ! Max total cover cloud fraction for radiation
+ k2_const  = 10.0,    ! K2 Factor cumulus mass flux - cloud fraction
  kfac_shal = 0.07,    ! Factor cumulus mass flux - cloud fraction - shallow
  kfac_deep = 0.14,    ! Factor cumulus mass flux - cloud fraction - deep
  lsrfhack  = .false.  ! Surface radiation hack
@@ -957,7 +958,6 @@ selected number is $2, 4, 5$.
  igcc  = 2,          ! Cumulus closure scheme
                      !   1 => Arakawa & Schubert (1974)
                      !   2 => Fritsch & Chappell (1980)
- gcr0 = 0.0020,      ! Conversion rate from cloud to rain
  edtmin      = 0.20, ! Minimum Precipitation Efficiency land
  edtmin_ocn  = 0.20, ! Minimum Precipitation Efficiency ocean
  edtmax      = 0.80, ! Maximum Precipitation Efficiency land
@@ -974,12 +974,12 @@ selected number is $2, 4, 5$.
  shrmin_ocn  = 0.30, ! Minimum Shear effect on precip eff. ocean
  shrmax      = 0.90, ! Maximum Shear effect on precip eff. land
  shrmax_ocn  = 0.90, ! Maximum Shear effect on precip eff. ocean
- pbcmax = 50.0,      ! Max depth (mb) of stable layer b/twn LCL & LFC
- mincld = 150.0,     ! Min cloud depth (mb).
+ pbcmax = 100.0,     ! Max depth (mb) of stable layer b/twn LCL & LFC
+ mincld = 50.0,      ! Min cloud depth (mb).
  htmin = -250.0,     ! Min convective heating
  htmax = 500.0,      ! Max convective heating
- skbmax = 0.4,       ! Max cloud base height in sigma
- dtauc = 30.0        ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
+ skbmax = 0.1,       ! Max cloud base height in sigma
+ dtauc = 60.0,       ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
  /
 
  &emanparam

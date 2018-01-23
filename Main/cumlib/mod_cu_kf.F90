@@ -26,12 +26,12 @@ module mod_cu_kf
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls , ibltyp , dt
+  use mod_runparams , only : ds , dx , dxsq , ipptls , ibltyp , dt
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
   use mod_runparams , only : kf_entrate , kf_convrate , kf_min_pef , kf_max_pef
   use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
   use mod_runparams , only : kf_tkemax
-  use mod_runparams , only : kfac_shal , kfac_deep
+  use mod_runparams , only : k2_const , kfac_shal , kfac_deep
   use mod_runparams , only : ichem , clfrcv
   use mod_service
 
@@ -1790,16 +1790,16 @@ module mod_cu_kf
       if ( ishall == 1 )  then
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
-          xcldfra = kfac_shal*log(d_one+(500.0_rkx*umf_new))
-          xcldfra = max(0.01_rkx,xcldfra)
-          cldfra_sh_kf(nk,np) = min(clfrcv,xcldfra)
+          xcldfra = kfac_shal*log(d_one+k2_const*umf_new)
+          xcldfra = min(max(0.01_rkx,xcldfra),0.6_rkx)
+          cldfra_dp_kf(nk,np) = xcldfra
         end do
       else
         do nk = klcl-1 , ltop1
           umf_new = umf(nk)/dxsq
-          xcldfra = kfac_deep*log(d_one+(500.0_rkx*umf_new))
-          xcldfra = max(0.01_rkx,xcldfra)
-          cldfra_dp_kf(nk,np) = min(clfrcv,xcldfra)
+          xcldfra = kfac_deep*log(d_one+k2_const*umf_new)
+          xcldfra = min(max(0.01_rkx,xcldfra),0.2_rkx)
+          cldfra_sh_kf(nk,np) = xcldfra
         end do
       end if
       !

@@ -227,7 +227,6 @@ module mod_runparams
 
   ! Grell cumulus scheme parameters
 
-  real(rkx) , public :: gcr0
   real(rkx) , public :: mincld
   real(rkx) , public :: skbmax
   real(rkx) , public :: shrmax_ocn
@@ -419,6 +418,8 @@ module mod_runparams
   real(rkx) , public :: kfac_shal ! Convective cloud fraction factor for
                                   ! empirical relationship with mass flux
   real(rkx) , public :: kfac_deep ! Convective cloud fraction factor for
+                                  ! empirical relationship with mass flux
+  real(rkx) , public :: k2_const  ! Convective cloud fraction factor for
                                   ! empirical relationship with mass flux
 
   ! Large scale SUBEX parameters
