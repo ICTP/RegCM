@@ -1363,6 +1363,9 @@ module mod_rad_aerosol
       if ( .not. do_parallel_netcdf_in ) then
         if ( myid /= iocpu ) then
           call bcast(naetime)
+          if ( allocated(aetime) ) then
+            deallocate(aetime)
+          end if
           allocate(aetime(naetime))
           call bcast(aetime)
           return
