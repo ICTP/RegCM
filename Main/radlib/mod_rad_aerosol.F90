@@ -1210,8 +1210,8 @@ module mod_rad_aerosol
       aefreq%ival = ibdyfrq
       aefreq%iunit = uhrs
       aerfreq = real(ibdyfrq,rkx)
-      d1 = aedate
-      d2 = aedate
+      d1 = idate1
+      d2 = idate1
     end subroutine init_aerclima
 
     subroutine read_aerclima(idatex,m2r)

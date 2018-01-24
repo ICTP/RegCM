@@ -49,7 +49,7 @@ program chem_icbc
   character(len=8)   :: chemsimtype
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
         ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
-        iindirect , ichebdy , ichjphcld , ichbion
+        iindirect , ichebdy , ichjphcld , ichbion , ismoke
   integer(ik4) :: ichem , iclimaaer
   integer(ik4) ibltyp , iboudy , isladvec , iqmsl , icup_lnd , icup_ocn , &
     ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl , iwavcpl ,      &
@@ -68,7 +68,7 @@ program chem_icbc
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect , &
-    ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion
+    ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion , ismoke
 
   namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
     icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
