@@ -153,7 +153,6 @@ program mksurfdata
   real(rk4) , pointer , dimension(:) :: yiy => null( )
   real(rk4) , pointer , dimension(:) :: xjx => null( )
   real(rk4) :: hptop
-  real(rkx) :: smallnum
   real(rk8) , dimension(1) :: xdate
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(2) :: ihvar
@@ -216,8 +215,6 @@ program mksurfdata
   write(stdout,*) ": it is running on   : ",trim(hostname)
   write(stdout,*) ": in directory       : ",trim(directory)
   write(stdout,*) "                     "
-
-  smallnum = real(epsilon(1.0_rk4),rkx)/4.0_rkx
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -922,12 +919,12 @@ program mksurfdata
       if ( xmask(j,i) > 0.5_rkx ) then
         pctspec(j,i) = sum(var3d(j,i,:))
         ! If 2 or more special classes at 100 % on same point
-        if ( pctspec(j,i) > (200.0_rkx - smallnum) ) then
+        if ( pctspec(j,i) >= 200.0_rkx ) then
           var3d(j,i,:) = var3d(j,i,:) / (pctspec(j,i)/100.0_rkx)
           pctspec(j,i) = sum(var3d(j,i,:))
         end if
         ! Reduce to biggest if the sum is not less equal 100
-        if ( pctspec(j,i) > (100.0_rkx - smallnum) ) then
+        if ( pctspec(j,i) > 100.0_rkx ) then
           iloc = maxloc(var3d(j,i,:))
           var3d(j,i,:) = 0.0_rkx
           var3d(j,i,iloc(1)) = 100.0_rkx
