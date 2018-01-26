@@ -186,7 +186,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: rad_clrls_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_clrlt_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_solin_out => null()
-  real(rkx) , dimension(:,:) , pointer :: rad_sabtp_out => null()
+  real(rkx) , dimension(:,:) , pointer :: rad_solout_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_totwv_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_totcl_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_totci_out => null()

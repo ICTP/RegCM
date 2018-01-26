@@ -783,8 +783,8 @@ module mod_rad_radiation
   subroutine radctl(n1,n2,dlat,xptrop,ts,pmid,pint,pmln,piln,   &
                     t,h2ommr,rh,cld,effcld,clwp,fsns,qrs,qrl,  &
                     flwds,rel,rei,fice,sols,soll,solsd,solld,emiss,   &
-                    fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb, &
-                    albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
+                    fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,solout, &
+                    alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
                     czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
                     abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,        &
                     absgasnxt,absgastot,emsgastot,tauxcl,tauxci,      &
@@ -824,10 +824,10 @@ module mod_rad_radiation
     real(rkx) , intent(in) :: eccf
     real(rkx) , pointer , dimension(:) :: alb , albc , emiss , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
-            fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,    &
-            sols , solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,       &
-            aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw , adiflw ,   &
-            asw , alw , abv , sol , czen
+            fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , solout , soll ,   &
+            solld , sols , solsd , ts , totcf , aeradfo , aeradfos ,         &
+            aerlwfo , aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw ,  &
+            adiflw , asw , alw , abv , sol , czen
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
     real(rkx) , pointer , dimension(:,:) , intent(out) :: emsgastot
@@ -841,9 +841,10 @@ module mod_rad_radiation
     intent (inout) alb , albc , abv , sol , tauxcl , tauxci
     intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   fsntc , solin , totcf , outtaucl , outtauci
+                   fsntc , solin , solout , totcf , outtaucl , outtauci
     !
     ! solin    - Solar incident flux
+    ! solout   - Solar outgoing flux
     ! fsnt     - Net column abs solar flux at model top
     ! fsntc    - Clear sky total column abs solar flux
     ! fsnsc    - Clear sky surface abs solar flux
@@ -887,16 +888,17 @@ module mod_rad_radiation
       call aeroppt(rh,pint,n1,n2)
 
       call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
-                  solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,solsd,solld, &
-                  fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,adirlw,adiflw,asw,alw, &
-                  abv,sol,czen,czengt0,aeradfo,aeradfos,tauxcl,tauxci, &
-                  outtaucl,outtauci)
+                  solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,   &
+                  soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw,     &
+                  adifsw,adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,  &
+                  aeradfo,aeradfos,tauxcl,tauxci,outtaucl,outtauci)
       !
       ! Convert units of shortwave fields needed by rest of model
       ! from CGS to MKS
       !
       do n = n1 , n2
         solin(n) = solin(n)*1.0e-3_rkx
+        solout(n) = solout(n)*1.0e-3_rkx
         fsnt(n) = fsnt(n)*1.0e-3_rkx
         fsns(n) = fsns(n)*1.0e-3_rkx
         fsntc(n) = fsntc(n)*1.0e-3_rkx
@@ -1058,6 +1060,7 @@ module mod_rad_radiation
   ! Output arguments
   !
   ! solin    - Incident solar flux
+  ! solout   - Outgoing solar flux
   ! qrs      - Solar heating rate
   ! fsns     - Surface absorbed solar flux
   ! fsnt     - Total column absorbed solar flux
@@ -1072,18 +1075,18 @@ module mod_rad_radiation
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
   !
-  subroutine radcsw(n1,n2,pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,  &
-                    eccf,solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,  &
-                    solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,     &
-                    adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,aeradfo,   &
-                    aeradfos,tauxcl,tauxci,outtaucl,outtauci)
+  subroutine radcsw(n1,n2,pint,h2ommr,o3mmr,cld,clwp,rel,rei,fice,       &
+                    eccf,solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,    &
+                    sols,soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw, &
+                    adifsw,adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,   &
+                    aeradfo,aeradfos,tauxcl,tauxci,outtaucl,outtauci)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: eccf
     real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos , fsds , fsnirt , &
-             fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , &
-             solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , asw , &
-             alw , abv , sol , czen
+             fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , solout, &
+             soll , solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , &
+             asw , alw , abv , sol , czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
     real(rkx) , pointer , dimension(:,:) :: cld , pint
     real(rkx) , pointer , dimension(:,:,:) ::  outtaucl , outtauci
@@ -1095,7 +1098,7 @@ module mod_rad_radiation
     intent (inout) aeradfo , aeradfos , fsds , qrs , abv , sol , &
             tauxcl , tauxci , outtaucl , outtauci
     intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   fsntc , solin , soll , solld , sols , solsd
+                   fsntc , solin , solout , soll , solld , sols , solsd
     !
     ! indxsl   - Index for cloud particle properties
     !
@@ -1191,6 +1194,7 @@ module mod_rad_radiation
     fsnt(:) = d_zero
     fsns(:) = d_zero
     solin(:) = d_zero
+    solout(:) = d_zero
     fsnsc(:) = d_zero
     fsntc(:) = d_zero
     sols(:) = d_zero
@@ -1533,6 +1537,7 @@ module mod_rad_radiation
           solflx(n) = solin(n)*frcsol(ns)*psf
           fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)    - fluxup(n,1))
           fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1) - fluxup(n,kzp1))
+          solout(n) = solout(n) + solflx(n)*fluxup(n,kzp1)
           sfltot = sfltot + solflx(n)
           fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
           fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)

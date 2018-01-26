@@ -53,10 +53,10 @@ module mod_rrtmg_driver
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
   real(rkx) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
-         clrss , firtp , frla , clrlt , clrls , abv , sol , sols ,     &
-         soll , solsd , solld , slwd , tsfc , psfc , asdir , asdif ,   &
-         aldir , aldif , czen , dlat , xptrop , totcf , totwv, totcl , &
-         totci
+         solout , clrss , firtp , frla , clrlt , clrls , abv , sol ,   &
+         sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,    &
+         asdif , aldir , aldif , czen , dlat , xptrop , totcf , totwv, &
+         totcl , totci
 
   real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint, &
     rh , cld_int , tlay , h2ovmr , o3vmr , co2vmr , play , ch4vmr ,    &
@@ -138,6 +138,7 @@ module mod_rrtmg_driver
     call getmem1d(clrlt,1,npr,'rrtmg:clrlt')
     call getmem1d(clrls,1,npr,'rrtmg:clrls')
     call getmem1d(solin,1,npr,'rrtmg:solin')
+    call getmem1d(solout,1,npr,'rrtmg:solout')
     call getmem1d(sols,1,npr,'rrtmg:sols')
     call getmem1d(soll,1,npr,'rrtmg:soll')
     call getmem1d(solsd,1,npr,'rrtmg:solsd')
@@ -384,6 +385,7 @@ module mod_rrtmg_driver
     ! fsds     - Flux Shortwave Downwelling Surface
 
     solin(:) = swdflx(:,kth)
+    solout(:) = swuflx(:,kth)
     frsa(:)  = swdflx(:,1) - swuflx(:,1)
     sabtp(:) = swdflx(:,kth) - swuflx(:,kth)
     clrst(:) = swdflxc(:,kth) - swuflxc(:,kth)
@@ -466,7 +468,7 @@ module mod_rrtmg_driver
     ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
     ! in RAD files
 
-    call radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,              &
+    call radout(lout,solin,solout,frsa,clrst,clrss,qrs,             &
                 firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,    &
                 solld,totcf,totwv,totcl,totci,cld_int,clwp_int,abv, &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &

@@ -43,7 +43,7 @@ module mod_rad_outrad
     npr = (jci2-jci1+1)*(ici2-ici1+1)
   end subroutine allocate_mod_rad_outrad
 
-  subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,         &
+  subroutine radout(lout,solin,solout,frsa,clrst,clrss,qrs,firtp,        &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
@@ -61,7 +61,7 @@ module mod_rad_outrad
     !     input/output arguments
     !
     ! solin  - instantaneous incident solar
-    ! sabtp  - total column absorbed solar flux
+    ! solout - outgoing solar
     ! frsa   - surface absorbed solar flux
     ! clrst  - clear sky total column abs solar flux
     ! clrss  - clear sky surface absorbed solar flux
@@ -82,7 +82,7 @@ module mod_rad_outrad
     logical , intent(in) :: lout ! Preapre data for outfile
     real(rkx) , pointer , dimension(:) :: clrls , clrlt ,  &
                 clrss , clrst , firtp , frla , frsa ,      &
-                sabtp , slwd , solin , soll , solld ,      &
+                solout , slwd , solin , soll , solld ,     &
                 sols , solsd , totcf , totcl , totci ,     &
                 totwv , abv , sol
     real(rkx) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
@@ -93,7 +93,7 @@ module mod_rad_outrad
       asaeradfos , asaerlwfo , asaerlwfos
     real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos
     intent (in) cld , clrls , clrlt , clrss , clrst ,            &
-                clwp , firtp , frla , frsa , qrl , qrs , sabtp , &
+                clwp , firtp , frla , frsa , qrl , qrs , solout ,&
                 slwd , solin , soll , solld , sols , solsd ,     &
                 totcf , totcl , totci , aeradfo , aeradfos,      &
                 asaeradfo , asaeradfos , aerlwfo , aerlwfos ,    &
@@ -238,7 +238,7 @@ module mod_rad_outrad
         call copy2d(clrlt,rad_clrlt_out)
         call copy2d(clrls,rad_clrls_out)
         call copy2d(solin,rad_solin_out)
-        call copy2d(sabtp,rad_sabtp_out)
+        call copy2d(solout,rad_solout_out)
         call copy2d(totwv,rad_totwv_out)
         call copy2d(totcl,rad_totcl_out)
         call copy2d(totci,rad_totci_out)

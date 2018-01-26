@@ -331,7 +331,7 @@ module mod_ncout
   integer(ik4) , parameter :: rad_clrlt  = 11
   integer(ik4) , parameter :: rad_clrls  = 12
   integer(ik4) , parameter :: rad_solin  = 13
-  integer(ik4) , parameter :: rad_sabtp  = 14
+  integer(ik4) , parameter :: rad_solout = 14
   integer(ik4) , parameter :: rad_totwv  = 15
   integer(ik4) , parameter :: rad_totcl  = 16
   integer(ik4) , parameter :: rad_totci  = 17
@@ -1699,11 +1699,11 @@ module mod_ncout
             'toa_incoming_shortwave_flux',.true.)
           rad_solin_out => v2dvar_rad(rad_solin)%rval
         end if
-        if ( enable_rad2d_vars(rad_sabtp) ) then
-          call setup_var(v2dvar_rad,rad_sabtp,vsize,'rsut','W m-2', &
+        if ( enable_rad2d_vars(rad_solout) ) then
+          call setup_var(v2dvar_rad,rad_solout,vsize,'rsut','W m-2', &
             'TOA Outgoing Shortwave Radiation', &
             'toa_outgoing_shortwave_flux',.true.)
-          rad_sabtp_out => v2dvar_rad(rad_sabtp)%rval
+          rad_solout_out => v2dvar_rad(rad_solout)%rval
         end if
         if ( enable_rad2d_vars(rad_totwv) ) then
           call setup_var(v2dvar_rad,rad_totwv,vsize,'prw','kg m-2', &
