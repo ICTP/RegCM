@@ -46,7 +46,7 @@ module mod_rad_colmod3
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq , &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,     &
     sols , solsd , ps , ts , emiss , totcf , totcl , totwv , totci ,  &
-    xptrop , dlat , czen , solout
+    xptrop , dlat , czen , solout , lwout , lwin
   real(rkx) , pointer , dimension(:) :: aeradfo , aeradfos
   real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos
   real(rkx) , pointer , dimension(:) :: adirsw , adifsw , adirlw , adiflw
@@ -76,6 +76,8 @@ module mod_rad_colmod3
     call getmem1d(flns,1,npr,'colmod3:flns')
     call getmem1d(flnsc,1,npr,'colmod3:flnsc')
     call getmem1d(flnt,1,npr,'colmod3:flnt')
+    call getmem1d(lwout,1,npr,'colmod3:lwout')
+    call getmem1d(lwin,1,npr,'colmod3:lwin')
     call getmem1d(flntc,1,npr,'colmod3:flntc')
     call getmem1d(flwds,1,npr,'colmod3:flwds')
     call getmem1d(fsds,1,npr,'colmod3:fsds')
@@ -310,6 +312,8 @@ module mod_rad_colmod3
     flns(:) = d_zero
     flnsc(:) = d_zero
     flnt(:) = d_zero
+    lwout(:) = d_zero
+    lwin(:) = d_zero
     flntc(:) = d_zero
     flwds(:) = d_zero
     fsds(:) = d_zero
@@ -377,11 +381,11 @@ module mod_rad_colmod3
     call radctl(1,npr,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1,       &
                 tm1,qm1,rh1,cld,effcld,clwp,fsns,qrs,qrl,flwds,         &
                 rel,rei,fice,sols,soll,solsd,solld,emiss,fsnt,fsntc,    &
-                fsnsc,flnt,flns,flntc,flnsc,solin,solout,alb,albc,fsds, &
-                fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,   &
-                adirsw,adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,    &
-                aeradfos,aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,&
-                tauxcl,tauxci,outtaucl,outtauci,labsem)
+                fsnsc,flnt,lwout,lwin,flns,flntc,flnsc,solin,solout,alb,&
+                albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen, &
+                czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw,abv,sol,    &
+                aeradfo,aeradfos,aerlwfo,aerlwfos,absgasnxt,absgastot,  &
+                emsgastot,tauxcl,tauxci,outtaucl,outtauci,labsem)
     !
     ! Save gas emission/absorbtion
     !
@@ -435,11 +439,11 @@ module mod_rad_colmod3
     ! subroutine radout() copies back the data to RegCM for surface
     ! computations and output purposes.
     !
-    call radout(lout,solin,solout,fsns,fsntc,fsnsc,qrs,flnt,flns, &
-                flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,      &
-                totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo, &
-                aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,      &
-                gtota3d,deltaz,outtaucl,outtauci,r2m,m2r)
+    call radout(lout,solin,solout,fsns,fsntc,fsnsc,qrs,lwout,flns,  &
+                flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,totcf,  &
+                totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos,&
+                aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz,  &
+                outtaucl,outtauci,r2m,m2r)
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif

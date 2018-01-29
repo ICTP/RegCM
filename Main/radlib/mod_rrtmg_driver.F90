@@ -52,11 +52,11 @@ module mod_rrtmg_driver
 !
   public :: allocate_mod_rad_rrtmg , rrtmg_driver
 
-  real(rkx) , pointer , dimension(:) :: frsa , sabtp , clrst , solin , &
-         solout , clrss , firtp , frla , clrlt , clrls , abv , sol ,   &
-         sols , soll , solsd , solld , slwd , tsfc , psfc , asdir ,    &
-         asdif , aldir , aldif , czen , dlat , xptrop , totcf , totwv, &
-         totcl , totci
+  real(rkx) , pointer , dimension(:) :: frsa , sabtp , clrst , solin ,  &
+         solout , clrss , firtp , lwout , lwin , frla , clrlt , clrls , &
+         abv , sol , sols , soll , solsd , solld , slwd , tsfc , psfc , &
+         asdir , asdif , aldir , aldif , czen , dlat , xptrop , totcf , &
+         totwv, totcl , totci
 
   real(rkx) , pointer , dimension(:,:) :: qrs , qrl , clwp_int , pint, &
     rh , cld_int , tlay , h2ovmr , o3vmr , co2vmr , play , ch4vmr ,    &
@@ -134,6 +134,8 @@ module mod_rrtmg_driver
     call getmem1d(clrst,1,npr,'rrtmg:clrst')
     call getmem1d(clrss,1,npr,'rrtmg:clrss')
     call getmem1d(firtp,1,npr,'rrtmg:firtp')
+    call getmem1d(lwout,1,npr,'rrtmg:lwout')
+    call getmem1d(lwin,1,npr,'rrtmg:lwin')
     call getmem1d(frla,1,npr,'rrtmg:frla')
     call getmem1d(clrlt,1,npr,'rrtmg:clrlt')
     call getmem1d(clrls,1,npr,'rrtmg:clrls')
@@ -384,14 +386,16 @@ module mod_rrtmg_driver
     ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
     ! fsds     - Flux Shortwave Downwelling Surface
 
+    sabtp(:) = swdflx(:,kth) - swuflx(:,kth)
     solin(:) = swdflx(:,kth)
     solout(:) = swuflx(:,kth)
     frsa(:)  = swdflx(:,1) - swuflx(:,1)
-    sabtp(:) = swdflx(:,kth) - swuflx(:,kth)
     clrst(:) = swdflxc(:,kth) - swuflxc(:,kth)
     clrss(:) = swdflxc(:,1) - swuflxc(:,1)
 
     firtp(:) = -d_one * (lwdflx(:,kth) - lwuflx(:,kth))
+    lwout(:) = -lwuflx(:,kth)
+    lwin(:)  = -lwdflx(:,kth)
     frla(:)  = -d_one * (lwdflx(:,1) - lwuflx(:,1))
     clrlt(:) = -d_one * (lwdflxc(:,kth) - lwuflxc(:,kth))
     clrls(:) = -d_one * (lwdflxc(:,1) - lwuflxc(:,1))
@@ -468,8 +472,8 @@ module mod_rrtmg_driver
     ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
     ! in RAD files
 
-    call radout(lout,solin,solout,frsa,clrst,clrss,qrs,             &
-                firtp,frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,    &
+    call radout(lout,solin,solout,frsa,clrst,clrss,qrs,lwout,       &
+                frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,          &
                 solld,totcf,totwv,totcl,totci,cld_int,clwp_int,abv, &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
                 tauasc3d,gtota3d,dzr,outtaucl,outtauci,r2m,m2r,     &

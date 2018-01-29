@@ -43,7 +43,7 @@ module mod_rad_outrad
     npr = (jci2-jci1+1)*(ici2-ici1+1)
   end subroutine allocate_mod_rad_outrad
 
-  subroutine radout(lout,solin,solout,frsa,clrst,clrss,qrs,firtp,        &
+  subroutine radout(lout,solin,solout,frsa,clrst,clrss,qrs,lwout,        &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totwv,totcl,totci,cld,clwp,abv,sol,aeradfo,    &
                     aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d, &
@@ -61,12 +61,12 @@ module mod_rad_outrad
     !     input/output arguments
     !
     ! solin  - instantaneous incident solar
-    ! solout - outgoing solar
+    ! solout - outgoing short wave flux
     ! frsa   - surface absorbed solar flux
     ! clrst  - clear sky total column abs solar flux
     ! clrss  - clear sky surface absorbed solar flux
     ! qrs    - solar heating rate
-    ! firtp  - net up flux top of model (up-dwn flx)
+    ! lwout  - outgoing lw flux
     ! frla   - longwave cooling of surface (up-dwn flx)
     ! clrlt  - clr sky net up flx top of model (up-dwn f
     ! clrls  - clr sky lw cooling of srf (up-dwn flx)
@@ -81,7 +81,7 @@ module mod_rad_outrad
     !
     logical , intent(in) :: lout ! Preapre data for outfile
     real(rkx) , pointer , dimension(:) :: clrls , clrlt ,  &
-                clrss , clrst , firtp , frla , frsa ,      &
+                clrss , clrst , lwout , frla , frsa ,      &
                 solout , slwd , solin , soll , solld ,     &
                 sols , solsd , totcf , totcl , totci ,     &
                 totwv , abv , sol
@@ -92,12 +92,12 @@ module mod_rad_outrad
     real(rkx) , optional, pointer , dimension(:) :: asaeradfo , &
       asaeradfos , asaerlwfo , asaerlwfos
     real(rkx) , pointer , dimension(:) :: aerlwfo , aerlwfos
-    intent (in) cld , clrls , clrlt , clrss , clrst ,            &
-                clwp , firtp , frla , frsa , qrl , qrs , solout ,&
-                slwd , solin , soll , solld , sols , solsd ,     &
-                totcf , totcl , totci , aeradfo , aeradfos,      &
-                asaeradfo , asaeradfos , aerlwfo , aerlwfos ,    &
-                asaerlwfo , asaerlwfos , deltaz , outtaucl ,     &
+    intent (in) cld , clrls , clrlt , clrss , clrst , clwp , &
+                lwout , frla , frsa , qrl , qrs , solout ,   &
+                slwd , solin , soll , solld , sols , solsd , &
+                totcf , totcl , totci , aeradfo , aeradfos,  &
+                asaeradfo , asaeradfos , aerlwfo , aerlwfos ,&
+                asaerlwfo , asaerlwfos , deltaz , outtaucl , &
                 outtauci
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
@@ -242,7 +242,7 @@ module mod_rad_outrad
         call copy2d(totwv,rad_totwv_out)
         call copy2d(totcl,rad_totcl_out)
         call copy2d(totci,rad_totci_out)
-        call copy2d(firtp,rad_firtp_out)
+        call copy2d(lwout,rad_lwout_out)
       end if
     end if
 

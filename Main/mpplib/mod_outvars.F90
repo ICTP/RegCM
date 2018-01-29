@@ -190,7 +190,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: rad_totwv_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_totcl_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_totci_out => null()
-  real(rkx) , dimension(:,:) , pointer :: rad_firtp_out => null()
+  real(rkx) , dimension(:,:) , pointer :: rad_lwout_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_higcl_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_midcl_out => null()
   real(rkx) , dimension(:,:) , pointer :: rad_lowcl_out => null()

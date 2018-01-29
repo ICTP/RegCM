@@ -335,7 +335,7 @@ module mod_ncout
   integer(ik4) , parameter :: rad_totwv  = 15
   integer(ik4) , parameter :: rad_totcl  = 16
   integer(ik4) , parameter :: rad_totci  = 17
-  integer(ik4) , parameter :: rad_firtp  = 18
+  integer(ik4) , parameter :: rad_lwout  = 18
   integer(ik4) , parameter :: rad_higcl  = 19
   integer(ik4) , parameter :: rad_midcl  = 20
   integer(ik4) , parameter :: rad_lowcl  = 21
@@ -1722,11 +1722,11 @@ module mod_ncout
             'atmosphere_ice_condensed_water_content',.true.)
           rad_totci_out => v2dvar_rad(rad_totci)%rval
         end if
-        if ( enable_rad2d_vars(rad_firtp) ) then
-          call setup_var(v2dvar_rad,rad_firtp,vsize,'rlut','W m-2', &
+        if ( enable_rad2d_vars(rad_lwout) ) then
+          call setup_var(v2dvar_rad,rad_lwout,vsize,'rlut','W m-2', &
             'TOA Outgoing Longwave Radiation', &
             'toa_outgoing_longwave_flux',.true.)
-          rad_firtp_out => v2dvar_rad(rad_firtp)%rval
+          rad_lwout_out => v2dvar_rad(rad_lwout)%rval
         end if
         if ( enable_rad2d_vars(rad_higcl) ) then
           call setup_var(v2dvar_rad,rad_higcl,vsize,'clh','%', &

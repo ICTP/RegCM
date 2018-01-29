@@ -780,15 +780,15 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radctl(n1,n2,dlat,xptrop,ts,pmid,pint,pmln,piln,   &
-                    t,h2ommr,rh,cld,effcld,clwp,fsns,qrs,qrl,  &
-                    flwds,rel,rei,fice,sols,soll,solsd,solld,emiss,   &
-                    fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,solout, &
-                    alb,albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
-                    czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
-                    abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,        &
-                    absgasnxt,absgastot,emsgastot,tauxcl,tauxci,      &
-                    outtaucl,outtauci,labsem)
+  subroutine radctl(n1,n2,dlat,xptrop,ts,pmid,pint,pmln,piln,t,h2ommr, &
+                    rh,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,fice,&
+                    sols,soll,solsd,solld,emiss,fsnt,fsntc,fsnsc,flnt, &
+                    lwout,lwin,flns,flntc,flnsc,solin,solout,alb,albc, &
+                    fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen, &
+                    czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw,abv,   &
+                    sol,aeradfo,aeradfos,aerlwfo,aerlwfos,absgasnxt,   &
+                    absgastot,emsgastot,tauxcl,tauxci,outtaucl,        &
+                    outtauci,labsem)
     implicit none
     !
     ! Input arguments
@@ -822,11 +822,12 @@ module mod_rad_radiation
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
     real(rkx) , intent(in) :: eccf
-    real(rkx) , pointer , dimension(:) :: alb , albc , emiss , &
-            flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
-            fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , solout , soll ,   &
-            solld , sols , solsd , ts , totcf , aeradfo , aeradfos ,         &
-            aerlwfo , aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw ,  &
+    real(rkx) , pointer , dimension(:) :: alb , albc , emiss ,    &
+            flns , flnsc , flnt , lwout , lwin , flntc , flwds ,  &
+            fsds , fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc ,    &
+            fsnt , fsntc , solin , solout , soll , solld , sols , &
+            solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,   &
+            aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw , &
             adiflw , asw , alw , abv , sol , czen
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
@@ -839,9 +840,9 @@ module mod_rad_radiation
             pmln , qrl , qrs , rei , rel , t , rh
     real(rkx) , pointer , dimension(:,:) :: o3vmr
     intent (inout) alb , albc , abv , sol , tauxcl , tauxci
-    intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
-                   fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   fsntc , solin , solout , totcf , outtaucl , outtauci
+    intent (inout) flns , flnsc , flnt , lwout , lwin , flntc , flwds , &
+            fsds ,  fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt ,  &
+            fsntc , solin , solout , totcf , outtaucl , outtauci
     !
     ! solin    - Solar incident flux
     ! solout   - Solar outgoing flux
@@ -853,6 +854,8 @@ module mod_rad_radiation
     ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns
     ! fsds     - Flux Shortwave Downwelling Surface
     ! flnt     - Net outgoing lw flux at model top
+    ! lwout    - outgoing lw flux at model top
+    ! lwin     - incoming lw flux at model top
     ! flns     - Srf longwave cooling (up-down) flux
     ! flntc    - Clear sky lw flux at model top
     ! flnsc    - Clear sky lw flux at srf (up-down)
@@ -974,15 +977,17 @@ module mod_rad_radiation
       !
       call trcmix(n1,n2,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
 
-      call radclw(n1,n2,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
-                  piln,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
-                  flnt,flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,      &
-                  aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
+      call radclw(n1,n2,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,n2o,ch4, &
+                  cfc11,cfc12,effcld,tclrsf,qrl,flns,flnt,lwout,lwin,&
+                  flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
+                  absgasnxt,absgastot,emsgastot,labsem)
       !
       ! Convert units of longwave fields needed by rest of model from CGS to MKS
       !
       do n = n1 , n2
         flnt(n) = flnt(n)*1.0e-3_rkx
+        lwout(n) = lwout(n)*1.0e-3_rkx
+        lwin(n) = lwin(n)*1.0e-3_rkx
         flns(n) = flns(n)*1.0e-3_rkx
         flntc(n) = flntc(n)*1.0e-3_rkx
         flnsc(n) = flnsc(n)*1.0e-3_rkx
@@ -1801,12 +1806,14 @@ module mod_rad_radiation
   ! qrl     - Longwave heating rate
   ! flns    - Surface cooling flux
   ! flnt    - Net outgoing flux
+  ! lwout   - outgoing LW flux
+  ! lwin    - incoming LW flux
   ! flnsc   - Clear sky surface cooing
   ! flntc   - Net clear sky outgoing flux
   ! flwds   - Down longwave flux at surface
   !
-  subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pmid,pint,pmln,     &
-                    piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt, &
+  subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pmid,pint,pmln,piln,n2o,ch4,&
+                    cfc11,cfc12,cld,tclrsf,qrl,flns,flnt,lwout,lwin,   &
                     flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
                     absgasnxt,absgastot,emsgastot,labsem)
     implicit none
@@ -1818,10 +1825,10 @@ module mod_rad_radiation
     real(rkx) , pointer , dimension(:,:,:) :: absgasnxt , absgastot
     real(rkx) , pointer , dimension(:,:) :: emsgastot
     real(rkx) , pointer , dimension(:) :: emiss , flns , flnsc , flnt , &
-               flntc , flwds , fslwdcs , ts
+               lwout , lwin , flntc , flwds , fslwdcs , ts
     real(rkx), pointer , dimension(:) :: aerlwfo , aerlwfos
     intent (in) cld , emiss
-    intent (inout) flns , flnsc , flnt , flntc , flwds , qrl , &
+    intent (inout) flns , flnsc , flnt , lwout , lwin , flntc , flwds , qrl , &
             aerlwfo , aerlwfos
     intent (inout) tclrsf
 
@@ -2223,6 +2230,8 @@ module mod_rad_radiation
       ! Outgoing ir
       !
       flnt(n) = ful(n,1) - fdl(n,1)
+      lwout(n) = ful(n,1)
+      lwin(n) = fdl(n,1)
     end do
     !
     ! Computation of longwave heating (k per sec)
