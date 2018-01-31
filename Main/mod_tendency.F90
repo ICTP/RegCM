@@ -572,8 +572,11 @@ module mod_tendency
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              atmc%chi(j,i,k,itr) = max(atm2%chi(j,i,k,itr) + &
-                       dt * chiten(j,i,k,itr),mintr)
+              atmc%chi(j,i,k,itr) = atm2%chi(j,i,k,itr) + &
+                                    dt * chiten(j,i,k,itr)
+              if ( atmc%chi(j,i,k,itr) < mintr * sfs%psc(j,i) ) then
+                atmc%chi(j,i,k,itr) = mintr * sfs%psc(j,i)
+              end if
             end do
           end do
         end do

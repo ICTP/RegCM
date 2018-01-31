@@ -1657,7 +1657,7 @@ module mod_rad_aerosol
               do n = n1 , n2
                 rh0 = min(0.99_rkx,max(d_zero,rh(n,k)))
                 do l = 1 , 7
-                  if ( rh0 > rhp(1) .and. rh0 <= rhp(l+1) ) then
+                  if ( rh0 > rhp(l) .and. rh0 <= rhp(l+1) ) then
                     ! FAB : test according to li et al., ksslt cannot exceed 1.3
                     ! quick fix for now, update parameterisation to LI et al,
                     ! ACP 2008 in a near future

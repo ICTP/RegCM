@@ -524,7 +524,7 @@ module mod_ch_fnest
             if ( k0 == np ) then
               pmpj = plev(np-1)
               pmpi = plev(np)
-              mxc4_1(j,i,l,nf) = max(mintr,mxcp4(j,i,np) + &
+              mxc4_1(j,i,l,nf) = max(d_zero,mxcp4(j,i,np) + &
                  (mxcp4(j,i,np-1) - mxcp4(j,i,np)) * (prcm-pmpi)/(pmpi-pmpj))
             else if (k0 >= 1) then
               pmpj = plev(k0)

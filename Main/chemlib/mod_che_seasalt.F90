@@ -30,15 +30,14 @@ module mod_che_seasalt
   private
 
   ! sea-salt density
-  real(rkx) , parameter :: rhosslt = 1000.0_rkx
+  real(rkx) , parameter :: rhosslt = 1020.0_rkx
   real(rkx) , dimension(sbin,2) :: ssltbsiz
 
   data ssltbsiz /0.05_rkx, 1.0_rkx, 1.0_rkx, 10.0_rkx/
-!
+
   real(rkx) , dimension(sbin) :: ssltbed
 
-
- ! solubility of od dust aer for param of giorgi and chameides
+  ! solubility of od dust aer for param of giorgi and chameides
   real(rkx) , dimension(sbin) :: solsslt
 
   data ssltbed /0.6_rkx, 6.0_rkx/
@@ -75,7 +74,6 @@ module mod_che_seasalt
 
     real(rkx) :: dumu10
     real(rkx) :: dplo_acc , dphi_acc , dplo_cor , dphi_cor
-    real(rkx) , dimension(ici1:ici2,2) :: qflxm , qflxn
     real(rkx) :: seasalt_emfac_mascor , seasalt_emfac_numcor
     real(rkx) :: seasalt_emfac_masacc , seasalt_emfac_numacc
     integer(ik4) :: modeptr_coarseas
@@ -137,17 +135,12 @@ module mod_che_seasalt
         iflg = 0
       end if
 
-      seasalt_flx(i,1) = seasalt_emfac_masacc * iflg
-      seasalt_flx(i,2) = seasalt_emfac_mascor * iflg
+      seasalt_flx(i,1) = seasalt_emfac_masacc * real(iflg,rkx)
+      seasalt_flx(i,2) = seasalt_emfac_mascor * real(iflg,rkx)
 
       if ( wind10(i) > d_zero ) then
         dumu10 = max( d_zero, min( 100.0_rkx, wind10(i) ))
         dumu10 = dumu10**3.41_rkx
-        qflxm(i,1) = seasalt_emfac_mascor * dumu10
-        qflxn(i,1) = seasalt_emfac_numcor * dumu10
-        qflxm(i,2) = seasalt_emfac_masacc * dumu10
-        qflxn(i,2) = seasalt_emfac_numacc * dumu10
-
         seasalt_flx(i,1) = seasalt_flx(i,1) * dumu10
         seasalt_flx(i,2) = seasalt_flx(i,2) * dumu10
       else

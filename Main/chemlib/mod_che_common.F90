@@ -226,8 +226,8 @@ module mod_che_common
       ntr = nbin
       allocate(chtrname(nbin))
       chtrname(1:ntr)(1:6) = ['DUST01','DUST02','DUST03','DUST04',&
-                               'DUST05','DUST06','DUST07','DUST08',&
-                               'DUST09','DUST10','DUST11','DUST12' ]
+                              'DUST05','DUST06','DUST07','DUST08',&
+                              'DUST09','DUST10','DUST11','DUST12' ]
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUST 12 bins simulation'
     else if (chemsimtype(1:4) == 'MINE') then
@@ -236,19 +236,19 @@ module mod_che_common
       ntr =  nbin * (nmine + 1)
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['DUST01', 'DUST02', 'DUST03', 'DUST04' ,&
-                               'IRON01', 'IRON02', 'IRON03', 'IRON04' ,&
-                               'HEMT01', 'HEMT02', 'HEMT03', 'HEMT04' ,&
-                               'CALC01', 'CALC02', 'CALC03', 'CALC04' ,&
-                               'GOTH01', 'GOTH02', 'GOTH03', 'GOTH04' ,&
-                               'CHLR01', 'CHLR02', 'CHLR03', 'CHLR04' ,&
-                               'FLDS01', 'FLDS02', 'FLDS03', 'FLDS04' ,&
-                               'QRTZ01', 'QRTZ02', 'QRTZ03', 'QRTZ04' ,&
-                               'SMEC01', 'SMEC02', 'SMEC03', 'SMEC04' ,&
-                               'VRMC01', 'VRMC02', 'VRMC03', 'VRMC04' ,&
-                               'GYPS01', 'GYPS02', 'GYPS03', 'GYPS04' ,&
-                               'MICA01', 'MICA02', 'MICA03', 'MICA04' ,&
-                               'KALO01', 'KALO02', 'KALO03', 'KALO04' ,&
-                               'ILIT01', 'ILIT02', 'ILIT03', 'ILIT04' ]
+                              'IRON01', 'IRON02', 'IRON03', 'IRON04' ,&
+                              'HEMT01', 'HEMT02', 'HEMT03', 'HEMT04' ,&
+                              'CALC01', 'CALC02', 'CALC03', 'CALC04' ,&
+                              'GOTH01', 'GOTH02', 'GOTH03', 'GOTH04' ,&
+                              'CHLR01', 'CHLR02', 'CHLR03', 'CHLR04' ,&
+                              'FLDS01', 'FLDS02', 'FLDS03', 'FLDS04' ,&
+                              'QRTZ01', 'QRTZ02', 'QRTZ03', 'QRTZ04' ,&
+                              'SMEC01', 'SMEC02', 'SMEC03', 'SMEC04' ,&
+                              'VRMC01', 'VRMC02', 'VRMC03', 'VRMC04' ,&
+                              'GYPS01', 'GYPS02', 'GYPS03', 'GYPS04' ,&
+                              'MICA01', 'MICA02', 'MICA03', 'MICA04' ,&
+                              'KALO01', 'KALO02', 'KALO03', 'KALO04' ,&
+                              'ILIT01', 'ILIT02', 'ILIT03', 'ILIT04' ]
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'MINERALS 70 bins simulation'
     else if ( chemsimtype(1:4) == 'SSLT' ) then
@@ -262,7 +262,7 @@ module mod_che_common
       ntr = sbin + nbin
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['DUST01','DUST02','DUST03','DUST04', &
-                               'SSLT01','SSLT02']
+                              'SSLT01','SSLT02']
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUSS simulation'
     else if ( chemsimtype(1:4) == 'FIRE' ) then
@@ -303,39 +303,38 @@ module mod_che_common
       nbin = 4
       iaerosol=1
       ioxclim =1
-      if (ismoke==1) then
-       ntr = 14
-       allocate(chtrname(ntr))
-       chtrname(1:ntr)(1:6) = ['BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
-                               'SO2   ','SO4   ','DUST01','DUST02', &
-                               'DUST03','DUST04','SSLT01','SSLT02', &
-                               'SM1   ','SM2   ' ]
+      if ( ismoke == 1 ) then
+        ntr = 14
+        allocate(chtrname(ntr))
+        chtrname(1:ntr)(1:6) = ['BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                                'SO2   ','SO4   ','DUST01','DUST02', &
+                                'DUST03','DUST04','SSLT01','SSLT02', &
+                                'SM1   ','SM2   ' ]
       else
         ntr = 12
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = ['BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
-                               'SO2   ','SO4   ','DUST01','DUST02', &
-                               'DUST03','DUST04','SSLT01','SSLT02' ]
+                                'SO2   ','SO4   ','DUST01','DUST02', &
+                                'DUST03','DUST04','SSLT01','SSLT02' ]
       end if
-
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
     else if ( chemsimtype(1:4) == 'DCCB' ) then
       nbin = 4
       ntr = 52
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
-                               'HNO3  ','HNO4  ','O3    ','H2O2  ',&
-                               'CO    ','SO2   ','DMS   ','H2SO4 ',&
-                               'CH4   ','C2H6  ','PAR   ','CH3OH ',&
-                               'HCHO  ','ALD2  ','AONE  ','ETH   ',&
-                               'OLET  ','OLEI  ','TOL   ','XYL   ',&
-                               'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
-                               'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
-                               'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
-                               'CRES  ','NH3   ','DUST01','DUST02',&
-                               'DUST03','DUST04','BC_HL ','BC_HB ',&
-                               'OC_HL ','OC_HB ','SSLT01','SSLT02',&
-                               'ANO3  ','ANH4  ','SM1   ','SM2   ' ]
+                              'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                              'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                              'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                              'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                              'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                              'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                              'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                              'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                              'CRES  ','NH3   ','DUST01','DUST02',&
+                              'DUST03','DUST04','BC_HL ','BC_HB ',&
+                              'OC_HL ','OC_HB ','SSLT01','SSLT02',&
+                              'ANO3  ','ANH4  ','SM1   ','SM2   ' ]
       iaerosol = 1
       igaschem = 1
       iisoropia = 1
@@ -345,15 +344,15 @@ module mod_che_common
       ntr = 37
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
-                               'HNO3  ','HNO4  ','O3    ','H2O2  ',&
-                               'CO    ','SO2   ','DMS   ','H2SO4 ',&
-                               'CH4   ','C2H6  ','PAR   ','CH3OH ',&
-                               'HCHO  ','ALD2  ','AONE  ','ETH   ',&
-                               'OLET  ','OLEI  ','TOL   ','XYL   ',&
-                               'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
-                               'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
-                               'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
-                               'CRES  ']
+                              'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                              'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                              'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                              'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                              'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                              'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                              'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                              'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                              'CRES  ']
       igaschem = 1
       if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
     else if ( chemsimtype(1:6) == 'POLLEN' ) then

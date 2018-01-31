@@ -455,9 +455,6 @@ module mod_che_ncio
         istatus = nf90_get_var(ncid, itvar, emtimeval)
         call check_ok(__FILE__,__LINE__, &
                       'variable time read error', 'ICBC FILE')
-
-
-
         recc = 0
         looprec: &
         do n = 1 , chmnrec

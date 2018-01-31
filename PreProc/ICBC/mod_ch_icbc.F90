@@ -447,7 +447,7 @@ module mod_ch_icbc
       istatus = nf90_get_var(ncid,ivarid,xinp(:,:,:),istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
-      where ( xinp < mintr ) xinp = d_zero
+      where ( xinp < d_zero ) xinp = d_zero
       call h_interpolate_cont(hint,xinp,chv3(:,:,:,is))
     end do
     do i = 1 , iy
@@ -466,7 +466,7 @@ module mod_ch_icbc
             do is = 1 , nchsp
               chv4_1(j,i,l,is) = max(chv3(j,i,chilev,is) + &
                  (chv3(j,i,chilev-1,is) - chv3(j,i,chilev,is)) * &
-                 (prcm-pmpi)/(pmpi-pmpj),mintr)
+                 (prcm-pmpi)/(pmpi-pmpj),d_zero)
             end do
           else if (k0 >= 1) then
             pmpj = cht42hyam(k0  )*p0+xps3(j,i)*cht42hybm(k0  )

@@ -115,8 +115,8 @@ module mod_che_sox
          !---------------------------------------------
          ! so2_rate = rk_com(i,k,12) * oh1int * d_10
          so2_rate = rk_com(i,k,12) * oh1int
-         so2_avail = max(chib(j,i,k,iso2)-mintr,d_zero)
-         so2_snk(i,k) = so2_avail*(d_one-exp(-so2_rate*dt))/dt
+         so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
+         so2_snk(i,k) = so2_avail*(d_one-exp(-so2_rate*dt))
 
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(i,k)*cldno

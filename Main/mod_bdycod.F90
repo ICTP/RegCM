@@ -1720,11 +1720,12 @@ module mod_bdycod
       end if
     end if
 
-    xbctime = xbctime + dtsec
-
     if ( ichem == 1 ) then
       call chem_bdyval(sfs%psa,wue,wui,eue,eui,nve,nvi,sve,svi)
     end if
+
+    xbctime = xbctime + dtsec
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

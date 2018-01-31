@@ -335,7 +335,7 @@ module mod_ch_icbc_clim
       istatus = nf90_get_var(ncid,ivarid,xinp)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
-      where ( xinp < mintr ) xinp = d_zero
+      where ( xinp < d_zero ) xinp = d_zero
       call h_interpolate_cont(hint,xinp,chv3(:,:,:,is))
     end do
     do i = 1 , iy
@@ -392,7 +392,7 @@ module mod_ch_icbc_clim
       istatus = nf90_get_var(ncid,ivarid,xinp)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
-      where ( xinp < mintr ) xinp = d_zero
+      where ( xinp < d_zero ) xinp = d_zero
       call h_interpolate_cont(hint,xinp,chv3(:,:,:,is))
     end do
     do i = 1 , iy

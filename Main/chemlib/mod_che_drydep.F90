@@ -582,7 +582,7 @@ module mod_che_drydep
         do k = 2 , kz
           do i = ici1 , ici2
             wk(i,k) =  max(twt(k,1)*chib(j,i,k,indsp(ib)) + &
-                           twt(k,2)*chib(j,i,k-1,indsp(ib)),mintr)
+                           twt(k,2)*chib(j,i,k-1,indsp(ib)),d_zero)/dt
           end do
         end do
         do i = ici1 , ici2
@@ -591,10 +591,10 @@ module mod_che_drydep
             !settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
             !                wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)
             ! use exponential form for stability
-            settend(i,k) =  wk(i,k+1) * (d_one - &
-              exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt  - &
-                            wk(i,k)   * (d_one - &
-              exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt ))/dt
+            settend(i,k) =  wk(i,k+1) * &
+               (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt)) - &
+                            wk(i,k)   * &
+               (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt))
 
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag > 0 ) then
@@ -615,10 +615,10 @@ module mod_che_drydep
 
             ! settend(i,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
             !                  wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
-            settend(i,kz) = max(chib(j,i,kz,indsp(ib)),mintr) * &
-              (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt -  &
+            settend(i,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)/dt * &
+              (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) -  &
                             wk(i,kz) * &
-              (d_one - exp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,k)*dt))/dt
+              (d_one - exp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,k)*dt))
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
 
             ! save the dry deposition flux for coupling with
@@ -763,10 +763,10 @@ module mod_che_drydep
            rdz = d_one / cdzq(j,i,kz)
            do n = 1 , ntr
              kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
-             kav = max(chib(j,i,kz,n)-mintr,d_zero)
+             kav = max(chib(j,i,kz,n),d_zero)/dt
              if ( kd*dt < 25.0_rkx ) then
                ! dry dep removal tendency (+)
-               ddrem(i) = kav * (d_one-exp(-kd*dt))/dt
+               ddrem(i) = kav * (d_one-exp(-kd*dt))
              else
                ddrem(i) = d_zero
              end if

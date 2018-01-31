@@ -461,12 +461,12 @@ module mod_che_bdyco
         do itr = 1 , ntr
           do k = 1 , kz
             do i = ice1 , ice2
-              trint = max(chia(jci1,i,k,itr),mintr)/psa(jci1,i)
+              trint = chia(jci1,i,k,itr)/psa(jci1,i)
               windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
               if ( windavg < d_zero ) then
                 chia(jce1,i,k,itr) = trint*psa(jce1,i)
               else
-                chia(jce1,i,k,itr) = mintr
+                chia(jce1,i,k,itr) = d_zero
               end if
             end do
           end do
@@ -479,12 +479,12 @@ module mod_che_bdyco
         do itr = 1 , ntr
           do k = 1 , kz
             do i = ice1 , ice2
-              trint = max(chia(jci2,i,k,itr),mintr)/psa(jci2,i)
+              trint = chia(jci2,i,k,itr)/psa(jci2,i)
               windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
               if ( windavg > d_zero ) then
                 chia(jce2,i,k,itr) = trint*psa(jce2,i)
               else
-                chia(jce2,i,k,itr) = mintr
+                chia(jce2,i,k,itr) = d_zero
               end if
             end do
           end do
@@ -497,12 +497,12 @@ module mod_che_bdyco
         do itr = 1 , ntr
           do k = 1 , kz
             do j = jci1 , jci2
-              trint = max(chia(j,ici1,k,itr),mintr)/psa(j,ici1)
+              trint = chia(j,ici1,k,itr)/psa(j,ici1)
               windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
               if ( windavg < d_zero ) then
                 chia(j,ice1,k,itr) = trint*psa(j,ice1)
               else
-                chia(j,ice1,k,itr) = mintr
+                chia(j,ice1,k,itr) = d_zero
               end if
             end do
           end do
@@ -515,12 +515,12 @@ module mod_che_bdyco
         do itr = 1 , ntr
           do k = 1 , kz
             do j = jci1 , jci2
-              trint = max(chia(j,ici2,k,itr),mintr)/psa(j,ici2)
+              trint = chia(j,ici2,k,itr)/psa(j,ici2)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
               if ( windavg > d_zero ) then
                 chia(j,ice2,k,itr) = trint*psa(j,ice2)
               else
-                chia(j,ice2,k,itr) = mintr
+                chia(j,ice2,k,itr) = d_zero
               end if
             end do
           end do

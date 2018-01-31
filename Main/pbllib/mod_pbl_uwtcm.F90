@@ -295,7 +295,7 @@ module mod_pbl_uwtcm
 
         if ( ichem == 1 ) then
           do itr = 1 , ntr
-            chifxx(itr) = max(m2p%chifxuw(j,i,itr),d_zero)
+            chifxx(itr) = m2p%chifxuw(j,i,itr)
             do k = 1 , kz
               chix(k,itr) = m2p%chib(j,i,k,itr)
             end do
@@ -618,13 +618,11 @@ module mod_pbl_uwtcm
             ! at surface include surface momentum fluxes
             rimp1(kz) = rimp1(kz) + dt*chifxx(itr)*rrhoxhl(kz)*rdzq(kz)
             !Run the tridiagonal solver
-            rimp1(:) = rimp1(:) * d_1000
             call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
-            uimp1(:) = uimp1(:) * d_r1000
 
             !Get the chi value implied for the next timestep
             do k = 1 , kz
-              chix(k,itr) = max(uimp1(k),mintr/psbx)
+              chix(k,itr) = max(uimp1(k),d_zero)
             end do
           end do
         end if !End tracer diffusion
