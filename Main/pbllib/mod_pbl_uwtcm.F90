@@ -238,7 +238,7 @@ module mod_pbl_uwtcm
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    integer(ik4) ::  i , j , k , itr , ibnd
+    integer(ik4) ::  i , j , k , itr , ibnd , ktr
     integer(ik4) :: ilay , kpbconv , iteration
     real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac
 #ifdef DEBUG
@@ -267,6 +267,7 @@ module mod_pbl_uwtcm
         tskx = m2p%tsk(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
+        ktr = m2p%ktrop(j,i)
         uvdragx = m2p%uvdrag(j,i)
 
         ! Integrate the hydrostatic equation to calculate the level height
@@ -413,7 +414,8 @@ module mod_pbl_uwtcm
 
         ! Calculate nsquared Set N^2 based on the current potential
         ! temperature profile
-        call n2(thlx,qwx,kz)
+        ! call n2(thlx,qwx,kz,ktr)
+        call n2(thlx,qwx,kz,2)
         ! Estimate the surface N^2 from the surface virtual heat flux
         ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
         nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
@@ -422,7 +424,7 @@ module mod_pbl_uwtcm
         !richnum = nsquar/max(svs,1.0e-8_rkx)
 
         ! Calculate the boundary layer height
-        !call pblhgt(thlx,qwx,kz,m2p%ktrop(j,i),kpbconv)
+        !call pblhgt(thlx,qwx,kz,ktr,kpbconv)
         call pblhgt(thlx,qwx,kz,3,kpbconv)
         ! call pblhgt_tao(kzp1,kpbconv)
 
@@ -473,7 +475,9 @@ module mod_pbl_uwtcm
           call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
           ! Calculate nsquared Set N^2 based on the updated potential
           ! temperature profile (this is for the semi-implicit integration)
-          call n2(uimp1,uimp2,kz)
+          !call n2(uimp1,uimp2,kz,ktr)
+          !call pblhgt(uimp1,uimp2,kz,ktr,kpbconv)
+          call n2(uimp1,uimp2,kz,2)
           call pblhgt(uimp1,uimp2,kz,3,kpbconv)
           thx_t = uimp1(kz) + wlhvocp * rexnerhl(kz) * qcx(kz)
           tvcon = (d_one + ep1*qx(kz)-qcx(kz))
@@ -794,15 +798,15 @@ module mod_pbl_uwtcm
       end do backsub
     end subroutine solve_tridiag
 
-    subroutine n2(thlxin,qwxin,ktmax)
+    subroutine n2(thlxin,qwxin,ktmax,ktmin)
       implicit none
-      integer(ik4) , intent(in) :: ktmax
+      integer(ik4) , intent(in) :: ktmax , ktmin
       real(rkx) , intent(in) , dimension(ktmax) :: thlxin , qwxin
       ! local variables
       real(rkx) :: tempv , tvbl , rcld , qcbl , tvab , thvxfl , dtvdz
       integer(ik4) :: k
 
-      do k = 2 , ktmax
+      do k = ktmin , ktmax
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
@@ -829,7 +833,11 @@ module mod_pbl_uwtcm
         dtvdz = (tvab - tvbl) *rdza(k)
         nsquar(k) = egrav/thvxfl * dtvdz
       end do
-      nsquar(1) = nsquar(2)
+      if ( ktmin > 1 ) then
+        do k = 1 , ktmin-1
+          nsquar(k) = nsquar(ktmin)
+        end do
+      end if
     end subroutine n2
 
     subroutine melloryamada(thlxin,qwxin,ktmax,kpbconv)

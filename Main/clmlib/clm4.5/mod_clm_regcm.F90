@@ -359,7 +359,7 @@ module mod_clm_regcm
         clm_a2l%forc_aer(:,5) = clm_a2l%notused
       end if
       ! wet dep OC (sum rainout and washout fluxes, sum hb and hl)
-      if(iochb >0 .and. iochl >0 ) then
+      if ( iochb > 0 .and. iochl > 0 ) then
         temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,iochb) + &
                       lm%wetdepflx(jci1:jci2,ici1:ici2,iochl)) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)

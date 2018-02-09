@@ -59,13 +59,9 @@ module mod_che_drydep
   real(rkx) , parameter :: aa2 = 0.4_rkx
   real(rkx) , parameter :: aa3 = 1.1_rkx
   !
-  ! Only one cover type per grid cell for now
-  !
-  integer, parameter :: luc = 1
-  !
   ! Number of gas taken into account by drydep scheme
   !
-  integer, parameter :: ngasd = 31
+  integer(ik4), parameter :: ngasd = 31
   !
   ! threshold of rainfall intensity to activate water covered canopy option
   !
@@ -393,7 +389,7 @@ module mod_che_drydep
       real(rkx) , dimension(ici1:ici2,luc,mbin) :: rs
       real(rkx), dimension(ici1:ici2,2:kz) :: wk, settend
       real(rkx) , dimension(mbin) :: avesize
-      integer(ik4) :: i , k , kcov , l , n , ib
+      integer(ik4) :: i , k , lcov , l , n , ib
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_aero'
       integer(ik4) , save :: idindx = 0
@@ -402,14 +398,14 @@ module mod_che_drydep
       ! here avesize is a RADIUS of the particle bin in m :
       ! calculated here from bin effective diameter in micrometer
       do n = 1 , mbin
-        avesize(n) = beffdiam(n)* 1.e-6_rkx * d_half
+        avesize(n) = beffdiam(n) * 1.e-6_rkx * d_half
       end do
       ! ********************************************************
       ! *   aerosize - dry radius                    !!     ****
       ! *   rhop  - density for each aerosol type           ****
       ! ********************************************************
       do n = 1 , mbin
-        do l = 1 , kz
+        do k = 1 , kz
           do i = ici1 , ici2
             !
             ! ********************************************************
@@ -419,35 +415,35 @@ module mod_che_drydep
             ! * air's dynamic viscosity                           ****
             ! ********************************************************
             !
-            amu(i,l) = a1*1.e-8_rkx*throw(i,l)**a2/(throw(i,l)+a3)
+            amu(i,k) = a1*1.e-8_rkx*throw(i,k)**a2/(throw(i,k)+a3)
             ! mid layer pressure in [pascal].
-            pre = pressg(i)*shj(l)
+            pre = pressg(i)*shj(k)
             !
             ! ********************************************************
             ! * mean molecular free path.                         ****
             ! *     k.v. beard [1976], j atm. sci., 33            ****
             ! ********************************************************
             !
-            amfp = c1*(amu(i,l)/c2)*(c3/pre)*sqrt(throw(i,l)/c4)
-            prii = 2.0_rkx/9.0_rkx*egrav/amu(i,l)
-            priiv = prii*(rhop-roarow(i,l))
+            amfp = c1*(amu(i,k)/c2)*(c3/pre)*sqrt(throw(i,k)/c4)
+            prii = 2.0_rkx/9.0_rkx*egrav/amu(i,k)
+            priiv = prii*(rhop-roarow(i,k))
             !
             ! ********************************************************
             ! * cunningham slip correction factor and             ****
             ! * relaxation time = vg/grav.                        ****
             ! ********************************************************
             !
-            cfac(i,l,n) = 1.0_rkx + amfp/avesize(n) * &
+            cfac(i,k,n) = 1.0_rkx + amfp/avesize(n) * &
                          (aa1+aa2*exp(-aa3*avesize(n)/amfp))
-            taurel(i,l,n) = max(priiv*avesize(n)**2*cfac(i,l,n) * &
+            taurel(i,k,n) = max(priiv*avesize(n)**2*cfac(i,k,n) * &
                             regrav,0._rkx)
             !
             ! ********************************************************
             ! * stokes friction                                  *****
-            ! ! pdepvsub(i,l,n) ' sellting dep. velocity = '
+            ! ! pdepvsub(i,k,n) ' sellting dep. velocity = '
             ! ********************************************************
             !
-            pdepvsub(i,l,n) = taurel(i,l,n)*egrav
+            pdepvsub(i,k,n) = taurel(i,k,n)*egrav
           end do
         end do
       end do
@@ -463,7 +459,7 @@ module mod_che_drydep
       ! *****************************************************
       !
       do n = 1 , mbin
-        do l = 1 , kz
+        do k = 1 , kz
           do i = ici1 , ici2
             !
             ! *****************************************************
@@ -473,11 +469,11 @@ module mod_che_drydep
             ! *****************************************************
             !
             frx1 = 1.0_rkx
-            rhsize(i,l,n) = avesize(n)*frx1 ! still a radius
-            anu(i) = amu(i,l)/roarow(i,l)
-            amob = 6.0_rkx*mathpi*amu(i,l)*rhsize(i,l,n)/cfac(i,l,n)
-            pdiff(i,l,n) = boltzk*throw(i,l)/amob
-            schm(i) = anu(i)/pdiff(i,l,n)
+            rhsize(i,k,n) = avesize(n)*frx1 ! still a radius
+            anu(i) = amu(i,k)/roarow(i,k)
+            amob = 6.0_rkx*mathpi*amu(i,k)*rhsize(i,k,n)/cfac(i,k,n)
+            pdiff(i,k,n) = boltzk*throw(i,k)/amob
+            schm(i) = anu(i)/pdiff(i,k,n)
             !
             ! ******************************************************
             ! * for brownian diffusion, there is evidence that  ****
@@ -489,19 +485,19 @@ module mod_che_drydep
             ! * ****************************************************
             !
           end do
-          if ( l == kz ) then
-            do k = 1 , luc ! luc  = 1 for the moment
+          if ( k == kz ) then
+            do l = 1 , luc ! luc  = 1 for the moment
               do i = ici1 , ici2
                 !
                 ! find the right table index for the cell cover ( ocean
                 ! and lake are 0 in the ivegcov and 14-15 in the table )
                 !
                 if ( ivegcov(i) == 0 ) then
-                  kcov = 14
+                  lcov = 14
                 else if ( ivegcov(i) > 20 ) then
-                  kcov = 20
+                  lcov = 20
                 else
-                  kcov = ivegcov(i)
+                  lcov = ivegcov(i)
                 end if
                 !
                 ! ******************************************************
@@ -514,17 +510,25 @@ module mod_che_drydep
                 ! *    (giorgi,1988)                               *****
                 ! ******************************************************
                 !
-                st = taurel(i,l,n)*ustar(i,k)*ustar(i,k)/anu(i)
+                ! Graziano - 2018-02-09 - updated Stokes number computation
+                ! Before, only the formulation for smooth surfaces was used
+                ! here.
+                if ( lcov /= 8 .and.  & lcov /= 9 .and.  & lcov /= 11 .and. &
+                     lcov /= 12 .and. & lcov /= 14 .and. & lcov /= 15 ) then
+                  st = taurel(i,k,n)*ustar(i,l)*regrav/ast(ivegcov(i))
+                else
+                  st = taurel(i,k,n)*ustar(i,l)*ustar(i,l)/anu(i)
+                end if
                 eb = schm(i)**(-0.666667_rkx)
-!               eim=(st/(st+aest(k)))**2
-                eim = (st/(st+aest(kcov)))**2
+!               eim=(st/(st+aest(lcov)))**2
+                eim = (st/(st+aest(lcov)))**2
                 eim = min(eim,0.6_rkx)
                 ein = 0.0_rkx
 !               if (arye(k) > 0.0001_rkx) then
 !                 ein = (1000.0_rkx*2.0_rkx*avesize(n)/arye(k))**1.5_rkx
 !               end if
-                if ( arye(kcov) > 0.0001_rkx ) then
-                  ein = (1000.0_rkx*2.0_rkx*avesize(n)/arye(kcov))**1.5_rkx
+                if ( arye(lcov) > 0.0001_rkx ) then
+                  ein = (1000.0_rkx*2.0_rkx*avesize(n)/arye(lcov))**1.5_rkx
                 end if
                 ein = min(ein,0.5_rkx)
                 !
@@ -537,9 +541,7 @@ module mod_che_drydep
                 ! * slinn (1982) suggested the following:         *****
                 ! * r = exp (- st^0.2)                            *****
                 ! *****************************************************
-
-                r1 = max(0.5_rkx,exp(-(min(sqrt(st),25.0_rkx))))
-                if ( kcov >= 11 .and. r1 < 0.5_rkx ) r1 = 0.5_rkx
+                r1 = exp(-sqrt(st))
                 if ( r1 < 0.4_rkx ) r1 = 0.4_rkx
                 ! ***************************************************
                 ! * calculation of rs: the surface resistance   *****
@@ -547,8 +549,14 @@ module mod_che_drydep
                 ! * of the surface and is determined by the     *****
                 ! * various deposition processes                *****
                 ! ***************************************************
-!               rs= 1.0/ustar(i,k)/(eb+eim+ein)/r1
-                rs(i,k,n) = 1.0_rkx/3.0_rkx/ustar(i,k)/(eb+eim+ein)/r1
+!               rs= 1.0/ustar(i,l)/(eb+eim+ein)/r1
+                rs(i,l,n) = 3.0_rkx*ustar(i,l)*(eb+eim+ein)*r1
+                ! Graziano - 2018-02-09 - Limit this resistence
+                if ( rs(i,l,n) > 1.0e-6 ) then
+                  rs(i,l,n) = d_one/rs(i,l,n)
+                else
+                  rs(i,l,n) = 1.0e6
+                end if
               end do
             end do
           end if
@@ -683,13 +691,13 @@ module mod_che_drydep
       use mod_che_indices
       implicit none
       integer(ik4) , intent(in) :: j
-      integer, intent(in) :: lmonth , lday
+      integer(ik4), intent(in) :: lmonth , lday
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
       real(rkx) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
                                             prec, temp10 , wind10 , zeff
       real(rkx),  dimension(ici1:ici2,ntr) :: drydepvg
 
-      integer(ik4) :: n , i , im , kcov
+      integer(ik4) :: n , i , im , lcov
       real(rkx) , dimension(ici1:ici2,luc) :: ustar, resa
       real(rkx) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
       real(rkx) , dimension(ngasd,ici1:ici2,luc) :: vdg
@@ -706,24 +714,24 @@ module mod_che_drydep
 
       do i = ici1 , ici2
         if ( ivegcov(i) == 0 ) then
-          kcov = 14
+          lcov = 14
         else if ( ivegcov(i) > 20 ) then
-          kcov = 20
+          lcov = 20
         else
-          kcov = ivegcov(i)
+          lcov = ivegcov(i)
         end if
         im = lmonth - 1
         if ( lmonth == 1 ) im = 12
         if (lday <= 15 ) then
-          lai_f(i) = lai(kcov,im) + (lai(kcov,lmonth) - &
-                     lai(kcov,im))/30._rkx * real(15 + lday,rkx)
+          lai_f(i) = lai(lcov,im) + (lai(lcov,lmonth) - &
+                     lai(lcov,im))/30._rkx * real(15 + lday,rkx)
         else
-          lai_f(i) = lai(kcov,lmonth) + (lai(kcov,lmonth+1) - &
-                     lai(kcov,lmonth))/30._rkx * real(lday - 15,rkx)
+          lai_f(i) = lai(lcov,lmonth) + (lai(lcov,lmonth+1) - &
+                     lai(lcov,lmonth))/30._rkx * real(lday - 15,rkx)
         end if
         if ( lai_f(i) < d_zero) lai_f(i) = d_zero
-        laimin(i) = lai(kcov,14)
-        laimax(i) = lai(kcov,15)
+        laimin(i) = lai(lcov,14)
+        laimax(i) = lai(lcov,15)
       end do
       call aerodyresis(zeff,wind10,temp10,tsurf,rh10,srad,ivegcov,ustar,resa)
       snow(:) = d_zero
@@ -810,7 +818,7 @@ module mod_che_drydep
       real(rkx) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
       real(rkx) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
       real(rkx) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
-      integer(ik4) :: i , j
+      integer(ik4) :: i , j , l
       real(rkx) :: vp , tsv
       real(rkx) :: z , zl , ww
       real(rkx) :: ptemp2 , es , qs
@@ -845,7 +853,7 @@ module mod_che_drydep
       ! *           (0.0-1.0)                           ****
       ! * stdpmb - sea level pressure (mb)              ****
       ! ****************************************************
-      do j = 1 , luc
+      do l = 1 , luc
         do i = ici1 , ici2
           ww = max(wind10(i),1.0_rkx)
           zz0(i) = zeff(i)
@@ -914,7 +922,7 @@ module mod_che_drydep
               psit = psiu
             end if
             z0water = 0.000002_rkx*ww**2.5_rkx
-            ustar(i,j) = vonkar*ww/(log(z10/z0water)-psiu)
+            ustar(i,l) = vonkar*ww/(log(z10/z0water)-psiu)
             thstar = vonkar*(ptemp2-sutemp(i)) / &
                      (0.74_rkx*log(z10/z0water)-psit)
             zz0(i) = z0water
@@ -948,12 +956,12 @@ module mod_che_drydep
             end if
             ustarsq = asq*ww**2*fm
             utstar = asq*ww*dtemp*fh/0.74_rkx
-            ustar(i,j) = sqrt(ustarsq)
-            thstar = utstar/ustar(i,j)
+            ustar(i,l) = sqrt(ustarsq)
+            thstar = utstar/ustar(i,l)
             mol = tbar*ustarsq/(vonkar*egrav*thstar)
           end if
 
-          kui = 1.0_rkx/(vonkar*ustar(i,j))
+          kui = 1.0_rkx/(vonkar*ustar(i,l))
 
           ! **************************************************************
           ! * compute the values of  ra                            *******
@@ -961,13 +969,13 @@ module mod_che_drydep
           z = z10
           zl = z/mol
           if ( zl >= 0.0_rkx ) then
-            ra(i,j) = kui*(0.74_rkx*log(z/zz0(i))+4.7_rkx*zl)
+            ra(i,l) = kui*(0.74_rkx*log(z/zz0(i))+4.7_rkx*zl)
           else
-            ra(i,j) = kui*0.74_rkx*(log(z/zz0(i))- &
+            ra(i,l) = kui*0.74_rkx*(log(z/zz0(i))- &
                       2.0_rkx*log((1.0_rkx+sqrt(1.0_rkx-9.0_rkx*zl))*0.5_rkx))
           end if
-          ra(i,j) = max(ra(i,j),0.99_rkx)
-          ra(i,j) = min(ra(i,j),999.9_rkx)
+          ra(i,l) = max(ra(i,l),0.99_rkx)
+          ra(i,l) = min(ra(i,l),999.9_rkx)
         end do
       end do
 #ifdef DEBUG
@@ -986,7 +994,7 @@ module mod_che_drydep
       real(rkx) , intent(in) , dimension(ici1:ici2,luc) :: ustar
       real(rkx) , intent(out) , dimension(igas,ici1:ici2,luc) :: rb , rc
 
-      integer(ik4) :: i , j , kcov , ig
+      integer(ik4) :: i , l , lcov , ig
       real(rkx) :: rst , wst , rac , rgs_f
       real(rkx) :: rdu , rdv , rgo_f
       real(rkx) :: rcuto_f , rcuts_f
@@ -1014,21 +1022,21 @@ module mod_che_drydep
       call time_begin(subroutine_name,idindx)
 #endif
 
-      do j = 1 , luc
+      do l = 1 , luc
         do i = ici1 , ici2
           is_rain = .false.
           is_dew  = .false.
           if ( ivegcov(i) == 0 ) then
-            kcov = 14
+            lcov = 14
           else
-            kcov = ivegcov(i)
+            lcov = ivegcov(i)
           end if
 !         print*,'srad ====', srad(i)
 !         print*,' ts  ====', ts(i)
 !         print*,' coszen == ', coszen(i)
 
-          tmaxk = tmax(kcov) + tzero
-          tmink = tmin(kcov) + tzero
+          tmaxk = tmax(lcov) + tzero
+          tmink = tmin(lcov) + tzero
 !         print *, ' tmax, tmin ==== ', tmaxk, tmink
           ! initialise rst as undef
           rst = -999.0_rkx
@@ -1083,8 +1091,8 @@ module mod_che_drydep
               psun = pardir * 0.5_rkx/coszen(i) + pshad
             end if
 !           print *, 'pshad   psun   ', pshad , psun
-            rshad = rsminz(kcov) + brs(kcov) * rsminz(kcov)/pshad
-            rsun  = rsminz(kcov) + brs(kcov) * rsminz(kcov)/psun
+            rshad = rsminz(lcov) + brs(lcov) * rsminz(lcov)/pshad
+            rsun  = rsminz(lcov) + brs(lcov) * rsminz(lcov)/psun
             gshad = 1.0_rkx/rshad
             gsun  = 1.0_rkx/rsun
 !           print *, 'rshad  ----< ', rshad, rsun, ' >---------rsun'
@@ -1112,24 +1120,24 @@ module mod_che_drydep
             ! function for temperature effect
             !================================================================
             temps = ts(i) - tzero
-            bt = (tmax(kcov) - topt(kcov))/(topt(kcov) - tmin(kcov))
-            gt = (tmax(kcov) - temps)/(tmax(kcov) - topt(kcov))
+            bt = (tmax(lcov) - topt(lcov))/(topt(lcov) - tmin(lcov))
+            gt = (tmax(lcov) - temps)/(tmax(lcov) - topt(lcov))
             gt = gt**bt
-            gt = gt*(temps - tmin(kcov))/(topt(kcov) - tmin(kcov))
+            gt = gt*(temps - tmin(lcov))/(topt(lcov) - tmin(lcov))
 !           print *, 'gt ==========',gt
             !================================================================
             ! function for vapor pressure deficit
             !================================================================
             es = 6.108_rkx*exp(17.27_rkx*(ts(i)-tzero)/(ts(i)-35.86_rkx))
             d0 = es*(d_one-rh(i))/10.0_rkx ! kPa
-            gd = 1.0_rkx - bvpd(kcov) * d0
+            gd = 1.0_rkx - bvpd(lcov) * d0
 !           print *, 'gd===',gd
             !================================================================
             ! function for water stress
             !================================================================
             psi = (-0.72_rkx - 0.0013_rkx * srad(i))
 !           psi_s = (-0.395_rkx-0.043_rkx*(ts-tzero))*102.0_rkx
-            gw = (psi - psi2(kcov))/(psi1(kcov) - psi2(kcov))
+            gw = (psi - psi2(lcov))/(psi1(lcov) - psi2(lcov))
 !           print *, 'gw==',gw
 !           TEST
 !           gw = 1
@@ -1154,7 +1162,7 @@ module mod_che_drydep
           if ( ts(i) > tzero .and. prec(i) > rainthr ) then
             is_rain = .true.
 !           print *, 'rain==='
-          else if (ts(i) > tzero .and. ustar(i,j) < usmin) then
+          else if (ts(i) > tzero .and. ustar(i,l) < usmin) then
             is_dew = .true.
 !           print *, 'dew==='
 !           print *, 'NO dew, NO rain ==='
@@ -1170,75 +1178,75 @@ module mod_che_drydep
           !================================================================
           ! In-canopy aerodynamic resistance
           !================================================================
-          rac = rac1(kcov)+(lai_f(i)-laimin(i))/ &
-                (laimax(i)-laimin(i)+1.e-10_rkx)*(rac2(kcov)-rac1(kcov))
+          rac = rac1(lcov)+(lai_f(i)-laimin(i))/ &
+                (laimax(i)-laimin(i)+1.e-10_rkx)*(rac2(lcov)-rac1(lcov))
 !         print *, 'rac1 = ', rac
-          rac = rac*lai_f(i)**0.25_rkx/ustar(i,j)/ustar(i,j)
+          rac = rac*lai_f(i)**0.25_rkx/ustar(i,l)/ustar(i,l)
 !         print *, 'rac2 = ', rac
           !================================================================
           ! Ground resistance for O3
           !================================================================
-          if (ts(i) < 272.15_rkx .and. kcov /= 14 ) then
-            rgo_f = min( rgo(kcov)*2.0_rkx, rgo(kcov) *     &
+          if (ts(i) < 272.15_rkx .and. lcov /= 14 ) then
+            rgo_f = min( rgo(lcov)*2.0_rkx, rgo(lcov) *     &
                            exp(0.2_rkx*(272.15_rkx-ts(i))))
 !           print *, 'rgo_f1 =',rgo_f, ts(i)
           else
-            rgo_f = rgo(kcov)
+            rgo_f = rgo(lcov)
           end if
           !================================================================
           ! Ground resistance for SO2
           !================================================================
-          if ( kcov == 12 ) then
-            rgs_f = min(rgs(kcov)*(275.15_rkx - ts(i)), 500._rkx)
-            rgs_f = max(rgs(kcov), 100._rkx)
+          if ( lcov == 12 ) then
+            rgs_f = min(rgs(lcov)*(275.15_rkx - ts(i)), 500._rkx)
+            rgs_f = max(rgs(lcov), 100._rkx)
 !           print *, 'rgs_f ==== ', rgs_f
-          else if ( is_rain .and. kcov /= 14 ) then
+          else if ( is_rain .and. lcov /= 14 ) then
             rgs_f = 50.0_rkx
 !           print *, 'rgs_f ==== ', rgs_f
-          else if ( is_dew .and. kcov /= 14 ) then
+          else if ( is_dew .and. lcov /= 14 ) then
             rgs_f = 100.0_rkx
 !           print *, 'rgs_f ==== ', rgs_f
-          else if ( ts(i) < 272.156_rkx .and. kcov /= 14 ) then
-            rgs_f = min(rgs(kcov)*2.0_rkx, rgs(kcov) *     &
+          else if ( ts(i) < 272.156_rkx .and. lcov /= 14 ) then
+            rgs_f = min(rgs(lcov)*2.0_rkx, rgs(lcov) *     &
                           exp(0.2_rkx*(272.156_rkx - ts(i))))
 !           print *, 'rgs_f ==== ', rgs_f
           else
-            rgs_f = rgs(kcov)
+            rgs_f = rgs(lcov)
 !           print *, 'rgs_f ==== ', rgs_f
           end if
           !================================================================
           ! Cuticle resistance for O3 AND SO2
           !================================================================
-          if ( rcutdo(kcov) <= -1.0_rkx ) then
+          if ( rcutdo(lcov) <= -1.0_rkx ) then
             rcuto_f = 1.e25_rkx
             rcuts_f = 1.e25_rkx
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_rain ) then
-            rcuto_f = rcutwo(kcov)/sqrt(lai_f(i))/ustar(i,j)
-            rcuts_f = 50.0_rkx/sqrt(lai_f(i))/ustar(i,j)
+            rcuto_f = rcutwo(lcov)/sqrt(lai_f(i))/ustar(i,l)
+            rcuts_f = 50.0_rkx/sqrt(lai_f(i))/ustar(i,l)
             rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_dew ) then
-            rcuto_f = rcutwo(kcov)/sqrt(lai_f(i))/ustar(i,j)
-            rcuts_f = 100.0_rkx/sqrt(lai_f(i))/ustar(i,j)
+            rcuto_f = rcutwo(lcov)/sqrt(lai_f(i))/ustar(i,l)
+            rcuts_f = 100.0_rkx/sqrt(lai_f(i))/ustar(i,l)
             rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if (ts(i) < 272.156_rkx ) then
             ryx = exp(0.2_rkx * (272.156_rkx - ts(i) ))
-            rcuto_f = rcutdo(kcov)/exp(3.0_rkx * rh(i))/     &
-                      lai_f(i)**0.25_rkx/ustar(i,j)
-            rcuts_f = rcutds(kcov)/exp(3.0_rkx * rh(i))/     &
-                      lai_f(i)**0.25_rkx/ustar(i,j)
+            rcuto_f = rcutdo(lcov)/exp(3.0_rkx * rh(i))/     &
+                      lai_f(i)**0.25_rkx/ustar(i,l)
+            rcuts_f = rcutds(lcov)/exp(3.0_rkx * rh(i))/     &
+                      lai_f(i)**0.25_rkx/ustar(i,l)
             rcuto_f = min(rcuto_f * 2.0_rkx, rcuto_f * ryx )
             rcuts_f = min(rcuts_f * 2.0_rkx, rcuts_f * ryx )
             rcuto_f = max(rcuto_f,100._rkx)
             rcuts_f = max(rcuts_f,100._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else
-            rcuto_f = rcutdo(kcov)/exp(3.0_rkx*rh(i)) / &
-                      lai_f(i)**0.25_rkx/ustar(i,j)
-            rcuts_f = rcutds(kcov)/exp(3.0_rkx*rh(i)) / &
-                      lai_f(i)**0.25_rkx/ustar(i,j)
+            rcuto_f = rcutdo(lcov)/exp(3.0_rkx*rh(i)) / &
+                      lai_f(i)**0.25_rkx/ustar(i,l)
+            rcuts_f = rcutds(lcov)/exp(3.0_rkx*rh(i)) / &
+                      lai_f(i)**0.25_rkx/ustar(i,l)
             rcuto_f = max(rcuto_f, 100._rkx)
             rcuts_f = max(rcuts_f, 100._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
@@ -1247,13 +1255,13 @@ module mod_che_drydep
           ! If snow occurs, Rg and Rcut are adjusted by snow cover
           ! fraction
           !================================================================
-          fsnow = sd(i)/sdmax(kcov)
+          fsnow = sd(i)/sdmax(lcov)
           fsnow = min(1.0_rkx, fsnow)   !snow cover fraction for leaves
 !         print *, ' fsnow=  ', fsnow
-          if ( fsnow > 0.0001_rkx .and. kcov /= 20 .or. &
-                                        kcov /= 15 .or. &
-                                        kcov /= 14 .or. &
-                                        kcov /= 12 ) then
+          if ( fsnow > 0.0001_rkx .and. lcov /= 20 .or. &
+                                        lcov /= 15 .or. &
+                                        lcov /= 14 .or. &
+                                        lcov /= 12 ) then
             rsnows = min(70.0_rkx*(275.15_rkx-ts(i)), 500._rkx)
             rsnows = max(rsnows, 100._rkx)
             rcuts_f = 1.0_rkx/((1.0_rkx - fsnow)/rcuts_f + fsnow/rsnows)
@@ -1278,8 +1286,8 @@ module mod_che_drydep
             !================================================================
             ! Calculate quasi-laminar resistance
             !================================================================
-            rb(ig,i,j) = 5.0_rkx/ustar(i,j) * (vi/di)**.666667_rkx
-!           print *, 'rb==', rb(ig,i,j)
+            rb(ig,i,l) = 5.0_rkx/ustar(i,l) * (vi/di)**.666667_rkx
+!           print *, 'rb==', rb(ig,i,l)
             !================================================================
             ! Calculate stomatal resistance for each species from the ratio
             ! of  diffusity of water vapor to the gas species
@@ -1301,9 +1309,9 @@ module mod_che_drydep
             ! for bare surfaces)
             ! set wst to 1 also in that case (total stomatal blocking).
             if ( rst == -999.0 ) wst = 1.0_rkx
-!           rc(ig,i,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rg)+1.0_rkx/rcut
-            rc(ig,i,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rac+rg)+1.0_rkx/rcut
-            rc(ig,i,j) = max(10._rkx,1.0_rkx/rc(ig,i,j))
+!           rc(ig,i,l) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rg)+1.0_rkx/rcut
+            rc(ig,i,l) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rac+rg)+1.0_rkx/rcut
+            rc(ig,i,l) = max(10._rkx,1.0_rkx/rc(ig,i,l))
           end do !igas
         end do !ilg
       end do !luc

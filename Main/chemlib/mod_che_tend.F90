@@ -75,10 +75,10 @@
       real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
       real(rkx) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
       real(rkx) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
-                 srad , temp10 , tsurf , vegfrac , wid10 , zeff , ustar , &
-                 hsurf
+                 srad , temp10 , tsurf , vegfrac , wid10 , zeff , hsurf
       real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: bchi
-      real(rkx) , dimension(ici1:ici2,1) :: xra
+      real(rkx) , dimension(ici1:ici2,luc,jci1:jci2) :: ustar
+      real(rkx) , dimension(ici1:ici2,luc) :: xra
       real(rkx) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
       real(rkx) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
@@ -307,8 +307,8 @@
         do j = jci1 , jci2
 
           call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
-            rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
-          call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),zeff(:,j),      &
+            rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
+          call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,1,j),zeff(:,j),      &
                       soilw(:,j),wid10(:,j),rho(:,kz,j), &
                       dustbsiz,dust_flx(:,:,j))
         end do
@@ -333,8 +333,8 @@
       if ( ipollen > 0 ) then
         do j = jci1 , jci2
          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
-           rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
-         call pollen_emission(j,ustar(:,j),wid10(:,j),rh10(:,j), &
+           rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
+         call pollen_emission(j,ustar(:,1,j),wid10(:,j),rh10(:,j), &
            prec(:,kz,j), convprec(:,kz,j))
         end do
       end if
