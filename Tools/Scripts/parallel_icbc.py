@@ -100,7 +100,7 @@ def eomonth(date, cal):
             xdate.day = dayomon[date.month-1]
     elif cal == "noleap":
         xdate.day = dayomon[date.month-1]
-    elif cal == "360_days":
+    elif cal == "360_day":
         xdate.day = 30
     else:
         raise RuntimeError("Unknown calendar")
