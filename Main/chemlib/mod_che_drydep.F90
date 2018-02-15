@@ -513,8 +513,8 @@ module mod_che_drydep
                 ! Graziano - 2018-02-09 - updated Stokes number computation
                 ! Before, only the formulation for smooth surfaces was used
                 ! here.
-                if ( lcov /= 8 .and.  & lcov /= 9 .and.  & lcov /= 11 .and. &
-                     lcov /= 12 .and. & lcov /= 14 .and. & lcov /= 15 ) then
+                if ( lcov /= 8 .and.  lcov /= 9 .and.  lcov /= 11 .and. &
+                     lcov /= 12 .and. lcov /= 14 .and. lcov /= 15 ) then
                   st = taurel(i,k,n)*ustar(i,l)*regrav/ast(ivegcov(i))
                 else
                   st = taurel(i,k,n)*ustar(i,l)*ustar(i,l)/anu(i)
