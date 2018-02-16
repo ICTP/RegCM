@@ -1134,10 +1134,6 @@ module mod_lm_interface
       runoffcount = runoffcount + d_one
     end if
 
-    ! Reset accumulation from precip and cumulus
-    lm%ncprate = d_zero
-    lm%cprate  = d_zero
-
     ! Reset also accumulation for deposition fluxes
     if ( ichem == 1 ) then
       lm%wetdepflx = d_zero

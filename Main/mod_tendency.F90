@@ -421,6 +421,9 @@ module mod_tendency
     ! Check mass
     !
     if ( debug_level > 0 ) call massck
+    ! Reset accumulation from precip and cumulus
+    pptnc(:,:) = d_zero
+    pptc(:,:)  = d_zero
     !
     ! Compute future values of t and moisture variables at tau+1:
     !

@@ -58,6 +58,11 @@ module mod_massck
     real(wrkp) :: tcrai , tncrai , tqeva
     real(wrkp) :: drymass , dryadv , qmass , qadv , craim , ncraim , evapm
     real(wrkp) :: north , south , east , west
+    real(wrkp) , save :: mcrai = 0.0_wrkp
+    real(wrkp) , save :: mncrai = 0.0_wrkp
+    real(wrkp) , save :: mevap = 0.0_wrkp
+    real(wrkp) , save :: mdryadv = 0.0_wrkp
+    real(wrkp) , save :: mqadv = 0.0_wrkp
     integer(ik4) :: i , j , k , n
 
     tdrym = q_zero
@@ -204,9 +209,15 @@ module mod_massck
     call sumall(tncrai,ncraim)
     call sumall(tqeva,evapm)
 
+    mcrai = (mcrai + craim) / 2.0_wrkp
+    mncrai = (mncrai + ncraim) / 2.0_wrkp
+    mevap = (mevap + evapm) / 2.0_wrkp
+    mdryadv = (mdryadv + dryadv) / 2.0_wrkp
+    mqadv = (mqadv + qadv) / 2.0_wrkp
+
     if ( myid == italk ) then
       drymass = drymass - dryadv
-      qmass = qmass + tcrai + tncrai - qadv - evapm
+      qmass = qmass + craim + ncraim - qadv - evapm
       if ( dryini < dlowval ) dryini = drymass
       if ( watini < dlowval ) watini = qmass
       dryerror = dryerror + &
@@ -221,11 +232,11 @@ module mod_massck
                    ' kg, error = ', dryerror, ' %'
         write(stdout,'(a,e12.5,a,f9.5,a)') ' Total water     =', qmass, &
                    ' kg, error = ', waterror, ' %'
-        write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', dryadv , ' kg.'
-        write(stdout,'(a,e12.5,a)') ' Water boundary      = ', qadv, ' kg.'
-        write(stdout,'(a,e12.5,a)') ' Convective rain     = ', tcrai, ' kg.'
-        write(stdout,'(a,e12.5,a)') ' Nonconvective rain  = ', tncrai, ' kg.'
-        write(stdout,'(a,e12.5,a)') ' Ground Evaporation  = ', evapm, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', mdryadv , ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Water boundary      = ', mqadv, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Convective rain     = ', mcrai, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Nonconvective rain  = ', mncrai, ' kg.'
+        write(stdout,'(a,e12.5,a)') ' Ground Evaporation  = ', mevap, ' kg.'
         write(stdout,'(a)') &
             ' *****************************************************'
         dryerror = 0.0_rk8
