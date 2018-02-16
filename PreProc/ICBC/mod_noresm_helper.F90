@@ -103,7 +103,7 @@ module mod_noresm_helper
     character(len=*) , intent(in) :: var
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=10) :: d1 , d2
-    integer(ik4) :: y , m , d , h
+    integer(ik4) :: y , m , d , h , y1
     call split_idate(idate,y,m,d,h)
     if ( var == 'ps' ) then
       if ( y < 2000 ) then
@@ -114,12 +114,13 @@ module mod_noresm_helper
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') 2000, 1, 1, 0
         write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2005, 12, 31, 18
       else if ( y >= 2006 .and. y < 2100 ) then
-        y = y/10*10+6
-        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y, 1, 1, 0
+        y1 = y/10*10+6
+        if ( y < y1 ) y1 = y1 - 10
+        write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, 1, 1, 0
         if ( y == 2096 ) then
           write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2100, 12, 31, 18
         else
-          write(d2,'(i0.4,i0.2,i0.2,i0.2)') y+9, 12, 31, 18
+          write(d2,'(i0.4,i0.2,i0.2,i0.2)') y1+9, 12, 31, 18
         end if
       else
         y = y/10*10+1
