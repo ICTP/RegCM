@@ -63,7 +63,11 @@ module mod_massck
     real(wrkp) , save :: mevap = 0.0_wrkp
     real(wrkp) , save :: mdryadv = 0.0_wrkp
     real(wrkp) , save :: mqadv = 0.0_wrkp
+    real(wrkp) :: w1 , w2
     integer(ik4) :: i , j , k , n
+
+    w2 = real(dt,wrkp)/86400.0_wrkp
+    w1 = 1.0_wrkp - w2
 
     tdrym = q_zero
     tdadv = q_zero
@@ -209,11 +213,11 @@ module mod_massck
     call sumall(tncrai,ncraim)
     call sumall(tqeva,evapm)
 
-    mcrai = (mcrai + craim) / 2.0_wrkp
-    mncrai = (mncrai + ncraim) / 2.0_wrkp
-    mevap = (mevap + evapm) / 2.0_wrkp
-    mdryadv = (mdryadv + dryadv) / 2.0_wrkp
-    mqadv = (mqadv + qadv) / 2.0_wrkp
+    mcrai = w1*mcrai + w2*craim
+    mncrai = w1*mncrai + w2*ncraim
+    mevap = w1*mevap + w2*evapm
+    mdryadv = w1*mdryadv + w2*dryadv
+    mqadv = w1*mqadv + w2*qadv
 
     if ( myid == italk ) then
       drymass = drymass - dryadv
@@ -232,6 +236,7 @@ module mod_massck
                    ' kg, error = ', dryerror, ' %'
         write(stdout,'(a,e12.5,a,f9.5,a)') ' Total water     =', qmass, &
                    ' kg, error = ', waterror, ' %'
+        write(stdout,'(a)') ' Mean values over past 24 hours :'
         write(stdout,'(a,e12.5,a)') ' Dry air boundary    = ', mdryadv , ' kg.'
         write(stdout,'(a,e12.5,a)') ' Water boundary      = ', mqadv, ' kg.'
         write(stdout,'(a,e12.5,a)') ' Convective rain     = ', mcrai, ' kg.'
