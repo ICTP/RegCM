@@ -127,7 +127,7 @@ module mod_params
     namelist /microparam/ stats , budget_compute , nssopt ,  &
       iautoconv , vfqr , vfqi , vfqs , auto_rate_khair ,     &
       auto_rate_kessl , auto_rate_klepi , rkconv , skconv ,  &
-      rcovpmin , rpecons
+      rcovpmin , rpecons , rcldiff
 
     namelist /grellparam/ igcc , shrmin , shrmax , edtmin , &
       edtmax , edtmino , edtmaxo , edtminx , edtmaxx , pbcmax ,    &
@@ -351,8 +351,9 @@ module mod_params
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx
     auto_rate_klepi = 0.5e-3_rkx
-    rkconv = 1.666e-4_rkx ! d_one/6000.0_rkx
+    rkconv = 1.666e-4_rkx ! 1.0/6000.0
     skconv = 1.0e-3_rkx
+    rcldiff = 1.0e-6_rkx
     rcovpmin = 0.1_rkx
     rpecons = 5.547e-5_rkx
     !
@@ -1255,6 +1256,7 @@ module mod_params
       call bcast(rpecons)
       call bcast(rkconv)
       call bcast(skconv)
+      call bcast(rcldiff)
     end if
 
     if ( ipptls > 1 ) then

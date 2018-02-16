@@ -71,7 +71,7 @@ module mod_micro_nogtom
   use mod_runparams , only : ipptls , ichem , iaerosol , iindirect , rcrit
   use mod_runparams , only : budget_compute , nssopt , iautoconv
   use mod_runparams , only : auto_rate_khair , auto_rate_kessl , &
-                             auto_rate_klepi
+                             auto_rate_klepi , rcldiff
   use mod_runparams , only : rkconv , skconv , rcovpmin , rpecons
 
 #ifdef DEBUG
@@ -85,8 +85,6 @@ module mod_micro_nogtom
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  !real(rkx) , parameter :: rcldiff = 1.e-6_rkx ! 3.e-6_rkx ! 3.e-4_rkx
-  real(rkx) , parameter :: rcldiff = d_one/3600.0_rkx !  one hour
   real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
   real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
 
@@ -240,6 +238,8 @@ module mod_micro_nogtom
   real(rkx) , parameter :: zerocf = 1.0e-2_rkx
   real(rkx) , parameter :: onecf  = 0.99_rkx
 
+  real(rkx) :: aamin
+
   abstract interface
     subroutine voidsub
       implicit none
@@ -309,6 +309,7 @@ module mod_micro_nogtom
       call getmem4d(tenkeep,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:tenkeep')
       call getmem3d(tentkeep,jci1,jci2,ici1,ici2,1,kz,'cmicro:tentkeep')
     end if
+    aamin = minqq/nqx
   end subroutine allocate_mod_nogtom
 
   subroutine init_nogtom(ldmsk)
@@ -2060,10 +2061,8 @@ module mod_micro_nogtom
         do jn = 1 , nqx
           if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
         end do
-        if ( aamax < dlowval ) then
-          ! Assume no change...
-          qxn(iqqv) = max(qxn(iqqv),minqq)
-          return
+        if ( aamax < aamin ) then
+          aamax = aamin
         end if
         vv(n) = d_one/aamax ! Save the scaling.
       end do

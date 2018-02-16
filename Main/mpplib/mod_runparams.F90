@@ -474,6 +474,7 @@ module mod_runparams
   real(rkx) , public :: auto_rate_klepi
   real(rkx) , public :: rkconv
   real(rkx) , public :: skconv
+  real(rkx) , public :: rcldiff
   ! limit values
   real(rkx) , public :: rcovpmin
   ! evaporation values

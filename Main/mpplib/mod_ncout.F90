@@ -2830,6 +2830,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_snowautoconv_timescale_sund',skconv))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('micro_turbulent_evaporation_coeff',rcldiff))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_min_cloud_coverage',rcovpmin))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_evap_rate',rpecons))
