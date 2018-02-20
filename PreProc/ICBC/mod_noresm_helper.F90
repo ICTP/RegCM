@@ -117,7 +117,7 @@ module mod_noresm_helper
         y1 = y/10*10+6
         if ( y < y1 ) y1 = y1 - 10
         write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, 1, 1, 0
-        if ( y == 2096 ) then
+        if ( y >= 2096 ) then
           write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2100, 12, 31, 18
         else
           write(d2,'(i0.4,i0.2,i0.2,i0.2)') y1+9, 12, 31, 18
