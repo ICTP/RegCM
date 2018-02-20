@@ -354,7 +354,7 @@ AC_SUBST(FCPROG)
 
 AM_CONDITIONAL(COMPILER_IBM, [ test -z "${FCPROG##xlf200*}" -o \
                                     -z "${FCPROG##bgxlf200*}" ] )
-AM_CONDITIONAL(COMPILER_CRAY, [ test -z "${FCPROG##xftn*}" ] )
+AM_CONDITIONAL(COMPILER_CRAY, [ test -z "${FCPROG##ftn*}" ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test -z "${FCPROG##gfortran*}" -o \
                                     -z "${FCPROG##\/gfortran*}" -o \
                                     -z "${FCPROG##scorep}" ] )
