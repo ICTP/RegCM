@@ -110,6 +110,7 @@ module mod_ipsl_helper
           y2 = 2005
         else
           y1 = y/50*50+6
+          if ( y1 > y ) y1 = y1 - 10
           y2 = y1 + 49
         end if
       case default
@@ -121,6 +122,7 @@ module mod_ipsl_helper
           y2 = y1+9
         else
           y1 = y/10*10+6
+          if ( y1 > y ) y1 = y1 - 10
           y2 = y1 + 9
         end if
     end select
