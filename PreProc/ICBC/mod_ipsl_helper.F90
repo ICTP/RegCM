@@ -110,7 +110,7 @@ module mod_ipsl_helper
           y2 = 2005
         else
           y1 = y/50*50+6
-          if ( y1 > y ) y1 = y1 - 10
+          if ( y1 > y ) y1 = y1 - 50
           y2 = y1 + 49
         end if
       case default
