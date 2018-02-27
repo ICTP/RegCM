@@ -135,6 +135,8 @@ module mod_che_emission
       end if
       ! finally add biomass burning emissions to anthropogenic emissions
       chemsrc(:,:,:) = chemsrcbb(:,:,:) + chemsrcan(:,:,:)
+    else
+      chemsrc(:,:,:) = chemsrcan(:,:,:)
     end if
 
 #ifdef DEBUG
