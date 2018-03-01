@@ -55,7 +55,7 @@ module mod_kdinterp
     module procedure interp_class_ld
   end interface h_interpolate_class
 
-  integer(ik4) , parameter :: minp = 4
+  integer(ik4) , parameter :: minp = 5
   integer(ik4) , parameter :: maxp = 64
 
   real(rkx) , parameter :: missl = -9999.0_rkx
@@ -116,7 +116,7 @@ module mod_kdinterp
     if ( present(ds) ) then
       dx = ds
     else
-      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+      dx = max(dist(x,np/2,np/2-1),dist(x,np/2+1,np/2)) * sqrt(d_two)
     end if
     if ( present(roi) ) then
       r2 = dx*dx*roi*roi
@@ -213,7 +213,7 @@ module mod_kdinterp
     if ( present(ds) ) then
       dx = ds
     else
-      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+      dx = max(dist(x,np/2,np/2-1),dist(x,np/2+1,np/2)) * sqrt(d_two)
     end if
     if ( present(roi) ) then
       r2 = dx*dx*roi*roi
@@ -317,7 +317,7 @@ module mod_kdinterp
     if ( present(ds) ) then
       dx = ds
     else
-      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+      dx = max(dist(x,np/2,np/2-1),dist(x,np/2+1,np/2)) * sqrt(d_two)
     end if
     if ( present(roi) ) then
       r2 = dx*dx*roi*roi
@@ -417,7 +417,7 @@ module mod_kdinterp
     if ( present(ds) ) then
       dx = ds
     else
-      dx = max(dist(x,1,2),dist(x,np-1,np)) * sqrt(d_two)
+      dx = max(dist(x,np/2,np/2-1),dist(x,np/2+1,np/2)) * sqrt(d_two)
     end if
     if ( present(roi) ) then
       r2 = dx*dx*roi*roi
