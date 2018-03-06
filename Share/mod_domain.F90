@@ -228,6 +228,7 @@ module mod_domain
     character(len=6) :: proj
     logical :: lh , lb , ls
     real(rkx) :: dsx , iclat , iclon , ptsp
+    real(rkx) , dimension(2) :: icntr
 
     lh = .false.
     lb = .false.
@@ -334,6 +335,20 @@ module mod_domain
       write(stderr,*) 'DOMAIN FILE : ', iclon
       write(stderr,*) 'NAMELIST    : ', clon
       call die('Mismatch: CLON in DOMAIN file /= CLON in namelist')
+    end if
+    istatus = nf90_get_att(ncid, nf90_global, &
+                           'index_of_projection_origin', icntr)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read attribute index_of_projection_origin')
+    if (abs(real(icntr(2),rkx)-real(cntri,rkx)) > 0.001_rkx ) then
+      write(stderr,*) 'DOMAIN FILE : ', icntr(2)
+      write(stderr,*) 'NAMELIST    : ', cntri
+      call die('Mismatch: CNTRI in DOMAIN file /= CNTRI in namelist')
+    end if
+    if (abs(real(icntr(1),rkx)-real(cntrj,rkx)) > 0.001_rkx ) then
+      write(stderr,*) 'DOMAIN FILE : ', icntr(1)
+      write(stderr,*) 'NAMELIST    : ', cntrj
+      call die('Mismatch: CNTRJ in DOMAIN file /= CNTRJ in namelist')
     end if
     istatus = nf90_get_att(ncid,nf90_global,'grid_factor',xcone)
     call checkncerr(istatus,__FILE__,__LINE__, &

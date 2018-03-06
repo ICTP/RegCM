@@ -1861,8 +1861,8 @@ module mod_params
         '  Dot Grid Full Extent  : ',jx,'x',iy,'x',kz
       write(stdout,'(a,f11.6,a)') '  Model Top Pressure    : ',ptop,' cb'
       write(stdout,'(a,f11.6,a)') '  Model Grid Spacing    : ',ds,' km'
-      write(stdout,'(a,f11.6,a)') '  Grid Center Latitude  : ',clat,' deg'
-      write(stdout,'(a,f11.6,a)') '  Grid Center longitude : ',clon,' deg'
+      write(stdout,'(a,f11.6,a)') '  Proj Center Latitude  : ',clat,' deg'
+      write(stdout,'(a,f11.6,a)') '  Proj Center longitude : ',clon,' deg'
       if ( iproj == 'ROTMER' ) then
         write(stdout,'(a,f11.6,a)') '  Pole Latitude         : ',plat,' deg'
         write(stdout,'(a,f11.6,a)') '  Pole longitude        : ',plon,' deg'

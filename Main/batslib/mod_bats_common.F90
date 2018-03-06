@@ -61,7 +61,7 @@ module mod_bats_common
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i
+    integer(ik4) :: i , j , n
     logical , parameter :: snowhack = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initbats'
@@ -117,12 +117,39 @@ module mod_bats_common
           write(stdout,*) 'Initializing moisture from DOMAIN file'
         end if
         ! Replace surface and root soil moisture
-        lm%smoist = lm%rmoist(:,:,1)
-        call c2l_gs(lndcomm,lm%smoist,ssw)
-        lm%smoist = lm%rmoist(:,:,2)
-        call c2l_gs(lndcomm,lm%smoist,rsw)
-        lm%smoist = lm%rmoist(:,:,3)
-        call c2l_gs(lndcomm,lm%smoist,tsw)
+        call l2c_ss(lndcomm,ssw,lms%ssw)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if (lm%rmoist(j,i,1) < 1.0e+10_rkx ) then
+              do n = 1 , nsg
+                lms%ssw(n,:,:) = lm%rmoist(:,:,1)
+              end do
+            end if
+          end do
+        end do
+        call c2l_ss(lndcomm,lms%ssw,ssw)
+        call l2c_ss(lndcomm,rsw,lms%rsw)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if (lm%rmoist(j,i,2) < 1.0e+10_rkx ) then
+              do n = 1 , nsg
+                lms%rsw(n,:,:) = lm%rmoist(:,:,2)
+              end do
+            end if
+          end do
+        end do
+        call c2l_ss(lndcomm,lms%rsw,rsw)
+        call l2c_ss(lndcomm,tsw,lms%tsw)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if (lm%rmoist(j,i,3) < 1.0e+10_rkx ) then
+              do n = 1 , nsg
+                lms%tsw(n,:,:) = lm%rmoist(:,:,3)
+              end do
+            end if
+          end do
+        end do
+        call c2l_ss(lndcomm,lms%tsw,tsw)
       end if
       !
       ! Calculate emission coefficients

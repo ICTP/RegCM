@@ -30,19 +30,20 @@ module mod_maputils
   contains
 
   subroutine lambrt(xlon,xlat,smap,coriol,jx,iy,clon,clat,ds,idot,  &
-                    xn,truelatl,truelath)
+                    xn,truelatl,truelath,cntri,cntrj)
     use mod_projections
     implicit none
     integer(ik4) , intent(in) :: idot , iy , jx
     real(rkx) , intent(in) :: clat , clon , ds , truelath , truelatl
+    real(rkx) , intent(in) :: cntri , cntrj
     real(rkx) , dimension(jx,iy) , intent(out) :: coriol , smap , xlat , xlon
     real(rkx) , intent(out) :: xn
-    real(rkx) :: cntri , cntrj
+    real(rkx) :: xcntri , xcntrj
     integer(ik4) :: i , j
 
-    cntrj = real(jx+idot,rkx)/d_two
-    cntri = real(iy+idot,rkx)/d_two
-    call setup_lcc(clat,clon,cntrj,cntri,ds,clon,truelath,truelatl)
+    xcntrj = cntrj + real(idot,rkx)/2.0_rkx
+    xcntri = cntri + real(idot,rkx)/2.0_rkx
+    call setup_lcc(clat,clon,xcntrj,xcntri,ds,clon,truelath,truelatl)
     do i = 1 , iy
       do j = 1 , jx
         call ijll_lc(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))
@@ -59,18 +60,18 @@ module mod_maputils
     xn = conefac
   end subroutine lambrt
 
-  subroutine mappol(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot)
+  subroutine mappol(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot,cntri,cntrj)
     use mod_projections
     implicit none
-    real(rkx) , intent(in) :: clat , clon , delx
+    real(rkx) , intent(in) :: clat , clon , delx , cntri , cntrj
     integer(ik4) , intent(in) :: idot , iy , jx
     real(rkx) , intent(out) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
-    real(rkx) :: cntrj , cntri
+    real(rkx) :: xcntrj , xcntri
     integer(ik4) :: i , j
 
-    cntrj = real(jx+idot,rkx)/d_two
-    cntri = real(iy+idot,rkx)/d_two
-    call setup_plr(clat,clon,cntrj,cntri,delx,clon)
+    xcntrj = cntrj + real(idot,rkx)/2.0_rkx
+    xcntri = cntri + real(idot,rkx)/2.0_rkx
+    call setup_plr(clat,clon,xcntrj,xcntri,delx,clon)
     do i = 1 , iy
       do j = 1 , jx
         call ijll_ps(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))
@@ -86,18 +87,18 @@ module mod_maputils
     end if
   end subroutine mappol
 
-  subroutine normer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot)
+  subroutine normer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot,cntri,cntrj)
     use mod_projections
     implicit none
-    real(rkx) , intent(in) :: clat , clon , delx
+    real(rkx) , intent(in) :: clat , clon , delx , cntri , cntrj
     integer(ik4) , intent(in) :: idot , iy , jx
     real(rkx) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
-    real(rkx) :: cntri , cntrj
+    real(rkx) :: xcntri , xcntrj
     integer(ik4) :: i , j
 
-    cntrj = real(jx+idot,rkx)/d_two
-    cntri = real(iy+idot,rkx)/d_two
-    call setup_mrc(clat,clon,cntrj,cntri,delx)
+    xcntrj = cntrj + real(idot,rkx)/2.0_rkx
+    xcntri = cntri + real(idot,rkx)/2.0_rkx
+    call setup_mrc(clat,clon,xcntrj,xcntri,delx)
     do i = 1 , iy
       do j = 1 , jx
         call ijll_mc(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))
@@ -114,19 +115,19 @@ module mod_maputils
   end subroutine normer
 
   subroutine rotmer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,pollon,   &
-                    pollat,ds,idot)
+                    pollat,ds,idot,cntri,cntrj)
 
     use mod_projections
     implicit none
-    real(rkx) , intent(in) :: clat , clon , ds , pollat , pollon
+    real(rkx) , intent(in) :: clat , clon , ds , pollat , pollon , cntri , cntrj
     integer(ik4) , intent(in) :: idot , iy , jx
     real(rkx) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
-    real(rkx) :: cntri , cntrj
+    real(rkx) :: xcntri , xcntrj
     integer(ik4) :: i , j
 
-    cntrj = real(jx+idot,rkx)/d_two
-    cntri = real(iy+idot,rkx)/d_two
-    call setup_rmc(clat,clon,cntrj,cntri,ds,pollon,pollat)
+    xcntrj = cntrj + real(idot,rkx)/2.0_rkx
+    xcntri = cntri + real(idot,rkx)/2.0_rkx
+    call setup_rmc(clat,clon,xcntrj,xcntri,ds,pollon,pollat)
     do i = 1 , iy
       do j = 1 , jx
         call ijll_rc(real(j,rkx),real(i,rkx),xlat(j,i),xlon(j,i))

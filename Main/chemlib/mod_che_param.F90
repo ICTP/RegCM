@@ -29,7 +29,7 @@ module mod_che_param
   integer(ik4) :: ichaer
 
   !FAB : temporaire car defini dans les modules de deposts
-  real(rkx) , dimension(22) :: aest , arye , ast
+  real(rkx) , dimension(22) :: aest , arye , ast , agam
   ! Stokes parameters
 
   real(rkx) , dimension(12) :: cxmopor
@@ -91,19 +91,24 @@ module mod_che_param
   !            15.00_rkx ,  1.20_rkx , 1.20_rkx , 1.20_rkx , 1.20_rkx , &
   !             1.20_rkx ,  1.20_rkx /
 
-  data arye /  0.5400_rkx ,  0.5400_rkx ,  0.5600_rkx ,  0.5600_rkx , &
+  data agam /  0.5400_rkx ,  0.5400_rkx ,  0.5600_rkx ,  0.5600_rkx , &
                0.5600_rkx ,  0.5800_rkx ,  0.5400_rkx ,  0.5400_rkx , &
                0.5400_rkx ,  0.5400_rkx ,  0.5400_rkx ,  0.5400_rkx , &
                0.5400_rkx ,  0.5000_rkx ,  0.5000_rkx ,  0.5400_rkx , &
                0.5400_rkx ,  0.5600_rkx ,  0.5400_rkx ,  0.5400_rkx , &
                0.5600_rkx ,  0.5600_rkx /
 
-  !data arye / 0.5000_rkx ,  5.0000_rkx ,  0.5000_rkx ,  5.0000_rkx , &
-  !            1.0000_rkx ,  1.0000_rkx ,  0.0001_rkx ,  5.0000_rkx , &
-  !           10.0000_rkx , 10.0000_rkx ,  0.0001_rkx ,  0.0001_rkx , &
-  !            0.5600_rkx ,  0.5600_rkx ,  0.5600_rkx ,  0.5600_rkx , &
-  !            0.5600_rkx ,  0.5600_rkx ,  0.5600_rkx ,  0.5600_rkx , &
-  !            1.0000_rkx ,  1.000_rkx /
+  !
+  ! BATS   :  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22
+  ! TABLE 3:  7  6  1  3  4  2  6  8  9  7  8 12 11 13 14 10 10  5  7 11 15 15
+  !
+   data arye / 2.0000_rkx ,  2.0000_rkx ,  2.0000_rkx ,  2.0000_rkx , &
+               5.0000_rkx ,  5.0000_rkx ,  5.0000_rkx ,  0.0001_rkx , &
+               0.0001_rkx ,  2.0000_rkx ,  0.0001_rkx ,  0.0001_rkx , &
+              10.0000_rkx ,  0.0001_rkx ,  0.0001_rkx , 10.0000_rkx , &
+              10.0000_rkx ,  5.0000_rkx ,  2.0000_rkx , 10.0000_rkx , &
+              10.0000_rkx , 10.000_rkx /
+
 
   ! From the paper above, the A parameter used in Stokes number computation
   ! for vegetated classes.

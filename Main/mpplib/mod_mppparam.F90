@@ -1358,6 +1358,8 @@ module mod_mppparam
     call bcast(ptop)
     call bcast(clat)
     call bcast(clon)
+    call bcast(cntri)
+    call bcast(cntrj)
     call bcast(plat)
     call bcast(plon)
     call bcast(truelatl)

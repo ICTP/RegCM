@@ -53,6 +53,7 @@ program ncprepare
   character(6) :: iproj
   real(rkx) :: clat , clon , plat , plon , ds , centeri , centerj
   real(rkx) :: minlat , minlon , maxlat , maxlon , rlatinc , rloninc
+  real(rkx) , dimension(2) :: icntr
   real(rkx) , dimension(2) :: trlat
   real(rkx) , allocatable , dimension(:,:) :: xlat , xlon
   real(rkx) , allocatable , dimension(:) :: level , tmplon
@@ -288,7 +289,10 @@ program ncprepare
   istatus = nf90_get_att(ncid, nf90_global, 'experiment', experiment)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error read attribute experiment')
-
+  istatus = nf90_get_att(ncid, nf90_global, 'index_of_projection_origin', &
+                         icntr)
+  call checkncerr(istatus,__FILE__,__LINE__, &
+                  'Error read attribute index_of_projection_origin')
   istatus = nf90_get_att(ncid, nf90_global, 'latitude_of_projection_origin', &
                          clat)
   call checkncerr(istatus,__FILE__,__LINE__, &
@@ -337,12 +341,11 @@ program ncprepare
   else
     nlon = nint(abs(maxlon-minlon)/rloninc) + 1
   end if
+  centeri = icntr(2)
+  centerj = icntr(1)
   if ( is_model_output ) then
-    centeri = real(iy,rkx)/2.0_rkx+0.5_rkx
-    centerj = real(jx,rkx)/2.0_rkx+0.5_rkx
-  else
-    centeri = real(iy,rkx)/2.0_rkx
-    centerj = real(jx,rkx)/2.0_rkx
+    centeri = centeri + 0.5_rkx
+    centerj = centerj + 0.5_rkx
   end if
   deallocate(xlat)
   deallocate(xlon)

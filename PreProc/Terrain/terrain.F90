@@ -178,26 +178,26 @@ program terrain
 
     if ( iproj=='LAMCON' ) then
       call lambrt(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0,xcone,truelatl,truelath)
+                  clat,dsinm,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
       call lambrt(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clong,    &
-                  clat,dsinm,1,xcone,truelatl,truelath)
+                  clat,dsinm,1,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
     else if ( iproj=='POLSTR' ) then
       call mappol(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0)
+                  clat,dsinm,0,cntri*nsg,cntrj*nsg)
       call mappol(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clong,    &
-                  clat,dsinm,1)
+                  clat,dsinm,1,cntri*nsg,cntrj*nsg)
       xcone = d_one
     else if ( iproj=='NORMER' ) then
       call normer(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0)
+                  clat,dsinm,0,cntri*nsg,cntrj*nsg)
       call normer(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clong,    &
-                  clat,dsinm,1)
+                  clat,dsinm,1,cntri*nsg,cntrj*nsg)
       xcone = d_zero
     else if ( iproj=='ROTMER' ) then
       call rotmer(xlon_s,xlat_s,xmap_s,coriol_s,jxsg,iysg,clon,     &
-                  clat,plon,plat,dsinm,0)
+                  clat,plon,plat,dsinm,0,cntri*nsg,cntrj*nsg)
       call rotmer(dlon_s,dlat_s,dmap_s,coriol_s,jxsg,iysg,clon,     &
-                  clat,plon,plat,dsinm,1)
+                  clat,plon,plat,dsinm,1,cntri*nsg,cntrj*nsg)
       xcone = d_zero
     else
       write (stderr,*) 'iproj = ', iproj
@@ -205,6 +205,7 @@ program terrain
       write (stderr,*) 'Set iproj in LAMCON,POLSTR,NORMER,ROTMER'
       call die('terrain')
     end if
+
     write(stdout,*) 'Subgrid Geo mapping done'
     !
     ! reduce the search area for the domain
@@ -373,22 +374,22 @@ program terrain
   !
   if ( iproj=='LAMCON' ) then
     call lambrt(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0,xcone,  &
-                truelatl,truelath)
+                truelatl,truelath,cntri,cntrj)
     call lambrt(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1,xcone,  &
-                truelatl,truelath)
+                truelatl,truelath,cntri,cntrj)
   else if ( iproj=='POLSTR' ) then
-    call mappol(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0)
-    call mappol(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1)
+    call mappol(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0,cntri,cntrj)
+    call mappol(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1,cntri,cntrj)
     xcone = d_one
   else if ( iproj=='NORMER' ) then
-    call normer(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0)
-    call normer(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1)
+    call normer(xlon,xlat,xmap,coriol,jx,iy,clong,clat,dsinm,0,cntri,cntrj)
+    call normer(dlon,dlat,dmap,coriol,jx,iy,clong,clat,dsinm,1,cntri,cntrj)
     xcone = d_zero
   else if ( iproj=='ROTMER' ) then
     call rotmer(xlon,xlat,xmap,coriol,jx,iy,clong,clat,plon,plat,   &
-                dsinm,0)
+                dsinm,0,cntri,cntrj)
     call rotmer(dlon,dlat,dmap,coriol,jx,iy,clong,clat,plon,plat,   &
-                dsinm,1)
+                dsinm,1,cntri,cntrj)
     xcone = d_zero
   else
     write (stderr,*) 'iproj = ', iproj

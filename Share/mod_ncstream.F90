@@ -2731,6 +2731,11 @@ module mod_ncstream
       attr%aname = 'longitude_of_projection_origin'
       attr%theval = clon
       call add_attribute(stream,attr)
+      attra%aname = 'index_of_projection_origin'
+      attra%theval(1) = cntrj
+      attra%theval(2) = cntri
+      attra%numval = 2
+      call add_attribute(stream,attra)
       if ( iproj == 'ROTMER' ) then
         attr%aname = 'grid_north_pole_latitude'
         attr%theval = plat

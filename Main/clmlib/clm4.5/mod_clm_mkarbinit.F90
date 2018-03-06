@@ -1207,8 +1207,10 @@ module mod_clm_mkarbinit
               if ( j > nlevsoi ) then
                 h2osoi_vol(c,j) = 0.0_rk8
               else
-                h2osoi_vol(c,j) = adomain%rmoist(g,j) / &
-                  (max(dzsoi(c,j),0.0_rk8)*denh2o)
+                if ( adomain%rmoist(g,j) < 1.0e+10_rk8 ) then
+                  h2osoi_vol(c,j) = adomain%rmoist(g,j) / &
+                    (max(dzsoi(c,j),0.0_rk8)*denh2o)
+                end if
               end if
             end do
           end if

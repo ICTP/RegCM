@@ -153,12 +153,11 @@ program timeseries
     call usage
   end if
 
+  centeri = cntri
+  centerj = cntrj
   if ( imodel == 1 ) then
-    centeri = dble(iy)/2.0D0+0.5
-    centerj = dble(jx)/2.0D0+0.5
-  else
-    centeri = dble(iy)/2.0D0
-    centerj = dble(jx)/2.0D0
+    centeri = centeri + 0.5
+    centerj = centerj + 0.5
   end if
   !
   ! calling the map projection subroutine

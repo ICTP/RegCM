@@ -380,11 +380,10 @@ module mod_che_drydep
       real(rkx) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
 
       real(rkx) :: amfp , amob , eb , eim , ein , frx1
-      real(rkx) :: pre , prii , priiv , r1 , st
+      real(rkx) :: pre , prii , priiv , r1 , st , rhsize , pdiff
       real(rkx) , dimension(ici1:ici2,kz) :: amu
       real(rkx) , dimension(ici1:ici2) :: anu , schm
-      real(rkx) , dimension(ici1:ici2,kz,mbin) :: cfac , pdepvsub , pdiff , &
-                  rhsize , taurel
+      real(rkx) , dimension(ici1:ici2,kz,mbin) :: cfac , pdepvsub , taurel
       real(rkx) , dimension(ici1:ici2,luc) :: ra , ustar
       real(rkx) , dimension(ici1:ici2,luc,mbin) :: rs
       real(rkx), dimension(ici1:ici2,2:kz) :: wk, settend
@@ -436,7 +435,7 @@ module mod_che_drydep
             cfac(i,k,n) = 1.0_rkx + amfp/avesize(n) * &
                          (aa1+aa2*exp(-aa3*avesize(n)/amfp))
             taurel(i,k,n) = max(priiv*avesize(n)**2*cfac(i,k,n) * &
-                            regrav,0._rkx)
+                            regrav,d_zero)
             !
             ! ********************************************************
             ! * stokes friction                                  *****
@@ -459,107 +458,95 @@ module mod_che_drydep
       ! *****************************************************
       !
       do n = 1 , mbin
-        do k = 1 , kz
+        do i = ici1 , ici2
+          !
+          ! *****************************************************
+          ! * for now we will not consider the humidity      ****
+          ! * impact so we will set the variable frx1=1.0    ****
+          ! * i.e. only dry particles                        ****
+          ! *****************************************************
+          !
+          frx1 = 1.0_rkx
+          rhsize = avesize(n)*frx1 ! still a radius
+          anu(i) = amu(i,kz)/roarow(i,kz)
+          amob = 6.0_rkx*mathpi*amu(i,kz)*rhsize/cfac(i,kz,n)
+          pdiff = boltzk*throw(i,kz)/amob
+          schm(i) = anu(i)/pdiff
+          !
+          ! ******************************************************
+          ! * for brownian diffusion, there is evidence that  ****
+          ! * its fromula depend on schmidt number as :       ****
+          ! * eb= schm x c^gama                               ****
+          ! * where gama is efficiency factor and its value   ****
+          ! * between 1/2 and 2/3 with larger values for      ****
+          ! * rougher surfaces                                ****
+          ! * ****************************************************
+          !
+        end do
+        do l = 1 , luc ! luc  = 1 for the moment
           do i = ici1 , ici2
             !
-            ! *****************************************************
-            ! * for now we will not consider the humidity      ****
-            ! * impact so we will set the variable frx1=1.0    ****
-            ! * i.e. only dry particles                        ****
-            ! *****************************************************
+            ! find the right table index for the cell cover ( ocean
+            ! and lake are 0 in the ivegcov and 14-15 in the table )
             !
-            frx1 = 1.0_rkx
-            rhsize(i,k,n) = avesize(n)*frx1 ! still a radius
-            anu(i) = amu(i,k)/roarow(i,k)
-            amob = 6.0_rkx*mathpi*amu(i,k)*rhsize(i,k,n)/cfac(i,k,n)
-            pdiff(i,k,n) = boltzk*throw(i,k)/amob
-            schm(i) = anu(i)/pdiff(i,k,n)
+            if ( ivegcov(i) == 0 ) then
+              lcov = 14
+            else if ( ivegcov(i) > 20 ) then
+              lcov = 20
+            else
+              lcov = ivegcov(i)
+            end if
             !
             ! ******************************************************
-            ! * for brownian diffusion, there is evidence that  ****
-            ! * its fromula depend on schmidt number as :       ****
-            ! * eb= schm x c^gama                               ****
-            ! * where gama is efficiency factor and its value   ****
-            ! * between 1/2 and 2/3 with larger values for      ****
-            ! * rougher surfaces                                ****
-            ! * ****************************************************
+            ! * the parameter governing impaction processes is *****
+            ! * the stokes number,st, which has the form of    *****
+            ! * 1) st = vg x u* /g a for vegetated surefaces   *****
+            ! *    (slinn, 1982)                               *****
+            ! * 2) st = vg x u*2/anu for smothed surfaces or   *****
+            ! *    surfaces with bluff roughness elements      *****
+            ! *    (giorgi,1988)                               *****
+            ! ******************************************************
             !
+            ! Graziano - 2018-02-09 - updated Stokes number computation
+            ! Before, only the formulation for smooth surfaces was used
+            ! here.
+            if ( lcov /= 8 .and.  lcov /= 9 .and.  lcov /= 11 .and. &
+                 lcov /= 12 .and. lcov /= 14 .and. lcov /= 15 ) then
+              st = taurel(i,kz,n)*ustar(i,l)*regrav/ast(ivegcov(i))
+              eb = schm(i)**(-agam(ivegcov(i)))
+            else
+              st = taurel(i,kz,n)*ustar(i,l)*ustar(i,l)/anu(i)
+              !eb = schm(i)**(-twot)
+              eb = schm(i)**(-d_half)
+            end if
+            eim = (st/(st+aest(lcov)))**2
+            eim = max(min(eim,0.6_rkx),1.0e-08_rkx)
+            if ( arye(lcov) > 0.001_rkx ) then
+              ein = d_two*((1000.0_rkx*avesize(n))/arye(lcov))**1.5_rkx
+            end if
+            ein = max(min(ein,0.5_rkx),1.0e-08_rkx)
+            !
+            ! *****************************************************
+            ! * partickes larger than 5 micro may rebounded   *****
+            ! * after hitting a surface,this process may be   *****
+            ! * included by modifying the total collection    *****
+            ! * by the factor of r1, which represents the     *****
+            ! * fraction of particles sticking to the surface *****
+            ! * slinn (1982) suggested the following:         *****
+            ! * r = exp (- st^0.2)                            *****
+            ! *****************************************************
+            r1 = exp(-sqrt(st))
+            if ( r1 < 0.4_rkx ) r1 = 0.4_rkx
+            ! ***************************************************
+            ! * calculation of rs: the surface resistance   *****
+            ! * which depends on the collection efficiency  *****
+            ! * of the surface and is determined by the     *****
+            ! * various deposition processes                *****
+            ! ***************************************************
+            rs(i,l,n) = 3.0_rkx*ustar(i,l)*(eb+eim+ein)*r1
+            rs(i,l,n) = max(1.0e-5_rkx,min(1.e5_rkx,rs(i,l,n)))
+            rs(i,l,n) = d_one/rs(i,l,n)
           end do
-          if ( k == kz ) then
-            do l = 1 , luc ! luc  = 1 for the moment
-              do i = ici1 , ici2
-                !
-                ! find the right table index for the cell cover ( ocean
-                ! and lake are 0 in the ivegcov and 14-15 in the table )
-                !
-                if ( ivegcov(i) == 0 ) then
-                  lcov = 14
-                else if ( ivegcov(i) > 20 ) then
-                  lcov = 20
-                else
-                  lcov = ivegcov(i)
-                end if
-                !
-                ! ******************************************************
-                ! * the parameter governing impaction processes is *****
-                ! * the stokes number,st, which has the form of    *****
-                ! * 1) st = vg x u* /g a for vegetated surefaces   *****
-                ! *    (slinn, 1982)                               *****
-                ! * 2) st = vg x u*2/anu for smothed surfaces or   *****
-                ! *    surfaces with bluff roughness elements      *****
-                ! *    (giorgi,1988)                               *****
-                ! ******************************************************
-                !
-                ! Graziano - 2018-02-09 - updated Stokes number computation
-                ! Before, only the formulation for smooth surfaces was used
-                ! here.
-                if ( lcov /= 8 .and.  lcov /= 9 .and.  lcov /= 11 .and. &
-                     lcov /= 12 .and. lcov /= 14 .and. lcov /= 15 ) then
-                  st = taurel(i,k,n)*ustar(i,l)*regrav/ast(ivegcov(i))
-                else
-                  st = taurel(i,k,n)*ustar(i,l)*ustar(i,l)/anu(i)
-                end if
-                eb = schm(i)**(-0.666667_rkx)
-!               eim=(st/(st+aest(lcov)))**2
-                eim = (st/(st+aest(lcov)))**2
-                eim = min(eim,0.6_rkx)
-                ein = 0.0_rkx
-!               if (arye(k) > 0.0001_rkx) then
-!                 ein = (1000.0_rkx*2.0_rkx*avesize(n)/arye(k))**1.5_rkx
-!               end if
-                if ( arye(lcov) > 0.0001_rkx ) then
-                  ein = (1000.0_rkx*2.0_rkx*avesize(n)/arye(lcov))**1.5_rkx
-                end if
-                ein = min(ein,0.5_rkx)
-                !
-                ! *****************************************************
-                ! * partickes larger than 5 micro may rebounded   *****
-                ! * after hitting a surface,this process may be   *****
-                ! * included by modifying the total collection    *****
-                ! * by the factor of r1, which represents the     *****
-                ! * fraction of particles sticking to the surface *****
-                ! * slinn (1982) suggested the following:         *****
-                ! * r = exp (- st^0.2)                            *****
-                ! *****************************************************
-                r1 = exp(-sqrt(st))
-                if ( r1 < 0.4_rkx ) r1 = 0.4_rkx
-                ! ***************************************************
-                ! * calculation of rs: the surface resistance   *****
-                ! * which depends on the collection efficiency  *****
-                ! * of the surface and is determined by the     *****
-                ! * various deposition processes                *****
-                ! ***************************************************
-!               rs= 1.0/ustar(i,l)/(eb+eim+ein)/r1
-                rs(i,l,n) = 3.0_rkx*ustar(i,l)*(eb+eim+ein)*r1
-                ! Graziano - 2018-02-09 - Limit this resistence
-                if ( rs(i,l,n) > 1.0e-6 ) then
-                  rs(i,l,n) = d_one/rs(i,l,n)
-                else
-                  rs(i,l,n) = 1.0e6
-                end if
-              end do
-            end do
-          end if
         end do
       end do
 
@@ -570,14 +557,21 @@ module mod_che_drydep
         ! there isw no sub-bin anymore / we consider directly effective radius
         pdepv(:,:,indsp(ib)) = 0.0_rkx
         ddepv(:,indsp(ib))   = 0.0_rkx
-        do i = ici1 , ici2
-          pdepv(i,:,indsp(ib)) = pdepvsub(i,:,ib)
-          ! agregate the dry deposition velocity, remember one cover per grid
-          ! cell for now
-          ! the dry deposition deposition velocity must accound also for the
-          ! settling vrlocity at kz
-          ! simple form now add the vs
-          ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,1)+rs(i,1,ib)) + pdepvsub(i,kz,ib)
+        do k = 1 , kz
+          do i = ici1 , ici2
+            pdepv(i,k,indsp(ib)) = pdepvsub(i,k,ib)
+          end do
+        end do
+        do l = 1 , luc ! luc  = 1 for the moment
+          do i = ici1 , ici2
+            ! agregate the dry deposition velocity, remember one cover per grid
+            ! cell for now
+            ! the dry deposition deposition velocity must accound also for the
+            ! settling velocity at kz
+            ! simple form now add the vs
+            ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,l)+rs(i,l,ib)) + &
+                              pdepvsub(i,kz,ib)
+          end do
         end do
       end do
       !
@@ -599,10 +593,10 @@ module mod_che_drydep
             !settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
             !                wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)
             ! use exponential form for stability
-            settend(i,k) =  wk(i,k+1) * &
-               (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt)) - &
-                            wk(i,k)   * &
-               (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,k)*dt))
+            settend(i,k) =  max(wk(i,k+1) * &
+                (d_one - exp(-pdepvsub(i,k,ib)/cdzq(j,i,k)*dt)) - &
+                                wk(i,k)   * &
+                (d_one - exp(-pdepvsub(i,k,ib)/cdzq(j,i,k)*dt)),d_zero)
 
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag > 0 ) then
@@ -623,10 +617,10 @@ module mod_che_drydep
 
             ! settend(i,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
             !                  wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
-            settend(i,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)/dt * &
-              (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) -  &
-                            wk(i,kz) * &
-              (d_one - exp(-pdepv(i,kz,indsp(ib))/cdzq(j,i,k)*dt))
+            settend(i,kz) = max(max(chib(j,i,kz,indsp(ib)),d_zero)/dt * &
+                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) -    &
+                              wk(i,kz) * &
+                (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt)),d_zero)
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
 
             ! save the dry deposition flux for coupling with

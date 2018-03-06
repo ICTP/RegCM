@@ -90,13 +90,17 @@ module mod_dynparam
 
   real(rkx) :: ptop
 
-  ! Central latitude  of model domain in degrees, north hem. is positive
+  ! Central latitude  of model projection in degrees, north hem. is positive
+  ! Projection center location in I
 
   real(rkx) :: clat
+  real(rkx) :: cntri
 
-  ! Central longitude of model domain in degrees, west is negative
+  ! Central longitude of model projection in degrees, west is negative
+  ! Projection center location in J
 
   real(rkx) :: clon
+  real(rkx) :: cntrj
 
   ! Pole latitude (only for rotated Mercator Proj, else set = clat)
 
@@ -423,7 +427,7 @@ module mod_dynparam
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
-      plon , truelatl, truelath , i_band , i_crm
+      plon , cntri , cntrj , truelatl , truelath , i_band , i_crm
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
       lsmoist , fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
       fudge_lak , fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , &
@@ -481,12 +485,20 @@ module mod_dynparam
 
     i_band = 0
     i_crm = 0
+    cntri = -1.0_rkx
+    cntrj = -1.0_rkx
     rewind(ipunit)
     read(ipunit, nml=geoparam, iostat=iresult)
     if ( iresult /= 0 ) then
       write (stderr,*) 'Error reading geoparam namelist in ',trim(filename)
       ierr = 3
       return
+    end if
+    if ( cntri < 0.0_rkx ) then
+      cntri = real(iy,rkx)/d_two
+    end if
+    if ( cntrj < 0.0_rkx ) then
+      cntrj = real(jx,rkx)/d_two
     end if
 
 !   Ensure that band mode is active if CRM mode is active
