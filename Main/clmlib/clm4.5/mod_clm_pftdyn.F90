@@ -43,6 +43,7 @@ module mod_clm_pftdyn
   real(rk8) , pointer , dimension(:) :: harvest
   real(rk8) , pointer , dimension(:) :: wtcol_old
   integer(ik4) :: nt
+  real(rkx) :: ndpy
   logical :: do_harvest
   type(clm_filetype) :: ncid   ! netcdf id
   character(len=256) :: fpftdyn
@@ -114,8 +115,9 @@ module mod_clm_pftdyn
     end if
 
     call curr_date(nextdate, year, mon, day, sec)
-    nt = year
     write(cy4,'(i0.4)') year
+    nt = year
+    ndpy = yeardays(year,nextdate%calendar)
 
     ! Obtain Year 1 file
     fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
@@ -169,7 +171,6 @@ module mod_clm_pftdyn
         wtpft2(g,m) = int(wtpft2(g,m))/100._rk8
       end do
     end do
-    nt = year
   end subroutine pftdyn_init
   !
   ! Time interpolate dynamic landuse data to get pft weights for model time
@@ -240,6 +241,8 @@ module mod_clm_pftdyn
     ! an earlier period of constant weights.
 
     if ( year /= nt ) then
+      nt = year
+      ndpy = yeardays(year,nextdate%calendar)
       if (myid == italk) then
         write(stdout,*) 'Read pft dynamic landuse data for year ',year + 1
       end if
@@ -283,8 +286,7 @@ module mod_clm_pftdyn
 
     cday = get_curr_calday()
 
-    !wt1 = ((dayspy + 1._rk8) - cday)/dayspy
-    wt1 = (dayspy - cday)/dayspy
+    wt1 = (ndpy - cday)/ndpy
     if ( wt1 > 1.0_rk8 .or. wt1 < 0.0_rk8 ) then
       call fatal(__FILE__,__LINE__,'WGT ERROR !')
     end if
@@ -2867,7 +2869,7 @@ module mod_clm_pftdyn
 
     cday = get_curr_calday( )
 
-    wt1 = ((dayspy + 1._rk8) - cday)/dayspy
+    wt1 = (ndpy - cday)/ndpy
 
     call curr_date(nextdate, year, mon, day, sec)
 

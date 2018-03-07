@@ -1612,7 +1612,7 @@ module mod_clm_cnfire
   subroutine hdm_interp( )
     implicit none
     integer(ik4) :: yr , mon , day , ih , ip
-    real(rk8) :: w1 , w2
+    real(rk8) :: w1 , w2 , ndpy
 
     call split_idate(nextdate,yr,mon,day,ih)
     ip = max(yr - 1850 + 1,1)
@@ -1621,7 +1621,8 @@ module mod_clm_cnfire
       call clm_readvar(sdat_hdm,'HDM',hdm_p1,gcomm_gridcell,ipoprec)
       call clm_readvar(sdat_hdm,'HDM',hdm_p2,gcomm_gridcell,ipoprec+1)
     end if
-    w1 = d_one - (yeardayfrac(nextdate)/dayspy)
+    ndpy = yeardays(yr,nextdate%calendar)
+    w1 = d_one - (yeardayfrac(nextdate)/ndpy)
     w2 = d_one - w1
     forc_hdm(:) = hdm_p1(:)*w1 + hdm_p2(:)*w2
   end subroutine hdm_interp
@@ -1632,17 +1633,19 @@ module mod_clm_cnfire
     implicit none
     integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
     integer(ik4) :: yr , mon , day , ih
+    real(rk8) :: ndpy
 
     allocate( forc_lnfm(begg:endg) )
     allocate( lnfm_p1(begg:endg) )
     allocate( lnfm_p2(begg:endg) )
 
     call split_idate(nextdate,yr,mon,day,ih)
-    ilnfmrec = int(yeardayfrac(idate1)/dayspy*365.0_rk8*8.0_rk8+1.0_rk8)+ih/3
+    ndpy = yeardays(yr,nextdate%calendar)
+    ilnfmrec = int(int(yeardayfrac(idate1)/ndpy)*ndpy)*8.0+1+ih/3
 
     call clm_openfile(fsurdat,sdat_lnfm)
     call clm_readvar(sdat_hdm,'LNFM',lnfm_p1,gcomm_gridcell,ilnfmrec)
-    if ( ilnfmrec+1 > 365*8 ) then
+    if ( ilnfmrec+1 > int(ndpy)*8 ) then
       call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,1)
     else
       call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,ilnfmrec+1)
@@ -1660,11 +1663,12 @@ module mod_clm_cnfire
   subroutine lnfm_interp( )
     implicit none
     integer(ik4) :: ip
-    real(rk8) :: w1 , w2
+    real(rk8) :: w1 , w2 , ndpy
     integer(ik4) :: yr , mon , day , ih
 
     call split_idate(nextdate,yr,mon,day,ih)
-    ip = int(yeardayfrac(nextdate)/dayspy*365.0_rk8*8.0_rk8+1.0_rk8)+ih/3
+    ndpy = yeardays(yr,nextdate%calendar)
+    ip = int(int(yeardayfrac(nextdate)/ndpy)*ndpy)*8+1+ih/3
     if ( ip /= ilnfmrec ) then
       ilnfmrec = ilnfmrec+1
       if ( ilnfmrec > 365*8 ) ilnfmrec = 1
