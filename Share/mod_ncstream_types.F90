@@ -212,7 +212,7 @@ module mod_ncstream_types
   end type ncattribute_standard
 
   type, extends(ncattribute_standard) :: ncattribute_string
-    character(len=maxstring) :: theval
+    character(len=2*maxstring) :: theval
   end type ncattribute_string
 
   type, extends(ncattribute_standard) :: ncattribute_logical

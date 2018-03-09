@@ -485,6 +485,31 @@ module mod_ncstream
             attr%aname = 'latitude_of_projection_origin'
             attr%theval = clat
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'crs_wkt'
+            attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
+                '    GEOGCS["Normal Sphere (r='//                              &
+                trim(adjustl(tempstr(7)))//')",'//NEW_LINE('A')//              &
+                '        DATUM["unknown",'//NEW_LINE('A')//                    &
+                '            SPHEROID["sphere",'//                             &
+                trim(adjustl(tempstr(7)))//',0]],'//NEW_LINE('A')//            &
+                '        PRIMEM["Greenwich",0],'//NEW_LINE('A')//              &
+                '        UNIT["degree",0.0174532925199433]],'//NEW_LINE('A')// &
+                '    PROJECTION["Lambert_Conformal_Conic_2SP"],'//             &
+                NEW_LINE('A')//                                                &
+                '    PARAMETER["standard_parallel_1",'//                       &
+                trim(adjustl(tempstr(1)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["standard_parallel_2",'//                       &
+                trim(adjustl(tempstr(2)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["latitude_of_origin",'//                        &
+                trim(adjustl(tempstr(3)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["central_meridian",'//                          &
+                trim(adjustl(tempstr(4)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_easting",'//                             &
+                trim(adjustl(tempstr(5)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_northing",'//                            &
+                trim(adjustl(tempstr(6)))//'],'//NEW_LINE('A')//               &
+                '    UNIT["Meter",1]]'//NEW_LINE('A')
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
           case('POLSTR')
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') clat
@@ -512,6 +537,28 @@ module mod_ncstream
             attr%aname = 'scale_factor_at_projection_origin'
             attr%theval = 1.0
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'crs_wkt'
+            attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
+                '    GEOGCS["Normal Sphere (r='//                              &
+                trim(adjustl(tempstr(5)))//')",'//NEW_LINE('A')//              &
+                '        DATUM["unknown",'//NEW_LINE('A')//                    &
+                '            SPHEROID["sphere",'//                             &
+                trim(adjustl(tempstr(5)))//',0]],'//NEW_LINE('A')//            &
+                '        PRIMEM["Greenwich",0],'//NEW_LINE('A')//              &
+                '        UNIT["degree",0.0174532925199433]],'//NEW_LINE('A')// &
+                '    PROJECTION["Stereographic"],'//                           &
+                NEW_LINE('A')//                                                &
+                '    PARAMETER["latitude_of_origin",'//                        &
+                trim(adjustl(tempstr(1)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["central_meridian",'//                          &
+                trim(adjustl(tempstr(2)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["scale_factor",1.],'//NEW_LINE('A')//           &
+                '    PARAMETER["false_easting",'//                             &
+                trim(adjustl(tempstr(3)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_northing",'//                            &
+                trim(adjustl(tempstr(4)))//'],'//NEW_LINE('A')//               &
+                '    UNIT["Meter",1]]'//NEW_LINE('A')
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
           case('NORMER')
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') clat
@@ -539,6 +586,27 @@ module mod_ncstream
             attr%aname = 'longitude_of_projection_origin'
             attr%theval = clon
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'crs_wkt'
+            attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
+                '    GEOGCS["Normal Sphere (r='//                              &
+                trim(adjustl(tempstr(5)))//')",'//NEW_LINE('A')//              &
+                '        DATUM["unknown",'//NEW_LINE('A')//                    &
+                '            SPHEROID["sphere",'//                             &
+                trim(adjustl(tempstr(5)))//',0]],'//NEW_LINE('A')//            &
+                '        PRIMEM["Greenwich",0],'//NEW_LINE('A')//              &
+                '        UNIT["degree",0.0174532925199433]],'//NEW_LINE('A')// &
+                '    PROJECTION["Mercator_2SP"],'//                            &
+                NEW_LINE('A')//                                                &
+                '    PARAMETER["standard_parallel_1",'//                       &
+                trim(adjustl(tempstr(1)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["central_meridian",'//                          &
+                trim(adjustl(tempstr(2)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_easting",'//                             &
+                trim(adjustl(tempstr(3)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_northing",'//                            &
+                trim(adjustl(tempstr(4)))//'],'//NEW_LINE('A')//               &
+                '    UNIT["Meter",1]]'//NEW_LINE('A')
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
           case('ROTMER')
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') plat
@@ -566,6 +634,31 @@ module mod_ncstream
             attr%aname = 'scale_factor_at_projection_origin'
             attr%theval = 1.0
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'crs_wkt'
+            attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
+                '    GEOGCS["Normal Sphere (r='//                              &
+                trim(adjustl(tempstr(5)))//')",'//NEW_LINE('A')//              &
+                '        DATUM["unknown",'//NEW_LINE('A')//                    &
+                '            SPHEROID["sphere",'//                             &
+                trim(adjustl(tempstr(5)))//',0]],'//NEW_LINE('A')//            &
+                '        PRIMEM["Greenwich",0],'//NEW_LINE('A')//              &
+                '        UNIT["degree",0.0174532925199433]],'//NEW_LINE('A')// &
+                '    PROJECTION["Hotine_Oblique_Mercator_Azimuth_Center"],'//  &
+                NEW_LINE('A')//                                                &
+                '    PARAMETER["latitude_of_center",'//                        &
+                trim(adjustl(tempstr(1)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["longitude_of_center",'//                       &
+                trim(adjustl(tempstr(2)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["azimuth",89.999999],'//NEW_LINE('A')//         &
+                '    PARAMETER["rectified_grid_angle",89.999999],'//           &
+                NEW_LINE('A')//                                                &
+                '    PARAMETER["scale_factor",1.],'//NEW_LINE('A')//           &
+                '    PARAMETER["false_easting",'//                             &
+                trim(adjustl(tempstr(3)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_northing",'//                            &
+                trim(adjustl(tempstr(4)))//'],'//NEW_LINE('A')//               &
+                '    UNIT["Meter",1]]'//NEW_LINE('A')
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
         end select
         attr%aname = 'semi_major_axis'
         attr%theval = earthrad
