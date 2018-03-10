@@ -81,7 +81,7 @@ module mod_che_param
   !
   data aest  /  1.20_rkx ,  1.20_rkx ,  1.00_rkx ,  1.10_rkx ,  0.80_rkx , &
                 0.60_rkx ,  1.20_rkx , 50.00_rkx , 50.00_rkx ,  1.20_rkx , &
-               50.00_rkx , 50.00_rkx ,  2.00_rkx , 90.00_rkx , 90.00_rkx , &
+               50.00_rkx , 50.00_rkx ,  2.00_rkx ,100.00_rkx ,100.00_rkx , &
                 1.30_rkx ,  1.30_rkx ,  0.80_rkx ,  1.20_rkx ,  2.00_rkx , &
                 1.50_rkx ,  1.50_rkx /
 

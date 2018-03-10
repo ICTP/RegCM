@@ -42,7 +42,7 @@ module mod_che_drydep
   !
   ! Dynamic Viscosity Parameters
   !
-  real(rkx) , parameter :: a1 = 145.8_rkx
+  real(rkx) , parameter :: a1 = 1.458e-6_rkx
   real(rkx) , parameter :: a2 = 1.5_rkx
   real(rkx) , parameter :: a3 = 110.4_rkx
   !
@@ -397,7 +397,7 @@ module mod_che_drydep
       ! here avesize is a RADIUS of the particle bin in m :
       ! calculated here from bin effective diameter in micrometer
       do n = 1 , mbin
-        avesize(n) = beffdiam(n) * 1.e-6_rkx * d_half
+        avesize(n) = (beffdiam(n) * d_half) * 1.e-6_rkx
       end do
       ! ********************************************************
       ! *   aerosize - dry radius                    !!     ****
@@ -412,15 +412,16 @@ module mod_che_drydep
             ! *  and diffusion coefficient                        ****
             ! *                                                   ****
             ! * air's dynamic viscosity                           ****
+            ! * Sutherland Equation
             ! ********************************************************
             !
-            amu(i,k) = a1*1.e-8_rkx*throw(i,k)**a2/(throw(i,k)+a3)
+            amu(i,k) = (a1*(throw(i,k)**a2))/(throw(i,k)+a3)
             ! mid layer pressure in [pascal].
             pre = pressg(i)*shj(k)
             !
             ! ********************************************************
             ! * mean molecular free path.                         ****
-            ! *     k.v. beard [1976], j atm. sci., 33            ****
+            ! *     K.V. Beard [1976], J Atm. Sci., 33            ****
             ! ********************************************************
             !
             amfp = c1*(amu(i,k)/c2)*(c3/pre)*sqrt(throw(i,k)/c4)
@@ -428,11 +429,11 @@ module mod_che_drydep
             priiv = prii*(rhop-roarow(i,k))
             !
             ! ********************************************************
-            ! * cunningham slip correction factor and             ****
+            ! * Cunningham slip correction factor and             ****
             ! * relaxation time = vg/grav.                        ****
             ! ********************************************************
             !
-            cfac(i,k,n) = 1.0_rkx + amfp/avesize(n) * &
+            cfac(i,k,n) = d_one + amfp/avesize(n) * &
                          (aa1+aa2*exp(-aa3*avesize(n)/amfp))
             taurel(i,k,n) = max(priiv*avesize(n)**2*cfac(i,k,n) * &
                             regrav,d_zero)
@@ -523,6 +524,9 @@ module mod_che_drydep
             eim = max(min(eim,0.6_rkx),1.0e-08_rkx)
             if ( arye(lcov) > 0.001_rkx ) then
               ein = d_two*((1000.0_rkx*avesize(n))/arye(lcov))**1.5_rkx
+              !ein = d_two*((1000.0_rkx*avesize(n))/arye(lcov))**2
+            else
+              ein = 1.0e-08_rkx
             end if
             ein = max(min(ein,0.5_rkx),1.0e-08_rkx)
             !
@@ -812,7 +816,7 @@ module mod_che_drydep
       real(rkx) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
       real(rkx) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
       real(rkx) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
-      integer(ik4) :: i , j , l
+      integer(ik4) :: i , l
       real(rkx) :: vp , tsv
       real(rkx) :: z , zl , ww
       real(rkx) :: ptemp2 , es , qs

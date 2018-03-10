@@ -2096,7 +2096,8 @@ module mod_ncout
             opt_acssrlrf_out => v2dvar_opt(opt_acssrlrf)%rval
           end if
         else
-          enable_opt2d_vars(opt_acstoarf:opt_aassrlrf) = .false.
+          enable_opt2d_vars(opt_acstoarf:opt_acssrlrf) = .false.
+          enable_opt2d_vars(opt_aastoarf:opt_aassrlrf) = .false.
         end if
         if ( enable_opt2d_vars(opt_aod) ) then
           call setup_var(v2dvar_opt,opt_aod,vsize,'aod','1', &
