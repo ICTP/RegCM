@@ -646,7 +646,7 @@ program sigma2p
         call intlin(pvar,qvar,ps,press,jx,iy,kz,plevs,np)
         call top2btm(pvar,jx,iy,np)
       else
-        call mxr2rh(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
+        call mxr2rh(tmpvar,qvar,ps*100_rk4,sigma,ptop,jx,iy,kz)
         call intlin(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
       end if
       pvar = pvar * 100.0 ! Put in %

@@ -611,7 +611,7 @@ program sigma2z
       if ( iodyn == 2 ) then
         call mxr2rh(tazvar,qazvar,press,jx,iy,kz)
       else
-        call mxr2rh(tazvar,qazvar,ps,sigma,ptop,jx,iy,kz)
+        call mxr2rh(tazvar,qazvar,ps*100_rk4,sigma,ptop,jx,iy,kz)
       end if
       call intlin(zvar,qazvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
       zvar = zvar * 100.0 ! Put in %
