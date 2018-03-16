@@ -539,8 +539,8 @@ module mod_rad_colmod3
         ! fice(n,k) = d_zero
         totcl(n) = totcl(n) + (clwp(n,k)*cld(n,k)*(d_one-fice(n,k)))*d_r1000
         totci(n) = totci(n) + (clwp(n,k)*cld(n,k)*fice(n,k))*d_r1000
-        rhoa = pmidm1(n,k) * amdk / (tm1(n,k) * 8.314_rkx)
-        totwv(n) = totwv(n) + qm1(n,k)*rhoa*deltaz(n,k)*d_r1000
+        rhoa = pmidm1(n,k) * amdk / (tm1(n,k) * rgasmol)
+        totwv(n) = totwv(n) + qm1(n,k)*rhoa*deltaz(n,k)
       end do
     end do
 
@@ -552,7 +552,7 @@ module mod_rad_colmod3
         if ( chtrname(nt) /= 'SO4' ) cycle
         do k = 1 , kz
           do n = 1 , npr
-            rhoa = pmidm1(n,k)* amdk / (tm1(n,k) * 8.314_rkx)
+            rhoa = pmidm1(n,k)* amdk / (tm1(n,k) * rgasmol)
             aerc = rhoa * aermmr(n,k,nt) * 1.e9_rkx !microg/m3
             ! thershold of 0.1 microg/m3 for activation of indirect effect
             if ( aerc > 0.1_rkx ) then

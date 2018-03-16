@@ -465,7 +465,7 @@ module mod_rrtmg_driver
         totcl(n) = totcl(n) + &
            clwp_int(n,k)*cld_int(n,k)*(d_one-fice(n,kj))*d_r1000
         totwv(n) =  totwv(n) + &
-          h2ommr(n,k)*play(n,k)/(rgas*tlay(n,k))*deltaz(n,k)*d_r10
+          h2ommr(n,k)*(play(n,k)*d_100)/(rgas*tlay(n,k))*deltaz(n,k)
       end do
     end do
 
