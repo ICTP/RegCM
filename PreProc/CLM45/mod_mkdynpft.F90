@@ -48,6 +48,7 @@ module mod_mkdynpft
     character(len=4) :: cy
     type(globalfile) :: gfile
     character(len=256) :: inpfile
+    character(len=8) :: scenario = 'RCP4.5'
 
     iy = max(min(year,2100),1950)
     p1 = 'dynamic'
@@ -67,12 +68,8 @@ module mod_mkdynpft
         case ('85', '15')
           p2 = 'SCENARIO'//pthsep//'RCP8.5'
         case default
-          if ( dattyp /= "EIN15" .and. &
-               dattyp(1:4) /= "NNRP" .and. &
-               dattyp /= "JRA55" ) then
-            call die(__FILE__, &
-              'Dynamic landuse only supported for CMIP5',__LINE__)
-          end if
+          write(stderr,*) 'WARNING : Using CMIP5 '//scenario//'scenario !'
+          p2 = 'SCENARIO'//pthsep//scenario
       end select
     end if
 
