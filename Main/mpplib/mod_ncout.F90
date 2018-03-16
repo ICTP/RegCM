@@ -1155,8 +1155,7 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_scv) ) then
           call setup_var(v2dvar_srf,srf_scv,vsize,'snw','kg m-2', &
-            'Liquid Water Equivalent of Surface Snow Amount', &
-            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
+            'Surface Snow Amount', 'surface_snow_amount',.true.,'time: mean', &
             l_fill=.true.)
           srf_scv_out => v2dvar_srf(srf_scv)%rval
         end if
@@ -1551,8 +1550,7 @@ module mod_ncout
         end if
         if ( enable_sub2d_vars(sub_scv) ) then
           call setup_var(v2dvar_sub,sub_scv,vsize,'snw','kg m-2', &
-            'Liquid Water Equivalent of Surface Snow Amount', &
-            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
+            'Surface Snow Amount', 'surface_snow_amount',.true.,'time: mean', &
             l_fill=.true.)
           sub_scv_out => v2dvar_sub(sub_scv)%rval
         end if
@@ -1873,8 +1871,7 @@ module mod_ncout
         end if
         if ( enable_lak2d_vars(lak_scv) ) then
           call setup_var(v2dvar_lak,lak_scv,vsize,'snw','kg m-2', &
-            'Liquid Water Equivalent of Surface Snow Amount', &
-            'lwe_thickness_of_surface_snow_amount',.true.,'time: mean', &
+            'Surface Snow Amount', 'surface_snow_amount',.true.,'time: mean', &
             l_fill=.true.)
           lak_scv_out => v2dvar_lak(lak_scv)%rval
         end if
