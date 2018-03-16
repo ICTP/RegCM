@@ -1063,10 +1063,14 @@ module mod_micro_wsm5
     do k = 1 , kz
       do i = ims , ime
         supcol = tzero-t(i,k)
+        if ( abs(supcol) > 0.01_rkx ) then
+          n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
+        else
+          n0sfac = d_one
+        end if
         !
         ! n0s: intercept parameter for snow [m-4] [hdc 6]
         !
-        n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
         if ( qrs(i,k,1) <= qcrmin ) then
           rslope(i,k,1) = rslopermax
           rslopeb(i,k,1) = rsloperbmax

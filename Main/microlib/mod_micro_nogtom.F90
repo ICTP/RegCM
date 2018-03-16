@@ -774,7 +774,7 @@ module mod_micro_nogtom
 
           ! local cloud cover
 
-          ccover = fccfg(j,i,k)
+          ccover = max(fccfg(j,i,k),onecf)
 
           !------------------------------------------------
           ! Evaporate very small amounts of liquid and ice
@@ -826,7 +826,7 @@ module mod_micro_nogtom
             rainp   = d_zero
             snowp   = d_zero
           else
-            lccover = fccfg(j,i,k-1)
+            lccover = max(fccfg(j,i,k-1),onecf)
             rainp   = pfplsx(iqqr,j,i,k)
             snowp   = pfplsx(iqqs,j,i,k)
           end if
@@ -1031,7 +1031,7 @@ module mod_micro_nogtom
           !------------------------------------------------
 
           ccover = d_one-sqrt(max(d_zero,d_one-qx0(iqqv)/sqmix)/0.4_rkx)
-          ccover = max(ccover,d_zero)
+          ccover = min(max(ccover,d_zero),onecf)
 
           lcloud    = ( ccover >= zerocf )
           lnocloud  = ( .not. lcloud )
