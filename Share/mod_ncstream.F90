@@ -672,10 +672,10 @@ module mod_ncstream
         attr%aname = 'false_northing'
         attr%theval = x0
         call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-        attc%aname = '_CoordinateTransformType'
+        attc%aname = 'CoordinateTransformType'
         attc%theval = 'Projection'
         call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
-        attc%aname = '_CoordinateAxisTypes'
+        attc%aname = 'CoordinateAxisTypes'
         attc%theval = 'GeoX GeoY'
         call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
       end if
@@ -2880,10 +2880,10 @@ module mod_ncstream
       call add_attribute(stream,attc,stvar%iy_var%id,stvar%iy_var%vname)
       attc%theval = 'Z'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
-      attc%aname = '_CoordinateAxisType'
+      attc%aname = 'CoordinateAxisType'
       attc%theval = 'GeoX'
       call add_attribute(stream,attc,stvar%jx_var%id,stvar%jx_var%vname)
-      attc%aname = '_CoordinateAxisType'
+      attc%aname = 'CoordinateAxisType'
       attc%theval = 'GeoY'
       call add_attribute(stream,attc,stvar%iy_var%id,stvar%iy_var%vname)
       attc%aname = 'positive'
@@ -2897,7 +2897,7 @@ module mod_ncstream
         attc%theval = 'sigma: kz ps: ps ptop: ptop'
       end if
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
-      attc%aname = '_CoordinateAxisType'
+      attc%aname = 'CoordinateAxisType'
       attc%theval = 'GeoZ'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
     end subroutine add_common_global_params
