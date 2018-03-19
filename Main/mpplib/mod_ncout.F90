@@ -617,12 +617,12 @@ module mod_ncout
         vsize%k2 = kz
         if ( enable_atm3d_vars(atm_u) ) then
           call setup_var(v3dvar_atm,atm_u,vsize,'ua','m s-1', &
-            'Eastward Wind','eastward_wind',.true.)
+            'Grid Eastward Wind','grid_eastward_wind',.true.)
           atm_u_out => v3dvar_atm(atm_u)%rval
         end if
         if ( enable_atm3d_vars(atm_v) ) then
           call setup_var(v3dvar_atm,atm_v,vsize,'va','m s-1', &
-            'Northward Wind','northward_wind',.true.)
+            'Grid Northward Wind','grid_northward_wind',.true.)
           atm_v_out => v3dvar_atm(atm_v)%rval
         end if
         if ( enable_atm3d_vars(atm_t) ) then
@@ -1096,14 +1096,14 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_taux) ) then
           call setup_var(v2dvar_srf,srf_taux,vsize,'tauu','Pa', &
-            'Surface Downward Eastward Wind Stress', &
-            'surface_downward_eastward_stress',.true.,'time: mean')
+            'Surface Downward Grid Eastward Wind Stress', &
+            'surface_downward_grid_eastward_stress',.true.,'time: mean')
           srf_taux_out => v2dvar_srf(srf_taux)%rval
         end if
         if ( enable_srf2d_vars(srf_tauy) ) then
           call setup_var(v2dvar_srf,srf_tauy,vsize,'tauv','Pa', &
-            'Surface Downward Northward Wind Stress', &
-            'surface_downward_northward_stress',.true.,'time: mean')
+            'Surface Downward Grid Northward Wind Stress', &
+            'surface_downward_grid_northward_stress',.true.,'time: mean')
           srf_tauy_out => v2dvar_srf(srf_tauy)%rval
         end if
         if ( enable_srf2d_vars(srf_psl) ) then
@@ -1291,12 +1291,12 @@ module mod_ncout
         v3dvar_srf(srf_va100)%axis = 'xyW'
         if ( enable_srf3d_vars(srf_u10m) ) then
           call setup_var(v3dvar_srf,srf_u10m,vsize,'uas','m s-1', &
-            'Eastward Near-Surface Wind','eastward_wind',.true.)
+            'Grid Eastward Near-Surface Wind','grid_eastward_wind',.true.)
           srf_u10m_out => v3dvar_srf(srf_u10m)%rval
         end if
         if ( enable_srf3d_vars(srf_v10m) ) then
           call setup_var(v3dvar_srf,srf_v10m,vsize,'vas','m s-1', &
-            'Northward Near-Surface Wind','northward_wind',.true.)
+            'Grid Northward Near-Surface Wind','grid_northward_wind',.true.)
           srf_v10m_out => v3dvar_srf(srf_v10m)%rval
         end if
         if ( enable_srf3d_vars(srf_t2m) ) then
@@ -1316,12 +1316,12 @@ module mod_ncout
         end if
         if ( enable_srf3d_vars(srf_ua100) ) then
           call setup_var(v3dvar_srf,srf_ua100,vsize,'ua100m','m/s', &
-            'Eastward Wind at 100m','eastward_wind',.true.)
+            'Grid Eastward Wind at 100m','grid_eastward_wind',.true.)
           srf_ua100_out => v3dvar_srf(srf_ua100)%rval
         end if
         if ( enable_srf3d_vars(srf_va100) ) then
           call setup_var(v3dvar_srf,srf_va100,vsize,'va100m','m/s', &
-            'Northward Wind at 100m','northward_wind',.true.)
+            'Grid Northward Wind at 100m','grid_northward_wind',.true.)
           srf_va100_out => v3dvar_srf(srf_va100)%rval
         end if
         vsize%k2 = num_soil_layers
@@ -1580,12 +1580,12 @@ module mod_ncout
         v3dvar_sub(sub_q2m)%axis = 'xy2'
         if ( enable_sub3d_vars(sub_u10m) ) then
           call setup_var(v3dvar_sub,sub_u10m,vsize,'uas','m s-1', &
-            'Eastward Wind','eastward_wind',.true.)
+            'Grid Eastward Wind','grid_eastward_wind',.true.)
           sub_u10m_out => v3dvar_sub(sub_u10m)%rval
         end if
         if ( enable_sub3d_vars(sub_v10m) ) then
           call setup_var(v3dvar_sub,sub_v10m,vsize,'vas','m s-1', &
-            'Northward wind','northward_wind',.true.)
+            'Grid Northward wind','grid_northward_wind',.true.)
           sub_v10m_out => v3dvar_sub(sub_v10m)%rval
         end if
         if ( enable_sub3d_vars(sub_t2m) ) then

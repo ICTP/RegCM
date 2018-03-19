@@ -124,12 +124,12 @@ module mod_write
     v3dvar_icbc(3)%vname = 'u'
     v3dvar_icbc(3)%vunit = 'm s-1'
     v3dvar_icbc(3)%long_name = 'Zonal component (westerly) of wind'
-    v3dvar_icbc(3)%standard_name = 'eastward_wind'
+    v3dvar_icbc(3)%standard_name = 'grid_eastward_wind'
     v3dvar_icbc(3)%lrecords = .true.
     v3dvar_icbc(4)%vname = 'v'
     v3dvar_icbc(4)%vunit = 'm s-1'
     v3dvar_icbc(4)%long_name = 'Meridional component (southerly) of wind'
-    v3dvar_icbc(4)%standard_name = 'northward_wind'
+    v3dvar_icbc(4)%standard_name = 'grid_northward_wind'
     v3dvar_icbc(4)%lrecords = .true.
     if ( idynamic == 2 ) then
       v2dvar_icbc(9)%vname = 'wtop'
