@@ -1358,9 +1358,9 @@ module mod_output
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zphi = mddom%dlat(j,i)*degrad
-          zrla = mddom%dlon(j,i)*degrad
-          if ( mddom%dlat(j,i) > 89.999999_rkx ) zrla = d_zero
+          zphi = mddom%xlat(j,i)*degrad
+          zrla = mddom%xlon(j,i)*degrad
+          if ( mddom%xlat(j,i) > 89.999999_rkx ) zrla = d_zero
           zrlap = pollam*degrad - zrla
           zarg1 = polcphi*sin(zrlap)
           zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
@@ -1376,21 +1376,21 @@ module mod_output
     else
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( (clon >= d_zero .and. mddom%dlon(j,i) >= deg00) .or.  &
-               (clon < d_zero .and. mddom%dlon(j,i) < deg00) ) then
-            x = (clon-mddom%dlon(j,i))*degrad*xcone
+          if ( (clon >= d_zero .and. mddom%xlon(j,i) >= deg00) .or.  &
+               (clon < d_zero .and. mddom%xlon(j,i) < deg00) ) then
+            x = (clon-mddom%xlon(j,i))*degrad*xcone
           else if ( clon >= d_zero ) then
-            if ( abs(clon-(mddom%dlon(j,i)+deg360)) < &
-                 abs(clon-mddom%dlon(j,i)) ) then
-              x = (clon-(mddom%dlon(j,i)+deg360))*degrad*xcone
+            if ( abs(clon-(mddom%xlon(j,i)+deg360)) < &
+                 abs(clon-mddom%xlon(j,i)) ) then
+              x = (clon-(mddom%xlon(j,i)+deg360))*degrad*xcone
             else
-              x = (clon-mddom%dlon(j,i))*degrad*xcone
+              x = (clon-mddom%xlon(j,i))*degrad*xcone
             end if
-          else if ( abs(clon-(mddom%dlon(j,i)-deg360)) < &
-                    abs(clon-mddom%dlon(j,i)) ) then
-            x = (clon-(mddom%dlon(j,i)-deg360))*degrad*xcone
+          else if ( abs(clon-(mddom%xlon(j,i)-deg360)) < &
+                    abs(clon-mddom%xlon(j,i)) ) then
+            x = (clon-(mddom%xlon(j,i)-deg360))*degrad*xcone
           else
-            x = (clon-mddom%dlon(j,i))*degrad*xcone
+            x = (clon-mddom%xlon(j,i))*degrad*xcone
           end if
           xs = sin(x)
           xc = cos(x)
@@ -1438,9 +1438,9 @@ module mod_output
       do k = 1 , nk
         do i = ici1 , ici2
           do j = jci1 , jci2
-            zphi = mddom%dlat(j,i)*degrad
-            zrla = mddom%dlon(j,i)*degrad
-            if ( mddom%dlat(j,i) > 89.999999_rkx ) zrla = d_zero
+            zphi = mddom%xlat(j,i)*degrad
+            zrla = mddom%xlon(j,i)*degrad
+            if ( mddom%xlat(j,i) > 89.999999_rkx ) zrla = d_zero
             zrlap = pollam*degrad - zrla
             zarg1 = polcphi*sin(zrlap)
             zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
@@ -1458,21 +1458,21 @@ module mod_output
       do k = 1 , nk
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( (clon >= d_zero .and. mddom%dlon(j,i) >= deg00) .or.  &
-                 (clon < d_zero .and. mddom%dlon(j,i) < deg00) ) then
-              x = (clon-mddom%dlon(j,i))*degrad*xcone
+            if ( (clon >= d_zero .and. mddom%xlon(j,i) >= deg00) .or.  &
+                 (clon < d_zero .and. mddom%xlon(j,i) < deg00) ) then
+              x = (clon-mddom%xlon(j,i))*degrad*xcone
             else if ( clon >= d_zero ) then
-              if ( abs(clon-(mddom%dlon(j,i)+deg360)) < &
-                   abs(clon-mddom%dlon(j,i)) ) then
-                x = (clon-(mddom%dlon(j,i)+deg360))*degrad*xcone
+              if ( abs(clon-(mddom%xlon(j,i)+deg360)) < &
+                   abs(clon-mddom%xlon(j,i)) ) then
+                x = (clon-(mddom%xlon(j,i)+deg360))*degrad*xcone
               else
-                x = (clon-mddom%dlon(j,i))*degrad*xcone
+                x = (clon-mddom%xlon(j,i))*degrad*xcone
               end if
-            else if ( abs(clon-(mddom%dlon(j,i)-deg360)) < &
-                      abs(clon-mddom%dlon(j,i)) ) then
-              x = (clon-(mddom%dlon(j,i)-deg360))*degrad*xcone
+            else if ( abs(clon-(mddom%xlon(j,i)-deg360)) < &
+                      abs(clon-mddom%xlon(j,i)) ) then
+              x = (clon-(mddom%xlon(j,i)-deg360))*degrad*xcone
             else
-              x = (clon-mddom%dlon(j,i))*degrad*xcone
+              x = (clon-mddom%xlon(j,i))*degrad*xcone
             end if
             xs = sin(x)
             xc = cos(x)
