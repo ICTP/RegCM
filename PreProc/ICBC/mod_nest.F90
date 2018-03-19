@@ -80,6 +80,8 @@ module mod_nest
   real(rkx) :: clat_in , clon_in , plat_in , plon_in
   real(rkx) :: xcone_in , ds_in , ptop_in
 
+  logical :: uvrotate = .false.
+
   character(len=14) :: fillin
   character(len=256) :: inpfile
 
@@ -103,6 +105,7 @@ module mod_nest
     real(rkx) , dimension(:) , allocatable :: sigfix
     integer(ik4) , dimension(3) :: istart , icount
     real(rkx) :: tlp , pr0_in , maxps , minps
+    character(len=16) :: charatt
 
     imf = monfirst(globidate1)
     write (fillin,'(a,a)') 'ATM.', trim(tochar10(imf))
@@ -163,6 +166,12 @@ module mod_nest
     do i = 1 , nrec
       itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
     end do
+
+    istatus = nf90_get_att(ncinp, nf90_global, &
+                    'wind_rotated_eastward_northward', charatt)
+    if ( istatus == nf90_noerr ) then
+      uvrotate = .true.
+    end if
 
     ! Reserve space for I/O
 
@@ -594,8 +603,10 @@ module mod_nest
 !$OMP END SECTIONS
     end if
 
-    call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
-                  xcone_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
+    if ( .not. uvrotate ) then
+      call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
+                    xcone_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
+    end if
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
