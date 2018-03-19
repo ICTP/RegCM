@@ -92,8 +92,8 @@ module mod_params
       lakfrq , radfrq , chemfrq , enable_atm_vars ,                      &
       enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
       enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
-      enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
-      do_parallel_netcdf_out , idiag , icosp , deflate_level
+      enable_che_vars , dirout , lsync , uvrotate , idiag , icosp ,      &
+      do_parallel_netcdf_in , do_parallel_netcdf_out , deflate_level
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
@@ -223,6 +223,7 @@ module mod_params
     enable_che_vars(:) = .true.
     dirout = './output'
     lsync = .true.
+    uvrotate = .false.
     do_parallel_netcdf_in = .false.
     do_parallel_netcdf_out = .false.
     idiag = 0
@@ -1031,6 +1032,7 @@ module mod_params
     call bcast(enable_opt_vars)
     call bcast(enable_che_vars)
     call bcast(lsync)
+    call bcast(uvrotate)
     call bcast(idiag)
     call bcast(icosp)
     call bcast(do_parallel_netcdf_in)

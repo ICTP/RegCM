@@ -72,6 +72,7 @@ program ncprepare
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , existing , lsigma , ldepth , lu , lua , luas , lclm
   logical :: is_model_output = .false.
+  logical :: uvrotate = .false.
 
   data cmon /'jan','feb','mar','apr','may','jun', &
              'jul','aug','sep','oct','nov','dec'/
@@ -151,6 +152,12 @@ program ncprepare
   istatus = nf90_get_att(ncid, nf90_global, 'ipcc_scenario_code', charatt)
   if ( istatus == nf90_noerr ) then
     is_model_output = .true.
+  end if
+
+  istatus = nf90_get_att(ncid, nf90_global, &
+                    'wind_rotated_eastward_northward', charatt)
+  if ( istatus == nf90_noerr ) then
+    uvrotate = .true.
   end if
 
   if ( lclm ) then
@@ -662,12 +669,14 @@ program ncprepare
     end if
   end do
 
-  if ( lu ) then
-    write (ip1, '(a)') 'vectorpairs u,v'
-  else if ( lua ) then
-    write (ip1, '(a)') 'vectorpairs ua,va'
-  else if ( luas ) then
-    write (ip1, '(a)') 'vectorpairs s01uas,s01vas'
+  if ( .not. uvrotate ) then
+    if ( lu ) then
+      write (ip1, '(a)') 'vectorpairs u,v'
+    else if ( lua ) then
+      write (ip1, '(a)') 'vectorpairs ua,va'
+    else if ( luas ) then
+      write (ip1, '(a)') 'vectorpairs s01uas,s01vas'
+    end if
   end if
   write (ip1, '(a,i4)') 'vars ', totvars
 

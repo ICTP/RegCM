@@ -218,7 +218,7 @@ module mod_cu_interface
     real(rkx) :: w1
 
     if ( any(icup == 6) ) then
-      w1 = d_one/real(max(int(900.0_rkx/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2

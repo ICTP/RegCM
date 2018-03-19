@@ -93,6 +93,8 @@ module mod_runparams
 
   real(rkx) , public :: solcon , scon
 
+  logical , public :: uvrotate
+
   ! Step counters to activate surface and radiation schemes
   real(rkx) , public :: rnsrf_for_srffrq , rnsrf_for_day , &
      rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , &

@@ -50,6 +50,11 @@ module mod_output
 
   type(rcm_time_and_date) , save , public :: lastout
 
+  interface uvrot
+    module procedure uvrot2d
+    module procedure uvrot3d
+  end interface uvrot
+
   contains
 
   subroutine output
@@ -204,6 +209,9 @@ module mod_output
               end do
             end do
           end do
+          if ( uvrotate ) then
+            call uvrot(atm_u_out,atm_v_out)
+          end if
         end if
         if ( associated(atm_omega_out) ) &
           atm_omega_out = omega(jci1:jci2,ici1:ici2,:)*d_10
@@ -715,18 +723,25 @@ module mod_output
           srf_fld_out = srf_fld_out*rnsrf_for_srffrq
         if ( associated(srf_sina_out) ) &
           srf_sina_out = srf_sina_out*rnsrf_for_srffrq
-        if ( associated(srf_taux_out) ) &
+        if ( associated(srf_taux_out) .and. associated(srf_tauy_out) ) then
           srf_taux_out = srf_taux_out*rnsrf_for_srffrq
-        if ( associated(srf_tauy_out) ) &
           srf_tauy_out = srf_tauy_out*rnsrf_for_srffrq
+          if ( uvrotate ) then
+            call uvrot(srf_taux_out,srf_tauy_out)
+          end if
+        end if
         if ( associated(srf_snowmelt_out) ) &
           srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq / &
                              alarm_out_srf%dt
-        if ( associated(srf_wspd_out) .and. &
-             associated(srf_u10m_out) .and. &
-             associated(srf_v10m_out) ) &
-          srf_wspd_out = sqrt(srf_u10m_out(:,:,1)*srf_u10m_out(:,:,1) + &
-                              srf_v10m_out(:,:,1)*srf_v10m_out(:,:,1))
+        if ( associated(srf_u10m_out) .and. associated(srf_v10m_out) ) then
+          if ( associated(srf_wspd_out) ) then
+            srf_wspd_out = sqrt(srf_u10m_out(:,:,1)*srf_u10m_out(:,:,1) + &
+                                srf_v10m_out(:,:,1)*srf_v10m_out(:,:,1))
+          end if
+          if ( uvrotate ) then
+            call uvrot(srf_u10m_out,srf_v10m_out)
+          end if
+        end if
 
         if ( associated(srf_totcf_out) ) then
           srf_totcf_out = srf_totcf_out * rnrad_for_srffrq * d_100
@@ -783,6 +798,9 @@ module mod_output
               end if
             end do
           end do
+          if ( uvrotate ) then
+            call uvrot(srf_ua100_out,srf_va100_out)
+          end if
         end if
 
         call write_record_output_stream(srf_stream,alarm_out_srf%idate)
@@ -838,6 +856,11 @@ module mod_output
           end where
         end if
 
+        if ( associated(sub_u10m_out) .and. associated(sub_v10m_out) ) then
+          if ( uvrotate ) then
+            call uvrot(sub_u10m_out,sub_v10m_out)
+          end if
+        end if
         call write_record_output_stream(sub_stream,alarm_out_sub%idate)
         if ( myid == italk ) &
           write(stdout,*) 'SUB variables written at ' , rcmtimer%str( )
@@ -1308,6 +1331,165 @@ module mod_output
     end function findlev
 
   end subroutine vertint
+  !
+  ! Change U and V from map values (X,Y) to true (N,E)
+  !
+  subroutine uvrot2d(u,v)
+    implicit none
+
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
+    real(rkx) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
+            sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
+            zphi , zrla , zrlap
+    integer(ik4) :: i , j
+
+    if ( iproj == 'ROTMER' ) then
+      if ( plat > d_zero ) then
+        pollam = plon + deg180
+        polphi = deg90 - plat
+      else
+        polphi = deg90 + plat
+        pollam = plon
+      end if
+      if ( pollam > deg180 ) pollam = pollam - deg360
+
+      polcphi = cos(degrad*polphi)
+      polsphi = sin(degrad*polphi)
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          zphi = mddom%dlat(j,i)*degrad
+          zrla = mddom%dlon(j,i)*degrad
+          if ( mddom%dlat(j,i) > 89.999999_rkx ) zrla = d_zero
+          zrlap = pollam*degrad - zrla
+          zarg1 = polcphi*sin(zrlap)
+          zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
+          znorm = d_one/sqrt(zarg1**2+zarg2**2)
+          sindel = zarg1*znorm
+          cosdel = zarg2*znorm
+          us = u(j,i)*cosdel + v(j,i)*sindel
+          vs = -u(j,i)*sindel + v(j,i)*cosdel
+          u(j,i) = us
+          v(j,i) = vs
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( (clon >= d_zero .and. mddom%dlon(j,i) >= deg00) .or.  &
+               (clon < d_zero .and. mddom%dlon(j,i) < deg00) ) then
+            x = (clon-mddom%dlon(j,i))*degrad*xcone
+          else if ( clon >= d_zero ) then
+            if ( abs(clon-(mddom%dlon(j,i)+deg360)) < &
+                 abs(clon-mddom%dlon(j,i)) ) then
+              x = (clon-(mddom%dlon(j,i)+deg360))*degrad*xcone
+            else
+              x = (clon-mddom%dlon(j,i))*degrad*xcone
+            end if
+          else if ( abs(clon-(mddom%dlon(j,i)-deg360)) < &
+                    abs(clon-mddom%dlon(j,i)) ) then
+            x = (clon-(mddom%dlon(j,i)-deg360))*degrad*xcone
+          else
+            x = (clon-mddom%dlon(j,i))*degrad*xcone
+          end if
+          xs = sin(x)
+          xc = cos(x)
+          if ( clat >= d_zero ) then
+            d = u(j,i)*xc - v(j,i)*xs
+            v(j,i) = u(j,i)*xs + v(j,i)*xc
+            u(j,i) = d
+          else
+            d = u(j,i)*xc + v(j,i)*xs
+            v(j,i) = v(j,i)*xc - u(j,i)*xs
+            u(j,i) = d
+          end if
+        end do
+      end do
+    end if
+  end subroutine uvrot2d
+
+  !
+  ! Change U and V from map values (X,Y) to true (N,E)
+  !
+  subroutine uvrot3d(u,v)
+    implicit none
+
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+    real(rkx) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
+            sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
+            zphi , zrla , zrlap
+    integer(ik4) :: i , j , k , nk
+
+    nk = size(u,3)
+
+    if ( iproj == 'ROTMER' ) then
+      if ( plat > d_zero ) then
+        pollam = plon + deg180
+        polphi = deg90 - plat
+      else
+        polphi = deg90 + plat
+        pollam = plon
+      end if
+      if ( pollam > deg180 ) pollam = pollam - deg360
+
+      polcphi = cos(degrad*polphi)
+      polsphi = sin(degrad*polphi)
+
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zphi = mddom%dlat(j,i)*degrad
+            zrla = mddom%dlon(j,i)*degrad
+            if ( mddom%dlat(j,i) > 89.999999_rkx ) zrla = d_zero
+            zrlap = pollam*degrad - zrla
+            zarg1 = polcphi*sin(zrlap)
+            zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
+            znorm = d_one/sqrt(zarg1**2+zarg2**2)
+            sindel = zarg1*znorm
+            cosdel = zarg2*znorm
+            us = u(j,i,k)*cosdel + v(j,i,k)*sindel
+            vs = -u(j,i,k)*sindel + v(j,i,k)*cosdel
+            u(j,i,k) = us
+            v(j,i,k) = vs
+          end do
+        end do
+      end do
+    else
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( (clon >= d_zero .and. mddom%dlon(j,i) >= deg00) .or.  &
+                 (clon < d_zero .and. mddom%dlon(j,i) < deg00) ) then
+              x = (clon-mddom%dlon(j,i))*degrad*xcone
+            else if ( clon >= d_zero ) then
+              if ( abs(clon-(mddom%dlon(j,i)+deg360)) < &
+                   abs(clon-mddom%dlon(j,i)) ) then
+                x = (clon-(mddom%dlon(j,i)+deg360))*degrad*xcone
+              else
+                x = (clon-mddom%dlon(j,i))*degrad*xcone
+              end if
+            else if ( abs(clon-(mddom%dlon(j,i)-deg360)) < &
+                      abs(clon-mddom%dlon(j,i)) ) then
+              x = (clon-(mddom%dlon(j,i)-deg360))*degrad*xcone
+            else
+              x = (clon-mddom%dlon(j,i))*degrad*xcone
+            end if
+            xs = sin(x)
+            xc = cos(x)
+            if ( clat >= d_zero ) then
+              d = u(j,i,k)*xc - v(j,i,k)*xs
+              v(j,i,k) = u(j,i,k)*xs + v(j,i,k)*xc
+              u(j,i,k) = d
+            else
+              d = u(j,i,k)*xc + v(j,i,k)*xs
+              v(j,i,k) = v(j,i,k)*xc - u(j,i,k)*xs
+              u(j,i,k) = d
+            end if
+          end do
+        end do
+      end do
+    end if
+  end subroutine uvrot3d
 
 end module mod_output
 
