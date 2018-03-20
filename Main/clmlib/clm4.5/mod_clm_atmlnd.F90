@@ -125,6 +125,10 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: taux
     !wind stress: n-s (kg/m/s**2)
     real(rk8) , pointer , dimension(:) :: tauy
+    !roughness length over vegetation, momentum
+    real(rk8) , pointer , dimension(:) :: zom
+    !roughness length over vegetation, heat
+    real(rk8) , pointer , dimension(:) :: zoh
     !total latent HF (W/m**2)  [+ to atm]
     real(rk8) , pointer , dimension(:) :: eflx_lh_tot
     !total sensible HF (W/m**2) [+ to atm]
@@ -288,6 +292,8 @@ end subroutine init_atm2lnd_type
     allocate(l2a%albi(ibeg:iend,1:numrad))
     allocate(l2a%taux(ibeg:iend))
     allocate(l2a%tauy(ibeg:iend))
+    allocate(l2a%zom(ibeg:iend))
+    allocate(l2a%zoh(ibeg:iend))
     allocate(l2a%eflx_lwrad_out(ibeg:iend))
     allocate(l2a%eflx_sh_tot(ibeg:iend))
     allocate(l2a%eflx_lh_tot(ibeg:iend))
@@ -332,6 +338,8 @@ end subroutine init_atm2lnd_type
     l2a%albi(ibeg:iend,1:numrad) = ival
     l2a%taux(ibeg:iend) = ival
     l2a%tauy(ibeg:iend) = ival
+    l2a%zom(ibeg:iend) = ival
+    l2a%zoh(ibeg:iend) = ival
     l2a%eflx_lwrad_out(ibeg:iend) = ival
     l2a%eflx_sh_tot(ibeg:iend) = ival
     l2a%eflx_lh_tot(ibeg:iend) = ival
@@ -526,6 +534,16 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                pptr%pmf%tauy,clm_l2a%tauy,              &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='unity',                  &
+               l2g_scale_type='unity')
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               pptr%pps%z0mv,clm_l2a%zom,               &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='unity',                  &
+               l2g_scale_type='unity')
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               pptr%pps%z0hv,clm_l2a%zoh,               &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')

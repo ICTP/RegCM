@@ -464,6 +464,7 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
     call glb_l2c_ss(lndcomm,clm_l2a%taux,lms%taux)
     call glb_l2c_ss(lndcomm,clm_l2a%tauy,lms%tauy)
+    call glb_l2c_ss(lndcomm,clm_l2a%zom,lms%zo)
     call glb_l2c_ss(lndcomm,clm_l2a%t_veg,lms%tlef)
 
     ! soil temperature profile
