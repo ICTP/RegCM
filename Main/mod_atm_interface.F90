@@ -43,7 +43,7 @@ module mod_atm_interface
   type(atmstate_c) , public :: atmc
   type(atmstate_tendency) , public :: aten
   type(atmstate_decoupled) , public :: atmx
-  type(crosswind_tendency) , public :: uwten
+  type(crosswind_tendency) , public :: uxten
   type(tendiag) , public :: tdiag
   type(qendiag) , public :: qdiag
   type(surfstate) , public :: sfs
@@ -55,7 +55,7 @@ module mod_atm_interface
   type(mass_divergence) , public :: mdv
   type(nhboundhelp) , public :: nhbh0 , nhbh1
 
-  public :: allocate_mod_atm_interface , allocate_uwstate_tendency
+  public :: allocate_mod_atm_interface , allocate_crosswind_tendency
   public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
 
@@ -677,12 +677,12 @@ module mod_atm_interface
       end if
     end subroutine allocate_atmstate_tendency
 
-    subroutine allocate_uwstate_tendency(uws)
+    subroutine allocate_crosswind_tendency(uwx)
       implicit none
-      type(crosswind_tendency) , intent(out) :: uws
-      call getmem3d(uws%u,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uws:u')
-      call getmem3d(uws%v,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uws:v')
-    end subroutine allocate_uwstate_tendency
+      type(crosswind_tendency) , intent(out) :: uwx
+      call getmem3d(uwx%u,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uwx:u')
+      call getmem3d(uwx%v,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uwx:v')
+    end subroutine allocate_crosswind_tendency
 
     subroutine allocate_reference_atmosphere(atm)
       implicit none

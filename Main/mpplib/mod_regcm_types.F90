@@ -587,6 +587,7 @@ module mod_regcm_types
 
   type mod_2_pbl
     real(rkx) , pointer , dimension(:,:) :: coriol      ! mddom%coriol
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
     real(rkx) , pointer , dimension(:,:) :: psdot       ! psdot
     real(rkx) , pointer , dimension(:,:) :: psb         ! sfs%psb
     real(rkx) , pointer , dimension(:,:) :: tgb         ! sfs%tgb
@@ -594,12 +595,14 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
     real(rkx) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
+    real(rkx) , pointer , dimension(:,:) :: zo          ! sfs%zo
     real(rkx) , pointer , dimension(:,:,:) :: uxatm     ! atms%ubx3d
     real(rkx) , pointer , dimension(:,:,:) :: vxatm     ! atms%vbx3d
     real(rkx) , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
     real(rkx) , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
     real(rkx) , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
     real(rkx) , pointer , dimension(:,:,:) :: patm      ! atms%pb3d
+    real(rkx) , pointer , dimension(:,:,:) :: rhoatm    ! atms%rhob3d
     real(rkx) , pointer , dimension(:,:,:) :: patmf     ! atms%pf3d
     real(rkx) , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
     real(rkx) , pointer , dimension(:,:,:) :: tkests    ! atms%tke
@@ -622,8 +625,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: vten       ! aten%v
     real(rkx) , pointer , dimension(:,:,:,:) :: qxten    ! aten%qx
     real(rkx) , pointer , dimension(:,:,:) :: tketen     ! aten%tke
-    real(rkx) , pointer , dimension(:,:,:) :: uuwten     ! uwten%u
-    real(rkx) , pointer , dimension(:,:,:) :: vuwten     ! uwten%v
+    real(rkx) , pointer , dimension(:,:,:) :: uxten      ! uxten%u
+    real(rkx) , pointer , dimension(:,:,:) :: vxten      ! uxten%v
     real(rkx) , pointer , dimension(:,:,:,:) :: chiten   ! chiten
     real(rkx) , pointer , dimension(:,:,:) :: remdrd     ! remdrd
     real(rkx) , pointer , dimension(:,:) :: zpbl

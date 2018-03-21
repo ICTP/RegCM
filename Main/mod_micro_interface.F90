@@ -243,7 +243,7 @@ module mod_micro_interface
         call gulisa_cldfrac(mo2mc%qvn,mo2mc%qs,totc,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
-                           mo2mc%rh,tc0,rh0,mc2mo%fcc)
+                           totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
     end select
 
     !------------------------------------------

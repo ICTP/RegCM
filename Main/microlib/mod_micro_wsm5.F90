@@ -144,7 +144,7 @@ module mod_micro_wsm5
     g5pbro2 = rgmma(bvtr2)          ! 1.8273
     pvtr = avtr*g4pbr/d_six
     eacrr = 1.0_rkx
-    pacrr = mathpi*n0r*avtr*g3pbr*.25*eacrr
+    pacrr = mathpi*n0r*avtr*g3pbr*0.25_rkx*eacrr
     precr1 = twopi*n0r*0.78_rkx
     precr2 = twopi*n0r*0.31_rkx*avtr**d_half*g5pbro2
     xmmax = (dimax/dicon)**2

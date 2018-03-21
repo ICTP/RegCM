@@ -30,6 +30,7 @@ module mod_pbl_interface
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : allocate_tcm_state
   use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , tkemin
+  use mod_pbl_gfs , only : init_pbl_gfs , pbl_gfs
   use mod_runparams , only : ibltyp , pc_physic
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
@@ -57,11 +58,13 @@ module mod_pbl_interface
     if ( ibltyp == 1 ) then
       call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
       call allocate_mod_pbl_holtbl
-    end if
-    if ( ibltyp == 2 ) then
+    else if ( ibltyp == 2 ) then
       call allocate_tcm_state(uwstate)
-      call allocate_uwstate_tendency(uwten)
+      call allocate_crosswind_tendency(uxten)
       call init_mod_pbl_uwtcm
+    else if ( ibltyp == 3 ) then
+      call init_pbl_gfs
+      call allocate_crosswind_tendency(uxten)
     end if
   end subroutine allocate_pblscheme
 
@@ -73,12 +76,14 @@ module mod_pbl_interface
 
     ! INPUT to PBL
     call assignpnt(mddom%coriol,m2p%coriol)
+    call assignpnt(mddom%ldmsk,m2p%ldmsk)
     call assignpnt(sfs%psdotb,m2p%psdot)
     call assignpnt(sfs%psb,m2p%psb)
     call assignpnt(sfs%tgb,m2p%tgb)
     call assignpnt(sfs%tgbb,m2p%tsk)
     call assignpnt(sfs%qfx,m2p%qfx)
     call assignpnt(sfs%hfx,m2p%hfx)
+    call assignpnt(sfs%zo,m2p%zo)
     call assignpnt(sfs%uvdrag,m2p%uvdrag)
     call assignpnt(atms%ubx3d,m2p%uxatm)
     call assignpnt(atms%vbx3d,m2p%vxatm)
@@ -88,6 +93,7 @@ module mod_pbl_interface
     call assignpnt(atms%tp3d,m2p%tpatm)
     call assignpnt(atms%pb3d,m2p%patm)
     call assignpnt(atms%pf3d,m2p%patmf)
+    call assignpnt(atms%rhob3d,m2p%rhoatm)
     call assignpnt(atms%qxb3d,m2p%qxatm)
     call assignpnt(atms%chib3d,m2p%chib)
     call assignpnt(atms%th3d,m2p%thatm)
@@ -108,8 +114,8 @@ module mod_pbl_interface
     call assignpnt(aten%qx,p2m%qxten,pc_physic)
     call assignpnt(aten%tke,p2m%tketen,pc_physic)
     call assignpnt(aten%chi,p2m%chiten,pc_physic)
-    call assignpnt(uwten%u,p2m%uuwten)
-    call assignpnt(uwten%v,p2m%vuwten)
+    call assignpnt(uxten%u,p2m%uxten)
+    call assignpnt(uxten%v,p2m%vxten)
     call assignpnt(remdrd,p2m%remdrd)
     call assignpnt(zpbl,p2m%zpbl)
     call assignpnt(kpbl,p2m%kpbl)
@@ -124,7 +130,10 @@ module mod_pbl_interface
         call holtbl(m2p,p2m)
       case (2)
         call uwtcm(m2p,p2m)
-        call uvcross2dot(uwten%u,uwten%v,p2m%uten,p2m%vten)
+        call uvcross2dot(uxten%u,uxten%v,p2m%uten,p2m%vten)
+      case (3)
+        call pbl_gfs(m2p,p2m)
+        call uvcross2dot(uxten%u,uxten%v,p2m%uten,p2m%vten)
       case default
         return
     end select

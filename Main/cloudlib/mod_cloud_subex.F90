@@ -43,9 +43,9 @@ module mod_cloud_subex
   !
   ! See Pal et al (2000) for more info.
   !
-  subroutine subex_cldfrac(t,p,qv,rh,tc0,rh0,fcc)
+  subroutine subex_cldfrac(t,p,qv,qc,rh,tc0,rh0,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , p , qv , rh
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , p , qv , qc , rh
     real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
     real(rkx) , intent(in) :: tc0
