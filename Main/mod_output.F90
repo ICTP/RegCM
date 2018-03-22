@@ -50,6 +50,9 @@ module mod_output
 
   type(rcm_time_and_date) , save , public :: lastout
 
+  real(rkx) , pointer , dimension(:,:) :: alpharotsin => null( )
+  real(rkx) , pointer , dimension(:,:) :: alpharotcos => null( )
+
   interface uvrot
     module procedure uvrot2d
     module procedure uvrot3d
@@ -1338,10 +1341,107 @@ module mod_output
     implicit none
 
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    real(rkx) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
-            sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
-            zphi , zrla , zrlap
+    real(rkx) :: us , vs
     integer(ik4) :: i , j
+
+    if ( .not. associated(alpharotcos) ) then
+      call alpharot_compute
+    end if
+
+    if ( iproj == 'ROTMER' ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          us = u(j,i)*alpharotcos(j,i) + v(j,i)*alpharotsin(j,i)
+          vs = v(j,i)*alpharotcos(j,i) - u(j,i)*alpharotsin(j,i)
+          u(j,i) = us
+          v(j,i) = vs
+        end do
+      end do
+    else
+      if ( clat >= d_zero ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            us = u(j,i)*alpharotcos(j,i) - v(j,i)*alpharotsin(j,i)
+            vs = u(j,i)*alpharotsin(j,i) + v(j,i)*alpharotcos(j,i)
+            u(j,i) = us
+            v(j,i) = vs
+          end do
+        end do
+      else
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            us = u(j,i)*alpharotcos(j,i) + v(j,i)*alpharotsin(j,i)
+            vs = v(j,i)*alpharotcos(j,i) - u(j,i)*alpharotsin(j,i)
+            u(j,i) = us
+            v(j,i) = vs
+          end do
+        end do
+      end if
+    end if
+  end subroutine uvrot2d
+
+  !
+  ! Change U and V from map values (X,Y) to true (N,E)
+  !
+  subroutine uvrot3d(u,v)
+    implicit none
+
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+    real(rkx) :: us , vs
+    integer(ik4) :: i , j , k , nk
+
+    if ( .not. associated(alpharotcos) ) then
+      call alpharot_compute
+    end if
+
+    nk = size(u,3)
+
+    if ( iproj == 'ROTMER' ) then
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            us = u(j,i,k)*alpharotcos(j,i) + v(j,i,k)*alpharotsin(j,i)
+            vs = v(j,i,k)*alpharotcos(j,i) - u(j,i,k)*alpharotsin(j,i)
+            u(j,i,k) = us
+            v(j,i,k) = vs
+          end do
+        end do
+      end do
+    else
+      if ( clat >= d_zero ) then
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              us = u(j,i,k)*alpharotcos(j,i) - v(j,i,k)*alpharotsin(j,i)
+              vs = u(j,i,k)*alpharotsin(j,i) + v(j,i,k)*alpharotcos(j,i)
+              u(j,i,k) = us
+              v(j,i,k) = vs
+            end do
+          end do
+        end do
+      else
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              us = u(j,i,k)*alpharotcos(j,i) + v(j,i,k)*alpharotsin(j,i)
+              vs = v(j,i,k)*alpharotcos(j,i) - u(j,i,k)*alpharotsin(j,i)
+              u(j,i,k) = us
+              v(j,i,k) = vs
+            end do
+          end do
+        end do
+      end if
+    end if
+  end subroutine uvrot3d
+
+  subroutine alpharot_compute
+    implicit none
+    real(rkx) :: polcphi , pollam , polphi , polsphi ,  &
+            x , zarg1 , zarg2 , znorm , zphi , zrla , zrlap
+    integer(ik4) :: i , j
+
+    call getmem2d(alpharotsin,jci1,jci2,ici1,ici2,'mod_output:alpharotsin')
+    call getmem2d(alpharotcos,jci1,jci2,ici1,ici2,'mod_output:alpharotcos')
 
     if ( iproj == 'ROTMER' ) then
       if ( plat > d_zero ) then
@@ -1365,12 +1465,8 @@ module mod_output
           zarg1 = polcphi*sin(zrlap)
           zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
           znorm = d_one/sqrt(zarg1**2+zarg2**2)
-          sindel = zarg1*znorm
-          cosdel = zarg2*znorm
-          us = u(j,i)*cosdel + v(j,i)*sindel
-          vs = -u(j,i)*sindel + v(j,i)*cosdel
-          u(j,i) = us
-          v(j,i) = vs
+          alpharotsin(j,i) = zarg1*znorm
+          alpharotcos(j,i) = zarg2*znorm
         end do
       end do
     else
@@ -1392,104 +1488,12 @@ module mod_output
           else
             x = (clon-mddom%xlon(j,i))*degrad*xcone
           end if
-          xs = sin(x)
-          xc = cos(x)
-          if ( clat >= d_zero ) then
-            d = u(j,i)*xc - v(j,i)*xs
-            v(j,i) = u(j,i)*xs + v(j,i)*xc
-            u(j,i) = d
-          else
-            d = u(j,i)*xc + v(j,i)*xs
-            v(j,i) = v(j,i)*xc - u(j,i)*xs
-            u(j,i) = d
-          end if
+          alpharotsin(j,i) = sin(x)
+          alpharotcos(j,i) = cos(x)
         end do
       end do
     end if
-  end subroutine uvrot2d
-
-  !
-  ! Change U and V from map values (X,Y) to true (N,E)
-  !
-  subroutine uvrot3d(u,v)
-    implicit none
-
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    real(rkx) :: cosdel , d , polcphi , pollam , polphi , polsphi ,  &
-            sindel , us , vs , x , xc , xs , zarg1 , zarg2 , znorm , &
-            zphi , zrla , zrlap
-    integer(ik4) :: i , j , k , nk
-
-    nk = size(u,3)
-
-    if ( iproj == 'ROTMER' ) then
-      if ( plat > d_zero ) then
-        pollam = plon + deg180
-        polphi = deg90 - plat
-      else
-        polphi = deg90 + plat
-        pollam = plon
-      end if
-      if ( pollam > deg180 ) pollam = pollam - deg360
-
-      polcphi = cos(degrad*polphi)
-      polsphi = sin(degrad*polphi)
-
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            zphi = mddom%xlat(j,i)*degrad
-            zrla = mddom%xlon(j,i)*degrad
-            if ( mddom%xlat(j,i) > 89.999999_rkx ) zrla = d_zero
-            zrlap = pollam*degrad - zrla
-            zarg1 = polcphi*sin(zrlap)
-            zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
-            znorm = d_one/sqrt(zarg1**2+zarg2**2)
-            sindel = zarg1*znorm
-            cosdel = zarg2*znorm
-            us = u(j,i,k)*cosdel + v(j,i,k)*sindel
-            vs = -u(j,i,k)*sindel + v(j,i,k)*cosdel
-            u(j,i,k) = us
-            v(j,i,k) = vs
-          end do
-        end do
-      end do
-    else
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( (clon >= d_zero .and. mddom%xlon(j,i) >= deg00) .or.  &
-                 (clon < d_zero .and. mddom%xlon(j,i) < deg00) ) then
-              x = (clon-mddom%xlon(j,i))*degrad*xcone
-            else if ( clon >= d_zero ) then
-              if ( abs(clon-(mddom%xlon(j,i)+deg360)) < &
-                   abs(clon-mddom%xlon(j,i)) ) then
-                x = (clon-(mddom%xlon(j,i)+deg360))*degrad*xcone
-              else
-                x = (clon-mddom%xlon(j,i))*degrad*xcone
-              end if
-            else if ( abs(clon-(mddom%xlon(j,i)-deg360)) < &
-                      abs(clon-mddom%xlon(j,i)) ) then
-              x = (clon-(mddom%xlon(j,i)-deg360))*degrad*xcone
-            else
-              x = (clon-mddom%xlon(j,i))*degrad*xcone
-            end if
-            xs = sin(x)
-            xc = cos(x)
-            if ( clat >= d_zero ) then
-              d = u(j,i,k)*xc - v(j,i,k)*xs
-              v(j,i,k) = u(j,i,k)*xs + v(j,i,k)*xc
-              u(j,i,k) = d
-            else
-              d = u(j,i,k)*xc + v(j,i,k)*xs
-              v(j,i,k) = v(j,i,k)*xc - u(j,i,k)*xs
-              u(j,i,k) = d
-            end if
-          end do
-        end do
-      end do
-    end if
-  end subroutine uvrot3d
+  end subroutine alpharot_compute
 
 end module mod_output
 
