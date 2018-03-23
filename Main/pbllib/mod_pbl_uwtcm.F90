@@ -247,9 +247,6 @@ module mod_pbl_uwtcm
     call time_begin(subroutine_name,idindx)
 #endif
 
-    p2m%uxten(:,:,:) = d_zero
-    p2m%vxten(:,:,:) = d_zero
-
     !Main do loop
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -716,9 +713,9 @@ module mod_pbl_uwtcm
         if ( update_only_in_pbl ) ibnd = kpbl2dx
         do k = ibnd , kz
           ! Zonal wind tendency
-          p2m%uxten(j,i,k) = rpfac*(ux(k)-uxs(k))
+          p2m%uxten(j,i,k) = (ux(k)-uxs(k))*rdt
           ! Meridional wind tendency
-          p2m%vxten(j,i,k) = rpfac*(vx(k)-vxs(k))
+          p2m%vxten(j,i,k) = (vx(k)-vxs(k))*rdt
           ! Temperature tendency
           p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*(thx(k)-thxs(k))*exnerhl(k)
           ! Water vapor tendency

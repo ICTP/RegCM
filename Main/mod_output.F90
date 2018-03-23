@@ -498,7 +498,7 @@ module mod_output
           atm_tsn_out = sfs%snownc/(atmfrq*secph)
         end if
         if ( associated(atm_tgb_out) .and. rcmtimer%lcount == 0 ) then
-          atm_tgb_out = ts0(jci1:jci2,ici1:ici2)
+          atm_tgb_out = sfs%tgbb(jci1:jci2,ici1:ici2)
         end if
 
         if ( associated(atm_tsw_out) ) then

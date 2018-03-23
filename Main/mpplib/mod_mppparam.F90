@@ -9016,61 +9016,51 @@ module mod_mppparam
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jdii1 , jdii2
-          ud(j,i,k) =  ud(j,i,k) +               &
-            d_rfour*(ux(j,i,k) + ux(j-1,i,k) +   &
-                     ux(j,i-1,k) + ux(j-1,i-1,k))
-          vd(j,i,k) =  vd(j,i,k) +               &
-            d_rfour*(vx(j,i,k) + vx(j-1,i,k) +   &
-                     vx(j,i-1,k) + vx(j-1,i-1,k))
+          ud(j,i,k) =  d_rfour*(ux(j,i,k) + ux(j-1,i,k) +   &
+                                ux(j,i-1,k) + ux(j-1,i-1,k))
+          vd(j,i,k) =  d_rfour*(vx(j,i,k) + vx(j-1,i,k) +   &
+                                vx(j,i-1,k) + vx(j-1,i-1,k))
         end do
       end do
       if ( ma%has_bdyleft ) then
         do i = idii1 , idii2
-          ud(jdi1,i,k) = ud(jdi1,i,k) + &
-            d_half*(ux(jci1,i,k) + ux(jci1,i-1,k))
-          vd(jdi1,i,k) = vd(jdi1,i,k) + &
-            d_half*(vx(jci1,i,k) + vx(jci1,i-1,k))
+          ud(jdi1,i,k) = d_half*(ux(jci1,i,k) + ux(jci1,i-1,k))
+          vd(jdi1,i,k) = d_half*(vx(jci1,i,k) + vx(jci1,i-1,k))
         end do
       end if
       if ( ma%has_bdyright ) then
         do i = idii1 , idii2
-          ud(jdi2,i,k) = ud(jdi2,i,k) + &
-            d_half*(ux(jci2,i,k) + ux(jci2,i-1,k))
-          vd(jdi2,i,k) = vd(jdi2,i,k) + &
-            d_half*(vx(jci2,i,k) + vx(jci2,i-1,k))
+          ud(jdi2,i,k) = d_half*(ux(jci2,i,k) + ux(jci2,i-1,k))
+          vd(jdi2,i,k) = d_half*(vx(jci2,i,k) + vx(jci2,i-1,k))
         end do
       end if
       if ( ma%has_bdytop ) then
         do j = jdii1 , jdii2
-          ud(j,idi2,k) = ud(j,idi2,k) + &
-            d_half*(ux(j,ici2,k) + ux(j-1,ici2,k))
-          vd(j,idi2,k) = vd(j,idi2,k) + &
-            d_half*(vx(j,ici2,k) + vx(j-1,ici2,k))
+          ud(j,idi2,k) = d_half*(ux(j,ici2,k) + ux(j-1,ici2,k))
+          vd(j,idi2,k) = d_half*(vx(j,ici2,k) + vx(j-1,ici2,k))
         end do
       end if
       if ( ma%has_bdybottom ) then
         do j = jdii1 , jdii2
-          ud(j,idi1,k) = ud(j,idi1,k) + &
-            d_half*(ux(j,ici1,k) + ux(j-1,ici1,k))
-          vd(j,idi1,k) = vd(j,idi1,k) + &
-            d_half*(vx(j,ici1,k) + vx(j-1,ici1,k))
+          ud(j,idi1,k) = d_half*(ux(j,ici1,k) + ux(j-1,ici1,k))
+          vd(j,idi1,k) = d_half*(vx(j,ici1,k) + vx(j-1,ici1,k))
         end do
       end if
       if ( ma%has_bdytopleft ) then
-        ud(jdi1,idi2,k) = ud(jdi1,idi2,k) + ux(jci1,ici2,k)
-        vd(jdi1,idi2,k) = vd(jdi1,idi2,k) + vx(jci1,ici2,k)
+        ud(jdi1,idi2,k) = ux(jci1,ici2,k)
+        vd(jdi1,idi2,k) = vx(jci1,ici2,k)
       end if
       if ( ma%has_bdybottomleft ) then
-        ud(jdi1,idi1,k) = ud(jdi1,idi1,k) + ux(jci1,ici1,k)
-        vd(jdi1,idi1,k) = vd(jdi1,idi1,k) + vx(jci1,ici1,k)
+        ud(jdi1,idi1,k) = ux(jci1,ici1,k)
+        vd(jdi1,idi1,k) = vx(jci1,ici1,k)
       end if
       if ( ma%has_bdytopright ) then
-        ud(jdi2,idi2,k) = ud(jdi2,idi2,k) + ux(jci2,ici2,k)
-        vd(jdi2,idi2,k) = vd(jdi2,idi2,k) + vx(jci2,ici2,k)
+        ud(jdi2,idi2,k) = ux(jci2,ici2,k)
+        vd(jdi2,idi2,k) = vx(jci2,ici2,k)
       end if
       if ( ma%has_bdybottomright ) then
-        ud(jdi2,idi1,k) = ud(jdi2,idi1,k) + ux(jci2,ici1,k)
-        vd(jdi2,idi1,k) = vd(jdi2,idi1,k) + vx(jci2,ici1,k)
+        ud(jdi2,idi1,k) = ux(jci2,ici1,k)
+        vd(jdi2,idi1,k) = vx(jci2,ici1,k)
       end if
     end do
   end subroutine uvcross2dot
@@ -9106,12 +9096,10 @@ module mod_mppparam
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ux(j,i,k) =  ux(j,i,k) +                 &
-            d_rfour*(ud(j,i,  k) + ud(j+1,i,  k) + &
-                     ud(j,i+1,k) + ud(j+1,i+1,k))
-          vx(j,i,k) =  vx(j,i,k) +                 &
-            d_rfour*(vd(j,i  ,k) + vd(j+1,i  ,k) + &
-                     vd(j,i+1,k) + vd(j+1,i+1,k))
+          ux(j,i,k) =  d_rfour*(ud(j,i,  k) + ud(j+1,i,  k) + &
+                                ud(j,i+1,k) + ud(j+1,i+1,k))
+          vx(j,i,k) =  d_rfour*(vd(j,i  ,k) + vd(j+1,i  ,k) + &
+                                vd(j,i+1,k) + vd(j+1,i+1,k))
         end do
       end do
     end do

@@ -431,11 +431,14 @@ module mod_tendency
       call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu1)
     end if
     call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu1)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
-                          0.53_rkx,sfs%psa,sfs%psb)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
-                          iqfrst,iqlst,minqq,sfs%psa,sfs%psb)
-    !
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1,sfs%psa)
+    !call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
+    !                      0.53_rkx,sfs%psa,sfs%psb)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2, &
+                          iqfrst,iqlst,minqq,sfs%psa)
+    !call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
+    !                      iqfrst,iqlst,dlowval,sfs%psa,sfs%psb)
+
     if ( idynamic == 1 ) then
       !
       ! forecast p*u and p*v at tau+1:
@@ -584,8 +587,10 @@ module mod_tendency
           end do
         end do
       end do
-      call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,0.53_rkx, &
-                            1,ntr,mintr,sfs%psa,sfs%psb)
+      call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2, &
+                            1,ntr,mintr,sfs%psa)
+      !call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,0.53_rkx, &
+      !                      1,ntr,dlowval,sfs%psa,sfs%psb)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).

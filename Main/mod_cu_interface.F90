@@ -27,7 +27,7 @@ module mod_cu_interface
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-  use mod_mppparam , only : exchange , uvcross2dot , italk
+  use mod_mppparam , only : exchange , uvcross2dot , uvdot2cross , italk
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
       model_cumulus_cloud , init_mod_cumulus
@@ -184,6 +184,8 @@ module mod_cu_interface
     call assignpnt(convpr,c2m%convpr)
     call assignpnt(q_detr,c2m%q_detr)
     call assignpnt(rain_cc,c2m%rain_cc)
+    call assignpnt(uxten%u,cu_uten)
+    call assignpnt(uxten%v,cu_vten)
     call init_mod_cumulus
   end subroutine init_cumulus
 
@@ -213,6 +215,7 @@ module mod_cu_interface
   end subroutine cucloud
 
   subroutine cumulus
+    use mod_atm_interface
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: w1
@@ -248,19 +251,20 @@ module mod_cu_interface
           end do
         end do
       end do
-      call exchange(m2c%uten,1,jdi1,jdi2,idi1,idi2,1,kz)
-      call exchange(m2c%vten,1,jdi1,jdi2,idi1,idi2,1,kz)
       do k = 1 , kz
-        do i = icii1 , icii2
-          do j = jcii1 , jcii2
-            avg_uten(j,i,k) = (d_one-w1) * avg_uten(j,i,k) + &
-                w1 * d_rfour * &
-                    (m2c%uten(j,i,k)   + m2c%uten(j+1,i,k) + &
-                     m2c%uten(j,i+1,k) + m2c%uten(j+1,i+1,k)) / m2c%psb(j,i)
-            avg_vten(j,i,k) = (d_one-w1) * avg_vten(j,i,k) + &
-                w1 * d_rfour * &
-                    (m2c%vten(j,i,k)   + m2c%vten(j+1,i,k) + &
-                     m2c%vten(j,i+1,k) + m2c%vten(j+1,i+1,k)) / m2c%psb(j,i)
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            uxten%ud(j,i,k) = m2c%uten(j,i,k) / sfs%psdotb(j,i)
+            uxten%vd(j,i,k) = m2c%vten(j,i,k) / sfs%psdotb(j,i)
+          end do
+        end do
+      end do
+      call uvdot2cross(uxten%ud,uxten%vd,uxten%u,uxten%v)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            avg_uten(j,i,k) = (d_one-w1)*avg_uten(j,i,k) + w1*uxten%u(j,i,k)
+            avg_vten(j,i,k) = (d_one-w1)*avg_vten(j,i,k) + w1*uxten%v(j,i,k)
           end do
         end do
       end do
@@ -361,14 +365,7 @@ module mod_cu_interface
           end select
         end if
 
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              cu_uten(j,i,k) = cu_uten(j,i,k) * m2c%psb(j,i)
-              cu_vten(j,i,k) = cu_vten(j,i,k) * m2c%psb(j,i)
-            end do
-          end do
-        end do
+        call uvcross2dot(cu_uten,cu_vten,uxten%ud,uxten%vd)
 
       end if
 
@@ -391,7 +388,14 @@ module mod_cu_interface
         end do
       end do
 
-      call uvcross2dot(cu_uten,cu_vten,c2m%uten,c2m%vten)
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            c2m%uten(j,i,k) = c2m%uten(j,i,k) + uxten%ud(j,i,k)*m2c%psdotb(j,i)
+            c2m%vten(j,i,k) = c2m%vten(j,i,k) + uxten%vd(j,i,k)*m2c%psdotb(j,i)
+          end do
+        end do
+      end do
 
       do n = 1 , nqx
         do k = 1 , kz

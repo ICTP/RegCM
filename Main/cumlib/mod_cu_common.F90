@@ -73,8 +73,6 @@ module mod_cu_common
 
     call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
     call getmem3d(avg_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:avg_tten')
-    call getmem3d(cu_uten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:utenx')
-    call getmem3d(cu_vten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:vtenx')
     call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
     call getmem4d(avg_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:avg_qten')
     call getmem3d(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')

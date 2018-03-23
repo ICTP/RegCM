@@ -60,11 +60,9 @@ module mod_pbl_interface
       call allocate_mod_pbl_holtbl
     else if ( ibltyp == 2 ) then
       call allocate_tcm_state(uwstate)
-      call allocate_crosswind_tendency(uxten)
       call init_mod_pbl_uwtcm
     else if ( ibltyp == 3 ) then
       call init_pbl_gfs
-      call allocate_crosswind_tendency(uxten)
     end if
   end subroutine allocate_pblscheme
 
@@ -79,6 +77,7 @@ module mod_pbl_interface
     call assignpnt(mddom%ldmsk,m2p%ldmsk)
     call assignpnt(sfs%psdotb,m2p%psdot)
     call assignpnt(sfs%psb,m2p%psb)
+    call assignpnt(sfs%psdotb,m2p%psdotb)
     call assignpnt(sfs%tgb,m2p%tgb)
     call assignpnt(sfs%tgbb,m2p%tsk)
     call assignpnt(sfs%qfx,m2p%qfx)
@@ -125,15 +124,36 @@ module mod_pbl_interface
   subroutine pblscheme
     use mod_atm_interface
     implicit none
+    integer(ik4) :: i , j , k
     select case ( ibltyp )
       case (1)
         call holtbl(m2p,p2m)
       case (2)
+        uxten%u = d_zero
+        uxten%v = d_zero
         call uwtcm(m2p,p2m)
-        call uvcross2dot(uxten%u,uxten%v,p2m%uten,p2m%vten)
+        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              p2m%uten(j,i,k) = p2m%uten(j,i,k)+uxten%ud(j,i,k)*m2p%psdotb(j,i)
+              p2m%vten(j,i,k) = p2m%vten(j,i,k)+uxten%vd(j,i,k)*m2p%psdotb(j,i)
+            end do
+          end do
+        end do
       case (3)
+        uxten%u = d_zero
+        uxten%v = d_zero
         call pbl_gfs(m2p,p2m)
-        call uvcross2dot(uxten%u,uxten%v,p2m%uten,p2m%vten)
+        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              p2m%uten(j,i,k) = p2m%uten(j,i,k)+uxten%ud(j,i,k)*m2p%psdotb(j,i)
+              p2m%vten(j,i,k) = p2m%vten(j,i,k)+uxten%vd(j,i,k)*m2p%psdotb(j,i)
+            end do
+          end do
+        end do
       case default
         return
     end select

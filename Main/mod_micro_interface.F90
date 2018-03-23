@@ -376,7 +376,7 @@ module mod_micro_interface
           if ( qvcs < minqq * sfs%psc(j,i) ) then
             qvcs = minqq * sfs%psc(j,i)
           end if
-          if ( qccs < minqq * sfs%psc(j,i) ) then
+          if ( qccs < dlowval * sfs%psc(j,i) ) then
             qccs = d_zero
           end if
           qvcs = qvcs /sfs%psc(j,i)

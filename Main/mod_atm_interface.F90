@@ -645,17 +645,10 @@ module mod_atm_interface
     subroutine allocate_atmstate_tendency(atm)
       implicit none
       type(atmstate_tendency) , intent(out) :: atm
-      if ( any(icup == 5) .or. ibltyp == 2 ) then
-        call getmem4d(atm%u,jdi1ga,jdi2ga,idi1ga,idi2ga, &
-                      1,kz,1,number_of_prognostic_components,'atmstate:u')
-        call getmem4d(atm%v,jdi1ga,jdi2ga,idi1ga,idi2ga, &
-                      1,kz,1,number_of_prognostic_components,'atmstate:v')
-      else
-        call getmem4d(atm%u,jdi1,jdi2,idi1,idi2, &
-                      1,kz,1,number_of_prognostic_components,'atmstate:u')
-        call getmem4d(atm%v,jdi1,jdi2,idi1,idi2, &
-                      1,kz,1,number_of_prognostic_components,'atmstate:v')
-      end if
+      call getmem4d(atm%u,jdi1,jdi2,idi1,idi2, &
+                    1,kz,1,number_of_prognostic_components,'atmstate:u')
+      call getmem4d(atm%v,jdi1,jdi2,idi1,idi2, &
+                    1,kz,1,number_of_prognostic_components,'atmstate:v')
       call getmem4d(atm%t,jci1,jci2,ici1,ici2, &
                     1,kz,1,number_of_prognostic_components,'atmstate:t')
       call getmem5d(atm%qx,jci1,jci2,ici1,ici2, &
@@ -682,6 +675,8 @@ module mod_atm_interface
       type(crosswind_tendency) , intent(out) :: uwx
       call getmem3d(uwx%u,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uwx:u')
       call getmem3d(uwx%v,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uwx:v')
+      call getmem3d(uwx%ud,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'uwx:ud')
+      call getmem3d(uwx%vd,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'uwx:vd')
     end subroutine allocate_crosswind_tendency
 
     subroutine allocate_reference_atmosphere(atm)
@@ -897,6 +892,7 @@ module mod_atm_interface
       call allocate_surfstate(sfs)
       call allocate_slice(atms,atm0)
       call allocate_mass_divergence(mdv)
+      call allocate_crosswind_tendency(uxten)
 
       ! FAB:
       !    complete for diag on water quantitiies idiag = 2, 3 etc

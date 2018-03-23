@@ -24,7 +24,7 @@ module mod_pbl_gfs
   use mod_constants
   use mod_memutil
   use mod_dynparam , only : ici1 , ici2 , jci1 , jci2 , kz , kzp1 , kzm1 , ntr
-  use mod_runparams , only : dt , dx , nqx , ichem , iqv , rcmtimer
+  use mod_runparams , only : dt , dx , nqx , ichem , iqv
   use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
 
   public :: blgfs2011
@@ -125,8 +125,6 @@ module mod_pbl_gfs
         psih_unstab(i) = psih_unstable_full(zolf)
       end do
 
-      hpbl(:) = 20.0_rkx
-
     end subroutine init_pbl_gfs
 
     subroutine pbl_gfs(m2p,p2m)
@@ -142,15 +140,13 @@ module mod_pbl_gfs
       real(rkx) :: rrhox , cpm , vconv , vsgd
       real(rkx) :: wspd0 , zol , zol0 , zolzz
 
-      if ( .not. rcmtimer%start() ) then
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            hpbl(n) = p2m%zpbl(j,i)
-            n = n + 1
-          end do
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          hpbl(n) = max(p2m%zpbl(j,i),m2p%za(j,i,kz))
+          n = n + 1
         end do
-      end if
+      end do
 
       n = 1
       do i = ici1 , ici2
@@ -224,7 +220,7 @@ module mod_pbl_gfs
           evap(n) = m2p%qfx(j,i)*rrhox
           spd1(n) = wspd0
           rbsoil(n) = br
-          rcs(n) = d_one
+          rcs(n) = 0.5D0
           prsi(n,1) = pa*d_r1000
           phii(n,1) = d_zero
           n = n + 1
@@ -317,8 +313,8 @@ module mod_pbl_gfs
         kk = kzp1 - k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%uxten(j,i,k) = du(n,kk)*m2p%psb(j,i)
-            p2m%vxten(j,i,k) = dv(n,kk)*m2p%psb(j,i)
+            p2m%uxten(j,i,k) = du(n,kk)
+            p2m%vxten(j,i,k) = dv(n,kk)
             p2m%tten(j,i,k) = tau(n,kk)*m2p%psb(j,i)
             n = n + 1
           end do
@@ -381,7 +377,7 @@ module mod_pbl_gfs
           if ( zolf >= d_zero ) then
             psim_stable = psim_stable_full(zolf)
           else
-            psim_stable = psim_unstable_full(zolf)
+            psim_stable = d_zero
           end if
         end if
       end function psim_stable
@@ -398,7 +394,7 @@ module mod_pbl_gfs
                   rzol*(psim_unstab(nzol+1)-psim_unstab(nzol))
         else
           if ( zolf > d_zero ) then
-            psim_unstable = psim_stable_full(zolf)
+            psim_unstable = d_zero
           else
             psim_unstable = psim_unstable_full(zolf)
           end if
@@ -419,7 +415,7 @@ module mod_pbl_gfs
           if ( zolf > d_zero ) then
             psih_stable = psih_stable_full(zolf)
           else
-            psih_stable = psih_unstable_full(zolf)
+            psih_stable = d_zero
           end if
         end if
       end function psih_stable
@@ -436,7 +432,7 @@ module mod_pbl_gfs
                   rzol*(psih_unstab(nzol+1)-psih_unstab(nzol))
         else
           if ( zolf > d_zero ) then
-            psih_unstable = psih_stable_full(zolf)
+            psih_unstable = d_zero
           else
             psih_unstable = psih_unstable_full(zolf)
           end if

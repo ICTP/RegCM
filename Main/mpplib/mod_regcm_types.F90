@@ -174,6 +174,8 @@ module mod_regcm_types
   type crosswind_tendency
     real(rkx) , pointer , dimension(:,:,:) :: u
     real(rkx) , pointer , dimension(:,:,:) :: v
+    real(rkx) , pointer , dimension(:,:,:) :: ud
+    real(rkx) , pointer , dimension(:,:,:) :: vd
   end type crosswind_tendency
 
   type atmstate_decoupled
@@ -590,6 +592,7 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
     real(rkx) , pointer , dimension(:,:) :: psdot       ! psdot
     real(rkx) , pointer , dimension(:,:) :: psb         ! sfs%psb
+    real(rkx) , pointer , dimension(:,:) :: psdotb      ! sfs%psdotb
     real(rkx) , pointer , dimension(:,:) :: tgb         ! sfs%tgb
     real(rkx) , pointer , dimension(:,:) :: tsk         ! sfs%tgbb
     real(rkx) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
