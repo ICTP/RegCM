@@ -60,12 +60,12 @@ module mod_slice
     end do
 
     do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-      atms%ubx3d(j,i,k) = d_rfour*             &
-              (atm2%u(j,i,k)   + atm2%u(j,i+1,k) + &
-               atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k)) * rpsb(j,i)
-      atms%vbx3d(j,i,k) = d_rfour*             &
-              (atm2%v(j,i,k)   + atm2%v(j,i+1,k) + &
-               atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k)) * rpsb(j,i)
+      atms%ubx3d(j,i,k) = d_rfour *                        &
+              (atms%ubd3d(j,i,k)   + atms%ubd3d(j,i+1,k) + &
+               atms%ubd3d(j+1,i,k) + atms%ubd3d(j+1,i+1,k))
+      atms%vbx3d(j,i,k) = d_rfour *                        &
+              (atms%vbd3d(j,i,k)   + atms%vbd3d(j,i+1,k) + &
+               atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k))
     end do
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
       atms%tb3d(j,i,k) = atm2%t(j,i,k)*rpsb(j,i)

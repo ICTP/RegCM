@@ -1123,10 +1123,10 @@ module mod_cu_grell
               mflx = max(d_100*(p(n,k)/(rgas*t(n,k)))*dellah(n,k)*xmb(n),d_zero)
               if ( z(n,ktop(n))-z(n,kbcon(n)) > 2000.0_rkx ) then
                 cldf(n,k) = kfac_deep*log(d_one+k2_const*mflx)
-                cldf(n,k) = max(0.01,min(0.6,cldf(n,k)))
+                cldf(n,k) = max(0.01_rkx,min(0.6_rkx,cldf(n,k)))
               else
                 cldf(n,k) = kfac_shal*log(d_one+k2_const*mflx)
-                cldf(n,k) = max(0.01,min(0.2,cldf(n,k)))
+                cldf(n,k) = max(0.01_rkx,min(0.2_rkx,cldf(n,k)))
               end if
             end if
           end if

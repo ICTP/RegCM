@@ -126,7 +126,7 @@ module mod_pbl_gfs
       integer(ik4) :: i , j , k , kk , km , n
       integer(ik4) :: iq , it , iit
       real(rkx) :: tvcon , zo , gz1oz0 , thvx , tskv , dthvdz , br
-      real(rkx) :: wspd , psim , psih , dthvm , fluxc , tsk
+      real(rkx) :: ps , wspd , psim , psih , dthvm , fluxc , tsk
       real(rkx) :: za , ta , qa , pa , ua , va , tha , rhoa
       real(rkx) :: rrhox , cpm , vconv , vsgd
       real(rkx) :: wspd0 , zol , zol0 , zolzz
@@ -134,18 +134,11 @@ module mod_pbl_gfs
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          hpbl(n) = max(p2m%zpbl(j,i),m2p%za(j,i,kz))
-          n = n + 1
-        end do
-      end do
-
-      n = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
           za = m2p%za(j,i,kz)
           ta = m2p%tatm(j,i,kz)
           qa = m2p%qxatm(j,i,kz,iqv)
-          pa = m2p%patmf(j,i,kz)
+          ps = m2p%patmf(j,i,kzp1)
+          pa = m2p%patm(j,i,kz)
           ua = m2p%uxatm(j,i,kz)
           va = m2p%vxatm(j,i,kz)
           tha = m2p%thatm(j,i,kz)
@@ -154,7 +147,7 @@ module mod_pbl_gfs
           tvcon = d_one + ep1*qa
           rrhox = (rgas*(ta*tvcon))/pa
           cpm = cpd * (d_one + 0.8_rkx * qa)
-          zo = min(max(m2p%zo(j,i),1.0e-5_rkx),za)
+          zo = min(max(m2p%zo(j,i),1.0e-8_rkx),za)
           gz1oz0 = log((za+zo)/zo)
           thvx = tha*tvcon
           tskv = tsk*tvcon
@@ -205,14 +198,14 @@ module mod_pbl_gfs
           end if
           fm(n) = gz1oz0 - psim
           fh(n) = gz1oz0 - psih
-          psk(n) = (pa/p00)**rovcp
+          psk(n) = (ps/p00)**rovcp
           stress(n) = vonkar*vonkar*wspd0*wspd0/(fm(n)*fm(n))
           heat(n) = m2p%hfx(j,i)/cpm*rrhox
           evap(n) = m2p%qfx(j,i)*rrhox
           spd1(n) = wspd0
           rbsoil(n) = br
           rcs(n) = 1.0_rkx
-          prsi(n,1) = pa*d_r1000
+          prsi(n,1) = ps*d_r1000
           phii(n,1) = d_zero
           n = n + 1
         end do
@@ -306,7 +299,7 @@ module mod_pbl_gfs
           do j = jci1 , jci2
             p2m%uxten(j,i,k) = du(n,kk)
             p2m%vxten(j,i,k) = dv(n,kk)
-            p2m%tten(j,i,k) = tau(n,kk)*m2p%psb(j,i)
+            p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*m2p%psb(j,i)
             n = n + 1
           end do
         end do
@@ -318,7 +311,7 @@ module mod_pbl_gfs
           kk = kzp1 - k
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2m%qxten(j,i,k,iq) = rtg(n,kk,iq) / &
+              p2m%qxten(j,i,k,iq) = p2m%qxten(j,i,k,iq) + rtg(n,kk,iq) / &
                            (d_one+q1(n,kk,iq))**2*m2p%psb(j,i)
               n = n + 1
             end do
@@ -334,7 +327,7 @@ module mod_pbl_gfs
             kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
-                p2m%chiten(j,i,k,it) = rtg(n,kk,iit) / &
+                p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + rtg(n,kk,iit) / &
                               (d_one+q1(n,kk,iit))**2*m2p%psb(j,i)
                 n = n + 1
               end do

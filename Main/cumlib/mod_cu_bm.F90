@@ -201,10 +201,10 @@ module mod_cu_bm
                rotsum , rtbar , smix , sumde , sumdp , sumdt , tauk , &
                tcorr , tdpt , thskl , thtpk , thvmkl , tlcl , trfkl , &
                tskl , ztop , dthem , rdp0t , pbot , trel
-    integer(ik4) :: i , j , iter , ivi , k , kbaseb , khdeep ,    &
+    integer(ik4) :: i , j , iter , ivi , k , khdeep ,    &
                khshal , kk , l , l0 , l0m1 , lb , lbm1 , lbtk , lcor , &
                lqm , lshu , ltp1 , ltpk , ltsh , n , &
-               ndstn , ndstp , nshal
+               ndstn , ndstp
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bmpara'
     integer(ik4) , save :: idindx = 0

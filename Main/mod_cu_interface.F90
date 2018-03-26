@@ -365,7 +365,7 @@ module mod_cu_interface
           end select
         end if
 
-        call uvcross2dot(cu_uten,cu_vten,uxten%ud,uxten%vd)
+        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
 
       end if
 
