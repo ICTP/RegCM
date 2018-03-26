@@ -47,11 +47,8 @@ module mod_pbl_gfs
   real(rkx) , dimension(:) , pointer :: hpbl
   integer(ik4) , dimension(:) , pointer :: kpbl
   real(rkx) , dimension(:,:) , pointer:: dv , du
-  real(rkx) , dimension(:) , pointer :: dusfc , dvsfc
-  real(rkx) , dimension(:) , pointer :: dtsfc , dqsfc
   real(rkx) , dimension(:,:,:) , pointer :: rtg
   real(rkx) , dimension(:,:) , pointer :: tau
-  real(rkx) , dimension(:) , pointer :: hgamt , hgamq
 
   integer(ik4) , parameter :: npsi = 1000
 
@@ -72,12 +69,6 @@ module mod_pbl_gfs
       call getmem1d(kpbl,1,iblp,'mod_pbl_gfs:kpbl')
       call getmem2d(du,1,iblp,1,kz,'mod_pbl_gfs:du')
       call getmem2d(dv,1,iblp,1,kz,'mod_pbl_gfs:dv')
-      call getmem1d(dusfc,1,iblp,'mod_pbl_gfs:dusfc')
-      call getmem1d(dvsfc,1,iblp,'mod_pbl_gfs:dvsfc')
-      call getmem1d(dtsfc,1,iblp,'mod_pbl_gfs:dtsfc')
-      call getmem1d(dqsfc,1,iblp,'mod_pbl_gfs:dqsfc')
-      call getmem1d(hgamt,1,iblp,'mod_pbl_gfs:hgamt')
-      call getmem1d(hgamq,1,iblp,'mod_pbl_gfs:hgamq')
       call getmem2d(tau,1,iblp,1,kz,'mod_pbl_gfs:tau')
       call getmem3d(rtg,1,iblp,1,kz,1,ibnt,'mod_pbl_gfs:rtg')
 
@@ -168,7 +159,7 @@ module mod_pbl_gfs
           thvx = tha*tvcon
           tskv = tsk*tvcon
           dthvdz = thvx - tskv
-          wspd0 = sqrt(ua*ua + va*va)+1.0e-9_rkx
+          wspd0 = sqrt(ua*ua + va*va)
           vsgd = 0.32_rkx * (max(dx/5000.0_rkx-d_one,d_zero))**0.33_rkx
           if ( m2p%ldmsk(j,i) > 0 ) then
             fluxc = max(m2p%hfx(j,i)/rhoa*rcpd + &
@@ -220,7 +211,7 @@ module mod_pbl_gfs
           evap(n) = m2p%qfx(j,i)*rrhox
           spd1(n) = wspd0
           rbsoil(n) = br
-          rcs(n) = 0.5D0
+          rcs(n) = 1.0_rkx
           prsi(n,1) = pa*d_r1000
           phii(n,1) = d_zero
           n = n + 1
@@ -506,6 +497,7 @@ module mod_pbl_gfs
       real(rkx) , dimension(im,km) :: u1 , v1
       real(rkx) , dimension(im) :: govrth , hrad , cteit
       real(rkx) , dimension(im) :: radmin , vrad , zd , zdd , thlvx1
+      real(rkx) , dimension(im) :: hgamt , hgamq
 
       real(rkx) , dimension(im,km-1) :: rdzt , dktx , dkux , xkzo , xkzmo
       real(rkx) , dimension(im,km+1) :: zi
@@ -522,9 +514,6 @@ module mod_pbl_gfs
       real(rkx) :: tem1 , tem2 , ptem , ptem1 , ptem2
 
       real(rkx) , parameter :: gocp = egrav*rcpd
-      real(rkx) , parameter :: cont = 1000.0_rkx * cpd*regrav
-      real(rkx) , parameter :: conq = 1000.0_rkx * wlhv*regrav
-      real(rkx) , parameter :: conw = 1000.0_rkx *regrav
       real(rkx) , parameter :: rlam = 30.0_rkx
       real(rkx) , parameter :: vk = vonkar
       real(rkx) , parameter :: prmin = 0.25_rkx
@@ -612,10 +601,6 @@ module mod_pbl_gfs
         end do
       end do
       do i = 1 , im
-        dusfc(i) = d_zero
-        dvsfc(i) = d_zero
-        dtsfc(i) = d_zero
-        dqsfc(i) = d_zero
         hgamt(i) = d_zero
         hgamq(i) = d_zero
         wscale(i)= d_zero
@@ -1065,8 +1050,6 @@ module mod_pbl_gfs
           qtend      = (a2(i,k)-q1(i,k,1))*rdt
           tau(i,k)   = tau(i,k)+ttend
           rtg(i,k,1) = rtg(i,k,1)+qtend
-          dtsfc(i)   = dtsfc(i)+cont*del(i,k)*ttend
-          dqsfc(i)   = dqsfc(i)+conq*del(i,k)*qtend
         end do
       end do
       if ( ntrac >= 2 ) then
@@ -1112,8 +1095,6 @@ module mod_pbl_gfs
           vtend = (a2(i,k)-v1(i,k))*rdt
           du(i,k)  = du(i,k)+utend*ptem
           dv(i,k)  = dv(i,k)+vtend*ptem
-          dusfc(i) = dusfc(i)+conw*del(i,k)*utend
-          dvsfc(i) = dvsfc(i)+conw*del(i,k)*vtend
         end do
       end do
       ! PBL height for diagnostic purpose
