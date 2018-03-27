@@ -187,8 +187,8 @@ module mod_diffusion
     end do
     call exchange(xkc,1,jce1,jce2,ice1,ice2,1,kz)
     do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
-      xkd(j,i,k) = min(d_rfour*(xkc(j,i,k)+xkc(j-1,i-1,k) + &
-                                xkc(j-1,i,k)+xkc(j,i-1,k)),xkhmax)
+      xkd(j,i,k) = d_rfour*(xkc(j,i,k)+xkc(j-1,i-1,k) + &
+                            xkc(j-1,i,k)+xkc(j,i-1,k))
     end do
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
       xkc(j,i,k) = xkc(j,i,k) * rdxsq * pc(j,i)

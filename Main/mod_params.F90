@@ -625,7 +625,7 @@ module mod_params
         gnu2 = 0.1000_rkx
       else
         gnu1 = 0.0625_rkx
-        gnu2 = 0.1000_rkx
+        gnu2 = 0.0955_rkx
       end if
       diffu_hgtf = 0
       ckh = 1.0_rkx

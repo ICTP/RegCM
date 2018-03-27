@@ -469,6 +469,11 @@ module mod_mppparam
     module procedure meanall_real4
   end interface meanall
 
+  interface cross2dot
+    module procedure cross2dot2d
+    module procedure cross2dot3d
+  end interface cross2dot
+
   type(model_area) , public :: ma
 
   real(rk8) , pointer , dimension(:) :: r8vector1
@@ -511,7 +516,7 @@ module mod_mppparam
   public :: exchange_bdy_lr , exchange_bdy_tb
   public :: grid_distribute , grid_collect , grid_fill
   public :: subgrid_distribute , subgrid_collect
-  public :: uvcross2dot , uvdot2cross , psc2psd
+  public :: uvcross2dot , uvdot2cross , cross2dot , psc2psd
   public :: bcast , sumall , maxall , minall , meanall
   public :: gather_r , gather_i
   public :: allgather_r , allgather_i
@@ -9104,6 +9109,104 @@ module mod_mppparam
       end do
     end do
   end subroutine uvdot2cross
+
+  subroutine cross2dot2d(x,d)
+    implicit none
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: x
+    real(rkx) , pointer , dimension(:,:) , intent(out) :: d
+    integer(ik4) :: i , j
+
+    call exchange(x,1,jci1,jci2,ici1,ici2)
+
+    do i = idii1 , idii2
+      do j = jdii1 , jdii2
+        d(j,i) =  d_rfour*(x(j,i)   + x(j-1,i)   + &
+                           x(j,i-1) + x(j-1,i-1))
+      end do
+    end do
+    if ( ma%has_bdyleft ) then
+      do i = idii1 , idii2
+        d(jdi1,i) = d_half*(x(jci1,i) + x(jci1,i-1))
+      end do
+    end if
+    if ( ma%has_bdyright ) then
+      do i = idii1 , idii2
+        d(jdi2,i) = d_half*(x(jci2,i) + x(jci2,i-1))
+      end do
+    end if
+    if ( ma%has_bdytop ) then
+      do j = jdii1 , jdii2
+        d(j,idi2) = d_half*(x(j,ici2) + x(j-1,ici2))
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do j = jdii1 , jdii2
+        d(j,idi1) = d_half*(x(j,ici1) + x(j-1,ici1))
+      end do
+    end if
+    if ( ma%has_bdytopleft ) then
+      d(jdi1,idi2) = x(jci1,ici2)
+    end if
+    if ( ma%has_bdybottomleft ) then
+      d(jdi1,idi1) = x(jci1,ici1)
+    end if
+    if ( ma%has_bdytopright ) then
+      d(jdi2,idi2) = x(jci2,ici2)
+    end if
+    if ( ma%has_bdybottomright ) then
+      d(jdi2,idi1) = x(jci2,ici1)
+    end if
+  end subroutine cross2dot2d
+
+  subroutine cross2dot3d(x,d)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: x
+    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: d
+    integer(ik4) :: i , j , k
+
+    call exchange(x,1,jci1,jci2,ici1,ici2,1,kz)
+
+    do k = 1 , kz
+      do i = idii1 , idii2
+        do j = jdii1 , jdii2
+          d(j,i,k) =  d_rfour*(x(j,i,k)   + x(j-1,i,k)   + &
+                               x(j,i-1,k) + x(j-1,i-1,k))
+        end do
+      end do
+      if ( ma%has_bdyleft ) then
+        do i = idii1 , idii2
+          d(jdi1,i,k) = d_half*(x(jci1,i,k) + x(jci1,i-1,k))
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = idii1 , idii2
+          d(jdi2,i,k) = d_half*(x(jci2,i,k) + x(jci2,i-1,k))
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jdii1 , jdii2
+          d(j,idi2,k) = d_half*(x(j,ici2,k) + x(j-1,ici2,k))
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jdii1 , jdii2
+          d(j,idi1,k) = d_half*(x(j,ici1,k) + x(j-1,ici1,k))
+        end do
+      end if
+      if ( ma%has_bdytopleft ) then
+        d(jdi1,idi2,k) = x(jci1,ici2,k)
+      end if
+      if ( ma%has_bdybottomleft ) then
+        d(jdi1,idi1,k) = x(jci1,ici1,k)
+      end if
+      if ( ma%has_bdytopright ) then
+        d(jdi2,idi2,k) = x(jci2,ici2,k)
+      end if
+      if ( ma%has_bdybottomright ) then
+        d(jdi2,idi1,k) = x(jci2,ici1,k)
+      end if
+    end do
+  end subroutine cross2dot3d
 
   subroutine psc2psd(pc,pd)
     implicit none

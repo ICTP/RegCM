@@ -26,7 +26,7 @@ module mod_cu_grell
   use mod_cu_common
   use mod_constants
   use mod_mpmessage
-  use mod_runparams , only : iqv , dt2 , igcc , ichem , clfrcv
+  use mod_runparams , only : iqv , dt , igcc , ichem , clfrcv
   use mod_runparams , only : kfac_deep , kfac_shal , k2_const
   use mod_regcm_types
 
@@ -362,10 +362,10 @@ module mod_cu_grell
         t(n,k) = m2c%tas(j,i,kk)
         q(n,k) = m2c%qxas(j,i,kk,iqv)
         po(n,k) = p(n,k)
-        tn(n,k) = t(n,k) + avg_tten(j,i,kk) * dt2
-        qo(n,k) = q(n,k) + avg_qten(j,i,kk,iqv) * dt2
+        tn(n,k) = t(n,k) + m2c%tten(j,i,kk) * dt
+        qo(n,k) = q(n,k) + m2c%qxten(j,i,kk,iqv) * dt
         if ( qo(n,k) < minqq ) qo(n,k) = minqq
-        qcrit(n) = qcrit(n) + avg_qten(j,i,kk,iqv)
+        qcrit(n) = qcrit(n) + m2c%qxten(j,i,kk,iqv)
       end do
     end do
     !
@@ -482,7 +482,7 @@ module mod_cu_grell
     ! pwcev  = total normalized integrated evaoprate (I2)
     ! pwcd   = evaporate at that level
     !
-    mbdt = dt2 * 5.0e-03_rkx
+    mbdt = dt * 5.0e-03_rkx
     !
     ! environmental conditions, first heights
     !
@@ -1082,7 +1082,7 @@ module mod_cu_grell
         f  = -d_one
         xk = -d_one
         if ( igcc == 1 ) then
-          f = (xao(n)-xac(n))/dt2 ! Arakawa-Schubert closure
+          f = (xao(n)-xac(n))/dt ! Arakawa-Schubert closure
         else if ( igcc == 2 ) then
           f = xac(n)/dtauc(n)       ! Fritsch-Chappell closure
         end if

@@ -60,8 +60,8 @@ module mod_cu_shallow
           kk = kzp1-k
           t(k) = m2c%tas(j,i,kk)
           q(k) = m2c%qxas(j,i,kk,iqv)
-          tns(k) = t(k) + avg_tten(j,i,kk)*dt
-          qns(k) = q(k) + avg_qten(j,i,kk,iqv)*dt
+          tns(k) = t(k) + m2c%tten(j,i,kk)*dt
+          qns(k) = q(k) + m2c%qxten(j,i,kk,iqv)*dt
           p(k) = m2c%pas(j,i,kk)*d_r100
           psur = m2c%psf(j,i)
           outts(k) = d_zero

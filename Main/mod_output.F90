@@ -1166,17 +1166,6 @@ module mod_output
         if ( any(icup == 6) .or. any(icup == 5) ) then
           call grid_collect(avg_ww,cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz)
         end if
-        call grid_collect(avg_tten,cu_avg_tten_io,jci1,jci2,ici1,ici2,1,kz)
-        if ( any(icup == 5) ) then
-          call grid_collect(avg_uten,cu_avg_uten_io,jci1,jci2,ici1,ici2,1,kz)
-          call grid_collect(avg_vten,cu_avg_vten_io,jci1,jci2,ici1,ici2,1,kz)
-        end if
-        call grid_collect(avg_qten,cu_avg_qten_io, &
-                          jci1,jci2,ici1,ici2,1,kz,1,nqx)
-        if ( ichem == 1 ) then
-          call grid_collect(avg_chiten,cu_avg_chiten_io, &
-                            jci1,jci2,ici1,ici2,1,kz,1,ntr)
-        end if
         if ( irrtm == 0 ) then
           call grid_collect(gasabsnxt,gasabsnxt_io,jci1,jci2,ici1,ici2,1,kz,1,4)
           call grid_collect(gasabstot,gasabstot_io, &

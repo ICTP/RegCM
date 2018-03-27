@@ -219,7 +219,7 @@ module mod_cu_em
           kk = kzp1 - k
           cu_tten(j,i,kk) = ft(n,k)
           ! Move specific humidity tendency to mixing ratio tendency
-          cu_qten(j,i,kk,iqv) = fq(n,k)/(d_one-fq(n,k))
+          cu_qten(j,i,kk,iqv) = fq(n,k)/(d_one-qcup(n,k))**2
           ! There is a bit of an inconsistency here...  The wind
           ! tendencies from convection are on cross points, but the
           ! model wants them on dot points.

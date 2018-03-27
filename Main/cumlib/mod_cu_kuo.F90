@@ -91,7 +91,7 @@ module mod_cu_kuo
 
     !
     ! compute the moisture convergence in a column:
-    ! at this stage, avg_qten(j,i,k,iqv) only includes horizontal advection.
+    ! at this stage, qten(j,i,k,iqv) only includes horizontal advection.
     ! sca: is the amount of total moisture convergence
     !
     do i = ici1 , ici2
@@ -103,7 +103,7 @@ module mod_cu_kuo
         qux(:) = m2c%qxas(j,i,:,iqv)
         sca = d_zero
         do k = 1 , kz
-          sca = sca + avg_qten(j,i,k,iqv) * psx * dsigma(k)
+          sca = sca + m2c%qxten(j,i,k,iqv) * psx * dsigma(k)
         end do
         !
         ! determine if moist convection exists:

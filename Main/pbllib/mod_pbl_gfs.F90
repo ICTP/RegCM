@@ -23,8 +23,10 @@ module mod_pbl_gfs
   use mod_realkinds
   use mod_constants
   use mod_memutil
-  use mod_dynparam , only : ici1 , ici2 , jci1 , jci2 , kz , kzp1 , kzm1 , ntr
+  use mod_dynparam , only : kz , kzp1 , kzm1 , ntr
+  use mod_dynparam , only : ici1 , ici2 , jci1 , jci2
   use mod_runparams , only : dt , dx , nqx , ichem , iqv
+  use mod_mppparam , only : cross2dot , exchange
   use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
 
   public :: blgfs2011
@@ -39,7 +41,7 @@ module mod_pbl_gfs
   real(rkx) , dimension(:) , pointer :: fm , fh , spd1
   real(rkx) , dimension(:,:) , pointer :: prsi , phii , z , dz
   real(rkx) , dimension(:,:) , pointer :: del , prsl , prslk , phil , thraten
-  real(rkx) , dimension(:) , pointer :: rcs
+  real(rkx) , dimension(:,:) , pointer :: rcs
   real(rkx) , dimension(:) , pointer :: heat , evap , stress
 
   ! Output from moninq
@@ -72,7 +74,7 @@ module mod_pbl_gfs
       call getmem2d(tau,1,iblp,1,kz,'mod_pbl_gfs:tau')
       call getmem3d(rtg,1,iblp,1,kz,1,ibnt,'mod_pbl_gfs:rtg')
 
-      call getmem1d(rcs,1,iblp,'mod_pbl_gfs:rcs')
+      call getmem2d(rcs,1,iblp,1,kz,'mod_pbl_gfs:rcs')
       call getmem2d(uo,1,iblp,1,kz,'mod_pbl_gfs:uo')
       call getmem2d(vo,1,iblp,1,kz,'mod_pbl_gfs:vo')
       call getmem2d(t1,1,iblp,1,kz,'mod_pbl_gfs:t1')
@@ -128,8 +130,9 @@ module mod_pbl_gfs
       real(rkx) :: tvcon , zo , gz1oz0 , thvx , tskv , dthvdz , br
       real(rkx) :: ps , wspd , psim , psih , dthvm , fluxc , tsk
       real(rkx) :: za , ta , qa , pa , ua , va , tha , rhoa
-      real(rkx) :: rrhox , cpm , vconv , vsgd
+      real(rkx) :: rrhox , cpm , vconv , vsgd , hf , qf , xp
       real(rkx) :: wspd0 , zol , zol0 , zolzz
+      real(rkx) :: tv1 , tv2 , u1 , u2
 
       n = 1
       do i = ici1 , ici2
@@ -143,14 +146,17 @@ module mod_pbl_gfs
           va = m2p%vxatm(j,i,kz)
           tha = m2p%thatm(j,i,kz)
           rhoa = m2p%rhox2d(j,i)
+          hf = m2p%hfx(j,i)
+          qf = m2p%qfx(j,i)
           tsk = m2p%tsk(j,i)
           tvcon = d_one + ep1*qa
           rrhox = (rgas*(ta*tvcon))/pa
           cpm = cpd * (d_one + 0.8_rkx * qa)
-          zo = min(max(m2p%zo(j,i),1.0e-8_rkx),za)
+          zo = min(max(m2p%zo(j,i),0.001_rkx),za)
+          xp =  (p00/ps)**rovcp
           gz1oz0 = log((za+zo)/zo)
           thvx = tha*tvcon
-          tskv = tsk*tvcon
+          tskv = tsk*xp*tvcon
           dthvdz = thvx - tskv
           wspd0 = sqrt(ua*ua + va*va)
           vsgd = 0.32_rkx * (max(dx/5000.0_rkx-d_one,d_zero))**0.33_rkx
@@ -167,7 +173,7 @@ module mod_pbl_gfs
             vconv = sqrt(dthvm)
           end if
           wspd = sqrt(wspd0*wspd0+vconv*vconv+vsgd*vsgd)
-          br = (egrav/tha)*za*dthvdz/(wspd*wspd)
+          br = (egrav/(ta*tvcon))*za*dthvdz/(wspd*wspd)
           if ( br > d_zero ) then
             if ( br > 250.0_rkx ) then
               zol = zolri(250.0_rkx,za,zo)
@@ -200,11 +206,10 @@ module mod_pbl_gfs
           fh(n) = gz1oz0 - psih
           psk(n) = (ps/p00)**rovcp
           stress(n) = vonkar*vonkar*wspd0*wspd0/(fm(n)*fm(n))
-          heat(n) = m2p%hfx(j,i)/cpm*rrhox
-          evap(n) = m2p%qfx(j,i)*rrhox
+          heat(n) = hf/cpm*rrhox
+          evap(n) = qf*rrhox
           spd1(n) = wspd0
           rbsoil(n) = br
-          rcs(n) = 1.0_rkx
           prsi(n,1) = ps*d_r1000
           phii(n,1) = d_zero
           n = n + 1
@@ -224,6 +229,7 @@ module mod_pbl_gfs
             dz(n,kk) = m2p%dzq(j,i,k)
             z(n,kk) = m2p%za(j,i,k)
             thraten(n,kk) = m2p%heatrt(j,i,k)/prslk(n,kk)
+            rcs(n,kk) = 1.0_rkx
             n = n + 1
           end do
         end do
@@ -260,7 +266,7 @@ module mod_pbl_gfs
           kk = kzp1 - k
           do i = ici1 , ici2
             do j = jci1 , jci2
-              q1(n,kk,iq) = m2p%qxatm(j,i,k,iq)/(d_one+m2p%qxatm(j,i,k,iq))
+              q1(n,kk,iq) = m2p%qxatm(j,i,k,iq)/(d_one + m2p%qxatm(j,i,k,iq))
               n = n + 1
             end do
           end do
@@ -275,7 +281,7 @@ module mod_pbl_gfs
             kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
-                q1(n,kk,iit) = m2p%chib(j,i,k,it)/(d_one+m2p%chib(j,i,k,it))
+                q1(n,kk,iit) = m2p%chib(j,i,k,it)/(d_one + m2p%chib(j,i,k,it))
                 n = n + 1
               end do
             end do
@@ -311,8 +317,8 @@ module mod_pbl_gfs
           kk = kzp1 - k
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2m%qxten(j,i,k,iq) = p2m%qxten(j,i,k,iq) + rtg(n,kk,iq) / &
-                           (d_one+q1(n,kk,iq))**2*m2p%psb(j,i)
+              p2m%qxten(j,i,k,iq) = p2m%qxten(j,i,k,iq) + &
+                     rtg(n,kk,iq)/(d_one-q1(n,kk,iq))**2 * m2p%psb(j,i)
               n = n + 1
             end do
           end do
@@ -327,8 +333,8 @@ module mod_pbl_gfs
             kk = kzp1 - k
             do i = ici1 , ici2
               do j = jci1 , jci2
-                p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + rtg(n,kk,iit) / &
-                              (d_one+q1(n,kk,iit))**2*m2p%psb(j,i)
+                p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + &
+                      rtg(n,kk,iit)/(d_one-q1(n,kk,iit)) * m2p%psb(j,i)
                 n = n + 1
               end do
             end do
@@ -548,8 +554,8 @@ module mod_pbl_gfs
         do i = 1 , im
           zi(i,k) = phii(i,k) * regrav
           zl(i,k) = phil(i,k) * regrav
-          u1(i,k) = uo(i,k) * rcs(i)
-          v1(i,k) = vo(i,k) * rcs(i)
+          u1(i,k) = uo(i,k) * rcs(i,k)
+          v1(i,k) = vo(i,k) * rcs(i,k)
         end do
       end do
       do i = 1 , im
@@ -620,7 +626,7 @@ module mod_pbl_gfs
       do k = 1 , km
         do i = 1 , im
           theta(i,k) = t1(i,k) * psk(i) / prslk(i,k)
-          qlx(i,k)   = max(q1(i,k,ntrac),qlmin)
+          qlx(i,k)   = max(q1(i,k,2),qlmin)
           qtx(i,k)   = max(q1(i,k,1),qmin)+qlx(i,k)
           ptem       = qlx(i,k)
           ptem1      = wlhv*max(q1(i,k,1),qmin)/(cpd*t1(i,k))
@@ -1083,7 +1089,7 @@ module mod_pbl_gfs
       ! Recover tendencies of momentum
       do k = 1 , km
         do i = 1 , im
-          ptem = d_one/rcs(i)
+          ptem = d_one/rcs(i,k)
           utend = (a1(i,k)-u1(i,k))*rdt
           vtend = (a2(i,k)-v1(i,k))*rdt
           du(i,k)  = du(i,k)+utend*ptem

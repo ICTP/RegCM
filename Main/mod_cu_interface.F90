@@ -31,8 +31,6 @@ module mod_cu_interface
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
       model_cumulus_cloud , init_mod_cumulus
-  use mod_cu_common , only : avg_tten , avg_uten , avg_vten , avg_qten , &
-      avg_chiten
   use mod_cu_common , only : cu_uten , cu_vten , cu_tten , cu_qten , &
       cu_prate , cu_ktop , cu_kbot , cu_cldfrc , cu_qdetr , cu_raincc , &
       cu_convpr , cu_chiten , avg_ww
@@ -62,11 +60,6 @@ module mod_cu_interface
   public :: cbmf2d
   public :: cldefi
   public :: avg_ww
-  public :: avg_tten
-  public :: avg_uten
-  public :: avg_vten
-  public :: avg_qten
-  public :: avg_chiten
   public :: twght
   public :: vqflx
   public :: shrmax2d
@@ -163,11 +156,19 @@ module mod_cu_interface
     call assignpnt(sfs%hfx,m2c%hfx)
     call assignpnt(ktrop,m2c%ktrop)
     call assignpnt(ccn,m2c%ccn)
-    call assignpnt(aten%t,m2c%tten,pc_dynamic)
-    call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
-    call assignpnt(aten%u,m2c%uten,pc_dynamic)
-    call assignpnt(aten%v,m2c%vten,pc_dynamic)
-    call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
+    if ( any(icup == 1) ) then
+      call assignpnt(aten%t,m2c%tten,pc_dynamic)
+      call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
+      call assignpnt(aten%u,m2c%uten,pc_dynamic)
+      call assignpnt(aten%v,m2c%vten,pc_dynamic)
+      call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
+    else
+      call assignpnt(aten%t,m2c%tten,pc_physic)
+      call assignpnt(aten%u,m2c%uten,pc_physic)
+      call assignpnt(aten%v,m2c%vten,pc_physic)
+      call assignpnt(aten%qx,m2c%qxten,pc_physic)
+      call assignpnt(aten%chi,m2c%chiten,pc_physic)
+    end if
     call assignpnt(heatrt,m2c%heatrt)
     ! OUTPUT
     call assignpnt(aten%t,c2m%tten,pc_physic)
@@ -232,18 +233,8 @@ module mod_cu_interface
       end do
     end if
 
-    w1 = d_one/real(max(int(dtcum/dtsec),1),rkx)
-
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          avg_tten(j,i,k) = (d_one-w1) * avg_tten(j,i,k) + &
-                        w1 * (m2c%tten(j,i,k)/m2c%psb(j,i)+m2c%heatrt(j,i,k))
-        end do
-      end do
-    end do
-
     if ( any(icup == 5) ) then
+      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -260,44 +251,6 @@ module mod_cu_interface
         end do
       end do
       call uvdot2cross(uxten%ud,uxten%vd,uxten%u,uxten%v)
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            avg_uten(j,i,k) = (d_one-w1)*avg_uten(j,i,k) + w1*uxten%u(j,i,k)
-            avg_vten(j,i,k) = (d_one-w1)*avg_vten(j,i,k) + w1*uxten%v(j,i,k)
-          end do
-        end do
-      end do
-    end if
-    do n = 1 , nqx
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( abs(m2c%qxten(j,i,k,n)) > dlowval ) then
-              avg_qten(j,i,k,n) = (d_one-w1) * avg_qten(j,i,k,n) + &
-                            w1 * m2c%qxten(j,i,k,n)/m2c%psb(j,i)
-            else
-              if ( abs(avg_qten(j,i,k,n)) > dlowval ) then
-                avg_qten(j,i,k,n) = (d_one-w1) * avg_qten(j,i,k,n)
-              else
-                avg_qten(j,i,k,n) = d_zero
-              end if
-            end if
-          end do
-        end do
-      end do
-    end do
-    if ( ichem == 1 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              avg_chiten(j,i,k,n) = (d_one-w1) * avg_chiten(j,i,k,n) + &
-                             w1 * m2c%chiten(j,i,k,n)/m2c%psb(j,i)
-            end do
-          end do
-        end do
-      end do
     end if
 
     if ( rcmtimer%integrating( ) ) then
@@ -459,21 +412,6 @@ module mod_cu_interface
     integer(ik4) :: i , j , k
 
     if ( rcmtimer%integrating( ) ) then
-
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            avg_tten(j,i,k) = aten%t(j,i,k,pc_total)/m2c%psb(j,i)
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            avg_qten(j,i,k,iqv) = aten%qx(j,i,k,iqv,pc_total) / m2c%psb(j,i)
-          end do
-        end do
-      end do
 
       call shallcu(m2c)
 

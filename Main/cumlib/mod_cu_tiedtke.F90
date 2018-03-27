@@ -222,7 +222,7 @@ module mod_cu_tiedtke
             j = jmap(ii)
             ! tracers input profile : implicit loop on tracer
             pxtm1(ii,k,n) = m2c%chias(j,i,k,n)
-            pxtte(ii,k,n) = avg_chiten(j,i,k,n)
+            pxtte(ii,k,n) = m2c%chiten(j,i,k,n)
           end do
         end do
       end do
@@ -262,17 +262,17 @@ module mod_cu_tiedtke
         ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
         pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
         pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
-        pverv(ii,k) = m2c%wpas(j,i,k)
+        pverv(ii,k) = avg_ww(j,i,k)
         pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
         pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
-        ptte(ii,k)  = avg_tten(j,i,k)
-        pvom(ii,k)  = avg_uten(j,i,k)
-        pvol(ii,k)  = avg_vten(j,i,k)
-        pqte(ii,k)  = avg_qten(j,i,k,iqv)
-        pxlte(ii,k) = avg_qten(j,i,k,iqc)
+        ptte(ii,k)  = m2c%tten(j,i,k)
+        pvom(ii,k)  = m2c%uten(j,i,k)
+        pvol(ii,k)  = m2c%vten(j,i,k)
+        pqte(ii,k)  = m2c%qxten(j,i,k,iqv)
+        pxlte(ii,k) = m2c%qxten(j,i,k,iqc)
         if ( ipptls > 1 ) then
           pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-          pxite(ii,k) = avg_qten(j,i,k,iqi)
+          pxite(ii,k) = m2c%qxten(j,i,k,iqi)
         else
           pxim1(ii,k) = d_zero
           pxite(ii,k) = d_zero
@@ -358,13 +358,13 @@ module mod_cu_tiedtke
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
-          cu_tten(j,i,k) = ptte(ii,k) - avg_tten(j,i,k)
-          cu_uten(j,i,k) = pvom(ii,k) - avg_uten(j,i,k)
-          cu_vten(j,i,k) = pvol(ii,k) - avg_vten(j,i,k)
+          cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
+          cu_uten(j,i,k) = pvom(ii,k) - m2c%uten(j,i,k)
+          cu_vten(j,i,k) = pvol(ii,k) - m2c%vten(j,i,k)
           ! Tendency in specific humidity to mixing ratio tendency.
-          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqte(ii,k)) - &
-                               avg_qten(j,i,k,iqv)
-          cu_qten(j,i,k,iqc) = pxlte(ii,k) - avg_qten(j,i,k,iqc)
+          cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
+                               m2c%qxten(j,i,k,iqv)
+          cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
           cu_qdetr(j,i,k) = zlude(ii,k)*dt*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
           cu_raincc(j,i,k) = pmflxr(ii,k)
         end if
@@ -377,7 +377,7 @@ module mod_cu_tiedtke
           if (ktype(ii) > 0) then
             i = imap(ii)
             j = jmap(ii)
-            cu_qten(j,i,k,iqi) = pxite(ii,k) - avg_qten(j,i,k,iqi)
+            cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
           end if
         end do
       end do
@@ -401,7 +401,7 @@ module mod_cu_tiedtke
             if ( ktype(ii) > 0 ) then
               i = imap(ii)
               j = jmap(ii)
-              cu_chiten(j,i,k,n) = pxtte(ii,k,n) - avg_chiten(j,i,k,n)
+              cu_chiten(j,i,k,n) = pxtte(ii,k,n) - m2c%chiten(j,i,k,n)
             end if
           end do
         end do
