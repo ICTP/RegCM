@@ -332,7 +332,7 @@ module mod_init
         call vprntv(ozprnt,kzp1,'Ozone profiles restart')
       end if
 
-      if ( iocnflx == 2 ) then
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
         call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
       end if
 

@@ -26,7 +26,6 @@ module mod_pbl_gfs
   use mod_dynparam , only : kz , kzp1 , kzm1 , ntr
   use mod_dynparam , only : ici1 , ici2 , jci1 , jci2
   use mod_runparams , only : dt , dx , nqx , ichem , iqv
-  use mod_mppparam , only : cross2dot , exchange
   use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
 
   public :: blgfs2011
@@ -152,7 +151,7 @@ module mod_pbl_gfs
           tvcon = d_one + ep1*qa
           rrhox = (rgas*(ta*tvcon))/pa
           cpm = cpd * (d_one + 0.8_rkx * qa)
-          zo = min(max(m2p%zo(j,i),0.001_rkx),za)
+          zo = min(max(m2p%zo(j,i),0.01_rkx),za)
           xp =  (p00/ps)**rovcp
           gz1oz0 = log((za+zo)/zo)
           thvx = tha*tvcon
@@ -161,8 +160,7 @@ module mod_pbl_gfs
           wspd0 = sqrt(ua*ua + va*va)
           vsgd = 0.32_rkx * (max(dx/5000.0_rkx-d_one,d_zero))**0.33_rkx
           if ( m2p%ldmsk(j,i) > 0 ) then
-            fluxc = max(m2p%hfx(j,i)/rhoa*rcpd + &
-                        ep1*tskv*m2p%qfx(j,i)/rhoa,0.0_rkx)
+            fluxc = max(hf/rhoa*rcpd + qf/rhoa*ep1*tskv,0.0_rkx)
             vconv = d_one*(egrav/tsk*hpbl(n)*fluxc)**0.33_rkx
           else
             if ( -dthvdz >= d_zero ) then
@@ -202,6 +200,8 @@ module mod_pbl_gfs
             psim = psim_stable(zolzz)-psim_stable(zol0)
             psih = psih_stable(zolzz)-psih_stable(zol0)
           end if
+          psim = max(min(0.9_rkx*gz1oz0,psim),0.1_rkx*gz1oz0)
+          psih = max(min(0.9_rkx*gz1oz0,psih),0.1_rkx*gz1oz0)
           fm(n) = gz1oz0 - psim
           fh(n) = gz1oz0 - psih
           psk(n) = (ps/p00)**rovcp
@@ -210,6 +210,7 @@ module mod_pbl_gfs
           evap(n) = qf*rrhox
           spd1(n) = wspd0
           rbsoil(n) = br
+          hpbl(n) = p2m%zpbl(j,i)
           prsi(n,1) = ps*d_r1000
           phii(n,1) = d_zero
           n = n + 1

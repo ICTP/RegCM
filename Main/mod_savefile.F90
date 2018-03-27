@@ -277,7 +277,7 @@ module mod_savefile
                       icross1,icross2,1,12,'qflux_restore_sst_io')
       end if
 
-      if ( iocnflx == 2 ) then
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
         call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
       end if
       if ( any(icup == 3) ) then
@@ -505,7 +505,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read sinc')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk'),ldmsk_io)
       call check_ok(__FILE__,__LINE__,'Cannot read ldmsk')
-      if ( iocnflx == 2 ) then
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'zpbl'),zpbl_io)
         call check_ok(__FILE__,__LINE__,'Cannot read zpbl')
       end if
@@ -757,7 +757,7 @@ module mod_savefile
       call mydefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
-      if ( iocnflx == 2 ) then
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
         call mydefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
       if ( ichem == 1 ) then
@@ -926,7 +926,7 @@ module mod_savefile
       call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
       call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
       call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
-      if ( iocnflx == 2 ) then
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
         call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
       end if
       if ( ichem == 1 ) then

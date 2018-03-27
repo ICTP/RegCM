@@ -304,17 +304,17 @@
                  ! Default 0.0625 for hydro, 0.1 for nonhydro
  ckh = 1.0,      ! Background diffusion multiplication factor
  adyndif = 1.0,  ! Dynamical diffusion multiplication factor
- diffu_hgtf = 0, ! Add topographic effect to diffusion
+ diffu_hgtf = 1, ! Add topographic effect to diffusion
                  ! It is set to zero default in the non-hydrostatic
  upstream_mode = .true.,  ! Add off centering to advection
  uoffc = 0.250,           ! Maximum off-centering factor to use
- stability_enhance = .false., ! Do not allow horizontal advection to increase
+ stability_enhance = .true., ! Do not allow horizontal advection to increase
                              ! tendencies if strong gradients are present
- vert_stability_enhance = .false., ! Same for vertical advection
- t_extrema = 8.0, ! Maximum gradient of T in K for advection to stop
- q_rel_extrema = 0.5, ! Maximum gradient fraction for QV for advection to stop
- c_rel_extrema = 0.8, ! Maximum gradient fraction for QX for advection to stop
- t_rel_extrema = 0.8, ! Maximum gradient fraction for tracer advection to stop
+ vert_stability_enhance = .true., ! Same for vertical advection
+ t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
+ q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
+ c_rel_extrema = 0.5, ! Maximum gradient fraction for QX for advection to stop
+ t_rel_extrema = 0.5, ! Maximum gradient fraction for tracer advection to stop
  /
 !
 ! Non-hydrostatic core option
