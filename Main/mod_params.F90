@@ -96,7 +96,7 @@ module mod_params
       do_parallel_netcdf_in , do_parallel_netcdf_out , deflate_level
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
-      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
+      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu , &
       iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
       scenario ,  idcsst , ipcpcool , iwhitecap , iseaice , idesseas ,  &
       iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , &
@@ -238,6 +238,7 @@ module mod_params
     icup_lnd = 4
     icup_ocn = 4
     ipptls = 1
+    idiffu = 1
     ipgf = 0
     iemiss = 0
     iocnflx = 2
@@ -1076,6 +1077,7 @@ module mod_params
     call bcast(icup_ocn)
     call bcast(icup)
     call bcast(ipptls)
+    call bcast(idiffu)
     call bcast(iocnflx)
     call bcast(iocncpl)
     call bcast(iwavcpl)
@@ -1835,8 +1837,15 @@ module mod_params
     call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
-    call exchange(mddom%msfx,1,jde1,jde2,ide1,ide2)
-    call exchange(mddom%msfd,1,jde1,jde2,ide1,ide2)
+    if ( idiffu == 1 ) then
+      idif = 2
+    else if ( idiffu == 2 ) then
+      idif = 1
+    else if ( idiffu == 3 ) then
+      idif = 3
+    end if
+    call exchange(mddom%msfx,idif,jde1,jde2,ide1,ide2)
+    call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)
 
     call init_advection
     if ( isladvec == 1 ) then
@@ -1920,6 +1929,13 @@ module mod_params
     end if
 
     if ( myid == italk ) then
+      if ( idiffu == 1 ) then
+        write(stdout,*) 'Fourth order interior/second order boundary diffusion'
+      else if ( idiffu == 2 ) then
+        write(stdout,*) 'Fourth order diffusion LeVeque Laplacian'
+      else if ( idiffu == 3 ) then
+        write(stdout,*) 'Sixth order diffusion with flux limiter'
+      end if
       if ( ibltyp == 1 ) then
         write(stdout,*) 'PBL limit for Holtstag'
         write(stdout,'(a,i3)') '  Index of highest allowed pbl : ', kmxpbl

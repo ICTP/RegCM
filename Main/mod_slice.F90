@@ -26,6 +26,7 @@ module mod_slice
   use mod_dynparam
   use mod_constants
   use mod_runparams
+  use mod_memutil
   use mod_atm_interface
   use mod_che_interface
   use mod_pbl_interface
@@ -35,26 +36,61 @@ module mod_slice
 
   private
 
-  public :: mkslice
+  public :: mkslice , init_slice
 
+  integer(ik4) :: ix1 , ix2 , jx1 , jx2
+  integer(ik4) :: id1 , id2 , jd1 , jd2
+  real(rkx) , dimension(:,:) , pointer :: rpsb
+  real(rkx) , dimension(:,:) , pointer :: rpsdotb
   contains
 
-  subroutine mkslice
+  subroutine init_slice
+    implicit none
+    if ( idiffu == 1 ) then
+      ix1 = ice1gb
+      ix2 = ice2gb
+      jx1 = jce1gb
+      jx2 = jce2gb
+      id1 = ide1gb
+      id2 = ide2gb
+      jd1 = jde1gb
+      jd2 = jde2gb
+    else if ( idiffu == 2 ) then
+      ix1 = ice1ga
+      ix2 = ice2ga
+      jx1 = jce1ga
+      jx2 = jce2ga
+      id1 = ide1ga
+      id2 = ide2ga
+      jd1 = jde1ga
+      jd2 = jde2ga
+    else if ( idiffu == 3 ) then
+      ix1 = ice1gc
+      ix2 = ice2gc
+      jx1 = jce1gc
+      jx2 = jce2gc
+      id1 = ide1gc
+      id2 = ide2gc
+      jd1 = jde1gc
+      jd2 = jde2gc
+    end if
+    call getmem2d(rpsb,jx1,jx2,ix1,ix2,'slice:rpsb')
+    call getmem2d(rpsdotb,jd1,jd2,id1,id2,'slice:rpsdotb')
+  end subroutine init_slice
 
+  subroutine mkslice
     implicit none
     real(rkx) :: cell
     integer(ik4) :: i , j , k , n
-    real(rkx) , dimension(jce1ga:jce2ga,ice1ga:ice2ga) :: rpsb
-    real(rkx) , dimension(jde1ga:jde2ga,ide1ga:ide2ga) :: rpsdotb
 
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
+    do concurrent ( j = jx1:jx2 , i = ix1:ix2 )
       rpsb(j,i) = d_one/sfs%psb(j,i)
     end do
-    do concurrent ( j = jde1ga:jde2ga , i = ide1ga:ide2ga )
+    do concurrent ( j = jd1:jd2 , i = id1:id2 )
       rpsdotb(j,i) = d_one/sfs%psdotb(j,i)
     end do
 
-    do concurrent ( j = jde1ga:jde2ga , i = ide1ga:ide2ga , k = 1:kz )
+    do concurrent ( j = jd1:jd2 , i = id1:id2 , k = 1:kz )
       atms%ubd3d(j,i,k) = atm2%u(j,i,k)*rpsdotb(j,i)
       atms%vbd3d(j,i,k) = atm2%v(j,i,k)*rpsdotb(j,i)
     end do
@@ -67,14 +103,14 @@ module mod_slice
               (atms%vbd3d(j,i,k)   + atms%vbd3d(j,i+1,k) + &
                atms%vbd3d(j+1,i,k) + atms%vbd3d(j+1,i+1,k))
     end do
-    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+    do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz )
       atms%tb3d(j,i,k) = atm2%t(j,i,k)*rpsb(j,i)
       atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv)*rpsb(j,i),minqq)
     end do
     do n = iqfrst , iqlst
       do k = 1 , kz
-        do i = ice1ga , ice2ga
-          do j = jce1ga , jce2ga
+        do i = ix1 , ix2
+          do j = jx1 , jx2
             atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
             if ( atms%qxb3d(j,i,k,n) < dlowval ) then
               atms%qxb3d(j,i,k,n) = d_zero
@@ -86,8 +122,8 @@ module mod_slice
     if ( ichem == 1 ) then
       do n = 1 , ntr
         do k = 1 , kz
-          do i = ice1ga , ice2ga
-            do j = jce1ga , jce2ga
+          do i = ix1 , ix2
+            do j = jx1 , jx2
               atms%chib3d(j,i,k,n) = atm2%chi(j,i,k,n)*rpsb(j,i)
               if ( atms%chib3d(j,i,k,n) < mintr ) then
                 atms%chib3d(j,i,k,n) = d_zero
@@ -99,7 +135,7 @@ module mod_slice
     end if
 
     if ( idynamic == 2 ) then
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+      do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz )
         atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
       end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
@@ -139,7 +175,7 @@ module mod_slice
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
         atms%wpx3d(j,i,k) = omega(j,i,k)
       end do
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kzp1 )
+      do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kzp1 )
         atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
       end do
     else

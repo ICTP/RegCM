@@ -431,13 +431,13 @@ module mod_tendency
       call timefilter_apply(sfs%psa,sfs%psb,sfs%psc,gnu1)
     end if
     call timefilter_apply(atm1%t,atm2%t,atmc%t,gnu1)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1,sfs%psa)
-    !call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
-    !                      0.53_rkx,sfs%psa,sfs%psb)
-    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2, &
-                          iqfrst,iqlst,minqq,sfs%psa)
-    !call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
-    !                      iqfrst,iqlst,dlowval,sfs%psa,sfs%psb)
+    !call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1,sfs%psa)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
+                          0.53_rkx,sfs%psa,sfs%psb)
+    ! call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2, &
+    !                      iqfrst,iqlst,minqq,sfs%psa)
+    call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
+                          iqfrst,iqlst,dlowval,sfs%psa,sfs%psb)
 
     if ( idynamic == 1 ) then
       !
@@ -587,10 +587,10 @@ module mod_tendency
           end do
         end do
       end do
-      call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2, &
-                            1,ntr,mintr,sfs%psa)
-      !call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,0.53_rkx, &
-      !                      1,ntr,dlowval,sfs%psa,sfs%psb)
+      !call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2, &
+      !                      1,ntr,mintr,sfs%psa)
+      call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,0.53_rkx, &
+                            1,ntr,dlowval,sfs%psa,sfs%psb)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
@@ -822,17 +822,17 @@ module mod_tendency
       !
       if ( idynamic == 1 ) then
         call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-        call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
         do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
           rpsa(j,i) = d_one/sfs%psa(j,i)
         end do
+        call psc2psd(sfs%psa,sfs%psdota)
+        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
+        call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
           rpsb(j,i) = d_one/sfs%psb(j,i)
         end do
-        call psc2psd(sfs%psa,sfs%psdota)
         call psc2psd(sfs%psb,sfs%psdotb)
-        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-        call exchange(sfs%psdotb,1,jde1,jde2,ide1,ide2)
+        call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
       else
         ! Non-hydrostatic pstar pressure is constant == ps0
         if ( .not. linit ) then
@@ -1076,16 +1076,27 @@ module mod_tendency
       !
       ! Second timelevel exchange
       !
-      call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%u,idif,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%v,idif,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%t,idif,jce1,jce2,ice1,ice2,1,kz)
       if ( isladvec == 1 ) then
-        call exchange(atm2%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        call exchange(atm2%qx,max(idif,4),jce1,jce2,ice1,ice2,1,kz,1,nqx)
       else
-        call exchange(atm2%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        call exchange(atm2%qx,idif,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       end if
       if ( ibltyp == 2 ) then
-        call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
+        call exchange(atm2%tke,idif,jce1,jce2,ice1,ice2,1,kzp1)
+      end if
+      if ( idynamic == 2 ) then
+        call exchange(atm2%pp,idif,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(atm2%w,idif,jce1,jce2,ice1,ice2,1,kzp1)
+      end if
+      if ( ichem == 1 ) then
+        if ( isladvec == 1 ) then
+          call exchange(atm2%chi,max(idif,4),jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        else
+          call exchange(atm2%chi,idif,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        end if
       end if
 
       if ( idynamic == 1 ) then
@@ -1093,8 +1104,6 @@ module mod_tendency
           atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
         end do
       else
-        call exchange(atm2%pp,1,jce1,jce2,ice1,ice2,1,kz)
-        call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kzp1)
         !
         ! Constant reference state and perturbations are defined
         ! for the nonhydrostatic model.
@@ -1102,14 +1111,6 @@ module mod_tendency
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
           atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm2%pp(j,i,k)*rpsb(j,i)
         end do
-      end if
-
-      if ( ichem == 1 ) then
-        if ( isladvec == 1 ) then
-          call exchange(atm2%chi,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        else
-          call exchange(atm2%chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        end if
       end if
       !
       ! Total water load

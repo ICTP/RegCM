@@ -2727,6 +2727,8 @@ module mod_ncout
             ncattribute_integer('quasi_monotonic_sl_scheme',iqmsl))
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('diffusion_scheme',idiffu))
+        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         if ( all(icup > 0) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -3130,9 +3132,11 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_dust_emission_scheme',ichdustemd))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('chem_enable_aerosol_radiation_feedback',idirect))
+            ncattribute_integer('chem_enable_aerosol_radiation_feedback', &
+                                idirect))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('chem_enable_sulfate_indirect_effect',iindirect))
+            ncattribute_integer('chem_enable_sulfate_indirect_effect', &
+                                iindirect))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('chem_dust_em_tuning_fac',rdstemfac))
           call outstream_addatt(outstream(i)%ncout(j), &

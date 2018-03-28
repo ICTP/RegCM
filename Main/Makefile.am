@@ -169,7 +169,7 @@ mod_savefile.o : mod_savefile.F90 mod_atm_interface.o mod_che_interface.o mod_ch
 mod_slabocean.o : mod_slabocean.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mppparam.o mod_outvars.o mod_realkinds.o mod_regcm_types.o mod_runparams.o
 mod_sladvection.o : mod_sladvection.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_service.o mod_sldepparam.o
 mod_sldepparam.o : mod_sldepparam.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o
-mod_slice.o : mod_slice.F90 mod_atm_interface.o mod_che_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_pbl_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o pfesat.inc pfwsat.inc
+mod_slice.o : mod_slice.F90 mod_atm_interface.o mod_che_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_pbl_interface.o mod_rad_interface.o mod_realkinds.o mod_runparams.o pfesat.inc pfwsat.inc
 mod_sound.o : mod_sound.F90 mod_atm_interface.o mod_cu_interface.o mod_timefilter.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o cpmf.inc
 mod_split.o : mod_split.F90 mod_atm_interface.o mod_bdycod.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_runparams.o mod_service.o mod_vmodes.o
 mod_sun.o : mod_sun.F90 mod_atm_interface.o mod_constants.o mod_date.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_service.o mod_sunorbit.o

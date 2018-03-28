@@ -56,8 +56,10 @@ module mod_regcm_types
     integer(ik4) , dimension(2) :: location
     integer(ik4) :: left , right , top , bottom
     integer(ik4) :: topleft , topright , bottomleft , bottomright
-    integer(ik4) :: ibt1 , ibt2 , ibt4 , ibt6 , ibb1 , ibb2 , ibb4 , ibb6
-    integer(ik4) :: jbl1 , jbl2 , jbl4 , jbl6 , jbr1 , jbr2 , jbr4 , jbr6
+    integer(ik4) :: ibt1 , ibt2 , ibt3 , ibt4 , ibt6
+    integer(ik4) :: ibb1 , ibb2 , ibb3 , ibb4 , ibb6
+    integer(ik4) :: jbl1 , jbl2 , jbl3 , jbl4 , jbl6
+    integer(ik4) :: jbr1 , jbr2 , jbr3 , jbr4 , jbr6
   end type model_area
 
   type domain

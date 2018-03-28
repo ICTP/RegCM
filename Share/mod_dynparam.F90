@@ -239,19 +239,26 @@ module mod_dynparam
   integer(ik4) :: icii1 , icii2 ! Internal (excluded 2 lines and cols) i
   integer(ik4) :: jcii1 , jcii2 ! Internal (excluded 2 lines and cols) j
 
-  ! Ghost points state A
+  ! Ghost points A
 
   integer(ik4) , public :: ici1ga , ici2ga , jci1ga , jci2ga
   integer(ik4) , public :: ice1ga , ice2ga , jce1ga , jce2ga
   integer(ik4) , public :: ide1ga , ide2ga , jde1ga , jde2ga
   integer(ik4) , public :: idi1ga , idi2ga , jdi1ga , jdi2ga
 
-  ! Ghost points state B
+  ! Ghost points B
 
   integer(ik4) , public :: ici1gb , ici2gb , jci1gb , jci2gb
   integer(ik4) , public :: ice1gb , ice2gb , jce1gb , jce2gb
   integer(ik4) , public :: ide1gb , ide2gb , jde1gb , jde2gb
   integer(ik4) , public :: idi1gb , idi2gb , jdi1gb , jdi2gb
+
+  ! Ghost points C
+
+  integer(ik4) , public :: ici1gc , ici2gc , jci1gc , jci2gc
+  integer(ik4) , public :: ice1gc , ice2gc , jce1gc , jce2gc
+  integer(ik4) , public :: ide1gc , ide2gc , jde1gc , jde2gc
+  integer(ik4) , public :: idi1gc , idi2gc , jdi1gc , jdi2gc
 
   ! SL stencil points
 

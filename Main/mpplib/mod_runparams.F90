@@ -116,6 +116,9 @@ module mod_runparams
   integer(ik4) , public :: icumcloud
   ! Boundary layer index
   integer(ik4) , public :: ibltyp
+  ! Diffusion scheme
+  integer(ik4) , public :: idiffu
+  integer , public :: idif
   ! Lake model activation index
   integer(ik4) , public :: lakemod
   ! Diurnal cycle SST index
