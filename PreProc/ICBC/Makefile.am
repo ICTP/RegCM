@@ -54,7 +54,7 @@ mod_miroc_helper.o : mod_miroc_helper.F90 mod_intkinds.o mod_realkinds.o mod_dyn
 mod_ipsl_helper.o : mod_ipsl_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_gfdl_helper.o : mod_gfdl_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_cnrm_helper.o : mod_cnrm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
-mod_mpiesm_helper.o : mod_mpiesm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
+mod_mpiesm_helper.o : mod_mpiesm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o mod_message.o
 mod_noresm_helper.o : mod_noresm_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_ccsm4_helper.o : mod_ccsm4_helper.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o
 mod_ch_fnest.o : mod_ch_fnest.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o mod_posix.o mod_message.o mod_vertint.o

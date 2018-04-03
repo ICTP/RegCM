@@ -244,7 +244,7 @@ module mod_gn6hnc
     call getmem1d(glat,1,nlat,'mod_gn6hnc:glat')
     call getmem1d(glon,1,nlon,'mod_gn6hnc:glon')
 
-    if ( dattyp(1:2) == 'HA' ) then
+    if ( dattyp(1:3) == 'HA_' ) then
       call find_hadgem_ufile(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -328,7 +328,7 @@ module mod_gn6hnc
     istatus = nf90_get_var(inet1,ivar1,glon)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read lon var')
-    if ( dattyp(1:2) == 'HA' ) then
+    if ( dattyp(1:3) == 'HA_' ) then
       call getmem3d(ha_d2_1,1,nulon,1,nlat,1,klev,'mod_gn6hnc:ha_d2_1')
       call getmem3d(ha_d2_2,1,nlon,1,nvlat,1,klev,'mod_gn6hnc:ha_d2_2')
     end if

@@ -22,6 +22,7 @@ module mod_mpiesm_helper
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_message
   use mod_date
 
   private
@@ -37,13 +38,17 @@ module mod_mpiesm_helper
   character(len=64) :: mpiebase1  = '_6hrLev_MPI-ESM-MR_historical'
   character(len=64) :: mpiebase2  = '_6hrLev_MPI-ESM-MR_rcp'
   character(len=64) :: mpiebase3 = '_r1i1p1_'
+  character(len=64) :: mpilbase1  = '_6hrLev_MPI-ESM-LR_historical'
+  character(len=64) :: mpilbase2  = '_6hrLev_MPI-ESM-LR_rcp'
+  character(len=64) :: mpilbase3 = '_r1i1p1_'
 
   contains
 
-  subroutine find_mpiesm_sst(fname,idate)
+  subroutine find_mpiesm_sst(fname,idate,res)
     implicit none
     character(len=256) , intent(out) :: fname
     type(rcm_time_and_date) , intent(in) :: idate
+    character(len=1) , intent(in) :: res
     character(len=10) :: d1 , d2
     integer(ik4) :: y , m , d , h
     integer(ik4) :: y1 , y2 , m1 , m2
@@ -58,14 +63,30 @@ module mod_mpiesm_helper
     end if
     write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 0
     write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
-    if ( idate < 2005120100 ) then
-      fname = trim(inpglob)//pthsep//'MPI-ESM-MR'//pthsep//'SST'// &
-              pthsep//'tos_6hrLev_MPI-ESM-MR_historical'// &
-              '_r1i1p1_'//d1//'00-'//d2//'00.nc'
+    if ( res == 'M' ) then
+      if ( idate < 2005120100 ) then
+        fname = trim(inpglob)//pthsep//'MPI-ESM-MR'//pthsep//'SST'// &
+                pthsep//'tos_6hrLev_MPI-ESM-MR_historical'// &
+                '_r1i1p1_'//d1//'00-'//d2//'00.nc'
+      else
+        fname = trim(inpglob)//pthsep//'MPI-ESM-MR'//pthsep//'SST'// &
+                pthsep//'tos_6hrLev_MPI-ESM-MR_rcp'//ssttyp(4:5)//  &
+                '_r1i1p1_'//d1//'00-'//d2//'00.nc'
+      end if
+    else if ( res == 'L' ) then
+      if ( idate < 2005120100 ) then
+        fname = trim(inpglob)//pthsep//'MPI-ESM-LR'//pthsep//'SST'// &
+                pthsep//'tos_6hrLev_MPI-ESM-LR_historical'// &
+                '_r1i1p1_'//d1//'00-'//d2//'00.nc'
+      else
+        fname = trim(inpglob)//pthsep//'MPI-ESM-LR'//pthsep//'SST'// &
+                pthsep//'tos_6hrLev_MPI-ESM-LR_rcp'//ssttyp(4:5)//  &
+                '_r1i1p1_'//d1//'00-'//d2//'00.nc'
+      end if
     else
-      fname = trim(inpglob)//pthsep//'MPI-ESM-MR'//pthsep//'SST'// &
-              pthsep//'tos_6hrLev_MPI-ESM-MR_rcp'//ssttyp(4:5)//  &
-              '_r1i1p1_'//d1//'00-'//d2//'00.nc'
+      write(stderr,*) 'Resolution requested: ', res
+      write(stderr,*) 'Resolution supported: L,M'
+      call die('sst','Unknown resolution for MPI-ESM',1)
     end if
   end subroutine find_mpiesm_sst
 

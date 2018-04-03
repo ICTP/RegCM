@@ -83,7 +83,10 @@ module mod_sst_gnhnc
     call split_idate(globidate1, year, month, day, hour)
 
     if ( ssttyp(1:3) == 'MP_' ) then
-      call find_mpiesm_sst(inpfile,globidate1)
+      call find_mpiesm_sst(inpfile,globidate1,'M')
+      varname(2) = 'tos'
+    else if ( ssttyp(1:3) == 'MPL' ) then
+      call find_mpiesm_sst(inpfile,globidate1,'L')
       varname(2) = 'tos'
     else if ( ssttyp == 'EIXXX' ) then
       write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
@@ -284,7 +287,9 @@ module mod_sst_gnhnc
                       'Error Close file')
       call split_idate(idate, year, month, day, hour)
       if ( ssttyp(1:3) == 'MP_' ) then
-        call find_mpiesm_sst(inpfile,idate)
+        call find_mpiesm_sst(inpfile,idate,'M')
+      else if ( ssttyp(1:3) == 'MPL' ) then
+        call find_mpiesm_sst(inpfile,idate,'L')
       else if ( ssttyp == 'CCSM3' ) then
         call find_ccsm3_file(inpfile,year,month,day,hour)
       else if ( ssttyp(1:3) == 'EIN' ) then
