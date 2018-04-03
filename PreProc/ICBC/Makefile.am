@@ -76,7 +76,7 @@ mod_sst_eh5om.o : mod_sst_eh5om.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o m
 mod_sst_ersst.o : mod_sst_ersst.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_sst_grid.o mod_kdinterp.o mod_message.o mod_memutil.o mod_nchelper.o
 mod_sst_fvgcm.o : mod_sst_fvgcm.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_message.o mod_dynparam.o mod_kdinterp.o mod_sst_grid.o
 mod_sst_gnmnc.o : mod_sst_gnmnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_kdinterp.o mod_message.o mod_nchelper.o mod_hadgem_helper.o mod_canesm_helper.o mod_miroc_helper.o mod_ipsl_helper.o mod_gfdl_helper.o mod_csiro_helper.o mod_cnrm_helper.o mod_ecearth_helper.o mod_ccsm4_helper.o
-mod_sst_gnhnc.o : mod_sst_gnhnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_message.o mod_nchelper.o mod_ccsm3_helper.o mod_mpiesm_helper.o mod_earth.o mod_kdinterp.o
+mod_sst_gnhnc.o : mod_sst_gnhnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_message.o mod_nchelper.o mod_ccsm3_helper.o mod_mpiesm_helper.o mod_ecearth_helper.o mod_earth.o mod_kdinterp.o
 mod_sst_gndnc.o : mod_sst_gndnc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_sst_grid.o mod_message.o mod_nchelper.o mod_noresm_helper.o mod_earth.o mod_kdinterp.o
 mod_sst_grid.o : mod_sst_grid.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_memutil.o mod_message.o mod_nchelper.o mod_ncstream_types.o mod_ncstream.o mod_domain.o
 mod_uvrot.o : mod_uvrot.F90 mod_intkinds.o mod_realkinds.o mod_constants.o

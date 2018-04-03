@@ -143,6 +143,7 @@ program sst
     call sst_gnmnc
   else if ( ssttyp(1:3) == 'MP_' .or. &
             ssttyp(1:3) == 'MPL' .or. &
+            ssttyp(1:3) == 'ECC' .or. &
             ssttyp == 'E5_A2' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'

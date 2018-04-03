@@ -30,6 +30,7 @@ module mod_sst_gnhnc
   use mod_message
   use mod_nchelper
   use mod_ccsm3_helper
+  use mod_ecearth_helper
   use mod_mpiesm_helper
   use netcdf
 
@@ -88,6 +89,9 @@ module mod_sst_gnhnc
     else if ( ssttyp(1:3) == 'MPL' ) then
       call find_mpiesm_sst(inpfile,globidate1,'L')
       varname(2) = 'tos'
+    else if ( ssttyp(1:3) == 'ECC' ) then
+      call find_ecearth_sst(inpfile,globidate1,.true.)
+      varname(2) = 'sst'
     else if ( ssttyp == 'EIXXX' ) then
       write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
       varname(2) = 'sst'
@@ -290,6 +294,8 @@ module mod_sst_gnhnc
         call find_mpiesm_sst(inpfile,idate,'M')
       else if ( ssttyp(1:3) == 'MPL' ) then
         call find_mpiesm_sst(inpfile,idate,'L')
+      else if ( ssttyp(1:3) == 'ECC' ) then
+        call find_ecearth_sst(inpfile,idate,.true.)
       else if ( ssttyp == 'CCSM3' ) then
         call find_ccsm3_file(inpfile,year,month,day,hour)
       else if ( ssttyp(1:3) == 'EIN' ) then

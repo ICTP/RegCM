@@ -118,7 +118,7 @@ module mod_sst_gnmnc
       call find_miroc_sst(inpfile,imm1)
       varname(2) = 'tos'
     else if ( ssttyp(1:3) == 'EC_' ) then
-      call find_ecearth_sst(inpfile,imm1)
+      call find_ecearth_sst(inpfile,imm1,.false.)
       varname(2) = 'sst'
     else if ( ssttyp(1:3) == 'IP_' ) then
       call find_ipsl_sst(inpfile,imm1)
@@ -354,7 +354,7 @@ module mod_sst_gnmnc
         call find_csiro_sst(inpfile,idate)
         lswitch = .true.
       else if ( ssttyp(1:3) == 'EC_' ) then
-        call find_ecearth_sst(inpfile,idate)
+        call find_ecearth_sst(inpfile,idate,.false.)
         lswitch = .true.
       else if ( ssttyp(1:3) == 'MI_' ) then
         call find_miroc_sst(inpfile,idate)

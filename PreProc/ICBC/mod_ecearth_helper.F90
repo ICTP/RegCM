@@ -26,25 +26,64 @@ module mod_ecearth_helper
 
   private
 
-  public :: echvars
+  public :: echvars , echcmorvars
   public :: find_ecearth_sst
   public :: find_ecearth_dim , find_ecearth_file
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: echvars = &
             ['t  ' , 'z  ' , 'q  ' , 'u  ' , 'v  ', 'XXX']
+  character(len=3) , target , dimension(nvars) :: echcmorvars = &
+            ['ta ' , 'XXX' , 'hus' , 'ua ' , 'va ', 'aps']
 
   contains
 
-  subroutine find_ecearth_sst(fname,idate)
+  subroutine find_ecearth_sst(fname,idate,cmor)
     implicit none
     character(len=256) , intent(out) :: fname
     type(rcm_time_and_date) , intent(in) :: idate
-    if ( .not. date_in_scenario(idate,5,.true.) ) then
-      fname = trim(inpglob)//'/EC-EARTH/SST/RF/ich1_sst_1950-2009.nc'
+    logical , intent(in) :: cmor
+    character(len=10) :: d1 , d2
+    integer(ik4) :: y , m , d , h
+    integer(ik4) :: y1 , y2 , m1 , m2
+    if ( cmor ) then
+      call split_idate(idate,y,m,d,h)
+      if ( d == 1 .and. h == 0 ) then
+        m1 = m - 1
+        if ( m1 == 0 ) then
+          m1 = 12
+          y1 = y1 - 1
+        else
+          y1 = y
+        end if
+      else
+        y1 = y
+        m1 = m
+      end if
+      y2 = y1
+      m2 = m1 + 1
+      if ( m2 > 12 ) then
+        m2 = 1
+        y2 = y2 + 1
+      end if
+      write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 6
+      write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
+      if ( idate < 2005120100 ) then
+        fname = trim(inpglob)//pthsep//'EC-EARTH'//pthsep//'SST'// &
+                pthsep//'sst_6hrLev_ICHEC-EC-EARTH_historical'// &
+                '_r12i1p1_'//d1//'00-'//d2//'00.nc'
+      else
+        fname = trim(inpglob)//pthsep//'EC-EARTH'//pthsep//'SST'// &
+                pthsep//'sst_6hrLev_ICHEC-EC-EARTH_rcp'//ssttyp(4:5)//  &
+                '_r12i1p1_'//d1//'00-'//d2//'00.nc'
+      end if
     else
-      fname = trim(inpglob)//'/EC-EARTH/SST/RCP'//ssttyp(4:5)//&
-                '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
+      if ( .not. date_in_scenario(idate,5,.true.) ) then
+        fname = trim(inpglob)//'/EC-EARTH/SST/RF/ich1_sst_1950-2009.nc'
+      else
+        fname = trim(inpglob)//'/EC-EARTH/SST/RCP'//ssttyp(4:5)//&
+                  '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
+      end if
     end if
   end subroutine find_ecearth_sst
 
