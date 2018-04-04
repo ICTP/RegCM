@@ -143,7 +143,7 @@ module mod_mpiesm_helper
               pthsep//'geosp_fx_MPI-ESM-MR_historical_r1i1p1.nc'
     else if ( res == 'L' ) then
       topo_filename = trim(inpglob)//pthsep//'MPI-ESM-LR'//pthsep//'fixed'// &
-              pthsep//'orog_fx_MPI-ESM-LR_historical_r0i0p0.nc'
+              pthsep//'geosp_fx_MPI-ESM-LR_historical_r1i1p1.nc'
     else
       write(stderr,*) 'Resolution requested: ', res
       write(stderr,*) 'Resolution supported: L,M'

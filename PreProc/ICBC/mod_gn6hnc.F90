@@ -436,7 +436,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
-    else if ( dattyp(1:3) == 'MP_' ) then
+    else if ( dattyp(1:2) == 'MP' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find hyam var')
@@ -460,39 +460,11 @@ module mod_gn6hnc
                       'Error open '//trim(pathaddname))
       istatus = nf90_inq_varid(inet1,'geosp',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find geosporog var')
+                      'Error find geosp var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read orog var')
+                      'Error read geosp var')
       zsvar(:,:) = zsvar(:,:)*real(regrav)
-    else if ( dattyp(1:3) == 'MPL' ) then
-      istatus = nf90_inq_varid(inet1,'hyam',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find hyam var')
-      istatus = nf90_get_var(inet1,ivar1,ak)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read hyam var')
-      istatus = nf90_inq_varid(inet1,'hybm',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find b var')
-      istatus = nf90_get_var(inet1,ivar1,bk)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read b var')
-      ! Close the T file, get just orography from fixed file.
-      istatus = nf90_close(inet1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error close file '//trim(pathaddname))
-      ! This one contains just orography.
-      call find_mpiesm_topo(pathaddname,'L')
-      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error open '//trim(pathaddname))
-      istatus = nf90_inq_varid(inet1,'orog',ivar1)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find orog var')
-      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read orog var')
     else if ( dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
