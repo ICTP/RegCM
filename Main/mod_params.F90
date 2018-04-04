@@ -1472,9 +1472,7 @@ module mod_params
 
     call allocate_pblscheme
 
-    if ( ipptls > 0 ) then
-      call allocate_micro
-    end if
+    call allocate_micro
 
     call allocate_mod_split
 
