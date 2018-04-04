@@ -127,10 +127,11 @@ module mod_capecin
 
     ! Find source parcel
 
+    kmax = 1
+
     select case (source)
       case (1)
         ! use surface parcel
-        kmax = 1
         k    = kmax
         th2  = th(kmax)
         pi2  = pi(kmax)
@@ -143,7 +144,6 @@ module mod_capecin
         ! use most unstable parcel (max theta-e)
         if ( p(1) < 50000.0_rkx ) then
           ! first report is above 500 mb ... just use the first level reported
-          kmax = 1
           maxthe = getthe(p(1),t(1),td(1),q(1))
         else
           ! find max thetae below 500 mb
@@ -173,7 +173,6 @@ module mod_capecin
           ! lowest level
           avgth = th(1)
           avgqv = q(1)
-          kmax = 1
         else if ( z(nk) < ml_depth ) then
           ! the top-most level is within the mixed layer:  just use the
           ! upper-most level
@@ -196,7 +195,6 @@ module mod_capecin
           avgqv = avgqv + 0.5_rkx*(ml_depth-z(k-1))*(qv2+q(k-1))
           avgth = avgth/ml_depth
           avgqv = avgqv/ml_depth
-          kmax = 1
         end if
         k    = kmax
         th2  = avgth
