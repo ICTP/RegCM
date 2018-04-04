@@ -974,7 +974,11 @@ module mod_clm_mkarbinit
             h2osno(c) = 0.0_rk8
           end if
         else if ( ltype(l) /= isturb ) then
-          h2osno(c) = adomain%snow(g)
+          if ( adomain%snow(g) < 1.0e+10_rk8 ) then
+            h2osno(c) = adomain%snow(g)
+          else
+            h2osno(c) = 0.0_rk8
+          end if
         else
           h2osno(c) = 0.0_rk8
         end if

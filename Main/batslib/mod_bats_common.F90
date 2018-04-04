@@ -80,6 +80,8 @@ module mod_bats_common
       call c2l_ss(lndcomm,lm%xlat1,lat)
       call c2l_gs(lndcomm,lm%tground2,tgrd)
       call c2l_gs(lndcomm,lm%snowam,sncv)
+      ! Reset if invalid
+      where ( sncv > 1.0e+10_rkx ) sncv = d_zero
       ! Remove water -> no-data
       where( ltex == 14 )
         ltex = 17
