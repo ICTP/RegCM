@@ -46,6 +46,7 @@
     esdt = real(esatdt * 100.0_rk8,rkx) ! pa/K
   end function pfesdt
 
+!DIR$ ATTRIBUTES FORCEINLINE :: pfqsdt
   pure real(rkx) function pfqsdt(t,p,e,dedt) result(qsdt)
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)

@@ -19,6 +19,7 @@
     end if
   end function pfesdt
 
+!DIR$ ATTRIBUTES FORCEINLINE :: pfqsdt
   pure real(rkx) function pfqsdt(t,p) result(qsdt)
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)
