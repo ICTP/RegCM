@@ -1079,11 +1079,11 @@ module mod_output
           end do
         end if
         if ( associated(rad_higcl_out) ) &
-          rad_higcl_out = rad_higcl_out * rnrad_for_radfrq * d_100
+          rad_higcl_out = min(rad_higcl_out * rnrad_for_radfrq,d_one) * d_100
         if ( associated(rad_midcl_out) ) &
-          rad_midcl_out = rad_midcl_out * rnrad_for_radfrq * d_100
+          rad_midcl_out = min(rad_midcl_out * rnrad_for_radfrq,d_one) * d_100
         if ( associated(rad_lowcl_out) ) &
-          rad_lowcl_out = rad_lowcl_out * rnrad_for_radfrq * d_100
+          rad_lowcl_out = min(rad_lowcl_out * rnrad_for_radfrq,d_one) * d_100
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ' , rcmtimer%str( )
