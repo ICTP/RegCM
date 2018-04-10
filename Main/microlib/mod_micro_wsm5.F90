@@ -74,6 +74,11 @@ module mod_micro_wsm5
   ! snow/cloud-water collection efficiency
   real(rkx) , parameter :: eacrc = 1.0_rkx
 
+  real(rkx) , parameter :: xa = -(cpv-cpw)/rwat
+  real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
+  real(rkx) , parameter :: xai = -(cpv-cpi)/rwat
+  real(rkx) , parameter :: xbi = xai + wlhs/(rwat*wattp)
+
   real(rkx) , save :: qc0 , qck1 , pidnc , bvtr1 , bvtr2 , bvtr3 ,  &
           bvtr4 , g1pbr , g3pbr , g4pbr , g5pbro2 , pvtr , eacrr ,  &
           pacrr , precr1 , precr2 , xmmax , roqimax , bvts1 ,       &
@@ -89,8 +94,6 @@ module mod_micro_wsm5
 
   real(rkx) , dimension(:,:) , pointer :: t
   real(rkx) , dimension(:,:) , pointer :: qv
-  real(rkx) , dimension(:,:) , pointer :: qs
-  real(rkx) , dimension(:,:) , pointer :: rh
   real(rkx) , dimension(:,:,:) , pointer :: qci
   real(rkx) , dimension(:,:,:) , pointer :: qrs
   real(rkx) , dimension(:,:,:) , pointer :: fall
@@ -112,8 +115,6 @@ module mod_micro_wsm5
     ie = ((ici2-ici1) + 1) * ((jci2-jci1) + 1)
     call getmem2d(t,is,ie,1,kz,'wsm5::t')
     call getmem2d(qv,is,ie,1,kz,'wsm5::qv')
-    call getmem2d(qs,is,ie,1,kz,'wsm5::qs')
-    call getmem2d(rh,is,ie,1,kz,'wsm5::rh')
     call getmem3d(qci,is,ie,1,kz,1,2,'wsm5::qci')
     call getmem3d(qrs,is,ie,1,kz,1,2,'wsm5::qrs')
     call getmem3d(fall,is,ie,1,kz,1,2,'wsm5::fall')
@@ -158,7 +159,7 @@ module mod_micro_wsm5
     g4pbs = rgmma(bvts4)    ! 12.0786
     g5pbso2 = rgmma(bvts2)
     pvts = avts*g4pbs/d_six
-    pacrs = mathpi*n0s*avts*g3pbs*.25
+    pacrs = mathpi*n0s*avts*g3pbs*0.25_rkx
     precs1 = 4.0_rkx*n0s*0.65_rkx
     precs2 = 4.0_rkx*n0s*0.44_rkx*avts**d_half*g5pbso2
     pidn0r =  mathpi*rhoh2o*n0r
@@ -180,7 +181,6 @@ module mod_micro_wsm5
     pure real(rkx) function rgmma(x)
       implicit none
       real(rkx) , intent(in) :: x
-      real(rkx) , parameter :: euler = 0.577215664901532_rkx
       integer(ik4) , parameter :: imax = 10000
       real(rkx) :: y
       integer(ik4) :: i
@@ -227,16 +227,14 @@ module mod_micro_wsm5
       do i = ici1 , ici2
         do j = jci1 , jci2
           t(n,kk) = mo2mc%t(j,i,k)
+          p(n,kk) = mo2mc%phs(j,i,k)
           qv(n,kk) = mo2mc%qxx(j,i,k,iqv)
-          qs(n,kk) = mo2mc%qs(j,i,k)
-          rh(n,kk) = max(d_zero,min(d_one,mo2mc%rh(j,i,k)))
           qci(n,kk,1) = mo2mc%qxx(j,i,k,iqc)
           qci(n,kk,2) = mo2mc%qxx(j,i,k,iqi)
           qrs(n,kk,1) = mo2mc%qxx(j,i,k,iqr)
           qrs(n,kk,2) = mo2mc%qxx(j,i,k,iqs)
           den(n,kk) = mo2mc%rho(j,i,k)
           delz(n,kk) = mo2mc%delz(j,i,k)
-          p(n,kk) = mo2mc%phs(j,i,k)
           n = n + 1
         end do
       end do
@@ -249,7 +247,7 @@ module mod_micro_wsm5
       mc2mo%remrat(:,:,:) = d_zero
     end if
 
-    call wsm52d(t,qv,qs,rh,qci,qrs,den,p,delz,dt,rain,snow,fall,is,ie)
+    call wsm52d(t,qv,qci,qrs,den,p,delz,dt,rain,snow,fall,is,ie)
 
     do k = 1 , kz
       n = 1
@@ -325,7 +323,6 @@ module mod_micro_wsm5
 !        snow_er(n,k)  = max(25.e-6,   min(re_qs(k), 999.e-6))
 !      end do
 !    end do
-
   end subroutine wsm5
   !
   ! This code is a 5-class mixed ice microphyiscs scheme (WSM5) of the
@@ -359,21 +356,23 @@ module mod_micro_wsm5
   !             Rutledge, Hobbs (rh83, 1983) J. Atmos. Sci.
   !             Hong and Lim (hl, 2006) J. Korean Meteor. Soc.
   !
-  subroutine wsm52d(t,q,qs,rh,qci,qrs,den,p,delz,delt,rain,snow,fall,ims,ime)
+  subroutine wsm52d(t,q,qci,qrs,den,p,delz,delt,rain,snow,fall,ims,ime)
     implicit none
     integer(ik4) , intent(in) :: ims , ime
     real(rkx) , dimension(ims:ime,kz) , intent(inout) :: t
     real(rkx) , dimension(ims:ime,kz,2) , intent(inout) :: qci , qrs
-    real(rkx) , dimension(ims:ime,kz) , intent(inout) :: q , qs , rh
+    real(rkx) , dimension(ims:ime,kz) , intent(inout) :: q
     real(rkx) , dimension(ims:ime,kz) , intent(in) :: den , p , delz
     real(rkx) , intent(in) :: delt
     real(rkx) , dimension(ims:ime) , intent(out) :: rain
     real(rkx) , dimension(ims:ime) , intent(out) :: snow
     real(rkx) , dimension(ims:ime,kz,2) , intent(out) :: fall
 
+    real(rkx) , dimension(ims:ime,kz,2) :: qs , rh
     real(rkx) , dimension(ims:ime,kz,2) :: rslope , rslope2
     real(rkx) , dimension(ims:ime,kz,2) :: rslope3 , rslopeb, qrs_tmp
     real(rkx) , dimension(ims:ime,kz,2) :: work1
+    real(rkx) , dimension(ims:ime,kz) :: den_tmp , delz_tmp
     real(rkx) , dimension(ims:ime,kz) :: fallc , xl , cpm
     real(rkx) , dimension(ims:ime,kz) :: denfac , xni , denqrs1 , denqrs2
     real(rkx) , dimension(ims:ime,kz) :: denqci , n0sfac
@@ -388,6 +387,7 @@ module mod_micro_wsm5
       acrfac , qimax , diameter , xni0 , roqi0 , fallsum ,     &
       fallsum_qsi , xlwork2 , factor , source , qval , xlf ,   &
       pfrzdtc , pfrzdtr , supice
+    real(rkx) :: tr , logtr
     ! variables for optimization
     real(rkx) :: temp
     integer(ik4) :: i , k , loop , loops , ifsat , nval
@@ -411,6 +411,26 @@ module mod_micro_wsm5
     !
     do k = 1 , kz
       do i = ims , ime
+        tr = wattp/t(i,k)
+        logtr = log(tr)
+        qs(i,k,1) = c1es * exp(logtr*xa + xb*(d_one-tr))
+        qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
+        qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
+        qs(i,k,1) = max(qs(i,k,1),minqq)
+        rh(i,k,1) = max(qv(i,k)/qs(i,k,1),minqq)
+        if ( t(i,k) > wattp ) then
+          qs(i,k,2) = c1es * exp(logtr*xa + xb*(d_one-tr))
+        else
+          qs(i,k,2) = c1es * exp(logtr*xai + xbi*(d_one-tr))
+        end if
+        qs(i,k,2) = min(qs(i,k,2),0.99_rkx*p(i,k))
+        qs(i,k,2) = ep2 * qs(i,k,2)/(p(i,k)-qs(i,k,2))
+        qs(i,k,2) = max(qs(i,k,2),minqq)
+        rh(i,k,2) = max(qv(i,k)/qs(i,k,2),minqq)
+      end do
+    end do
+    do k = 1 , kz
+      do i = ims , ime
         cpm(i,k) = cpmcal(q(i,k))
         xl(i,k) = xlcal(t(i,k))
       end do
@@ -418,6 +438,8 @@ module mod_micro_wsm5
     do k = 1 , kz
       do i = ims , ime
         denfac(i,k) = sqrt(stdrho/den(i,k))
+        delz_tmp(i,k) = delz(i,k)
+        den_tmp(i,k) = den(i,k)
       end do
     end do
     !
@@ -478,7 +500,7 @@ module mod_micro_wsm5
           qrs_tmp(i,k,2) = qrs(i,k,2)
         end do
       end do
-      call slope_wsm5(qrs_tmp,den,denfac,t, &
+      call slope_wsm5(qrs_tmp,den_tmp,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
       do k = kz , 1, -1
         do i = ims , ime
@@ -490,10 +512,10 @@ module mod_micro_wsm5
           if ( qrs(i,k,2) <= d_zero ) works(i,k) = d_zero
         end do
       end do
-      call nislfv_rain_plm(nval,den,denfac,t, &
-                           delz,workr,denqrs1,delqrs1,dtcld,1,1)
-      call nislfv_rain_plm(nval,den,denfac,t, &
-                           delz,works,denqrs2,delqrs2,dtcld,2,1)
+      call nislfv_rain_plm(nval,den_tmp,denfac,t, &
+                           delz_tmp,workr,denqrs1,delqrs1,dtcld,1,1)
+      call nislfv_rain_plm(nval,den_tmp,denfac,t, &
+                           delz_tmp,works,denqrs2,delqrs2,dtcld,2,1)
       do k = 1 , kz
         do i = ims , ime
           qrs(i,k,1) = max(denqrs1(i,k)/den(i,k),d_zero)
@@ -512,7 +534,7 @@ module mod_micro_wsm5
           qrs_tmp(i,k,2) = qrs(i,k,2)
         end do
       end do
-      call slope_wsm5(qrs_tmp,den,denfac,t, &
+      call slope_wsm5(qrs_tmp,den_tmp,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
       do k = kz , 1 , -1
         do i = ims , ime
@@ -565,8 +587,8 @@ module mod_micro_wsm5
           denqci(i,k) = den(i,k)*qci(i,k,2)
         end do
       end do
-      call nislfv_rain_plm(nval,den,denfac,t, &
-                           delz,work1c,denqci,delqi,dtcld,1,0)
+      call nislfv_rain_plm(nval,den_tmp,denfac,t, &
+                           delz_tmp,work1c,denqci,delqi,dtcld,1,0)
       do k = 1 , kz
         do i = ims , ime
           qci(i,k,2) = max(denqci(i,k)/den(i,k),d_zero)
@@ -648,7 +670,7 @@ module mod_micro_wsm5
           qrs_tmp(i,k,2) = qrs(i,k,2)
         end do
       end do
-      call slope_wsm5(qrs_tmp,den,denfac,t, &
+      call slope_wsm5(qrs_tmp,den_tmp,denfac,t, &
                       rslope,rslopeb,rslope2,rslope3,work1,ims,ime)
       !
       ! work1:  the thermodynamic term in the denominator associated with
@@ -658,18 +680,18 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          !work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k))
+          !work1(i,k,1) = diffac(xl(i,k),p(i,k),t(i,k),den(i,k),qs(i,k,1))
           work1(i,k,1) = ((((den(i,k))*(xl(i,k))*(xl(i,k))) * &
                       ((t(i,k))+120.0_rkx)*(den(i,k))) / &
                       (1.414e3_rkx*(1.496e-6_rkx*((t(i,k))*sqrt(t(i,k)))) * &
                       (den(i,k))*(rwat*(t(i,k))*(t(i,k))))) + &
-                      p(i,k)/((qs(i,k)) * &
+                      p(i,k)/((qs(i,k,1)) * &
                       (8.794e-5_rkx*exp(log(t(i,k))*(1.81_rkx))))
-          !work1(i,k,2) = diffac(wlhs,p(i,k),t(i,k),den(i,k),qs(i,k))
+          !work1(i,k,2) = diffac(wlhs,p(i,k),t(i,k),den(i,k),qs(i,k,2))
           work1(i,k,2) = ((((den(i,k))*(wlhs)*(wlhs))*((t(i,k))+120.0_rkx) * &
                       (den(i,k)))/(1.414e3_rkx*(1.496e-6_rkx * &
                       ((t(i,k))*sqrt(t(i,k))))*(den(i,k)) * &
-                      (rwat*(t(i,k))*(t(i,k))))+p(i,k)/(qs(i,k) * &
+                      (rwat*(t(i,k))*(t(i,k))))+p(i,k)/(qs(i,k,2) * &
                       (8.794e-5_rkx*exp(log(t(i,k))*(1.81_rkx)))))
           !work2(i,k) = venfac(p(i,k),t(i,k),den(i,k))
           work2(i,k) = (exp(onet*log(((1.496e-6_rkx*((t(i,k))*sqrt(t(i,k)))) * &
@@ -687,7 +709,7 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          supsat = max(q(i,k),minqq)-qs(i,k)
+          supsat = max(q(i,k),minqq)-qs(i,k,1)
           satdt = supsat/dtcld
           !
           ! praut: auto conversion rate from cloud to rain [hdc 16]
@@ -711,13 +733,13 @@ module mod_micro_wsm5
           !
           if ( qrs(i,k,1) > d_zero ) then
             coeres = rslope2(i,k,1)*sqrt(rslope(i,k,1)*rslopeb(i,k,1))
-            prevp(i,k) = (rh(i,k)-d_one)*(precr1*rslope2(i,k,1) + &
+            prevp(i,k) = (rh(i,k,1)-d_one)*(precr1*rslope2(i,k,1) + &
                          precr2*work2(i,k)*coeres)/work1(i,k,1)
             if ( prevp(i,k) < d_zero ) then
               prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)/dtcld)
-              prevp(i,k) = max(prevp(i,k),satdt/2)
+              prevp(i,k) = max(prevp(i,k),satdt/2.0_rkx)
             else
-              prevp(i,k) = min(prevp(i,k),satdt/2)
+              prevp(i,k) = min(prevp(i,k),satdt/2.0_rkx)
             end if
           end if
         end do
@@ -737,7 +759,7 @@ module mod_micro_wsm5
         do i = ims , ime
           supcol = tzero-t(i,k)
           n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
-          supsat = max(q(i,k),minqq)-qs(i,k)
+          supsat = max(q(i,k),minqq)-qs(i,k,2)
           satdt = supsat*rdtcld
           ifsat = 0
           !
@@ -781,7 +803,7 @@ module mod_micro_wsm5
               xmi = den(i,k)*qci(i,k,2)/xni(i,k)
               diameter = dicon * sqrt(xmi)
               pidep(i,k) = d_four*diameter*xni(i,k) * &
-                           (rh(i,k)-d_one)/work1(i,k,2)
+                           (rh(i,k,2)-d_one)/work1(i,k,2)
               supice = satdt-prevp(i,k)
               if ( pidep(i,k) < d_zero ) then
                 pidep(i,k) = max(max(pidep(i,k),satdt*d_half),supice)
@@ -797,7 +819,7 @@ module mod_micro_wsm5
             !
             if ( qrs(i,k,2) > d_zero .and. ifsat /= 1 ) then
               coeres = rslope2(i,k,2)*sqrt(rslope(i,k,2)*rslopeb(i,k,2))
-              psdep(i,k) = (rh(i,k)-d_one)*n0sfac(i,k) * &
+              psdep(i,k) = (rh(i,k,2)-d_one)*n0sfac(i,k) * &
                            (precs1*rslope2(i,k,2) + &
                             precs2*work2(i,k)*coeres)/work1(i,k,2)
               supice = satdt-prevp(i,k)-pidep(i,k)
@@ -838,7 +860,7 @@ module mod_micro_wsm5
           !       (t>t0: s->v)
           !
           if ( supcol < d_zero ) then
-            if ( qrs(i,k,2) > d_zero .and. rh(i,k) < d_one ) then
+            if ( qrs(i,k,2) > d_zero .and. rh(i,k,1) < d_one ) then
               psevp(i,k) = psdep(i,k)*work1(i,k,2)/work1(i,k,1)
             end if
             psevp(i,k) = min(max(psevp(i,k),-qrs(i,k,2)*rdtcld),d_zero)
@@ -960,13 +982,16 @@ module mod_micro_wsm5
           end if
         end do
       end do
-
       do k = 1 , kz
         do i = ims , ime
-          qs(i,k) = pfwsat(t(i,k),p(i,k))
+          tr = wattp/t(i,k)
+          logtr = log(tr)
+          qs(i,k,1) = c1es * exp(logtr*xa + xb*(d_one-tr))
+          qs(i,k,1) = min(qs(i,k,1),0.99_rkx*p(i,k))
+          qs(i,k,1) = ep2 * qs(i,k,1)/(p(i,k)-qs(i,k,1))
+          qs(i,k,1) = max(qs(i,k,1),minqq)
         end do
       end do
-      !
       ! pcond: condensational/evaporational rate of cloud water
       !        [hl a46] [rh83 a6]
       ! if there exists additional water vapor condensated/if
@@ -974,8 +999,8 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          work1(i,k,1) = ((max(q(i,k),minqq)-(qs(i,k)))/(d_one+(xl(i,k)) * &
-                        (xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k)) / &
+          work1(i,k,1) = ((max(q(i,k),minqq)-(qs(i,k,1)))/(d_one+(xl(i,k)) * &
+                        (xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k,1)) / &
                         ((t(i,k))*(t(i,k)))))
           work2(i,k) = qci(i,k,1)+work1(i,k,1)
           pcond(i,k) = min(max(work1(i,k,1)/dtcld,d_zero), &
@@ -991,9 +1016,6 @@ module mod_micro_wsm5
     end do ! big loops
 
     contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
 
     pure real(rkx) function cpmcal(x)
       implicit none
@@ -1063,15 +1085,11 @@ module mod_micro_wsm5
     do k = 1 , kz
       do i = ims , ime
         supcol = tzero-t(i,k)
-        if ( abs(supcol) > 0.01_rkx ) then
-          n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
-        else
-          n0sfac = d_one
-        end if
+        n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
         !
         ! n0s: intercept parameter for snow [m-4] [hdc 6]
         !
-        if ( qrs(i,k,1) <= qcrmin ) then
+        if ( qrs(i,k,1) <= minqq ) then
           rslope(i,k,1) = rslopermax
           rslopeb(i,k,1) = rsloperbmax
           rslope2(i,k,1) = rsloper2max
@@ -1214,9 +1232,9 @@ module mod_micro_wsm5
   !         implemented by Song-You Hong
   !
   subroutine nislfv_rain_plm(im,denl,denfacl,tkl,dzl, &
-                             wwl,rql,precip,dt,id,iter)
+                             wwl,rql,precip,dt,id,maxiter)
     implicit none
-    integer(ik4) , intent(in) :: im , id , iter
+    integer(ik4) , intent(in) :: im , id , maxiter
     real(rkx) , dimension(im,kz) , intent(in) :: denl
     real(rkx) , dimension(im,kz) , intent(in) :: denfacl
     real(rkx) , dimension(im,kz) , intent(in) :: tkl
@@ -1268,74 +1286,72 @@ module mod_micro_wsm5
       ! save departure wind
       !
       wd(:) = ww(:)
-      n = 1
- 100  continue
-      ! plm is 2nd order, we can use 2nd order wi or 3rd order wi
-      ! 2nd order interpolation to get wi
-      wi(1) = ww(1)
-      wi(kzp1) = ww(kz)
-      do k = 2 , kz
-        wi(k) = (ww(k)*dz(k-1)+ww(k-1)*dz(k))/(dz(k-1)+dz(k))
-      end do
-      ! 3rd order interpolation to get wi
-      wi(1) = ww(1)
-      wi(2) = d_half*(ww(2)+ww(1))
-      do k = 3 , kz-1
-        wi(k) = fa1*(ww(k)+ww(k-1))-fa2*(ww(k+1)+ww(k-2))
-      end do
-      wi(kz) = d_half*(ww(kz)+ww(kz-1))
-      wi(kzp1) = ww(kz)
-      !
-      ! terminate of top of raingroup
-      !
-      do k = 2 , kz
-        if ( abs(ww(k)) < epsilon(d_one) ) wi(k) = ww(k-1)
-      end do
-      !
-      ! diffusivity of wi
-      !
-      con1 = 0.05_rkx
-      do k = kz , 1 , -1
-        decfl = (wi(k+1)-wi(k))*dt/dz(k)
-        if ( decfl > con1 ) then
-          wi(k) = wi(k+1) - con1*dz(k)/dt
-        end if
-      end do
-      ! compute arrival point
-      do k = 1 , kzp1
-        za(k) = zi(k) - wi(k)*dt
-      end do
-      do k = 1 , kz
-        dza(k) = za(k+1)-za(k)
-      end do
-      dza(kzp1) = zi(kzp1) - za(kzp1)
-      !
-      ! compute deformation at arrival point
-      !
-      do k = 1 , kz
-        qa(k) = qq(k)*dz(k)/dza(k)
-        qr(k) = qa(k)/den(k)
-      end do
-      qa(kzp1) = d_zero
-      !
-      ! compute arrival terminal velocity, and estimate mean terminal velocity
-      ! then back to use mean terminal velocity
-      !
-      if ( n <= iter ) then
-        if ( id == 1 ) then
-          call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
-        else
-          call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
-        end if
-        if ( n >= 2 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
-        do k = 1 , kz
-          ! mean wind is average of departure and new arrival winds
-          ww(k) = d_half * ( wd(k)+wa(k) )
+      do n = 0 , maxiter
+        ! plm is 2nd order, we can use 2nd order wi or 3rd order wi
+        ! 2nd order interpolation to get wi
+        wi(1) = ww(1)
+        wi(kzp1) = ww(kz)
+        do k = 2 , kz
+          wi(k) = (ww(k)*dz(k-1)+ww(k-1)*dz(k))/(dz(k-1)+dz(k))
         end do
-        was(:) = wa(:)
-        n = n+1
-        go to 100
-      end if
+        ! 3rd order interpolation to get wi
+        wi(1) = ww(1)
+        wi(2) = d_half*(ww(2)+ww(1))
+        do k = 3 , kzm1
+          wi(k) = fa1*(ww(k)+ww(k-1))-fa2*(ww(k+1)+ww(k-2))
+        end do
+        wi(kz) = d_half*(ww(kz)+ww(kz-1))
+        wi(kzp1) = ww(kz)
+        !
+        ! terminate of top of raingroup
+        !
+        do k = 2 , kz
+          if ( abs(ww(k)) < epsilon(d_one) ) wi(k) = ww(k-1)
+        end do
+        !
+        ! diffusivity of wi
+        !
+        con1 = 0.05_rkx
+        do k = kz , 1 , -1
+          decfl = (wi(k+1)-wi(k))*dt/dz(k)
+          if ( decfl > con1 ) then
+            wi(k) = wi(k+1) - con1*dz(k)/dt
+          end if
+        end do
+        ! compute arrival point
+        do k = 1 , kzp1
+          za(k) = zi(k) - wi(k)*dt
+        end do
+        do k = 1 , kz
+          dza(k) = za(k+1)-za(k)
+        end do
+        dza(kzp1) = zi(kzp1) - za(kzp1)
+        !
+        ! compute deformation at arrival point
+        !
+        do k = 1 , kz
+          qa(k) = qq(k)*dz(k)/dza(k)
+          qr(k) = qa(k)/den(k)
+        end do
+        qa(kzp1) = d_zero
+        if ( n < maxiter - 1 ) then
+          !
+          ! compute arrival terminal velocity, and estimate mean
+          ! terminal velocity then back to use mean terminal velocity
+          !
+          if ( id == 1 ) then
+            call slope_rain(qr,den,denfac,tmp,tmp1,tmp2,tmp3,wa)
+          else
+            call slope_snow(qr,den,denfac,tk,tmp,tmp1,tmp2,tmp3,wa)
+          end if
+          if ( n >= 1 ) wa(1:kz) = d_half*(wa(1:kz)+was(1:kz))
+          do k = 1 , kz
+            ! mean wind is average of departure and new arrival winds
+            ww(k) = d_half * ( wd(k)+wa(k) )
+          end do
+          was(:) = wa(:)
+        end if
+      end do
       !
       ! estimate values at arrival cell interface with monotone
       !

@@ -91,15 +91,11 @@ module mod_micro_nogtom
   real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
   real(rkx) , parameter :: rldcp = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
   ! 1/autoconversion time scale (s)
-  !real(rkx) , parameter :: rkconv = d_one/6000.0_rkx
   real(rkx) , parameter :: autocrit_kessl = 5.e-4_rkx
-  ! real(rkx) , parameter :: qs0 = 1.0e-3_rkx             !g g^(-1)
-  ! real(rkx) , parameter :: rcovpmin = 0.1
   real(rkx) , parameter :: rclcrit_land = 5.e-4_rkx
   real(rkx) , parameter :: rclcrit_sea = 3.e-4_rkx
   real(rkx) , parameter :: rprc1 = 3.e2_rkx  ! in Sundqvist = 300
   real(rkx) , parameter :: ramid = 0.8_rkx
-  ! real(rkx) , parameter :: rlmin = 1.D-8
   ! max threshold rh for evaporation for a precip coverage of zero
   real(rkx) , parameter :: rprecrhmax = 0.7_rkx
   ! evaporation rate coefficient Numerical fit to wet bulb temperature
@@ -111,7 +107,6 @@ module mod_micro_nogtom
   real(rkx) , parameter :: rtaumel = 1.1880e4_rkx
   ! temperature homogeneous freezing
   real(rkx) , parameter :: thomo = 235.16_rkx  ! -38.00 Celsius
-  !real(rkx) , parameter :: thomo = 225.16_rkx  ! -48.00 Celsius
   ! initial mass of ice particle
   real(rkx) , parameter :: iceinit = 1.e-12_rkx
   real(rkx) , parameter :: rkoop1 = 2.583_rkx
