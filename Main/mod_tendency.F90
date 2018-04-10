@@ -1490,8 +1490,10 @@ module mod_tendency
         call sponge(xtb,tten)
         call sponge(xqb,qxten,iqv)
         call sponge(xub,xvb,uten,vten)
-        call ten2diag(aten%t,tdiag%bdy,pc_total)
-        call ten2diag(aten%qx,qdiag%bdy,pc_total)
+        if ( idiag > 0 ) then
+          call ten2diag(aten%t,tdiag%bdy,pc_total)
+          call ten2diag(aten%qx,qdiag%bdy,pc_total)
+        end if
 #ifdef DEBUG
         call check_temperature_tendency('BDYC',pc_total)
         call check_wind_tendency('BDYC',pc_total)
