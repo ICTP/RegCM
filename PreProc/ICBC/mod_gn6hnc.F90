@@ -454,7 +454,11 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close file '//trim(pathaddname))
       ! This one contains just orography.
-      call find_mpiesm_topo(pathaddname,'M')
+      if ( dattyp(3:3) == '_' ) then
+        call find_mpiesm_topo(pathaddname,'M')
+      else
+        call find_mpiesm_topo(pathaddname,'L')
+      end if
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
