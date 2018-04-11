@@ -185,19 +185,17 @@ module mod_bdycod
       end do
     end if
     if ( iboudy == 4 ) then
-      wgtd(1) = 0.00_rkx
       wgtd(2) = 0.20_rkx
       wgtd(3) = 0.55_rkx
       wgtd(4) = 0.80_rkx
       wgtd(5) = 0.95_rkx
-      do k = 4 , nspgd
+      do k = 6 , nspgd-1
         wgtd(k) = d_one
       end do
-      wgtx(1) = 0.0_rkx
       wgtx(2) = 0.4_rkx
       wgtx(3) = 0.7_rkx
       wgtx(4) = 0.9_rkx
-      do k = 5 , nspgx
+      do k = 5 , nspgx-1
         wgtx(k) = 1.0_rkx
       end do
     end if
