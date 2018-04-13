@@ -718,7 +718,7 @@ module mod_ncout
           if ( enable_atm3d_vars(atm_qi) ) then
             call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
               'Mass Fraction of Ice', &
-              'mass_fraction_of_ice_in_air',.true.)
+              'mass_fraction_of_cloud_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
           if ( icosp == 1 .or. idiag > 0 ) then
@@ -879,22 +879,22 @@ module mod_ncout
 
         if ( ibltyp == 2 ) then
           if ( enable_atm3d_vars(atm_tke) ) then
-            call setup_var(v3dvar_atm,atm_tke,vsize,'tke','m2 s2', &
+            call setup_var(v3dvar_atm,atm_tke,vsize,'tke','m2 s-2', &
               'Turbulent Kinetic Energy', &
-              'turbulent_kinetic_energy', .true.)
+              'specific_kinetic_energy_of_air', .true.)
             atm_tke_out => v3dvar_atm(atm_tke)%rval
           end if
           if ( idiag > 0 ) then
             if ( enable_atm3d_vars(atm_kth) ) then
               call setup_var(v3dvar_atm,atm_kth,vsize,'kth','m2 s-1', &
-                'Vertical Turbulent Viscosity', &
-                'vertical_momentum_diffusivity', .true.)
+                'Vertical Heat Turbulent Diffusivity', &
+                'atmosphere_heat_diffusivity', .true.)
               atm_kth_out => v3dvar_atm(atm_kth)%rval
             end if
             if ( enable_atm3d_vars(atm_kzm) ) then
               call setup_var(v3dvar_atm,atm_kzm,vsize,'kzm','m2 s-1', &
-                'Vertical Turbulent Diffusivity', &
-                'vertical_scalar_diffusivity', .true.)
+                'Vertical Momentum Turbulent Diffusivity', &
+                'atmosphere_momentum_diffusivity', .true.)
               atm_kzm_out => v3dvar_atm(atm_kzm)%rval
             end if
           else
@@ -1101,7 +1101,8 @@ module mod_ncout
 
         if ( enable_srf2d_vars(srf_uvdrag) ) then
           call setup_var(v2dvar_srf,srf_uvdrag,vsize,'tau','N m-2', &
-            'Surface Downward Wind Stress','surface_downward_stress',.true.)
+            'Surface Downward Wind Stress', &
+            'magnitude_of_surface_downward_stress',.true.)
           srf_uvdrag_out => v2dvar_srf(srf_uvdrag)%rval
         end if
         if ( enable_srf2d_vars(srf_taux) ) then
@@ -1140,13 +1141,13 @@ module mod_ncout
           srf_evpot_out => v2dvar_srf(srf_evpot)%rval
         end if
         if ( enable_srf2d_vars(srf_ustar) ) then
-          call setup_var(v2dvar_srf,srf_ustar,vsize,'ustar','m s-1', &
-            'Surface Friction Velocity','friction_velocity',.true.)
+          call setup_var(v2dvar_srf,srf_ustar,vsize,'ustar','s-1', &
+            'Surface Friction Velocity','wind_speed_shear',.true.)
           srf_ustar_out => v2dvar_srf(srf_ustar)%rval
         end if
         if ( enable_srf2d_vars(srf_zo) ) then
           call setup_var(v2dvar_srf,srf_zo,vsize,'zo','m', &
-            'Surface Roughness Length','roughness_length',.true.)
+            'Surface Roughness Length','surface_roughness_length',.true.)
           srf_zo_out => v2dvar_srf(srf_zo)%rval
         end if
         if ( enable_srf2d_vars(srf_rhoa) ) then
@@ -1238,13 +1239,13 @@ module mod_ncout
         if ( enable_srf2d_vars(srf_aldirs) ) then
           call setup_var(v2dvar_srf,srf_aldirs,vsize,'aldirs','1', &
             'Surface Albedo to Direct Shortwave Radiation', &
-            'surface_albedo_short_wave_direct',.true.)
+            'surface_albedo',.true.)
           srf_aldirs_out => v2dvar_srf(srf_aldirs)%rval
         end if
         if ( enable_srf2d_vars(srf_aldifs) ) then
           call setup_var(v2dvar_srf,srf_aldifs,vsize,'aldifs','1', &
             'Surface Albedo to Diffuse Shortwave Radiation', &
-            'surface_albedo_short_wave_diffuse',.true.)
+            'surface_albedo',.true.)
           srf_aldifs_out => v2dvar_srf(srf_aldifs)%rval
         end if
         if ( enable_srf2d_vars(srf_sund) ) then
@@ -1371,7 +1372,7 @@ module mod_ncout
         if ( enable_srf3d_vars(srf_smw) ) then
           call setup_var(v3dvar_srf,srf_smw,vsize,'mrso','kg m-2', &
             'Moisture Content of the Soil Layers', &
-            'soil_moisture_content_in_layers',.true.,l_fill=.true.)
+            'moisture_content_of_soil_layer',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
         end if
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
@@ -1654,7 +1655,7 @@ module mod_ncout
         v3dvar_sub(sub_smw)%axis = 'xys'
         if ( enable_sub3d_vars(sub_smw) ) then
           call setup_var(v3dvar_sub,sub_smw,vsize,'mrso','kg m-2', &
-            'Soil moisture content','soil_moisture_content', &
+            'Soil moisture content','moisture_content_of_soil_layer', &
             .true.,l_fill=.true.)
           sub_smw_out => v3dvar_sub(sub_smw)%rval
         end if
@@ -1738,9 +1739,9 @@ module mod_ncout
           rad_clrlt_out => v2dvar_rad(rad_clrlt)%rval
         end if
         if ( enable_rad2d_vars(rad_clrls) ) then
-          call setup_var(v2dvar_rad,rad_clrls,vsize,'rsnlcl','W m-2', &
+          call setup_var(v2dvar_rad,rad_clrls,vsize,'rlntpcs','W m-2', &
             'Clearsky Net Surface Upward Longwave Flux', &
-            'surface_net_upward_longwave_flux_assuming_clear_sky',.true.)
+            'net_upward_longwave_flux_in_air_assuming_clear_sky',.true.)
           rad_clrls_out => v2dvar_rad(rad_clrls)%rval
         end if
         if ( enable_rad2d_vars(rad_solin) ) then
@@ -1762,14 +1763,14 @@ module mod_ncout
         end if
         if ( enable_rad2d_vars(rad_totcl) ) then
           call setup_var(v2dvar_rad,rad_totcl,vsize,'clwvi','kg m-2', &
-            'Condensed Water Path', &
-            'atmosphere_cloud_condensed_water_content',.true.)
+            'Condensed Water Mass Content', &
+            'atmosphere_mass_content_of_cloud_condensed_water',.true.)
           rad_totcl_out => v2dvar_rad(rad_totcl)%rval
         end if
         if ( enable_rad2d_vars(rad_totci) ) then
           call setup_var(v2dvar_rad,rad_totci,vsize,'clivi','kg m-2', &
-            'Ice Water Path', &
-            'atmosphere_ice_condensed_water_content',.true.)
+            'Ice Water Mass Content', &
+            'atmosphere_mass_content_of_cloud_ice',.true.)
           rad_totci_out => v2dvar_rad(rad_totci)%rval
         end if
         if ( enable_rad2d_vars(rad_lwout) ) then
@@ -1815,7 +1816,7 @@ module mod_ncout
           rad_cld_out => v3dvar_rad(rad_cld)%rval
         end if
         if ( enable_rad3d_vars(rad_clwp) ) then
-          call setup_var(v3dvar_rad,rad_clwp,vsize,'clw','g m-2', &
+          call setup_var(v3dvar_rad,rad_clwp,vsize,'clwp','m', &
             'Cloud liquid water path','thickness_of_liquid_water_cloud',.true.)
           rad_clwp_out => v3dvar_rad(rad_clwp)%rval
         end if
