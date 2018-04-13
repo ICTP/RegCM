@@ -431,16 +431,12 @@ module mod_ncstream
           attc%theval = 'time_bnds'
           call add_attribute(stream,attc,stvar%time_var%id,stvar%time_var%vname)
           stvar%tbound_var%vname = 'time_bnds'
-          stvar%tbound_var%vunit = 'hours since 1949-12-01 00:00:00 UTC'
+          stvar%tbound_var%vunit = ''
           stvar%tbound_var%axis = 'b'
           stvar%tbound_var%long_name = ''
           stvar%tbound_var%standard_name = ''
           stvar%tbound_var%lrecords = .true.
           call outstream_addvar(ncout,stvar%tbound_var)
-          attc%aname = 'calendar'
-          attc%theval = calendar
-          call add_attribute(stream,attc,stvar%tbound_var%id, &
-            stvar%tbound_var%vname)
         end if
       end if
       if ( stream%l_hasgrid ) then
@@ -1153,10 +1149,10 @@ module mod_ncstream
             call add_attribute(stream, &
               ncattribute_string('coordinates',coords_cross),var%id,var%vname)
           end if
+          call add_attribute(stream, &
+            ncattribute_string('grid_mapping','crs'),var%id,var%vname)
+          stream%l_hasgrid = .true.
         end if
-        call add_attribute(stream, &
-          ncattribute_string('grid_mapping','crs'),var%id,var%vname)
-        stream%l_hasgrid = .true.
       end if
       if ( var%laddmethod .and. var%vname(1:4) /= 'time' ) then
         call add_attribute(stream, &
@@ -2784,7 +2780,7 @@ module mod_ncstream
       attc%theval = 'RegCM Model output file'
       call add_attribute(stream,attc)
       attc%aname = 'Conventions'
-      attc%theval = 'CF-1.4'
+      attc%theval = 'CF-1.7'
       call add_attribute(stream,attc)
       attc%aname = 'references'
       attc%theval = 'http://gforge.ictp.it/gf/project/regcm'
@@ -2859,9 +2855,9 @@ module mod_ncstream
       stvar%sigma_var%vname = 'kz'
       stvar%sigma_var%vunit = '1'
       if ( stream%l_full_sigma ) then
-        stvar%sigma_var%long_name = "Sigma at full model layers"
+        stvar%sigma_var%long_name = "sigma at layer interfaces"
       else
-        stvar%sigma_var%long_name = "Sigma at half model layers"
+        stvar%sigma_var%long_name = "sigma at layer midpoints"
       end if
       stvar%sigma_var%standard_name = 'atmosphere_sigma_coordinate'
       stvar%sigma_var%axis = 'z'
@@ -2891,10 +2887,10 @@ module mod_ncstream
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       if ( idynamic == 2 ) then
         attc%aname = 'formula'
-        attc%theval = 'p(n,k,j,i) = ptop+kz(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
+        attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
       else
-        attc%aname = 'formula_terms'
-        attc%theval = 'sigma: kz ps: ps ptop: ptop'
+        attc%aname = 'formula'
+        attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(ps(n,j,i)-ptop)'
       end if
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       attc%aname = 'CoordinateAxisType'
