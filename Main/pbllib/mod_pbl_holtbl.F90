@@ -436,9 +436,9 @@ module mod_pbl_holtbl
       do i = idii1 , idii2
         do j = jdii1 , jdii2
           p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
-                        (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt*m2p%psdot(j,i)
+                        (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt*m2p%psdotb(j,i)
           p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
-                        (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt*m2p%psdot(j,i)
+                        (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt*m2p%psdotb(j,i)
         end do
       end do
     end do

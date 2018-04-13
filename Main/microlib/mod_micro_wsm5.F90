@@ -40,7 +40,7 @@ module mod_micro_wsm5
   ! 8 microm  in contrast to 10 micro m
   real(rkx) , parameter :: r0 = 0.8e-5_rkx
   ! collection efficiency
-  real(rkx) , parameter :: peaut = .55_rkx
+  real(rkx) , parameter :: peaut = 0.55_rkx
   ! maritime cloud in contrast to 3.e8 in tc80
   real(rkx) , parameter :: xncr = 3.e8_rkx
   ! the dynamic viscosity kgm-1s-1
@@ -55,8 +55,6 @@ module mod_micro_wsm5
   real(rkx) , parameter :: lamdarmax = 8.e4_rkx
   ! limited maximum value for slope parameter of snow
   real(rkx) , parameter :: lamdasmax = 1.e5_rkx
-  ! limited maximum value for slope parameter of graupel
-  real(rkx) , parameter :: lamdagmax = 6.e4_rkx
   ! constant for the cloud-ice diamter
   real(rkx) , parameter :: dicon = 11.9_rkx
   ! limited maximum value for the cloud-ice diamter
@@ -70,9 +68,13 @@ module mod_micro_wsm5
   ! constant in biggs freezing
   real(rkx) , parameter :: pfrz2 = 0.66_rkx
   ! minimun values for qr, qs, and qg
-  real(rkx) , parameter :: qcrmin = 1.e-9_rkx
+  real(rkx) , parameter :: qrsmin = 1.e-14_rkx
+  real(rkx) , parameter :: qcimin = 1.e-10_rkx
   ! snow/cloud-water collection efficiency
   real(rkx) , parameter :: eacrc = 1.0_rkx
+
+  real(rkx) , parameter :: minni = 1.0e2_rkx
+  real(rkx) , parameter :: maxni = 1.0e6_rkx
 
   real(rkx) , parameter :: xa = -(cpv-cpw)/rwat
   real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
@@ -240,8 +242,8 @@ module mod_micro_wsm5
       end do
     end do
 
-    where ( qci < 1.0e-14 ) qci = d_zero
-    where ( qrs < 1.0e-14 ) qrs = d_zero
+    where ( qci < qcimin ) qci = d_zero
+    where ( qrs < qrsmin ) qrs = d_zero
 
     if ( ichem == 1 ) then
       mc2mo%remrat(:,:,:) = d_zero
@@ -277,12 +279,12 @@ module mod_micro_wsm5
         kk = kzp1 - k
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( qrs(n,kk,1) > dlowval ) then
+            if ( qrs(n,kk,1) > qrsmin ) then
               pf1 = fall(n,kk,1)*delz(n,kk)/rhoh2o/qrs(n,kk,1)
             else
               pf1 = d_zero
             end if
-            if ( qrs(n,kk,2) > dlowval ) then
+            if ( qrs(n,kk,2) > qrsmin ) then
               pf2 = fall(n,kk,2)*delz(n,kk)/rhoh2o/qrs(n,kk,2)
             else
               pf2 = d_zero
@@ -477,7 +479,7 @@ module mod_micro_wsm5
           fall(i,k,1) = d_zero
           fall(i,k,2) = d_zero
           fallc(i,k) = d_zero
-          xni(i,k) = 1.e3_rkx
+          xni(i,k) = minni
         end do
       end do
       !
@@ -485,9 +487,11 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          temp = (den(i,k)*max(qci(i,k,2),minqq))
-          temp = sqrt(sqrt(temp*temp*temp))
-          xni(i,k) = min(max(5.38e7_rkx*temp,1.e3_rkx),1.e6_rkx)
+          if ( qci(i,k,2) > qcimin ) then
+            temp = (den(i,k)*max(qci(i,k,2),dlowval))
+            temp = sqrt(sqrt(temp*temp*temp))
+            xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
+          end if
         end do
       end do
       !
@@ -508,8 +512,8 @@ module mod_micro_wsm5
           works(i,k) = work1(i,k,2)
           denqrs1(i,k) = den(i,k)*qrs(i,k,1)
           denqrs2(i,k) = den(i,k)*qrs(i,k,2)
-          if ( qrs(i,k,1) <= d_zero ) workr(i,k) = d_zero
-          if ( qrs(i,k,2) <= d_zero ) works(i,k) = d_zero
+          if ( qrs(i,k,1) <= qrsmin ) workr(i,k) = d_zero
+          if ( qrs(i,k,2) <= qrsmin ) works(i,k) = d_zero
         end do
       end do
       call nislfv_rain_plm(nval,den_tmp,denfac,t, &
@@ -570,7 +574,7 @@ module mod_micro_wsm5
       !
       do k = kz , 1 , -1
         do i = ims , ime
-          if ( qci(i,k,2) <= d_zero ) then
+          if ( qci(i,k,2) <= qcimin ) then
             work1c(i,k) = d_zero
           else
             xmi = den(i,k)*qci(i,k,2)/xni(i,k)
@@ -709,7 +713,7 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          supsat = max(q(i,k),minqq)-qs(i,k,1)
+          supsat = max(q(i,k)-qs(i,k,1),d_zero)
           satdt = supsat/dtcld
           !
           ! praut: auto conversion rate from cloud to rain [hdc 16]
@@ -723,7 +727,7 @@ module mod_micro_wsm5
           ! pracw: accretion of cloud water by rain [hl a40] [lfo 51]
           !        (c->r)
           !
-          if ( qrs(i,k,1) > qcrmin .and. qci(i,k,1) > minqq ) then
+          if ( qrs(i,k,1) > qrsmin .and. qci(i,k,1) > qcimin ) then
             pracw(i,k) = min(pacrr*rslope3(i,k,1)*rslopeb(i,k,1) * &
                              qci(i,k,1)*denfac(i,k),qci(i,k,1)/dtcld)
           end if
@@ -759,18 +763,20 @@ module mod_micro_wsm5
         do i = ims , ime
           supcol = tzero-t(i,k)
           n0sfac(i,k) = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
-          supsat = max(q(i,k),minqq)-qs(i,k,2)
+          supsat = max(q(i,k)-qs(i,k,2),d_zero)
           satdt = supsat*rdtcld
           ifsat = 0
           !
           ! ni: ice crystal number concentraiton   [hdc 5c]
           !
-          temp = (den(i,k)*max(qci(i,k,2),minqq))
-          temp = sqrt(sqrt(temp*temp*temp))
-          xni(i,k) = min(max(5.38e7_rkx*temp,1.e3_rkx),1.e6_rkx)
+          if (qci(i,k,2) > qcimin ) then
+            temp = den(i,k)*qci(i,k,2)
+            temp = sqrt(sqrt(temp*temp*temp))
+            xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
+          end if
           eacrs = exp(0.07_rkx*(-supcol))
           if ( supcol > d_zero ) then
-            if ( qrs(i,k,2) > qcrmin .and. qci(i,k,2) > minqq ) then
+            if ( qrs(i,k,2) > qrsmin .and. qci(i,k,2) > qcimin ) then
               xmi = den(i,k)*qci(i,k,2)/xni(i,k)
               diameter  = min(dicon * sqrt(xmi),dimax)
               vt2i = 1.49e4_rkx*diameter**1.31_rkx
@@ -789,7 +795,7 @@ module mod_micro_wsm5
           ! psacw: accretion of cloud water by snow  [hl a7] [lfo 24]
           !        (t<t0: c->s, and t>=t0: c->r)
           !
-          if ( qrs(i,k,2) > qcrmin .and. qci(i,k,1) > minqq ) then
+          if ( qrs(i,k,2) > qrsmin .and. qci(i,k,1) > qcimin ) then
             psacw(i,k) = min(pacrc*n0sfac(i,k)*rslope3(i,k,2) * &
                              rslopeb(i,k,2)*qci(i,k,1)*denfac(i,k), &
                              qci(i,k,1)*rdtcld)
@@ -839,10 +845,10 @@ module mod_micro_wsm5
             !
             if ( supsat > d_zero .and. ifsat /= 1 ) then
               supice = satdt-prevp(i,k)-pidep(i,k)-psdep(i,k)
-              xni0 = 1.e3_rkx*exp(0.1_rkx*supcol)
+              xni0 = minni*exp(0.1_rkx*supcol)
               roqi0 = 4.92e-11_rkx*exp(log(xni0)*(1.33_rkx))
               pigen(i,k) = max(d_zero, &
-                              (roqi0/den(i,k)-max(qci(i,k,2),d_zero))*rdtcld)
+                              (roqi0/den(i,k)-max(qci(i,k,2),qcimin))*rdtcld)
               pigen(i,k) = min(min(pigen(i,k),satdt),supice)
             end if
             !
@@ -877,7 +883,7 @@ module mod_micro_wsm5
             !
             ! cloud water
             !
-            qval = max(minqq,qci(i,k,1))
+            qval = max(1.0e-9_rkx,qci(i,k,1))
             source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -888,7 +894,7 @@ module mod_micro_wsm5
             !
             ! cloud ice
             !
-            qval = max(minqq,qci(i,k,2))
+            qval = max(1.0e-9_rkx,qci(i,k,2))
             source = (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -900,7 +906,7 @@ module mod_micro_wsm5
             !
             ! rain
             !
-            qval = max(minqq,qrs(i,k,1))
+            qval = max(1.0e-9_rkx,qrs(i,k,1))
             source = (-praut(i,k)-pracw(i,k)-prevp(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -911,7 +917,7 @@ module mod_micro_wsm5
             !
             ! snow
             !
-            qval = max(minqq,qrs(i,k,2))
+            qval = max(1.0e-9_rkx,qrs(i,k,2))
             source = (-psdep(i,k)-psaut(i,k)-psaci(i,k)-psacw(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -939,7 +945,7 @@ module mod_micro_wsm5
             !
             ! cloud water
             !
-            qval = max(minqq,qci(i,k,1))
+            qval = max(1.0e-9_rkx,qci(i,k,1))
             source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -950,7 +956,7 @@ module mod_micro_wsm5
             !
             ! rain
             !
-            qval = max(minqq,qrs(i,k,1))
+            qval = max(1.0e-9_rkx,qrs(i,k,1))
             source = (-praut(i,k)-pracw(i,k)-prevp(i,k)-psacw(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -962,7 +968,7 @@ module mod_micro_wsm5
             !
             ! snow
             !
-            qval = max(qcrmin,qrs(i,k,2))
+            qval = max(1.0e-9_rkx,qrs(i,k,2))
             source = (-psevp(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -999,9 +1005,9 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          work1(i,k,1) = ((max(q(i,k),minqq)-(qs(i,k,1)))/(d_one+(xl(i,k)) * &
+          work1(i,k,1) = (max(q(i,k)-qs(i,k,1),d_zero))/(d_one+(xl(i,k)) * &
                         (xl(i,k))/(rwat*(cpm(i,k)))*(qs(i,k,1)) / &
-                        ((t(i,k))*(t(i,k)))))
+                        ((t(i,k))*(t(i,k))))
           work2(i,k) = qci(i,k,1)+work1(i,k,1)
           pcond(i,k) = min(max(work1(i,k,1)/dtcld,d_zero), &
                            max(q(i,k),d_zero)/dtcld)
@@ -1014,6 +1020,15 @@ module mod_micro_wsm5
         end do
       end do
     end do ! big loops
+
+    do k = 1 , kz
+      do i = ims , ime
+        if ( qci(i,k,1) < qcimin ) qci(i,k,1) = d_zero
+        if ( qci(i,k,2) < qcimin ) qci(i,k,2) = d_zero
+        if ( qrs(i,k,1) < qrsmin ) qrs(i,k,1) = d_zero
+        if ( qrs(i,k,2) < qrsmin ) qrs(i,k,2) = d_zero
+      end do
+    end do
 
     contains
 
@@ -1089,7 +1104,7 @@ module mod_micro_wsm5
         !
         ! n0s: intercept parameter for snow [m-4] [hdc 6]
         !
-        if ( qrs(i,k,1) <= minqq ) then
+        if ( qrs(i,k,1) <= qrsmin ) then
           rslope(i,k,1) = rslopermax
           rslopeb(i,k,1) = rsloperbmax
           rslope2(i,k,1) = rsloper2max
@@ -1100,7 +1115,7 @@ module mod_micro_wsm5
           rslope2(i,k,1) = rslope(i,k,1)*rslope(i,k,1)
           rslope3(i,k,1) = rslope2(i,k,1)*rslope(i,k,1)
         end if
-        if ( qrs(i,k,2) <= qcrmin ) then
+        if ( qrs(i,k,2) <= qrsmin ) then
           rslope(i,k,2) = rslopesmax
           rslopeb(i,k,2) = rslopesbmax
           rslope2(i,k,2) = rslopes2max
@@ -1113,8 +1128,8 @@ module mod_micro_wsm5
         end if
         vt(i,k,1) = pvtr*rslopeb(i,k,1)*denfac(i,k)
         vt(i,k,2) = pvts*rslopeb(i,k,2)*denfac(i,k)
-        if ( qrs(i,k,1) <= d_zero ) vt(i,k,1) = d_zero
-        if ( qrs(i,k,2) <= d_zero ) vt(i,k,2) = d_zero
+        if ( qrs(i,k,1) <= qrsmin ) vt(i,k,1) = d_zero
+        if ( qrs(i,k,2) <= qrsmin ) vt(i,k,2) = d_zero
       end do
     end do
 
@@ -1142,7 +1157,7 @@ module mod_micro_wsm5
     integer(ik4) :: k
 
     do k = 1 , kz
-      if ( qrs(k) <= qcrmin ) then
+      if ( qrs(k) <= qrsmin ) then
         rslope(k) = rslopermax
         rslopeb(k) = rsloperbmax
         rslope2(k) = rsloper2max
@@ -1154,7 +1169,7 @@ module mod_micro_wsm5
         rslope3(k) = rslope2(k)*rslope(k)
       end if
       vt(k) = pvtr*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= d_zero ) vt(k) = d_zero
+      if ( qrs(k) <= qrsmin ) vt(k) = d_zero
     end do
 
     contains
@@ -1184,7 +1199,7 @@ module mod_micro_wsm5
       ! n0s: intercept parameter for snow [m-4] [hdc 6]
       !
       n0sfac = max(min(exp(alpha*supcol),n0smax/n0s),d_one)
-      if ( qrs(k) <= qcrmin ) then
+      if ( qrs(k) <= qrsmin ) then
         rslope(k) = rslopesmax
         rslopeb(k) = rslopesbmax
         rslope2(k) = rslopes2max
@@ -1196,7 +1211,7 @@ module mod_micro_wsm5
         rslope3(k) = rslope2(k)*rslope(k)
       end if
       vt(k) = pvts*rslopeb(k)*denfac(k)
-      if ( qrs(k) <= d_zero ) vt(k) = d_zero
+      if ( qrs(k) <= qrsmin ) vt(k) = d_zero
     end do
 
     contains
@@ -1512,7 +1527,7 @@ module mod_micro_wsm5
 !      rqi(k) = max(r1, qi(k)*rho(k))
 !      temp = (rho(k)*max(qi(k),minqq))
 !      temp = sqrt(sqrt(temp*temp*temp))
-!      ni(k) = min(max(5.38e7_rkx*temp,1.e3_rkx),1.e6_rkx)
+!      ni(k) = min(max(5.38e7_rkx*temp,minni),maxni)
 !      rni(k)= max(r2, ni(k)*rho(k))
 !      if ( rqi(k) > r1 .and. rni(k) > r2 ) has_qi = .true.
 !      ! for snow

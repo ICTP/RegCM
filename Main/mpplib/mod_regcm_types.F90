@@ -592,7 +592,6 @@ module mod_regcm_types
   type mod_2_pbl
     real(rkx) , pointer , dimension(:,:) :: coriol      ! mddom%coriol
     integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
-    real(rkx) , pointer , dimension(:,:) :: psdot       ! psdot
     real(rkx) , pointer , dimension(:,:) :: psb         ! sfs%psb
     real(rkx) , pointer , dimension(:,:) :: psdotb      ! sfs%psdotb
     real(rkx) , pointer , dimension(:,:) :: tgb         ! sfs%tgb

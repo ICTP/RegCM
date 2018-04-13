@@ -348,7 +348,7 @@ module mod_params
                   ! => 3 Kessler (1969)
                   ! => 4 Sundqvist
     vfqr = 4.0_rkx
-    vfqi = 0.15_rkx
+    vfqi = 0.0_rkx
     vfqs = 1.0_rkx
     auto_rate_khair = 0.355_rkx
     auto_rate_kessl = 1.e-3_rkx
@@ -1103,6 +1103,11 @@ module mod_params
     else
       call bcast(nsplit)
       call bcast(lstand)
+    end if
+
+    if ( iboudy == 4 ) then
+      nspgd = max(6,nspgd)
+      nspgx = max(5,nspgx)
     end if
 
     ! Check if really do output

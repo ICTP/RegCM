@@ -131,7 +131,6 @@ module mod_pbl_gfs
       real(rkx) :: za , ta , qa , pa , ua , va , tha , rhoa
       real(rkx) :: rrhox , cpm , vconv , vsgd , hf , qf , xp
       real(rkx) :: wspd0 , zol , zol0 , zolzz
-      real(rkx) :: tv1 , tv2 , u1 , u2
 
       n = 1
       do i = ici1 , ici2
