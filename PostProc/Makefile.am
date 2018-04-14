@@ -33,8 +33,10 @@ GrADSNcPlot_SOURCES = GrADSNcPlot.F90
 GrADSNcPrepare_SOURCES = GrADSNcPrepare.F90
 clm45_1dto2d_SOURCES = clm45_1dto2d.F90
 
+LDADD = $(OMPFLAGS)
+
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod *__genmod.*

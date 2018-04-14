@@ -51,8 +51,9 @@ program sigma2p
 
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
   real(rk4) , allocatable , dimension(:) :: sigma
-  real(rk4) , allocatable , dimension(:,:,:) :: xvar , tmpvar , qvar , hzvar
-  real(rk4) , allocatable , dimension(:,:,:) :: pvar , pp , press
+  real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar
+  real(rk4) , allocatable , dimension(:,:,:) :: pp , press
+  real(rk4) , allocatable , save , dimension(:,:,:) :: pvar , xvar
   real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0
   real(rk4) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
@@ -86,6 +87,8 @@ program sigma2p
   data make_hgt /.false./
 
   data plevs /1000.,925.,850.,700.,600.,500.,400.,300.,250.,200.,150.,100./
+
+!$OMP THREADPRIVATE(xvar,pvar)
 
   call get_command_argument(0,value=prgname)
   numarg = command_argument_count()
@@ -540,6 +543,7 @@ program sigma2p
           ip3d = p3d*n3d
           allocate(apvar(ip3d),stat=istatus)
           call checkalloc(istatus,__FILE__,__LINE__,'apvar')
+!$OMP PARALLEL DO
           do ii = 1 , n3d
             xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
             if ( iodyn == 2 ) then
@@ -558,6 +562,7 @@ program sigma2p
             end if
             apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,[ip3d])
           end do
+!$OMP END PARALLEL DO
           if ( i == tvarid ) then
             tmpvar = xvar
           else if ( i == qvarid .and. make_rh ) then
@@ -594,6 +599,7 @@ program sigma2p
             icount(iv-2) = np
             allocate(apvar(ip3d),stat=istatus)
             call checkalloc(istatus,__FILE__,__LINE__,'apvar')
+!$OMP PARALLEL DO
             do ii = 1 , n3d
               xvar = reshape(avar((ii-1)*i3d+(ich-1)*i3d+1:(ii+ich-1)*i3d), &
                              [jx,iy,kz])
@@ -613,6 +619,7 @@ program sigma2p
               end if
               apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,[ip3d])
             end do
+!$OMP END PARALLEL DO
             istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
             call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error writing interp variable.')
