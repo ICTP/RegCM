@@ -306,10 +306,12 @@ program terrain
     write(stdout,*)'Static texture data successfully read in'
     call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,texout_s,values, &
                 class_interp_method,ibnty=2,h2opct=h2opct,rdem=roidem)
+!$OMP PARALLEL DO
     do i = 1 , ntex
       call interp(dsnsg,jxsg,iysg,xlat_s,xlon_s,frac_tex_s(:,:,i),values, &
                   percent_interp_method,ival=i,rdem=roidem)
     end do
+!$OMP END PARALLEL DO
     call relmem2d(values)
     write(stdout,*)'Interpolated texture on SUBGRID'
 
@@ -507,10 +509,12 @@ program terrain
   write(stdout,*)'Static texture data successfully read in'
   call interp(ds,jx,iy,xlat,xlon,texout,values, &
               class_interp_method,ibnty=2,h2opct=h2opct,rdem=roidem)
+!$OMP PARALLEL DO
   do i = 1 , ntex
     call interp(ds,jx,iy,xlat,xlon,frac_tex(:,:,i),values, &
                 percent_interp_method,ival=i,rdem=roidem)
   end do
+!$OMP END PARALLEL DO
   call relmem2d(values)
   write(stdout,*)'Interpolated texture on model GRID'
 

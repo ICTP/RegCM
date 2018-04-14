@@ -165,7 +165,7 @@ module mod_kdinterp
           end do
         end do
         ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
         do n = 1 , np
           rx = d_zero
           ra = tmpw(n) / rd
@@ -263,7 +263,7 @@ module mod_kdinterp
           end do
         end do
         ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
         do n = 1 , np
           rx = d_zero
           ra = tmpw(n) / rd
@@ -366,7 +366,7 @@ module mod_kdinterp
           end do
         end do
         ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
         do n = 1 , np
           rx = d_zero
           ra = tmpw(n) / rd
@@ -467,7 +467,7 @@ module mod_kdinterp
           end do
         end do
         ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3))
+        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
         do n = 1 , np
           rx = d_zero
           ra = tmpw(n) / rd

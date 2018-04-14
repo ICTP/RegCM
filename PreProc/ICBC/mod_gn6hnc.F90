@@ -855,7 +855,7 @@ module mod_gn6hnc
         call top2btm(pp3d,nlon,nlat,klev)
 !$OMP SECTION
         call top2btm(hvar,nlon,nlat,klev)
-!$OMP END SECTION
+!$OMP END SECTIONS
       end if
 
       ! All processing assumes dataset in top -> bottom
@@ -875,7 +875,7 @@ module mod_gn6hnc
         call top2btm(vvar,nlon,nlat,klev)
 !$OMP SECTION
         call top2btm(pp3d,nlon,nlat,klev)
-!$OMP END SECTION
+!$OMP END SECTIONS
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
 

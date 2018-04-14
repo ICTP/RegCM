@@ -17,7 +17,7 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_posix.F90
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod
