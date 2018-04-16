@@ -408,7 +408,12 @@ fi
 if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="-convert big_endian -assume byterecl \
            -heap-arrays -fPIC"
-  OMPFLAGS="-openmp"
+  IFORTVER=`ifort --version | grep IFORT | cut -d " " -f 3 | cut -d "." -f 1`
+  if test $IFORTVER -ge 17; then
+    OMPFLAGS="-qopenmp"
+  else
+    OMPFLAGS="-openmp"
+  fi
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   AC_SUBST(OMPFLAGS)
