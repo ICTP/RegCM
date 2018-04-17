@@ -361,16 +361,15 @@ module mod_che_drydep
   contains
 
     subroutine drydep_aero(j,mbin,indsp,rhop,ivegcov,throw,roarow, &
-                           shj,pressg,temp2,sutemp,srad,rh10,      &
+                           ph,temp2,sutemp,srad,rh10,      &
                            wind10,zeff,beffdiam,pdepv,ddepv)
       implicit none
       integer(ik4) , intent(in) :: j , mbin
       integer(ik4) , intent(in) , dimension(mbin) :: indsp
       integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rkx) , dimension(ici1:ici2) , intent(in) :: pressg , rh10 , &
+      real(rkx) , dimension(ici1:ici2) , intent(in) :: rh10 , &
                        srad , sutemp , temp2 , wind10 , zeff
-      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: roarow , throw
-      real(rkx) , dimension(kz) , intent(in) :: shj
+      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: ph , roarow , throw
       real(rkx) , dimension(mbin) , intent(in) :: beffdiam
       real(rkx) , intent(in) :: rhop
 
@@ -417,7 +416,7 @@ module mod_che_drydep
             !
             amu(i,k) = (a1*(throw(i,k)**a2))/(throw(i,k)+a3)
             ! mid layer pressure in [pascal].
-            pre = pressg(i)*shj(k)
+            pre = ph(i,k)
             !
             ! ********************************************************
             ! * mean molecular free path.                         ****
@@ -435,8 +434,7 @@ module mod_che_drydep
             !
             cfac(i,k,n) = d_one + amfp/avesize(n) * &
                          (aa1+aa2*exp(-aa3*avesize(n)/amfp))
-            taurel(i,k,n) = max(priiv*avesize(n)**2*cfac(i,k,n) * &
-                            regrav,d_zero)
+            taurel(i,k,n) = priiv*avesize(n)**2*cfac(i,k,n) * regrav
             !
             ! ********************************************************
             ! * stokes friction                                  *****
@@ -587,8 +585,13 @@ module mod_che_drydep
         ! consistent with chib
         do k = 2 , kz
           do i = ici1 , ici2
-            wk(i,k) =  max(twt(k,1)*chib(j,i,k,indsp(ib)) + &
-                           twt(k,2)*chib(j,i,k-1,indsp(ib)),d_zero)/dt
+            if ( chib(j,i,k,indsp(ib)) > mintr * cpsb(j,i) .and. &
+                 chib(j,i,k-1,indsp(ib)) > mintr * cpsb(j,i) ) then
+              wk(i,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
+                         twt(k,2)*chib(j,i,k-1,indsp(ib)))*rdt
+            else
+              wk(i,k) = d_zero
+            end if
           end do
         end do
         do i = ici1 , ici2
@@ -597,11 +600,10 @@ module mod_che_drydep
             !settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
             !                wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)
             ! use exponential form for stability
-            settend(i,k) =  max(wk(i,k+1) * &
-                (d_one - exp(-pdepvsub(i,k,ib)/cdzq(j,i,k)*dt)) - &
-                                wk(i,k)   * &
-                (d_one - exp(-pdepvsub(i,k,ib)/cdzq(j,i,k)*dt)),d_zero)
-
+            settend(i,k) =  wk(i,k+1) * &
+                (d_one - exp(-pdepvsub(i,k+1,ib)/cdzq(j,i,k)*dt)) - &
+                            wk(i,k)   * &
+                (d_one - exp(-pdepvsub(i,k,ib)/cdzq(j,i,k)*dt))
             chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
             if ( ichdiag > 0 ) then
               cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
@@ -618,15 +620,14 @@ module mod_che_drydep
           ! net surface flux, cf also emission module)
           !
           if ( ichdrdepo == 1 ) then
-
-            ! settend(i,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
-            !                  wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
-            settend(i,kz) = max(max(chib(j,i,kz,indsp(ib)),d_zero)/dt * &
+            !settend(i,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
+            !                 wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
+            ! use exponential form for stability
+            settend(i,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
                 (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) -    &
                               wk(i,kz) * &
-                (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt)),d_zero)
+                (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
-
             ! save the dry deposition flux for coupling with
             ! landsurface scheme (Kg.m2.s-1)
             ! consider ddflux = Cav . Vd where Cav would be the average
@@ -657,7 +658,7 @@ module mod_che_drydep
             ! alternative formulation using tendency/flux relationship
             ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
             !            chib3d(j,i,kz,indsp(ib)) * &
-            !         (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))/dt  &
+            !         (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))*rdt  &
             !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
 
             ! no net flux is passed to BL schemes in this case
@@ -769,7 +770,7 @@ module mod_che_drydep
            rdz = d_one / cdzq(j,i,kz)
            do n = 1 , ntr
              kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
-             kav = max(chib(j,i,kz,n),d_zero)/dt
+             kav = max(chib(j,i,kz,n),d_zero)*rdt
              if ( kd*dt < 25.0_rkx ) then
                ! dry dep removal tendency (+)
                ddrem(i) = kav * (d_one-exp(-kd*dt))

@@ -581,7 +581,7 @@ module mod_tendency
               atmc%chi(j,i,k,itr) = atm2%chi(j,i,k,itr) + &
                                     dt * chiten(j,i,k,itr)
               if ( atmc%chi(j,i,k,itr) < mintr * sfs%psc(j,i) ) then
-                atmc%chi(j,i,k,itr) = mintr * sfs%psc(j,i)
+                atmc%chi(j,i,k,itr) = d_zero
               end if
             end do
           end do

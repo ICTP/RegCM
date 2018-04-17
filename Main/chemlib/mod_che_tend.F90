@@ -69,7 +69,7 @@
                   shu10 , u10 , v10
       real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
                                                       convprec
-      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
+      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt , ph
       real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
       integer(ik4) , dimension(ici1:ici2,jci1:jci2) :: ivegcov
       real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
@@ -116,6 +116,7 @@
             ! rho(j,i,k) = (sfs%psb(i,j)*a(k)+r8pt)* &
             ! what the hell   1000./287./atm2%t(i,k,j)*sfs%psb(i,j)
             hgt(i,k,j)  = cza(j,i,k)
+            ph(i,k,j)   = cpb3d(j,i,k)
             rho(i,k,j)  = crhob3d(j,i,k)
             wl(i,k,j)   = cqxb3d(j,i,k,iqc)*crhob3d(j,i,k)*d_1000
             ttb(i,k,j)  = ctb3d(j,i,k)
@@ -375,7 +376,7 @@
       if ( idust(1) > 0 .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(:,j),       &
-                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j), &
+                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),         &
                            temp10(:,j),tsurf(:,j),srad(:,j),        &
                            rh10(:,j),wid10(:,j),zeff(:,j),dustbed,  &
                            pdepv(:,:,:,j),ddepa(:,:,j))
@@ -385,7 +386,7 @@
           do n = 1 , nmine
             do j = jci1 , jci2
               call drydep_aero(j,nbin,imine(:,n),rhodust,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),    &
+                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),            &
                            temp10(:,j),tsurf(:,j),srad(:,j),           &
                            rh10(:,j),wid10(:,j),zeff(:,j),dustbed,     &
                            pdepv(:,:,:,j),ddepa(:,:,j))
@@ -397,7 +398,7 @@
       if ( isslt(1) > 0 .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(:,j),      &
-                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
+                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),        &
                            temp10(:,j),tsurf(:,j),srad(:,j),       &
                            rh10(:,j),wid10(:,j),zeff(:,j),ssltbed, &
                            pdepv(:,:,:,j),ddepa(:,:,j))
@@ -407,7 +408,7 @@
         ibin = count( icarb > 0 )
         do j = jci1 , jci2
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),   &
+                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),         &
                            temp10(:,j),tsurf(:,j),srad(:,j),        &
                            rh10(:,j),wid10(:,j),zeff(:,j),          &
                            carbed(1:ibin),pdepv(:,:,:,j),ddepa(:,:,j))
@@ -419,7 +420,7 @@
         polrftab(1) = reffpollen
         do j = jci1 , jci2
           call drydep_aero(j,ibin,poltab,rhopollen,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),   &
+                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),      &
                            temp10(:,j),tsurf(:,j),srad(:,j),        &
                            rh10(:,j),wid10(:,j),zeff(:,j),          &
                            polrftab,pdepv(:,:,:,j),ddepa(:,:,j))
