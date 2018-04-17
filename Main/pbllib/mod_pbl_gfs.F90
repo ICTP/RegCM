@@ -28,7 +28,11 @@ module mod_pbl_gfs
   use mod_runparams , only : dt , dx , nqx , ichem , iqv
   use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
 
-  public :: blgfs2011
+  implicit none
+
+  private
+
+  public :: init_pbl_gfs , pbl_gfs
 
   integer(ik4) :: iblp , ibnt
 
