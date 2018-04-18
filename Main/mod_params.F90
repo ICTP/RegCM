@@ -105,9 +105,8 @@ module mod_params
       year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
-      upstream_mode , uoffc , stability_enhance ,                  &
-      vert_stability_enhance , t_extrema , c_rel_extrema ,         &
-      q_rel_extrema , t_rel_extrema
+      upstream_mode , uoffc , stability_enhance , t_extrema ,      &
+      q_rel_extrema
 
     namelist /hydroparam/ nsplit , lstand
 
@@ -620,7 +619,6 @@ module mod_params
 
       upstream_mode = .true.
       stability_enhance = .true.
-      vert_stability_enhance = .true.
       if ( idynamic == 2 ) then
         gnu1 = 0.1000_rkx
         gnu2 = 0.1000_rkx
@@ -635,8 +633,6 @@ module mod_params
       uoffc = 0.250_rkx
       t_extrema = 5.0_rkx
       q_rel_extrema = 0.20_rkx
-      c_rel_extrema = 0.50_rkx
-      t_rel_extrema = 0.50_rkx
       rewind(ipunit)
       read (ipunit, nml=dynparam, iostat=iretval, err=104)
       if ( iretval /= 0 ) then
@@ -1063,11 +1059,8 @@ module mod_params
     call bcast(upstream_mode)
     call bcast(uoffc)
     call bcast(stability_enhance)
-    call bcast(vert_stability_enhance)
     call bcast(t_extrema)
-    call bcast(c_rel_extrema)
     call bcast(q_rel_extrema)
-    call bcast(t_rel_extrema)
 
     call bcast(iboudy)
     call bcast(isladvec)

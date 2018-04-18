@@ -207,11 +207,8 @@ module mod_runparams
   real(rkx) , public :: uoffc
 
   logical , public :: stability_enhance
-  logical , public :: vert_stability_enhance
   real(rkx) , public :: t_extrema
-  real(rkx) , public :: c_rel_extrema
   real(rkx) , public :: q_rel_extrema
-  real(rkx) , public :: t_rel_extrema
 
   ! Non hydrostatic core parameters
 

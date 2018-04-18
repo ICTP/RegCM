@@ -168,7 +168,7 @@
  ifopt   = .false.,  ! Output OPT ?
  chemfrq =     6.,   ! Frequency in hours to write to CHE
  enable_atm_vars = 73*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 44*.true., ! Mask to eventually disable variables SRF
+ enable_srf_vars = 46*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
@@ -315,11 +315,8 @@
  uoffc = 0.250,           ! Maximum off-centering factor to use
  stability_enhance = .true., ! Do not allow horizontal advection to increase
                              ! tendencies if strong gradients are present
- vert_stability_enhance = .true., ! Same for vertical advection
  t_extrema = 5.0, ! Maximum gradient of T in K for advection to stop
  q_rel_extrema = 0.2, ! Maximum gradient fraction for QV for advection to stop
- c_rel_extrema = 0.5, ! Maximum gradient fraction for QX for advection to stop
- t_rel_extrema = 0.5, ! Maximum gradient fraction for tracer advection to stop
  /
 !
 ! Non-hydrostatic core option

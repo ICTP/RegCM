@@ -585,13 +585,8 @@ module mod_che_drydep
         ! consistent with chib
         do k = 2 , kz
           do i = ici1 , ici2
-            if ( chib(j,i,k,indsp(ib)) > mintr * cpsb(j,i) .and. &
-                 chib(j,i,k-1,indsp(ib)) > mintr * cpsb(j,i) ) then
-              wk(i,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
-                         twt(k,2)*chib(j,i,k-1,indsp(ib)))*rdt
-            else
-              wk(i,k) = d_zero
-            end if
+            wk(i,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
+                       twt(k,2)*chib(j,i,k-1,indsp(ib)))*rdt
           end do
         end do
         do i = ici1 , ici2

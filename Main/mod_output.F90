@@ -726,6 +726,10 @@ module mod_output
           srf_fld_out = srf_fld_out*rnsrf_for_srffrq
         if ( associated(srf_sina_out) ) &
           srf_sina_out = srf_sina_out*rnsrf_for_srffrq
+        if ( associated(srf_uflw_out) ) &
+          srf_uflw_out = srf_fld_out - srf_flw_out
+        if ( associated(srf_ufsw_out) ) &
+          srf_ufsw_out = srf_sina_out - srf_fsw_out
         if ( associated(srf_taux_out) .and. associated(srf_tauy_out) ) then
           srf_taux_out = srf_taux_out*rnsrf_for_srffrq
           srf_tauy_out = srf_tauy_out*rnsrf_for_srffrq

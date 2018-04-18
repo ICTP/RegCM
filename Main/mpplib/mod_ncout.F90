@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 31 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 8
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -247,27 +247,29 @@ module mod_ncout
   integer(ik4) , parameter :: srf_lena     = 13
   integer(ik4) , parameter :: srf_flw      = 14
   integer(ik4) , parameter :: srf_fsw      = 15
-  integer(ik4) , parameter :: srf_fld      = 16
-  integer(ik4) , parameter :: srf_sina     = 17
-  integer(ik4) , parameter :: srf_prcv     = 18
-  integer(ik4) , parameter :: srf_zpbl     = 19
-  integer(ik4) , parameter :: srf_aldirs   = 20
-  integer(ik4) , parameter :: srf_aldifs   = 21
-  integer(ik4) , parameter :: srf_sund     = 22
-  integer(ik4) , parameter :: srf_seaice   = 23
-  integer(ik4) , parameter :: srf_snowmelt = 24
-  integer(ik4) , parameter :: srf_dew      = 25
-  integer(ik4) , parameter :: srf_srunoff  = 26
-  integer(ik4) , parameter :: srf_trunoff  = 27
-  integer(ik4) , parameter :: srf_ustar    = 28
-  integer(ik4) , parameter :: srf_zo       = 29
-  integer(ik4) , parameter :: srf_rhoa     = 30
-  integer(ik4) , parameter :: srf_totcf    = 31
-  integer(ik4) , parameter :: srf_wspd     = 32
-  integer(ik4) , parameter :: srf_taux     = 33
-  integer(ik4) , parameter :: srf_tauy     = 34
-  integer(ik4) , parameter :: srf_psl      = 35
-  integer(ik4) , parameter :: srf_evpot    = 36
+  integer(ik4) , parameter :: srf_uflw     = 16
+  integer(ik4) , parameter :: srf_ufsw     = 17
+  integer(ik4) , parameter :: srf_fld      = 18
+  integer(ik4) , parameter :: srf_sina     = 19
+  integer(ik4) , parameter :: srf_prcv     = 20
+  integer(ik4) , parameter :: srf_zpbl     = 21
+  integer(ik4) , parameter :: srf_aldirs   = 22
+  integer(ik4) , parameter :: srf_aldifs   = 23
+  integer(ik4) , parameter :: srf_sund     = 24
+  integer(ik4) , parameter :: srf_seaice   = 25
+  integer(ik4) , parameter :: srf_snowmelt = 26
+  integer(ik4) , parameter :: srf_dew      = 27
+  integer(ik4) , parameter :: srf_srunoff  = 28
+  integer(ik4) , parameter :: srf_trunoff  = 29
+  integer(ik4) , parameter :: srf_ustar    = 30
+  integer(ik4) , parameter :: srf_zo       = 31
+  integer(ik4) , parameter :: srf_rhoa     = 32
+  integer(ik4) , parameter :: srf_totcf    = 33
+  integer(ik4) , parameter :: srf_wspd     = 34
+  integer(ik4) , parameter :: srf_taux     = 35
+  integer(ik4) , parameter :: srf_tauy     = 36
+  integer(ik4) , parameter :: srf_psl      = 37
+  integer(ik4) , parameter :: srf_evpot    = 38
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -1216,9 +1218,21 @@ module mod_ncout
         end if
         if ( enable_srf2d_vars(srf_sina) ) then
           call setup_var(v2dvar_srf,srf_sina,vsize,'rsds','W m-2', &
-            'Surface Downward Shortwave Flux', &
+            'Surface Downwelling Shortwave Flux', &
             'surface_downwelling_shortwave_flux_in_air',.true.,'time: mean')
           srf_sina_out => v2dvar_srf(srf_sina)%rval
+        end if
+        if ( enable_srf2d_vars(srf_uflw) ) then
+          call setup_var(v2dvar_srf,srf_uflw,vsize,'rlus','W m-2', &
+            'Surface Upwelling Longwave Radiation', &
+            'surface_upwelling_longwave_flux_in_air',.true.,'time: mean')
+          srf_uflw_out => v2dvar_srf(srf_uflw)%rval
+        end if
+        if ( enable_srf2d_vars(srf_ufsw) ) then
+          call setup_var(v2dvar_srf,srf_ufsw,vsize,'rsus','W m-2', &
+            'Surface Upwelling Shortwave Flux', &
+            'surface_upwelling_shortwave_flux_in_air',.true.,'time: mean')
+          srf_ufsw_out => v2dvar_srf(srf_ufsw)%rval
         end if
         if ( all(icup > 0) ) then
           if ( enable_srf2d_vars(srf_prcv) ) then
@@ -2683,11 +2697,7 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('temperature_extreme_gradient',t_extrema))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('cloud_extreme_gradient_fraction',c_rel_extrema))
-        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_real8('vapor_extreme_gradient_fraction',q_rel_extrema))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('tracer_extreme_gradient_fraction',t_rel_extrema))
         if ( idynamic == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('logp_lapse_rate',logp_lrate))

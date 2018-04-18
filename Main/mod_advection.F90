@@ -588,36 +588,6 @@ module mod_advection
                             vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
           end do
         end if
-        !
-        ! Instability correction
-        !
-        ! Local extrema exceeding a certain threshold
-        ! must not grow further due to advection
-        !
-        if ( stability_enhance ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-            if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - d_two*f(j,i,k,n)) / &
-                 max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
-              if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
-                   (f(j,i,k,n) > f(j,i-1,k,n)) ) then
-                fg(j,i,k) = min(fg(j,i,k),d_zero)
-              else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
-                        (f(j,i,k,n) < f(j,i-1,k,n)) ) then
-                fg(j,i,k) = max(fg(j,i,k),d_zero)
-              end if
-            end if
-            if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - d_two*f(j,i,k,n)) / &
-                    max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
-              if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
-                   (f(j,i,k,n) > f(j-1,i,k,n)) ) then
-                fg(j,i,k) = min(fg(j,i,k),d_zero)
-              else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
-                        (f(j,i,k,n) < f(j-1,i,k,n)) ) then
-                fg(j,i,k) = max(fg(j,i,k),d_zero)
-              end if
-            end if
-          end do
-        end if
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -670,36 +640,6 @@ module mod_advection
             fg(j,i,k) = - xmapf(j,i) * &
                     (uavg2(j,i,k)*fx2 - uavg1(j,i,k)*fx1 + &
                      vavg2(j,i,k)*fy2 - vavg1(j,i,k)*fy1)
-          end do
-        end if
-        !
-        ! Instability correction
-        !
-        ! Local extrema exceeding a certain threshold
-        ! must not grow further due to advection
-        !
-        if ( stability_enhance ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-            if ( abs(f(j,i+1,k,n) + f(j,i-1,k,n) - d_two*f(j,i,k,n)) / &
-                    max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
-              if ( (f(j,i,k,n) > f(j,i+1,k,n)) .and. &
-                   (f(j,i,k,n) > f(j,i-1,k,n)) ) then
-                fg(j,i,k) = min(fg(j,i,k),d_zero)
-              else if ( (f(j,i,k,n) < f(j,i+1,k,n)) .and. &
-                        (f(j,i,k,n) < f(j,i-1,k,n)) ) then
-                fg(j,i,k) = max(fg(j,i,k),d_zero)
-              end if
-            end if
-            if ( abs(f(j+1,i,k,n) + f(j-1,i,k,n) - d_two*f(j,i,k,n)) / &
-                    max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
-              if ( (f(j,i,k,n) > f(j+1,i,k,n)) .and. &
-                   (f(j,i,k,n) > f(j-1,i,k,n)) ) then
-                fg(j,i,k) = min(fg(j,i,k),d_zero)
-              else if ( (f(j,i,k,n) < f(j+1,i,k,n)) .and. &
-                        (f(j,i,k,n) < f(j-1,i,k,n)) ) then
-                fg(j,i,k) = max(fg(j,i,k),d_zero)
-              end if
-            end if
           end do
         end if
         do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
@@ -846,68 +786,14 @@ module mod_advection
           end do
         else if ( ind == 1 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-            if ( f(j,i,k,n)   > minqq * ps(j,i) .and. &
-                 f(j,i,k-1,n) > minqq * ps(j,i) ) then
-              fg(j,i,k) = svv(j,i,k) * &
+            fg(j,i,k) = svv(j,i,k) * &
                   (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
-            end if
           end do
-          if ( vert_stability_enhance ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz-1 )
-              if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
-                   max(f(j,i,k,n),dlowval) > c_rel_extrema ) then
-                if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
-                     f(j,i,k,n) > f(j,i,k-1,n) ) then
-                  fg(j,i,k) = min(fg(j,i,k),d_zero)
-                else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
-                          f(j,i,k,n) < f(j,i,k-1,n) ) then
-                  fg(j,i,k) = max(fg(j,i,k),d_zero)
-                end if
-              end if
-            end do
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-              if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
-                   max(f(j,i,kz,n),dlowval) > c_rel_extrema ) then
-                if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
-                  fg(j,i,kz) = min(fg(j,i,kz),d_zero)
-                else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
-                  fg(j,i,kz) = max(fg(j,i,kz),d_zero)
-                end if
-              end if
-            end do
-          end if
         else if ( ind == 2 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-            if ( f(j,i,k,n)   > mintr * ps(j,i) .and. &
-                 f(j,i,k-1,n) > mintr * ps(j,i) ) then
-              fg(j,i,k) = svv(j,i,k) * &
+            fg(j,i,k) = svv(j,i,k) * &
                         (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
-            end if
           end do
-          if ( vert_stability_enhance ) then
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz-1 )
-              if ( abs(f(j,i,k+1,n)+f(j,i,k-1,n)-d_two*f(j,i,k,n)) / &
-                   max(f(j,i,k,n),dlowval) > t_rel_extrema ) then
-                if ( f(j,i,k,n) > f(j,i,k+1,n) .and. &
-                     f(j,i,k,n) > f(j,i,k-1,n) ) then
-                  fg(j,i,k) = min(fg(j,i,k),d_zero)
-                else if ( f(j,i,k,n) < f(j,i,k+1,n) .and. &
-                          f(j,i,k,n) < f(j,i,k-1,n) ) then
-                  fg(j,i,k) = max(fg(j,i,k),d_zero)
-                end if
-              end if
-            end do
-            do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-              if ( d_two*abs(f(j,i,kz-1,n)-f(j,i,kz,n)) / &
-                   max(f(j,i,kz,n),dlowval) > t_rel_extrema ) then
-                if ( f(j,i,kz,n) > f(j,i,kz-1,n) ) then
-                  fg(j,i,kz) = min(fg(j,i,kz),d_zero)
-                else if ( f(j,i,kz,n) < f(j,i,kz-1,n) ) then
-                  fg(j,i,kz) = max(fg(j,i,kz),d_zero)
-                end if
-              end if
-            end do
-          end if
         else if ( ind == 3 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
             fg(j,i,k) = twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n)

@@ -123,6 +123,8 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: srf_lena_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_flw_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_fsw_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_uflw_out => null()
+  real(rkx) , dimension(:,:) , pointer :: srf_ufsw_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_fld_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_sina_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_tpr_out => null()
