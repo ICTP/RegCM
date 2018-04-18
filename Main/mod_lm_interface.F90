@@ -976,9 +976,9 @@ module mod_lm_interface
           sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
             sqrt(sum((lms%u10m**2+lms%v10m**2),1)*rdnnsg))
         if ( associated(sts_pcpmax_out) ) &
-          sts_pcpmax_out = max(sts_pcpmax_out,lms%prcp(1,:,:))
+          sts_pcpmax_out = max(sts_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
         if ( associated(sts_pcpavg_out) ) &
-          sts_pcpavg_out = sts_pcpavg_out + lms%prcp(1,:,:)
+          sts_pcpavg_out = sts_pcpavg_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(sts_psmin_out) ) &
           sts_psmin_out = min(sts_psmin_out,lm%sfps(jci1:jci2,ici1:ici2))
         if ( associated(sts_psavg_out) ) &
