@@ -187,6 +187,7 @@ module mod_cu_interface
     call assignpnt(rain_cc,c2m%rain_cc)
     call assignpnt(uxten%u,cu_uten)
     call assignpnt(uxten%v,cu_vten)
+    call assignpnt(crrate,c2m%trrate)
     call init_mod_cumulus
   end subroutine init_cumulus
 
@@ -327,6 +328,7 @@ module mod_cu_interface
       do i = ici1 , ici2
         do j = jci1 , jci2
           c2m%pcratec(j,i) = c2m%pcratec(j,i) + cu_prate(j,i)
+          c2m%trrate(j,i) = cu_prate(j,i)
           c2m%rainc(j,i) = c2m%rainc(j,i) + cu_prate(j,i) * dtsec
           c2m%kcumtop(j,i) = cu_ktop(j,i)
           c2m%kcumbot(j,i) = cu_kbot(j,i)

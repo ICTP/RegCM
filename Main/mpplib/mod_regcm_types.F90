@@ -580,6 +580,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: chiten ! aten%chi
     real(rkx) , pointer , dimension(:,:) :: rainc
     real(rkx) , pointer , dimension(:,:) :: pcratec
+    real(rkx) , pointer , dimension(:,:) :: trrate     ! trrate
     real(rkx) , pointer , dimension(:,:,:) :: convpr
     real(rkx) , pointer , dimension(:,:,:) :: cldfrc
     real(rkx) , pointer , dimension(:,:,:) :: cldlwc
@@ -665,6 +666,7 @@ module mod_regcm_types
 
   type micro_2_mod
     real(rkx) , pointer , dimension(:,:,:) :: fcc     ! Cloud cover
+    real(rkx) , pointer , dimension(:,:) :: trrate    ! trrate
     real(rkx) , pointer , dimension(:,:) :: rainnc    ! sfc
     real(rkx) , pointer , dimension(:,:) :: lsmrnc    ! sfc
     real(rkx) , pointer , dimension(:,:) :: snownc    ! sfc

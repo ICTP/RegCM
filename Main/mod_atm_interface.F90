@@ -119,6 +119,8 @@ module mod_atm_interface
   ! Precip
   real(rkx) , pointer , public , dimension(:,:) :: pptnc
   real(rkx) , pointer , public , dimension(:,:) :: prnca
+  real(rkx) , pointer , public , dimension(:,:) :: crrate
+  real(rkx) , pointer , public , dimension(:,:) :: ncrrate
   real(rkx) , pointer , public , dimension(:,:,:) :: fcc
   real(rkx) , pointer , public , dimension(:,:,:) :: remrat
   real(rkx) , pointer , public , dimension(:,:,:) :: rembc
@@ -1047,7 +1049,8 @@ module mod_atm_interface
         call getmem2d(dpsdxm,jce1,jce2,ice1,ice2,'storage:dpsdxm')
         call getmem2d(dpsdym,jce1,jce2,ice1,ice2,'storage:dpsdym')
       end if
-
+      call getmem2d(crrate,jci1,jci2,ici1,ici2,'storage:crrate')
+      call getmem2d(ncrrate,jci1,jci2,ici1,ici2,'storage:ncrrate')
     end subroutine allocate_mod_atm_interface
 
 end module mod_atm_interface

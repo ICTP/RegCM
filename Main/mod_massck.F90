@@ -137,8 +137,8 @@ module mod_massck
     evapm = q_zero
     do i = ici1 , ici2
       do j = jci1 , jci2
-        tcrai = tcrai + pptnc(j,i)*dxsq*dt
-        tncrai = tncrai + pptc(j,i)*dxsq*dt
+        tcrai = tcrai + crrate(j,i)*dxsq*dt
+        tncrai = tncrai + ncrrate(j,i)*dxsq*dt
         tqeva = tqeva + sfs%qfx(j,i)*dxsq*dt
       end do
     end do

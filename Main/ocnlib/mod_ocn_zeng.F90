@@ -112,7 +112,7 @@ module mod_ocn_zeng
       t995 = sts(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
-      zi = max(d_two,hpbl(i))
+      zi = max(z995,hpbl(i))
       hu = z995
       zh = z995
       hq = z995

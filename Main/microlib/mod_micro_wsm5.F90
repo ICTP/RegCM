@@ -302,6 +302,7 @@ module mod_micro_wsm5
         mc2mo%rainnc(j,i) = mc2mo%rainnc(j,i) + rain(n)*dtsec
         mc2mo%snownc(j,i) = mc2mo%snownc(j,i) + snow(n)*dtsec
         mc2mo%lsmrnc(j,i) = mc2mo%lsmrnc(j,i) + rain(n)
+        mc2mo%trrate(j,i) = rain(n)
         n = n + 1
       end do
     end do

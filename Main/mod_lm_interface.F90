@@ -1140,6 +1140,10 @@ module mod_lm_interface
       lm%drydepflx = d_zero
     end if
 
+    ! Reset accumulation from precip and cumulus
+    lm%ncprate(:,:) = d_zero
+    lm%cprate(:,:)  = d_zero
+
     contains
 
 #include <pfesat.inc>

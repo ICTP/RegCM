@@ -165,6 +165,7 @@ module mod_micro_interface
     call assignpnt(rain_ls,mc2mo%rainls)
     call assignpnt(remrat,mc2mo%remrat)
     call assignpnt(rembc,mc2mo%rembc)
+    call assignpnt(ncrrate,mc2mo%trrate)
 
     select case ( ipptls )
       case (1)
