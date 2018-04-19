@@ -98,9 +98,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
-    real(rkx) , allocatable , dimension(:) :: tmpw
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
+    real(rkx) :: dx , r2 , rx
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
       call die('interp_create_ll_g','Target shapes non conforming',1)
@@ -150,34 +149,24 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(np))
-        allocate(tmpw(np))
         do n = 1 , np
+          rx = d_half*sqrt(results(n)%dis/r2)
+          if ( rx < dlowval ) then
+            h_i%tg%ft(j,i)%np = 1
+            deallocate(h_i%tg%ft(j,i)%wgt)
+            allocate(h_i%tg%ft(j,i)%wgt(1))
+            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
+            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
+                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
+            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
+            exit
+          end if
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          tmpw(n) = sqrt(results(n)%dis)
-        end do
-        rd = d_zero
-        rp = real(np,rkx)
-        do n = 1 , np
-          do nn = n+1 , np
-            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
-          end do
-        end do
-        ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
-        do n = 1 , np
-          rx = d_zero
-          ra = tmpw(n) / rd
-          do nn = 1 , np
-            if ( nn == n ) cycle
-            rb = tmpw(nn) / rd
-            rx = rx + d_half * (rb / (ra+rb))
-          end do
-          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
+          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
         end do
         deallocate(results)
-        deallocate(tmpw)
       end do
     end do
     deallocate(x)
@@ -198,9 +187,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
-    real(rkx) , allocatable , dimension(:) :: tmpw
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
+    real(rkx) :: dx , r2 , rx
 
     n1 = size(slat)
     n2 = size(slon)
@@ -248,34 +236,24 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(np))
-        allocate(tmpw(np))
         do n = 1 , np
+          rx = d_half*sqrt(results(n)%dis/r2)
+          if ( rx < dlowval ) then
+            h_i%tg%ft(j,i)%np = 1
+            deallocate(h_i%tg%ft(j,i)%wgt)
+            allocate(h_i%tg%ft(j,i)%wgt(1))
+            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
+            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
+                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
+            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
+            exit
+          end if
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          tmpw(n) = sqrt(results(n)%dis)
-        end do
-        rd = d_zero
-        rp = real(np,rkx)
-        do n = 1 , np
-          do nn = n+1 , np
-            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
-          end do
-        end do
-        ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
-        do n = 1 , np
-          rx = d_zero
-          ra = tmpw(n) / rd
-          do nn = 1 , np
-            if ( nn == n ) cycle
-            rb = tmpw(nn) / rd
-            rx = rx + d_half * (rb / (ra+rb))
-          end do
-          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
+          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
         end do
         deallocate(results)
-        deallocate(tmpw)
       end do
     end do
     deallocate(x)
@@ -296,9 +274,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
-    real(rkx) , allocatable , dimension(:) :: tmpw
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
+    real(rkx) :: dx , r2 , rx
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -351,34 +328,24 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(np))
-        allocate(tmpw(np))
         do n = 1 , np
+          rx = d_half*sqrt(results(n)%dis/r2)
+          if ( rx < dlowval ) then
+            h_i%tg%ft(j,i)%np = 1
+            deallocate(h_i%tg%ft(j,i)%wgt)
+            allocate(h_i%tg%ft(j,i)%wgt(1))
+            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
+            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
+                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
+            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
+            exit
+          end if
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          tmpw(n) = sqrt(results(n)%dis)
-        end do
-        rd = d_zero
-        rp = real(np,rkx)
-        do n = 1 , np
-          do nn = n+1 , np
-            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
-          end do
-        end do
-        ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
-        do n = 1 , np
-          rx = d_zero
-          ra = tmpw(n) / rd
-          do nn = 1 , np
-            if ( nn == n ) cycle
-            rb = tmpw(nn) / rd
-            rx = rx + d_half * (rb / (ra+rb))
-          end do
-          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
+          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
         end do
         deallocate(results)
-        deallocate(tmpw)
       end do
     end do
     deallocate(x)
@@ -399,9 +366,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n , nn
-    real(rkx) :: dx , r2 , rx , rd , ra , rb , rp
-    real(rkx) , allocatable , dimension(:) :: tmpw
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
+    real(rkx) :: dx , r2 , rx
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -452,34 +418,24 @@ module mod_kdinterp
         end if
         np = h_i%tg%ft(j,i)%np
         allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
-        allocate(tmpw(np))
         do n = 1 , np
+          rx = d_half*sqrt(results(n)%dis/r2)
+          if ( rx < dlowval ) then
+            h_i%tg%ft(j,i)%np = 1
+            deallocate(h_i%tg%ft(j,i)%wgt)
+            allocate(h_i%tg%ft(j,i)%wgt(1))
+            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
+            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
+                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
+            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
+            exit
+          end if
           h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
           h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
                                     n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          tmpw(n) = sqrt(results(n)%dis)
-        end do
-        rd = d_zero
-        rp = real(np,rkx)
-        do n = 1 , np
-          do nn = n+1 , np
-            rd = rd + dist(x,results(n)%idx,results(nn)%idx)
-          end do
-        end do
-        ! Divide for total number of lines in a polygon (sides + dyagonals)
-        rd = rd / (rp + 0.5_rkx*rp*(rp-3.0_rkx))
-        do n = 1 , np
-          rx = d_zero
-          ra = tmpw(n) / rd
-          do nn = 1 , np
-            if ( nn == n ) cycle
-            rb = tmpw(nn) / rd
-            rx = rx + d_half * (rb / (ra+rb))
-          end do
-          h_i%tg%ft(j,i)%wgt(n)%wgt = rx
+          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
         end do
         deallocate(results)
-        deallocate(tmpw)
       end do
     end do
     deallocate(x)
@@ -541,7 +497,7 @@ module mod_kdinterp
         end if
       end do
     end do
-    call smtdsmt(f)
+    call smther(f)
     f = max(gmin,min(gmax,f))
   end subroutine interp_2d
 
@@ -733,6 +689,66 @@ module mod_kdinterp
     end do
     deallocate(gvals)
   end subroutine interp_class_ld
+
+  subroutine smther(f)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:) :: f
+    integer(ik4) :: i1 , i2 , j1 , j2
+    integer(ik4) :: i , is , ie , j , js , je
+    real(rkx) , allocatable , dimension(:,:) :: tmp
+    i1 = lbound(f,2)
+    i2 = ubound(f,2)
+    j1 = lbound(f,1)
+    j2 = ubound(f,1)
+    allocate(tmp(j1:j2,i1:i2))
+    ie = i2-1
+    je = j2-1
+    is = i1+1
+    js = j1+1
+    tmp(:,:) = f(:,:)
+    do i = is , ie
+      do j = js , je
+        if ( all(tmp(j-1:j+1,i-1:i+1) > missc) ) then
+          f(j,i) = (tmp(j-1,i-1)+tmp(j-1,i)+tmp(j-1,i+1) + &
+                    tmp(j+1,i-1)+tmp(j+1,i)+tmp(j+1,i+1) + &
+                    tmp(j,i-1)+ tmp(j,i+1)+6.0_rkx* tmp(j,i))/14.0_rkx
+        end if
+      end do
+    end do
+    do i = is , ie
+      if ( all(tmp(je:j2,i-1:i+1) > missc) ) then
+        f(j2,i) = (tmp(je,i-1)+tmp(je,i)+tmp(je,i+1) + &
+                   tmp(j2,i-1)+ tmp(j2,i+1)+3.0_rkx* tmp(j2,i))/8.0_rkx
+      end if
+      if ( all(tmp(j1:js,i-1:i+1) > missc) ) then
+        f(j1,i) = (tmp(js,i-1)+tmp(js,i)+tmp(js,i+1) + &
+                   tmp(j1,i-1)+ tmp(j1,i+1)+3.0_rkx* tmp(j1,i))/8.0_rkx
+      end if
+    end do
+    do j = js , je
+      if ( all(tmp(j-1:j+1,ie:i2) > missc) ) then
+        f(j,i2) = (tmp(j-1,ie)+tmp(j,ie)+tmp(j+1,ie) + &
+                   tmp(j+1,i2)+tmp(j-1,i2)+3.0_rkx* tmp(j,i2))/8.0_rkx
+      end if
+      if ( all(tmp(j-1:j+1,i1:is) > missc) ) then
+        f(j,i1) = (tmp(j-1,is)+tmp(j,is)+tmp(j+1,is) + &
+                   tmp(j+1,i1)+tmp(j-1,i1)+3.0_rkx* tmp(j,i1))/8.0_rkx
+      end if
+    end do
+    if ( all(tmp(j1:js,i1:is) > missc) ) then
+      f(j1,i1) = (2.0_rkx*tmp(j1,i1)+tmp(j1,is)+tmp(js,i1)+tmp(js,js))/5.0_rkx
+    end if
+    if ( all(tmp(je:j2,i1:is) > missc) ) then
+      f(j2,i1) = (2.0_rkx*tmp(j2,i1)+tmp(j2,is)+tmp(je,i1)+tmp(je,is))/5.0_rkx
+    end if
+    if ( all(tmp(je:j2,ie:i2) > missc) ) then
+      f(j2,i2) = (2.0_rkx*tmp(j2,i2)+tmp(j2,ie)+tmp(je,i2)+tmp(je,ie))/5.0_rkx
+    end if
+    if ( all(tmp(j1:js,ie:i2) > missc) ) then
+      f(j1,i2) = (2.0_rkx*tmp(j1,i2)+tmp(j1,ie)+tmp(js,i2)+tmp(js,ie))/5.0_rkx
+    end if
+    deallocate(tmp)
+  end subroutine smther
 
   subroutine smtdsmt(f)
     implicit none

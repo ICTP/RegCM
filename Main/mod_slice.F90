@@ -112,7 +112,7 @@ module mod_slice
         do i = ix1 , ix2
           do j = jx1 , jx2
             atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
-            if ( atms%qxb3d(j,i,k,n) < dlowval ) then
+            if ( atms%qxb3d(j,i,k,n) < minqq * minqq ) then
               atms%qxb3d(j,i,k,n) = d_zero
             end if
           end do

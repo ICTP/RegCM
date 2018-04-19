@@ -70,7 +70,7 @@ module mod_cu_tiedtke
   real(rkx) , parameter :: rmflia = 0.0_rkx
 
   ! Relaxation time for melting of snow
-  real(rkx) , parameter :: rtaumel = 5.0_rkx*3600.0_rkx*1.5_rkx
+  real(rkx) , parameter :: rtaumel = 5.0_rkx*3600.0_rkx
 
   ! Updraught velocity perturbation for implicit (m/s)
   real(rkx) , parameter :: ruvper = 0.3_rkx
@@ -258,7 +258,7 @@ module mod_cu_tiedtke
         i = imap(ii)
         j = jmap(ii)
         papp1(ii,k) = m2c%pas(j,i,k)       ! Pressure in Pa
-        xpg(ii,k)   = m2c%zas(j,i,k)*egrav + m2c%ht(j,i) ! geopotential
+        xpg(ii,k)   = m2c%zas(j,i,k)*egrav ! geopotential
         ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
         pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
         pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
@@ -308,7 +308,7 @@ module mod_cu_tiedtke
         j = jmap(ii)
         ! 1st guess pressure at full levels
         paphp1(ii,k) = m2c%pasf(j,i,k)
-        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav + m2c%ht(j,i) ! geopotential
+        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav ! geopotential
       end do
     end do
 
