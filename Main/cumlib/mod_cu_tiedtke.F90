@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
-         hsigma , sigma , ichcumtra , rcmtimer , icup
+         hsigma , sigma , ichcumtra , rcmtimer , icup , dtcum
   use mod_runparams , only : k2_const , kfac_deep , kfac_shal
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
@@ -837,7 +837,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1314,7 +1314,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY CONSTANTS AND PARAMETERS
     ! -----------------------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
 
     ! *AMT* NOTE!
     ! this paramter is the CAPE adjustment timescale which in the global model
@@ -1741,7 +1741,7 @@ module mod_cu_tiedtke
     ! -----------------------------------
     !
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
     !
     !--------------------------------------------------------
     ! 2. INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -2259,7 +2259,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
     ztglace = tzero - 13.0_rkx
     zqold(1:kproma) = d_zero
     !
@@ -2746,7 +2746,7 @@ module mod_cu_tiedtke
     ! 1. SPECIFY PARAMETERS
     ! ---------------------
     !
-    zcons2 = d_one/(egrav*dt)
+    zcons2 = d_one/(egrav*dtcum)
     ztglace = tzero - 13.0_rkx
     !
     ! AMT NOTE!!! in the original scheme, this level which restricts rainfall
@@ -4010,8 +4010,8 @@ module mod_cu_tiedtke
     !
     ! SPECIFY CONSTANTS
     !
-    zcons1 = cpd/(wlhf*egrav*dt)
-    zcons2 = d_one/(egrav*dt)
+    zcons1 = cpd/(wlhf*egrav*dtcum)
+    zcons2 = d_one/(egrav*dtcum)
     zcucov = 0.050_rkx
     ztmelp2 = tzero + 2.0_rkx
     !
@@ -4669,8 +4669,8 @@ module mod_cu_tiedtke
     !------------------------------------
     ! 1. Specify constants and parameters
     ! -----------------------------------
-    cons2 = rmfcfl/(egrav*dt)
-    cons = d_one/(egrav*dt)
+    cons2 = rmfcfl/(egrav*dtcum)
+    cons = d_one/(egrav*dtcum)
     !---------------------------------------------
     ! 2. Initialize values at vertical grid points
     ! --------------------------------------------
@@ -5812,7 +5812,7 @@ module mod_cu_tiedtke
       !----------------------
       ! 1. Specify parameters
       ! ---------------------
-      cons2 = rmfcfl/(egrav*dt)
+      cons2 = rmfcfl/(egrav*dtcum)
       facbuo = d_half/(d_one+d_half)
       cldmax = 5.e-3_rkx
       cwifrac = d_half
@@ -6824,7 +6824,7 @@ module mod_cu_tiedtke
       ! 0. Setup constants
       ! ------------------
       cons1a = cpd/(wlhf*egrav*rtaumel)
-      cons2 = rmfcfl/(egrav*dt)
+      cons2 = rmfcfl/(egrav*dtcum)
       !-------------------------------------
       ! 1. Determine final convective fluxes
       ! ------------------------------------
