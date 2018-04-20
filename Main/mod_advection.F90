@@ -786,13 +786,39 @@ module mod_advection
           end do
         else if ( ind == 1 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-            fg(j,i,k) = svv(j,i,k) * &
-                  (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+            if ( svv(j,i,k) > d_zero ) then
+              if ( f(j,i,k-1,n) > minqq * minqq * ps(j,i)  ) then
+                fg(j,i,k) = svv(j,i,k) * &
+                    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+              else
+                fg(j,i,k) = d_zero
+              end if
+            else
+              if ( f(j,i,k,n) > minqq * minqq  * ps(j,i) ) then
+                fg(j,i,k) = svv(j,i,k) * &
+                    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+              else
+                fg(j,i,k) = d_zero
+              end if
+            end if
           end do
         else if ( ind == 2 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-            fg(j,i,k) = svv(j,i,k) * &
-                        (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+            if ( svv(j,i,k) > d_zero ) then
+              if ( f(j,i,k-1,n) > mintr * ps(j,i)  ) then
+                fg(j,i,k) = svv(j,i,k) * &
+                    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+              else
+                fg(j,i,k) = d_zero
+              end if
+            else
+              if ( f(j,i,k,n) > mintr * ps(j,i) ) then
+                fg(j,i,k) = svv(j,i,k) * &
+                    (twt(k,1)*f(j,i,k,n) + twt(k,2)*f(j,i,k-1,n))
+              else
+                fg(j,i,k) = d_zero
+              end if
+            end if
           end do
         else if ( ind == 3 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
