@@ -30,7 +30,7 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , dt , rdt , iqv , iqi , entrmax , &
          entrdd , entrmid , cprcon , entrpen_lnd , entrpen_ocn ,    &
          entrscv , iconv , ichem , iaerosol , iindirect , ipptls ,  &
-         hsigma , sigma , ichcumtra , rcmtimer
+         hsigma , sigma , ichcumtra , rcmtimer , icup
   use mod_runparams , only : k2_const , kfac_deep , kfac_shal
   use mod_mpmessage
   use mod_runparams , only : rcrit , rprc_ocn , rprc_lnd
@@ -70,7 +70,7 @@ module mod_cu_tiedtke
   real(rkx) , parameter :: rmflia = 0.0_rkx
 
   ! Relaxation time for melting of snow
-  real(rkx) , parameter :: rtaumel = 5.0_rkx*3600.0_rkx
+  real(rkx) , parameter :: rtaumel = 5.0_rkx*3600.0_rkx*1.5_rkx
 
   ! Updraught velocity perturbation for implicit (m/s)
   real(rkx) , parameter :: ruvper = 0.3_rkx

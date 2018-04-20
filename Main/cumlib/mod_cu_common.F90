@@ -30,26 +30,29 @@ module mod_cu_common
 
   implicit none
 
-  public
+  private
 
-  real(rkx) , pointer , dimension(:,:,:) :: cu_tten
-  real(rkx) , pointer , dimension(:,:,:) :: cu_uten
-  real(rkx) , pointer , dimension(:,:,:) :: cu_vten
-  real(rkx) , pointer , dimension(:,:,:,:) :: cu_qten
-  real(rkx) , pointer , dimension(:,:,:,:) :: cu_chiten
-  real(rkx) , pointer , dimension(:,:,:) :: avg_ww
-  real(rkx) , pointer , dimension(:,:) :: cu_prate
-  real(rkx) , pointer , dimension(:,:,:) :: cu_qdetr
-  real(rkx) , pointer , dimension(:,:,:) :: cu_raincc
-  real(rkx) , pointer , dimension(:,:,:) :: cu_convpr
-  real(rkx) , pointer , dimension(:,:,:) :: cu_cldfrc
-  integer(ik4) , pointer , dimension(:,:) :: cu_ktop
-  integer(ik4) , pointer , dimension(:,:) :: cu_kbot
+  real(rkx) , pointer , public , dimension(:,:,:) :: cu_tten
+  real(rkx) , pointer , public , dimension(:,:,:) :: cu_uten
+  real(rkx) , pointer , public , dimension(:,:,:) :: cu_vten
+  real(rkx) , pointer , public , dimension(:,:,:,:) :: cu_qten
+  real(rkx) , pointer , public , dimension(:,:,:,:) :: cu_chiten
+  real(rkx) , pointer , public , dimension(:,:,:) :: avg_ww
+  real(rkx) , pointer , public , dimension(:,:) :: cu_prate
+  real(rkx) , pointer , public , dimension(:,:,:) :: cu_qdetr
+  real(rkx) , pointer , public , dimension(:,:,:) :: cu_raincc
+  real(rkx) , pointer , public , dimension(:,:,:) :: cu_convpr
+  real(rkx) , pointer , public , dimension(:,:,:) :: cu_cldfrc
+  integer(ik4) , pointer , public , dimension(:,:) :: cu_ktop
+  integer(ik4) , pointer , public , dimension(:,:) :: cu_kbot
 
-  real(rkx) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+  ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+  real(rkx) , public :: cevapu
 
-  integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
-  integer(ik4) :: total_precip_points
+  ! which scheme to use
+  integer(ik4) , public , pointer , dimension(:,:) :: cuscheme
+
+  integer(ik4) , public :: total_precip_points
 
   real(rkx) , dimension(10) :: cld_profile
   real(rkx) , dimension(10) :: fixed_cld_profile
@@ -57,6 +60,8 @@ module mod_cu_common
 
   real(rkx) , parameter :: maxcloud_dp =  60000.0_rkx ! In Pa
   logical , parameter :: addnoise = .false.
+
+  public :: init_mod_cumulus , model_cumulus_cloud
 
   contains
 

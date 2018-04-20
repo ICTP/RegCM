@@ -22,6 +22,7 @@ module mod_cu_grell
   use mod_intkinds
   use mod_realkinds
   use mod_service
+  use mod_dynparam
   use mod_memutil
   use mod_cu_common
   use mod_constants

@@ -27,7 +27,7 @@ module mod_cu_em
   use mod_memutil
   use mod_runparams , only : alphae , betae , coeffr , coeffs , cu ,    &
     damp , dtmax , entp , minorig , omtrain , omtsnow , sigd , sigs ,   &
-    tlcrit , iqv , ichem , clfrcv , rdt , ichcumtra
+    tlcrit , iqv , ichem , clfrcv , rdt , ichcumtra , icup , dt
   use mod_runparams , only : k2_const , kfac_shal , kfac_deep
   use mod_cu_common
   use mod_service

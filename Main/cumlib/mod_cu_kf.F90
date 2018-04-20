@@ -22,6 +22,7 @@ module mod_cu_kf
   use mod_intkinds
   use mod_constants
   use mod_memutil
+  use mod_dynparam
   use mod_stdio
   use mod_regcm_types
   use mod_mpmessage

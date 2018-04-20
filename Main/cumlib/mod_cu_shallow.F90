@@ -20,10 +20,12 @@
 module mod_cu_shallow
   use mod_realkinds
   use mod_intkinds
+  use mod_dynparam
   use mod_constants
   use mod_cu_common
   use mod_dynparam
   use mod_runparams , only : iqv , dtcum , dt
+  use mod_regcm_types
 
   implicit none
 
