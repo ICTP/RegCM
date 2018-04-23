@@ -879,13 +879,17 @@ module mod_ncout
           enable_atm3d_vars(atm_stats_supw:atm_stats_autocc) = .false.
         end if
 
-        if ( ibltyp == 2 ) then
+        if ( ibltyp == 2 .or. ibltyp == 4 ) then
           if ( enable_atm3d_vars(atm_tke) ) then
             call setup_var(v3dvar_atm,atm_tke,vsize,'tke','m2 s-2', &
               'Turbulent Kinetic Energy', &
               'specific_kinetic_energy_of_air', .true.)
             atm_tke_out => v3dvar_atm(atm_tke)%rval
           end if
+        else
+          enable_atm3d_vars(atm_tke) = .false.
+        end if
+        if ( ibltyp == 2 ) then
           if ( idiag > 0 ) then
             if ( enable_atm3d_vars(atm_kth) ) then
               call setup_var(v3dvar_atm,atm_kth,vsize,'kth','m2 s-1', &
@@ -904,7 +908,8 @@ module mod_ncout
             enable_atm3d_vars(atm_kzm) = .false.
           end if
         else
-          enable_atm3d_vars(atm_tke:atm_kzm) = .false.
+          enable_atm3d_vars(atm_kth) = .false.
+          enable_atm3d_vars(atm_kzm) = .false.
         end if
 
         if ( icosp > 0 ) then

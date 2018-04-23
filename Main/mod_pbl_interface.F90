@@ -29,8 +29,9 @@ module mod_pbl_interface
   use mod_pbl_common , only : ricr , uwstate , kmxpbl
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : allocate_tcm_state
-  use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , tkemin
+  use mod_pbl_uwtcm , only : uwtcm , init_mod_pbl_uwtcm , uwtkemin
   use mod_pbl_gfs , only : init_pbl_gfs , pbl_gfs
+  use mod_pbl_myj , only : init_myjpbl , myjpbl , myjtkemin
   use mod_runparams , only : ibltyp , pc_physic
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
@@ -48,7 +49,7 @@ module mod_pbl_interface
   public :: uwstate
   public :: kmxpbl
   public :: ricr
-  public :: tkemin
+  real(rkx) , public :: tkemin = 0.0_rkx
 
   contains
 
@@ -60,9 +61,13 @@ module mod_pbl_interface
       call allocate_mod_pbl_holtbl
     else if ( ibltyp == 2 ) then
       call allocate_tcm_state(uwstate)
+      tkemin = uwtkemin
       call init_mod_pbl_uwtcm
     else if ( ibltyp == 3 ) then
       call init_pbl_gfs
+    else if ( ibltyp == 4 ) then
+      tkemin = myjtkemin
+      call init_myjpbl
     end if
   end subroutine allocate_pblscheme
 
@@ -145,6 +150,19 @@ module mod_pbl_interface
         uxten%u = d_zero
         uxten%v = d_zero
         call pbl_gfs(m2p,p2m)
+        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              p2m%uten(j,i,k) = p2m%uten(j,i,k)+uxten%ud(j,i,k)*m2p%psdotb(j,i)
+              p2m%vten(j,i,k) = p2m%vten(j,i,k)+uxten%vd(j,i,k)*m2p%psdotb(j,i)
+            end do
+          end do
+        end do
+      case (4)
+        uxten%u = d_zero
+        uxten%v = d_zero
+        call myjpbl(m2p,p2m)
         call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
         do k = 1 , kz
           do i = idi1 , idi2

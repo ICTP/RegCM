@@ -39,15 +39,15 @@ module mod_pbl_myj
   use mod_memutil
   use mod_regcm_types
   use mod_runparams
+  use mod_pbl_common , only : init_minisfcscheme , minisfcscheme
 
   implicit none
 
   private
 
-  public :: init_myjpbl , myjpbl
+  public :: init_myjpbl , myjpbl , myjtkemin
 
-  ! iteration count for mixing length computation
-  integer(ik4) , parameter :: itrmx = 5
+  real(rkx) , parameter :: myjtkemin = 1.0e-3_rkx
 
   real(rkx) , parameter :: rlivwv = wlhs/wlhv
   real(rkx) , parameter :: elocp = 2.72e6_rkx/cpd
@@ -128,7 +128,7 @@ module mod_pbl_myj
   real(rkx) , parameter :: bshh = 9.0_rkx*a1*a2x*a2x*btg
   real(rkx) , parameter :: bshm = 18.0_rkx*a1*a1*a2x*c1
   real(rkx) , parameter :: bsmh = -3.0_rkx*a1*a2x * &
-               (3.0_rkx*a2x+3.0_rkx*b2*c1+12.0_rkx*a1*c1-b2)*btg
+             (3.0_rkx*a2x+3.0_rkx*b2*c1+12.0_rkx*a1*c1-b2)*btg
   real(rkx) , parameter :: cesh = a2x
   real(rkx) , parameter :: cesm = a1*(1.0_rkx-3.0_rkx*c1)
   real(rkx) , parameter :: cnv = ep1*egrav/btg
@@ -148,10 +148,10 @@ module mod_pbl_myj
   ! Free term in the equilibrium equation for (L/Q)**2
   !
   real(rkx) , parameter :: aeqh = 9.0_rkx*a1*a2x*a2x*b1*btg*btg +  &
-               9.0_rkx*a1*a2x*a2x*(12.0_rkx*a1+3.0_rkx*b2)*btg*btg
+              9.0_rkx*a1*a2x*a2x*(12.0_rkx*a1+3.0_rkx*b2)*btg*btg
   real(rkx) , parameter :: aeqm = 3.0_rkx*a1*a2x*b1*(3.0_rkx*a2x + &
-               3.0_rkx*b2*c1+18.0_rkx*a1*c1-b2)*btg+18.0_rkx*a1 *  &
-               a1*a2x*(b2-3.0_rkx*a2x)*btg
+              3.0_rkx*b2*c1+18.0_rkx*a1*c1-b2)*btg+18.0_rkx*a1 *  &
+              a1*a2x*(b2-3.0_rkx*a2x)*btg
   !
   ! Forbidden turbulence area
   !
@@ -162,17 +162,19 @@ module mod_pbl_myj
   ! Near isotropy for shear turbulence, ww/q2 lower limit
   !
   real(rkx) , parameter :: ubryl = (18.0_rkx*requ*a1*a1*a2x*b2*c1*btg + &
-                9.0_rkx*a1*a2x*a2x*b2*btg*btg)/(requ*adnm+adnh)
+               9.0_rkx*a1*a2x*a2x*b2*btg*btg)/(requ*adnm+adnh)
   real(rkx) , parameter :: ubry = (d_one+epsrs)*ubryl
   real(rkx) , parameter :: ubry3 = 3.0_rkx*ubry
 
   real(rkx) , parameter :: aubh = 27.0_rkx*a1*a2x*a2x*b2*btg*btg-adnh*ubry3
   real(rkx) , parameter :: aubm = 54.0_rkx*a1*a1*a2x*b2*c1*btg-adnm*ubry3
   real(rkx) , parameter :: bubh = (9.0_rkx*a1*a2x + &
-               3.0_rkx*a2x*b2)*btg-bdnh*ubry3
+              3.0_rkx*a2x*b2)*btg-bdnh*ubry3
   real(rkx) , parameter :: bubm = 18.0_rkx*a1*a1*c1-bdnm*ubry3
   real(rkx) , parameter :: cubr = d_one-ubry3
   real(rkx) , parameter :: rcubr = d_one/cubr
+
+  real(rkx) , parameter :: countergrad = d_zero
 
   integer(ik4) :: nspec
 
@@ -181,51 +183,43 @@ module mod_pbl_myj
   subroutine init_myjpbl
     implicit none
     nspec = 1 + nqx + ntr
+    call init_minisfcscheme
   end subroutine init_myjpbl
 
-  subroutine myjpbl(m2p,p2m,stepbl,qsfc,chklowq,thz0,qz0,uz0,vz0,  &
-                    xland,sice,snow,tke_myj,exch_h,ustar,znt,      &
-                    el_myj,ct,akhs,akms,mixht)
+  subroutine myjpbl(m2p,p2m)
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-
-    integer(ik4) , intent(in) :: stepbl
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: sice
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: snow
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: xland
-    real(rkx) , dimension(:,:) , pointer , intent(out) :: mixht
-    real(rkx) , dimension(:,:) , pointer , intent(inout) :: akhs , akms
-    real(rkx) , dimension(:,:,:) , pointer , intent(out) :: el_myj
-    real(rkx) , dimension(:,:) , pointer , intent(inout) :: ct , qsfc , &
-      qz0 , thz0 , ustar , uz0 , vz0 , znt
-    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: exch_h , tke_myj
-    real(rkx) , dimension(:,:) , pointer , intent(in) :: chklowq
     !
     ! nspec is the number of mass species to be vertically mixed
     ! It is assumed that cloud water is always being passed into the scheme.
     !
-    integer(ik4) :: i,j,k,lmh,lmxl, nums,nsp
-    integer(ik4) , dimension(jci1:jci2,ici1:ici2) :: lpbl
-    real(rkx) :: akhs_dens,akms_dens,deltaz,dqdt,dtdif,dtdt     &
-           ,dtturbl,exnsfc,psfc,qfc1,qlow,qold   &
-           ,ratiomx,rdtturbl,rg,rwmsk,seamask,thnew,thold,tx    &
-           ,ulow,vlow,wmsk,exner
+    integer(ik4) :: i , j , k , lmh , ldm , lmxl , nums , nsp
+    real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
+          dtturbl , exnsfc , psfc , qold , ratiomx ,    &
+          rdtturbl , thnew , thold , tx , &
+          exner , ustar , us , vs , drag , qsfc , thsk , ct
+    real(rkx) :: tvcon , zo , gz1oz0 , hpbl
+    real(rkx) :: ps , psim , psih , tsk
+    real(rkx) :: za , ta , qa , pa , ua , va , tha , rhoa
+    real(rkx) :: rrhox , hf , qf , cpm
+    real(rkx) :: wspd0 , udrag , z0 , br
+    real(rkx) :: akhs , akms , uz0 , vz0
     real(rkx) , dimension(nspec) :: clow , cts , sz0
-    real(rkx) , dimension(kz) :: cwmk,pk,q2k,qk,thek,tk,uk,vk     &
-                              ,qcwk,qcik,qcsk,qcrk,qcgk
+    real(rkx) , dimension(kz) :: cwmk , pk , q2k , qk , thek ,&
+            tk , uk , vk , qcwk , qcik
     real(rkx) , dimension(nspec,kz) :: species
     real(rkx) , dimension(kzm1) :: akhk , akmk , el , gh , gm
     real(rkx) , dimension(kzp1) :: zhk
-    real(rkx) , dimension(jci1:jci2,ici1:ici2) :: thsk
     real(rkx) , dimension(kz) :: rhok
-    real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ape,the, cwm
+    real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ape , the , cwm
     real(rkx) , dimension(jci1:jci2,ici1:ici2,kzm1) :: akh , akm
-    real(rkx) , dimension(jci1:jci2,ici1:ici2,kzm1) :: zint
+    real(rkx) , dimension(jci1:jci2,ici1:ici2,kzp1) :: zint
 
-    dtturbl = dt*stepbl
+    dtturbl = dt
     rdtturbl = d_one/dtturbl
     dtdif = dtturbl
+    ct = countergrad
 
     do k = 1 , kzm1
       do i = ici1 , ici2
@@ -256,8 +250,6 @@ module mod_pbl_myj
       end do
     end do
 
-    el_myj(jci1:jci2,ici1:ici2,:) = d_zero
-
     setup_integration: &
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -266,14 +258,41 @@ module mod_pbl_myj
         !
         lmh = kz
         !
-        ! Convert land mask (1 for sea; 0 for land)
-        !
-        seamask = xland(j,i)-d_one
-        !
         ! Fill 1-d vertical arrays: myj scheme counts downward from
         ! the domain's top
         !
+        za = m2p%za(j,i,kz)
+        ta = m2p%tatm(j,i,kz)
+        qa = m2p%qxatm(j,i,kz,iqv)
+        ps = m2p%patmf(j,i,kzp1)
+        pa = m2p%patm(j,i,kz)
+        ua = m2p%uxatm(j,i,kz)
+        va = m2p%vxatm(j,i,kz)
+        tha = m2p%thatm(j,i,kz)
+        rhoa = m2p%rhox2d(j,i)
+        hf = m2p%hfx(j,i)
+        qf = m2p%qfx(j,i)
+        tsk = m2p%tsk(j,i)
+        udrag = m2p%uvdrag(j,i)
+        ldm = m2p%ldmsk(j,i)
+        wspd0 = sqrt(ua*ua + va*va)
+        z0 = max(m2p%zo(j,i),1.59e-5_rkx)
+        hpbl = p2m%zpbl(j,i)
+        tvcon = d_one + ep1*qa
+        rrhox = (rgas*(ta*tvcon))/pa
+        zo = min(z0,za)
+        gz1oz0 = log((za+zo)/zo)
+        cpm = cpd * (d_one + 0.8_rkx * qa)
+
+        call minisfcscheme(ta,pa,tha,za,ua,va,qa,rhoa, &
+                           ps,hf,qf,tsk,udrag,hpbl,z0,dx,ldm, &
+                           br,psih,psim)
+
+        akms = gz1oz0 - psim
+        akhs = gz1oz0 - psih
+
         do k = 1 , kz
+          zhk(k) = zint(j,i,k)
           tk(k) = m2p%tatm(j,i,k)
           thek(k) = the(j,i,k)
           ratiomx = m2p%qxatm(j,i,k,iqv)
@@ -285,43 +304,36 @@ module mod_pbl_myj
           !
           ! TKE = 0.5*(q**2) ==> q**2 = 2.0*TKE
           !
-          q2k(k) = d_two*tke_myj(j,i,k)
+          q2k(k) = d_two*m2p%tkests(j,i,k)
           !
           ! Compute the heights of the layer interfaces
           !
         end do
-        do k = 1 , kzp1
-          zhk(k) = zint(j,i,k)
-        end do
+        zhk(kzp1) = zint(j,i,kzp1)
+        us = max(uk(kz),0.1_rkx)
+        vs = max(vk(kz),0.1_rkx)
+        drag = m2p%uvdrag(j,i)
+        ustar = sqrt(sqrt((us*drag)**2+(vs*drag)**2)/m2p%rhox2d(j,i))
         !
         ! Find the mixing length
         !
         call mixlen(lmh,uk,vk,tk,thek,qk,cwmk,q2k,zhk,gm,gh,el, &
-                    p2m%zpbl(j,i),lpbl(j,i),lmxl,ct(j,i),mixht(j,i))
+                    p2m%zpbl(j,i),p2m%kpbl(j,i),lmxl,ct)
         !
         ! Solve for the production/dissipation of the turbulent kinetic energy
         !
-        call prodq2(lmh,dtturbl,ustar(j,i),gm,gh,el,q2k)
-        !
-        ! The model layer (counting upward) containing the top of the pbl
-        !
-        p2m%kpbl(j,i) = kz-lpbl(j,i)+1
+        call prodq2(lmh,dtturbl,ustar,gm,gh,el,q2k)
         !
         ! Find the exchange coefficients in the free atmosphere
         !
-        call difcof(lmh,lmxl,gm,gh,el,tk,q2k,zhk,akmk,akhk)
+        call difcof(lmh,gm,gh,el,q2k,zhk,akmk,akhk)
         !
         ! Counting downward from the top, the exchange coefficients akh
         ! are defined on the bottoms of the layers 1 to kzm1.
-        ! Counting upward from the bottom, those same coefficients as
-        ! exch_h are defined on the bottoms of the layers 1 to kzm1
-        ! thus exch_h indices increase upward with k=1 at the ground.
         !
         do k = 1 , kzm1
           akh(j,i,k) = akhk(k)
           akm(j,i,k) = akmk(k)
-          deltaz = m2p%dzq(j,i,k)
-          exch_h(j,i,k) = akhk(k)*deltaz
         end do
         !
         ! Carry out the vertical diffusion of turbulent kinetic energy
@@ -332,21 +344,11 @@ module mod_pbl_myj
         !
         do k = 1 , kz
           q2k(k) = max(q2k(k),epsq2)
-          tke_myj(j,i,k) = d_half*q2k(k)
-          ! el is not defined at kz (ground surface)
-          if ( k < kz ) el_myj(j,i,k) = el(k)
+          p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + &
+                 ((d_half*q2k(k))-m2p%tkests(j,i,k))*rdt
         end do
       end do
     end do setup_integration
-    !
-    ! Convert surface sensible temperature to potential temperature.
-    !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        psfc = m2p%patmf(j,i,kzp1)
-        thsk(j,i) = m2p%tsk(j,i)*(p00/psfc)**rovcp
-      end do
-    end do
 
     main_integration: &
     do i = ici1 , ici2
@@ -356,6 +358,7 @@ module mod_pbl_myj
         ! from the domain's top
         !
         do k = 1 , kz
+          zhk(k) = zint(j,i,k)
           thek(k) = the(j,i,k)
           ratiomx = m2p%qxatm(j,i,k,iqv)
           qk(k) = ratiomx/(d_one+ratiomx)
@@ -373,9 +376,7 @@ module mod_pbl_myj
           rhok(k) = m2p%patm(j,i,k)/(rgas*m2p%tatm(j,i,k)*  &
                     (d_one+ep1*qk(k)-cwmk(k)))
         end do
-        do k = 1 , kzp1
-          zhk(k) = zint(j,i,k)
-        end do
+        zhk(kzp1) = zint(j,i,kzp1)
         !
         ! Counting downward from the top, the exchange coefficients akh
         ! are defined on the bottoms of the layers 1 to kz-1.
@@ -386,41 +387,27 @@ module mod_pbl_myj
           akhk(k) = akh(j,i,k)*d_half*(rhok(k)+rhok(k+1))
         end do
 
-        seamask = xland(j,i)-d_one
-        thz0(j,i) = (d_one-seamask)*thsk(j,i)+seamask*thz0(j,i)
+        akhs_dens = akhs*rhok(kz)
 
-        akhs_dens = akhs(j,i)*rhok(kz)
+        psfc = m2p%patmf(j,i,kzp1)
+        exnsfc = (p00/psfc)**rovcp
+        ! Convert surface sensible temperature to potential temperature.
+        thsk = m2p%tsk(j,i)*(p00/psfc)**rovcp
+        qsfc = pq0sea/psfc*exp(a2*(thsk-a3*exnsfc)/(thsk-a4*exnsfc))
 
-        if ( seamask < d_half ) then
-          qfc1 = wlhv*chklowq(j,i)*akhs_dens
-          if ( snow(j,i) > d_zero .or. sice(j,i) > 0.5_rkx ) then
-            qfc1 = qfc1*rlivwv
-          endif
-          if ( qfc1 > d_zero ) then
-            qsfc(j,i) = qk(kz) + m2p%qfx(j,i)/qfc1
-          end if
-        else
-          psfc = m2p%patmf(j,i,kzp1)
-          exnsfc = (p00/psfc)**rovcp
-          qsfc(j,i) = pq0sea/psfc*exp(a2*(thsk(j,i)-a3*exnsfc) / &
-            (thsk(j,i)-a4*exnsfc))
-        end if
-
-        qz0(j,i) = (d_one-seamask)*qsfc(j,i)+seamask*qz0(j,i)
-
-        sz0(1) = thz0(j,i)
-        sz0(2) = qz0(j,i)
+        sz0(1) = thsk
+        sz0(2) = qsfc
         do nums = 3 , nspec
           sz0(nums) = d_zero
         end do
 
         clow(1) = d_one
-        clow(2) = chklowq(j,i)
+        clow(2) = minqq
         do nums = 3 , nspec
           clow(nums) = d_zero
         end do
 
-        cts(1) = ct(j,i)
+        cts(1) = ct
         do nums = 2 , nspec
           cts(nums) = d_zero
         end do
@@ -431,8 +418,8 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of temperature and water vapor
         !
-        call vdifh(dtdif,lmh,lpbl(j,i),sz0,akhs_dens,clow,cts, &
-                   species,nspec,akhk,zhk,rhok)
+        call vdifh(dtdif,lmh,p2m%kpbl(j,i),sz0,akhs_dens,clow,cts, &
+                   species,nsp,akhk,zhk,rhok)
         !
         ! Compute primary variable tendencies
         !
@@ -450,7 +437,7 @@ module mod_pbl_myj
         end do
 
         do k = 1 , kz
-          thold = m2p%thatm(j,i,k)
+          thold = the(j,i,k)
           thnew = thek(k)+cwmk(k)*elocp*ape(j,i,k)
           dtdt = (thnew-thold)*rdtturbl
           qold = m2p%qxatm(j,i,k,iqv)/(d_one+m2p%qxatm(j,i,k,iqv))
@@ -475,7 +462,7 @@ module mod_pbl_myj
           akmk(k) = akmk(k)*(rhok(k)+rhok(k+1))*d_half
         end do
 
-        akms_dens = akms(j,i)*rhok(kz)
+        akms_dens = akms*rhok(kz)
         do k = 1 , kz
           uk(k) = m2p%uxatm(j,i,k)
           vk(k) = m2p%vxatm(j,i,k)
@@ -483,8 +470,9 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of velocity components
         !
-        call vdifv(lmh,dtdif,uz0(j,i),vz0(j,i), &
-                   akms_dens,uk,vk,akmk,zhk,rhok)
+        uz0 = d_half * uk(kz)
+        vz0 = d_half * vk(kz)
+        call vdifv(lmh,dtdif,uz0,vz0,akms_dens,uk,vk,akmk,zhk,rhok)
         !
         ! compute primary variable tendencies
         !
@@ -498,13 +486,13 @@ module mod_pbl_myj
   !
   ! Level 2.5 Mixing Length
   !
-  subroutine mixlen(lmh,u,v,t,the,q,cwm,q2,z,gm,gh,el,pblh,lpbl,lmxl,ct,mixht)
+  subroutine mixlen(lmh,u,v,t,the,q,cwm,q2,z,gm,gh,el,pblh,lpbl,lmxl,ct)
     implicit none
     integer(ik4) , intent(in) :: lmh
     integer(ik4) , intent(out) :: lmxl , lpbl
     real(rkx) , dimension(kz) , intent(in) :: cwm , q , q2 , t , the , u , v
     real(rkx) , dimension(kzp1) , intent(in) :: z
-    real(rkx) , intent(out) :: pblh , mixht
+    real(rkx) , intent(out) :: pblh
     real(rkx) , dimension(kzm1) , intent(out) :: el , gh , gm
     real(rkx) , intent(inout) :: ct
     integer(ik4) :: k , lpblm
@@ -524,15 +512,16 @@ module mod_pbl_myj
         lpbl = k
         lfound = .true.
         pblh = z(lpbl+1)-z(lmh+1)
+        exit
       end if
     end do
-    lpbl = 1
-    if ( .not. lfound ) pblh = z(lpbl+1)-z(lmh+1)
+    if ( .not. lfound ) then
+      lpbl = 1
+      pblh = z(lpbl+1)-z(lmh+1)
+    end if
     !
     ! The height of the pbl
     !
- 110  pblh = z(lpbl+1)-z(lmh+1)
-
     do k = 1 , lmh
       q1(k) = d_zero
     end do
@@ -590,7 +579,6 @@ module mod_pbl_myj
     ! The height of the mixed layer
     !
     blmx  = z(lmxl)-z(lmh+1)
-    mixht = blmx
     do k = lpbl , lmh
       q1(k) = sqrt(q2(k))
     enddo
@@ -761,15 +749,15 @@ module mod_pbl_myj
   !
   ! Level 2.5 Diffusion Coefficients
   !
-  subroutine difcof(lmh,lmxl,gm,gh,el,t,q2,z,akm,akh)
+  subroutine difcof(lmh,gm,gh,el,q2,z,akm,akh)
     implicit none
-    integer(ik4) , intent(in) :: lmh , lmxl
-    real(rkx) , dimension(kz) , intent(in) :: q2 , t
+    integer(ik4) , intent(in) :: lmh
+    real(rkx) , dimension(kz) , intent(in) :: q2
     real(rkx) , dimension(kzm1) , intent(in) :: el , gh , gm
     real(rkx) , dimension(kzp1) , intent(in) :: z
     real(rkx) , dimension(kzm1) , intent(out) :: akh , akm
-    integer(ik4) :: k , kinv
-    real(rkx) :: aden , akmin , bden , besh , besm , cden , d2t , &
+    integer(ik4) :: k
+    real(rkx) :: aden , bden , besh , besm , cden , &
       ell , eloq2 , eloq4 , elqdz , esh , esm , ghl , gml , q1l , &
       rden , rdz
 
@@ -825,7 +813,7 @@ module mod_pbl_myj
     real(rkx) ,dimension(kz),intent(inout) :: q2
 
     integer(ik4) :: k
-    real(rkx) :: akqs , cf , dtozs , esqhf , rdz
+    real(rkx) :: akqs , cf , dtozs , esqhf
     real(rkx) , dimension(kzm2) :: akq , cm , cr , dtoz , rsq2
 
     esqhf = d_half*esq
@@ -929,63 +917,6 @@ module mod_pbl_myj
       end do
     end do
   end subroutine vdifh
-  !
-  ! Vertical diffusion of mass variables
-  !
-  subroutine vdifx(dtdif,lmh,rkhs,ct,dust1,dust2,rkh,z,rho)
-    implicit none
-    integer(ik4) , intent(in) :: lmh
-    real(rkx) , intent(in) :: ct,dtdif,rkhs
-    real(rkx) , dimension(kzm1) , intent(in) :: rkh
-    real(rkx) , dimension(kz) , intent(in) :: rho
-    real(rkx) , dimension(kzp1) , intent(in) :: z
-    real(rkx) , dimension(kz) , intent(inout) :: dust1 , dust2
-    integer(ik4) :: k
-    real(rkx) :: cf , cmb , cmdb , cthf , dtozl , dtozs , rcml , &
-      rkhh , rsd1b , rsd2b
-    real(rkx) , dimension(kzm1) :: cm , cr , dtoz , rkct , rsd1 , rsd2
-
-    cthf = d_half*ct
-
-    do k = 1 , lmh-1
-      dtoz(k) = dtdif/(z(k)-z(k+1))
-      cr(k)   = -dtoz(k)*rkh(k)
-      rkct(k) = rkh(k)*(z(k)-z(k+2))*cthf
-    enddo
-
-    cm(1) = dtoz(1)*rkh(1)+rho(1)
-
-    rsd1(1) = dust1(1)*rho(1)
-    rsd2(1) = dust2(1)*rho(1)
-
-    do k = 2 , lmh-1
-      dtozl   = dtoz(k)
-      cf      = -dtozl*rkh(k-1)/cm(k-1)
-      cm(k)   = -cr(k-1)*cf+(rkh(k-1)+rkh(k))*dtozl+rho(k)
-      rsd1(k) = -rsd1(k-1)*cf+dust1(k)*rho(k)
-      rsd2(k) = -rsd2(k-1)*cf+dust2(k)*rho(k)
-    end do
-
-    dtozs = dtdif/(z(lmh)-z(lmh+1))
-    rkhh = rkh(lmh-1)
-
-    cf = -dtozs*rkhh/cm(lmh-1)
-
-    cmb  = cr(lmh-1)*cf
-    cmdb = -cmb+rkhh*dtozs+rho(lmh)
-
-    rsd1b = -rsd1(lmh-1)*cf+dust1(lmh)*rho(lmh)
-    rsd2b = -rsd2(lmh-1)*cf+dust2(lmh)*rho(lmh)
-
-    dust1(lmh) = rsd1b/cmdb
-    dust2(lmh) = rsd2b/cmdb
-
-    do k = lmh-1 , 1, -1
-      rcml     = d_one/cm(k)
-      dust1(k) = (-cr(k)*dust1(k+1)+rsd1(k))*rcml
-      dust2(k) = (-cr(k)*dust2(k+1)+rsd2(k))*rcml
-    end do
-  end subroutine vdifx
   !
   ! Vertical diffusion of velocity components
   !

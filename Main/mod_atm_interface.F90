@@ -569,7 +569,7 @@ module mod_atm_interface
       call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
@@ -600,7 +600,7 @@ module mod_atm_interface
       else
         call getmem4d(atm%qx,jx1,jx2,ix1,ix2,1,kz,1,nqx,'atmstate:qx')
       end if
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         call getmem3d(atm%tke,jx1,jx2,ix1,ix2,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
@@ -623,7 +623,7 @@ module mod_atm_interface
       type(atmstate_c) , intent(out) :: atm
       call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
       end if
       call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
@@ -683,7 +683,7 @@ module mod_atm_interface
                     1,kz,1,number_of_prognostic_components,'atmstate:t')
       call getmem5d(atm%qx,jci1,jci2,ici1,ici2, &
                     1,kz,1,nqx,1,number_of_prognostic_components,'atmstate:qx')
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         call getmem4d(atm%tke,jci1,jci2,ici1,ici2, &
                   1,kzp1,1,number_of_prognostic_components,'atmstate:tke')
       end if

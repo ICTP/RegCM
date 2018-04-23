@@ -47,8 +47,9 @@ module mod_cloud_guli2007
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs
     real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
     integer(ik4) :: i , j , k
-    real(rkx) :: qgkg , s10 , s100 , r10 , r100
-    real(rkx) :: cs10 , cs100 , w1 , w2 , mfcg
+    ! real(rkx) :: s10 , s100 , r10 , r100
+    ! real(rkx) :: cs10 , cs100 , w1 , w2
+    real(rkx) :: mfcg , qgkg
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction

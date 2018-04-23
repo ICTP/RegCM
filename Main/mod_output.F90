@@ -456,9 +456,11 @@ module mod_output
         end if
 #endif
 
-        if ( ibltyp == 2 ) then
+        if ( ibltyp == 2 .or. ibltyp == 4 ) then
           if ( associated(atm_tke_out) ) &
             atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
+        end if
+        if ( ibltyp == 2 ) then
           if ( associated(atm_kth_out) ) &
             atm_kth_out = uwstate%kth(jci1:jci2,ici1:ici2,1:kz)
           if ( associated(atm_kzm_out) ) &
@@ -1129,7 +1131,7 @@ module mod_output
         call grid_collect(atm2%t,atm2_t_io,jce1,jce2,ice1,ice2,1,kz)
         call grid_collect(atm2%qx,atm2_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-        if ( ibltyp == 2 ) then
+        if ( ibltyp == 2 .or. ibltyp == 4 ) then
           call grid_collect(atm1%tke,atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_collect(atm2%tke,atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)

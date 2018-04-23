@@ -83,7 +83,7 @@ module mod_pbl_uwtcm
 
   private
 
-  real(rkx) , public , parameter :: tkemin = 1.0e-3_rkx
+  real(rkx) , public , parameter :: uwtkemin = 1.0e-3_rkx
 
   ! Model constants
   ! fraction of turb layer to be considered in bbls
@@ -244,7 +244,7 @@ module mod_pbl_uwtcm
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    integer(ik4) ::  i , j , n , k , itr
+    integer(ik4) ::  i , j , k , itr
     integer(ik4) :: ilay , kpbconv , iteration
     real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
 #ifdef DEBUG
@@ -409,7 +409,7 @@ module mod_pbl_uwtcm
                  ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*d_one*sqrt(max(tkemin,tkefac*ustxsq))
+        kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -625,7 +625,7 @@ module mod_pbl_uwtcm
 
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*2*sqrt(max(tkemin,tkefac*ustxsq))
+        kh0 = vonkar*2*sqrt(max(uwtkemin,tkefac*ustxsq))
 
         ! Estimate the surface N^2 from the surface virtual heat flux
         nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
@@ -715,7 +715,7 @@ module mod_pbl_uwtcm
         call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kzm1)
         ! update the tke
         do  k = 2 , kz
-          tke(k) = max(uimp1(k-1),tkemin) ! background tke .001
+          tke(k) = max(uimp1(k-1),uwtkemin) ! background tke .001
         end do
 
 !*******************************************************************************
@@ -969,8 +969,8 @@ module mod_pbl_uwtcm
 
       ! find noncontiguous convectively unstable layers
 
-      ktop(:) = d_zero
-      kbot(:) = d_zero
+      ktop(:) = 0
+      kbot(:) = 0
       kpbconv = 0
       kpbl2dx = 0
       istabl = 1

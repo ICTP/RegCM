@@ -181,7 +181,7 @@ module mod_savefile
       call getmem3d(atm2_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm2_t_io')
       call getmem4d(atm2_qx_io,jcross1,jcross2, &
                     icross1,icross2,1,kz,1,nqx,'atm2_qx_io')
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         call getmem3d(atm1_tke_io,jcross1,jcross2, &
                       icross1,icross2,1,kzp1,'atm1_tke_io')
         call getmem3d(atm2_tke_io,jcross1,jcross2, &
@@ -232,7 +232,7 @@ module mod_savefile
       call getmem2d(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
       call getmem2d(solvl_io,jcross1,jcross2,icross1,icross2,'solvl_io')
       call getmem2d(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
       end if
       if ( idcsst == 1 ) then
@@ -368,7 +368,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read atm1_qx')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_qx'),atm2_qx_io)
       call check_ok(__FILE__,__LINE__,'Cannot read atm2_qx')
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_tke'),atm1_tke_io)
         call check_ok(__FILE__,__LINE__,'Cannot read atm1_tke')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_tke'),atm2_tke_io)
@@ -663,7 +663,7 @@ module mod_savefile
       wrkdim(4) = dimids(idnqx)
       call mydefvar(ncid,'atm1_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
       call mydefvar(ncid,'atm2_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         wrkdim(3) = dimids(idkf)
         call mydefvar(ncid,'atm1_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
         call mydefvar(ncid,'atm2_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -850,7 +850,7 @@ module mod_savefile
       call myputvar(ncid,'atm2_t',atm2_t_io,varids,ivcc)
       call myputvar(ncid,'atm1_qx',atm1_qx_io,varids,ivcc)
       call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
-      if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 .or. ibltyp == 4 ) then
         call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
         call myputvar(ncid,'atm2_tke',atm1_tke_io,varids,ivcc)
         call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
