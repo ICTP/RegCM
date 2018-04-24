@@ -211,6 +211,8 @@ module mod_clm_canopyfluxes
    ! upward longwave radiation above the canopy [W/m2]
    real(rk8), pointer :: ulrad(:)
    real(rk8), pointer :: ram1(:)    ! aerodynamical resistance (s/m)
+   real(rk8), pointer :: rah1(:)    ! thermal resistance (s/m)
+   real(rk8), pointer :: br1(:)     ! Bulk Richardson number
    real(rk8), pointer :: btran(:)   ! transpiration wetness factor (0 to 1)
    real(rk8), pointer :: btran2(:)  !F. Li and S. Levis
    real(rk8), pointer :: rssun(:)   ! sunlit stomatal resistance (s/m)
@@ -607,6 +609,8 @@ module mod_clm_canopyfluxes
    z0hv           => clm3%g%l%c%p%pps%z0hv
    z0qv           => clm3%g%l%c%p%pps%z0qv
    ram1           => clm3%g%l%c%p%pps%ram1
+   rah1           => clm3%g%l%c%p%pps%rah1
+   br1            => clm3%g%l%c%p%pps%br1
    htop           => clm3%g%l%c%p%pps%htop
    rssun          => clm3%g%l%c%p%pps%rssun
    rssha          => clm3%g%l%c%p%pps%rssha
@@ -978,7 +982,8 @@ module mod_clm_canopyfluxes
      p = filterp(f)
      c = pcolumn(p)
      ! Initialize Monin-Obukhov length and wind speed
-     call MoninObukIni(ur(p),thv(c),dthv(p),zldis(p),z0mv(p),um(p),obu(p))
+     call MoninObukIni(ur(p),thv(c),dthv(p),zldis(p), &
+                       z0mv(p),um(p),br1(p),obu(p))
    end do
 
    ! Set counter for leaf temperature iteration (itlef)
@@ -1022,6 +1027,7 @@ module mod_clm_canopyfluxes
 
        ram1(p)  = 1._rk8/(ustar(p)*ustar(p)/um(p))
        rah(p,1) = 1._rk8/(temp1(p)*ustar(p))
+       rah1(p)  = rah(p,1)
        raw(p,1) = 1._rk8/(temp2(p)*ustar(p))
 
        ! Bulk boundary layer resistance of leaves

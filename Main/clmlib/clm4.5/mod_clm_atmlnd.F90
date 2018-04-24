@@ -143,6 +143,10 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: nee
     !aerodynamical resistance (s/m)
     real(rk8) , pointer , dimension(:) :: ram1
+    !thermal resistance (s/m)
+    real(rk8) , pointer , dimension(:) :: rah1
+    !bulk Richardson number
+    real(rk8) , pointer , dimension(:) :: br1
     !friction velocity (m/s) (for dust model)
     real(rk8) , pointer , dimension(:) :: fv
     !Surface ground emissivity
@@ -301,6 +305,8 @@ end subroutine init_atm2lnd_type
     allocate(l2a%fsa(ibeg:iend))
     allocate(l2a%nee(ibeg:iend))
     allocate(l2a%ram1(ibeg:iend))
+    allocate(l2a%rah1(ibeg:iend))
+    allocate(l2a%br1(ibeg:iend))
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
     allocate(l2a%h2osoi(ibeg:iend,nlevsoi))
@@ -347,6 +353,8 @@ end subroutine init_atm2lnd_type
     l2a%fsa(ibeg:iend) = ival
     l2a%nee(ibeg:iend) = ival
     l2a%ram1(ibeg:iend) = ival
+    l2a%rah1(ibeg:iend) = ival
+    l2a%br1(ibeg:iend) = ival
     l2a%fv(ibeg:iend) = ival
     l2a%h2osoi(ibeg:iend,:) = ival
     l2a%tsoi(ibeg:iend,:) = ival
@@ -605,6 +613,16 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
                pptr%pps%ram1,clm_l2a%ram1,              &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='unity',                  &
+               l2g_scale_type='unity')
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               pptr%pps%rah1,clm_l2a%rah1,              &
+               p2c_scale_type='unity',                  &
+               c2l_scale_type='unity',                  &
+               l2g_scale_type='unity')
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg, &
+               pptr%pps%br1,clm_l2a%br1,                &
                p2c_scale_type='unity',                  &
                c2l_scale_type='unity',                  &
                l2g_scale_type='unity')

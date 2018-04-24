@@ -2911,6 +2911,8 @@ module mod_clm_urban
     real(rk8), pointer :: t_ref2m_u(:)
     real(rk8), pointer :: t_veg(:) ! vegetation temperature (K)
     real(rk8), pointer :: ram1(:)  ! aerodynamical resistance (s/m)
+    real(rk8), pointer :: rah1(:)  ! thermal resistance (s/m)
+    real(rk8), pointer :: br1(:)   ! bulk Richardson number
     ! effective fraction of roots in each soil layer
     real(rk8), pointer :: rootr(:,:)
     ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
@@ -2947,6 +2949,7 @@ module mod_clm_urban
     real(rk8) :: ustar(lbl:ubl) ! friction velocity (m/s)
     real(rk8) :: ramu(lbl:ubl)  ! aerodynamic resistance (s/m)
     real(rk8) :: rahu(lbl:ubl)  ! thermal resistance (s/m)
+    real(rk8) :: bru(lbl:ubl)   ! bulk Richardson number
     real(rk8) :: rawu(lbl:ubl)  ! moisture resistance (s/m)
     real(rk8) :: temp1(lbl:ubl) ! relation for potential temperature profile
     ! relation for potential temperature profile applied at 2-m
@@ -3153,6 +3156,8 @@ module mod_clm_urban
     pcolumn        => clm3%g%l%c%p%column
     plandunit      => clm3%g%l%c%p%landunit
     ram1           => clm3%g%l%c%p%pps%ram1
+    rah1           => clm3%g%l%c%p%pps%rah1
+    br1            => clm3%g%l%c%p%pps%br1
     dlrad          => clm3%g%l%c%p%pef%dlrad
     ulrad          => clm3%g%l%c%p%pef%ulrad
     cgrnds         => clm3%g%l%c%p%pef%cgrnds
@@ -3271,7 +3276,7 @@ module mod_clm_urban
       ! convective velocity
 
       call MoninObukIni(ur(l), thv_g(l), dthv, zldis(l), &
-                        z_0_town(l), um(l), obu(l))
+                        z_0_town(l), um(l), bru(l), obu(l))
 
     end do
 
@@ -3613,6 +3618,8 @@ module mod_clm_urban
       l = plandunit(p)
 
       ram1(p) = ramu(l)  !pass value to global variable
+      rah1(p) = rahu(l)  !pass value to global variable
+      br1(p)  = bru(l)   !pass value to global variable
 
       ! Upward and downward canopy longwave are zero
 

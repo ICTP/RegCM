@@ -27,7 +27,6 @@ module mod_pbl_gfs
   use mod_dynparam , only : ici1 , ici2 , jci1 , jci2
   use mod_runparams , only : dt , dx , nqx , ichem , iqv
   use mod_regcm_types , only : mod_2_pbl , pbl_2_mod
-  use mod_pbl_common , only : init_minisfcscheme , minisfcscheme
 
   implicit none
 
@@ -94,8 +93,6 @@ module mod_pbl_gfs
       call getmem1d(evap,1,iblp,'mod_pbl_gfs:evap')
       call getmem1d(stress,1,iblp,'mod_pbl_gfs:stress')
 
-      call init_minisfcscheme
-
     end subroutine init_pbl_gfs
 
     subroutine pbl_gfs(m2p,p2m)
@@ -105,50 +102,35 @@ module mod_pbl_gfs
 
       integer(ik4) :: i , j , k , kk , km , n
       integer(ik4) :: iq , it , iit , ldm
-      real(rkx) :: tvcon , zo , gz1oz0
+      real(rkx) :: tvcon
       real(rkx) :: ps , psim , psih , tsk
-      real(rkx) :: za , ta , qa , pa , ua , va , tha , rhoa
+      real(rkx) :: ta , qa , pa , ua , va
       real(rkx) :: rrhox , hf , qf , cpm
-      real(rkx) :: wspd0 , udrag , z0 , br
+      real(rkx) :: wspd0
 
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          za = m2p%za(j,i,kz)
+          ua = m2p%uxatm(j,i,kz)
+          va = m2p%vxatm(j,i,kz)
           ta = m2p%tatm(j,i,kz)
           qa = m2p%qxatm(j,i,kz,iqv)
           ps = m2p%patmf(j,i,kzp1)
           pa = m2p%patm(j,i,kz)
-          ua = m2p%uxatm(j,i,kz)
-          va = m2p%vxatm(j,i,kz)
-          tha = m2p%thatm(j,i,kz)
-          rhoa = m2p%rhox2d(j,i)
+          fm(n) = m2p%akms(j,i)
+          fh(n) = m2p%akhs(j,i)
           hf = m2p%hfx(j,i)
           qf = m2p%qfx(j,i)
-          tsk = m2p%tsk(j,i)
-          udrag = m2p%uvdrag(j,i)
-          ldm = m2p%ldmsk(j,i)
-          wspd0 = sqrt(ua*ua + va*va)
-          z0 = max(m2p%zo(j,i),1.59e-5_rkx)
-          hpbl(n) = p2m%zpbl(j,i)
+          rbsoil(n) = m2p%br(j,i)
           tvcon = d_one + ep1*qa
           rrhox = (rgas*(ta*tvcon))/pa
-          zo = min(z0,za)
-          gz1oz0 = log((za+zo)/zo)
-          cpm = cpd * (d_one + 0.8_rkx * qa)
-
-          call minisfcscheme(ta,pa,tha,za,ua,va,qa,rhoa, &
-                             ps,hf,qf,tsk,udrag,hpbl(n),z0,dx,ldm, &
-                             br,psih,psim)
-
-          fm(n) = gz1oz0 - psim
-          fh(n) = gz1oz0 - psih
           psk(n) = (ps/p00)**rovcp
+          wspd0 = sqrt(ua*ua + va*va)
           stress(n) = vonkar*vonkar*wspd0*wspd0/(fm(n)*fm(n))
+          cpm = cpd * (d_one + 0.8_rkx * qa)
           heat(n) = hf/cpm*rrhox
           evap(n) = qf*rrhox
           spd1(n) = wspd0
-          rbsoil(n) = br
           prsi(n,1) = ps*d_r1000
           phii(n,1) = d_zero
           n = n + 1

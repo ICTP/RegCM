@@ -147,8 +147,6 @@ module mod_atm_interface
 
 #ifdef CLM45
   ! real(rkx) , public , pointer , dimension(:,:) :: ustar
-  ! real(rkx) , public , pointer , dimension(:,:) :: u10m
-  ! real(rkx) , public , pointer , dimension(:,:) :: v10m
   real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dep_vels_clm
@@ -842,9 +840,13 @@ module mod_atm_interface
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
       call getmem2d(sfs%rhoa,jci1,jci2,ici1,ici2,'surf:rhoa')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
+      call getmem2d(sfs%akms,jci1,jci2,ici1,ici2,'surf:akms')
+      call getmem2d(sfs%akhs,jci1,jci2,ici1,ici2,'surf:akhs')
+      call getmem2d(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
       call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
       call getmem2d(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
-
+      call getmem2d(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
+      call getmem2d(sfs%v10m,jci1,jci2,ici1,ici2,'surf:v10m')
     end subroutine allocate_surfstate
 
     subroutine allocate_slice(ax,a0)

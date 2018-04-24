@@ -1606,7 +1606,7 @@ module mod_bdycod
         !
         ! west boundary:
         !
-        if ( bdyflow ) then
+        if ( bdyflow .and. ibltyp == 2 ) then
           if ( ma%has_bdyleft ) then
             atm1%tke(jce1,:,1) = tkemin ! West boundary
             atm2%tke(jce1,:,1) = tkemin ! West boundary

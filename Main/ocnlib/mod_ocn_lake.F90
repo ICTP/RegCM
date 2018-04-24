@@ -203,7 +203,7 @@ module mod_ocn_lake
     real(rkx) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
     real(rkx) :: cdrx , clead , dela , dela0 , delq , dels , delt
     real(rkx) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
-    real(rkx) :: rib , ribd , ribl , ribn , scrat , tage , tgrnd
+    real(rkx) :: ribd , ribl , ribn , scrat , tage , tgrnd
     real(rkx) :: sold , vspda , u1
     real(rkx) , dimension(ndpmax) :: tp
 
@@ -260,14 +260,16 @@ module mod_ocn_lake
         vspda = sqrt(ribd)
         cdrn = (vonkar/log(ht(i)/zoce))**2
         ribn = ht(i)*egrav*(delt/sts(i))
-        rib = ribn/ribd
-        if ( rib < d_zero ) then
-          cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
+        br(i) = ribn/ribd
+        if ( br(i) < d_zero ) then
+          cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
         else
-          cdrx = cdrn/(d_one+11.5_rkx*rib)
+          cdrx = cdrn/(d_one+11.5_rkx*br(i))
         end if
         cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
         if ( cdrx < cdrmin ) cdrx = cdrmin
+        akhs(i) = d_one/cdrx
+        akms(i) = d_one/cdrx
         drag(i) = cdrx*vspda*rhox(i)
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
@@ -308,11 +310,11 @@ module mod_ocn_lake
         ribd = usw(i)**2 + vsw(i)**2 + u1**2
         vspda = sqrt(ribd)
         ribn = ht(i)*egrav*(delt/sts(i))
-        rib = ribn/ribd
-        if ( rib < d_zero ) then
-          cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
+        br(i) = ribn/ribd
+        if ( br(i) < d_zero ) then
+          cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
         else
-          cdr = cdrn/(d_one+11.5_rkx*rib)
+          cdr = cdrn/(d_one+11.5_rkx*br(i))
         end if
         cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
         if ( cdr < cdrmin ) cdr = cdrmin
@@ -323,9 +325,11 @@ module mod_ocn_lake
         if ( ribl < d_zero ) then
           clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
         else
-          clead = cdrn/(d_one+11.5_rkx*rib)
+          clead = cdrn/(d_one+11.5_rkx*br(i))
         end if
         cdrx = (d_one-aarea)*cdr + aarea*clead
+        akhs(i) = d_one/cdrx
+        akms(i) = d_one/cdrx
         drag(i) = cdrx*vspda*rhox(i)
         qice = 3.3e-3_rkx * stdp/sfps(i)
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx

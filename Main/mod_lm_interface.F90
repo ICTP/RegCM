@@ -117,6 +117,9 @@ module mod_lm_interface
     call getmem3d(lms%t2m,1,nnsg,jci1,jci2,ici1,ici2,'lm:t2m')
     call getmem3d(lms%u10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:u10m')
     call getmem3d(lms%v10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:v10m')
+    call getmem3d(lms%akms,1,nnsg,jci1,jci2,ici1,ici2,'lm:akms')
+    call getmem3d(lms%akhs,1,nnsg,jci1,jci2,ici1,ici2,'lm:akhs')
+    call getmem3d(lms%br,1,nnsg,jci1,jci2,ici1,ici2,'lm:br')
     call getmem3d(lms%taux,1,nnsg,jci1,jci2,ici1,ici2,'lm:taux')
     call getmem3d(lms%tauy,1,nnsg,jci1,jci2,ici1,ici2,'lm:tauy')
     call getmem3d(lms%wt,1,nnsg,jci1,jci2,ici1,ici2,'lm:wt')
@@ -346,6 +349,11 @@ module mod_lm_interface
     call assignpnt(sfs%tgbb,lm%tgbb)
     call assignpnt(sfs%tga,lm%tground1)
     call assignpnt(sfs%tgb,lm%tground2)
+    call assignpnt(sfs%u10m,lm%u10m)
+    call assignpnt(sfs%v10m,lm%v10m)
+    call assignpnt(sfs%akms,lm%akms)
+    call assignpnt(sfs%akhs,lm%akhs)
+    call assignpnt(sfs%br,lm%br)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
     call assignpnt(pptnc,lm%ncprate)
@@ -540,6 +548,11 @@ module mod_lm_interface
     lm%qfx = sum(lms%evpr,1)*rdnnsg
     lm%uvdrag = sum(lms%drag,1)*rdnnsg
     lm%ustar = sum(lms%ustar,1)*rdnnsg
+    lm%u10m = sum(lms%u10m,1)*rdnnsg
+    lm%v10m = sum(lms%v10m,1)*rdnnsg
+    lm%akms = sum(lms%akms,1)*rdnnsg
+    lm%akhs = sum(lms%akhs,1)*rdnnsg
+    lm%br = sum(lms%br,1)*rdnnsg
     lm%w10m = sum(lms%w10m,1)*rdnnsg
     lm%zo = sum(lms%zo,1)*rdnnsg
     lm%rhoa = sum(lms%rhoa,1)*rdnnsg
@@ -648,8 +661,8 @@ module mod_lm_interface
         expfie%lhfx(j,i) = sum(lms%evpr(:,j,i)*wlh(lms%tgrd(:,j,i)))
         expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
         expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
-        expfie%wndu(j,i) = sum(lms%u10m(:,j,i))*rdnnsg
-        expfie%wndv(j,i) = sum(lms%v10m(:,j,i))*rdnnsg
+        expfie%wndu(j,i) = lm%u10m(j,i)
+        expfie%wndv(j,i) = lm%v10m(j,i)
         expfie%taux(j,i) = sum(lms%taux(:,j,i))*rdnnsg
         expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
         expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
@@ -939,7 +952,7 @@ module mod_lm_interface
               es = pfesat(tas)
               qs = pfwsat(tas,ps,es)
               qas = sum(lms%q2m(:,j,i))*rdnnsg
-              uas = sum(sqrt(lms%u10m(:,j,i)**2+lms%v10m(:,j,i)**2))*rdnnsg
+              uas = sqrt(lm%u10m(j,i)**2+lm%v10m(j,i)**2)
               rh = min(max((qas/qs),d_zero),d_one)
               desdt = pfesdt(tas)
               lat = lm%xlat(j,i) * degrad
@@ -974,7 +987,7 @@ module mod_lm_interface
           sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(lms%t2m,1)*rdnnsg
         if ( associated(sts_w10max_out) ) &
           sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
-            sqrt(sum((lms%u10m**2+lms%v10m**2),1)*rdnnsg))
+            sqrt(lm%u10m**2+lm%v10m**2))
         if ( associated(sts_pcpmax_out) ) &
           sts_pcpmax_out = max(sts_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
         if ( associated(sts_pcpavg_out) ) &
@@ -1068,9 +1081,9 @@ module mod_lm_interface
           srf_rh2m_out = srf_rh2m_out * rdnnsg
         end if
         if ( associated(srf_u10m_out) ) &
-          srf_u10m_out(:,:,1) = sum(lms%u10m,1)*rdnnsg
+          srf_u10m_out(:,:,1) = lm%u10m
         if ( associated(srf_v10m_out) ) &
-          srf_v10m_out(:,:,1) = sum(lms%v10m,1)*rdnnsg
+          srf_v10m_out(:,:,1) = lm%v10m
         if ( associated(srf_smw_out) ) then
           do n = 1 , num_soil_layers
             where ( lm%ldmsk > 0 )

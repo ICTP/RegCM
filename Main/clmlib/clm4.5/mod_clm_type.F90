@@ -263,8 +263,12 @@ module mod_clm_type
     real(rk8) , pointer , dimension(:) :: u10_clm
     !atmospheric wind speed plus convective velocity (m/s)
     real(rk8) , pointer , dimension(:) :: va
+    !Bulk Richardson number
+    real(rk8) , pointer , dimension(:) :: br1
     !aerodynamical resistance (s/m)
     real(rk8) , pointer , dimension(:) :: ram1
+    !Thermal resistance (s/m)
+    real(rk8) , pointer , dimension(:) :: rah1
     !aerodynamical resistance (s/m)
     real(rk8) , pointer , dimension(:) :: ram1_lake
     ! crop burn date

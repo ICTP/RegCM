@@ -465,6 +465,11 @@ module mod_bats_common
       call l2c_ss(lndcomm,srnof,lms%srnof)
       call l2c_ss(lndcomm,drag,lms%drag)
       call l2c_ss(lndcomm,sm,lms%snwm)
+      call l2c_ss(lndcomm,rib,lms%br)
+      call l2c_ss(lndcomm,cgrnds,lms%akhs)
+      call l2c_ss(lndcomm,cdrx,lms%akms)
+      lms%akhs = d_one/lms%akhs
+      lms%akms = d_one/lms%akms
 
       do i = ilndbeg , ilndend
         fracv = sigf(i)

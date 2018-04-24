@@ -641,7 +641,7 @@ module mod_clm_frictionvelocity
   ! of sea surface fluxes using TOGA CORE and TAO data. J. Climate,
   ! Vol. 11, 2628-2644.
   !
-  subroutine MoninObukIni (ur, thv, dthv, zldis, z0m, um, obu)
+  subroutine MoninObukIni (ur, thv, dthv, zldis, z0m, um, rib, obu)
     implicit none
     ! wind speed at reference height [m/s]
     real(rk8), intent(in)  :: ur
@@ -655,11 +655,12 @@ module mod_clm_frictionvelocity
     real(rk8), intent(in)  :: z0m
     ! wind speed including the stability effect [m/s]
     real(rk8), intent(out) :: um
+    ! bulk Richardson number
+    real(rk8) , intent(out) :: rib
     ! monin-obukhov length (m)
     real(rk8), intent(out) :: obu
 
     real(rk8) :: wc    ! convective velocity [m/s]
-    real(rk8) :: rib   ! bulk Richardson number
     real(rk8) :: zeta  ! dimensionless height used in Monin-Obukhov theory
     real(rk8) :: ustar ! friction velocity [m/s]
 

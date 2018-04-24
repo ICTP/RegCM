@@ -39,7 +39,6 @@ module mod_pbl_myj
   use mod_memutil
   use mod_regcm_types
   use mod_runparams
-  use mod_pbl_common , only : init_minisfcscheme , minisfcscheme
 
   implicit none
 
@@ -183,7 +182,6 @@ module mod_pbl_myj
   subroutine init_myjpbl
     implicit none
     nspec = 1 + nqx + ntr
-    call init_minisfcscheme
   end subroutine init_myjpbl
 
   subroutine myjpbl(m2p,p2m)
@@ -192,18 +190,17 @@ module mod_pbl_myj
     type(pbl_2_mod) , intent(inout) :: p2m
     !
     ! nspec is the number of mass species to be vertically mixed
-    ! It is assumed that cloud water is always being passed into the scheme.
     !
     integer(ik4) :: i , j , k , lmh , ldm , lmxl , nums , nsp
     real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
           dtturbl , exnsfc , psfc , qold , ratiomx ,    &
           rdtturbl , thnew , thold , tx , &
-          exner , ustar , us , vs , drag , qsfc , thsk , ct
-    real(rkx) :: tvcon , zo , gz1oz0 , hpbl
+          exner , ustar , qsfc , thsk , ct
+    real(rkx) :: zo , gz1oz0 , hpbl
     real(rkx) :: ps , psim , psih , tsk
     real(rkx) :: za , ta , qa , pa , ua , va , tha , rhoa
-    real(rkx) :: rrhox , hf , qf , cpm
-    real(rkx) :: wspd0 , udrag , z0 , br
+    real(rkx) :: hf , qf
+    real(rkx) :: udrag , z0 , br , wspd0
     real(rkx) :: akhs , akms , uz0 , vz0
     real(rkx) , dimension(nspec) :: clow , cts , sz0
     real(rkx) , dimension(kz) :: cwmk , pk , q2k , qk , thek ,&
@@ -258,39 +255,14 @@ module mod_pbl_myj
         !
         lmh = kz
         !
+        ! Transfer
+        !
+        akms = m2p%akms(j,i)
+        akhs = m2p%akhs(j,i)
+        !
         ! Fill 1-d vertical arrays: myj scheme counts downward from
         ! the domain's top
         !
-        za = m2p%za(j,i,kz)
-        ta = m2p%tatm(j,i,kz)
-        qa = m2p%qxatm(j,i,kz,iqv)
-        ps = m2p%patmf(j,i,kzp1)
-        pa = m2p%patm(j,i,kz)
-        ua = m2p%uxatm(j,i,kz)
-        va = m2p%vxatm(j,i,kz)
-        tha = m2p%thatm(j,i,kz)
-        rhoa = m2p%rhox2d(j,i)
-        hf = m2p%hfx(j,i)
-        qf = m2p%qfx(j,i)
-        tsk = m2p%tsk(j,i)
-        udrag = m2p%uvdrag(j,i)
-        ldm = m2p%ldmsk(j,i)
-        wspd0 = sqrt(ua*ua + va*va)
-        z0 = max(m2p%zo(j,i),1.59e-5_rkx)
-        hpbl = p2m%zpbl(j,i)
-        tvcon = d_one + ep1*qa
-        rrhox = (rgas*(ta*tvcon))/pa
-        zo = min(z0,za)
-        gz1oz0 = log((za+zo)/zo)
-        cpm = cpd * (d_one + 0.8_rkx * qa)
-
-        call minisfcscheme(ta,pa,tha,za,ua,va,qa,rhoa, &
-                           ps,hf,qf,tsk,udrag,hpbl,z0,dx,ldm, &
-                           br,psih,psim)
-
-        akms = gz1oz0 - psim
-        akhs = gz1oz0 - psih
-
         do k = 1 , kz
           zhk(k) = zint(j,i,k)
           tk(k) = m2p%tatm(j,i,k)
@@ -310,10 +282,8 @@ module mod_pbl_myj
           !
         end do
         zhk(kzp1) = zint(j,i,kzp1)
-        us = max(uk(kz),0.1_rkx)
-        vs = max(vk(kz),0.1_rkx)
-        drag = m2p%uvdrag(j,i)
-        ustar = sqrt(sqrt((us*drag)**2+(vs*drag)**2)/m2p%rhox2d(j,i))
+        wspd0 = sqrt(uk(kz)*uk(kz)+vk(kz)*vk(kz))
+        ustar = sqrt(vonkar*vonkar*wspd0*wspd0/(akms*akms))
         !
         ! Find the mixing length
         !
@@ -391,8 +361,9 @@ module mod_pbl_myj
 
         psfc = m2p%patmf(j,i,kzp1)
         exnsfc = (p00/psfc)**rovcp
+
         ! Convert surface sensible temperature to potential temperature.
-        thsk = m2p%tsk(j,i)*(p00/psfc)**rovcp
+        thsk = m2p%tsk(j,i)*exnsfc
         qsfc = pq0sea/psfc*exp(a2*(thsk-a3*exnsfc)/(thsk-a4*exnsfc))
 
         sz0(1) = thsk
@@ -470,8 +441,8 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of velocity components
         !
-        uz0 = d_half * uk(kz)
-        vz0 = d_half * vk(kz)
+        uz0 = d_zero
+        vz0 = d_zero
         call vdifv(lmh,dtdif,uz0,vz0,akms_dens,uk,vk,akmk,zhk,rhok)
         !
         ! compute primary variable tendencies

@@ -249,8 +249,13 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: tgbb
     real(rkx) , pointer , dimension(:,:) :: uvdrag
     real(rkx) , pointer , dimension(:,:) :: ustar
+    real(rkx) , pointer , dimension(:,:) :: u10m
+    real(rkx) , pointer , dimension(:,:) :: v10m
     real(rkx) , pointer , dimension(:,:) :: w10m
     real(rkx) , pointer , dimension(:,:) :: zo
+    real(rkx) , pointer , dimension(:,:) :: akms
+    real(rkx) , pointer , dimension(:,:) :: akhs
+    real(rkx) , pointer , dimension(:,:) :: br
     real(rkx) , pointer , dimension(:,:) :: rhoa
   end type surfstate
 
@@ -377,6 +382,9 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: t2m
     real(rkx) , pointer , dimension(:,:,:) :: u10m
     real(rkx) , pointer , dimension(:,:,:) :: v10m
+    real(rkx) , pointer , dimension(:,:,:) :: akms
+    real(rkx) , pointer , dimension(:,:,:) :: akhs
+    real(rkx) , pointer , dimension(:,:,:) :: br
     real(rkx) , pointer , dimension(:,:,:) :: taux
     real(rkx) , pointer , dimension(:,:,:) :: tauy
     real(rkx) , pointer , dimension(:,:,:) :: swalb
@@ -454,6 +462,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: sfta        ! atms%ts2d
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
     real(rkx) , pointer , dimension(:,:) :: tgbb        ! sfs%tgbb
+    real(rkx) , pointer , dimension(:,:) :: akms        ! sfs%akms
+    real(rkx) , pointer , dimension(:,:) :: akhs        ! sfs%akhs
+    real(rkx) , pointer , dimension(:,:) :: br          ! sfs%br
+    real(rkx) , pointer , dimension(:,:) :: u10m        ! sfs%u10m
+    real(rkx) , pointer , dimension(:,:) :: v10m        ! sfs%v10m
     real(rkx) , pointer , dimension(:,:) :: rhox        ! rhox2d
     real(rkx) , pointer , dimension(:,:) :: rswf        ! fsw
     real(rkx) , pointer , dimension(:,:) :: rlwf        ! flw
@@ -602,6 +615,9 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
     real(rkx) , pointer , dimension(:,:) :: zo          ! sfs%zo
+    real(rkx) , pointer , dimension(:,:) :: akms        ! sfs%akms
+    real(rkx) , pointer , dimension(:,:) :: akhs        ! sfs%akhs
+    real(rkx) , pointer , dimension(:,:) :: br          ! sfs%br
     real(rkx) , pointer , dimension(:,:,:) :: uxatm     ! atms%ubx3d
     real(rkx) , pointer , dimension(:,:,:) :: vxatm     ! atms%vbx3d
     real(rkx) , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d

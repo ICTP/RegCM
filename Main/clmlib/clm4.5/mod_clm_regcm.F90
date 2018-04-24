@@ -457,6 +457,9 @@ module mod_clm_regcm
 
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
+    call glb_l2c_ss(lndcomm,clm_l2a%ram1,lms%akms)
+    call glb_l2c_ss(lndcomm,clm_l2a%rah1,lms%akhs)
+    call glb_l2c_ss(lndcomm,clm_l2a%br1,lms%br)
     clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2) / &
                    clm_a2l%forc_wind
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
@@ -570,7 +573,6 @@ module mod_clm_regcm
     !clm_l2a%eflx_lwrad_out
     !clm_l2a%fsa
     !clm_l2a%nee
-    !clm_l2a%ram1
     !clm_l2a%rofliq
     !clm_l2a%rofice
     !clm_l2a%flxdst

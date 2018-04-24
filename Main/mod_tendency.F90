@@ -1547,10 +1547,12 @@ module mod_tendency
         call diffu_x(chidyn,atms%chib3d,1,ntr,d_one)
         if ( ichdiag > 0 ) call ten2diag(aten%chi,cdifhdiag,pc_dynamic,chiten0)
       end if
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         ! Calculate the horizontal, diffusive tendency for TKE
         ! Here TKE is decoupled , we can pass atm2.
         call diffu_x(tkedyn,atm2%tke,nuk)
+      else if ( ibltyp == 4 ) then
+        call diffu_x(tkedyn,atm2%tke,d_one)
       end if
 #ifdef DEBUG
       call check_wind_tendency('DIFF',pc_dynamic)

@@ -802,6 +802,12 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'UNSUPPORTED PBL SCHEME.')
       end if
+#ifdef CLM
+      if ( ibltyp > 2 ) then
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED PBL SCHEME FOR CLM 3.5')
+      end if
+#endif
       if ( ibltyp == 1 ) then
         rewind(ipunit)
         read (ipunit, nml=holtslagparam, iostat=iretval, err=114)

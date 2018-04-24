@@ -130,6 +130,10 @@ module mod_clm_slakefluxes
     real(rk8), pointer :: tauy(:)
     ! aerodynamical resistance (s/m)
     real(rk8), pointer :: ram1(:)
+    ! bulk Richardson number
+    real(rk8), pointer :: br1(:)
+    ! thermal resistance (s/m)
+    real(rk8), pointer :: rah1(:)
     ! aerodynamical resistance (s/m)
     real(rk8), pointer :: ram1_lake(:)
     ! Ground emissivity
@@ -318,6 +322,8 @@ module mod_clm_slakefluxes
     eflx_sh_grnd   => clm3%g%l%c%p%pef%eflx_sh_grnd
     eflx_sh_tot    => clm3%g%l%c%p%pef%eflx_sh_tot
     ram1           => clm3%g%l%c%p%pps%ram1
+    rah1           => clm3%g%l%c%p%pps%rah1
+    br1            => clm3%g%l%c%p%pps%br1
     ram1_lake      => clm3%g%l%c%p%pps%ram1_lake
     taux           => clm3%g%l%c%p%pmf%taux
     tauy           => clm3%g%l%c%p%pmf%tauy
@@ -473,7 +479,7 @@ module mod_clm_slakefluxes
 
       ! Initialize Monin-Obukhov length and wind speed
 
-      call MoninObukIni(ur(p), thv(c), dthv, zldis(p), z0mg(p), um(p), obu(p))
+      call MoninObukIni(ur(p),thv(c),dthv,zldis(p),z0mg(p),um(p),br1(p),obu(p))
 
     end do
 
@@ -528,6 +534,7 @@ module mod_clm_slakefluxes
         lake_raw(c) = raw(p) ! Pass out for calculating ground ch4 conductance
 #endif
         ram1(p) = ram(p)   !pass value to global variable
+        rah1(p) = rah(p)   !pass value to global variable
         ram1_lake(p) = ram1(p) ! for history
 
         ! Get derivative of fluxes with respect to ground temperature

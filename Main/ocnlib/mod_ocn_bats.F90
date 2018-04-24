@@ -68,14 +68,16 @@ module mod_ocn_bats
       vspda = sqrt(ribd)
       cdrn = (vonkar/log(ht(i)/zoce))**2
       ribn = ht(i)*egrav*(d_one - tgrd(i)/sts(i))
-      rib = ribn/ribd
-      if ( rib < d_zero ) then
-        cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
+      br(i) = ribn/ribd
+      if ( br(i) < d_zero ) then
+        cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
       else
-        cdrx = cdrn/(d_one+11.5_rkx*rib)
+        cdrx = cdrn/(d_one+11.5_rkx*br(i))
       end if
       cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
       if ( cdrx < cdrmin ) cdrx = cdrmin
+      akms(i) = d_one/cdrx
+      akhs(i) = d_one/cdrx
       drag(i) = cdrx*sqrt(ribd)*rhox(i)
       ustr(i) = sqrt((vspda*drag(i))/rhox(i))
       zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
@@ -106,7 +108,7 @@ module mod_ocn_bats
   subroutine seaice
     implicit none
     real(rkx) :: age , scrat , u1 , ribd
-    real(rkx) :: cdrn , rib , cdr , qgrd
+    real(rkx) :: cdrn , cdr , qgrd
     real(rkx) :: ps , qs , delq , delt , rhosw , ribl
     real(rkx) :: bb , fact , fss , hrl , hs , hsl
     real(rkx) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
@@ -178,11 +180,11 @@ module mod_ocn_bats
       ribd = usw(i)**2 + vsw(i)**2 + u1**2
       vspda = sqrt(ribd)
       ribn = ht(i)*egrav*(delt/sts(i))
-      rib = ribn/ribd
-      if ( rib < d_zero ) then
-        cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*rib))
+      br(i) = ribn/ribd
+      if ( br(i) < d_zero ) then
+        cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
       else
-        cdr = cdrn/(d_one+11.5_rkx*rib)
+        cdr = cdrn/(d_one+11.5_rkx*br(i))
       end if
       cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
       if ( cdr < cdrmin ) cdr = cdrmin
@@ -195,9 +197,11 @@ module mod_ocn_bats
       if ( ribl < d_zero ) then
         clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
       else
-        clead = cdrn/(d_one+11.5_rkx*rib)
+        clead = cdrn/(d_one+11.5_rkx*br(i))
       end if
       cdrx = (d_one-aarea)*cdr + aarea*clead
+      akms(i) = d_one/cdrx
+      akhs(i) = d_one/cdrx
       drag(i) = cdrx*vspda*rhox(i)
       ustr(i) = sqrt((vspda*drag(i))/rhox(i))
       zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)

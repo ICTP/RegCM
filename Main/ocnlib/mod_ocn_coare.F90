@@ -49,7 +49,7 @@ module mod_ocn_coare
       real(rkx) :: zu , zt , zq , zi , du , dt , dq , ut , dter
       real(rkx) :: ug , zogs , u10 , cdhg , zo10 , zot10
       real(rkx) :: usr , qsr , tsr , zetu , l10 , wetc , zet
-      real(rkx) :: cd10 , ch10 , ct10 , cc , cd , ct , ribcu , ribu
+      real(rkx) :: cd10 , ch10 , ct10 , cc , cd , ct , ribcu
       real(rkx) :: rr , rt , rq , zo , zot , zoq , dels , bigc , Al
       real(rkx) :: l , Bf , tkt , qout , qcol , alq , xlamx , dqer
       real(rkx) :: le , visa , rhoa , cpv , Rns , Rnl
@@ -193,13 +193,13 @@ module mod_ocn_coare
         ct = vonkar/log(zt/zot10)
         cc = vonkar*ct/cd
         ribcu = -zu/zi/0.004_rkx/beta**3
-        ribu = -egrav*zu/ta*((dt-dter)+ep1*ta*dq)/ut**2
+        br(i) = -egrav*zu/ta*((dt-dter)+ep1*ta*dq)/ut**2
 
         niter = 3
-        if (ribu < 0.0_rkx) then
-          zetu = cc*ribu/(1.0_rkx+ribu/ribcu) ! unstable
+        if ( br(i) < 0.0_rkx ) then
+          zetu = cc*br(i)/(1.0_rkx+br(i)/ribcu) ! unstable
         else
-          zetu = cc*ribu*(1.0_rkx+3.0_rkx*ribu/cc) ! stable
+          zetu = cc*br(i)*(1.0_rkx+3.0_rkx*br(i)/cc) ! stable
         end if
         l10 = zu/zetu
         if (zetu > 50.0) niter = 1
@@ -276,8 +276,10 @@ module mod_ocn_coare
           zoq = rq*visa/usr
 
           ! update scaling params
-          usr = ut*vonkar/(log(zu/zo)-psiuo(zu/L))
-          tsr = -(dt-dter)*vonkar*fdg/(log(zt/zot)-psit(zt/L))
+          akms(i) = (log(zu/zo)-psiuo(zu/L))
+          akhs(i) = (log(zt/zot)-psit(zt/L))
+          usr = ut*vonkar/akms(i)
+          tsr = -(dt-dter)*vonkar*fdg/akhs(i)
           qsr = -(dq-wetc*dter)*vonkar*fdg/(log(zq/zoq)-psit(zq/L))
 
           ! compute gustiness in wind speed

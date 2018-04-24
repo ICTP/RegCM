@@ -76,7 +76,7 @@ module mod_ocn_zeng
     implicit none
     real(rkx) :: dqh , dth , facttq , lh , q995 , qs , sh , zo , &
                  t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
-    real(rkx) :: dthv , hq , zh , hu , obu , qstar , rb , xdens ,   &
+    real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,   &
                  th , thv , thvstar , tstar , um , visa , zot ,     &
                  xlv , wc , zeta , zoq , wt1 , wt2 , rhp , twbulb , &
                  pcpcool
@@ -184,12 +184,12 @@ module mod_ocn_zeng
           ustar = vonkar*um/log(hu/zo)
         end if
       end do
-      rb = egrav*hu*dthv/(thv*um*um)
-      if ( rb >= d_zero ) then       ! neutral or stable
-        zeta = rb*log(hu/zo)/(d_one-d_five*min(rb,0.19_rkx))
+      br(i) = egrav*hu*dthv/(thv*um*um)
+      if ( br(i) >= d_zero ) then       ! neutral or stable
+        zeta = br(i)*log(hu/zo)/(d_one-d_five*min(br(i),0.19_rkx))
         zeta = min(d_two,max(zeta,minz))
       else                           ! unstable
-        zeta = rb*log(hu/zo)
+        zeta = br(i)*log(hu/zo)
         zeta = max(-d_100,min(zeta,-minz))
       end if
       obu = hu/zeta
@@ -205,33 +205,34 @@ module mod_ocn_zeng
         if ( flag2 ) then
           zeta = hu/obu
           if ( zeta < -zetam ) then      ! zeta < -1
-            ustar = vonkar*um/(log(-zetam*obu/zo)-psi(1,-zetam)+ &
+            akms(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
                     psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
           else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-            ustar = vonkar*um/(log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
+            akms(i) = (log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
           else if ( zeta <= d_one ) then !  0 <= zeta <= 1
-            ustar = vonkar*um/(log(hu/zo) + d_five*zeta-d_five*zo/obu)
+            akms(i) = (log(hu/zo) + d_five*zeta-d_five*zo/obu)
           else                           !  1 < zeta, phi=5+zeta
-            ustar = vonkar*um/(log(obu/zo)+d_five-d_five*zo/obu+  &
-                    (d_five*log(zeta)+zeta-d_one))
+            akms(i) = (log(obu/zo)+d_five-d_five*zo/obu+  &
+                        (d_five*log(zeta)+zeta-d_one))
           end if
+          ustar = vonkar*um/akms(i)
         end if
         !
         ! temperature
         !
         zeta = zh/obu
         if ( zeta < -zetat ) then      ! zeta < -1
-          tstar = vonkar*dth/ &
-                  (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
+          akhs(i) = (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
                     0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-          tstar = vonkar*dth/(log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
+          akhs(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
         else if ( zeta <= d_one ) then !  0 <= ztea <= 1
-          tstar = vonkar*dth/(log(zh/zot) + d_five*zeta-d_five*zot/obu)
+          akhs(i) = (log(zh/zot) + d_five*zeta-d_five*zot/obu)
         else                           !  1 < zeta, phi=5+zeta
-          tstar = vonkar*dth/(log(obu/zot) + d_five-d_five*zot/obu+ &
+          akhs(i) = (log(obu/zot) + d_five-d_five*zot/obu+ &
                   (d_five*log(zeta)+zeta-d_one))
         end if
+        tstar = vonkar*dth/akhs(i)
         !
         ! humidity
         !

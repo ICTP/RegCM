@@ -161,6 +161,8 @@ module mod_clm_baregroundfluxes
     real(rk8), pointer :: rssun(:)   ! sunlit stomatal resistance (s/m)
     real(rk8), pointer :: rssha(:)   ! shaded stomatal resistance (s/m)
     real(rk8), pointer :: ram1(:)    ! aerodynamical resistance (s/m)
+    real(rk8), pointer :: rah1(:)    ! thermal resistance (s/m)
+    real(rk8), pointer :: br1(:)     ! Richardson bulk number
     real(rk8), pointer :: fpsn(:)    ! photosynthesis (umol CO2 /m**2 /s)
     ! Rubisco-limited photosynthesis (umol CO2 /m**2 /s)
     real(rk8), pointer :: fpsn_wc(:)
@@ -272,6 +274,8 @@ module mod_clm_baregroundfluxes
     beta   => clm3%g%l%c%cps%beta
     zii    => clm3%g%l%c%cps%zii
     ram1   => clm3%g%l%c%p%pps%ram1
+    rah1   => clm3%g%l%c%p%pps%rah1
+    br1    => clm3%g%l%c%p%pps%br1
     cgrnds => clm3%g%l%c%p%pef%cgrnds
     cgrndl => clm3%g%l%c%p%pef%cgrndl
     cgrnd  => clm3%g%l%c%p%pef%cgrnd
@@ -361,7 +365,8 @@ module mod_clm_baregroundfluxes
 
       ! Initialize Monin-Obukhov length and wind speed
 
-      call MoninObukIni(ur(p),thv(c),dthv,zldis(p),z0mg_pft(p),um(p),obu(p))
+      call MoninObukIni(ur(p),thv(c),dthv,zldis(p), &
+                        z0mg_pft(p),um(p),br1(p),obu(p))
 
     end do
 
@@ -439,6 +444,7 @@ module mod_clm_baregroundfluxes
       end if
 
       ram1(p) = ram  !pass value to global variable
+      rah1(p) = rah  !pass value to global variable
 
       ! Output to pft-level data structures
       ! Derivative of fluxes with respect to ground temperature

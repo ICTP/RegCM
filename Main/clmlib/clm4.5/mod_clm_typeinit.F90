@@ -735,6 +735,8 @@ module mod_clm_typeinit
     allocate(pps%va(ibeg:iend))
     allocate(pps%fv(ibeg:iend))
     allocate(pps%ram1(ibeg:iend))
+    allocate(pps%rah1(ibeg:iend))
+    allocate(pps%br1(ibeg:iend))
     allocate(pps%burndate(ibeg:iend))   ! F. Li and S. Levis
     allocate(pps%ram1_lake(ibeg:iend))
     allocate(pps%rh_leaf(ibeg:iend))
@@ -863,6 +865,8 @@ module mod_clm_typeinit
     pps%va(ibeg:iend) = nan
     pps%fv(ibeg:iend) = nan
     pps%ram1(ibeg:iend) = nan
+    pps%rah1(ibeg:iend) = nan
+    pps%br1(ibeg:iend) = nan
     pps%burndate(ibeg:iend)    = ispval   ! F. Li and S. Levis
     pps%ram1_lake(ibeg:iend) = nan
     pps%rh_leaf(ibeg:iend) = spval
