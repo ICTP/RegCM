@@ -372,7 +372,7 @@ module mod_pbl_myj
           zq = fzq1*zt
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc
-          tha = tk(kz) * ape(j,i,kz)
+          tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
           thz0 = (wghtt*tha+thsk)/(wghtt+d_one)
           qz0 = wghtq*qk(kz)
         else
