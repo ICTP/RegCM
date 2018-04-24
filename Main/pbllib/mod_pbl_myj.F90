@@ -193,9 +193,9 @@ module mod_pbl_myj
     !
     integer(ik4) :: i , j , k , lmh , ldm , lmxl , nums , nsp
     real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
-          dtturbl , exnsfc , psfc , qold , ratiomx ,    &
-          rdtturbl , thnew , thold , tx , qstar , &
-          exner , qsfc , thsk , ct
+          dtturbl , exnsfc , psfc , qold , ratiomx , tsk ,     &
+          rdtturbl , thnew , thold , tx , qstar , exner ,      &
+          qsfc , thsk , ct , tha
     real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , thz0 , qz0
     real(rkx) :: akhs , akms , uz0 , vz0
     real(rkx) , dimension(nspec) :: clow , cts , sz0
@@ -236,9 +236,10 @@ module mod_pbl_myj
           exner = (m2p%patm(j,i,k)/p00)**rovcp
           ape(j,i,k) = d_one/exner
           tx = m2p%tatm(j,i,k)
+          tha = tx * ape(j,i,k)
           cwm(j,i,k) = m2p%qxatm(j,i,k,iqc)
           if ( ipptls > 1 ) cwm(j,i,k) = cwm(j,i,k)+m2p%qxatm(j,i,k,iqi)
-          the(j,i,k) = (cwm(j,i,k)*(-elocp/tx)+d_one)*m2p%thatm(j,i,k)
+          the(j,i,k) = (cwm(j,i,k)*(-elocp/tx)+d_one)*tha
         end do
       end do
     end do
@@ -361,21 +362,22 @@ module mod_pbl_myj
         exnsfc = (p00/psfc)**rovcp
         zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*m2p%ustar(j,i)*rvisc))/m2p%ustar(j,i)
         wght = akms*zu*rvisc
+        tsk = m2p%tsk(j,i)
+        thsk = tsk*exnsfc
+        qsfc = pfqsat(tsk,psfc)
 
         ! Convert surface sensible temperature to potential temperature.
-        thsk = m2p%tsk(j,i)*exnsfc
         if ( m2p%ldmsk(j,i) > 0 ) then
-          qsfc = qk(kz) + m2p%qfx(j,i)*dtturbl*akhs_dens
           zt = fzt1*zu
           zq = fzq1*zt
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc
-          thz0 = (wghtt*m2p%thatm(j,i,kz)+thsk)/(wghtt+d_one)
-          qz0 = (wghtq*qk(kz)+qsfc)/(wghtq+d_one)
+          tha = tk(kz) * ape(j,i,kz)
+          thz0 = (wghtt*tha+thsk)/(wghtt+d_one)
+          qz0 = wghtq*qk(kz)
         else
-          qsfc = pq0sea/psfc*exp(a2*(thsk-a3*exnsfc)/(thsk-a4*exnsfc))
           thz0 = thsk
-          qz0 = qsfc + m2p%qfx(j,i)*dtturbl*akhs_dens
+          qz0 = qsfc*seafc
         end if
 
         sz0(1) = thz0
@@ -465,6 +467,12 @@ module mod_pbl_myj
         end do
       end do
     end do main_integration
+
+    contains
+
+#include <pfesat.inc>
+#include <pfqsat.inc>
+
   end subroutine myjpbl
   !
   ! Level 2.5 Mixing Length
@@ -833,9 +841,9 @@ module mod_pbl_myj
   ! Vertical diffusion of mass variables
   !
   subroutine vdifh(dtdif,lmh,lpbl,sz0,rkhs,clow,cts, &
-                   species,nspec,rkh,zhk,rho)
+                   species,ns,rkh,zhk,rho)
     implicit none
-    integer(ik4) , intent(in) :: lmh , lpbl , nspec
+    integer(ik4) , intent(in) :: lmh , lpbl , ns
     real(rkx) , intent(in) :: dtdif , rkhs
     real(rkx) , dimension(nspec) , intent(in) :: clow , cts , sz0
     real(rkx) , dimension(kz-1) , intent(in) :: rkh
@@ -847,18 +855,18 @@ module mod_pbl_myj
     real(rkx) :: cf , cmb , cmsb , dtozl , dtozs , rcml , rhok ,&
       rkhh , rkhz , rkss , rssb
     real(rkx) , dimension(kzm1) :: cm , cr , dtoz
-    real(rkx) , dimension(nspec,kzm1) :: rkct , rss
+    real(rkx) , dimension(ns,kzm1) :: rkct , rss
 
     do k = 1 , lmh-1
       dtoz(k) = dtdif/(zhk(k)-zhk(k+1))
       cr(k) = -dtoz(k)*rkh(k)
       if ( k < lpbl ) then
-        do m = 1 , nspec
+        do m = 1 , ns
           rkct(m,k) = d_zero
         end do
       else
         rkhz = rkh(k)*(zhk(k)-zhk(k+2))
-        do m = 1 , nspec
+        do m = 1 , ns
           rkct(m,k) = d_half*rkhz*cts(m)
         end do
       end if
@@ -866,7 +874,7 @@ module mod_pbl_myj
     ! Top level
     rhok  = rho(1)
     cm(1) = dtoz(1)*rkh(1)+rhok
-    do m = 1 , nspec
+    do m = 1 , ns
       rss(m,1) = -rkct(m,1)*dtoz(1)+species(m,1)*rhok
     end do
     ! Intermediate levels
@@ -875,7 +883,7 @@ module mod_pbl_myj
       cf    = -dtozl*rkh(k-1)/cm(k-1)
       rhok  = rho(k)
       cm(k) = -cr(k-1)*cf+(rkh(k-1)+rkh(k))*dtozl+rhok
-      do m = 1 , nspec
+      do m = 1 , ns
         rss(m,k) = -rss(m,k-1)*cf + &
                    (rkct(m,k-1)-rkct(m,k))*dtozl+species(m,k)*rhok
       end do
@@ -886,7 +894,7 @@ module mod_pbl_myj
     cf    = -dtozs*rkhh/cm(lmh-1)
     cmb   = cr(lmh-1)*cf
     rhok  = rho(lmh)
-    do m = 1 , nspec
+    do m = 1 , ns
       rkss = rkhs*clow(m)
       cmsb = -cmb+(rkhh+rkss)*dtozs+rhok
       rssb = -rss(m,lmh-1)*cf+rkct(m,lmh-1)*dtozs+species(m,lmh)*rhok
@@ -895,7 +903,7 @@ module mod_pbl_myj
     ! Backsubstitution
     do k = lmh-1 , 1 , -1
       rcml = d_one/cm(k)
-      do m = 1 , nspec
+      do m = 1 , ns
         species(m,k) = (-cr(k)*species(m,k+1)+rss(m,k))*rcml
       end do
     end do
