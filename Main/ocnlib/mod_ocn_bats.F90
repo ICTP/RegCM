@@ -60,14 +60,14 @@ module mod_ocn_bats
       ! Compute delt and delq
       qs = qv(i)/(d_one+qv(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
-      delt = tatm(i) - tgrd(i)
+      delt = sfta(i) - tgrd(i)
       ! Specific humidities
       delq = qs - qgrd
       ! Comnpute drag coefficient over ocean
       ribd = usw(i)**2 + vsw(i)**2 + wtur**2
       vspda = sqrt(ribd)
       cdrn = (vonkar/log(ht(i)/zoce))**2
-      ribn = ht(i)*egrav*(d_one - tgrd(i)/sts(i))
+      ribn = ht(i)*egrav*(d_one - tgrd(i)/tatm(i))
       br(i) = ribn/ribd
       if ( br(i) < d_zero ) then
         cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
@@ -91,7 +91,7 @@ module mod_ocn_bats
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
-      t2m(i) = sts(i) - delt*fact
+      t2m(i) = tatm(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do
 #ifdef DEBUG
@@ -137,9 +137,9 @@ module mod_ocn_bats
       uv995 = sqrt(usw(i)**2+vsw(i)**2)
 
       ! Update Snow Cover
-      delt = sts(i) - tgrd(i)
+      delt = tatm(i) - tgrd(i)
       sold = sncv(i)
-      if ( sts(i) < tzero ) then
+      if ( tatm(i) < tzero ) then
         ps = prcp(i)
       else
         ps = d_zero
@@ -179,7 +179,7 @@ module mod_ocn_bats
       end if
       ribd = usw(i)**2 + vsw(i)**2 + u1**2
       vspda = sqrt(ribd)
-      ribn = ht(i)*egrav*(delt/sts(i))
+      ribn = ht(i)*egrav*(delt/tatm(i))
       br(i) = ribn/ribd
       if ( br(i) < d_zero ) then
         cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
@@ -193,7 +193,7 @@ module mod_ocn_bats
       rhosw = 0.10_rkx*(d_one+d_three*age)
       rhosw3 = rhosw**3
       cdrn = (vonkar/log(ht(i)/zsno))**2
-      ribl = (d_one-icetriggert/sts(i))*ht(i)*egrav/ribd
+      ribl = (d_one-icetriggert/tatm(i))*ht(i)*egrav/ribd
       if ( ribl < d_zero ) then
         clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
       else
@@ -252,14 +252,14 @@ module mod_ocn_bats
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*icetriggert)/cdrx
         fact = -drag(i)
-        delt = sts(i) - tgrnd
+        delt = tatm(i) - tgrnd
         delq = qs - qgrnd
         ! output fluxes, averaged over leads and ice
         evpr(i) = max(fact*delq,d_zero)
         sncv(i) = sncv(i) - dtocn*evpr(i)
         sent(i) = fact*cpd*delt
         hrl = rhox(i)*vspda*clead * (qice-qs)
-        hsl = rhox(i)*vspda*clead * (icetriggert-sts(i))*cpd
+        hsl = rhox(i)*vspda*clead * (icetriggert-tatm(i))*cpd
         ! get fluxes over ice for sublimation (subrout snow)
         ! and melt (below) calculation
         fseng = (sent(i)-aarea*hsl)/(d_one-aarea)
@@ -309,7 +309,7 @@ module mod_ocn_bats
       tau = xdens*ustr(i)*ustr(i)
       taux(i) = tau*(usw(i)/uv995)
       tauy(i) = tau*(vsw(i)/uv995)
-      t2m(i) = sts(i) - delt*fact
+      t2m(i) = tatm(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do
 #ifdef DEBUG

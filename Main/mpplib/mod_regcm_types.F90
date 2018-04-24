@@ -615,6 +615,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
     real(rkx) , pointer , dimension(:,:) :: zo          ! sfs%zo
+    real(rkx) , pointer , dimension(:,:) :: ustar       ! sfs%ustar
     real(rkx) , pointer , dimension(:,:) :: akms        ! sfs%akms
     real(rkx) , pointer , dimension(:,:) :: akhs        ! sfs%akhs
     real(rkx) , pointer , dimension(:,:) :: br          ! sfs%br

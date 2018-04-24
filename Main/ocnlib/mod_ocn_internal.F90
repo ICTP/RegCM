@@ -65,14 +65,15 @@ module mod_ocn_internal
   real(rkx) , pointer , dimension(:) :: scvk
   real(rkx) , pointer , dimension(:) :: sent
   real(rkx) , pointer , dimension(:) :: sfice
-  real(rkx) , pointer , dimension(:) :: sts     ! tatm
+  real(rkx) , pointer , dimension(:) :: tatm    ! tatm
   real(rkx) , pointer , dimension(:) :: sfps    ! sfps
   real(rkx) , pointer , dimension(:) :: snag
   real(rkx) , pointer , dimension(:) :: sncv
   real(rkx) , pointer , dimension(:) :: sm
   real(rkx) , pointer , dimension(:) :: sst
   real(rkx) , pointer , dimension(:) :: t2m
-  real(rkx) , pointer , dimension(:) :: tatm
+  real(rkx) , pointer , dimension(:) :: sfta
+  real(rkx) , pointer , dimension(:) :: patm
   real(rkx) , pointer , dimension(:) :: taux
   real(rkx) , pointer , dimension(:) :: tauy
   real(rkx) , pointer , dimension(:) :: tdeltas
@@ -132,9 +133,10 @@ module mod_ocn_internal
     call getmem1d(rswf,1,nocnp,'ocn_internal:rswf')
     call getmem1d(sent,1,nocnp,'ocn_internal:sent')
     call getmem1d(sfps,1,nocnp,'ocn_internal:sfps')
-    call getmem1d(sts,1,nocnp,'ocn_internal:sts')
-    call getmem1d(t2m,1,nocnp,'ocn_internal:t2m')
     call getmem1d(tatm,1,nocnp,'ocn_internal:tatm')
+    call getmem1d(t2m,1,nocnp,'ocn_internal:t2m')
+    call getmem1d(sfta,1,nocnp,'ocn_internal:sfta')
+    call getmem1d(patm,1,nocnp,'ocn_internal:patm')
     call getmem1d(taux,1,nocnp,'ocn_internal:taux')
     call getmem1d(tauy,1,nocnp,'ocn_internal:tauy')
     call getmem1d(tgb,1,nocnp,'ocn_internal:tgb')

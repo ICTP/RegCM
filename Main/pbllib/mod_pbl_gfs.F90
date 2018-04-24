@@ -106,7 +106,6 @@ module mod_pbl_gfs
       real(rkx) :: ps , psim , psih , tsk
       real(rkx) :: ta , qa , pa , ua , va
       real(rkx) :: rrhox , hf , qf , cpm
-      real(rkx) :: wspd0
 
       n = 1
       do i = ici1 , ici2
@@ -125,12 +124,11 @@ module mod_pbl_gfs
           tvcon = d_one + ep1*qa
           rrhox = (rgas*(ta*tvcon))/pa
           psk(n) = (ps/p00)**rovcp
-          wspd0 = sqrt(ua*ua + va*va)
-          stress(n) = vonkar*vonkar*wspd0*wspd0/(fm(n)*fm(n))
+          stress(n) = m2p%ustar(j,i)*m2p%ustar(j,i)
           cpm = cpd * (d_one + 0.8_rkx * qa)
           heat(n) = hf/cpm*rrhox
           evap(n) = qf*rrhox
-          spd1(n) = wspd0
+          spd1(n) = sqrt(ua*ua + va*va)
           prsi(n,1) = ps*d_r1000
           phii(n,1) = d_zero
           n = n + 1

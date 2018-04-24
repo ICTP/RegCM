@@ -110,7 +110,7 @@ module mod_ocn_albedo
         end if
       else if ( mask(i) == 2 .or. mask(i) == 4 ) then
         ! Ice over ocean or lake
-        tdiffs = sts(i) - icetriggert
+        tdiffs = tatm(i) - icetriggert
         tdiff = max(tdiffs,d_zero)
         tdiffs = min(tdiff,20.0_rkx)
         albgl = sical1 - 1.1e-2_rkx*tdiffs

@@ -223,7 +223,7 @@ module mod_ocn_lake
 
     do lp = 1 , nlakep
       i = ilp(lp)
-      tl = sts(i)
+      tl = tatm(i)
       sold = sncv(i)
       vl = sqrt(usw(i)**2+vsw(i)**2)
       zl = ht(i)
@@ -244,7 +244,7 @@ module mod_ocn_lake
       tgrd(i)  = tgl
       tgbrd(i) = tgl
       qgrd = pfqsat(tgrd(i),sfps(i))
-      delt = sts(i) - tgrd(i)
+      delt = tatm(i) - tgrd(i)
       ! Move to specific humidities
       qs = qs/(d_one+qs)
       qgrd = qgrd/(d_one+qgrd)
@@ -259,7 +259,7 @@ module mod_ocn_lake
         ribd = usw(i)**2 + vsw(i)**2 + wtur**2
         vspda = sqrt(ribd)
         cdrn = (vonkar/log(ht(i)/zoce))**2
-        ribn = ht(i)*egrav*(delt/sts(i))
+        ribn = ht(i)*egrav*(delt/tatm(i))
         br(i) = ribn/ribd
         if ( br(i) < d_zero ) then
           cdrx = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
@@ -309,7 +309,7 @@ module mod_ocn_lake
         end if
         ribd = usw(i)**2 + vsw(i)**2 + u1**2
         vspda = sqrt(ribd)
-        ribn = ht(i)*egrav*(delt/sts(i))
+        ribn = ht(i)*egrav*(delt/tatm(i))
         br(i) = ribn/ribd
         if ( br(i) < d_zero ) then
           cdr = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*br(i)))
@@ -321,7 +321,7 @@ module mod_ocn_lake
         rhosw = 0.10_rkx*(d_one+d_three*age)
         rhosw3 = rhosw**3
         cdrn = (vonkar/log(ht(i)/zsno))**2
-        ribl = (d_one-271.5_rkx/sts(i))*ht(i)*egrav/ribd
+        ribl = (d_one-271.5_rkx/tatm(i))*ht(i)*egrav/ribd
         if ( ribl < d_zero ) then
           clead = cdrn*(d_one+24.5_rkx*sqrt(-cdrn*ribl))
         else
@@ -335,7 +335,7 @@ module mod_ocn_lake
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8_rkx))/cdrx
         fact = -drag(i)
-        delt = sts(i) - tgrnd
+        delt = tatm(i) - tgrnd
         delq = qs - qgrnd
       end if
       if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
@@ -346,7 +346,7 @@ module mod_ocn_lake
       v10m(i) = vsw(i)*(d_one-factuv)
       taux(i) = dmissval
       tauy(i) = dmissval
-      t2m(i) = sts(i) - delt*fact
+      t2m(i) = tatm(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do
 

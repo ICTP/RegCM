@@ -194,13 +194,9 @@ module mod_pbl_myj
     integer(ik4) :: i , j , k , lmh , ldm , lmxl , nums , nsp
     real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
           dtturbl , exnsfc , psfc , qold , ratiomx ,    &
-          rdtturbl , thnew , thold , tx , &
-          exner , ustar , qsfc , thsk , ct
-    real(rkx) :: zo , gz1oz0 , hpbl
-    real(rkx) :: ps , psim , psih , tsk
-    real(rkx) :: za , ta , qa , pa , ua , va , tha , rhoa
-    real(rkx) :: hf , qf
-    real(rkx) :: udrag , z0 , br , wspd0
+          rdtturbl , thnew , thold , tx , qstar , &
+          exner , qsfc , thsk , ct
+    real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , thz0 , qz0
     real(rkx) :: akhs , akms , uz0 , vz0
     real(rkx) , dimension(nspec) :: clow , cts , sz0
     real(rkx) , dimension(kz) :: cwmk , pk , q2k , qk , thek ,&
@@ -257,8 +253,8 @@ module mod_pbl_myj
         !
         ! Transfer
         !
-        akms = m2p%akms(j,i)
-        akhs = m2p%akhs(j,i)
+        akms = d_one/m2p%akms(j,i)
+        akhs = d_one/m2p%akhs(j,i)
         !
         ! Fill 1-d vertical arrays: myj scheme counts downward from
         ! the domain's top
@@ -282,8 +278,6 @@ module mod_pbl_myj
           !
         end do
         zhk(kzp1) = zint(j,i,kzp1)
-        wspd0 = sqrt(uk(kz)*uk(kz)+vk(kz)*vk(kz))
-        ustar = sqrt(vonkar*vonkar*wspd0*wspd0/(akms*akms))
         !
         ! Find the mixing length
         !
@@ -292,7 +286,7 @@ module mod_pbl_myj
         !
         ! Solve for the production/dissipation of the turbulent kinetic energy
         !
-        call prodq2(lmh,dtturbl,ustar,gm,gh,el,q2k)
+        call prodq2(lmh,dtturbl,m2p%ustar(j,i),gm,gh,el,q2k)
         !
         ! Find the exchange coefficients in the free atmosphere
         !
@@ -327,6 +321,10 @@ module mod_pbl_myj
         ! Fill 1-d vertical arrays: myj scheme counts downward
         ! from the domain's top
         !
+
+        akms = d_one/m2p%akms(j,i)
+        akhs = d_one/m2p%akhs(j,i)
+
         do k = 1 , kz
           zhk(k) = zint(j,i,k)
           thek(k) = the(j,i,k)
@@ -365,9 +363,22 @@ module mod_pbl_myj
         ! Convert surface sensible temperature to potential temperature.
         thsk = m2p%tsk(j,i)*exnsfc
         qsfc = pq0sea/psfc*exp(a2*(thsk-a3*exnsfc)/(thsk-a4*exnsfc))
+        if ( m2p%ldmsk(j,i) > 0 ) then
+          zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*m2p%ustar(j,i)*rvisc))/m2p%ustar(j,i)
+          wght = akms*zu*rvisc
+          zt = fzt1*zu
+          zq = fzq1*zt
+          wghtt = akhs*zt*rtvisc
+          wghtq = akhs*zq*rqvisc
+          thz0 = (wghtt*m2p%thatm(j,i,kz)+thsk)/(wghtt+d_one)
+          qz0 = (wghtq*qk(kz)+qsfc)/(wghtq+d_one)
+        else
+          thz0 = thsk
+          qz0 = qsfc
+        end if
 
-        sz0(1) = thsk
-        sz0(2) = qsfc
+        sz0(1) = thz0
+        sz0(2) = qz0
         do nums = 3 , nspec
           sz0(nums) = d_zero
         end do

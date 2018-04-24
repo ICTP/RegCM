@@ -79,7 +79,7 @@ module mod_ocn_zeng
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,   &
                  th , thv , thvstar , tstar , um , visa , zot ,     &
                  xlv , wc , zeta , zoq , wt1 , wt2 , rhp , twbulb , &
-                 pcpcool
+                 pcpcool , tha
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
@@ -109,7 +109,7 @@ module mod_ocn_zeng
 
       uv995 = sqrt(usw(i)**2+vsw(i)**2)
       tsurf = tgrd(i) - tzero
-      t995 = sts(i) - tzero
+      t995 = tatm(i) - tzero
       q995 = qv(i)
       z995 = ht(i)
       zi = max(z995,hpbl(i))
@@ -117,8 +117,9 @@ module mod_ocn_zeng
       zh = z995
       hq = z995
       ! potential T
-      th = sts(i)*(p00/sfps(i))**rovcp
-      dth = tatm(i) - tgrd(i)
+      th = tgrd(i)*(p00/sfps(i))**rovcp
+      tha = tatm(i)*(p00/patm(i))**rovcp
+      dth = tha - th
       qs = pfwsat(tgrd(i),sfps(i))*0.98_rkx
       rhp = min(max(q995/qs,d_zero),d_one) * d_100
       ! in kg/kg

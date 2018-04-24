@@ -84,10 +84,10 @@ module mod_ocn_coare
         ! comes from coupled model
         us = 0.0_rkx ! current speed
         uv995 = sqrt(usw(i)**2+vsw(i)**2)
-        t995 = sts(i)-tzero
+        t995 = tatm(i)-tzero
         q995 = qv(i)
         z995 = ht(i)
-        ta = tatm(i)
+        ta = sfta(i)
         ! height of the atmospheric data
         zu = z995
         zt = z995

@@ -92,6 +92,7 @@ module mod_pbl_interface
     call assignpnt(sfs%akms,m2p%akms)
     call assignpnt(sfs%akhs,m2p%akhs)
     call assignpnt(sfs%br,m2p%br)
+    call assignpnt(sfs%ustar,m2p%ustar)
     call assignpnt(atms%ubx3d,m2p%uxatm)
     call assignpnt(atms%vbx3d,m2p%vxatm)
     call assignpnt(atms%ubd3d,m2p%udatm)
