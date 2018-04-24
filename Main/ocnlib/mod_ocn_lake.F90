@@ -268,8 +268,8 @@ module mod_ocn_lake
         end if
         cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
         if ( cdrx < cdrmin ) cdrx = cdrmin
-        akhs(i) = d_one/cdrx
-        akms(i) = d_one/cdrx
+        rah1(i) = d_one/cdrx
+        ram1(i) = d_one/cdrx
         drag(i) = cdrx*vspda*rhox(i)
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
@@ -328,8 +328,8 @@ module mod_ocn_lake
           clead = cdrn/(d_one+11.5_rkx*br(i))
         end if
         cdrx = (d_one-aarea)*cdr + aarea*clead
-        akhs(i) = d_one/cdrx
-        akms(i) = d_one/cdrx
+        rah1(i) = d_one/cdrx
+        ram1(i) = d_one/cdrx
         drag(i) = cdrx*vspda*rhox(i)
         qice = 3.3e-3_rkx * stdp/sfps(i)
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx

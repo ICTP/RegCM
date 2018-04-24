@@ -253,8 +253,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: v10m
     real(rkx) , pointer , dimension(:,:) :: w10m
     real(rkx) , pointer , dimension(:,:) :: zo
-    real(rkx) , pointer , dimension(:,:) :: akms
-    real(rkx) , pointer , dimension(:,:) :: akhs
+    real(rkx) , pointer , dimension(:,:) :: ram1
+    real(rkx) , pointer , dimension(:,:) :: rah1
     real(rkx) , pointer , dimension(:,:) :: br
     real(rkx) , pointer , dimension(:,:) :: rhoa
   end type surfstate
@@ -382,8 +382,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: t2m
     real(rkx) , pointer , dimension(:,:,:) :: u10m
     real(rkx) , pointer , dimension(:,:,:) :: v10m
-    real(rkx) , pointer , dimension(:,:,:) :: akms
-    real(rkx) , pointer , dimension(:,:,:) :: akhs
+    real(rkx) , pointer , dimension(:,:,:) :: ram1
+    real(rkx) , pointer , dimension(:,:,:) :: rah1
     real(rkx) , pointer , dimension(:,:,:) :: br
     real(rkx) , pointer , dimension(:,:,:) :: taux
     real(rkx) , pointer , dimension(:,:,:) :: tauy
@@ -462,8 +462,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: sfta        ! atms%ts2d
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
     real(rkx) , pointer , dimension(:,:) :: tgbb        ! sfs%tgbb
-    real(rkx) , pointer , dimension(:,:) :: akms        ! sfs%akms
-    real(rkx) , pointer , dimension(:,:) :: akhs        ! sfs%akhs
+    real(rkx) , pointer , dimension(:,:) :: ram1        ! sfs%ram1
+    real(rkx) , pointer , dimension(:,:) :: rah1        ! sfs%rah1
     real(rkx) , pointer , dimension(:,:) :: br          ! sfs%br
     real(rkx) , pointer , dimension(:,:) :: u10m        ! sfs%u10m
     real(rkx) , pointer , dimension(:,:) :: v10m        ! sfs%v10m
@@ -616,8 +616,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
     real(rkx) , pointer , dimension(:,:) :: zo          ! sfs%zo
     real(rkx) , pointer , dimension(:,:) :: ustar       ! sfs%ustar
-    real(rkx) , pointer , dimension(:,:) :: akms        ! sfs%akms
-    real(rkx) , pointer , dimension(:,:) :: akhs        ! sfs%akhs
+    real(rkx) , pointer , dimension(:,:) :: ram1        ! sfs%ram1
+    real(rkx) , pointer , dimension(:,:) :: rah1        ! sfs%rah1
     real(rkx) , pointer , dimension(:,:) :: br          ! sfs%br
     real(rkx) , pointer , dimension(:,:,:) :: uxatm     ! atms%ubx3d
     real(rkx) , pointer , dimension(:,:,:) :: vxatm     ! atms%vbx3d

@@ -76,8 +76,8 @@ module mod_ocn_bats
       end if
       cdrmin = max(0.25_rkx*cdrn,6.0e-4_rkx)
       if ( cdrx < cdrmin ) cdrx = cdrmin
-      akms(i) = d_one/cdrx
-      akhs(i) = d_one/cdrx
+      ram1(i) = d_one/cdrx
+      rah1(i) = d_one/cdrx
       drag(i) = cdrx*sqrt(ribd)*rhox(i)
       ustr(i) = sqrt((vspda*drag(i))/rhox(i))
       zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)
@@ -200,8 +200,8 @@ module mod_ocn_bats
         clead = cdrn/(d_one+11.5_rkx*br(i))
       end if
       cdrx = (d_one-aarea)*cdr + aarea*clead
-      akms(i) = d_one/cdrx
-      akhs(i) = d_one/cdrx
+      ram1(i) = d_one/cdrx
+      rah1(i) = d_one/cdrx
       drag(i) = cdrx*vspda*rhox(i)
       ustr(i) = sqrt((vspda*drag(i))/rhox(i))
       zoo(i) = 0.01_rkx*regrav*ustr(i)*ustr(i)

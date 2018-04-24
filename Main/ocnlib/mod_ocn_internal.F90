@@ -88,8 +88,8 @@ module mod_ocn_internal
   real(rkx) , pointer , dimension(:) :: ustr    ! ustar
   real(rkx) , pointer , dimension(:) :: zoo     ! zo
   real(rkx) , pointer , dimension(:) :: rhoa    ! xdens
-  real(rkx) , pointer , dimension(:) :: akms
-  real(rkx) , pointer , dimension(:) :: akhs
+  real(rkx) , pointer , dimension(:) :: ram1
+  real(rkx) , pointer , dimension(:) :: rah1
   real(rkx) , pointer , dimension(:) :: br
 
   real(rkx) , pointer , dimension(:) :: laketa
@@ -156,8 +156,8 @@ module mod_ocn_internal
     call getmem1d(ncprate,1,nocnp,'ocn_internal:ncprate')
     call getmem1d(prcp,1,nocnp,'ocn_internal:prcp')
     call getmem1d(um10,1,nocnp,'ocn_internal:um10')
-    call getmem1d(akms,1,nocnp,'ocn_internal:akms')
-    call getmem1d(akhs,1,nocnp,'ocn_internal:akhs')
+    call getmem1d(ram1,1,nocnp,'ocn_internal:ram1')
+    call getmem1d(rah1,1,nocnp,'ocn_internal:rah1')
     call getmem1d(br,1,nocnp,'ocn_internal:br')
     if ( lakemod == 1 ) llake = .true.
     if ( idcsst == 1 ) ldcsst = .true.

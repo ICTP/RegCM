@@ -276,10 +276,10 @@ module mod_ocn_coare
           zoq = rq*visa/usr
 
           ! update scaling params
-          akms(i) = (log(zu/zo)-psiuo(zu/L))
-          akhs(i) = (log(zt/zot)-psit(zt/L))
-          usr = ut*vonkar/akms(i)
-          tsr = -(dt-dter)*vonkar*fdg/akhs(i)
+          ram1(i) = (log(zu/zo)-psiuo(zu/L))
+          rah1(i) = (log(zt/zot)-psit(zt/L))
+          usr = ut*vonkar/ram1(i)
+          tsr = -(dt-dter)*vonkar*fdg/rah1(i)
           qsr = -(dq-wetc*dter)*vonkar*fdg/(log(zq/zoq)-psit(zq/L))
 
           ! compute gustiness in wind speed

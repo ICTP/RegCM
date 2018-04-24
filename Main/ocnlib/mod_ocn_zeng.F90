@@ -206,34 +206,34 @@ module mod_ocn_zeng
         if ( flag2 ) then
           zeta = hu/obu
           if ( zeta < -zetam ) then      ! zeta < -1
-            akms(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
+            ram1(i) = (log(-zetam*obu/zo)-psi(1,-zetam)+ &
                     psi(1,zo/obu)+1.14_rkx*((-zeta)**onet-(zetam)**onet))
           else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-            akms(i) = (log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
+            ram1(i) = (log(hu/zo) - psi(1,zeta)+psi(1,zo/obu))
           else if ( zeta <= d_one ) then !  0 <= zeta <= 1
-            akms(i) = (log(hu/zo) + d_five*zeta-d_five*zo/obu)
+            ram1(i) = (log(hu/zo) + d_five*zeta-d_five*zo/obu)
           else                           !  1 < zeta, phi=5+zeta
-            akms(i) = (log(obu/zo)+d_five-d_five*zo/obu+  &
+            ram1(i) = (log(obu/zo)+d_five-d_five*zo/obu+  &
                         (d_five*log(zeta)+zeta-d_one))
           end if
-          ustar = vonkar*um/akms(i)
+          ustar = vonkar*um/ram1(i)
         end if
         !
         ! temperature
         !
         zeta = zh/obu
         if ( zeta < -zetat ) then      ! zeta < -1
-          akhs(i) = (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
+          rah1(i) = (log(-zetat*obu/zot)-psi(2,-zetat)+psi(2,zot/obu)+ &
                     0.8_rkx*((zetat)**(-onet)-(-zeta)**(-onet)))
         else if ( zeta < d_zero ) then ! -1 <= zeta < 0
-          akhs(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
+          rah1(i) = (log(zh/zot) - psi(2,zeta)+psi(2,zot/obu))
         else if ( zeta <= d_one ) then !  0 <= ztea <= 1
-          akhs(i) = (log(zh/zot) + d_five*zeta-d_five*zot/obu)
+          rah1(i) = (log(zh/zot) + d_five*zeta-d_five*zot/obu)
         else                           !  1 < zeta, phi=5+zeta
-          akhs(i) = (log(obu/zot) + d_five-d_five*zot/obu+ &
+          rah1(i) = (log(obu/zot) + d_five-d_five*zot/obu+ &
                   (d_five*log(zeta)+zeta-d_one))
         end if
-        tstar = vonkar*dth/akhs(i)
+        tstar = vonkar*dth/rah1(i)
         !
         ! humidity
         !

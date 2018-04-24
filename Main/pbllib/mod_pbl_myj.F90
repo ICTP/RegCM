@@ -225,7 +225,7 @@ module mod_pbl_myj
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zint(j,i,k) = m2p%zq(j,i,k)+m2p%ht(j,i)
+          zint(j,i,k) = m2p%zq(j,i,k)
         end do
       end do
     end do
@@ -253,8 +253,8 @@ module mod_pbl_myj
         !
         ! Transfer
         !
-        akms = d_one/m2p%akms(j,i)
-        akhs = d_one/m2p%akhs(j,i)
+        akms = d_one/m2p%ram1(j,i)
+        akhs = d_one/m2p%rah1(j,i)
         !
         ! Fill 1-d vertical arrays: myj scheme counts downward from
         ! the domain's top
@@ -266,7 +266,7 @@ module mod_pbl_myj
           ratiomx = m2p%qxatm(j,i,k,iqv)
           qk(k) = ratiomx/(d_one+ratiomx)
           cwmk(k) = cwm(j,i,k)
-          pk(k) = m2p%patmf(j,i,k)
+          pk(k) = m2p%patm(j,i,k)
           uk(k) = m2p%uxatm(j,i,k)
           vk(k) = m2p%vxatm(j,i,k)
           !
@@ -309,7 +309,7 @@ module mod_pbl_myj
         do k = 1 , kz
           q2k(k) = max(q2k(k),epsq2)
           p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + &
-                 ((d_half*q2k(k))-m2p%tkests(j,i,k))*rdt
+                 ((d_half*q2k(k))-m2p%tkests(j,i,k))*rdtturbl
         end do
       end do
     end do setup_integration
@@ -322,8 +322,8 @@ module mod_pbl_myj
         ! from the domain's top
         !
 
-        akms = d_one/m2p%akms(j,i)
-        akhs = d_one/m2p%akhs(j,i)
+        akms = d_one/m2p%ram1(j,i)
+        akhs = d_one/m2p%rah1(j,i)
 
         do k = 1 , kz
           zhk(k) = zint(j,i,k)
@@ -359,13 +359,13 @@ module mod_pbl_myj
 
         psfc = m2p%patmf(j,i,kzp1)
         exnsfc = (p00/psfc)**rovcp
+        zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*m2p%ustar(j,i)*rvisc))/m2p%ustar(j,i)
+        wght = akms*zu*rvisc
 
         ! Convert surface sensible temperature to potential temperature.
         thsk = m2p%tsk(j,i)*exnsfc
-        qsfc = pq0sea/psfc*exp(a2*(thsk-a3*exnsfc)/(thsk-a4*exnsfc))
         if ( m2p%ldmsk(j,i) > 0 ) then
-          zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*m2p%ustar(j,i)*rvisc))/m2p%ustar(j,i)
-          wght = akms*zu*rvisc
+          qsfc = qk(kz) + m2p%qfx(j,i)*dtturbl*akhs_dens
           zt = fzt1*zu
           zq = fzq1*zt
           wghtt = akhs*zt*rtvisc
@@ -373,8 +373,9 @@ module mod_pbl_myj
           thz0 = (wghtt*m2p%thatm(j,i,kz)+thsk)/(wghtt+d_one)
           qz0 = (wghtq*qk(kz)+qsfc)/(wghtq+d_one)
         else
+          qsfc = pq0sea/psfc*exp(a2*(thsk-a3*exnsfc)/(thsk-a4*exnsfc))
           thz0 = thsk
-          qz0 = qsfc
+          qz0 = qsfc + m2p%qfx(j,i)*dtturbl*akhs_dens
         end if
 
         sz0(1) = thz0
@@ -452,8 +453,8 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of velocity components
         !
-        uz0 = d_zero
-        vz0 = d_zero
+        uz0 = d_half*(uk(kz)*wght/(wght+d_one))
+        vz0 = d_half*(vk(kz)*wght/(wght+d_one))
         call vdifv(lmh,dtdif,uz0,vz0,akms_dens,uk,vk,akmk,zhk,rhok)
         !
         ! compute primary variable tendencies
