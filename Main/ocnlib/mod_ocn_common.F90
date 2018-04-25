@@ -68,7 +68,6 @@ module mod_ocn_common
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i
     ! Set up Masks for lake and sea ice
     if ( lcoup ) then
       call c2l_gs(ocncomm,lm%icplmsk,icpl)
@@ -164,7 +163,6 @@ module mod_ocn_common
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) , intent(in) :: ivers
-    integer(ik4) :: i
     if ( ivers == 1 ) then
       ! RegCM -> OCN
       if ( llake .or. lseaice ) then

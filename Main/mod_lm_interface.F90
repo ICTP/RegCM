@@ -354,6 +354,7 @@ module mod_lm_interface
     call assignpnt(sfs%ram1,lm%ram1)
     call assignpnt(sfs%rah1,lm%rah1)
     call assignpnt(sfs%br,lm%br)
+    call assignpnt(sfs%q2m,lm%q2m)
     call assignpnt(zpbl,lm%hpbl)
     call assignpnt(pptc,lm%cprate)
     call assignpnt(pptnc,lm%ncprate)
@@ -553,6 +554,7 @@ module mod_lm_interface
     lm%ram1 = sum(lms%ram1,1)*rdnnsg
     lm%rah1 = sum(lms%rah1,1)*rdnnsg
     lm%br = sum(lms%br,1)*rdnnsg
+    lm%q2m = sum(lms%q2m,1)*rdnnsg
     lm%w10m = sum(lms%w10m,1)*rdnnsg
     lm%zo = sum(lms%zo,1)*rdnnsg
     lm%rhoa = sum(lms%rhoa,1)*rdnnsg
@@ -653,7 +655,7 @@ module mod_lm_interface
       do j = jci1 , jci2
         expfie%psfc(j,i) = lm%sfps(j,i)*d_r100
         expfie%tsfc(j,i) = sum(lms%t2m(:,j,i))*rdnnsg
-        expfie%qsfc(j,i) = sum(lms%q2m(:,j,i))*rdnnsg
+        expfie%qsfc(j,i) = lm%q2m(j,i)
         expfie%swrd(j,i) = lm%rswf(j,i)
         expfie%lwrd(j,i) = lm%rlwf(j,i)
         expfie%dlwr(j,i) = lm%dwrlwf(j,i)
@@ -951,7 +953,7 @@ module mod_lm_interface
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
               es = pfesat(tas)
               qs = pfwsat(tas,ps,es)
-              qas = sum(lms%q2m(:,j,i))*rdnnsg
+              qas = lm%q2m(j,i)
               uas = sqrt(lm%u10m(j,i)**2+lm%v10m(j,i)**2)
               rh = min(max((qas/qs),d_zero),d_one)
               desdt = pfesdt(tas)
@@ -1063,7 +1065,7 @@ module mod_lm_interface
         if ( associated(srf_t2m_out) ) &
           srf_t2m_out(:,:,1) = sum(lms%t2m,1)*rdnnsg
         if ( associated(srf_q2m_out) ) &
-          srf_q2m_out(:,:,1) = sum(lms%q2m,1)*rdnnsg
+          srf_q2m_out(:,:,1) = lm%q2m
         if ( associated(srf_rh2m_out) ) then
           srf_rh2m_out = d_zero
           do i = ici1 , ici2

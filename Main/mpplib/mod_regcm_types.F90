@@ -247,6 +247,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: hfx
     real(rkx) , pointer , dimension(:,:) :: qfx
     real(rkx) , pointer , dimension(:,:) :: tgbb
+    real(rkx) , pointer , dimension(:,:) :: q2m
     real(rkx) , pointer , dimension(:,:) :: uvdrag
     real(rkx) , pointer , dimension(:,:) :: ustar
     real(rkx) , pointer , dimension(:,:) :: u10m
@@ -467,6 +468,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: br          ! sfs%br
     real(rkx) , pointer , dimension(:,:) :: u10m        ! sfs%u10m
     real(rkx) , pointer , dimension(:,:) :: v10m        ! sfs%v10m
+    real(rkx) , pointer , dimension(:,:) :: q2m         ! sfs%q2m
     real(rkx) , pointer , dimension(:,:) :: rhox        ! rhox2d
     real(rkx) , pointer , dimension(:,:) :: rswf        ! fsw
     real(rkx) , pointer , dimension(:,:) :: rlwf        ! flw
@@ -611,6 +613,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: psdotb      ! sfs%psdotb
     real(rkx) , pointer , dimension(:,:) :: tgb         ! sfs%tgb
     real(rkx) , pointer , dimension(:,:) :: tsk         ! sfs%tgbb
+    real(rkx) , pointer , dimension(:,:) :: q2m         ! sfs%q2m
     real(rkx) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
     real(rkx) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag

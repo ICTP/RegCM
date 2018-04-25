@@ -843,6 +843,7 @@ module mod_atm_interface
       call getmem2d(sfs%ram1,jci1,jci2,ici1,ici2,'surf:ram1')
       call getmem2d(sfs%rah1,jci1,jci2,ici1,ici2,'surf:rah1')
       call getmem2d(sfs%br,jci1,jci2,ici1,ici2,'surf:br')
+      call getmem2d(sfs%q2m,jci1,jci2,ici1,ici2,'surf:q2m')
       call getmem2d(sfs%ustar,jci1,jci2,ici1,ici2,'surf:ustar')
       call getmem2d(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
       call getmem2d(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
