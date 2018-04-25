@@ -103,7 +103,7 @@ module mod_cu_kuo
         qux(:) = m2c%qxas(j,i,:,iqv)
         sca = d_zero
         do k = 1 , kz
-          sca = sca + m2c%qxten(j,i,k,iqv) * psx * dsigma(k)
+          sca = sca + m2c%qxten(j,i,k,iqv) * dsigma(k)
         end do
         !
         ! determine if moist convection exists:
@@ -272,8 +272,8 @@ module mod_cu_kuo
           do k = 2 , kz
             if ( m2c%qq1(j,i,k)   / m2c%psa(j,i) > minqq .and. &
                  m2c%qq1(j,i,k-1) / m2c%psa(j,i) > minqq ) then
-              ff = ((m2c%qq1(j,i,k)*(m2c%qq1(j,i,k-1)/m2c%qq1(j,i,k))**qcon(k)) * &
-                        m2c%qdot(j,i,k))/m2c%psa(j,i)
+              ff = ((m2c%qq1(j,i,k)*(m2c%qq1(j,i,k-1) / &
+                m2c%qq1(j,i,k))**qcon(k)) * m2c%qdot(j,i,k))/m2c%psa(j,i)
               cu_qten(j,i,k-1,iqv) = cu_qten(j,i,k-1,iqv) - ff/dsigma(k-1)
               cu_qten(j,i,k,iqv)   = cu_qten(j,i,k,iqv) + ff/dsigma(k)
             end if

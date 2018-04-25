@@ -152,7 +152,7 @@ module mod_cu_bm
     real(rkx) , parameter :: pfrz = 15000.0_rkx
     real(rkx) , parameter :: pshu = 45000.0_rkx
     real(rkx) , parameter :: zno = 750.0_rkx
-    real(rkx) , parameter :: zsh = 3999.0_rkx
+    real(rkx) , parameter :: zsh = 2000.0_rkx
     real(rkx) , parameter :: fsl = 0.90_rkx
     real(rkx) , parameter :: fss = 0.60_rkx
     real(rkx) , parameter :: efimn = 0.20_rkx

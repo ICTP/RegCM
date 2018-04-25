@@ -382,7 +382,7 @@ module mod_params
     mincld = 50.0_rkx      ! Min cloud depth (mb).
     htmin = -250.0_rkx     ! Min convective heating
     htmax = 500.0_rkx      ! Max convective heating
-    skbmax = 0.1_rkx       ! Max cloud base height in sigma
+    skbmax = 0.4_rkx       ! Max cloud base height in sigma
     dtauc = 60.0_rkx ! Fritsch & Chappell (1980) ABE Removal Timescale (min)
     !
     ! emanparam ;

@@ -58,8 +58,8 @@ module mod_cu_interface
 
   public :: cuscheme
   public :: cbmf2d
-  public :: cldefi
   public :: avg_ww
+  public :: cldefi
   public :: twght
   public :: vqflx
   public :: shrmax2d
@@ -156,19 +156,12 @@ module mod_cu_interface
     call assignpnt(sfs%hfx,m2c%hfx)
     call assignpnt(ktrop,m2c%ktrop)
     call assignpnt(ccn,m2c%ccn)
-    if ( any(icup == 1) ) then
-      call assignpnt(aten%t,m2c%tten,pc_dynamic)
-      call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
-      call assignpnt(aten%u,m2c%uten,pc_dynamic)
-      call assignpnt(aten%v,m2c%vten,pc_dynamic)
-      call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
-    else
-      call assignpnt(aten%t,m2c%tten,pc_physic)
-      call assignpnt(aten%u,m2c%uten,pc_physic)
-      call assignpnt(aten%v,m2c%vten,pc_physic)
-      call assignpnt(aten%qx,m2c%qxten,pc_physic)
-      call assignpnt(aten%chi,m2c%chiten,pc_physic)
-    end if
+    ! Pass dynamic tendencies as input.
+    call assignpnt(aten%t,m2c%tten,pc_dynamic)
+    call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
+    call assignpnt(aten%u,m2c%uten,pc_dynamic)
+    call assignpnt(aten%v,m2c%vten,pc_dynamic)
+    call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
     call assignpnt(heatrt,m2c%heatrt)
     ! OUTPUT
     call assignpnt(aten%t,c2m%tten,pc_physic)

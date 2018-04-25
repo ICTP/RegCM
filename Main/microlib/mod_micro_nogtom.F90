@@ -233,8 +233,6 @@ module mod_micro_nogtom
   real(rkx) , parameter :: zerocf = 1.0e-2_rkx
   real(rkx) , parameter :: onecf  = 0.99_rkx
 
-  real(rkx) :: aamin
-
   abstract interface
     subroutine voidsub
       implicit none
@@ -304,7 +302,6 @@ module mod_micro_nogtom
       call getmem4d(tenkeep,1,nqx,jci1,jci2,ici1,ici2,1,kz,'cmicro:tenkeep')
       call getmem3d(tentkeep,jci1,jci2,ici1,ici2,1,kz,'cmicro:tentkeep')
     end if
-    aamin = minqq/nqx
   end subroutine allocate_mod_nogtom
 
   subroutine init_nogtom(ldmsk)
@@ -665,7 +662,7 @@ module mod_micro_nogtom
           ! Calculate liq/ice fractions (no longer a diagnostic relationship)
           !-------------------------------------------------------------------
           qlt(j,i,k) = qx(iqql,j,i,k)+qx(iqqi,j,i,k)
-          if ( qlt(j,i,k) > activqx ) then
+          if ( qlt(j,i,k) > d_zero ) then
             qliqfrac(j,i,k) = qx(iqql,j,i,k)/qlt(j,i,k)
             qicefrac(j,i,k) = d_one-qliqfrac(j,i,k)
           else
@@ -2050,7 +2047,7 @@ module mod_micro_nogtom
 
     subroutine mysolve
       implicit none
-      integer(ik4) :: ii , jj , kk , ll , imax
+      integer(ik4) :: ii , jj , kk , ll , imax , n , nn
       real(rkx) :: aamax , dum , xsum , swap
       ! find implicit scaling information
       do n = 1 , nqx
@@ -2058,8 +2055,18 @@ module mod_micro_nogtom
         do jn = 1 , nqx
           if ( abs(qlhs(n,jn)) > aamax ) aamax = abs(qlhs(n,jn))
         end do
-        if ( aamax < aamin ) then
-          aamax = aamin
+        if ( aamax == d_zero ) then
+          do nn = 1 , nqx
+            qxn(nn) = qx0(nn)
+          end do
+          do nn = 1 , nqx
+            write(stderr,'(a,i2,f12.7)') 'QX0 ', nn , qx0(nn)
+            do ll = 1 , nqx
+              write(stderr,'(a,i2,i2,f12.7)') 'QLHS ', ll , nn , qlhs(ll,nn)
+            end do
+          end do
+          call fatal(__FILE__,__LINE__, &
+                     'System does not have a solution. Cannot solve.')
         end if
         vv(n) = d_one/aamax ! Save the scaling.
       end do

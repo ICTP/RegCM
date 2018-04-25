@@ -101,10 +101,9 @@ module mod_pbl_gfs
       type(pbl_2_mod) , intent(inout) :: p2m
 
       integer(ik4) :: i , j , k , kk , km , n
-      integer(ik4) :: iq , it , iit , ldm
+      integer(ik4) :: iq , it , iit
       real(rkx) :: tvcon
-      real(rkx) :: ps , psim , psih , tsk
-      real(rkx) :: ta , qa , pa , ua , va
+      real(rkx) :: ps , ta , qa , pa , ua , va
       real(rkx) :: rrhox , hf , qf , cpm
 
       n = 1

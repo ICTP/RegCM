@@ -191,11 +191,11 @@ module mod_pbl_myj
     !
     ! nspec is the number of mass species to be vertically mixed
     !
-    integer(ik4) :: i , j , k , lmh , ldm , lmxl , nums , nsp
+    integer(ik4) :: i , j , k , lmh , lmxl , nums , nsp
     real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
           dtturbl , exnsfc , psfc , qold , ratiomx , tsk ,     &
-          rdtturbl , thnew , thold , tx , qstar , exner ,      &
-          qsfc , thsk , ct , tha
+          rdtturbl , thnew , thold , tx , exner , qsfc ,       &
+          thsk , ct , tha
     real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , thz0 , qz0
     real(rkx) :: akhs , akms , uz0 , vz0
     real(rkx) , dimension(nspec) :: clow , cts , sz0
