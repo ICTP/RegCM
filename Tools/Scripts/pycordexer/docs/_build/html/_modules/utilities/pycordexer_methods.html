@@ -1,0 +1,1638 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>utilities.pycordexer_methods &#8212; PyCordexer 2.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">PyCordexer 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for utilities.pycordexer_methods</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.ma</span> <span class="k">import</span> <span class="n">is_masked</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">importlib</span> <span class="k">import</span> <span class="n">import_module</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">isclass</span><span class="p">,</span> <span class="n">getmembers</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">utilities.globals</span> <span class="k">import</span> <span class="n">DATATYPE_MAIN</span><span class="p">,</span> <span class="n">DATATYPE_AUXILIARIES</span>
+<span class="kn">from</span> <span class="nn">utilities.variables</span> <span class="k">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">MemoryData</span><span class="p">,</span> <span class="n">FilterData</span><span class="p">,</span> <span class="n">SliceData</span><span class="p">,</span>\
+    <span class="n">NetCDFMultiData</span>
+<span class="kn">from</span> <span class="nn">utilities.cordex_utils</span> <span class="k">import</span> <span class="n">CordexDataset</span><span class="p">,</span> <span class="n">prepare_cordex_file_dir</span><span class="p">,</span> \
+    <span class="n">read_variable_from_regcmfile</span><span class="p">,</span> <span class="n">get_regcm_variable_names</span><span class="p">,</span> <span class="n">get_var_with_name</span><span class="p">,</span> \
+    <span class="n">unit_factor_correction</span>
+
+<span class="c1"># f2py modules</span>
+<span class="kn">from</span> <span class="nn">utilities.vertint</span> <span class="k">import</span> <span class="n">mod_vertint</span>
+<span class="kn">from</span> <span class="nn">utilities.hgt</span> <span class="k">import</span> <span class="n">mod_hgt</span>
+
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Method"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.Method">[docs]</a><span class="k">class</span> <span class="nc">Method</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Method is a callable object that performs actions on a variable.</span>
+
+<span class="sd">    It is invoked in the JSON file that describes the actions to perform on a</span>
+<span class="sd">    variable.</span>
+
+<span class="sd">    This class is an abstract class, that make sure that at least the important</span>
+<span class="sd">    methods have been set in the descendant classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<span class="k">class</span> <span class="nc">Action</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An Action is a chain of Methods that retrieves a variable.</span>
+
+<span class="sd">    Each Method (beside the first one) receives the output of its ancestor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">methods_list</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span> <span class="o">=</span> <span class="n">simulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regcm_file</span> <span class="o">=</span> <span class="n">regcm_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">regcm_file_path</span> <span class="o">=</span> <span class="n">regcm_file_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_methods</span> <span class="o">=</span> <span class="n">methods_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corrflag</span> <span class="o">=</span> <span class="n">corrflag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cordex_dir</span> <span class="o">=</span> <span class="n">cordex_dir</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_methods</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ActionStarter</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;The first Method of the list must be an ActionStarter&#39;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Executing method </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_methods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">current_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_methods</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span>
+            <span class="n">regcm_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regcm_file</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="n">simulation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">,</span>
+            <span class="n">corrflag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">corrflag</span><span class="p">,</span>
+            <span class="n">cordex_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cordex_dir</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Method </span><span class="si">%s</span><span class="s1"> executed&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_methods</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_methods</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Executing method </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+            <span class="n">current_output</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span>
+                <span class="n">current_output</span><span class="p">,</span>
+                <span class="n">regcm_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="n">simulation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">,</span>
+                <span class="n">corrflag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">corrflag</span><span class="p">,</span>
+                <span class="n">cordex_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cordex_dir</span>
+            <span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Method </span><span class="si">%s</span><span class="s1"> executed&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ActionStarter"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ActionStarter">[docs]</a><span class="k">class</span> <span class="nc">ActionStarter</span><span class="p">(</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;An ActionStarter does not require any input from another method.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">corrflag</span><span class="p">,</span>
+                 <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="Filter"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.Filter">[docs]</a><span class="k">class</span> <span class="nc">Filter</span><span class="p">(</span><span class="n">Method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Filter requires as input the output of another method to execute.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="get_methods"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.get_methods">[docs]</a><span class="k">def</span> <span class="nf">get_methods</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Retrieve the classes inheriting from Method, stored in the</span>
+<span class="sd">    ``pycordexer_methods`` module.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        dict: a dictionary that associates each name (as a string) with its</span>
+<span class="sd">        corresponding class.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">methods_avail</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">methods_module</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s1">&#39;utilities.pycordexer_methods&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">obj_name</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">getmembers</span><span class="p">(</span><span class="n">methods_module</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Method</span><span class="p">,</span> <span class="n">Filter</span><span class="p">,</span> <span class="n">Action</span><span class="p">,</span> <span class="n">ActionStarter</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">isclass</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Method</span><span class="p">):</span>
+            <span class="n">methods_avail</span><span class="p">[</span><span class="n">obj_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">obj</span>
+
+    <span class="k">return</span> <span class="n">methods_avail</span></div>
+
+
+<span class="c1"># From now on there are the real methods that can be used in the cordex_vars</span>
+<span class="c1"># JSON files</span>
+
+
+<div class="viewcode-block" id="ReadVariableFromFile"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ReadVariableFromFile">[docs]</a><span class="k">class</span> <span class="nc">ReadVariableFromFile</span><span class="p">(</span><span class="n">ActionStarter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Read a variable from a file.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        var_name (string): the name of the variable to extract from the file.</span>
+
+<span class="sd">        need_time_bounds (boolean, optional): whether to use an auxiliary</span>
+<span class="sd">            variable to store the interval range. Defaults to ``False``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">need_time_bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_name</span> <span class="o">=</span> <span class="n">var_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span> <span class="o">=</span> <span class="n">need_time_bounds</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">corrflag</span><span class="p">,</span>
+                 <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">read_variable_from_regcmfile</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">var_name</span><span class="p">,</span>
+            <span class="n">regcm_file</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SaveVariableToDisk"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.SaveVariableToDisk">[docs]</a><span class="k">class</span> <span class="nc">SaveVariableToDisk</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Save a variable to disk.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        var_name (string, optional): if provided, it overrides the name of the</span>
+<span class="sd">            variable stored in the previous Method of the chain.</span>
+
+<span class="sd">        fill_value (float, optional): if provided, fill the variable with this</span>
+<span class="sd">            value.</span>
+
+<span class="sd">        new_attributes (dict ``string -&gt; object``, optional): if provided,</span>
+<span class="sd">            contains attributes that can override those from the previous</span>
+<span class="sd">            Method object. netCDF takes care of applying the object value</span>
+<span class="sd">            correctly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">new_attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_name</span> <span class="o">=</span> <span class="n">var_name</span>
+        <span class="k">if</span> <span class="n">fill_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Save the fill value in the same format that is used to save the</span>
+            <span class="c1"># main variable. The conversion is made creating an array with just</span>
+            <span class="c1"># one value (the fill_value) and then retrieving it back from the</span>
+            <span class="c1"># array</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">fill_value</span><span class="p">,</span> <span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">new_attributes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span> <span class="o">=</span> <span class="n">new_attributes</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">var_name</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">var_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_name</span>
+
+        <span class="n">cordex_path</span> <span class="o">=</span> <span class="n">prepare_cordex_file_dir</span><span class="p">(</span>
+            <span class="n">var_name</span><span class="p">,</span>
+            <span class="n">regcm_file</span><span class="o">.</span><span class="n">dates</span><span class="p">,</span>
+            <span class="n">prev_result</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
+            <span class="n">simulation</span><span class="p">,</span>
+            <span class="n">regcm_file</span><span class="p">,</span>
+            <span class="n">cordex_dir</span>
+        <span class="p">)</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">)</span>
+
+        <span class="c1"># Change the units. If needed, multiply the data for the right</span>
+        <span class="c1"># conversion number</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span>
+        <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="n">attributes</span> <span class="ow">and</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
+            <span class="n">old_units</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+            <span class="n">new_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">old_units</span> <span class="o">!=</span> <span class="n">new_units</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Changing units from &quot;</span><span class="si">%s</span><span class="s1">&quot; to &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
+                    <span class="n">old_units</span><span class="p">,</span>
+                    <span class="n">new_units</span>
+                <span class="p">)</span>
+                <span class="n">units_factor</span> <span class="o">=</span> <span class="n">unit_factor_correction</span><span class="p">(</span><span class="n">old_units</span><span class="p">,</span> <span class="n">new_units</span><span class="p">)</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;The correction factor is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">units_factor</span><span class="p">)</span>
+                <span class="n">new_data</span> <span class="o">=</span> <span class="n">FilterData</span><span class="p">(</span>
+                    <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">units_factor</span><span class="p">,</span>
+                    <span class="n">f_preserves_data_shape</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;No conversion applied for the unit change&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Preparing to add attribute &quot;</span><span class="si">%s</span><span class="s1">&quot; with value &quot;</span><span class="si">%s</span><span class="s1">&quot; to var &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
+                <span class="n">attr_name</span><span class="p">,</span>
+                <span class="n">attr_value</span><span class="p">,</span>
+                <span class="n">var_name</span>
+            <span class="p">)</span>
+            <span class="n">attributes</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr_value</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span>
+
+        <span class="n">cordex_var</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">var_name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">new_data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span><span class="p">,</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Writing on file </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">cordex_path</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">CordexDataset</span><span class="p">(</span><span class="n">cordex_path</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">simulation</span><span class="p">)</span> <span class="k">as</span> <span class="n">cdf</span><span class="p">:</span>
+            <span class="n">cdf</span><span class="o">.</span><span class="n">save_cordex_variable</span><span class="p">(</span><span class="n">cordex_var</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">prev_result</span></div>
+
+
+<div class="viewcode-block" id="SaveMultipleVariablesToDisk"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.SaveMultipleVariablesToDisk">[docs]</a><span class="k">class</span> <span class="nc">SaveMultipleVariablesToDisk</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Save multiple variables to disk.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        fill_value (float, optional): if provided, fill the variable with this</span>
+<span class="sd">            value.</span>
+
+<span class="sd">        new_attributes (dict ``string -&gt; object``, optional): if provided,</span>
+<span class="sd">            contains attributes that can override those from the previous</span>
+<span class="sd">            Method object. netCDF takes care of applying the object value</span>
+<span class="sd">            correctly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">new_attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__writer</span> <span class="o">=</span> <span class="n">SaveVariableToDisk</span><span class="p">(</span>
+            <span class="n">fill_value</span><span class="o">=</span><span class="n">fill_value</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">new_attributes</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">cordex_var</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Saving variable </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">cordex_var</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__writer</span><span class="p">(</span>
+                <span class="n">cordex_var</span><span class="p">,</span>
+                <span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="n">simulation</span><span class="p">,</span>
+                <span class="n">corrflag</span><span class="p">,</span>
+                <span class="n">cordex_dir</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">prev_result</span></div>
+
+
+<div class="viewcode-block" id="CorrectTime"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.CorrectTime">[docs]</a><span class="k">class</span> <span class="nc">CorrectTime</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply an offset to correct the time of the variable.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        offset (dict): a dict containing an ``ftype`` field to apply as offset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">offset</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span> <span class="o">=</span> <span class="n">offset</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Executing time correction&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">corrflag</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Time correction skipped because of the corrflag&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">prev_result</span>
+
+        <span class="n">ftype</span> <span class="o">=</span> <span class="n">regcm_file</span><span class="o">.</span><span class="n">ftype</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Looking for </span><span class="si">%s</span><span class="s1"> in the offset dictionary&#39;</span><span class="p">,</span> <span class="n">ftype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ftype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="s1">&#39;No offset value found that is suitable for </span><span class="si">{}</span><span class="s1"> files&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ftype</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">raw_offset</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_offset</span><span class="p">[</span><span class="n">ftype</span><span class="p">])</span>
+        <span class="n">sub_offset</span> <span class="o">=</span> <span class="n">raw_offset</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+            <span class="s1">&#39;HALFFREQUENCY&#39;</span><span class="p">,</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">time_step_size</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sub_offset</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Offset value is </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Applying offset&#39;</span><span class="p">)</span>
+        <span class="n">correct_var</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">correct_var</span></div>
+
+
+<div class="viewcode-block" id="ExtractGroundHeight"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ExtractGroundHeight">[docs]</a><span class="k">class</span> <span class="nc">ExtractGroundHeight</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extract the height from the ground, discarding empty data.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Looking into the dimensions for a variable called mDDD&#39;</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">height_val</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dimensions</span><span class="p">):</span>
+            <span class="n">dim_name</span><span class="p">,</span> <span class="n">dim_value</span> <span class="o">=</span> <span class="n">dim</span>
+            <span class="n">dim_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^m(?P&lt;height&gt;\d+)&#39;</span><span class="p">,</span> <span class="n">dim_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">dim_match</span><span class="p">:</span>
+                <span class="n">position</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">height_val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim_match</span><span class="o">.</span><span class="n">groups</span><span class="p">(</span><span class="s1">&#39;height&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Found dimension </span><span class="si">%s</span><span class="s1"> in position </span><span class="si">%s</span><span class="s1"> (height value </span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span>
+                    <span class="n">dim_name</span><span class="p">,</span>
+                    <span class="n">position</span><span class="p">,</span>
+                    <span class="n">height_val</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;No dimension found to extract height&#39;</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Removing dimension </span><span class="si">%s</span><span class="s1"> from the variable&#39;</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+        <span class="n">reduced_dims</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">position</span><span class="p">]</span> <span class="o">+</span> <span class="n">dimensions</span><span class="p">[</span><span class="n">position</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;coordinates&#39;</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Updating attribute &quot;coordinates&quot; adding &quot;height&quot;&#39;</span><span class="p">)</span>
+            <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;coordinates&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;height &#39;</span> <span class="o">+</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;coordinates&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Create a slice to extract data from the old variable</span>
+        <span class="n">remove_height_slice</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">]</span>
+        <span class="n">remove_height_slice</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">SliceData</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">remove_height_slice</span><span class="p">)</span>
+
+        <span class="n">height_var</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;height&#39;</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">MemoryData</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">height_val</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_AUXILIARIES</span><span class="p">)),</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">(),</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="p">{</span>
+                <span class="s1">&#39;standard_name&#39;</span><span class="p">:</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;height&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;positive&#39;</span><span class="p">:</span> <span class="s1">&#39;up&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;axis&#39;</span><span class="p">:</span> <span class="s1">&#39;Z&#39;</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">remove_height_var</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">reduced_dims</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span> <span class="o">+</span> <span class="p">[</span><span class="n">height_var</span><span class="p">,</span> <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">remove_height_var</span></div>
+
+
+<div class="viewcode-block" id="InterpolateHeight"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.InterpolateHeight">[docs]</a><span class="k">class</span> <span class="nc">InterpolateHeight</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply a vertical interpolation with the height expressed as a pressure.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        pressure_level (float): the height, expressed as pressure, to</span>
+<span class="sd">            interpolate at.</span>
+
+<span class="sd">        method (string in ``[&quot;linear&quot;, &quot;logarithmic&quot;]``): the method to use to</span>
+<span class="sd">            interpolate.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pressure_level</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pressure_level</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">pressure_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;logarithmic&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Unknown method &quot;</span><span class="si">{}</span><span class="s1">&quot; for vertical interpolation&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;linear&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__interpolator</span> <span class="o">=</span> <span class="n">mod_vertint</span><span class="o">.</span><span class="n">intlin</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__interpolator</span> <span class="o">=</span> <span class="n">mod_vertint</span><span class="o">.</span><span class="n">intlog</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">dim_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s1">&#39;kz&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dim_names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;No height dimension (kz) found in variable &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">kz_index</span> <span class="o">=</span> <span class="n">dim_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;kz&#39;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;kz dimension is in position </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">kz_index</span><span class="p">)</span>
+
+        <span class="n">new_dimensions</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;kz&#39;</span><span class="p">]</span>
+        <span class="n">new_data_shape</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;kz&#39;</span><span class="p">]</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;The output will be an array of shape </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">new_data_shape</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Allocating memory for the interpolation&#39;</span><span class="p">)</span>
+        <span class="n">interpolation_result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">new_data_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">)</span>
+
+        <span class="n">ps_names</span> <span class="o">=</span> <span class="n">get_regcm_variable_names</span><span class="p">(</span><span class="s1">&#39;ps&#39;</span><span class="p">)</span>
+        <span class="n">ptop_names</span> <span class="o">=</span> <span class="n">get_regcm_variable_names</span><span class="p">(</span><span class="s1">&#39;ptop&#39;</span><span class="p">)</span>
+        <span class="n">sigma_names</span> <span class="o">=</span> <span class="n">get_regcm_variable_names</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">regcm_file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading ps variable from regcm file&#39;</span><span class="p">)</span>
+            <span class="n">ps</span> <span class="o">=</span> <span class="n">get_var_with_name</span><span class="p">(</span><span class="n">ps_names</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Reading ptop variable from regcm file and saving its content &#39;</span>
+                <span class="s1">&#39;in memory&#39;</span>
+            <span class="p">)</span>
+            <span class="n">ptop_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">get_var_with_name</span><span class="p">(</span><span class="n">ptop_names</span><span class="p">,</span> <span class="n">f</span><span class="p">)[:],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Reading sigma variable from regcm file and saving its content &#39;</span>
+                <span class="s1">&#39;in memory&#39;</span>
+            <span class="p">)</span>
+            <span class="n">sigma_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">get_var_with_name</span><span class="p">(</span><span class="n">sigma_names</span><span class="p">,</span> <span class="n">f</span><span class="p">)[:],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">time_steps</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">size</span>
+
+            <span class="k">with</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_steps</span><span class="p">):</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading time step </span><span class="si">%s</span><span class="s1"> of variable ps&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+                    <span class="n">ps_t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ps</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">)</span>
+
+                    <span class="n">data_slice</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+                    <span class="n">data_slice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s1">&#39;Interpolating time step </span><span class="si">%s</span><span class="s1"> of </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">t</span><span class="p">,</span>
+                        <span class="n">time_steps</span>
+                    <span class="p">)</span>
+                    <span class="n">interpolation_result</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__interpolator</span><span class="p">(</span>
+                        <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">data_slice</span><span class="p">),</span>
+                        <span class="n">ps_t</span><span class="p">,</span>
+                        <span class="n">sigma_array</span><span class="p">,</span>
+                        <span class="n">ptop_array</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pressure_level</span>
+                    <span class="p">)</span>
+
+            <span class="n">new_data</span> <span class="o">=</span> <span class="n">MemoryData</span><span class="p">(</span><span class="n">interpolation_result</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">new_data</span><span class="p">,</span>
+                <span class="n">dimensions</span><span class="o">=</span><span class="n">new_dimensions</span><span class="p">,</span>
+                <span class="n">attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">,</span>
+                <span class="n">times</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+                <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+                <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span><span class="p">,</span>
+                <span class="n">needs_time_bounds</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InterpolateOnMultipleHeights"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.InterpolateOnMultipleHeights">[docs]</a><span class="k">class</span> <span class="nc">InterpolateOnMultipleHeights</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Apply a vertical interpolation at many heights, expressed as pressures.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        pressure_levels (iterable of floats): an iterable of heights, expressed</span>
+<span class="sd">            as pressure, to interpolate at.</span>
+
+<span class="sd">        method (string in ``[&quot;linear&quot;, &quot;logarithmic&quot;]``): the method to use to</span>
+<span class="sd">            interpolate.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        list of ``Variable``: list of interpolated ``Variable`` objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pressure_levels</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pressure_levels</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pressure_levels</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="s1">&#39;logarithmic&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Unknown method &quot;</span><span class="si">{}</span><span class="s1">&quot; for vertical interpolation&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">interp_vars</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pressure</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure_levels</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Interpolating on pressure </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">pressure</span><span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Creating an InterpolateHeight filter for pressure </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">pressure</span>
+            <span class="p">)</span>
+            <span class="n">interp_filter</span> <span class="o">=</span> <span class="n">InterpolateHeight</span><span class="p">(</span><span class="n">pressure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Preforming interpolation&#39;</span><span class="p">)</span>
+            <span class="n">interp_var</span> <span class="o">=</span> <span class="n">interp_filter</span><span class="p">(</span>
+                <span class="n">prev_result</span><span class="p">,</span>
+                <span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="n">simulation</span><span class="p">,</span>
+                <span class="n">corrflag</span><span class="p">,</span>
+                <span class="n">cordex_dir</span>
+            <span class="p">)</span>
+
+            <span class="n">interp_vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">interp_var</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Appending pressure level to the names of the variables&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">interp_var</span><span class="p">,</span> <span class="n">pressure</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">interp_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pressure_levels</span><span class="p">):</span>
+            <span class="c1"># The format .0f removes the &quot;.0&quot; at the end of the float</span>
+            <span class="n">interp_var</span><span class="o">.</span><span class="n">name</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{:.0f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pressure</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">interp_vars</span></div>
+
+
+<div class="viewcode-block" id="ExtractLevel"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ExtractLevel">[docs]</a><span class="k">class</span> <span class="nc">ExtractLevel</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Given a level index and the name of a dimension, move the returned</span>
+<span class="sd">    Variable object on that specific level.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        level (integer): the index of the level to extract.</span>
+
+<span class="sd">        dimension (string): the name of the dimension to extract.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">dimension</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dimension</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">dim_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dim_names</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No dimension &quot;</span><span class="si">{}</span><span class="s1">&quot; found in variable &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">,</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="n">dim_index</span> <span class="o">=</span> <span class="n">dim_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> is in position </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">,</span> <span class="n">dim_index</span><span class="p">)</span>
+
+        <span class="n">data_slice</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+        <span class="n">data_slice</span><span class="p">[</span><span class="n">dim_index</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">level</span>
+
+        <span class="n">new_dims</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">if</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">]</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;Changing dimensions of variable </span><span class="si">%s</span><span class="s1"> from </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">new_dims</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Preparing new data&#39;</span><span class="p">)</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="n">SliceData</span><span class="p">(</span>
+            <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">data_slice</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Returning new variable with extracted level&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">new_data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">new_dims</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span><span class="p">,</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NormFromCoords"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.NormFromCoords">[docs]</a><span class="k">class</span> <span class="nc">NormFromCoords</span><span class="p">(</span><span class="n">ActionStarter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute norms of a list of variables and merge them into a single one.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        var_name (string): the name of the variable to create.</span>
+
+<span class="sd">        compute_from (list of strings): the list of variables to calculate the</span>
+<span class="sd">            norms on, and to collect as a single variable to be returned.</span>
+
+<span class="sd">        copy_attributes_from (string, optional): if provided, copy the variable</span>
+<span class="sd">            attributes from that variable, otherwise use the previous variable</span>
+<span class="sd">            attributes.</span>
+
+<span class="sd">        new_attributes (dict ``string -&gt; object``, optional): if provided,</span>
+<span class="sd">            contains attributes that can override those from the previous</span>
+<span class="sd">            Method object. netCDF takes care of applying the object value</span>
+<span class="sd">            correctly.</span>
+
+<span class="sd">        need_time_bounds (boolean, optional): whether to use an auxiliary</span>
+<span class="sd">            variable to store the interval range. Defaults to ``False``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">compute_from</span><span class="p">,</span> <span class="n">copy_attributes_from</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">new_attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">need_time_bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_name</span> <span class="o">=</span> <span class="n">var_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compute_from</span> <span class="o">=</span> <span class="n">compute_from</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">copy_attributes_from</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                <span class="n">copy_attributes_from</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">compute_from</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not in the list of variables to be read&#39;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">copy_attributes_from</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span> <span class="o">=</span> <span class="n">copy_attributes_from</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_attributes</span> <span class="o">=</span> <span class="n">new_attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span> <span class="o">=</span> <span class="n">need_time_bounds</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">corrflag</span><span class="p">,</span>
+                 <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_from</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading variable </span><span class="si">%s</span><span class="s1"> as reference&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_from</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">reference_var</span> <span class="o">=</span> <span class="n">read_variable_from_regcmfile</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compute_from</span><span class="p">[</span><span class="n">k</span><span class="p">],</span>
+            <span class="n">regcm_file</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Copying attributes from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">reference_var</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">attributes</span> <span class="o">=</span> <span class="n">reference_var</span><span class="o">.</span><span class="n">attributes</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_attributes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Adding attribute &quot;</span><span class="si">%s</span><span class="s1">&quot; with value &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
+                    <span class="n">attr_name</span><span class="p">,</span>
+                    <span class="n">attr_value</span>
+                <span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr_value</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Preparing data for the new variable&#39;</span><span class="p">)</span>
+
+        <span class="c1"># def norm_f(*args):</span>
+        <span class="c1">#     return np.sqrt(sum([x * x for x in args]))</span>
+
+        <span class="n">var_data</span> <span class="o">=</span> <span class="n">NetCDFMultiData</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compute_from</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="n">DATATYPE_MAIN</span><span class="p">,</span>
+            <span class="n">lock</span><span class="o">=</span><span class="n">regcm_file</span><span class="o">.</span><span class="n">lock</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">var_data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Thin"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.Thin">[docs]</a><span class="k">class</span> <span class="nc">Thin</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Change the time-step of a variable.</span>
+
+<span class="sd">    Note that if the timestep is the same as the actual one (compared with an</span>
+<span class="sd">    epsilon to avoid floating-point comparison), the same input ``Variable`` is</span>
+<span class="sd">    returned.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        new_time_step (float): the new time-step to apply to the variable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_step</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_time_step</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">depends_on_time</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Variable </span><span class="si">{}</span><span class="s1"> does not depend on time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">prev_result</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">))</span>
+
+        <span class="n">current_step</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">time_step_size</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_step</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;No thinning needed (the timestep is already </span><span class="si">%s</span><span class="s1"> hours)&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">prev_result</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;Trying to extract from a variable that has a value every </span><span class="si">%s</span><span class="s1"> hours&#39;</span>
+            <span class="s1">&#39; a new variable with a value every </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">current_step</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">current_step</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Trying to extract from a variable that has a value every </span><span class="si">{}</span><span class="s1"> &#39;</span>
+                <span class="s1">&#39;a new variable with a value every </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">current_step</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">thin_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span> <span class="o">/</span> <span class="n">current_step</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">thin_step</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">thin_step</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;The old time step (</span><span class="si">{}</span><span class="s1">h) and the new one (</span><span class="si">{}</span><span class="s1">h) are not &#39;</span>
+                <span class="s1">&#39;multiples&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">thin_step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">thin_step</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Taking a value every </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">thin_step</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Computing the starting point for the thinning&#39;</span><span class="p">)</span>
+        <span class="n">starting_point</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">[:</span><span class="n">thin_step</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">%</span> <span class="n">thin_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Starting from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">starting_point</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Unable to find a correct starting point for &#39;</span>
+                           <span class="s1">&#39;thinning. Starting from 0&#39;</span><span class="p">)</span>
+
+        <span class="n">dims_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+        <span class="n">time_index</span> <span class="o">=</span> <span class="n">dims_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+        <span class="n">new_data_slice</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+        <span class="n">new_data_slice</span><span class="p">[</span><span class="n">time_index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">starting_point</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">thin_step</span><span class="p">)</span>
+
+        <span class="n">var_data</span> <span class="o">=</span> <span class="n">SliceData</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">new_data_slice</span><span class="p">)</span>
+        <span class="n">new_times</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">starting_point</span><span class="p">::</span><span class="n">thin_step</span><span class="p">]</span>
+
+        <span class="n">new_dimensions</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">new_dimensions</span><span class="p">[</span><span class="n">time_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">new_times</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;Changing variable dimension from </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">new_dimensions</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">var_data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">new_dimensions</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">new_times</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span><span class="p">,</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IfNeededThinAndSave"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.IfNeededThinAndSave">[docs]</a><span class="k">class</span> <span class="nc">IfNeededThinAndSave</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Change the time-step of a variable and save it to disk if needed.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        new_time_step (float): the new time-step to apply to the variable.</span>
+
+<span class="sd">        var_name (string): the name of the variable to extract from the file.</span>
+
+<span class="sd">        fill_value (float, optional): if provided, fill the variable with this</span>
+<span class="sd">            value.</span>
+
+<span class="sd">        new_attributes (dict ``string -&gt; object``, optional): if provided,</span>
+<span class="sd">            contains attributes that can override those from the previous</span>
+<span class="sd">            Method object. netCDF takes care of applying the object value</span>
+<span class="sd">            correctly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_step</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">new_attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__thin</span> <span class="o">=</span> <span class="n">Thin</span><span class="p">(</span><span class="n">new_time_step</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__savedisk</span> <span class="o">=</span> <span class="n">SaveVariableToDisk</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">,</span>
+                                             <span class="n">new_attributes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Performing thinning&#39;</span><span class="p">)</span>
+        <span class="n">thinned_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__thin</span><span class="p">(</span>
+            <span class="n">prev_result</span><span class="p">,</span>
+            <span class="n">regcm_file</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="n">simulation</span><span class="p">,</span>
+            <span class="n">corrflag</span><span class="p">,</span>
+            <span class="n">cordex_dir</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Since Variable doesn&#39;t provide an __eq__ method, Python defaults to</span>
+        <span class="c1"># use the identity equality. Moreover, the thinning is a function that</span>
+        <span class="c1"># may return the same identical object in case no thinning operation</span>
+        <span class="c1"># has to be performed (if the time-step is the same as the one</span>
+        <span class="c1"># requested).</span>
+        <span class="k">if</span> <span class="n">thinned_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">prev_result</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Saving on disk&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__savedisk</span><span class="p">(</span>
+                <span class="n">thinned_var</span><span class="p">,</span>
+                <span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="n">simulation</span><span class="p">,</span>
+                <span class="n">corrflag</span><span class="p">,</span>
+                <span class="n">cordex_dir</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">prev_result</span></div>
+
+
+<div class="viewcode-block" id="ComputeAverage"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ComputeAverage">[docs]</a><span class="k">class</span> <span class="nc">ComputeAverage</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the average of the variable using a given time-step as interval.</span>
+
+<span class="sd">    Note that if the timestep is the same as the actual one (compared with an</span>
+<span class="sd">    epsilon to avoid floating-point comparison), the same input ``Variable`` is</span>
+<span class="sd">    returned.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        new_time_step (float): the new time-step to apply to the variable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_step</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">new_time_step</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">depends_on_time</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Variable </span><span class="si">{}</span><span class="s1"> does not depend on time&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">prev_result</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">))</span>
+
+        <span class="n">current_step</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">time_step_size</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">current_step</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;No average needed (the timestep is already </span><span class="si">%s</span><span class="s1"> hours)&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">prev_result</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;Trying to create averages of length </span><span class="si">%s</span><span class="s1"> from a variable that has a &#39;</span>
+            <span class="s1">&#39;value every </span><span class="si">%s</span><span class="s1"> hours&#39;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">,</span>
+            <span class="n">current_step</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">current_step</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Trying to create averages of length </span><span class="si">{}</span><span class="s1"> from a variable that &#39;</span>
+                <span class="s1">&#39;as a value every </span><span class="si">{}</span><span class="s1"> hours&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">,</span>
+                    <span class="n">current_step</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="n">average_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span> <span class="o">/</span> <span class="n">current_step</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">average_step</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">average_step</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;The old time step (</span><span class="si">{}</span><span class="s1">h) and the new one (</span><span class="si">{}</span><span class="s1">h) are not &#39;</span>
+                <span class="s1">&#39;multiples&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">current_step</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">average_step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">average_step</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;A new value will be the average of </span><span class="si">%s</span><span class="s1"> old values&#39;</span><span class="p">,</span>
+            <span class="n">average_step</span>
+        <span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Computing the starting point for the average&#39;</span><span class="p">)</span>
+        <span class="c1"># This is a tricky point. Let say that we have timesteps every 6 hours</span>
+        <span class="c1"># and that we want to perform a daily means. Ideally, we would like to</span>
+        <span class="c1"># have times at the hours 3, 9, 15 and 21. In this case, we simply have</span>
+        <span class="c1"># to perform the mean among all four timestes. If the simulation starts</span>
+        <span class="c1"># between two days, otherwise, we could have something like</span>
+        <span class="c1"># 15, 21, 3, 9, 15, 21, ...</span>
+        <span class="c1"># In that case, we have to discard the first two values. Therefore, the</span>
+        <span class="c1"># variable starting_point will assume the value 2.</span>
+        <span class="c1"># Finally, there is another problem to address.</span>
+        <span class="c1"># If the values does not refer to some temporal means but just to some</span>
+        <span class="c1"># temporal instant (and, therefore, they do not have temporal bounds),</span>
+        <span class="c1"># the values could be like 6, 12, 18, 0, ...</span>
+        <span class="c1"># In this case, we will subtract 3 to all the time steps. This allows</span>
+        <span class="c1"># to have a correct mean considering 00.00 as the last point of one day</span>
+        <span class="c1"># (and not as the first point of the following day)</span>
+        <span class="n">starting_point</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">:</span>
+            <span class="n">corr_factor</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">corr_factor</span> <span class="o">=</span> <span class="o">-</span><span class="n">prev_result</span><span class="o">.</span><span class="n">time_step_size</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;Using a correction factor for times of value </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="n">corr_factor</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">average_step</span><span class="p">):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Trying starting from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">times_to_average</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">average_step</span><span class="p">]</span> <span class="o">+</span> <span class="n">corr_factor</span>
+            <span class="n">time_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times_to_average</span><span class="p">)</span>
+
+            <span class="n">start_interval</span> <span class="o">=</span> <span class="n">time_mean</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">new_time_step</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">start_interval</span> <span class="o">%</span> <span class="n">average_step</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Starting from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">starting_point</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Trying again!&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Unable to find a correct starting point for &#39;</span>
+                           <span class="s1">&#39;averages. Starting from 0&#39;</span><span class="p">)</span>
+
+        <span class="n">averages_num</span> <span class="o">=</span> <span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="n">starting_point</span><span class="p">)</span> <span class="o">//</span> <span class="n">average_step</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;There are </span><span class="si">%s</span><span class="s1"> time step with a frequency of </span><span class="si">%s</span><span class="s1">. The means start &#39;</span>
+            <span class="s1">&#39;the timestep number </span><span class="si">%s</span><span class="s1">. Therefore, </span><span class="si">%s</span><span class="s1"> means will be computed&#39;</span><span class="p">,</span>
+            <span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">prev_result</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
+            <span class="n">starting_point</span><span class="p">,</span>
+            <span class="n">averages_num</span>
+        <span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Looking for a dimension called &quot;time&quot;&#39;</span><span class="p">)</span>
+        <span class="n">dims_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+        <span class="n">time_index</span> <span class="o">=</span> <span class="n">dims_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Time is the dimension number </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">time_index</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Computing the new dimensions of the variables&#39;</span><span class="p">)</span>
+        <span class="n">new_dimensions</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">new_dimensions</span><span class="p">[</span><span class="n">time_index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">averages_num</span><span class="p">)</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;The new dimensions will be </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">new_dimensions</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Allocating space for the new time vector&#39;</span><span class="p">)</span>
+        <span class="n">new_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">averages_num</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Allocating space for the new data of the variable&#39;</span><span class="p">)</span>
+        <span class="n">new_data_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">new_dimensions</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Preparing a mask to hide NaN values&#39;</span><span class="p">)</span>
+        <span class="n">new_data_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">new_dimensions</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span>
+        <span class="p">)</span>
+
+        <span class="n">shape_template</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Computing means&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">averages_num</span><span class="p">):</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">starting_point</span> <span class="o">+</span> <span class="n">average_step</span> <span class="o">*</span> <span class="n">i</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">average_step</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Performing mean of timesteps from </span><span class="si">%s</span><span class="s1"> to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">start</span><span class="p">,</span>
+                    <span class="n">end</span>
+                <span class="p">)</span>
+                <span class="n">new_times</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                    <span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="o">+</span> <span class="n">corr_factor</span>
+                <span class="p">)</span>
+
+                <span class="n">old_data_slice</span> <span class="o">=</span> <span class="n">shape_template</span><span class="p">[:]</span>
+                <span class="n">old_data_slice</span><span class="p">[</span><span class="n">time_index</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+                <span class="n">new_data_slice</span> <span class="o">=</span> <span class="n">shape_template</span><span class="p">[:]</span>
+                <span class="n">new_data_slice</span><span class="p">[</span><span class="n">time_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+                <span class="n">prev_data</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">old_data_slice</span><span class="p">)</span>
+                <span class="n">new_data_array</span><span class="p">[</span><span class="n">new_data_slice</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span>
+                    <span class="n">prev_data</span><span class="p">,</span>
+                    <span class="n">axis</span><span class="o">=</span><span class="n">time_index</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">is_masked</span><span class="p">(</span><span class="n">prev_data</span><span class="p">):</span>
+                    <span class="n">new_data_mask</span><span class="p">[</span><span class="n">new_data_slice</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
+                        <span class="n">prev_data</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span>
+                        <span class="n">axis</span><span class="o">=</span><span class="n">time_index</span>
+                    <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">new_data_mask</span><span class="p">):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Converting array in a masked array to remove invalid &#39;</span>
+                <span class="s1">&#39;values&#39;</span>
+            <span class="p">)</span>
+            <span class="n">new_data_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span>
+                <span class="n">new_data_array</span><span class="p">,</span>
+                <span class="n">new_data_mask</span>
+            <span class="p">)</span>
+
+        <span class="n">var_data</span> <span class="o">=</span> <span class="n">MemoryData</span><span class="p">(</span><span class="n">new_data_array</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">var_data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">new_dimensions</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">new_times</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span><span class="p">,</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IfNeededAverageAndSave"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.IfNeededAverageAndSave">[docs]</a><span class="k">class</span> <span class="nc">IfNeededAverageAndSave</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the average of the variable in a new interval, and save it to</span>
+<span class="sd">    disk if needed.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        new_time_step (float): the new time-step to apply to the variable.</span>
+
+<span class="sd">        var_name (string): the name of the variable to extract from the file.</span>
+
+<span class="sd">        fill_value (float, optional): if provided, fill the variable with this</span>
+<span class="sd">            value.</span>
+
+<span class="sd">        new_attributes (dict ``string -&gt; object``, optional): if provided,</span>
+<span class="sd">            contains attributes that can override those from the previous</span>
+<span class="sd">            Method object. netCDF takes care of applying the object value</span>
+<span class="sd">            correctly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_step</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">new_attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__averg</span> <span class="o">=</span> <span class="n">ComputeAverage</span><span class="p">(</span><span class="n">new_time_step</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__savedisk</span> <span class="o">=</span> <span class="n">SaveVariableToDisk</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">,</span>
+                                             <span class="n">new_attributes</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Performing average&#39;</span><span class="p">)</span>
+        <span class="n">averaged_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__averg</span><span class="p">(</span>
+            <span class="n">prev_result</span><span class="p">,</span>
+            <span class="n">regcm_file</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="n">simulation</span><span class="p">,</span>
+            <span class="n">corrflag</span><span class="p">,</span>
+            <span class="n">cordex_dir</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Since Variable doesn&#39;t provide an __eq__ method, Python defaults to</span>
+        <span class="c1"># use the identity equality. Moreover, the average is a function that</span>
+        <span class="c1"># may return the same identical object in case no average operation</span>
+        <span class="c1"># has to be performed (if the time-step is the same as the one</span>
+        <span class="c1"># requested).</span>
+        <span class="k">if</span> <span class="n">averaged_var</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">prev_result</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Saving on disk&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__savedisk</span><span class="p">(</span>
+                <span class="n">averaged_var</span><span class="p">,</span>
+                <span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="n">simulation</span><span class="p">,</span>
+                <span class="n">corrflag</span><span class="p">,</span>
+                <span class="n">cordex_dir</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">prev_result</span></div>
+
+
+<div class="viewcode-block" id="LinearCombinationOfVars"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.LinearCombinationOfVars">[docs]</a><span class="k">class</span> <span class="nc">LinearCombinationOfVars</span><span class="p">(</span><span class="n">ActionStarter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Combine the Variables using a linear combination.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        var_name (string): the name of the variable to extract from the file.</span>
+
+<span class="sd">        combination (iterable of iterables ``(string, number)``): each</span>
+<span class="sd">            pair has to be an iterable of ``(variable_name, coefficient)``.</span>
+
+<span class="sd">        copy_attributes_from (string, optional): if provided, copy the variable</span>
+<span class="sd">            attributes from that variable, otherwise use the previous variable</span>
+<span class="sd">            attributes.</span>
+
+<span class="sd">        new_attributes (dict ``string -&gt; object``, optional): if provided,</span>
+<span class="sd">            contains attributes that can override those from the previous</span>
+<span class="sd">            Method object. netCDF takes care of applying the object value</span>
+<span class="sd">            correctly.</span>
+
+<span class="sd">        need_time_bounds (boolean, optional): whether to use an auxiliary</span>
+<span class="sd">            variable to store the interval range. Defaults to ``False``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">combination</span><span class="p">,</span> <span class="n">copy_attributes_from</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">new_attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">need_time_bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_name</span> <span class="o">=</span> <span class="n">var_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_list</span> <span class="o">=</span> <span class="n">combination</span>
+
+        <span class="k">if</span> <span class="n">copy_attributes_from</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">copy_attributes_from</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">combination</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> is not in the list of variables to be read&#39;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">copy_attributes_from</span><span class="p">)</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span> <span class="o">=</span> <span class="n">copy_attributes_from</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_attributes</span> <span class="o">=</span> <span class="n">new_attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span> <span class="o">=</span> <span class="n">need_time_bounds</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">corrflag</span><span class="p">,</span>
+                 <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">var_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_list</span><span class="p">]</span>
+        <span class="n">var_coefficients</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_list</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">var_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading variable </span><span class="si">%s</span><span class="s1"> as reference&#39;</span><span class="p">,</span> <span class="n">var_names</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+        <span class="n">reference_var</span> <span class="o">=</span> <span class="n">read_variable_from_regcmfile</span><span class="p">(</span>
+            <span class="n">var_names</span><span class="p">[</span><span class="n">k</span><span class="p">],</span>
+            <span class="n">regcm_file</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes_from</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Copying attributes from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">reference_var</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">attributes</span> <span class="o">=</span> <span class="n">reference_var</span><span class="o">.</span><span class="n">attributes</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_attributes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">attr_name</span><span class="p">,</span> <span class="n">attr_value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">new_attributes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Adding attribute &quot;</span><span class="si">%s</span><span class="s1">&quot; with value &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span>
+                    <span class="n">attr_name</span><span class="p">,</span>
+                    <span class="n">attr_value</span>
+                <span class="p">)</span>
+                <span class="n">attributes</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr_value</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Preparing data for the new variable&#39;</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">linear_comb</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">k</span> <span class="o">*</span> <span class="n">x</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">var_coefficients</span><span class="p">,</span> <span class="n">args</span><span class="p">)])</span>
+
+        <span class="n">var_data</span> <span class="o">=</span> <span class="n">NetCDFMultiData</span><span class="p">(</span>
+            <span class="n">var_names</span><span class="p">,</span>
+            <span class="n">linear_comb</span><span class="p">,</span>
+            <span class="n">regcm_file_path</span><span class="p">,</span>
+            <span class="n">DATATYPE_MAIN</span><span class="p">,</span>
+            <span class="n">lock</span><span class="o">=</span><span class="n">regcm_file</span><span class="o">.</span><span class="n">lock</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">var_data</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">need_time_bounds</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SumOnDimension"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.SumOnDimension">[docs]</a><span class="k">class</span> <span class="nc">SumOnDimension</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sum variables on a given dimension.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        dimension (string): the name of the dimension to extract.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimension</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span> <span class="o">=</span> <span class="n">dimension</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s1">&#39;Looking into the dimensions for one called </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span>
+        <span class="p">)</span>
+
+        <span class="n">position</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dimensions</span><span class="p">):</span>
+            <span class="n">dim_name</span><span class="p">,</span> <span class="n">dim_value</span> <span class="o">=</span> <span class="n">dim</span>
+            <span class="k">if</span> <span class="n">dim_name</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">:</span>
+                <span class="n">position</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Found dimension </span><span class="si">%s</span><span class="s1"> in position </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="n">dim_name</span><span class="p">,</span>
+                    <span class="n">position</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;No dimension found named </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">))</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Removing dimension </span><span class="si">%s</span><span class="s1"> from the variable&#39;</span><span class="p">,</span> <span class="n">position</span><span class="p">)</span>
+        <span class="n">reduced_dims</span> <span class="o">=</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">position</span><span class="p">]</span> <span class="o">+</span> <span class="n">dimensions</span><span class="p">[</span><span class="n">position</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;New dimensions are </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">reduced_dims</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Copying attributes from the previous variable&#39;</span><span class="p">)</span>
+        <span class="n">attributes</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">attributes</span><span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Allocating space in memory to save the sum&#39;</span><span class="p">)</span>
+        <span class="n">new_data_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">reduced_dims</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span>
+        <span class="p">)</span>
+
+        <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Preparing a mask to hide NaN values&#39;</span><span class="p">)</span>
+        <span class="n">new_data_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">reduced_dims</span><span class="p">],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">depends_on_time</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Checking position of time dimension&#39;</span><span class="p">)</span>
+            <span class="n">time_position</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Time is the dimension number </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">time_position</span><span class="p">)</span>
+
+            <span class="n">slice_template_new</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">reduced_dims</span><span class="p">]</span>
+            <span class="n">slice_template_old</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">dimensions</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">time_position</span> <span class="o">&lt;</span> <span class="n">position</span><span class="p">:</span>
+                <span class="n">position_no_time</span> <span class="o">=</span> <span class="n">position</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">position_no_time</span> <span class="o">=</span> <span class="n">position</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;When cycling on the time dimension, the position of variable &#39;</span>
+                <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> will be </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dimension</span><span class="p">,</span>
+                <span class="n">position_no_time</span>
+            <span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading data from the previous variable&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s1">&#39;Summing timestep </span><span class="si">%s</span><span class="s1"> of </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="o">.</span><span class="n">size</span>
+                    <span class="p">)</span>
+
+                    <span class="n">current_slice_new</span> <span class="o">=</span> <span class="n">slice_template_new</span><span class="p">[:]</span>
+                    <span class="n">current_slice_new</span><span class="p">[</span><span class="n">time_position</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+                    <span class="n">current_slice_old</span> <span class="o">=</span> <span class="n">slice_template_old</span><span class="p">[:]</span>
+                    <span class="n">current_slice_old</span><span class="p">[</span><span class="n">time_position</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+                    <span class="n">prev_data</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="n">current_slice_old</span><span class="p">)</span>
+                    <span class="n">new_data_array</span><span class="p">[</span><span class="n">current_slice_new</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+                        <span class="n">prev_data</span><span class="p">,</span>
+                        <span class="n">axis</span><span class="o">=</span><span class="n">position_no_time</span>
+                    <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">is_masked</span><span class="p">(</span><span class="n">prev_data</span><span class="p">):</span>
+                        <span class="n">new_data_mask</span><span class="p">[</span><span class="n">current_slice_new</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span>
+                            <span class="n">prev_data</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span>
+                            <span class="n">axis</span><span class="o">=</span><span class="n">position_no_time</span>
+                        <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading data from the previous variable&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+                <span class="n">prev_data</span> <span class="o">=</span> <span class="n">prev_result</span><span class="o">.</span><span class="n">data</span><span class="p">()</span>
+                <span class="n">new_data_array</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">prev_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">position</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_masked</span><span class="p">(</span><span class="n">prev_data</span><span class="p">):</span>
+                    <span class="n">new_data_mask</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">prev_data</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">position</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">new_data_mask</span><span class="p">):</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Converting array in a masked array to remove invalid &#39;</span>
+                <span class="s1">&#39;values&#39;</span>
+            <span class="p">)</span>
+            <span class="n">new_data_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span>
+                <span class="n">new_data_array</span><span class="p">,</span>
+                <span class="n">new_data_mask</span>
+            <span class="p">)</span>
+
+        <span class="n">new_var</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">MemoryData</span><span class="p">(</span><span class="n">new_data_array</span><span class="p">),</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">reduced_dims</span><span class="p">,</span>
+            <span class="n">attributes</span><span class="o">=</span><span class="n">attributes</span><span class="p">,</span>
+            <span class="n">times</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+            <span class="n">needs_time_bounds</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">needs_time_bounds</span><span class="p">,</span>
+            <span class="n">times_attributes</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+            <span class="n">auxiliary_vars</span><span class="o">=</span><span class="n">prev_result</span><span class="o">.</span><span class="n">auxiliary_variables</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_var</span></div>
+
+
+<div class="viewcode-block" id="ComputeAverageOfEachVariable"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ComputeAverageOfEachVariable">[docs]</a><span class="k">class</span> <span class="nc">ComputeAverageOfEachVariable</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the average of each variable, given a certain time-step.</span>
+
+<span class="sd">    Note that if the timestep is the same as the actual one (compared with an</span>
+<span class="sd">    epsilon to avoid floating-point comparison), the same input ``Variable`` is</span>
+<span class="sd">    returned.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        new_time_step (float): the new time-step to apply to the variable.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        list of ``Variable``: list of ``Variable`` objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_time_step</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__compute_average</span> <span class="o">=</span> <span class="n">ComputeAverage</span><span class="p">(</span><span class="n">new_time_step</span><span class="o">=</span><span class="n">new_time_step</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_result</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span>
+                 <span class="n">corrflag</span><span class="p">,</span> <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">mean_variables</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cordex_var</span> <span class="ow">in</span> <span class="n">prev_result</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Computing average of variable </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">cordex_var</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">new_mean</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__compute_average</span><span class="p">(</span>
+                <span class="n">cordex_var</span><span class="p">,</span>
+                <span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="n">simulation</span><span class="p">,</span>
+                <span class="n">corrflag</span><span class="p">,</span>
+                <span class="n">cordex_dir</span>
+            <span class="p">)</span>
+            <span class="n">mean_variables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_mean</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">mean_variables</span></div>
+
+
+<div class="viewcode-block" id="ComputeGeopotentialHeight"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ComputeGeopotentialHeight">[docs]</a><span class="k">class</span> <span class="nc">ComputeGeopotentialHeight</span><span class="p">(</span><span class="n">ActionStarter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the geopotential at a certain given height expressed as pressure.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        height (float): the height at which to compute the geopotential,</span>
+<span class="sd">            expressed as pressure.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        ``Variable``: a ``Variable`` object, containing the height expressed as</span>
+<span class="sd">        meters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">corrflag</span><span class="p">,</span>
+                 <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="c1"># Prepare a function to read exactly one timestep of a netcdf var</span>
+        <span class="k">def</span> <span class="nf">read_timestep</span><span class="p">(</span><span class="n">v_pointer</span><span class="p">,</span> <span class="n">t_step</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">v_pointer</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">no_time_vars_data</span><span class="p">[</span><span class="n">v_pointer</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+
+            <span class="n">t_dim</span> <span class="o">=</span> <span class="n">v_pointer</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+            <span class="n">slicer</span> <span class="o">=</span> <span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">v_pointer</span><span class="o">.</span><span class="n">shape</span><span class="p">]</span>
+            <span class="n">slicer</span><span class="p">[</span><span class="n">t_dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">t_step</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Reading timestep </span><span class="si">%s</span><span class="s1"> of variable </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">t_step</span><span class="p">,</span>
+                <span class="n">v_pointer</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">v_pointer</span><span class="p">[</span><span class="n">slicer</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">)</span>
+
+        <span class="n">needed_var_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ta&#39;</span><span class="p">,</span> <span class="s1">&#39;ps&#39;</span><span class="p">,</span> <span class="s1">&#39;topo&#39;</span><span class="p">,</span> <span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="s1">&#39;ptop&#39;</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">regcm_file_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">needed_vars</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">needed_var_names</span><span class="p">:</span>
+                <span class="n">v_names</span> <span class="o">=</span> <span class="n">get_regcm_variable_names</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                <span class="n">v_pointer</span> <span class="o">=</span> <span class="n">get_var_with_name</span><span class="p">(</span><span class="n">v_names</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="n">needed_vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v_pointer</span><span class="p">)</span>
+
+            <span class="c1"># This is the name of the variable that will be used to copy the</span>
+            <span class="c1"># time steps, the time attributes and so on...</span>
+            <span class="n">reference_var_name</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">for</span> <span class="n">v_name</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">needed_var_names</span><span class="p">,</span> <span class="n">needed_vars</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                    <span class="n">reference_var_name</span> <span class="o">=</span> <span class="n">v_name</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s1">&#39;Variable </span><span class="si">%s</span><span class="s1"> will be used as reference&#39;</span><span class="p">,</span>
+                        <span class="n">reference_var_name</span>
+                    <span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;No variable found to use as a reference&#39;</span><span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Check the total number of steps&#39;</span><span class="p">)</span>
+            <span class="n">time_dim</span> <span class="o">=</span> <span class="n">needed_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+            <span class="n">time_steps</span> <span class="o">=</span> <span class="n">needed_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">time_dim</span><span class="p">]</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> timesteps found&#39;</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">)</span>
+
+            <span class="n">kz_dim</span> <span class="o">=</span> <span class="n">needed_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;kz&#39;</span><span class="p">)</span>
+            <span class="n">old_shape</span> <span class="o">=</span> <span class="n">needed_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">new_shape</span> <span class="o">=</span> <span class="n">old_shape</span><span class="p">[:</span><span class="n">kz_dim</span><span class="p">]</span> <span class="o">+</span> <span class="n">old_shape</span><span class="p">[</span><span class="n">kz_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+            <span class="n">old_dims</span> <span class="o">=</span> <span class="n">needed_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span>
+            <span class="n">new_dims</span> <span class="o">=</span> <span class="n">old_dims</span><span class="p">[:</span><span class="n">kz_dim</span><span class="p">]</span> <span class="o">+</span> <span class="n">old_dims</span><span class="p">[</span><span class="n">kz_dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+            <span class="n">dimensions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">new_dims</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">))</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;The output data will have the following shape: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">new_shape</span>
+            <span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;The output data will have the following dimensions: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">dimensions</span>
+            <span class="p">)</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Allocating memory&#39;</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">new_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">)</span>
+
+            <span class="c1"># Read the data of the variables that do not depend on time</span>
+            <span class="n">no_time_vars_data</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">needed_vars</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                    <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading data of variable </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">v_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">v</span><span class="p">[:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">DATATYPE_MAIN</span><span class="p">)</span>
+                    <span class="n">no_time_vars_data</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_data</span>
+
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">time_steps</span><span class="p">):</span>
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s1">&#39;Computing geopotential height for </span><span class="si">%s</span><span class="s1"> hPa at timestep </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                    <span class="n">t</span>
+                <span class="p">)</span>
+                <span class="n">hgt_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">read_timestep</span><span class="p">(</span><span class="n">data_v</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">data_v</span> <span class="ow">in</span> <span class="n">needed_vars</span><span class="p">]</span>
+                <span class="n">hgt_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+
+                <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Calling Fortran function mod_hgt.height&#39;</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">mod_hgt</span><span class="o">.</span><span class="n">height</span><span class="p">(</span><span class="o">*</span><span class="n">hgt_args</span><span class="p">)</span>
+
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reading reference var&#39;</span><span class="p">)</span>
+            <span class="n">reference_var</span> <span class="o">=</span> <span class="n">read_variable_from_regcmfile</span><span class="p">(</span>
+                <span class="n">reference_var_name</span><span class="p">,</span>
+                <span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">Variable</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;zg</span><span class="si">{:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">),</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">MemoryData</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+                <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">,</span>
+                <span class="n">attributes</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">attributes</span><span class="p">,</span>
+                <span class="n">times</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">times</span><span class="p">,</span>
+                <span class="n">times_attributes</span><span class="o">=</span><span class="n">reference_var</span><span class="o">.</span><span class="n">times_attributes</span><span class="p">,</span>
+                <span class="n">auxiliary_vars</span><span class="o">=</span><span class="p">[],</span>
+                <span class="n">needs_time_bounds</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ComputeGeopotentialHeightOnSeveralPressures"><a class="viewcode-back" href="../../index.html#utilities.pycordexer_methods.ComputeGeopotentialHeightOnSeveralPressures">[docs]</a><span class="k">class</span> <span class="nc">ComputeGeopotentialHeightOnSeveralPressures</span><span class="p">(</span><span class="n">ActionStarter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the geopotential at several pressure levels.</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        pressures (list of float): compute the geopotential at each pressure</span>
+<span class="sd">            level provided.</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        list of ``Variable``: a list of ``Variable`` objects, containing the</span>
+<span class="sd">        height expressed as meters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pressures</span><span class="p">):</span>
+        <span class="n">pressures</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">pressures</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__height_gens</span> <span class="o">=</span> <span class="p">[</span><span class="n">ComputeGeopotentialHeight</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">pressures</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regcm_file</span><span class="p">,</span> <span class="n">regcm_file_path</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">corrflag</span><span class="p">,</span>
+                 <span class="n">cordex_dir</span><span class="p">):</span>
+
+        <span class="n">new_vars</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">height_generator</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__height_gens</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s1">&#39;Computing geopotential height on </span><span class="si">%s</span><span class="s1"> hPa&#39;</span><span class="p">,</span>
+                <span class="n">height_generator</span><span class="o">.</span><span class="n">height</span>
+            <span class="p">)</span>
+            <span class="n">new_var</span> <span class="o">=</span> <span class="n">height_generator</span><span class="p">(</span>
+                <span class="n">regcm_file</span><span class="p">,</span>
+                <span class="n">regcm_file_path</span><span class="p">,</span>
+                <span class="n">simulation</span><span class="p">,</span>
+                <span class="n">corrflag</span><span class="p">,</span>
+                <span class="n">cordex_dir</span>
+            <span class="p">)</span>
+            <span class="n">new_vars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_var</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_vars</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">PyCordexer 2.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, eXact-lab.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

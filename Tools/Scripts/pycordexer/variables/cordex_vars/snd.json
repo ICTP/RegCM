@@ -1,0 +1,22 @@
+{
+  "snd": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "snd"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Snow Depth",
+            "standard_name": "surface_snow_thickness",
+            "units": "m"
+          }
+        }
+      ]
+    ]
+  ]
+}

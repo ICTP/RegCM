@@ -1,0 +1,57 @@
+{
+  "evspsbl": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "evspsbl",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Evaporation",
+            "standard_name": "water_evaporation_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ],
+      [
+        "IfNeededThinAndSave",
+        {
+          "new_time_step": 3,
+          "var_name": "evspsbl",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Evaporation",
+            "standard_name": "water_evaporation_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ],
+      [
+        "IfNeededThinAndSave",
+        {
+          "new_time_step": 24,
+          "var_name": "evspsbl",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Evaporation",
+            "standard_name": "water_evaporation_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ]
+    ]
+  ]
+}

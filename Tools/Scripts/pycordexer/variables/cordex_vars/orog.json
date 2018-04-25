@@ -1,0 +1,24 @@
+{
+  "orog": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "topo"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "orog",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "m",
+            "long_name": "Surface Altitude",
+            "standard_name": "surface_altitude"
+          }
+        }
+      ]
+    ]
+  ]
+}

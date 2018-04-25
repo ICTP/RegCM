@@ -1,0 +1,63 @@
+{
+  "tauv": [
+    [
+      [
+        "ComputeGeoCoordinateFromGridCoordinate",
+        {
+          "var_name": "tauv",
+          "grid_eastward": "tauu",
+          "grid_northward": "tauv",
+          "direction": "northward",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Surface Downward Northward Wind Stress",
+            "standard_name": "surface_downward_northward_stress",
+            "units": "Pa"
+          }
+        }
+      ],
+      [
+        "IfNeededAverageAndSave",
+        {
+          "new_time_step": 6,
+          "var_name": "tauv",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Downward Northward Wind Stress",
+            "standard_name": "surface_downward_northward_stress",
+            "units": "Pa"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Surface Downward Northward Wind Stress",
+            "standard_name": "surface_downward_northward_stress",
+            "units": "Pa"
+          }
+        }
+      ]
+    ]
+  ]
+}

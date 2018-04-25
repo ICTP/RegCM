@@ -1,0 +1,47 @@
+{
+  "cll": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "cll",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "RAD": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Low Level Cloud Fraction",
+            "standard_name": "cloud_area_fraction_in_atmosphere_layer",
+            "units": "%"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Low Level Cloud Fraction",
+            "standard_name": "cloud_area_fraction_in_atmosphere_layer",
+            "units": "%"
+          }
+        }
+      ]
+    ]
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "snw": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "snw",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": 0.0
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "snw",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Snow Amount",
+            "standard_name": "surface_snow_amount",
+            "units": "kg m-2"
+          }
+        }
+      ],
+      [
+        "IfNeededThinAndSave",
+        {
+          "new_time_step": 6,
+          "var_name": "snw",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Snow Amount",
+            "standard_name": "surface_snow_amount",
+            "units": "kg m-2"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "snw",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Snow Amount",
+            "standard_name": "surface_snow_amount",
+            "units": "kg m-2"
+          }
+        }
+      ]
+    ]
+  ]
+}

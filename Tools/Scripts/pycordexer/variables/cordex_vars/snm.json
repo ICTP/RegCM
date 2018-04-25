@@ -1,0 +1,64 @@
+{
+  "snm": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "snm",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "snm",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Snow Melt",
+            "standard_name": "surface_snow_melt_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ],
+      [
+        "IfNeededAverageAndSave",
+        {
+          "new_time_step": 6,
+          "var_name": "snm",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Snow Melt",
+            "standard_name": "surface_snow_melt_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "snm",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Snow Melt",
+            "standard_name": "surface_snow_melt_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ]
+    ]
+  ]
+}

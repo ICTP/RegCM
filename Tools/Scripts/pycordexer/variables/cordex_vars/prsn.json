@@ -1,0 +1,22 @@
+{
+  "prsn": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "prsn"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Snowfall Flux",
+            "standard_name": "snowfall_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ]
+    ]
+  ]
+}

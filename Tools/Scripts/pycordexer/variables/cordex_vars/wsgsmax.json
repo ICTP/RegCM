@@ -1,0 +1,22 @@
+{
+  "wsgsmax": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "wsgsmax"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Daily Maximum Near-Surface Wind Speed of Gust",
+            "standard_name": "wind_speed_of_gust",
+            "units": "m s-1"
+          }
+        }
+      ]
+    ]
+  ]
+}

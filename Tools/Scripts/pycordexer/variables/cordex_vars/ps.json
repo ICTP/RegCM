@@ -1,0 +1,45 @@
+{
+  "ps": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "ps",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": 0.0
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Air Pressure",
+            "standard_name": "surface_air_pressure",
+            "units": "Pa"
+          }
+        }
+      ],
+      [
+        "IfNeededThinAndSave",
+        {
+          "new_time_step": 3,
+          "var_name": "ps",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Air Pressure",
+            "standard_name": "surface_air_pressure",
+            "units": "Pa"
+          }
+        }
+      ]
+    ]
+  ]
+}

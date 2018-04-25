@@ -1,0 +1,46 @@
+{
+  "ta": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "ta",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "InterpolateOnMultipleHeights",
+        {
+          "pressure_levels" : [200, 500, 850],
+          "method": "logarithmic"
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "K",
+            "long_name": "Air Temperature"
+          }
+        }
+      ],
+      [
+        "ComputeAverageOfEachVariable",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "K",
+            "long_name": "Air Temperature"
+          }
+        }
+      ]
+    ]
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "sftgif": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "sftgif"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Fraction of Grid Cell Covered with Glacier",
+            "standard_name": "land_ice_area_fraction",
+            "units": "%"
+          }
+        }
+      ]
+    ]
+  ]
+}

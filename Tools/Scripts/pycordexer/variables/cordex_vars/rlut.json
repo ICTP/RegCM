@@ -1,0 +1,47 @@
+{
+  "rlut": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "rlut",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "RAD": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "TOA Outgoing Longwave Radiation",
+            "standard_name": "toa_outgoing_longwave_flux",
+            "units": "W m-2"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "TOA Outgoing Longwave Radiation",
+            "standard_name": "toa_outgoing_longwave_flux",
+            "units": "W m-2"
+          }
+        }
+      ]
+    ]
+  ]
+}

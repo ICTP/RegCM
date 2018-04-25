@@ -1,0 +1,22 @@
+{
+  "sftlf": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "sftlf"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Land Area Fraction",
+            "standard_name": "land_area_fraction",
+            "units": "%"
+          }
+        }
+      ]
+    ]
+  ]
+}

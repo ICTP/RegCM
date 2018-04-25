@@ -1,0 +1,22 @@
+{
+  "phrmax": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "phrmax"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Daily Maximum Hourly Precipitation Rate",
+            "standard_name": "precipitation_flux",
+            "units": "kg m-2 s-1"
+          }
+        }
+      ]
+    ]
+  ]
+}

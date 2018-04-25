@@ -1,0 +1,578 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>PyCordexer documentation &#8212; PyCordexer 2.1 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">PyCordexer 2.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pycordexer-documentation">
+<h1>PyCordexer documentation<a class="headerlink" href="#pycordexer-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#pycordexer-documentation" id="id1">PyCordexer documentation</a><ul>
+<li><a class="reference internal" href="#introduction" id="id2">Introduction</a></li>
+<li><a class="reference internal" href="#pycordexer-base-methods" id="id3">PyCordexer Base Methods</a></li>
+<li><a class="reference internal" href="#pycordexer-actual-methods" id="id4">PyCordexer Actual Methods</a></li>
+<li><a class="reference internal" href="#utilities" id="id5">Utilities</a></li>
+<li><a class="reference internal" href="#indices-and-tables" id="id6">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The <em>PyCordexer</em> scripts have been developed to ease the RegCM Model User
+in converting variables in RegCM model output files into the netCDF format
+respecting the CORDEX experiment conventions.</p>
+<p>The scripts rely on a series of external JSON-encoded files (stored in the
+<code class="docutils literal"><span class="pre">variables/</span></code> directory), containing instructions to apply to variables in
+the process of extraction.</p>
+<p>The operations encoded in the JSON files are interpreted into python using the
+instructions defined in the <code class="docutils literal"><span class="pre">utilities/pycordexer_methods.py</span></code> script.
+This documentation introduces the operations, or “Methods”, currently
+available inside the script.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>Note that each operation is written as a class, and the actual code to be
+executed is inside the <code class="docutils literal"><span class="pre">__call__</span></code> method, according to the implementation
+design.
+Each variable to extract needs to apply a sequence of methods: to avoid running
+out of memory, each operation is performed only when needed, in a sort of
+“cascade” of operations.</p>
+<p>Each actual Method derives from an abstract Method object, and returns a
+<code class="docutils literal"><span class="pre">Variable</span></code> object (defined in <code class="docutils literal"><span class="pre">utilities/variables.py</span></code>), to continue the
+chain of Methods. The <code class="docutils literal"><span class="pre">Action</span></code> class is not reported here, because it is used
+only in the <code class="docutils literal"><span class="pre">pycordexer.py</span></code> to build the chain.</p>
+</div>
+<div class="section" id="pycordexer-base-methods">
+<h2>PyCordexer Base Methods<a class="headerlink" href="#pycordexer-base-methods" title="Permalink to this headline">¶</a></h2>
+<p>The following are Base Methods, used to create the actual Methods, and
+which are to be used to create new methods in the future.</p>
+<dl class="class">
+<dt id="utilities.pycordexer_methods.Method">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">Method</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#Method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.Method" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Method is a callable object that performs actions on a variable.</p>
+<p>It is invoked in the JSON file that describes the actions to perform on a
+variable.</p>
+<p>This class is an abstract class, that make sure that at least the important
+methods have been set in the descendant classes.</p>
+</dd></dl>
+
+<span class="target" id="module-utilities.pycordexer_methods"></span><dl class="class">
+<dt id="utilities.pycordexer_methods.ActionStarter">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ActionStarter</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ActionStarter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ActionStarter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Method" title="utilities.pycordexer_methods.Method"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Method</span></code></a></p>
+<p>An ActionStarter does not require any input from another method.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.Filter">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">Filter</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#Filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.Filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Method" title="utilities.pycordexer_methods.Method"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Method</span></code></a></p>
+<p>A Filter requires as input the output of another method to execute.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="pycordexer-actual-methods">
+<h2>PyCordexer Actual Methods<a class="headerlink" href="#pycordexer-actual-methods" title="Permalink to this headline">¶</a></h2>
+<p>The following are the Methods that can be used to manipulate RegCM variables.</p>
+<p>Inside <code class="docutils literal"><span class="pre">variables/cordex_vars/</span></code> there is a JSON file for each RegCM variable:
+each JSON contains a sequence of Methods to be applied to the original variable
+to produce it.</p>
+<p>The Methods are presented in alphabetical order; when not specified, each method
+returns a <code class="docutils literal"><span class="pre">Variable</span></code> object.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<span class="target" id="module-utilities.pycordexer_methods"></span><dl class="class">
+<dt id="utilities.pycordexer_methods.ComputeAverage">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ComputeAverage</code><span class="sig-paren">(</span><em>new_time_step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ComputeAverage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ComputeAverage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Compute the average of the variable using a given time-step as interval.</p>
+<p>Note that if the timestep is the same as the actual one (compared with an
+epsilon to avoid floating-point comparison), the same input <code class="docutils literal"><span class="pre">Variable</span></code> is
+returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_time_step</strong> (<em>float</em>) – the new time-step to apply to the variable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.ComputeAverageOfEachVariable">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ComputeAverageOfEachVariable</code><span class="sig-paren">(</span><em>new_time_step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ComputeAverageOfEachVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ComputeAverageOfEachVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Compute the average of each variable, given a certain time-step.</p>
+<p>Note that if the timestep is the same as the actual one (compared with an
+epsilon to avoid floating-point comparison), the same input <code class="docutils literal"><span class="pre">Variable</span></code> is
+returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_time_step</strong> (<em>float</em>) – the new time-step to apply to the variable.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of <code class="docutils literal"><span class="pre">Variable</span></code> objects.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of <code class="docutils literal"><span class="pre">Variable</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.ComputeGeopotentialHeight">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ComputeGeopotentialHeight</code><span class="sig-paren">(</span><em>height</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ComputeGeopotentialHeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ComputeGeopotentialHeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.ActionStarter" title="utilities.pycordexer_methods.ActionStarter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.ActionStarter</span></code></a></p>
+<p>Compute the geopotential at a certain given height expressed as pressure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>height</strong> (<em>float</em>) – the height at which to compute the geopotential,
+expressed as pressure.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a <code class="docutils literal"><span class="pre">Variable</span></code> object, containing the height expressed as
+meters.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><span class="pre">Variable</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.ComputeGeopotentialHeightOnSeveralPressures">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ComputeGeopotentialHeightOnSeveralPressures</code><span class="sig-paren">(</span><em>pressures</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ComputeGeopotentialHeightOnSeveralPressures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ComputeGeopotentialHeightOnSeveralPressures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.ActionStarter" title="utilities.pycordexer_methods.ActionStarter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.ActionStarter</span></code></a></p>
+<p>Compute the geopotential at several pressure levels.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>pressures</strong> (<em>list of float</em>) – compute the geopotential at each pressure
+level provided.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a list of <code class="docutils literal"><span class="pre">Variable</span></code> objects, containing the
+height expressed as meters.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of <code class="docutils literal"><span class="pre">Variable</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.CorrectTime">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">CorrectTime</code><span class="sig-paren">(</span><em>offset</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#CorrectTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.CorrectTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Apply an offset to correct the time of the variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>offset</strong> (<em>dict</em>) – a dict containing an <code class="docutils literal"><span class="pre">ftype</span></code> field to apply as offset.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.ExtractGroundHeight">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ExtractGroundHeight</code><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ExtractGroundHeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ExtractGroundHeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Extract the height from the ground, discarding empty data.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.ExtractLevel">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ExtractLevel</code><span class="sig-paren">(</span><em>level</em>, <em>dimension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ExtractLevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ExtractLevel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Given a level index and the name of a dimension, move the returned
+Variable object on that specific level.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>level</strong> (<em>integer</em>) – the index of the level to extract.</li>
+<li><strong>dimension</strong> (<em>string</em>) – the name of the dimension to extract.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.IfNeededAverageAndSave">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">IfNeededAverageAndSave</code><span class="sig-paren">(</span><em>new_time_step</em>, <em>var_name=None</em>, <em>fill_value=None</em>, <em>new_attributes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#IfNeededAverageAndSave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.IfNeededAverageAndSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Compute the average of the variable in a new interval, and save it to
+disk if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>new_time_step</strong> (<em>float</em>) – the new time-step to apply to the variable.</li>
+<li><strong>var_name</strong> (<em>string</em>) – the name of the variable to extract from the file.</li>
+<li><strong>fill_value</strong> (<em>float</em><em>, </em><em>optional</em>) – if provided, fill the variable with this
+value.</li>
+<li><strong>new_attributes</strong> (dict <code class="docutils literal"><span class="pre">string</span> <span class="pre">-&gt;</span> <span class="pre">object</span></code>, optional) – if provided,
+contains attributes that can override those from the previous
+Method object. netCDF takes care of applying the object value
+correctly.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.IfNeededThinAndSave">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">IfNeededThinAndSave</code><span class="sig-paren">(</span><em>new_time_step</em>, <em>var_name=None</em>, <em>fill_value=None</em>, <em>new_attributes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#IfNeededThinAndSave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.IfNeededThinAndSave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Change the time-step of a variable and save it to disk if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>new_time_step</strong> (<em>float</em>) – the new time-step to apply to the variable.</li>
+<li><strong>var_name</strong> (<em>string</em>) – the name of the variable to extract from the file.</li>
+<li><strong>fill_value</strong> (<em>float</em><em>, </em><em>optional</em>) – if provided, fill the variable with this
+value.</li>
+<li><strong>new_attributes</strong> (dict <code class="docutils literal"><span class="pre">string</span> <span class="pre">-&gt;</span> <span class="pre">object</span></code>, optional) – if provided,
+contains attributes that can override those from the previous
+Method object. netCDF takes care of applying the object value
+correctly.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.InterpolateHeight">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">InterpolateHeight</code><span class="sig-paren">(</span><em>pressure_level</em>, <em>method</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#InterpolateHeight"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.InterpolateHeight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Apply a vertical interpolation with the height expressed as a pressure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pressure_level</strong> (<em>float</em>) – the height, expressed as pressure, to
+interpolate at.</li>
+<li><strong>method</strong> (string in <code class="docutils literal"><span class="pre">[&quot;linear&quot;,</span> <span class="pre">&quot;logarithmic&quot;]</span></code>) – the method to use to
+interpolate.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.InterpolateOnMultipleHeights">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">InterpolateOnMultipleHeights</code><span class="sig-paren">(</span><em>pressure_levels</em>, <em>method</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#InterpolateOnMultipleHeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.InterpolateOnMultipleHeights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Apply a vertical interpolation at many heights, expressed as pressures.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pressure_levels</strong> (<em>iterable of floats</em>) – an iterable of heights, expressed
+as pressure, to interpolate at.</li>
+<li><strong>method</strong> (string in <code class="docutils literal"><span class="pre">[&quot;linear&quot;,</span> <span class="pre">&quot;logarithmic&quot;]</span></code>) – the method to use to
+interpolate.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of interpolated <code class="docutils literal"><span class="pre">Variable</span></code> objects.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of <code class="docutils literal"><span class="pre">Variable</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.LinearCombinationOfVars">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">LinearCombinationOfVars</code><span class="sig-paren">(</span><em>var_name</em>, <em>combination</em>, <em>copy_attributes_from=None</em>, <em>new_attributes=None</em>, <em>need_time_bounds=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#LinearCombinationOfVars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.LinearCombinationOfVars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.ActionStarter" title="utilities.pycordexer_methods.ActionStarter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.ActionStarter</span></code></a></p>
+<p>Combine the Variables using a linear combination.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>var_name</strong> (<em>string</em>) – the name of the variable to extract from the file.</li>
+<li><strong>combination</strong> (iterable of iterables <code class="docutils literal"><span class="pre">(string,</span> <span class="pre">number)</span></code>) – each
+pair has to be an iterable of <code class="docutils literal"><span class="pre">(variable_name,</span> <span class="pre">coefficient)</span></code>.</li>
+<li><strong>copy_attributes_from</strong> (<em>string</em><em>, </em><em>optional</em>) – if provided, copy the variable
+attributes from that variable, otherwise use the previous variable
+attributes.</li>
+<li><strong>new_attributes</strong> (dict <code class="docutils literal"><span class="pre">string</span> <span class="pre">-&gt;</span> <span class="pre">object</span></code>, optional) – if provided,
+contains attributes that can override those from the previous
+Method object. netCDF takes care of applying the object value
+correctly.</li>
+<li><strong>need_time_bounds</strong> (<em>boolean</em><em>, </em><em>optional</em>) – whether to use an auxiliary
+variable to store the interval range. Defaults to <code class="docutils literal"><span class="pre">False</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.NormFromCoords">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">NormFromCoords</code><span class="sig-paren">(</span><em>var_name</em>, <em>compute_from</em>, <em>copy_attributes_from=None</em>, <em>new_attributes=None</em>, <em>need_time_bounds=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#NormFromCoords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.NormFromCoords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.ActionStarter" title="utilities.pycordexer_methods.ActionStarter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.ActionStarter</span></code></a></p>
+<p>Compute norms of a list of variables and merge them into a single one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>var_name</strong> (<em>string</em>) – the name of the variable to create.</li>
+<li><strong>compute_from</strong> (<em>list of strings</em>) – the list of variables to calculate the
+norms on, and to collect as a single variable to be returned.</li>
+<li><strong>copy_attributes_from</strong> (<em>string</em><em>, </em><em>optional</em>) – if provided, copy the variable
+attributes from that variable, otherwise use the previous variable
+attributes.</li>
+<li><strong>new_attributes</strong> (dict <code class="docutils literal"><span class="pre">string</span> <span class="pre">-&gt;</span> <span class="pre">object</span></code>, optional) – if provided,
+contains attributes that can override those from the previous
+Method object. netCDF takes care of applying the object value
+correctly.</li>
+<li><strong>need_time_bounds</strong> (<em>boolean</em><em>, </em><em>optional</em>) – whether to use an auxiliary
+variable to store the interval range. Defaults to <code class="docutils literal"><span class="pre">False</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.ReadVariableFromFile">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">ReadVariableFromFile</code><span class="sig-paren">(</span><em>var_name</em>, <em>need_time_bounds=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#ReadVariableFromFile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.ReadVariableFromFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.ActionStarter" title="utilities.pycordexer_methods.ActionStarter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.ActionStarter</span></code></a></p>
+<p>Read a variable from a file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>var_name</strong> (<em>string</em>) – the name of the variable to extract from the file.</li>
+<li><strong>need_time_bounds</strong> (<em>boolean</em><em>, </em><em>optional</em>) – whether to use an auxiliary
+variable to store the interval range. Defaults to <code class="docutils literal"><span class="pre">False</span></code>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.SaveMultipleVariablesToDisk">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">SaveMultipleVariablesToDisk</code><span class="sig-paren">(</span><em>fill_value=None</em>, <em>new_attributes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#SaveMultipleVariablesToDisk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.SaveMultipleVariablesToDisk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Save multiple variables to disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fill_value</strong> (<em>float</em><em>, </em><em>optional</em>) – if provided, fill the variable with this
+value.</li>
+<li><strong>new_attributes</strong> (dict <code class="docutils literal"><span class="pre">string</span> <span class="pre">-&gt;</span> <span class="pre">object</span></code>, optional) – if provided,
+contains attributes that can override those from the previous
+Method object. netCDF takes care of applying the object value
+correctly.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.SaveVariableToDisk">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">SaveVariableToDisk</code><span class="sig-paren">(</span><em>var_name=None</em>, <em>fill_value=None</em>, <em>new_attributes=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#SaveVariableToDisk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.SaveVariableToDisk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Save a variable to disk.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>var_name</strong> (<em>string</em><em>, </em><em>optional</em>) – if provided, it overrides the name of the
+variable stored in the previous Method of the chain.</li>
+<li><strong>fill_value</strong> (<em>float</em><em>, </em><em>optional</em>) – if provided, fill the variable with this
+value.</li>
+<li><strong>new_attributes</strong> (dict <code class="docutils literal"><span class="pre">string</span> <span class="pre">-&gt;</span> <span class="pre">object</span></code>, optional) – if provided,
+contains attributes that can override those from the previous
+Method object. netCDF takes care of applying the object value
+correctly.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.SumOnDimension">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">SumOnDimension</code><span class="sig-paren">(</span><em>dimension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#SumOnDimension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.SumOnDimension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Sum variables on a given dimension.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dimension</strong> (<em>string</em>) – the name of the dimension to extract.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="utilities.pycordexer_methods.Thin">
+<em class="property">class </em><code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">Thin</code><span class="sig-paren">(</span><em>new_time_step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#Thin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.Thin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#utilities.pycordexer_methods.Filter" title="utilities.pycordexer_methods.Filter"><code class="xref py py-class docutils literal"><span class="pre">utilities.pycordexer_methods.Filter</span></code></a></p>
+<p>Change the time-step of a variable.</p>
+<p>Note that if the timestep is the same as the actual one (compared with an
+epsilon to avoid floating-point comparison), the same input <code class="docutils literal"><span class="pre">Variable</span></code> is
+returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>new_time_step</strong> (<em>float</em>) – the new time-step to apply to the variable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="utilities">
+<h2>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="utilities.pycordexer_methods.get_methods">
+<code class="descclassname">utilities.pycordexer_methods.</code><code class="descname">get_methods</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/utilities/pycordexer_methods.html#get_methods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.pycordexer_methods.get_methods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the classes inheriting from Method, stored in the
+<code class="docutils literal"><span class="pre">pycordexer_methods</span></code> module.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a dictionary that associates each name (as a string) with its
+corresponding class.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">PyCordexer 2.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, eXact-lab.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+    </div>
+  </body>
+</html>

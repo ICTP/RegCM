@@ -1,0 +1,64 @@
+{
+  "clt": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "clt",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "clt",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "%",
+            "long_name": "Total Cloud Fraction",
+            "standard_name": "cloud_area_fraction"
+          }
+        }
+      ],
+      [
+        "IfNeededAverageAndSave",
+        {
+          "new_time_step": 3,
+          "var_name": "clt",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "%",
+            "long_name": "Total Cloud Fraction",
+            "standard_name": "cloud_area_fraction"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "clt",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "%",
+            "long_name": "Total Cloud Fraction",
+            "standard_name": "cloud_area_fraction"
+          }
+        }
+      ]
+    ]
+  ]
+}
