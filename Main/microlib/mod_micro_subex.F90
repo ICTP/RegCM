@@ -270,16 +270,18 @@ module mod_micro_subex
             rdevap = min(max(rdevap,d_zero),pptkm1)       ![kg/kg/s][avg]
             ! 2bcc. Update the precipitation accounting for the raindrop
             !       evaporation [kg/m2/s]
-            pptsum(j,i) = max(pptsum(j,i)-rdevap*dpovg,d_zero) ![kg/m2/s][avg]
-            pptkm1 = pptkm1 - rdevap
-            ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
-            ![kg/kg/s*cb][avg]
-            mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
-                                       rdevap*mo2mc%psb(j,i)
-            ! 2bcf. Compute the temperature tendency [K/s*cb]
-            ![k/s*cb][avg]
-            mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                    wlh(mo2mc%t(j,i,k))*rcpd*rdevap*mo2mc%psb(j,i)
+            if ( rdevap > dlowval ) then
+              pptsum(j,i) = max(pptsum(j,i)-rdevap*dpovg,d_zero) ![kg/m2/s][avg]
+              pptkm1 = pptkm1 - rdevap
+              ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
+              ![kg/kg/s*cb][avg]
+              mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
+                                         rdevap*mo2mc%psb(j,i)
+              ! 2bcf. Compute the temperature tendency [K/s*cb]
+              ![k/s*cb][avg]
+              mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
+                      wlh(mo2mc%t(j,i,k))*rcpd*rdevap*mo2mc%psb(j,i)
+            end if
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
           if ( afc > actcld ) then ! if there is a cloud
