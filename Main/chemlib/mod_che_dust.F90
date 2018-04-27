@@ -41,11 +41,11 @@ module mod_che_dust
 
   ! Fix the actual dust aerosol bin size: diameter in microm
 
-  !  data  dustbsiz1 / 0.01_rkx,  1.00_rkx,  2.50_rkx,  5.00_rkx,  1.00_rkx, &
-  !                   2.50_rkx,  5.00_rkx, 20.00_rkx/
+  data  dustbsiz1 / 0.01_rkx,  1.00_rkx,  2.50_rkx,  5.00_rkx,  1.00_rkx, &
+                    2.50_rkx,  5.00_rkx, 20.00_rkx/
 
-  data  dustbsiz1 / 0.09_rkx,  1.00_rkx,  2.50_rkx,  5.00_rkx,  1.00_rkx, &
-                   2.50_rkx,  5.00_rkx, 63.00_rkx/
+  !data  dustbsiz1 / 0.09_rkx,  1.00_rkx,  2.50_rkx,  5.00_rkx,  1.00_rkx, &
+  !                 2.50_rkx,  5.00_rkx, 63.00_rkx/
 
 
   ! new option defined from LISA optimized distribution
@@ -61,7 +61,7 @@ module mod_che_dust
   real(rkx) , dimension(12)   ::  dustbed2
 
   ! has to be calculated from an assumed sub-bin distribution
-  !  data dustbed1 /0.82_rkx , 1.8_rkx , 3.7_rkx , 12.5_rkx /
+  ! data dustbed1 /0.82_rkx , 1.8_rkx , 3.7_rkx , 12.5_rkx /
 
   !FAB
   ! if calculated from Kok distribution
@@ -91,7 +91,8 @@ module mod_che_dust
   integer(ik4) , parameter :: jsoilm = 1
   integer(ik4) , parameter :: jfs = 1
   integer(ik4) , parameter :: ust = 0
-  integer(ik4) , parameter :: ndi = 6500
+  integer(ik4) , parameter :: ndi_4 = 2000
+  integer(ik4) , parameter :: ndi_12 = 6500
 
   !choice of emission distribution 1= alfaro/gomes
   !                                2 = Kok + Laurent et al.
@@ -222,7 +223,7 @@ module mod_che_dust
       real(rkx) , dimension(mode,nats) :: mmd , pcent , sigma
       real(rkx) , dimension(iy,nsoil,nats) :: srel
       real(rkx) , dimension(nsoil) :: ss
-      real(rkx) , dimension(ndi) :: di
+      real(rkx) , dimension(:) , allocatable :: di
       ! modif new distribution
       ! for each category, this is the percent of Coarse sand,
       ! Fine mode sand, silt , clay and salt ( cf Menut et al. ,2012)
@@ -385,6 +386,12 @@ module mod_che_dust
         deldp = dp_array(ns) - dp_array(ns-1)
       end do
 
+      if ( nbin == 4 ) then
+        ndi = ndi_4
+      else
+        ndi = ndi_12
+      end if
+      allocate(di(ndi))
       di(1) = 0.01_rkx !microm
       do ns = 2 , ndi
         di(ns) = di(ns-1) + 0.01_rkx
@@ -514,6 +521,8 @@ module mod_che_dust
         end do
         frac(:) = frac(:) / totv
       end if
+
+      deallocate(di)
 
     end subroutine inidust
     !
