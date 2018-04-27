@@ -218,7 +218,7 @@ module mod_che_dust
       implicit none
       real(rkx) , dimension(nats) :: bcly , bslt , bsnd
       real(rkx) :: deldp , stotal , xk , xl , xm , xn
-      integer(ik4) :: i , j , n , nm , ns , nt , itr
+      integer(ik4) :: i , j , n , nm , ns , nt , itr , ndi
       real(rkx) , dimension(mode,nats) :: mmdd , pcentd , sigmad
       real(rkx) , dimension(mode,nats) :: mmd , pcent , sigma
       real(rkx) , dimension(iy,nsoil,nats) :: srel
