@@ -412,12 +412,12 @@ module mod_cu_em
     real(rkx) , pointer , dimension(:,:) , intent(in) :: p , q , qs , t , u , v
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: tra
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ph
-    real(rkx) , pointer , dimension(:) , intent(out) :: precip
-    real(rkx) , pointer , dimension(:) , intent(out) :: qprime , tprime , wd
-    integer(ik4) , pointer , dimension(:) , intent(out) :: iflag , kcb , kct
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: fq , ft , fu , fv
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: cldfra , ppcp
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: ftra
+    real(rkx) , pointer , dimension(:) , intent(inout) :: precip
+    real(rkx) , pointer , dimension(:) , intent(inout) :: qprime , tprime , wd
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: iflag , kcb , kct
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: fq , ft , fu , fv
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: cldfra , ppcp
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ftra
 
     real(rkx) :: ad , afac , ahmax , ahmin , alt , altem , am ,          &
                  anum , asij , awat , b6 , bf2 , bsum , by , byp , c6 ,  &

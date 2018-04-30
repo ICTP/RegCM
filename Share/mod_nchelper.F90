@@ -223,8 +223,8 @@ module mod_nchelper
     integer(ik4) , intent(in) :: nx , ny
     integer(ik4) , intent(in) , dimension(:) :: idims
     integer(ik4) , dimension(2) , intent(out) :: ihvar
-    real(rk4) , pointer , dimension(:) , intent(out) :: xjx
-    real(rk4) , pointer , dimension(:) , intent(out) :: yiy
+    real(rk4) , pointer , dimension(:) , intent(inout) :: xjx
+    real(rk4) , pointer , dimension(:) , intent(inout) :: yiy
     integer(ik4) :: i , j
 
     call getmem1d(yiy,1,ny,'mod_write:yiy')

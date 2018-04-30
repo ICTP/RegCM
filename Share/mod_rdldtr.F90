@@ -107,7 +107,7 @@ module mod_rdldtr
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
     real(rkx) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
     integer(ik4) , intent(out) :: nlatin , nlonin
-    real(rkx) , dimension(:,:) , intent(out) , pointer :: values
+    real(rkx) , dimension(:,:) , intent(inout) , pointer :: values
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , inpsec , iopsec , ifrac
     integer(ik4) , dimension(2) :: istart , icount
@@ -226,7 +226,7 @@ module mod_rdldtr
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
     real(rkx) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
     integer(ik4) , intent(out) :: nlatin , nlonin
-    real(rkx) , dimension(:,:,:) , intent(out) , pointer :: values
+    real(rkx) , dimension(:,:,:) , intent(inout) , pointer :: values
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , n , inpsec , iopsec , ifrac , nd
     integer(ik4) , dimension(3) :: idims , istart , icount
@@ -365,7 +365,7 @@ module mod_rdldtr
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
     real(rkx) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
     integer(ik4) , intent(out) :: nlatin , nlonin
-    real(rkx) , dimension(:,:) , intent(out) , pointer :: values
+    real(rkx) , dimension(:,:) , intent(inout) , pointer :: values
     integer(ik4) , intent(in) :: isel
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , inpsec , iopsec , ifrac , nd

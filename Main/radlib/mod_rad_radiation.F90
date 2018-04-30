@@ -831,7 +831,7 @@ module mod_rad_radiation
             adiflw , asw , alw , abv , sol , czen
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: emsgastot
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
     real(rkx) , pointer , dimension(:,:) :: cld , effcld , piln , pint
     real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci

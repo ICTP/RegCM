@@ -1287,7 +1287,7 @@ module mod_output
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f3
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: f2
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: f2
     real(rkx) , intent(in) :: plev
     integer(ik4) :: i , j , ik
     real(rkx) , dimension(kz) :: f1 , p1

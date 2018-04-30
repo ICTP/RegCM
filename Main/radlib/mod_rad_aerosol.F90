@@ -1282,7 +1282,7 @@ module mod_rad_aerosol
       type (rcm_time_and_date) , intent(in) :: idate
       type(mod_2_rad) , intent(in) :: m2r
       integer(ik4) , intent(in) :: step
-      real(rkx) , dimension(:,:,:,:) , pointer , intent(out) :: aerm
+      real(rkx) , dimension(:,:,:,:) , pointer , intent(inout) :: aerm
       real(rkx) , dimension(:,:,:) , pointer :: pnt
       integer(ik4) :: n , irec
       integer(ik4) , dimension(4) :: istart , icount

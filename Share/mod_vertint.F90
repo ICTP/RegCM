@@ -62,7 +62,7 @@ module mod_vertint
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , pointer , dimension(:) , intent(in) :: p
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3d
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fp
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
     real(rkx) , dimension(im1:im2,jm1:jm2,kp) :: ff
     real(rkx) , dimension(kp) :: pp
@@ -202,7 +202,7 @@ module mod_vertint
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , pointer , dimension(:) , intent(in) :: p
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3d
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fp
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fp
     integer(ik4) :: i , j , k , kx , knx , n
     real(rkx) , dimension(kp) :: ff
     real(rkx) , dimension(kp) :: pp

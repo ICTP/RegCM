@@ -77,11 +77,11 @@ module mod_nhinterp
       integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , kx
       real(rkx) , pointer , intent(in) , dimension(:) :: sig       ! Adim 0-1
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ter     ! Meters
-      real(rkx) , pointer , intent(out) , dimension(:,:) :: ps0    ! Pascal
-      real(rkx) , pointer , intent(out) , dimension(:,:,:) :: pr0  ! Pascal
-      real(rkx) , pointer , intent(out) , dimension(:,:,:) :: t0   ! Kelvin
-      real(rkx) , pointer , intent(out) , dimension(:,:,:) :: rho0 ! kg/kg
-      real(rkx) , pointer , intent(out) , dimension(:,:,:) :: z0   ! m
+      real(rkx) , pointer , intent(inout) , dimension(:,:) :: ps0    ! Pascal
+      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: pr0  ! Pascal
+      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: t0   ! Kelvin
+      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: rho0 ! kg/kg
+      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: z0   ! m
       integer(ik4) :: i , j , k
       real(rkx) :: ac , alnp , b
       !
@@ -289,7 +289,7 @@ module mod_nhinterp
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: t , t0 , tv
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: pr0
       real(rkx) , pointer , intent(in) , dimension(:,:) :: ps , ps0
-      real(rkx) , pointer , intent(out) , dimension(:,:,:) :: pp
+      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: pp
       real(rkx) :: aa , bb , cc , check , checkl , checkr , delp0 , p0surf
       real(rkx) :: psp , tk , tkp1 , tvk , tvkp1 , tvpot , wtl , wtu
       !
@@ -362,8 +362,8 @@ module mod_nhinterp
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: tv
       real(rkx) , pointer , intent(in) , dimension(:,:,:) :: u , v
       real(rkx) , intent(in) :: ds                    ! Kilometers
-      real(rkx) , pointer , intent(out) , dimension(:,:,:) :: w
-      real(rkx) , pointer , intent(out) , dimension(:,:) :: wtop
+      real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: w
+      real(rkx) , pointer , intent(inout) , dimension(:,:) :: wtop
       integer(ik4) :: i , j , k
       integer(ik4) :: l , ll , ip , im , jp , jm , lm , lp
       real(rkx) :: dx2 , omegal , omegau , ubar , vbar , wu , wl

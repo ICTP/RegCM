@@ -39,7 +39,7 @@ module mod_cloud_xuran
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p , rh
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , qv , qs
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     integer(ik4) :: i , j , k
     real(rkx) :: botm , rm , qcld , rhrng
 

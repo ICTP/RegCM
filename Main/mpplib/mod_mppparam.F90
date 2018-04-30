@@ -8990,7 +8990,7 @@ module mod_mppparam
   subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: ud , vd
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
     integer(ik4) :: i , j , k
 
     call exchange(ux,1,jci1,jci2,ici1,ici2,1,kz)
@@ -9073,7 +9073,7 @@ module mod_mppparam
   subroutine uvdot2cross(ud,vd,ux,vx)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: ux , vx
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
     integer(ik4) :: i , j , k
 
     call exchange(ud,1,jdi1,jdi2,idi1,idi2,1,kz)
@@ -9113,7 +9113,7 @@ module mod_mppparam
   subroutine cross2dot2d(x,d)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: x
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: d
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: d
     integer(ik4) :: i , j
 
     call exchange(x,1,jci1,jci2,ici1,ici2)
@@ -9161,7 +9161,7 @@ module mod_mppparam
   subroutine cross2dot3d(x,d)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: x
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: d
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: d
     integer(ik4) :: i , j , k
 
     call exchange(x,1,jci1,jci2,ici1,ici2,1,kz)

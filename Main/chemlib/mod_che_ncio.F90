@@ -651,7 +651,7 @@ module mod_che_ncio
       implicit none
       integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
       integer(ik4) , intent(out) :: ifreq
-      real(rkx) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
       integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
       character(64) ::chemi_timeunits , chemi_timecal
@@ -1209,7 +1209,7 @@ module mod_che_ncio
 
     subroutine read_chbc(chebdio)
       implicit none
-      real(rkx) , dimension (:,:,:,:) , pointer , intent(out) :: chebdio
+      real(rkx) , dimension (:,:,:,:) , pointer , intent(inout) :: chebdio
       integer(ik4) , dimension(4) :: istart , icount
       integer(ik4) :: i , j , k, n , iafter
 

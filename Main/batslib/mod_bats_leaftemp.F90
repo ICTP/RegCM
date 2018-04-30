@@ -755,7 +755,7 @@ module mod_bats_leaftemp
     ! If the temperature is less than 273.0, it is zero
     implicit none
     real(rkx) , pointer , dimension(:) , intent(in) :: temp
-    real(rkx) , pointer , dimension(:) , intent(out) :: ffsea
+    real(rkx) , pointer , dimension(:) , intent(inout) :: ffsea
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'fseas'

@@ -1053,7 +1053,7 @@ module mod_rrtmg_driver
   subroutine cldefr_rrtm(t,pmid,rel,rei,fice)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(in) :: pmid , t
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: fice , rei , rel
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: fice , rei , rel
     integer(ik4) :: k , n
     real(rkx) :: pnrml , weight
     ! real(rkx) :: tpara

@@ -649,7 +649,7 @@ module mod_mtrxclm
   subroutine fill_frame2d(a,b)
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:) :: a
-    real(rkx) , pointer , intent(out) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2)
@@ -687,7 +687,7 @@ module mod_mtrxclm
   subroutine fill_frame3d(a,b)
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rkx) , pointer , intent(out) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz)
     if ( ma%has_bdyleft ) then
       b(jce1,ici1:ici2) = a(jci1,ici1:ici2,kz)
@@ -725,7 +725,7 @@ module mod_mtrxclm
   subroutine fill_frame4d(a,b,l)
     implicit none
     real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: a
-    real(rkx) , pointer , intent(out) , dimension(:,:) :: b
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) , intent(in) :: l
     b(jci1:jci2,ici1:ici2) = a(jci1:jci2,ici1:ici2,kz,l)
     if ( ma%has_bdyleft ) then

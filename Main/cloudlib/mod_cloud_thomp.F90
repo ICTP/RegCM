@@ -49,7 +49,7 @@ module mod_cloud_thomp
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p , t , rho
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qv , qc , qi , qs
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: iland
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: cldfra
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldfra
     real(rkx) , intent(in) :: gridkm
     real(rkx) :: rh_00l , rh_00o , rh_00 , rhi_max
     real(rkx) , dimension(jci1:jci2,ici1:ici2,1:kz):: qvsat

@@ -2999,7 +2999,7 @@ module mod_bdycod
   subroutine timeint2(a,b,c,j1,j2,i1,i2)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: c
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: i , j
     do i = i1 , i2
@@ -3012,7 +3012,7 @@ module mod_bdycod
   subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: a , b
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: c
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: c
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: i , j , k
     do k = k1 , k2

@@ -47,7 +47,7 @@ module mod_cloud_subex
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , p , qv , qc , rh
     real(rkx) , pointer , dimension(:,:) , intent(in) :: rh0
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     real(rkx) , intent(in) :: tc0
     real(rkx) :: rh0adj , rhrng
     integer(ik4) :: i , j , k

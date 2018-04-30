@@ -45,7 +45,7 @@ module mod_cloud_guli2007
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qt
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qv
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) :: fcc
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
     integer(ik4) :: i , j , k
     ! real(rkx) :: s10 , s100 , r10 , r100
     ! real(rkx) :: cs10 , cs100 , w1 , w2
