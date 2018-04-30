@@ -151,6 +151,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: fv
     !Surface ground emissivity
     real(rk8) , pointer , dimension(:) :: emg
+    !fraction of ground emittimg dust (not vegetated and not snow covered)
+    real(rk8) , pointer , dimension(:) :: vdustfrac
     ! soil water kg/m^2 (water + ice)
     real(rk8) , pointer , dimension(:,:) :: h2osoi
     ! soil water in first 10 cm
@@ -309,6 +311,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%br1(ibeg:iend))
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
+    allocate(l2a%vdustfrac(ibeg:iend))
     allocate(l2a%h2osoi(ibeg:iend,nlevsoi))
     allocate(l2a%tsoi(ibeg:iend,nlevsoi))
     allocate(l2a%h2osoi_vol(ibeg:iend,nlevsoi))
@@ -357,6 +360,8 @@ end subroutine init_atm2lnd_type
     l2a%br1(ibeg:iend) = ival
     l2a%fv(ibeg:iend) = ival
     l2a%h2osoi(ibeg:iend,:) = ival
+    l2a%emg(ibeg:iend) = ival
+    l2a%vdustfrac(ibeg:iend) = ival
     l2a%tsoi(ibeg:iend,:) = ival
     l2a%h2o10cm(ibeg:iend) = ival
     l2a%qflx_surf(ibeg:iend) = ival
@@ -492,6 +497,10 @@ end subroutine init_atm2lnd_type
       call c2g(begc,endc,begl,endl,begg,endg, &
                cptr%cps%emg,clm_l2a%emg,      &
                c2l_scale_type='unity',        &
+               l2g_scale_type='unity')
+      call p2g(begp,endp,begc,endc,begl,endl,begg,endg,       &
+               pptr%pdf%lnd_frc_mbl_dst,clm_l2a%vdustfrac,    &
+               p2c_scale_type='unity',c2l_scale_type='unity', &
                l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg,        &
                cptr%cwf%qflx_surf,clm_l2a%qflx_surf, &

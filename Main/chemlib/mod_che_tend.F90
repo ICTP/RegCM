@@ -75,7 +75,7 @@
       real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
       real(rkx) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
       real(rkx) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
-                 srad , temp10 , tsurf , vegfrac , wid10 , zeff , hsurf
+          srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
       real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: bchi
       real(rkx) , dimension(ici1:ici2,luc,jci1:jci2) :: ustar
       real(rkx) , dimension(ici1:ici2,luc) :: xra
@@ -174,7 +174,12 @@
           hsurf(i,j) = cht(j,i)
           bchi(i,:,:,j) = chib(j,i,:,:)
           ! fraction of vegetation
+#ifdef CLM45
+          vegfrac(i,j) = d_one - csfracb2d(j,i)
+#else
           vegfrac(i,j) = cvegfrac(j,i)
+          snowfrac(i,j) = csfracs2d(j,i)
+#endif
         end do
       end do
       ! Roughness lenght, 10 m wind           !
@@ -309,9 +314,9 @@
 
           call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
             rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
-          call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,1,j),zeff(:,j),      &
-                      soilw(:,j),wid10(:,j),rho(:,kz,j), &
-                      dustbsiz,dust_flx(:,:,j))
+          call sfflux(j,ivegcov(:,j),vegfrac(:,j),snowfrac(:,j), &
+                      ustar(:,1,j),zeff(:,j),soilw(:,j),wid10(:,j), &
+                      rho(:,kz,j),dustbsiz,dust_flx(:,:,j))
         end do
       end if
       ! OPTION for using CLM45 dust emission scheme

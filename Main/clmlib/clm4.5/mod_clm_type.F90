@@ -1961,6 +1961,8 @@ module mod_clm_type
   ! pft dust flux variables structure
   !----------------------------------------------------
   type , public :: pft_dflux_type
+    !Fraction of bare ground emitting dust
+    real(rk8) , pointer , dimension(:) :: lnd_frc_mbl_dst
     !(ndst)  !surface dust emission (kg/m**2/s) [ + = to atm]
     real(rk8) , pointer , dimension(:,:) :: flx_mss_vrt_dst
     !total dust flux into atmosphere

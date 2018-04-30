@@ -599,13 +599,13 @@ module mod_che_dust
     !   * Zakey et al., 2006                                ******
     !   **********************************************************
     !
-    subroutine sfflux(jloop,ivegcov,vegfrac,ustarnd,z0,soilw, &
+    subroutine sfflux(jloop,ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
                       surfwd,roarow,trsize,rsfrow)
       implicit none
       integer(ik4) , intent(in) :: jloop
       integer(ik4) , intent(in) , dimension(ici1:ici2) ::  ivegcov
       real(rkx) , intent(in) , dimension(ici1:ici2) :: roarow , soilw , &
-                surfwd , vegfrac , z0 , ustarnd
+                surfwd , vegfrac , snowfrac , z0 , ustarnd
       real(rkx) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
       real(rkx) , intent(in) , dimension(nbin,2) :: trsize
       real(rkx) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
@@ -635,7 +635,7 @@ module mod_che_dust
         if (ivegcov(i) == 8 .or. ivegcov(i) == 11) then
           ieff = ieff + 1
           xvegfrac(ieff) = vegfrac(i)
-          xsnowfrac(ieff) =  csfracs2d(jloop,i)
+          xsnowfrac(ieff) =  snowfrac(i)
           xsoilw(ieff) = soilw(i)
           xsurfwd(ieff) = surfwd(i)
           xz0(ieff) = z0(i)
@@ -686,11 +686,10 @@ module mod_che_dust
             ! diagnostic source (accumulated)
             cemtrac(jloop,i,idust(n)) = cemtrac(jloop,i,idust(n)) + &
                      rsfrow(i,n)* cfdout
-
              if ( ichdiag > 0 ) then
-             cemisdiag(jloop,i,kz,idust(n)) = cemisdiag(jloop,i,kz,idust(n)) + &
-                       rsfrow(i,n) / &
-                       (cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
+               cemisdiag(jloop,i,kz,idust(n)) = &
+                    cemisdiag(jloop,i,kz,idust(n)) + rsfrow(i,n) / &
+                    (cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
              end if
           end do
           ieff = ieff + 1
@@ -706,13 +705,9 @@ module mod_che_dust
                    rsfrow(i,n)* ( cminer(jloop,i,:)*cfrac(n) + &
                                   sminer(jloop,i,:)*sfrac(n) ) &
                    *egrav / (dsigma(kz)*1.e3_rkx)
-
-
             cemtrac(jloop,i,imine(n,:)) = cemtrac(jloop,i,imine(n,:)) + &
                      rsfrow(i,n)* (cminer(jloop,i,:) *cfrac(n)  + &
-                                   sminer(jloop,i,:) *sfrac(n)) &
-                     * cfdout
-
+                                   sminer(jloop,i,:) *sfrac(n)) * cfdout
           end do
         end do
       end if
@@ -931,9 +926,9 @@ module mod_che_dust
         do nt = 1 , nats
           do n = 1 , nbin
             do i = il1 , il2
-              rsfrowt (i,n,nt) = fsoil1(i,nt)*frac1(n) + &
-                                 fsoil2(i,nt)*frac2(n) + &
-                                 fsoil3(i,nt)*frac3(n)
+              rsfrowt(i,n,nt) = fsoil1(i,nt)*frac1(n) + &
+                                fsoil2(i,nt)*frac2(n) + &
+                                fsoil3(i,nt)*frac3(n)
             end do
           end do
         end do
@@ -941,7 +936,7 @@ module mod_che_dust
         do nt = 1 , nats
           do n = 1 , nbin
             do i = il1 , il2
-              rsfrowt (i,n,nt) = fsoil(i,nt)*frac(n)
+              rsfrowt(i,n,nt) = fsoil(i,nt)*frac(n)
             end do
           end do
         end do
@@ -963,8 +958,14 @@ module mod_che_dust
       do k = 1 , nbin
         do nt = 1 , nats
           do i = il1 , il2
-            rsfrow(i,k) =  rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
-                           (d_one - vegfrac(i))*(d_one - snowfrac(i))
+#ifdef CLM45
+            ! CLM45 sends fraction of ground emitting dust
+            rsfrow(i,k) = rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
+                          (d_one - vegfrac(i))
+#else
+            rsfrow(i,k) = rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
+                          (d_one - vegfrac(i))*(d_one - snowfrac(i))
+#endif
             ! * EBL(i)
             ! * (1-snowfrac)
           end do

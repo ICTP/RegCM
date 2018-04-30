@@ -580,16 +580,18 @@ module mod_lm_interface
     if ( ichem == 1 ) then
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
-      lm%sfracv2d = sum(lms%sigf,1)*rdnnsg
-      lm%svegfrac2d = sum(lms%lncl,1)*rdnnsg
       lm%sxlai2d = sum(lms%xlai,1)*rdnnsg
-      lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
-      lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%tsw(:,:,:),1)*rdnnsg
 #ifdef CLM45
       lm%sw_vol = sum(lms%sw_vol(:,:,:,:),1)*rdnnsg
       lm%tsoi = sum(lms%tsoi(:,:,:,:),1)*rdnnsg
+      lm%sfracb2d = sum(lms%wt,1)*rdnnsg
+#else
+      lm%sfracv2d = sum(lms%sigf,1)*rdnnsg
+      lm%svegfrac2d = sum(lms%lncl,1)*rdnnsg
+      lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
+      lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
 #endif
     end if
     call collect_output

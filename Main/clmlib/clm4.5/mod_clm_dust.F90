@@ -79,6 +79,7 @@ module mod_clm_dust
     real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid soil water (kg/m2)
     real(rk8), pointer :: h2osoi_ice(:,:)  ! frozen soil water (kg/m2)
     real(rk8), pointer :: watsat(:,:)      ! saturated volumetric soil water
+    real(rk8), pointer :: lnd_frc_mbl_dst(:) ! Ground fraction emitting dust
 
     ! surface dust emission (kg/m**2/s)
     real(rk8), pointer :: flx_mss_vrt_dst(:,:)
@@ -148,6 +149,7 @@ module mod_clm_dust
     tsai            => clm3%g%l%c%p%pps%tsai
     fv              => clm3%g%l%c%p%pps%fv
     u10             => clm3%g%l%c%p%pps%u10
+    lnd_frc_mbl_dst => clm3%g%l%c%p%pdf%lnd_frc_mbl_dst
     flx_mss_vrt_dst => clm3%g%l%c%p%pdf%flx_mss_vrt_dst
     flx_mss_vrt_dst_tot => clm3%g%l%c%p%pdf%flx_mss_vrt_dst_tot
    !local pointers from subgridAveMod/p2l_1d
@@ -189,7 +191,8 @@ module mod_clm_dust
     ! Loop through pfts
 
     ! initialize variables which get passed to the atmosphere
-    flx_mss_vrt_dst(lbp:ubp,:)=0._rk8
+    flx_mss_vrt_dst(lbp:ubp,:) = 0._rk8
+    lnd_frc_mbl_dst(lbp:ubp)   = 0._rk8
 
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
@@ -251,6 +254,7 @@ module mod_clm_dust
         ! purpose: compute factor by which surface roughness increases threshold
         !          friction velocity (currently a constant)
 
+        lnd_frc_mbl_dst(p) = lnd_frc_mbl(p)
         frc_thr_rgh_fct = 1.0_rk8
 
         ! the following comes from subr. frc_thr_wet_fct_get

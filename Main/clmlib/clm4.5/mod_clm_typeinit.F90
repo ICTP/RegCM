@@ -2415,6 +2415,7 @@ module mod_clm_typeinit
     allocate(pdf%flx_mss_vrt_dst(ibeg:iend,1:ndst))
     allocate(pdf%flx_mss_vrt_dst_tot(ibeg:iend))
     allocate(pdf%vlc_trb(ibeg:iend,1:ndst))
+    allocate(pdf%lnd_frc_mbl_dst(ibeg:iend))
     allocate(pdf%vlc_trb_1(ibeg:iend))
     allocate(pdf%vlc_trb_2(ibeg:iend))
     allocate(pdf%vlc_trb_3(ibeg:iend))
@@ -2423,6 +2424,7 @@ module mod_clm_typeinit
     pdf%flx_mss_vrt_dst(ibeg:iend,1:ndst) = nan
     pdf%flx_mss_vrt_dst_tot(ibeg:iend) = nan
     pdf%vlc_trb(ibeg:iend,1:ndst) = nan
+    pdf%lnd_frc_mbl_dst(ibeg:iend) = nan
     pdf%vlc_trb_1(ibeg:iend) = nan
     pdf%vlc_trb_2(ibeg:iend) = nan
     pdf%vlc_trb_3(ibeg:iend) = nan
