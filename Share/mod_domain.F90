@@ -92,19 +92,19 @@ module mod_domain
                                       lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
-    real(rk8) , pointer , dimension(:) , intent(out) :: sigma
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: xlat
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: xlon
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: dlat
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: dlon
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: ht
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: mask
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfx
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: msfd
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: coriol
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: snowam
-    real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: hlake
+    real(rk8) , pointer , dimension(:) , intent(inout) :: sigma
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: xlat
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: ht
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: mask
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: msfx
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: msfd
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: coriol
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: snowam
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: hlake
     logical , intent(in) , optional :: lsubgrid
     logical :: has_snow , has_dhlake , has_kz
     has_snow = .true.
@@ -138,19 +138,19 @@ module mod_domain
                                       lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
-    real(rk4) , pointer , dimension(:) , intent(out) :: sigma
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlon
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlon
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: ht
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: mask
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfx
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: snowam
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: hlake
+    real(rk4) , pointer , dimension(:) , intent(inout) :: sigma
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ht
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: mask
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfx
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfd
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: coriol
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: snowam
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: hlake
     logical , intent(in) , optional :: lsubgrid
     logical :: has_snow , has_dhlake , has_kz
     has_snow = .true.
@@ -182,10 +182,10 @@ module mod_domain
   subroutine read_reference_state(ncid,ps0,pr0,t0,rho0,ts0)
     implicit none
     integer , intent(in) :: ncid
-    real(rkx) , pointer , dimension(:,:) , intent(out) , optional :: ps0
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: pr0
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: t0
-    real(rkx) , pointer , dimension(:,:,:) , intent(out) , optional :: rho0
+    real(rkx) , pointer , dimension(:,:) , intent(inout) , optional :: ps0
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: pr0
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: t0
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) , optional :: rho0
     real(rkx) , intent(out) :: ts0
     call read_var2d_static(ncid,'ps0',ps0)
     call read_var3d_static(ncid,'pr0',pr0)
