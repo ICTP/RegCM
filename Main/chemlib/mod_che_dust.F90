@@ -978,6 +978,7 @@ module mod_che_dust
 
     subroutine clm_dust_tend
       implicit none
+#ifdef CLM45
       integer(ik4) :: i,j,n
       real(rkx) , pointer , dimension(:,:) :: sumdflux
       ! real(rkx) :: cdsfrq
@@ -1016,6 +1017,7 @@ module mod_che_dust
         end do
       end do
       deallocate(sumdflux)
+#endif
     end subroutine clm_dust_tend
 
 end module mod_che_dust
