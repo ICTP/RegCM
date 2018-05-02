@@ -679,6 +679,11 @@ module mod_che_dust
           do n = 1 , nbin
             rsfrow(i,n) = xrsfrow(ieff,n)
             if ( ichdrdepo == 1 ) then
+              ! kg m-2 s-1 => kg/kg * s-1 * psb : use hydrostatic eq
+              ! multiply by g/dp * psb
+              ! dp = dsigma * ps in Pa = dsigma * psb * 1000
+              ! Simplify psb
+              ! Result is g/(dsigma * 1000)
               chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + &
                    rsfrow(i,n)*egrav/(dsigma(kz)*1.e3_rkx)
             else if ( ichdrdepo == 2 ) then

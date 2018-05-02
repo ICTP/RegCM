@@ -626,7 +626,7 @@ module mod_params
       else
         gnu1 = 0.0625_rkx
         gnu2 = 0.0625_rkx
-        diffu_hgtf = 1
+        diffu_hgtf = 0
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx
@@ -793,6 +793,10 @@ module mod_params
           write(stdout,*) 'Resetting kf_tkemax to 3 m2 s-2'
           kf_tkemax = 3.0_rkx
         end if
+      end if
+      if ( iocnflx < 1 .or. iocnflx > 3 ) then
+        call fatal(__FILE__,__LINE__, &
+                   'UNSUPPORTED OCEAN FLUX SCHEME.')
       end if
       if ( any(icup < -1) .or. any(icup > 6) ) then
         call fatal(__FILE__,__LINE__, &

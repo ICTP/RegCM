@@ -48,8 +48,7 @@ module mod_pbl_myj
 
   real(rkx) , parameter :: myjtkemin = 1.0e-3_rkx
 
-  real(rkx) , parameter :: rlivwv = wlhs/wlhv
-  real(rkx) , parameter :: elocp = 2.72e6_rkx/cpd
+  real(rkx) , parameter :: elocp = eliwv/cpd
   real(rkx) , parameter :: epsq2 = 0.2_rkx
   real(rkx) , parameter :: eps1 = 1.e-12_rkx
   real(rkx) , parameter :: eps2 = 0.0_rkx
@@ -73,7 +72,7 @@ module mod_pbl_myj
   real(rkx) , parameter :: a2 = 17.2693882_rkx
   real(rkx) , parameter :: a3 = 273.16_rkx
   real(rkx) , parameter :: a4 = 35.86_rkx
-  real(rkx) , parameter :: a2x = 0.6574209922667784586_rkx
+  real(rkx) , parameter :: axx = 0.6574209922667784586_rkx
   real(rkx) , parameter :: b1 = 11.87799326209552761_rkx
   real(rkx) , parameter :: b2 = 7.226971804046074028_rkx
   real(rkx) , parameter :: c1 = 0.000830955950095854396_rkx
@@ -82,13 +81,9 @@ module mod_pbl_myj
   real(rkx) , parameter :: a4s = 35.86_rkx
   real(rkx) , parameter :: elz0 = 0.0_rkx
   real(rkx) , parameter :: esq = 5.0_rkx
-  real(rkx) , parameter :: excm = 0.001_rkx
-  real(rkx) , parameter :: fhneu = 0.8_rkx
   real(rkx) , parameter :: glkbr = 10.0_rkx
   real(rkx) , parameter :: glkbs = 30.0_rkx
   real(rkx) , parameter :: qvisc = 2.1e-5_rkx
-  real(rkx) , parameter :: rfc = 0.191_rkx
-  real(rkx) , parameter :: ric = 0.505_rkx
   real(rkx) , parameter :: small = 0.35_rkx
   real(rkx) , parameter :: sqpr = 0.84_rkx
   real(rkx) , parameter :: sqsc = 0.84_rkx
@@ -97,60 +92,44 @@ module mod_pbl_myj
   real(rkx) , parameter :: ustc = 0.7_rkx
   real(rkx) , parameter :: ustr = 0.225_rkx
   real(rkx) , parameter :: visc = 1.5e-5_rkx
-  real(rkx) , parameter :: wold = 0.15_rkx
-  real(rkx) , parameter :: wwst = 1.2_rkx
-  real(rkx) , parameter :: ztmax = 1.0_rkx
-  real(rkx) , parameter :: ztfc = 1.0_rkx
-  real(rkx) , parameter :: ztmin = -5.0_rkx
   real(rkx) , parameter :: seafc = 0.98_rkx
-  real(rkx) , parameter :: pq0sea = pq0*seafc
   real(rkx) , parameter :: btg = beta*egrav
   real(rkx) , parameter :: cziv = small*glkbs
   real(rkx) , parameter :: esqhf = 0.5_rkx*5.0_rkx
-  real(rkx) , parameter :: grrs = glkbr/glkbs
   real(rkx) , parameter :: rb1 = d_one/b1
   real(rkx) , parameter :: rtvisc = d_one/tvisc
   real(rkx) , parameter :: rvisc = d_one/visc
   real(rkx) , parameter :: zqrzt = sqsc/sqpr
-  real(rkx) , parameter :: adnh = 9.0_rkx*a1*a2x*a2x * &
+  real(rkx) , parameter :: adnh = 9.0_rkx*a1*axx*axx * &
                (12.0_rkx*a1+3.0_rkx*b2)*btg*btg
-  real(rkx) , parameter :: adnm = 18.0_rkx*a1*a1*a2x*(b2-3.0_rkx*a2x)*btg
-  real(rkx) , parameter :: anmh = -9.0_rkx*a1*a2x*a2x*btg*btg
-  real(rkx) , parameter :: anmm = -3.0_rkx*a1*a2x * &
-               (3.0_rkx*a2x+3.0_rkx*b2*c1+18.0_rkx*a1*c1-b2)*btg
-  real(rkx) , parameter :: bdnh = 3.0_rkx*a2x*(7.0_rkx*a1+b2)*btg
+  real(rkx) , parameter :: adnm = 18.0_rkx*a1*a1*axx*(b2-3.0_rkx*axx)*btg
+  real(rkx) , parameter :: anmh = -9.0_rkx*a1*axx*axx*btg*btg
+  real(rkx) , parameter :: anmm = -3.0_rkx*a1*axx * &
+               (3.0_rkx*axx+3.0_rkx*b2*c1+18.0_rkx*a1*c1-b2)*btg
+  real(rkx) , parameter :: bdnh = 3.0_rkx*axx*(7.0_rkx*a1+b2)*btg
   real(rkx) , parameter :: bdnm = 6.0_rkx*a1*a1
-  real(rkx) , parameter :: beqh = a2x*b1*btg+3.0_rkx*a2x*(7.0_rkx*a1+b2)*btg
+  real(rkx) , parameter :: beqh = axx*b1*btg+3.0_rkx*axx*(7.0_rkx*a1+b2)*btg
   real(rkx) , parameter :: beqm = -a1*b1*(1.0_rkx-3.0_rkx*c1)+6.0_rkx*a1*a1
-  real(rkx) , parameter :: bnmh = -a2x*btg
+  real(rkx) , parameter :: bnmh = -axx*btg
   real(rkx) , parameter :: bnmm = a1*(1.0_rkx-3.0_rkx*c1)
-  real(rkx) , parameter :: bshh = 9.0_rkx*a1*a2x*a2x*btg
-  real(rkx) , parameter :: bshm = 18.0_rkx*a1*a1*a2x*c1
-  real(rkx) , parameter :: bsmh = -3.0_rkx*a1*a2x * &
-             (3.0_rkx*a2x+3.0_rkx*b2*c1+12.0_rkx*a1*c1-b2)*btg
-  real(rkx) , parameter :: cesh = a2x
+  real(rkx) , parameter :: bshh = 9.0_rkx*a1*axx*axx*btg
+  real(rkx) , parameter :: bshm = 18.0_rkx*a1*a1*axx*c1
+  real(rkx) , parameter :: bsmh = -3.0_rkx*a1*axx * &
+             (3.0_rkx*axx+3.0_rkx*b2*c1+12.0_rkx*a1*c1-b2)*btg
+  real(rkx) , parameter :: cesh = axx
   real(rkx) , parameter :: cesm = a1*(1.0_rkx-3.0_rkx*c1)
-  real(rkx) , parameter :: cnv = ep1*egrav/btg
-  real(rkx) , parameter :: elfcs = vonkar*btg
   real(rkx) , parameter :: fzq1 = rtvisc*qvisc*zqrzt
-  real(rkx) , parameter :: fzq2 = rtvisc*qvisc*zqrzt
   real(rkx) , parameter :: fzt1 = rvisc*tvisc*sqpr
-  real(rkx) , parameter :: fzt2 = cziv*grrs*tvisc*sqpr
   real(rkx) , parameter :: fzu1 = cziv*visc
-  real(rkx) , parameter :: rfac = ric/(fhneu*rfc*rfc)
   real(rkx) , parameter :: rqvisc = d_one/qvisc
-  real(rkx) , parameter :: rric = d_one/ric
-  real(rkx) , parameter :: ustfc = 0.018_rkx*regrav
-  real(rkx) , parameter :: wnew = d_one-wold
-  real(rkx) , parameter :: wwst2 = wwst*wwst
   !
   ! Free term in the equilibrium equation for (L/Q)**2
   !
-  real(rkx) , parameter :: aeqh = 9.0_rkx*a1*a2x*a2x*b1*btg*btg +  &
-              9.0_rkx*a1*a2x*a2x*(12.0_rkx*a1+3.0_rkx*b2)*btg*btg
-  real(rkx) , parameter :: aeqm = 3.0_rkx*a1*a2x*b1*(3.0_rkx*a2x + &
+  real(rkx) , parameter :: aeqh = 9.0_rkx*a1*axx*axx*b1*btg*btg +  &
+              9.0_rkx*a1*axx*axx*(12.0_rkx*a1+3.0_rkx*b2)*btg*btg
+  real(rkx) , parameter :: aeqm = 3.0_rkx*a1*axx*b1*(3.0_rkx*axx + &
               3.0_rkx*b2*c1+18.0_rkx*a1*c1-b2)*btg+18.0_rkx*a1 *  &
-              a1*a2x*(b2-3.0_rkx*a2x)*btg
+              a1*axx*(b2-3.0_rkx*axx)*btg
   !
   ! Forbidden turbulence area
   !
@@ -160,15 +139,15 @@ module mod_pbl_myj
   !
   ! Near isotropy for shear turbulence, ww/q2 lower limit
   !
-  real(rkx) , parameter :: ubryl = (18.0_rkx*requ*a1*a1*a2x*b2*c1*btg + &
-               9.0_rkx*a1*a2x*a2x*b2*btg*btg)/(requ*adnm+adnh)
+  real(rkx) , parameter :: ubryl = (18.0_rkx*requ*a1*a1*axx*b2*c1*btg + &
+               9.0_rkx*a1*axx*axx*b2*btg*btg)/(requ*adnm+adnh)
   real(rkx) , parameter :: ubry = (d_one+epsrs)*ubryl
   real(rkx) , parameter :: ubry3 = 3.0_rkx*ubry
 
-  real(rkx) , parameter :: aubh = 27.0_rkx*a1*a2x*a2x*b2*btg*btg-adnh*ubry3
-  real(rkx) , parameter :: aubm = 54.0_rkx*a1*a1*a2x*b2*c1*btg-adnm*ubry3
-  real(rkx) , parameter :: bubh = (9.0_rkx*a1*a2x + &
-              3.0_rkx*a2x*b2)*btg-bdnh*ubry3
+  real(rkx) , parameter :: aubh = 27.0_rkx*a1*axx*axx*b2*btg*btg-adnh*ubry3
+  real(rkx) , parameter :: aubm = 54.0_rkx*a1*a1*axx*b2*c1*btg-adnm*ubry3
+  real(rkx) , parameter :: bubh = (9.0_rkx*a1*axx + &
+              3.0_rkx*axx*b2)*btg-bdnh*ubry3
   real(rkx) , parameter :: bubm = 18.0_rkx*a1*a1*c1-bdnm*ubry3
   real(rkx) , parameter :: cubr = d_one-ubry3
   real(rkx) , parameter :: rcubr = d_one/cubr
@@ -455,8 +434,8 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of velocity components
         !
-        uz0 = d_half*(uk(kz)*wght/(wght+d_one))
-        vz0 = d_half*(vk(kz)*wght/(wght+d_one))
+        uz0 = (uk(kz)*wght+m2p%u10m(j,i))/(wght+d_one)
+        vz0 = (vk(kz)*wght+m2p%v10m(j,i))/(wght+d_one)
         call vdifv(lmh,dtdif,uz0,vz0,akms_dens,uk,vk,akmk,zhk,rhok)
         !
         ! compute primary variable tendencies
