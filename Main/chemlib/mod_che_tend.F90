@@ -309,24 +309,21 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
-      if ( idust(1) > 0 .and. ichdustemd < 3 .and.  ichsursrc == 1 ) then
-        do j = jci1 , jci2
-
-          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
-            rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
-          call sfflux(j,ivegcov(:,j),vegfrac(:,j),snowfrac(:,j), &
-                      ustar(:,1,j),zeff(:,j),soilw(:,j),wid10(:,j), &
-                      rho(:,kz,j),dustbsiz,dust_flx(:,:,j))
-        end do
+      if ( idust(1) > 0 .and. ichsursrc == 1 ) then
+        if ( ichdustemd /= 3 ) then
+          do j = jci1 , jci2
+            call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
+              rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
+            call sfflux(j,ivegcov(:,j),vegfrac(:,j),snowfrac(:,j), &
+                        ustar(:,1,j),zeff(:,j),soilw(:,j),wid10(:,j), &
+                        rho(:,kz,j),dustbsiz,dust_flx(:,:,j))
+          end do
+        else
+          ! OPTION for using CLM45 dust emission scheme
+          ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
+          call clm_dust_tend
+        end if
       end if
-      ! OPTION for using CLM45 dust emission scheme
-      ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
-#if defined CLM45
-      if ( idust(1) > 0 .and. ichdustemd == 3 .and. ichsursrc == 1 ) then
-!        if ( rcmtimer%start( ) .or. srf_syncro%act( ) ) call clm_dust_tend
-         call clm_dust_tend
-      end if
-#endif
       !sea salt
       if ( isslt(1) > 0 .and. ichsursrc == 1 ) then
         do j = jci1 , jci2

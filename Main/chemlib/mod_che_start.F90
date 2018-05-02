@@ -390,7 +390,13 @@ module mod_che_start
 !!$      end do
 !!$        print*,'test', itr, chtrname(itr), trac%indchbdy(itr)
 !!$     end do
-    if ( idust(1) > 0 .or. ichbion==1) then
+#ifndef CLM45
+    if ( ichdustemd == 3 ) then
+      call fatal(__FILE__,__LINE__, &
+        'ichdustemd == 3 valid only if CLM45 is active.')
+    end if
+#endif
+    if ( idust(1) > 0 .or. ichbion == 1 ) then
       ! activate dust initialization
       if ( myid == italk ) write(stdout,'(a)',advance='no') ' Calling inidust'
       call inidust

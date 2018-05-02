@@ -91,7 +91,7 @@ module mod_che_dust
   integer(ik4) , parameter :: jsoilm = 1
   integer(ik4) , parameter :: jfs = 1
   integer(ik4) , parameter :: ust = 0
-  integer(ik4) , parameter :: ndi_4 = 2000
+  integer(ik4) , parameter :: ndi_4 = 4000
   integer(ik4) , parameter :: ndi_12 = 6500
 
   !choice of emission distribution 1= alfaro/gomes
@@ -248,11 +248,11 @@ module mod_che_dust
       ! Values are derived from Laurent et al. typical ranged adapted
       ! for our USDA texture types.
       !
-      ! data bcly/0.00_rkx , 0.4e-2_rkx ,0.7e-2_rkx  , 0.7e-2_rkx , &
-      !           0.4e-2_rkx , 1.e-2_rkx , 3.e-2_rkx , 3e-2_rkx ,   &
-      !           5.e-2_rkx , 8.e-2_rkx , 8.e-2_rkx , 1.e-2_rkx/
-      ! data bcly / 4.3e-2_rkx, 2.3e-2_rkx, 7.3e-2_rkx, 0.0_rkx,0.0_rkx, &
-      !             0.0e-2_rkx,0.0_rkx, 0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx/
+      !data bcly/0.00_rkx , 0.4e-2_rkx ,0.7e-2_rkx  , 0.7e-2_rkx , &
+      !          0.4e-2_rkx , 1.e-2_rkx , 3.e-2_rkx , 3e-2_rkx ,   &
+      !          5.e-2_rkx , 8.e-2_rkx , 8.e-2_rkx , 1.e-2_rkx/
+      !data bcly / 4.3e-2_rkx, 2.3e-2_rkx, 7.3e-2_rkx, 0.0_rkx,0.0_rkx, &
+      !            0.0e-2_rkx,0.0_rkx, 0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx/
       data bcly / 6.0e-2_rkx , 2.3e-2_rkx , 7.3e-2_rkx , 0.0e-2_rkx , &
                   0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , &
                   0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx /
@@ -374,7 +374,7 @@ module mod_che_dust
             clay2row2(i,nt,j) = bcly(nt)*d_100
             sand2row2(i,nt,j) = bsnd(nt)*d_100
             silt2row2(i,nt,j) = bslt(nt)*d_100
-            sandrow2(i,j) = sandrow2(i,j) + dustsotex(j,i,nt)* sand2row2(i,nt,j)
+            sandrow2(i,j) = sandrow2(i,j) + dustsotex(j,i,nt)*sand2row2(i,nt,j)
             clayrow2(i,j) = clayrow2(i,j) + dustsotex(j,i,nt)*clay2row2(i,nt,j)
           end do
         end do
@@ -394,7 +394,7 @@ module mod_che_dust
       allocate(di(ndi))
       di(1) = 0.01_rkx !microm
       do ns = 2 , ndi
-        di(ns) = di(ns-1) + 0.01_rkx
+        di(ns) = 0.01_rkx * real(ns-1,rkx)
       end do
 
       do j = jci1 , jci2
@@ -406,8 +406,7 @@ module mod_che_dust
             if ( sand2row2(i,nt,j) > d_zero ) then
               do ns = 1 , nsoil          !soil size segregatoin no
                 do nm = 1 , mode       !soil mode = 5
-                  if ( (pcent(nm,nt) > eps) .and.                    &
-                       (sigma(nm,nt) /= d_zero) ) then
+                  if ( (pcent(nm,nt) > eps) .and. (sigma(nm,nt) > eps) ) then
                     xk = pcent(nm,nt)/(sqrt(twopi)*log(sigma(nm,nt)))
                     xl = ((log(dp_array(ns))- &
                            log(mmd(nm,nt)*1.0e-4_rkx))**2) / &
@@ -417,18 +416,18 @@ module mod_che_dust
                     else
                       xm = xk*exp(-xl)
                     end if
-                  else
-                    xm = d_zero
+                    xn = rhodust*twot*(dp_array(ns)*d_half)
+                    deldp = 0.0460517018598807_rkx
+                    ! dp_array(2)-dp_array(1) ss(nsoil)
+                    ss(ns) = ss(ns) + (xm*deldp/xn)
                   end if
-                  xn = rhodust*twot*(dp_array(ns)*d_half)
-                  deldp = 0.0460517018598807_rkx
-                  ! dp_array(2)-dp_array(1) ss(nsoil)
-                  ss(ns) = ss(ns) + (xm*deldp/xn)
                 end do
                 stotal = stotal + ss(ns)
               end do
               do ns = 1 , nsoil
-                if ( stotal > d_zero ) srel(i,ns,nt) = ss(ns)/stotal
+                if ( stotal > d_zero ) then
+                  srel(i,ns,nt) = min(ss(ns)/stotal,d_one)
+                end if
               end do
             end if
           end do ! soil types
@@ -508,18 +507,21 @@ module mod_che_dust
         ! dV/dlnD to dV/dD implies a factor 1/D
         frac = 0._rkx
         totv = 0._rkx
-        do ns = 1, ndi
-          do n = 1, nbin
+        do ns = 1 , ndi
+          do n = 1 , nbin
              if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
-                frac(n) = frac(n) + d_one/cv * &
+                frac(n) = frac(n) + di(ns)/cv * &
                   (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
                   log(sigmas)))*exp(-(di(ns)/lambda)**3)  !see Kok (2011)
              end if
            end do
-           totv = totv + d_one / cv * (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
+           totv = totv + d_one / cv * (di(ns)+erf(log(di(ns)/d)/sqrt(d_two)/ &
                   log(sigmas)))*exp(-(di(ns)/lambda)**3)
         end do
         frac(:) = frac(:) / totv
+        if ( abs(sum(frac) - d_one) > epsilon(1.0) ) then
+          write(stderr,*) 'TOTFRAC = ', sum(frac)
+        end if
       end if
 
       deallocate(di)
@@ -582,7 +584,8 @@ module mod_che_dust
     real(rkx) function ustart0(rhodust,dum,rhoa)
       implicit none
       real(rkx) , intent(in) :: dum , rhoa , rhodust
-      real(rkx) , parameter :: agamma = 3.0e-4_rkx , f = 0.0123_rkx
+      real(rkx) , parameter :: agamma = 3.0e-4_rkx
+      real(rkx) , parameter :: f = 0.0123_rkx
       real(rkx) :: dm , sigma
       sigma = rhodust/rhoa
       dm = dum*1.0e-2_rkx
@@ -632,7 +635,7 @@ module mod_che_dust
 
       ieff = 0
       do i = ici1 , ici2
-        if (ivegcov(i) == 8 .or. ivegcov(i) == 11) then
+        if ( ivegcov(i) == 8 .or. ivegcov(i) == 11 ) then
           ieff = ieff + 1
           xvegfrac(ieff) = vegfrac(i)
           xsnowfrac(ieff) =  snowfrac(i)
@@ -672,7 +675,7 @@ module mod_che_dust
 
       ieff = 1
       do i = ici1 , ici2
-        if  (ivegcov(i) == 8 .or. ivegcov(i) == 11) then
+        if ( ivegcov(i) == 8 .or. ivegcov(i) == 11 ) then
           do n = 1 , nbin
             rsfrow(i,n) = xrsfrow(ieff,n)
             if ( ichdrdepo == 1 ) then
@@ -787,7 +790,7 @@ module mod_che_dust
           end if
           ! no soil humidity correction facor if jsoilm > 1
         else
-          hc(i)=d_one
+          hc(i) = d_one
         end if
         ! * total correction factor for both hc and rc
         rc(i) = rc(i)/hc(i)
@@ -842,13 +845,13 @@ module mod_che_dust
       intent (in)  il1 , il2 , rc , rhodust , roarow , srel ,  &
                    ustar , utheff , vegfrac, ftex
       intent (inout) rsfrow , uth
-      real(rkx) :: beta , p1 , p2 , p3 , dec , ec , fdp1 , fdp2
+      real(rkx) :: p1 , p2 , p3 , dec , ec , fdp1 , fdp2
       real(rkx) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
       integer(ik4) :: i , k , n , nt , ns
 
       real(rkx), dimension(ilg,nbin,nats):: rsfrowt
 
-      data beta  /16300.0_rkx/
+      real(rkx) , parameter :: beta = 16300.0_rkx
 
       !
       ! Put rdstemfac consistent with soil parameters and Laurent et al., 08
@@ -864,9 +867,9 @@ module mod_che_dust
       fsoil3(:,:) = d_zero
 
       do nt = 1 , nats
-         do i = il1 , il2
-           if (ftex(i,nt) < 1.e-10_rkx) cycle
-           do ns = 1 , nsoil
+        do i = il1 , il2
+          if ( ftex(i,nt) < 1.e-10_rkx ) cycle
+          do ns = 1 , nsoil
             if ( rc(i) > d_zero .and. ustar(i) /= d_zero ) then
               uth = utheff(i,ns)/(rc(i)*ustar(i))
               if ( uth <= d_one ) then
@@ -884,8 +887,8 @@ module mod_che_dust
                   dec = fsoil(i,nt)*beta
                   ! individual kinetic energy for an aggregate of size dp (
                   ! g cm2 s-2) cf alfaro (dp) is in cm
-                  ec = (mathpi/12.0_rkx)*rhodust*1.0e-3_rkx*(dp_array(ns)**3)* &
-                        (20.0_rkx*ustar(i))**2
+                  ec = (mathpi/12.0_rkx)*rhodust*1.0e-3_rkx * &
+                    (dp_array(ns)**3)*(20.0_rkx*ustar(i))**2
                   if ( ec > e1 ) then
                     p1 = (ec-e1)/(ec-e3)
                     p2 = (d_one-p1)*(ec-e2)/(ec-e3)
@@ -911,7 +914,7 @@ module mod_che_dust
                             (mathpi/6.0_rkx)*rhodust*((d3*1.0e-4_rkx)**3)
                 else if ( ichdustemd == 2 ) then
                   fsoil(i,nt) = fsoil(i,nt) + alphaprop(i,nt)* &
-                                srel(i,ns,nt)*fdp1*fdp2
+                                 srel(i,ns,nt)*fdp1*fdp2
                 end if
               end if
             end if
@@ -988,12 +991,10 @@ module mod_che_dust
       ! standard scheme
       allocate(sumdflux(jci1:jci2,ici1:ici2))
       sumdflux = d_zero
-#ifdef CLM45
       sumdflux = sum(cdustflx_clm,3) * rdstemfac
-#endif
       do j = jci1 , jci2
         do i = ici1 , ici2
-           do n = 1 , nbin
+          do n = 1 , nbin
             if ( ichdrdepo == 1 ) then
               chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
                    sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.e3_rkx)
@@ -1006,11 +1007,11 @@ module mod_che_dust
             ! cdsfrq = cfdout
             cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
                     sumdflux(j,i)*frac(n) * cfdout
-             if ( ichdiag > 0 ) then
-               cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
+            if ( ichdiag > 0 ) then
+              cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
                                  sumdflux(j,i)*frac(n) / &
                                  (cdzq(j,i,kz)*crhob3d(j,i,kz))*cfdout
-             end if
+            end if
           end do
         end do
       end do

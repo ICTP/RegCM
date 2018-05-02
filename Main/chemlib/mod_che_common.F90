@@ -305,8 +305,8 @@ module mod_che_common
       if ( myid == italk ) write(stdout,*) 'SUCA simulation'
     else if ( chemsimtype(1:4) == 'AERO' ) then
       nbin = 4
-      iaerosol=1
-      ioxclim =1
+      iaerosol = 1
+      ioxclim = 1
       if ( ismoke == 1 ) then
         ntr = 14
         allocate(chtrname(ntr))
