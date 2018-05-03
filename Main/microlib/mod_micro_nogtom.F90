@@ -766,7 +766,7 @@ module mod_micro_nogtom
 
           ! local cloud cover
 
-          ccover = max(fccfg(j,i,k),onecf)
+          ccover = fccfg(j,i,k)
 
           !------------------------------------------------
           ! Evaporate very small amounts of liquid and ice
@@ -818,7 +818,7 @@ module mod_micro_nogtom
             rainp   = d_zero
             snowp   = d_zero
           else
-            lccover = max(fccfg(j,i,k-1),onecf)
+            lccover = fccfg(j,i,k-1)
             rainp   = pfplsx(iqqr,j,i,k)
             snowp   = pfplsx(iqqs,j,i,k)
           end if
@@ -1342,7 +1342,7 @@ module mod_micro_nogtom
             !   Maximum overlap for clouds in adjacent levels and random
             !   overlap for clouds separated by clear levels.
             !---------------------------------------------------------------
-            if ( qpretot > dlowval ) then
+            if ( qpretot > dlowval .and. lccover > dlowval ) then
               covptot(j,i) = d_one - ((d_one-covptot(j,i)) * &
                              (d_one - max(ccover,lccover)) / &
                              (d_one - min(lccover,onecf)))

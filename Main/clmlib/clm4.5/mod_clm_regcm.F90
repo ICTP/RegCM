@@ -492,7 +492,6 @@ module mod_clm_regcm
 
     do k = 1 , nlevsoi
       clm_l2a%notused(:) = clm_l2a%h2osoi(:,k)
-
       call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
       lms%sw(:,:,:,k) = lms%tsw(:,:,:)
     end do

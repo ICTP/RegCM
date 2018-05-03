@@ -272,7 +272,10 @@
           ! converted to gravimetric water conrtent using a sandy soil
           ! bulk density ratio to water density of 0.45
           ! consistent with bionox data
-          soilw(i,j) = csw_vol(j,i,1)*0.45_rkx
+          !soilw(i,j) = csw_vol(j,i,1)*0.45_rkx
+          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
+                       1.e-3_rkx/(2650.0_rkx * &
+                       (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
         end do
       end do
 #endif

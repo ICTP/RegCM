@@ -581,13 +581,14 @@ module mod_lm_interface
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
       lm%sxlai2d = sum(lms%xlai,1)*rdnnsg
-      ! FAB here take humidity of first soil layer, sw should be always defined
 #ifdef CLM45
+      ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%tsw(:,:,:),1)*rdnnsg
       lm%sw_vol = sum(lms%sw_vol(:,:,:,:),1)*rdnnsg
       lm%tsoi = sum(lms%tsoi(:,:,:,:),1)*rdnnsg
       lm%sfracb2d = sum(lms%wt,1)*rdnnsg
 #else
+      ! FAB here take humidity of first soil layer, sw should be always defined
       lm%ssw2da = sum(lms%ssw(:,:,:),1)*rdnnsg
       lm%sfracv2d = sum(lms%sigf,1)*rdnnsg
       lm%svegfrac2d = sum(lms%lncl,1)*rdnnsg
