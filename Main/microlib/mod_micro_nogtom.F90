@@ -859,7 +859,7 @@ module mod_micro_nogtom
           !--------------------------------
           ! evaporation/sublimation limits
           !--------------------------------
-          evaplimmix = max((sqmix-qx0(iqqv)) * corqsmix,d_zero)
+          evaplimmix = max((sqmix-qx0(iqqv))*corqsmix,d_zero)
 
           !--------------------------------
           ! in-cloud consensate amount
@@ -1782,10 +1782,10 @@ module mod_micro_nogtom
             ! Calculate the temperature tendencies
             if ( iphase(n) == 1 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                       wlhvocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
+                 wlhvocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
             else if ( iphase(n) == 2 ) then
               ttendc(j,i,k) = ttendc(j,i,k) + &
-                       wlhsocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
+                 wlhsocp * (qxn(n)-qx0(n)-fluxq(j,i,n))*oneodt
             end if
           end do
 

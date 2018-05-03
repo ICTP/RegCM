@@ -260,10 +260,22 @@ module mod_timer
     res = (mod(s%timer%model_internal_time,s%frq) == 0)
   end function syncro_act
 
-  logical function syncro_willact(s) result(res)
+  logical function syncro_willact(s,dt) result(res)
     implicit none
     class(rcm_syncro) , intent(in) :: s
-    res = (mod(s%timer%model_internal_time+s%timer%model_timestep,s%frq) == 0)
+    real(rkx) , optional , intent(in) :: dt
+    integer(ik8) :: t1 , t2 , idt
+    if ( present(dt) ) then
+      res = .false.
+      idt = int(dt,ik8)
+      t1 = s%timer%model_internal_time+idt
+      t2 = s%timer%model_internal_time+s%frq
+      if ( t1 <= t2 ) then
+        res = .true.
+      end if
+    else
+      res = (mod(s%timer%model_internal_time+s%timer%model_timestep,s%frq) == 0)
+    end if
   end function syncro_willact
 
   function init_alarm(t,dt,act0)

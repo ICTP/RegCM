@@ -1747,7 +1747,7 @@ module mod_tendency
           call updateaerosol(rcmtimer%idate)
         end if
         loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
-        labsem = ( rcmtimer%start() .or. syncro_emi%will_act( ) )
+        labsem = ( rcmtimer%start() .or. syncro_emi%will_act(dtrad) )
         if ( debug_level > 3 .and. labsem .and. myid == italk ) then
           write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
         end if

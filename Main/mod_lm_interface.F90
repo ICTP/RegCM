@@ -451,7 +451,7 @@ module mod_lm_interface
     real(rkx) :: tm , dz , dlnp , z1 , z2 , w1 , w2
 #endif
 #ifdef CLM
-    if ( rcmtimer%start( ) .or. syncro_rad%will_act( ) ) then
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
       r2cdoalb = .true.
     else
       r2cdoalb = .false.
@@ -681,7 +681,7 @@ module mod_lm_interface
                            expfie%shfx(j,i) - lm%rlwf(j,i)
       end do
     end do
-    if ( alarm_day%will_act(dtsrf) ) then
+    if ( rcmtimer%start( ) .or. alarm_day%will_act(dtsrf) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( lm%ldmsk(j,i) > 0 ) then
