@@ -177,12 +177,13 @@ module mod_ocn_lake
           if ( idep(lp) <= 20 ) then
             tlak(lp,3:idep(lp) ) = 24.0_rkx
           else
-            if ( idep(lp) > 40 ) then
-              tlak(lp,40:idep(lp) ) = 21.0_rkx
-            end if
+            tlak(lp,3:20) = 24.0_rkx
             do n = 21 , min(39,idep(lp))
               tlak(lp,n) = 24.0_rkx - real(n-20,rkx)/20.0_rkx*3.0_rkx
             end do
+            if ( idep(lp) >= 40 ) then
+              tlak(lp,40:idep(lp) ) = 21.0_rkx
+            end if
           end if
         end if
         !tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,18.0_rkx),25.0_rkx)
