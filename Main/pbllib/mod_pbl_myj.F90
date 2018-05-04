@@ -434,8 +434,8 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of velocity components
         !
-        uz0 = (uk(kz)*wght+m2p%u10m(j,i))/(wght+d_one)
-        vz0 = (vk(kz)*wght+m2p%v10m(j,i))/(wght+d_one)
+        uz0 = (uk(kz)*wght+d_half*m2p%u10m(j,i))/(wght+d_one)
+        vz0 = (vk(kz)*wght+d_half*m2p%v10m(j,i))/(wght+d_one)
         call vdifv(lmh,dtdif,uz0,vz0,akms_dens,uk,vk,akmk,zhk,rhok)
         !
         ! compute primary variable tendencies

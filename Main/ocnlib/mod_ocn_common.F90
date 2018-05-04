@@ -99,7 +99,6 @@ module mod_ocn_common
       tgrd = tgb
       tgbrd = tgb
       call c2l_ss(ocncomm,lm%xlat1,lat)
-      call c2l_ss(ocncomm,lm%ht1,topo)
       call c2l_ss(ocncomm,lm%iveg1,omask)
       call c2l_gs(ocncomm,lm%tground2,tgb)
       call c2l_gs(ocncomm,lm%zencos,czenith)
@@ -123,7 +122,6 @@ module mod_ocn_common
       um10 = 1.0_rkx ! Assume a mean of 1m/s wind for init.
     else
       call c2l_ss(ocncomm,lm%xlat1,lat)
-      call c2l_ss(ocncomm,lm%ht1,topo)
       call c2l_ss(ocncomm,lm%iveg1,omask)
       call c2l_ss(ocncomm,lms%tgrd,tgrd)
       call c2l_ss(ocncomm,lms%tgbrd,tgbrd)

@@ -26,7 +26,7 @@ module mod_ocn_lake
   use mod_realkinds
   use mod_dynparam
   use mod_service
-  use mod_runparams , only : rcmtimer
+  use mod_runparams , only : rcmtimer , iocnrough , iocnzoq
   use mod_ocn_internal
 
   implicit none
@@ -171,15 +171,15 @@ module mod_ocn_lake
         ! This needs tuning for tropical lakes.
         ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
         ! with surface as hot as 25.5 degrees.
-        tlak(lp,1) = 24.0_rkx
-        tlak(lp,2) = 24.0_rkx
+        tlak(lp,1) = 26.0_rkx
+        tlak(lp,2) = 26.0_rkx
         if ( idep(lp) >= 3 ) then
           if ( idep(lp) <= 20 ) then
-            tlak(lp,3:idep(lp) ) = 24.0_rkx
+            tlak(lp,3:idep(lp) ) = 26.0_rkx
           else
-            tlak(lp,3:20) = 24.0_rkx
+            tlak(lp,3:20) = 26.0_rkx
             do n = 21 , min(39,idep(lp))
-              tlak(lp,n) = 24.0_rkx - real(n-20,rkx)/20.0_rkx*3.0_rkx
+              tlak(lp,n) = 26.0_rkx - real(n-20,rkx)/20.0_rkx*5.0_rkx
             end do
             if ( idep(lp) >= 40 ) then
               tlak(lp,40:idep(lp) ) = 21.0_rkx
@@ -219,7 +219,7 @@ module mod_ocn_lake
     real(rkx) :: cdrx , clead , dela , dela0 , delq , dels , delt
     real(rkx) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
     real(rkx) :: ribd , ribl , ribn , scrat , tage , tgrnd
-    real(rkx) :: sold , vspda , u1
+    real(rkx) :: sold , vspda , u1 , tc , visa
     real(rkx) , dimension(ndpmax) :: tp
 
     integer(ik4) :: lp , i
@@ -239,6 +239,7 @@ module mod_ocn_lake
     do lp = 1 , nlakep
       i = ilp(lp)
       tl = tatm(i)
+      tc = tl - tzero
       sold = sncv(i)
       vl = sqrt(usw(i)**2+vsw(i)**2)
       zl = ht(i)
@@ -249,6 +250,9 @@ module mod_ocn_lake
       hsen = -d_one*sent(i)
       xl = lat(i)
       tp = tlak(lp,:)
+      visa = 1.326e-5_rkx*(d_one + 6.542e-3_rkx * tc + &
+                               8.301e-6_rkx * tc*tc - &
+                               4.840e-9_rkx * tc*tc*tc)
 
       call lake( dtlake,tl,vl,zl,qs,fswx,flwx,hsen,xl, &
                  tgl,prec,idep(lp),eta(lp),hi(lp),sfice(i), &
@@ -359,8 +363,12 @@ module mod_ocn_lake
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
-      taux(i) = dmissval
-      tauy(i) = dmissval
+      rhoa(i) = rhox(i)
+      ustr(i) = sqrt(sqrt((u10m(i)*drag(i))**2 + &
+                          (v10m(i)*drag(i))**2)/rhoa(i))
+      call ocnrough(zoo(i),ustr(i),um10(i),vl,visa)
+      taux(i) = drag(i) * (u10m(i)/usw(i))
+      tauy(i) = drag(i) * (v10m(i)/vsw(i))
       t2m(i) = tatm(i) - delt*fact
       q2m(i) = qs - delq*fact
     end do
@@ -373,6 +381,52 @@ module mod_ocn_lake
 
 #include <pfesat.inc>
 #include <pfqsat.inc>
+    !
+    ! our formulation for zo
+    !
+    subroutine ocnrough(zo,ustar,um10,wc,visa)
+      implicit none
+      real(rkx) , intent (in) :: ustar , um10 , wc , visa
+      real(rkx) , intent (out) :: zo
+      real(rkx) :: cp , charnockog , re , xtq , rt , rq , alph
+      ! if surface roughness not provided by wave model
+      ! Wave age. The wind here is the mean last N days wind
+      cp = 1.2_rkx*um10
+      ! Smith et al. (1992), Carlsson et al. (2009)
+      ! Charnock parameter as power function of the wave age
+      ! We consider here dominant wind sea waves
+      ! Swell dominated sea would require a wave model...
+      charnockog = regrav*0.063_rkx*(cp/ustar)**(-0.4_rkx)
+      if ( iocnrough == 1 ) then
+        zo = 0.0065_rkx*regrav*ustar*ustar
+      else if ( iocnrough == 2 ) then
+        zo = 0.013_rkx*regrav*ustar*ustar + 0.11_rkx*visa/ustar
+      else if ( iocnrough == 3 ) then
+        zo = 0.017_rkx*regrav*ustar*ustar
+      else if ( iocnrough == 4 ) then
+        ! C.H. Huang, 2012
+        ! Modification of the Charnock Wind Stress Formula
+        ! to Include the Effects of Free Convection and Swell
+        ! Advanced Methods for Practical Applications in Fluid Mechanics
+        zo = charnockog*(ustar*ustar*ustar+0.11_rkx*wc*wc*wc)**twot
+      else if ( iocnrough == 5 ) then
+        if ( um10 < 10.0_rkx ) then
+          alph = 0.011_rkx
+        else if ( um10 > 10.0_rkx .and. um10 < 18.0_rkx ) then
+          alph = 0.011_rkx + 0.000875*(um10-10.0_rkx)
+        else if ( um10 > 18.0_rkx .and. um10 < 25.0_rkx ) then
+          alph = 0.018_rkx
+        else
+          alph = max(2.e-3_rkx,0.018_rkx / &
+               (d_one+0.050_rkx*(ustar-0.02_rkx)**2 - &
+                0.018_rkx*(ustar-0.02_rkx)**1.6_rkx))
+        end if
+        zo = alph*regrav*ustar*ustar + 0.11_rkx*visa/ustar
+      else
+        zo = charnockog*ustar*ustar
+      end if
+      zo = max(zo,1.0e-8_rkx)
+     end subroutine ocnrough
 
   end subroutine lakedrv
 !

@@ -54,7 +54,6 @@ module mod_ocn_internal
   real(rkx) , pointer , dimension(:) :: ht      ! hgt
   real(rkx) , pointer , dimension(:) :: hpbl    ! hpbl
   real(rkx) , pointer , dimension(:) :: lat     ! xlat
-  real(rkx) , pointer , dimension(:) :: topo    ! topo
   real(rkx) , pointer , dimension(:) :: ncprate
   real(rkx) , pointer , dimension(:) :: prcp
   real(rkx) , pointer , dimension(:) :: q2m
@@ -124,7 +123,6 @@ module mod_ocn_internal
     call getmem1d(ht,1,nocnp,'ocn_internal:ht')
     call getmem1d(hpbl,1,nocnp,'ocn_internal:hpbl')
     call getmem1d(lat,1,nocnp,'ocn_internal:lat')
-    call getmem1d(topo,1,nocnp,'ocn_internal:topo')
     call getmem1d(omask,1,nocnp,'ocn_internal:omask')
     call getmem1d(q2m,1,nocnp,'ocn_internal:q2m')
     call getmem1d(qv,1,nocnp,'ocn_internal:qv')
