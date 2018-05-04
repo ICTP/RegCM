@@ -95,7 +95,7 @@ module mod_ocn_lake
 
   subroutine initlake
     implicit none
-    integer(ik4) :: i , k , lp
+    integer(ik4) :: i , k , lp , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initlake'
     integer(ik4) , save :: idindx = 0
@@ -171,13 +171,27 @@ module mod_ocn_lake
         ! This needs tuning for tropical lakes.
         ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
         ! with surface as hot as 25.5 degrees.
-        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,18.0_rkx),25.0_rkx)
-        tlak(lp,2) = min(max(tlak(lp,1)-d_half,18.0_rkx),25.0_rkx)
+        tlak(lp,1) = 24.0_rkx
+        tlak(lp,2) = 24.0_rkx
         if ( idep(lp) >= 3 ) then
-          do k = 3 , idep(lp)
-            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,18.0_rkx),25.0_rkx)
-          end do
+          if ( idep(lp) <= 20 ) then
+            tlak(lp,3:idep(lp) ) = 24.0_rkx
+          else
+            if ( idep(lp) > 40 ) then
+              tlak(lp,40:idep(lp) ) = 21.0_rkx
+            end if
+            do n = 21 , min(39,idep(lp))
+              tlak(lp,n) = 24.0_rkx - real(n-20,rkx)/20.0_rkx*3.0_rkx
+            end do
+          end if
         end if
+        !tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,18.0_rkx),25.0_rkx)
+        !tlak(lp,2) = min(max(tlak(lp,1)-d_half,18.0_rkx),25.0_rkx)
+        !if ( idep(lp) >= 3 ) then
+        !  do k = 3 , idep(lp)
+        !    tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,18.0_rkx),25.0_rkx)
+        !  end do
+        !end if
       end if
       ! Ice over lake from the start
       if ( mask(i) == 4 ) then
