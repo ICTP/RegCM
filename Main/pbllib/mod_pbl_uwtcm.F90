@@ -401,9 +401,9 @@ module mod_pbl_uwtcm
         ! dth = thx(kz) - thgb
 
         ! Calculate surface momentum fluxes
-        uflxp = -uvdragx*ux(kz)
-        vflxp = -uvdragx*vx(kz)
-        ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)/rhoxsf
+        uflxp = -uvdragx*ux(kz)/rhoxsf
+        vflxp = -uvdragx*vx(kz)/rhoxsf
+        ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
         ! Estimate of the surface virtual heat flux
         thvflx = hfxx/rhoxsf*rcpd*(d_one+ep1*q0s) + &
                  ep1/thgb*qfxx*rhoxsf
@@ -619,9 +619,9 @@ module mod_pbl_uwtcm
         ! of the surface momentum fluxes
         !
         ! Calculate surface momentum fluxes
-        uflxp = -uvdragx*ux(kz)
-        vflxp = -uvdragx*vx(kz)
-        ustxsq = sqrt(uflxp*uflxp + vflxp*vflxp)/rhoxsf
+        uflxp = -uvdragx*ux(kz)/rhoxsf
+        vflxp = -uvdragx*vx(kz)/rhoxsf
+        ustxsq = sqrt(uflxp*uflxp + vflxp*vflxp)
 
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
@@ -629,7 +629,7 @@ module mod_pbl_uwtcm
 
         ! Estimate the surface N^2 from the surface virtual heat flux
         nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
-        nsquar(kzp1) = -egrav/thgb*thvflx/kh0
+        ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 !*******************************************************************************
 !*******************************************************************************
 !************************* Integration of TKE Budget Equation ******************
