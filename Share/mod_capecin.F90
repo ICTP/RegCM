@@ -105,7 +105,7 @@ module mod_capecin
     real(rkx), parameter :: rddcp = rgas/cpd
     real(rkx), parameter :: cpdg  = cpd*regrav
 
-    real(rkx), parameter :: converge = 0.002
+    real(rkx), parameter :: converge = 0.002_rkx
 
     ! Get td,pi,q,th,thv
 

@@ -68,8 +68,8 @@ module mod_micro_wsm5
   ! constant in biggs freezing
   real(rkx) , parameter :: pfrz2 = 0.66_rkx
   ! minimun values for qr, qs, and qg
-  real(rkx) , parameter :: qrsmin = 1.e-14_rkx
-  real(rkx) , parameter :: qcimin = 1.e-10_rkx
+  real(rkx) , parameter :: qrsmin = 1.e-10_rkx
+  real(rkx) , parameter :: qcimin = 1.e-9_rkx
   ! snow/cloud-water collection efficiency
   real(rkx) , parameter :: eacrc = 1.0_rkx
 
