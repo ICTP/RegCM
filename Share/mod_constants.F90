@@ -245,7 +245,7 @@ module mod_constants
   ! Fixed emissivity of water
   real(rkx) , parameter :: emsw = 0.97_rkx
 
-  real(rkx) , parameter :: euler = 2.718281828459045235360287471352662498_rkx
+  real(rkx) , parameter :: m_euler = 0.577215664901532860606512090082402431_rkx
 
   ! Trigonometric constants.
   real(rkx) , parameter :: mathpi =                                   &
