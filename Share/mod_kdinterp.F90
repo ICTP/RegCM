@@ -70,12 +70,12 @@ module mod_kdinterp
 
   type ijwgt
     integer(ik4) :: np
-    type(pwgt) , dimension(:) , allocatable :: wgt
+    type(pwgt) , dimension(:) , pointer :: wgt
   end type ijwgt
 
   type ftarget
     integer(ik4) , dimension(2) :: tshape
-    type(ijwgt) , dimension(:,:) , allocatable :: ft
+    type(ijwgt) , dimension(:,:) , pointer :: ft
   end type ftarget
 
   type h_interpolator
@@ -98,8 +98,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: dx , r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
+    real(rkx) :: dx , r2
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
       call die('interp_create_ll_g','Target shapes non conforming',1)
@@ -147,25 +147,8 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        np = h_i%tg%ft(j,i)%np
-        allocate(h_i%tg%ft(j,i)%wgt(np))
-        do n = 1 , np
-          rx = d_half*sqrt(results(n)%dis/r2)
-          if ( rx < dlowval ) then
-            h_i%tg%ft(j,i)%np = 1
-            deallocate(h_i%tg%ft(j,i)%wgt)
-            allocate(h_i%tg%ft(j,i)%wgt(1))
-            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
-            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
-            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
-            exit
-          end if
-          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
-          h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
-        end do
+        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+                            results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
     end do
@@ -187,8 +170,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: dx , r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
+    real(rkx) :: dx , r2
 
     n1 = size(slat)
     n2 = size(slon)
@@ -234,25 +217,8 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        np = h_i%tg%ft(j,i)%np
-        allocate(h_i%tg%ft(j,i)%wgt(np))
-        do n = 1 , np
-          rx = d_half*sqrt(results(n)%dis/r2)
-          if ( rx < dlowval ) then
-            h_i%tg%ft(j,i)%np = 1
-            deallocate(h_i%tg%ft(j,i)%wgt)
-            allocate(h_i%tg%ft(j,i)%wgt(1))
-            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
-            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
-            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
-            exit
-          end if
-          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
-          h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
-        end do
+        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+                            results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
     end do
@@ -274,8 +240,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: dx , r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
+    real(rkx) :: dx , r2
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -326,25 +292,8 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        np = h_i%tg%ft(j,i)%np
-        allocate(h_i%tg%ft(j,i)%wgt(np))
-        do n = 1 , np
-          rx = d_half*sqrt(results(n)%dis/r2)
-          if ( rx < dlowval ) then
-            h_i%tg%ft(j,i)%np = 1
-            deallocate(h_i%tg%ft(j,i)%wgt)
-            allocate(h_i%tg%ft(j,i)%wgt(1))
-            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
-            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
-            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
-            exit
-          end if
-          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
-          h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
-        end do
+        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+                            results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
     end do
@@ -366,8 +315,8 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , n
-    real(rkx) :: dx , r2 , rx
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
+    real(rkx) :: dx , r2
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -416,25 +365,8 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        np = h_i%tg%ft(j,i)%np
-        allocate(h_i%tg%ft(j,i)%wgt(h_i%tg%ft(j,i)%np))
-        do n = 1 , np
-          rx = d_half*sqrt(results(n)%dis/r2)
-          if ( rx < dlowval ) then
-            h_i%tg%ft(j,i)%np = 1
-            deallocate(h_i%tg%ft(j,i)%wgt)
-            allocate(h_i%tg%ft(j,i)%wgt(1))
-            h_i%tg%ft(j,i)%wgt(1)%i = (results(n)%idx-1)/n2 + 1
-            h_i%tg%ft(j,i)%wgt(1)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(1)%i-1)
-            h_i%tg%ft(j,i)%wgt(n)%wgt = d_one
-            exit
-          end if
-          h_i%tg%ft(j,i)%wgt(n)%i = (results(n)%idx-1)/n2 + 1
-          h_i%tg%ft(j,i)%wgt(n)%j = results(n)%idx - &
-                                    n2*(h_i%tg%ft(j,i)%wgt(n)%i-1)
-          h_i%tg%ft(j,i)%wgt(n)%wgt = d_one/rx
-        end do
+        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+                            results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
     end do
@@ -447,7 +379,7 @@ module mod_kdinterp
     implicit none
     type(h_interpolator) , intent(inout) :: h_i
     integer :: ni , nj , j , i
-    if ( allocated(h_i%tg%ft) ) then
+    if ( associated(h_i%tg%ft) ) then
       nj = h_i%tg%tshape(1)
       ni = h_i%tg%tshape(2)
       do i = 1 , ni
@@ -807,6 +739,37 @@ module mod_kdinterp
     integer(ik4) , intent(in) :: i , j
     d = sqrt((x(1,i)-x(1,j))**2+(x(2,i)-x(2,j))**2+(x(3,i)-x(3,j))**2)
   end function dist
+
+  subroutine computeweights(np,n1,n2,r,w)
+    implicit none
+    integer(ik4) , intent(in) :: n1 , n2
+    integer(ik4) , intent(inout) :: np
+    type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
+    type(pwgt) , dimension(:) , pointer , intent(inout) :: w
+    integer(ik4) :: n
+    real(rkx) :: rx , rmax
+
+    rmax = r(1)%dis
+    do n = 2 , np
+      if ( rmax < r(n)%dis ) rmax = r(n)%dis
+    end do
+    allocate(w(np))
+    do n = 1 , np
+      rx = sqrt(r(n)%dis/rmax)
+      if ( rx < dlowval ) then
+        np = 1
+        deallocate(w)
+        allocate(w(1))
+        w(1)%i = (r(n)%idx-1)/n2 + 1
+        w(1)%j = r(n)%idx - n2*(w(1)%i-1)
+        w(1)%wgt = d_one
+        exit
+      end if
+      w(n)%i = (r(n)%idx-1)/n2 + 1
+      w(n)%j = r(n)%idx - n2*(w(n)%i-1)
+      w(n)%wgt = d_one/rx
+    end do
+  end subroutine computeweights
 
 end module mod_kdinterp
 
