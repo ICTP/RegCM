@@ -496,7 +496,8 @@ class InterpolateHeight(Filter):
             with prev_result.data:
                 for t in range(time_steps):
                     LOGGER.debug('Reading time step %s of variable ps', t)
-                    ps_t = np.array(ps[t, :], dtype=DATATYPE_MAIN)
+		    # PS, PTOP, PLEV must have same units. Use hPa
+                    ps_t = np.array(ps[t, :], dtype=DATATYPE_MAIN)*0.01
 
                     data_slice = [slice(None) for _ in prev_result.dimensions]
                     data_slice[0] = t

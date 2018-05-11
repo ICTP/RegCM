@@ -333,11 +333,11 @@ module mod_hgt
 
   contains
 
-  subroutine height(im,jm,km,t,pstar,topo,sig,ptop,p,hp)
+  subroutine height(im,jm,km,t,ipstar,topo,sig,ptop,p,hp)
     implicit none
     integer , intent(in) :: im , jm , km
     real(4) , intent(in) , dimension(km,jm,im) :: t
-    real(4) , intent(in) , dimension(jm,im) :: topo , pstar
+    real(4) , intent(in) , dimension(jm,im) :: topo , ipstar
     real(8) , intent(in) :: ptop
     real(4) , intent(in) :: p
     real(4) , intent(in) , dimension(km) :: sig
@@ -345,6 +345,7 @@ module mod_hgt
 
     real(4) :: psfc , temp , wb , wt , ptp , pf , tbar
     integer :: i , j , k , kb , kbc , kt
+    real(4) , dimension(jm,im) :: pstar
     real(4) , dimension(km) :: psig
     real(4) , dimension(km) :: htsig
     real(4) , dimension(km+1) :: sigmaf
@@ -369,6 +370,7 @@ module mod_hgt
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
     ptp = real(ptop)
+    pstar = ipstar * 0.01
     kbc = 1
     do k = 1 , km
       if ( sig(k) < bltop ) kbc = k
