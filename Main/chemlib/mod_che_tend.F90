@@ -289,7 +289,7 @@
       !
       ! SOX CHEMSITRY ( from offline oxidant)
       !
-      if ( iso2 > 0 .and.(iso4 >0 .or. ih2so4>0)) then
+      if ( iso2 > 0 .and. (iso4 > 0 .or. ih2so4 > 0) ) then
         do j = jci1 , jci2
           call chemsox(j,wl(:,:,j),fracloud(:,:,j), &
                        fracum(:,:,j),rho(:,:,j),ttb(:,:,j))
@@ -316,7 +316,7 @@
         if ( ichdustemd /= 3 ) then
           do j = jci1 , jci2
             call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
-              rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
+                     rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
             call sfflux(j,ivegcov(:,j),vegfrac(:,j),snowfrac(:,j), &
                         ustar(:,1,j),zeff(:,j),soilw(:,j),wid10(:,j), &
                         rho(:,kz,j),dustbsiz,dust_flx(:,:,j))
@@ -347,9 +347,9 @@
       !
       ! biogenic nox emission
       if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
-       do j = jci1 , jci2
+        do j = jci1 , jci2
           call soilnitro_emissions(j,ivegcov(:,j),wid10(:,j))
-       end do
+        end do
       end if
       !
       ! linox emissions

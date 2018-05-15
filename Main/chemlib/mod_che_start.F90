@@ -195,14 +195,14 @@ module mod_che_start
         iochl = itr
         icarb(kbin) = itr
         carbed(kbin) = reffochl
-        chtrsol(itr) = soloc
+        chtrsol(itr) = solochl
       end if
       if ( chtrname(itr) == 'OC_HB' ) then
         kbin = kbin + 1
         iochb = itr
         icarb(kbin) = itr
         carbed(kbin) = reffoc
-        chtrsol(itr) = solochl
+        chtrsol(itr) = soloc
       end if
       if ( chtrname(itr) == 'SM1' ) then
         kbin = kbin + 1

@@ -42,7 +42,7 @@ module mod_che_carbonaer
   real(rkx) , public , parameter :: rhosm2 = 1200.0_rkx
 
 
-  ! effctive dimaters ( and not radius!)  in micrometer
+  ! effctive diameters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? )
   real(rkx) , public , parameter :: reffbc   = 0.05_rkx
   real(rkx) , public , parameter :: reffbchl = 0.3_rkx

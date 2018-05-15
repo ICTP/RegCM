@@ -568,11 +568,10 @@ module mod_che_drydep
           do i = ici1 , ici2
             ! agregate the dry deposition velocity, remember one cover per grid
             ! cell for now
-            ! the dry deposition deposition velocity must accound also for the
+            ! the dry deposition velocity must account also for the
             ! settling velocity at kz
             ! simple form now add the vs
-            ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,l)+rs(i,l,ib)) + &
-                              pdepvsub(i,kz,ib)
+            ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,l)+rs(i,l,ib))
           end do
         end do
       end do
@@ -623,7 +622,9 @@ module mod_che_drydep
             !                 wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
             ! use exponential form for stability
             settend(i,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
-                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) -    &
+                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) + &
+                            max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
+                (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))  - &
                               wk(i,kz) * &
                 (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
@@ -636,7 +637,8 @@ module mod_che_drydep
             ! scheme is called (cf atm to surf interface)
             cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + &
               (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
-                 cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))
+                 cpsb(j,i) * crhob3d(j,i,kz) * &
+                 (ddepv(i,indsp(ib))+pdepvsub(i,kz,ib))
 
             !diagnostic for settling and drydeposition removal
             if ( ichdiag > 0 ) then
@@ -653,11 +655,13 @@ module mod_che_drydep
             ! do not use drydepflx in the formula
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
                      (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
-                      cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))* cfdout
+                      cpsb(j,i) * crhob3d(j,i,kz) * &
+                      (ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib)) * cfdout
             ! alternative formulation using tendency/flux relationship
             ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
             !            chib3d(j,i,kz,indsp(ib)) * &
-            !         (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt ))*rdt  &
+            !         (d_one - exp(-ddepv(i,indsp(ib) + pdepvsub(i,kz,ib)) / &
+            !                 cdzq(j,i,kz)*dt ))*rdt  &
             !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
 
             ! no net flux is passed to BL schemes in this case
@@ -669,14 +673,15 @@ module mod_che_drydep
             ! for the BL scheme !
             ! flux
             chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
-                chib(j,i,kz,indsp(ib))/ cpsb(j,i) * ddepv(i,indsp(ib))
-            drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib))
+                chib(j,i,kz,indsp(ib))/ cpsb(j,i) * &
+                (ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib))
+            drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib)
           end if
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
           ! also settling , accumulated between two outputs time step)
           ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
-                 ddepv(i,indsp(ib))
+                 ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib)
         end do
       end do
 #ifdef DEBUG
@@ -696,7 +701,7 @@ module mod_che_drydep
       real(rkx),  dimension(ici1:ici2,ntr) :: drydepvg
 
       integer(ik4) :: n , i , im , lcov
-      real(rkx) , dimension(ici1:ici2,luc) :: ustar, resa
+      real(rkx) , dimension(ici1:ici2,luc) :: ustar , resa
       real(rkx) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
       real(rkx) , dimension(ngasd,ici1:ici2,luc) :: vdg
       real(rkx) , dimension(ici1:ici2) :: icz , ddrem
@@ -739,72 +744,71 @@ module mod_che_drydep
       ! now calculate the dry deposition velocities and select it
       ! according to the gasphase mechanism
       ! vdg in m.s-1
-       vdg(:,:,:) = d_zero
-       do i = ici1 , ici2
-         do n = 1 , ngasd
-           vdg(n,i,:) = d_one/(resa(i,:)+resb(n,i,:)+resc(n,i,:))
-         end do
-       end do
-       ! this part depends on the chem mechanism
-       ! for CBMZ , we can certainly improve this.
+      vdg(:,:,:) = d_zero
+      do i = ici1 , ici2
+        do n = 1 , ngasd
+          vdg(n,i,:) = d_one/(resa(i,:)+resb(n,i,:)+resc(n,i,:))
+        end do
+      end do
+      ! this part depends on the chem mechanism
+      ! for CBMZ , we can certainly improve this.
 
-       drydepvg = d_zero
-       drydepvg(:,iso2)  =  vdg(1,:,1)
-       ! SO2 deposition is used in SULF , AERO and CBMZ simulations
-       if ( igaschem > 0 ) then
-         drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
-         drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
-         drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
-         drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
-!        drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
-         drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5
-         drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
-         drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
-         drydepvg(:,ich3oh)  =  vdg(23,:,1)!*0.5
-       end if
+      drydepvg = d_zero
+      drydepvg(:,iso2)  =  vdg(1,:,1)
+      ! SO2 deposition is used in SULF , AERO and CBMZ simulations
+      if ( igaschem > 0 ) then
+        drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
+        drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
+        drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
+        drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
+!       drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
+        drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5
+        drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
+        drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
+        drydepvg(:,ich3oh)  =  vdg(23,:,1)!*0.5
+      end if
 
-       ! Finally : gas phase dry dep tendency calculation
-       if ( ichdrdepo == 1 ) then
-         do i = ici1 , ici2
-           rdz = d_one / cdzq(j,i,kz)
-           do n = 1 , ntr
-             kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
-             kav = max(chib(j,i,kz,n),d_zero)*rdt
-             if ( kd*dt < 25.0_rkx ) then
-               ! dry dep removal tendency (+)
-               ddrem(i) = kav * (d_one-exp(-kd*dt))
-             else
-               ddrem(i) = d_zero
-             end if
-             ! update chiten
-             chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
-             ! diag dry dep tendency
-             if ( ichdiag > 0 ) then
-                cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
-                                                ddrem(i) * cfdout
-             end if
-             ! drydep flux diagnostic (accumulated between two outputs time
-             ! step) ! flux is in kg/m2/s-1 so need to normalise by ps here.
-             remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cfdout
-             ! dry dep velocity diagnostic in m.s-1
-             ! (accumulated between two outputs time step)
-             drydepv(j,i,n) = d_zero
-             ddv_out(j,i,n) = ddv_out(j,i,n) + drydepvg(i,n)
-           end do
-         end do
-       else if ( ichdrdepo == 2 ) then
-         do i = ici1 , ici2
-           do n = 1 , ntr
-             chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
-                                 cpsb(j,i)) * drydepvg(i,n)
-             ! dry dep velocity diagnostic in m.s-1
-             ! (accumulated between two outputs time step)
-             drydepv(j,i,n) =  drydepvg(i,n)
-             ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepvg(i,n)
-           end do
-         end do
-
-       end if
+      ! Finally : gas phase dry dep tendency calculation
+      if ( ichdrdepo == 1 ) then
+        do i = ici1 , ici2
+          rdz = d_one / cdzq(j,i,kz)
+          do n = 1 , ntr
+            kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
+            kav = max(chib(j,i,kz,n),d_zero)*rdt
+            if ( kd*dt < 25.0_rkx ) then
+              ! dry dep removal tendency (+)
+              ddrem(i) = kav * (d_one-exp(-kd*dt))
+            else
+              ddrem(i) = d_zero
+            end if
+            ! update chiten
+            chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
+            ! diag dry dep tendency
+            if ( ichdiag > 0 ) then
+               cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
+                                               ddrem(i) * cfdout
+            end if
+            ! drydep flux diagnostic (accumulated between two outputs time
+            ! step) ! flux is in kg/m2/s-1 so need to normalise by ps here.
+            remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cfdout
+            ! dry dep velocity diagnostic in m.s-1
+            ! (accumulated between two outputs time step)
+            drydepv(j,i,n) = d_zero
+            ddv_out(j,i,n) = ddv_out(j,i,n) + drydepvg(i,n)
+          end do
+        end do
+      else if ( ichdrdepo == 2 ) then
+        do i = ici1 , ici2
+          do n = 1 , ntr
+            chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
+                                cpsb(j,i)) * drydepvg(i,n)
+            ! dry dep velocity diagnostic in m.s-1
+            ! (accumulated between two outputs time step)
+            drydepv(j,i,n) =  drydepvg(i,n)
+            ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepvg(i,n)
+          end do
+        end do
+      end if
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
