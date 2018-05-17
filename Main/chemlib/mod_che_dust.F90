@@ -651,11 +651,11 @@ module mod_che_dust
               if ( clay2row2(i,n,jloop) <= 20 ) then
                 xalphaprop(ieff,n) = d_10**(0.134_rkx * &
                               clay2row2(i,n,jloop)-6.0_rkx)
-!                             clay2row2(i,n,jloop)-6.0_rkx)*0.035_rkx
+!                              clay2row2(i,n,jloop)-6.0_rkx)*0.035_rkx
               else
                 xalphaprop(ieff,n) = d_10**(-0.1_rkx * &
                               clay2row2(i,n,jloop)-6.0_rkx)
-!                             clay2row2(i,n,jloop)-1.2_rkx)*0.035_rkx
+!                              clay2row2(i,n,jloop)-1.2_rkx)*0.035_rkx
               end if
             end if
             do  ns = 1 , nsoil

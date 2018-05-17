@@ -139,7 +139,7 @@ compressed in disk.
                                                'time: minimum')
                 else:
                     nco.variables[var].setncattr('cell_methods',
-                                               'time: minimum within days '+
+                                               'time: point within days '+
                                                'time: mean over days')
             else:
                 nco.variables[var].setncattr('cell_methods', 'time: mean')

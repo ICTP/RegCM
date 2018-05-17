@@ -178,8 +178,6 @@ module mod_cu_interface
     call assignpnt(convpr,c2m%convpr)
     call assignpnt(q_detr,c2m%q_detr)
     call assignpnt(rain_cc,c2m%rain_cc)
-    call assignpnt(uxten%u,cu_uten)
-    call assignpnt(uxten%v,cu_vten)
     call assignpnt(crrate,c2m%trrate)
     call init_mod_cumulus
   end subroutine init_cumulus
@@ -312,7 +310,7 @@ module mod_cu_interface
           end select
         end if
 
-        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
+        call uvcross2dot(cu_uten,cu_vten,uxten%ud,uxten%vd)
 
       end if
 

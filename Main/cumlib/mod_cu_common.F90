@@ -72,6 +72,8 @@ module mod_cu_common
     real(rk4) :: cputime
 
     call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
+    call getmem3d(cu_uten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:uten')
+    call getmem3d(cu_vten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:vten')
     call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')
     call getmem3d(cu_cldfrc,jci1,jci2,ici1,ici2,1,kz,'cumulus:cldfrc')
     call getmem2d(cu_prate,jci1,jci2,ici1,ici2,'cumulus:prate')
