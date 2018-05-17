@@ -50,7 +50,13 @@ module mod_hgt
   interface nonhydrost
     module procedure nonhydrost_double
     module procedure nonhydrost_single
+    module procedure nonhydrost_single_2
   end interface nonhydrost
+
+  interface htsig
+    module procedure htsig_1
+    module procedure htsig_2
+  end interface htsig
 
   public :: hydrost , nonhydrost , mslp2ps
   public :: height , height_o
@@ -92,11 +98,11 @@ module mod_hgt
     do i = 1 , ni
       do j = 1 , nj
         pf = ptop/ps(i,j)
-        h(i,j,nk) = topo(i,j) + rovg*t(i,j,nk)*dlog((d_one+pf)/(sigmah(nk)+pf))
+        h(i,j,nk) = topo(i,j) + rovg*t(i,j,nk)*log((d_one+pf)/(sigmah(nk)+pf))
         do k = nk - 1 , 1 , -1
           tbar = (t(i,j,k)*dsigma(k) + &
             t(i,j,k+1)*dsigma(k+1))/(dsigma(k)+dsigma(k+1))
-          h(i,j,k) = h(i,j,k+1)+rovg*tbar*dlog((sigmah(k+1)+pf)/(sigmah(k)+pf))
+          h(i,j,k) = h(i,j,k+1)+rovg*tbar*log((sigmah(k+1)+pf)/(sigmah(k)+pf))
         end do
       end do
     end do
@@ -170,6 +176,40 @@ module mod_hgt
       end do
     end do
   end subroutine nonhydrost_single
+
+  subroutine nonhydrost_single_2(h,t0,p0,ptop,topo,sigmah,i1,i2,j1,j2,nk)
+    implicit none
+    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , nk
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , intent(in) , dimension(nk) :: sigmah
+    real(rk8) , intent(in) , dimension(i1:i2,j1:j2,nk) :: t0
+    real(rk8) , intent(in) , dimension(i1:i2,j1:j2) :: p0 , topo
+    real(rk8) , intent(out) , dimension(i1:i2,j1:j2,nk) :: h
+
+    integer(ik4) :: i , j , k
+    real(rk8) :: cell
+    !
+    ! ROUTINE TO COMPUTE HEIGHT FOR THE NON-HYDROSTATIC CORE
+    ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
+    ! HEIGHT IS COMPUTED IN THE RCM MODEL.
+    !
+    do j = j1 , j2
+      do i = i1 , i2
+        cell = (ptop * d_100) / p0(i,j)
+        h(i,j,nk) = rovg * t0(i,j,nk) * &
+                 log((d_one+cell)/(sigmah(nk)+cell)) + topo(i,j)
+      end do
+    end do
+    do k = nk-1 , 1 , -1
+      do j = j1 , j2
+        do i = i1 , i2
+          cell = (ptop * d_100) / p0(i,j)
+          h(i,j,k) = h(i,j,k+1) + rovg * t0(i,j,k) * &
+                   log((sigmah(k+1)+cell)/(sigmah(k)+cell))
+        end do
+      end do
+    end do
+  end subroutine nonhydrost_single_2
 
   subroutine height(hp,h,t,ps,p3d,ht,im,jm,km,p,kp)
     implicit none
@@ -298,20 +338,20 @@ module mod_hgt
           kb = kt + 1
           if ( p(n) <= psig(1) ) then
             temp = t(i,j,1)
-            hp(i,j,n) = h(i,j,1) + rovg*temp*dlog(psig(1)/p(n))
+            hp(i,j,n) = h(i,j,1) + rovg*temp*log(psig(1)/p(n))
           else if ( (p(n) > psig(1)) .and. (p(n) < psig(km)) ) then
-            wt = dlog(psig(kb)/p(n))/dlog(psig(kb)/psig(kt))
-            wb = dlog(p(n)/psig(kt))/dlog(psig(kb)/psig(kt))
+            wt = log(psig(kb)/p(n))/log(psig(kb)/psig(kt))
+            wb = log(p(n)/psig(kt))/log(psig(kb)/psig(kt))
             temp = wt*t(i,j,kt) + wb*t(i,j,kb)
             temp = (temp+t(i,j,kb))/d_two
-            hp(i,j,n) = h(i,j,kb) + rovg*temp*dlog(psig(kb)/p(n))
+            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(psig(kb)/p(n))
           else if ( (p(n) >= psig(km)) .and. (p(n) <= psfc) ) then
             temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + rovg*temp*dlog(psfc/p(n))
+            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
             temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
             hp(i,j,n) = ht(i,j) + &
-                  (temp/lrate)*(d_one-dexp(+rovg*lrate*dlog(p(n)/psfc)))
+                  (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
           end if
         end do
       end do
@@ -362,20 +402,20 @@ module mod_hgt
           kb = kt + 1
           if ( p(n) <= p3(i,j,1) ) then
             temp = t(i,j,1)
-            hp(i,j,n) = h(i,j,1) + rovg*temp*dlog(p3(i,j,1)/p(n))
+            hp(i,j,n) = h(i,j,1) + rovg*temp*log(p3(i,j,1)/p(n))
           else if ( (p(n) > p3(i,j,1)) .and. (p(n) < p3(i,j,km)) ) then
-            wt = dlog(p3(i,j,kb)/p(n))/dlog(p3(i,j,kb)/p3(i,j,kt))
-            wb = dlog(p(n)/p3(i,j,kt))/dlog(p3(i,j,kb)/p3(i,j,kt))
+            wt = log(p3(i,j,kb)/p(n))/log(p3(i,j,kb)/p3(i,j,kt))
+            wb = log(p(n)/p3(i,j,kt))/log(p3(i,j,kb)/p3(i,j,kt))
             temp = wt*t(i,j,kt) + wb*t(i,j,kb)
             temp = (temp+t(i,j,kb))/d_two
-            hp(i,j,n) = h(i,j,kb) + rovg*temp*dlog(p3(i,j,kb)/p(n))
+            hp(i,j,n) = h(i,j,kb) + rovg*temp*log(p3(i,j,kb)/p(n))
           else if ( (p(n) >= p3(i,j,km)) .and. (p(n) <= psfc) ) then
             temp = t(i,j,km)
-            hp(i,j,n) = ht(i,j) + rovg*temp*dlog(psfc/p(n))
+            hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
             temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
             hp(i,j,n) = ht(i,j) + &
-                  (temp/lrate)*(d_one-dexp(+rovg*lrate*dlog(p(n)/psfc)))
+                  (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
           end if
         end do
       end do
@@ -519,7 +559,7 @@ module mod_hgt
 !
 !-----------------------------------------------------------------------
 !
-  subroutine htsig(t,h,p3d,ps,ht,im,jm,km)
+  subroutine htsig_1(t,h,p3d,ps,ht,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
     real(rkx) , intent(in) , dimension(im,jm,km) :: p3d , t
@@ -550,10 +590,36 @@ module mod_hgt
         end do
       end do
     end do
-  end subroutine htsig
-!
-!-----------------------------------------------------------------------
-!
+  end subroutine htsig_1
+
+  subroutine htsig_2(t,h,pstar,ht,sig,ptop,i1,i2,j1,j2,km)
+    implicit none
+    integer(ik4) , intent(in) :: i1, i2 , j1 , j2, km
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , intent(in) , dimension(i1:i2,j1:j2,km) :: t
+    real(rk8) , intent(in) , dimension(i1:i2,j1:j2) :: ht , pstar
+    real(rk8) , intent(in) , dimension(km) :: sig
+    real(rk8) , intent(out) , dimension(i1:i2,j1:j2,km) :: h
+    real(rk8) :: tbar
+    integer(ik4) :: i , j , k
+    do j = j1 , j2
+      do i = i1 , i2
+        h(i,j,km) = ht(i,j) + &
+          rovg*t(i,j,km)*log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
+      end do
+    end do
+    do k = km - 1 , 1 , -1
+      do j = j1 , j2
+        do i = i1 , i2
+          tbar = d_half*(t(i,j,k)+t(i,j,k+1))
+          h(i,j,k) = h(i,j,k+1) + &
+            rovg*tbar*log(((pstar(i,j)-ptop)*sig(k+1)+ptop)/ &
+                          ((pstar(i,j)-ptop)*sig(k)+ptop))
+        end do
+      end do
+    end do
+  end subroutine htsig_2
+
   subroutine htsig_o_double(t,h,pstar,ht,sig,ptop,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
@@ -567,7 +633,7 @@ module mod_hgt
     do j = 1 , jm
       do i = 1 , im
         h(i,j,km) = ht(i,j) + &
-          rovg*t(i,j,km)*dlog(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
+          rovg*t(i,j,km)*log(pstar(i,j)/((pstar(i,j)-ptop)*sig(km)+ptop))
       end do
     end do
     do k = km - 1 , 1 , -1
@@ -575,7 +641,7 @@ module mod_hgt
         do i = 1 , im
           tbar = d_half*(t(i,j,k)+t(i,j,k+1))
           h(i,j,k) = h(i,j,k+1) + &
-            rovg*tbar*dlog(((pstar(i,j)-ptop)*sig(k+1)+ptop)/ &
+            rovg*tbar*log(((pstar(i,j)-ptop)*sig(k+1)+ptop)/ &
                            ((pstar(i,j)-ptop)*sig(k)+ptop))
         end do
       end do

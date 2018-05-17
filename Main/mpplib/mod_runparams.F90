@@ -134,6 +134,8 @@ module mod_runparams
   integer(ik4) , public :: iocnrough , iocnflx , iocncpl , iocnzoq
   ! Wave model switch indexes
   integer(ik4) , public :: iwavcpl
+  ! COP switch indexes
+  integer(ik4) , public :: icopcpl
   ! Radiation switch controls
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst , ifixsolar
   ! Fixed solar constant for ifixsolar = 1

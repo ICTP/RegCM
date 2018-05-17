@@ -241,6 +241,8 @@
                         !   1 => Coupling activated
  iwavcpl =          0,  ! Ocean roughness from coupled Wave Model through RegESM
                         !   1 => Coupling activated
+ icopcpl =          0,  ! Export data for COP component (RegESM)
+                        !   1 => Coupling activated
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)

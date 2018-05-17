@@ -58,6 +58,7 @@ module mod_atm_interface
   public :: allocate_mod_atm_interface , allocate_crosswind_tendency
   public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
+  public :: export_data_from_atm
 
   real(rkx) , public , pointer , dimension(:,:,:) :: dstor
   real(rkx) , public , pointer , dimension(:,:,:) :: hstor
@@ -1055,6 +1056,38 @@ module mod_atm_interface
       call getmem2d(crrate,jci1,jci2,ici1,ici2,'storage:crrate')
       call getmem2d(ncrrate,jci1,jci2,ici1,ici2,'storage:ncrrate')
     end subroutine allocate_mod_atm_interface
+
+    subroutine export_data_from_atm(expfie)
+      implicit none
+      type(exp_data3d) , intent(inout) :: expfie
+      integer(ik4) :: k , j , i
+
+      call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            expfie%u(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                              atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) /     &
+                              sfs%psa(j,i)
+            expfie%v(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                              atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) /     &
+                              sfs%psa(j,i)
+            if ( idynamic == 2 ) then
+              expfie%w(j,i,k) = d_half*(atm1%w(j,i,k+1)+atm1%w(j,i,k)) / &
+                                sfs%psa(j,i)
+            else
+              expfie%w(j,i,k) = (-1.0d0*omega(j,i,k)*d_1000) / &
+                                (atm1%rho(j,i,k)*egrav)
+            end if
+            expfie%t(j,i,k) = atm1%t(j,i,k)/sfs%psa(j,i)
+            !expfie%q(j,i,k) = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
+            expfie%q(j,i,k) = atms%rhb3d(j,i,k)
+          end do
+        end do
+      end do
+    end subroutine export_data_from_atm
 
 end module mod_atm_interface
 

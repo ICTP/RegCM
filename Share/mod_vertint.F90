@@ -40,6 +40,7 @@ module mod_vertint
     module procedure intlin_o_double
     module procedure intlin_o_single
     module procedure intlin_z_o_single
+    module procedure intlin_z_o_double
   end interface intlin
 
   interface intlog
@@ -49,13 +50,18 @@ module mod_vertint
     module procedure intlog_o_single
   end interface intlog
 
+  interface intlinreg
+    module procedure intlinreg_p
+    module procedure intlinreg_z
+  end interface intlinreg
+
   public :: intlin , intgtb , intlog
   public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
 
   contains
 
-  subroutine intlinreg(fp,f,ps,p3d,im1,im2,jm1,jm2,km,p,kp)
+  subroutine intlinreg_p(fp,f,ps,p3d,im1,im2,jm1,jm2,km,p,kp)
     implicit none
     integer(ik4) , intent(in) :: im1 , im2 , jm1 , jm2 , km , kp
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f
@@ -193,7 +199,105 @@ module mod_vertint
         end do
       end do
     end if
-  end subroutine intlinreg
+  end subroutine intlinreg_p
+
+  subroutine intlinreg_z(fz,f,hz,sig,i1,i2,j1,j2,km,z,kz)
+    implicit none
+    integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , km , kz
+    real(rk8) , dimension(i1:i2,j1:j2,km) , intent(in) :: f , hz
+    real(rk8) , dimension(kz) , intent(in) :: z
+    real(rk8) , dimension(km) , intent(in) :: sig
+    real(rk8) , dimension(i1:i2,j1:j2,kz) , intent(out) :: fz
+    integer(ik4) :: i , j , k , kx , knx , n
+    real(rk8) :: w1 , wz
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    ! HERE BOTTOM TO TOP
+    !
+    if ( sig(1) < sig(2) ) then
+      !
+      ! Loop over points
+      !
+      do j = j1 , j2
+        do i = i1 , i2
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , kz
+            !
+            ! Over the top or below bottom level
+            !
+            if ( z(n) <= hz(i,j,km) ) then
+              fz(i,j,n) = f(i,j,km)
+              cycle
+            else if ( z(n) >= hz(i,j,1) ) then
+              fz(i,j,n) = f(i,j,1)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = 0
+            do k = 1 , km-1
+              if ( z(n) > hz(i,j,k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx + 1
+            wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
+            w1 = 1.0 - wz
+            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
+          end do
+        end do
+      end do
+    !
+    ! HERE TOP TO BOTTOM
+    !
+    else
+      !
+      ! Loop over points
+      !
+      do j = j1 , j2
+        do i = i1 , i2
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , kz
+            !
+            ! Over the top or below bottom level
+            !
+            if ( z(n) <= hz(i,j,1) ) then
+              fz(i,j,n) = f(i,j,1)
+              cycle
+            else if ( z(n) >= hz(i,j,km) ) then
+              fz(i,j,n) = f(i,j,km)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = km + 1
+            do k = km , 2 , -1
+              if ( z(n) > hz(i,j,k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx - 1
+            wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
+            w1 = 1.0 - wz
+            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
+          end do
+        end do
+      end do
+    end if
+  end subroutine intlinreg_z
 
   subroutine intlinprof(fp,f,ps,p3d,im1,im2,jm1,jm2,km,p,kp)
     implicit none
@@ -960,9 +1064,105 @@ module mod_vertint
       end do
     end if
   end subroutine intlin_z_o_single
-  !
-  !-----------------------------------------------------------------------
-  !
+
+  subroutine intlin_z_o_double(fz,f,hz,sig,im,jm,km,z,kz)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km , kz
+    real(rk8) , dimension(im,jm,km) , intent(in) :: f , hz
+    real(rk8) , dimension(kz) , intent(in) :: z
+    real(rk8) , dimension(km) , intent(in) :: sig
+    real(rk8) , dimension(im,jm,kz) , intent(out) :: fz
+    integer(ik4) :: i , j , k , kx , knx , n
+    real(rk8) :: w1 , wz
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    ! HERE BOTTOM TO TOP
+    !
+    if ( sig(1) < sig(2) ) then
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , kz
+            !
+            ! Over the top or below bottom level
+            !
+            if ( z(n) <= hz(i,j,km) ) then
+              fz(i,j,n) = f(i,j,km)
+              cycle
+            else if ( z(n) >= hz(i,j,1) ) then
+              fz(i,j,n) = f(i,j,1)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = 0
+            do k = 1 , km-1
+              if ( z(n) > hz(i,j,k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx + 1
+            wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
+            w1 = 1.0 - wz
+            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
+          end do
+        end do
+      end do
+    !
+    ! HERE TOP TO BOTTOM
+    !
+    else
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , kz
+            !
+            ! Over the top or below bottom level
+            !
+            if ( z(n) <= hz(i,j,1) ) then
+              fz(i,j,n) = f(i,j,1)
+              cycle
+            else if ( z(n) >= hz(i,j,km) ) then
+              fz(i,j,n) = f(i,j,km)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = km + 1
+            do k = km , 2 , -1
+              if ( z(n) > hz(i,j,k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx - 1
+            wz = (z(n)-hz(i,j,kx))/(hz(i,j,knx)-hz(i,j,kx))
+            w1 = 1.0 - wz
+            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
+          end do
+        end do
+      end do
+    end if
+  end subroutine intlin_z_o_double
+
   subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,ni,nj,nlev1)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nlev1

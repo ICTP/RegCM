@@ -95,14 +95,14 @@ module mod_params
       enable_che_vars , dirout , lsync , uvrotate , idiag , icosp ,      &
       do_parallel_netcdf_in , do_parallel_netcdf_out , deflate_level
 
-    namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
-      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu , &
-      iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
-      scenario ,  idcsst , ipcpcool , iwhitecap , iseaice , idesseas ,  &
-      iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 , iclimaaer , &
-      isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval , &
-      wind_tend_maxval , ghg_year_const , ifixsolar , fixedsolarval ,   &
-      year_offset
+    namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
+      icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
+      iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
+      ichem ,  scenario ,  idcsst , ipcpcool , iwhitecap , iseaice ,     &
+      idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
+      iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
+      temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
+      fixedsolarval , year_offset
 
     namelist /dynparam/ gnu1 , gnu2 , diffu_hgtf , ckh , adyndif , &
       upstream_mode , uoffc , stability_enhance , t_extrema ,      &
@@ -245,6 +245,7 @@ module mod_params
     iocnzoq = 1
     iocncpl = 0
     iwavcpl = 0
+    icopcpl = 0
     lakemod = 0
     ichem = 0
     scenario = 'RCP4.5'
@@ -901,7 +902,7 @@ module mod_params
 #endif
       end if
 #endif
-      if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+      if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
         rewind(ipunit)
         read (ipunit , cplparam, iostat=iretval, err=120)
         if ( iretval /= 0 ) then
@@ -1084,6 +1085,7 @@ module mod_params
     call bcast(iocnflx)
     call bcast(iocncpl)
     call bcast(iwavcpl)
+    call bcast(icopcpl)
     call bcast(iocnrough)
     call bcast(iocnzoq)
     call bcast(ipgf)
@@ -1172,7 +1174,7 @@ module mod_params
       end if
     end if
 
-    if (iocncpl == 1 .or. iwavcpl == 1) then
+    if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
       call bcast(cpldt)
       call bcast(zomax)
       call bcast(ustarmax)
@@ -1585,7 +1587,7 @@ module mod_params
     if ( irrtm == 1 ) then
       syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo*secpm)
     end if
-    if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+    if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
       syncro_cpl => rcm_syncro(rcmtimer,cpldt)
     end if
 
@@ -1749,6 +1751,7 @@ module mod_params
       end if
       write(stdout,'(a,i2)') '  Coupling with ocean         : ' , iocncpl
       write(stdout,'(a,i2)') '  Coupling with wave          : ' , iwavcpl
+      write(stdout,'(a,i2)') '  Coupling with COP           : ' , icopcpl
       write(stdout,'(a,i2)') '  Pressure gradient force     : ' , ipgf
       write(stdout,'(a,i2)') '  Prescribed LW emissivity    : ' , iemiss
 #ifndef CLM

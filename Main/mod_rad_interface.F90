@@ -50,6 +50,7 @@ module mod_rad_interface
   public :: inito3
   public :: updateo3
   public :: closeo3
+  public :: export_data_from_rad
 
   ! Procedures exported from internal modules
   public :: set_scenario
@@ -175,6 +176,20 @@ module mod_rad_interface
     implicit none
     call close_o3data
   end subroutine closeo3
+
+  subroutine export_data_from_rad(expfie)
+    implicit none
+    type(exp_data3d) , intent(inout) :: expfie
+    integer(ik4) :: k , j , i
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          expfie%cldfrc(j,i,k) = m2r%cldfrc(j,i,k)
+          expfie%cldlwc(j,i,k) = m2r%cldlwc(j,i,k)
+        end do
+      end do
+    end do
+  end subroutine export_data_from_rad
 
 end module mod_rad_interface
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

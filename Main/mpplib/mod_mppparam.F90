@@ -48,6 +48,7 @@ module mod_mppparam
   integer(ik4) , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
   integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
 
+
 #ifdef MPI_SERIAL
   integer(ik4) mpi_status_ignore(mpi_status_size)
   integer(ik4) , parameter :: mpi_proc_null = -2

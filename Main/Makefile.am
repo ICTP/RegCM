@@ -179,7 +179,7 @@ mod_vmodes.o : mod_vmodes.F90 eispack.o linpack.o mod_dynparam.o mod_intkinds.o 
 # CPL model 
 #
 if DO_COMPILE_CPL
-mod_update.o : mod_update.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_realkinds.o mod_regcm_types.o
+mod_update.o : mod_update.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_intkinds.o mod_lm_interface.o mod_memutil.o mod_realkinds.o mod_regcm_types.o mod_runparams.o
 endif
 #
 # RegCM Main Program

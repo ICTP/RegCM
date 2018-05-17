@@ -341,6 +341,16 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: rhoa
   end type exp_data
 
+  type exp_data3d
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:) :: q
+    real(rk8) , pointer , dimension(:,:,:) :: u
+    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: w
+    real(rk8) , pointer , dimension(:,:,:) :: cldfrc
+    real(rk8) , pointer , dimension(:,:,:) :: cldlwc
+  end type exp_data3d
+
   type imp_data
     real(rkx) , pointer , dimension(:,:) :: sst
     real(rkx) , pointer , dimension(:,:) :: sit
