@@ -294,7 +294,7 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c)
+              call tiedtkedrv(m2c,uxten)
             case (6)
               call kfdrv(m2c)
           end select
@@ -304,7 +304,7 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c)
+              call tiedtkedrv(m2c,uxten)
             case (6)
               call kfdrv(m2c)
           end select
