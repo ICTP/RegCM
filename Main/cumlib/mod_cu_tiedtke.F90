@@ -194,9 +194,10 @@ module mod_cu_tiedtke
   !
   ! This subroutines calls cucall
   !
-  subroutine tiedtkedrv(m2c)
+  subroutine tiedtkedrv(m2c,uxten)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
+    type(crosswind_tendency) , intent(in) :: uxten
     integer(ik4) :: i , j , k , n , ii , iplmlc
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
@@ -266,8 +267,8 @@ module mod_cu_tiedtke
         pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
         pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
         ptte(ii,k)  = m2c%tten(j,i,k)/m2c%psb(j,i)
-        pvom(ii,k)  = m2c%uten(j,i,k)/m2c%psb(j,i)
-        pvol(ii,k)  = m2c%vten(j,i,k)/m2c%psb(j,i)
+        pvom(ii,k)  = uxten%u(j,i,k)
+        pvol(ii,k)  = uxten%v(j,i,k)
         pqte(ii,k)  = m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
         pxlte(ii,k) = m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
         if ( ipptls > 1 ) then
