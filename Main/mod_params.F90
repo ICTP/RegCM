@@ -1843,7 +1843,7 @@ module mod_params
       hsigma(k) = (sigma(k+1) + sigma(k))*d_half
     end do
 
-    call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
+    call exchange(mddom%ht,2,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
     if ( idiffu == 1 ) then
@@ -1852,6 +1852,9 @@ module mod_params
       idif = 1
     else if ( idiffu == 3 ) then
       idif = 3
+    else
+      call fatal(__FILE__,__LINE__, &
+        'INCORRECT DIFFUSION SCHEME! CHECK IDIFFU IN NAMELIST')
     end if
     call exchange(mddom%msfx,idif,jde1,jde2,ide1,ide2)
     call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)

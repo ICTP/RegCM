@@ -196,7 +196,6 @@ module mod_update
     !-----------------------------------------------------------------------
     !
     use mod_constants
-    use mod_atm_interface, only : sfs, mddom , mdsub
     use mod_lm_interface, only : import_data_into_surface
 
     implicit none
