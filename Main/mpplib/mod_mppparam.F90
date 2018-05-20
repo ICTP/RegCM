@@ -503,14 +503,14 @@ module mod_mppparam
   integer(ik4) , pointer , dimension(:,:) :: global_i4grid
   logical , pointer , dimension(:,:) :: global_lgrid
 
-  integer(ik4) , parameter :: tag_bt = 1     ! FROM bottom TO top
-  integer(ik4) , parameter :: tag_tb = 2     ! FROM top TO bottom
-  integer(ik4) , parameter :: tag_lr = 3     ! FROM left TO right
-  integer(ik4) , parameter :: tag_rl = 4     ! FROM right TO left
-  integer(ik4) , parameter :: tag_brtl = 5   ! FROM bottomrigth TO topleft
-  integer(ik4) , parameter :: tag_tlbr = 6   ! FROM topleft TO bottomright
-  integer(ik4) , parameter :: tag_bltr = 7   ! FROM bottomleft TO topright
-  integer(ik4) , parameter :: tag_trbl = 8   ! FROM topright TO bottomleft
+  integer(ik4) , parameter :: tag_bt = 1 ! FROM bottom TO top
+  integer(ik4) , parameter :: tag_tb = 2 ! FROM top TO bottom
+  integer(ik4) , parameter :: tag_lr = 3 ! FROM left TO right
+  integer(ik4) , parameter :: tag_rl = 4 ! FROM right TO left
+  integer(ik4) , parameter :: tag_brtl = 5 ! FROM bottomrigth TO topleft
+  integer(ik4) , parameter :: tag_tlbr = 6 ! FROM topleft TO bottomright
+  integer(ik4) , parameter :: tag_bltr = 7 ! FROM bottomleft TO topright
+  integer(ik4) , parameter :: tag_trbl = 8 ! FROM topright TO bottomleft
   integer(ik4) , parameter :: tag_base = 200 ! The data to/from the cpu to iocpu
 
   public :: exchange , exchange_lb , exchange_rt
@@ -939,39 +939,39 @@ module mod_mppparam
     end if
   end subroutine recv_array_real8
 
-  subroutine exchange_array_r8(rv1,rv2,isize,icpu,tag1,tag2,ireqs)
+  subroutine exchange_array_r8(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
     implicit none
     integer(ik4) , intent(in) :: isize , icpu , tag1 , tag2
     real(rk8) , dimension(isize) , intent(in) :: rv1
     real(rk8) , dimension(isize) , intent(inout) :: rv2
-    integer(ik4) , dimension(2) , intent(out) :: ireqs
-    call mpi_isend(rv1,isize,mpi_real8,icpu,tag1, &
-                  cartesian_communicator,ireqs(1),mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_isend error.')
-    end if
-    call mpi_irecv(rv2,isize,mpi_real8,icpu,tag2, &
-                   cartesian_communicator,ireqs(2),mpierr)
+    integer(ik4) , intent(out) :: srq , rrq
+    call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1, &
+                   cartesian_communicator,rrq,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
+    call mpi_isend(rv1,isize,mpi_real8,icpu,tag2, &
+                  cartesian_communicator,srq,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_isend error.')
+    end if
   end subroutine exchange_array_r8
 
-  subroutine exchange_array_r4(rv1,rv2,isize,icpu,tag1,tag2,ireqs)
+  subroutine exchange_array_r4(rv1,rv2,isize,icpu,tag1,tag2,srq,rrq)
     implicit none
     integer(ik4) , intent(in) :: isize , icpu , tag1 , tag2
     real(rk4) , dimension(isize) , intent(in) :: rv1
     real(rk4) , dimension(isize) , intent(inout) :: rv2
-    integer(ik4) , dimension(2) , intent(out) :: ireqs
-    call mpi_isend(rv1,isize,mpi_real4,icpu,tag1, &
-                  cartesian_communicator,ireqs(1),mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_isend error.')
-    end if
-    call mpi_irecv(rv2,isize,mpi_real4,icpu,tag2, &
-                   cartesian_communicator,ireqs(2),mpierr)
+    integer(ik4) , intent(out) :: srq , rrq
+    call mpi_irecv(rv2,isize,mpi_real4,icpu,tag1, &
+                   cartesian_communicator,rrq,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
+    end if
+    call mpi_isend(rv1,isize,mpi_real4,icpu,tag2, &
+                  cartesian_communicator,srq,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine exchange_array_r4
 
@@ -2877,9 +2877,10 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(16) :: ireqs
+    integer(ik4) , dimension(16) :: req
 
     irc = 0
+    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
 
@@ -3130,7 +3131,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = 2 * nex * (nex+isize+jsize)
+      ssize = nex * (4*nex+2*isize+2*jsize)
       ipos = 1
       if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
@@ -3153,8 +3154,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -3169,8 +3170,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+8))
         ipos =ipos + ssize
       end if
 
@@ -3192,8 +3193,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
@@ -3208,8 +3209,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -3227,8 +3228,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%topleft,tag_tlbr,tag_brtl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topleft,tag_tlbr,tag_brtl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
@@ -3243,8 +3244,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomright,tag_brtl,tag_tlbr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomright,tag_brtl,tag_tlbr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -3262,8 +3263,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%topright,tag_trbl,tag_bltr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topright,tag_trbl,tag_bltr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
@@ -3278,8 +3279,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomleft,tag_bltr,tag_trbl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomleft,tag_bltr,tag_trbl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
     end if
@@ -3288,7 +3289,7 @@ module mod_mppparam
 
     if ( irc /= 0 ) then
       ipos = 1
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
@@ -3392,9 +3393,11 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
-    integer(ik4) , dimension(16) :: ireqs
+    integer(ik4) , dimension(16) :: req
+
 
     irc = 0
+    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
 
@@ -3645,7 +3648,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = 2 * nex * (nex+isize+jsize)
+      ssize = nex * (4*nex+2*isize+2*jsize)
       ipos = 1
       if ( size(r4vector1) < ssize ) then
         call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
@@ -3668,8 +3671,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -3684,8 +3687,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+8))
         ipos =ipos + ssize
       end if
 
@@ -3707,8 +3710,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
@@ -3723,8 +3726,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -3742,8 +3745,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%topleft,tag_tlbr,tag_brtl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topleft,tag_tlbr,tag_brtl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
@@ -3758,8 +3761,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomright,tag_brtl,tag_tlbr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomright,tag_brtl,tag_tlbr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -3777,8 +3780,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%topright,tag_trbl,tag_bltr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topright,tag_trbl,tag_bltr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
@@ -3793,8 +3796,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomleft,tag_bltr,tag_trbl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomleft,tag_bltr,tag_trbl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
     end if
@@ -3803,7 +3806,7 @@ module mod_mppparam
 
     if ( irc /= 0 ) then
       ipos = 1
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
@@ -3907,9 +3910,10 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(16) :: ireqs
+    integer(ik4) , dimension(16) :: req
 
     irc = 0
+    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -4193,7 +4197,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = 2 * nex * (nex+isize+jsize) * ksize
+      ssize = nex * (4*nex+2*isize+2*jsize)
       ipos = 1
       if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
@@ -4218,8 +4222,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -4236,8 +4240,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+8))
         ipos =ipos + ssize
       end if
 
@@ -4261,8 +4265,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
@@ -4279,8 +4283,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -4300,8 +4304,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%topleft,tag_tlbr,tag_brtl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topleft,tag_tlbr,tag_brtl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
@@ -4318,8 +4322,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomright,tag_brtl,tag_tlbr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomright,tag_brtl,tag_tlbr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -4339,8 +4343,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%topright,tag_trbl,tag_bltr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topright,tag_trbl,tag_bltr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
@@ -4357,8 +4361,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomleft,tag_bltr,tag_trbl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomleft,tag_bltr,tag_trbl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
     end if
@@ -4367,7 +4371,7 @@ module mod_mppparam
 
     if ( irc /= 0 ) then
       ipos = 1
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
@@ -4487,9 +4491,10 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
-    integer(ik4) , dimension(16) :: ireqs
+    integer(ik4) , dimension(16) :: req
 
     irc = 0
+    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -4773,7 +4778,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = 2 * nex * (nex+isize+jsize) * ksize
+      ssize = nex * (4*nex+2*isize+2*jsize)
       ipos = 1
       if ( size(r4vector1) < ssize ) then
         call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
@@ -4798,8 +4803,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -4816,8 +4821,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+8))
         ipos =ipos + ssize
       end if
 
@@ -4841,8 +4846,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
@@ -4859,8 +4864,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -4880,8 +4885,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%topleft,tag_tlbr,tag_brtl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topleft,tag_tlbr,tag_brtl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
@@ -4898,8 +4903,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomright,tag_brtl,tag_tlbr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomright,tag_brtl,tag_tlbr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -4919,8 +4924,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%topright,tag_trbl,tag_bltr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topright,tag_trbl,tag_bltr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
@@ -4937,8 +4942,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomleft,tag_bltr,tag_trbl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomleft,tag_bltr,tag_trbl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
     end if
@@ -4947,7 +4952,7 @@ module mod_mppparam
 
     if ( irc /= 0 ) then
       ipos = 1
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
@@ -5068,9 +5073,10 @@ module mod_mppparam
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize
     integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(16) :: ireqs
+    integer(ik4) , dimension(16) :: req
 
     irc = 0
+    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -5387,7 +5393,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = 2 * nex * (nex+isize+jsize) * ksize * nsize
+      ssize = nex * (4*nex+2*isize+2*jsize)
       ipos = 1
       if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
@@ -5414,8 +5420,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -5434,8 +5440,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+8))
         ipos =ipos + ssize
       end if
 
@@ -5461,8 +5467,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
@@ -5481,8 +5487,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -5504,8 +5510,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%topleft,tag_tlbr,tag_brtl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topleft,tag_tlbr,tag_brtl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
@@ -5524,8 +5530,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomright,tag_brtl,tag_tlbr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomright,tag_brtl,tag_tlbr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -5547,8 +5553,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%topright,tag_trbl,tag_bltr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topright,tag_trbl,tag_bltr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
@@ -5567,8 +5573,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ssize), &
                             r8vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomleft,tag_bltr,tag_trbl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomleft,tag_bltr,tag_trbl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
     end if
@@ -5577,7 +5583,7 @@ module mod_mppparam
 
     if ( irc /= 0 ) then
       ipos = 1
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
@@ -5714,9 +5720,10 @@ module mod_mppparam
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize
     integer(ik4) :: j , i , k , n , ib , irc , ipos
-    integer(ik4) , dimension(16) :: ireqs
+    integer(ik4) , dimension(16) :: req
 
     irc = 0
+    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
@@ -6033,7 +6040,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = 2 * nex * (nex+isize+jsize) * ksize * nsize
+      ssize = nex * (4*nex+2*isize+2*jsize)
       ipos = 1
       if ( size(r4vector1) < ssize ) then
         call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
@@ -6060,8 +6067,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -6080,8 +6087,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+8))
         ipos =ipos + ssize
       end if
 
@@ -6107,8 +6114,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
@@ -6127,8 +6134,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -6150,8 +6157,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%topleft,tag_tlbr,tag_brtl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topleft,tag_tlbr,tag_brtl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomright /= mpi_proc_null ) then
@@ -6170,8 +6177,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomright,tag_brtl,tag_tlbr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomright,tag_brtl,tag_tlbr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
 
@@ -6193,8 +6200,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%topright,tag_trbl,tag_bltr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%topright,tag_trbl,tag_bltr, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
@@ -6213,8 +6220,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ssize), &
                             r4vector2(ipos:ipos+ssize),ssize, &
-                            ma%bottomleft,tag_bltr,tag_trbl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%bottomleft,tag_bltr,tag_trbl, &
+                            req(irc),req(irc+8))
         ipos = ipos + ssize
       end if
     end if
@@ -6223,7 +6230,7 @@ module mod_mppparam
 
     if ( irc /= 0 ) then
       ipos = 1
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(16,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
@@ -8980,7 +8987,8 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: ireqs
+    integer(ik4) , dimension(4) :: req
+    req =mpi_request_null
     ksize = k2-k1+1
     if ( ma%bandflag ) then
       if ( size(r8vector1) < ksize ) then
@@ -9032,8 +9040,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ksize), &
                             r8vector2(ipos:ipos+ksize),ksize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
         ipos = ipos + ksize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -9045,12 +9053,12 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r8vector1(ipos:ipos+ksize), &
                             r8vector2(ipos:ipos+ksize),ksize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc))
         ipos = ipos + ksize
       end if
       if ( irc /= 0 ) then
-        call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+        call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_waitall error.')
         end if
@@ -9080,7 +9088,8 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: ireqs
+    integer(ik4) , dimension(4) :: req
+    req = mpi_request_null
     ksize = k2-k1+1
     if ( ma%bandflag ) then
       if ( size(r4vector1) < ksize ) then
@@ -9132,8 +9141,8 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ksize), &
                             r4vector2(ipos:ipos+ksize),ksize, &
-                            ma%right,tag_rl,tag_lr,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
         ipos = ipos + ksize
       end if
       if ( ma%left /= mpi_proc_null ) then
@@ -9145,12 +9154,12 @@ module mod_mppparam
         irc = irc + 1
         call exchange_array(r4vector1(ipos:ipos+ksize), &
                             r4vector2(ipos:ipos+ksize),ksize, &
-                            ma%left,tag_lr,tag_rl,ireqs(irc:irc+1))
-        irc = irc + 1
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+2))
         ipos = ipos + ksize
       end if
       if ( irc /= 0 ) then
-        call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+        call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_waitall error.')
         end if
@@ -9180,7 +9189,8 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: ireqs
+    integer(ik4) , dimension(4) :: req
+    req = mpi_request_null
     ksize = k2-k1+1
     ssize = 2 * ksize
     if ( size(r8vector1) < ssize ) then
@@ -9200,8 +9210,8 @@ module mod_mppparam
       irc = irc + 1
       call exchange_array(r8vector1(ipos:ipos+ksize), &
                           r8vector2(ipos:ipos+ksize),ksize, &
-                          ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-      irc = irc + 1
+                          ma%top,tag_tb,tag_bt, &
+                          req(irc),req(irc+2))
       ipos = ipos + ksize
     end if
     if ( ma%bottom /= mpi_proc_null ) then
@@ -9213,12 +9223,12 @@ module mod_mppparam
       irc = irc + 1
       call exchange_array(r8vector1(ipos:ipos+ksize), &
                           r8vector2(ipos:ipos+ksize),ksize, &
-                          ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-      irc = irc + 1
+                          ma%bottom,tag_bt,tag_tb, &
+                          req(irc),req(irc+2))
       ipos = ipos + ksize
     end if
     if ( irc /= 0 ) then
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
@@ -9241,13 +9251,14 @@ module mod_mppparam
       end if
     end if
   end subroutine real8_bdy_exchange_top_bottom
-!
+
   subroutine real4_bdy_exchange_top_bottom(ml,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: ssize , ksize , k , ib , irc , ipos
-    integer(ik4) , dimension(4) :: ireqs
+    integer(ik4) , dimension(4) :: req
+    req = mpi_request_null
     ksize = k2-k1+1
     ssize = 2 * ksize
     if ( size(r4vector1) < ssize ) then
@@ -9267,8 +9278,8 @@ module mod_mppparam
       irc = irc + 1
       call exchange_array(r4vector1(ipos:ipos+ksize), &
                           r4vector2(ipos:ipos+ksize),ksize, &
-                          ma%top,tag_tb,tag_bt,ireqs(irc:irc+1))
-      irc = irc + 1
+                          ma%top,tag_tb,tag_bt, &
+                          req(irc),req(irc+2))
       ipos = ipos + ksize
     end if
     if ( ma%bottom /= mpi_proc_null ) then
@@ -9280,12 +9291,12 @@ module mod_mppparam
       irc = irc + 1
       call exchange_array(r4vector1(ipos:ipos+ksize), &
                           r4vector2(ipos:ipos+ksize),ksize, &
-                          ma%bottom,tag_bt,tag_tb,ireqs(irc:irc+1))
-      irc = irc + 1
+                          ma%bottom,tag_bt,tag_tb, &
+                          req(irc),req(irc+2))
       ipos = ipos + ksize
     end if
     if ( irc /= 0 ) then
-      call mpi_waitall(irc,ireqs,mpi_statuses_ignore,mpierr)
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if

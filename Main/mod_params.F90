@@ -1843,9 +1843,9 @@ module mod_params
       hsigma(k) = (sigma(k+1) + sigma(k))*d_half
     end do
 
-    call exchange(mddom%ht,2,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
+    call exchange(mddom%ht,2,jde1,jde2,ide1,ide2)
     if ( idiffu == 1 ) then
       idif = 2
     else if ( idiffu == 2 ) then
