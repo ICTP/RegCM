@@ -360,8 +360,8 @@ module mod_cu_tiedtke
           i = imap(ii)
           j = jmap(ii)
           cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
-          cu_uten(j,i,k) = pvom(ii,k) - m2c%uten(j,i,k)/m2c%psb(j,i)
-          cu_vten(j,i,k) = pvol(ii,k) - m2c%vten(j,i,k)/m2c%psb(j,i)
+          cu_uten(j,i,k) = pvom(ii,k) - uxten%u(j,i,k)
+          cu_vten(j,i,k) = pvol(ii,k) - uxten%v(j,i,k)
           ! Tendency in specific humidity to mixing ratio tendency.
           cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
                                m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
