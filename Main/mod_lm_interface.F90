@@ -655,6 +655,11 @@ module mod_lm_interface
     implicit none
     type(exp_data) , intent(inout) :: expfie
     integer(ik4) :: j , i
+
+    if ( .not. associated(expfie%psfc) ) then
+      call fatal(__FILE__,__LINE__, &
+        'RUNNING COUPLED WITHOUT COUPLER INITIALIZATION')
+    end if
     do i = ici1 , ici2
       do j = jci1 , jci2
         expfie%psfc(j,i) = lm%sfps(j,i)*d_r100

@@ -63,7 +63,10 @@ module mod_regcm_interface
     ! MPI Initialization
     !
     if (present(mpiCommunicator)) then
-      mycomm = mpiCommunicator
+      call mpi_comm_dup(mpiCommunicator,mycomm,ierr)
+      if ( ierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'Cannot get communicator!')
+      end if
     else
       call mpi_comm_dup(MPI_COMM_WORLD,mycomm,ierr)
       if ( ierr /= 0 ) then

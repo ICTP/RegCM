@@ -503,14 +503,14 @@ module mod_mppparam
   integer(ik4) , pointer , dimension(:,:) :: global_i4grid
   logical , pointer , dimension(:,:) :: global_lgrid
 
-  integer(ik4) , parameter :: tag_bt = 1 ! FROM bottom TO top
-  integer(ik4) , parameter :: tag_tb = 2 ! FROM top TO bottom
-  integer(ik4) , parameter :: tag_lr = 3 ! FROM left TO right
-  integer(ik4) , parameter :: tag_rl = 4 ! FROM right TO left
-  integer(ik4) , parameter :: tag_brtl = 5 ! FROM bottomrigth TO topleft
-  integer(ik4) , parameter :: tag_tlbr = 6 ! FROM topleft TO bottomright
-  integer(ik4) , parameter :: tag_bltr = 7 ! FROM bottomleft TO topright
-  integer(ik4) , parameter :: tag_trbl = 8 ! FROM topright TO bottomleft
+  integer(ik4) , parameter :: tag_bt = 110000 ! FROM bottom TO top
+  integer(ik4) , parameter :: tag_tb = 220000 ! FROM top TO bottom
+  integer(ik4) , parameter :: tag_lr = 330000 ! FROM left TO right
+  integer(ik4) , parameter :: tag_rl = 440000 ! FROM right TO left
+  integer(ik4) , parameter :: tag_brtl = 550000 ! FROM bottomrigth TO topleft
+  integer(ik4) , parameter :: tag_tlbr = 660000 ! FROM topleft TO bottomright
+  integer(ik4) , parameter :: tag_bltr = 770000 ! FROM bottomleft TO topright
+  integer(ik4) , parameter :: tag_trbl = 880000 ! FROM topright TO bottomleft
   integer(ik4) , parameter :: tag_base = 200 ! The data to/from the cpu to iocpu
 
   public :: exchange , exchange_lb , exchange_rt
@@ -945,12 +945,12 @@ module mod_mppparam
     real(rk8) , dimension(isize) , intent(in) :: rv1
     real(rk8) , dimension(isize) , intent(inout) :: rv2
     integer(ik4) , intent(out) :: srq , rrq
-    call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1, &
+    call mpi_irecv(rv2,isize,mpi_real8,icpu,tag1+myid, &
                    cartesian_communicator,rrq,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
-    call mpi_isend(rv1,isize,mpi_real8,icpu,tag2, &
+    call mpi_isend(rv1,isize,mpi_real8,icpu,tag2+icpu, &
                   cartesian_communicator,srq,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
@@ -963,12 +963,12 @@ module mod_mppparam
     real(rk4) , dimension(isize) , intent(in) :: rv1
     real(rk4) , dimension(isize) , intent(inout) :: rv2
     integer(ik4) , intent(out) :: srq , rrq
-    call mpi_irecv(rv2,isize,mpi_real4,icpu,tag1, &
+    call mpi_irecv(rv2,isize,mpi_real4,icpu,tag1+myid, &
                    cartesian_communicator,rrq,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
-    call mpi_isend(rv1,isize,mpi_real4,icpu,tag2, &
+    call mpi_isend(rv1,isize,mpi_real4,icpu,tag2+icpu, &
                   cartesian_communicator,srq,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_isend error.')
