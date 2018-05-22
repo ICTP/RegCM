@@ -4,7 +4,7 @@
       [
         "ComputeGeopotentialHeightOnSeveralPressures",
         {
-          "pressures": [500, 200]
+          "pressures": [1000, 500, 200]
         }
       ],
       [

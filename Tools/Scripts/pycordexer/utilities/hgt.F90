@@ -348,8 +348,6 @@ module mod_hgt
     real(4) , dimension(jm,im) :: pstar
     real(4) , dimension(km) :: psig
     real(4) , dimension(km) :: htsig
-    real(4) , dimension(km+1) :: sigmaf
-    real(4) , dimension(km) :: dsigma
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
@@ -375,26 +373,18 @@ module mod_hgt
     do k = 1 , km
       if ( sig(k) < bltop ) kbc = k
     end do
-    sigmaf(1) = 0.0
-    sigmaf(km+1) = 1.0
-    do k = 2 , km
-      sigmaf(k) = 0.5*(sig(k-1)+sig(k))
-    end do
-    do k = 1 , km
-      dsigma(k) = sigmaf(k+1) - sigmaf(k)
-    end do
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
           psig(k) = sig(k)*(pstar(j,i)-ptp) + ptp
         end do
         psfc = pstar(j,i)
-        pf = ptp/psfc
-        htsig(km) = topo(j,i) + srovg*t(km,j,i)*log((1.0+pf)/(sig(km)+pf))
+        htsig(km) = topo(j,i) + srovg*t(km,j,i) * &
+                      log(psfc/((psfc-ptp)*sig(km)+ptp))
         do k = km - 1 , 1 , -1
-          tbar = (t(k,j,i)*dsigma(k) + t(k+1,j,i)*dsigma(k+1)) / &
-                  (dsigma(k)+dsigma(k+1))
-          htsig(k) = htsig(k+1) + srovg*tbar*log((sig(k+1)+pf)/(sig(k)+pf))
+          tbar = 0.5*(t(k,j,i)+t(k+1,j,i))
+          htsig(k) = htsig(k+1) + srovg*tbar * &
+             log(((psfc-ptp)*sig(k+1)+ptp)/((psfc-ptp)*sig(k)+ptp))
         end do
         kt = 1
         do k = 1 , km
