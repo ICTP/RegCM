@@ -3385,6 +3385,10 @@ module mod_mppparam
         end if
       end if
     end if
+    !call mpi_barrier(cartesian_communicator,mpierr)
+    !if ( mpierr /= mpi_success ) then
+    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
+    !end if
   end subroutine real8_2d_exchange
 
   subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
@@ -3393,7 +3397,6 @@ module mod_mppparam
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
     integer(ik4) , dimension(16) :: req
-
 
     irc = 0
     req = mpi_request_null
@@ -3902,6 +3905,10 @@ module mod_mppparam
         end if
       end if
     end if
+    !call mpi_barrier(cartesian_communicator,mpierr)
+    !if ( mpierr /= mpi_success ) then
+    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
+    !end if
   end subroutine real4_2d_exchange
 
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
@@ -4483,6 +4490,10 @@ module mod_mppparam
         end if
       end if
     end if
+    !call mpi_barrier(cartesian_communicator,mpierr)
+    !if ( mpierr /= mpi_success ) then
+    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
+    !end if
   end subroutine real8_3d_exchange
 
   subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
@@ -5064,6 +5075,10 @@ module mod_mppparam
         end if
       end if
     end if
+    !call mpi_barrier(cartesian_communicator,mpierr)
+    !if ( mpierr /= mpi_success ) then
+    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
+    !end if
   end subroutine real4_3d_exchange
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -5711,6 +5726,10 @@ module mod_mppparam
         end if
       end if
     end if
+    !call mpi_barrier(cartesian_communicator,mpierr)
+    !if ( mpierr /= mpi_success ) then
+    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
+    !end if
   end subroutine real8_4d_exchange
 
   subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -6358,6 +6377,10 @@ module mod_mppparam
         end if
       end if
     end if
+    !call mpi_barrier(cartesian_communicator,mpierr)
+    !if ( mpierr /= mpi_success ) then
+    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
+    !end if
   end subroutine real4_4d_exchange
 
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
@@ -9023,7 +9046,7 @@ module mod_mppparam
     else
       irc = 0
       ipos = 1
-      ssize = 2 * ksize
+      ssize = 2*ksize
       if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_left_right')
       end if
@@ -9053,7 +9076,7 @@ module mod_mppparam
         call exchange_array(r8vector1(ipos:ipos+ksize), &
                             r8vector2(ipos:ipos+ksize),ksize, &
                             ma%left,tag_lr,tag_rl, &
-                            req(irc),req(irc))
+                            req(irc),req(irc+2))
         ipos = ipos + ksize
       end if
       if ( irc /= 0 ) then
@@ -9124,7 +9147,7 @@ module mod_mppparam
     else
       irc = 0
       ipos = 1
-      ssize = 2 * ksize
+      ssize = 2*ksize
       if ( size(r4vector1) < ssize ) then
         call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_left_right')
       end if
@@ -9191,7 +9214,7 @@ module mod_mppparam
     integer(ik4) , dimension(4) :: req
     req = mpi_request_null
     ksize = k2-k1+1
-    ssize = 2 * ksize
+    ssize = 2*ksize
     if ( size(r8vector1) < ssize ) then
       call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_top_bottom')
     end if
@@ -9259,7 +9282,7 @@ module mod_mppparam
     integer(ik4) , dimension(4) :: req
     req = mpi_request_null
     ksize = k2-k1+1
-    ssize = 2 * ksize
+    ssize = 2*ksize
     if ( size(r4vector1) < ssize ) then
       call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_top_bottom')
     end if
