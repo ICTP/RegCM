@@ -4196,7 +4196,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)
+      ssize = nex * (4*nex+2*isize+2*jsize)*ksize
       ipos = 1
       if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
@@ -4777,7 +4777,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)
+      ssize = nex * (4*nex+2*isize+2*jsize)*ksize
       ipos = 1
       if ( size(r4vector1) < ssize ) then
         call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
@@ -5392,7 +5392,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)
+      ssize = nex * (4*nex+2*isize+2*jsize)*ksize*nsize
       ipos = 1
       if ( size(r8vector1) < ssize ) then
         call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
@@ -6039,7 +6039,7 @@ module mod_mppparam
     else
 
       ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)
+      ssize = nex * (4*nex+2*isize+2*jsize)*ksize*nsize
       ipos = 1
       if ( size(r4vector1) < ssize ) then
         call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')

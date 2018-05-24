@@ -302,6 +302,7 @@ module mod_timer
       alarm%timer%ap(alarm%timer%nalarm)%ap => alarm
       alarm%lcount = alarm%timer%model_internal_time/alarm%actint
       alarm%rw = real(alarm%timer%model_timestep,rkx)/dt
+      alarm%now = alarm%timer%model_internal_time
     end if
     init_alarm => alarm
   end function init_alarm

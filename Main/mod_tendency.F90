@@ -1452,9 +1452,9 @@ module mod_tendency
       !
       ! Compute bleck (1977) noise parameters:
       !
+      ptntot = d_zero
+      pt2tot = d_zero
       if ( rcmtimer%integrating( ) ) then
-        ptntot = d_zero
-        pt2tot = d_zero
         do i = ici1 , ici2
           do j = jci1 , jci2
             ptntot = ptntot + abs(pten(j,i))
