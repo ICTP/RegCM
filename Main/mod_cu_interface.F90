@@ -245,9 +245,17 @@ module mod_cu_interface
       end do
     end if
 
+    ! Skip first timestep
+
     if ( rcmtimer%integrating( ) ) then
 
       if ( syncro_cum%act( ) ) then
+
+        if ( debug_level > 3 .and. myid == italk ) then
+          write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
+        end if
+
+        ! Update input wind cumulus tendencies (dot to cross points)
 
         if ( any(icup == 5) ) then
           do k = 1 , kz
@@ -260,11 +268,6 @@ module mod_cu_interface
           end do
           call uvdot2cross(utend,vtend,utenx,vtenx)
         end if
-
-        if ( debug_level > 3 .and. myid == italk ) then
-          write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
-        end if
-        ! Update input cumulus tendencies
 
         cu_prate(:,:) = d_zero
         cu_ktop(:,:) = 0
@@ -322,6 +325,8 @@ module mod_cu_interface
           end select
         end if
 
+        ! Update output wind cumulus tendencies (cross to dot points)
+
         if ( any(icup == 5) .or. any(icup == 4) ) then
           call uvcross2dot(cu_uten,cu_vten,utend,vtend)
         end if
@@ -364,7 +369,7 @@ module mod_cu_interface
           do i = ici1 , ici2
             do j = jci1 , jci2
               c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
-                       cu_qten(j,i,k,n) * m2c%psb(j,i)
+                            cu_qten(j,i,k,n) * m2c%psb(j,i)
             end do
           end do
         end do
@@ -410,9 +415,7 @@ module mod_cu_interface
           end do
         end if
       end if
-
     end if
-
   end subroutine cumulus
 
   subroutine shallow_convection
