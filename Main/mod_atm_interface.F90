@@ -43,7 +43,6 @@ module mod_atm_interface
   type(atmstate_c) , public :: atmc
   type(atmstate_tendency) , public :: aten
   type(atmstate_decoupled) , public :: atmx
-  type(crosswind_tendency) , public :: uxten
   type(tendiag) , public :: tdiag
   type(qendiag) , public :: qdiag
   type(surfstate) , public :: sfs
@@ -55,7 +54,7 @@ module mod_atm_interface
   type(mass_divergence) , public :: mdv
   type(nhboundhelp) , public :: nhbh0 , nhbh1
 
-  public :: allocate_mod_atm_interface , allocate_crosswind_tendency
+  public :: allocate_mod_atm_interface
   public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
   public :: export_data_from_atm
@@ -699,15 +698,6 @@ module mod_atm_interface
       end if
     end subroutine allocate_atmstate_tendency
 
-    subroutine allocate_crosswind_tendency(uwx)
-      implicit none
-      type(crosswind_tendency) , intent(out) :: uwx
-      call getmem3d(uwx%u,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uwx:u')
-      call getmem3d(uwx%v,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'uwx:v')
-      call getmem3d(uwx%ud,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'uwx:ud')
-      call getmem3d(uwx%vd,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'uwx:vd')
-    end subroutine allocate_crosswind_tendency
-
     subroutine allocate_reference_atmosphere(atm)
       implicit none
       type(reference_atmosphere) , intent(out) :: atm
@@ -952,7 +942,6 @@ module mod_atm_interface
       call allocate_surfstate(sfs)
       call allocate_slice(atms,atm0)
       call allocate_mass_divergence(mdv)
-      call allocate_crosswind_tendency(uxten)
 
       ! FAB:
       !    complete for diag on water quantitiies idiag = 2, 3 etc

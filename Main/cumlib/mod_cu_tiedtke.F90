@@ -194,10 +194,11 @@ module mod_cu_tiedtke
   !
   ! This subroutines calls cucall
   !
-  subroutine tiedtkedrv(m2c,uxten)
+  subroutine tiedtkedrv(m2c,uxten,vxten)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    type(crosswind_tendency) , intent(in) :: uxten
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: uxten
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: vxten
     integer(ik4) :: i , j , k , n , ii , iplmlc
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
@@ -267,8 +268,8 @@ module mod_cu_tiedtke
         pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
         pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
         ptte(ii,k)  = m2c%tten(j,i,k)/m2c%psb(j,i)
-        pvom(ii,k)  = uxten%u(j,i,k)
-        pvol(ii,k)  = uxten%v(j,i,k)
+        pvom(ii,k)  = uxten(j,i,k)
+        pvol(ii,k)  = vxten(j,i,k)
         pqte(ii,k)  = m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
         pxlte(ii,k) = m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
         if ( ipptls > 1 ) then
@@ -360,8 +361,8 @@ module mod_cu_tiedtke
           i = imap(ii)
           j = jmap(ii)
           cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
-          cu_uten(j,i,k) = pvom(ii,k) - uxten%u(j,i,k)
-          cu_vten(j,i,k) = pvol(ii,k) - uxten%v(j,i,k)
+          cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
+          cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
           ! Tendency in specific humidity to mixing ratio tendency.
           cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
                                m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)

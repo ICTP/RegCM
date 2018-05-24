@@ -85,6 +85,9 @@ module mod_cu_interface
   type(mod_2_cum) :: m2c
   type(cum_2_mod) :: c2m
 
+  real(rkx) , pointer , dimension(:,:,:) :: utenx , vtenx
+  real(rkx) , pointer , dimension(:,:,:) :: utend , vtend
+
   contains
 
   subroutine allocate_cumulus
@@ -113,10 +116,16 @@ module mod_cu_interface
     end if
     if ( any(icup == 4) ) then
       call allocate_mod_cu_em
+      call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
+      call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
     end if
     if ( any(icup == 5) ) then
       if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
+      call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
+      call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
+      call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
+      call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
     end if
     if ( any(icup == 6) ) then
       call allocate_mod_cu_kf
@@ -234,20 +243,23 @@ module mod_cu_interface
           end do
         end do
       end do
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            uxten%ud(j,i,k) = m2c%uten(j,i,k) / sfs%psdotb(j,i)
-            uxten%vd(j,i,k) = m2c%vten(j,i,k) / sfs%psdotb(j,i)
-          end do
-        end do
-      end do
-      call uvdot2cross(uxten%ud,uxten%vd,uxten%u,uxten%v)
     end if
 
     if ( rcmtimer%integrating( ) ) then
 
       if ( syncro_cum%act( ) ) then
+
+        if ( any(icup == 5) ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jdi1 , jdi2
+                utend(j,i,k) = m2c%uten(j,i,k) / sfs%psdotb(j,i)
+                vtend(j,i,k) = m2c%vten(j,i,k) / sfs%psdotb(j,i)
+              end do
+            end do
+          end do
+          call uvdot2cross(utend,vtend,utenx,vtenx)
+        end if
 
         if ( debug_level > 3 .and. myid == italk ) then
           write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
@@ -283,7 +295,7 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c,uxten)
+              call tiedtkedrv(m2c,utenx,vtenx)
             case (6)
               call kfdrv(m2c)
           end select
@@ -294,7 +306,7 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c,uxten)
+              call tiedtkedrv(m2c,utenx,vtenx)
             case (6)
               call kfdrv(m2c)
           end select
@@ -304,13 +316,15 @@ module mod_cu_interface
             case (4)
               call cupemandrv(m2c)
             case (5)
-              call tiedtkedrv(m2c,uxten)
+              call tiedtkedrv(m2c,utenx,vtenx)
             case (6)
               call kfdrv(m2c)
           end select
         end if
 
-        call uvcross2dot(cu_uten,cu_vten,uxten%ud,uxten%vd)
+        if ( any(icup == 5) .or. any(icup == 4) ) then
+          call uvcross2dot(cu_uten,cu_vten,utend,vtend)
+        end if
 
       end if
 
@@ -334,14 +348,16 @@ module mod_cu_interface
         end do
       end do
 
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            c2m%uten(j,i,k) = c2m%uten(j,i,k) + uxten%ud(j,i,k)*m2c%psdotb(j,i)
-            c2m%vten(j,i,k) = c2m%vten(j,i,k) + uxten%vd(j,i,k)*m2c%psdotb(j,i)
+      if ( any(icup == 5) .or. any(icup == 4) ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)*m2c%psdotb(j,i)
+              c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)*m2c%psdotb(j,i)
+            end do
           end do
         end do
-      end do
+      end if
 
       do n = 1 , nqx
         do k = 1 , kz

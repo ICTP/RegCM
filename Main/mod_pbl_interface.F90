@@ -49,7 +49,10 @@ module mod_pbl_interface
   public :: uwstate
   public :: kmxpbl
   public :: ricr
+
   real(rkx) , public :: tkemin = 0.0_rkx
+  real(rkx) , pointer , dimension(:,:,:) :: utenx , vtenx
+  real(rkx) , pointer , dimension(:,:,:) :: utend , vtend
 
   contains
 
@@ -68,6 +71,12 @@ module mod_pbl_interface
     else if ( ibltyp == 4 ) then
       tkemin = myjtkemin
       call init_myjpbl
+    end if
+    if ( ibltyp > 1 ) then
+      call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
+      call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
+      call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
+      call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
     end if
   end subroutine allocate_pblscheme
 
@@ -125,8 +134,8 @@ module mod_pbl_interface
     call assignpnt(aten%qx,p2m%qxten,pc_physic)
     call assignpnt(aten%tke,p2m%tketen,pc_physic)
     call assignpnt(aten%chi,p2m%chiten,pc_physic)
-    call assignpnt(uxten%u,p2m%uxten)
-    call assignpnt(uxten%v,p2m%vxten)
+    call assignpnt(utenx,p2m%uxten)
+    call assignpnt(vtenx,p2m%vxten)
     call assignpnt(remdrd,p2m%remdrd)
     call assignpnt(zpbl,p2m%zpbl)
     call assignpnt(kpbl,p2m%kpbl)
@@ -141,41 +150,47 @@ module mod_pbl_interface
       case (1)
         call holtbl(m2p,p2m)
       case (2)
-        uxten%u = d_zero
-        uxten%v = d_zero
+        utenx = d_zero
+        vtenx = d_zero
+        utend = d_zero
+        vtend = d_zero
         call uwtcm(m2p,p2m)
-        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
+        call uvcross2dot(utenx,vtenx,utend,vtend)
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              p2m%uten(j,i,k) = p2m%uten(j,i,k)+uxten%ud(j,i,k)*m2p%psdotb(j,i)
-              p2m%vten(j,i,k) = p2m%vten(j,i,k)+uxten%vd(j,i,k)*m2p%psdotb(j,i)
+              p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+              p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
             end do
           end do
         end do
       case (3)
-        uxten%u = d_zero
-        uxten%v = d_zero
+        utenx = d_zero
+        vtenx = d_zero
+        utend = d_zero
+        vtend = d_zero
         call pbl_gfs(m2p,p2m)
-        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
+        call uvcross2dot(utenx,vtenx,utend,vtend)
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              p2m%uten(j,i,k) = p2m%uten(j,i,k)+uxten%ud(j,i,k)*m2p%psdotb(j,i)
-              p2m%vten(j,i,k) = p2m%vten(j,i,k)+uxten%vd(j,i,k)*m2p%psdotb(j,i)
+              p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+              p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
             end do
           end do
         end do
       case (4)
-        uxten%u = d_zero
-        uxten%v = d_zero
+        utenx = d_zero
+        vtenx = d_zero
+        utend = d_zero
+        vtend = d_zero
         call myjpbl(m2p,p2m)
-        call uvcross2dot(uxten%u,uxten%v,uxten%ud,uxten%vd)
+        call uvcross2dot(utenx,vtenx,utend,vtend)
         do k = 1 , kz
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              p2m%uten(j,i,k) = p2m%uten(j,i,k)+uxten%ud(j,i,k)*m2p%psdotb(j,i)
-              p2m%vten(j,i,k) = p2m%vten(j,i,k)+uxten%vd(j,i,k)*m2p%psdotb(j,i)
+              p2m%uten(j,i,k) = p2m%uten(j,i,k)+utend(j,i,k)*m2p%psdotb(j,i)
+              p2m%vten(j,i,k) = p2m%vten(j,i,k)+vtend(j,i,k)*m2p%psdotb(j,i)
             end do
           end do
         end do
