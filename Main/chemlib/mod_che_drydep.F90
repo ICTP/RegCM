@@ -571,7 +571,8 @@ module mod_che_drydep
             ! the dry deposition velocity must account also for the
             ! settling velocity at kz
             ! simple form now add the vs
-            ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,l)+rs(i,l,ib))
+            ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,l)+rs(i,l,ib)) + &
+                       pdepvsub(i,kz,ib)
           end do
         end do
       end do
@@ -622,9 +623,7 @@ module mod_che_drydep
             !                 wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
             ! use exponential form for stability
             settend(i,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
-                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) + &
-                            max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
-                (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))  - &
+                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) - &
                               wk(i,kz) * &
                 (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))
             chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
@@ -637,8 +636,7 @@ module mod_che_drydep
             ! scheme is called (cf atm to surf interface)
             cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + &
               (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
-                 cpsb(j,i) * crhob3d(j,i,kz) * &
-                 (ddepv(i,indsp(ib))+pdepvsub(i,kz,ib))
+                 cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))
 
             !diagnostic for settling and drydeposition removal
             if ( ichdiag > 0 ) then
@@ -655,12 +653,11 @@ module mod_che_drydep
             ! do not use drydepflx in the formula
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
                      (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
-                      cpsb(j,i) * crhob3d(j,i,kz) * &
-                      (ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib)) * cfdout
+                      cpsb(j,i) * crhob3d(j,i,kz)*ddepv(i,indsp(ib)) * cfdout
             ! alternative formulation using tendency/flux relationship
             ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
             !            chib3d(j,i,kz,indsp(ib)) * &
-            !         (d_one - exp(-ddepv(i,indsp(ib) + pdepvsub(i,kz,ib)) / &
+            !         (d_one - exp(-ddepv(i,indsp(ib)) / &
             !                 cdzq(j,i,kz)*dt ))*rdt  &
             !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
 
@@ -673,15 +670,17 @@ module mod_che_drydep
             ! for the BL scheme !
             ! flux
             chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
-                chib(j,i,kz,indsp(ib))/ cpsb(j,i) * &
-                (ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib))
-            drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib)
+                max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
+                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) + &
+                     wk(i,kz) * &
+                 (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))
+            drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib))
           end if
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
           ! also settling , accumulated between two outputs time step)
           ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
-                 ddepv(i,indsp(ib)) + pdepvsub(i,kz,ib)
+                 ddepv(i,indsp(ib))
         end do
       end do
 #ifdef DEBUG
