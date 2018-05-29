@@ -44,8 +44,11 @@ module mod_moist
     integer(ik4) :: istart(4) , icount(4)
     real(rkx) , dimension(:,:,:) , allocatable :: moist_in
     real(rkx) , dimension(:,:) , allocatable :: snow_in
+    logical :: lsnw , lmrso
 
     lrmoist = .false.
+    lsnw = .false.
+    lmrso = .false.
 
     istat = nf90_open(fname,nf90_nowrite,ncid)
     if ( istat /= nf90_noerr ) then
@@ -78,7 +81,6 @@ module mod_moist
       istat = nf90_inq_dimid(ncid,'y',dimid)
       if ( istat /= nf90_noerr ) then
         write(stderr,*) 'No iy dimension in moisture file'
-        return
       end if
     end if
     istat = nf90_inquire_dimension(ncid,dimid,len=niy)
@@ -115,60 +117,74 @@ module mod_moist
     istat = nf90_inq_varid(ncid,'mrso',idmoist)
     if ( istat /= nf90_noerr ) then
       write(stderr,*) 'Error finding variable mrso in moisture file'
-      return
+      lmrso = .false.
+    else
+      lmrso = .true.
     end if
-    istat = nf90_inq_varid(ncid,'snv',idsnow)
+    istat = nf90_inq_varid(ncid,'snw',idsnow)
     if ( istat /= nf90_noerr ) then
-      write(stderr,*) 'Error finding variable snv in moisture file'
-      return
+      write(stderr,*) 'Error finding variable snw in moisture file'
+      lsnw = .false.
+    else
+      lsnw = .true.
     end if
 
-    istat = nf90_inq_dimid(ncid,'time',dimid)
-    if ( istat /= nf90_noerr ) then
-      istat = nf90_get_var(ncid,idmoist,moist_in)
+    if ( lmrso .or. lsnw ) then
+      istat = nf90_inq_dimid(ncid,'time',dimid)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable mrso in moisture file'
+        if ( lmrso ) then
+          istat = nf90_get_var(ncid,idmoist,moist_in)
+          if ( istat /= nf90_noerr ) then
+            write(stderr,*) 'Error reading variable mrso in moisture file'
+          else
+            rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
+          end if
+        end if
+        if ( lsnw ) then
+          istat = nf90_get_var(ncid,idsnow,snow_in)
+          if ( istat /= nf90_noerr ) then
+             write(stderr,*) 'Error reading variable snv in moisture file'
+          else
+            snow(2:jx-2,2:iy-2) = snow_in(:,:)
+          end if
+        end if
       else
-        rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
-      end if
-      istat = nf90_get_var(ncid,idsnow,snow_in)
-      if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable snv in moisture file'
-      else
-        snow(2:jx-2,2:iy-2) = snow_in(:,:)
-      end if
-    else
-      ! Read last timestep
-      istat = nf90_inquire_dimension(ncid,dimid,len=ntime)
-      if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading dimension time in moisture file'
-        return
-      end if
-      istart(1) = 1
-      icount(1) = njx
-      istart(2) = 1
-      icount(2) = niy
-      istart(3) = 1
-      icount(3) = nlev
-      istart(4) = ntime
-      icount(4) = 1
-      istat = nf90_get_var(ncid,idmoist,moist_in,istart,icount)
-      if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable mrso in moisture file'
-      else
-        rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
-      end if
-      istart(1) = 1
-      icount(1) = njx
-      istart(2) = 1
-      icount(2) = niy
-      istart(3) = ntime
-      icount(3) = 1
-      istat = nf90_get_var(ncid,idsnow,snow_in,istart(1:3),icount(1:3))
-      if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable snv in moisture file'
-      else
-        snow(2:jx-2,2:iy-2) = snow_in(:,:)
+        ! Read last timestep
+        istat = nf90_inquire_dimension(ncid,dimid,len=ntime)
+        if ( istat /= nf90_noerr ) then
+         write(stderr,*) 'Error reading dimension time in moisture file'
+          return
+        end if
+        istart(1) = 1
+        icount(1) = njx
+        istart(2) = 1
+        icount(2) = niy
+        istart(3) = 1
+        icount(3) = nlev
+        istart(4) = ntime
+        icount(4) = 1
+        if ( lmrso ) then
+          istat = nf90_get_var(ncid,idmoist,moist_in,istart,icount)
+          if ( istat /= nf90_noerr ) then
+            write(stderr,*) 'Error reading variable mrso in moisture file'
+          else
+            rmoist(2:jx-2,2:iy-2,:) = moist_in(:,:,:)
+          end if
+        end if
+        istart(1) = 1
+        icount(1) = njx
+        istart(2) = 1
+        icount(2) = niy
+        istart(3) = ntime
+        icount(3) = 1
+        if ( lsnw ) then
+          istat = nf90_get_var(ncid,idsnow,snow_in,istart(1:3),icount(1:3))
+          if ( istat /= nf90_noerr ) then
+            write(stderr,*) 'Error reading variable snv in moisture file'
+          else
+            snow(2:jx-2,2:iy-2) = snow_in(:,:)
+          end if
+        end if
       end if
     end if
 
