@@ -338,17 +338,20 @@ module mod_domain
     end if
     istatus = nf90_get_att(ncid, nf90_global, &
                            'index_of_projection_origin', icntr)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read attribute index_of_projection_origin')
-    if (abs(real(icntr(2),rkx)-real(cntri,rkx)) > 0.001_rkx ) then
-      write(stderr,*) 'DOMAIN FILE : ', icntr(2)
-      write(stderr,*) 'NAMELIST    : ', cntri
-      call die('Mismatch: CNTRI in DOMAIN file /= CNTRI in namelist')
-    end if
-    if (abs(real(icntr(1),rkx)-real(cntrj,rkx)) > 0.001_rkx ) then
-      write(stderr,*) 'DOMAIN FILE : ', icntr(1)
-      write(stderr,*) 'NAMELIST    : ', cntrj
-      call die('Mismatch: CNTRJ in DOMAIN file /= CNTRJ in namelist')
+    if ( istatus /= nf90_noerr ) then
+      write(stderr,*) 'WARNING: USING DOMAIN FILE FROM PREVIOUS MODEL VERSION'
+      write(stderr,*) 'WARNING: ASSUMING PROJECTION CENTER IS DOMAIN CENTER'
+    else
+      if (abs(real(icntr(2),rkx)-real(cntri,rkx)) > 0.001_rkx ) then
+        write(stderr,*) 'DOMAIN FILE : ', icntr(2)
+        write(stderr,*) 'NAMELIST    : ', cntri
+        call die('Mismatch: CNTRI in DOMAIN file /= CNTRI in namelist')
+      end if
+      if (abs(real(icntr(1),rkx)-real(cntrj,rkx)) > 0.001_rkx ) then
+        write(stderr,*) 'DOMAIN FILE : ', icntr(1)
+        write(stderr,*) 'NAMELIST    : ', cntrj
+        call die('Mismatch: CNTRJ in DOMAIN file /= CNTRJ in namelist')
+      end if
     end if
     istatus = nf90_get_att(ncid,nf90_global,'grid_factor',xcone)
     call checkncerr(istatus,__FILE__,__LINE__, &
