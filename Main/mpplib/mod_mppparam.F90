@@ -3385,10 +3385,6 @@ module mod_mppparam
         end if
       end if
     end if
-    !call mpi_barrier(cartesian_communicator,mpierr)
-    !if ( mpierr /= mpi_success ) then
-    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
-    !end if
   end subroutine real8_2d_exchange
 
   subroutine real4_2d_exchange(ml,nex,j1,j2,i1,i2)
@@ -3905,10 +3901,6 @@ module mod_mppparam
         end if
       end if
     end if
-    !call mpi_barrier(cartesian_communicator,mpierr)
-    !if ( mpierr /= mpi_success ) then
-    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
-    !end if
   end subroutine real4_2d_exchange
 
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
@@ -4490,10 +4482,6 @@ module mod_mppparam
         end if
       end if
     end if
-    !call mpi_barrier(cartesian_communicator,mpierr)
-    !if ( mpierr /= mpi_success ) then
-    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
-    !end if
   end subroutine real8_3d_exchange
 
   subroutine real4_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
@@ -5075,10 +5063,6 @@ module mod_mppparam
         end if
       end if
     end if
-    !call mpi_barrier(cartesian_communicator,mpierr)
-    !if ( mpierr /= mpi_success ) then
-    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
-    !end if
   end subroutine real4_3d_exchange
 
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -5726,10 +5710,6 @@ module mod_mppparam
         end if
       end if
     end if
-    !call mpi_barrier(cartesian_communicator,mpierr)
-    !if ( mpierr /= mpi_success ) then
-    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
-    !end if
   end subroutine real8_4d_exchange
 
   subroutine real4_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
@@ -6377,10 +6357,6 @@ module mod_mppparam
         end if
       end if
     end if
-    !call mpi_barrier(cartesian_communicator,mpierr)
-    !if ( mpierr /= mpi_success ) then
-    !  call fatal(__FILE__,__LINE__,'mpi_barrier error.')
-    !end if
   end subroutine real4_4d_exchange
 
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)

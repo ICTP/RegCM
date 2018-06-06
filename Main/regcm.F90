@@ -36,7 +36,7 @@ program regcm
 
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
-  integer(ik4) :: ierr
+  integer(ik4) :: ierr , iprov
 !
 !**********************************************************************
 !
@@ -44,7 +44,11 @@ program regcm
 !
 !**********************************************************************
 !
-  call mpi_init(ierr)
+  call mpi_init_thread(mpi_thread_single,iprov,ierr)
+  if ( ierr /= mpi_success ) then
+    write(stderr,*) 'Cannot initilize MPI'
+    stop
+  end if
   call RCM_initialize()
 !
 !**********************************************************************

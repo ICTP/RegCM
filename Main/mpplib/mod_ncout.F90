@@ -3306,10 +3306,18 @@ module mod_ncout
       var(topo)%rval => topo_out
       var(ps)%rval => ps_out
       if ( idynamic == 2 .and. ps0 > 0 ) then
-        call setup_var(var,ps0,vsize,'p0','Pa', &
-          'Model reference pressure', 'model_reference_surface_air_pressure', &
-          lgetspace=.false.)
-        var(ps0)%rval => p0_out
+        if ( associated(p0_out) ) then
+          call setup_var(var,ps0,vsize,'p0','Pa', &
+            'Model reference pressure', &
+            'model_reference_surface_air_pressure', &
+            lgetspace=.false.)
+          var(ps0)%rval => p0_out
+        else
+          call setup_var(var,ps0,vsize,'p0','Pa', &
+            'Model reference pressure', &
+            'model_reference_surface_air_pressure')
+          p0_out = var(ps0)%rval
+        end if
       end if
     else
       call setup_var(var,xlon,vsize,'xlon','degrees_east', &
