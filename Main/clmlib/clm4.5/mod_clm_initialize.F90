@@ -206,10 +206,6 @@ module mod_clm_initialize
   subroutine initialize2(rdate)
     implicit none
     character(len=*) , intent(in) :: rdate
-    integer(ik4) :: yr      ! current year (0, ...)
-    integer(ik4) :: mon     ! current month (1 -> 12)
-    integer(ik4) :: day     ! current day (1 -> 31)
-    integer(ik4) :: ncsec   ! current time of day [seconds]
     integer(ik4) :: begp , endp   ! beg and ending pft indices
     integer(ik4) :: begc , endc   ! beg and ending column indices
     integer(ik4) :: begl , endl   ! beg and ending landunit indices

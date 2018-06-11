@@ -221,7 +221,8 @@ module mod_mksst
     implicit none
     integer(ik4) , intent(in) :: jp , ip
     real(rkx) , dimension(:,:) , intent(in) :: sst
-    real(rkx) :: wt , wtsum , distsig
+    real(rkx) :: wt , wtsum
+    ! real(rkx) :: distsig
     integer(ik4) :: i , j , nr , np , maxn
     if ( all(sst < -900_rkx) ) then
       nearn = -999.0_rkx

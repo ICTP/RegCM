@@ -104,13 +104,18 @@ contains
     real(rk8) , pointer :: elai(:)
     ! one-sided stem area index with burying by snow
     real(rk8) , pointer :: esai(:)
-    integer(ik4) :: j , l , c , p , fc ! indices
+    integer(ik4) :: l , c , p ! indices
+#if (defined CN)
+    integer(ik4) :: j , fc ! indices
+#endif
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending ldunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+#if (defined CN)
     real(rk8) :: lat    ! latitude (radians) for daylength calculation
     real(rk8) :: temp   ! temporary variable for daylength
+#endif
     real(rk8) :: snowbd ! temporary calculation of snow bulk density (kg/m3)
     real(rk8) :: fmelt  ! snowbd/100
 
@@ -278,6 +283,8 @@ contains
 #else
     ! this is the default call if CN not set
 
+    if ( present(declinm1) ) then
+    end if
     call EcosystemDyn(begp,endp,filter%num_nolakep,filter%nolakep,doalb=.true.)
 #endif
 

@@ -174,7 +174,9 @@ module mod_clm_driver
 #endif
     character(len=256) :: filer  ! restart file name
     !FAB
+#if (defined CN)
     logical , save  :: lfirstcall = .false.
+#endif
     ! Assign local pointers to derived subtypes components (landunit-level)
 
     itypelun => clm3%g%l%itype

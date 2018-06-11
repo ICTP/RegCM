@@ -247,9 +247,6 @@ module mod_sst_gndnc
     integer(ik4) :: it , i , j
     integer(ik4) :: year , month , day , hour
     type(rcm_time_interval) :: tdif
-    integer(ik4) , dimension(12) :: isteps
-
-    data isteps /1,125,237,361,481,605,725,849,973,1093,1217,1337/
 
     istart(3) = 1
 

@@ -474,7 +474,9 @@ module mod_clm_control
   !
   subroutine control_print ()
     implicit none
+#ifdef CN
     character(len=32) :: subname = 'control_print'  ! subroutine name
+#endif
 
     if ( myid /= italk ) return
 

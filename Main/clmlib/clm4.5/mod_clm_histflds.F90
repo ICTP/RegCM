@@ -48,10 +48,12 @@ module mod_clm_histflds
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4) :: imeg
     ! temp. pointers for slicing larger arrays
+#if (defined CN)
     real(rk8) , pointer :: data2dptr(:,:) , data1dptr(:)
     integer(ik4) :: k , l , ii , jj
     character(len=24) :: fieldname
     character(len=100) :: longname
+#endif
     character(len=8) :: vr_suffix
     character(len=10) :: active
 

@@ -2777,7 +2777,6 @@ module mod_clm_urban
              grav, pondmx_urban, rpi, rgas, &
              ht_wasteheat_factor, ac_wasteheat_factor, &
              wasteheat_limit
-    use mod_clm_filter , only : filter
     use mod_clm_frictionvelocity , only : FrictionVelocity, MoninObukIni
     use mod_clm_qsat , only : QSat
     use mod_clm_varpar , only : maxpatch_urb, nlevurb, nlevgrnd

@@ -147,7 +147,7 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+        call computeweights(h_i%tg%ft(j,i)%np,n2, &
                             results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
@@ -217,7 +217,7 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+        call computeweights(h_i%tg%ft(j,i)%np,n2, &
                             results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
@@ -292,7 +292,7 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+        call computeweights(h_i%tg%ft(j,i)%np,n2, &
                             results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
@@ -365,7 +365,7 @@ module mod_kdinterp
           call kdtree2_r_nearest(mr,p,r2,nf,np,results)
           h_i%tg%ft(j,i)%np = nf
         end if
-        call computeweights(h_i%tg%ft(j,i)%np,n1,n2, &
+        call computeweights(h_i%tg%ft(j,i)%np,n2, &
                             results,h_i%tg%ft(j,i)%wgt)
         deallocate(results)
       end do
@@ -740,9 +740,9 @@ module mod_kdinterp
     d = sqrt((x(1,i)-x(1,j))**2+(x(2,i)-x(2,j))**2+(x(3,i)-x(3,j))**2)
   end function dist
 
-  subroutine computeweights(np,n1,n2,r,w)
+  subroutine computeweights(np,n2,r,w)
     implicit none
-    integer(ik4) , intent(in) :: n1 , n2
+    integer(ik4) , intent(in) :: n2
     integer(ik4) , intent(inout) :: np
     type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w

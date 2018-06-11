@@ -143,7 +143,10 @@ module mod_clm_surfrd
   !    o integer(ik4) PFTs
   !    o real % abundance PFTs (as a percent of vegetated area)
   subroutine surfrd_get_data(ldomain, lfsurdat)
-    use mod_clm_varctl , only : allocate_all_vegpfts , create_crop_landunit
+    use mod_clm_varctl , only : allocate_all_vegpfts
+#if (defined CNDV)
+    use mod_clm_varctl , only : create_crop_landunit
+#endif
     use mod_clm_pftvarcon , only : noveg
     use mod_clm_domain , only : domain_type , domain_init , domain_clean
     implicit none

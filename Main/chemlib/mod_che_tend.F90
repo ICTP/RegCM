@@ -65,8 +65,10 @@
       integer(ik4) , intent(in) :: lmonth , lday
       real(rkx) , intent(in) :: declin
 
-      real(rkx) :: facb , facs , fact , facv , pres10 , qsat10 , &
-                  shu10 , u10 , v10
+#ifndef CLM45
+      real(rkx) :: facb , facs , facv , pres10 , qsat10 , shu10
+#endif
+      real(rkx) :: fact , u10 , v10
       real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
                                                       convprec
       real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt , ph

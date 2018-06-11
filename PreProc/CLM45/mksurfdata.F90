@@ -172,6 +172,7 @@ program mksurfdata
   real(rkx) , pointer , dimension(:,:) :: var2d => null( )
   integer(ik4) , pointer , dimension(:,:) :: ivar2d => null( )
   real(rkx) , pointer , dimension(:,:,:) :: var3d => null( )
+  real(rkx) , pointer , dimension(:,:,:) :: var3dp => null( )
   real(rkx) , pointer , dimension(:,:,:,:) :: var4d => null( )
   real(rkx) , pointer , dimension(:,:,:,:,:) :: var5d => null( )
   real(rkx) , pointer , dimension(:,:,:,:,:,:) :: var6d => null( )
@@ -939,6 +940,48 @@ program mksurfdata
     call die(__FILE__,'Cannot continue!',__LINE__)
   end if
 
+  allocate(var3dp(jxsg,iysg,npft))
+  call mkpft(pftfile,xmask,var3dp(:,:,:))
+  var3dp = nint(var3dp)
+
+  ! Here adjustment !
+  do i = igstart , igstop
+    do j = jgstart , jgstop
+      if ( xmask(j,i) > 0.5_rkx ) then
+        if ( pctspec(j,i) > 99.9_rkx ) then
+          var3dp(j,i,:) = 0.0_rkx
+        else
+          spft = sum(var3dp(j,i,:))
+          if ( spft < -1.0_rkx ) then
+            call die(__FILE__,'No points around !',__LINE__)
+          end if
+          diff = spft - (100.0_rkx-pctspec(j,i))
+          if ( abs(diff) > 0.5_rkx ) then
+            do while ( diff >= 1.0_rkx )
+              iloc = maxloc(var3dp(j,i,:))
+              var3dp(j,i,iloc(1)) = nint(var3dp(j,i,iloc(1)) - 1._rkx)
+              spft = sum(var3dp(j,i,:))
+              diff = spft - (100.0_rkx-pctspec(j,i))
+            end do
+            do while ( diff <= -1.0_rkx )
+              iloc = maxloc(var3dp(j,i,:))
+              var3dp(j,i,iloc(1)) = nint(var3dp(j,i,iloc(1)) + 1._rkx)
+              spft = sum(var3dp(j,i,:))
+              diff = spft - (100.0_rkx-pctspec(j,i))
+            end do
+          end if
+        end if
+        if ( var3dp(j,i,1) > 50.0_rkx ) then
+          pctbare(j,i) = var3dp(j,i,1)
+        end if
+      end if
+    end do
+  end do
+  !var3dp(:,:,15) = var3dp(:,:,15) + var3dp(:,:,5)
+  !var3dp(:,:,5) = 0.0_rkx
+  !var3dp(:,:,15) = var3dp(:,:,15) + var3dp(:,:,7)
+  !var3dp(:,:,7) = 0.0_rkx
+
   call mypack(var3d(:,:,1),gcvar)
   istatus = nf90_put_var(ncid, iglcvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
@@ -972,59 +1015,18 @@ program mksurfdata
 
   write(stdout,*) 'Created special categories informations...'
 
-  allocate(var3d(jxsg,iysg,npft))
-  call mkpft(pftfile,xmask,var3d(:,:,:))
-  var3d = nint(var3d)
-
-  ! Here adjustment !
-  do i = igstart , igstop
-    do j = jgstart , jgstop
-      if ( xmask(j,i) > 0.5_rkx ) then
-        if ( pctspec(j,i) > 99.9_rkx ) then
-          var3d(j,i,:) = 0.0_rkx
-        else
-          spft = sum(var3d(j,i,:))
-          if ( spft < -1.0_rkx ) then
-            call die(__FILE__,'No points around !',__LINE__)
-          end if
-          diff = spft - (100.0_rkx-pctspec(j,i))
-          if ( abs(diff) > 0.5_rkx ) then
-            do while ( diff >= 1.0_rkx )
-              iloc = maxloc(var3d(j,i,:))
-              var3d(j,i,iloc(1)) = nint(var3d(j,i,iloc(1)) - 1._rkx)
-              spft = sum(var3d(j,i,:))
-              diff = spft - (100.0_rkx-pctspec(j,i))
-            end do
-            do while ( diff <= -1.0_rkx )
-              iloc = maxloc(var3d(j,i,:))
-              var3d(j,i,iloc(1)) = nint(var3d(j,i,iloc(1)) + 1._rkx)
-              spft = sum(var3d(j,i,:))
-              diff = spft - (100.0_rkx-pctspec(j,i))
-            end do
-          end if
-        end if
-        if ( var3d(j,i,1) > 50.0_rkx ) then
-          pctbare(j,i) = var3d(j,i,1)
-        end if
-      end if
-    end do
-  end do
-  !var3d(:,:,15) = var3d(:,:,15) + var3d(:,:,5)
-  !var3d(:,:,5) = 0.0_rkx
-  !var3d(:,:,15) = var3d(:,:,15) + var3d(:,:,7)
-  !var3d(:,:,7) = 0.0_rkx
   do ip = 1 , npft
     istart(1) = 1
     icount(1) = ngcells
     istart(2) = ip
     icount(2) = 1
-    call mypack(var3d(:,:,ip),gcvar)
+    call mypack(var3dp(:,:,ip),gcvar)
     istatus = nf90_put_var(ncid, ipftvar, gcvar, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
   end do
-  istatus = nf90_put_var(ncid, ipft2dvar, var3d)
+  istatus = nf90_put_var(ncid, ipft2dvar, var3dp)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft2d')
-  deallocate(var3d)
+  deallocate(var3dp)
 
   write(stdout,*) 'Created pft informations...'
 

@@ -40,7 +40,7 @@ module mod_ocn_bats
 
   subroutine ocnbats
     implicit none
-    real(rkx) :: ribd , cdrn , rib , qgrd
+    real(rkx) :: ribd , cdrn , qgrd
     real(rkx) :: qs , delq , delt , fact , factuv
     real(rkx) :: cdrmin , cdrx , ribn , vspda
     integer(ik4) :: i

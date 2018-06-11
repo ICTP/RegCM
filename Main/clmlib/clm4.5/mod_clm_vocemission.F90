@@ -575,7 +575,6 @@ module mod_clm_vocemission
   !
   function get_gamma_L(fsun240_in,elai_in)
     use mod_clm_varcon , only : denice
-    use mod_clm_varpar , only : nlevsoi
     implicit none
     real(rk8) , intent(in) :: fsun240_in
     real(rk8) , intent(in) :: elai_in
@@ -630,7 +629,7 @@ module mod_clm_vocemission
     if ((clayfrac_in > 0) .and. (sandfrac_in > 0)) then
       get_gamma_SM = 0._rk8
       nl=0._rk8
-      do j = 1,nlevsoi
+      do j = 1 , nlevsoi
         if  (sum(dz_in(1:j)) < root_depth_in)  then
           theta_ice = h2osoi_ice_in(j)/(dz_in(j)*denice)
           wilt = ((smpmax/sucsat_in(j))**(-1._rk8/bsw_in(j))) * &

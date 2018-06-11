@@ -201,7 +201,7 @@ program icbc
       call die('icbc','Calendar mismatch',1)
     end if
   end if
-  if (dattyp(1:3) == 'MP_' .or. dattyp(1:2) == 'E5' ) then
+  if (dattyp(1:1) == 'MP' .or. dattyp(1:2) == 'E5' ) then
     if ( ical /= gregorian ) then
       write(stderr,*) 'Calendar should be set to gregorian'
       call die('icbc','Calendar mismatch',1)

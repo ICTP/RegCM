@@ -79,7 +79,7 @@ module mod_clm_hydrology1
            istcrop, icol_roof, icol_sunwall, icol_shadewall, hfus,denice, &
            zlnd,rpi,spval
     use mod_clm_varctl , only : subgridflag
-    use mod_clm_varpar , only : nlevsoi,nlevsno
+    use mod_clm_varpar , only : nlevsno
     use mod_clm_h2osfc , only : FracH2oSfc
     use mod_clm_fracwet , only : FracWet
     use mod_clm_subgridave , only : p2c

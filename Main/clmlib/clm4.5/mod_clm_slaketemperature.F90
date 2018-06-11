@@ -102,7 +102,6 @@ module mod_clm_slaketemperature
     use mod_realkinds
     use mod_stdio
     use mod_clm_type
-    use mod_clm_atmlnd , only : clm_a2l
     use mod_clm_varcon , only : hfus, cpliq, cpice, tkwat, tkice, denice, &
                                 vkc, grav, denh2o, tfrz, spval, cnfac
     use mod_clm_slakecon , only : betavis, za_lake, n2min, tdmax
