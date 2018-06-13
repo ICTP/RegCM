@@ -1074,8 +1074,8 @@ module mod_rad_radiation
   ! fsntc    - Clear sky total column absorbed solar flx
   ! sols     - Direct solar rad incident on surface (< 0.7)
   ! soll     - Direct solar rad incident on surface (>= 0.7)
-  ! solsd    - Diffuse mod_solar rad incident on surface (< 0.7)
-  ! solld    - Diffuse mod_solar rad incident on surface (>= 0.7)
+  ! solsd    - Diffuse solar rad incident on surface (< 0.7)
+  ! solld    - Diffuse solar rad incident on surface (>= 0.7)
   ! fsnirt   - Near-IR flux absorbed at toa
   ! fsnrtc   - Clear sky near-IR flux absorbed at toa
   ! fsnirtsq - Near-IR flux absorbed at toa >= 0.7 microns

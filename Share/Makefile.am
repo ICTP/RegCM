@@ -14,7 +14,7 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_sigma.F90 mod_capecin.F90 mod_stdatm.F90 \
                       mod_rdldtr.F90 mod_intldtr.F90 mod_kdtree2_priority.F90 \
                       mod_kdtree2.F90 mod_earth.F90 mod_kdinterp.F90 \
-                      mod_posix.F90
+                      mod_spbarcoord.F90 mod_posix.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
@@ -59,5 +59,6 @@ mod_stdatm.o : mod_stdatm.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod
 mod_kdtree2_priority.o : mod_kdtree2_priority.F90 mod_realkinds.o mod_message.o
 mod_kdtree2.o : mod_kdtree2.F90 mod_realkinds.o mod_message.o mod_stdio.o mod_kdtree2_priority.o
 mod_earth.o : mod_earth.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
-mod_kdinterp.o : mod_kdinterp.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_stdio.o mod_message.o mod_earth.o mod_kdtree2.o
+mod_spbarcoord.o : mod_spbarcoord.F90 mod_realkinds.o mod_intkinds.o
+mod_kdinterp.o : mod_kdinterp.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_stdio.o mod_message.o mod_earth.o mod_kdtree2.o mod_spbarcoord.o
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(OMPFLAGS) $(FCFLAGS) -c $<
