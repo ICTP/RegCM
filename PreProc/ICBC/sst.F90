@@ -141,8 +141,7 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
-  else if ( ssttyp(1:3) == 'MP_' .or. &
-            ssttyp(1:3) == 'MPL' .or. &
+  else if ( ssttyp(1:2) == 'MP' .or. &
             ssttyp(1:3) == 'ECC' .or. &
             ssttyp == 'E5_A2' ) then
     if (ical /= gregorian) then

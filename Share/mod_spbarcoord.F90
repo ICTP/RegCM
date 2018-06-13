@@ -30,7 +30,7 @@ module mod_spbarcoord
 
   public :: spherical_barycentric
 
-  type vpoint
+  type , bind(C) :: vpoint
     integer(ik4) :: idx
     real(rkx) , dimension(3) :: v
   end type vpoint
@@ -94,7 +94,7 @@ module mod_spbarcoord
         call qsort(c_loc(voc(1)),lnp,lsize,c_funloc(compare))
       end subroutine set_clockwise_order
 
-      integer(c_int) function compare(x1,x2) result(res)
+      integer(c_int) function compare(x1,x2) result(res) bind(C)
         implicit none
         type(vpoint) , intent(in) :: x1 , x2
         if ( x1%v(3) > x2%v(3) ) then
