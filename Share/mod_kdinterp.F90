@@ -144,7 +144,6 @@ module mod_kdinterp
           np = minp
           allocate(results(minp))
           call kdtree2_n_nearest(mr,p,np,results)
-          h_i%tg%ft(j,i)%np = np
           call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
         else
           if ( imode == 1 ) then
@@ -157,16 +156,15 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            h_i%tg%ft(j,i)%np = np
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           else
             np = 4
             allocate(results(np))
             call kdtree2_n_nearest(mr,p,np,results)
-            h_i%tg%ft(j,i)%np = np
             call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
         end if
+        h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
     end do
@@ -228,7 +226,6 @@ module mod_kdinterp
           np = minp
           allocate(results(minp))
           call kdtree2_n_nearest(mr,p,np,results)
-          h_i%tg%ft(j,i)%np = np
           call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
         else
           if ( imode == 1 ) then
@@ -241,16 +238,15 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            h_i%tg%ft(j,i)%np = np
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           else
             np = 4
             allocate(results(np))
             call kdtree2_n_nearest(mr,p,np,results)
-            h_i%tg%ft(j,i)%np = np
             call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
         end if
+        h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
     end do
@@ -317,7 +313,6 @@ module mod_kdinterp
           np = minp
           allocate(results(minp))
           call kdtree2_n_nearest(mr,p,np,results)
-          h_i%tg%ft(j,i)%np = np
           call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
         else
           if ( imode == 1 ) then
@@ -330,16 +325,15 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            h_i%tg%ft(j,i)%np = np
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           else
             np = 4
             allocate(results(np))
             call kdtree2_n_nearest(mr,p,np,results)
-            h_i%tg%ft(j,i)%np = np
             call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
         end if
+        h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
     end do
@@ -404,7 +398,6 @@ module mod_kdinterp
           np = minp
           allocate(results(minp))
           call kdtree2_n_nearest(mr,p,np,results)
-          h_i%tg%ft(j,i)%np = np
           call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
         else
           if ( imode == 1 ) then
@@ -417,16 +410,15 @@ module mod_kdinterp
               call kdtree2_r_nearest(mr,p,r2,nf,np,results)
               np = nf
             end if
-            h_i%tg%ft(j,i)%np = np
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           else
             np = 4
             allocate(results(np))
             call kdtree2_n_nearest(mr,p,np,results)
-            h_i%tg%ft(j,i)%np = np
             call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
         end if
+        h_i%tg%ft(j,i)%np = np
         deallocate(results)
       end do
     end do
@@ -843,14 +835,24 @@ module mod_kdinterp
     real(rkx) , dimension(3,np) :: v
     real(rkx) , dimension(np) :: lambda
     integer(ik4) :: i , n
-    real(rkx) :: rx , rmax
 
-    allocate(w(np))
+    ! Check perfect match
+    do n = 1 , np
+      if ( r(n)%dis < dlowval ) then
+        np = 1
+        allocate(w(1))
+        w(1)%i = (r(n)%idx-1)/n2 + 1
+        w(1)%j = r(n)%idx - n2*(w(1)%i-1)
+        w(1)%wgt = d_one
+        return
+      end if
+    end do
     do n = 1 , np
       do i = 1 , 3
         v(i,n) = xp(i,r(n)%idx)
       end do
     end do
+    allocate(w(np))
     call spherical_barycentric(np,p,v,lambda)
     do n = 1 , np
       w(n)%i = (r(n)%idx-1)/n2 + 1

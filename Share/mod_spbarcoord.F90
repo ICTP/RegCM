@@ -19,6 +19,13 @@
 
 module mod_spbarcoord
 
+  !
+  ! Implementation of Spherical Barycentric Coordinates as described in:
+  !
+  !   Langer, Belyaev and Seidel
+  !   Eurographics Symposium on Geometry Processing (2006)
+  !   Polthier - Sheffer Editors
+  !
   use mod_realkinds
   use mod_intkinds
   use mod_constants
@@ -111,10 +118,16 @@ module mod_spbarcoord
         res = 1
       end function compare
 
+      pure real(rkx) function norma2(x) result(a)
+        implicit none
+        real(rkx) , dimension(3) , intent(in) :: x
+        a = (x(1)*x(1)+x(2)*x(2)+x(3)*x(3))
+      end function norma2
+
       pure real(rkx) function norma(x) result(a)
         implicit none
         real(rkx) , dimension(3) , intent(in) :: x
-        a = sqrt(x(1)*x(1)+x(2)*x(2)+x(3)*x(3))
+        a = sqrt(norma2(x))
       end function norma
 
       pure real(rkx) function dotprod(x,y) result(a)
@@ -126,13 +139,13 @@ module mod_spbarcoord
       pure real(rkx) function angle_between(x,y) result(a)
         implicit none
         real(rkx) , dimension(3) , intent(in) :: x , y
-        a = dotprod(x,y) / (norma(x)*norma(y))
+        a = max(-d_one,min(d_one,dotprod(x,y) / (norma(x)*norma(y))))
         a = acos(a)
       end function angle_between
 
       subroutine compute_angles
         implicit none
-        real(rkx) :: pn , tmp1 , di , pn2 , dip , vin , vipn , vvipn2
+        real(rkx) :: pn , tmp1 , di , pn2 , dip , vin , vipn , vvipn2 , safe
         integer(ik4) :: ip
         do i = 1 , np
           theta(i) = angle_between(p,voc(i)%v)
@@ -140,15 +153,17 @@ module mod_spbarcoord
         do i = 1 , np
           ip = i+1
           if ( ip > np ) ip = 1
-          pn = norma(p)
-          pn2 = pn *pn
+          pn2 = norma2(p)
+          pn = sqrt(pn2)
           di = pn * tan(theta(i))
           dip = pn * tan(theta(ip))
           tmp1 = angle_between(voc(i)%v,voc(ip)%v)
           vin = sqrt(di*di+pn2)
           vipn = sqrt(dip*dip+pn2)
           vvipn2 = (vipn*sin(tmp1))**2+(vin-vipn*cos(tmp1))**2
-          alpha(i) = acos(0.5_rkx*(dip*dip+di*di-vvipn2)/(dip*di))
+          safe = 0.5_rkx*(dip*dip+di*di-vvipn2)/(dip*di)
+          safe = max(-d_one,min(d_one,safe))
+          alpha(i) = acos(safe)
         end do
       end subroutine compute_angles
 

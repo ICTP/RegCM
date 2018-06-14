@@ -78,7 +78,7 @@ module mod_nest
   integer(ik4) :: oidyn
   character(len=6) :: iproj_in
   real(rkx) :: clat_in , clon_in , plat_in , plon_in
-  real(rkx) :: xcone_in , ds_in , ptop_in
+  real(rkx) :: xcone_in , ptop_in
 
   logical :: uvrotate = .false.
 
@@ -235,11 +235,6 @@ module mod_nest
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'attribure iproj read error')
     istatus = nf90_get_att(ncinp, nf90_global, &
-                      'grid_size_in_meters', ds_in)
-    ds_in = ds_in * sqrt(d_two) * d_r1000
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'attribure ds read error')
-    istatus = nf90_get_att(ncinp, nf90_global, &
                       'latitude_of_projection_origin', clat_in)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'attribure clat read error')
@@ -344,8 +339,8 @@ module mod_nest
       call die('nest','INCREASE PTOP',1)
     end if
 
-    call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon,ds_in)
-    call h_interpolator_create(dot_hint,xlat_in,xlon_in,dlat,dlon,ds_in)
+    call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon)
+    call h_interpolator_create(dot_hint,xlat_in,xlon_in,dlat,dlon)
 
     ! Set up pointers
 
