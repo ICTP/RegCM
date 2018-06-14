@@ -101,23 +101,6 @@ module mod_spbarcoord
         call qsort(c_loc(voc(1)),lnp,lsize,c_funloc(compare))
       end subroutine set_clockwise_order
 
-      integer(c_int) function compare(x1,x2) result(res) bind(C)
-        implicit none
-        type(vpoint) , intent(in) :: x1 , x2
-        if ( x1%v(3) > x2%v(3) ) then
-          res = -1
-          return
-        end if
-        if ( x1%v(3) < x2%v(3) ) then
-          res = 1
-          return
-        end if
-        if ( x1%v(1) > x2%v(1) ) then
-          res = -1
-        end if
-        res = 1
-      end function compare
-
       pure real(rkx) function norma2(x) result(a)
         implicit none
         real(rkx) , dimension(3) , intent(in) :: x
@@ -168,6 +151,23 @@ module mod_spbarcoord
       end subroutine compute_angles
 
   end subroutine spherical_barycentric
+
+  integer(c_int) function compare(x1,x2) result(res) bind(C)
+    implicit none
+    type(vpoint) , intent(in) :: x1 , x2
+    if ( x1%v(3) > x2%v(3) ) then
+      res = -1
+      return
+    end if
+    if ( x1%v(3) < x2%v(3) ) then
+      res = 1
+      return
+    end if
+    if ( x1%v(1) > x2%v(1) ) then
+      res = -1
+    end if
+    res = 1
+  end function compare
 
 end module mod_spbarcoord
 
