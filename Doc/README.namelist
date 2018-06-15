@@ -157,9 +157,10 @@
  atmfrq  =     6.,   ! Frequency in hours to write to ATM
  ifrad   = .true. ,  ! Output RAD ?
  radfrq  =     6.,   ! Frequency in hours to write to RAD
- ifsts   = .true. ,  ! Output STS (frequence is daily) ?
  ifsrf   = .true. ,  ! Output SRF ?
  srffrq  =     3.,   ! Frequency in hours to write to SRF
+ ifsts   = .true. ,  ! Output STS (frequence is daily) ?
+ ifshf   = .true. ,  ! Output SHF (frequence is hourly) ?
  ifsub   = .true. ,  ! Output SUB ?
  subfrq  =     6.,   ! Frequency in hours to write to SUB
  iflak   = .true.,   ! Output LAK ?
@@ -172,6 +173,7 @@
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
+ enable_shf_vars = 7*.true.,  ! Mask to eventually disable variables SHF
  enable_lak_vars = 18*.true., ! Mask to eventually disable variables LAK
  enable_opt_vars = 20*.true., ! Mask to eventually disable variables OPT
  enable_che_vars = 26*.true., ! Mask to eventually disable variables CHE
