@@ -88,12 +88,13 @@ module mod_params
     namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
 
     namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
-      ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq , subfrq ,       &
-      lakfrq , radfrq , chemfrq , enable_atm_vars ,                      &
+      ifshf , ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq ,        &
+      subfrq , lakfrq , radfrq , chemfrq , enable_atm_vars ,             &
       enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
       enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
-      enable_che_vars , dirout , lsync , uvrotate , idiag , icosp ,      &
-      do_parallel_netcdf_in , do_parallel_netcdf_out , deflate_level
+      enable_che_vars , enable_shf_vars , dirout , lsync , uvrotate ,    &
+      idiag , icosp , do_parallel_netcdf_in , do_parallel_netcdf_out ,   &
+      deflate_level
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
@@ -201,6 +202,7 @@ module mod_params
     ifrad  = .true.
     ifsrf  = .true.
     ifsts  = .true.
+    ifshf  = .false.
     ifsub  = .false.
     iflak  = .false.
     ifopt  = .false.
@@ -220,6 +222,7 @@ module mod_params
     enable_rad_vars(:) = .true.
     enable_opt_vars(:) = .true.
     enable_che_vars(:) = .true.
+    enable_shf_vars(:) = .true.
     dirout = './output'
     lsync = .true.
     uvrotate = .false.
@@ -967,9 +970,15 @@ module mod_params
       if ( dtabem < dt ) dtabem = dt
 
       dtsrf = int(dtsrf / dt) * dt
-      do while ( mod(86400.0_rkx,dtsrf) > d_zero )
-        dtsrf = dtsrf - dt
-      end do
+      if ( ifshf ) then
+        do while ( mod(3600.0_rkx,dtsrf) > d_zero )
+          dtsrf = dtsrf - dt
+        end do
+      else
+        do while ( mod(86400.0_rkx,dtsrf) > d_zero )
+          dtsrf = dtsrf - dt
+        end do
+      end if
       dtsrf = int(dtsrf / dt) * dt
 
       dtcum = int(dtcum / dt) * dt
@@ -1018,6 +1027,7 @@ module mod_params
     call bcast(ifsave)
     call bcast(ifatm)
     call bcast(ifrad)
+    call bcast(ifshf)
     call bcast(ifsrf)
     call bcast(ifsub)
     call bcast(iflak)
@@ -1034,6 +1044,7 @@ module mod_params
     call bcast(enable_atm_vars)
     call bcast(enable_rad_vars)
     call bcast(enable_srf_vars)
+    call bcast(enable_shf_vars)
     call bcast(enable_sub_vars)
     call bcast(enable_sts_vars)
     call bcast(enable_lak_vars)
@@ -1058,6 +1069,7 @@ module mod_params
     enable_che_vars(1:6) = .true.
     ! These do not have p0, no vertical field.
     enable_srf_vars(1:5) = .true.
+    enable_shf_vars(1:5) = .true.
     enable_sub_vars(1:5) = .true.
     enable_sts_vars(1:5) = .true.
     enable_lak_vars(1:5) = .true.
@@ -1554,6 +1566,7 @@ module mod_params
     !
     bdydate1 = idate1
 
+    alarm_hour => rcm_alarm(rcmtimer,3600.0_rkx)
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
 
@@ -1563,6 +1576,7 @@ module mod_params
     alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
     alarm_out_rad => rcm_alarm(rcmtimer,secph*radfrq)
     alarm_out_srf => rcm_alarm(rcmtimer,secph*srffrq)
+    alarm_out_shf => alarm_hour
     alarm_out_sts => alarm_day
     if ( lakemod == 1 ) then
       alarm_out_lak => rcm_alarm(rcmtimer,secph*lakfrq)
@@ -1702,6 +1716,7 @@ module mod_params
       write(stdout,*) 'Create RAD files : ' , ifrad
       write(stdout,*) 'Create SRF files : ' , ifsrf
       write(stdout,*) 'Create STS files : ' , ifsts
+      write(stdout,*) 'Create SHF files : ' , ifshf
       if ( nsg > 1 ) write(stdout,*) 'Create SUB files : ' , ifsub
       if ( lakemod == 1 ) write(stdout,*) 'Create LAK files : ' , iflak
       if ( ichem == 1 ) then
@@ -2606,13 +2621,23 @@ module mod_params
         implicit none
         real(rkx) , intent(in) :: dt , dec
         newdt = int(dt/dec)*dec
-        do
-          if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
-            newdt = newdt + dec
-            cycle
-          end if
-          exit
-        end do
+        if ( ifshf ) then
+          do
+            if ( gcd_rec(int(newdt), int(secph)) < newdt ) then
+              newdt = newdt + dec
+              cycle
+            end if
+            exit
+          end do
+        else
+          do
+            if ( gcd_rec(int(newdt), int(secpd)) < newdt ) then
+              newdt = newdt + dec
+              cycle
+            end if
+            exit
+          end do
+        end if
       end function check_against_outparams
 
   end subroutine param

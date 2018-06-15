@@ -48,11 +48,13 @@ module mod_runparams
 
   type(rcm_timer) , save , public , pointer :: rcmtimer
 
+  type(rcm_alarm) , save , public , pointer :: alarm_hour
   type(rcm_alarm) , save , public , pointer :: alarm_day
   type(rcm_alarm) , save , public , pointer :: alarm_out_sav
   type(rcm_alarm) , save , public , pointer :: alarm_out_atm
   type(rcm_alarm) , save , public , pointer :: alarm_out_rad
   type(rcm_alarm) , save , public , pointer :: alarm_out_srf
+  type(rcm_alarm) , save , public , pointer :: alarm_out_shf
   type(rcm_alarm) , save , public , pointer :: alarm_out_sts
   type(rcm_alarm) , save , public , pointer :: alarm_out_che
   type(rcm_alarm) , save , public , pointer :: alarm_out_lak

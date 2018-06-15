@@ -850,91 +850,99 @@ module mod_mppparam
     end if
   end subroutine sumall_int4_array
 
-  subroutine send_array_logical(lval,isize,icpu,itag)
+  subroutine send_array_logical(lval,isize,icpu,itag,req)
     implicit none
-    logical , dimension(:) , intent(in) :: lval
     integer(ik4) , intent(in) :: isize , icpu , itag
-    call mpi_send(lval,isize,mpi_logical,icpu,itag, &
-                  cartesian_communicator,mpierr)
+    logical , dimension(isize) , intent(in) :: lval
+    integer(ik4) , intent(out) :: req
+    call mpi_isend(lval,isize,mpi_logical,icpu,itag, &
+                  cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_send error.')
+      call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_logical
 
-  subroutine send_array_int4(ival,isize,icpu,itag)
+  subroutine send_array_int4(ival,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , dimension(:) , intent(in) :: ival
     integer(ik4) , intent(in) :: isize , icpu , itag
-    call mpi_send(ival,isize,mpi_integer4,icpu,itag, &
-                  cartesian_communicator,mpierr)
+    integer(ik4) , dimension(isize) , intent(in) :: ival
+    integer(ik4) , intent(out) :: req
+    call mpi_isend(ival,isize,mpi_integer4,icpu,itag, &
+                  cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_send error.')
+      call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_int4
 
-  subroutine send_array_real4(rval,isize,icpu,itag)
+  subroutine send_array_real4(rval,isize,icpu,itag,req)
     implicit none
-    real(rk4) , dimension(:) , intent(in) :: rval
     integer(ik4) , intent(in) :: isize , icpu , itag
-    call mpi_send(rval,isize,mpi_real4,icpu,itag, &
-                  cartesian_communicator,mpierr)
+    real(rk4) , dimension(isize) , intent(in) :: rval
+    integer(ik4) , intent(out) :: req
+    call mpi_isend(rval,isize,mpi_real4,icpu,itag, &
+                  cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_send error.')
+      call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_real4
 
-  subroutine send_array_real8(rval,isize,icpu,itag)
+  subroutine send_array_real8(rval,isize,icpu,itag,req)
     implicit none
-    real(rk8) , dimension(:) , intent(in) :: rval
     integer(ik4), intent(in) :: isize , icpu , itag
-    call mpi_send(rval,isize,mpi_real8,icpu,itag, &
-                  cartesian_communicator,mpierr)
+    real(rk8) , dimension(isize) , intent(in) :: rval
+    integer(ik4) , intent(out) :: req
+    call mpi_isend(rval,isize,mpi_real8,icpu,itag, &
+                  cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_send error.')
+      call fatal(__FILE__,__LINE__,'mpi_isend error.')
     end if
   end subroutine send_array_real8
 
-  subroutine recv_array_logical(lval,isize,icpu,itag)
+  subroutine recv_array_logical(lval,isize,icpu,itag,req)
     implicit none
-    logical , dimension(:) , intent(out) :: lval
     integer(ik4) , intent(in) :: isize , icpu , itag
-    call mpi_recv(lval,isize,mpi_logical,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+    logical , dimension(isize) , intent(out) :: lval
+    integer(ik4) , intent(out) :: req
+    call mpi_irecv(lval,isize,mpi_logical,icpu,itag, &
+                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_recv error.')
+      call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_logical
 
-  subroutine recv_array_int4(ival,isize,icpu,itag)
+  subroutine recv_array_int4(ival,isize,icpu,itag,req)
     implicit none
-    integer(ik4) , dimension(:) , intent(out) :: ival
     integer(ik4) , intent(in) :: isize , icpu , itag
-    call mpi_recv(ival,isize,mpi_integer4,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+    integer(ik4) , dimension(isize) , intent(out) :: ival
+    integer(ik4) , intent(out) :: req
+    call mpi_irecv(ival,isize,mpi_integer4,icpu,itag, &
+                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_recv error.')
+      call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_int4
 
-  subroutine recv_array_real4(rval,isize,icpu,itag)
+  subroutine recv_array_real4(rval,isize,icpu,itag,req)
     implicit none
-    real(rk4) , dimension(:) , intent(out) :: rval
     integer(ik4) , intent(in) :: isize , icpu , itag
-    call mpi_recv(rval,isize,mpi_real4,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+    real(rk4) , dimension(isize) , intent(out) :: rval
+    integer(ik4) , intent(out) :: req
+    call mpi_irecv(rval,isize,mpi_real4,icpu,itag, &
+                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_recv error.')
+      call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_real4
 
-  subroutine recv_array_real8(rval,isize,icpu,itag)
+  subroutine recv_array_real8(rval,isize,icpu,itag,req)
     implicit none
-    real(rk8) , dimension(:) , intent(out) :: rval
     integer(ik4), intent(in) :: isize , icpu , itag
-    call mpi_recv(rval,isize,mpi_real8,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+    real(rk8) , dimension(isize) , intent(out) :: rval
+    integer(ik4) , intent(out) :: req
+    call mpi_irecv(rval,isize,mpi_real8,icpu,itag, &
+                   cartesian_communicator,req,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_recv error.')
+      call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
   end subroutine recv_array_real8
 
@@ -2878,26 +2886,28 @@ module mod_mppparam
     integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
     integer(ik4) , dimension(16) :: req
 
-    irc = 0
-    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
 
-    if ( ma%bandflag ) then
-      ! set the size of the dummy exchange vector
-      ! nex is the width of the exchange stencil
-      ! isize is the height of a block in the N-S direction
-      ssize = nex*isize
-      ! allocate the dummy vector if needed
-      if ( size(r8vector1) < ssize ) then
-        ! the sending dummy vector
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        ! the receiving dummy vector
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      end if
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
 
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! jsize is the height of a block in the W-E direction
+    ssize = nex * (4*nex+2*isize+2*jsize)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
+    end if
+
+    if ( ma%bandflag ) then
+      ssize = nex*isize
       !********************************************************
       ! (1) Send right boundary to left side of right neighbor
       !********************************************************
@@ -2952,19 +2962,7 @@ module mod_mppparam
         !*********************************************************
         ! (3) Send bottom boundary to top side of bottom neighbor
         !*********************************************************
-        ! set the size of the dummy exchange vector
-        ! nex is the width of the exchange stencil
-        ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -3021,12 +3019,6 @@ module mod_mppparam
         ! set the size of the exchange vector to the
         ! a square the length/width of the exchange stencil
         ssize = nex*nex
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-        end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do i = 1 , nex
@@ -3128,16 +3120,6 @@ module mod_mppparam
       end if
 
     else
-
-      ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)
-      ipos = 1
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange')
-      end if
 
       ! RIGHT AND LEFT EXCHANGE
 
@@ -3394,25 +3376,31 @@ module mod_mppparam
     integer(ik4) :: isize , jsize , ssize , j , i , ib , irc , ipos
     integer(ik4) , dimension(16) :: req
 
-    irc = 0
-    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! jsize is the height of a block in the W-E direction
+    ssize = nex * (4*nex+2*isize+2*jsize)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
+    end if
 
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
       ! isize is the height of a block in the N-S direction
       ssize = nex*isize
-      ! allocate the dummy vector if needed
-      if ( size(r4vector1) < ssize ) then
-        ! the sending dummy vector
-        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        ! the receiving dummy vector
-        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
-      end if
 
       !********************************************************
       ! (1) Send right boundary to left side of right neighbor
@@ -3472,15 +3460,6 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -3537,12 +3516,6 @@ module mod_mppparam
         ! set the size of the exchange vector to the
         ! a square the length/width of the exchange stencil
         ssize = nex*nex
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
-        end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do i = 1 , nex
@@ -3644,16 +3617,6 @@ module mod_mppparam
       end if
 
     else
-
-      ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)
-      ipos = 1
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange')
-      end if
 
       ! RIGHT AND LEFT EXCHANGE
 
@@ -3910,26 +3873,33 @@ module mod_mppparam
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
     integer(ik4) , dimension(16) :: req
 
-    irc = 0
-    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ssize = nex * ksize * (4*nex+2*isize+2*jsize)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
+    end if
 
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
       ! isize is the height of a block in the N-S direction
       ssize = nex*isize*ksize
-      ! allocate the dummy vector if needed
-      if ( size(r8vector1) < ssize ) then
-        ! the sending dummy vector
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        ! the receiving dummy vector
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      end if
 
       !********************************************************
       ! (1) Send right boundary to left side of right neighbor
@@ -3997,15 +3967,6 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -4070,12 +4031,6 @@ module mod_mppparam
         ! set the size of the exchange vector to the
         ! a square the length/width of the exchange stencil
         ssize = nex*nex*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-        end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do k = k1 , k2
@@ -4193,16 +4148,6 @@ module mod_mppparam
       end if
 
     else
-
-      ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)*ksize
-      ipos = 1
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange')
-      end if
 
       ! RIGHT AND LEFT EXCHANGE
 
@@ -4491,26 +4436,33 @@ module mod_mppparam
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib , irc , ipos
     integer(ik4) , dimension(16) :: req
 
-    irc = 0
-    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ssize = nex * ksize * (4*nex+2*isize+2*jsize)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
+    end if
 
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
       ! isize is the height of a block in the N-S direction
       ssize = nex*isize*ksize
-      ! allocate the dummy vector if needed
-      if ( size(r4vector1) < ssize ) then
-        ! the sending dummy vector
-        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        ! the receiving dummy vector
-        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
-      end if
 
       !********************************************************
       ! (1) Send right boundary to left side of right neighbor
@@ -4578,15 +4530,6 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -4651,12 +4594,6 @@ module mod_mppparam
         ! set the size of the exchange vector to the
         ! a square the length/width of the exchange stencil
         ssize = nex*nex*ksize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
-        end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do k = k1 , k2
@@ -4774,16 +4711,6 @@ module mod_mppparam
       end if
 
     else
-
-      ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)*ksize
-      ipos = 1
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange')
-      end if
 
       ! RIGHT AND LEFT EXCHANGE
 
@@ -5073,27 +5000,35 @@ module mod_mppparam
     integer(ik4) :: j , i , k , n , ib , irc , ipos
     integer(ik4) , dimension(16) :: req
 
-    irc = 0
-    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ! nsize is the height of a block in the tracer direction
+    ssize = nex * ksize * nsize * (4*nex+2*isize+2*jsize)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
+    end if
 
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
       ! isize is the height of a block in the N-S direction
       ssize = nex*isize*ksize*nsize
-      ! allocate the dummy vector if needed
-      if ( size(r8vector1) < ssize ) then
-        ! the sending dummy vector
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        ! the receiving dummy vector
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      end if
 
       !********************************************************
       ! (1) Send right boundary to left side of right neighbor
@@ -5169,15 +5104,6 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize*nsize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -5250,12 +5176,6 @@ module mod_mppparam
         ! set the size of the exchange vector to the
         ! a square the length/width of the exchange stencil
         ssize = nex*nex*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-        end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do n = n1 , n2
@@ -5389,16 +5309,6 @@ module mod_mppparam
       end if
 
     else
-
-      ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)*ksize*nsize
-      ipos = 1
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange')
-      end if
 
       ! RIGHT AND LEFT EXCHANGE
 
@@ -5720,27 +5630,35 @@ module mod_mppparam
     integer(ik4) :: j , i , k , n , ib , irc , ipos
     integer(ik4) , dimension(16) :: req
 
-    irc = 0
-    req = mpi_request_null
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ! nsize is the height of a block in the tracer direction
+    ssize = nex * ksize * nsize * (4*nex+2*isize+2*jsize)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
+    end if
 
     if ( ma%bandflag ) then
       ! set the size of the dummy exchange vector
       ! nex is the width of the exchange stencil
       ! isize is the height of a block in the N-S direction
       ssize = nex*isize*ksize*nsize
-      ! allocate the dummy vector if needed
-      if ( size(r4vector1) < ssize ) then
-        ! the sending dummy vector
-        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        ! the receiving dummy vector
-        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
-      end if
 
       !********************************************************
       ! (1) Send right boundary to left side of right neighbor
@@ -5816,15 +5734,6 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize*nsize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -5897,12 +5806,6 @@ module mod_mppparam
         ! set the size of the exchange vector to the
         ! a square the length/width of the exchange stencil
         ssize = nex*nex*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
-        end if
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do n = n1 , n2
@@ -6036,16 +5939,6 @@ module mod_mppparam
       end if
 
     else
-
-      ! Total max possible communication size
-      ssize = nex * (4*nex+2*isize+2*jsize)*ksize*nsize
-      ipos = 1
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange')
-      end if
 
       ! RIGHT AND LEFT EXCHANGE
 
@@ -6364,16 +6257,25 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*(isize+jsize+nex)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
-      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -6396,21 +6298,8 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize, &
-                'real8_2d_exchange_left_bottom')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize, &
-                'real8_2d_exchange_left_bottom')
-        end if
 
-        !******************************************************
         ! (1) Send top boundary to bottom side of top neighbor
-        !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
@@ -6436,12 +6325,10 @@ module mod_mppparam
           end do
         end do
 
-        !***********************************************************************
-        ! (2) Send top-right boundary to bottom-left side of top-right neighbor
-        !***********************************************************************
-        ! loop over the exchange block and unravel it into a vector
+        ! (2) Send top-right boundary to bottom-left side of top-right
+        ! neighbor: loop over the exchange block and unravel it into
+        ! a vector
         ib = 1
-
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
@@ -6466,91 +6353,111 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-        end if
-        ib = 1
+        ib = spos
         do i = i1 , i2
           do j = 1 , nex
             r8vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
         end do
-        call send_array(r8vector1,ssize,ma%right,tag_lr)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%right,tag_lr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%left,tag_lr,req(irc))
+        rpos = rpos + ssize
       end if
     end if
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = j1 , j2
             r8vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
         end do
-        call send_array(r8vector1,ssize,ma%top,tag_bt)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%top,tag_bt,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
-        ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottom,tag_bt,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        call send_array(r8vector1,ssize,ma%topright,tag_bltr)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%topright,tag_bltr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottomleft,tag_bltr,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * isize
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ib = ipos
+        ssize = nex * jsize
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottomleft /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * nex
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i1-i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real8_2d_exchange_left_bottom
@@ -6560,16 +6467,25 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*(isize+jsize+nex)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
-      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -6592,21 +6508,7 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize, &
-                'real4_2d_exchange_left_bottom')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize, &
-                'real4_2d_exchange_left_bottom')
-        end if
-
-        !******************************************************
         ! (1) Send top boundary to bottom side of top neighbor
-        !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
@@ -6632,12 +6534,10 @@ module mod_mppparam
           end do
         end do
 
-        !***********************************************************************
-        ! (2) Send top-right boundary to bottom-left side of top-right neighbor
-        !***********************************************************************
-        ! loop over the exchange block and unravel it into a vector
+        ! (2) Send top-right boundary to bottom-left side of top-right
+        ! neighbor: loop over the exchange block and unravel it into
+        ! a vector
         ib = 1
-
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
@@ -6662,91 +6562,111 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
-        end if
-        ib = 1
+        ib = spos
         do i = i1 , i2
           do j = 1 , nex
             r4vector1(ib) = ml(j2-j+1,i)
             ib = ib + 1
           end do
         end do
-        call send_array(r4vector1,ssize,ma%right,tag_lr)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%right,tag_lr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
-        end if
-        call recv_array(r4vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%left,tag_lr,req(irc))
+        rpos = rpos + ssize
       end if
     end if
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = j1 , j2
             r4vector1(ib) = ml(j,i2-i+1)
             ib = ib + 1
           end do
         end do
-        call send_array(r4vector1,ssize,ma%top,tag_bt)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%top,tag_bt,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_bottom')
-        end if
-        call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
-        ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottom,tag_bt,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j2-j+1,i2-i+1)
             ib = ib + 1
           end do
         end do
-        call send_array(r4vector1,ssize,ma%topright,tag_bltr)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%topright,tag_bltr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_bottom')
-        end if
-        call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottomleft,tag_bltr,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * isize
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ib = ipos
+        ssize = nex * jsize
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottomleft /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * nex
         do i = 1 , nex
           do j = 1 , nex
             ml(j1-j,i1-i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real4_2d_exchange_left_bottom
@@ -6756,17 +6676,26 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*(isize+jsize+nex)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
-      end if
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -6793,21 +6722,7 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize, &
-                'real8_3d_exchange_left_bottom')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize, &
-                'real8_3d_exchange_left_bottom')
-        end if
-
-        !******************************************************
         ! (1) Send top boundary to bottom side of top neighbor
-        !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
@@ -6837,9 +6752,8 @@ module mod_mppparam
           end do
         end do
 
-        !***********************************************************************
-        ! (2) Send top-right boundary to bottom-left side of top-right neighbor
-        !***********************************************************************
+        ! (2) Send top-right boundary to bottom-left side of
+        ! top-right neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
 
@@ -6871,12 +6785,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*isize
+        ib = spos
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -6885,32 +6797,23 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%right,tag_lr)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%right,tag_lr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        ssize = nex*ksize*isize
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%left,tag_lr,req(irc))
+        rpos = rpos + ssize
       end if
     end if
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*jsize
+        ib = spos
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -6919,30 +6822,21 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%top,tag_bt)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%top,tag_bt,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
-        ssize = nex*jsize*ksize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
-        ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i1-i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        ssize = nex*ksize*jsize
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottom,tag_bt,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*nex
+        ib = spos
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -6951,15 +6845,54 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%topright,tag_bltr)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%topright,tag_bltr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
-        ssize = nex*nex*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
-        ib = 1
+        ssize = nex*ksize*nex
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottomleft,tag_bltr,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * isize * ksize
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ib = ipos
+        ssize = nex * jsize * ksize
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottomleft /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * nex * ksize
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -6968,6 +6901,7 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real8_3d_exchange_left_bottom
@@ -6977,17 +6911,26 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*(isize+jsize+nex)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
-      end if
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -7014,21 +6957,8 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize, &
-                'real4_3d_exchange_left_bottom')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize, &
-                'real4_3d_exchange_left_bottom')
-        end if
 
-        !******************************************************
         ! (1) Send top boundary to bottom side of top neighbor
-        !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
@@ -7058,9 +6988,8 @@ module mod_mppparam
           end do
         end do
 
-        !***********************************************************************
-        ! (2) Send top-right boundary to bottom-left side of top-right neighbor
-        !***********************************************************************
+        ! (2) Send top-right boundary to bottom-left side of
+        ! top-right neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
 
@@ -7092,12 +7021,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*isize
+        ib = spos
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -7106,15 +7033,76 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%right,tag_lr)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%right,tag_lr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
-        end if
-        call recv_array(r4vector2,ssize,ma%left,tag_lr)
-        ib = 1
+        ssize = nex*ksize*isize
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%left,tag_lr,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( .not. ma%crmflag ) then
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*ksize*jsize
+        ib = spos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i2-i+1,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%top,tag_bt,req(irc))
+        spos = spos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ssize = nex*ksize*jsize
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottom,tag_bt,req(irc))
+        rpos = rpos + ssize
+      end if
+      if ( ma%topright /= mpi_proc_null ) then
+        ssize = nex*ksize*nex
+        ib = spos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%topright,tag_bltr,req(irc))
+        spos = spos + ssize
+      end if
+      if ( ma%bottomleft /= mpi_proc_null ) then
+        ssize = nex*ksize*nex
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottomleft,tag_bltr,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * isize * ksize
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -7123,72 +7111,34 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
-    end if
-
-    if ( ma%top /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
-      end if
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            r4vector1(ib) = ml(j,i2-i+1,k)
-            ib = ib + 1
+      if ( ma%bottom /= mpi_proc_null) then
+        ib = ipos
+        ssize = nex * jsize * ksize
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
         end do
-      end do
-      call send_array(r4vector1,ssize,ma%top,tag_bt)
-    end if
-    if ( ma%bottom /= mpi_proc_null) then
-      ssize = nex*jsize*ksize
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_bottom')
+        ipos = ipos + ssize
       end if
-      call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i,k) = r4vector2(ib)
-            ib = ib + 1
+      if ( ma%bottomleft /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * nex * ksize
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
         end do
-      end do
-    end if
-    if ( ma%topright /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
+        ipos = ipos + ssize
       end if
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            r4vector1(ib) = ml(j2-j+1,i2-i+1,k)
-            ib = ib + 1
-          end do
-        end do
-      end do
-      call send_array(r4vector1,ssize,ma%topright,tag_bltr)
-    end if
-    if ( ma%bottomleft /= mpi_proc_null ) then
-      ssize = nex*nex*ksize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_bottom')
-      end if
-      call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
-      ib = 1
-      do k = k1 , k2
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i1-i,k) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
-      end do
     end if
   end subroutine real4_3d_exchange_left_bottom
 
@@ -7197,18 +7147,27 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*nsize*(isize+jsize+nex)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
-      end if
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -7239,21 +7198,7 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize*nsize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize, &
-                'real8_4d_exchange_left_bottom')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize, &
-                'real8_4d_exchange_left_bottom')
-        end if
-
-        !******************************************************
         ! (1) Send top boundary to bottom side of top neighbor
-        !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
@@ -7284,9 +7229,7 @@ module mod_mppparam
           end do
         end do
 
-        !***********************************************************************
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
-        !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do n = n1, n2
@@ -7319,12 +7262,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*nsize*isize
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = i1 , i2
@@ -7335,34 +7276,23 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%right,tag_lr)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%right,tag_lr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        ssize = nex*ksize*nsize*isize
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%left,tag_lr,req(irc))
+        rpos = rpos + ssize
       end if
     end if
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*nsize*jsize
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -7373,32 +7303,21 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%top,tag_bt)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%top,tag_bt,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
-        ssize = nex*jsize*ksize*nsize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%bottom,tag_bt)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i1-i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        ssize = nex*ksize*nsize*jsize
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottom,tag_bt,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*nsize*nex
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -7409,15 +7328,58 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%topright,tag_bltr)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%topright,tag_bltr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
-        ssize = nex*nex*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_bottom')
-        end if
-        call recv_array(r8vector2,ssize,ma%bottomleft,tag_bltr)
-        ib = 1
+        ssize = nex*ksize*nsize*nex
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottomleft,tag_bltr,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * isize * ksize * nsize
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ib = ipos
+        ssize = nex * jsize * ksize * nsize
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i1-i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottomleft /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * nex * ksize * nsize
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -7428,6 +7390,7 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real8_4d_exchange_left_bottom
@@ -7437,18 +7400,27 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*nsize*(isize+jsize+nex)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
-      end if
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -7479,21 +7451,8 @@ module mod_mppparam
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize*nsize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize, &
-                'real4_4d_exchange_left_bottom')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize, &
-                'real4_4d_exchange_left_bottom')
-        end if
 
-        !******************************************************
         ! (1) Send top boundary to bottom side of top neighbor
-        !******************************************************
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the top boundary into a vector
         ib = 1
@@ -7524,9 +7483,7 @@ module mod_mppparam
           end do
         end do
 
-        !***********************************************************************
         ! (2) Send top-right boundary to bottom-left side of top-right neighbor
-        !***********************************************************************
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do n = n1, n2
@@ -7559,12 +7516,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*nsize*isize
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = i1 , i2
@@ -7575,34 +7530,23 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%right,tag_lr)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%right,tag_lr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%left /= mpi_proc_null ) then
-        ssize = nex*isize*ksize*nsize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
-        end if
-        call recv_array(r4vector2,ssize,ma%left,tag_lr)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        ssize = nex*ksize*nsize*isize
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%left,tag_lr,req(irc))
+        rpos = rpos + ssize
       end if
     end if
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*nsize*jsize
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -7613,32 +7557,21 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%top,tag_bt)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%top,tag_bt,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottom /= mpi_proc_null) then
-        ssize = nex*jsize*ksize*nsize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_bottom')
-        end if
-        call recv_array(r4vector2,ssize,ma%bottom,tag_bt)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i1-i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        ssize = nex*ksize*nsize*jsize
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottom,tag_bt,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
-        end if
-        ib = 1
+        ssize = nex*ksize*nsize*nex
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -7649,15 +7582,58 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%topright,tag_bltr)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%topright,tag_bltr,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
-        ssize = nex*nex*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_bottom')
-        end if
-        call recv_array(r4vector2,ssize,ma%bottomleft,tag_bltr)
-        ib = 1
+        ssize = nex*ksize*nsize*nex
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%bottomleft,tag_bltr,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * isize * ksize * nsize
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ib = ipos
+        ssize = nex * jsize * ksize * nsize
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i1-i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottomleft /= mpi_proc_null ) then
+        ib = ipos
+        ssize = nex * nex * ksize * nsize
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -7668,6 +7644,7 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real4_4d_exchange_left_bottom
@@ -7677,16 +7654,25 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*(isize+jsize+nex)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
-      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -7705,28 +7691,13 @@ module mod_mppparam
       end do
 
       if ( ma%crmflag ) then
-        !*********************************************************
         ! (1) Send bottom boundary to top side of bottom neighbor
-        !*********************************************************
-        ! set the size of the dummy exchange vector
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize, &
-                  'real8_2d_exchange_right_top')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize, &
-                  'real8_2d_exchange_right_top')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-
         do i = 1 , nex
           do j = j1 , j2
             r8vector1(ib) = ml(j,i1+i-1)
@@ -7748,9 +7719,8 @@ module mod_mppparam
           end do
         end do
 
-        !*************************************************************************
-        ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
-        !*************************************************************************
+        ! (2) Send bottom-left boundary to top-right side of
+        ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
 
@@ -7778,91 +7748,112 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do i = i1 , i2
           do j = 1 , nex
             r8vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
         end do
-        call send_array(r8vector1,ssize,ma%left,tag_rl)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%left,tag_rl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%right,tag_rl,req(irc))
+        rpos = rpos + ssize
       end if
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = j1 , j2
             r8vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
         end do
-        call send_array(r8vector1,ssize,ma%bottom,tag_tb)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%bottom,tag_tb,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%top,tag_tb)
-        ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i) = r8vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%top,tag_tb,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = 1 , nex
             r8vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        call send_array(r8vector1,ssize,ma%bottomleft,tag_trbl)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%bottomleft,tag_trbl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%topright,tag_trbl,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize
+        ib = ipos
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize
+        ib = ipos
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%topright /= mpi_proc_null ) then
+        ssize = nex*nex
+        ib = ipos
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i2+i) = r8vector2(ib)
             ib = ib + 1
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real8_2d_exchange_right_top
@@ -7872,16 +7863,25 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*(isize+jsize+nex)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
-      end if
       ib = 1
       do i = i1 , i2
         do j = 1 , nex
@@ -7900,28 +7900,13 @@ module mod_mppparam
       end do
 
       if ( ma%crmflag ) then
-        !*********************************************************
         ! (1) Send bottom boundary to top side of bottom neighbor
-        !*********************************************************
-        ! set the size of the dummy exchange vector
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize, &
-                  'real4_2d_exchange_right_top')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize, &
-                  'real4_2d_exchange_right_top')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-
         do i = 1 , nex
           do j = j1 , j2
             r4vector1(ib) = ml(j,i1+i-1)
@@ -7943,9 +7928,8 @@ module mod_mppparam
           end do
         end do
 
-        !*************************************************************************
-        ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
-        !*************************************************************************
+        ! (2) Send bottom-left boundary to top-right side of
+        ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
 
@@ -7962,7 +7946,6 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i2+i) = r4vector2(ib)
@@ -7973,91 +7956,112 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do i = i1 , i2
           do j = 1 , nex
             r4vector1(ib) = ml(j1+j-1,i)
             ib = ib + 1
           end do
         end do
-        call send_array(r4vector1,ssize,ma%left,tag_rl)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%left,tag_rl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%right,tag_rl,req(irc))
+        rpos = rpos + ssize
       end if
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = j1 , j2
             r4vector1(ib) = ml(j,i1+i-1)
             ib = ib + 1
           end do
         end do
-        call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%bottom,tag_tb,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%top,tag_tb)
-        ib = 1
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i) = r4vector2(ib)
-            ib = ib + 1
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%top,tag_tb,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do i = 1 , nex
           do j = 1 , nex
             r4vector1(ib) = ml(j1+j-1,i1+i-1)
             ib = ib + 1
           end do
         end do
-        call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%bottomleft,tag_trbl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%topright,tag_trbl,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize
+        ib = ipos
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize
+        ib = ipos
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%topright /= mpi_proc_null ) then
+        ssize = nex*nex
+        ib = ipos
         do i = 1 , nex
           do j = 1 , nex
             ml(j2+j,i2+i) = r4vector2(ib)
             ib = ib + 1
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real4_2d_exchange_right_top
@@ -8067,17 +8071,26 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*(isize+jsize+nex)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
-      end if
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -8100,28 +8113,13 @@ module mod_mppparam
       end do
 
       if ( ma%crmflag ) then
-        !*********************************************************
         ! (1) Send bottom boundary to top side of bottom neighbor
-        !*********************************************************
-        ! set the size of the dummy exchange vector
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize, &
-                  'real8_3d_exchange_right_top')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize, &
-                  'real8_3d_exchange_right_top')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8137,7 +8135,6 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8147,12 +8144,10 @@ module mod_mppparam
           end do
         end do
 
-        !*************************************************************************
-        ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
-        !*************************************************************************
+        ! (2) Send bottom-left boundary to top-right side of
+        ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8168,7 +8163,6 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8181,12 +8175,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -8195,32 +8187,24 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%left,tag_rl)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%left,tag_rl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%right,tag_rl,req(irc))
+        rpos = rpos + ssize
       end if
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8229,30 +8213,21 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%bottom,tag_tb)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%bottom,tag_tb,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%top,tag_tb)
-        ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k) = r8vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%top,tag_tb,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8261,15 +8236,54 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%bottomleft,tag_trbl)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%bottomleft,tag_trbl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%topright,tag_trbl,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%topright /= mpi_proc_null ) then
+        ssize = nex*nex*ksize
+        ib = ipos
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8278,6 +8292,7 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real8_3d_exchange_right_top
@@ -8287,17 +8302,26 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*(isize+jsize+nex)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
-      end if
       ib = 1
       do k = k1 , k2
         do i = i1 , i2
@@ -8320,28 +8344,13 @@ module mod_mppparam
       end do
 
       if ( ma%crmflag ) then
-        !*********************************************************
         ! (1) Send bottom boundary to top side of bottom neighbor
-        !*********************************************************
-        ! set the size of the dummy exchange vector
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize, &
-                  'real4_3d_exchange_right_top')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize, &
-                  'real4_3d_exchange_right_top')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8357,7 +8366,6 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top boundary of this block
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8367,12 +8375,10 @@ module mod_mppparam
           end do
         end do
 
-        !*************************************************************************
-        ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
-        !*************************************************************************
+        ! (2) Send bottom-left boundary to top-right side of
+        ! bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8388,7 +8394,6 @@ module mod_mppparam
         ! loop over the receiving dummy vector and ravel it into
         ! the top-right boundary of this block
         ib = 1
-
         do k = k1, k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8401,12 +8406,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do k = k1 , k2
           do i = i1 , i2
             do j = 1 , nex
@@ -8415,32 +8418,24 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%left,tag_rl)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%left,tag_rl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%right,tag_rl,req(irc))
+        rpos = rpos + ssize
       end if
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do k = k1 , k2
           do i = 1 , nex
             do j = j1 , j2
@@ -8449,30 +8444,21 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%bottom,tag_tb,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%top,tag_tb)
-        ib = 1
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k) = r4vector2(ib)
-              ib = ib + 1
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%top,tag_tb,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8481,15 +8467,54 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%bottomleft,tag_trbl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%topright,tag_trbl,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%topright /= mpi_proc_null ) then
+        ssize = nex*nex*ksize
+        ib = ipos
         do k = k1 , k2
           do i = 1 , nex
             do j = 1 , nex
@@ -8498,6 +8523,7 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real4_3d_exchange_right_top
@@ -8507,18 +8533,27 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*nsize*(isize+jsize+nex)
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
-      end if
-      if ( size(r8vector2) < ssize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
-      end if
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -8545,24 +8580,10 @@ module mod_mppparam
       end do
 
       if ( ma%crmflag ) then
-        !*********************************************************
         ! (1) Send bottom boundary to top side of bottom neighbor
-        !*********************************************************
-        ! set the size of the dummy exchange vector
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize*nsize
-        ! allocate the dummy vector if needed
-        if ( size(r8vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r8vector1,1,ssize, &
-                  'real8_4d_exchange_right_top')
-        end if
-        if ( size(r8vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r8vector2,1,ssize, &
-                  'real8_4d_exchange_right_top')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -8593,9 +8614,8 @@ module mod_mppparam
           end do
         end do
 
-        !*************************************************************************
-        ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
-        !*************************************************************************
+        ! (2) Send bottom-left boundary to top-right side
+        !     of bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do n = n1, n2
@@ -8628,12 +8648,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = i1 , i2
@@ -8644,34 +8662,24 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%left,tag_rl)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%left,tag_rl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%right,tag_rl,req(irc))
+        rpos = rpos + ssize
       end if
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -8682,32 +8690,21 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%bottom,tag_tb)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%bottom,tag_tb,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%top,tag_tb)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i2+i,k,n) = r8vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%top,tag_tb,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
-        if ( size(r8vector1) < ssize ) then
-          call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -8718,15 +8715,58 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r8vector1,ssize,ma%bottomleft,tag_trbl)
+        irc = irc + 1
+        call send_array(r8vector1(spos:spos+ssize), &
+                        ssize,ma%bottomleft,tag_trbl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
-        if ( size(r8vector2) < ssize ) then
-          call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_right_top')
-        end if
-        call recv_array(r8vector2,ssize,ma%topright,tag_trbl)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r8vector2(rpos:rpos+ssize), &
+                        ssize,ma%topright,tag_trbl,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i2+i,k,n) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%topright /= mpi_proc_null ) then
+        ssize = nex*nex*ksize*nsize
+        ib = ipos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -8737,6 +8777,7 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real8_4d_exchange_right_top
@@ -8746,18 +8787,27 @@ module mod_mppparam
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
+    integer(ik4) :: spos , rpos , ipos , irc
+    integer(ik4) , dimension(6) :: req
     isize = i2-i1+1
     jsize = j2-j1+1
     ksize = k2-k1+1
     nsize = n2-n1+1
+    irc = 0
+    spos = 1
+    rpos = 1
+    req = mpi_request_null
+
+    ssize = nex*ksize*nsize*(isize+jsize+nex)
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
+    end if
+
     if ( ma%bandflag ) then
       ssize = nex*isize*ksize*nsize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
-      end if
-      if ( size(r4vector2) < ssize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
-      end if
       ib = 1
       do n = n1 , n2
         do k = k1 , k2
@@ -8784,24 +8834,10 @@ module mod_mppparam
       end do
 
       if ( ma%crmflag ) then
-        !*********************************************************
         ! (1) Send bottom boundary to top side of bottom neighbor
-        !*********************************************************
-        ! set the size of the dummy exchange vector
         ! nex is the width of the exchange stencil
         ! jsize is the width of a block in the E-W direction
         ssize = nex*jsize*ksize*nsize
-        ! allocate the dummy vector if needed
-        if ( size(r4vector1) < ssize ) then
-          ! the sending dummy vector
-          call getmem1d(r4vector1,1,ssize, &
-                  'real4_4d_exchange_right_top')
-        end if
-        if ( size(r4vector2) < ssize ) then
-          ! the receiving dummy vector
-          call getmem1d(r4vector2,1,ssize, &
-                  'real4_4d_exchange_right_top')
-        end if
         ! loop over the given longitudes and number of exchange blocks
         ! and unravel the bottom boundary into a vector
         ib = 1
@@ -8832,9 +8868,8 @@ module mod_mppparam
           end do
         end do
 
-        !*************************************************************************
-        ! (2) Send bottom-left boundary to top-right side of bottom-left neighbor
-        !*************************************************************************
+        ! (2) Send bottom-left boundary to top-right side
+        !     of bottom-left neighbor
         ! loop over the exchange block and unravel it into a vector
         ib = 1
         do n = n1, n2
@@ -8867,12 +8902,10 @@ module mod_mppparam
       end if
 
     else
+
       if ( ma%left /= mpi_proc_null ) then
         ssize = nex*isize*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = i1 , i2
@@ -8883,34 +8916,24 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%left,tag_rl)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%left,tag_rl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%right /= mpi_proc_null) then
         ssize = nex*isize*ksize*nsize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%right,tag_rl)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%right,tag_rl,req(irc))
+        rpos = rpos + ssize
       end if
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%bottom /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -8921,32 +8944,21 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%bottom,tag_tb)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%bottom,tag_tb,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize*ksize*nsize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%top,tag_tb)
-        ib = 1
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i2+i,k,n) = r4vector2(ib)
-                ib = ib + 1
-              end do
-            end do
-          end do
-        end do
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%top,tag_tb,req(irc))
+        rpos = rpos + ssize
       end if
       if ( ma%bottomleft /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
-        if ( size(r4vector1) < ssize ) then
-          call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_right_top')
-        end if
-        ib = 1
+        ib = spos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -8957,15 +8969,58 @@ module mod_mppparam
             end do
           end do
         end do
-        call send_array(r4vector1,ssize,ma%bottomleft,tag_trbl)
+        irc = irc + 1
+        call send_array(r4vector1(spos:spos+ssize), &
+                        ssize,ma%bottomleft,tag_trbl,req(irc))
+        spos = spos + ssize
       end if
       if ( ma%topright /= mpi_proc_null ) then
         ssize = nex*nex*ksize*nsize
-        if ( size(r4vector2) < ssize ) then
-          call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_right_top')
-        end if
-        call recv_array(r4vector2,ssize,ma%topright,tag_trbl)
-        ib = 1
+        irc = irc + 1
+        call recv_array(r4vector2(rpos:rpos+ssize), &
+                        ssize,ma%topright,tag_trbl,req(irc))
+        rpos = rpos + ssize
+      end if
+    end if
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(6,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i2+i,k,n) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        ipos = ipos + ssize
+      end if
+      if ( ma%topright /= mpi_proc_null ) then
+        ssize = nex*nex*ksize*nsize
+        ib = ipos
         do n = n1 , n2
           do k = k1 , k2
             do i = 1 , nex
@@ -8976,6 +9031,7 @@ module mod_mppparam
             end do
           end do
         end do
+        ipos = ipos + ssize
       end if
     end if
   end subroutine real4_4d_exchange_right_top
@@ -8988,13 +9044,16 @@ module mod_mppparam
     integer(ik4) , dimension(4) :: req
     req =mpi_request_null
     ksize = k2-k1+1
+    irc = 0
+    ipos = 1
+    ssize = 2*ksize
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_left_right')
+    end if
+    if ( size(r8vector2) < ksize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_bdy_exchange_left_right')
+    end if
     if ( ma%bandflag ) then
-      if ( size(r8vector1) < ksize ) then
-        call getmem1d(r8vector1,1,ksize,'real8_bdy_exchange_left_right')
-      end if
-      if ( size(r8vector2) < ksize ) then
-        call getmem1d(r8vector2,1,ksize,'real8_bdy_exchange_left_right')
-      end if
       ib = 1
       do k = k1 , k2
         r8vector1(ib) = ml(jde2,k)
@@ -9020,15 +9079,6 @@ module mod_mppparam
         ib = ib + 1
       end do
     else
-      irc = 0
-      ipos = 1
-      ssize = 2*ksize
-      if ( size(r8vector1) < ssize ) then
-        call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_left_right')
-      end if
-      if ( size(r8vector2) < ksize ) then
-        call getmem1d(r8vector2,1,ssize,'real8_bdy_exchange_left_right')
-      end if
       if ( ma%right /= mpi_proc_null) then
         ib = ipos
         do k = k1 , k2
@@ -9089,13 +9139,16 @@ module mod_mppparam
     integer(ik4) , dimension(4) :: req
     req = mpi_request_null
     ksize = k2-k1+1
+    irc = 0
+    ipos = 1
+    ssize = 2*ksize
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_left_right')
+    end if
+    if ( size(r4vector2) < ksize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_bdy_exchange_left_right')
+    end if
     if ( ma%bandflag ) then
-      if ( size(r4vector1) < ksize ) then
-        call getmem1d(r4vector1,1,ksize,'real4_bdy_exchange_left_right')
-      end if
-      if ( size(r4vector2) < ksize ) then
-        call getmem1d(r4vector2,1,ksize,'real4_bdy_exchange_left_right')
-      end if
       ib = 1
       do k = k1 , k2
         r4vector1(ib) = ml(jde2,k)
@@ -9121,15 +9174,6 @@ module mod_mppparam
         ib = ib + 1
       end do
     else
-      irc = 0
-      ipos = 1
-      ssize = 2*ksize
-      if ( size(r4vector1) < ssize ) then
-        call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_left_right')
-      end if
-      if ( size(r4vector2) < ksize ) then
-        call getmem1d(r4vector2,1,ssize,'real4_bdy_exchange_left_right')
-      end if
       if ( ma%right /= mpi_proc_null) then
         ib = ipos
         do k = k1 , k2

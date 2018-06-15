@@ -60,6 +60,8 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
+  integer(ik4) , parameter :: nshfvars = 2 + nbase
+
   integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 8
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
@@ -97,6 +99,8 @@ module mod_ncout
     dimension(:) :: v2dvar_atm => null()
   type(ncvariable3d_mixed) , save , pointer , &
     dimension(:) :: v3dvar_atm => null()
+  type(ncvariable2d_mixed) , save , pointer , &
+    dimension(:) :: v2dvar_shf => null()
   type(ncvariable2d_mixed) , save , pointer , &
     dimension(:) :: v2dvar_srf => null()
   type(ncvariable3d_mixed) , save , pointer , &
@@ -137,6 +141,7 @@ module mod_ncout
   logical :: parallel_out
 
   integer(ik4) , public :: atm_stream = -1
+  integer(ik4) , public :: shf_stream = -1
   integer(ik4) , public :: srf_stream = -1
   integer(ik4) , public :: sub_stream = -1
   integer(ik4) , public :: rad_stream = -1
@@ -149,6 +154,7 @@ module mod_ncout
   type(regcm_stream) , pointer , save , dimension(:) :: outstream
 
   logical , public , dimension(natmvars) :: enable_atm_vars
+  logical , public , dimension(nshfvars) :: enable_shf_vars
   logical , public , dimension(nsrfvars) :: enable_srf_vars
   logical , public , dimension(nstsvars) :: enable_sts_vars
   logical , public , dimension(nsubvars) :: enable_sub_vars
@@ -231,6 +237,14 @@ module mod_ncout
   integer(ik4) , parameter :: atm_ccnnum       = 59
   integer(ik4) , parameter :: atm_qincl        = 60
   integer(ik4) , parameter :: atm_autoconvr    = 61
+
+  integer(ik4) , parameter :: shf_xlon   = 1
+  integer(ik4) , parameter :: shf_xlat   = 2
+  integer(ik4) , parameter :: shf_mask   = 3
+  integer(ik4) , parameter :: shf_topo   = 4
+  integer(ik4) , parameter :: shf_ps     = 5
+  integer(ik4) , parameter :: shf_pcpavg = 6
+  integer(ik4) , parameter :: shf_pcpmax = 7
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
@@ -495,6 +509,10 @@ module mod_ncout
     if ( ifatm ) then
       nstream = nstream+1
       atm_stream = nstream
+    end if
+    if ( ifshf ) then
+      nstream = nstream+1
+      shf_stream = nstream
     end if
     if ( ifsrf ) then
       nstream = nstream+1
@@ -1092,6 +1110,51 @@ module mod_ncout
         outstream(atm_stream)%ig2 = iout2
       end if
 
+      if ( nstream == shf_stream ) then
+
+        allocate(v2dvar_shf(nshfvars))
+
+        ! This variables are always present
+
+        call setup_common_vars(vsize,v2dvar_shf,shf_xlon, &
+                  shf_xlat,shf_topo,shf_mask,shf_ps,-1)
+
+        if ( enable_shf_vars(shf_pcpavg) ) then
+          call setup_var(v2dvar_shf,shf_pcpavg,vsize,'pr','kg m-2 s-1', &
+            'Precipitation','precipitation_flux',.true.,'time: mean')
+          shf_pcpavg_out => v2dvar_shf(shf_pcpavg)%rval
+        end if
+        if ( enable_shf_vars(shf_pcpmax) ) then
+          call setup_var(v2dvar_shf,shf_pcpmax,vsize,'prhmax','kg m-2 s-1', &
+            'Maximum Hourly Precipitation Rate','precipitation_flux', &
+            .true.,'time: maximum')
+          shf_pcpmax_out => v2dvar_shf(shf_pcpmax)%rval
+        end if
+
+        outstream(shf_stream)%nvar = countvars(enable_shf_vars,nshfvars)
+        allocate(outstream(shf_stream)%ncvars%vlist(outstream(shf_stream)%nvar))
+        outstream(shf_stream)%nfiles = 1
+        allocate(outstream(shf_stream)%ncout(outstream(shf_stream)%nfiles))
+        allocate(outstream(shf_stream)%cname_base(outstream(shf_stream)%nfiles))
+        outstream(shf_stream)%cname_base(1) = 'SHF'
+
+        vcount = 1
+        do i = 1 , nshfvars
+          if ( enable_shf_vars(i) ) then
+            outstream(shf_stream)%ncvars%vlist(vcount)%vp => v2dvar_shf(i)
+            vcount = vcount + 1
+          end if
+        end do
+        outstream(shf_stream)%jl1 = vsize%j1
+        outstream(shf_stream)%jl2 = vsize%j2
+        outstream(shf_stream)%il1 = vsize%i1
+        outstream(shf_stream)%il2 = vsize%i2
+        outstream(shf_stream)%jg1 = jout1
+        outstream(shf_stream)%jg2 = jout2
+        outstream(shf_stream)%ig1 = iout1
+        outstream(shf_stream)%ig2 = iout2
+      end if
+
       if ( nstream == srf_stream ) then
 
         allocate(v2dvar_srf(nsrf2dvars))
@@ -1394,6 +1457,7 @@ module mod_ncout
             'moisture_content_of_soil_layer',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
         end if
+
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
         outstream(srf_stream)%nvar = countvars(enable_srf_vars,nsrfvars)
@@ -2567,6 +2631,7 @@ module mod_ncout
           write(stdout,*) 'Opening new output file ', &
             trim(outstream(i)%opar%fname)
         end if
+
         call outstream_setup(outstream(i)%ncout(j),outstream(i)%opar)
 
         ! Land-surface model

@@ -108,6 +108,9 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocw_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_stats_autocc_out => null()
 
+  real(rkx) , dimension(:,:) , pointer :: shf_pcpmax_out => null()
+  real(rkx) , dimension(:,:) , pointer :: shf_pcpavg_out => null()
+
   real(rkx) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_taux_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_tauy_out => null()

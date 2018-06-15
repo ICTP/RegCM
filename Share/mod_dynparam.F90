@@ -379,6 +379,7 @@ module mod_dynparam
 
   logical :: ifsave
   logical :: ifatm
+  logical :: ifshf
   logical :: ifrad
   logical :: ifsrf
   logical :: ifsub

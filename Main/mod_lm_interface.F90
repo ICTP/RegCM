@@ -985,6 +985,12 @@ module mod_lm_interface
         if ( associated(sub_trunoff_out) ) &
           call reorder_add_subgrid(lms%trnof,sub_trunoff_out,lm%ldmsk1)
       end if
+      if ( ifshf ) then
+        if ( associated(shf_pcpmax_out) ) &
+          shf_pcpmax_out = max(shf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
+        if ( associated(shf_pcpavg_out) ) &
+          shf_pcpavg_out = shf_pcpavg_out + sum(lms%prcp,1)*rdnnsg
+      end if
       if ( ifsts ) then
         if ( associated(sts_tgmax_out) ) &
           sts_tgmax_out = max(sts_tgmax_out,sum(lms%tgrd,1)*rdnnsg)

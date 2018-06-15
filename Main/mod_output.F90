@@ -63,7 +63,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche
-    logical :: ldosav , ldolak , ldosub , ldosts
+    logical :: ldosav , ldolak , ldosub , ldosts , ldoshf
     logical :: ldoslab
     logical :: lstartup
     integer(ik4) :: i , j , k , kk , itr
@@ -130,6 +130,7 @@ module mod_output
     ldosav = .false.
     ldoslab = .false.
     ldosts = .false.
+    ldoshf = .false.
 
     if ( rcmtimer%integrating( ) ) then
       if ( associated(alarm_out_sav) ) then
@@ -160,6 +161,9 @@ module mod_output
       end if
       if ( alarm_out_sts%act( ) ) then
         ldosts = .true.
+      end if
+      if ( alarm_out_shf%act( ) ) then
+        ldoshf = .true.
       end if
       if ( lakemod == 1 ) then
         if ( alarm_out_lak%act( ) ) then
@@ -1008,6 +1012,29 @@ module mod_output
         if ( myid == italk ) then
           write(stdout,*) 'CHE variables written at ' , rcmtimer%str( )
         end if
+      end if
+    end if
+
+    if ( shf_stream > 0 ) then
+      if ( ldoshf ) then
+        if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        end if
+
+        shf_pcpavg_out = shf_pcpavg_out * dtsrf/3600.0_rkx
+        call write_record_output_stream(shf_stream,alarm_out_shf%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'SHF variables written at ' , rcmtimer%str( )
+
+        if ( associated(shf_pcpavg_out) )  shf_pcpavg_out  = d_zero
+        if ( associated(shf_pcpmax_out) )  shf_pcpmax_out  = d_zero
       end if
     end if
 
