@@ -1236,10 +1236,14 @@ module mod_ncout
             .true.,l_fill=.true.)
           srf_tlef_out => v2dvar_srf(srf_tlef)%rval
         end if
-        if ( enable_srf2d_vars(srf_tpr) ) then
-          call setup_var(v2dvar_srf,srf_tpr,vsize,'pr','kg m-2 s-1', &
-            'Precipitation','precipitation_flux',.true.,'time: mean')
-          srf_tpr_out => v2dvar_srf(srf_tpr)%rval
+        if ( ifshf ) then
+          enable_srf2d_vars(srf_tpr) = .false.
+        else
+          if ( enable_srf2d_vars(srf_tpr) ) then
+            call setup_var(v2dvar_srf,srf_tpr,vsize,'pr','kg m-2 s-1', &
+              'Precipitation','precipitation_flux',.true.,'time: mean')
+            srf_tpr_out => v2dvar_srf(srf_tpr)%rval
+          end if
         end if
         if ( enable_srf2d_vars(srf_evp) ) then
           call setup_var(v2dvar_srf,srf_evp,vsize,'evspsbl','kg m-2 s-1', &
