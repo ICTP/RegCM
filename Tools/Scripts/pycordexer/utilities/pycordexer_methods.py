@@ -1518,14 +1518,34 @@ class ComputeGeopotentialHeight(ActionStarter):
                 False,
             )
 
+            attributes = copy(reference_var.attributes)
+            if 'coordinates' in attributes:
+                LOGGER.debug('Updating attribute "coordinates" adding "plev"')
+                attributes['coordinates'] = 'plev ' + attributes['coordinates']
+
+            pval = np.array([1], dtype=DATATYPE_AUXILIARIES)
+            pval[0] = self.height*100.0
+            height_var = Variable(
+                name='plev',
+                data=MemoryData(copy(pval)),
+                dimensions=(),
+                attributes={
+                    'standard_name': 'pressure',
+                    'long_name': 'Pressure',
+                    'positive': 'down',
+                    'units': 'Pa',
+                    'axis': 'Z'
+                }
+            )
+
             return Variable(
                 name="zg{:.0f}".format(self.height),
                 data=MemoryData(data),
                 dimensions=dimensions,
-                attributes=reference_var.attributes,
+                attributes=attributes,
                 times=reference_var.times,
                 times_attributes=reference_var.times_attributes,
-                auxiliary_vars=[],
+                auxiliary_vars=(height_var,),
                 needs_time_bounds=False,
             )
 
