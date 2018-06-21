@@ -517,14 +517,34 @@ class InterpolateHeight(Filter):
 
             new_data = MemoryData(interpolation_result)
 
+            attributes = copy(prev_result.attributes)
+            if 'coordinates' in attributes:
+                LOGGER.debug('Updating attribute "coordinates" adding "plev"')
+                attributes['coordinates'] = 'plev ' + attributes['coordinates']
+
+            pval = np.array([1], dtype=DATATYPE_AUXILIARIES)
+            pval[0] = self.pressure_level*100.0
+            height_var = Variable(
+                name='plev',
+                data=MemoryData(copy(pval)),
+                dimensions=(),
+                attributes={
+                    'standard_name': 'pressure',
+                    'long_name': 'Pressure',
+                    'positive': 'down',
+                    'units': 'Pa',
+                    'axis': 'Z'
+                }
+            )
+
             return Variable(
                 name=prev_result.name,
                 data=new_data,
                 dimensions=new_dimensions,
-                attributes=prev_result.attributes,
+                attributes=attributes,
                 times=prev_result.times,
                 times_attributes=prev_result.times_attributes,
-                auxiliary_vars=prev_result.auxiliary_variables,
+                auxiliary_vars=prev_result.auxiliary_variables + [height_var, ],
                 needs_time_bounds=prev_result.needs_time_bounds,
             )
 
