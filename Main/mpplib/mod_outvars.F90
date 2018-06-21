@@ -110,6 +110,7 @@ module mod_outvars
 
   real(rkx) , dimension(:,:) , pointer :: shf_pcpmax_out => null()
   real(rkx) , dimension(:,:) , pointer :: shf_pcpavg_out => null()
+  real(rkx) , dimension(:,:) , pointer :: shf_pcprcv_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
   real(rkx) , dimension(:,:) , pointer :: srf_taux_out => null()

@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 61
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nshfvars = 2 + nbase
+  integer(ik4) , parameter :: nshfvars = 3 + nbase
 
   integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 8
@@ -245,6 +245,7 @@ module mod_ncout
   integer(ik4) , parameter :: shf_ps     = 5
   integer(ik4) , parameter :: shf_pcpavg = 6
   integer(ik4) , parameter :: shf_pcpmax = 7
+  integer(ik4) , parameter :: shf_pcprcv = 8
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
@@ -1130,6 +1131,12 @@ module mod_ncout
             .true.,'time: maximum')
           shf_pcpmax_out => v2dvar_shf(shf_pcpmax)%rval
         end if
+        if ( enable_shf_vars(shf_pcprcv) ) then
+          call setup_var(v2dvar_shf,shf_pcprcv,vsize,'prc','kg m-2 s-1', &
+            'Convective Precipitation','convective_precipitation_flux', &
+            .true.,'time: mean')
+          shf_pcprcv_out => v2dvar_shf(shf_pcprcv)%rval
+        end if
 
         outstream(shf_stream)%nvar = countvars(enable_shf_vars,nshfvars)
         allocate(outstream(shf_stream)%ncvars%vlist(outstream(shf_stream)%nvar))
@@ -1306,7 +1313,7 @@ module mod_ncout
             'surface_upwelling_shortwave_flux_in_air',.true.,'time: mean')
           srf_ufsw_out => v2dvar_srf(srf_ufsw)%rval
         end if
-        if ( all(icup > 0) ) then
+        if ( all(icup > 0) .and. .not. ifshf ) then
           if ( enable_srf2d_vars(srf_prcv) ) then
             call setup_var(v2dvar_srf,srf_prcv,vsize,'prc','kg m-2 s-1', &
               'Convective Precipitation','convective_precipitation_flux', &

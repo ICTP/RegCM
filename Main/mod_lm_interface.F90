@@ -990,6 +990,8 @@ module mod_lm_interface
           shf_pcpmax_out = max(shf_pcpmax_out,sum(lms%prcp,1)*rdnnsg)
         if ( associated(shf_pcpavg_out) ) &
           shf_pcpavg_out = shf_pcpavg_out + sum(lms%prcp,1)*rdnnsg
+        if ( associated(shf_pcprcv_out) ) &
+          shf_pcprcv_out = shf_pcprcv_out + lm%cprate*syncro_srf%rw
       end if
       if ( ifsts ) then
         if ( associated(sts_tgmax_out) ) &
