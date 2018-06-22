@@ -23,53 +23,16 @@ module mod_humid
 
   private
 
-  ! numbers
-  real(8) , parameter :: d_zero = 0.0D+00
-  real(8) , parameter :: d_one = 1.0D+00
-  real(8) , parameter :: d_two = 2.0D+00
-  real(8) , parameter :: d_half = 0.50D+00
-  real(8) , parameter :: d_60 = 60.0D+00
-  real(8) , parameter :: d_10 = 1.0D+01
-  real(8) , parameter :: d_r10 = 1.0D-01
   real(8) , parameter :: d_100 = 1.0D+02
-  real(8) , parameter :: d_r100 = 1.0D-02
   real(8) , parameter :: d_1000 = 1.0D+03
-  real(8) , parameter :: d_r1000 = 1.0D-03
 
   ! Low/Hi values
   real(8) , parameter :: minqx   = 1.0D-14
-  real(8) , parameter :: dlowval = 1.0D-30
-  real(8) , parameter :: dhival  = 1.0D+30
-  real(4) , parameter :: slowval = 1.0E-30
-  real(4) , parameter :: shival  = 1.0E+30
-  real(8) , parameter :: dmissval = 1.0D+20
-  real(4) , parameter :: smissval = 1.0E+20
-
-  ! Standard Gravity (m/sec**2) 3rd CGPM
-  real(8) , parameter :: egrav = 9.80665D+00
-
-  ! Boltzman Constant k CODATA 2007
-  real(8) , parameter :: boltzk = 1.3806504D-23
-  ! Avogadro Constant
-  real(8) , parameter :: navgdr = 6.02214129D23
   ! Effective molecular weight of dry air (g/mol)
   real(8) , parameter :: amd = 28.9644D+00
   ! Effective molecular weight of water (g/mol)
   real(8) , parameter :: amw = 18.0153D+00
-  ! Effective molecular weight of ozone (g/mol)
-  real(8) , parameter :: amo = 47.9942D+00
-  ! Effective molecular weight of carbon dioxide (g/mol)
-  real(8) , parameter :: amco2 = 44.01D+00
 
-  real(8) , parameter :: rgasmol = navgdr*boltzk
-  ! Gas constant for dry air in Joules/kg/K
-  real(8) , parameter :: rgas = (rgasmol/amd)*1000.0D+00
-  real(8) , parameter :: rdry = rgas
-
-  ! Specific heat at constant pressure for dry air J/kg/K
-  real(8) , parameter :: cpd = 3.5D+00*rgas
-
-  ! Various utility terms used in calculations
   real(8) , parameter :: tzero = 273.15D+00
 
   ! Ratio of mean molecular weight of water to that of dry air
