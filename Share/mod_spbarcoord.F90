@@ -163,7 +163,7 @@ module mod_spbarcoord
       res = 1
       return
     end if
-    if ( x1%v(1) > x2%v(1) ) then
+    if ( x1%v(1) < x2%v(1) ) then
       res = -1
     end if
     res = 1
