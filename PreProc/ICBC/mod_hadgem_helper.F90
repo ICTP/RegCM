@@ -56,7 +56,7 @@ module mod_hadgem_helper
                 '_r1i1p1_185912-195911.nc'
       end if
     else
-      if ( idate < 2099110100 ) then
+      if ( idate < 2099120100 ) then
         fname = trim(inpglob)//pthsep//'HadGEM2'//pthsep//'SST'// &
                 pthsep//'tos_Omon_HadGEM2-ES_rcp'//ssttyp(4:5)//  &
                 '_r1i1p1_200512-209911.nc'
@@ -134,7 +134,11 @@ module mod_hadgem_helper
           icheck = y*1000000+120100
           if ( inow > icheck ) y = y + 1
           write(d1,'(i0.4,i0.2,i0.2,i0.2)') y-1, 12, 1, 6
-          write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 1, 0
+          if ( d1 == '2099120106' ) then
+            write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2100, 1, 1, 0
+          else
+            write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 1, 0
+          end if
           call assemble_path(hadgem_filename,'RCP'//dattyp(4:5), &
                              havars(6),d1,d2)
         end if
@@ -169,7 +173,11 @@ module mod_hadgem_helper
             icheck = y*1000000+120100
             if ( inow > icheck ) y = y + 1
             write(d1,'(i0.4,i0.2,i0.2,i0.2)') y-1, 12, 1, 6
-            write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 1, 0
+            if ( d1 == '2099120106' ) then
+              write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2100, 1, 1, 0
+            else
+              write(d2,'(i0.4,i0.2,i0.2,i0.2)') y, 12, 1, 0
+            end if
             call assemble_path(hadgem_filename,'RCP'//dattyp(4:5),var,d1,d2)
           end if
         else
@@ -208,12 +216,16 @@ module mod_hadgem_helper
               end if
             end if
             write(d1,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 6
-            mm = mm + 3
-            if ( mm > 12 ) then
-              mm = 3
-              yy = yy + 1
+            if ( d1 == '2099120106' ) then
+              write(d2,'(i0.4,i0.2,i0.2,i0.2)') 2100, 1, 1, 0
+            else
+              mm = mm + 3
+              if ( mm > 12 ) then
+                mm = 3
+                yy = yy + 1
+              end if
+              write(d2,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 0
             end if
-            write(d2,'(i0.4,i0.2,i0.2,i0.2)') yy, mm, 1, 0
             call assemble_path(hadgem_filename,'RCP'//dattyp(4:5),var,d1,d2)
           end if
         end if
