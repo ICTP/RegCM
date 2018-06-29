@@ -39,7 +39,7 @@ module mod_split
 
   real(rkx) , pointer , dimension(:) :: aam
   real(rkx) , pointer , dimension(:) :: an
-  real(rkx) , pointer , dimension(:,:) :: am
+  real(rkx) , pointer , dimension(:,:) :: am , map
   real(rkx) , pointer , dimension(:,:,:) :: uuu , vvv
 
   real(rkx) , pointer , dimension(:,:,:) :: ddsum
@@ -56,6 +56,7 @@ module mod_split
     implicit none
     call getmem1d(aam,1,nsplit,'split:aam')
     call getmem2d(am,1,kz,1,nsplit,'split:am')
+    call getmem2d(map,jce1,jce2,ice1,ice2,'split:map')
     call getmem1d(an,1,nsplit,'split:naam')
     call getmem3d(ddsum,jde1,jde2,ide1,ide2,1,nsplit,'split:ddsum')
     call getmem4d(deld,jde1,jde2,ide1,ide2,1,nsplit,1,3,'split:deld')
@@ -75,7 +76,7 @@ module mod_split
     implicit none
     real(rkx) :: eps , eps1 , fac , pdlog
     integer(ik4) :: i , j , k , l , n , ns
-    real(rkx) :: rnpts , lxps , ltbark , lxms , xmsf
+    real(rkx) :: rnpts , lxps , ltbark , lxms , xmsf , rdx2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spinit'
     integer(ik4) , save :: idindx = 0
@@ -84,6 +85,7 @@ module mod_split
     !
     ! Compute m.
     !
+    rdx2 = d_one/dx2
     do ns = 1 , nsplit
       aam(ns) = nint(dtsec/dtau(ns))
     end do
@@ -98,14 +100,16 @@ module mod_split
       !
       ! compute xps and tbarh for use in vmodes.
       !
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        map(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i))
+      end do
       rnpts = d_one/real((nicross*njcross),rkx)
       lxps = d_zero
       lxms = d_zero
       do i = ice1 , ice2
         do j = jce1 , jce2
-          lxms = lxms + rnpts/(mddom%msfx(j,i)*mddom%msfx(j,i))
-          lxps = lxps + rnpts*sfs%psa(j,i) / &
-                   (mddom%msfx(j,i)*mddom%msfx(j,i))
+          lxms = lxms + rnpts * map(j,i)
+          lxps = lxps + rnpts * sfs%psa(j,i) * map(j,i)
         end do
       end do
       call sumall(lxps,xps)
@@ -115,8 +119,7 @@ module mod_split
         ltbark = d_zero
         do i = ice1 , ice2
           do j = jce1 , jce2
-            ltbark = ltbark + rnpts*atm1%t(j,i,k) / &
-                         (sfs%psa(j,i)*mddom%msfx(j,i)*mddom%msfx(j,i))
+            ltbark = ltbark + rnpts * map(j,i) * atm1%t(j,i,k)/sfs%psa(j,i)
           end do
         end do
         call sumall(ltbark,tbarh(k))
@@ -185,13 +188,12 @@ module mod_split
     ! ( u must be pstar * u ; similarly for v )
     ! ( note: map scale factors have been inverted in model (init) )
     !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          uuu(j,i,k) = atm2%u(j,i,k)*mddom%msfd(j,i)
-          vvv(j,i,k) = atm2%v(j,i,k)*mddom%msfd(j,i)
-        end do
-      end do
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+      map(j,i) = d_one / (mddom%msfx(j,i)*mddom%msfx(j,i))
+    end do
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
+      uuu(j,i,k) = atm2%u(j,i,k)*mddom%msfd(j,i)
+      vvv(j,i,k) = atm2%v(j,i,k)*mddom%msfd(j,i)
     end do
 
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
@@ -201,10 +203,9 @@ module mod_split
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-            dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * &
+            dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * map(j,i) * rdx2 * &
                  (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
-                   vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))/fac
+                   vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
           end do
         end do
       end do
@@ -243,13 +244,15 @@ module mod_split
   !
   subroutine splitf
     implicit none
-    real(rkx) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
+    real(rkx) :: rdx2 , eps , eps1 , fac , gnuam , gnuan , gnuzm
+    real(rkx) :: pdlog , x , y
     integer(ik4) :: i , j , k , l , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'splitf'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    rdx2 = d_one/dx2
     deld(:,:,:,:) = d_zero
     delh(:,:,:,:) = d_zero
     !
@@ -260,24 +263,16 @@ module mod_split
     !
     ! get deld(0), delh(0) from storage
     !
-   do n = 1 , nsplit
-     do i = ide1 , ide2
-       do j = jde1 , jde2
-         deld(j,i,n,1) = dstor(j,i,n)
-         delh(j,i,n,1) = hstor(j,i,n)
-       end do
-     end do
-   end do
-   !
-   ! Divergence manipulations (f)
-   !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          uuu(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
-          vvv(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , n = 1:nsplit )
+      deld(j,i,n,1) = dstor(j,i,n)
+      delh(j,i,n,1) = hstor(j,i,n)
+    end do
+    !
+    ! Divergence manipulations (f)
+    !
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
+      uuu(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
+      vvv(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
     end do
 
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
@@ -293,10 +288,9 @@ module mod_split
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-            deld(j,i,l,3) = deld(j,i,l,3) + zmatxr(l,k) * &
+            deld(j,i,l,3) = deld(j,i,l,3) + zmatxr(l,k) * rdx2 * map(j,i) * &
                (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
-                 vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))/fac
+                 vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
           end do
         end do
       end do
@@ -312,13 +306,9 @@ module mod_split
     !
     ! Divergence manipulations (0)
     !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          uuu(j,i,k) = atm2%u(j,i,k)*mddom%msfd(j,i)
-          vvv(j,i,k) = atm2%v(j,i,k)*mddom%msfd(j,i)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
+      uuu(j,i,k) = atm2%u(j,i,k)*mddom%msfd(j,i)
+      vvv(j,i,k) = atm2%v(j,i,k)*mddom%msfd(j,i)
     end do
 
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
@@ -333,10 +323,9 @@ module mod_split
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-            deld(j,i,l,2) = deld(j,i,l,2) + zmatxr(l,k) * &
+            deld(j,i,l,2) = deld(j,i,l,2) + zmatxr(l,k) * rdx2 * map(j,i) * &
               (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
-                vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))/fac
+                vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))
           end do
         end do
       end do
@@ -416,13 +405,9 @@ module mod_split
     !
     ! put deld(0), delh(0) into storage
     !
-    do n = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          dstor(j,i,n) = deld(j,i,n,2)
-          hstor(j,i,n) = delh(j,i,n,2)
-        end do
-      end do
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , n = 1:nsplit )
+      dstor(j,i,n) = deld(j,i,n,2)
+      hstor(j,i,n) = delh(j,i,n,2)
     end do
     !
     ! split explicit time integration
@@ -479,20 +464,19 @@ module mod_split
 
   subroutine spstep
     implicit none
-    real(rkx) :: dtau2 , fac
+    real(rkx) :: rdx2 , dtau2 , fac
     integer(ik4) :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'spstep'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do n = 1 , nsplit
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          ddsum(j,i,n) = d_zero
-          dhsum(j,i,n) = d_zero
-        end do
-      end do
+
+    rdx2 = d_one/dx2
+
+    do concurrent ( j = jde1:jde2 , i = ide1:ide2 , n = 1:nsplit )
+      ddsum(j,i,n) = d_zero
+      dhsum(j,i,n) = d_zero
     end do
 
     do ns = 1 , nsplit
@@ -504,11 +488,9 @@ module mod_split
       !
       ! below follows Madala (1987)
       !
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          ddsum(j,i,ns) = deld(j,i,ns,n0)
-          dhsum(j,i,ns) = delh(j,i,ns,n0)
-        end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        ddsum(j,i,ns) = deld(j,i,ns,n0)
+        dhsum(j,i,ns) = delh(j,i,ns,n0)
       end do
       !
       ! first step, use forward scheme
@@ -539,22 +521,18 @@ module mod_split
       ! ( u must be pstar * u ; similarly for v )
       ! ( note: map scale factors have been inverted in model (init) )
       !
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
-          vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
-        end do
+      do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 )
+        uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
+        vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
       end do
 
       call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
       call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-          work(j,i,3) = (-uu(j,i+1)+uu(j+1,i+1)-uu(j,i)+uu(j+1,i) &
-                         +vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))/fac
-        end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+        work(j,i,3) = rdx2 * map(j,i) * &
+                (-uu(j,i+1)+uu(j+1,i+1)-uu(j,i)+uu(j+1,i) &
+                 +vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))
       end do
 
       do i = ici1 , ici2
@@ -627,22 +605,18 @@ module mod_split
         ! ( u must be pstar * u ; similarly for v )
         ! ( note: map scale factors have been inverted in model (init) )
         !
-        do i = idi1 , idi2
-          do j = jdi1 , jdi2
-            uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
-            vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
-          end do
+        do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 )
+          uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
+          vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
         end do
 
         call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
         call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
 
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-            work(j,i,3) = (-uu(j,i+1)+uu(j+1,i+1)-uu(j,i)+uu(j+1,i) + &
-                            vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))/fac
-          end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
+          work(j,i,3) = rdx2 * map(j,i) * &
+                  (-uu(j,i+1)+uu(j+1,i+1)-uu(j,i)+uu(j+1,i) + &
+                    vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))
         end do
 
         do i = ici1 , ici2
