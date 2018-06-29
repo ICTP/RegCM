@@ -451,7 +451,7 @@ module mod_lm_interface
     real(rkx) :: tm , dz , dlnp , z1 , z2 , w1 , w2
 #endif
 #ifdef CLM
-    if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act( ) ) then
       r2cdoalb = .true.
     else
       r2cdoalb = .false.

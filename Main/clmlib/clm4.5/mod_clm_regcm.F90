@@ -140,7 +140,7 @@ module mod_clm_regcm
     caldayp1 = yeardayfrac(nextt)
     call orb_decl(real(yearpoint(nextt),rk8),eccen,mvelpp, &
                   lambm0,obliqr,declinp1,eccfp1)
-    if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act() ) then
       if ( debug_level > 3 .and. myid == italk ) then
         write(stdout,*) 'Updating albedo at ',trim(rcmtimer%str())
       end if

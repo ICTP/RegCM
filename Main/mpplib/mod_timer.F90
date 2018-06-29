@@ -264,15 +264,11 @@ module mod_timer
     implicit none
     class(rcm_syncro) , intent(in) :: s
     real(rkx) , optional , intent(in) :: dt
-    integer(ik8) :: t1 , t2 , idt
+    integer(ik8) :: idt
     if ( present(dt) ) then
-      res = .false.
       idt = int(dt,ik8)
-      t1 = s%timer%model_internal_time+idt
-      t2 = s%timer%model_internal_time+s%frq
-      if ( t1 <= t2 ) then
-        res = .true.
-      end if
+      res = (mod(s%timer%model_internal_time+ &
+                 idt+s%timer%model_timestep,s%frq) == 0)
     else
       res = (mod(s%timer%model_internal_time+s%timer%model_timestep,s%frq) == 0)
     end if
