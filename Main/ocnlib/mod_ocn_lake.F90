@@ -58,6 +58,12 @@ module mod_ocn_lake
   integer , public , parameter :: var_hi     = 2
   integer , public , parameter :: var_tlak   = 5
 
+  ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
+  ! with surface as hot as 25.5 degrees.
+  real(rkx) , parameter :: slake_trop = 26.0_rkx
+  real(rkx) , parameter :: blake_trop = 22.0_rkx
+  real(rkx) , parameter :: int_trop = slake_trop - blake_trop
+
   interface lake_fillvar
     module procedure lake_fillvar_real8_1d
     module procedure lake_fillvar_real8_2d
@@ -169,20 +175,18 @@ module mod_ocn_lake
         end if
       else
         ! This needs tuning for tropical lakes.
-        ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
-        ! with surface as hot as 25.5 degrees.
-        tlak(lp,1) = 26.0_rkx
-        tlak(lp,2) = 26.0_rkx
+        tlak(lp,1) = slake_trop
+        tlak(lp,2) = slake_trop
         if ( idep(lp) >= 3 ) then
           if ( idep(lp) <= 20 ) then
-            tlak(lp,3:idep(lp) ) = 26.0_rkx
+            tlak(lp,3:idep(lp) ) = slake_trop
           else
-            tlak(lp,3:20) = 26.0_rkx
+            tlak(lp,3:20) = slake_trop
             do n = 21 , min(39,idep(lp))
-              tlak(lp,n) = 26.0_rkx - real(n-20,rkx)/20.0_rkx*5.0_rkx
+              tlak(lp,n) = slake_trop - real(n-20,rkx)/20.0_rkx*int_trop
             end do
             if ( idep(lp) >= 40 ) then
-              tlak(lp,40:idep(lp) ) = 21.0_rkx
+              tlak(lp,40:idep(lp) ) = blake_trop
             end if
           end if
         end if
@@ -388,7 +392,7 @@ module mod_ocn_lake
       implicit none
       real(rkx) , intent (in) :: ustar , um10 , wc , visa
       real(rkx) , intent (out) :: zo
-      real(rkx) :: cp , charnockog , re , xtq , rt , rq , alph
+      real(rkx) :: cp , charnockog , alph
       ! if surface roughness not provided by wave model
       ! Wave age. The wind here is the mean last N days wind
       cp = 1.2_rkx*um10
