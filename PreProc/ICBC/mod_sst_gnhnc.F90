@@ -359,7 +359,7 @@ module mod_sst_gnhnc
       end where
     else
       call getworkf(2,work2)
-      if ( ssttyp(1:2) == 'E5' ) then
+      if ( ssttyp(1:2) == 'E5' .or. ssttyp(1:2) == 'MP' ) then
         where ( abs(work2-273.15) < 0.001 )
           work2 = 1E+20
         end where
