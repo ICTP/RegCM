@@ -72,6 +72,7 @@ program mksurfdata
   use mod_mklightning
   use mod_mkpopd
   use mod_mkq10soil
+  use mod_mkndep
 #endif
 #ifdef DYNPFT
 #ifdef CN
@@ -132,7 +133,7 @@ program mksurfdata
   integer(ik4) , dimension(npu4d*2) :: iurb4d
 #ifdef CN
   integer(ik4) :: ilightning , ipopden
-  integer(ik4) :: q10
+  integer(ik4) :: q10 , ndep
 #ifdef LCH4
   integer(ik4) :: k , q , v , maxf
   integer(ik4) :: isoilphvar
@@ -746,6 +747,13 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add Q10 long_name')
   istatus = nf90_put_att(ncid, q10, 'units','unitless')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add Q10 units')
+  istatus = nf90_def_var(ncid, 'NDEP',regcm_vartype, idims(7),ndep)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ndep')
+  istatus = nf90_put_att(ncid, ndep, 'long_name', &
+            'Global Nitrogen deposition')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add NDEP long_name')
+  istatus = nf90_put_att(ncid, ndep, 'units','g(N)/m2/yr')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add NDEP units'
 #endif
 
 #ifdef LCH4
@@ -1259,8 +1267,14 @@ program mksurfdata
   call mypack(var2d,gcvar)
   istatus = nf90_put_var(ncid, q10, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write Q10')
-  deallocate(var2d)
   write(stdout,*) 'Created SOIL RESPIRATION informations...'
+  ! ndep nitrogen total deposition
+  call mkndep('mksrf_ndep.nc',xmask,var2d)
+  call mypack(var2d,gcvar)
+  istatus = nf90_put_var(ncid, ndep, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write NDEP')
+  write(stdout,*) 'Created NITROGEN Deposition informations...'
+  deallocate(var2d)
 #endif
 
 #ifdef LCH4

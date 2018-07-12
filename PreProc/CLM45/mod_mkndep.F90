@@ -30,7 +30,7 @@ module mod_mkndep
 
   public :: mkndep
 
-  character(len=16) , parameter :: varname = 'ndep'
+  character(len=16) , parameter :: varname = 'NDEP_year'
 
   real(rkx) :: vmin = 0.0_rkx
 
