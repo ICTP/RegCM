@@ -30,13 +30,19 @@ program regcm
   use mod_dynparam
   use mod_regcm_interface
   use mod_runparams
+#ifndef MPI_SERIAL
   use mpi
+#endif
 
   implicit none
 
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer(ik4) :: ierr , iprov
+#ifdef MPI_SERIAL
+  include 'mpif.h'
+  integer(ik4) , parameter :: mpi_thread_single = 0
+#endif
 !
 !**********************************************************************
 !

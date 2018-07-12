@@ -273,8 +273,8 @@ module mod_dynparam
   !####################### MPI parameters ################################
 
   integer(ik4) :: mycomm
-  integer(ik4) :: nproc
-  integer(ik4) :: myid
+  integer(ik4) :: nproc , nprocshm
+  integer(ik4) :: myid , myidshm
   integer(ik4) :: njxcpus , niycpus
   integer(ik4) :: iyp , jxp
   integer(ik4) :: iypsg , jxpsg

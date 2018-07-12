@@ -29,7 +29,9 @@ module mod_mppparam
   use mod_stdio
   use netcdf
   use mod_regcm_types
+#ifndef MPI_SERIAL
   use mpi
+#endif
 
   implicit none
 
@@ -49,9 +51,11 @@ module mod_mppparam
   integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
 
 #ifdef MPI_SERIAL
+  include 'mpif.h'
   integer(ik4) mpi_status_ignore(mpi_status_size)
   integer(ik4) mpi_statuses_ignore(mpi_status_size,4)
   integer(ik4) , parameter :: mpi_proc_null = -2
+  integer(ik4) , parameter :: mpi_comm_type_shared = 0
   interface mpi_sendrecv
     module procedure mpi_sendrecvr8
     module procedure mpi_sendrecvr4
@@ -61,7 +65,10 @@ module mod_mppparam
   public :: set_nproc , broadcast_params
 
   integer(ik4) :: cartesian_communicator
+  integer(ik4) :: node_local_communicator
   integer(ik4) :: ccid , ccio
+
+  character(len=mpi_max_processor_name) :: processor_name
 
   integer(ik4) , public :: ncout_mpi_info = mpi_info_null
 
@@ -531,6 +538,11 @@ module mod_mppparam
   contains
 
 #ifdef MPI_SERIAL
+
+  subroutine mpi_comm_split_type(comm, split_type, key, info, newcomm, ierror)
+    implicit none
+    integer(ik4) :: comm , split_type , key , info , newcomm , ierror
+  end subroutine mpi_comm_split_type
 
   subroutine mpi_sendrecvr4(sendbuf, sendcount, sendtype, dest, sendtag, &
                             recvbuf, recvcount, recvtype, source, recvtag, &
@@ -1156,6 +1168,20 @@ module mod_mppparam
       call mpi_cart_coords(cartesian_communicator,ccid,2,ma%location,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_coords error.')
+      end if
+      call mpi_comm_split_type(cartesian_communicator,mpi_comm_type_shared, &
+                               0, mpi_info_null,node_local_communicator, &
+                               mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_split_type error.')
+      end if
+      call mpi_comm_rank(node_local_communicator,myidshm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
+      end if
+      call mpi_comm_size(node_local_communicator, nprocshm, mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_size error.')
       end if
 
       if ( myid == iocpu ) ccio = ccid
