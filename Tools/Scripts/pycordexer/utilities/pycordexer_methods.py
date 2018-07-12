@@ -479,7 +479,7 @@ class InterpolateHeight(Filter):
             )
             ptop_array = np.array(
                 get_var_with_name(ptop_names, f)[:],
-                dtype=DATATYPE_MAIN,
+                dtype=DATATYPE_AUXILIARIES,
             )
 
             LOGGER.debug(
@@ -1515,7 +1515,10 @@ class ComputeGeopotentialHeight(ActionStarter):
             for v in needed_vars:
                 if 'time' not in v.dimensions:
                     LOGGER.debug('Reading data of variable %s', v.name)
-                    v_data = np.array(v[:], dtype=DATATYPE_MAIN)
+                    if v.name == 'ptop':
+                        v_data = np.array(v[:], dtype=DATATYPE_AUXILIARIES)
+                    else:
+                        v_data = np.array(v[:], dtype=DATATYPE_MAIN)
                     no_time_vars_data[v.name] = v_data
 
             for t in range(time_steps):

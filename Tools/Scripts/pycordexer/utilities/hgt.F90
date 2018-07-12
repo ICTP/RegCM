@@ -31,7 +31,8 @@ module mod_hgt
   real(4) , parameter :: lrate = 0.00649
 
   real(4) , parameter :: bltop = 0.960
-  real(4) , parameter :: rovg = rgas/egrav
+  ! real(4) , parameter :: rovg = rgas/egrav
+  real(4) , parameter :: rovg = 29.2716599
 
   public :: height , mslp , gs_filter
 
