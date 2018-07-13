@@ -1056,7 +1056,7 @@ module mod_clm_initimeconst
 #endif
 
 #ifdef CN
-       q10(c) = q10_in(g)
+       q10(c) = min(max(q10_in(g),1.0_rk8),3.0_rk8)
        ndep(c) = ndep_in(g)
 #endif
 
@@ -1501,6 +1501,7 @@ module mod_clm_initimeconst
 
     ! initialize the CN variables for special landunits, including lake points
     call CNiniSpecial()
+
 #endif
     deallocate(gdp,peatf,abm) ! F. Li and S. Levis
     deallocate(soic2d,sand3d,clay3d,gti,organic3d)

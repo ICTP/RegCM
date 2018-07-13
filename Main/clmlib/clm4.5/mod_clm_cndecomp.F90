@@ -223,7 +223,6 @@ module mod_clm_cndecomp
              decomp_cpools_vr(c,j,cascade_donor_pool(k)) * &
              decomp_k(c,j,cascade_donor_pool(k)) * &
              pathfrac_decomp_cascade(c,j,k)
-
            if ( .not. &
              floating_cn_ratio_decomp_pools(cascade_receiver_pool(k)) ) then
              !! not transition of cwd to litter
