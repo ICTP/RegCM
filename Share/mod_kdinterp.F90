@@ -809,7 +809,7 @@ module mod_kdinterp
     allocate(w(np))
     do n = 1 , np
       rx = sqrt(r(n)%dis/rmax)
-      if ( rx < dlowval ) then
+      if ( rx < 1.0e-4_rkx ) then
         np = 1
         deallocate(w)
         allocate(w(1))
@@ -838,7 +838,7 @@ module mod_kdinterp
 
     ! Check perfect match
     do n = 1 , np
-      if ( r(n)%dis < dlowval ) then
+      if ( r(n)%dis < 1.0e-4_rkx ) then
         np = 1
         allocate(w(1))
         w(1)%i = (r(n)%idx-1)/n2 + 1

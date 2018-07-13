@@ -320,7 +320,7 @@ module mod_nest
       icount(1) = jx_in
       icount(2) = iy_in
       icount(3) = 1
-      istatus = nf90_get_var(ncinp, ivarid, p0_in,istart,icount)
+      istatus = nf90_get_var(ncinp, ivarid, p0_in, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ps read error')
       pstar0 = p0_in - ptop_in
@@ -375,7 +375,8 @@ module mod_nest
 
     type(rcm_time_and_date) , intent(in) :: idate
 
-    integer(ik4) :: i , j , k , istatus , ivarid , idimid , irec
+    integer(ik4) :: i , j , k , istatus , ivarid , idimid , irec , ip
+    real(rkx) :: maxps
     integer(ik4) , dimension(4) :: istart , icount
     type(rcm_time_and_date) :: imf
     logical :: lspch
@@ -569,6 +570,15 @@ module mod_nest
     ! In this module, all pressures are in Pascal.
     !
     if ( oidyn == 1 ) then
+      pstar0 = ps - ptop_in
+      maxps = maxval(pstar0)
+      do ip = 1 , np
+        plev(ip) = maxps*sigma_in(ip) + ptop_in
+      end do
+      do k = 1 , np
+        sigmar(k) = plev(k)/plev(np)
+      end do
+      pss = plev(np)
 !$OMP SECTIONS
 !$OMP SECTION
       call htsig_o(t,z1,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in)
