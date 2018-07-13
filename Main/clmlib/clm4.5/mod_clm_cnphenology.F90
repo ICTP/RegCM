@@ -1743,12 +1743,12 @@ module mod_clm_cnphenology
     minplantjday(:,:) = bigint
     maxplantjday(:,:) = bigint
     do n = npcropmin , npcropmax
-      minplantjday(n,inNH) = int( get_calday( mnNHplantdate(n), 0 ) )
-      maxplantjday(n,inNH) = int( get_calday( mxNHplantdate(n), 0 ) )
+      minplantjday(n,inNH) = int( get_calday( mnNHplantdate(n)*100, 0 ) )
+      maxplantjday(n,inNH) = int( get_calday( mxNHplantdate(n)*100, 0 ) )
     end do
     do n = npcropmin , npcropmax
-      minplantjday(n,inSH) = int( get_calday( mnSHplantdate(n), 0 ) )
-      maxplantjday(n,inSH) = int( get_calday( mxSHplantdate(n), 0 ) )
+      minplantjday(n,inSH) = int( get_calday( mnSHplantdate(n)*100, 0 ) )
+      maxplantjday(n,inSH) = int( get_calday( mxSHplantdate(n)*100, 0 ) )
     end do
 
     ! Figure out what hemisphere each PFT is in
