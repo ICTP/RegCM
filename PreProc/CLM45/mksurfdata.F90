@@ -753,7 +753,7 @@ program mksurfdata
             'Global Nitrogen deposition')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add NDEP long_name')
   istatus = nf90_put_att(ncid, ndep, 'units','g(N)/m2/yr')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add NDEP units'
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add NDEP units')
 #endif
 
 #ifdef LCH4
