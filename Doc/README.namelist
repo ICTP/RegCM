@@ -173,7 +173,7 @@
  enable_rad_vars = 28*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
  enable_sts_vars = 18*.true., ! Mask to eventually disable variables STS
- enable_shf_vars = 7*.true.,  ! Mask to eventually disable variables SHF
+ enable_shf_vars = 8*.true.,  ! Mask to eventually disable variables SHF
  enable_lak_vars = 18*.true., ! Mask to eventually disable variables LAK
  enable_opt_vars = 20*.true., ! Mask to eventually disable variables OPT
  enable_che_vars = 26*.true., ! Mask to eventually disable variables CHE
