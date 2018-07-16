@@ -853,6 +853,258 @@ class Thin(Filter):
             needs_time_bounds=prev_result.needs_time_bounds,
         )
 
+class ComputeMaximum(Filter):
+    """
+    Compute the maximum of the variable using a given time-step as interval.
+
+    Note that if the timestep is the same as the actual one (compared with an
+    epsilon to avoid floating-point comparison), the same input ``Variable`` is
+    returned.
+
+    Parameters:
+
+        new_time_step (float): the new time-step to apply to the variable.
+    """
+
+    def __init__(self, new_time_step):
+        self.new_time_step = float(new_time_step)
+
+    def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
+                 corrflag, cordex_dir):
+        if not prev_result.depends_on_time:
+            raise ValueError('Variable {} does not depend on time'.format(
+                prev_result.name
+            ))
+
+        current_step = prev_result.time_step_size
+        if abs(current_step - self.new_time_step) < 0.01:
+            LOGGER.debug(
+                'No maximum needed (the timestep is already %s hours)',
+                self.new_time_step
+            )
+            return prev_result
+
+        LOGGER.debug(
+            'Trying to create maximums of length %s from a variable that has a '
+            'value every %s hours',
+            self.new_time_step,
+            current_step,
+        )
+
+        if current_step > self.new_time_step:
+            raise ValueError(
+                'Trying to create maximums of length {} from a variable that '
+                'has a value every {} hours'.format(
+                    self.new_time_step,
+                    current_step
+                )
+            )
+
+        maximum_step = self.new_time_step / current_step
+        if abs(maximum_step - int(maximum_step)) > 0.1:
+            raise ValueError(
+                'The old time step ({}h) and the new one ({}h) are not '
+                'multiples'.format(current_step, self.new_time_step)
+            )
+        maximum_step = int(maximum_step)
+        LOGGER.debug(
+            'A new value will be the maximum of %s old values',
+            maximum_step
+        )
+
+        LOGGER.debug('Computing the starting point for the maximum')
+        # This is a tricky point. Let say that we have timesteps every 6 hours
+        # and that we want to perform a daily means. Ideally, we would like to
+        # have times at the hours 3, 9, 15 and 21. In this case, we simply have
+        # to perform the mean among all four timesteps. If the simulation
+        # starts between two days, otherwise, we could have something like
+        # 15, 21, 3, 9, 15, 21, ...
+        # In that case, we have to discard the first two values. Therefore, the
+        # variable starting_point will assume the value 2.
+        # Finally, there is another problem to address.
+        # If the values do not refer to some temporal means but just to some
+        # temporal instant (and, therefore, they do not have temporal bounds),
+        # the values could be like 6, 12, 18, 0, ...
+        # In this case, we will subtract 3 to all the time steps. This allows
+        # to have a correct mean considering 00.00 as the last point of one day
+        # (and not as the first point of the following day)
+        starting_point = 0
+
+        if prev_result.needs_time_bounds:
+            corr_factor = 0
+        else:
+            corr_factor = -prev_result.time_step_size / 2.
+        LOGGER.debug(
+            'Using a correction factor for times of value %s',
+            corr_factor
+        )
+
+        for i in range(maximum_step):
+            LOGGER.debug('Trying starting from %s', i)
+            j = i + maximum_step
+            times_to_maximum = prev_result.times[i:j] + corr_factor
+            time_mean = np.mean(times_to_maximum)
+
+            start_interval = time_mean - (self.new_time_step / 2)
+            if start_interval % maximum_step == 0:
+                LOGGER.debug('Starting from %s', i)
+                starting_point = i
+                break
+            else:
+                LOGGER.debug('Trying again!')
+        else:
+            LOGGER.warning('Unable to find a correct starting point for '
+                           'maximums. Starting from 0')
+
+        maximums_num = (prev_result.times.size - starting_point) // maximum_step
+        LOGGER.debug(
+            'There are %s time step with a frequency of %s. The means start '
+            'the timestep number %s. Therefore, %s means will be computed',
+            prev_result.times.size,
+            prev_result.frequency,
+            starting_point,
+            maximums_num
+        )
+
+        LOGGER.debug('Looking for a dimension called "time"')
+        dims_names = [d[0] for d in prev_result.dimensions]
+        time_index = dims_names.index('time')
+        LOGGER.debug('Time is the dimension number %s', time_index)
+
+        LOGGER.debug('Computing the new dimensions of the variables')
+        new_dimensions = copy(prev_result.dimensions)
+        new_dimensions[time_index] = ('time', maximums_num)
+        LOGGER.debug('The new dimensions will be %s', new_dimensions)
+
+        LOGGER.debug('Allocating space for the new time vector')
+        new_times = np.empty(maximums_num, dtype=prev_result.times.dtype)
+
+        LOGGER.debug('Allocating space for the new data of the variable')
+        new_data_array = np.empty(
+            [d[1] for d in new_dimensions],
+            dtype=DATATYPE_MAIN,
+        )
+
+        LOGGER.debug('Preparing a mask to hide NaN values')
+        new_data_mask = np.zeros(
+            [d[1] for d in new_dimensions],
+            dtype=np.bool
+        )
+
+        shape_template = [slice(None) for _ in prev_result.dimensions]
+        LOGGER.debug('Computing means')
+        with prev_result.data:
+            for i in range(maximums_num):
+                start = starting_point + maximum_step * i
+                end = start + maximum_step
+                LOGGER.debug(
+                    'Performing mean of timesteps from %s to %s',
+                    start,
+                    end
+                )
+                new_times[i] = np.mean(
+                    prev_result.times[start:end] + corr_factor
+                )
+
+                old_data_slice = shape_template[:]
+                old_data_slice[time_index] = slice(start, end)
+                new_data_slice = shape_template[:]
+                new_data_slice[time_index] = i
+
+                prev_data = prev_result.data(old_data_slice)
+                new_data_array[new_data_slice] = np.ma.maximum(
+                    prev_data,
+                    axis=time_index
+                )
+
+                if is_masked(prev_data):
+                    new_data_mask[new_data_slice] = np.prod(
+                        prev_data.mask,
+                        axis=time_index
+                    )
+
+        if np.any(new_data_mask):
+            LOGGER.debug(
+                'Converting array in a masked array to remove invalid '
+                'values'
+            )
+            new_data_array = np.ma.masked_array(
+                new_data_array,
+                new_data_mask
+            )
+
+        var_data = MemoryData(new_data_array)
+
+        LOGGER.debug('Going to save the variable with name %s', prev_result.name)
+
+        return Variable(
+            name=prev_result.name,
+            data=var_data,
+            dimensions=new_dimensions,
+            attributes=prev_result.attributes,
+            times=new_times,
+            times_attributes=prev_result.times_attributes,
+            auxiliary_vars=prev_result.auxiliary_variables,
+            needs_time_bounds=True,
+        )
+
+
+
+class IfNeededMaximumAndSave(Filter):
+    """
+    Compute the maximum  of the variable in a new interval, and save it to
+    disk if needed.
+
+    Parameters:
+
+        new_time_step (float): the new time-step to apply to the variable.
+
+        var_name (string): the name of the variable to extract from the file.
+
+        fill_value (float, optional): if provided, fill the variable with this
+            value.
+
+        new_attributes (dict ``string -> object``, optional): if provided,
+            contains attributes that can override those from the previous
+            Method object. netCDF takes care of applying the object value
+            correctly.
+    """
+
+    def __init__(self, new_time_step, var_name=None, fill_value=None,
+                 new_attributes=None):
+        self.__maximum = ComputeMaximum(new_time_step)
+        self.__savedisk = SaveVariableToDisk(var_name, fill_value,
+                                             new_attributes)
+
+    def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
+                 corrflag, cordex_dir):
+        LOGGER.debug('Performing average')
+        averaged_var = self.__maximum(
+            prev_result,
+            regcm_file,
+            regcm_file_path,
+            simulation,
+            corrflag,
+            cordex_dir
+        )
+
+        # Since Variable doesn't provide an __eq__ method, Python defaults to
+        # use the identity equality. Moreover, the average is a function that
+        # may return the same identical object in case no average operation
+        # has to be performed (if the time-step is the same as the one
+        # requested).
+        if averaged_var is not prev_result:
+            LOGGER.debug('Saving on disk')
+            self.__savedisk(
+                averaged_var,
+                regcm_file,
+                regcm_file_path,
+                simulation,
+                corrflag,
+                cordex_dir
+            )
+
+        return prev_result
 
 class IfNeededThinAndSave(Filter):
     """

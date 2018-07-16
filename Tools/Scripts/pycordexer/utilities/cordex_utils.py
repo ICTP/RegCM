@@ -380,6 +380,10 @@ class RegcmOutputFile(object):
             LOGGER.debug('Variable "rts" found: the type is "RAD"')
             return 'RAD'
 
+        if check_variable('prhmax'):
+            LOGGER.debug('Variable "prhmax" found: the type is "SHF"')
+            return 'SHF'
+
         LOGGER.debug('No known variable found: assuming SRF')
         return 'SRF'
 

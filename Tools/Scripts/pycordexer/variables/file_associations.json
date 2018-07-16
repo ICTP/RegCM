@@ -1,5 +1,14 @@
 [
   {
+    "name":"SHF",
+    "vars":[
+      "pr",
+      "prc",
+      "prhmax"
+    ],
+    "mask":"_SHF\\.\\d+\\.[nN][cC]$"
+  },
+  {
     "name":"SRF",
     "vars":[
       "tas",
