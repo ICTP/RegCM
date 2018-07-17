@@ -47,20 +47,22 @@ module mod_noresm_helper
     character(len=8) :: d1 , d2
     integer(ik4) :: y , m , d , h
     call split_idate(idate,y,m,d,h)
-    if ( y == 2006 .and. m == 1 ) then
-      write(d1,'(i0.4,i0.2,i0.2)') y, 1, 2
+    if ( y == 2006 ) then
+      fname = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'SST'// &
+              pthsep//'tos_day_NorESM1-M_historicalExt'// &
+              '_r1i1p1_20060101-20061231.nc'
     else
       write(d1,'(i0.4,i0.2,i0.2)') y, 1, 1
-    end if
-    write(d2,'(i0.4,i0.2,i0.2)') y, 12, 31
-    if ( .not. date_in_scenario(idate,5,.true.) ) then
-      fname = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'SST'// &
-              pthsep//'tos_day_NorESM1-M_historical'// &
-              '_r1i1p1_'//d1//'-'//d2//'.nc'
-    else
-      fname = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'SST'// &
-              pthsep//'tos_day_NorESM1-M_rcp'//ssttyp(4:5)//  &
-              '_r1i1p1_'//d1//'-'//d2//'.nc'
+      write(d2,'(i0.4,i0.2,i0.2)') y, 12, 31
+      if ( .not. date_in_scenario(idate,5,.true.) ) then
+        fname = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'SST'// &
+                pthsep//'tos_day_NorESM1-M_historical'// &
+                '_r1i1p1_'//d1//'-'//d2//'.nc'
+      else
+        fname = trim(inpglob)//pthsep//'NorESM1-M'//pthsep//'SST'// &
+                pthsep//'tos_day_NorESM1-M_rcp'//ssttyp(4:5)//  &
+                '_r1i1p1_'//d1//'-'//d2//'.nc'
+      end if
     end if
   end subroutine find_noresm_sst
 
