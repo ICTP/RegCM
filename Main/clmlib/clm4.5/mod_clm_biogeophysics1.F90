@@ -598,7 +598,11 @@ module mod_clm_biogeophysics1
       z0m(p)    = z0mr(ivt(p)) * htop(p)
       displa(p) = displar(ivt(p)) * htop(p)
 
-      z0mv(p)   = z0m(p)
+      if ( ityplun(l) == isturb ) then
+        z0mv(p) = z_0_town(l) + z_d_town(l)
+      else
+        z0mv(p) = z0m(p)
+      end if
       z0hv(p)   = z0mv(p)
       z0qv(p)   = z0mv(p)
     end do
