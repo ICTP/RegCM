@@ -37,6 +37,12 @@ module mod_savefile
 
   private
 
+#ifndef QUAD_PRECISION
+  integer , parameter :: wrkp = rk8
+#else
+  integer , parameter :: wrkp = rk16
+#endif
+
   public :: allocate_mod_savefile
   public :: read_savefile
   public :: write_savefile
@@ -333,15 +339,22 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
       if ( debug_level > 0 ) then
         ! Do no give any error. User may have increased debug just now.
-        rtmp = 0.0_rk8
         ncstatus = nf90_get_att(ncid,nf90_global,'dryini',rtmp)
-        dryini = rtmp
+        if ( ncstatus == nf90_noerr ) then
+          dryini = real(rtmp,wrkp)
+        else
+          dryini = 0.0_wrkp
+        end if
         ncstatus = nf90_get_att(ncid,nf90_global,'watini',rtmp)
-        watini = rtmp
-        dryerror = rtmp
+        if ( ncstatus == nf90_noerr ) then
+          watini = real(rtmp,wrkp)
+        else
+          watini = 0.0_wrkp
+        end if
         ncstatus = nf90_get_att(ncid,nf90_global,'dryerror',dryerror)
-        waterror = rtmp
+        if ( ncstatus /= nf90_noerr ) dryerror = 0.0_rk8
         ncstatus = nf90_get_att(ncid,nf90_global,'waterror',waterror)
+        if ( ncstatus /= nf90_noerr ) waterror = 0.0_rk8
       end if
       idatex = int10d
       call setcal(idatex,ical)

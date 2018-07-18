@@ -468,8 +468,17 @@ module mod_bats_common
       call l2c_ss(lndcomm,rib,lms%br)
       call l2c_ss(lndcomm,cgrnds,lms%rah1)
       call l2c_ss(lndcomm,cdrx,lms%ram1)
-      lms%rah1 = d_one/lms%rah1
-      lms%ram1 = d_one/lms%ram1
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            if ( lm%ldmsk1(n,j,i) == 1 ) then
+              lms%rah1(n,j,i) = d_one/lms%rah1(n,j,i)
+              lms%ram1(n,j,i) = d_one/lms%ram1(n,j,i)
+            end if
+          end do
+        end do
+      end do
 
       do i = ilndbeg , ilndend
         fracv = sigf(i)

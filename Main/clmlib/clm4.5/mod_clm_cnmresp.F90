@@ -170,16 +170,18 @@ module mod_clm_cnmresp
       end if
     end do
 
+   call p2c(num_soilc,filter_soilc,q10m,col_q10m)
+
+   col_q10m = max(1.0_rkx,min(3.0_rkx,col_q10m))
+
    ! column loop to calculate temperature factors in each soil layer
     do j = 1 , nlevgrnd
       do fc = 1 , num_soilc
         c = filter_soilc(fc)
-
         ! calculate temperature corrections for each soil layer, for use in
         ! estimating fine root maintenance respiration with depth
         ! samy : to calculate q10m at column level for soil temperature
         ! correction
-        call p2c(num_soilc,filter_soilc,q10m,col_q10m)
         tcsoi(c,j) = col_q10m(c)**((t_soisno(c,j)-tfrz - 20.0_rk8)/10.0_rk8)
       end do
     end do

@@ -175,6 +175,9 @@ module mod_split
     !
     ! If a restart run, do not recalculate the hstor/dstor
     !
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+      map(j,i) = d_one / (mddom%msfx(j,i)*mddom%msfx(j,i))
+    end do
     if ( ifrest ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
@@ -188,9 +191,6 @@ module mod_split
     ! ( u must be pstar * u ; similarly for v )
     ! ( note: map scale factors have been inverted in model (init) )
     !
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-      map(j,i) = d_one / (mddom%msfx(j,i)*mddom%msfx(j,i))
-    end do
     do concurrent ( j = jde1:jde2 , i = ide1:ide2 , k = 1:kz )
       uuu(j,i,k) = atm2%u(j,i,k)*mddom%msfd(j,i)
       vvv(j,i,k) = atm2%v(j,i,k)*mddom%msfd(j,i)
