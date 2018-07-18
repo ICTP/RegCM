@@ -33,7 +33,7 @@ module mod_mkch4topm
   integer , parameter :: nlch4 = 4
 
   character(len=16) , parameter , dimension(nlch4):: varname = &
-          [ 'K_PAR' , 'XM_PAR' , 'V_PAR', 'MAXF' ]
+          [ 'K_PAR ' , 'XM_PAR' , 'V_PAR ', 'MAXF  ' ]
 
   contains
 
