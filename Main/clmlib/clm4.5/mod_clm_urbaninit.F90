@@ -76,7 +76,7 @@ module mod_clm_urbaninit
         frontal_ai = (1._rk8 - plan_ai) * canyon_hwr(l)
 
         ! Adjust frontal area index for different building configuration
-        frontal_ai = frontal_ai * sqrt(1/build_lw_ratio) * sqrt(plan_ai)
+        frontal_ai = frontal_ai * sqrt(1.0_rk8/build_lw_ratio) * sqrt(plan_ai)
 
         ! Calculate displacement height
 
