@@ -2814,10 +2814,17 @@ module mod_clm_pftdyn
     integer(ik4)  :: begp,endp    ! beg/end indices for land pfts
     character(len=32) :: subname='pftwt_init' ! subroutine name
     type(pft_type), pointer :: pptr           ! ponter to pft derived subtype
+    integer(ik4) :: year  ! year (0, ...) for nstep+1
+    integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
+    integer(ik4) :: day   ! day of month (1, ..., 31) for nstep+1
+    integer(ik4) :: sec   ! seconds into current date for nstep+1
 
     pptr => clm3%g%l%c%p
 
     call get_proc_bounds(begp=begp,endp=endp)
+
+    call curr_date(nextdate, year, mon, day, sec)
+    ndpy = yeardays(year,nextdate%calendar)
 
     allocate(wtcol_old(begp:endp),stat=ier)
     if (ier /= 0) then
@@ -2877,7 +2884,7 @@ module mod_clm_pftdyn
       g = pptr%gridcell(p)
       l = pptr%landunit(p)
 
-      if (lptr%itype(l) == istsoil .and. lptr%wtgcell(l) > 0._rk8) then
+      if ( lptr%itype(l) == istsoil .and. lptr%wtgcell(l) > 0._rk8 ) then
         ! CNDV incompatible with dynLU
         wtcol_old(p)    = pptr%wtcol(p)
         pptr%wtcol(p)   = pptr%pdgvs%fpcgrid(p) + &
@@ -2885,7 +2892,8 @@ module mod_clm_pftdyn
         pptr%wtlunit(p) = pptr%wtcol(p)
         pptr%wtgcell(p) = pptr%wtcol(p) * lptr%wtgcell(l)
 
-        if ( mon==1 .and. day==1 .and. sec<=dtsrf .and. rcmtimer%integrating( ) ) then
+        if ( mon==1 .and. day==1 .and. sec < dtsrf .and. &
+             rcmtimer%lcount > 1 ) then
           pptr%pdgvs%fpcgridold(p) = pptr%pdgvs%fpcgrid(p)
         end if
       end if

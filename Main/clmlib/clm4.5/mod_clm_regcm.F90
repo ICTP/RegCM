@@ -235,7 +235,7 @@ module mod_clm_regcm
   subroutine atmosphere_to_land(lm)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
-    integer(ik4) :: begg , endg , i
+    integer(ik4) :: begg , endg , i , iy
     real(rkx) :: satq , satp
 
     call get_proc_bounds(begg,endg)
@@ -291,13 +291,13 @@ module mod_clm_regcm
 
     ! interface chemistry / surface
 
+    iy = max(1850,min(2100,rcmtimer%year))
+
     if ( ichem /= 1 ) then
-      clm_a2l%forc_pco2 = cgas(igh_co2,rcmtimer%year) * &
-                     1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
 ! samy
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,rcmtimer%year) * &
-                     1.e-9_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       !clm_a2l%forc_ndep = 6.34e-5_rk8
       if ( use_c13 ) then
@@ -310,12 +310,10 @@ module mod_clm_regcm
       !
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
-      clm_a2l%forc_pco2 = cgas(igh_co2,rcmtimer%year) * &
-                     1.e-6_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
 ! samy
 #ifdef LCH4
-      clm_a2l%forc_pch4 = cgas(igh_ch4,rcmtimer%year) * &
-                     1.e-9_rk8*clm_a2l%forc_psrf
+      clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       if ( use_c13 ) then
        ! C13O2 partial pressure (Pa)
