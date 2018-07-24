@@ -42,6 +42,8 @@ module mod_spbarcoord
     real(rkx) , dimension(3) :: v
   end type vpoint
 
+  real(rkx) , dimension(3) :: centroid
+
   interface
     subroutine qsort(array,elem_count,elem_size,compare) bind(C,name="qsort")
       import
@@ -66,6 +68,16 @@ module mod_spbarcoord
     real(rkx) , dimension(np) :: tansum
     real(rkx) :: norm
     integer(ik4) :: i , im1
+
+    ! Compute ordering centroid
+
+    centroid = d_zero
+    do i = 1 , np
+      centroid(1) = centroid(1) + v(i,1)
+      centroid(2) = centroid(2) + v(i,2)
+      centroid(3) = centroid(3) + v(i,3)
+    end do
+    centroid = centroid / real(np,rkx)
 
     call set_clockwise_order
     call compute_angles
@@ -126,9 +138,18 @@ module mod_spbarcoord
         a = acos(a)
       end function angle_between
 
+      subroutine vecprod(x,y,z)
+        implicit none
+        real(rkx) , dimension(3) , intent(in) :: x , y
+        real(rkx) , dimension(3) , intent(out) :: z
+        z(1) = x(2)*y(3) - x(3)*y(2)
+        z(2) = x(3)*y(1) - x(1)*y(3)
+        z(3) = x(1)*y(2) - x(2)*y(1)
+      end subroutine vecprod
+
       subroutine compute_angles
         implicit none
-        real(rkx) :: pn , tmp1 , di , pn2 , dip , vin , vipn , vvipn2 , safe
+        real(rkx) , dimension(3) :: vp1 , vp2
         integer(ik4) :: ip
         do i = 1 , np
           theta(i) = angle_between(p,voc(i)%v)
@@ -136,17 +157,9 @@ module mod_spbarcoord
         do i = 1 , np
           ip = i+1
           if ( ip > np ) ip = 1
-          pn2 = norma2(p)
-          pn = sqrt(pn2)
-          di = pn * tan(theta(i))
-          dip = pn * tan(theta(ip))
-          tmp1 = angle_between(voc(i)%v,voc(ip)%v)
-          vin = sqrt(di*di+pn2)
-          vipn = sqrt(dip*dip+pn2)
-          vvipn2 = (vipn*sin(tmp1))**2+(vin-vipn*cos(tmp1))**2
-          safe = 0.5_rkx*(dip*dip+di*di-vvipn2)/(dip*di)
-          safe = max(-d_one,min(d_one,safe))
-          alpha(i) = acos(safe)
+          call vecprod(p,voc(i)%v,vp1)
+          call vecprod(p,voc(ip)%v,vp2)
+          alpha(i) = angle_between(vp1,vp2)
         end do
       end subroutine compute_angles
 
@@ -155,18 +168,34 @@ module mod_spbarcoord
   integer(c_int) function compare(x1,x2) result(res) bind(C)
     implicit none
     type(vpoint) , intent(in) :: x1 , x2
-    if ( x1%v(3) > x2%v(3) ) then
-      res = -1
-      return
-    end if
-    if ( x1%v(3) < x2%v(3) ) then
-      res = 1
-      return
-    end if
-    if ( x1%v(1) < x2%v(1) ) then
-      res = -1
-    end if
-    res = 1
+    real(rkx) , dimension(3) :: p1 , p2 , p3 , n
+
+    call vecdiff(x1%v,centroid,p1)
+    call vecdiff(x2%v,x2%v,p2)
+
+    n(1) = p1(2)*p2(3) - p1(3)*p2(2)
+    n(2) = p1(3)*p2(1) - p1(1)*p2(3)
+    n(3) = p1(1)*p2(2) - p1(2)*p2(1)
+
+    call vecdiff(x2%v,centroid,p2)
+
+    p3(1) = p1(2)*p2(3) - p1(3)*p2(2)
+    p3(2) = p1(3)*p2(1) - p1(1)*p2(3)
+    p3(3) = p1(1)*p2(2) - p1(2)*p2(1)
+
+    res = -((n(1)*p3(1) + n(2)*p3(2) + n(3)*p3(3)))
+
+    contains
+
+    subroutine vecdiff(a,b,c)
+      implicit none
+      real(rkx) , dimension(3) , intent(in) :: a , b
+      real(rkx) , dimension(3) , intent(out) :: c
+      c(1) = a(1) - b(1)
+      c(2) = a(2) - b(2)
+      c(3) = a(3) - b(3)
+    end subroutine vecdiff
+
   end function compare
 
 end module mod_spbarcoord
