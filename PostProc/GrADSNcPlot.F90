@@ -798,9 +798,15 @@ program ncplot
                     'Close file error')
   end if
 
-  command = 'grads -l -c '//char(39)//'open '//trim(tmpctl)//char(39)
+  open(newunit=ip1, file='temp.gs', form='formatted', status='replace')
+  write(ip1,*) char(39)//'open '//trim(tmpctl)//char(39)
+  close(ip1)
+
+  command = 'grads -l -c temp.gs'
 
   call system(command)
+
+  call unlink('temp.gs')
   call unlink(tmpctl)
   call unlink(tmpcoord)
 
