@@ -1131,11 +1131,15 @@ module mod_ncout
             .true.,'time: maximum')
           shf_pcpmax_out => v2dvar_shf(shf_pcpmax)%rval
         end if
-        if ( enable_shf_vars(shf_pcprcv) ) then
-          call setup_var(v2dvar_shf,shf_pcprcv,vsize,'prc','kg m-2 s-1', &
-            'Convective Precipitation','convective_precipitation_flux', &
-            .true.,'time: mean')
-          shf_pcprcv_out => v2dvar_shf(shf_pcprcv)%rval
+        if ( all(icup > 0) ) then
+          if ( enable_shf_vars(shf_pcprcv) ) then
+            call setup_var(v2dvar_shf,shf_pcprcv,vsize,'prc','kg m-2 s-1', &
+               'Convective Precipitation','convective_precipitation_flux', &
+               .true.,'time: mean')
+            shf_pcprcv_out => v2dvar_shf(shf_pcprcv)%rval
+          end if
+        else
+          enable_shf_vars(shf_pcprcv) = .false.
         end if
 
         outstream(shf_stream)%nvar = countvars(enable_shf_vars,nshfvars)
@@ -1243,14 +1247,10 @@ module mod_ncout
             .true.,l_fill=.true.)
           srf_tlef_out => v2dvar_srf(srf_tlef)%rval
         end if
-        if ( ifshf ) then
-          enable_srf2d_vars(srf_tpr) = .false.
-        else
-          if ( enable_srf2d_vars(srf_tpr) ) then
-            call setup_var(v2dvar_srf,srf_tpr,vsize,'pr','kg m-2 s-1', &
-              'Precipitation','precipitation_flux',.true.,'time: mean')
-            srf_tpr_out => v2dvar_srf(srf_tpr)%rval
-          end if
+        if ( enable_srf2d_vars(srf_tpr) ) then
+          call setup_var(v2dvar_srf,srf_tpr,vsize,'pr','kg m-2 s-1', &
+            'Precipitation','precipitation_flux',.true.,'time: mean')
+          srf_tpr_out => v2dvar_srf(srf_tpr)%rval
         end if
         if ( enable_srf2d_vars(srf_evp) ) then
           call setup_var(v2dvar_srf,srf_evp,vsize,'evspsbl','kg m-2 s-1', &
@@ -1313,15 +1313,13 @@ module mod_ncout
             'surface_upwelling_shortwave_flux_in_air',.true.,'time: mean')
           srf_ufsw_out => v2dvar_srf(srf_ufsw)%rval
         end if
-        if ( all(icup > 0) .and. .not. ifshf ) then
+        if ( all(icup > 0) ) then
           if ( enable_srf2d_vars(srf_prcv) ) then
             call setup_var(v2dvar_srf,srf_prcv,vsize,'prc','kg m-2 s-1', &
               'Convective Precipitation','convective_precipitation_flux', &
               .true.,'time: mean')
             srf_prcv_out => v2dvar_srf(srf_prcv)%rval
           end if
-        else
-          enable_srf2d_vars(srf_prcv) = .false.
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &

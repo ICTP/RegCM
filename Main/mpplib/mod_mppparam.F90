@@ -6401,7 +6401,9 @@ module mod_mppparam
                         ssize,ma%left,tag_lr,req(irc))
         rpos = rpos + ssize
       end if
+
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
@@ -6452,38 +6454,42 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%left /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * isize
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i) = r8vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * isize
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i) = r8vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%bottom /= mpi_proc_null) then
-        ib = ipos
-        ssize = nex * jsize
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i) = r8vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex * jsize
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i) = r8vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%bottomleft /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * nex
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i1-i) = r8vector2(ib)
-            ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottomleft /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * nex
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i) = r8vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real8_2d_exchange_left_bottom
@@ -6610,7 +6616,9 @@ module mod_mppparam
                         ssize,ma%left,tag_lr,req(irc))
         rpos = rpos + ssize
       end if
+
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*jsize
@@ -6661,38 +6669,42 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%left /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * isize
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j1-j,i) = r4vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * isize
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%bottom /= mpi_proc_null) then
-        ib = ipos
-        ssize = nex * jsize
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i1-i) = r4vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex * jsize
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%bottomleft /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * nex
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j1-j,i1-i) = r4vector2(ib)
-            ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottomleft /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * nex
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j1-j,i1-i) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real4_2d_exchange_left_bottom
@@ -6835,7 +6847,9 @@ module mod_mppparam
                         ssize,ma%left,tag_lr,req(irc))
         rpos = rpos + ssize
       end if
+
     end if
+
     if ( .not. ma%crmflag ) then
       if ( ma%top /= mpi_proc_null) then
         ssize = nex*ksize*jsize
@@ -6890,44 +6904,48 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%left /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * isize * ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k) = r8vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * isize * ksize
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%bottom /= mpi_proc_null) then
-        ib = ipos
-        ssize = nex * jsize * ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i1-i,k) = r8vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex * jsize * ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i1-i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%bottomleft /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * nex * ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i1-i,k) = r8vector2(ib)
-              ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottomleft /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * nex * ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = 1 , nex
+                ml(j1-j,i1-i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real8_3d_exchange_left_bottom
@@ -7126,44 +7144,48 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%left /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * isize * ksize
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j1-j,i,k) = r4vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * isize * ksize
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%bottom /= mpi_proc_null) then
-        ib = ipos
-        ssize = nex * jsize * ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i1-i,k) = r4vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex * jsize * ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i1-i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%bottomleft /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * nex * ksize
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j1-j,i1-i,k) = r4vector2(ib)
-              ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottomleft /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * nex * ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = 1 , nex
+                ml(j1-j,i1-i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real4_3d_exchange_left_bottom
@@ -7373,50 +7395,54 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%left /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * isize * ksize * nsize
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * isize * ksize * nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j1-j,i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%bottom /= mpi_proc_null) then
-        ib = ipos
-        ssize = nex * jsize * ksize * nsize
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i1-i,k,n) = r8vector2(ib)
-                ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex * jsize * ksize * nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i1-i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%bottomleft /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * nex * ksize * nsize
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
-                ml(j1-j,i1-i,k,n) = r8vector2(ib)
-                ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottomleft /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * nex * ksize * nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = 1 , nex
+                  ml(j1-j,i1-i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real8_4d_exchange_left_bottom
@@ -7627,50 +7653,54 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%left /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * isize * ksize * nsize
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j1-j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * isize * ksize * nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j1-j,i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%bottom /= mpi_proc_null) then
-        ib = ipos
-        ssize = nex * jsize * ksize * nsize
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i1-i,k,n) = r4vector2(ib)
-                ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex * jsize * ksize * nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i1-i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%bottomleft /= mpi_proc_null ) then
-        ib = ipos
-        ssize = nex * nex * ksize * nsize
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
-                ml(j1-j,i1-i,k,n) = r4vector2(ib)
-                ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottomleft /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex * nex * ksize * nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = 1 , nex
+                  ml(j1-j,i1-i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real4_4d_exchange_left_bottom
@@ -7848,38 +7878,42 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize
-        ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i) = r8vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ssize = nex*isize
+          ib = ipos
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i) = r8vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize
-        ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i) = r8vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ssize = nex*jsize
+          ib = ipos
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i) = r8vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex
-        ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i2+i) = r8vector2(ib)
-            ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%topright /= mpi_proc_null ) then
+          ssize = nex*nex
+          ib = ipos
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i) = r8vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real8_2d_exchange_right_top
@@ -8056,38 +8090,42 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize
-        ib = ipos
-        do i = i1 , i2
-          do j = 1 , nex
-            ml(j2+j,i) = r4vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ssize = nex*isize
+          ib = ipos
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize
-        ib = ipos
-        do i = 1 , nex
-          do j = j1 , j2
-            ml(j,i2+i) = r4vector2(ib)
-            ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ssize = nex*jsize
+          ib = ipos
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex
-        ib = ipos
-        do i = 1 , nex
-          do j = 1 , nex
-            ml(j2+j,i2+i) = r4vector2(ib)
-            ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%topright /= mpi_proc_null ) then
+          ssize = nex*nex
+          ib = ipos
+          do i = 1 , nex
+            do j = 1 , nex
+              ml(j2+j,i2+i) = r4vector2(ib)
+              ib = ib + 1
+            end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real4_2d_exchange_right_top
@@ -8281,44 +8319,48 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r8vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ssize = nex*isize*ksize
+          ib = ipos
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize*ksize
-        ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k) = r8vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ssize = nex*jsize*ksize
+          ib = ipos
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i2+i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex*ksize
-        ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i2+i,k) = r8vector2(ib)
-              ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%topright /= mpi_proc_null ) then
+          ssize = nex*nex*ksize
+          ib = ipos
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = 1 , nex
+                ml(j2+j,i2+i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real8_3d_exchange_right_top
@@ -8512,44 +8554,48 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize
-        ib = ipos
-        do k = k1 , k2
-          do i = i1 , i2
-            do j = 1 , nex
-              ml(j2+j,i,k) = r4vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ssize = nex*isize*ksize
+          ib = ipos
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize*ksize
-        ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = j1 , j2
-              ml(j,i2+i,k) = r4vector2(ib)
-              ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ssize = nex*jsize*ksize
+          ib = ipos
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i2+i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex*ksize
-        ib = ipos
-        do k = k1 , k2
-          do i = 1 , nex
-            do j = 1 , nex
-              ml(j2+j,i2+i,k) = r4vector2(ib)
-              ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%topright /= mpi_proc_null ) then
+          ssize = nex*nex*ksize
+          ib = ipos
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = 1 , nex
+                ml(j2+j,i2+i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real4_3d_exchange_right_top
@@ -8760,50 +8806,54 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r8vector2(ib)
-                ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ssize = nex*isize*ksize*nsize
+          ib = ipos
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j2+j,i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
-      if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize*ksize*nsize
-        ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i2+i,k,n) = r8vector2(ib)
-                ib = ib + 1
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ssize = nex*jsize*ksize*nsize
+          ib = ipos
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i2+i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex*ksize*nsize
-        ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
-                ml(j2+j,i2+i,k,n) = r8vector2(ib)
-                ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%topright /= mpi_proc_null ) then
+          ssize = nex*nex*ksize*nsize
+          ib = ipos
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = 1 , nex
+                  ml(j2+j,i2+i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real8_4d_exchange_right_top
@@ -9014,50 +9064,52 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_waitall error.')
       end if
-      if ( ma%right /= mpi_proc_null) then
-        ssize = nex*isize*ksize*nsize
-        ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = i1 , i2
-              do j = 1 , nex
-                ml(j2+j,i,k,n) = r4vector2(ib)
-                ib = ib + 1
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ssize = nex*isize*ksize*nsize
+          ib = ipos
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j2+j,i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%top /= mpi_proc_null) then
-        ssize = nex*jsize*ksize*nsize
-        ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = j1 , j2
-                ml(j,i2+i,k,n) = r4vector2(ib)
-                ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%top /= mpi_proc_null) then
+          ssize = nex*jsize*ksize*nsize
+          ib = ipos
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i2+i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
-      end if
-      if ( ma%topright /= mpi_proc_null ) then
-        ssize = nex*nex*ksize*nsize
-        ib = ipos
-        do n = n1 , n2
-          do k = k1 , k2
-            do i = 1 , nex
-              do j = 1 , nex
-                ml(j2+j,i2+i,k,n) = r4vector2(ib)
-                ib = ib + 1
+          ipos = ipos + ssize
+        end if
+        if ( ma%topright /= mpi_proc_null ) then
+          ssize = nex*nex*ksize*nsize
+          ib = ipos
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = 1 , nex
+                  ml(j2+j,i2+i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
               end do
             end do
           end do
-        end do
-        ipos = ipos + ssize
+          ipos = ipos + ssize
+        end if
       end if
     end if
   end subroutine real4_4d_exchange_right_top
@@ -9076,7 +9128,7 @@ module mod_mppparam
     if ( size(r8vector1) < ssize ) then
       call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_left_right')
     end if
-    if ( size(r8vector2) < ksize ) then
+    if ( size(r8vector2) < ssize ) then
       call getmem1d(r8vector2,1,ssize,'real8_bdy_exchange_left_right')
     end if
     if ( ma%bandflag ) then
@@ -9171,7 +9223,7 @@ module mod_mppparam
     if ( size(r4vector1) < ssize ) then
       call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_left_right')
     end if
-    if ( size(r4vector2) < ksize ) then
+    if ( size(r4vector2) < ssize ) then
       call getmem1d(r4vector2,1,ssize,'real4_bdy_exchange_left_right')
     end if
     if ( ma%bandflag ) then
