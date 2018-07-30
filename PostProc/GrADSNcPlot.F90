@@ -798,7 +798,7 @@ program ncplot
                     'Close file error')
   end if
 
-  command = 'grads -lc '//char(39)//'open '//trim(tmpctl)//char(39)
+  command = 'grads -l -c '//char(39)//'open '//trim(tmpctl)//char(39)
 
   call system(command)
   call unlink(tmpctl)

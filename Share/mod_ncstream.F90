@@ -2779,6 +2779,9 @@ module mod_ncstream
       attc%aname = 'source'
       attc%theval = 'RegCM Model output file'
       call add_attribute(stream,attc)
+      attc%aname = 'executable_date'
+      attc%theval = __DATE__
+      call add_attribute(stream,attc)
       attc%aname = 'Conventions'
       attc%theval = 'CF-1.7'
       call add_attribute(stream,attc)
