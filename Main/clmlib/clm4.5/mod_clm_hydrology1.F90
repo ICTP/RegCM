@@ -370,9 +370,9 @@ module mod_clm_hydrology1
             ! Coefficient of interception
             ! Norman and Campbell (1983)
             if ( 0.5_rk8*(elai(p) + esai(p)) > 25.0_rk8 ) then
-              fpi = 1.0_rk8
+              fpi = 0.25_rk8
             else
-              fpi = (1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
+              fpi = 0.25_rk8*(1._rk8 - exp(-0.5_rk8*(elai(p) + esai(p))))
             end if
 
             ! Direct throughfall
