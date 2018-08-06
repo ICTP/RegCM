@@ -84,8 +84,8 @@ module mod_sst_gndnc
       write (inpfile,'(a,i0.4,a)') &
          trim(inpglob)//pthsep//'SST'//pthsep//'TMI'//pthsep// &
             'tmisst', year, '.nc'
-      varname(1) = 'TIME'
-      varname(2) = 'SST'
+      varname(1) = 'time'
+      varname(2) = 'sst'
     else
       call die('gndnc_sst','Unknown ssttyp: '//ssttyp,1)
     end if
