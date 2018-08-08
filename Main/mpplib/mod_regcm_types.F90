@@ -258,6 +258,10 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: rah1
     real(rkx) , pointer , dimension(:,:) :: br
     real(rkx) , pointer , dimension(:,:) :: rhoa
+    real(rkx) , pointer , dimension(:,:) :: uz0         ! MYJ SF layer
+    real(rkx) , pointer , dimension(:,:) :: vz0         ! MYJ SF layer
+    real(rkx) , pointer , dimension(:,:) :: thz0        ! MYJ SF layer
+    real(rkx) , pointer , dimension(:,:) :: qz0         ! MYJ SF layer
   end type surfstate
 
   type slice
@@ -284,6 +288,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: rhox2d
     real(rkx) , pointer , dimension(:,:) :: ps2d
     real(rkx) , pointer , dimension(:,:,:,:) :: chib3d
+    real(rkx) , pointer , dimension(:,:,:) :: tkepbl
   end type slice
 
   type v3dbound
@@ -655,6 +660,10 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
     integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop
     real(rkx) , pointer , dimension(:,:,:) :: heatrt    ! radiation heat rate
+    real(rkx) , pointer , dimension(:,:) :: uz0         ! MYJ SF layer
+    real(rkx) , pointer , dimension(:,:) :: vz0         ! MYJ SF layer
+    real(rkx) , pointer , dimension(:,:) :: thz0        ! MYJ SF layer
+    real(rkx) , pointer , dimension(:,:) :: qz0         ! MYJ SF layer
   end type mod_2_pbl
 
   type pbl_2_mod
@@ -667,6 +676,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: vxten      ! uxten%v
     real(rkx) , pointer , dimension(:,:,:,:) :: chiten   ! chiten
     real(rkx) , pointer , dimension(:,:,:) :: remdrd     ! remdrd
+    real(rkx) , pointer , dimension(:,:,:) :: tkepbl     ! MYJ pbl
     real(rkx) , pointer , dimension(:,:) :: zpbl
     integer(ik4) , pointer , dimension(:,:) :: kpbl
   end type pbl_2_mod

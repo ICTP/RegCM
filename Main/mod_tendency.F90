@@ -153,8 +153,6 @@ module mod_tendency
         itrvadv = 3
       end if
       call getmem3d(tkeps,jce1,jce2,ice1,ice2,1,kzp1,'tendency:tkeps')
-    else if ( ibltyp == 4 ) then
-      call getmem3d(tkeps,jce1,jce2,ice1,ice2,1,kzp1,'tendency:tkeps')
     end if
 
     if ( idiag > 0 ) then
@@ -192,7 +190,7 @@ module mod_tendency
       call assignpnt(aten%pp,ppdyn,pc_dynamic)
       call assignpnt(aten%pp,ppphy,pc_physic)
     end if
-    if ( ibltyp == 2 .or. ibltyp == 4 ) then
+    if ( ibltyp == 2 ) then
       call assignpnt(aten%tke,tketen,pc_total)
       call assignpnt(aten%tke,tkedyn,pc_dynamic)
       call assignpnt(aten%tke,tkephy,pc_physic)
@@ -525,7 +523,7 @@ module mod_tendency
     !
     ! forecast TKE at at next timestep
     !
-    if ( ibltyp == 2 .or. ibltyp == 4 ) then
+    if ( ibltyp == 2 ) then
       ! TAO: Once the full loop above is completed, update the TKE
       ! tendency if the UW PBL is running.  NOTE!!! Do not try to
       ! combine these loops with the above loop Advection MUST be
@@ -865,7 +863,7 @@ module mod_tendency
       call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
       end if
       if ( ichem == 1 ) then
@@ -1081,7 +1079,7 @@ module mod_tendency
       else
         call exchange(atm2%qx,idif,jce1,jce2,ice1,ice2,1,kz,1,nqx)
       end if
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         call exchange(atm2%tke,idif,jce1,jce2,ice1,ice2,1,kzp1)
       end if
       if ( idynamic == 2 ) then
@@ -1247,7 +1245,7 @@ module mod_tendency
       !
       ! TKE for UW pbl
       !
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         aten%tke(:,:,:,:) = d_zero
       end if
       !
@@ -1417,7 +1415,7 @@ module mod_tendency
           call ten2diag(aten%chi,cadvvdiag,pc_dynamic,chiten0)
         end if
       end if
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         ! Calculate the horizontal advective tendency for TKE
         call hadv(tkedyn,atm1%tke,1)
         !
@@ -1551,8 +1549,6 @@ module mod_tendency
         ! Calculate the horizontal, diffusive tendency for TKE
         ! Here TKE is decoupled , we can pass atm2.
         call diffu_x(tkedyn,atm2%tke,nuk)
-      else if ( ibltyp == 4 ) then
-        call diffu_x(tkedyn,atm2%tke,d_one)
       end if
 #ifdef DEBUG
       call check_wind_tendency('DIFF',pc_dynamic)

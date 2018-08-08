@@ -121,7 +121,15 @@ module mod_pbl_interface
     call assignpnt(atms%zq,m2p%zq)
     call assignpnt(atms%dzq,m2p%dzq)
     call assignpnt(atms%rhox2d,m2p%rhox2d)
-    call assignpnt(atm2%tke,m2p%tkests)
+    if ( ibltyp == 2 ) then
+      call assignpnt(atm2%tke,m2p%tkests)
+    else if ( ibltyp == 4 ) then
+      call assignpnt(atms%tkepbl,m2p%tkests)
+      call assignpnt(sfs%uz0,m2p%uz0)
+      call assignpnt(sfs%vz0,m2p%vz0)
+      call assignpnt(sfs%thz0,m2p%thz0)
+      call assignpnt(sfs%qz0,m2p%qz0)
+    end if
     call assignpnt(drydepv,m2p%drydepv)
     call assignpnt(chifxuw,m2p%chifxuw)
     call assignpnt(heatrt,m2p%heatrt)
@@ -132,7 +140,11 @@ module mod_pbl_interface
     call assignpnt(aten%u,p2m%uten,pc_physic)
     call assignpnt(aten%v,p2m%vten,pc_physic)
     call assignpnt(aten%qx,p2m%qxten,pc_physic)
-    call assignpnt(aten%tke,p2m%tketen,pc_physic)
+    if ( ibltyp == 2 ) then
+      call assignpnt(aten%tke,p2m%tketen,pc_physic)
+    else if ( ibltyp == 4 ) then
+      call assignpnt(atms%tkepbl,p2m%tkepbl)
+    end if
     call assignpnt(aten%chi,p2m%chiten,pc_physic)
     call assignpnt(utenx,p2m%uxten)
     call assignpnt(vtenx,p2m%vxten)

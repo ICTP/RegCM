@@ -567,7 +567,7 @@ module mod_atm_interface
       call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
@@ -598,7 +598,7 @@ module mod_atm_interface
       else
         call getmem4d(atm%qx,jx1,jx2,ix1,ix2,1,kz,1,nqx,'atmstate:qx')
       end if
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jx1,jx2,ix1,ix2,1,kzp1,'atmstate:tke')
       end if
       if ( idynamic == 2 ) then
@@ -621,7 +621,7 @@ module mod_atm_interface
       type(atmstate_c) , intent(out) :: atm
       call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
       call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
       end if
       call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
@@ -681,7 +681,7 @@ module mod_atm_interface
                     1,kz,1,number_of_prognostic_components,'atmstate:t')
       call getmem5d(atm%qx,jci1,jci2,ici1,ici2, &
                     1,kz,1,nqx,1,number_of_prognostic_components,'atmstate:qx')
-      if ( ibltyp == 2 .or. ibltyp == 4 ) then
+      if ( ibltyp == 2 ) then
         call getmem4d(atm%tke,jci1,jci2,ici1,ici2, &
                   1,kzp1,1,number_of_prognostic_components,'atmstate:tke')
       end if
@@ -839,6 +839,12 @@ module mod_atm_interface
       call getmem2d(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
       call getmem2d(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
       call getmem2d(sfs%v10m,jci1,jci2,ici1,ici2,'surf:v10m')
+      if ( ibltyp == 4 ) then
+        call getmem2d(sfs%uz0,jci1,jci2,ici1,ici2,'surf:uz0')
+        call getmem2d(sfs%vz0,jci1,jci2,ici1,ici2,'surf:vz0')
+        call getmem2d(sfs%thz0,jci1,jci2,ici1,ici2,'surf:thz0')
+        call getmem2d(sfs%qz0,jci1,jci2,ici1,ici2,'surf:qz0')
+      end if
     end subroutine allocate_surfstate
 
     subroutine allocate_slice(ax,a0)
@@ -881,6 +887,9 @@ module mod_atm_interface
       call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
       call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
       call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
+      if ( ibltyp == 4 ) then
+        call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+      end if
     end subroutine allocate_slice
 
     subroutine allocate_nhbh(nhbh)

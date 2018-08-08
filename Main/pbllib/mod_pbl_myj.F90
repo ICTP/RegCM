@@ -154,13 +154,21 @@ module mod_pbl_myj
 
   real(rkx) , parameter :: countergrad = d_zero
 
-  integer(ik4) :: nspec
+  integer(ik4) :: nspec , ispb
 
   contains
 
   subroutine init_myjpbl
     implicit none
-    nspec = 1 + nqx + ntr
+    if ( ipptls > 1 ) then
+      nspec = 4
+    else
+      nspec = 3
+    end if
+    if ( ichem == 1 ) then
+      ispb  = nspec
+      nspec = nspec + ntr
+    end if
   end subroutine init_myjpbl
 
   subroutine myjpbl(m2p,p2m)
@@ -170,13 +178,13 @@ module mod_pbl_myj
     !
     ! nspec is the number of mass species to be vertically mixed
     !
-    integer(ik4) :: i , j , k , lmh , lmxl , nums , nsp
+    integer(ik4) :: i , j , k , n , lmxl , nums
     real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
-          dtturbl , exnsfc , psfc , qold , ratiomx , tsk ,     &
+          dtturbl , rexnsfc , psfc , qold , ratiomx , tsk ,    &
           rdtturbl , thnew , thold , tx , exner , qsfc ,       &
-          thsk , ct , tha
-    real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , thz0 , qz0
-    real(rkx) :: akhs , akms , uz0 , vz0
+          thsk , ct , qha , ustar
+    real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , tha
+    real(rkx) :: akhs , akms
     real(rkx) , dimension(nspec) :: clow , cts , sz0
     real(rkx) , dimension(kz) :: cwmk , pk , q2k , qk , thek ,&
             tk , uk , vk , qcwk , qcik
@@ -184,7 +192,7 @@ module mod_pbl_myj
     real(rkx) , dimension(kzm1) :: akhk , akmk , el , gh , gm
     real(rkx) , dimension(kzp1) :: zhk
     real(rkx) , dimension(kz) :: rhok
-    real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ape , the , cwm
+    real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ape , the , th , cwm
     real(rkx) , dimension(jci1:jci2,ici1:ici2,kzm1) :: akh , akm
     real(rkx) , dimension(jci1:jci2,ici1:ici2,kzp1) :: zint
 
@@ -204,7 +212,7 @@ module mod_pbl_myj
     do k = 1 , kzp1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zint(j,i,k) = m2p%zq(j,i,k)
+          zint(j,i,k) = m2p%zq(j,i,k) + m2p%ht(j,i) * regrav
         end do
       end do
     end do
@@ -215,10 +223,10 @@ module mod_pbl_myj
           exner = (m2p%patm(j,i,k)/p00)**rovcp
           ape(j,i,k) = d_one/exner
           tx = m2p%tatm(j,i,k)
-          tha = tx * ape(j,i,k)
+          th(j,i,k) = tx * ape(j,i,k)
           cwm(j,i,k) = m2p%qxatm(j,i,k,iqc)
           if ( ipptls > 1 ) cwm(j,i,k) = cwm(j,i,k)+m2p%qxatm(j,i,k,iqi)
-          the(j,i,k) = (cwm(j,i,k)*(-elocp/tx)+d_one)*tha
+          the(j,i,k) = (cwm(j,i,k)*(-elocp/tx)+d_one)*th(j,i,k)
         end do
       end do
     end do
@@ -226,10 +234,6 @@ module mod_pbl_myj
     setup_integration: &
     do i = ici1 , ici2
       do j = jci1 , jci2
-        !
-        ! Lowest layer above ground
-        !
-        lmh = kz
         !
         ! Transfer
         !
@@ -261,16 +265,16 @@ module mod_pbl_myj
         !
         ! Find the mixing length
         !
-        call mixlen(lmh,uk,vk,tk,thek,qk,cwmk,q2k,zhk,gm,gh,el, &
+        call mixlen(uk,vk,tk,thek,qk,cwmk,q2k,zhk,gm,gh,el, &
                     p2m%zpbl(j,i),p2m%kpbl(j,i),lmxl,ct)
         !
         ! Solve for the production/dissipation of the turbulent kinetic energy
         !
-        call prodq2(lmh,dtturbl,m2p%ustar(j,i),gm,gh,el,q2k)
+        call prodq2(dtturbl,m2p%ustar(j,i),gm,gh,el,q2k)
         !
         ! Find the exchange coefficients in the free atmosphere
         !
-        call difcof(lmh,gm,gh,el,q2k,zhk,akmk,akhk)
+        call difcof(gm,gh,el,q2k,zhk,akmk,akhk)
         !
         ! Counting downward from the top, the exchange coefficients akh
         ! are defined on the bottoms of the layers 1 to kzm1.
@@ -282,14 +286,13 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of turbulent kinetic energy
         !
-        call vdifq(lmh,dtdif,q2k,el,zhk)
+        call vdifq(dtdif,q2k,el,zhk)
         !
         ! Save the new TKE and mixing length.
         !
         do k = 1 , kz
           q2k(k) = max(q2k(k),epsq2)
-          p2m%tketen(j,i,k) = p2m%tketen(j,i,k) + &
-                 ((d_half*q2k(k))-m2p%tkests(j,i,k))*rdtturbl
+          p2m%tkepbl(j,i,k) = d_half*q2k(k)
         end do
       end do
     end do setup_integration
@@ -315,16 +318,21 @@ module mod_pbl_myj
           species(1,k) = thek(k)
           species(2,k) = qk(k)
           species(3,k) = qcwk(k)
-          nsp = 3
           if ( ipptls > 1 ) then
-            nsp = nsp+1
             qcik(k) = m2p%qxatm(j,i,k,iqi)
-            species(nsp,k) = qcik(k)
+            species(4,k) = qcik(k)
           end if
           rhok(k) = m2p%patm(j,i,k)/(rgas*m2p%tatm(j,i,k)*  &
                     (d_one+ep1*qk(k)-cwmk(k)))
         end do
         zhk(kzp1) = zint(j,i,kzp1)
+        if ( ichem == 1 ) then
+          do n = 1 , ntr
+            do k = 1 , kz
+              species(ispb+n,k) = m2p%chib(j,i,k,n)
+            end do
+          end do
+        end if
         !
         ! Counting downward from the top, the exchange coefficients akh
         ! are defined on the bottoms of the layers 1 to kz-1.
@@ -338,29 +346,41 @@ module mod_pbl_myj
         akhs_dens = akhs*rhok(kz)
 
         psfc = m2p%patmf(j,i,kzp1)
-        exnsfc = (p00/psfc)**rovcp
-        zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*m2p%ustar(j,i)*rvisc))/m2p%ustar(j,i)
-        wght = akms*zu*rvisc
+        rexnsfc = (p00/psfc)**rovcp
+        ustar = m2p%ustar(j,i)
         tsk = m2p%tsk(j,i)
-        thsk = tsk*exnsfc
-        qsfc = pfqsat(tsk,psfc)
+        thsk = tsk*rexnsfc
 
         ! Convert surface sensible temperature to potential temperature.
         if ( m2p%ldmsk(j,i) > 0 ) then
-          zt = fzt1*zu
-          zq = fzq1*zt
+          m2p%thz0(j,i) = d_half * (the(j,i,kz) + thsk)
+          m2p%qz0(j,i) = m2p%q2m(j,i)
+          m2p%uz0(j,i) = d_zero
+          m2p%vz0(j,i) = d_zero
+        else
+          zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
+          qsfc = seafc*pfqsat(tsk,psfc)
+          wght = akms*zu*rvisc
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc
           tha = m2p%tatm(j,i,kz) * ape(j,i,kz)
-          thz0 = (wghtt*tha+thsk)/(wghtt+d_one)
-          qz0 = (wghtq*qk(kz)+m2p%q2m(j,i))/(wghtq+d_one)
-        else
-          thz0 = thsk
-          qz0 = qsfc*seafc
+          ratiomx = m2p%qxatm(j,i,kz,iqv)
+          qha = ratiomx/(d_one+ratiomx)
+          m2p%uz0(j,i) = d_half*((m2p%uxatm(j,i,kz)/wght)+m2p%uz0(j,i))
+          m2p%vz0(j,i) = d_half*((m2p%vxatm(j,i,kz)/wght)+m2p%vz0(j,i))
+          if ( rcmtimer%lcount < 1 ) then
+            m2p%thz0(j,i) = (wghtt*tha+thsk)/(wghtt+d_one)
+            m2p%qz0(j,i) = (wghtq*qha+qsfc)/(wghtq+d_one)
+          else
+            m2p%thz0(j,i) = d_half*((wghtt*tha+thsk) / &
+                                    (wghtt+d_one)+m2p%thz0(j,i))
+            m2p%qz0(j,i) = d_half*((wghtq*qha+qsfc) /  &
+                                   (wghtq+d_one)+m2p%qz0(j,i))
+          end if
         end if
 
-        sz0(1) = thz0
-        sz0(2) = qz0
+        sz0(1) = m2p%thz0(j,i)
+        sz0(2) = m2p%qz0(j,i)
         do nums = 3 , nspec
           sz0(nums) = d_zero
         end do
@@ -376,14 +396,10 @@ module mod_pbl_myj
           cts(nums) = d_zero
         end do
         !
-        ! Lowest layer above ground
-        !
-        lmh = kz
-        !
         ! Carry out the vertical diffusion of temperature and water vapor
         !
-        call vdifh(dtdif,lmh,p2m%kpbl(j,i),sz0,akhs_dens,clow,cts, &
-                   species,nsp,akhk,zhk,rhok)
+        call vdifh(dtdif,p2m%kpbl(j,i),sz0,akhs_dens,clow,cts, &
+                   species,nspec,akhk,zhk,rhok)
         !
         ! Compute primary variable tendencies
         !
@@ -392,16 +408,14 @@ module mod_pbl_myj
           qk  (k) = species(2,k)
           qcwk(k) = species(3,k)
           cwmk(k) = qcwk(k)
-          nsp = 3
           if ( ipptls > 1 ) then
-            nsp = nsp+1
-            qcik(k) = species(nsp,k)
+            qcik(k) = species(4,k)
             cwmk(k) = cwmk(k)+qcik(k)
           end if
         end do
 
         do k = 1 , kz
-          thold = the(j,i,k)
+          thold = th(j,i,k)
           thnew = thek(k)+cwmk(k)*elocp*ape(j,i,k)
           dtdt = (thnew-thold)*rdtturbl
           qold = m2p%qxatm(j,i,k,iqv)/(d_one+m2p%qxatm(j,i,k,iqv))
@@ -417,11 +431,19 @@ module mod_pbl_myj
                      (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl * m2p%psb(j,i)
           end if
         end do
+        if ( ichem == 1 ) then
+          do n = 1 , ntr
+            do k = 1 , kz
+              p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
+                   (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*m2p%psb(j,i)
+            end do
+          end do
+        end if
         !
         ! Fill 1-d vertical arrays: myj scheme counts downward
         ! from the domain's top
         !
-        do k = 1 , kz-1
+        do k = 1 , kzm1
           akmk(k) = akm(j,i,k)
           akmk(k) = akmk(k)*(rhok(k)+rhok(k+1))*d_half
         end do
@@ -434,9 +456,8 @@ module mod_pbl_myj
         !
         ! Carry out the vertical diffusion of velocity components
         !
-        uz0 = (uk(kz)*wght+d_half*m2p%u10m(j,i))/(wght+d_one)
-        vz0 = (vk(kz)*wght+d_half*m2p%v10m(j,i))/(wght+d_one)
-        call vdifv(lmh,dtdif,uz0,vz0,akms_dens,uk,vk,akmk,zhk,rhok)
+        call vdifv(dtdif,m2p%uz0(j,i),m2p%vz0(j,i), &
+                   akms_dens,uk,vk,akmk,zhk,rhok)
         !
         ! compute primary variable tendencies
         !
@@ -456,9 +477,8 @@ module mod_pbl_myj
   !
   ! Level 2.5 Mixing Length
   !
-  subroutine mixlen(lmh,u,v,t,the,q,cwm,q2,z,gm,gh,el,pblh,lpbl,lmxl,ct)
+  subroutine mixlen(u,v,t,the,q,cwm,q2,z,gm,gh,el,pblh,lpbl,lmxl,ct)
     implicit none
-    integer(ik4) , intent(in) :: lmh
     integer(ik4) , intent(out) :: lmxl , lpbl
     real(rkx) , dimension(kz) , intent(in) :: cwm , q , q2 , t , the , u , v
     real(rkx) , dimension(kzp1) , intent(in) :: z
@@ -475,37 +495,37 @@ module mod_pbl_myj
     !
     ! Find the height of the pbl
     !
-    lpbl = lmh
+    lpbl = kz
     lfound = .false.
-    do k = lmh-1 , 1 , -1
+    do k = kzm1 , 1 , -1
       if ( q2(k) <= epsq2*fh ) then
         lpbl = k
         lfound = .true.
-        pblh = z(lpbl+1)-z(lmh+1)
+        pblh = z(lpbl+1)-z(kzp1)
         exit
       end if
     end do
     if ( .not. lfound ) then
       lpbl = 1
-      pblh = z(lpbl+1)-z(lmh+1)
+      pblh = z(lpbl+1)-z(kzp1)
     end if
     !
     ! The height of the pbl
     !
-    do k = 1 , lmh
+    do k = 1 , kz
       q1(k) = d_zero
     end do
-    do k = 1 , lmh-1
+    do k = 1 , kzm1
       dth(k) = the(k)-the(k+1)
     enddo
-    do k = lmh-2 , 1 , -1
+    do k = kz-2 , 1 , -1
       if ( dth(k) > d_zero .and. dth(k+1) <= d_zero ) then
         dth(k) = dth(k)+ct
         exit
       end if
     end do
     ct = d_zero
-    do k = 1 , lmh-1
+    do k = 1 , kzm1
       rdz = d_two/(z(k)-z(k+2))
       gml = ((u(k)-u(k+1))**2+(v(k)-v(k+1))**2)*rdz*rdz
       gm(k) = max(gml,epsgm)
@@ -521,8 +541,8 @@ module mod_pbl_myj
     !
     ! Find maximum mixing lengths and the level of the pbl top
     !
-    lmxl = lmh
-    do k = 1 , lmh-1
+    lmxl = kz
+    do k = 1 , kzm1
       gml = gm(k)
       ghl = gh(k)
       if ( ghl >= epsgh ) then
@@ -544,19 +564,19 @@ module mod_pbl_myj
         elm(k) = max(sqrt(eloq2x*q2(k)),epsl)
       end if
     end do
-    if ( elm(lmh-1) == epsl ) lmxl = lmh
+    if ( elm(kzm1) == epsl ) lmxl = kz
     !
     ! The height of the mixed layer
     !
-    blmx  = z(lmxl)-z(lmh+1)
-    do k = lpbl , lmh
+    blmx  = z(lmxl)-z(kzp1)
+    do k = lpbl , kz
       q1(k) = sqrt(q2(k))
     enddo
     szq = d_zero
     sq  = d_zero
-    do k = 1 , lmh-1
+    do k = 1 , kzm1
       qdzl = (q1(k)+q1(k+1))*(z(k+1)-z(k+2))
-      szq  = (z(k+1)+z(k+2)-z(lmh+1)-z(lmh+1))*qdzl+szq
+      szq  = (z(k+1)+z(k+2)-z(kzp1)-z(kzp1))*qdzl+szq
       sq   = qdzl+sq
     end do
     !
@@ -575,14 +595,14 @@ module mod_pbl_myj
     !
     ! Inside the pbl
     !
-    if ( lpbl < lmh ) then
-      do k = lpbl , lmh-1
-        vkrmz = (z(k+1)-z(lmh+1))*vonkar
+    if ( lpbl < kz ) then
+      do k = lpbl , kzm1
+        vkrmz = (z(k+1)-z(kzp1))*vonkar
         el(k) = min(vkrmz/(vkrmz/el0+d_one),elm(k))
         rel(k) = el(k)/elm(k)
       end do
     end if
-    do k = lpbl+1 , lmh-2
+    do k = lpbl+1 , kz-2
       srel  = min(((rel(k-1)+rel(k+1))*d_half+rel(k))*d_half,rel(k))
       el(k) = max(srel*elm(k),epsl)
     end do
@@ -590,9 +610,8 @@ module mod_pbl_myj
   !
   ! Level 2.5 Q2 Production/Dissipation
   !
-  subroutine prodq2(lmh,dtturbl,ustar,gm,gh,el,q2)
+  subroutine prodq2(dtturbl,ustar,gm,gh,el,q2)
     implicit none
-    integer(ik4) , intent(in) :: lmh
     real(rkx) , intent(in) :: dtturbl , ustar
     real(rkx) , dimension(kzm1) , intent(in) :: gh , gm
     real(rkx) , dimension(kzm1) , intent(inout) :: el
@@ -604,7 +623,7 @@ module mod_pbl_myj
       eqol2 , ghl , gml , rden1 , rden2 , rhs2 , rhsp1 , rhsp2 , rhst2
 
     main_integration: &
-    do k = 1 , lmh-1
+    do k = 1 , kzm1
       gml = gm(k)
       ghl = gh(k)
       !
@@ -714,14 +733,13 @@ module mod_pbl_myj
     !
     ! Lower boundary condition for Q2
     !
-    q2(lmh) = max(b1**(d_two/d_three)*ustar*ustar,epsq2)
+    q2(kz) = max(b1**(d_two/d_three)*ustar*ustar,epsq2)
   end subroutine prodq2
   !
   ! Level 2.5 Diffusion Coefficients
   !
-  subroutine difcof(lmh,gm,gh,el,q2,z,akm,akh)
+  subroutine difcof(gm,gh,el,q2,z,akm,akh)
     implicit none
-    integer(ik4) , intent(in) :: lmh
     real(rkx) , dimension(kz) , intent(in) :: q2
     real(rkx) , dimension(kzm1) , intent(in) :: el , gh , gm
     real(rkx) , dimension(kzp1) , intent(in) :: z
@@ -731,7 +749,7 @@ module mod_pbl_myj
       ell , eloq2 , eloq4 , elqdz , esh , esm , ghl , gml , q1l , &
       rden , rdz
 
-    do k = 1 , lmh-1
+    do k = 1 , kzm1
       ell   = el(k)
       eloq2 = ell*ell/q2(k)
       eloq4 = eloq2*eloq2
@@ -773,9 +791,8 @@ module mod_pbl_myj
   !
   ! Vertical turbulent diffusion of q2 (tke)
   !
-  subroutine vdifq(lmh,dtdif,q2,el,z)
+  subroutine vdifq(dtdif,q2,el,z)
     implicit none
-    integer(ik4) , intent(in) :: lmh
     real(rkx) ,intent(in) :: dtdif
     real(rkx) ,dimension(kzm1),intent(in) :: el
     real(rkx) ,dimension(kzp1),intent(in) :: z
@@ -788,7 +805,7 @@ module mod_pbl_myj
 
     esqhf = d_half*esq
 
-    do k = 1 , lmh-2
+    do k = 1 , kz-2
       dtoz(k) = (dtdif+dtdif)/(z(k)-z(k+2))
       akq(k)  = sqrt((q2(k)+q2(k+1))*d_half)*(el(k)+el(k+1))* &
                 esqhf/(z(k+1)-z(k+2))
@@ -798,34 +815,34 @@ module mod_pbl_myj
     cm(1)   = dtoz(1)*akq(1)+d_one
     rsq2(1) = q2(1)
 
-    do k = 2 , lmh-2
+    do k = 2 , kz-2
       cf      = -dtoz(k)*akq(k-1)/cm(k-1)
       cm(k)   = -cr(k-1)*cf+(akq(k-1)+akq(k))*dtoz(k)+d_one
       rsq2(k) = -rsq2(k-1)*cf+q2(k)
     end do
 
-    dtozs = (dtdif+dtdif)/(z(lmh-1)-z(lmh+1))
-    akqs = sqrt((q2(lmh-1)+q2(lmh))*d_half)*(el(lmh-1)+elz0) * &
-           esqhf/(z(lmh)-z(lmh+1))
-    cf = -dtozs*akq(lmh-2)/cm(lmh-2)
+    dtozs = (dtdif+dtdif)/(z(kzm1)-z(kzp1))
+    akqs = sqrt((q2(kzm1)+q2(kz))*d_half)*(el(kzm1)+elz0) * &
+           esqhf/(z(kz)-z(kzp1))
+    cf = -dtozs*akq(kz-2)/cm(kz-2)
 
-    q2(lmh-1) = (dtozs*akqs*q2(lmh)-rsq2(lmh-2)*cf+q2(lmh-1)) / &
-                ((akq(lmh-2)+akqs)*dtozs-cr(lmh-2)*cf+d_one)
+    q2(kzm1) = (dtozs*akqs*q2(kz)-rsq2(kz-2)*cf+q2(kzm1)) / &
+                ((akq(kz-2)+akqs)*dtozs-cr(kz-2)*cf+d_one)
 
-    do k = lmh-2 , 1 , -1
+    do k = kz-2 , 1 , -1
       q2(k) = (-cr(k)*q2(k+1)+rsq2(k))/cm(k)
     end do
   end subroutine vdifq
   !
   ! Vertical diffusion of mass variables
   !
-  subroutine vdifh(dtdif,lmh,lpbl,sz0,rkhs,clow,cts, &
+  subroutine vdifh(dtdif,lpbl,sz0,rkhs,clow,cts, &
                    species,ns,rkh,zhk,rho)
     implicit none
-    integer(ik4) , intent(in) :: lmh , lpbl , ns
+    integer(ik4) , intent(in) :: lpbl , ns
     real(rkx) , intent(in) :: dtdif , rkhs
     real(rkx) , dimension(nspec) , intent(in) :: clow , cts , sz0
-    real(rkx) , dimension(kz-1) , intent(in) :: rkh
+    real(rkx) , dimension(kzm1) , intent(in) :: rkh
     real(rkx) , dimension(kz) , intent(in) :: rho
     real(rkx) , dimension(kzp1) , intent(in) :: zhk
     real(rkx) , dimension(nspec,kz) , intent(inout) :: species
@@ -836,7 +853,7 @@ module mod_pbl_myj
     real(rkx) , dimension(kzm1) :: cm , cr , dtoz
     real(rkx) , dimension(ns,kzm1) :: rkct , rss
 
-    do k = 1 , lmh-1
+    do k = 1 , kzm1
       dtoz(k) = dtdif/(zhk(k)-zhk(k+1))
       cr(k) = -dtoz(k)*rkh(k)
       if ( k < lpbl ) then
@@ -857,7 +874,7 @@ module mod_pbl_myj
       rss(m,1) = -rkct(m,1)*dtoz(1)+species(m,1)*rhok
     end do
     ! Intermediate levels
-    do k = 2 , lmh-1
+    do k = 2 , kzm1
       dtozl = dtoz(k)
       cf    = -dtozl*rkh(k-1)/cm(k-1)
       rhok  = rho(k)
@@ -868,19 +885,19 @@ module mod_pbl_myj
       end do
     end do
     ! Bottom level
-    dtozs = dtdif/(zhk(lmh)-zhk(lmh+1))
-    rkhh  = rkh(lmh-1)
-    cf    = -dtozs*rkhh/cm(lmh-1)
-    cmb   = cr(lmh-1)*cf
-    rhok  = rho(lmh)
+    dtozs = dtdif/(zhk(kz)-zhk(kzp1))
+    rkhh  = rkh(kzm1)
+    cf    = -dtozs*rkhh/cm(kzm1)
+    cmb   = cr(kzm1)*cf
+    rhok  = rho(kz)
     do m = 1 , ns
       rkss = rkhs*clow(m)
       cmsb = -cmb+(rkhh+rkss)*dtozs+rhok
-      rssb = -rss(m,lmh-1)*cf+rkct(m,lmh-1)*dtozs+species(m,lmh)*rhok
-      species(m,lmh) = (dtozs*rkss*sz0(m)+rssb)/cmsb
+      rssb = -rss(m,kzm1)*cf+rkct(m,kzm1)*dtozs+species(m,kz)*rhok
+      species(m,kz) = (dtozs*rkss*sz0(m)+rssb)/cmsb
     end do
     ! Backsubstitution
-    do k = lmh-1 , 1 , -1
+    do k = kzm1 , 1 , -1
       rcml = d_one/cm(k)
       do m = 1 , ns
         species(m,k) = (-cr(k)*species(m,k+1)+rss(m,k))*rcml
@@ -890,9 +907,8 @@ module mod_pbl_myj
   !
   ! Vertical diffusion of velocity components
   !
-  subroutine vdifv(lmh,dtdif,uz0,vz0,rkms,u,v,rkm,z,rho)
+  subroutine vdifv(dtdif,uz0,vz0,rkms,u,v,rkm,z,rho)
     implicit none
-    integer(ik4) , intent(in) :: lmh
     real(rkx) , intent(in) :: rkms , dtdif , uz0 , vz0
     real(rkx) , dimension(kzm1) , intent(in) :: rkm
     real(rkx) , dimension(kz) , intent(in) :: rho
@@ -902,7 +918,7 @@ module mod_pbl_myj
     real(rkx) :: cf , dtozak , dtozl , dtozs , rcml , rcmvb , rhok , rkmh
     real(rkx) , dimension(kzm1) :: cm , cr , dtoz , rsu , rsv
 
-    do k = 1 , lmh-1
+    do k = 1 , kzm1
       dtoz(k) = dtdif/(z(k)-z(k+1))
       cr(k)   = -dtoz(k)*rkm(k)
     end do
@@ -912,7 +928,7 @@ module mod_pbl_myj
     rsu(1) = u(1)*rhok
     rsv(1) = v(1)*rhok
 
-    do k = 2 , lmh-1
+    do k = 2 , kzm1
       dtozl  = dtoz(k)
       cf     = -dtozl*rkm(k-1)/cm(k-1)
       rhok   = rho(k)
@@ -921,16 +937,16 @@ module mod_pbl_myj
       rsv(k) = -rsv(k-1)*cf+v(k)*rhok
     end do
 
-    dtozs  = dtdif/(z(lmh)-z(lmh+1))
-    rkmh   = rkm(lmh-1)
-    cf     = -dtozs*rkmh/cm(lmh-1)
-    rhok   = rho(lmh)
-    rcmvb  = d_one/((rkmh+rkms)*dtozs-cr(lmh-1)*cf+rhok)
+    dtozs  = dtdif/(z(kz)-z(kzp1))
+    rkmh   = rkm(kzm1)
+    cf     = -dtozs*rkmh/cm(kzm1)
+    rhok   = rho(kz)
+    rcmvb  = d_one/((rkmh+rkms)*dtozs-cr(kzm1)*cf+rhok)
     dtozak = dtozs*rkms
-    u(lmh) = (dtozak*uz0-rsu(lmh-1)*cf+u(lmh)*rhok)*rcmvb
-    v(lmh) = (dtozak*vz0-rsv(lmh-1)*cf+v(lmh)*rhok)*rcmvb
+    u(kz) = (dtozak*uz0-rsu(kzm1)*cf+u(kz)*rhok)*rcmvb
+    v(kz) = (dtozak*vz0-rsv(kzm1)*cf+v(kz)*rhok)*rcmvb
 
-    do k = lmh-1 , 1 , -1
+    do k = kzm1 , 1 , -1
       rcml = d_one/cm(k)
       u(k) = (-cr(k)*u(k+1)+rsu(k))*rcml
       v(k) = (-cr(k)*v(k+1)+rsv(k))*rcml
