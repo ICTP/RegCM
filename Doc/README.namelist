@@ -748,6 +748,7 @@
  enable_megan_emission = .false.,
  enable_urban_landunit = .true.,
  enable_more_crop_pft = .false.,
+ enable_dv_baresoil = .false.,
  /
 !
 ! Debug I/O printout level.

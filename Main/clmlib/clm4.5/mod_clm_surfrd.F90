@@ -16,6 +16,9 @@ module mod_clm_surfrd
   use mod_memutil
   use mod_mpmessage
   use mod_dynparam , only : myid , ds
+#if (defined CNDV)
+  use mod_dynparam , only : enable_dv_baresoil
+#endif
   use mod_mppparam
   use mod_clm_nchelper
   use mod_clm_varpar , only : nlevsoifl , numpft , maxpatch_pft , &
@@ -210,10 +213,11 @@ module mod_clm_surfrd
     ! Obtain vegetated landunit info
 
 #if (defined CNDV)
-    if (create_crop_landunit) then ! CNDV means allocate_all_vegpfts = .true.
-      call surfrd_wtxy_veg_all(ncid,ldomain)
+    call surfrd_wtxy_veg_all(ncid,ldomain)
+    if ( enable_dv_baresoil ) then
+      ! Reset to bare ground the vegetation
+      call surfrd_wtxy_veg_dgvm()
     end if
-    call surfrd_wtxy_veg_dgvm()
 #else
     if (allocate_all_vegpfts) then
       call surfrd_wtxy_veg_all(ncid,ldomain)
