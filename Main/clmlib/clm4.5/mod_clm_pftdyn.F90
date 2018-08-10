@@ -2809,17 +2809,25 @@ module mod_clm_pftdyn
   !
   subroutine pftwt_init()
     use mod_clm_varctl, only : nsrest, nsrStartup
+    use mod_clm_pftvarcon , only : noveg, ndllf_evr_tmp_tree, &
+            ndllf_evr_brl_tree, ndllf_dcd_brl_tree, nbrdlf_evr_trp_tree,  &
+            nbrdlf_evr_tmp_tree, nbrdlf_dcd_trp_tree, nbrdlf_dcd_tmp_tree, &
+            nbrdlf_dcd_brl_tree, nbrdlf_evr_shrub, nbrdlf_dcd_tmp_shrub, &
+            nbrdlf_dcd_brl_shrub, nc3_arctic_grass, nc3_nonarctic_grass, &
+            nc4_grass, nc3crop, nc3irrig, npcropmin, npcropmax
     implicit none
     integer(ik4)  :: ier, p       ! error status, do-loop index
     integer(ik4)  :: begp,endp    ! beg/end indices for land pfts
     character(len=32) :: subname='pftwt_init' ! subroutine name
     type(pft_type), pointer :: pptr           ! ponter to pft derived subtype
+    integer(ik4) , pointer :: ivt(:)          ! landunit type
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
     integer(ik4) :: day   ! day of month (1, ..., 31) for nstep+1
     integer(ik4) :: sec   ! seconds into current date for nstep+1
 
     pptr => clm3%g%l%c%p
+    ivt  => pptr%itype
 
     call get_proc_bounds(begp=begp,endp=endp)
 
@@ -2836,6 +2844,119 @@ module mod_clm_pftdyn
       do p = begp,endp
         pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
         pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
+        if ( .not. enable_dv_baresoil ) then
+          if ( pptr%wtcol(p) > d_zero ) then
+            if ( ivt(p) == noveg ) then
+              pptr%pdgvs%nind(p) = 0.0_rk8
+            else if ( ivt(p) == ndllf_evr_tmp_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == ndllf_evr_brl_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == ndllf_dcd_brl_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_evr_trp_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_evr_tmp_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_dcd_trp_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_dcd_tmp_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_dcd_brl_tree ) then
+              pptr%pdgvs%nind(p) = 2.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_evr_shrub ) then
+              pptr%pdgvs%nind(p) = 10.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_dcd_tmp_shrub ) then
+              pptr%pdgvs%nind(p) = 10.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nbrdlf_dcd_brl_shrub ) then
+              pptr%pdgvs%nind(p) = 10.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nc3_arctic_grass ) then
+              pptr%pdgvs%nind(p) = 100.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nc3_nonarctic_grass ) then
+              pptr%pdgvs%nind(p) = 100.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nc4_grass ) then
+              pptr%pdgvs%nind(p) = 100.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nc3crop ) then
+              pptr%pdgvs%nind(p) = 100.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else if ( ivt(p) == nc3irrig ) then
+              pptr%pdgvs%nind(p) = 100.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            else
+              pptr%pdgvs%nind(p) = 20.0_rk8
+              pptr%pcs%leafcmax(p) = 1.0_rk8
+              pptr%pcs%deadstemc(p) = 0.5_rk8
+              pptr%pdgvs%pftmayexist(p) = .true.
+              pptr%pdgvs%present(p) = .true.
+            end if
+          else
+            pptr%pdgvs%nind(p) = 0.0_rk8
+          end if
+        else
+          pptr%pdgvs%nind(p) = 0.0_rk8
+        end if
         wtcol_old(p) = pptr%wtcol(p)
       end do
     else

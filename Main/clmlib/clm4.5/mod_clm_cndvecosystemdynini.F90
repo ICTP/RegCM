@@ -47,10 +47,12 @@ module mod_clm_cndvecosystemdynini
       pptr%pdgvs%nind(p)      = 0._rk8
       pptr%pcs%leafcmax(p)    = 0._rk8
       pptr%pdgvs%t_mo_min(p)  = 1.0e+36_rk8
+      pptr%pdgvs%agddtw(g)   = 0.0_rk8
+      pptr%pdgvs%prec365(g)  = 0.0007_rk8
     end do
 
     do g = begg , endg
-      gptr%gdgvs%agdd20(g)   = 0._rk8
+      gptr%gdgvs%agdd20(g)   = 1000._rk8
       !initialize this way for Phenology code
       gptr%gdgvs%tmomin20(g) = adomain%tgrd(g) - 5._rk8
     end do
