@@ -691,9 +691,9 @@ module mod_clm_surfrd
       do m = 1 , maxpatch_pft ! CNDV means allocate_all_vegpfts = .true.
         if ( create_crop_landunit ) then ! been through surfrd_wtxy_veg_all
           if ( crop(m-1) == 0 ) then     ! so update natural vegetation only
-            wtxy(nl,m) = 0._rk8       ! crops should have values >= 0.
+            wtxy(nl,m) = 0._rk8          ! crops should have values >= 0.
           end if
-        else                        ! not been through surfrd_wtxy_veg_all
+        else                    ! not been through surfrd_wtxy_veg_all
           wtxy(nl,m) = 0._rk8   ! so update all vegetation
           vegxy(nl,m) = m - 1 ! 0 (bare ground) to maxpatch_pft-1 (= 16)
         end if
