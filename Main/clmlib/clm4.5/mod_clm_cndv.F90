@@ -16,7 +16,7 @@ module mod_clm_cndv
   use mod_clm_type
   use mod_clm_nchelper
   use mod_clm_time_manager , only : getdatetime
-  use mod_clm_varctl , only : caseid , inst_suffix , nextdate
+  use mod_clm_varctl , only : caseid , inst_suffix , nextdate , run_year
   use mod_clm_varctl , only : ctitle, finidat, fsurdat, fpftcon
   use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
   use mod_clm_cndvestablishment , only : Establishment
@@ -133,6 +133,7 @@ module mod_clm_cndv
     ! Returns updated fpcgrid, nind, crownarea, and present. Due to updated
     ! present, we do not use the natveg filter in this subroutine.
 
+    run_year = iyeardiff(nextdate,idate0)
     call Establishment(lbg, ubg, lbp, ubp)
 
     ! Reset dgvm variables needed in next yr (too few to keep subr. dvreset)
@@ -284,6 +285,7 @@ module mod_clm_cndv
     ! -----------------------------------------------------------------------
 
     call clm_addvar(clmvar_integer,ncid,'numpft')
+    call clm_addvar(clmvar_integer,ncid,'run_year')
 
     call curr_time(nextdate,mdcur, mscur)
     call ref_date(yr,mon,day,nbsec)
@@ -357,6 +359,7 @@ module mod_clm_cndv
     ! -----------------------------------------------------------------------
 
     call clm_writevar(ncid,'numpft',maxpatch_pft)
+    call clm_writevar(ncid,'run_year',run_year)
 
     ! Write surface grid (coordinate variables, latitude,
     ! longitude, surface type).

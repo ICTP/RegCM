@@ -152,7 +152,8 @@ module mod_date
   public :: print_rcm_time_and_date , print_rcm_time_interval
   public :: setcal , set_timeunit
   public :: tochar , toint10 , tochar10 , tohours , toiso8601
-  public :: lsamemonth , imondiff , lfhomonth , monfirst , monlast , monmiddle
+  public :: lsamemonth , imondiff , iyeardiff
+  public :: lfhomonth , monfirst , monlast , monmiddle
   public :: hourdiff , nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek
   public :: timeval2date , lfdomonth , lfdoyear , lmidnight , yeardayfrac
@@ -1099,6 +1100,16 @@ module mod_date
     call days_from_reference_to_date(y,d2)
     lm = (d1%month == d2%month)
   end function
+
+  integer(ik4) function iyeardiff(x,y) result(z)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x , y
+    type (iadate) :: d1 , d2
+    call check_cal(x,y)
+    call days_from_reference_to_date(x,d1)
+    call days_from_reference_to_date(y,d2)
+    z = abs((d1%year-d2%year))
+  end function iyeardiff
 
   integer(ik4) function imondiff(x,y) result(z)
     implicit none

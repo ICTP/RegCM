@@ -10,6 +10,7 @@ module mod_clm_cndvestablishment
   use mod_realkinds
   use mod_mpmessage
   use mod_stdio
+  use mod_dynparam , only : enable_dv_baresoil
 
   implicit none
 
@@ -30,6 +31,7 @@ module mod_clm_cndvestablishment
     use mod_clm_varcon   , only : istsoil
     use mod_clm_pftvarcon    , only : noveg, nc3_arctic_grass
     use mod_clm_varcon, only : secspday , rpi , tfrz
+    use mod_clm_varctl, only : run_year
     implicit none
     integer(ik4) , intent(in) :: lbg, ubg         ! gridcell bounds
     integer(ik4) , intent(in) :: lbp, ubp         ! pft bounds
@@ -181,6 +183,13 @@ module mod_clm_cndvestablishment
     ! For REGENERATION, PFT must be able to survive AND coldest month
     ! temperature should be no higher than a PFT-specific limit.
     ! **********************************************************************
+
+    if ( .not. enable_dv_baresoil ) then
+      if ( run_year < 20 ) then
+        write (stdout, *) 'Skipping year ',run_year,' for establishment.'
+        return
+      end if
+    end if
 
     taper = 200._rk8 ! make a global constant as with dwood (lpj's wooddens)
 
