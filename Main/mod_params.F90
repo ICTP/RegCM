@@ -1599,7 +1599,7 @@ module mod_params
       syncro_dbg => rcm_syncro(rcmtimer,secph*dbgfrq)
     end if
     if ( irrtm == 1 ) then
-      syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo*secpm)
+      syncro_radfor => rcm_syncro(rcmtimer,dtrad*nradfo)
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1 .or. icopcpl == 1 ) then
       syncro_cpl => rcm_syncro(rcmtimer,cpldt)
