@@ -919,7 +919,7 @@ module mod_clm_cninitimevar
         if (woody(ivt(p)) == 1._rk8) then
           deadstemc(p) = 0.1_rk8
         else
-          deadstemc(p) = 0._rk8
+          deadstemc(p) = 0.0_rk8
         end if
 
         deadstemc_storage(p) = 0._rk8

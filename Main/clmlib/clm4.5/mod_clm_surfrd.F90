@@ -538,7 +538,7 @@ module mod_clm_surfrd
     use mod_clm_varctl , only : create_crop_landunit , irrigate
     use mod_clm_pftvarcon , only : nc3crop , nc3irrig , npcropmin ,  &
           ncorn , ncornirrig , nsoybean , nsoybeanirrig , nscereal , &
-          nscerealirrig , nwcereal , nwcerealirrig
+          nscerealirrig , nwcereal , nwcerealirrig , noveg
     use mod_clm_domain , only : domain_type
     implicit none
     type(clm_filetype) , intent(inout) :: ncid   ! netcdf id
@@ -601,7 +601,14 @@ module mod_clm_surfrd
             ier = ier + 100000
           end if
           do m = npcropmin , numpft
+#ifdef CNDV
+            if ( pctpft(nl,m) > 0.0_rk8 ) then
+              pctpft(nl,noveg) = pctpft(nl,noveg) + pctpft(nl,m)
+              pctpft(nl,m) = 0.0_rk8
+            end if
+#else
             if ( pctpft(nl,m) > 0.0_rk8 ) crop = .true.
+#endif
           end do
         end if
         ! Set weight of each pft wrt gridcell

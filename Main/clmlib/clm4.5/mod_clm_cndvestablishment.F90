@@ -254,7 +254,7 @@ module mod_clm_cndvestablishment
           if (twmax(ivt(p)) > 999._rk8 .or. agddtw(p) == 0._rk8) then
 
             present(p) = .true.
-            nind(p) = 0._rk8
+            nind(p) = 0.0_rk8
             ! lpj starts with fpcgrid=0 and calculates
             ! seed fpcgrid from the carbon of saplings;
             ! with CN we need the seed fpcgrid up front
@@ -306,15 +306,15 @@ module mod_clm_cndvestablishment
     do p = lbp, ubp
       g = pgridcell(p)
 
-      if (present(p) .and. woody(ivt(p)) == 1._rk8 .and. estab(p)) then
+      if ( present(p) .and. woody(ivt(p)) == 1._rk8 .and. estab(p) ) then
 
         ! Calculate establishment rate over available space, per tree PFT
         ! Max establishment rate reduced by shading as tree FPC approaches 1
         ! Total establishment rate partitioned equally among
         ! regenerating woody PFTs
 
-        estab_rate = estab_max * &
-                (1._rk8-exp(5._rk8*(fpc_tree_total(g)-1._rk8))) / dble(npft_estab(g))
+        estab_rate = estab_max*(1._rk8-exp(5._rk8 * &
+            (fpc_tree_total(g)-1._rk8))) / dble(npft_estab(g))
 
         ! Calculate grid-level establishment rate per woody PFT
         ! Space available for woody PFT establishment is fraction of grid cell
@@ -483,6 +483,15 @@ module mod_clm_cndvestablishment
     end do
 
     ! Check for error in establishment
+    do p = lbp, ubp
+      g = pgridcell(p)
+      if ( is_nan(fpcgrid(p)) ) then
+        write(stderr,*) 'Error in Establishment: fpcgrid =', &
+                fpcgrid(p), ' at pft ',p
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
+    end do
+
     fn = 0
     do g = lbg, ubg
       if (abs(fpc_total(g) - 1._rk8) > 1.e-6_rk8) then

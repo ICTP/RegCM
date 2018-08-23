@@ -355,6 +355,17 @@ module mod_clm_control
     call bcast(create_crop_landunit)
     call bcast(allocate_all_vegpfts)
 
+#ifdef CNDV
+    if ( create_crop_landunit ) then
+      if ( myid == 0 ) then
+        write(stderr, *) 'CNDV mode cannot work with create_crop_landunit = T'
+        write(stderr, *) 'Set create_crop_landunit = F in namelist clm_inparm'
+      end if
+      call fatal(__FILE__,__LINE__, &
+                 'NAMELIST OPTION INCOMPATIBLE')
+    end if
+#endif
+
     ! BGC
 
     call bcast(co2_type,len(co2_type))

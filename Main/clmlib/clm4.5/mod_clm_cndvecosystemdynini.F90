@@ -22,7 +22,7 @@ module mod_clm_cndvecosystemdynini
     use mod_clm_atmlnd , only : atm_domain
     implicit none
     type(atm_domain) , intent(in) :: adomain
-    integer(ik4) :: g , p , n   ! indices
+    integer(ik4) :: g , p
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc !              "                column indices
     integer(ik4) :: begl , endl !              "                landunit indices
@@ -42,13 +42,14 @@ module mod_clm_cndvecosystemdynini
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
     do p = begp , endp
+      g = pptr%gridcell(p)
       pptr%pdgvs%present(p)   = .false.
       pptr%pdgvs%crownarea(p) = 0._rk8
       pptr%pdgvs%nind(p)      = 0._rk8
       pptr%pcs%leafcmax(p)    = 0._rk8
       pptr%pdgvs%t_mo_min(p)  = 1.0e+36_rk8
-      pptr%pdgvs%agddtw(g)   = 0.0_rk8
-      pptr%pdgvs%prec365(g)  = 0.0007_rk8
+      pptr%pdgvs%prec365(p)  = 0.0007_rk8
+      pptr%pdgvs%agddtw(p)   = 0.0_rk8
     end do
 
     do g = begg , endg

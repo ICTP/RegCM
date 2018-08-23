@@ -129,7 +129,7 @@ module mod_clm_cndvlight
 
       if ( crownarea(p) > 0._rk8 .and. nind(p) > 0._rk8 ) then
         lm_ind  = leafcmax(p) * fpcgrid(p) / nind(p)
-        if ( dsladlai(ivt(p) ) > 0._rk8) then
+        if ( dsladlai(ivt(p)) > 0._rk8 ) then
           lai_ind = max(0.001_rk8,((exp(lm_ind*dsladlai(ivt(p)) + &
                   log(slatop(ivt(p)))) - &
                   slatop(ivt(p)))/dsladlai(ivt(p))) / crownarea(p))
@@ -208,7 +208,8 @@ module mod_clm_cndvlight
                   fpcgrid(p) / fpc_grass_total(g)
           fpcgrid(p) = max(0._rk8, fpcgrid(p) - excess)
         end if
-      else if ( woody(ivt(p)) == 1._rk8 .and. tree(ivt(p)) == 0._rk8 ) then ! shrub
+      else if ( woody(ivt(p)) == 1._rk8 .and. tree(ivt(p)) == 0._rk8 ) then
+        ! shrub
         if ( fpc_shrub_total(g) > fpc_shrub_max(g) ) then
           excess = 1._rk8 - fpc_shrub_max(g) / fpc_shrub_total(g)
           ! Reduce individual density (and thereby gridcell-level biomass)

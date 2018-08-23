@@ -85,8 +85,8 @@ module mod_clm_croprest
     if (flag == 'define') then
       call clm_addvar(clmvar_integer,ncid,'peaklai',cdims=['pft'], &
             long_name='Flag if at max allowed LAI or not', &
-            flag_values=[0,1], valid_range=[0,1],     &
-            flag_meanings=['NOT-at-peak', 'AT_peak-LAI' ] )
+            flag_meanings=['NOT-at-peak', 'AT_peak-LAI' ], &
+            flag_values=[0,1], valid_range=[0,1])
     else if (flag == 'read' ) then
       if ( is_restart() .and. .not. clm_check_var(ncid,'peaklai') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')

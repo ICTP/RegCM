@@ -432,6 +432,7 @@ module mod_clm_initialize
       ! Determine gridcell averaged properties to send to atm
       call clm_map2gcell(init=.true.)
     end if
+
   end subroutine initialize2
 
 end module mod_clm_initialize
