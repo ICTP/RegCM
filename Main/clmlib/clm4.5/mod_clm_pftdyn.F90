@@ -2848,157 +2848,74 @@ module mod_clm_pftdyn
           if ( pptr%wtcol(p) > d_zero ) then
             if ( ivt(p) == noveg ) then
               pptr%pdgvs%nind(p) = 0.0_rk8
-            else if ( ivt(p) == ndllf_evr_tmp_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
+            else if ( ivt(p) == ndllf_evr_tmp_tree .or.  &
+                      ivt(p) == ndllf_evr_brl_tree .or.  &
+                      ivt(p) == ndllf_dcd_brl_tree .or.  &
+                      ivt(p) == nbrdlf_evr_trp_tree .or. &
+                      ivt(p) == nbrdlf_evr_tmp_tree .or. &
+                      ivt(p) == nbrdlf_dcd_trp_tree .or. &
+                      ivt(p) == nbrdlf_dcd_tmp_tree .or. &
+                      ivt(p) == nbrdlf_dcd_brl_tree ) then
+              pptr%pdgvs%nind(p) = 0.3_rk8
+              pptr%pcs%leafcmax(p) = 50.0_rk8
+              pptr%pcs%leafc = 50.0_rk8
+              pptr%pcs%leafc_storage = 50.0_rk8
+              pptr%pns%leafn = 5.0_rk8
+              pptr%pns%leafn_storage = 5.0_rk8
+              pptr%pcs%deadcrootc(p) = 20.0_rk8
+              pptr%pcs%deadstemc(p) = 50.0_rk8
+              pptr%pcs%livestemc(p) = 5.0_rk8
+              pptr%pcs%livecrootc(p) = 1.0_rk8
+              pptr%pcs%deadcrootc_storage(p) = 2.0_rk8
+              pptr%pcs%deadstemc_storage(p) = 10.0_rk8
+              pptr%pcs%livecrootc_storage(p) = 0.5_rk8
+              pptr%pcs%livestemc_storage(p) = 2.0_rk8
+              pptr%pns%deadstemn(p) = 0.05_rk8
+              pptr%pns%livestemn(p) = 0.02_rk8
+              pptr%pns%deadcrootn(p) = 0.025_rk8
+              pptr%pns%livecrootn(p) = 0.01_rk8
+              pptr%pns%deadcrootn_storage(p) = 0.0025_rk8
+              pptr%pns%deadstemn_storage(p) = 0.01_rk8
+              pptr%pns%livecrootn_storage(p) = 0.01_rk8
+              pptr%pns%livestemn_storage(p) = 0.002_rk8
+              pptr%pdgvs%crownarea(p) = 8.0_rk8
               pptr%pdgvs%greffic(p) = 0.0_rk8
               pptr%pdgvs%heatstress(p) = 0.0_rk8
               pptr%pdgvs%pftmayexist(p) = .true.
               pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == ndllf_evr_brl_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == ndllf_dcd_brl_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_evr_trp_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_evr_tmp_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_dcd_trp_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_dcd_tmp_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_dcd_brl_tree ) then
-              pptr%pdgvs%nind(p) = 0.2_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_evr_shrub ) then
+            else if ( ivt(p) == nbrdlf_evr_shrub .or.     &
+                      ivt(p) == nbrdlf_dcd_tmp_shrub .or. &
+                      ivt(p) == nbrdlf_dcd_brl_shrub ) then
               pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_dcd_tmp_shrub ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_dcd_brl_shrub ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.5_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nc3_arctic_grass ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.0_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nc3_nonarctic_grass ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.0_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nc4_grass ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.0_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nc3crop ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.0_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nc3irrig ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.0_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
+              pptr%pcs%leafcmax(p) = 50.0_rk8
+              pptr%pcs%leafc = 50.0_rk8
+              pptr%pcs%leafc_storage = 50.0_rk8
+              pptr%pns%leafn = 5.0_rk8
+              pptr%pns%leafn_storage = 5.0_rk8
+              pptr%pcs%deadcrootc(p) = 20.0_rk8
+              pptr%pcs%deadstemc(p) = 50.0_rk8
+              pptr%pcs%livestemc(p) = 5.0_rk8
+              pptr%pcs%livecrootc(p) = 1.0_rk8
+              pptr%pcs%deadcrootc_storage(p) = 2.0_rk8
+              pptr%pcs%deadstemc_storage(p) = 10.0_rk8
+              pptr%pcs%livecrootc_storage(p) = 0.5_rk8
+              pptr%pcs%livestemc_storage(p) = 2.0_rk8
+              pptr%pns%deadstemn(p) = 0.05_rk8
+              pptr%pns%livestemn(p) = 0.02_rk8
+              pptr%pns%deadcrootn(p) = 0.025_rk8
+              pptr%pns%livecrootn(p) = 0.01_rk8
+              pptr%pns%deadcrootn_storage(p) = 0.0025_rk8
+              pptr%pns%deadstemn_storage(p) = 0.01_rk8
+              pptr%pns%livecrootn_storage(p) = 0.01_rk8
+              pptr%pns%livestemn_storage(p) = 0.002_rk8
+              pptr%pdgvs%crownarea(p) = 4.0_rk8
               pptr%pdgvs%greffic(p) = 0.0_rk8
               pptr%pdgvs%heatstress(p) = 0.0_rk8
               pptr%pdgvs%pftmayexist(p) = .true.
               pptr%pdgvs%present(p) = .true.
             else
-              pptr%pdgvs%nind(p) = 0.5_rk8
+              pptr%pdgvs%nind(p) = 1.0_rk8
               pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pcs%deadstemc(p) = 0.0_rk8
-              pptr%pdgvs%crownarea(p) = 1.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
               pptr%pdgvs%pftmayexist(p) = .true.
               pptr%pdgvs%present(p) = .true.
             end if
