@@ -34,6 +34,7 @@ module mod_earth
   interface ll2xyz
     module procedure ll2xyz_values
     module procedure ll2xyz_array
+    module procedure ll2xyz_1d
     module procedure ll2xyz_arrays
     module procedure ll2xyz_grid
   end interface
@@ -106,6 +107,23 @@ module mod_earth
     x(2) = erkm * sin(rlat)
     x(3) = erkm * cos(rlat) * cos(rlon)
   end subroutine ll2xyz_array
+
+  subroutine ll2xyz_1d(ni,lat,lon,x)
+    implicit none
+    integer(ik4) , intent(in) :: ni
+    real(rkx) , intent(in) , dimension(ni) :: lat
+    real(rkx) , intent(in) , dimension(ni) :: lon
+    real(rkx) , intent(out) , dimension(3,ni) :: x
+    real(rkx) :: rlat , rlon
+    integer(ik4) :: i
+    do i = 1 , ni
+      rlat = max(min(lat(i),89.99_rkx),-89.99_rkx)*degrad
+      rlon = lon(i)*degrad
+      x(1,i) = erkm * cos(rlat) * sin(rlon)
+      x(2,i) = erkm * sin(rlat)
+      x(3,i) = erkm * cos(rlat) * cos(rlon)
+    end do
+  end subroutine ll2xyz_1d
 
   subroutine ll2xyz_arrays(lat,lon,x)
     implicit none

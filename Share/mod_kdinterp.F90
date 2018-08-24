@@ -59,8 +59,8 @@ module mod_kdinterp
   end interface h_interpolate_class
 
   interface compwgt_genlin
-    module procedure compwgt_genlin1d
-    module procedure compwgt_genlin2d
+    module procedure compwgt_genlin_1d
+    module procedure compwgt_genlin_2d
   end interface compwgt_genlin
 
   ! Need at least three point to triangulate
@@ -262,7 +262,7 @@ module mod_kdinterp
     write(stdout,'(a)') ' Done.'
   end subroutine interp_create_ll_ll
 
-  subroutine interp_create_ll_ll_1d(ni,no,h_i,slat,slon,tlat,tlon,res)
+  subroutine interp_create_ll_ll_1d(h_i,ni,slat,slon,no,tlat,tlon,res)
     implicit none
     integer , intent(in) :: ni , no
     type(h_interpolator) , intent(out) :: h_i
@@ -275,13 +275,13 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: np , nf , i
+    integer(ik4) :: np , i
     real(rkx) :: dx , r2
 
     h_i%sshape(1) = ni
     h_i%sshape(2) = 1
     allocate(x(3,ni))
-    call ll2xyz(slat,slon,x)
+    call ll2xyz(ni,slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
     dx = res
     r2 = dx*dx
@@ -918,7 +918,7 @@ module mod_kdinterp
     end do
   end subroutine compwgt_distwei
 
-  subroutine compwgt_genlin1d(np,p,xp,r,w)
+  subroutine compwgt_genlin_1d(np,p,xp,r,w)
     implicit none
     integer(ik4) , intent(inout) :: np
     real(rkx) , dimension(:,:) , intent(in) :: xp
@@ -952,9 +952,9 @@ module mod_kdinterp
       w(n)%j = 1
       w(n)%wgt = lambda(n)
     end do
-  end subroutine compwgt_genlin1d
+  end subroutine compwgt_genlin_1d
 
-  subroutine compwgt_genlin2d(np,n2,p,xp,r,w)
+  subroutine compwgt_genlin_2d(np,n2,p,xp,r,w)
     implicit none
     integer(ik4) , intent(in) :: n2
     integer(ik4) , intent(inout) :: np
@@ -989,7 +989,7 @@ module mod_kdinterp
       w(n)%j = r(n)%idx - n2*(w(n)%i-1)
       w(n)%wgt = lambda(n)
     end do
-  end subroutine compwgt_genlin2d
+  end subroutine compwgt_genlin_2d
 
 end module mod_kdinterp
 

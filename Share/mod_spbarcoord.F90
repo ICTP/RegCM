@@ -73,9 +73,9 @@ module mod_spbarcoord
 
     centroid = d_zero
     do i = 1 , np
-      centroid(1) = centroid(1) + v(i,1)
-      centroid(2) = centroid(2) + v(i,2)
-      centroid(3) = centroid(3) + v(i,3)
+      centroid(1) = centroid(1) + v(1,i)
+      centroid(2) = centroid(2) + v(2,i)
+      centroid(3) = centroid(3) + v(3,i)
     end do
     centroid = centroid / real(np,rkx)
 
@@ -183,7 +183,7 @@ module mod_spbarcoord
     p3(2) = p1(3)*p2(1) - p1(1)*p2(3)
     p3(3) = p1(1)*p2(2) - p1(2)*p2(1)
 
-    res = -((n(1)*p3(1) + n(2)*p3(2) + n(3)*p3(3)))
+    res = -int((n(1)*p3(1) + n(2)*p3(2) + n(3)*p3(3)))
 
     contains
 
