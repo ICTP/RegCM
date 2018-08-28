@@ -104,7 +104,7 @@ module mod_clm_cndvlight
       numtrees(g) = 0
     end do
 
-    do fp = 1,num_natvegp
+    do fp = 1 , num_natvegp
       p = filter_natvegp(fp)
       g = pgridcell(p)
 

@@ -2815,19 +2815,24 @@ module mod_clm_pftdyn
             nbrdlf_dcd_brl_tree, nbrdlf_evr_shrub, nbrdlf_dcd_tmp_shrub, &
             nbrdlf_dcd_brl_shrub, nc3_arctic_grass, nc3_nonarctic_grass, &
             nc4_grass, nc3crop, nc3irrig, npcropmin, npcropmax
+    use mod_clm_varcon, only : istsoil , istcrop
     implicit none
-    integer(ik4)  :: ier, p       ! error status, do-loop index
+    integer(ik4)  :: ier, p, l    ! error status, do-loop index
     integer(ik4)  :: begp,endp    ! beg/end indices for land pfts
     character(len=32) :: subname='pftwt_init' ! subroutine name
     type(pft_type), pointer :: pptr           ! ponter to pft derived subtype
-    integer(ik4) , pointer :: ivt(:)          ! landunit type
+    integer(ik4) , pointer :: ivt(:)          ! pft type
+    integer(ik4) , pointer :: plandunit(:)    ! landunit type
+    integer(ik4) , pointer :: ityplun(:)      ! index into landunit
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
     integer(ik4) :: day   ! day of month (1, ..., 31) for nstep+1
     integer(ik4) :: sec   ! seconds into current date for nstep+1
 
-    pptr => clm3%g%l%c%p
-    ivt  => pptr%itype
+    pptr      => clm3%g%l%c%p
+    plandunit => clm3%g%l%c%p%landunit
+    ityplun   => clm3%g%l%itype
+    ivt       => clm3%g%l%c%p%itype
 
     call get_proc_bounds(begp=begp,endp=endp)
 
@@ -2846,87 +2851,23 @@ module mod_clm_pftdyn
         pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
         if ( .not. enable_dv_baresoil ) then
           if ( pptr%wtcol(p) > d_zero ) then
-            if ( ivt(p) == noveg ) then
-              pptr%pdgvs%nind(p) = 0.0_rk8
-            else if ( ivt(p) == ndllf_evr_tmp_tree .or.  &
-                      ivt(p) == ndllf_evr_brl_tree .or.  &
-                      ivt(p) == ndllf_dcd_brl_tree .or.  &
-                      ivt(p) == nbrdlf_evr_trp_tree .or. &
-                      ivt(p) == nbrdlf_evr_tmp_tree .or. &
-                      ivt(p) == nbrdlf_dcd_trp_tree .or. &
-                      ivt(p) == nbrdlf_dcd_tmp_tree .or. &
-                      ivt(p) == nbrdlf_dcd_brl_tree ) then
-              pptr%pdgvs%nind(p) = 0.3_rk8
-              pptr%pcs%leafcmax(p) = 50.0_rk8
-              pptr%pcs%leafc = 50.0_rk8
-              pptr%pcs%leafc_storage = 50.0_rk8
-              pptr%pns%leafn = 5.0_rk8
-              pptr%pns%leafn_storage = 5.0_rk8
-              pptr%pcs%deadcrootc(p) = 20.0_rk8
-              pptr%pcs%deadstemc(p) = 50.0_rk8
-              pptr%pcs%livestemc(p) = 5.0_rk8
-              pptr%pcs%livecrootc(p) = 1.0_rk8
-              pptr%pcs%deadcrootc_storage(p) = 2.0_rk8
-              pptr%pcs%deadstemc_storage(p) = 10.0_rk8
-              pptr%pcs%livecrootc_storage(p) = 0.5_rk8
-              pptr%pcs%livestemc_storage(p) = 2.0_rk8
-              pptr%pns%deadstemn(p) = 0.05_rk8
-              pptr%pns%livestemn(p) = 0.02_rk8
-              pptr%pns%deadcrootn(p) = 0.025_rk8
-              pptr%pns%livecrootn(p) = 0.01_rk8
-              pptr%pns%deadcrootn_storage(p) = 0.0025_rk8
-              pptr%pns%deadstemn_storage(p) = 0.01_rk8
-              pptr%pns%livecrootn_storage(p) = 0.01_rk8
-              pptr%pns%livestemn_storage(p) = 0.002_rk8
-              pptr%pdgvs%crownarea(p) = 8.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else if ( ivt(p) == nbrdlf_evr_shrub .or.     &
-                      ivt(p) == nbrdlf_dcd_tmp_shrub .or. &
-                      ivt(p) == nbrdlf_dcd_brl_shrub ) then
-              pptr%pdgvs%nind(p) = 0.5_rk8
-              pptr%pcs%leafcmax(p) = 50.0_rk8
-              pptr%pcs%leafc = 50.0_rk8
-              pptr%pcs%leafc_storage = 50.0_rk8
-              pptr%pns%leafn = 5.0_rk8
-              pptr%pns%leafn_storage = 5.0_rk8
-              pptr%pcs%deadcrootc(p) = 20.0_rk8
-              pptr%pcs%deadstemc(p) = 50.0_rk8
-              pptr%pcs%livestemc(p) = 5.0_rk8
-              pptr%pcs%livecrootc(p) = 1.0_rk8
-              pptr%pcs%deadcrootc_storage(p) = 2.0_rk8
-              pptr%pcs%deadstemc_storage(p) = 10.0_rk8
-              pptr%pcs%livecrootc_storage(p) = 0.5_rk8
-              pptr%pcs%livestemc_storage(p) = 2.0_rk8
-              pptr%pns%deadstemn(p) = 0.05_rk8
-              pptr%pns%livestemn(p) = 0.02_rk8
-              pptr%pns%deadcrootn(p) = 0.025_rk8
-              pptr%pns%livecrootn(p) = 0.01_rk8
-              pptr%pns%deadcrootn_storage(p) = 0.0025_rk8
-              pptr%pns%deadstemn_storage(p) = 0.01_rk8
-              pptr%pns%livecrootn_storage(p) = 0.01_rk8
-              pptr%pns%livestemn_storage(p) = 0.002_rk8
-              pptr%pdgvs%crownarea(p) = 4.0_rk8
-              pptr%pdgvs%greffic(p) = 0.0_rk8
-              pptr%pdgvs%heatstress(p) = 0.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
-            else
-              pptr%pdgvs%nind(p) = 1.0_rk8
-              pptr%pcs%leafcmax(p) = 1.0_rk8
-              pptr%pdgvs%pftmayexist(p) = .true.
-              pptr%pdgvs%present(p) = .true.
+            l = plandunit(p)
+            if ( ityplun(l) == istsoil .or. ityplun(l) == istcrop ) then
+              if ( ivt(p) == noveg ) then
+                pptr%pdgvs%nind(p) = 0.0_rk8
+              else
+                ! pft_dgvstate_type
+                pptr%pdgvs%nind(p) = 0.1_rk8
+                pptr%pdgvs%crownarea(p) = 0.1_rk8
+                pptr%pdgvs%greffic(p) = 0.0_rk8
+                pptr%pdgvs%heatstress(p) = 0.0_rk8
+                pptr%pdgvs%pftmayexist(p) = .true.
+                pptr%pdgvs%present(p) = .true.
+              end if
             end if
-          else
-            pptr%pdgvs%nind(p) = 0.0_rk8
           end if
-        else
-          pptr%pdgvs%nind(p) = 0.0_rk8
-          pptr%pcs%deadstemc(p) = 0.0_rk8
+          wtcol_old(p) = pptr%wtcol(p)
         end if
-        wtcol_old(p) = pptr%wtcol(p)
       end do
     else
       do p = begp,endp
