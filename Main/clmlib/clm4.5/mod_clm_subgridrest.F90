@@ -110,8 +110,8 @@ module mod_clm_subgridrest
               ['gridcell'],long_name='gridcell latitude', &
               units='degrees_north')
     else if ( flag == 'write' ) then
-      call clm_writevar(ncid,'grid1d_lon',gptr%londeg)
-      call clm_writevar(ncid,'grid1d_lat',gptr%latdeg)
+      call clm_writevar(ncid,'grid1d_lon',gptr%londeg,gcomm_gridcell)
+      call clm_writevar(ncid,'grid1d_lat',gptr%latdeg,gcomm_gridcell)
     end if
 
     ! Write landunit info
