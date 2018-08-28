@@ -497,7 +497,7 @@ program interpinic
         if ( i_map(ig,ip) > 0 ) then
           i_gval(ig) = i_pval(i_map(ig,ip))
         else
-          i_gval(ig) = -9990.0_rk8
+          i_gval(ig) = -9999.0_rk8
         end if
       end do
       ! Interpolate on grid.
@@ -505,7 +505,7 @@ program interpinic
       ! Put grid values back on output pft values
       do ig = 1 , ongc
         if ( o_map(ig,ip) > 0 .and. &
-             abs(o_gval(ig)+9990.0_rk8) > epsilon(1.0) ) then
+             abs(o_gval(ig)+9999.0_rk8) > epsilon(1.0) ) then
           o_pval(o_map(ig,ip)) = o_gval(ig)
         end if
       end do
