@@ -107,7 +107,7 @@ module mod_sst_1deg
       open(newunit=ipunit,file=inpfile,form='unformatted', &
            access='direct',recl=gireclen,action='read',status='old')
 
-      call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+      call h_interpolator_create(hint,lati,loni,xlat,xlon)
 
     else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
               ssttyp == 'OI2ST' ) then
@@ -499,7 +499,7 @@ module mod_sst_1deg
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var lon')
 
-      call h_interpolator_create(hint,lati,loni,xlat,xlon,ds)
+      call h_interpolator_create(hint,lati,loni,xlat,xlon)
 
       istart(1) = 1
       istart(2) = 1

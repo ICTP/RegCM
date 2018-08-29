@@ -44,7 +44,6 @@ program interpinic
   character (len=256) :: prgname
   character (len=256) :: inputfile
   character (len=256) :: outputfile
-  character (len=64) :: sres
 
   integer(ik4) :: istat
   integer(ik4) :: ncin , ncout
@@ -56,30 +55,42 @@ program interpinic
   integer(ik4) :: ongc , onlu , onco , onpft
 
   integer(ik4) , parameter :: itypeveg = 1
+  real(rk8) , parameter :: missl = -9999.0_rk8
 
-  real(rk8) :: ires
   real(rk8) , pointer , dimension(:) :: i_grid1d_lon
   real(rk8) , pointer , dimension(:) :: i_grid1d_lat
   real(rk8) , pointer , dimension(:) :: i_pft1d_lon
   real(rk8) , pointer , dimension(:) :: i_pft1d_lat
+  real(rk8) , pointer , dimension(:) :: i_col1d_lon
+  real(rk8) , pointer , dimension(:) :: i_col1d_lat
   real(rk8) , pointer , dimension(:) :: o_grid1d_lon
   real(rk8) , pointer , dimension(:) :: o_grid1d_lat
   real(rk8) , pointer , dimension(:) :: o_pft1d_lon
   real(rk8) , pointer , dimension(:) :: o_pft1d_lat
+  real(rk8) , pointer , dimension(:) :: o_col1d_lon
+  real(rk8) , pointer , dimension(:) :: o_col1d_lat
   real(rk8) , pointer , dimension(:) :: i_gval
   real(rk8) , pointer , dimension(:) :: o_gval
   real(rk8) , pointer , dimension(:) :: i_pval
   real(rk8) , pointer , dimension(:) :: o_pval
+  real(rk8) , pointer , dimension(:) :: i_cval
+  real(rk8) , pointer , dimension(:) :: o_cval
   integer(ik4) , pointer , dimension(:) :: i_ltype
   integer(ik4) , pointer , dimension(:) :: o_ltype
   integer(ik4) , pointer , dimension(:) :: i_vtype
   integer(ik4) , pointer , dimension(:) :: o_vtype
-  integer(ik4) , pointer , dimension(:,:) :: i_map
-  integer(ik4) , pointer , dimension(:,:) :: o_map
+  integer(ik4) , pointer , dimension(:) :: i_ctype
+  integer(ik4) , pointer , dimension(:) :: o_ctype
+  integer(ik4) , pointer , dimension(:,:) :: i_mapf
+  integer(ik4) , pointer , dimension(:,:) :: o_mapf
+  integer(ik4) , pointer , dimension(:,:) :: i_mapc
+  integer(ik4) , pointer , dimension(:,:) :: o_mapc
+  integer(ik4) , pointer , dimension(:) :: colval
 
   type(h_interpolator) :: hint
   integer(ik4) :: imaxpft , omaxpft
   integer(ik4) :: imaxlun , omaxlun
+  integer(ik4) :: imaxcol , omaxcol , maxcol
 
   integer(ik4) , dimension(8) :: tval
   character (len=32) :: cdata='?'
@@ -116,31 +127,14 @@ program interpinic
   call get_command_argument(1,value=inputfile,status=istat)
   if ( istat < 0 ) then
     write(stderr, *) 'Usage : ', trim(prgname) , &
-              ' inputfile.r.nc outputfile.r.nc inreskm'
+              ' inputfile.r.nc outputfile.r.nc'
     call die(__FILE__,'Input file name missing',__LINE__)
   end if
   call get_command_argument(2,value=outputfile,status=istat)
   if ( istat < 0 ) then
     write(stderr, *) 'Usage : ', trim(prgname) , &
-              ' inputfile.r.nc outputfile.r.nc inreskm'
+              ' inputfile.r.nc outputfile.r.nc'
     call die(__FILE__,'Output file name missing',__LINE__)
-  end if
-  call get_command_argument(3,value=sres,status=istat)
-  if ( istat < 0 ) then
-    write(stderr, *) 'Usage : ', trim(prgname) , &
-              ' inputfile.r.nc outputfile.r.nc inreskm'
-    call die(__FILE__,'inreskm missing',__LINE__)
-  else
-    read(sres,fmt=*,iostat=istat, err=100) ires
-    if ( istat < 0 ) then
-      write(stderr, *) 'Usage : ', trim(prgname) , &
-                ' inputfile.r.nc outputfile.r.nc inreskm'
-      call die(__FILE__,'inreskm not parsable',__LINE__)
-    end if
-  end if
-  if ( ires < 0.0_rk8 ) then
-    write(stderr, *) 'inreskm : ',ires,' ????'
-    call die(__FILE__,'inreskm not parsable',__LINE__)
   end if
 
   istat = nf90_open(inputfile, nf90_nowrite, ncin)
@@ -189,7 +183,11 @@ program interpinic
   call getmem1d(i_gval,1,ingc,'interpinic:i_gval')
   call getmem1d(i_pft1d_lon,1,inpft,'interpinic:i_pft1d_lon')
   call getmem1d(i_pft1d_lat,1,inpft,'interpinic:i_pft1d_lat')
+  call getmem1d(i_col1d_lon,1,inco,'interpinic:i_col1d_lon')
+  call getmem1d(i_col1d_lat,1,inco,'interpinic:i_col1d_lat')
   call getmem1d(i_pval,1,inpft,'interpinic:i_pval')
+  call getmem1d(i_cval,1,inco,'interpinic:i_cval')
+  call getmem1d(i_ctype,1,inco,'interpinic:i_ctype')
   call getmem1d(i_ltype,1,inpft,'interpinic:i_ltype')
   call getmem1d(i_vtype,1,inpft,'interpinic:i_vtype')
   call getmem1d(o_grid1d_lon,1,ongc,'interpinic:o_grid1d_lon')
@@ -197,7 +195,11 @@ program interpinic
   call getmem1d(o_gval,1,ongc,'interpinic:o_gval')
   call getmem1d(o_pft1d_lon,1,onpft,'interpinic:o_pft1d_lon')
   call getmem1d(o_pft1d_lat,1,onpft,'interpinic:o_pft1d_lat')
+  call getmem1d(o_col1d_lon,1,onco,'interpinic:o_col1d_lon')
+  call getmem1d(o_col1d_lat,1,onco,'interpinic:o_col1d_lat')
   call getmem1d(o_pval,1,onpft,'interpinic:o_pval')
+  call getmem1d(o_cval,1,onco,'interpinic:o_cval')
+  call getmem1d(o_ctype,1,onco,'interpinic:o_ctype')
   call getmem1d(o_ltype,1,onpft,'interpinic:o_ltype')
   call getmem1d(o_vtype,1,onpft,'interpinic:o_vtype')
 
@@ -205,47 +207,95 @@ program interpinic
   call rval(ncin,'grid1d_lat',i_grid1d_lat)
   call rval(ncin,'pfts1d_lon',i_pft1d_lon)
   call rval(ncin,'pfts1d_lat',i_pft1d_lat)
+  call rval(ncin,'cols1d_lon',i_col1d_lon)
+  call rval(ncin,'cols1d_lat',i_col1d_lat)
+  call ival(ncin,'cols1d_ityp',i_ctype)
   call ival(ncin,'pfts1d_ityplun',i_ltype)
   call ival(ncin,'pfts1d_itypveg',i_vtype)
   call rval(ncout,'grid1d_lon',o_grid1d_lon)
   call rval(ncout,'grid1d_lat',o_grid1d_lat)
   call rval(ncout,'pfts1d_lon',o_pft1d_lon)
   call rval(ncout,'pfts1d_lat',o_pft1d_lat)
+  call rval(ncout,'cols1d_lon',o_col1d_lon)
+  call rval(ncout,'cols1d_lat',o_col1d_lat)
+  call ival(ncout,'cols1d_ityp',o_ctype)
   call ival(ncout,'pfts1d_ityplun',o_ltype)
   call ival(ncout,'pfts1d_itypveg',o_vtype)
 
   imaxpft = maxval(i_vtype) + 1 ! The bare ground class
   imaxlun = maxval(i_ltype)
+  imaxcol = countcols(i_ctype)
   omaxpft = maxval(o_vtype) + 1 ! The bare ground class
   omaxlun = maxval(o_ltype)
+  omaxcol = countcols(o_ctype)
+
+  call set_colvals(i_ctype,o_ctype,colval)
+  maxcol = size(colval)
 
   write(stdout,*) 'Input  PFT number : ', imaxpft
   write(stdout,*) 'Output PFT number : ', omaxpft
   write(stdout,*) 'Input  LUN number : ', imaxlun
   write(stdout,*) 'Output LUN number : ', omaxlun
+  write(stdout,*) 'Input  COL number : ', imaxcol
+  write(stdout,*) 'Output COL number : ', omaxcol
 
   if ( imaxpft /= omaxpft ) then
     write(stderr,*) 'Number of PFT do not match !'
     call die(__FILE__,'CAN WORK ONLY IF THE PFT MATCH.',__LINE__)
   end if
 
-  call getmem2d(i_map,1,ingc,1,imaxpft,'interpinic:i_map')
-  call getmem2d(o_map,1,ongc,1,omaxpft,'interpinic:o_map')
+  call getmem2d(i_mapf,1,ingc,1,imaxpft,'interpinic:i_mapf')
+  call getmem2d(o_mapf,1,ongc,1,omaxpft,'interpinic:o_mapf')
+  call getmem2d(i_mapc,1,ingc,1,maxcol,'interpinic:i_mapc')
+  call getmem2d(o_mapc,1,ongc,1,maxcol,'interpinic:o_mapc')
 
   call h_interpolator_create(hint, &
                        ingc, i_grid1d_lat, i_grid1d_lon, &
-                       ongc, o_grid1d_lat, o_grid1d_lon, &
-                       ires)
+                       ongc, o_grid1d_lat, o_grid1d_lon)
 
   write(stdout,*) 'Input/output grids successfully read.'
 
-  call makemap(inpft,ingc,imaxpft,i_ltype,i_vtype, &
-               i_grid1d_lat,i_grid1d_lon,i_pft1d_lat,i_pft1d_lon,i_map)
+  call makemap_pft(inpft,ingc,imaxpft,i_ltype,i_vtype, &
+                   i_grid1d_lat,i_grid1d_lon,i_pft1d_lat,i_pft1d_lon,i_mapf)
+  call makemap_col(inco,ingc,maxcol,i_ctype, &
+                   i_grid1d_lat,i_grid1d_lon,i_col1d_lat,i_col1d_lon,i_mapc)
   write(stdout,*) 'Input Map created.'
 
-  call makemap(onpft,ongc,omaxpft,o_ltype,o_vtype, &
-               o_grid1d_lat,o_grid1d_lon,o_pft1d_lat,o_pft1d_lon,o_map)
+  call makemap_pft(onpft,ongc,omaxpft,o_ltype,o_vtype, &
+                   o_grid1d_lat,o_grid1d_lon,o_pft1d_lat,o_pft1d_lon,o_mapf)
+  call makemap_col(onco,ongc,maxcol,o_ctype, &
+                   o_grid1d_lat,o_grid1d_lon,o_col1d_lat,o_col1d_lon,o_mapc)
   write(stdout,*) 'Output Map created.'
+
+  call col_interpolate('litr1c')
+  call col_interpolate('litr2c')
+  call col_interpolate('litr3c')
+  call col_interpolate('soil1c')
+  call col_interpolate('soil2c')
+  call col_interpolate('soil4c')
+  call col_interpolate('soil4c')
+  call col_interpolate('cwdc')
+  call col_interpolate('col_ctrunc')
+  call col_interpolate('seedc')
+  call col_interpolate('totlitc')
+  call col_interpolate('totcolc')
+  call col_interpolate('prod10c')
+  call col_interpolate('prod100c')
+  call col_interpolate('totsomc')
+  call col_interpolate('sminn')
+  call col_interpolate('litr1n')
+  call col_interpolate('litr2n')
+  call col_interpolate('litr3n')
+  call col_interpolate('soil1n')
+  call col_interpolate('soil2n')
+  call col_interpolate('soil4n')
+  call col_interpolate('soil4n')
+  call col_interpolate('cwdn')
+  call col_interpolate('col_ntrunc')
+  call col_interpolate('totcoln')
+  call col_interpolate('seedn')
+  call col_interpolate('prod10n')
+  call col_interpolate('prod100n')
 
   call pft_interpolate('dormant_flag')
   call pft_interpolate('days_active')
@@ -331,11 +381,11 @@ program interpinic
   call pft_interpolate('CROWNAREA')
   call pft_interpolate('tempsum_litfall')
   call pft_interpolate('annsum_litfall')
-  !call pft_interpolate('nind')
-  !call pft_interpolate('leafcmax')
-  !call pft_interpolate('PREC365_VALUE')
-  !call pft_interpolate('AGDDTW_VALUE')
-  !call pft_interpolate('AGDD_VALUE')
+  call pft_interpolate('nind')
+  call pft_interpolate('leafcmax')
+  call pft_interpolate('PREC365_VALUE')
+  call pft_interpolate('AGDDTW_VALUE')
+  call pft_interpolate('AGDD_VALUE')
 
   call h_interpolator_destroy(hint)
 
@@ -352,11 +402,7 @@ program interpinic
     call die(__FILE__,'Output file close error',__LINE__)
   end if
 
-  write(stdout,*) 'Successfully completed CLM interpolation.'
-
-  call exit(0)
-
- 100 call die(__FILE__,'inreskm not parsable',__LINE__)
+  write(stdout,*) 'Successfully interpolated CLM initial condition on restart.'
 
   contains
 
@@ -451,7 +497,7 @@ program interpinic
     end if
   end subroutine wval
 
-  subroutine makemap(np,ng,mp,ltype,ptype,glat,glon,plat,plon,map)
+  subroutine makemap_pft(np,ng,mp,ltype,ptype,glat,glon,plat,plon,map)
     implicit none
     integer(ik4) , intent(in) :: np , ng , mp
     integer(ik4) , intent(in) , dimension(np) :: ltype
@@ -477,7 +523,32 @@ program interpinic
       end if
       ip = ip + 1
     end do ploop
-  end subroutine makemap
+  end subroutine makemap_pft
+
+  subroutine makemap_col(nc,ng,mc,ctype,glat,glon,clat,clon,map)
+    implicit none
+    integer(ik4) , intent(in) :: nc , ng , mc
+    integer(ik4) , intent(in) , dimension(nc) :: ctype
+    real(rk8) , intent(in) , dimension(ng) :: glat
+    real(rk8) , intent(in) , dimension(ng) :: glon
+    real(rk8) , intent(in) , dimension(nc) :: clat
+    real(rk8) , intent(in) , dimension(nc) :: clon
+    integer(ik4) , intent(out) , dimension(ng,mc) :: map
+    integer(ik4) :: ig , ic
+
+    map(:,:) = -1
+    ig = 1
+    ic = 1
+    cloop: &
+    do while ( ic <= nc )
+      if ( abs(glat(ig)-clat(ic)) > epsilon(1.0) .and. &
+           abs(glon(ig)-clon(ic)) > epsilon(1.0) ) then
+        ig = ig + 1
+      end if
+      map(ig,myfindloc(colval,ctype(ic))) = ic
+      ic = ic + 1
+    end do cloop
+  end subroutine makemap_col
 
   subroutine pft_interpolate(vname)
     implicit none
@@ -494,24 +565,141 @@ program interpinic
     do ip = 1 , imaxpft
       ! Extract values for pft and put on grid values
       do ig = 1 , ingc
-        if ( i_map(ig,ip) > 0 ) then
-          i_gval(ig) = i_pval(i_map(ig,ip))
+        if ( i_mapf(ig,ip) > 0 ) then
+          if ( i_pval(i_mapf(ig,ip)) >= -1.0e-20 .and. &
+               i_pval(i_mapf(ig,ip)) <= 1.0e+20 ) then
+            i_gval(ig) = i_pval(i_mapf(ig,ip))
+          end if
         else
-          i_gval(ig) = -9999.0_rk8
+          i_gval(ig) = missl
         end if
       end do
+      o_gval(:) = missl
       ! Interpolate on grid.
       call h_interpolate_cont(hint,i_gval,o_gval)
       ! Put grid values back on output pft values
       do ig = 1 , ongc
-        if ( o_map(ig,ip) > 0 .and. &
-             abs(o_gval(ig)+9999.0_rk8) > epsilon(1.0) ) then
-          o_pval(o_map(ig,ip)) = o_gval(ig)
+        if ( o_mapf(ig,ip) > 0 .and. &
+             abs(o_gval(ig)-missl) > epsilon(1.0) ) then
+          o_pval(o_mapf(ig,ip)) = o_gval(ig)
         end if
       end do
     end do
     call wval(ncout,vname,o_pval)
   end subroutine pft_interpolate
+
+  subroutine col_interpolate(vname)
+    implicit none
+    character(len=*) , intent(in) :: vname
+    integer(ik4) :: ic , ig
+
+    write(stdout,*) 'Interpolating ',trim(vname)
+
+    if ( .not. hasval(ncin,ncout,vname) ) return
+
+    call rval(ncin,vname,i_cval)
+    call rval(ncout,vname,o_cval)
+
+    do ic = 1 , maxcol
+      ! Extract values for pft and put on grid values
+      do ig = 1 , ingc
+        if ( i_mapc(ig,ic) > 0 ) then
+          if ( i_cval(i_mapc(ig,ic)) >= -1.0e-20 .and. &
+               i_cval(i_mapc(ig,ic)) <= 1.0e+20 ) then
+            i_gval(ig) = i_cval(i_mapc(ig,ic))
+          end if
+        else
+          i_gval(ig) = missl
+        end if
+      end do
+      o_gval(:) = missl
+      ! Interpolate on grid.
+      call h_interpolate_cont(hint,i_gval,o_gval)
+      ! Put grid values back on output pft values
+      do ig = 1 , ongc
+        if ( o_mapc(ig,ic) > 0 .and. &
+             abs(o_gval(ig)-missl) > epsilon(1.0) ) then
+          o_cval(o_mapc(ig,ic)) = o_gval(ig)
+        end if
+      end do
+    end do
+    call wval(ncout,vname,o_cval)
+  end subroutine col_interpolate
+
+  integer(ik4) function countcols(ctype) result(res)
+    implicit none
+    integer(ik4) , dimension(:) , intent(in) :: ctype
+    integer(ik4) :: i , mcol
+    res = 0
+    mcol = 0
+    do i = 1 , size(ctype)
+      if ( ctype(i) > mcol ) then
+        res = res + 1
+        mcol = ctype(i)
+      end if
+    end do
+  end function countcols
+
+  subroutine set_colvals(c1,c2,cv)
+    implicit none
+    integer(ik4) , dimension(:) , intent(in) :: c1 , c2
+    integer(ik4) , pointer , dimension(:) , intent(out) :: cv
+    integer(ik4) :: i , mcol , ic , ic1 , ic2 , imax , imin
+    integer(ik4) , dimension(:) , allocatable :: iv1 , iv2 , itemp , ival
+
+    ic = 0
+    ic1 = countcols(c1)
+    allocate(iv1(ic1))
+    mcol = 0
+    do i = 1 , size(c1)
+      if ( c1(i) > mcol ) then
+        ic = ic + 1
+        iv1(ic) = c1(i)
+        mcol = c1(i)
+      end if
+    end do
+    ic = 0
+    ic2 = countcols(c2)
+    allocate(iv2(ic2))
+    mcol = 0
+    do i = 1 , size(c2)
+      if ( c2(i) > mcol ) then
+        ic = ic + 1
+        iv2(ic) = c2(i)
+        mcol = c2(i)
+      end if
+    end do
+    allocate(itemp(ic1+ic2))
+    allocate(ival(ic1+ic2))
+    itemp(1:ic1) = iv1
+    itemp(ic1+1:ic1+ic2) = iv2
+    ival(:) = 0
+    ic = 0
+    imin = minval(itemp)-1
+    imax = maxval(itemp)
+    do while ( imin < imax )
+      ic = ic+1
+      imin = minval(itemp, mask=itemp>imin)
+      ival(ic) = imin
+    end do
+    call getmem1d(cv,1,ic,'set_colvals:cv')
+    cv(:) = ival(1:ic)
+    deallocate(itemp,ival,iv1,iv2)
+  end subroutine set_colvals
+
+  pure integer(ik4) function myfindloc(ac,c) result(ip)
+    implicit none
+    integer(ik4) , dimension(:) , intent(in) :: ac
+    integer(ik4) , intent(in) :: c
+    integer(ik4) :: i
+    ip = 0
+    do i = 1 , size(ac)
+      if ( ac(i) == c ) then
+        ip = i
+        return
+      end if
+    end do
+  end function myfindloc
 
 #endif
 
