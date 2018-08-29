@@ -124,36 +124,38 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
+    dx = 0.0_rkx
+    r2 = 0.0_rkx
     if ( present(ds) ) then
       dx = ds
       imode = 1
     else
-      i = (n1/2-1)*n2+n2/2
-      dx = max(dist(x,i,i-1),dist(x,i+1,i))
       imode = 2
     end if
-    if ( present(roi) ) then
-      r2 = dx*dx*roi*roi
-    else
-      r2 = dx*dx
+    if ( imode == 1 ) then
+      if ( present(roi) ) then
+        r2 = dx*dx*roi*roi
+      else
+        r2 = dx*dx
+      end if
     end if
     nj = size(tlat,1)
     ni = size(tlat,2)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a)',advance='no') ' Computing weights'
-    do i = 1 , ni
-      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
-        call ll2xyz(tlat(j,i),tlon(j,i),p)
-        np = kdtree2_r_count(mr,p,r2)
-        if ( np < minp ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        else
-          if ( imode == 1 ) then
+    if ( imode == 1 ) then
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          call ll2xyz(tlat(j,i),tlon(j,i),p)
+          np = kdtree2_r_count(mr,p,r2)
+          if ( np < minp ) then
+            np = minp
+            allocate(results(minp))
+            call kdtree2_n_nearest(mr,p,np,results)
+            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          else
             if ( np > maxp ) then
               np = maxp
               allocate(results(maxp))
@@ -164,17 +166,25 @@ module mod_kdinterp
               np = nf
             end if
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
-          else
-            np = 4
-            allocate(results(np))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
-        end if
-        h_i%tg%ft(j,i)%np = np
-        deallocate(results)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
       end do
-    end do
+    else
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          np = minp
+          call ll2xyz(tlat(j,i),tlon(j,i),p)
+          allocate(results(np))
+          call kdtree2_n_nearest(mr,p,np,results)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
+      end do
+    end if
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
@@ -205,37 +215,39 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
+    dx = 0.0_rkx
+    r2 = 0.0_rkx
     if ( present(ds) ) then
       dx = ds
       imode = 1
     else
-      i = (n1/2-1)*n2+n2/2
-      dx = max(dist(x,i,i-1),dist(x,i+1,i))
       imode = 2
     end if
-    if ( present(roi) ) then
-      r2 = dx*dx*roi*roi
-    else
-      r2 = dx*dx
+    if ( imode == 1 ) then
+      if ( present(roi) ) then
+        r2 = dx*dx*roi*roi
+      else
+        r2 = dx*dx
+      end if
     end if
-    nj = size(tlat)
-    ni = size(tlon)
+    ni = size(tlat)
+    nj = size(tlon)
     h_i%tg%tshape(1) = nj
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a)',advance='no') ' Computing weights'
-    do i = 1 , ni
-      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
-        call ll2xyz(tlat(i),tlon(j),p)
-        np = kdtree2_r_count(mr,p,r2)
-        if ( np < minp ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        else
-          if ( imode == 1 ) then
+    if ( imode == 1 ) then
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          call ll2xyz(tlat(i),tlon(j),p)
+          np = kdtree2_r_count(mr,p,r2)
+          if ( np < minp ) then
+            np = minp
+            allocate(results(minp))
+            call kdtree2_n_nearest(mr,p,np,results)
+            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          else
             if ( np > maxp ) then
               np = maxp
               allocate(results(maxp))
@@ -246,23 +258,31 @@ module mod_kdinterp
               np = nf
             end if
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
-          else
-            np = 4
-            allocate(results(np))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
-        end if
-        h_i%tg%ft(j,i)%np = np
-        deallocate(results)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
       end do
-    end do
+    else
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          np = minp
+          call ll2xyz(tlat(i),tlon(j),p)
+          allocate(results(np))
+          call kdtree2_n_nearest(mr,p,np,results)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
+      end do
+    end if
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
   end subroutine interp_create_ll_ll
 
-  subroutine interp_create_ll_ll_1d(h_i,ni,slat,slon,no,tlat,tlon,res)
+  subroutine interp_create_ll_ll_1d(h_i,ni,slat,slon,no,tlat,tlon)
     implicit none
     integer , intent(in) :: ni , no
     type(h_interpolator) , intent(out) :: h_i
@@ -270,21 +290,17 @@ module mod_kdinterp
     real(rkx) , dimension(ni) , intent(in) :: slon
     real(rkx) , dimension(no) , intent(in) :: tlat
     real(rkx) , dimension(no) , intent(in) :: tlon
-    real(rkx) , intent(in) :: res
     real(rkx) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: np , i
-    real(rkx) :: dx , r2
 
     h_i%sshape(1) = ni
     h_i%sshape(2) = 1
     allocate(x(3,ni))
     call ll2xyz(ni,slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = res
-    r2 = dx*dx
     h_i%tg%tshape(1) = no
     h_i%tg%tshape(2) = 1
     allocate(h_i%tg%ft(no,1))
@@ -292,18 +308,10 @@ module mod_kdinterp
     do i = 1 , no
       if (mod(i,100) == 0) write(stdout,'(a)',advance='no') '.'
       call ll2xyz(tlat(i),tlon(i),p)
-      np = kdtree2_r_count(mr,p,r2)
-      if ( np < minp ) then
-        np = minp
-        allocate(results(minp))
-        call kdtree2_n_nearest(mr,p,np,results)
-        call compwgt_genlin(np,p,x,results,h_i%tg%ft(i,1)%wgt)
-      else
-        np = 4
-        allocate(results(np))
-        call kdtree2_n_nearest(mr,p,np,results)
-        call compwgt_genlin(np,p,x,results,h_i%tg%ft(i,1)%wgt)
-      end if
+      np = minp
+      allocate(results(np))
+      call kdtree2_n_nearest(mr,p,np,results)
+      call compwgt_genlin(np,p,x,results,h_i%tg%ft(i,1)%wgt)
       h_i%tg%ft(i,1)%np = np
       deallocate(results)
     end do
@@ -343,36 +351,38 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
+    dx = 0.0_rkx
+    r2 = 0.0_rkx
     if ( present(ds) ) then
       dx = ds
       imode = 1
     else
-      i = (n1/2-1)*n2+n2/2
-      dx = max(dist(x,i,i-1),dist(x,i+1,i))
       imode = 2
     end if
-    if ( present(roi) ) then
-      r2 = dx*dx*roi*roi
-    else
-      r2 = dx*dx
+    if ( imode == 1 ) then
+      if ( present(roi) ) then
+        r2 = dx*dx*roi*roi
+      else
+        r2 = dx*dx
+      end if
     end if
     ni = size(tlat,2)
     nj = size(tlat,1)
     h_i%tg%tshape = shape(tlat)
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a)',advance='no') ' Computing weights'
-    do i = 1 , ni
-      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
-        call ll2xyz(tlat(j,i),tlon(j,i),p)
-        np = kdtree2_r_count(mr,p,r2)
-        if ( np < minp ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        else
-          if ( imode == 1 ) then
+    if ( imode == 1 ) then
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          call ll2xyz(tlat(j,i),tlon(j,i),p)
+          np = kdtree2_r_count(mr,p,r2)
+          if ( np < minp ) then
+            np = minp
+            allocate(results(minp))
+            call kdtree2_n_nearest(mr,p,np,results)
+            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          else
             if ( np > maxp ) then
               np = maxp
               allocate(results(maxp))
@@ -383,17 +393,25 @@ module mod_kdinterp
               np = nf
             end if
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
-          else
-            np = 4
-            allocate(results(np))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
-        end if
-        h_i%tg%ft(j,i)%np = np
-        deallocate(results)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
       end do
-    end do
+    else
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          np = minp
+          call ll2xyz(tlat(j,i),tlon(j,i),p)
+          allocate(results(np))
+          call kdtree2_n_nearest(mr,p,np,results)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
+      end do
+    end if
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
@@ -427,18 +445,20 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
+    dx = 0.0_rkx
+    r2 = 0.0_rkx
     if ( present(ds) ) then
       dx = ds
       imode = 1
     else
-      i = (n1/2-1)*n2+n2/2
-      dx = max(dist(x,i,i-1),dist(x,i+1,i))
       imode = 2
     end if
-    if ( present(roi) ) then
-      r2 = dx*dx*roi*roi
-    else
-      r2 = dx*dx
+    if ( imode == 1 ) then
+      if ( present(roi) ) then
+        r2 = dx*dx*roi*roi
+      else
+        r2 = dx*dx
+      end if
     end if
     ni = size(tlat)
     nj = size(tlon)
@@ -469,7 +489,7 @@ module mod_kdinterp
             end if
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
           else
-            np = 4
+            np = minp
             allocate(results(np))
             call kdtree2_n_nearest(mr,p,np,results)
             call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
@@ -880,12 +900,6 @@ module mod_kdinterp
       end do
     end do
   end subroutine smtdsmt
-
-  pure real(rkx) function dist(x,i,j) result(d)
-    real(rkx) , intent(in) , dimension(:,:) :: x
-    integer(ik4) , intent(in) :: i , j
-    d = sqrt((x(1,i)-x(1,j))**2+(x(2,i)-x(2,j))**2+(x(3,i)-x(3,j))**2)
-  end function dist
 
   subroutine compwgt_distwei(np,n2,r,w)
     implicit none

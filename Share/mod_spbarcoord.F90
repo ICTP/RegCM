@@ -68,6 +68,7 @@ module mod_spbarcoord
     real(rkx) , dimension(np) :: tansum
     real(rkx) :: norm
     integer(ik4) :: i , im1
+    integer(ik4) , dimension(1) :: ip
 
     ! Compute ordering centroid
 
@@ -95,8 +96,13 @@ module mod_spbarcoord
     end do
 
     ! Double check sum weights is one
-    norm = sum(lambda(1:np-1))
-    lambda(np) = d_one - norm
+    norm = sum(lambda(1:np))
+    if ( abs(norm-1.0_rkx) > epsilon(1.0_rkx) ) then
+      norm = norm-1.0_rkx
+      ip = minloc(lambda,mask=(lambda>norm))
+      i = ip(1)
+      lambda(i) = lambda(i) - norm
+    end if
 
     contains
 
@@ -168,22 +174,21 @@ module mod_spbarcoord
   integer(c_int) function compare(x1,x2) result(res) bind(C)
     implicit none
     type(vpoint) , intent(in) :: x1 , x2
-    real(rkx) , dimension(3) :: p1 , p2 , p3 , n
+    real(rkx) , dimension(3) :: p1 , p2 , n
+    real(rkx) :: xres
 
-    call vecdiff(x1%v,centroid,p1)
-    call vecdiff(x2%v,x2%v,p2)
+    call vecdiff(centroid,x1%v,p1)
+    call vecdiff(centroid,x2%v,p2)
 
     n(1) = p1(2)*p2(3) - p1(3)*p2(2)
     n(2) = p1(3)*p2(1) - p1(1)*p2(3)
     n(3) = p1(1)*p2(2) - p1(2)*p2(1)
 
-    call vecdiff(x2%v,centroid,p2)
+    call vecdiff(x2%v,x1%v,p2)
 
-    p3(1) = p1(2)*p2(3) - p1(3)*p2(2)
-    p3(2) = p1(3)*p2(1) - p1(1)*p2(3)
-    p3(3) = p1(1)*p2(2) - p1(2)*p2(1)
+    xres = -((n(1)*p2(1) + n(2)*p2(2) + n(3)*p2(3)))
 
-    res = -int((n(1)*p3(1) + n(2)*p3(2) + n(3)*p3(3)))
+    res = int(sign(1.0_rkx,xres))
 
     contains
 
