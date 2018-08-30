@@ -238,7 +238,7 @@ module mod_clm_cngapmortality
 #if (defined CNDV)
       ! Stress mortality from lpj's subr Mortality.
 
-      if (woody(ivt(p)) == 1._rk8) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
 
         if (ivt(p) == 8) then
           mort_max = 0.03_rk8 ! BDT boreal
@@ -315,7 +315,7 @@ module mod_clm_cngapmortality
 
 #if (defined CNDV)
       ! added by F. Li and S. Levis
-      if (woody(ivt(p)) == 1._rk8)then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         if (livestemc(p)+deadstemc(p)> 0._rk8)then
           nind(p)=nind(p)*(1._rk8-m)
         else

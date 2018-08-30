@@ -110,7 +110,7 @@ module mod_clm_cndvlight
 
       ! Update LAI and FPC as in the last lines of DGVMAllocation
 
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         if (fpcgrid(p) > 0._rk8 .and. nind(p) > 0._rk8) then
           !#ind/m2 nat veg area -> #ind/m2 pft area
           stocking = nind(p)/fpcgrid(p)
@@ -145,7 +145,7 @@ module mod_clm_cndvlight
       fpcgrid(p) = crownarea(p) * nind(p) * fpc_ind
       fpc_inc(p) = max(0._rk8, fpcgrid(p) - fpcgrid_old)
 
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         if ( tree(ivt(p)) == 1 ) then
           numtrees(g) = numtrees(g) + 1
           fpc_tree_total(g) = fpc_tree_total(g) + fpcgrid(p)
@@ -176,7 +176,8 @@ module mod_clm_cndvlight
 
       ! light competition
 
-      if ( woody(ivt(p)) == 1._rk8 .and. tree(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) .and. &
+           tree(ivt(p)) == 1 ) then
         if ( fpc_tree_total(g) > fpc_tree_max ) then
           if ( fpc_inc_tree(g) > 0._rk8 ) then
             excess = (fpc_tree_total(g) - fpc_tree_max) * &
@@ -201,14 +202,15 @@ module mod_clm_cndvlight
           ! Transfer lost biomass to litter
 
         end if ! if tree cover exceeds max allowed
-      else if ( woody(ivt(p)) == 0._rk8 ) then ! grass
+      else if ( woody(ivt(p)) < 0.5_rk8 ) then ! grass
         if ( fpc_grass_total(g) > fpc_grass_max(g) ) then
           ! grass competes with itself if total fpc exceeds 1
           excess = (fpc_grass_total(g) - fpc_grass_max(g)) * &
                   fpcgrid(p) / fpc_grass_total(g)
           fpcgrid(p) = max(0._rk8, fpcgrid(p) - excess)
         end if
-      else if ( woody(ivt(p)) == 1._rk8 .and. tree(ivt(p)) == 0._rk8 ) then
+      else if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) .and. &
+                tree(ivt(p)) < 1 ) then
         ! shrub
         if ( fpc_shrub_total(g) > fpc_shrub_max(g) ) then
           excess = 1._rk8 - fpc_shrub_max(g) / fpc_shrub_total(g)

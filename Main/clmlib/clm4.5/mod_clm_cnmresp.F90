@@ -161,7 +161,7 @@ module mod_clm_cnmresp
         leaf_mr(p) = 0._rk8
       end if
 
-      if ( woody(ivt(p)) == 1 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         livestem_mr(p) = livestemn(p)*br*tc
         livecroot_mr(p) = livecrootn(p)*br*tc
       else if (ivt(p) >= npcropmin) then

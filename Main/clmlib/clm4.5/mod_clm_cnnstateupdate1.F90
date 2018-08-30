@@ -493,7 +493,7 @@ module mod_clm_cnnstateupdate1
       leafn_xfer(p)  = leafn_xfer(p)  - leafn_xfer_to_leafn(p)*dt
       frootn(p)      = frootn(p)      + frootn_xfer_to_frootn(p)*dt
       frootn_xfer(p) = frootn_xfer(p) - frootn_xfer_to_frootn(p)*dt
-      if (woody(ivt(p)) == 1.0_rk8) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         livestemn(p)       = livestemn(p)       + &
                 livestemn_xfer_to_livestemn(p)*dt
         livestemn_xfer(p)  = livestemn_xfer(p)  - &
@@ -530,7 +530,7 @@ module mod_clm_cnnstateupdate1
       retransn(p) = retransn(p) + leafn_to_retransn(p)*dt
 
       ! live wood turnover and retranslocation fluxes
-      if (woody(ivt(p)) == 1._rk8) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         livestemn(p)  = livestemn(p)  - livestemn_to_deadstemn(p)*dt
         deadstemn(p)  = deadstemn(p)  + livestemn_to_deadstemn(p)*dt
         livestemn(p)  = livestemn(p)  - livestemn_to_retransn(p)*dt
@@ -565,7 +565,7 @@ module mod_clm_cnnstateupdate1
       frootn(p)          = frootn(p)         + npool_to_frootn(p)*dt
       npool(p)           = npool(p)          - npool_to_frootn_storage(p)*dt
       frootn_storage(p)  = frootn_storage(p) + npool_to_frootn_storage(p)*dt
-      if (woody(ivt(p)) == 1._rk8) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         npool(p)              = npool(p)              - &
                 npool_to_livestemn(p)*dt
         livestemn(p)          = livestemn(p)          + &
@@ -623,7 +623,7 @@ module mod_clm_cnnstateupdate1
       leafn_xfer(p)     = leafn_xfer(p)     + leafn_storage_to_xfer(p)*dt
       frootn_storage(p) = frootn_storage(p) - frootn_storage_to_xfer(p)*dt
       frootn_xfer(p)    = frootn_xfer(p)    + frootn_storage_to_xfer(p)*dt
-      if (woody(ivt(p)) == 1._rk8) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         livestemn_storage(p)  = livestemn_storage(p)  - &
                 livestemn_storage_to_xfer(p)*dt
         livestemn_xfer(p)     = livestemn_xfer(p)     + &

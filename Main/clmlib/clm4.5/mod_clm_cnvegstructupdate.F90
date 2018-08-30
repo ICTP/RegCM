@@ -233,7 +233,7 @@ module mod_clm_cnvegstructupdate
         tsai_min = tsai_min * 0.5_rk8
         tsai(p) = max(tsai_alpha*tsai_old+max(tlai_old-tlai(p),0._rk8),tsai_min)
 
-        if ( woody(ivt(p)) == 1._rk8 ) then
+        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
 
           ! trees and shrubs
 

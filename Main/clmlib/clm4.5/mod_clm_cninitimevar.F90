@@ -916,7 +916,7 @@ module mod_clm_cninitimevar
         ! tree types need to be initialized with some stem mass so that
         ! roughness length is not zero in canopy flux calculation
 
-        if (woody(ivt(p)) == 1._rk8) then
+        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
           deadstemc(p) = 0.1_rk8
         else
           deadstemc(p) = 0.0_rk8
@@ -1064,7 +1064,7 @@ module mod_clm_cninitimevar
         ! tree types need to be initialized with some stem mass so that
         ! roughness length is not zero in canopy flux calculation
 
-        if (woody(ivt(p)) == 1._rk8) then
+        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
           deadstemn(p) = deadstemc(p) / deadwdcn(ivt(p))
         else
           deadstemn(p) = 0._rk8

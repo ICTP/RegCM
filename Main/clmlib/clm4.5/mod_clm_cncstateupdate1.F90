@@ -463,7 +463,7 @@ module mod_clm_cncstateupdate1
       leafc_xfer(p) = leafc_xfer(p) - leafc_xfer_to_leafc(p)*dt
       frootc(p) = frootc(p) + frootc_xfer_to_frootc(p)*dt
       frootc_xfer(p) = frootc_xfer(p) - frootc_xfer_to_frootc(p)*dt
-      if (woody(ivt(p)) == 1._rk8) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         livestemc(p) = livestemc(p) + livestemc_xfer_to_livestemc(p)*dt
         livestemc_xfer(p) = livestemc_xfer(p) - &
           livestemc_xfer_to_livestemc(p)*dt
@@ -491,7 +491,7 @@ module mod_clm_cncstateupdate1
       frootc(p) = frootc(p) - frootc_to_litter(p)*dt
 
       ! livewood turnover fluxes
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         livestemc(p)  = livestemc(p)  - livestemc_to_deadstemc(p)*dt
         deadstemc(p)  = deadstemc(p)  + livestemc_to_deadstemc(p)*dt
         livecrootc(p) = livecrootc(p) - livecrootc_to_deadcrootc(p)*dt
@@ -506,7 +506,7 @@ module mod_clm_cncstateupdate1
       cpool(p) = cpool(p) - cpool_to_xsmrpool(p)*dt
       cpool(p) = cpool(p) - leaf_curmr(p)*dt
       cpool(p) = cpool(p) - froot_curmr(p)*dt
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         cpool(p) = cpool(p) - livestem_curmr(p)*dt
         cpool(p) = cpool(p) - livecroot_curmr(p)*dt
       end if
@@ -519,7 +519,7 @@ module mod_clm_cncstateupdate1
       xsmrpool(p) = xsmrpool(p) + cpool_to_xsmrpool(p)*dt
       xsmrpool(p) = xsmrpool(p) - leaf_xsmr(p)*dt
       xsmrpool(p) = xsmrpool(p) - froot_xsmr(p)*dt
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         xsmrpool(p) = xsmrpool(p) - livestem_xsmr(p)*dt
         xsmrpool(p) = xsmrpool(p) - livecroot_xsmr(p)*dt
       end if
@@ -541,7 +541,7 @@ module mod_clm_cncstateupdate1
       frootc(p) = frootc(p) + cpool_to_frootc(p)*dt
       cpool(p) = cpool(p) - cpool_to_frootc_storage(p)*dt
       frootc_storage(p) = frootc_storage(p) + cpool_to_frootc_storage(p)*dt
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         cpool(p) = cpool(p) - cpool_to_livestemc(p)*dt
         livestemc(p) = livestemc(p) + cpool_to_livestemc(p)*dt
         cpool(p) = cpool(p) - cpool_to_livestemc_storage(p)*dt
@@ -578,7 +578,7 @@ module mod_clm_cncstateupdate1
       ! growth respiration fluxes for current growth
       cpool(p) = cpool(p) - cpool_leaf_gr(p)*dt
       cpool(p) = cpool(p) - cpool_froot_gr(p)*dt
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         cpool(p) = cpool(p) - cpool_livestem_gr(p)*dt
         cpool(p) = cpool(p) - cpool_deadstem_gr(p)*dt
         cpool(p) = cpool(p) - cpool_livecroot_gr(p)*dt
@@ -592,7 +592,7 @@ module mod_clm_cncstateupdate1
       ! growth respiration for transfer growth
       gresp_xfer(p) = gresp_xfer(p) - transfer_leaf_gr(p)*dt
       gresp_xfer(p) = gresp_xfer(p) - transfer_froot_gr(p)*dt
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         gresp_xfer(p) = gresp_xfer(p) - transfer_livestem_gr(p)*dt
         gresp_xfer(p) = gresp_xfer(p) - transfer_deadstem_gr(p)*dt
         gresp_xfer(p) = gresp_xfer(p) - transfer_livecroot_gr(p)*dt
@@ -606,7 +606,7 @@ module mod_clm_cncstateupdate1
       ! growth respiration at time of storage
       cpool(p) = cpool(p) - cpool_leaf_storage_gr(p)*dt
       cpool(p) = cpool(p) - cpool_froot_storage_gr(p)*dt
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         cpool(p) = cpool(p) - cpool_livestem_storage_gr(p)*dt
         cpool(p) = cpool(p) - cpool_deadstem_storage_gr(p)*dt
         cpool(p) = cpool(p) - cpool_livecroot_storage_gr(p)*dt
@@ -626,7 +626,7 @@ module mod_clm_cncstateupdate1
       leafc_xfer(p) = leafc_xfer(p) + leafc_storage_to_xfer(p)*dt
       frootc_storage(p) = frootc_storage(p) - frootc_storage_to_xfer(p)*dt
       frootc_xfer(p) = frootc_xfer(p) + frootc_storage_to_xfer(p)*dt
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         livestemc_storage(p) = livestemc_storage(p) - &
           livestemc_storage_to_xfer(p)*dt
         livestemc_xfer(p) = livestemc_xfer(p) + &

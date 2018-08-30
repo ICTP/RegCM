@@ -168,7 +168,7 @@ module mod_clm_cngresp
       transfer_froot_gr(p)      = frootc_xfer_to_frootc(p) * grperc(ivt(p)) * &
                                   (1._rk8 - grpnow(ivt(p)))
 
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         cpool_livestem_gr(p)          = cpool_to_livestemc(p) * grperc(ivt(p))
         cpool_livestem_storage_gr(p)  = cpool_to_livestemc_storage(p) * &
                                         grperc(ivt(p)) * grpnow(ivt(p))

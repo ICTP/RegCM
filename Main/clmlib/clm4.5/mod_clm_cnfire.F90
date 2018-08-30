@@ -1413,7 +1413,7 @@ module mod_clm_cnfire
                  (1._rk8 - cc_other(ivt(p))) * fm_other(ivt(p))
 
 #if (defined CNDV)
-      if ( woody(ivt(p)) == 1._rk8 ) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         if ( livestemc(p)+deadstemc(p) > 0._rk8 ) then
           nind(p) = nind(p)*(1._rk8-1._rk8*fm_droot(ivt(p))*f)
         else

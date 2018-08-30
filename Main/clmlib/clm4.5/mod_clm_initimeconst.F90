@@ -1450,7 +1450,7 @@ module mod_clm_initimeconst
 !        ! soil layer for woody pfts, but going to zero at the bottom of
 !        ! layer 8 for non-woody pfts.  This corresponds to 3.43 m for woody
 !        ! bottom, vs 1.38 m for non-woody bottom.
-!        if (woody(ivt(p)) == 1) then
+!        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
 !           bottom = nlevsoi
 !           slope = -2._rk8/(zi(c,bottom)*zi(c,bottom))
 !           intercept   = 2._rk8/zi(c,bottom)

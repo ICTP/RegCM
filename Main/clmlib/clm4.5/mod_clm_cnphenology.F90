@@ -571,7 +571,7 @@ module mod_clm_cnphenology
             frootc_xfer_to_frootc(p) = 0.0_rk8
             leafn_xfer_to_leafn(p)   = 0.0_rk8
             frootn_xfer_to_frootn(p) = 0.0_rk8
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemc_xfer_to_livestemc(p)   = 0.0_rk8
               deadstemc_xfer_to_deadstemc(p)   = 0.0_rk8
               livecrootc_xfer_to_livecrootc(p) = 0.0_rk8
@@ -586,7 +586,7 @@ module mod_clm_cnphenology
             leafn_xfer(p) = 0.0_rk8
             frootc_xfer(p) = 0.0_rk8
             frootn_xfer(p) = 0.0_rk8
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemc_xfer(p) = 0.0_rk8
               livestemn_xfer(p) = 0.0_rk8
               deadstemc_xfer(p) = 0.0_rk8
@@ -645,7 +645,7 @@ module mod_clm_cnphenology
             ! set carbon fluxes for shifting storage pools to transfer pools
             leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dtsrf
             frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemc_storage_to_xfer(p)  = fstor2tran * &
                       livestemc_storage(p)/dtsrf
               deadstemc_storage_to_xfer(p)  = fstor2tran * &
@@ -661,7 +661,7 @@ module mod_clm_cnphenology
             ! set nitrogen fluxes for shifting storage pools to transfer pools
             leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dtsrf
             frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemn_storage_to_xfer(p)  = fstor2tran * &
                       livestemn_storage(p)/dtsrf
               deadstemn_storage_to_xfer(p)  = fstor2tran * &
@@ -961,7 +961,7 @@ module mod_clm_cnphenology
             frootc_xfer_to_frootc(p) = 0._rk8
             leafn_xfer_to_leafn(p)   = 0._rk8
             frootn_xfer_to_frootn(p) = 0._rk8
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemc_xfer_to_livestemc(p)   = 0._rk8
               deadstemc_xfer_to_deadstemc(p)   = 0._rk8
               livecrootc_xfer_to_livecrootc(p) = 0._rk8
@@ -976,7 +976,7 @@ module mod_clm_cnphenology
             leafn_xfer(p) = 0._rk8
             frootc_xfer(p) = 0._rk8
             frootn_xfer(p) = 0._rk8
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemc_xfer(p) = 0._rk8
               livestemn_xfer(p) = 0._rk8
               deadstemc_xfer(p) = 0._rk8
@@ -1062,7 +1062,7 @@ module mod_clm_cnphenology
             ! set carbon fluxes for shifting storage pools to transfer pools
             leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dtsrf
             frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemc_storage_to_xfer(p)  = fstor2tran * &
                       livestemc_storage(p)/dtsrf
               deadstemc_storage_to_xfer(p)  = fstor2tran * &
@@ -1078,7 +1078,7 @@ module mod_clm_cnphenology
             ! set nitrogen fluxes for shifting storage pools to transfer pools
             leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dtsrf
             frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dtsrf
-            if (woody(ivt(p)) == 1.0_rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               livestemn_storage_to_xfer(p)  = fstor2tran * &
                       livestemn_storage(p)/dtsrf
               deadstemn_storage_to_xfer(p)  = fstor2tran * &
@@ -1186,7 +1186,7 @@ module mod_clm_cnphenology
 
           leafc_storage_to_xfer(p)  = leafc_storage(p) * bgtr(p)
           frootc_storage_to_xfer(p) = frootc_storage(p) * bgtr(p)
-          if (woody(ivt(p)) == 1.0_rk8) then
+          if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
             livestemc_storage_to_xfer(p)  = livestemc_storage(p) * bgtr(p)
             deadstemc_storage_to_xfer(p)  = deadstemc_storage(p) * bgtr(p)
             livecrootc_storage_to_xfer(p) = livecrootc_storage(p) * bgtr(p)
@@ -1197,7 +1197,7 @@ module mod_clm_cnphenology
           ! set nitrogen fluxes for shifting storage pools to transfer pools
           leafn_storage_to_xfer(p)  = leafn_storage(p) * bgtr(p)
           frootn_storage_to_xfer(p) = frootn_storage(p) * bgtr(p)
-          if (woody(ivt(p)) == 1.0_rk8) then
+          if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
             livestemn_storage_to_xfer(p)  = livestemn_storage(p) * bgtr(p)
             deadstemn_storage_to_xfer(p)  = deadstemn_storage(p) * bgtr(p)
             livecrootn_storage_to_xfer(p) = livecrootn_storage(p) * bgtr(p)
@@ -2025,7 +2025,7 @@ module mod_clm_cnphenology
         frootc_xfer_to_frootc(p) = t1 * frootc_xfer(p)
         leafn_xfer_to_leafn(p)   = t1 * leafn_xfer(p)
         frootn_xfer_to_frootn(p) = t1 * frootn_xfer(p)
-        if (woody(ivt(p)) == 1.0_rk8) then
+        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
           livestemc_xfer_to_livestemc(p)   = t1 * livestemc_xfer(p)
           deadstemc_xfer_to_deadstemc(p)   = t1 * deadstemc_xfer(p)
           livecrootc_xfer_to_livecrootc(p) = t1 * livecrootc_xfer(p)
@@ -2046,7 +2046,7 @@ module mod_clm_cnphenology
         frootc_xfer_to_frootc(p) = frootc_xfer(p) / dtsrf
         leafn_xfer_to_leafn(p)   = leafn_xfer(p) / dtsrf
         frootn_xfer_to_frootn(p) = frootn_xfer(p) / dtsrf
-        if (woody(ivt(p)) == 1.0_rk8) then
+        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
           livestemc_xfer_to_livestemc(p)   = livestemc_xfer(p) / dtsrf
           deadstemc_xfer_to_deadstemc(p)   = deadstemc_xfer(p) / dtsrf
           livecrootc_xfer_to_livecrootc(p) = livecrootc_xfer(p) / dtsrf
@@ -2304,7 +2304,7 @@ module mod_clm_cnphenology
     do fp = 1,num_soilp
       p = filter_soilp(fp)
       ! only calculate these fluxes for woody types
-      if (woody(ivt(p)) > 0._rk8) then
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         ! live stem to dead stem turnover
         ctovr = livestemc(p) * lwtop
         ntovr = ctovr / livewdcn(ivt(p))

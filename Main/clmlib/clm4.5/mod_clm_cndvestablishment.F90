@@ -262,7 +262,7 @@ module mod_clm_cndvestablishment
             ! sounds circular; also seed fpcgrid depends on sla,
             ! so theoretically need diff value for each pft;slevis
             fpcgrid(p) = 0.000844_rk8
-            if (woody(ivt(p)) < 1._rk8) then
+            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
               fpcgrid(p) = 0.05_rk8
             end if
 
@@ -292,7 +292,7 @@ module mod_clm_cndvestablishment
     do p = lbp, ubp
       g = pgridcell(p)
       if (present(p)) then
-        if (woody(ivt(p)) == 1._rk8) then
+        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
           fpc_tree_total(g) = fpc_tree_total(g) + fpcgrid(p)
           if (estab(p)) npft_estab(g) = npft_estab(g) + 1
         else if (woody(ivt(p)) < 1._rk8 .and. ivt(p) > noveg) then !grass
@@ -306,7 +306,8 @@ module mod_clm_cndvestablishment
     do p = lbp, ubp
       g = pgridcell(p)
 
-      if ( present(p) .and. woody(ivt(p)) == 1._rk8 .and. estab(p) ) then
+      if ( present(p) .and. estab(p) .and. &
+           abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
 
         ! Calculate establishment rate over available space, per tree PFT
         ! Max establishment rate reduced by shading as tree FPC approaches 1
@@ -365,7 +366,8 @@ module mod_clm_cndvestablishment
         fpc_ind = 1._rk8 - exp(-0.5_rk8*lai_ind)
         fpcgrid(p) = crownarea(p) * nind(p) * fpc_ind
       end if   ! add new saplings block
-      if (present(p) .and. woody(ivt(p)) == 1._rk8) then
+      if ( present(p) .and. &
+           abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         fpc_total_new(g) = fpc_total_new(g) + fpcgrid(p)
       end if
     end do   ! close loop to update fpc_total_new
@@ -375,7 +377,8 @@ module mod_clm_cndvestablishment
     do p = lbp, ubp
       g = pgridcell(p)
       if (fpc_total_new(g) > 0.95_rk8) then
-        if (woody(ivt(p)) == 1._rk8 .and. present(p)) then
+        if ( present(p) .and. &
+             abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
           nind(p) = nind(p) * 0.95_rk8 / fpc_total_new(g)
           fpcgrid(p) = fpcgrid(p) * 0.95_rk8 / fpc_total_new(g)
         end if
@@ -389,7 +392,8 @@ module mod_clm_cndvestablishment
 
     do p = lbp, ubp
       g = pgridcell(p)
-      if (present(p) .and. woody(ivt(p)) < 1._rk8) then
+        if ( present(p) .and. &
+             abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
         if (leafcmax(p) <= 0._rk8 .or. fpcgrid(p) <= 0._rk8 ) then
           present(p) = .false.
           nind(p) = 0._rk8
@@ -452,9 +456,9 @@ module mod_clm_cndvestablishment
 
       ! Stress mortality from lpj's subr Mortality
 
-      if (woody(ivt(p)) == 1._rk8 .and. nind(p) > 0._rk8 .and. &
-          leafcmax(p) > 0._rk8 .and. fpcgrid(p) > 0._rk8) then
-
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) .and. &
+           nind(p) > 0._rk8 .and. leafcmax(p) > 0._rk8 .and. &
+           fpcgrid(p) > 0._rk8 ) then
         if (twmax(ivt(p)) < 999._rk8) then
           heatstress(p) = max(0._rk8, min(1._rk8, agddtw(p) / ramp_agddtw))
         else

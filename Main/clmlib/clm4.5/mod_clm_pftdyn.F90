@@ -1048,7 +1048,7 @@ module mod_clm_pftdyn
           if (pptr%itype(p) /= 0) then
             leafc_seed = 1._rk8
             leafn_seed  = leafc_seed / pftcon%leafcn(pptr%itype(p))
-            if (pftcon%woody(pptr%itype(p)) == 1._rk8) then
+            if ( abs(pftcon%woody(pptr%itype(p))-1._rk8) < epsilon(1.0) ) then
               deadstemc_seed = 0.1_rk8
               deadstemn_seed = deadstemc_seed / pftcon%deadwdcn(pptr%itype(p))
             end if
@@ -2809,12 +2809,7 @@ module mod_clm_pftdyn
   !
   subroutine pftwt_init()
     use mod_clm_varctl, only : nsrest, nsrStartup
-    use mod_clm_pftvarcon , only : noveg, ndllf_evr_tmp_tree, &
-            ndllf_evr_brl_tree, ndllf_dcd_brl_tree, nbrdlf_evr_trp_tree,  &
-            nbrdlf_evr_tmp_tree, nbrdlf_dcd_trp_tree, nbrdlf_dcd_tmp_tree, &
-            nbrdlf_dcd_brl_tree, nbrdlf_evr_shrub, nbrdlf_dcd_tmp_shrub, &
-            nbrdlf_dcd_brl_shrub, nc3_arctic_grass, nc3_nonarctic_grass, &
-            nc4_grass, nc3crop, nc3irrig, npcropmin, npcropmax
+    use mod_clm_pftvarcon , only : noveg
     use mod_clm_varcon, only : istsoil , istcrop
     implicit none
     integer(ik4)  :: ier, p, l    ! error status, do-loop index
@@ -2824,6 +2819,8 @@ module mod_clm_pftdyn
     integer(ik4) , pointer :: ivt(:)          ! pft type
     integer(ik4) , pointer :: plandunit(:)    ! landunit type
     integer(ik4) , pointer :: ityplun(:)      ! index into landunit
+    real(rk8) , pointer :: woody(:)
+    integer(ik4) , pointer :: tree(:)
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
     integer(ik4) :: day   ! day of month (1, ..., 31) for nstep+1
@@ -2833,6 +2830,8 @@ module mod_clm_pftdyn
     plandunit => clm3%g%l%c%p%landunit
     ityplun   => clm3%g%l%itype
     ivt       => clm3%g%l%c%p%itype
+    woody     => pftcon%woody
+    tree      => pftcon%tree
 
     call get_proc_bounds(begp=begp,endp=endp)
 
@@ -2857,9 +2856,21 @@ module mod_clm_pftdyn
                 pptr%pdgvs%nind(p) = 0.0_rk8
               else
                 ! pft_dgvstate_type
-                pptr%pdgvs%nind(p) = 0.1_rk8
-                pptr%pdgvs%crownarea(p) = 0.1_rk8
-                pptr%pdgvs%greffic(p) = 0.0_rk8
+                if ( abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0) .and. &
+                     tree(ivt(p)) == 1 ) then
+                  pptr%pdgvs%nind(p) = 0.5_rk8
+                  pptr%pdgvs%crownarea(p) = 8.0_rk8
+                  pptr%pdgvs%greffic(p) = 0.1_rk8
+                else if ( abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0) .and. &
+                          tree(ivt(p)) < 1 ) then
+                  pptr%pdgvs%nind(p) = 0.7_rk8
+                  pptr%pdgvs%crownarea(p) = 2.0_rk8
+                  pptr%pdgvs%greffic(p) = 0.1_rk8
+                else
+                  pptr%pdgvs%nind(p) = 1.0_rk8
+                  pptr%pdgvs%crownarea(p) = 1.0_rk8
+                  pptr%pdgvs%greffic(p) = 0.0_rk8
+                end if
                 pptr%pdgvs%heatstress(p) = 0.0_rk8
                 pptr%pdgvs%pftmayexist(p) = .true.
                 pptr%pdgvs%present(p) = .true.
