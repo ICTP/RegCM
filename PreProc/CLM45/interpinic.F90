@@ -69,6 +69,8 @@ program interpinic
   real(rk8) , pointer , dimension(:) :: o_pft1d_lat
   real(rk8) , pointer , dimension(:) :: o_col1d_lon
   real(rk8) , pointer , dimension(:) :: o_col1d_lat
+  real(rk8) , pointer , dimension(:) :: o_pfts1d_wtxy
+  real(rk8) , pointer , dimension(:) :: o_cols1d_wtxy
   real(rk8) , pointer , dimension(:) :: i_gval
   real(rk8) , pointer , dimension(:) :: o_gval
   real(rk8) , pointer , dimension(:) :: i_pval
@@ -197,6 +199,8 @@ program interpinic
   call getmem1d(o_pft1d_lat,1,onpft,'interpinic:o_pft1d_lat')
   call getmem1d(o_col1d_lon,1,onco,'interpinic:o_col1d_lon')
   call getmem1d(o_col1d_lat,1,onco,'interpinic:o_col1d_lat')
+  call getmem1d(o_pfts1d_wtxy,1,onpft,'interpinic:o_pfts1d_wtxy')
+  call getmem1d(o_cols1d_wtxy,1,onco,'interpinic:o_cols1d_wtxy')
   call getmem1d(o_pval,1,onpft,'interpinic:o_pval')
   call getmem1d(o_cval,1,onco,'interpinic:o_cval')
   call getmem1d(o_ctype,1,onco,'interpinic:o_ctype')
@@ -221,6 +225,8 @@ program interpinic
   call ival(ncout,'cols1d_ityp',o_ctype)
   call ival(ncout,'pfts1d_ityplun',o_ltype)
   call ival(ncout,'pfts1d_itypveg',o_vtype)
+  call rval(ncout,'pfts1d_wtxy',o_pfts1d_wtxy)
+  call rval(ncout,'cols1d_wtxy',o_cols1d_wtxy)
 
   imaxpft = maxval(i_vtype) + 1 ! The bare ground class
   imaxlun = maxval(i_ltype)
@@ -267,6 +273,18 @@ program interpinic
                    o_grid1d_lat,o_grid1d_lon,o_col1d_lat,o_col1d_lon,o_mapc)
   write(stdout,*) 'Output Map created.'
 
+  call col_interpolate('fpg')
+  call col_interpolate('cannsum_npp')
+  call col_interpolate('col_lag_npp')
+  call col_interpolate('lfc')
+  call col_interpolate('wf')
+  call col_interpolate('farea_burned')
+  call col_interpolate('baf_crop')
+  call col_interpolate('baf_peatf')
+  call col_interpolate('fbac')
+  call col_interpolate('fbac1')
+  call col_interpolate('altmax')
+  call col_interpolate('altmax_lastyear')
   call col_interpolate('litr1c')
   call col_interpolate('litr2c')
   call col_interpolate('litr3c')
@@ -274,15 +292,36 @@ program interpinic
   call col_interpolate('soil2c')
   call col_interpolate('soil4c')
   call col_interpolate('soil4c')
-  call col_interpolate('cwdc')
-  call col_interpolate('col_ctrunc')
   call col_interpolate('seedc')
   call col_interpolate('totlitc')
   call col_interpolate('totcolc')
   call col_interpolate('prod10c')
   call col_interpolate('prod100c')
   call col_interpolate('totsomc')
-  call col_interpolate('sminn')
+  call col_interpolate('litr1c_13')
+  call col_interpolate('litr2c_13')
+  call col_interpolate('litr3c_13')
+  call col_interpolate('soil1c_13')
+  call col_interpolate('soil2c_13')
+  call col_interpolate('soil4c_13')
+  call col_interpolate('soil4c_13')
+  call col_interpolate('seedc_13')
+  call col_interpolate('totlitc_13')
+  call col_interpolate('totcolc_13')
+  call col_interpolate('prod10c_13')
+  call col_interpolate('prod100c_13')
+  call col_interpolate('litr1c_14')
+  call col_interpolate('litr2c_14')
+  call col_interpolate('litr3c_14')
+  call col_interpolate('soil1c_14')
+  call col_interpolate('soil2c_14')
+  call col_interpolate('soil4c_14')
+  call col_interpolate('soil4c_14')
+  call col_interpolate('seedc_14')
+  call col_interpolate('totlitc_14')
+  call col_interpolate('totcolc_14')
+  call col_interpolate('prod10c_14')
+  call col_interpolate('prod100c_14')
   call col_interpolate('litr1n')
   call col_interpolate('litr2n')
   call col_interpolate('litr3n')
@@ -297,6 +336,12 @@ program interpinic
   call col_interpolate('prod10n')
   call col_interpolate('prod100n')
 
+  call pft_interpolate('elai')
+  call pft_interpolate('esai')
+  call pft_interpolate('tlai')
+  call pft_interpolate('tsai')
+  call pft_interpolate('htop')
+  call pft_interpolate('hbot')
   call pft_interpolate('dormant_flag')
   call pft_interpolate('days_active')
   call pft_interpolate('onset_flag')
@@ -309,30 +354,31 @@ program interpinic
   call pft_interpolate('offset_counter')
   call pft_interpolate('offset_fdd')
   call pft_interpolate('offset_swi')
+  call pft_interpolate('fert_counter')
+  call pft_interpolate('fert')
   call pft_interpolate('lgsf')
   call pft_interpolate('bglfr')
   call pft_interpolate('bgtr')
   call pft_interpolate('gpp_pepv')
   call pft_interpolate('availc')
   call pft_interpolate('xsmrpool_recover')
-  call pft_interpolate('alloc_pnow')
+  call pft_interpolate('xsmrpool_c13ratio')
   call pft_interpolate('c_allometry')
   call pft_interpolate('n_allometry')
   call pft_interpolate('plant_ndemand')
-  call pft_interpolate('tempsum_potential_gpp')
   call pft_interpolate('annsum_potential_gpp')
-  call pft_interpolate('tempmax_retransn')
   call pft_interpolate('annmax_retransn')
   call pft_interpolate('avail_retransn')
   call pft_interpolate('plant_nalloc')
   call pft_interpolate('plant_calloc')
   call pft_interpolate('excess_cflux')
   call pft_interpolate('downreg')
-  call pft_interpolate('prev_leafc_to_litter')
-  call pft_interpolate('prev_frootc_to_litter')
-  call pft_interpolate('tempsum_npp')
   call pft_interpolate('annsum_npp')
   call pft_interpolate('annsum_npp')
+  call pft_interpolate('rc13_canair')
+  call pft_interpolate('rc13_psnsun')
+  call pft_interpolate('rc13_psnsha')
+  call pft_interpolate('grain_flag')
   call pft_interpolate('leafc')
   call pft_interpolate('leafc_storage')
   call pft_interpolate('leafc_xfer')
@@ -357,6 +403,54 @@ program interpinic
   call pft_interpolate('xsmrpool')
   call pft_interpolate('pft_ctrunc')
   call pft_interpolate('totvegc')
+  call pft_interpolate('leafc_13')
+  call pft_interpolate('leafc_storage_13')
+  call pft_interpolate('leafc_xfer_13')
+  call pft_interpolate('frootc_13')
+  call pft_interpolate('frootc_storage_13')
+  call pft_interpolate('frootc_xfer_13')
+  call pft_interpolate('livestemc_13')
+  call pft_interpolate('livestemc_storage_13')
+  call pft_interpolate('livestemc_xfer_13')
+  call pft_interpolate('deadstemc_13')
+  call pft_interpolate('deadstemc_storage_13')
+  call pft_interpolate('deadstemc_xfer_13')
+  call pft_interpolate('livecrootc_13')
+  call pft_interpolate('livecrootc_storage_13')
+  call pft_interpolate('livecrootc_xfer_13')
+  call pft_interpolate('deadcrootc_13')
+  call pft_interpolate('deadcrootc_storage_13')
+  call pft_interpolate('deadcrootc_xfer_13')
+  call pft_interpolate('gresp_storage_13')
+  call pft_interpolate('gresp_xfer_13')
+  call pft_interpolate('cpool_13')
+  call pft_interpolate('xsmrpool_13')
+  call pft_interpolate('pft_ctrunc_13')
+  call pft_interpolate('totvegc_13')
+  call pft_interpolate('leafc_14')
+  call pft_interpolate('leafc_storage_14')
+  call pft_interpolate('leafc_xfer_14')
+  call pft_interpolate('frootc_14')
+  call pft_interpolate('frootc_storage_14')
+  call pft_interpolate('frootc_xfer_14')
+  call pft_interpolate('livestemc_14')
+  call pft_interpolate('livestemc_storage_14')
+  call pft_interpolate('livestemc_xfer_14')
+  call pft_interpolate('deadstemc_14')
+  call pft_interpolate('deadstemc_storage_14')
+  call pft_interpolate('deadstemc_xfer_14')
+  call pft_interpolate('livecrootc_14')
+  call pft_interpolate('livecrootc_storage_14')
+  call pft_interpolate('livecrootc_xfer_14')
+  call pft_interpolate('deadcrootc_14')
+  call pft_interpolate('deadcrootc_storage_14')
+  call pft_interpolate('deadcrootc_xfer_14')
+  call pft_interpolate('gresp_storage_14')
+  call pft_interpolate('gresp_xfer_14')
+  call pft_interpolate('cpool_14')
+  call pft_interpolate('xsmrpool_14')
+  call pft_interpolate('pft_ctrunc_14')
+  call pft_interpolate('totvegc_14')
   call pft_interpolate('leafn')
   call pft_interpolate('leafn_storage')
   call pft_interpolate('leafn_xfer')
@@ -378,11 +472,19 @@ program interpinic
   call pft_interpolate('retransn')
   call pft_interpolate('npool')
   call pft_interpolate('pft_ntrunc')
+  call pft_interpolate('btran2')
+
   call pft_interpolate('CROWNAREA')
-  call pft_interpolate('tempsum_litfall')
   call pft_interpolate('annsum_litfall')
-  call pft_interpolate('nind')
+  call pft_interpolate('TMOMIN20')
+  call pft_interpolate('AGDD20')
+  call pft_interpolate('T_MO_MIN')
   call pft_interpolate('leafcmax')
+
+  call pft_interpolate('T_VEG240_VALUE')
+  call pft_interpolate('FSD240_VALUE')
+  call pft_interpolate('FSI240_VALUE')
+  call pft_interpolate('FSUN240_VALUE')
   call pft_interpolate('PREC365_VALUE')
   call pft_interpolate('AGDDTW_VALUE')
   call pft_interpolate('AGDD_VALUE')
@@ -555,9 +657,9 @@ program interpinic
     character(len=*) , intent(in) :: vname
     integer(ik4) :: ip , ig
 
-    write(stdout,*) 'Interpolating ',trim(vname)
-
     if ( .not. hasval(ncin,ncout,vname) ) return
+
+    write(stdout,*) 'Interpolating ',trim(vname)
 
     call rval(ncin,vname,i_pval)
     call rval(ncout,vname,o_pval)
@@ -569,18 +671,20 @@ program interpinic
           if ( i_pval(i_mapf(ig,ip)) >= -1.0e-20 .and. &
                i_pval(i_mapf(ig,ip)) <= 1.0e+20 ) then
             i_gval(ig) = i_pval(i_mapf(ig,ip))
+          else
+            i_gval(ig) = missl
           end if
         else
           i_gval(ig) = missl
         end if
       end do
-      o_gval(:) = missl
       ! Interpolate on grid.
       call h_interpolate_cont(hint,i_gval,o_gval)
       ! Put grid values back on output pft values
       do ig = 1 , ongc
         if ( o_mapf(ig,ip) > 0 .and. &
-             abs(o_gval(ig)-missl) > epsilon(1.0) ) then
+             abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
+             o_pfts1d_wtxy(ip) > 0.0_rk8 ) then
           o_pval(o_mapf(ig,ip)) = o_gval(ig)
         end if
       end do
@@ -593,9 +697,9 @@ program interpinic
     character(len=*) , intent(in) :: vname
     integer(ik4) :: ic , ig
 
-    write(stdout,*) 'Interpolating ',trim(vname)
-
     if ( .not. hasval(ncin,ncout,vname) ) return
+
+    write(stdout,*) 'Interpolating ',trim(vname)
 
     call rval(ncin,vname,i_cval)
     call rval(ncout,vname,o_cval)
@@ -618,7 +722,8 @@ program interpinic
       ! Put grid values back on output pft values
       do ig = 1 , ongc
         if ( o_mapc(ig,ic) > 0 .and. &
-             abs(o_gval(ig)-missl) > epsilon(1.0) ) then
+             abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
+             o_cols1d_wtxy(ic) > 0.0_rk8 ) then
           o_cval(o_mapc(ig,ic)) = o_gval(ig)
         end if
       end do
