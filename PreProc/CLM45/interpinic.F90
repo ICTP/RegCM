@@ -333,6 +333,7 @@ program interpinic
   call col_interpolate('col_ntrunc')
   call col_interpolate('totcoln')
   call col_interpolate('seedn')
+  call col_interpolate('sminn')
   call col_interpolate('prod10n')
   call col_interpolate('prod100n')
 
@@ -708,9 +709,15 @@ program interpinic
       ! Extract values for pft and put on grid values
       do ig = 1 , ingc
         if ( i_mapc(ig,ic) > 0 ) then
-          if ( i_cval(i_mapc(ig,ic)) >= -1.0e-20 .and. &
-               i_cval(i_mapc(ig,ic)) <= 1.0e+20 ) then
-            i_gval(ig) = i_cval(i_mapc(ig,ic))
+          if ( .not. isnan(i_cval(i_mapc(ig,ic))) ) then
+            if ( i_cval(i_mapc(ig,ic)) >= -1.0e-20 .and. &
+                 i_cval(i_mapc(ig,ic)) <= 1.0e+20 ) then
+              i_gval(ig) = i_cval(i_mapc(ig,ic))
+            else
+              i_gval(ig) = missl
+            end if
+          else
+            i_gval(ig) = missl
           end if
         else
           i_gval(ig) = missl
