@@ -2860,17 +2860,15 @@ module mod_clm_pftdyn
                      tree(ivt(p)) == 1 ) then
                   pptr%pdgvs%nind(p) = 0.5_rk8
                   pptr%pdgvs%crownarea(p) = 8.0_rk8
-                  pptr%pdgvs%greffic(p) = 0.1_rk8
                 else if ( abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0) .and. &
                           tree(ivt(p)) < 1 ) then
                   pptr%pdgvs%nind(p) = 0.7_rk8
                   pptr%pdgvs%crownarea(p) = 2.0_rk8
-                  pptr%pdgvs%greffic(p) = 0.1_rk8
                 else
                   pptr%pdgvs%nind(p) = 1.0_rk8
                   pptr%pdgvs%crownarea(p) = 1.0_rk8
-                  pptr%pdgvs%greffic(p) = 0.0_rk8
                 end if
+                pptr%pdgvs%greffic(p) = 0.0_rk8
                 pptr%pdgvs%heatstress(p) = 0.0_rk8
                 pptr%pdgvs%pftmayexist(p) = .true.
                 pptr%pdgvs%present(p) = .true.
