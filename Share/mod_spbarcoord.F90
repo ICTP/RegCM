@@ -68,7 +68,6 @@ module mod_spbarcoord
     real(rkx) , dimension(np) :: tansum
     real(rkx) :: norm
     integer(ik4) :: i , im1
-    integer(ik4) , dimension(1) :: ip
 
     ! Compute ordering centroid
 
@@ -96,12 +95,9 @@ module mod_spbarcoord
     end do
 
     ! Double check sum weights is one
-    norm = sum(lambda(1:np))
-    if ( abs(norm-1.0_rkx) > epsilon(1.0_rkx) ) then
-      norm = norm-1.0_rkx
-      ip = minloc(lambda,mask=(lambda>norm))
-      i = ip(1)
-      lambda(i) = lambda(i) - norm
+    norm = (sum(lambda(1:np))-1.0_rkx)/real(np)
+    if ( norm > epsilon(1.0_rkx) ) then
+      lambda(:) = lambda(:) - norm
     end if
 
     contains
