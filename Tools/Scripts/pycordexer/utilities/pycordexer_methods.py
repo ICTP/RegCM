@@ -431,18 +431,25 @@ class InterpolateHeight(Filter):
             interpolate.
     """
 
-    def __init__(self, pressure_level, method):
+    def __init__(self, pressure_level, method, core):
         self.pressure_level = float(pressure_level)
         self.method = method.lower()
         if method not in ('linear', 'logarithmic'):
             raise ValueError(
                 'Unknown method "{}" for vertical interpolation'.format(method)
             )
+        self.core = core
 
         if method == 'linear':
-            self.__interpolator = mod_vertint.intlin
+            if core == 'hydrostatic':
+                self.__interpolator = mod_vertint.intlin_hy
+            else:
+                self.__interpolator = mod_vertint.intlin_nonhy
         else:
-            self.__interpolator = mod_vertint.intlog
+            if core == 'hydrostatic':
+                self.__interpolator = mod_vertint.intlog_hy
+            else:
+                self.__interpolator = mod_vertint.intlog_nonhy
 
     def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
                  corrflag, cordex_dir):
@@ -469,10 +476,26 @@ class InterpolateHeight(Filter):
         ptop_names = get_regcm_variable_names('ptop')
         sigma_names = get_regcm_variable_names('sigma')
 
-        with Dataset(regcm_file_path, 'r') as f:
-            LOGGER.debug('Reading ps variable from regcm file')
-            ps = get_var_with_name(ps_names, f)
+        p0_names = get_regcm_variable_names('p0')
+        pp_names = get_regcm_variable_names('pp')
 
+        with Dataset(regcm_file_path, 'r') as f:
+            if self.core == 'hydrostatic':
+                LOGGER.debug('Reading ps variable from regcm file')
+                ps = get_var_with_name(ps_names, f)
+
+            else:
+                LOGGER.debug(
+                    'Reading p0 variable from regcm file and saving its content '
+                    'in memory'
+                )
+                # Set units in mb
+                p0 = np.array(
+                    get_var_with_name(p0_names, f)[:],
+                    dtype=DATATYPE_AUXILIARIES,
+                ) * 0.01
+                LOGGER.debug('Reading pp variable from regcm file')
+                pp = get_var_with_name(pp_names, f)
             LOGGER.debug(
                 'Reading ptop variable from regcm file and saving its content '
                 'in memory'
@@ -488,32 +511,55 @@ class InterpolateHeight(Filter):
             )
             sigma_array = np.array(
                 get_var_with_name(sigma_names, f)[:],
-                dtype=DATATYPE_MAIN,
+                dtype=DATATYPE_AUXILIARIES,
             )
 
             time_steps = prev_result.times.size
 
             with prev_result.data:
                 for t in range(time_steps):
-                    LOGGER.debug('Reading time step %s of variable ps', t)
-		    # PS, PTOP, PLEV must have same units. Use hPa
-                    ps_t = np.array(ps[t, :], dtype=DATATYPE_MAIN)*0.01
 
                     data_slice = [slice(None) for _ in prev_result.dimensions]
                     data_slice[0] = t
 
-                    LOGGER.debug(
-                        'Interpolating time step %s of %s',
-                        t,
-                        time_steps
-                    )
-                    interpolation_result[t, :] = self.__interpolator(
-                        prev_result.data(data_slice),
-                        ps_t,
-                        sigma_array,
-                        ptop_array,
-                        self.pressure_level
-                    )
+                    if self.core == 'hydrostatic':
+                        LOGGER.debug('Reading time step %s of variable ps', t)
+                        # PS, PTOP, PLEV must have same units. Use hPa
+                        ps_t = np.array(ps[t, :], 
+                                        dtype=DATATYPE_AUXILIARIES)*0.01
+                        LOGGER.debug(
+                            'Interpolating time step %s of %s',
+                            t,
+                            time_steps
+                        )
+                        interpolation_result[t, :] = self.__interpolator(
+                            prev_result.data(data_slice),
+                            ps_t,
+                            sigma_array,
+                            ptop_array,
+                            self.pressure_level
+                        )
+                    else:
+                        LOGGER.debug('Reading time step %s of variable pp', t)
+                        # PS0, PP, PLEV must have same units. Use hPa
+                        pp_t = np.array(pp[t, :], 
+                                        dtype=DATATYPE_AUXILIARIES)*0.01
+                        p_t = np.empty_like(prev_result.data(data_slice))
+                        nk = np.shape(p_t)[0]
+                        LOGGER.debug('Computing pressure')
+                        for k in range (0,nk):
+                            p_t[k,:] = ((p0[:]-ptop_array)*sigma_array[k] + 
+                                    ptop_array) + pp_t[k,:]
+                        LOGGER.debug(
+                            'Interpolating time step %s of %s',
+                            t,
+                            time_steps
+                        )
+                        interpolation_result[t, :] = self.__interpolator(
+                            prev_result.data(data_slice),
+                            p_t,
+                            self.pressure_level
+                        )
 
             new_data = MemoryData(interpolation_result)
 
@@ -585,7 +631,19 @@ class InterpolateOnMultipleHeights(Filter):
                 'Creating an InterpolateHeight filter for pressure %s',
                 pressure
             )
-            interp_filter = InterpolateHeight(pressure, self.method)
+            mcore = 'hydrostatic'
+            try:
+                core = Dataset(regcm_file_path).dynamical_core
+                if core == 1:
+                    mcore = 'hydrostatic'
+                elif core == 2:
+                    mcore = 'non-hydrostatic'
+                else:
+                    raise ValueError(
+                            'Unknown dynamical_core : "{}"'.format(core))
+            except:
+                pass
+            interp_filter = InterpolateHeight(pressure, self.method, mcore)
 
             LOGGER.debug('Preforming interpolation')
             interp_var = interp_filter(
@@ -1703,6 +1761,19 @@ class ComputeGeopotentialHeight(ActionStarter):
     def __call__(self, regcm_file, regcm_file_path, simulation, corrflag,
                  cordex_dir):
 
+        mcore = 'hydrostatic'
+        try:
+            core = Dataset(regcm_file_path).dynamical_core
+            if core == 1:
+                mcore = 'hydrostatic'
+            elif core == 2:
+                mcore = 'non-hydrostatic'
+            else:
+                raise ValueError(
+                        'Unknown dynamical_core : "{}"'.format(core))
+        except:
+            pass
+
         # Prepare a function to read exactly one timestep of a netcdf var
         def read_timestep(var_pointer, t_step):
             if 'time' not in var_pointer.dimensions:
@@ -1718,7 +1789,12 @@ class ComputeGeopotentialHeight(ActionStarter):
             )
             return np.array(var_pointer[slicer], dtype=DATATYPE_MAIN)
 
-        needed_var_names = ['ta', 'ps', 'topo', 'sigma', 'ptop']
+        if mcore == 'hydrostatic':
+            needed_var_names = ['ta', 'ps', 'topo', 'sigma', 'ptop']
+            funcname = mod_hgt.height_hydro
+        else:
+            needed_var_names = ['ta', 'p0', 'topo', 'sigma', 'ptop', 'pp']
+            funcname = mod_hgt.height_nonhydro
 
         with Dataset(regcm_file_path, 'r') as f:
             needed_vars = []
@@ -1783,7 +1859,7 @@ class ComputeGeopotentialHeight(ActionStarter):
                 hgt_args.append(self.height)
 
                 LOGGER.debug('Calling Fortran function mod_hgt.height')
-                data[t, :] = mod_hgt.height(*hgt_args)
+                data[t, :] = funcname(*hgt_args)
 
             LOGGER.debug('Reading reference var')
             reference_var = read_variable_from_regcmfile(

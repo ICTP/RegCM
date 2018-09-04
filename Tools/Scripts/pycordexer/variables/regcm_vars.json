@@ -7,6 +7,8 @@
   "hus": ["hus", "qas"],
   "evp": ["evp"],
   "ps": ["ps"],
+  "p0": ["p0"],
+  "pp": ["ppa"],
   "mrros": ["mrros", "runoff", "mrro"],
   "uas": ["u10m", "uas"],
   "vas": ["v10m", "vas"],

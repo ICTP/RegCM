@@ -11,15 +11,126 @@ module mod_vertint
   ! Standard atmosphere ICAO 1993
   real(4) , parameter :: lrate = 0.00649
 
-  real(4) , parameter :: bltop = 0.960
-
   real(4) , parameter :: rglrog = rgas*lrate/egrav
 
-  public :: intlin , intlog , intlin_z
+  real(4) , parameter :: bltop = 0.960
+
+  public :: intlin_hy , intlog_hy
+  public :: intlin_nonhy , intlog_nonhy
 
   contains
 
-  subroutine intlin(im,jm,km,f,pstar,sig,ptop,p,fp)
+  subroutine intlin_nonhy(im,jm,km,f,mp,p,fp)
+    implicit none
+    integer , intent(in) :: im , jm , km
+    real(4) , intent(in) :: p
+    real(4) , intent(in) , dimension(km,jm,im) :: f
+    real(4) , intent(in) , dimension(km,jm,im) :: mp
+    real(4) , intent(out) , dimension(jm,im) :: fp
+
+    integer :: i , j , k , kx , knx
+    real(4) :: w1 , wp , dp , sp
+    real(4) , dimension(km) :: spp
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    ! HERE WE ASSUME PRESSURE ARE TOP TO BOTTOM ON KM
+    !
+    ! Loop over points
+    !
+    do j = 1 , jm
+      do i = 1 , im
+        !
+        ! Over the top or below bottom level
+        !
+        dp = mp(km,j,i)-mp(1,j,i)
+        do k = 1 , km
+          spp(k) = (mp(k,j,i)-mp(1,j,i))/dp
+        end do
+        sp = (p-mp(1,j,i)) / dp
+        if ( sp <= spp(1) ) then
+          fp(j,i) = f(1,j,i)
+        else if ( sp >= spp(km) ) then
+          fp(j,i) = f(km,j,i)
+        else
+          !
+          ! Search p level above the requested one
+          !
+          kx = 1
+          do k = 2 , km-1
+            if ( spp(k) > sp ) exit
+            kx = k
+          end do
+          !
+          ! This is the below level
+          !
+          knx = kx + 1
+          wp = (sp-spp(kx))/(spp(knx)-spp(kx))
+          w1 = 1.0 - wp
+          fp(j,i) = w1*f(kx,j,i) + wp*f(knx,j,i)
+        end if
+      end do
+    end do
+  end subroutine intlin_nonhy
+
+  subroutine intlog_nonhy(im,jm,km,f,mp,p,fp)
+    implicit none
+    integer , intent(in) :: im , jm , km
+    real(4) , intent(in) , dimension(km,jm,im) :: f
+    real(4) , intent(in) , dimension(km,jm,im) :: mp
+    real(4) , intent(out) , dimension(jm,im) :: fp
+    real(4) , intent(in) :: p
+
+    real(4) :: w1 , wp , dp , sp
+    real(4) , dimension(km) :: spp
+    integer :: i , j , k , kx , knx
+    !
+    ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
+    ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
+    ! THE T FIELD IS CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    ! WHERE EXTRAPOLATION DOWNWARD IS NECESSARY, A CONSTANT LAPSE
+    ! RATE IS USED.
+    !
+    do j = 1 , jm
+      do i = 1 , im
+        !
+        ! Over the top or below bottom level
+        !
+        dp = mp(km,j,i)-mp(1,j,i)
+        do k = 1 , km
+          spp(k) = (mp(k,j,i)-mp(1,j,i))/dp
+        end do
+        sp = (p-mp(1,j,i)) / dp
+        if ( sp <= spp(1) ) then
+          fp(j,i) = f(1,j,i)
+        else if ( sp >= spp(km) ) then
+          !
+          ! Extrapolate to surface
+          !
+          fp(j,i) = 0.5*(f(km,j,i)+f(km-1,j,i))*exp(rglrog*log(sp/spp(km)))
+        else
+          !
+          ! Search p level above the requested one
+          !
+          kx = 1
+          do k = 2 , km-1
+            if ( spp(k) > sp ) exit
+            kx = k
+          end do
+          !
+          ! This is the below level
+          !
+          knx = kx + 1
+          wp = log(sp/spp(kx))/log(spp(knx)/spp(kx))
+          w1 = 1.0 - wp
+          fp(j,i) = w1*f(kx,j,i) + wp*f(knx,j,i)
+        end if
+      end do
+    end do
+  end subroutine intlog_nonhy
+
+  subroutine intlin_hy(im,jm,km,f,pstar,sig,ptop,p,fp)
     implicit none
     integer , intent(in) :: im , jm , km
     real(8) , intent(in) :: ptop
@@ -116,98 +227,9 @@ module mod_vertint
         end do
       end do
     end if
-  end subroutine intlin
+  end subroutine intlin_hy
 
-  subroutine intlin_z(im,jm,km,f,hz,sig,z,fz)
-    implicit none
-
-    integer , intent(in) :: im , jm , km
-    real(4) , intent(in) , dimension(km,jm,im) :: f , hz
-    real(4) , intent(out) , dimension(jm,im) :: fz
-    real(4) , intent(in) , dimension(km) :: sig
-    real(4) , intent(in) :: z
-!
-    integer :: i , j , k , kx , knx
-    real(4) :: w1 , wz
-    !
-    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
-    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION
-    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
-    !
-    !
-    ! HERE BOTTOM TO TOP
-    !
-    if ( sig(1) < sig(2) ) then
-      !
-      ! Loop over points
-      !
-      do j = 1 , jm
-        do i = 1 , im
-          !
-          ! Over the top or below bottom level
-          !
-          if ( z <= hz(km,j,i) ) then
-            fz(j,i) = f(km,j,i)
-          else if ( z >= hz(1,j,i) ) then
-            fz(j,i) = f(1,j,i)
-          else
-            !
-            ! Search k level below the requested one
-            !
-            kx = 0
-            do k = 1 , km-1
-              if ( z > hz(k,j,i) ) exit
-              kx = k
-            end do
-            !
-            ! This is the above level
-            !
-            knx = kx + 1
-            wz = (z-hz(kx,j,i))/(hz(knx,j,i)-hz(kx,j,i))
-            w1 = 1.0 - wz
-            fz(j,i) = w1*f(kx,j,i) + wz*f(knx,j,i)
-          end if
-        end do
-      end do
-    !
-    ! HERE TOP TO BOTTOM
-    !
-    else
-      !
-      ! Loop over points
-      !
-      do j = 1 , jm
-        do i = 1 , im
-          !
-          ! Over the top or below bottom level
-          !
-          if ( z <= hz(1,j,i) ) then
-            fz(j,i) = f(1,j,i)
-          else if ( z >= hz(km,j,i) ) then
-            fz(j,i) = f(km,j,i)
-          else
-            !
-            ! Search k level below the requested one
-            !
-            kx = km + 1
-            do k = km , 2 , -1
-              if ( z > hz(k,j,i) ) exit
-              kx = k
-            end do
-            !
-            ! This is the above level
-            !
-            knx = kx - 1
-            wz = (z-hz(kx,j,i))/(hz(knx,j,i)-hz(kx,j,i))
-            w1 = 1.0 - wz
-            fz(j,i) = w1*f(kx,j,i) + wz*f(knx,j,i)
-          end if
-        end do
-      end do
-    end if
-  end subroutine intlin_z
-
-  subroutine intlog(im,jm,km,f,pstar,sig,ptop,p,fp)
+  subroutine intlog_hy(im,jm,km,f,pstar,sig,ptop,p,fp)
     implicit none
     integer , intent(in) :: im , jm , km
     real(8) , intent(in) :: ptop
@@ -332,7 +354,7 @@ module mod_vertint
         end do
       end do
     end if
-  end subroutine intlog
+  end subroutine intlog_hy
 
 end module mod_vertint
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
