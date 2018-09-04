@@ -191,7 +191,11 @@ module mod_clm_cnvegstructupdate
           if (ivt(p) == nc4_grass .or. ivt(p) == nc3_nonarctic_grass) then
             tlai(p) = 0.32_rk8 * slatop(ivt(p)) * leafc(p)
           else
-            tlai(p) = 0.40_rk8 * slatop(ivt(p)) * leafc(p)
+            if ( ivt(p) >= npcropmin ) then
+              tlai(p) = slatop(ivt(p)) * leafc(p)
+            else
+              tlai(p) = 0.40_rk8 * slatop(ivt(p)) * leafc(p)
+            end if
           end if
         end if
         !tlai(p) = max(0._rk8, tlai(p))

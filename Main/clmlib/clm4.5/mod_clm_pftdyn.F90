@@ -43,7 +43,7 @@ module mod_clm_pftdyn
   real(rk8) , pointer , dimension(:) :: harvest
   real(rk8) , pointer , dimension(:) :: wtcol_old
   integer(ik4) :: nt
-  real(rkx) , save :: ndpy
+  real(rkx) :: ndpy
   logical :: do_harvest
   type(clm_filetype) :: ncid   ! netcdf id
   character(len=256) :: fpftdyn
