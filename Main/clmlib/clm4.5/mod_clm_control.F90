@@ -392,6 +392,8 @@ module mod_clm_control
     call bcast(enable_urban_landunit)
     ! Crop pfts
     call bcast(enable_more_crop_pft)
+    ! CNDV COLD START
+    call bcast(enable_dv_baresoil)
 
 #if (defined CN) && (defined VERTSOILC)
     ! vertical soil mixing variables
