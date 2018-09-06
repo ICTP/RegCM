@@ -213,10 +213,11 @@ module mod_clm_surfrd
     ! Obtain vegetated landunit info
 
 #if (defined CNDV)
-    call surfrd_wtxy_veg_all(ncid,ldomain)
     if ( enable_dv_baresoil ) then
       ! Reset to bare ground the vegetation
       call surfrd_wtxy_veg_dgvm()
+    else
+      call surfrd_wtxy_veg_all(ncid,ldomain)
     end if
 #else
     if (allocate_all_vegpfts) then
