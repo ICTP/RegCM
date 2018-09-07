@@ -700,7 +700,8 @@ module mod_ocn_lake
     ! the average bulk value for the full snowpack is 0.14 W m−1 K−1
     ! Sturm, Perovich and Holmgren
     ! Journal of Geophysical Research: Oceans (1978–2012)
-    real(rkx) , parameter :: ks = 0.14_rkx
+    !real(rkx) , parameter :: ks = 0.14_rkx
+    real(rkx) , parameter :: ks = 0.31_rkx
     ! heat flux from water to ice (w m-2)
     real(rkx) , parameter :: qw = 1.389_rkx
     ! latent heat of fusion (J/kg)
@@ -728,7 +729,7 @@ module mod_ocn_lake
     ! temperature of ice/snow surface
     t0 = tprof(1)
     ! temperature of the water under the snow
-    tf = -1.778_rkx
+    tf = 0.0_rkx
     ! density of air (1 kg/m3)
     rho = dens
 
@@ -749,7 +750,8 @@ module mod_ocn_lake
     icount = 0
     do
       t2 = t1 - (t1-t0)*f1/(f1-f0)
-      if ( (t2-t1)/t1 < 0.001_rkx .or. icount == maxiter ) then
+      if ( (t2-t1)/t1 < 0.001_rkx .or. t2 > 0.0_rkx .or. &
+           icount == maxiter ) then
         exit
       end if
       t0 = t1
@@ -797,7 +799,7 @@ module mod_ocn_lake
       tprof(1) = (hi*t0+(isurf-hi)*tprof(2))/isurf
     else
       aveice = hi
-      tprof(1) = t0
+      tprof(1) = min(t0,0.0_rkx)
     end if
 
     contains
