@@ -399,6 +399,7 @@ program interpinic
   call col_interpolate_grnd('O2_DECOMP_DEPTH_UNSAT')
   call col_interpolate_grnd('LAKE_SOILC')
 
+#ifdef CNDV
   call pft_interpolate('elai')
   call pft_interpolate('esai')
   call pft_interpolate('tlai')
@@ -406,6 +407,7 @@ program interpinic
   call pft_interpolate('mlaidiff')
   call pft_interpolate('htop')
   call pft_interpolate('hbot')
+#endif
   call pft_interpolate('annavg_t2m')
   call pft_interpolate('dormant_flag')
   call pft_interpolate('days_active')
