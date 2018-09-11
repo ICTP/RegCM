@@ -51,8 +51,8 @@ program interpinic
   integer(ik4) :: hostnm
   integer(ik4) :: ihost , idir
   integer(ik4) :: getcwd
-  integer(ik4) :: ingc , inlu , inco , inpft
-  integer(ik4) :: ongc , onlu , onco , onpft
+  integer(ik4) :: ingc , inlu , inco , inpft , ingrd
+  integer(ik4) :: ongc , onlu , onco , onpft , ongrd
 
   integer(ik4) , parameter :: itypeveg = 1
   real(rk8) , parameter :: missl = -9999.0_rk8
@@ -76,7 +76,11 @@ program interpinic
   real(rk8) , pointer , dimension(:) :: i_pval
   real(rk8) , pointer , dimension(:) :: o_pval
   real(rk8) , pointer , dimension(:) :: i_cval
+  real(rk8) , pointer , dimension(:,:) :: i_cval_ng
+  real(rk8) , pointer , dimension(:,:) :: i_cval_ng_t
   real(rk8) , pointer , dimension(:) :: o_cval
+  real(rk8) , pointer , dimension(:,:) :: o_cval_ng
+  real(rk8) , pointer , dimension(:,:) :: o_cval_ng_t
   integer(ik4) , pointer , dimension(:) :: i_ltype
   integer(ik4) , pointer , dimension(:) :: o_ltype
   integer(ik4) , pointer , dimension(:) :: i_vtype
@@ -160,25 +164,34 @@ program interpinic
   inlu = dlen(ncin,'landunit')
   inco = dlen(ncin,'column')
   inpft = dlen(ncin,'pft')
+  ingrd = dlen(ncin,'levgrnd')
 
   write(stdout,*) 'Input DIMENSIONS'
   write(stdout,*) 'Input gridcell  : ',ingc
   write(stdout,*) 'Input landunit  : ',inlu
   write(stdout,*) 'Input column    : ',inco
   write(stdout,*) 'Input pft       : ',inpft
+  write(stdout,*) 'Input levgrnd   : ',ingrd
   write(stdout,*) ''
 
   ongc = dlen(ncout,'gridcell')
   onlu = dlen(ncout,'landunit')
   onco = dlen(ncout,'column')
   onpft = dlen(ncout,'pft')
+  ongrd = dlen(ncout,'levgrnd')
 
   write(stdout,*) 'Output DIMENSIONS'
   write(stdout,*) 'Output gridcell : ',ongc
   write(stdout,*) 'Output landunit : ',onlu
   write(stdout,*) 'Output column   : ',onco
   write(stdout,*) 'Output pft      : ',onpft
+  write(stdout,*) 'Output levgrnd  : ',ongrd
   write(stdout,*) ''
+
+  if ( ingrd /= ongrd ) then
+    write (stderr,*) 'ERROR: levgrnd dimension do not match'
+    call die(__FILE__,'File read error',__LINE__)
+  end if
 
   call getmem1d(i_grid1d_lon,1,ingc,'interpinic:i_grid1d_lon')
   call getmem1d(i_grid1d_lat,1,ingc,'interpinic:i_grid1d_lat')
@@ -189,6 +202,8 @@ program interpinic
   call getmem1d(i_col1d_lat,1,inco,'interpinic:i_col1d_lat')
   call getmem1d(i_pval,1,inpft,'interpinic:i_pval')
   call getmem1d(i_cval,1,inco,'interpinic:i_cval')
+  call getmem2d(i_cval_ng,1,ingrd,1,inco,'interpinic:i_cval_ng')
+  call getmem2d(i_cval_ng_t,1,inco,1,ingrd,'interpinic:i_cval_ng_t')
   call getmem1d(i_ctype,1,inco,'interpinic:i_ctype')
   call getmem1d(i_ltype,1,inpft,'interpinic:i_ltype')
   call getmem1d(i_vtype,1,inpft,'interpinic:i_vtype')
@@ -203,6 +218,8 @@ program interpinic
   call getmem1d(o_cols1d_wtxy,1,onco,'interpinic:o_cols1d_wtxy')
   call getmem1d(o_pval,1,onpft,'interpinic:o_pval')
   call getmem1d(o_cval,1,onco,'interpinic:o_cval')
+  call getmem2d(o_cval_ng,1,ongrd,1,onco,'interpinic:o_cval_ng')
+  call getmem2d(o_cval_ng_t,1,onco,1,ongrd,'interpinic:o_cval_ng_t')
   call getmem1d(o_ctype,1,onco,'interpinic:o_ctype')
   call getmem1d(o_ltype,1,onpft,'interpinic:o_ltype')
   call getmem1d(o_vtype,1,onpft,'interpinic:o_vtype')
@@ -273,8 +290,8 @@ program interpinic
                    o_grid1d_lat,o_grid1d_lon,o_col1d_lat,o_col1d_lon,o_mapc)
   write(stdout,*) 'Output Map created.'
 
-  call col_interpolate('fpi')
   call col_interpolate('fpg')
+  call col_interpolate('fpi')
   call col_interpolate('irrig_rate')
   call col_interpolate('cannsum_npp')
   call col_interpolate('col_lag_npp')
@@ -340,11 +357,53 @@ program interpinic
   call col_interpolate('sminn')
   call col_interpolate('prod10n')
   call col_interpolate('prod100n')
+  call col_interpolate('QFLX_SURF_LAG')
+  call col_interpolate('FINUNDATED_LAG')
+  call col_interpolate('FINUNDATED')
+  call col_interpolate('Z0MG')
+  call col_interpolate('annavg_somhr')
+  call col_interpolate('annavg_finrw')
+
+  call col_interpolate_grnd('fpi_vr')
+  call col_interpolate_grnd('som_adv_coef_vr')
+  call col_interpolate_grnd('som_diffus_coef_vr')
+  call col_interpolate_grnd('litr1c_vr')
+  call col_interpolate_grnd('litr2c_vr')
+  call col_interpolate_grnd('litr3c_vr')
+  call col_interpolate_grnd('cwdc_vr')
+  call col_interpolate_grnd('soil1c_vr')
+  call col_interpolate_grnd('soil2c_vr')
+  call col_interpolate_grnd('soil3c_vr')
+  call col_interpolate_grnd('col_ctrunc_vr')
+  call col_interpolate_grnd('sminn_vr')
+  call col_interpolate_grnd('litr1n_vr')
+  call col_interpolate_grnd('litr2n_vr')
+  call col_interpolate_grnd('litr3n_vr')
+  call col_interpolate_grnd('cwdn_vr')
+  call col_interpolate_grnd('soil1n_vr')
+  call col_interpolate_grnd('soil2n_vr')
+  call col_interpolate_grnd('soil3n_vr')
+  call col_interpolate_grnd('col_ntrunc_vr')
+  call col_interpolate_grnd('f_nit_vr_vr')
+  call col_interpolate_grnd('pot_f_nit_vr_vr')
+  call col_interpolate_grnd('smin_no3_vr')
+  call col_interpolate_grnd('smin_nh4_vr')
+  call col_interpolate_grnd('CONC_CH4_SAT')
+  call col_interpolate_grnd('CONC_CH4_UNSAT')
+  call col_interpolate_grnd('CONC_O2_SAT')
+  call col_interpolate_grnd('CONC_O2_UNSAT')
+  call col_interpolate_grnd('O2STRESS_SAT')
+  call col_interpolate_grnd('O2STRESS_UNSAT')
+  call col_interpolate_grnd('LAYER_SAT_LAG')
+  call col_interpolate_grnd('O2_DECOMP_DEPTH_SAT')
+  call col_interpolate_grnd('O2_DECOMP_DEPTH_UNSAT')
+  call col_interpolate_grnd('LAKE_SOILC')
 
   call pft_interpolate('elai')
   call pft_interpolate('esai')
   call pft_interpolate('tlai')
   call pft_interpolate('tsai')
+  call pft_interpolate('mlaidiff')
   call pft_interpolate('htop')
   call pft_interpolate('hbot')
   call pft_interpolate('annavg_t2m')
@@ -382,7 +441,6 @@ program interpinic
   call pft_interpolate('downreg')
   call pft_interpolate('prev_leafc_to_litter')
   call pft_interpolate('prev_frootc_to_litter')
-  call pft_interpolate('annsum_npp')
   call pft_interpolate('annsum_npp')
   call pft_interpolate('rc13_canair')
   call pft_interpolate('rc13_psnsun')
@@ -482,11 +540,48 @@ program interpinic
   call pft_interpolate('npool')
   call pft_interpolate('pft_ntrunc')
   call pft_interpolate('btran2')
+  call pft_interpolate('aleaf')
+  call pft_interpolate('aleafi')
+  call pft_interpolate('astem')
+  call pft_interpolate('astemi')
+  call pft_interpolate('htmx')
+  call pft_interpolate('hdidx')
+  call pft_interpolate('vf')
+  call pft_interpolate('cumvd')
+  call pft_interpolate('gdd1020')
+  call pft_interpolate('gdd820')
+  call pft_interpolate('gdd020')
+  call pft_interpolate('gddmaturity')
+  call pft_interpolate('huileaf')
+  call pft_interpolate('huigrain')
+  call pft_interpolate('grainc')
+  call pft_interpolate('grainc_storage')
+  call pft_interpolate('grainc_xfer')
+  call pft_interpolate('grainn')
+  call pft_interpolate('grainn_storage')
+  call pft_interpolate('grainn_xfer')
+  call pft_interpolate('grainc_xfer_to_grainc')
+  call pft_interpolate('livestemc_to_litter')
+  call pft_interpolate('grainc_to_food')
+  call pft_interpolate('grainn_xfer_to_grainn')
+  call pft_interpolate('livestemn_to_litter')
+  call pft_interpolate('grainn_to_food')
+  call pft_interpolate('cpool_to_grainc')
+  call pft_interpolate('cpool_to_grainc_storage')
+  call pft_interpolate('npool_to_grainn')
+  call pft_interpolate('npool_to_grainn_storage')
+  call pft_interpolate('cpool_grain_gr')
+  call pft_interpolate('cpool_grain_storage_gr')
+  call pft_interpolate('transfer_grain_gr')
+  call pft_interpolate('grainc_storage_to_xfer')
+  call pft_interpolate('grainn_storage_to_xfer')
 
+  call pft_interpolate('CROWNAREA')
   call pft_interpolate('annsum_litfall')
   call pft_interpolate('TMOMIN20')
   call pft_interpolate('AGDD20')
   call pft_interpolate('T_MO_MIN')
+  call pft_interpolate('leafcmax')
 
   call pft_interpolate('T_VEG240_VALUE')
   call pft_interpolate('FSD240_VALUE')
@@ -495,6 +590,14 @@ program interpinic
   call pft_interpolate('PREC365_VALUE')
   call pft_interpolate('AGDDTW_VALUE')
   call pft_interpolate('AGDD_VALUE')
+  call pft_interpolate('GDD0_VALUE')
+  call pft_interpolate('GDD8_VALUE')
+  call pft_interpolate('GDD10_VALUE')
+  call pft_interpolate('GDDPLANT_VALUE')
+  call pft_interpolate('GDDTSOI_VALUE')
+
+  call pft_interpolate('annavg_agnpp')
+  call pft_interpolate('annavg_bgnpp')
 
   call h_interpolator_destroy(hint)
 
@@ -568,6 +671,25 @@ program interpinic
     end if
   end subroutine rval
 
+  subroutine rval2(ncid,vname,var)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:,:) , intent(inout) :: var
+    integer(ik4) :: ivarid
+    istat = nf90_inq_varid(ncid, vname, ivarid)
+    if ( istat /= nf90_noerr ) then
+      write (stderr,*) 'Inquire variable ',trim(vname), &
+                 ' : ',nf90_strerror(istat)
+      call die(__FILE__,'File read error',__LINE__)
+    end if
+    istat = nf90_get_var(ncid, ivarid, var)
+    if ( istat /= nf90_noerr ) then
+      write (stderr,*) 'Read variable ',trim(vname),' : ',nf90_strerror(istat)
+      call die(__FILE__,'File read error',__LINE__)
+    end if
+  end subroutine rval2
+
   subroutine ival(ncid,vname,var)
     implicit none
     integer(ik4) , intent(in) :: ncid
@@ -605,6 +727,25 @@ program interpinic
       call die(__FILE__,'File write error',__LINE__)
     end if
   end subroutine wval
+
+  subroutine wval2(ncid,vname,var)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:,:) , intent(in) :: var
+    integer(ik4) :: ivarid
+    istat = nf90_inq_varid(ncid, vname, ivarid)
+    if ( istat /= nf90_noerr ) then
+      write (stderr,*) 'Inquire variable ',trim(vname), &
+                 ' : ',nf90_strerror(istat)
+      call die(__FILE__,'File write error',__LINE__)
+    end if
+    istat = nf90_put_var(ncid, ivarid, var)
+    if ( istat /= nf90_noerr ) then
+      write (stderr,*) 'Write variable ',trim(vname),' : ',nf90_strerror(istat)
+      call die(__FILE__,'File write error',__LINE__)
+    end if
+  end subroutine wval2
 
   subroutine makemap_pft(np,ng,mp,ltype,ptype,glat,glon,plat,plon,map)
     implicit none
@@ -698,6 +839,57 @@ program interpinic
     end do
     call wval(ncout,vname,o_pval)
   end subroutine pft_interpolate
+
+  subroutine col_interpolate_grnd(vname)
+    implicit none
+    character(len=*) , intent(in) :: vname
+    integer(ik4) :: ic , ig , igr
+
+    if ( .not. hasval(ncin,ncout,vname) ) return
+
+    write(stdout,*) 'Interpolating ',trim(vname)
+
+    call rval2(ncin,vname,i_cval_ng)
+    call rval2(ncout,vname,o_cval_ng)
+
+    i_cval_ng_t = transpose(i_cval_ng)
+    o_cval_ng_t = transpose(o_cval_ng)
+
+    do igr = 1 , ingrd
+      do ic = 1 , maxcol
+        ! Extract values for pft and put on grid values
+        do ig = 1 , ingc
+          if ( i_mapc(ig,ic) > 0 ) then
+            if ( .not. isnan(i_cval_ng_t(i_mapc(ig,ic),igr)) ) then
+              if ( i_cval_ng_t(i_mapc(ig,ic),igr) >= -1.0e-20 .and. &
+                   i_cval_ng_t(i_mapc(ig,ic),igr) <= 1.0e+20 ) then
+                i_gval(ig) = i_cval_ng_t(i_mapc(ig,ic),igr)
+              else
+                i_gval(ig) = missl
+              end if
+            else
+              i_gval(ig) = missl
+            end if
+          else
+            i_gval(ig) = missl
+          end if
+        end do
+        o_gval(:) = missl
+        ! Interpolate on grid.
+        call h_interpolate_cont(hint,i_gval,o_gval)
+        ! Put grid values back on output pft values
+        do ig = 1 , ongc
+          if ( o_mapc(ig,ic) > 0 .and. &
+               abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
+               o_cols1d_wtxy(ic) > 0.0_rk8 ) then
+            o_cval_ng_t(o_mapc(ig,ic),igr) = o_gval(ig)
+          end if
+        end do
+      end do
+    end do
+    o_cval_ng = transpose(o_cval_ng_t)
+    call wval2(ncout,vname,o_cval_ng)
+  end subroutine col_interpolate_grnd
 
   subroutine col_interpolate(vname)
     implicit none
