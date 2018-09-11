@@ -103,6 +103,7 @@ module mod_clm_cndvestablishment
     !
     logical  :: survive(lbp:ubp)    ! true=>pft survives
     logical  :: estab(lbp:ubp)      ! true=>pft is established
+    logical  :: iswood(lbp:ubp)     ! true=>pft is woody
     real(rk8) :: dstemc(lbp:ubp)    ! local copy of deadstemc
 
     real(rk8) :: taper ! ratio of height:radius_breast_height (tree allometry)
@@ -124,7 +125,7 @@ module mod_clm_cndvestablishment
     !
     ! minimum precip. for establishment (mm/s)
     !
-    real(rk8), parameter :: prec_min_estab = 100._rk8/(365._rk8*secspday)
+    real(rk8), parameter :: prec_min_estab = 100.0_rk8/(365.0_rk8*secspday)
     !
     ! maximum sapling establishment rate (indiv/m2)
     !
@@ -182,16 +183,16 @@ module mod_clm_cndvestablishment
     ! temperature should be no higher than a PFT-specific limit.
     ! **********************************************************************
 
-    taper = 200._rk8 ! make a global constant as with dwood (lpj's wooddens)
+    taper = 200.0_rk8 ! make a global constant as with dwood (lpj's wooddens)
 
     ! Initialize gridcell-level metrics
 
     do g = lbg, ubg
       ngrass(g) = 0
       npft_estab(g) = 0
-      fpc_tree_total(g) = 0._rk8
-      fpc_total(g) = 0._rk8
-      fpc_total_new(g) = 0._rk8
+      fpc_tree_total(g) = 0.0_rk8
+      fpc_total(g) = 0.0_rk8
+      fpc_total_new(g) = 0.0_rk8
     end do
 
     do p = lbp, ubp
@@ -199,14 +200,15 @@ module mod_clm_cndvestablishment
 
       ! Set the presence of pft for this gridcell
 
-      if (nind(p) == 0._rk8) present(p) = .false.
+      if (nind(p) == 0.0_rk8) present(p) = .false.
       if (.not. present(p)) then
-        nind(p) = 0._rk8
-        fpcgrid(p) = 0._rk8
+        nind(p) = 0.0_rk8
+        fpcgrid(p) = 0.0_rk8
       end if
       survive(p) = .false.
       estab(p)   = .false.
       dstemc(p)  = deadstemc(p)
+      iswood(p)  = abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0)
     end do
 
     ! Must go thru all 16 pfts and decide which can/cannot establish or survive
@@ -226,7 +228,7 @@ module mod_clm_cndvestablishment
         survive(p) = .true.
         ! seasonal decid. pfts that would have occurred in regions without
         ! short winter day lengths (see CNPhenology)
-        if (.not. pftmayexist(p)) then
+        if ( .not. pftmayexist(p) ) then
           survive(p) = .false.
           estab(p) = .false.
           pftmayexist(p) = .true.
@@ -240,18 +242,18 @@ module mod_clm_cndvestablishment
 
       ! Case 1 -- pft ceases to exist -kill pfts not adapted to current climate
 
-      if (present(p) .and. (.not. survive(p) .or. nind(p)<nind_min)) then
+      if ( present(p) .and. (.not. survive(p) .or. nind(p) < nind_min) ) then
         present(p) = .false.
-        fpcgrid(p) = 0._rk8
-        nind(p) = 0._rk8
+        fpcgrid(p) = 0.0_rk8
+        nind(p) = 0.0_rk8
       end if
 
       ! Case 2 -- pft begins to exist - introduce newly "adapted" pfts
 
-      if (ltype(l) == istsoil) then
+      if ( ltype(l) == istsoil ) then
         if ( .not. present(p) .and. &
-             prec365(p) >= prec_min_estab .and. estab(p)) then
-          if (twmax(ivt(p)) > 999._rk8 .or. agddtw(p) == 0._rk8) then
+             prec365(p) >= prec_min_estab .and. estab(p) ) then
+          if ( twmax(ivt(p)) > 999.0_rk8 .or. agddtw(p) == 0.0_rk8 ) then
 
             present(p) = .true.
             nind(p) = 0.0_rk8
@@ -262,9 +264,7 @@ module mod_clm_cndvestablishment
             ! sounds circular; also seed fpcgrid depends on sla,
             ! so theoretically need diff value for each pft;slevis
             fpcgrid(p) = 0.000844_rk8
-            if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
-              fpcgrid(p) = 0.05_rk8
-            end if
+            if ( iswood(p) ) fpcgrid(p) = 0.05_rk8
 
             ! Seed carbon for newly established pfts
             ! Equiv. to pleaf=1 & pstor=1 set in subr pftwt_cnbal (slevis)
@@ -272,8 +272,8 @@ module mod_clm_cndvestablishment
             ! Consider just assigning nind and fpcgrid for newly
             ! established pfts instead of entering the circular procedure
             ! outlined in the paragraph above
-            leafcmax(p) = 1._rk8
-            if (dstemc(p) <= 0._rk8) dstemc(p) = 0.1_rk8
+            leafcmax(p) = 1.0_rk8
+            if ( dstemc(p) <= 0.0_rk8 ) dstemc(p) = 0.1_rk8
 
           end if   ! conditions required for establishment
         end if   ! conditions required for establishment
@@ -291,12 +291,14 @@ module mod_clm_cndvestablishment
 
     do p = lbp, ubp
       g = pgridcell(p)
-      if (present(p)) then
-        if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( present(p) ) then
+        if ( iswood(p) ) then
           fpc_tree_total(g) = fpc_tree_total(g) + fpcgrid(p)
           if (estab(p)) npft_estab(g) = npft_estab(g) + 1
-        else if (woody(ivt(p)) < 1._rk8 .and. ivt(p) > noveg) then !grass
-          ngrass(g) = ngrass(g) + 1
+        else
+          if ( ivt(p) > noveg ) then !grass
+            ngrass(g) = ngrass(g) + 1
+          end if
         end if
       end if
     end do
@@ -306,22 +308,21 @@ module mod_clm_cndvestablishment
     do p = lbp, ubp
       g = pgridcell(p)
 
-      if ( present(p) .and. estab(p) .and. &
-           abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( present(p) .and. estab(p) .and. iswood(p) ) then
 
         ! Calculate establishment rate over available space, per tree PFT
         ! Max establishment rate reduced by shading as tree FPC approaches 1
         ! Total establishment rate partitioned equally among
         ! regenerating woody PFTs
 
-        estab_rate = estab_max*(1._rk8-exp(5._rk8 * &
-            (fpc_tree_total(g)-1._rk8))) / dble(npft_estab(g))
+        estab_rate = estab_max*(1.0_rk8-exp(5.0_rk8 * &
+            (fpc_tree_total(g)-1.0_rk8))) / dble(npft_estab(g))
 
         ! Calculate grid-level establishment rate per woody PFT
         ! Space available for woody PFT establishment is fraction of grid cell
         ! not currently occupied by woody PFTs
 
-        estab_grid = estab_rate * (1._rk8-fpc_tree_total(g))
+        estab_grid = estab_rate * (1.0_rk8-fpc_tree_total(g))
 
         ! Add new saplings to current population
 
@@ -333,16 +334,16 @@ module mod_clm_cndvestablishment
         !is assigned a leafcmax above
 
         lm_ind = leafcmax(p) * fpcgrid(p) / nind(p) ! nind>0 for sure
-        if (fpcgrid(p) > 0._rk8 .and. nind(p) > 0._rk8) then
+        if (fpcgrid(p) > 0.0_rk8 .and. nind(p) > 0.0_rk8) then
           !#ind/m2 nat veg area -> #ind/m2 pft area
           stocking = nind(p)/fpcgrid(p)
           ! stemdiam derived here from cn's formula for htop found in
           ! CNVegStructUpdate and cn's assumption stemdiam=2*htop/taper
           ! this derivation neglects upper htop limit enforced elsewhere
-          stemdiam = (24._rk8 * dstemc(p) / &
-                  (rpi * stocking * dwood(ivt(p)) * taper))**(1._rk8/3._rk8)
+          stemdiam = (24.0_rk8 * dstemc(p) / &
+                  (rpi * stocking * dwood(ivt(p)) * taper))**(1.0_rk8/3.0_rk8)
         else
-          stemdiam = 0._rk8
+          stemdiam = 0.0_rk8
         end if
         ! Eqn D (now also in Light; need here for 1st yr when pfts
         ! haven't established, yet)
@@ -351,8 +352,8 @@ module mod_clm_cndvestablishment
 
         ! Update LAI and FPC
 
-        if (crownarea(p) > 0._rk8) then
-          if (dsladlai(ivt(p)) > 0._rk8) then
+        if (crownarea(p) > 0.0_rk8) then
+          if (dsladlai(ivt(p)) > 0.0_rk8) then
             ! make lai_ind >= 0.001 to avoid killing plants at this stage
             lai_ind = max(0.001_rk8,((exp(lm_ind*dsladlai(ivt(p)) + &
                     log(slatop(ivt(p)))) - slatop(ivt(p))) / &
@@ -361,24 +362,24 @@ module mod_clm_cndvestablishment
             lai_ind = lm_ind * slatop(ivt(p)) / crownarea(p) ! lpj's formula
           end if
         else
-          lai_ind = 0._rk8
+          lai_ind = 0.0_rk8
         end if
-        fpc_ind = 1._rk8 - exp(-0.5_rk8*lai_ind)
+        fpc_ind = 1.0_rk8 - exp(-0.5_rk8*lai_ind)
         fpcgrid(p) = crownarea(p) * nind(p) * fpc_ind
       end if   ! add new saplings block
-      if ( present(p) .and. &
-           abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+
+      if ( present(p) .and. iswood(p) ) then
         fpc_total_new(g) = fpc_total_new(g) + fpcgrid(p)
       end if
+
     end do   ! close loop to update fpc_total_new
 
     ! Adjustments- don't allow trees to exceed 95% of vegetated landunit
 
     do p = lbp, ubp
       g = pgridcell(p)
-      if (fpc_total_new(g) > 0.95_rk8) then
-        if ( present(p) .and. &
-             abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( fpc_total_new(g) > 0.95_rk8 ) then
+        if ( present(p) .and. iswood(p) ) then
           nind(p) = nind(p) * 0.95_rk8 / fpc_total_new(g)
           fpcgrid(p) = fpcgrid(p) * 0.95_rk8 / fpc_total_new(g)
         end if
@@ -392,23 +393,22 @@ module mod_clm_cndvestablishment
 
     do p = lbp, ubp
       g = pgridcell(p)
-        if ( present(p) .and. &
-             abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
-        if (leafcmax(p) <= 0._rk8 .or. fpcgrid(p) <= 0._rk8 ) then
+      if ( present(p) .and. .not. iswood(p) ) then
+        if ( leafcmax(p) <= 0.0_rk8 .or. fpcgrid(p) <= 0.0_rk8 ) then
           present(p) = .false.
-          nind(p) = 0._rk8
+          nind(p) = 0.0_rk8
         else
-          nind(p) = 1._rk8 ! in case these grasses just established
-          crownarea(p) = 1._rk8
+          nind(p) = 1.0_rk8 ! in case these grasses just established
+          crownarea(p) = 1.0_rk8
           lm_ind = leafcmax(p) * fpcgrid(p) / nind(p)
-          if (dsladlai(ivt(p)) > 0._rk8) then
+          if (dsladlai(ivt(p)) > 0.0_rk8) then
             lai_ind = max(0.001_rk8,((exp(lm_ind*dsladlai(ivt(p)) + &
                     log(slatop(ivt(p)))) - slatop(ivt(p))) / &
                     dsladlai(ivt(p))) / crownarea(p))
           else ! 'if' is currently redundant b/c dsladlai=0 for grasses only
             lai_ind = lm_ind * slatop(ivt(p)) / crownarea(p)
           end if
-          fpc_ind = 1._rk8 - exp(-0.5_rk8*lai_ind)
+          fpc_ind = 1.0_rk8 - exp(-0.5_rk8*lai_ind)
           fpcgrid(p) = crownarea(p) * nind(p) * fpc_ind
           fpc_total(g) = fpc_total(g) + fpcgrid(p)
         end if
@@ -420,10 +420,10 @@ module mod_clm_cndvestablishment
     do p = lbp, ubp
       g = pgridcell(p)
 
-      if (fpc_total(g) > 1._rk8) then
-        if (ivt(p) >= nc3_arctic_grass .and. fpcgrid(p) > 0._rk8) then
+      if (fpc_total(g) > 1.0_rk8) then
+        if (ivt(p) >= nc3_arctic_grass .and. fpcgrid(p) > 0.0_rk8) then
           fpcgridtemp = fpcgrid(p)
-          fpcgrid(p) = max(0._rk8, fpcgrid(p) - (fpc_total(g)-1._rk8))
+          fpcgrid(p) = max(0.0_rk8, fpcgrid(p) - (fpc_total(g)-1.0_rk8))
           fpc_total(g) = fpc_total(g) - fpcgridtemp + fpcgrid(p)
         end if
       end if
@@ -432,17 +432,26 @@ module mod_clm_cndvestablishment
 
       if (fpcgrid(p) < 1.e-15_rk8) then
         fpc_total(g) = fpc_total(g) - fpcgrid(p)
-        fpcgrid(p) = 0._rk8
+        fpcgrid(p) = 0.0_rk8
         present(p) = .false.
-        nind(p) = 0._rk8
+        nind(p) = 0.0_rk8
       end if
 
-      ! Set the fpcgrid for bare ground if there is bare ground in
-      ! vegetated landunit and pft is bare ground so that everything
-      ! can add up to one.
+    end do
 
-      if (fpc_total(g) < 1._rk8 .and. ivt(p) == noveg) then
-        fpcgrid(p) = 1._rk8 - fpc_total(g)
+    ! Set the fpcgrid for bare ground if there is bare ground in
+    ! vegetated landunit and pft is bare ground so that everything
+    ! can add up to one.
+
+    do p = lbp, ubp
+
+      g = pgridcell(p)
+      if ( ivt(p) == noveg ) then
+        if ( fpc_total(g) < 1.0_rk8 ) then
+          fpcgrid(p) = 1.0_rk8 - fpc_total(g)
+        else
+          fpcgrid(p) = 0.0_rk8
+        end if
         fpc_total(g) = fpc_total(g) + fpcgrid(p)
       end if
 
@@ -456,24 +465,23 @@ module mod_clm_cndvestablishment
 
       ! Stress mortality from lpj's subr Mortality
 
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) .and. &
-           nind(p) > 0._rk8 .and. leafcmax(p) > 0._rk8 .and. &
-           fpcgrid(p) > 0._rk8 ) then
-        if (twmax(ivt(p)) < 999._rk8) then
-          heatstress(p) = max(0._rk8, min(1._rk8, agddtw(p) / ramp_agddtw))
+      if ( iswood(p) .and. nind(p) > 0.0_rk8 .and. &
+           leafcmax(p) > 0.0_rk8 .and. fpcgrid(p) > 0.0_rk8 ) then
+        if (twmax(ivt(p)) < 999.0_rk8) then
+          heatstress(p) = max(0.0_rk8, min(1.0_rk8, agddtw(p) / ramp_agddtw))
         else
-          heatstress(p) = 0._rk8
+          heatstress(p) = 0.0_rk8
         end if
 
         ! Net individual living biomass increment
         ! NB: lpj's turnover not exactly same as cn's litfall:
         ! lpj's sap->heartwood turnover not included in litfall (slevis)
 
-        bm_delta = max(0._rk8, annsum_npp(p) - annsum_litfall(p))
+        bm_delta = max(0.0_rk8, annsum_npp(p) - annsum_litfall(p))
         lm_ind = leafcmax(p) * fpcgrid(p) / nind(p)
 
         ! Growth efficiency (net biomass increment per unit leaf area)
-        if (dsladlai(ivt(p)) > 0._rk8) then
+        if (dsladlai(ivt(p)) > 0.0_rk8) then
           greffic(p) = bm_delta / (max(0.001_rk8,                     &
              ( ( exp(lm_ind*dsladlai(ivt(p)) + log(slatop(ivt(p)))) &
                  - slatop(ivt(p)) ) / dsladlai(ivt(p)) )))
@@ -481,8 +489,8 @@ module mod_clm_cndvestablishment
           greffic(p) = bm_delta / (lm_ind * slatop(ivt(p)))
         end if
       else
-        greffic(p) = 0.
-        heatstress(p) = 0.
+        greffic(p) = 0.0_rk8
+        heatstress(p) = 0.0_rk8
       end if
     end do
 
@@ -498,7 +506,7 @@ module mod_clm_cndvestablishment
 
     fn = 0
     do g = lbg, ubg
-      if (abs(fpc_total(g) - 1._rk8) > 1.e-6_rk8) then
+      if (abs(fpc_total(g) - 1.0_rk8) > 1.e-6_rk8) then
         fn = fn + 1
         filterg(fn) = g
       end if

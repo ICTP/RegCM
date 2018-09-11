@@ -670,7 +670,6 @@ module mod_clm_driver
         write(stdout,*) 'End of year. CNDV called now: ncdate=', &
                        ncdate,' nbdate=',nbdate,' kyr=',kyr
       end if
-      call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
       call dv(begg,endg,begp,endp,filter%num_natvegp,filter%natvegp,kyr)
     end if
 #endif

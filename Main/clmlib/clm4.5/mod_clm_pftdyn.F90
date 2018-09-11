@@ -2821,6 +2821,7 @@ module mod_clm_pftdyn
     integer(ik4) , pointer :: ityplun(:)      ! index into landunit
     real(rk8) , pointer :: woody(:)
     integer(ik4) , pointer :: tree(:)
+    logical :: iswood
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
     integer(ik4) :: day   ! day of month (1, ..., 31) for nstep+1
@@ -2845,28 +2846,31 @@ module mod_clm_pftdyn
     end if
 
     if ( nsrest == nsrStartup ) then
-      do p = begp , endp
-        pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
-        pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
-        if ( .not. enable_dv_baresoil ) then
+      if ( .not. enable_dv_baresoil ) then
+        do p = begp , endp
+          pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
+          pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
+          wtcol_old(p) = pptr%wtcol(p)
           if ( pptr%wtcol(p) > d_zero ) then
             l = plandunit(p)
             if ( ityplun(l) == istsoil .or. ityplun(l) == istcrop ) then
               if ( ivt(p) == noveg ) then
                 pptr%pdgvs%nind(p) = 0.0_rk8
               else
+                iswood = abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0)
                 ! pft_dgvstate_type
-                if ( abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0) .and. &
-                     tree(ivt(p)) == 1 ) then
-                  pptr%pdgvs%nind(p) = 0.5_rk8
+                if ( iswood .and. tree(ivt(p)) == 1 ) then
+                  pptr%pdgvs%nind(p) = 0.2_rk8
                   pptr%pdgvs%crownarea(p) = 8.0_rk8
-                else if ( abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0) .and. &
-                          tree(ivt(p)) < 1 ) then
-                  pptr%pdgvs%nind(p) = 0.7_rk8
+                  pptr%pcs%leafcmax(p) = 1000.0_rk8
+                else if ( iswood .and. tree(ivt(p)) < 1 ) then
+                  pptr%pdgvs%nind(p) = 0.5_rk8
                   pptr%pdgvs%crownarea(p) = 2.0_rk8
+                  pptr%pcs%leafcmax(p) = 500.0_rk8
                 else
                   pptr%pdgvs%nind(p) = 1.0_rk8
                   pptr%pdgvs%crownarea(p) = 1.0_rk8
+                  pptr%pcs%leafcmax(p) = 50.0_rk8
                 end if
                 pptr%pdgvs%greffic(p) = 0.0_rk8
                 pptr%pdgvs%heatstress(p) = 0.0_rk8
@@ -2875,9 +2879,14 @@ module mod_clm_pftdyn
               end if
             end if
           end if
+        end do
+      else
+        do p = begp,endp
+          pptr%pdgvs%fpcgrid(p) = pptr%wtcol(p)
+          pptr%pdgvs%fpcgridold(p) = pptr%wtcol(p)
           wtcol_old(p) = pptr%wtcol(p)
-        end if
-      end do
+        end do
+      end if
     else
       do p = begp,endp
         wtcol_old(p) = pptr%wtcol(p)

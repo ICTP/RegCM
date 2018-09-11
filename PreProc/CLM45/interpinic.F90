@@ -483,14 +483,10 @@ program interpinic
   call pft_interpolate('pft_ntrunc')
   call pft_interpolate('btran2')
 
-  call pft_interpolate('CROWNAREA')
   call pft_interpolate('annsum_litfall')
   call pft_interpolate('TMOMIN20')
   call pft_interpolate('AGDD20')
   call pft_interpolate('T_MO_MIN')
-  call pft_interpolate('leafcmax')
-  call pft_interpolate('heatstress')
-  call pft_interpolate('greffic')
 
   call pft_interpolate('T_VEG240_VALUE')
   call pft_interpolate('FSD240_VALUE')
