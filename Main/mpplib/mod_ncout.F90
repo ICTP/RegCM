@@ -2261,8 +2261,9 @@ module mod_ncout
         end if
         if ( enable_opt3d_vars(opt_aext8) ) then
           call setup_var(v3dvar_opt,opt_aext8,vsize,'aext8','(m^-1)', &
-            'Aerosol optical depth', &
-            'atmosphere_optical_thickness_due_to_aerosol',.true.)
+            'Aerosol extinction coefficient', &
+      'volume_extinction_coefficient_in_air_due_to_ambient_aerosol_particles', &
+            .true.)
           opt_aext8_out => v3dvar_opt(opt_aext8)%rval
         end if
         if ( enable_opt3d_vars(opt_assa8) ) then
