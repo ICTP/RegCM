@@ -156,15 +156,19 @@ module mod_rad_outrad
     if ( ifrad .and. associated(rad_higcl_out) .and. &
                      associated(rad_midcl_out) .and. &
                      associated(rad_lowcl_out) ) then
+      n = 1
       kh1 = 2
       kl2 = kzp1
-      n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           hif = d_one
           mif = d_one
           lof = d_one
-          do k = 2 , kz-1
+          kh2 = 2
+          km1 = 2
+          km2 = 2
+          kl1 = 2
+          do k = 2 , kzm1
             if ( m2r%phatms(j,i,k) <= 44000.0_rkx ) then
               kh2 = k
               km1 = k+1
