@@ -294,7 +294,7 @@ module mod_clm_cndvestablishment
       if ( present(p) ) then
         if ( iswood(p) ) then
           fpc_tree_total(g) = fpc_tree_total(g) + fpcgrid(p)
-          if (estab(p)) npft_estab(g) = npft_estab(g) + 1
+          if ( estab(p) ) npft_estab(g) = npft_estab(g) + 1
         else
           if ( ivt(p) > noveg ) then !grass
             ngrass(g) = ngrass(g) + 1
@@ -334,7 +334,7 @@ module mod_clm_cndvestablishment
         !is assigned a leafcmax above
 
         lm_ind = leafcmax(p) * fpcgrid(p) / nind(p) ! nind>0 for sure
-        if (fpcgrid(p) > 0.0_rk8 .and. nind(p) > 0.0_rk8) then
+        if ( fpcgrid(p) > 0.0_rk8 .and. nind(p) > 0.0_rk8 ) then
           !#ind/m2 nat veg area -> #ind/m2 pft area
           stocking = nind(p)/fpcgrid(p)
           ! stemdiam derived here from cn's formula for htop found in
@@ -420,8 +420,8 @@ module mod_clm_cndvestablishment
     do p = lbp, ubp
       g = pgridcell(p)
 
-      if (fpc_total(g) > 1.0_rk8) then
-        if (ivt(p) >= nc3_arctic_grass .and. fpcgrid(p) > 0.0_rk8) then
+      if ( fpc_total(g) > 1.0_rk8 ) then
+        if ( ivt(p) >= nc3_arctic_grass .and. fpcgrid(p) > 0.0_rk8 ) then
           fpcgridtemp = fpcgrid(p)
           fpcgrid(p) = max(0.0_rk8, fpcgrid(p) - (fpc_total(g)-1.0_rk8))
           fpc_total(g) = fpc_total(g) - fpcgridtemp + fpcgrid(p)
@@ -430,7 +430,7 @@ module mod_clm_cndvestablishment
 
       ! Remove tiny fpcgrid amounts
 
-      if (fpcgrid(p) < 1.e-15_rk8) then
+      if ( fpcgrid(p) < 1.e-15_rk8 ) then
         fpc_total(g) = fpc_total(g) - fpcgrid(p)
         fpcgrid(p) = 0.0_rk8
         present(p) = .false.
@@ -467,7 +467,7 @@ module mod_clm_cndvestablishment
 
       if ( iswood(p) .and. nind(p) > 0.0_rk8 .and. &
            leafcmax(p) > 0.0_rk8 .and. fpcgrid(p) > 0.0_rk8 ) then
-        if (twmax(ivt(p)) < 999.0_rk8) then
+        if ( twmax(ivt(p)) < 999.0_rk8 ) then
           heatstress(p) = max(0.0_rk8, min(1.0_rk8, agddtw(p) / ramp_agddtw))
         else
           heatstress(p) = 0.0_rk8
@@ -506,7 +506,7 @@ module mod_clm_cndvestablishment
 
     fn = 0
     do g = lbg, ubg
-      if (abs(fpc_total(g) - 1.0_rk8) > 1.e-6_rk8) then
+      if ( abs(fpc_total(g) - 1.0_rk8) > 1.e-6_rk8 ) then
         fn = fn + 1
         filterg(fn) = g
       end if

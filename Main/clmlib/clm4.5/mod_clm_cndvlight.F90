@@ -54,11 +54,11 @@ module mod_clm_cndvlight
     real(rk8), pointer :: fpcgrid(:)
     real(rk8), pointer :: nind(:) ! number of individuals
 
-    real(rk8), parameter :: fpc_tree_max = 0.95_rk8 !maximum total tree FPC
     integer(ik4)  :: p,fp, g   ! indices
     real(rk8) :: fpc_tree_total(lbg:ubg)
     real(rk8) :: fpc_inc_tree(lbg:ubg)
     real(rk8) :: fpc_inc(lbp:ubp) ! foliar projective cover increment (fraction)
+    logical :: iswood(lbp:ubp) ! wood tree class
     real(rk8) :: fpc_grass_total(lbg:ubg)
     real(rk8) :: fpc_shrub_total(lbg:ubg)
     real(rk8) :: fpc_grass_max(lbg:ubg)
@@ -73,6 +73,8 @@ module mod_clm_cndvlight
     real(rk8) :: stemdiam         ! stem diameter
     real(rk8) :: stocking         ! #stems / ha (stocking density)
     real(rk8) :: taper  ! ratio of height:radius_breast_height (tree allometry)
+
+    real(rk8), parameter :: fpc_tree_max = 0.95_rk8 !maximum total tree FPC
 
     ! Assign local pointers to derived type scalar members
 
@@ -92,16 +94,20 @@ module mod_clm_cndvlight
     woody         => pftcon%woody
     tree          => pftcon%tree
 
-    taper = 200._rk8 ! make a global constant; used in Establishment + ?
+    taper = 200.0_rk8 ! make a global constant; used in Establishment + ?
 
     ! Initialize gridcell-level metrics
 
     do g = lbg, ubg
-      fpc_tree_total(g) = 0._rk8
-      fpc_inc_tree(g) = 0._rk8
-      fpc_grass_total(g) = 0._rk8
-      fpc_shrub_total(g) = 0._rk8
+      fpc_tree_total(g) = 0.0_rk8
+      fpc_inc_tree(g) = 0.0_rk8
+      fpc_grass_total(g) = 0.0_rk8
+      fpc_shrub_total(g) = 0.0_rk8
       numtrees(g) = 0
+    end do
+
+    do p = lbp , ubp
+      iswood(p) = abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0)
     end do
 
     do fp = 1 , num_natvegp
@@ -110,26 +116,26 @@ module mod_clm_cndvlight
 
       ! Update LAI and FPC as in the last lines of DGVMAllocation
 
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
-        if (fpcgrid(p) > 0._rk8 .and. nind(p) > 0._rk8) then
+      if ( iswood(p) ) then
+        if (fpcgrid(p) > 0.0_rk8 .and. nind(p) > 0.0_rk8) then
           !#ind/m2 nat veg area -> #ind/m2 pft area
           stocking = nind(p)/fpcgrid(p)
           ! stemdiam derived here from cn's formula for htop found in
           ! CNVegStructUpdate and cn's assumption stemdiam=2*htop/taper
           ! this derivation neglects upper htop limit enforced elsewhere
-          stemdiam = (24._rk8 * deadstemc(p) / &
-                  (mathpi * stocking * dwood(ivt(p)) * taper))**(1._rk8/3._rk8)
+          stemdiam = (24.0_rk8 * deadstemc(p) / &
+                (mathpi * stocking * dwood(ivt(p)) * taper))**(1.0_rk8/3.0_rk8)
         else
-          stemdiam = 0._rk8
+          stemdiam = 0.0_rk8
         end if
         crownarea(p) = min(crownarea_max(ivt(p)), allom1(ivt(p)) * &
                 stemdiam**reinickerp(ivt(p))) ! Eqn D (from Establishment)
 !     else ! crownarea is 1 and does not need updating
       end if
 
-      if ( crownarea(p) > 0._rk8 .and. nind(p) > 0._rk8 ) then
+      if ( crownarea(p) > 0.0_rk8 .and. nind(p) > 0.0_rk8 ) then
         lm_ind  = leafcmax(p) * fpcgrid(p) / nind(p)
-        if ( dsladlai(ivt(p)) > 0._rk8 ) then
+        if ( dsladlai(ivt(p)) > 0.0_rk8 ) then
           lai_ind = max(0.001_rk8,((exp(lm_ind*dsladlai(ivt(p)) + &
                   log(slatop(ivt(p)))) - &
                   slatop(ivt(p)))/dsladlai(ivt(p))) / crownarea(p))
@@ -137,15 +143,15 @@ module mod_clm_cndvlight
           lai_ind = lm_ind * slatop(ivt(p)) / crownarea(p)
         end if
       else
-        lai_ind = 0._rk8
+        lai_ind = 0.0_rk8
       end if
 
-      fpc_ind = 1._rk8 - exp(-0.5_rk8*lai_ind)
+      fpc_ind = 1.0_rk8 - exp(-0.5_rk8*lai_ind)
       fpcgrid_old = fpcgrid(p)
       fpcgrid(p) = crownarea(p) * nind(p) * fpc_ind
-      fpc_inc(p) = max(0._rk8, fpcgrid(p) - fpcgrid_old)
+      fpc_inc(p) = max(0.0_rk8, fpcgrid(p) - fpcgrid_old)
 
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( iswood(p) ) then
         if ( tree(ivt(p)) == 1 ) then
           numtrees(g) = numtrees(g) + 1
           fpc_tree_total(g) = fpc_tree_total(g) + fpcgrid(p)
@@ -159,8 +165,8 @@ module mod_clm_cndvlight
     end do
 
     do g = lbg, ubg
-      fpc_grass_max(g) = 1._rk8 - min(fpc_tree_total(g), fpc_tree_max)
-      fpc_shrub_max(g) = max(0._rk8, fpc_grass_max(g) - fpc_grass_total(g))
+      fpc_grass_max(g) = 1.0_rk8 - min(fpc_tree_total(g), fpc_tree_max)
+      fpc_shrub_max(g) = max(0.0_rk8, fpc_grass_max(g) - fpc_grass_total(g))
     end do
 
     ! The gridcell level metrics are now in place; continue...
@@ -176,10 +182,9 @@ module mod_clm_cndvlight
 
       ! light competition
 
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) .and. &
-           tree(ivt(p)) == 1 ) then
+      if ( iswood(p) .and. tree(ivt(p)) == 1 ) then
         if ( fpc_tree_total(g) > fpc_tree_max ) then
-          if ( fpc_inc_tree(g) > 0._rk8 ) then
+          if ( fpc_inc_tree(g) > 0.0_rk8 ) then
             excess = (fpc_tree_total(g) - fpc_tree_max) * &
                      fpc_inc(p) / fpc_inc_tree(g)
           else
@@ -190,39 +195,38 @@ module mod_clm_cndvlight
           ! Reduce individual density (and thereby gridcell-level biomass)
           ! so that total tree FPC reduced to 'fpc_tree_max'
 
-          if ( fpcgrid(p) > 0._rk8 ) then
+          if ( fpcgrid(p) > 0.0_rk8 ) then
             nind_kill = nind(p) * excess / fpcgrid(p)
-            nind(p) = max(0._rk8, nind(p) - nind_kill)
-            fpcgrid(p) = max(0._rk8, fpcgrid(p) - excess)
+            nind(p) = max(0.0_rk8, nind(p) - nind_kill)
+            fpcgrid(p) = max(0.0_rk8, fpcgrid(p) - excess)
           else
-            nind(p) = 0._rk8
-            fpcgrid(p) = 0._rk8
+            nind(p) = 0.0_rk8
+            fpcgrid(p) = 0.0_rk8
           end if
 
           ! Transfer lost biomass to litter
 
         end if ! if tree cover exceeds max allowed
-      else if ( woody(ivt(p)) < 0.5_rk8 ) then ! grass
+      else if ( .not. iswood(p) ) then ! grass
         if ( fpc_grass_total(g) > fpc_grass_max(g) ) then
           ! grass competes with itself if total fpc exceeds 1
           excess = (fpc_grass_total(g) - fpc_grass_max(g)) * &
                   fpcgrid(p) / fpc_grass_total(g)
-          fpcgrid(p) = max(0._rk8, fpcgrid(p) - excess)
+          fpcgrid(p) = max(0.0_rk8, fpcgrid(p) - excess)
         end if
-      else if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) .and. &
-                tree(ivt(p)) < 1 ) then
+      else if ( iswood(p) .and. tree(ivt(p)) < 1 ) then
         ! shrub
         if ( fpc_shrub_total(g) > fpc_shrub_max(g) ) then
-          excess = 1._rk8 - fpc_shrub_max(g) / fpc_shrub_total(g)
+          excess = 1.0_rk8 - fpc_shrub_max(g) / fpc_shrub_total(g)
           ! Reduce individual density (and thereby gridcell-level biomass)
           ! so that total shrub FPC reduced to fpc_shrub_max(g)
-          if ( fpcgrid(p) > 0._rk8 ) then
+          if ( fpcgrid(p) > 0.0_rk8 ) then
             nind_kill = nind(p) * excess / fpcgrid(p)
-            nind(p) = max(0._rk8, nind(p) - nind_kill)
-            fpcgrid(p) = max(0._rk8, fpcgrid(p) - excess)
+            nind(p) = max(0.0_rk8, nind(p) - nind_kill)
+            fpcgrid(p) = max(0.0_rk8, fpcgrid(p) - excess)
           else
-            nind(p) = 0._rk8
-            fpcgrid(p) = 0._rk8
+            nind(p) = 0.0_rk8
+            fpcgrid(p) = 0.0_rk8
           end if
         end if
       end if   ! end of if-tree
