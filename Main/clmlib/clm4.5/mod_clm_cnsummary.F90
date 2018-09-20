@@ -786,8 +786,10 @@ module mod_clm_cnsummary
       npp(p) = gpp(p) - ar(p)
 
       ! update the annual NPP accumulator, for use in allocation code
-      if (isotope == 'bulk') then
+      if ( isotope == 'bulk' ) then
         tempsum_npp(p) = tempsum_npp(p) + npp(p)
+      else
+        tempsum_npp(p) = 0.0_rk8
       end if
 
       ! aboveground NPP: leaf, live stem, dead stem (AGNPP)

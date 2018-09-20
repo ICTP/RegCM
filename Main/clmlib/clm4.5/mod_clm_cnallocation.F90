@@ -382,6 +382,7 @@ module mod_clm_cnallocation
     real(rk8):: residual_smin_no3(lbc:ubc)
 #endif
     real(rk8):: residual_plant_ndemand(lbc:ubc)
+    logical :: iswood(lbp:ubp)
 
     ! Assign local pointers to derived type arrays (in)
     ivt                         => clm3%g%l%c%p%itype
@@ -543,6 +544,10 @@ module mod_clm_cnallocation
     ! set time steps
     dt = dtsrf
 
+    do p = lbp , ubp
+      iswood(p) = abs(woody(ivt(p))-1._rk8) < epsilon(1.0)
+    end do
+
     ! loop over pfts to assess the total plant N demand
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
@@ -579,7 +584,7 @@ module mod_clm_cnallocation
       ! These fluxes should already be in gC/m2/s
 
       mr = leaf_mr(p) + froot_mr(p)
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( iswood(p) ) then
         mr = mr + livestem_mr(p) + livecroot_mr(p)
       else if ( ivt(p) >= npcropmin ) then
         if ( croplive(p) ) mr = mr + livestem_mr(p) + grain_mr(p)
@@ -789,7 +794,7 @@ module mod_clm_cnallocation
 
       ! based on available C, use constant allometric relationships to
       ! determine N requirements
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( iswood(p) ) then
         c_allometry(p) = (1._rk8+g1)*(1._rk8+f1+f3*(1._rk8+f2))
         n_allometry(p) = 1._rk8/cnl + f1/cnfr + (f3*f4*(1._rk8+f2))/cnlw + &
                        (f3*(1._rk8-f4)*(1._rk8+f2))/cndw
@@ -1389,7 +1394,8 @@ module mod_clm_cnallocation
       !  The value is also used as a trigger here:
       !         -1.0 means to use the dynamic allocation (trees).
       if ( stem_leaf(ivt(p)) == -1._rk8 ) then
-        f3 = (2.7_rk8/(1.0_rk8+exp(-0.004_rk8*(annsum_npp(p) - 300.0_rk8)))) - 0.4_rk8
+        f3 = (2.7_rk8/(1.0_rk8 + &
+          exp(-0.004_rk8*(annsum_npp(p) - 300.0_rk8)))) - 0.4_rk8
       else
         f3 = stem_leaf(ivt(p))
       end if
@@ -1473,7 +1479,7 @@ module mod_clm_cnallocation
       cpool_to_leafc_storage(p) = nlc * (1._rk8 - fcur)
       cpool_to_frootc(p) = nlc * f1 * fcur
       cpool_to_frootc_storage(p) = nlc * f1 * (1._rk8 - fcur)
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( iswood(p) ) then
         cpool_to_livestemc(p) = nlc * f3 * f4 * fcur
         cpool_to_livestemc_storage(p) = nlc * f3 * f4 * (1._rk8 - fcur)
         cpool_to_deadstemc(p) = nlc * f3 * (1._rk8 - f4) * fcur
@@ -1503,7 +1509,7 @@ module mod_clm_cnallocation
       npool_to_leafn_storage(p) = (nlc / cnl) * (1._rk8 - fcur)
       npool_to_frootn(p) = (nlc * f1 / cnfr) * fcur
       npool_to_frootn_storage(p) = (nlc * f1 / cnfr) * (1._rk8 - fcur)
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( iswood(p) ) then
         npool_to_livestemn(p) = (nlc * f3 * f4 / cnlw) * fcur
         npool_to_livestemn_storage(p)  = (nlc * f3 * f4 / cnlw) * (1._rk8 - fcur)
         npool_to_deadstemn(p) = (nlc * f3 * (1._rk8 - f4) / cndw) * fcur
@@ -1543,7 +1549,7 @@ module mod_clm_cnallocation
       ! display of transferred growth is assigned here.
 
       gresp_storage = cpool_to_leafc_storage(p) + cpool_to_frootc_storage(p)
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+      if ( iswood(p) ) then
         gresp_storage = gresp_storage + cpool_to_livestemc_storage(p)
         gresp_storage = gresp_storage + cpool_to_deadstemc_storage(p)
         gresp_storage = gresp_storage + cpool_to_livecrootc_storage(p)

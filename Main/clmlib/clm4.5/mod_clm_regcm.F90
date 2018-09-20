@@ -15,6 +15,7 @@ module mod_clm_regcm
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
+  use mod_clm_varctl , only : ndep_nochem
   use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
@@ -408,6 +409,7 @@ module mod_clm_regcm
        clm_a2l%forc_aer(:,14) = clm_a2l%notused
       end if
       if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
+        ndep_nochem = .false.
         temps(:,:) = (lm%drydepflx(jci1:jci2,ici1:ici2,ino) + &
                       lm%wetdepflx(jci1:jci2,ici1:ici2,ino)) * syncro_srf%rw
         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)

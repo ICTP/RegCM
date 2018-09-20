@@ -200,7 +200,7 @@ module mod_clm_cndvestablishment
 
       ! Set the presence of pft for this gridcell
 
-      if (nind(p) == 0.0_rk8) present(p) = .false.
+      if ( nind(p) < 1.0e-10_rk8 ) present(p) = .false.
       if (.not. present(p)) then
         nind(p) = 0.0_rk8
         fpcgrid(p) = 0.0_rk8
@@ -209,6 +209,11 @@ module mod_clm_cndvestablishment
       estab(p)   = .false.
       dstemc(p)  = deadstemc(p)
       iswood(p)  = abs(woody(ivt(p))-1.0_rk8) < epsilon(1.0)
+      if ( fpcgrid(p) < 1.0e-10_rk8 ) then
+        nind(p) = 0.0_rk8
+        fpcgrid(p) = 0.0_rk8
+        present(p) = .false.
+      end if
     end do
 
     ! Must go thru all 16 pfts and decide which can/cannot establish or survive
@@ -274,7 +279,6 @@ module mod_clm_cndvestablishment
             ! outlined in the paragraph above
             leafcmax(p) = 1.0_rk8
             if ( dstemc(p) <= 0.0_rk8 ) dstemc(p) = 0.1_rk8
-
           end if   ! conditions required for establishment
         end if   ! conditions required for establishment
       end if   ! if soil
@@ -366,6 +370,7 @@ module mod_clm_cndvestablishment
         end if
         fpc_ind = 1.0_rk8 - exp(-0.5_rk8*lai_ind)
         fpcgrid(p) = crownarea(p) * nind(p) * fpc_ind
+
       end if   ! add new saplings block
 
       if ( present(p) .and. iswood(p) ) then

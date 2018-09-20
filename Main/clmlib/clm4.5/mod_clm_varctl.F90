@@ -22,6 +22,7 @@ module mod_clm_varctl
 
   logical , public , parameter :: atm_regcm = .true.
   type(rcm_time_and_date) , public :: nextdate
+  logical , public :: ndep_nochem = .true.
 
   integer(ik4) , parameter , private :: iundef = -9999999
   !
