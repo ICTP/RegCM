@@ -293,6 +293,7 @@ module mod_ocn_zeng
         ! time step considered for the integration of prognostic skin
         ! temperature , equal to BATS time step
         ! Init local variables
+        sst(i) = tgb(i)
         delta = deltas(i)
         tdelta = tdeltas(i)
         ! td is now the 3m bulk SST from the forcing variable

@@ -72,7 +72,7 @@ module mod_clm_regcm
     allocate(adomain%rmoist(begg:endg,num_soil_layers))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
-    call glb_c2l_gs(lndcomm,lm%tground2,adomain%tgrd)
+    call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
@@ -114,8 +114,8 @@ module mod_clm_regcm
       lms%swalb = (lms%swdiralb + lms%swdifalb)
       lms%lwalb = (lms%lwdiralb + lms%lwdifalb)
       do n = 1 , nnsg
-        lms%tgbrd(n,:,:) = lm%tground2(:,:)
-        lms%tgbb(n,:,:) = lm%tground2(:,:)
+        lms%tgbrd(n,:,:) = lm%tg(:,:)
+        lms%tgbb(n,:,:) = lm%tg(:,:)
       end do
     end if
   end subroutine initclm45

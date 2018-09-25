@@ -229,7 +229,7 @@ module mod_bdycod
 
   subroutine init_bdy
     implicit none
-    integer(ik4) :: datefound , i , j , k
+    integer(ik4) :: datefound , i , j , k , n
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
     type (rcm_time_interval) :: tdif
@@ -264,7 +264,7 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(nhbh0%ps,ts0,mddom%ldmsk,xub%b0,xvb%b0, &
+      call read_icbc(nhbh0%ps,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0, &
                      xtb%b0,xqb%b0,xppb%b0,xwwb%b0)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
@@ -281,7 +281,7 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b0,ts0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -350,7 +350,7 @@ module mod_bdycod
     end if
 
     if ( idynamic == 2 ) then
-      call read_icbc(nhbh1%ps,ts1,mddom%ldmsk,xub%b1,xvb%b1, &
+      call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
                      xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
@@ -367,7 +367,7 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,ts1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
@@ -416,6 +416,50 @@ module mod_bdycod
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
+
+    if ( rcmtimer%integrating( ) ) then
+      if ( islab_ocean == 0 ) then
+        if ( iseaice == 1 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ! Update temperatures over water
+              if ( mddom%ldmsk(j,i) == 0 ) then
+                if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+                  if ( cplmsk(j,i) /= 0 ) cycle
+                end if
+              end if
+              ! Sea ice correction
+              if ( islake(mddom%lndcat(j,i)) ) cycle
+              if ( iocncpl == 1 ) then
+                if ( cplmsk(j,i) /= 0 ) cycle
+              end if
+              if ( xtsb%b0(j,i) <= icetriggert ) then
+                xtsb%b0 = icetriggert
+              end if
+              if ( xtsb%b1(j,i) <= icetriggert .and. &
+                   mddom%ldmsk(j,i) == 0 ) then
+                xtsb%b1(j,i) = icetriggert
+                mddom%ldmsk(j,i) = 2
+                do n = 1 , nnsg
+                  if ( mdsub%ldmsk(n,j,i) == 0 ) then
+                    mdsub%ldmsk(n,j,i) = 2
+                    lms%sfice(n,j,i) = 1.00_rkx
+                  end if
+                end do
+              else if ( xtsb%b1(j,i) > icetriggert .and. &
+                        mddom%ldmsk(j,i) == 2 ) then
+                ! Decrease the surface ice to melt it
+                do n = 1 , nnsg
+                  if ( mdsub%ldmsk(n,j,i) == 2 ) then
+                    lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
+                  end if
+                end do
+              end if
+            end do
+          end do
+        end if
+      end if
+    end if
     !
     ! Calculate time varying component
     !
@@ -423,6 +467,7 @@ module mod_bdycod
     call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
     call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
     call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
+    call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
     call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
@@ -465,7 +510,7 @@ module mod_bdycod
     xvb%b0(:,:,:) = xvb%b1(:,:,:)
     xtb%b0(:,:,:) = xtb%b1(:,:,:)
     xqb%b0(:,:,:) = xqb%b1(:,:,:)
-    ts0(:,:) = ts1(:,:)
+    xtsb%b0(:,:) = xtsb%b1(:,:)
     if ( idynamic == 2 ) then
       xppb%b0(:,:,:) = xppb%b1(:,:,:)
       xwwb%b0(:,:,:) = xwwb%b1(:,:,:)
@@ -496,7 +541,7 @@ module mod_bdycod
       end if
     end if
     if ( idynamic == 2 ) then
-      call read_icbc(nhbh1%ps,ts1,mddom%ldmsk,xub%b1,xvb%b1, &
+      call read_icbc(nhbh1%ps,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1, &
                      xtb%b1,xqb%b1,xppb%b1,xwwb%b1)
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
@@ -513,7 +558,7 @@ module mod_bdycod
         end do
       end if
     else
-      call read_icbc(xpsb%b1,ts1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
     end if
 
     if ( update_slabocn ) then
@@ -573,35 +618,23 @@ module mod_bdycod
     ! Update ground temperature on Ocean/Lakes
     !
     if ( islab_ocean == 0 ) then
-      if ( idcsst == 1 ) then
+      if ( iseaice == 1 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
-            do n = 1 , nnsg
-              lms%sst(n,j,i) = ts1(j,i)
-            end do
-          end do
-        end do
-      end if
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! Update temperatures over water
-          if ( mddom%ldmsk(j,i) == 0 ) then
-            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-              if ( cplmsk(j,i) /= 0 ) cycle
+            ! Update temperatures over water
+            if ( mddom%ldmsk(j,i) == 0 ) then
+              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+                if ( cplmsk(j,i) /= 0 ) cycle
+              end if
             end if
-            sfs%tga(j,i) = ts1(j,i)
-            sfs%tgb(j,i) = ts1(j,i)
-          end if
-          ! Sea ice correction
-          if ( iseaice == 1 ) then
+            ! Sea ice correction
             if ( islake(mddom%lndcat(j,i)) ) cycle
             if ( iocncpl == 1 ) then
               if ( cplmsk(j,i) /= 0 ) cycle
             end if
-            if ( ts1(j,i) <= icetriggert .and. mddom%ldmsk(j,i) == 0 ) then
-              sfs%tga(j,i) = icetriggert
-              sfs%tgb(j,i) = icetriggert
-              ts1(j,i) = icetriggert
+            if ( xtsb%b1(j,i) <= icetriggert .and. &
+                 mddom%ldmsk(j,i) == 0 ) then
+              xtsb%b1(j,i) = icetriggert
               mddom%ldmsk(j,i) = 2
               do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
@@ -609,20 +642,20 @@ module mod_bdycod
                   lms%sfice(n,j,i) = 1.00_rkx
                 end if
               end do
-            else if ( ts1(j,i) > icetriggert .and. mddom%ldmsk(j,i) == 2 ) then
+            else if ( xtsb%b1(j,i) > icetriggert .and. &
+                      mddom%ldmsk(j,i) == 2 ) then
               ! Decrease the surface ice to melt it
-              sfs%tga(j,i) = ts1(j,i)
-              sfs%tgb(j,i) = ts1(j,i)
               do n = 1 , nnsg
                 if ( mdsub%ldmsk(n,j,i) == 2 ) then
                   lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                 end if
               end do
             end if
-          end if
+          end do
         end do
-      end do
+      end if
     end if
+    call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
 
     if ( myid == italk ) then
       write (stdout,*) 'READY  BC from     ' , &
@@ -1369,6 +1402,17 @@ module mod_bdycod
         end if
       end if
     end if
+
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%ldmsk(j,i) == 0 ) then
+          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+            if ( cplmsk(j,i) /= 0 ) cycle
+          end if
+          sfs%tg(j,i) = xtsb%b0(j,i) + xt*xtsb%bt(j,i)
+        end if
+      end do
+    end do
 
     if ( iboudy == 3 .or. iboudy == 4 ) then
       !

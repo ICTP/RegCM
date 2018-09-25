@@ -90,12 +90,19 @@ module mod_savefile
 
   real(rkx) , public , pointer , dimension(:,:) :: psa_io
   real(rkx) , public , pointer , dimension(:,:) :: psb_io
-  real(rkx) , public , pointer , dimension(:,:) :: tga_io
-  real(rkx) , public , pointer , dimension(:,:) :: tgb_io
   real(rkx) , public , pointer , dimension(:,:) :: hfx_io
   real(rkx) , public , pointer , dimension(:,:) :: qfx_io
   real(rkx) , public , pointer , dimension(:,:) :: tgbb_io
   real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io
+  real(rkx) , public , pointer , dimension(:,:) :: q2m_io
+  real(rkx) , public , pointer , dimension(:,:) :: u10m_io
+  real(rkx) , public , pointer , dimension(:,:) :: v10m_io
+  real(rkx) , public , pointer , dimension(:,:) :: w10m_io
+  real(rkx) , public , pointer , dimension(:,:) :: br_io
+  real(rkx) , public , pointer , dimension(:,:) :: ram_io
+  real(rkx) , public , pointer , dimension(:,:) :: rah_io
+  real(rkx) , public , pointer , dimension(:,:) :: ustar_io
+  real(rkx) , public , pointer , dimension(:,:) :: zo_io
 
   real(rkx) , public , pointer , dimension(:,:,:) :: ldew_io
   real(rkx) , public , pointer , dimension(:,:,:) :: snag_io
@@ -108,7 +115,6 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io
   real(rkx) , public , pointer , dimension(:,:,:) :: tlef_io
   real(rkx) , public , pointer , dimension(:,:,:) :: emisv_io
-  real(rkx) , public , pointer , dimension(:,:,:) :: scvk_io
   real(rkx) , public , pointer , dimension(:,:,:) :: um10_io
   real(rkx) , public , pointer , dimension(:,:,:) :: eta_io
   real(rkx) , public , pointer , dimension(:,:,:) :: hi_io
@@ -161,6 +167,8 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: lndcat_io
 #endif
 
+  real(rkx) , public , pointer , dimension(:,:) :: albvs_io
+  real(rkx) , public , pointer , dimension(:,:) :: albvl_io
   real(rkx) , public , pointer , dimension(:,:,:) :: swdiralb_io
   real(rkx) , public , pointer , dimension(:,:,:) :: swdifalb_io
   real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io
@@ -213,12 +221,19 @@ module mod_savefile
       end if
       call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
       call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
-      call getmem2d(tga_io,jcross1,jcross2,icross1,icross2,'tga_io')
-      call getmem2d(tgb_io,jcross1,jcross2,icross1,icross2,'tgb_io')
       call getmem2d(hfx_io,jcross1,jcross2,icross1,icross2,'hfx_io')
       call getmem2d(qfx_io,jcross1,jcross2,icross1,icross2,'qfx_io')
       call getmem2d(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
       call getmem2d(uvdrag_io,jcross1,jcross2,icross1,icross2,'uvdrag_io')
+      call getmem2d(q2m_io,jcross1,jcross2,icross1,icross2,'q2m_io')
+      call getmem2d(u10m_io,jcross1,jcross2,icross1,icross2,'u10m_io')
+      call getmem2d(v10m_io,jcross1,jcross2,icross1,icross2,'v10m_io')
+      call getmem2d(w10m_io,jcross1,jcross2,icross1,icross2,'w10m_io')
+      call getmem2d(br_io,jcross1,jcross2,icross1,icross2,'br_io')
+      call getmem2d(ram_io,jcross1,jcross2,icross1,icross2,'ram_io')
+      call getmem2d(rah_io,jcross1,jcross2,icross1,icross2,'rah_io')
+      call getmem2d(ustar_io,jcross1,jcross2,icross1,icross2,'ustar_io')
+      call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
 
       call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
       call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
@@ -232,7 +247,6 @@ module mod_savefile
       call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
       call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
       call getmem3d(emisv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emisv_io')
-      call getmem3d(scvk_io,1,nnsg,jcross1,jcross2,icross1,icross2,'scvk_io')
       call getmem3d(um10_io,1,nnsg,jcross1,jcross2,icross1,icross2,'um10_io')
       call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
       call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
@@ -323,6 +337,8 @@ module mod_savefile
                               icross1,icross2,1,ndpmax,'tlak_io')
       end if
 #endif
+      call getmem2d(albvs_io,jcross1,jcross2,icross1,icross2,'albvs')
+      call getmem2d(albvl_io,jcross1,jcross2,icross1,icross2,'albvl')
       call getmem3d(swdiralb_io,1,nnsg,jcross1,jcross2, &
                                        icross1,icross2,'swdiralb')
       call getmem3d(swdifalb_io,1,nnsg,jcross1,jcross2, &
@@ -434,10 +450,6 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read psa')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'psb'),psb_io)
       call check_ok(__FILE__,__LINE__,'Cannot read psb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tga'),tga_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tga')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgb'),tgb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tgb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'hfx'),hfx_io)
       call check_ok(__FILE__,__LINE__,'Cannot read hfx')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'qfx'),qfx_io)
@@ -446,6 +458,24 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read tgbb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'uvdrag'),uvdrag_io)
       call check_ok(__FILE__,__LINE__,'Cannot read uvdrag')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'q2m'),q2m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read q2m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'u10m'),u10m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read u10m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'v10m'),v10m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read v10m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'w10m'),w10m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read w10m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'br'),br_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read br')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ram'),ram_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ram')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rah'),rah_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read rah')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ustar'),ustar_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ustar')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'zo'),zo_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read zo')
       if ( any(icup == 3) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cldefi'),cldefi_io)
         call check_ok(__FILE__,__LINE__,'Cannot read cldefi')
@@ -509,20 +539,18 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read sncv')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'gwet'),gwet_io)
       call check_ok(__FILE__,__LINE__,'Cannot read gwet')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ldew')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'snag'),snag_io)
       call check_ok(__FILE__,__LINE__,'Cannot read snag')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfice'),sfice_io)
       call check_ok(__FILE__,__LINE__,'Cannot read sfice')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ldew')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk1'),ldmsk1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read ldmsk1')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'taf'),taf_io)
       call check_ok(__FILE__,__LINE__,'Cannot read taf')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emisv_io)
       call check_ok(__FILE__,__LINE__,'Cannot read emiss')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'scvk'),scvk_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read scvk')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'um10'),um10_io)
       call check_ok(__FILE__,__LINE__,'Cannot read um10')
 #ifndef CLM
@@ -604,6 +632,10 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot read lndcat')
       end if
 #endif
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'albvs'),albvs_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read albvs')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'albvl'),albvl_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read albvl')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdiralb'),swdiralb_io)
       call check_ok(__FILE__,__LINE__,'Cannot read swdiralb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdifalb'),swdifalb_io)
@@ -731,12 +763,19 @@ module mod_savefile
       end if
       call mydefvar(ncid,'psa',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'psb',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'tga',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'tgb',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'hfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'qfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'uvdrag',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'q2m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'u10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'v10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'w10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'br',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'ram',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'rah',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'ustar',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'zo',regcm_vartype,wrkdim,1,2,varids,ivcc)
       wrkdim(3) = dimids(idkh)
       if ( any(icup == 3) ) then
         call mydefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
@@ -776,13 +815,12 @@ module mod_savefile
       call mydefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'scvk',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'um10',regcm_vartype,wrkdim,1,3,varids,ivcc)
       if ( idcsst == 1 ) then
         call mydefvar(ncid,'sst',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -862,6 +900,8 @@ module mod_savefile
         call mydefvar(ncid,'lndcat',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
 #endif
+      call mydefvar(ncid,'albvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'albvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
       wrkdim(1) = dimids(idnnsg)
       wrkdim(2) = dimids(idjcross)
       wrkdim(3) = dimids(idicross)
@@ -922,12 +962,19 @@ module mod_savefile
       end if
       call myputvar(ncid,'psa',psa_io,varids,ivcc)
       call myputvar(ncid,'psb',psb_io,varids,ivcc)
-      call myputvar(ncid,'tga',tga_io,varids,ivcc)
-      call myputvar(ncid,'tgb',tgb_io,varids,ivcc)
       call myputvar(ncid,'hfx',hfx_io,varids,ivcc)
       call myputvar(ncid,'qfx',qfx_io,varids,ivcc)
       call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
       call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
+      call myputvar(ncid,'q2m',q2m_io,varids,ivcc)
+      call myputvar(ncid,'u10m',u10m_io,varids,ivcc)
+      call myputvar(ncid,'v10m',v10m_io,varids,ivcc)
+      call myputvar(ncid,'w10m',w10m_io,varids,ivcc)
+      call myputvar(ncid,'br',br_io,varids,ivcc)
+      call myputvar(ncid,'ram',ram_io,varids,ivcc)
+      call myputvar(ncid,'rah',rah_io,varids,ivcc)
+      call myputvar(ncid,'ustar',ustar_io,varids,ivcc)
+      call myputvar(ncid,'zo',zo_io,varids,ivcc)
       if ( any(icup == 3) ) then
         call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
       end if
@@ -957,13 +1004,12 @@ module mod_savefile
       call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
       call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
       call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
+      call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
       call myputvar(ncid,'snag',snag_io,varids,ivcc)
       call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
-      call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
       call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
       call myputvar(ncid,'taf',taf_io,varids,ivcc)
       call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
-      call myputvar(ncid,'scvk',scvk_io,varids,ivcc)
       call myputvar(ncid,'um10',um10_io,varids,ivcc)
       if ( idcsst == 1 ) then
         call myputvar(ncid,'sst',sst_io,varids,ivcc)
@@ -1019,6 +1065,8 @@ module mod_savefile
         call myputvar(ncid,'lndcat',lndcat_io,varids,ivcc)
       end if
 #endif
+      call myputvar(ncid,'albvs',albvs_io,varids,ivcc)
+      call myputvar(ncid,'albvl',albvl_io,varids,ivcc)
       call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
       call myputvar(ncid,'swdifalb',swdifalb_io,varids,ivcc)
       call myputvar(ncid,'lwdiralb',lwdiralb_io,varids,ivcc)

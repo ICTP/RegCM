@@ -129,12 +129,6 @@ module mod_init
       call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psb,sfs%psdotb)
       call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sfs%tga(j,i) = ts0(j,i)
-          sfs%tgb(j,i) = ts0(j,i)
-        end do
-      end do
       if ( idynamic == 2 ) then
         do k = 1 , kz
           do i = ice1 , ice2
@@ -169,10 +163,8 @@ module mod_init
               if ( cplmsk(j,i) /= 0 ) cycle
             end if
             if ( isocean(mddom%lndcat(j,i)) ) then
-              if ( ts0(j,i) <= icetriggert ) then
-                sfs%tga(j,i) = icetriggert
-                sfs%tgb(j,i) = icetriggert
-                ts0(j,i) = icetriggert
+              if ( xtsb%b0(j,i) <= icetriggert ) then
+                xtsb%b0(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
                 do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
@@ -199,10 +191,8 @@ module mod_init
               if ( cplmsk(j,i) /= 0 ) cycle
             end if
             if ( islake(mddom%lndcat(j,i)) ) then
-              if ( ts0(j,i) <= icetriggert ) then
-                sfs%tga(j,i) = icetriggert
-                sfs%tgb(j,i) = icetriggert
-                ts0(j,i) = icetriggert
+              if ( xtsb%b0(j,i) <= icetriggert ) then
+                xtsb%b0(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
                 do n = 1, nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
@@ -218,6 +208,11 @@ module mod_init
         end do
       end if
 #endif
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          sfs%tg(j,i) = xtsb%b0(j,i)
+        end do
+      end do
       !
       ! Initialize PBL Hgt
       !
@@ -227,7 +222,7 @@ module mod_init
       !
       do i = ici1 , ici2
         do j = jci1 , jci2
-          sfs%tgbb(j,i) = atm2%t(j,i,kz)/sfs%psb(j,i)
+          sfs%tgbb(j,i) = sfs%tg(j,i)
         end do
       end do
       !
@@ -254,8 +249,12 @@ module mod_init
       ! Init the diurnal cycle SST scheme
       !
       if ( idcsst == 1 ) then
-        do n = 1 , nnsg
-          lms%sst(n,jci1:jci2,ici1:ici2) = ts0(jci1:jci2,ici1:ici2)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nnsg
+              lms%sst(n,j,i) = xtsb%b0(j,i)
+            end do
+          end do
         end do
         lms%tskin(:,:,:) = lms%sst
         lms%deltas(:,:,:) = 0.001_rkx
@@ -311,8 +310,6 @@ module mod_init
 
       call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
       call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
-      call grid_distribute(tga_io,sfs%tga,jci1,jci2,ici1,ici2)
-      call grid_distribute(tgb_io,sfs%tgb,jci1,jci2,ici1,ici2)
 
       if ( idynamic == 2 ) then
         do i = ice1 , ice2
@@ -325,7 +322,16 @@ module mod_init
       call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
       call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
       call grid_distribute(tgbb_io,sfs%tgbb,jci1,jci2,ici1,ici2)
+      call grid_distribute(zo_io,sfs%zo,jci1,jci2,ici1,ici2)
       call grid_distribute(uvdrag_io,sfs%uvdrag,jci1,jci2,ici1,ici2)
+      call grid_distribute(ram_io,sfs%ram1,jci1,jci2,ici1,ici2)
+      call grid_distribute(rah_io,sfs%rah1,jci1,jci2,ici1,ici2)
+      call grid_distribute(br_io,sfs%br,jci1,jci2,ici1,ici2)
+      call grid_distribute(q2m_io,sfs%q2m,jci1,jci2,ici1,ici2)
+      call grid_distribute(u10m_io,sfs%u10m,jci1,jci2,ici1,ici2)
+      call grid_distribute(v10m_io,sfs%v10m,jci1,jci2,ici1,ici2)
+      call grid_distribute(w10m_io,sfs%w10m,jci1,jci2,ici1,ici2)
+      call grid_distribute(ustar_io,sfs%ustar,jci1,jci2,ici1,ici2)
 
       call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psa,sfs%psdota)
@@ -380,7 +386,6 @@ module mod_init
       call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
       call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
       call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(scvk_io,lms%scvk,jci1,jci2,ici1,ici2)
       call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
       call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
@@ -388,6 +393,8 @@ module mod_init
       call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
+      call grid_distribute(albvs_io,albvs,jci1,jci2,ici1,ici2)
+      call grid_distribute(albvl_io,albvl,jci1,jci2,ici1,ici2)
       call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
       call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
       call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
@@ -405,6 +412,7 @@ module mod_init
       aldirl = sum(lms%lwdiralb,1)*rdnnsg
       aldifs = sum(lms%swdifalb,1)*rdnnsg
       aldifl = sum(lms%lwdifalb,1)*rdnnsg
+      sfs%tg = sum(lms%tgrd,1)*rdnnsg
 
 #ifndef CLM
       if ( lakemod == 1 ) then
@@ -478,61 +486,6 @@ module mod_init
       ! Init boundary
       !
       call init_bdy
-      !
-      ! Update ground temperature on Ocean/Lakes
-      !
-      if ( islab_ocean == 0 ) then
-        if ( idcsst == 1 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              do n = 1 , nnsg
-                lms%sst(n,j,i) = ts1(j,i)
-              end do
-            end do
-          end do
-        end if
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! Update temperatures over water
-            if ( mddom%ldmsk(j,i) == 0 ) then
-              if ( iocncpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
-              end if
-              sfs%tga(j,i) = ts1(j,i)
-              sfs%tgb(j,i) = ts1(j,i)
-            end if
-            ! Sea ice correction
-            if ( iseaice == 1 ) then
-              if ( islake(mddom%lndcat(j,i)) ) cycle
-              if ( iocncpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
-              end if
-              if ( ts1(j,i) <= icetriggert .and. mddom%ldmsk(j,i) == 0 ) then
-                sfs%tga(j,i) = icetriggert
-                sfs%tgb(j,i) = icetriggert
-                ts1(j,i) = icetriggert
-                mddom%ldmsk(j,i) = 2
-                do n = 1 , nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                    mdsub%ldmsk(n,j,i) = 2
-                    lms%sfice(n,j,i) = 0.50_rkx ! 10 cm
-                  end if
-                end do
-              else if ( ts1(j,i) > icetriggert .and. &
-                        mddom%ldmsk(j,i) == 2 ) then
-                ! Decrease the surface ice to melt it
-                sfs%tga(j,i) = ts1(j,i)
-                sfs%tgb(j,i) = ts1(j,i)
-                do n = 1 , nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 2 ) then
-                    lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
-                  end if
-                end do
-              end if
-            end if
-          end do
-        end do
-      end if
       !
       ! Report success
       !
@@ -655,10 +608,7 @@ module mod_init
     !
     ! Initialize the Surface Model
     !
-    call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
     call init_slice
-    call mkslice
     call initialize_surface_model
     call initialize_diffusion
     if ( idynamic == 2 ) then

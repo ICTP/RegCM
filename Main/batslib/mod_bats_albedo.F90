@@ -27,6 +27,7 @@ module mod_bats_albedo
   use mod_bats_param
   use mod_bats_internal
   use mod_bats_drag
+  use mod_bats_leaftemp
 
   implicit none
 
@@ -91,7 +92,6 @@ module mod_bats_albedo
     ! 1. set initial parameters
     ! =================================================================
     !
-    !
     ! Desert seasonal albedo
     ! Works for Sahara desert and generally northern emisphere
     ! In souther emisphere only some points have this class
@@ -118,11 +118,6 @@ module mod_bats_albedo
         solour(1) = 0.15_rkx
       endif
     end if
-    !
-    ! In depth, wt is frac of grid square covered by snow;
-    ! depends on average snow depth, vegetation, etc.
-    !
-    call depth
     !
     ! 1.2  set default vegetation and albedo
     !

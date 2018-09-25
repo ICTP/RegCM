@@ -748,7 +748,7 @@ module mod_tendency
               write(stderr,*) 'At J = ',j
               write(stderr,*) 'At I = ',i
               write(stderr,*) 'At K = ',k
-              write(stderr,*) 'Surface Temperature : ', sfs%tga(j,i)
+              write(stderr,*) 'Surface Temperature : ', sfs%tg(j,i)
               write(stderr,*) 'Vertical PTU profile: '
               do kk = 1 , kz
                 write(stderr,'(i2,3f12.7)') kk, &
@@ -789,7 +789,7 @@ module mod_tendency
               write(stderr,*) 'At J = ',j
               write(stderr,*) 'At I = ',i
               write(stderr,*) 'At K = ',k
-              write(stderr,*) 'Surface Temperature : ', sfs%tga(j,i)
+              write(stderr,*) 'Surface Temperature : ', sfs%tg(j,i)
               write(stderr,*) 'Vertical PTU profile: '
               do kk = 1 , kz
                 write(stderr,'(i2,3f12.7)') kk, &
@@ -1778,25 +1778,27 @@ module mod_tendency
       !             Call PBL scheme
       !------------------------------------------------
       !
-      if ( idiag > 0 ) then
-        ten0 = tphy
-        qen0 = qxphy(:,:,:,idgq)
-      end if
-      if ( ichem == 1 .and. ichdiag > 0 ) then
-        chiten0 = chiphy
-      end if
-      call pblscheme
-      if ( idiag > 0 ) then
-        call ten2diag(aten%t,tdiag%tbl,pc_physic,ten0)
-        call ten2diag(aten%qx,qdiag%tbl,pc_physic,qen0)
-      end if
-      if ( ichem == 1 .and. ichdiag > 0 ) then
+      if ( ibltyp > 0 ) then
+        if ( idiag > 0 ) then
+          ten0 = tphy
+          qen0 = qxphy(:,:,:,idgq)
+        end if
+        if ( ichem == 1 .and. ichdiag > 0 ) then
+          chiten0 = chiphy
+        end if
+        call pblscheme
+        if ( idiag > 0 ) then
+          call ten2diag(aten%t,tdiag%tbl,pc_physic,ten0)
+          call ten2diag(aten%qx,qdiag%tbl,pc_physic,qen0)
+        end if
+        if ( ichem == 1 .and. ichdiag > 0 ) then
         call ten2diag(aten%chi,ctbldiag,pc_physic,chiten0)
-      end if
+        end if
 #ifdef DEBUG
-      call check_temperature_tendency('PBLL',pc_physic)
-      call check_wind_tendency('PBLL',pc_physic)
+        call check_temperature_tendency('PBLL',pc_physic)
+        call check_wind_tendency('PBLL',pc_physic)
 #endif
+      end if
     end subroutine physical_parametrizations
 
     subroutine curvature

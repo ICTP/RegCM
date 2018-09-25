@@ -52,7 +52,7 @@ module mod_lm_interface
   private
 
   ! Coupling variables
-  real(rkx) :: runoffcount = 0.0_rkx
+  real(rkx) :: runoffcount = 1.0_rkx
   public :: lms
 
   public :: dtbat
@@ -131,7 +131,6 @@ module mod_lm_interface
     call getmem3d(lms%lwdifalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:lwdifalb')
 
     call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'lm:gwet')
-    call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'lm:ldew')
     call getmem4d(lms%sw,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'lm:sw')
 
 #ifndef CLM45
@@ -151,6 +150,7 @@ module mod_lm_interface
     call getmem3d(lms%sigf,1,nnsg,jci1,jci2,ici1,ici2,'lm:sigf')
     call getmem3d(lms%sfice,1,nnsg,jci1,jci2,ici1,ici2,'lm:sfice')
     call getmem3d(lms%snag,1,nnsg,jci1,jci2,ici1,ici2,'lm:snag')
+    call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'lm:ldew')
     call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'lm:sncv')
     call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'lm:scvk')
     call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
@@ -345,10 +345,8 @@ module mod_lm_interface
     call assignpnt(sfs%ustar,lm%ustar)
     call assignpnt(sfs%w10m,lm%w10m)
     call assignpnt(sfs%zo,lm%zo)
-    call assignpnt(sfs%rhoa,lm%rhoa)
+    call assignpnt(sfs%tg,lm%tg)
     call assignpnt(sfs%tgbb,lm%tgbb)
-    call assignpnt(sfs%tga,lm%tground1)
-    call assignpnt(sfs%tgb,lm%tground2)
     call assignpnt(sfs%u10m,lm%u10m)
     call assignpnt(sfs%v10m,lm%v10m)
     call assignpnt(sfs%ram1,lm%ram1)
@@ -451,7 +449,7 @@ module mod_lm_interface
     real(rkx) :: tm , dz , dlnp , z1 , z2 , w1 , w2
 #endif
 #ifdef CLM
-    if ( rcmtimer%start( ) .or. syncro_rad%will_act( ) ) then
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act(dtsrf) ) then
       r2cdoalb = .true.
     else
       r2cdoalb = .false.
@@ -521,13 +519,13 @@ module mod_lm_interface
     do n = 1 , nnsg
       do i = ici1, ici2
         do j = jci1 , jci2
+          lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
           if ( lm%ldmsk1(n,j,i) > 0 ) then
             lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
             lms%ustar(n,j,i) = sqrt(sqrt( &
                                   (lms%u10m(n,j,i)*lms%drag(n,j,i))**2 + &
                                   (lms%v10m(n,j,i)*lms%drag(n,j,i))**2) / &
                                   lms%rhoa(n,j,i))
-            lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
           end if
         end do
       end do
@@ -557,10 +555,8 @@ module mod_lm_interface
     lm%q2m = sum(lms%q2m,1)*rdnnsg
     lm%w10m = sum(lms%w10m,1)*rdnnsg
     lm%zo = sum(lms%zo,1)*rdnnsg
-    lm%rhoa = sum(lms%rhoa,1)*rdnnsg
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg
-    lm%tground1 = sum(lms%tgrd,1)*rdnnsg
-    lm%tground2 = sum(lms%tgrd,1)*rdnnsg
+    lm%tg = sum(lms%tgrd,1)*rdnnsg
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
     if ( iseaice == 1 .or. lakemod == 1 ) then
       do i = ici1 , ici2
@@ -613,8 +609,7 @@ module mod_lm_interface
               write(stderr,*) 'VAL  = ',lms%tgrd(nn,j,i)
               write(stderr,*) 'MASK = ',lm%ldmsk1(n,j,i)
             end do
-            write(stderr,*) 'VAL2 = ',lm%tground1(j,i)
-            write(stderr,*) 'VAL2 = ',lm%tground2(j,i)
+            write(stderr,*) 'VAL2 = ',lm%tgbb(j,i)
             ierr = ierr + 1
           end if
         end do
@@ -688,15 +683,15 @@ module mod_lm_interface
                            expfie%shfx(j,i) - lm%rlwf(j,i)
       end do
     end do
-    if ( rcmtimer%start( ) .or. alarm_day%will_act(dtsrf) ) then
+    if ( rcmtimer%lcount == 1 .or. alarm_day%will_act(dtsec) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( lm%ldmsk(j,i) > 0 ) then
             expfie%rnof(j,i) = lm%dailyrnf(j,i,1)/runoffcount
             expfie%snof(j,i) = lm%dailyrnf(j,i,2)/runoffcount
           else
-           expfie%rnof(j,i) = d_zero
-           expfie%snof(j,i) = d_zero
+            expfie%rnof(j,i) = d_zero
+            expfie%snof(j,i) = d_zero
           end if
         end do
       end do
@@ -749,8 +744,7 @@ module mod_lm_interface
             if ( syncro_cpl%lcount == 1 ) then
               cplmsk(j,i) = 1
             end if
-            lm%tground1(j,i) = impfie%sst(j,i)
-            lm%tground2(j,i) = impfie%sst(j,i)
+            lm%tg(j,i)       = impfie%sst(j,i)
             lm%tgbb(j,i)     = impfie%sst(j,i)
             lms%tgrd(:,j,i)  = impfie%sst(j,i)
             lms%tgbrd(:,j,i) = impfie%sst(j,i)
@@ -1065,7 +1059,7 @@ module mod_lm_interface
         if ( associated(srf_rhoa_out) ) &
           srf_rhoa_out = sum(lms%rhoa,1)*rdnnsg
         if ( associated(srf_tg_out) ) &
-          srf_tg_out = sum(lms%tgbb,1)*rdnnsg
+          srf_tg_out = sum(lms%tgrd,1)*rdnnsg
         if ( associated(srf_tlef_out) ) then
           where ( lm%ldmsk > 0 )
             srf_tlef_out = sum(lms%tlef,1)*rdnnsg

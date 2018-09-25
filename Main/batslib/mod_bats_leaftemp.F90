@@ -18,11 +18,11 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_bats_leaftemp
-!
-!     Calculate leaf temperature, leaf fluxes, and net transpiration.
-!     documented in NCAR Tech Note, Dickinson et al., 1986.
-!     modifications by Klaus Blumel, 1988.
-!
+  !
+  ! Calculate leaf temperature, leaf fluxes, and net transpiration.
+  ! documented in NCAR Tech Note, Dickinson et al., 1986.
+  ! modifications by Klaus Blumel, 1988.
+  !
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -39,7 +39,6 @@ module mod_bats_leaftemp
 
   contains
 
-!
 !=======================================================================
 !     based on: bats version 1e          copyright 18 august 1989
 !=======================================================================
@@ -90,12 +89,12 @@ module mod_bats_leaftemp
 !     maximum iteration reached (itmax).
 !
 !=======================================================================
-!
+
   subroutine lftemp
     implicit none
     real(rkx) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare , &
                qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,  &
-               xxkb , efpot , tbef
+               xxkb , efpot , tbef , dels
     integer(ik4) :: iter , itfull , itmax , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'lftemp'
@@ -230,9 +229,9 @@ module mod_bats_leaftemp
           tlef(i) = (sf1+df(i)*(wta0(i)*sts(i)+wtg0(i)*tgrd(i))-efe(i)+dcn)/sf2
           !
           ! 3.5  chk magnitude of change; limit to max allowed value
-          dels(i) = tlef(i) - tbef
-          if ( abs(dels(i)) > delmax ) then
-            tlef(i) = tbef + delmax*dels(i)/abs(dels(i))
+          dels = tlef(i) - tbef
+          if ( abs(dels) > delmax ) then
+            tlef(i) = tbef + delmax*dels/abs(dels)
           end if
           ! 3.6  update dependence of stomatal resistance
           !      on vapor pressure deficit
@@ -306,7 +305,7 @@ module mod_bats_leaftemp
 #include <pqderiv.inc>
 
   end subroutine lftemp
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !     gives leaf stomatal resistance from environmental parameters
@@ -333,7 +332,7 @@ module mod_bats_leaftemp
 !     improved stomatal shading, Dickinson, nov 88.
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine stomat
     implicit none
     real(rkx) :: difzen , g , radf , radfi , seas , vpdf , rilmax , &
@@ -410,7 +409,7 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine stomat
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !  **** determines fraction of foliage covered by water fwet, and
@@ -426,7 +425,7 @@ module mod_bats_leaftemp
 !  dewmaxi = inverse of max allowed dew depth on leaf in mm
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine frawat
     implicit none
     integer(ik4) :: i
@@ -449,7 +448,7 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine frawat
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !     this subroutine provides root function in terms of maximum
@@ -476,7 +475,7 @@ module mod_bats_leaftemp
 !     evapotranspiration - need soil moist. budget (subrout water)
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine root
     implicit none
     real(rkx) :: bneg , rotf , trsmx , wlttb , wltub , wmli
@@ -486,7 +485,7 @@ module mod_bats_leaftemp
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
         ! trsmx = trsmx0*sigf(i)*seasb(i)
@@ -512,7 +511,7 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine root
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !     ****  calculates saturation vapor pressure (eg)
 !           and qsat = saturated specific humidity (dimensionless)
@@ -520,7 +519,7 @@ module mod_bats_leaftemp
 !           uses tetens formula (1930) (ref. riegel,1974,jam,p606
 !                                                 equation 1)
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine satur(qsat,t,p)
     implicit none
     real(rkx) , pointer , dimension(:) , intent(in) :: p , t
@@ -546,14 +545,14 @@ module mod_bats_leaftemp
 #include <pfqsat.inc>
 
   end subroutine satur
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !     recalculate stability dependent drag coefficient for vegetation,
 !     given the neutral drag coefficient.
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine lfdrag
     implicit none
     real(rkx) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild , cdrmin
@@ -608,14 +607,14 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine lfdrag
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !     dimensional and non-dimensional sensible heat conductances
 !               for canopy and soil flux calculations
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine condch
     implicit none
     integer(ik4) :: i
@@ -655,7 +654,7 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine condch
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !     dimensional and non-dimensional latent heat conductances
@@ -664,7 +663,7 @@ module mod_bats_leaftemp
 !     latent fluxes differ from sensible due to stomatal resistance
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine condcq
     implicit none
     integer(ik4) :: i
@@ -701,7 +700,7 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine condcq
-!
+
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !     derivatives of energy fluxes with respect to leaf temperature for
@@ -713,7 +712,7 @@ module mod_bats_leaftemp
 !     rate is not affected.
 !
 !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
   subroutine deriv
     implicit none
     real(rkx) :: hfl , xkb , qsatld
@@ -723,7 +722,7 @@ module mod_bats_leaftemp
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
         qsatld = pfqsdt(tlef(i),sfcp(i))
@@ -747,7 +746,7 @@ module mod_bats_leaftemp
 #include <pqderiv.inc>
 
   end subroutine deriv
-!
+
   subroutine fseas(temp,ffsea)
     ! The seasonal function is a number between 0 and 1
     ! If the temperature is greater than 298.0, it is 1
@@ -765,23 +764,23 @@ module mod_bats_leaftemp
     if ( lcrop_cutoff ) then
       do i = ilndbeg , ilndend
         if ( lveg(i) == 1 ) then
-          ffsea(i) = max(d_zero,d_one-0.0016_rkx* &
-                     max(298.0_rkx-temp(i),d_zero)**4)
+          ffsea(i) = max(d_zero,d_one - 0.0016_rkx * &
+                     (max(298.0_rkx-temp(i),d_zero)**4))
         else
-          ffsea(i) = max(d_zero,d_one-0.0016_rkx* &
-                     max(298.0_rkx-temp(i),d_zero)**2)
+          ffsea(i) = max(d_zero,d_one - 0.0016_rkx * &
+                     (max(298.0_rkx-temp(i),d_zero)**2))
         end if
       end do
     else
       do i = ilndbeg , ilndend
-        ffsea(i) = max(d_zero,d_one-0.0016_rkx* &
-                   max(298.0_rkx-temp(i),d_zero)**2)
+        ffsea(i) = max(d_zero,d_one - 0.0016_rkx * &
+                   (max(298.0_rkx-temp(i),d_zero)**2))
       end do
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine fseas
-!
+
 end module mod_bats_leaftemp
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

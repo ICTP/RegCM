@@ -1320,6 +1320,8 @@ module mod_ncout
               .true.,'time: mean')
             srf_prcv_out => v2dvar_srf(srf_prcv)%rval
           end if
+        else
+          enable_srf2d_vars(srf_prcv) = .false.
         end if
         if ( enable_srf2d_vars(srf_zpbl) ) then
           call setup_var(v2dvar_srf,srf_zpbl,vsize,'zmla','m', &

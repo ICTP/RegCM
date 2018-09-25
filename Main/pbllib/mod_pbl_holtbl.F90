@@ -267,12 +267,12 @@ module mod_pbl_holtbl
           ! first approximation for obhukov length
           if ( ifaholtth10 == 1 ) then
             th10(j,i) = (0.25_rkx*m2p%tpatm(j,i,kz) + &
-                         0.75_rkx*m2p%tgb(j,i))*(d_one+ep1*sh10)
+                         0.75_rkx*m2p%tg(j,i))*(d_one+ep1*sh10)
           else if ( ifaholtth10 == 2 ) then
             th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
                         log(m2p%za(j,i,kz)*d_r10))
           else
-            th10(j,i) = (d_half*(m2p%tpatm(j,i,kz)+m2p%tgb(j,i))) * &
+            th10(j,i) = (d_half*(m2p%tpatm(j,i,kz)+m2p%tg(j,i))) * &
                          (d_one + ep1*sh10)
           end if
           do iter = 1 , holtth10iter
@@ -293,9 +293,9 @@ module mod_pbl_holtbl
           end do
         end if
         if ( ifaholt == 1 ) then
-          th10(j,i) = max(th10(j,i),m2p%tgb(j,i))  ! gtb add to maximize
+          th10(j,i) = max(th10(j,i),m2p%tg(j,i))  ! gtb add to maximize
         else  if ( ifaholt  == 2 ) then
-          th10(j,i) = min(th10(j,i),m2p%tgb(j,i))  ! gtb add to minimize
+          th10(j,i) = min(th10(j,i),m2p%tg(j,i))  ! gtb add to minimize
         end if
         ! obklen compute obukhov length
         obklen(j,i) = -(th10(j,i)*ustr(j,i)**3)/(gvk*hfxv(j,i))

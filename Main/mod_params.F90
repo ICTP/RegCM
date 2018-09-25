@@ -207,7 +207,7 @@ module mod_params
     iflak  = .false.
     ifopt  = .false.
     ifchem = .false.
-    savfrq  = 0.0_rkx ! time interval for disposing sav output (hrs)
+    savfrq  = 0.0_rkx ! time interval for disposing sav output (days)
     atmfrq  = 6.0_rkx ! time interval for disposing atm output (hrs)
     radfrq  = 6.0_rkx ! time interval for disposing rad output (hrs)
     srffrq  = 3.0_rkx ! time interval for disposing srf output (hrs)
@@ -1676,6 +1676,7 @@ module mod_params
     call setup_boundaries(dot,ba_dt)
 
     call allocate_v2dbound(xpsb,cross)
+    call allocate_v2dbound(xtsb,cross)
     call allocate_v3dbound(xtb,kz,cross)
     call allocate_v3dbound(xqb,kz,cross)
     call allocate_v3dbound(xub,kz,dot)

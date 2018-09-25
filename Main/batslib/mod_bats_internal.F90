@@ -54,7 +54,6 @@ module mod_bats_internal
   real(rkx) , pointer , dimension(:) :: czenith
   real(rkx) , pointer , dimension(:) :: dcd
   real(rkx) , pointer , dimension(:) :: delq
-  real(rkx) , pointer , dimension(:) :: dels
   real(rkx) , pointer , dimension(:) :: delt
   real(rkx) , pointer , dimension(:) :: deprat
   real(rkx) , pointer , dimension(:) :: df
@@ -228,7 +227,6 @@ module mod_bats_internal
     call getmem1d(czenith,1,nlandp,'bats_internal:czenith')
     call getmem1d(dcd,1,nlandp,'bats_internal:dcd')
     call getmem1d(delq,1,nlandp,'bats_internal:delq')
-    call getmem1d(dels,1,nlandp,'bats_internal:dels')
     call getmem1d(delt,1,nlandp,'bats_internal:delt')
     call getmem1d(deprat,1,nlandp,'bats_internal:deprat')
     call getmem1d(df,1,nlandp,'bats_internal:df')

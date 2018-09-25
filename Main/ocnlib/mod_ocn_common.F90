@@ -96,12 +96,12 @@ module mod_ocn_common
       mask = 1
     end if
     if ( rcmtimer%start( ) ) then
-      tgrd = tgb
-      tgbrd = tgb
+      call c2l_gs(ocncomm,lm%tg,tgb)
       call c2l_ss(ocncomm,lm%xlat1,lat)
       call c2l_ss(ocncomm,lm%iveg1,omask)
-      call c2l_gs(ocncomm,lm%tground2,tgb)
       call c2l_gs(ocncomm,lm%zencos,czenith)
+      tgrd = tgb
+      tgbrd = tgb
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lms%sfice,sfice)
         call c2l_ss(ocncomm,lms%sncv,sncv)
@@ -131,6 +131,7 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%hfx,sent)
       call c2l_gs(ocncomm,lm%zencos,czenith)
       if ( ldcsst ) then
+        call c2l_ss(ocncomm,lms%sst,sst)
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)
         call c2l_ss(ocncomm,lms%tskin,tskin)
@@ -178,7 +179,7 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%tatm,tatm)
       call c2l_gs(ocncomm,lm%patm,patm)
       call c2l_gs(ocncomm,lm%sfta,sfta)
-      call c2l_gs(ocncomm,lm%tground2,tgb)
+      call c2l_gs(ocncomm,lm%tg,tgb)
       call c2l_gs(ocncomm,lm%hpbl,hpbl)
       call c2l_gs(ocncomm,lm%qvatm,qv)
       call c2l_gs(ocncomm,lm%rhox,rhox)
@@ -193,10 +194,10 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%ncprate,ncprate)
       prcp = (cprate+ncprate) * syncro_srf%rw
       if ( ldcsst ) then
+        call c2l_ss(ocncomm,lms%sst,sst)
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)
         call c2l_ss(ocncomm,lms%tskin,tskin)
-        call c2l_ss(ocncomm,lms%sst,sst)
       end if
       if ( llake ) then
         where ( ilake == 1 )

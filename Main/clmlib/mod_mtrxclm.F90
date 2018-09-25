@@ -232,7 +232,6 @@ module mod_mtrxclm
 
     call grid_fill(lm%ht,ht_rcm)
     call grid_fill(lm%lndcat,satbrt_clm)
-    call grid_fill(lm%tground1,init_tgb)
     call grid_fill(lm%snowam,init_snow)
 
     !
@@ -388,9 +387,9 @@ module mod_mtrxclm
             else
               lm%ldmsk1(n,j,i) = landmask(j,i)
             end if
-            lms%tgbrd(n,j,i) = lm%tground2(j,i)
-            lms%taf(n,j,i)   = lm%tground2(j,i)
-            lms%tlef(n,j,i)  = lm%tground2(j,i)
+            lms%tgbrd(n,j,i) = lm%tg(j,i)
+            lms%taf(n,j,i)   = lm%tg(j,i)
+            lms%tlef(n,j,i)  = lm%tg(j,i)
             lms%snag(n,j,i)  = d_zero
             lms%sncv(n,j,i)  = dmax1(lms%sncv(n,j,i),d_zero)
             lms%sfice(n,j,i) = d_zero

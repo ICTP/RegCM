@@ -143,8 +143,6 @@ module mod_bats_drag
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    call depth
-    !
     do i = ilndbeg , ilndend
       ! drag coeff over land
       asigf = lncl(i)

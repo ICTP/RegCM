@@ -96,13 +96,14 @@ module mod_split
     !
     call allocate_mod_vmodes
     !
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+      map(j,i) = d_one / (mddom%msfx(j,i)*mddom%msfx(j,i))
+    end do
+    !
     if ( .not. lstand ) then
       !
       ! compute xps and tbarh for use in vmodes.
       !
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-        map(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i))
-      end do
       rnpts = d_one/real((nicross*njcross),rkx)
       lxps = d_zero
       lxms = d_zero
@@ -175,9 +176,6 @@ module mod_split
     !
     ! If a restart run, do not recalculate the hstor/dstor
     !
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-      map(j,i) = d_one / (mddom%msfx(j,i)*mddom%msfx(j,i))
-    end do
     if ( ifrest ) then
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)

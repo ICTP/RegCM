@@ -239,8 +239,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: psc
     real(rkx) , pointer , dimension(:,:) :: psdota
     real(rkx) , pointer , dimension(:,:) :: psdotb
-    real(rkx) , pointer , dimension(:,:) :: tga
-    real(rkx) , pointer , dimension(:,:) :: tgb
+    real(rkx) , pointer , dimension(:,:) :: tg
     real(rkx) , pointer , dimension(:,:) :: rainc
     real(rkx) , pointer , dimension(:,:) :: rainnc
     real(rkx) , pointer , dimension(:,:) :: snownc
@@ -257,7 +256,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: ram1
     real(rkx) , pointer , dimension(:,:) :: rah1
     real(rkx) , pointer , dimension(:,:) :: br
-    real(rkx) , pointer , dimension(:,:) :: rhoa
     real(rkx) , pointer , dimension(:,:) :: uz0         ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: vz0         ! MYJ SF layer
     real(rkx) , pointer , dimension(:,:) :: thz0        ! MYJ SF layer
@@ -370,8 +368,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: ssw
     real(rkx) , pointer , dimension(:,:,:) :: rsw
     real(rkx) , pointer , dimension(:,:,:) :: tsw
-    real(rkx) , pointer , dimension(:,:,:) :: ldew
     real(rkx) , pointer , dimension(:,:,:) :: lncl
+    real(rkx) , pointer , dimension(:,:,:) :: ldew
     real(rkx) , pointer , dimension(:,:,:) :: tgbb
     real(rkx) , pointer , dimension(:,:,:) :: tgrd
     real(rkx) , pointer , dimension(:,:,:) :: tgbrd
@@ -472,11 +470,10 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: hpbl        ! zpbl
     real(rkx) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
     real(rkx) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
-    real(rkx) , pointer , dimension(:,:) :: tground1    ! sfs%tga
-    real(rkx) , pointer , dimension(:,:) :: tground2    ! sfs%tgb
     real(rkx) , pointer , dimension(:,:) :: sfps        ! sfs%psb
     real(rkx) , pointer , dimension(:,:) :: sfta        ! atms%ts2d
     real(rkx) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
+    real(rkx) , pointer , dimension(:,:) :: tg          ! sfs%tg
     real(rkx) , pointer , dimension(:,:) :: tgbb        ! sfs%tgbb
     real(rkx) , pointer , dimension(:,:) :: ram1        ! sfs%ram1
     real(rkx) , pointer , dimension(:,:) :: rah1        ! sfs%rah1
@@ -513,7 +510,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: zo          ! zo
     real(rkx) , pointer , dimension(:,:) :: ustar       ! ustar
     real(rkx) , pointer , dimension(:,:) :: w10m        ! w10m
-    real(rkx) , pointer , dimension(:,:) :: rhoa        ! xdens
 #ifdef CLM
     real(rkx) , pointer , dimension(:,:,:) :: dep_vels
 #endif
@@ -626,8 +622,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: ht          ! mddom%ht
     real(rkx) , pointer , dimension(:,:) :: psb         ! sfs%psb
     real(rkx) , pointer , dimension(:,:) :: psdotb      ! sfs%psdotb
-    real(rkx) , pointer , dimension(:,:) :: tgb         ! sfs%tgb
-    real(rkx) , pointer , dimension(:,:) :: tsk         ! sfs%tgbb
+    real(rkx) , pointer , dimension(:,:) :: tg          ! sfs%tgbb
     real(rkx) , pointer , dimension(:,:) :: q2m         ! sfs%q2m
     real(rkx) , pointer , dimension(:,:) :: u10m        ! sfs%u10m
     real(rkx) , pointer , dimension(:,:) :: v10m        ! sfs%v10m

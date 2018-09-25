@@ -41,7 +41,6 @@ module mod_che_carbonaer
   real(rkx) , public , parameter :: rhosm1 = 1200.0_rkx
   real(rkx) , public , parameter :: rhosm2 = 1200.0_rkx
 
-
   ! effctive diameters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? )
   real(rkx) , public , parameter :: reffbc   = 0.05_rkx
@@ -50,7 +49,6 @@ module mod_che_carbonaer
   real(rkx) , public , parameter :: reffochl = 0.3_rkx
   real(rkx) , public , parameter :: reffsm1 = 0.3_rkx
   real(rkx) , public , parameter :: reffsm2 = 0.3_rkx
-
 
   ! aging efolding time (s), from hydrophobic to hydrophilic
   ! Cooke et al.
@@ -83,7 +81,7 @@ module mod_che_carbonaer
       !
       ! aging o carbon species : Conversion from hydrophobic to
       ! hydrophilic: Carbonaceopus species time constant
-      ! ( 1.15 day cooke et al.,1999)
+      ! ( 1.15 day Cooke et al.,1999 )
       !
       if ( ibchb > 0 .and. ibchl > 0 ) then
         do k = 1 , kz
@@ -115,7 +113,6 @@ module mod_che_carbonaer
           end do
         end do
       end if
-
       if ( ism1 > 0  .and. ism2 > 0 ) then
         do k = 1 , kz
           do i = ici1 , ici2

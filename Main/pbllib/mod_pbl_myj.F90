@@ -180,7 +180,7 @@ module mod_pbl_myj
     !
     integer(ik4) :: i , j , k , n , lmxl , nums
     real(rkx) :: akhs_dens , akms_dens , dqdt , dtdif , dtdt , &
-          dtturbl , rexnsfc , psfc , qold , ratiomx , tsk ,    &
+          dtturbl , rexnsfc , psfc , qold , ratiomx , tg ,     &
           rdtturbl , thnew , thold , tx , exner , qsfc ,       &
           thsk , ct , qha , ustar
     real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , tha
@@ -348,8 +348,8 @@ module mod_pbl_myj
         psfc = m2p%patmf(j,i,kzp1)
         rexnsfc = (p00/psfc)**rovcp
         ustar = m2p%ustar(j,i)
-        tsk = m2p%tsk(j,i)
-        thsk = tsk*rexnsfc
+        tg = m2p%tg(j,i)
+        thsk = tg*rexnsfc
 
         ! Convert surface sensible temperature to potential temperature.
         if ( m2p%ldmsk(j,i) > 0 ) then
@@ -359,7 +359,7 @@ module mod_pbl_myj
           m2p%vz0(j,i) = d_zero
         else
           zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
-          qsfc = seafc*pfqsat(tsk,psfc)
+          qsfc = seafc*pfqsat(tg,psfc)
           wght = akms*zu*rvisc
           wghtt = akhs*zt*rtvisc
           wghtq = akhs*zq*rqvisc

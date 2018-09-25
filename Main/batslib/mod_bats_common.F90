@@ -35,6 +35,7 @@ module mod_bats_common
   use mod_bats_internal
   use mod_bats_bndry
   use mod_bats_leaftemp
+  use mod_bats_drag
   use mod_bats_albedo
   use mod_regcm_types
 
@@ -78,8 +79,9 @@ module mod_bats_common
       call c2l_ss(lndcomm,lm%iveg1,lveg)
       call c2l_ss(lndcomm,lm%itex1,ltex)
       call c2l_ss(lndcomm,lm%xlat1,lat)
-      call c2l_gs(lndcomm,lm%tground2,tgrd)
+      call c2l_gs(lndcomm,lm%tg,tgrd)
       call c2l_gs(lndcomm,lm%snowam,sncv)
+      call c2l_gs(lndcomm,lm%zencos,czenith)
       ! Reset if invalid
       where ( sncv > 1.0e+10_rkx ) sncv = d_zero
       ! Remove water -> no-data
@@ -95,7 +97,6 @@ module mod_bats_common
                  (min(1.0_rkx,max((tgrd-253.0_rkx)/20.0_rkx,0.0_rkx))))
         end where
       end if
-
       if ( lsmoist ) then
         call c2l_gs(lndcomm,lm%smoist,ssw)
         do i = ilndbeg , ilndend
@@ -177,7 +178,6 @@ module mod_bats_common
       call c2l_ss(lndcomm,lms%gwet,gwet)
       call c2l_ss(lndcomm,lms%sncv,sncv)
       call c2l_ss(lndcomm,lms%snag,snag)
-      call c2l_ss(lndcomm,lms%scvk,scvk)
       call c2l_ss(lndcomm,lms%ldew,ldew)
       call c2l_ss(lndcomm,lms%taf,taf)
       call c2l_ss(lndcomm,lms%emisv,emiss)
@@ -186,15 +186,17 @@ module mod_bats_common
       call c2l_ss(lndcomm,lms%rsw,rsw)
       call c2l_ss(lndcomm,lms%tsw,tsw)
       call c2l_gs(lndcomm,lm%zencos,czenith)
-      call fseas(tgbrd,aseas)
       ! Remove water -> no-data
       where( ltex == 14 )
         ltex = 17
       end where
+      call fseas(tgbrd,aseas)
     end if
+    ! Prepare for albedo computation
     do i = ilndbeg , ilndend
       lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
     end do
+    call depth
     dzh = hts - ht
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -384,6 +386,10 @@ module mod_bats_common
       zlgsno = log(zh/zsno)
 
       call fseas(tgbrd,aseas)
+      do i = ilndbeg , ilndend
+        lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
+      end do
+      call depth
 
       do i = ilndbeg , ilndend
         xqs0 = pfwsat(ts0(i),p0(i))
@@ -401,7 +407,6 @@ module mod_bats_common
         !
         ! quantities stored on 2d surface array for bats use only
         !
-        lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
         zlgveg(i) = log(zh(i)/rough(lveg(i)))
         zlgdis(i) = log((zh(i)-displa(lveg(i)))/rough(lveg(i)))
         if ( solvt > d_zero ) then
@@ -437,21 +442,25 @@ module mod_bats_common
     else if ( ivers == 2 ) then ! bats --> regcm2d
 
       call fseas(tgbrd,aseas)
+      do i = ilndbeg , ilndend
+        lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
+      end do
+      call depth
+
       if ( iemiss == 1 ) then
         do i = ilndbeg , ilndend
           fracs = lncl(i)*wt(i) + (d_one-lncl(i))*scvk(i)
           emiss(i) = (lndemiss(lveg(i))-seasemi(lveg(i))*aseas(i)) * &
-                  (d_one-fracs) + 0.992*fracs
+                  (d_one-fracs) + 0.992_rkx*fracs
         end do
       end if
+      call l2c_ss(lndcomm,tgbrd,lms%tgbrd)
       call l2c_ss(lndcomm,tlef,lms%tlef)
       call l2c_ss(lndcomm,tgrd,lms%tgrd)
-      call l2c_ss(lndcomm,tgbrd,lms%tgbrd)
       call l2c_ss(lndcomm,gwet,lms%gwet)
-      call l2c_ss(lndcomm,ldew,lms%ldew)
       call l2c_ss(lndcomm,snag,lms%snag)
+      call l2c_ss(lndcomm,ldew,lms%ldew)
       call l2c_ss(lndcomm,sncv,lms%sncv)
-      call l2c_ss(lndcomm,scvk,lms%scvk)
       call l2c_ss(lndcomm,ssw,lms%ssw)
       call l2c_ss(lndcomm,rsw,lms%rsw)
       call l2c_ss(lndcomm,tsw,lms%tsw)
@@ -510,10 +519,11 @@ module mod_bats_common
       if ( ichem == 1 ) then
         call l2c_ss(lndcomm,delt,lms%deltat)
         call l2c_ss(lndcomm,delq,lms%deltaq)
+        call l2c_ss(lndcomm,xlai,lms%xlai)
+        call l2c_ss(lndcomm,wt,lms%wt)
+        call l2c_ss(lndcomm,scvk,lms%scvk)
         call l2c_ss(lndcomm,sigf,lms%sigf)
         call l2c_ss(lndcomm,lncl,lms%lncl)
-        call l2c_ss(lndcomm,wt,lms%wt)
-        call l2c_ss(lndcomm,xlai,lms%xlai)
       end if
     end if ! Versus of the interface (1,2)
 
@@ -532,7 +542,6 @@ module mod_bats_common
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    call interf(lm,lms,1)
     call albedo
     call l2c_ss(lndcomm,swal,lms%swalb)
     call l2c_ss(lndcomm,lwal,lms%lwalb)

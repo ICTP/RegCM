@@ -24,7 +24,7 @@ module mod_slabocean
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-  use mod_atm_interface , only : ts1
+  use mod_atm_interface , only : xtsb
   use mod_mppparam
   use mod_constants
   use mod_outvars
@@ -74,7 +74,7 @@ module mod_slabocean
       ! water heat capacity ~ 4 J/g/K
       mlcp = mixed_layer_depth*4.0e6_rkx
 
-      call assignpnt(sfs%tgb,sstemp)
+      call assignpnt(sfs%tg,sstemp)
       call assignpnt(ldmsk,ocmask)
       call assignpnt(sfs%hfx,ohfx)
       call assignpnt(sfs%qfx,oqfx)
@@ -95,7 +95,7 @@ module mod_slabocean
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( ocmask(j,i) == 0 ) then
-              qflux_sst(j,i) = (ts1(j,i) - sstemp(j,i)) * &
+              qflux_sst(j,i) = (xtsb%b1(j,i) - sstemp(j,i)) * &
                 mlcp / (sst_restore_timescale * 86400.0_rkx) ! w/m2
               qflux_restore_sst(j,i,rcmtimer%month) = &
                 qflux_restore_sst(j,i,rcmtimer%month) + qflux_sst(j,i)

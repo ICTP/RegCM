@@ -264,7 +264,7 @@ module mod_bats_bndry
     do i = ilndbeg , ilndend
       ! 6.1  rate of momentum transfer per velocity
       drag(i) = cdrx(i)*vspda(i)*rhs(i)
-      if ( sigf(i) < minsigf ) taf(i) = tgrd(i)
+      if ( sigf(i) <= minsigf ) taf(i) = tgrd(i)
       ! 6.2  parameters for temperature difference at anemometer level
       ! zdelt(i) = zdelt(i)*delt(i)
       ! 6.4  evaporative flux, accounting for sublimation
@@ -299,7 +299,6 @@ module mod_bats_bndry
     call time_begin(subroutine_name,idindx)
 #endif
 
-    call fseas(tgbrd,aseas)
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
         xlai(i) = xla(lveg(i))
@@ -385,9 +384,7 @@ module mod_bats_bndry
     implicit none
     real(rkx) :: b , bfac , bfac2 , delwat , est0 , evmax , evmxr , &
                evmxt , rap , vakb , wtg2c , xxkb , gwatr , rsubsr , &
-               rsubss , xkmx1 , xkmx2 , xkmxr , wata
-    real(rk8) :: xk1 , xk2 , xk3 , wwr , wwu , wwt , b1 , b2 , b3
-    real(rk8) :: r1 , r2 , r3 , wwa , gwr
+               rsubss , xkmx1 , xkmx2 , xkmxr , wata , b1 , b2 , b3
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'water'
@@ -433,24 +430,12 @@ module mod_bats_bndry
       !
       ! 1.3  gravitational drainage
       !
-      wwr = watr(i)
-      wwu = watu(i)
-      wwt = watt(i)
       b1 = b+d_half
       b2 = b+2.5_rkx
       b3 = d_two*b+d_three
-      xk1 = xkmxr
-      xk2 = xkmx1
-      xk3 = xkmx2
-      r1 = xk1*(wwr**b1)*(wwu**b2)
-      r2 = xk2*(wwt**b1)*(wwr**b2)
-      r3 = xk3*(wwt**b3)
-      if ( r1 < tiny(1.0) ) r1 = d_zero
-      if ( r2 < tiny(1.0) ) r2 = d_zero
-      if ( r3 < tiny(1.0) ) r3 = d_zero
-      rsubss = real(r1,rkx)
-      rsubsr = real(r3,rkx)
-      rsubst(i) = max(d_zero,real(r3,rkx))
+      rsubss = xkmxr*(watr(i)**b1)*(watu(i)**b2)
+      rsubsr = xkmx1*(watt(i)**b1)*(watr(i)**b2)
+      rsubst(i) = max(d_zero,xkmx2*(watt(i)**b3))
       !
       ! 1.32 bog
       !
@@ -481,14 +466,11 @@ module mod_bats_bndry
       !
       ! 2.11 increase surface runoff over frozen ground
       !
+      srnof(i) = d_zero
       if ( tgrd(i) < tzero ) then
         srnof(i) = min(d_one,wata**1) * max(d_zero,gwatr)
       else
-        wwa = wata
-        gwr = gwatr
-        r1 = min(wwa**4,1.0_rk8) * max(0.0_rk8,gwr)
-        if ( r1 < tiny(1.0) ) r1 = 0.0_rk8
-        srnof(i) = real(r1,rkx)
+        srnof(i) = min(wata**4,1.0_rkx) * max(0.0_rkx,gwatr)
       end if
       !
       ! 2.12 irrigate cropland
@@ -616,7 +598,6 @@ module mod_bats_bndry
     implicit none
     real(rkx) :: age1 , age2 , arg , arg2 , dela , dela0 , &
                  dels , tage , sold! , fsnts , tpw
-    real(rk8) :: r , a , b
     integer(ik4) :: i
     real(rkx) , parameter :: age3 = 0.3_rkx
     !real(rkx) , parameter :: ax = -48.23_rkx
@@ -635,11 +616,7 @@ module mod_bats_bndry
     !=======================================================================
     !
     do i = ilndbeg , ilndend
-      a = scvk(i)
-      b = fevpg(i)
-      r = a * b
-      if ( r < tiny(1.0) ) r = 0.0_rk8
-      evaps(i) = real(r,rkx)
+      evaps(i) = scvk(i) * fevpg(i)
       evapw(i) = fevpg(i) - evaps(i)
       ! tm is temperature of precipitation
       ! Aiguo Dai

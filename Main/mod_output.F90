@@ -1183,13 +1183,20 @@ module mod_output
 
         call grid_collect(sfs%psa,psa_io,jce1,jce2,ice1,ice2)
         call grid_collect(sfs%psb,psb_io,jce1,jce2,ice1,ice2)
-        call grid_collect(sfs%tga,tga_io,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%tgb,tgb_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(sfs%hfx,hfx_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%tgbb,tgbb_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%zo,zo_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%uvdrag,uvdrag_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%ram1,ram_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%rah1,rah_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%br,br_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%q2m,q2m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%u10m,u10m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%v10m,v10m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%w10m,w10m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%ustar,ustar_io,jci1,jci2,ici1,ici2)
 
         if ( ipptls > 0 ) then
           call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
@@ -1227,7 +1234,6 @@ module mod_output
         call subgrid_collect(lms%snag,snag_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%sfice,sfice_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%emisv,emisv_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(lms%scvk,scvk_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%um10,um10_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%swdiralb,swdiralb_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%swdifalb,swdifalb_io,jci1,jci2,ici1,ici2)
@@ -1235,6 +1241,8 @@ module mod_output
         call subgrid_collect(lms%lwdifalb,lwdifalb_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
 
+        call grid_collect(albvs,albvs_io,jci1,jci2,ici1,ici2)
+        call grid_collect(albvl,albvl_io,jci1,jci2,ici1,ici2)
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
         call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
         call grid_collect(solvsd,solvsd_io,jci1,jci2,ici1,ici2)

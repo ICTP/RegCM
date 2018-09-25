@@ -48,7 +48,7 @@ module mod_atm_interface
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
   type(v3dbound) , public :: xtb , xqb , xub , xvb , xppb , xwwb
-  type(v2dbound) , public :: xpsb
+  type(v2dbound) , public :: xpsb , xtsb
   type(bound_area) , public :: ba_cr , ba_dt
   type(reference_atmosphere) , public :: atm0
   type(mass_divergence) , public :: mdv
@@ -61,7 +61,6 @@ module mod_atm_interface
 
   real(rkx) , public , pointer , dimension(:,:,:) :: dstor
   real(rkx) , public , pointer , dimension(:,:,:) :: hstor
-  real(rkx) , public , pointer , dimension(:,:) :: ts0 , ts1
 
   real(rkx) , public , pointer , dimension(:,:,:) :: qdot , omega
 
@@ -818,8 +817,7 @@ module mod_atm_interface
       call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
       call getmem2d(sfs%psdotb,jd1,jd2,id1,id2,'surf:psdotb')
       call getmem2d(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
-      call getmem2d(sfs%tga,jci1,jci2,ici1,ici2,'surf:tga')
-      call getmem2d(sfs%tgb,jci1,jci2,ici1,ici2,'surf:tgb')
+      call getmem2d(sfs%tg,jci1,jci2,ici1,ici2,'surf:tg')
       call getmem2d(sfs%hfx,jci1,jci2,ici1,ici2,'surf:hfx')
       call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
       call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
@@ -829,7 +827,6 @@ module mod_atm_interface
       end if
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
-      call getmem2d(sfs%rhoa,jci1,jci2,ici1,ici2,'surf:rhoa')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
       call getmem2d(sfs%ram1,jci1,jci2,ici1,ici2,'surf:ram1')
       call getmem2d(sfs%rah1,jci1,jci2,ici1,ici2,'surf:rah1')
@@ -958,9 +955,6 @@ module mod_atm_interface
         call allocate_tendiag(tdiag)
         call allocate_qendiag(qdiag)
       end if
-
-      call getmem2d(ts0,jce1,jce2,ice1,ice2,'storage:ts0')
-      call getmem2d(ts1,jce1,jce2,ice1,ice2,'storage:ts1')
 
       if ( idynamic == 1 ) then
         call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:dstor')

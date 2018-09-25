@@ -1351,6 +1351,8 @@ module mod_mppparam
     if ( nproc > 1 ) then
       if ( myid == ccio ) then
         call getmem1d(windows,1,nproc*4,'set_nproc:windows')
+      else
+        windows => null()
       end if
       call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')

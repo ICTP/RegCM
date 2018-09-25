@@ -267,7 +267,7 @@ module mod_pbl_uwtcm
         psbx = m2p%psb(j,i)
         pfac = dt / psbx
         rpfac = psbx / dt
-        tskx = m2p%tsk(j,i)
+        tskx = m2p%tg(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         ktr = max(2,m2p%ktrop(j,i))
