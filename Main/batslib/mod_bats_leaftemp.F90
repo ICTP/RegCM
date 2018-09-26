@@ -113,6 +113,8 @@ module mod_bats_leaftemp
         vpdc(i) = d_10
         sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
         flneto(i) = d_four*sgtg3*(tlef(i)-tgrd(i))
+      else
+        flneto(i) = d_zero
       end if
     end do
 
