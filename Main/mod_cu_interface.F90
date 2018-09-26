@@ -273,8 +273,10 @@ module mod_cu_interface
         cu_ktop(:,:) = 0
         cu_kbot(:,:) = 0
         cu_tten(:,:,:) = d_zero
-        cu_uten(:,:,:) = d_zero
-        cu_vten(:,:,:) = d_zero
+        if ( any(icup == 4) .or. any(icup == 5) ) then
+          cu_uten(:,:,:) = d_zero
+          cu_vten(:,:,:) = d_zero
+        end if
         cu_qten(:,:,:,:) = d_zero
         cu_cldfrc(:,:,:) = d_zero
         if ( ichem == 1 ) then
