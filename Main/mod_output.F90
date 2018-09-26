@@ -1166,7 +1166,7 @@ module mod_output
           call grid_collect(atm2%tke,atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
         else if ( ibltyp == 4 ) then
-          call grid_collect(atms%tkepbl,tke_pbl_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%uz0,myjsf_uz0_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%vz0,myjsf_vz0_io,jci1,jci2,ici1,ici2)
