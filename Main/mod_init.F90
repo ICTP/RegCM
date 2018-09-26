@@ -293,7 +293,7 @@ module mod_init
         call grid_distribute(atm2_tke_io,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
         call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
       else if ( ibltyp == 4 ) then
-        call grid_distribute(tke_pbl_io,atms%tkepbl,jce1,jce2,ice1,ice2,1,kz)
+        call grid_distribute(tke_pbl_io,atms%tkepbl,jci1,jci2,ici1,ici2,1,kz)
         call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
         call grid_distribute(myjsf_uz0_io,sfs%uz0,jci1,jci2,ici1,ici2)
         call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
