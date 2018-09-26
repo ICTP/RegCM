@@ -359,6 +359,8 @@ module mod_pbl_myj
           m2p%vz0(j,i) = d_zero
         else
           zu = fzu1*sqrt(sqrt(m2p%zo(j,i)*ustar*rvisc))/ustar
+          zt = fzt1*zu
+          zq = fzq1*zt
           qsfc = seafc*pfqsat(tg,psfc)
           wght = akms*zu*rvisc
           wghtt = akhs*zt*rtvisc
