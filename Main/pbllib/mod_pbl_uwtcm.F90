@@ -1,4 +1,4 @@
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 !    This file is part of ICTP RegCM.
 !
@@ -73,9 +73,9 @@ module mod_pbl_uwtcm
   use mod_mpmessage
   use mod_mppparam
   use mod_pbl_common
-  use mod_pbl_thetal
+  !use mod_pbl_thetal
   use mod_runparams , only : iqv , iqc , iqi , atwo , rstbl , &
-          czero , nuk , dt , rdt , ichem , sigma , hsigma , dsigma , ipptls
+          czero , nuk , dt , rdt , ichem , ipptls
   use mod_regcm_types
   use mod_service
 
@@ -100,39 +100,7 @@ module mod_pbl_uwtcm
   !real(rkx) , parameter :: svp3 =  29.65_rkx
 
   ! Variables that hold frequently-done calculations
-  real(rkx) :: rczero
-  real(rkx) :: tkefac , b1
-
-  ! local variables on full levels
-  real(rkx) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
-                 tke , tkes , rrhoxfl , bbls , nsquar , buoyan ,   &
-                 rdza , dza , svs , presfl , exnerfl , shear ,     &
-                 rexnerfl , rcldb , sm , sh
-
-  !real(rkx) , pointer , dimension(:) :: epop
-  !real(rkx) , pointer , dimension(:) :: richnum
-
-  ! local variables on half levels
-  real(rkx) , pointer , dimension(:) :: ux , vx , thx , qx , uthvx ,   &
-                 zax , kethl , thlx , thlxs, thxs , tx , tvx , qix ,   &
-                 rttenx , preshl , qcx , qwx , qwxs , udzq , rrhoxhl , &
-                 uxs , qxs , rhoxhl , exnerhl , rexnerhl , rdzq ,      &
-                 vxs , qcxs , aimp , bimp , cimp , uimp1 , rimp1 ,     &
-                 uimp2 , rimp2 , qixs
-  real(rkx) , pointer , dimension(:,:) :: chix , chixs
-
-  integer(ik4) , pointer , dimension(:) :: isice , ktop , kbot
-
-  ! local scalars
-  real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
-            dvdz , psbx , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
-            thvflx , kh0 , q0s
-  real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
-  ! real(rkx) :: dth , dthv
-  real(rkx) , pointer , dimension(:) :: chifxx
-
-  integer(ik4) :: kpbl2dx  ! Top of PBL
-  integer(ik4) :: ktr      ! Tropopause
+  real(rkx) :: rczero , tkefac , b1
 
   ! imethod = 1     ! Use the Brent 1973 method to solve for T
   ! imethod = 2     ! Use Bretherton's iterative method to solve for T
@@ -157,84 +125,6 @@ module mod_pbl_uwtcm
 
   subroutine init_mod_pbl_uwtcm
     implicit none
-
-    call getmem1d(zqx,1,kzp2,'mod_uwtcm:zqx')
-
-    ! Allocate memory local variables on full levels
-
-    call getmem1d(kth,1,kzp1,'mod_uwtcm:kth')
-    call getmem1d(kzm,1,kzp1,'mod_uwtcm:kzm')
-    call getmem1d(rhoxfl,1,kzp1,'mod_uwtcm:rhoxfl')
-    call getmem1d(rrhoxfl,1,kzp1,'mod_uwtcm:rrhoxfl')
-    call getmem1d(tke,1,kzp1,'mod_uwtcm:tke')
-    call getmem1d(tkes,1,kzp1,'mod_uwtcm:tkes')
-    call getmem1d(bbls,1,kzp1,'mod_uwtcm:bbls')
-    call getmem1d(nsquar,1,kzp1,'mod_uwtcm:nsquar')
-    !call getmem1d(richnum,1,kzp1,'mod_uwtcm:richnum')
-    call getmem1d(buoyan,2,kz,'mod_uwtcm:buoyan')
-    call getmem1d(dza,2,kz,'mod_uwtcm:dza')
-    call getmem1d(rdza,2,kz,'mod_uwtcm:rdza')
-    call getmem1d(svs,2,kz,'mod_uwtcm:svs')
-    call getmem1d(presfl,1,kzp1,'mod_uwtcm:presfl')
-    ! call getmem1d(epop,1,kzp1,'mod_uwtcm:epop')
-    call getmem1d(exnerfl,1,kzp1,'mod_uwtcm:exnerfl')
-    call getmem1d(rexnerfl,1,kzp1,'mod_uwtcm:rexnerfl')
-    call getmem1d(shear,2,kz,'mod_uwtcm:shear')
-    call getmem1d(rcldb,1,kzp1,'mod_uwtcm:rcldb')
-    call getmem1d(sm,1,kzp1,'mod_uwtcm:sm')
-    call getmem1d(sh,1,kzp1,'mod_uwtcm:sh')
-
-    ! local variables on half levels
-    call getmem1d(ux,1,kz,'mod_uwtcm:ux')
-    call getmem1d(vx,1,kz,'mod_uwtcm:vx')
-    call getmem1d(qx,1,kz,'mod_uwtcm:qx')
-    call getmem1d(thx,1,kz,'mod_uwtcm:thx')
-    call getmem1d(uthvx,1,kz,'mod_uwtcm:uthvx')
-    call getmem1d(zax,1,kz,'mod_uwtcm:zax')
-    call getmem1d(kethl,1,kz,'mod_uwtcm:kethl')
-    call getmem1d(thlx,1,kz,'mod_uwtcm:thlx')
-    call getmem1d(thlxs,1,kz,'mod_uwtcm:thlxs')
-    call getmem1d(thxs,1,kz,'mod_uwtcm:thxs')
-    call getmem1d(tx,1,kz,'mod_uwtcm:tx')
-    call getmem1d(tvx,1,kz,'mod_uwtcm:tvx')
-    call getmem1d(rttenx,1,kz,'mod_uwtcm:rttenx')
-    call getmem1d(preshl,1,kz,'mod_uwtcm:preshl')
-    call getmem1d(qcx,1,kz,'mod_uwtcm:qcx')
-    call getmem1d(qwx,1,kz,'mod_uwtcm:qwx')
-    call getmem1d(qwxs,1,kz,'mod_uwtcm:qwxs')
-    call getmem1d(udzq,1,kz,'mod_uwtcm:udzq')
-    call getmem1d(rrhoxhl,1,kz,'mod_uwtcm:rrhoxhl')
-    call getmem1d(uxs,1,kz,'mod_uwtcm:uxs')
-    call getmem1d(qxs,1,kz,'mod_uwtcm:qxs')
-    call getmem1d(rhoxhl,1,kz,'mod_uwtcm:rhoxhl')
-    call getmem1d(exnerhl,1,kz,'mod_uwtcm:exnerhl')
-    call getmem1d(rexnerhl,1,kz,'mod_uwtcm:rexnerhl')
-    call getmem1d(rdzq,1,kz,'mod_uwtcm:rdzq')
-    call getmem1d(vxs,1,kz,'mod_uwtcm:vxs')
-    call getmem1d(qcxs,1,kz,'mod_uwtcm:qcxs')
-    call getmem1d(aimp,1,kz,'mod_uwtcm:aimp')
-    call getmem1d(bimp,1,kz,'mod_uwtcm:bimp')
-    call getmem1d(cimp,1,kz,'mod_uwtcm:cimp')
-    call getmem1d(uimp1,1,kz,'mod_uwtcm:uimp1')
-    call getmem1d(rimp1,1,kz,'mod_uwtcm:rimp1')
-    call getmem1d(uimp2,1,kz,'mod_uwtcm:uimp2')
-    call getmem1d(rimp2,1,kz,'mod_uwtcm:rimp2')
-
-    if ( implicit_ice .and. ipptls > 1 ) then
-      call getmem1d(qix,1,kz,'mod_uwtcm:qix')
-      call getmem1d(qixs,1,kz,'mod_uwtcm:qixs')
-    end if
-
-    if ( ichem == 1 ) then
-      call getmem2d(chix,1,kz,1,ntr,'mod_uwtcm:chix')
-      call getmem2d(chixs,1,kz,1,ntr,'mod_uwtcm:chixs')
-      call getmem1d(chifxx,1,ntr,'mod_uwtcm:chifxx')
-    end if
-
-    call getmem1d(isice,1,kz,'mod_uwtcm:isice')
-    call getmem1d(ktop,1,kz,'mod_uwtcm:ktop')
-    call getmem1d(kbot,1,kz,'mod_uwtcm:kbot')
-
     rczero = d_one/czero
     tkefac = czero**(2.0_rkx/3.0_rkx)
     b1 = czero*d_two**(3.0_rkx/2.0_rkx)
@@ -246,14 +136,36 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     integer(ik4) ::  i , j , k , itr
     integer(ik4) :: ilay , kpbconv , iteration
-    real(rkx) :: temps , templ , deltat , rvls , pfac , rpfac , tbbls
+    real(rkx) :: temps , templ , deltat , rvls , rpfac , tbbls
+    real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
+                 dvdz , thgb , pblx , ustxsq , qfxx , hfxx , uvdragx , &
+                 thvflx , q0s , tvfac , svs
+    ! real(rkx) :: kh0
+    real(rkx) :: thv0 , thx_t , thvx_t , dthv , dthv_t
+    integer(ik4) :: kpbl2dx  ! Top of PBL
+    integer(ik4) :: ktr      ! Tropopause
+    real(rkx) , dimension(kzp2) :: zqx
+    real(rkx) , dimension(kzp1) :: kth , kzm , rhoxfl , rrhoxfl , tke , &
+               tkes , bbls , nsquar , presfl , exnerfl , rexnerfl ,     &
+               rcldb ! , richnum , epop
+    real(rkx) , dimension(kz) :: shear , buoyan , rdza ! , svs
+    real(rkx) , dimension(kz) :: ux , vx , qx , thx , uthvx , zax , kethl , &
+               thlx , thlxs , thxs , tx , tvx , rttenx , preshl , qcx ,     &
+               qwx , qwxs , rrhoxhl , uxs , qxs , rhoxhl , exnerhl , &
+               rexnerhl , rdzq , vxs , qcxs , aimp , bimp , cimp , uimp1 ,  &
+               rimp1 , uimp2 , rimp2
+    real(rkx) , dimension(kz) :: qix , qixs
+    real(rkx) , dimension(kz,ntr) :: chix , chixs
+    real(rkx) , dimension(ntr) :: chifxx
+    integer(ik4) , dimension(kz) :: ktop , kbot
+
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    !Main do loop
+    ! Main do loop
     do i = ici1 , ici2
       do j = jci1 , jci2
 
@@ -264,9 +176,7 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 
         ! Copy in local versions of necessary variables
-        psbx = m2p%psb(j,i)
-        pfac = dt / psbx
-        rpfac = psbx / dt
+        rpfac = m2p%psb(j,i) / dt
         tskx = m2p%tg(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
@@ -291,6 +201,7 @@ module mod_pbl_uwtcm
           vx(k)  = m2p%vxatm(j,i,k)
           zax(k) = m2p%za(j,i,k)
           rttenx(k) = m2p%heatrt(j,i,k)
+          preshl(k) = m2p%patm(j,i,k)
         end do
 
         if ( implicit_ice .and. ipptls > 1 ) then
@@ -309,13 +220,9 @@ module mod_pbl_uwtcm
         end if
 
         ! Set all the save variables (used for determining the tendencies)
-        tkes(kzp1) = tke(kzp1)
         do k = 1 , kz
-          ! pressure at half levels
-          preshl(k) = m2p%patm(j,i,k)
           ! Level spacing
-          udzq(k) = m2p%dzq(j,i,k)
-          rdzq(k) = d_one/udzq(k)
+          rdzq(k) = d_one/m2p%dzq(j,i,k)
           ! Exner function
           exnerhl(k) = (preshl(k)/p00)**rovcp
           rexnerhl(k) = d_one/exnerhl(k)
@@ -329,16 +236,24 @@ module mod_pbl_uwtcm
           uthvx(k) = thx(k)*tvcon
           ! Liquid water potential temperature (accounting for ice)
           thlx(k) = thx(k) - wlhvocp*qcx(k)*rexnerhl(k)
-          thlxs(k) = thlx(k)
-          ! save initial values of winds, thx, and qx
-          tkes(k) = tke(k)
+        end do
+
+        ! save initial values
+        do k = 1 , kz
           uxs(k)  = ux(k)
           vxs(k)  = vx(k)
           thxs(k) = thx(k)
           qxs(k) = qx(k)
           qwxs(k) = qwx(k)
           qcxs(k) = qcx(k)
-          ! density at half levels
+          thlxs(k) = thlx(k)
+        end do
+        do k = 1 , kzp1
+          tkes(k) = tke(k)
+        end do
+
+        ! density at half levels
+        do k = 1 , kz
           rhoxhl(k) = preshl(k)/(rgas*tvx(k))
           rrhoxhl(k) = d_one/rhoxhl(k)
         end do
@@ -357,17 +272,22 @@ module mod_pbl_uwtcm
           end do
         end if
 
+        rdza(1) = d_zero
+        rhoxfl(1) = rhoxhl(1)
+        rrhoxfl(1) = d_one/rhoxfl(1)
         do k = 2 , kz
           ! Level spacing
-          dza(k) = zax(k-1)-zax(k)
-          rdza(k) = d_one/dza(k)
-          ! Exner function
-          exnerfl(k) = (presfl(k)/p00)**rovcp
-          rexnerfl(k) = d_one/exnerfl(k)
+          rdza(k) = d_one/(zax(k-1)-zax(k))
           ! Density
           fracz = (zqx(k)-zax(k))*rdza(k)
           rhoxfl(k) = rhoxhl(k) + (rhoxhl(k-1)-rhoxhl(k))*fracz
           rrhoxfl(k) = d_one/rhoxfl(k)
+        end do
+
+        do k = 1 , kz
+          ! Exner function
+          exnerfl(k) = (presfl(k)/p00)**rovcp
+          rexnerfl(k) = d_one/exnerfl(k)
           ! Wind gradient and shear
           !dudz = (ux(k-1) - ux(k)) * rdza(k)
           !dvdz = (vx(k-1) - vx(k)) * rdza(k)
@@ -386,13 +306,18 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tskx * rexnerfl(kzp1)
         ! Calculate the saturation mixing ratio just above the surface
-        q0s = pfwsat(tskx,presfl(kzp1))
+        if ( m2p%ldmsk(j,i) > 0 ) then
+          tvfac = d_one + ep1*m2p%q2m(j,i)
+        else
+          q0s = pfwsat(tskx,presfl(kzp1))
+          tvfac = d_one + ep1*q0s
+        end if
         !q0s = ep2/(presfl(kzp1)/(d_100*svp1pa * &
         !           exp(svp2*(tskx-tzero)/(tskx-svp3)))-d_one)
         ! density at the surface
         rhoxsf = presfl(kzp1)/(rgas*tvx(kz))
         ! Calculate the virtual temperature right above the surface
-        thv0 = thgb * (d_one + ep1*q0s)
+        thv0 = thgb * (d_one + tvfac)
         ! Calculate the change in virtual potential temperature from
         ! the surface to the first interface
         dthv = uthvx(kz) - thv0
@@ -405,11 +330,10 @@ module mod_pbl_uwtcm
         vflxp = -uvdragx*vx(kz)/rhoxsf
         ustxsq = sqrt(uflxp*uflxp+vflxp*vflxp)
         ! Estimate of the surface virtual heat flux
-        thvflx = hfxx/rhoxsf*rcpd*(d_one+ep1*q0s) + &
-                 ep1/thgb*qfxx*rhoxsf
+        thvflx = hfxx/rhoxsf*rcpd*tvfac + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
+        ! kh0 = vonkar*d_one*sqrt(max(uwtkemin,tkefac*ustxsq))
 
 !*******************************************************************************
 !*******************************************************************************
@@ -527,7 +451,7 @@ module mod_pbl_uwtcm
         do k = 2 , kz
           aimp(k) = -(rhoxfl(k)*rrhoxhl(k)) * kzm(k)*dt*rdzq(k)*rdza(k)
         end do
-        do k = 1 , kz-1
+        do k = 1 , kzm1
           cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k)) * kzm(k+1)*dt*rdzq(k)*rdza(k+1)
         end do
         cimp(kz) = d_zero
@@ -559,7 +483,7 @@ module mod_pbl_uwtcm
           do  k = 2 , kz
             aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
           end do
-          do  k = 1 , kz-1
+          do  k = 1 , kzm1
             cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*kth(k+1)*dt*rdzq(k)*rdza(k+1)
           end do
           cimp(kz) = d_zero
@@ -585,7 +509,7 @@ module mod_pbl_uwtcm
           do k = 2 , kz
             aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
           end do
-          do k = 1 , kz-1
+          do k = 1 , kzm1
             cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
                        kth(k+1) * dt*rdzq(k)*rdza(k+1)
           end do
@@ -625,9 +549,10 @@ module mod_pbl_uwtcm
 
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
-        kh0 = vonkar*2*sqrt(max(uwtkemin,tkefac*ustxsq))
+        ! kh0 = vonkar*2*sqrt(max(uwtkemin,tkefac*ustxsq))
 
         ! Estimate the surface N^2 from the surface virtual heat flux
+        dthv = uthvx(kz) - thv0
         nsquar(kzp1) = egrav/uthvx(kz) * dthv / zax(kz)
         ! nsquar(kzp1) = -egrav/thgb*thvflx/kh0
 !*******************************************************************************
@@ -643,17 +568,19 @@ module mod_pbl_uwtcm
         !   c. semi-implicit calculation of dissipation term and
         !      implicit calculation of turbulent transfer term
         ! first, buoyancy and shear terms
+        buoyan(:) = d_zero
+        shear(:) = d_zero
         sandb: &
         do k = 2 , kz
           ! Recalculate the shear and the squared
           ! magnitude of the shear
           dudz = (ux(k-1) - ux(k)) * rdza(k)
           dvdz = (vx(k-1) - vx(k)) * rdza(k)
-          svs(k) = dudz*dudz + dvdz*dvdz
+          svs = dudz*dudz + dvdz*dvdz
           ! compute buoyancy term with new values of thetal
           buoyan(k) = -kth(k) * nsquar(k)
           ! compute shear term with new values of svs
-          shear(k)  = kzm(k) * svs(k)
+          shear(k)  = kzm(k) * svs
         end do sandb
         ! Add radiative divergence contribution to the buoyancy term
         ! (only if there is cloud water at the current level)
@@ -692,12 +619,11 @@ module mod_pbl_uwtcm
                           (rhoxhl(k)*rrhoxfl(k))*kethl(k)*rdzq(k)*rdza(k)
             end if
           else
-            cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*    &
-                kethl(k)*dt*rdzq(k)*rdza(k)
+            cimp(k-1) = -(rhoxhl(k)*rrhoxfl(k))*kethl(k)*dt*rdzq(k)*rdza(k)
             tbbls = max(bbls(k),bbls(k+1))
             if ( tbbls > d_zero ) then
               bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + &
-                  dt * sqrt(tke(k))*rczero/tbbls
+                           dt * sqrt(tke(k))*rczero/tbbls
             else
               bimp(k-1) = d_one - aimp(k-1) - cimp(k-1)
             end if
@@ -788,8 +714,8 @@ module mod_pbl_uwtcm
       ! Written and validated by Travis A. O'Brien 01/04/11
       implicit none
       integer(ik4) , intent(in) :: n
-      real(rkx) , dimension(n) , intent(in) :: a , b , c , v
-      real(rkx) , dimension(n) , intent(out) :: x
+      real(rkx) , dimension(:) , intent(in) :: a , b , c , v
+      real(rkx) , dimension(:) , intent(out) :: x
       real(rkx) , dimension(n) :: bp , vp
       real(rkx) :: m
       integer(ik4) :: i
@@ -814,7 +740,8 @@ module mod_pbl_uwtcm
       implicit none
       real(rkx) , intent(in) , dimension(kz) :: thlxin , qwxin
       ! local variables
-      real(rkx) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
+      real(rkx) :: tvbl , rcld , tvab , thvxfl , dtvdz
+      real(rkx) :: temps , templ , tempv , rvls
       integer(ik4) :: k
 
       do k = 2 , kz
@@ -865,6 +792,7 @@ module mod_pbl_uwtcm
       integer(ik4) :: k , ilay
       real(rkx) , parameter :: kthmax = 1.0e3_rkx
       real(rkx) , parameter :: kzmmax = 1.0e3_rkx
+      real(rkx) , dimension(kzp1) :: sm , sh
 
       a1ob1 = a1/b1
 
@@ -872,6 +800,7 @@ module mod_pbl_uwtcm
       ! kth and kzm are at full levels.
       ! kethl is at half levels.
 
+      kethl(:) = d_zero
       kzm(kzp1) = d_zero
       kth(kzp1) = d_zero
       kzm(1) = d_zero
@@ -974,6 +903,9 @@ module mod_pbl_uwtcm
       kpbconv = 0
       kpbl2dx = 0
       istabl = 1
+      do k = 1 , kzp1
+        bbls(k) = d_zero
+      end do
       do k = 2 , kzp1
         if ( nsquar(k) <= d_zero ) then
           if ( istabl == 1 ) then
@@ -989,7 +921,7 @@ module mod_pbl_uwtcm
       end do
 
       ! now see if they have sufficient buoyant convection to connect
-      ktop_save = ktop
+      ktop_save(:) = ktop(:)
       if ( kpbconv >= 1 ) then
         ibeg = 1
         bigloop: &
@@ -1165,7 +1097,7 @@ module mod_pbl_uwtcm
 !      end where
 !      ! First see if there is a cloud-topped boundary layer: its top will be
 !      ! stable, saturated, and below 700 mb
-!      do k = kz-1 , 1 , -1
+!      do k = kzm1 , 1 , -1
 !        if ( issaturated1d(k) .and. isstable1d(k) .and. isbelow7001d(k) ) then
 !          kmix2dx = k
 !          foundlayer = .true.
@@ -1175,7 +1107,7 @@ module mod_pbl_uwtcm
 !      ! If we didn't find a cloud-topped boundary layer, then find the first
 !      ! layer where the richardson number exceeds its threshold
 !      if ( .not. foundlayer ) then
-!        do k = kz-1 , 1 , -1
+!        do k = kzm1 , 1 , -1
 !          if ( isstable1d(k) ) then
 !            kmix2dx = k
 !            foundlayer = .true.
@@ -1190,7 +1122,7 @@ module mod_pbl_uwtcm
 !      end if
 !      ! Set the boundary layer top and the top of the convective layer
 !      kmix2dx = max(kmix2dx,3)
-!      kmix2dx = min(kmix2dx,kz-1)
+!      kmix2dx = min(kmix2dx,kzm1)
 !      kpbl2dx = kmix2dx
 !      ! Set that there is only one convective layer
 !      kpbconv = 1

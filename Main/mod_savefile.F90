@@ -944,7 +944,7 @@ module mod_savefile
       call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
       if ( ibltyp == 2 ) then
         call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
-        call myputvar(ncid,'atm2_tke',atm1_tke_io,varids,ivcc)
+        call myputvar(ncid,'atm2_tke',atm2_tke_io,varids,ivcc)
         call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
       else if ( ibltyp == 4 ) then
         call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
