@@ -748,10 +748,10 @@ module mod_savefile
         wrkdim(3) = dimids(idkh)
         call mydefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
         call mydefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_uz0',nf90_int,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_vz0',nf90_int,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_thz0',nf90_int,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_qz0',nf90_int,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_uz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_vz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_thz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_qz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
       if ( idynamic == 2 ) then
         wrkdim(3) = dimids(idkf)
