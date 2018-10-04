@@ -88,8 +88,8 @@ module mod_params
     namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
 
     namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
-      ifshf , ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq ,        &
-      subfrq , lakfrq , radfrq , chemfrq , enable_atm_vars ,             &
+      ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq ,        &
+      srffrq , subfrq , lakfrq , radfrq , chemfrq , enable_atm_vars ,    &
       enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
       enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
       enable_che_vars , enable_shf_vars , dirout , lsync , uvrotate ,    &
@@ -207,6 +207,7 @@ module mod_params
     iflak  = .false.
     ifopt  = .false.
     ifchem = .false.
+    outnwf  = 0.0_rkx ! Frequency in days to open new files.
     savfrq  = 0.0_rkx ! time interval for disposing sav output (days)
     atmfrq  = 6.0_rkx ! time interval for disposing atm output (hrs)
     radfrq  = 6.0_rkx ! time interval for disposing rad output (hrs)
@@ -1034,6 +1035,7 @@ module mod_params
     call bcast(ifsts)
     call bcast(ifopt)
     call bcast(ifchem)
+    call bcast(outnwf)
     call bcast(savfrq)
     call bcast(atmfrq)
     call bcast(radfrq)
@@ -1570,8 +1572,15 @@ module mod_params
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
 
+    if ( abs(outnwf) > d_zero ) then
+      alarm_out_nwf => rcm_alarm(rcmtimer,secpd*abs(outnwf))
+    else
+      alarm_out_nwf => null( )
+    end if
     if ( abs(savfrq) > d_zero ) then
       alarm_out_sav => rcm_alarm(rcmtimer,secpd*abs(savfrq))
+    else
+      alarm_out_sav => null( )
     end if
     alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
     alarm_out_rad => rcm_alarm(rcmtimer,secph*radfrq)
@@ -1723,6 +1732,11 @@ module mod_params
       if ( ichem == 1 ) then
         write(stdout,*) 'Create CHE files : ' , ifchem
         write(stdout,*) 'Create OPT files : ' , ifopt
+      end if
+      if ( .not. associated(alarm_out_nwf) ) then
+        write(stdout,'(a,f6.1)') ' Monthly new files are created'
+      else
+        write(stdout,'(a,f6.1)') ' Frequency in days for new files: ' , outnwf
       end if
       if ( int(savfrq) == 0 ) then
         write(stdout,'(a,f6.1)') ' Monthly SAV files are written'

@@ -151,6 +151,7 @@
 ! Model Output control
 !
  &outparam
+ outnwf  =     0.,   ! Day interval to open new files (0 = monthly)
  ifsave  = .true. ,  ! Create SAV files for restart
  savfrq  =     0.,   ! Frequency in days to create them (0 = monthly)
  ifatm   = .true. ,  ! Output ATM ?

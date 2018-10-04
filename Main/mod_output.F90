@@ -63,7 +63,7 @@ module mod_output
   subroutine output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche
-    logical :: ldosav , ldolak , ldosub , ldosts , ldoshf
+    logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
     logical :: ldoslab
     logical :: lstartup
     integer(ik4) :: i , j , k , kk , itr
@@ -121,6 +121,7 @@ module mod_output
       end if
     end if
 
+    lnewf = .false.
     ldoatm = .false.
     ldosrf = .false.
     ldolak = .false.
@@ -133,6 +134,11 @@ module mod_output
     ldoshf = .false.
 
     if ( rcmtimer%integrating( ) ) then
+      if ( associated(alarm_out_nwf) ) then
+        if ( alarm_out_nwf%act( ) .and. .not. rcmtimer%reached_endtime ) then
+          lnewf = .true.
+        end if
+      end if
       if ( associated(alarm_out_sav) ) then
         if ( savfrq > d_zero ) then
           if ( rcmtimer%reached_endtime .or. alarm_out_sav%act( ) ) then
@@ -1308,12 +1314,21 @@ module mod_output
       end if
     end if
 
-    if ( lfdomonth(rcmtimer%idate) .and. lmidnight(rcmtimer%idate) ) then
-      if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
+    if ( associated(alarm_out_nwf) ) then
+      if ( lnewf ) then
         call newoutfiles(rcmtimer%idate)
         call checktime(myid,trim(dirout)//pthsep//trim(domname)// &
                        '.'//tochar10(lastout))
         lastout = rcmtimer%idate
+      end if
+    else
+      if ( lfdomonth(rcmtimer%idate) .and. lmidnight(rcmtimer%idate) ) then
+        if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
+          call newoutfiles(rcmtimer%idate)
+          call checktime(myid,trim(dirout)//pthsep//trim(domname)// &
+                         '.'//tochar10(lastout))
+          lastout = rcmtimer%idate
+        end if
       end if
     end if
 

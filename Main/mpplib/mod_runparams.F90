@@ -50,6 +50,7 @@ module mod_runparams
 
   type(rcm_alarm) , save , public , pointer :: alarm_hour
   type(rcm_alarm) , save , public , pointer :: alarm_day
+  type(rcm_alarm) , save , public , pointer :: alarm_out_nwf
   type(rcm_alarm) , save , public , pointer :: alarm_out_sav
   type(rcm_alarm) , save , public , pointer :: alarm_out_atm
   type(rcm_alarm) , save , public , pointer :: alarm_out_rad

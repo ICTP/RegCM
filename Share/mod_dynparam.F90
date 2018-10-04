@@ -388,6 +388,7 @@ module mod_dynparam
   logical :: ifopt
   logical :: ifchem
 
+  real(rkx) :: outnwf
   real(rkx) :: savfrq
   real(rkx) :: atmfrq
   real(rkx) :: radfrq
