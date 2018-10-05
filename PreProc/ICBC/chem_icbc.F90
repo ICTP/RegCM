@@ -49,16 +49,17 @@ program chem_icbc
   character(len=8)   :: chemsimtype
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
         ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
-        iindirect , ichebdy , ichjphcld , ichbion , ismoke
+        iindirect , ichebdy , ichjphcld , ichbion , ismoke , ichlinox
   integer(ik4) :: ichem , iclimaaer
   integer(ik4) ibltyp , iboudy , isladvec , iqmsl , icup_lnd , icup_ocn , &
     ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl , iwavcpl ,      &
     iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,        &
     icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,    &
-    islab_ocean , itweak , ghg_year_const
-  real(rkx) :: temp_tend_maxval , wind_tend_maxval
+    islab_ocean , itweak , ghg_year_const , idiffu , icopcpl ,            &
+    iwhitecap , ifixsolar , year_offset , ipcpcool
+  real(rkx) :: temp_tend_maxval , wind_tend_maxval , fixedsolarval
   character(len=8) :: scenario
-  real(rkx) :: rdstemfac
+  real(rkx) :: rdstemfac , rocemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
   data dooxcl /.false./
@@ -68,17 +69,17 @@ program chem_icbc
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect , &
-    ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion , ismoke
+    ichsursrc , ichebdy , rdstemfac , rocemfac , ichjphcld , ichbion ,   &
+    ismoke , ichlinox
 
-  namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,        &
-    icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls ,          &
-    iocnflx , iocncpl , iwavcpl , iocnrough , iocnzoq , ichem ,       &
-    scenario ,  idcsst , iseaice , idesseas , iconvlwp , icldmstrat , &
-    icldfrac , irrtm , iclimao3 , iclimaaer , isolconst , icumcloud , &
-    islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval ,      &
-    ghg_year_const
-
-  namelist /physicsparam/ ichem , iclimaaer
+  namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
+    icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
+    iocnflx , iocncpl , iwavcpl , icopcpl , iocnrough , iocnzoq ,      &
+    ichem ,  scenario ,  idcsst , ipcpcool , iwhitecap , iseaice ,     &
+    idesseas , iconvlwp , icldmstrat , icldfrac , irrtm , iclimao3 ,   &
+    iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
+    temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
+    fixedsolarval , year_offset
 
   call header('chem_icbc')
   !
@@ -105,6 +106,11 @@ program chem_icbc
     stop
   end if
   read(ipunit, physicsparam, iostat=ierr)
+  if ( ierr /= 0 ) then
+    write (stderr,*) 'Error reading physicsparam namelist'
+    write (stderr,*) 'Check namelist content and syntax'
+    stop
+  end if
   if ( ichem == 1 .or. iclimaaer == 1 ) then
     rewind(ipunit)
     read(ipunit, chemparam, iostat=ierr)
