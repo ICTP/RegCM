@@ -90,9 +90,9 @@ module mod_earth
     real(rkx) :: rlat , rlon
     rlat = max(min(lat,89.99_rkx),-89.99_rkx)*degrad
     rlon = lon*degrad
-    x = erkm * cos(rlat) * sin(rlon)
-    y = erkm * sin(rlat)
-    z = erkm * cos(rlat) * cos(rlon)
+    x = cos(rlat) * sin(rlon)
+    y = sin(rlat)
+    z = cos(rlat) * cos(rlon)
   end subroutine ll2xyz_values
 
   subroutine ll2xyz_array(lat,lon,x)
@@ -103,9 +103,9 @@ module mod_earth
     real(rkx) :: rlat , rlon
     rlat = max(min(lat,89.99_rkx),-89.99_rkx)*degrad
     rlon = lon*degrad
-    x(1) = erkm * cos(rlat) * sin(rlon)
-    x(2) = erkm * sin(rlat)
-    x(3) = erkm * cos(rlat) * cos(rlon)
+    x(1) = cos(rlat) * sin(rlon)
+    x(2) = sin(rlat)
+    x(3) = cos(rlat) * cos(rlon)
   end subroutine ll2xyz_array
 
   subroutine ll2xyz_1d(ni,lat,lon,x)
@@ -119,9 +119,9 @@ module mod_earth
     do i = 1 , ni
       rlat = max(min(lat(i),89.99_rkx),-89.99_rkx)*degrad
       rlon = lon(i)*degrad
-      x(1,i) = erkm * cos(rlat) * sin(rlon)
-      x(2,i) = erkm * sin(rlat)
-      x(3,i) = erkm * cos(rlat) * cos(rlon)
+      x(1,i) = cos(rlat) * sin(rlon)
+      x(2,i) = sin(rlat)
+      x(3,i) = cos(rlat) * cos(rlon)
     end do
   end subroutine ll2xyz_1d
 
@@ -140,9 +140,9 @@ module mod_earth
       do i = 1 , size(lon)
         rlat = max(min(lat(j),89.99_rkx),-89.99_rkx)*degrad
         rlon = lon(i)*degrad
-        x(1,n) = erkm * cos(rlat) * sin(rlon)
-        x(2,n) = erkm * sin(rlat)
-        x(3,n) = erkm * cos(rlat) * cos(rlon)
+        x(1,n) = cos(rlat) * sin(rlon)
+        x(2,n) = sin(rlat)
+        x(3,n) = cos(rlat) * cos(rlon)
         n = n + 1
       end do
     end do
@@ -164,9 +164,9 @@ module mod_earth
       do i = 1 , size(lat,1)
         rlat = max(min(lat(i,j),89.99_rkx),-89.99_rkx)*degrad
         rlon = lon(i,j)*degrad
-        x(1,n) = erkm * cos(rlat) * sin(rlon)
-        x(2,n) = erkm * sin(rlat)
-        x(3,n) = erkm * cos(rlat) * cos(rlon)
+        x(1,n) = cos(rlat) * sin(rlon)
+        x(2,n) = sin(rlat)
+        x(3,n) = cos(rlat) * cos(rlon)
         n = n + 1
       end do
     end do

@@ -26,6 +26,7 @@ module mod_kdinterp
   use mod_message
   use mod_earth
   use mod_spbarcoord
+  use mod_dynparam , only : idynamic
   use mod_kdtree2
 
   private
@@ -64,7 +65,7 @@ module mod_kdinterp
   end interface compwgt_genlin
 
   ! Need at least three point to triangulate
-  integer(ik4) , parameter :: minp = 3
+  integer(ik4) , parameter :: minp = 4
 
   ! If resolution is decreased, try not to chocke memory...
   integer(ik4) , parameter :: maxp = 64
@@ -72,7 +73,8 @@ module mod_kdinterp
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: h_missing_value = missl
   real(rkx) , parameter :: missc = -9990.0_rkx
-  real(rkx) , parameter :: mindis = 1.0e-3_rkx
+  real(rkx) , parameter :: mindis = 1.0e-8_rkx
+  real(rkx) , parameter :: mindis2 = mindis*mindis
 
   type pwgt
     integer(ik4) :: i , j
@@ -109,7 +111,7 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i1 , j1
     integer(ik4) :: imode
     real(rkx) :: dx , r2
 
@@ -134,9 +136,9 @@ module mod_kdinterp
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = dx*dx*roi*roi
+        r2 = (dx*dx*roi*roi)/erkm
       else
-        r2 = dx*dx
+        r2 = (dx*dx)/erkm
       end if
     end if
     nj = size(tlat,1)
@@ -172,11 +174,14 @@ module mod_kdinterp
         end do
       end do
     else
+      r2 = gcdist_simple(slat(1),slon(1),slat(n1),slon(n2)) / &
+                   (erkm*sqrt(real(n1*n2,rkx)))
+      r2 = r2 * r2
       do i = 1 , ni
         if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
         do j = 1 , nj
-          np = minp
           call ll2xyz(tlat(j,i),tlon(j,i),p)
+          np = max(kdtree2_r_count(mr,p,r2),minp)
           allocate(results(np))
           call kdtree2_n_nearest(mr,p,np,results)
           call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
@@ -225,9 +230,9 @@ module mod_kdinterp
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = dx*dx*roi*roi
+        r2 = (dx*dx*roi*roi)/erkm
       else
-        r2 = dx*dx
+        r2 = (dx*dx)/erkm
       end if
     end if
     ni = size(tlat)
@@ -361,9 +366,9 @@ module mod_kdinterp
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = dx*dx*roi*roi
+        r2 = (dx*dx*roi*roi)/erkm
       else
-        r2 = dx*dx
+        r2 = (dx*dx)/erkm
       end if
     end if
     ni = size(tlat,2)
@@ -455,9 +460,9 @@ module mod_kdinterp
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = dx*dx*roi*roi
+        r2 = (dx*dx*roi*roi)/erkm
       else
-        r2 = dx*dx
+        r2 = (dx*dx)/erkm
       end if
     end if
     ni = size(tlat)
@@ -466,18 +471,18 @@ module mod_kdinterp
     h_i%tg%tshape(2) = ni
     allocate(h_i%tg%ft(nj,ni))
     write(stdout,'(a)',advance='no') ' Computing weights'
-    do i = 1 , ni
-      if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
-      do j = 1 , nj
-        call ll2xyz(tlat(i),tlon(j),p)
-        np = kdtree2_r_count(mr,p,r2)
-        if ( np < minp ) then
-          np = minp
-          allocate(results(minp))
-          call kdtree2_n_nearest(mr,p,np,results)
-          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
-        else
-          if ( imode == 1 ) then
+    if ( imode == 1 ) then
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          call ll2xyz(tlat(i),tlon(j),p)
+          np = kdtree2_r_count(mr,p,r2)
+          if ( np < minp ) then
+            np = minp
+            allocate(results(minp))
+            call kdtree2_n_nearest(mr,p,np,results)
+            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          else
             if ( np > maxp ) then
               np = maxp
               allocate(results(maxp))
@@ -488,17 +493,25 @@ module mod_kdinterp
               np = nf
             end if
             call compwgt_distwei(np,n2,results,h_i%tg%ft(j,i)%wgt)
-          else
-            np = minp
-            allocate(results(np))
-            call kdtree2_n_nearest(mr,p,np,results)
-            call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
           end if
-        end if
-        h_i%tg%ft(j,i)%np = np
-        deallocate(results)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
       end do
-    end do
+    else
+      do i = 1 , ni
+        if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
+        do j = 1 , nj
+          np = minp
+          call ll2xyz(tlat(i),tlon(j),p)
+          allocate(results(np))
+          call kdtree2_n_nearest(mr,p,np,results)
+          call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
+          h_i%tg%ft(j,i)%np = np
+          deallocate(results)
+        end do
+      end do
+    end if
     deallocate(x)
     call kdtree2_destroy(mr)
     write(stdout,'(a)') ' Done.'
@@ -595,8 +608,11 @@ module mod_kdinterp
         end if
       end do
     end do
-    ! call smther(f)
-    call smtdsmt(f)
+    if ( idynamic == 2 ) then
+      call smther(f)
+    else
+      call smtdsmt(f)
+    end if
     f = max(gmin,min(gmax,f))
   end subroutine interp_2d
 
@@ -810,18 +826,18 @@ module mod_kdinterp
         if ( all(tmp(j-1:j+1,i-1:i+1) > missc) ) then
           f(j,i) = (tmp(j-1,i-1)+tmp(j-1,i)+tmp(j-1,i+1) + &
                     tmp(j+1,i-1)+tmp(j+1,i)+tmp(j+1,i+1) + &
-                    tmp(j,i-1)+ tmp(j,i+1)+6.0_rkx* tmp(j,i))/14.0_rkx
+                    tmp(j,i-1)+ tmp(j,i+1)+6.0_rkx*tmp(j,i))/14.0_rkx
         end if
       end do
     end do
     do i = is , ie
       if ( all(tmp(je:j2,i-1:i+1) > missc) ) then
         f(j2,i) = (tmp(je,i-1)+tmp(je,i)+tmp(je,i+1) + &
-                   tmp(j2,i-1)+ tmp(j2,i+1)+3.0_rkx* tmp(j2,i))/8.0_rkx
+                   tmp(j2,i-1)+ tmp(j2,i+1)+3.0_rkx*tmp(j2,i))/8.0_rkx
       end if
       if ( all(tmp(j1:js,i-1:i+1) > missc) ) then
         f(j1,i) = (tmp(js,i-1)+tmp(js,i)+tmp(js,i+1) + &
-                   tmp(j1,i-1)+ tmp(j1,i+1)+3.0_rkx* tmp(j1,i))/8.0_rkx
+                   tmp(j1,i-1)+ tmp(j1,i+1)+3.0_rkx*tmp(j1,i))/8.0_rkx
       end if
     end do
     do j = js , je
@@ -831,7 +847,7 @@ module mod_kdinterp
       end if
       if ( all(tmp(j-1:j+1,i1:is) > missc) ) then
         f(j,i1) = (tmp(j-1,is)+tmp(j,is)+tmp(j+1,is) + &
-                   tmp(j+1,i1)+tmp(j-1,i1)+3.0_rkx* tmp(j,i1))/8.0_rkx
+                   tmp(j+1,i1)+tmp(j-1,i1)+3.0_rkx*tmp(j,i1))/8.0_rkx
       end if
     end do
     if ( all(tmp(j1:js,i1:is) > missc) ) then
@@ -916,16 +932,16 @@ module mod_kdinterp
     end do
     allocate(w(np))
     do n = 1 , np
-      rx = sqrt(r(n)%dis/rmax)
-      if ( rx < 1.0e-4_rkx ) then
+      if ( r(n)%dis < mindis2 ) then
         np = 1
         deallocate(w)
         allocate(w(1))
         w(1)%i = (r(n)%idx-1)/n2 + 1
         w(1)%j = r(n)%idx - n2*(w(1)%i-1)
         w(1)%wgt = d_one
-        exit
+        return
       end if
+      rx = sqrt(r(n)%dis/rmax)
       w(n)%i = (r(n)%idx-1)/n2 + 1
       w(n)%j = r(n)%idx - n2*(w(n)%i-1)
       w(n)%wgt = d_one/rx
@@ -945,7 +961,7 @@ module mod_kdinterp
 
     ! Check perfect match
     do n = 1 , np
-      if ( r(n)%dis < 1.0e-4_rkx ) then
+      if ( r(n)%dis < mindis2 ) then
         np = 1
         allocate(w(1))
         w(1)%i = r(n)%idx
@@ -982,7 +998,7 @@ module mod_kdinterp
 
     ! Check perfect match
     do n = 1 , np
-      if ( r(n)%dis < 1.0e-4_rkx ) then
+      if ( r(n)%dis < mindis2 ) then
         np = 1
         allocate(w(1))
         w(1)%i = (r(n)%idx-1)/n2 + 1

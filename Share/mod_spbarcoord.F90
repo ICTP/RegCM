@@ -95,9 +95,9 @@ module mod_spbarcoord
     end do
 
     ! Double check sum weights is one
-    norm = (sum(lambda(1:np))-1.0_rkx)/real(np)
-    if ( norm > epsilon(1.0_rkx) ) then
-      lambda(:) = lambda(:) - norm
+    norm = sum(lambda(1:np))-1.0_rkx
+    if ( abs(norm) > epsilon(1.0_rkx) ) then
+      lambda(:) = lambda(:) - norm * (1.0_rkx-lambda(:))
     end if
 
     contains
