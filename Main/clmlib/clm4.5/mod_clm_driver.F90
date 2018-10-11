@@ -86,6 +86,7 @@ module mod_clm_driver
   use mod_clm_pftdyn , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal
 #ifdef CN
   use mod_clm_pftdyn , only : pftdyn_cnbal
+  use mod_clm_time_manager , only : is_end_curr_year
 #endif
   use mod_clm_dynland , only : dynland_hwcontent
   use mod_clm_varcon , only : isturb
