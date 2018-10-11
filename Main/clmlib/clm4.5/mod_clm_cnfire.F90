@@ -21,6 +21,7 @@ module mod_clm_cnfire
   use mod_clm_type
   use mod_clm_decomp
   use mod_clm_nchelper
+  use mod_clm_time_manager , only : is_end_curr_year
   use mod_clm_subgridave , only : p2c
   use mod_clm_varpar , only : nlevdecomp , ndecomp_pools
   use mod_clm_varpar , only : maxpatch_pft , max_pft_per_col
