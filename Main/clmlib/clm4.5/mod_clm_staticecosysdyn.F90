@@ -43,7 +43,7 @@ module mod_clm_staticecosysdyn
   ! read monthly vegetation data for two months
   private :: readMonthlyVegetation
 
-  integer(ik4) :: InterpMonths1      ! saved month index
+  integer(ik4) :: InterpMonths1 = -9999 ! saved month index
   real(rk8) , dimension(2) :: timwt  ! time weights for month 1 and month 2
   ! lai for interpolation (2 months)
   real(rk8) , allocatable , dimension(:,:) :: mlai2t
@@ -63,7 +63,6 @@ module mod_clm_staticecosysdyn
     integer(ik4) :: ier          ! error code
     integer(ik4) :: begp , endp  ! local beg and end p index
 
-    InterpMonths1 = -999  ! saved month index
     call get_proc_bounds(begp=begp,endp=endp)
     ier = 0
     if(.not.allocated(mlai2t))allocate (mlai2t(begp:endp,2), &
@@ -208,7 +207,7 @@ module mod_clm_staticecosysdyn
   !
   ! Determine if 2 new months of data are to be read.
   !
-  subroutine interpMonthlyVeg ()
+  subroutine interpMonthlyVeg()
     implicit none
     integer(ik4) :: kyr   ! year (0, ...) for nstep+1
     integer(ik4) :: kmo   ! month (1, ..., 12)
@@ -231,8 +230,9 @@ module mod_clm_staticecosysdyn
     if ( InterpMonths1 /= months(1) ) then
       if (myid == italk) then
         write(stdout,*) 'Attempting to read monthly vegetation data .....'
-        write(stdout,*) 'At ',trim(rcmtimer%str( ))
+        write(stdout,*) 'At ',trim(tochar(nextdate))
         write(stdout,*) 'Month = ',kmo,' Day = ',kda
+        write(stdout,*) 'Reading months : ',months(1),months(2)
       end if
       call readMonthlyVegetation (fsurdat, months)
       InterpMonths1 = months(1)

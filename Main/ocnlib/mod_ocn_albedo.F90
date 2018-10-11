@@ -54,7 +54,6 @@ module mod_ocn_albedo
   !
   subroutine ocn_albedo
     implicit none
-!
     real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , &
                  cf1 , cff , conn , cons , wspd , czeta , czf , &
                  dfalbl , dfalbs , dralbl , dralbs , sl , sl2 , &

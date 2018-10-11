@@ -387,14 +387,14 @@ module mod_init
       call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
       call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
       call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(swalb_io,lms%swalb,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(lwalb_io,lms%lwalb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
       call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
-      call grid_distribute(albvs_io,albvs,jci1,jci2,ici1,ici2)
-      call grid_distribute(albvl_io,albvl,jci1,jci2,ici1,ici2)
       call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
       call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
       call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
@@ -412,6 +412,8 @@ module mod_init
       aldirl = sum(lms%lwdiralb,1)*rdnnsg
       aldifs = sum(lms%swdifalb,1)*rdnnsg
       aldifl = sum(lms%lwdifalb,1)*rdnnsg
+      albvs = sum(lms%swalb,1)*rdnnsg
+      albvl = sum(lms%lwalb,1)*rdnnsg
       sfs%tg = sum(lms%tgrd,1)*rdnnsg
 
 #ifndef CLM
@@ -466,6 +468,9 @@ module mod_init
         call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
         call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
       end if
+
+      call bcast(declin)
+      call bcast(solcon)
 
       if ( islab_ocean == 1 .and. do_restore_sst ) then
         call grid_distribute(qflux_restore_sst_io,qflux_restore_sst, &

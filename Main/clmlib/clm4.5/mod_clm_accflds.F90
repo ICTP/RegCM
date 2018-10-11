@@ -30,7 +30,7 @@ module mod_clm_accflds
   use mod_clm_accumul , only : init_accum_field , print_accum_fields
   use mod_clm_varcon , only : secspday , tfrz , spval
   use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_time_manager , only : is_end_curr_day
+  use mod_clm_time_manager , only : is_end_curr_day , is_end_curr_year
   use mod_clm_accumul , only : update_accum_field , extract_accum_field
   use mod_clm_pftvarcon , only : nwcereal , nwcerealirrig , mxtmp , baset
   use mod_clm_time_manager , only : get_start_date
@@ -619,7 +619,7 @@ module mod_clm_accflds
 
     ! Accumulate and extract AGDDTW (gdd base twmax, which is 23 deg C
     ! for boreal woody pfts)
-    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
+    if ( is_end_curr_year( ) ) then
       do p = begp , endp
         rbufslp(p) = -99999.0_rk8
       end do
@@ -680,7 +680,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDD0
 
-      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
+      if ( is_end_curr_year( ) ) then
         do p = begp , endp
           rbufslp(p) = -99999.0_rk8
         end do
@@ -702,7 +702,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDD8
 
-      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
+      if ( is_end_curr_year( ) ) then
         do p = begp , endp
           rbufslp(p) = -99999.0_rk8
         end do
@@ -724,7 +724,7 @@ module mod_clm_accflds
 
       ! Accumulate and extract GDD10
 
-      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
+      if ( is_end_curr_year( ) ) then
         do p = begp , endp
           rbufslp(p) = -99999.0_rk8
         end do

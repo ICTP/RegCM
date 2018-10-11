@@ -31,6 +31,10 @@ module mod_clm_time_manager
    public :: is_end_curr_month
    ! return true if this is a restart run
    public :: is_restart
+   ! return true if year end
+   public :: is_end_curr_year
+   ! return true if year middle
+   public :: is_middle_curr_year
 
    public :: getdatetime
 
@@ -110,18 +114,28 @@ module mod_clm_time_manager
   logical function is_end_curr_day()
     implicit none
     ! Return true if current timestep is last timestep in current day.
-    is_end_curr_day = (nextdate%second_of_day == int(secpd, ik8))
+    integer(ik4) :: iy , im , id , ih , imm , iss
+    is_end_curr_day = (nextdate%second_of_day == int(0, ik8))
   end function is_end_curr_day
 
   logical function is_end_curr_month()
     implicit none
     ! Return true if current timestep is last timestep in current month.
-    type (rcm_time_and_date) :: id
-    id = monlast(nextdate)
-    is_end_curr_month = ( &
-            id%days_from_reference == nextdate%days_from_reference .and. &
-            is_end_curr_day() )
+    integer(ik4) :: iy , im , id , ih , imm , iss
+    call split_idate(nextdate,iy,im,id,ih,imm,iss)
+    is_end_curr_month = ( id == 1 .and. ih == 0 .and. &
+                          imm == 0 .and. iss == 0 )
   end function is_end_curr_month
+
+  logical function is_end_curr_year( )
+    implicit none
+    is_end_curr_year = date_is(nextdate,1,1) .and. time_is(nextdate,0)
+  end function is_end_curr_year
+
+  logical function is_middle_curr_year( )
+    implicit none
+    is_middle_curr_year = date_is(nextdate,7,1) .and. time_is(nextdate,0)
+  end function is_middle_curr_year
 
   logical function is_restart( )
     use mod_clm_varctl, only : nsrest, nsrContinue

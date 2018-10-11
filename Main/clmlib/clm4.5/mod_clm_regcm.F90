@@ -107,15 +107,21 @@ module mod_clm_regcm
       end do
     end do
     if ( rcmtimer%start( ) ) then
-      lms%swdiralb = 0.16_rkx
-      lms%swdifalb = 0.16_rkx
-      lms%lwdiralb = 0.32_rkx
-      lms%lwdifalb = 0.32_rkx
-      lms%swalb = (lms%swdiralb + lms%swdifalb)
-      lms%lwalb = (lms%lwdiralb + lms%lwdifalb)
       do n = 1 , nnsg
-        lms%tgbrd(n,:,:) = lm%tg(:,:)
-        lms%tgbb(n,:,:) = lm%tg(:,:)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( lm%ldmsk1(n,j,i) == 1 ) then
+              lms%swdiralb(n,j,i) = 0.16_rkx
+              lms%swdifalb(n,j,i) = 0.16_rkx
+              lms%lwdiralb(n,j,i) = 0.32_rkx
+              lms%lwdifalb(n,j,i) = 0.32_rkx
+              lms%swalb(n,j,i) = (lms%swdiralb(n,j,i) + lms%swdifalb(n,j,i))
+              lms%lwalb(n,j,i) = (lms%lwdiralb(n,j,i) + lms%lwdifalb(n,j,i))
+              lms%tgbrd(n,j,i) = lm%tg(j,i)
+              lms%tgbb(n,j,i) = lm%tg(j,i)
+            end if
+          end do
+        end do
       end do
     end if
   end subroutine initclm45
@@ -203,34 +209,75 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     real(rkx) , dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
+    integer(ik4) :: i , j , n
     ! Just get albedoes from clm_l2a
-    clm_l2a%notused = clm_l2a%albd(:,1)
     lastgood = lms%swdiralb
+    clm_l2a%notused = clm_l2a%albd(:,1)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
-    where ( lms%swdiralb > 0.9999_rkx )
-      lms%swdiralb = lastgood
-    end where
-    clm_l2a%notused = clm_l2a%albd(:,2)
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            if ( lms%swdiralb(n,j,i) > 0.9999_rkx ) then
+              lms%swdiralb(n,j,i) = lastgood(n,j,i)
+            end if
+          end if
+        end do
+      end do
+    end do
     lastgood = lms%lwdiralb
+    clm_l2a%notused = clm_l2a%albd(:,2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
-    where ( lms%lwdiralb > 0.9999_rkx )
-      lms%lwdiralb = lastgood
-    end where
-    clm_l2a%notused = clm_l2a%albi(:,1)
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            if ( lms%lwdiralb(n,j,i) > 0.9999_rkx ) then
+              lms%lwdiralb(n,j,i) = lastgood(n,j,i)
+            end if
+          end if
+        end do
+      end do
+    end do
     lastgood = lms%swdifalb
+    clm_l2a%notused = clm_l2a%albi(:,1)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
-    where ( lms%swdifalb > 0.9999_rkx )
-      lms%swdifalb = lastgood
-    end where
-    clm_l2a%notused = clm_l2a%albi(:,2)
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            if ( lms%swdifalb(n,j,i) > 0.9999_rkx ) then
+              lms%swdifalb(n,j,i) = lastgood(n,j,i)
+            end if
+          end if
+        end do
+      end do
+    end do
     lastgood = lms%lwdifalb
+    clm_l2a%notused = clm_l2a%albi(:,2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
-    where ( lms%lwdifalb > 0.9999_rkx )
-      lms%lwdifalb = lastgood
-    end where
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            if ( lms%lwdifalb(n,j,i) > 0.9999_rkx ) then
+              lms%lwdifalb(n,j,i) = lastgood(n,j,i)
+            end if
+          end if
+        end do
+      end do
+    end do
     ! This should be the vegetation albedo!
-    lms%swalb = lms%swdiralb+lms%swdifalb
-    lms%lwalb = lms%lwdiralb+lms%lwdifalb
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
+            lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
+          end if
+        end do
+      end do
+    end do
   end subroutine albedoclm45
 
   subroutine atmosphere_to_land(lm)

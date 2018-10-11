@@ -103,7 +103,7 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_clm_accflds.o : mod_clm_accflds.F90 mod_clm_accumul.o mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_accumul.o : mod_clm_accumul.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_varcon.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
-mod_clm_activelayer.o : mod_clm_activelayer.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_clm_varctl.o mod_constants.o mod_date.o mod_intkinds.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
+mod_clm_activelayer.o : mod_clm_activelayer.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_clm_varctl.o mod_clm_time_manager.o mod_constants.o mod_date.o mod_intkinds.o mod_realkinds.o mod_runparams.o $(REGCM_ROOT)/makeinc
 mod_clm_atmlnd.o : mod_clm_atmlnd.F90 mod_clm_ch4varcon.o mod_clm_decomp.o mod_clm_drydep.o mod_clm_megan.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o $(REGCM_ROOT)/makeinc
 mod_clm_balancecheck.o : mod_clm_balancecheck.F90 mod_clm_atmlnd.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o $(REGCM_ROOT)/makeinc
 mod_clm_banddiagonal.o : mod_clm_banddiagonal.F90 lapack_dgbsv.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o $(REGCM_ROOT)/makeinc

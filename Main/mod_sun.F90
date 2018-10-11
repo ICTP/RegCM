@@ -308,16 +308,16 @@ module mod_sun
     ! Update solar constant for today
     !
     calday = real(yeardayfrac(rcmtimer%idate),rkx)
-    if ( rcmtimer%start( ) .or. doing_restart .or. alarm_day%act( ) ) then
+    if ( rcmtimer%start( ) .or. alarm_day%act( ) .or. doing_restart ) then
       if ( ifixsolar == 1 ) then
         ! Fix the solar constant; no diurnal or seasonal variability
         solcon = fixedsolarval
       else
         solcon = solar_irradiance( )
       end if
-      scon = solcon*d_1000
       call solar1( )
     end if
+    scon = solcon*d_1000
     if ( ifixsolar == 1 ) then
       coszrs(:,:) = 1.0
     else

@@ -660,7 +660,7 @@ module mod_clm_driver
         write(stdout,*) 'Writing initial CNDV FPCGRID'
       end if
       call histCNDV()
-    else if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
+    else if ( is_end_curr_year( ) ) then
       call split_idate(nextdate,yr,mon,day)
       ncdate = yr*10000 + mon*100 + day
       call split_idate(idate0,yr,mon,day)
@@ -687,8 +687,7 @@ module mod_clm_driver
     ! =======================================================================
 
 #if (defined CNDV)
-    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) .and. &
-         rcmtimer%integrating( ) )  then
+    if ( is_end_curr_year( ) .and.  rcmtimer%integrating( ) )  then
       call histCNDV()
       if (myid == italk) then
         write(stdout,*) 'Annual CNDV calculations are complete'

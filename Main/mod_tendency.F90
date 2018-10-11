@@ -248,10 +248,6 @@ module mod_tendency
       call new_pressure
     end if
     !
-    ! calculate solar zenith angle
-    !
-    call zenitm(coszrs)
-    !
     ! Compute new diffusion coefficients
     !
     call calc_coeff
@@ -614,6 +610,10 @@ module mod_tendency
       dtsq = dt*dt
       dtcb = dt*dt*dt
     end if
+    !
+    ! calculate new solar zenith angle
+    !
+    call zenitm(coszrs)
     !
     ! Print out noise parameter
     !

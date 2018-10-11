@@ -74,6 +74,7 @@ module mod_clm_cnfire
   ! Lightning input data stream
   type(clm_filetype) :: sdat_lnfm
   integer(ik4) :: ilnfmrec
+  logical :: is_first_timestep_new_year = .false.
 
   contains
   !
@@ -550,12 +551,13 @@ module mod_clm_cnfire
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       if ( dtrotr_col(c) > 0._rk8 ) then
-        if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
-          lfc(c) = 0._rk8
-        end if
-        if ( date_is(nextdate,1,1) .and. &
-             time_is(nextdate,int(dtsrf)) ) then
+        if ( is_first_timestep_new_year ) then
           lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
+          is_first_timestep_new_year = .false.
+        end if
+        if ( is_end_curr_year( ) ) then
+          lfc(c) = 0._rk8
+          is_first_timestep_new_year = .true.
         end if
       else
         lfc(c) = 0._rk8
@@ -572,7 +574,7 @@ module mod_clm_cnfire
 
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
-      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
+      if ( is_end_curr_year( ) ) then
         burndate(p) = 10000 ! init. value; actual range [0 365]
       end if
     end do
@@ -687,8 +689,7 @@ module mod_clm_cnfire
         !
 #ifdef DYNPFT
         if ( trotr1_col(c)+trotr2_col(c) > 0.6_rk8 ) then
-          if ( (date_is(nextdate,1,1) .and. time_is(nextdate,0)) .or. &
-                dtrotr_col(c) <=0._rk8 ) then
+          if ( is_end_curr_year( ) .or. dtrotr_col(c) <= 0._rk8 ) then
             fbac1(c)        = 0._rk8
             farea_burned(c) = baf_crop(c)+baf_peatf(c)
           else
@@ -1549,7 +1550,7 @@ module mod_clm_cnfire
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
       lfc2(c)=0._rk8
-      if ( date_is(nextdate,1,1) .and. time_is(nextdate,0) ) then
+      if ( is_end_curr_year( ) ) then
         if ( trotr1_col(c)+trotr2_col(c) > 0.6_rk8 .and. &
              dtrotr_col(c) > 0._rk8 .and. &
              lfc(c) > 0._rk8 .and. fbac1(c) == 0._rk8 ) then

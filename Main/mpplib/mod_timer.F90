@@ -157,7 +157,7 @@ module mod_timer
     t%nowinday = t%nowinday + int(t%model_timestep,ik4)
     t%idate = t%idate + t%intmdl
     t%lcount = t%lcount + 1
-    if ( t%nowinday > 86400 ) then
+    if ( t%nowinday >= 86400 ) then
       call split_idate(t%idate,t%year,t%month,t%day,t%hour,t%minute,t%second)
       t%nowinday = t%idate%second_of_day
     else

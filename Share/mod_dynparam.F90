@@ -655,8 +655,8 @@ module mod_dynparam
       return
     end if
     if (calendar == 'gregorian') then
-      dayspy = 365.25_rkx
-      vernal_equinox = 80.445_rkx
+      dayspy = 365.2422_rkx
+      vernal_equinox = 80.447_rkx
       ical = gregorian
     else if (calendar == 'noleap' .or. calendar == '365_day') then
       dayspy = 365.0_rkx

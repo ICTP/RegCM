@@ -167,8 +167,8 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: lndcat_io
 #endif
 
-  real(rkx) , public , pointer , dimension(:,:) :: albvs_io
-  real(rkx) , public , pointer , dimension(:,:) :: albvl_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: swalb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwalb_io
   real(rkx) , public , pointer , dimension(:,:,:) :: swdiralb_io
   real(rkx) , public , pointer , dimension(:,:,:) :: swdifalb_io
   real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io
@@ -337,8 +337,8 @@ module mod_savefile
                               icross1,icross2,1,ndpmax,'tlak_io')
       end if
 #endif
-      call getmem2d(albvs_io,jcross1,jcross2,icross1,icross2,'albvs')
-      call getmem2d(albvl_io,jcross1,jcross2,icross1,icross2,'albvl')
+      call getmem3d(swalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'swalb')
+      call getmem3d(lwalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'lwalb')
       call getmem3d(swdiralb_io,1,nnsg,jcross1,jcross2, &
                                        icross1,icross2,'swdiralb')
       call getmem3d(swdifalb_io,1,nnsg,jcross1,jcross2, &
@@ -371,6 +371,10 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
       ncstatus = nf90_get_att(ncid,nf90_global,'calendar',ical)
       call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
+      ncstatus = nf90_get_att(ncid,nf90_global,'declin',declin)
+      call check_ok(__FILE__,__LINE__,'Cannot get attribute declin')
+      ncstatus = nf90_get_att(ncid,nf90_global,'solcon',solcon)
+      call check_ok(__FILE__,__LINE__,'Cannot get attribute solcon')
       if ( debug_level > 0 ) then
         ! Do no give any error. User may have increased debug just now.
         ncstatus = nf90_get_att(ncid,nf90_global,'dryini',rtmp)
@@ -632,10 +636,10 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot read lndcat')
       end if
 #endif
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'albvs'),albvs_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read albvs')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'albvl'),albvl_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read albvl')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swalb'),swalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read swalb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwalb'),lwalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read lwalb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdiralb'),swdiralb_io)
       call check_ok(__FILE__,__LINE__,'Cannot read swdiralb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdifalb'),swdifalb_io)
@@ -900,11 +904,11 @@ module mod_savefile
         call mydefvar(ncid,'lndcat',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
 #endif
-      call mydefvar(ncid,'albvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'albvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
       wrkdim(1) = dimids(idnnsg)
       wrkdim(2) = dimids(idjcross)
       wrkdim(3) = dimids(idicross)
+      call mydefvar(ncid,'swalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'swdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'swdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'lwdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -919,6 +923,10 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot save idatex')
       ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idate%calendar)
       call check_ok(__FILE__,__LINE__,'Cannot save calendar')
+      ncstatus = nf90_put_att(ncid,nf90_global,'declin',declin)
+      call check_ok(__FILE__,__LINE__,'Cannot save declin')
+      ncstatus = nf90_put_att(ncid,nf90_global,'solcon',solcon)
+      call check_ok(__FILE__,__LINE__,'Cannot save solcon')
       if ( debug_level > 0 ) then
         ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
         call check_ok(__FILE__,__LINE__,'Cannot save dryini')
@@ -1065,8 +1073,8 @@ module mod_savefile
         call myputvar(ncid,'lndcat',lndcat_io,varids,ivcc)
       end if
 #endif
-      call myputvar(ncid,'albvs',albvs_io,varids,ivcc)
-      call myputvar(ncid,'albvl',albvl_io,varids,ivcc)
+      call myputvar(ncid,'swalb',swalb_io,varids,ivcc)
+      call myputvar(ncid,'lwalb',lwalb_io,varids,ivcc)
       call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
       call myputvar(ncid,'swdifalb',swdifalb_io,varids,ivcc)
       call myputvar(ncid,'lwdiralb',lwdiralb_io,varids,ivcc)

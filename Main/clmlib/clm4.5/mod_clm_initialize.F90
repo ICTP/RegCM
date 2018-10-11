@@ -4,7 +4,7 @@ module mod_clm_initialize
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams
+  use mod_runparams , only : rcmtimer , dtsrf
   use mod_date
   use mod_stdio
   use mod_sunorbit
@@ -213,6 +213,7 @@ module mod_clm_initialize
     character(len=256) :: fnamer  ! name of netcdf restart file
     real(rk8) :: calday           ! calendar day
     real(rk8) :: caldaym1         ! calendar day for nstep-1
+    real(rk8) :: eccen , mvelpp , lambm0 , obliqr
     real(rk8) :: declin           ! solar declination angle in radians
     real(rk8) :: declinm1         ! solar declination angle in radians
     real(rk8) :: eccf             ! earth orbit eccentricity factor
@@ -418,20 +419,26 @@ module mod_clm_initialize
 
     if ( nsrest == nsrStartup ) then
       ! Initialize albedos (correct pft filters are needed)
-      if (finidat == ' ' .or. do_initsurfalb) then
+      if ( finidat == ' ' .or. do_initsurfalb ) then
         calday = get_curr_yearpoint()
         call orb_decl(calday,eccen,mvelpp,lambm0,obliqr,declin,eccf )
         caldaym1 = get_curr_yearpoint(offset=-int(dtsrf))
         call orb_decl(caldaym1,eccen,mvelpp,lambm0,obliqr,declinm1,eccf )
         call initSurfAlb(calday,declin,declinm1)
-      else if ( n_drydep > 0 .and. drydep_method == DD_XLND )then
+      end if
+      if ( n_drydep > 0 .and. drydep_method == DD_XLND )then
         ! Call interpMonthlyVeg for dry-deposition so that mlaidiff will
         ! be calculated This needs to be done even if CN or CNDV is on!
         call interpMonthlyVeg()
       end if
-      ! Determine gridcell averaged properties to send to atm
-      call clm_map2gcell(init=.true.)
+    else
+#if (!defined CN)
+      call interpMonthlyVeg()
+#endif
     end if
+
+    ! Determine gridcell averaged properties to send to atm
+    call clm_map2gcell(init=.true.)
 
   end subroutine initialize2
 

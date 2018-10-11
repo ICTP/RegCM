@@ -270,12 +270,23 @@ module mod_ocn_common
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
+    integer(ik4) :: i , j , n
     call ocn_interf(lm,lms,1)
     call ocn_albedo
     call l2c_ss(ocncomm,swdiral,lms%swdiralb)
     call l2c_ss(ocncomm,lwdiral,lms%lwdiralb)
     call l2c_ss(ocncomm,swdifal,lms%swdifalb)
     call l2c_ss(ocncomm,lwdifal,lms%lwdifalb)
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) /= 1 ) then
+            lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
+            lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
+          end if
+        end do
+      end do
+    end do
   end subroutine albedoocn
 
 end module mod_ocn_common
