@@ -645,7 +645,8 @@ module mod_clm_cnallocation
       !  The value is also used as a trigger here:
       !        -1.0 means to use the dynamic allocation (trees).
       if (stem_leaf(ivt(p)) == -1._rk8) then
-        f3 = (2.7/(1.0+exp(-0.004*(annsum_npp(p) - 300.0)))) - 0.4
+        f3 = (2.7_rk8/(1.0_rk8+exp(-0.004_rk8 * &
+               (annsum_npp(p) - 300.0_rk8)))) - 0.4_rk8
       else
         f3 = stem_leaf(ivt(p))
       end if
@@ -692,7 +693,7 @@ module mod_clm_cnallocation
               ! fraction alloc to leaf (from J Norman alloc curve)
               fleaf = fleafi(ivt(p)) * (exp(-bfact(ivt(p))) -         &
                       exp(-bfact(ivt(p))*hui(p)/huigrain(p))) / &
-                      (exp(-bfact(ivt(p)))-1)
+                      (exp(-bfact(ivt(p)))-1.0_rk8)
               aleaf(p) = max(1.e-5_rk8, (1._rk8 - aroot(p)) * fleaf)
               astem(p) = 1._rk8 - arepr(p) - aleaf(p) - aroot(p)
             end if

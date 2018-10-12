@@ -3,6 +3,7 @@ module mod_clm_cnsummary
   !
   ! Module for carbon and nitrogen summary calculations
   !
+  use mod_stdio
   use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
@@ -790,6 +791,16 @@ module mod_clm_cnsummary
         tempsum_npp(p) = tempsum_npp(p) + npp(p)
       else
         tempsum_npp(p) = 0.0_rk8
+      end if
+
+      if ( is_nan(tempsum_npp(p)) ) then
+        write(stderr,*) 'Error in CN Summary: tempsum_npp =', &
+                tempsum_npp(p), ' at pft ',p
+        write(0,*) 'npp(p) =', npp(p)
+        write(0,*) 'gpp(p) =', gpp(p)
+        write(0,*) 'ar(p) =', ar(p)
+        write(0,*) 'tempsum_npp(p) =', tempsum_npp(p)
+        call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
       ! aboveground NPP: leaf, live stem, dead stem (AGNPP)
