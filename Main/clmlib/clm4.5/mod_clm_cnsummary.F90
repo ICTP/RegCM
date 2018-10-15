@@ -799,6 +799,8 @@ module mod_clm_cnsummary
         write(0,*) 'npp(p) =', npp(p)
         write(0,*) 'gpp(p) =', gpp(p)
         write(0,*) 'ar(p) =', ar(p)
+        write(0,*) 'mr(p) =', mr(p)
+        write(0,*) 'gr(p) =', gr(p)
         write(0,*) 'tempsum_npp(p) =', tempsum_npp(p)
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
