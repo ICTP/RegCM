@@ -485,6 +485,9 @@ class InterpolateHeight(Filter):
                 ps = get_var_with_name(ps_names, f)
 
             else:
+                LOGGER.debug('Reading ps variable from regcm file')
+                ps = get_var_with_name(ps_names, f)
+
                 LOGGER.debug(
                     'Reading p0 variable from regcm file and saving its content '
                     'in memory'
@@ -540,6 +543,10 @@ class InterpolateHeight(Filter):
                             self.pressure_level
                         )
                     else:
+                        LOGGER.debug('Reading time step %s of variable ps', t)
+                        # PS, PTOP, PLEV must have same units. Use hPa
+                        ps_t = np.array(ps[t, :], 
+                                        dtype=DATATYPE_AUXILIARIES)*0.01
                         LOGGER.debug('Reading time step %s of variable pp', t)
                         # PS0, PP, PLEV must have same units. Use hPa
                         pp_t = np.array(pp[t, :], 
@@ -557,6 +564,7 @@ class InterpolateHeight(Filter):
                         )
                         interpolation_result[t, :] = self.__interpolator(
                             prev_result.data(data_slice),
+                            ps_t,
                             p_t,
                             self.pressure_level
                         )

@@ -20,16 +20,17 @@ module mod_vertint
 
   contains
 
-  subroutine intlin_nonhy(im,jm,km,f,mp,p,fp)
+  subroutine intlin_nonhy(im,jm,km,f,ps,mp,p,fp)
     implicit none
     integer , intent(in) :: im , jm , km
     real(4) , intent(in) :: p
+    real(4) , intent(in) , dimension(jm,im) :: ps
     real(4) , intent(in) , dimension(km,jm,im) :: f
     real(4) , intent(in) , dimension(km,jm,im) :: mp
     real(4) , intent(out) , dimension(jm,im) :: fp
 
     integer :: i , j , k , kx , knx
-    real(4) :: w1 , wp , dp , sp
+    real(4) :: w1 , wp , sp
     real(4) , dimension(km) :: spp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -44,11 +45,10 @@ module mod_vertint
         !
         ! Over the top or below bottom level
         !
-        dp = mp(km,j,i)-mp(1,j,i)
         do k = 1 , km
-          spp(k) = (mp(k,j,i)-mp(1,j,i))/dp
+          spp(k) = mp(k,j,i) / ps(j,i)
         end do
-        sp = (p-mp(1,j,i)) / dp
+        sp = p / ps(j,i)
         if ( sp <= spp(1) ) then
           fp(j,i) = f(1,j,i)
         else if ( sp >= spp(km) ) then
@@ -74,15 +74,16 @@ module mod_vertint
     end do
   end subroutine intlin_nonhy
 
-  subroutine intlog_nonhy(im,jm,km,f,mp,p,fp)
+  subroutine intlog_nonhy(im,jm,km,f,ps,mp,p,fp)
     implicit none
     integer , intent(in) :: im , jm , km
+    real(4) , intent(in) , dimension(jm,im) :: ps
     real(4) , intent(in) , dimension(km,jm,im) :: f
     real(4) , intent(in) , dimension(km,jm,im) :: mp
     real(4) , intent(out) , dimension(jm,im) :: fp
     real(4) , intent(in) :: p
 
-    real(4) :: w1 , wp , dp , sp
+    real(4) :: w1 , wp , sp
     real(4) , dimension(km) :: spp
     integer :: i , j , k , kx , knx
     !
@@ -97,11 +98,10 @@ module mod_vertint
         !
         ! Over the top or below bottom level
         !
-        dp = mp(km,j,i)-mp(1,j,i)
         do k = 1 , km
-          spp(k) = (mp(k,j,i)-mp(1,j,i))/dp
+          spp(k) = mp(k,j,i) / ps(j,i)
         end do
-        sp = (p-mp(1,j,i)) / dp
+        sp = p / ps(j,i)
         if ( sp <= spp(1) ) then
           fp(j,i) = f(1,j,i)
         else if ( sp >= spp(km) ) then
