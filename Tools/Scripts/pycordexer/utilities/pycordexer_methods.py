@@ -1227,6 +1227,64 @@ class IfNeededThinAndSave(Filter):
 
         return prev_result
 
+class IfNeededThinAndSaveForEach(Filter):
+    """
+    Change the time-step of multiple variable and save them to disk if needed.
+
+    Parameters:
+
+        new_time_step (float): the new time-step to apply to the variable.
+
+        var_name (string): the name of the variable to extract from the file.
+
+        fill_value (float, optional): if provided, fill the variable with this
+            value.
+
+        new_attributes (dict ``string -> object``, optional): if provided,
+            contains attributes that can override those from the previous
+            Method object. netCDF takes care of applying the object value
+            correctly.
+    """
+
+    def __init__(self, new_time_step, var_name=None, fill_value=None,
+                 new_attributes=None):
+        self.__thin = Thin(new_time_step)
+        self.__savedisk = SaveVariableToDisk(var_name, fill_value,
+                                             new_attributes)
+
+    def __call__(self, prev_result, regcm_file, regcm_file_path, simulation,
+                 corrflag, cordex_dir):
+        thin_variables = []
+        for cordex_var in prev_result:
+            LOGGER.debug('Performing thinning of variable %s', cordex_var.name)
+            new_thin = self.__thin(
+                cordex_var,
+                regcm_file,
+                regcm_file_path,
+                simulation,
+                corrflag,
+                cordex_dir
+            )
+            # Since Variable doesn't provide an __eq__ method, Python defaults to
+            # use the identity equality. Moreover, the thinning is a function that
+            # may return the same identical object in case no thinning operation
+            # has to be performed (if the time-step is the same as the one
+            # requested).
+            if new_thin is not prev_result:
+                LOGGER.debug('Saving on disk')
+                self.__savedisk(
+                    new_thin,
+                    regcm_file,
+                    regcm_file_path,
+                    simulation,
+                    corrflag,
+                    cordex_dir
+                )
+
+                thin_variables.append(new_thin)
+
+        return thin_variables
+
 
 class ComputeAverage(Filter):
     """
@@ -1308,7 +1366,8 @@ class ComputeAverage(Filter):
         if prev_result.needs_time_bounds:
             corr_factor = 0
         else:
-            corr_factor = -prev_result.time_step_size / 2.
+            # NEED TO INVESTIGATE. WHY THIS?
+            corr_factor = +prev_result.time_step_size / 2.
         LOGGER.debug(
             'Using a correction factor for times of value %s',
             corr_factor

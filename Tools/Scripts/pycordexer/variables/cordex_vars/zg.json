@@ -19,6 +19,12 @@
         }
       ],
       [
+        "IfNeededThinAndSaveForEach",
+        {
+          "new_time_step": 6
+        }
+      ],
+      [
         "ComputeAverageOfEachVariable",
         {
           "new_time_step": 24

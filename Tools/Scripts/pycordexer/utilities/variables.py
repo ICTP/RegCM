@@ -4,6 +4,7 @@ from traceback import format_exc
 import numpy as np
 from numpy.ma import is_masked, masked_array
 import numbers
+import sys
 
 from utilities.globals import REGCM_VARS
 
@@ -167,7 +168,9 @@ class Variable(object):
     def time_step_size(self):
         if not self.depends_on_time:
             return -1
-        return self.times[1] - self.times[0]
+        if len(self.times) >= 2:
+            return self.times[1] - self.times[0]
+        return 24.0
 
     @property
     def frequency(self):
