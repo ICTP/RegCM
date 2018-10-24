@@ -41,11 +41,48 @@ module mod_ensemble
     module procedure randify2D
   end interface randify
 
-  public :: randify
+  public :: randify , random_pick
 
-  integer(ik4) , dimension(:) , pointer :: seed
+  integer(ik4) , dimension(:) , pointer :: seed => null( )
 
   contains
+
+  subroutine random_pick(thesum,values)
+    implicit none
+    real(rkx) , intent(in) :: thesum
+    real(rkx) , pointer , dimension(:) , intent(inout) :: values
+    real(rkx) , allocatable , dimension(:) :: yi
+    real(rkx) :: rsum
+    integer(ik4) :: i
+    integer(ik4) :: nseed
+    integer(ik8) :: sclock
+
+    if ( .not. associated(values) ) return
+    values = 0.0
+    if ( thesum < dlowval ) then
+      return
+    end if
+    allocate(yi(size(values)))
+    if ( .not. associated(seed) ) then
+      ! get the size of the seed array
+      call random_seed(size = nseed)
+      ! allocate a new seed array
+      call getmem1d(seed,1,nseed,'randify2D:seed')
+      ! Get the system time
+      call system_clock(sclock)
+      ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
+      ! understand why 37 is used as opposed to any other number.
+      seed = int(sclock) + 37*[(i-1,i=1,nseed)]
+      ! Set the seed for the random number generator.  This makes it so that we
+      ! get a pseudo-random sequence of numbers
+      call random_seed(put = seed)
+    end if
+    call random_number(yi)
+    yi = -log(yi)
+    rsum = sum(yi)
+    values = yi/rsum * thesum
+    deallocate(yi)
+  end subroutine random_pick
 !
 ! Takes a 3D variable (dVariable3D) and adds random noise to all of its
 ! values.  At point (i,j,k) in dVariable3D, the random noise will be
