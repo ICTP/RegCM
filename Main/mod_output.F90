@@ -1035,8 +1035,10 @@ module mod_output
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         end if
 
-        shf_pcpavg_out = shf_pcpavg_out * dtsrf/3600.0_rkx
-        shf_pcprcv_out = shf_pcprcv_out * dtsrf/3600.0_rkx
+        if ( associated(shf_pcpavg_out) ) &
+          shf_pcpavg_out = shf_pcpavg_out * dtsrf/3600.0_rkx
+        if ( associated(shf_pcprcv_out) ) &
+          shf_pcprcv_out = shf_pcprcv_out * dtsrf/3600.0_rkx
         call write_record_output_stream(shf_stream,alarm_out_shf%idate)
         if ( myid == italk ) &
           write(stdout,*) 'SHF variables written at ' , rcmtimer%str( )
