@@ -1,0 +1,11 @@
+DDF = Mean frequency of dry days (%):
+
+> cdo -L timsum -ltc,1.0 daily-precip.nc DDF.nc
+
+The frequency will be found by dividing for the total number of days * 100
+
+SDII = Mean wet daily precipitation intensity (mm/day)
+
+> cdo -L eca_sdii daily-precip.nc SDII.nc
+
+
