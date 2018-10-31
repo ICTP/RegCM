@@ -30,6 +30,7 @@ import matplotlib.colors as colors
 import matplotlib.patches as mpatches
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.colors import Normalize
+import os
 
 # Import function to create the domain
 from module_Basemap_RegCM_domain import map_RegCMdomain
@@ -40,8 +41,8 @@ from module_find_index_closest_point import find_ind_latlon2d
 ######################################################
 # Specify directories & job's name-period
 #-----------------------------------------------------
-dirIN  = '/home/netapp-clima/users/sstrada/analyses_PY/TEMPLATE_RegCM_SA/files/'
-infMOD = dirIN+'SACOR_ATM.198503_pressure.nc'
+dirIN  = 'files'
+infMOD = os.path.join(dirIN,'SACOR_ATM.198503_pressure.nc')
 
 ## Needed info to draw a domain map
 # Latitude and longitude of projection origin (from RegCM output file)
@@ -73,7 +74,7 @@ RH        = inf_mod.variables['rh'][0,:,:,:] # Important: you have a single elem
 inf_mod.close()
 
 # Print MIN-MAX discarding all NaN values, if any
-print "RH MIN", np.nanmin(RH), "RH MAX", np.nanmax(RH)
+print("RH MIN", np.nanmin(RH), "RH MAX", np.nanmax(RH))
 
 # Get number of pressure level
 nlev = len(plev)
@@ -85,15 +86,17 @@ nlev = len(plev)
 ## 1. Find the starting and ending point of the transect
 start_i, start_j = find_ind_latlon2d(lat, start_lat, lon, start_lon)
 end_i, end_j     = find_ind_latlon2d(lat, end_lat, lon, end_lon)
-print start_i, start_j; print lat[start_i, start_j], lon[start_i, start_j]
-print end_i, end_j; print lat[end_i, end_j], lon[end_i, end_j]
+print(start_i, start_j)
+print(lat[start_i, start_j], lon[start_i, start_j])
+print(end_i, end_j)
+print(lat[end_i, end_j], lon[end_i, end_j])
 start = (start_j, start_i)
 end   = (end_j, end_i)
 
 ## 2. Compute the vertical cross-section interpolation
 xy   	   = xy(PS, start_point=start, end_point=end)
 rh_cross   = interp2dxy(RH, xy, meta=False)
-print np.nanmin(rh_cross), np.nanmax(rh_cross)
+print(np.nanmin(rh_cross), np.nanmax(rh_cross))
 
 ## 3. Interpolate LAT-LON along the cross section and build LAT-LON pairs (to put them on the X-axis in the final plot)
 lat_interp   = interpline(lat, start_point=CoordPair(x=start_j, y=start_i), end_point=CoordPair(x=end_j, y=end_i), latlon=True, meta=False)
@@ -136,7 +139,8 @@ cbarD.set_label('%')
 #-----------------------------------------------------
 # Plot the vertical cross section
 
-nxy    = np.shape(rh_cross)[1]; print nxy
+nxy    = np.shape(rh_cross)[1]
+print(nxy)
 x      = np.arange(0,nxy,1)
 X,Z    = np.meshgrid(x, plev)
 x_axis = np.arange(0,nxy,1)

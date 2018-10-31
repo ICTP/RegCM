@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import os
 import pylab
 from matplotlib.colors import Normalize
 from cdo import *   # python version
@@ -29,11 +30,11 @@ cdo = Cdo()
 ######################################################
 ### Files and directories 
 #-----------------------------------------------------
-dirIN  = '/home/netapp-clima/users/sstrada/analyses_PY/TEMPLATE_RegCM_SA/files/'
-infOBS = dirIN+'cru_ts4_1980_1989_pre_MONavg.nc'
-infOBS_SA = dirIN+'cru_ts4_1980_1989_pre_MONavg_SA.nc'
-infMOD = dirIN+'SACOR_SRF_1980_1989_MONavg.nc'
-infMOD_SA = dirIN+'SACOR_SRF_1980_1989_MONavg_SA.nc'
+dirIN  = 'files'
+infOBS = os.path.join(dirIN,'cru_ts4_1980_1989_pre_MONavg.nc')
+infOBS_SA = os.path.join(dirIN,'cru_ts4_1980_1989_pre_MONavg_SA.nc')
+infMOD = os.path.join(dirIN,'SACOR_SRF_1980_1989_MONavg.nc')
+infMOD_SA = os.path.join(dirIN,'SACOR_SRF_1980_1989_MONavg_SA.nc')
 
 
 ######################################################
@@ -46,7 +47,7 @@ OBSf      = nc(infOBS_SA, mode='r')
 PR_OBS    = OBSf.variables['pre'][:,:,:]
 OBSf.close()
 # Print MIN-MAX discarding all NaN values, if any
-print "Prec MIN", np.nanmin(PR_OBS), "Prec MAX", np.nanmax(PR_OBS)
+print("Prec MIN", np.nanmin(PR_OBS), "Prec MAX", np.nanmax(PR_OBS))
 
 
 ### RegCM
@@ -55,12 +56,15 @@ MODf      = nc(infMOD_SA, mode='r')
 PR_MOD    = MODf.variables['pr'][:,:,:]
 mask      = MODf.variables['mask'][:,:]
 MODf.close()
-print "Prec South-America MIN", np.nanmin(PR_MOD), "Prec South-America MAX", np.nanmax(PR_MOD)
+print("Prec South-America MIN", np.nanmin(PR_MOD), "Prec South-America MAX", np.nanmax(PR_MOD))
 
 # Convert precipitation from kg/m2/s to mm/month 
 # We assume 30 days per month (approximation)
-PR_MOD = PR_MOD*30.*86400. ; print"Prec South-America MIN", np.nanmin(PR_MOD), "Prec South-America MAX", np.nanmax(PR_MOD)
-PR_MOD_ma = ma.masked_where(mask == 0, PR_MOD)
+PR_MOD = PR_MOD*30.*86400.
+print("Prec South-America MIN", np.nanmin(PR_MOD), "Prec South-America MAX", np.nanmax(PR_MOD))
+PR_MOD_ma = np.empty_like(PR_MOD)
+for t in range(0, 12):
+    PR_MOD_ma[t,:,:] = ma.masked_where(mask == 0, PR_MOD[t,:,:])
 
 
 ######################################################

@@ -19,6 +19,7 @@
 # Import modules you need
 #-----------------------------------------------------
 from netCDF4 import Dataset as nc
+import os
 import numpy as np
 import numpy.ma as ma
 import matplotlib.pyplot as plt
@@ -39,9 +40,10 @@ from module_Basemap_RegCM_domain import map_RegCMdomain
 ######################################################
 ### Files and directories 
 #-----------------------------------------------------
-dirIN  = '/home/netapp-clima/users/sstrada/analyses_PY/TEMPLATE_RegCM_SA/files/'
-infOBS = dirIN+'cru_ts4_1980_1989_pre_SEASavg.nc'
-infMOD = dirIN+'SACOR_SRF_1980_1989_SEASavg.nc'
+dirIN  = 'files'
+dirOUT = 'files'
+infOBS = os.path.join(dirIN,'cru_ts4_1980_1989_pre_SEASavg.nc')
+infMOD = os.path.join(dirIN,'SACOR_SRF_1980_1989_SEASavg.nc')
 
 # Needed info to draw a domain map
 # Latitude and longitude of projection origin (from RegCM output file)
@@ -61,41 +63,42 @@ dmerid    = 20
 ### Open & read NCDF files & vars 
 #-----------------------------------------------------
 ### OBS 
-OBSf     = nc("./files/cru_ts4_1980_1989_pre_SEASavg.nc", mode='r') 
+OBSf     = nc(infOBS, mode='r') 
 lat      = OBSf.variables['lat'][:]
 lon      = OBSf.variables['lon'][:]
 PR_OBS   = OBSf.variables['pre'][:,:,:]
 OBSf.close()
 
 # Print MIN-MAX discarding all NaN values, if any
-print "Prec MIN", np.nanmin(PR_OBS), "Prec MAX", np.nanmax(PR_OBS)
-print "Prec JJA MIN", np.nanmin(PR_OBS[2,:,:]), "Prec MAX", np.nanmax(PR_OBS[2,:,:])
-print "Prec DJF MIN", np.nanmin(PR_OBS[0,:,:]), "Prec MAX", np.nanmax(PR_OBS[0,:,:])
+print("Prec MIN", np.nanmin(PR_OBS), "Prec MAX", np.nanmax(PR_OBS))
+print("Prec JJA MIN", np.nanmin(PR_OBS[2,:,:]), "Prec MAX", np.nanmax(PR_OBS[2,:,:]))
+print("Prec DJF MIN", np.nanmin(PR_OBS[0,:,:]), "Prec MAX", np.nanmax(PR_OBS[0,:,:]))
 
 
 ### RegCM
 # Use CDO in your Python script to regrid RegCM output on the CRU grid: from 25km to 50 km 
-outMOD = './files/SACOR_SRF_1980_1989_SEASavg_regridCRU.nc'
+outMOD = os.path.join(dirOUT,'SACOR_SRF_1980_1989_SEASavg_regridCRU.nc')
 outMOD = cdo.remapdis(infOBS, input = " " + infMOD, output = outMOD)
 
-MODf   = nc('./files/SACOR_SRF_1980_1989_SEASavg_regridCRU.nc', mode='r')
+MODf   = nc(outMOD, mode='r')
 PR_MOD = MODf.variables['pr'][:,:,:]
 MODf.close()
 
 # Convert precipitation from kg/m2/s to mm/month 
 # We assume 30 days per month (approximation)
-PR_MOD      = PR_MOD*30.*86400. ; print"Prec MIN", np.nanmin(PR_MOD), "Prec MAX", np.nanmax(PR_MOD)
+PR_MOD      = PR_MOD*30.*86400. 
+print("Prec MIN", np.nanmin(PR_MOD), "Prec MAX", np.nanmax(PR_MOD))
 
 # Print MIN-MAX discarding all NaN values, if any
-print "Prec JJA MIN", np.nanmin(PR_MOD[2,:,:]), "Prec MAX", np.nanmax(PR_MOD[2,:,:])
-print "Prec DJF MIN", np.nanmin(PR_MOD[0,:,:]), "Prec MAX", np.nanmax(PR_MOD[0,:,:])
+print("Prec JJA MIN", np.nanmin(PR_MOD[2,:,:]), "Prec MAX", np.nanmax(PR_MOD[2,:,:]))
+print("Prec DJF MIN", np.nanmin(PR_MOD[0,:,:]), "Prec MAX", np.nanmax(PR_MOD[0,:,:]))
 
 
 ######################################################
 ### Compute the seasonal bias at each grid cell
 #-----------------------------------------------------
 Prec_DIFF = PR_MOD[:,:,:] - PR_OBS[:,:,:]
-print "Prec Bias: MIN = ", np.nanmin(Prec_DIFF), ", MAX = ", np.nanmax(Prec_DIFF)
+print("Prec Bias: MIN = ", np.nanmin(Prec_DIFF), ", MAX = ", np.nanmax(Prec_DIFF))
 
 
 ######################################################

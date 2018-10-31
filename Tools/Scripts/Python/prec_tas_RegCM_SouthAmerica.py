@@ -26,6 +26,7 @@ import matplotlib as mpl
 import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pylab
+import os
 from matplotlib.colors import Normalize
 
 # Import functions
@@ -54,7 +55,7 @@ dmerid   = 20
 ######################################################
 ### Open & read NCDF files & vars 
 #-----------------------------------------------------
-inf_mod   = nc(dirRegCM+'SACOR_SRF.'+year+month+'.nc', mode='r') 
+inf_mod   = nc(os.path.join(dirRegCM,'SACOR_SRF.'+year+month+'.nc'), mode='r') 
 lat       = inf_mod.variables['xlat'][:,:]
 lon       = inf_mod.variables['xlon'][:,:]
 mask      = inf_mod.variables['mask'][:,:]
@@ -63,26 +64,30 @@ TAS       = inf_mod.variables['tas'][0,0,:,:]
 inf_mod.close()
 
 # Print MIN-MAX discarding all NaN values, if any
-print "Temp MIN", np.nanmin(TAS), "Temp MAX", np.nanmax(TAS)
-print "Prec MIN", np.nanmin(PREC), "Prec MAX", np.nanmax(PREC)
+print("Temp MIN", np.nanmin(TAS), "Temp MAX", np.nanmax(TAS))
+print("Prec MIN", np.nanmin(PREC), "Prec MAX", np.nanmax(PREC))
 
 # Convert precipitation from kg/m2/s to mm/day
-PREC      = PREC * 86400. ; print"Prec MIN", np.nanmin(PREC), "Prec MAX", np.nanmax(PREC)
+PREC      = PREC * 86400.
+print("Prec MIN", np.nanmin(PREC), "Prec MAX", np.nanmax(PREC))
 PREC_ma   = ma.masked_where(mask == 0, PREC)
 
 # Convert temperature from Kelvin to Celsius
-TAS       = TAS - 273.15; print "Temp MIN", np.nanmin(TAS), "Temp MAX", np.nanmax(TAS)
+TAS       = TAS - 273.15
+print("Temp MIN", np.nanmin(TAS), "Temp MAX", np.nanmax(TAS))
 
 # Compute a domain average discarding NaN values, if any, and print the result 
-PREC_avg  = np.nanmean(PREC[:,:]); print "Prec. Domain-AVG", PREC_avg
-TAS_avg   = np.nanmean(TAS[:,:]); print "Temp. Domain-AVG", TAS_avg
+PREC_avg  = np.nanmean(PREC[:,:])
+print("Prec. Domain-AVG", PREC_avg)
+TAS_avg   = np.nanmean(TAS[:,:])
+print("Temp. Domain-AVG", TAS_avg)
 
 # Identify MIN-MAX lat-lon (to be used to build the domain map)
 lat_start = np.min(lat[:])
 lat_end   = np.max(lat[:])
 lon_start = np.min(lon[:])
 lon_end   = np.max(lon[:])
-print "Lat start and end; Lon start and end ", lat_start, lat_end, lon_start, lon_end 
+print("Lat start and end; Lon start and end ", lat_start, lat_end, lon_start, lon_end)
 
 
 ######################################################
