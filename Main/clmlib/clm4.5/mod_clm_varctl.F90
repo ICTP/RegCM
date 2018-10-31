@@ -72,6 +72,10 @@ module mod_clm_varctl
   ! snow aging parameters file name
   character(len=256) , public :: fsnowaging   = ' '
   !
+  ! USE CRU T and PR to feed DV growth
+  !
+  logical , public :: luse_cru = .false. ! Use cru data for DV
+  !
   ! Irrigate logic
   !
   logical , public :: irrigate = .false. ! do not irrigate by default

@@ -15,7 +15,7 @@ module mod_clm_regcm
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
-  use mod_clm_varctl , only : ndep_nochem
+  use mod_clm_varctl , only : ndep_nochem , luse_cru
   use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
@@ -299,8 +299,13 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
     call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
-    temps = (lm%cprate+lm%ncprate) * syncro_srf%rw
-    call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
+    if ( luse_cru ) then
+      call read_cru_pre(temps)
+      call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
+    else
+      temps = (lm%cprate+lm%ncprate) * syncro_srf%rw
+      call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
+    end if
 
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,1) = clm_a2l%notused
@@ -629,6 +634,12 @@ module mod_clm_regcm
     !clm_l2a%flxdst
     !clm_l2a%ddvel
   end subroutine land_to_atmosphere
+
+  subroutine read_cru_pre(temps)
+    implicit none
+    real(rk8) , dimension(:,:) , pointer :: temps
+
+  end subroutine read_cru_pre
 
 end module mod_clm_regcm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

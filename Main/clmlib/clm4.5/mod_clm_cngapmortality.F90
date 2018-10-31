@@ -20,10 +20,10 @@ module mod_clm_cngapmortality
   !
   ! Gap-phase mortality routine for coupled carbon-nitrogen code (CN)
   !
-  subroutine CNGapMortality (num_soilc, filter_soilc, num_soilp, filter_soilp)
+  subroutine CNGapMortality(num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
-    use mod_clm_varcon      , only: secspday
-    use mod_clm_pftvarcon       , only: npcropmin
+    use mod_clm_varcon    , only : secspday
+    use mod_clm_pftvarcon , only : npcropmin
     implicit none
     integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! column filter for soil points
@@ -129,6 +129,7 @@ module mod_clm_cngapmortality
     real(rk8):: mort_max
     !coeff of growth efficiency in mortality equation
     real(rk8), parameter :: k_mort = 0.3_rk8
+    logical , dimension(num_soilp) :: iswoody
 #endif
 
     ! assign local pointers
@@ -231,34 +232,40 @@ module mod_clm_cngapmortality
     ! set the mortality rate based on annual rate
     am = 0.02_rk8
 
+#if (defined CNDV)
+    do fp = 1 , num_soilp
+      p = filter_soilp(fp)
+      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
+        iswoody(fp) = .true.
+      else
+        iswoody(fp) = .false.
+      end if
+    end do
+#endif
+
     ! pft loop
-    do fp = 1,num_soilp
+    do fp = 1 , num_soilp
       p = filter_soilp(fp)
 
 #if (defined CNDV)
       ! Stress mortality from lpj's subr Mortality.
-
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
-
-        if (ivt(p) == 8) then
+      if ( iswoody(fp) ) then
+        if ( ivt(p) == 8 ) then
           mort_max = 0.03_rk8 ! BDT boreal
         else
           mort_max = 0.01_rk8 ! original value for all pfts
         end if
-
         ! heatstress and greffic calculated in Establishment once/yr
-
         ! Mortality rate inversely related to growth efficiency
         ! (Prentice et al 1993)
-        am = mort_max / (1._rk8 + k_mort * greffic(p))
-
-        am = min(1._rk8, am + heatstress(p))
+        am = mort_max / (1.0_rk8 + k_mort * greffic(p))
+        am = min(1.0_rk8, am + heatstress(p))
       else ! lpj didn't set this for grasses; cn does
         ! set the mortality rate based on annual rate
         am = 0.02_rk8
       end if
 #endif
-      m  = am/(dayspy * secspday)
+      m = am/(dayspy * secspday)
 
       ! pft-level gap mortality carbon fluxes
       ! displayed pools
@@ -315,11 +322,11 @@ module mod_clm_cngapmortality
 
 #if (defined CNDV)
       ! added by F. Li and S. Levis
-      if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
-        if ( livestemc(p)+deadstemc(p) > 0._rk8 ) then
-          nind(p) = nind(p)*(1._rk8-m)
+      if ( iswoody(fp) ) then
+        if ( livestemc(p)+deadstemc(p) > 0.0_rk8 ) then
+          nind(p) = nind(p) * (1.0_rk8-m)
         else
-          nind(p) = 0._rk8
+          nind(p) = 0.0_rk8
         end if
       end if
 #endif

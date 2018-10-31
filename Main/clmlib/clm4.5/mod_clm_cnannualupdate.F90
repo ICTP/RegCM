@@ -6,7 +6,7 @@ module mod_clm_cnannualupdate
   use mod_intkinds
   use mod_realkinds
   use mod_runparams , only : dtsrf
-  use mod_dynparam , only : dayspy
+  use mod_clm_time_manager , only : is_end_curr_year
 
   implicit none
 
@@ -70,6 +70,7 @@ module mod_clm_cnannualupdate
 
     integer(ik4) :: c,p     ! indices
     integer(ik4) :: fp,fc   ! lake filter indices
+    logical :: eoy
 
     ! assign local pointers to derived type arrays
     annsum_counter        => clm3%g%l%c%cps%annsum_counter
@@ -89,6 +90,8 @@ module mod_clm_cnannualupdate
 #endif
     pcolumn               => clm3%g%l%c%p%column
 
+    eoy = is_end_curr_year( )
+
     ! column loop
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
@@ -97,7 +100,7 @@ module mod_clm_cnannualupdate
 
     if ( num_soilc > 0 ) then
 
-      if ( annsum_counter(filter_soilc(1)) >= dayspy * secspday ) then
+      if ( eoy ) then
         ! pft loop
         do fp = 1 , num_soilp
           p = filter_soilp(fp)
@@ -134,7 +137,7 @@ module mod_clm_cnannualupdate
     ! column loop
     do fc = 1 , num_soilc
       c = filter_soilc(fc)
-      if (annsum_counter(c) >= dayspy * secspday) annsum_counter(c) = 0._rk8
+      if ( eoy ) annsum_counter(c) = 0._rk8
     end do
   end subroutine CNAnnualUpdate
 

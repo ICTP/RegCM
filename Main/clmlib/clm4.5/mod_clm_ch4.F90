@@ -24,6 +24,7 @@ module mod_clm_ch4
   use mod_clm_varcon , only : c_h_inv , kh_theta , kh_tbase , rpi
   use mod_clm_varcon , only : secspday
   use mod_clm_varctl , only : anoxia
+  use mod_clm_time_manager , only : is_end_of_year
   use mod_clm_ch4varcon
   use mod_clm_pftvarcon , only : noveg , crop , nc4_grass
   use mod_clm_pftvarcon , only : nc3_arctic_grass, nc3_nonarctic_grass
@@ -2743,7 +2744,7 @@ module mod_clm_ch4
     integer(ik4) :: fp      ! soil pft filter indices
     real(rk8):: dt          ! time step (seconds)
     real(rk8):: secsperyear
-    logical :: newrun
+    logical :: newrun , eoy
 
     ! assign local pointers to derived type arrays
     annsum_counter    => clm3%g%l%c%cch4%annsum_counter
@@ -2764,6 +2765,7 @@ module mod_clm_ch4
     ! set time steps
     dt = dtsrf
     secsperyear = dayspy * secpd
+    eoy = is_end_curr_year( )
 
     newrun = .false.
 
@@ -2796,7 +2798,7 @@ module mod_clm_ch4
 
     do fc = 1 , num_methc
       c = filter_methc(fc)
-      if (annsum_counter(c) >= secsperyear) then
+      if ( eoy ) then
 
         ! update annual average somhr
         annavg_somhr(c)      =  tempavg_somhr(c)
@@ -2819,7 +2821,7 @@ module mod_clm_ch4
     do fp = 1 , num_methp
       p = filter_methp(fp)
       c = pcolumn(p)
-      if (annsum_counter(c) >= secsperyear) then
+      if ( eoy ) then
 
         annavg_agnpp(p) = tempavg_agnpp(p)
         tempavg_agnpp(p) = 0._rk8
@@ -2836,7 +2838,7 @@ module mod_clm_ch4
     ! column loop
     do fc = 1 , num_methc
       c = filter_methc(fc)
-      if (annsum_counter(c) >= secsperyear) annsum_counter(c) = 0._rk8
+      if ( eoy ) annsum_counter(c) = 0._rk8
     end do
   end subroutine ch4annualupdate
 

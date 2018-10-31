@@ -486,8 +486,8 @@ module mod_clm_cndvestablishment
         lm_ind = leafcmax(p) * fpcgrid(p) / nind(p)
 
         ! Growth efficiency (net biomass increment per unit leaf area)
-        if (dsladlai(ivt(p)) > 0.0_rk8) then
-          greffic(p) = bm_delta / (max(0.001_rk8,                     &
+        if ( dsladlai(ivt(p)) > 0.0_rk8 ) then
+          greffic(p) = bm_delta / (max(0.001_rk8,                   &
              ( ( exp(lm_ind*dsladlai(ivt(p)) + log(slatop(ivt(p)))) &
                  - slatop(ivt(p)) ) / dsladlai(ivt(p)) )))
         else ! currently redundant because dsladlai=0 for grasses only

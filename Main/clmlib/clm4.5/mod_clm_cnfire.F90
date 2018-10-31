@@ -1643,7 +1643,7 @@ module mod_clm_cnfire
 
     call split_idate(nextdate,yr,mon,day,ih)
     ndpy = yeardays(yr,nextdate%calendar)
-    ilnfmrec = int(int(yeardayfrac(idate1)/ndpy)*ndpy)*8.0+1+ih/3
+    ilnfmrec = int(yeardayfrac(idate1))*8+1+ih/3
 
     call clm_openfile(fsurdat,sdat_lnfm)
     call clm_readvar(sdat_hdm,'LNFM',lnfm_p1,gcomm_gridcell,ilnfmrec)
@@ -1668,10 +1668,14 @@ module mod_clm_cnfire
     real(rk8) :: w1 , w2 , ndpy
     integer(ik4) :: yr , mon , day , ih
 
+    ! ASSUMING 3-HOURLY DATASET !
     call split_idate(nextdate,yr,mon,day,ih)
     ndpy = yeardays(yr,nextdate%calendar)
-    ip = int(int(yeardayfrac(nextdate)/ndpy)*ndpy)*8+1+ih/3
+    ip = int(yeardayfrac(nextdate))*8+1+ih/3
     if ( ip /= ilnfmrec ) then
+      if ( myid == italk .and. debug_level > 1 ) then
+        write(stdout,*) 'Updating lightning dataset on ',tochar(nextdate)
+      end if
       ilnfmrec = ilnfmrec+1
       if ( ilnfmrec > 365*8 ) ilnfmrec = 1
       call clm_readvar(sdat_hdm,'LNFM',lnfm_p1,gcomm_gridcell,ilnfmrec)
@@ -1681,7 +1685,7 @@ module mod_clm_cnfire
         call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,ilnfmrec+1)
       end if
     end if
-    w1 = d_one - (yeardayfrac(nextdate)-dble(ip/8))
+    w1 = d_one - ((yeardayfrac(nextdate)*8.0_rk8+1.0_rk8)-dble(ip))
     w2 = d_one - w1
     forc_lnfm(:) = lnfm_p1(:)*w1 + lnfm_p2(:)*w2
   end subroutine lnfm_interp
