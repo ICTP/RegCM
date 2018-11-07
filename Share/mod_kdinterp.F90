@@ -129,16 +129,16 @@ module mod_kdinterp
     dx = 0.0_rkx
     r2 = 0.0_rkx
     if ( present(ds) ) then
-      dx = ds
+      dx = ds/erkm
       imode = 1
     else
       imode = 2
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)/erkm
+        r2 = (dx*dx*roi*roi)
       else
-        r2 = (dx*dx)/erkm
+        r2 = (dx*dx)
       end if
     end if
     nj = size(tlat,1)
@@ -223,16 +223,16 @@ module mod_kdinterp
     dx = 0.0_rkx
     r2 = 0.0_rkx
     if ( present(ds) ) then
-      dx = ds
+      dx = ds/erkm
       imode = 1
     else
       imode = 2
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)/erkm
+        r2 = (dx*dx*roi*roi)
       else
-        r2 = (dx*dx)/erkm
+        r2 = (dx*dx)
       end if
     end if
     ni = size(tlat)
@@ -359,16 +359,16 @@ module mod_kdinterp
     dx = 0.0_rkx
     r2 = 0.0_rkx
     if ( present(ds) ) then
-      dx = ds
+      dx = ds/erkm
       imode = 1
     else
       imode = 2
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)/erkm
+        r2 = (dx*dx*roi*roi)
       else
-        r2 = (dx*dx)/erkm
+        r2 = (dx*dx)
       end if
     end if
     ni = size(tlat,2)
@@ -453,16 +453,16 @@ module mod_kdinterp
     dx = 0.0_rkx
     r2 = 0.0_rkx
     if ( present(ds) ) then
-      dx = ds
+      dx = ds/erkm
       imode = 1
     else
       imode = 2
     end if
     if ( imode == 1 ) then
       if ( present(roi) ) then
-        r2 = (dx*dx*roi*roi)/erkm
+        r2 = (dx*dx*roi*roi)
       else
-        r2 = (dx*dx)/erkm
+        r2 = (dx*dx)
       end if
     end if
     ni = size(tlat)
