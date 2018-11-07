@@ -144,21 +144,24 @@ module mod_clm_cnmresp
       ! on the carbon dynamics of forest ecosystems in the conterminous
       ! United states; MIN Chen and QIANLAI Zhuang
       !(2013); Tellus B: Chemical and Physical Meteorology
-      tcc = t_ref2m(p) - tfrz ! to convert it to Celisus
+      tcc = t_ref2m(p) - tfrz ! to convert it to Celsius
 
       if ( q10_maintenance == 1 ) then
-         q10m(p) = 2.35665D0 - (0.05308D0*tcc) + &
-           (0.00238D0*tcc*tcc) - (0.00004D0*tcc*tcc*tcc)
+         q10m(p) = 2.35665_rk8 - (0.05308_rk8*tcc) + &
+           (0.00238_rk8*tcc*tcc) - (0.00004_rk8*tcc*tcc*tcc)
       else
-         q10m(p) = 3.22D0 - (0.046D0*tcc)
+         q10m(p) = 3.22_rk8 - (0.046_rk8*tcc)
       end if
+
+      ! Set this to expected range
+      q10m(p) = max(1.0_rkx,min(3.0_rkx,q10m(p)))
 
       tc = q10m(p)**((t_ref2m(p)-tfrz - 20.0_rk8)/10.0_rk8)
       if ( frac_veg_nosno(p) == 1 ) then
         leaf_mr(p) = lmrsun(p) * laisun(p) * 12.011e-6_rk8 + &
                      lmrsha(p) * laisha(p) * 12.011e-6_rk8
       else
-        leaf_mr(p) = 0._rk8
+        leaf_mr(p) = 0.0_rk8
       end if
 
       if ( abs(woody(ivt(p))-1._rk8) < epsilon(1.0) ) then
@@ -171,8 +174,6 @@ module mod_clm_cnmresp
     end do
 
    call p2c(num_soilc,filter_soilc,q10m,col_q10m)
-
-   col_q10m = max(1.0_rkx,min(3.0_rkx,col_q10m))
 
    ! column loop to calculate temperature factors in each soil layer
     do j = 1 , nlevgrnd

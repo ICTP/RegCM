@@ -724,6 +724,7 @@ module mod_clm_cnsummary
         livestem_mr(p)  = livestem_curmr(p)  + livestem_xsmr(p)
         livecroot_mr(p) = livecroot_curmr(p) + livecroot_xsmr(p)
       end if
+
       mr(p) = leaf_mr(p) + froot_mr(p) + livestem_mr(p) + livecroot_mr(p)
 
       ! growth respiration (GR)
@@ -801,6 +802,10 @@ module mod_clm_cnsummary
         write(0,*) 'ar(p) =', ar(p)
         write(0,*) 'mr(p) =', mr(p)
         write(0,*) 'gr(p) =', gr(p)
+        write(0,*) 'leaf_mr(p) =', leaf_mr(p)
+        write(0,*) 'froot_mr(p) =', froot_mr(p)
+        write(0,*) 'livestem_mr(p) =', livestem_mr(p)
+        write(0,*) 'livecroot_mr(p) =', livecroot_mr(p)
         write(0,*) 'tempsum_npp(p) =', tempsum_npp(p)
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
