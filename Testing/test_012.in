@@ -43,12 +43,6 @@
  dirglob = '/set/this/to/where/your/icbc/for/model/is',
  inpglob = '/set/this/to/where/your/input/global/data/is',
  /
- &globwindow
- lat0 = 0.0
- lat1 = 0.0
- lon0 = 0.0
- lon1 = 0.0
- /
  &restartparam
  ifrest  = .false. ,
  mdate0  = 1990053100,
@@ -87,27 +81,16 @@
  iemiss  =          0,
  lakemod =          1,
  ichem   =          0,
- scenario = 'A1B',
  idcsst = 0,
  iseaice = 0,
  idesseas = 0,
  iconvlwp = 0,
  /
  &subexparam
- qck1land =   .250E-03,
- qck1oce  =   .250E-03,
- cevaplnd =   .100E-02,
- caccrlnd =      3.000,
- /
- &cldparam
- cftotmax =      0.75,
  /
  &grellparam
  /
  &emanparam
- elcrit_ocn  = 0.0011D0,
- elcrit_lnd  = 0.0011D0,
- coeffr  = 1.0D0,
  /
  &holtslagparam
  /
