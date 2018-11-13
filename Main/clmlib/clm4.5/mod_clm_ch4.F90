@@ -24,7 +24,7 @@ module mod_clm_ch4
   use mod_clm_varcon , only : c_h_inv , kh_theta , kh_tbase , rpi
   use mod_clm_varcon , only : secspday
   use mod_clm_varctl , only : anoxia
-  use mod_clm_time_manager , only : is_end_of_year
+  use mod_clm_time_manager , only : is_end_curr_year
   use mod_clm_ch4varcon
   use mod_clm_pftvarcon , only : noveg , crop , nc4_grass
   use mod_clm_pftvarcon , only : nc3_arctic_grass, nc3_nonarctic_grass
