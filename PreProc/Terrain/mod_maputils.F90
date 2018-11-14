@@ -25,18 +25,31 @@ module mod_maputils
 
   private
 
-  public :: lambrt , mappol , normer , rotmer
+  public :: lambrt , mappol , normer , rotmer , corpar
 
   contains
 
-  subroutine lambrt(xlon,xlat,smap,coriol,jx,iy,clon,clat,ds,idot,  &
+  subroutine corpar(dlat,coriol,jx,iy)
+    implicit none
+    integer(ik4) , intent(in) :: iy , jx
+    real(rkx) , dimension(jx,iy) , intent(in) :: dlat
+    real(rkx) , dimension(jx,iy) , intent(out) :: coriol
+    integer(ik4) :: i , j
+    do i = 1 , iy
+      do j = 1 , jx
+        coriol(j,i) = eomeg2*sin(dlat(j,i)*degrad)
+      end do
+    end do
+  end subroutine corpar
+
+  subroutine lambrt(xlon,xlat,smap,jx,iy,clon,clat,ds,idot,  &
                     xn,truelatl,truelath,cntri,cntrj)
     use mod_projections
     implicit none
     integer(ik4) , intent(in) :: idot , iy , jx
     real(rkx) , intent(in) :: clat , clon , ds , truelath , truelatl
     real(rkx) , intent(in) :: cntri , cntrj
-    real(rkx) , dimension(jx,iy) , intent(out) :: coriol , smap , xlat , xlon
+    real(rkx) , dimension(jx,iy) , intent(out) :: smap , xlat , xlon
     real(rkx) , intent(out) :: xn
     real(rkx) :: xcntri , xcntrj
     integer(ik4) :: i , j
@@ -50,22 +63,15 @@ module mod_maputils
         call mapfac_lc(xlat(j,i), smap(j,i))
       end do
     end do
-    if ( idot==1 ) then
-      do i = 1 , iy
-        do j = 1 , jx
-          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
-        end do
-      end do
-    end if
     xn = conefac
   end subroutine lambrt
 
-  subroutine mappol(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot,cntri,cntrj)
+  subroutine mappol(xlon,xlat,xmap,jx,iy,clon,clat,delx,idot,cntri,cntrj)
     use mod_projections
     implicit none
     real(rkx) , intent(in) :: clat , clon , delx , cntri , cntrj
     integer(ik4) , intent(in) :: idot , iy , jx
-    real(rkx) , intent(out) , dimension(jx,iy) :: coriol , xlat , xlon , xmap
+    real(rkx) , intent(out) , dimension(jx,iy) :: xlat , xlon , xmap
     real(rkx) :: xcntrj , xcntri
     integer(ik4) :: i , j
 
@@ -78,21 +84,14 @@ module mod_maputils
         call mapfac_ps(xlat(j,i), xmap(j,i))
       end do
     end do
-    if ( idot==1 ) then
-      do i = 1 , iy
-        do j = 1 , jx
-          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
-        end do
-      end do
-    end if
   end subroutine mappol
 
-  subroutine normer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,delx,idot,cntri,cntrj)
+  subroutine normer(xlon,xlat,xmap,jx,iy,clon,clat,delx,idot,cntri,cntrj)
     use mod_projections
     implicit none
     real(rkx) , intent(in) :: clat , clon , delx , cntri , cntrj
     integer(ik4) , intent(in) :: idot , iy , jx
-    real(rkx) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
+    real(rkx) , dimension(jx,iy) , intent(out) :: xlat , xlon , xmap
     real(rkx) :: xcntri , xcntrj
     integer(ik4) :: i , j
 
@@ -105,23 +104,16 @@ module mod_maputils
         call mapfac_mc(xlat(j,i), xmap(j,i))
       end do
     end do
-    if ( idot==1 ) then
-      do i = 1 , iy
-        do j = 1 , jx
-          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
-        end do
-      end do
-    end if
   end subroutine normer
 
-  subroutine rotmer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,pollon,   &
+  subroutine rotmer(xlon,xlat,xmap,jx,iy,clon,clat,pollon,   &
                     pollat,ds,idot,cntri,cntrj)
 
     use mod_projections
     implicit none
     real(rkx) , intent(in) :: clat , clon , ds , pollat , pollon , cntri , cntrj
     integer(ik4) , intent(in) :: idot , iy , jx
-    real(rkx) , dimension(jx,iy) , intent(out) :: coriol , xlat , xlon , xmap
+    real(rkx) , dimension(jx,iy) , intent(out) :: xlat , xlon , xmap
     real(rkx) :: xcntri , xcntrj
     integer(ik4) :: i , j
 
@@ -134,13 +126,6 @@ module mod_maputils
         call mapfac_rc(real(i,rkx), xmap(j,i))
       end do
     end do
-    if ( idot == 1 ) then
-      do i = 1 , iy
-        do j = 1 , jx
-          coriol(j,i) = eomeg2*sin(xlat(j,i)*degrad)
-        end do
-      end do
-    end if
   end subroutine rotmer
 
 end module mod_maputils
