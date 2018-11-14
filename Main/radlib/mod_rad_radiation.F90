@@ -2255,14 +2255,15 @@ module mod_rad_radiation
         ie = ubound(imax,1)
         intmax = is
         n = ie-is+1
-        if ( n == 1 ) return
-        mx = imax(is)
-        do i = is+1 , ie
-          if ( imax(i) > mx ) then
-            mx = imax(i)
-            intmax = i
-          end if
-        end do
+        if ( n > 1 ) then
+          mx = imax(is)
+          do i = is+1 , ie
+            if ( imax(i) > mx ) then
+              mx = imax(i)
+              intmax = i
+            end if
+          end do
+        end if
       end function intmax
 
   end subroutine radclw

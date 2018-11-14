@@ -68,7 +68,12 @@ module mod_che_emission
     if ( chemsimtype(1:2) == 'DU' .or. &
          chemsimtype(1:4) == 'SSLT' .or. &
          chemsimtype(1:4) == 'DUSS' .or. &
-         chemsimtype(1:4) == 'MINE' ) return
+         chemsimtype(1:4) == 'MINE' ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
     if ( ifreq == ifrqmon ) then
       if ( curry == lyear .and. currm == lmonth ) then
@@ -77,6 +82,9 @@ module mod_che_emission
             'EMISSION for  ',lyear*1000000+lmonth*10000+100*lday,' ready', &
             ' from ',curry*1000000+currm*10000+100*currd
         end if
+#ifdef DEBUG
+        call time_end(subroutine_name,idindx)
+#endif
 !       return
 ! FAB use eceptionally a goto here to allow reading of BB emission
         goto 99
@@ -112,12 +120,20 @@ module mod_che_emission
               'BB EMISSION for  ',lyear*1000000+lmonth*10000+100*lday,&
               ' ready from ',currybb*1000000+currmbb*10000+100*currdbb
           end if
+#ifdef DEBUG
+          call time_end(subroutine_name,idindx)
+#endif
           return
         end if
       else if ( ifreqbb == ifrqday ) then
         if ( currybb == lyear .and. &
              currmbb == lmonth .and. &
-             currdbb == lday ) return
+             currdbb == lday ) then
+#ifdef DEBUG
+          call time_end(subroutine_name,idindx)
+#endif
+          return
+        end if
       end if
       currybb = lyear
       currmbb = lmonth

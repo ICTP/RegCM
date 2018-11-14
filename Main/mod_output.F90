@@ -1382,12 +1382,13 @@ module mod_output
       implicit none
       integer(ik4) :: k
       kk = 0
-      if ( plev < p1(1) ) return
-      do k = 1 , kz
-        if ( plev > p1(k) ) then
-          kk = k
-        end if
-      end do
+      if ( plev >= p1(1) ) then
+        do k = 1 , kz
+          if ( plev > p1(k) ) then
+            kk = k
+          end if
+        end do
+      end if
     end function findlev
 
   end subroutine vertint

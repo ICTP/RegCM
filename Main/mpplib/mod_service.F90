@@ -259,8 +259,11 @@ module mod_service
       test = array_entries(0)
       do i = 1 , mxnode-1
         if ( array_entries(i) /= test ) then
-          write(ndebug,*) 'Warning:Different trees on different pe:',  &
+          write(ndebug,*) 'ERROR: Different trees on different pe:',  &
                n_of_nsubs
+          do nsubs = 1 , n_of_nsubs
+            write(ndebug,*) info_serial(nsubs)%name_of_section
+          end do
           call fatal(__FILE__,__LINE__,'different trees on different pe!')
         end if
       end do

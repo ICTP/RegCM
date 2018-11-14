@@ -445,11 +445,6 @@ module mod_cu_grell
                tvbar , tvbaro , xk , mflx
     integer(ik4) :: n , k , kbcono , kk
     logical :: foundtop
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'cup'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
 
     ! Variable names carry an "o"-ending (z becomes zo), if they are the
     ! forced variables. They are preceded by x (z becomes xz) to indicate
@@ -1133,9 +1128,6 @@ module mod_cu_grell
         end if
       end do
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
     contains
 
 #include <pfesat.inc>
@@ -1149,11 +1141,6 @@ module mod_cu_grell
        integer(ik4) , intent(inout) , pointer , dimension(:) :: kt
        integer(ik4) :: n , k
        real(rkx) :: x
-#ifdef DEBUG
-       character(len=dbgslen) :: subroutine_name = 'minimi'
-       integer(ik4) , save :: idindx = 0
-       call time_begin(subroutine_name,idindx)
-#endif
        do n = 1 , nap
          kt(n) = ks(n)
          x = array(n,ks(n))
@@ -1164,9 +1151,6 @@ module mod_cu_grell
            end if
          end do
        end do
-#ifdef DEBUG
-       call time_end(subroutine_name,idindx)
-#endif
      end subroutine minimi
 
      subroutine maximi1(array,ks,ke,imax)
@@ -1176,11 +1160,6 @@ module mod_cu_grell
       integer(ik4) , intent(inout) , pointer , dimension(:) :: imax
       integer(ik4) :: n , k
       real(rkx) :: x , xar
-#ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'maximi1'
-      integer(ik4) , save :: idindx = 0
-      call time_begin(subroutine_name,idindx)
-#endif
       do n = 1 , nap
         imax(n) = ks
         x = array(n,ks)
@@ -1192,9 +1171,6 @@ module mod_cu_grell
           end if
         end do
       end do
-#ifdef DEBUG
-      call time_end(subroutine_name,idindx)
-#endif
     end subroutine maximi1
 
     subroutine maximi2(array,ks,ke,imax)
@@ -1205,11 +1181,6 @@ module mod_cu_grell
       integer(ik4) , intent(inout) , pointer , dimension(:) :: imax
       integer(ik4) :: n , k
       real(rkx) :: x , xar
-#ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'maximi2'
-      integer(ik4) , save :: idindx = 0
-      call time_begin(subroutine_name,idindx)
-#endif
       do n = 1 , nap
         imax(n) = ks
         x = array(n,ks)
@@ -1221,9 +1192,6 @@ module mod_cu_grell
           end if
         end do
       end do
-#ifdef DEBUG
-      call time_end(subroutine_name,idindx)
-#endif
     end subroutine maximi2
 
   end subroutine cup
