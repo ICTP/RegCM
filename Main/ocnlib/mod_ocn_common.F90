@@ -30,7 +30,7 @@ module mod_ocn_common
   use mod_ocn_lake
   use mod_ocn_zeng
   use mod_ocn_albedo
-  use mod_runparams , only : rcmtimer , iemiss , syncro_srf
+  use mod_runparams , only : rcmtimer , iemiss , syncro_srf , iwavcpl
   use mod_mppparam
 
   implicit none
@@ -204,8 +204,10 @@ module mod_ocn_common
           mask = mask + 2
         end where
       end if
-      call c2l_gs(ocncomm,lm%zo,zoo)
-      call c2l_gs(ocncomm,lm%ustar,ustr)
+      if ( iwavcpl == 1 ) then
+        call c2l_gs(ocncomm,lm%zo,zoo)
+        call c2l_gs(ocncomm,lm%ustar,ustr)
+      end if
     else
       ! OCN -> RegCM
       call l2c_ss(ocncomm,tgb,lms%tgbb)
