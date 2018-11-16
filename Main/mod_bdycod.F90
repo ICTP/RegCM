@@ -417,37 +417,86 @@ module mod_bdycod
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
-    if ( rcmtimer%integrating( ) ) then
-      if ( islab_ocean == 0 ) then
-        if ( iseaice == 1 ) then
+    if ( rcmtimer%start( ) ) then
+      if ( iseaice == 1 ) then
+        if ( islab_ocean == 0 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ! Update temperatures over water
               if ( mddom%ldmsk(j,i) == 0 ) then
                 if ( iocncpl == 1 .or. iwavcpl == 1 ) then
                   if ( cplmsk(j,i) /= 0 ) cycle
                 end if
+              else
+                cycle
               end if
-              ! Sea ice correction
-              if ( islake(mddom%lndcat(j,i)) ) cycle
-              if ( iocncpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
+              if ( isocean(mddom%lndcat(j,i)) ) then
+                if ( xtsb%b0(j,i) <= icetriggert ) then
+                  xtsb%b0(j,i) = icetriggert
+                  mddom%ldmsk(j,i) = 2
+                  do n = 1 , nnsg
+                    if ( mdsub%ldmsk(n,j,i) == 0 ) then
+                      mdsub%ldmsk(n,j,i) = 2
+                      lms%sfice(n,j,i) = 1.00_rkx
+                      lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
+                      lms%scvk(n,j,i) = 0.2_rkx
+                      lms%snag(n,j,i) = 0.1_rkx
+                    end if
+                  end do
+                end if
               end if
+            end do
+          end do
+        end if
+      end if
+#ifndef CLM
+      if ( lakemod == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( islake(mddom%lndcat(j,i)) ) then
               if ( xtsb%b0(j,i) <= icetriggert ) then
-                xtsb%b0 = icetriggert
-              end if
-              if ( xtsb%b1(j,i) <= icetriggert .and. &
-                   mddom%ldmsk(j,i) == 0 ) then
-                xtsb%b1(j,i) = icetriggert
+                xtsb%b0(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
                 do n = 1 , nnsg
                   if ( mdsub%ldmsk(n,j,i) == 0 ) then
                     mdsub%ldmsk(n,j,i) = 2
                     lms%sfice(n,j,i) = 1.00_rkx
+                    lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
+                    lms%scvk(n,j,i) = 0.2_rkx
+                    lms%snag(n,j,i) = 0.1_rkx
                   end if
                 end do
-              else if ( xtsb%b1(j,i) > icetriggert .and. &
-                        mddom%ldmsk(j,i) == 2 ) then
+              end if
+            end if
+          end do
+        end do
+      end if
+#endif
+    end if
+
+    if ( iseaice == 1 ) then
+      if ( islab_ocean == 0 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ! Update temperatures over ocean water and lakes
+            if ( mddom%ldmsk(j,i) /= 1 ) then
+              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+                if ( cplmsk(j,i) /= 0 ) cycle
+              end if
+              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            else
+              cycle
+            end if
+            if ( xtsb%b1(j,i) <= icetriggert ) then
+              xtsb%b1(j,i) = icetriggert
+              mddom%ldmsk(j,i) = 2
+              do n = 1 , nnsg
+                if ( mdsub%ldmsk(n,j,i) == 0 ) then
+                  mdsub%ldmsk(n,j,i) = 2
+                  lms%sfice(n,j,i) = 1.00_rkx
+                end if
+              end do
+            else
+              if ( mddom%ldmsk(j,i) == 2 ) then
                 ! Decrease the surface ice to melt it
                 do n = 1 , nnsg
                   if ( mdsub%ldmsk(n,j,i) == 2 ) then
@@ -455,9 +504,9 @@ module mod_bdycod
                   end if
                 end do
               end if
-            end do
+            end if
           end do
-        end if
+        end do
       end if
     end if
     !
@@ -518,8 +567,8 @@ module mod_bdycod
       xpsb%b0(:,:) = xpsb%b1(:,:)
     end if
 
-    ! Data are monthly
     if ( update_slabocn ) then
+      ! Data are monthly
       som_month = rcmtimer%month
       qflb0 = qflb1
       tdif = bdydate1-monfirst(bdydate1)
@@ -600,6 +649,8 @@ module mod_bdycod
       call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
       call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     end if
+
+    ! Linear time interpolation
     call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
     call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
     call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
@@ -617,23 +668,21 @@ module mod_bdycod
     !
     ! Update ground temperature on Ocean/Lakes
     !
-    if ( islab_ocean == 0 ) then
-      if ( iseaice == 1 ) then
+    if ( iseaice == 1 ) then
+      if ( islab_ocean == 0 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ! Update temperatures over water
-            if ( mddom%ldmsk(j,i) == 0 ) then
+            ! Update temperatures over ocean water only
+            if ( mddom%ldmsk(j,i) /= 1 ) then
               if ( iocncpl == 1 .or. iwavcpl == 1 ) then
                 if ( cplmsk(j,i) /= 0 ) cycle
               end if
+              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            else
+              cycle
             end if
             ! Sea ice correction
-            if ( islake(mddom%lndcat(j,i)) ) cycle
-            if ( iocncpl == 1 ) then
-              if ( cplmsk(j,i) /= 0 ) cycle
-            end if
-            if ( xtsb%b1(j,i) <= icetriggert .and. &
-                 mddom%ldmsk(j,i) == 0 ) then
+            if ( xtsb%b1(j,i) <= icetriggert ) then
               xtsb%b1(j,i) = icetriggert
               mddom%ldmsk(j,i) = 2
               do n = 1 , nnsg
@@ -642,19 +691,21 @@ module mod_bdycod
                   lms%sfice(n,j,i) = 1.00_rkx
                 end if
               end do
-            else if ( xtsb%b1(j,i) > icetriggert .and. &
-                      mddom%ldmsk(j,i) == 2 ) then
-              ! Decrease the surface ice to melt it
-              do n = 1 , nnsg
-                if ( mdsub%ldmsk(n,j,i) == 2 ) then
-                  lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
-                end if
-              end do
+            else
+              if ( mddom%ldmsk(j,i) == 2 ) then
+                ! Decrease the surface ice to melt it
+                do n = 1 , nnsg
+                  if ( mdsub%ldmsk(n,j,i) == 2 ) then
+                    lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
+                  end if
+                end do
+              end if
             end if
           end do
         end do
       end if
     end if
+
     call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
 
     if ( myid == italk ) then
@@ -1409,6 +1460,7 @@ module mod_bdycod
           if ( iocncpl == 1 .or. iwavcpl == 1 ) then
             if ( cplmsk(j,i) /= 0 ) cycle
           end if
+          if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
           sfs%tg(j,i) = xtsb%b0(j,i) + xt*xtsb%bt(j,i)
         end if
       end do

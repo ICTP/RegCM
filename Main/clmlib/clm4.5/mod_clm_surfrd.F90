@@ -193,8 +193,8 @@ module mod_clm_surfrd
       if ( abs(real(xclon(n),rk4)-real(ldomain%lonc(n),rk4)) > 10.e-7_rk8 .or. &
            abs(real(yclat(n),rk4)-real(ldomain%latc(n),rk4)) > 10.e-7_rk8 ) then
         write(stderr,*) 'ERROR coordinates at n ', &
-            n, real(xclon(n)), real(yclat(n)) , &
-               real(ldomain%lonc(n)), real(ldomain%latc(n))
+            n, real(xclon(n),rk4), real(yclat(n),rk4) , &
+               real(ldomain%lonc(n),rk4), real(ldomain%latc(n),rk4)
         ierr = 1
       end if
     end do

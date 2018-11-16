@@ -61,7 +61,6 @@ module mod_ocn_common
     if ( llake ) call lakedrv
     if ( lseaice ) call seaice
     call ocn_interf(lm,lms,2)
-    call ocn_albedo
   end subroutine vecocn
 
   subroutine initocn(lm,lms)
@@ -95,21 +94,29 @@ module mod_ocn_common
     else
       mask = 1
     end if
+    call c2l_ss(ocncomm,lm%xlat1,lat)
+    call c2l_ss(ocncomm,lm%iveg1,omask)
+    call c2l_gs(ocncomm,lm%zencos,czenith)
+    if ( llake .or. lseaice ) then
+      call c2l_ss(ocncomm,lms%sfice,sfice)
+      call c2l_ss(ocncomm,lms%sncv,sncv)
+      call c2l_ss(ocncomm,lms%snag,snag)
+      call c2l_ss(ocncomm,lms%scvk,scvk)
+    end if
+    if ( llake ) then
+      call initlake
+      lms%lakmsk = .false.
+      call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
+    end if
     if ( rcmtimer%start( ) ) then
       call c2l_gs(ocncomm,lm%tg,tgb)
-      call c2l_ss(ocncomm,lm%xlat1,lat)
-      call c2l_ss(ocncomm,lm%iveg1,omask)
-      call c2l_gs(ocncomm,lm%zencos,czenith)
       tgrd = tgb
       tgbrd = tgb
+      t2m = tgb
       if ( llake .or. lseaice ) then
-        call c2l_ss(ocncomm,lms%sfice,sfice)
-        call c2l_ss(ocncomm,lms%sncv,sncv)
         where ( xmask /= 0 )
           tgrd = bgicetemp
         end where
-      end if
-      if ( iemiss == 1 .and. (llake .or. lseaice) ) then
         where ( xmask == 0 )
           emiss = ocn_sfcemiss
         else where
@@ -121,26 +128,18 @@ module mod_ocn_common
       call l2c_ss(ocncomm,emiss,lms%emisv)
       um10 = 1.0_rkx ! Assume a mean of 1m/s wind for init.
     else
-      call c2l_ss(ocncomm,lm%xlat1,lat)
-      call c2l_ss(ocncomm,lm%iveg1,omask)
       call c2l_ss(ocncomm,lms%tgrd,tgrd)
       call c2l_ss(ocncomm,lms%tgbrd,tgbrd)
       call c2l_ss(ocncomm,lms%emisv,emiss)
       call c2l_ss(ocncomm,lms%um10,um10)
+      call c2l_ss(ocncomm,lms%tlef,t2m)
       call c2l_gs(ocncomm,lm%qfx,evpr)
       call c2l_gs(ocncomm,lm%hfx,sent)
-      call c2l_gs(ocncomm,lm%zencos,czenith)
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%sst,sst)
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)
         call c2l_ss(ocncomm,lms%tskin,tskin)
-      end if
-      if ( llake .or. lseaice ) then
-        call c2l_ss(ocncomm,lms%sfice,sfice)
-        call c2l_ss(ocncomm,lms%snag,snag)
-        call c2l_ss(ocncomm,lms%sncv,sncv)
-        call c2l_ss(ocncomm,lms%scvk,scvk)
       end if
       if ( llake ) then
         call c2l_ss(ocncomm,lms%eta,laketa)
@@ -150,10 +149,6 @@ module mod_ocn_common
         call lake_fillvar(var_hi,lakhi,1)
         call lake_fillvar(var_tlak,laktlake,1)
       end if
-    end if
-    if ( llake ) then
-      call initlake
-      call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
     end if
   end subroutine initocn
 
@@ -179,6 +174,7 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%tatm,tatm)
       call c2l_gs(ocncomm,lm%patm,patm)
       call c2l_gs(ocncomm,lm%sfta,sfta)
+      call c2l_ss(ocncomm,lms%tlef,t2m)
       call c2l_gs(ocncomm,lm%tg,tgb)
       call c2l_gs(ocncomm,lm%hpbl,hpbl)
       call c2l_gs(ocncomm,lm%qvatm,qv)
@@ -213,7 +209,7 @@ module mod_ocn_common
       call l2c_ss(ocncomm,tgb,lms%tgbb)
       call l2c_ss(ocncomm,tgrd,lms%tgrd)
       call l2c_ss(ocncomm,tgbrd,lms%tgbrd)
-      call l2c_ss(ocncomm,tgrd,lms%tlef)
+      call l2c_ss(ocncomm,t2m,lms%tlef)
       call l2c_ss(ocncomm,sent,lms%sent)
       call l2c_ss(ocncomm,evpr,lms%evpr)
       call l2c_ss(ocncomm,drag,lms%drag)
@@ -256,14 +252,14 @@ module mod_ocn_common
         call l2c_ss(ocncomm,scvk,lms%scvk)
         call l2c_ss(ocncomm,sm,lms%snwm)
         ! Emissivity for surface ice
-        if ( iemiss == 1 ) then
+        if ( llake .or. lseaice ) then
           where ( xmask == 0 )
             emiss = ocn_sfcemiss
           else where
             emiss = 0.97_rkx
           end where
-          call l2c_ss(ocncomm,emiss,lms%emisv)
         end if
+        call l2c_ss(ocncomm,emiss,lms%emisv)
       end if
     end if
   end subroutine ocn_interf
@@ -273,15 +269,14 @@ module mod_ocn_common
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , j , n
-    call ocn_interf(lm,lms,1)
     call ocn_albedo
     call l2c_ss(ocncomm,swdiral,lms%swdiralb)
     call l2c_ss(ocncomm,lwdiral,lms%lwdiralb)
     call l2c_ss(ocncomm,swdifal,lms%swdifalb)
     call l2c_ss(ocncomm,lwdifal,lms%lwdifalb)
-    do n = 1 , nnsg
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) /= 1 ) then
             lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
             lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))

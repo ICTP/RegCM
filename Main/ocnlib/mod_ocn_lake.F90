@@ -73,7 +73,7 @@ module mod_ocn_lake
     integer :: i , lp
     nlakep = 0
     call getmem1d(lakmsk,1,nocnp,'ocn::initlake::lakmsk')
-    lakmsk = (mask >= 3)
+    lakmsk = (ilake == 1)
     nlakep = count(lakmsk)
 #ifdef DEBUG
     write(ndebug,*) 'NUMBER OF LAKE POINTS : ',nlakep
@@ -218,6 +218,7 @@ module mod_ocn_lake
     real(rkx) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
     real(rkx) :: ribd , ribl , ribn , scrat , tage
     real(rkx) :: sold , vspda , u1 , tc , visa , rho
+    real(rkx) :: wt1 , wt2
     real(rkx) , dimension(ndpmax) :: tp
 
     integer(ik4) :: lp , i
@@ -233,6 +234,9 @@ module mod_ocn_lake
 #endif
       return
     end if
+
+    wt1 = (threedays-dtlake)/threedays
+    wt2 = dtlake/threedays
 
     do lp = 1 , nlakep
       i = ilp(lp)
@@ -363,6 +367,7 @@ module mod_ocn_lake
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
       rhoa(i) = rhox(i)
+      um10(i) = um10(i) * wt1 + sqrt(u10m(i)**2+v10m(i)**2) * wt2
       ustr(i) = sqrt(sqrt((u10m(i)*drag(i))**2 + &
                           (v10m(i)*drag(i))**2)/rhoa(i))
       call ocnrough(zoo(i),ustr(i),um10(i),vl,visa)

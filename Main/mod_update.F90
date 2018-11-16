@@ -57,11 +57,11 @@ module mod_update
   !     Module constants
   !-----------------------------------------------------------------------
   !
-  real(rk8), parameter :: beta = 1.25 ! gustiness coeff
-  real(rk8), parameter :: von  = 0.4  ! von Karman constant
-  real(rk8), parameter :: fdg  = 1.00 ! ratio of thermal to wind von Karman
-  real(rk8), parameter :: tdk  = 273.16
-  real(rk8), parameter :: grav = 9.82 ! accel of earth grav
+  real(rk8), parameter :: beta = 1.25_rk8 ! gustiness coeff
+  real(rk8), parameter :: von  = 0.4_rk8  ! von Karman constant
+  real(rk8), parameter :: fdg  = 1.00_rk8 ! ratio of thermal to wind von Karman
+  real(rk8), parameter :: tdk  = 273.16_rk8
+  real(rk8), parameter :: grav = 9.82_rk8 ! accel of earth grav
 
   contains
 

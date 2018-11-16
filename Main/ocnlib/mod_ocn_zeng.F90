@@ -61,8 +61,6 @@ module mod_ocn_zeng
   real(rkx) , parameter :: zetam = 1.574_rkx
   real(rkx) , parameter :: minw = 0.1_rkx
 
-  real(rkx) , parameter :: threedays = 86400.0_rkx*3.0_rkx  ! 3 days
-
   real(rkx) , parameter :: missing_r8 = 1.0e20_rkx
   real(rkx) , parameter :: tol = missing_r8/2.0_rkx
   logical :: flag1 , flag2 , lpcpcool

@@ -34,6 +34,7 @@ module mod_ocn_internal
 
   real(rkx) , parameter :: aarea = 0.02_rkx
   real(rkx) , parameter :: age3 = 0.3_rkx
+  real(rkx) , parameter :: threedays = 86400.0_rkx*3.0_rkx  ! 3 days
 
   integer(ik4) :: nocnp
   integer(ik4) :: iocnbeg , iocnend

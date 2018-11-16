@@ -184,9 +184,13 @@ module mod_regcm_interface
       !
       call tend
       !
+      ! Write output for this timestep if requested
+      !
+      call output
+      !
       ! Boundary code
       !
-      if ( .not. rcmtimer%reached_endtime  ) then
+      if ( .not. rcmtimer%reached_endtime ) then
         if ( alarm_in_bdy%act( ) ) then
           !
           ! Read in new boundary conditions
@@ -198,10 +202,6 @@ module mod_regcm_interface
         !
         call bdyval
       end if
-      !
-      ! Write output for this timestep if requested
-      !
-      call output
       !
       ! Send information to the driver
       !

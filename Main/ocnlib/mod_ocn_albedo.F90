@@ -73,7 +73,7 @@ module mod_ocn_albedo
       !
       if ( mask(i) == 1 .or. mask(i) == 3 ) then
         if ( iwhitecap == 1 ) then
-          wspd = sqrt(usw(i)**2+vsw(i)**2)
+          wspd = um10(i)
           ! Monahan and O'Muircheartaigh [1980]
           ! Fraction of whitecapping function of windspeed
           wfac = 2.95e-6_rkx * wspd**3.52
@@ -107,9 +107,9 @@ module mod_ocn_albedo
             albgld = 0.08_rkx
           end if
         end if
-      else if ( mask(i) == 2 .or. mask(i) == 4 ) then
+      else
         ! Ice over ocean or lake
-        tdiffs = tatm(i) - icetriggert
+        tdiffs = t2m(i) - icetriggert
         tdiff = max(tdiffs,d_zero)
         tdiffs = min(tdiff,20.0_rkx)
         albgl = sical1 - 1.1e-2_rkx*tdiffs
@@ -148,11 +148,6 @@ module mod_ocn_albedo
           albgsd = (d_one-scvk(i))*albgsd + dfalbs*scvk(i)
           albgld = (d_one-scvk(i))*albgld + dfalbl*scvk(i)
         end if
-      else
-        albgs = d_zero
-        albgl = d_zero
-        albgsd = d_zero
-        albgld = d_zero
       end if
       !
       ! not part of albedo in the ccm

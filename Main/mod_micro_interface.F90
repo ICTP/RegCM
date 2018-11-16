@@ -111,7 +111,7 @@ module mod_micro_interface
     call getmem2d(rh0,jci1,jci2,ici1,ici2,'subex:rh0')
     call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'subex:totc')
     do i = 1 , nchi
-      cf = real(i-1)/real(nchi-1)
+      cf = real(i-1,rkx)/real(nchi-1,rkx)
       chis(i-1) = 0.97_rkx*exp(-((cf-0.098_rkx)**2)/0.0365_rkx)+0.255_rkx
     end do
   end subroutine allocate_micro

@@ -147,67 +147,7 @@ module mod_init
           end do
         end do
       end if
-      !
-      ! If we have activated SeaIce scheme, on ocean point we consider
-      ! the temperature as the signal to cover with ice the sea, changing
-      ! the tipe of soil to permanent ice. The landmask is:
-      !
-      !    0 -> Ocean
-      !    1 -> Land
-      !    2 -> Sea Ice
-      !
-      if ( iseaice == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( iocncpl == 1 ) then
-              if ( cplmsk(j,i) /= 0 ) cycle
-            end if
-            if ( isocean(mddom%lndcat(j,i)) ) then
-              if ( xtsb%b0(j,i) <= icetriggert ) then
-                xtsb%b0(j,i) = icetriggert
-                mddom%ldmsk(j,i) = 2
-                do n = 1, nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                    mdsub%ldmsk(n,j,i) = 2
-                    lms%sfice(n,j,i) = 1.00_rkx ! This is in m
-                    lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
-                    lms%scvk(n,j,i) = 0.2_rkx
-                    lms%snag(n,j,i) = 0.1_rkx
-                  end if
-                end do
-              end if
-            end if
-          end do
-        end do
-      end if
-      !
-      ! Repeat the above for lake points if lake model is activated
-      !
-#ifndef CLM
-      if ( lakemod == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( iocncpl == 1 ) then
-              if ( cplmsk(j,i) /= 0 ) cycle
-            end if
-            if ( islake(mddom%lndcat(j,i)) ) then
-              if ( xtsb%b0(j,i) <= icetriggert ) then
-                xtsb%b0(j,i) = icetriggert
-                mddom%ldmsk(j,i) = 2
-                do n = 1, nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                    mdsub%ldmsk(n,j,i) = 2
-                    lms%sncv(n,j,i) = 1.0_rkx  ! 1 mm of snow over the ice
-                    lms%scvk(n,j,i) = 0.2_rkx
-                    lms%snag(n,j,i) = 0.1_rkx
-                  end if
-                end do
-              end if
-            end if
-          end do
-        end do
-      end if
-#endif
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           sfs%tg(j,i) = xtsb%b0(j,i)
@@ -614,6 +554,7 @@ module mod_init
     ! Initialize the Surface Model
     !
     call init_slice
+    call mkslice
     call initialize_surface_model
     call initialize_diffusion
     if ( idynamic == 2 ) then

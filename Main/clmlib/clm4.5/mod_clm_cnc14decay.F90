@@ -209,8 +209,8 @@ module mod_clm_cnc14decay
     if ( use_c14_bombspike ) then
       ! get current date
       call curr_date(nextdate,yr,mon,day,tod)
-      dateyear = real(yr) + real(mon)/12._rk8 + real(day)/dayspy + &
-              real(tod)/(secspday*dayspy)
+      dateyear = real(yr,rk8) + real(mon,rk8)/12._rk8 + real(day,rk8)/dayspy + &
+              real(tod,rk8)/(secspday*dayspy)
 
       ! find points in atm timeseries to interpolate between
       ntim_atm_ts = size(atm_c14file_time)
