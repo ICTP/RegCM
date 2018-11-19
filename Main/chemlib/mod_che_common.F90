@@ -324,21 +324,39 @@ module mod_che_common
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
     else if ( chemsimtype(1:4) == 'DCCB' ) then
       nbin = 4
-      ntr = 52
-      allocate(chtrname(ntr))
-      chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
-                              'HNO3  ','HNO4  ','O3    ','H2O2  ',&
-                              'CO    ','SO2   ','DMS   ','H2SO4 ',&
-                              'CH4   ','C2H6  ','PAR   ','CH3OH ',&
-                              'HCHO  ','ALD2  ','AONE  ','ETH   ',&
-                              'OLET  ','OLEI  ','TOL   ','XYL   ',&
-                              'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
-                              'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
-                              'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
-                              'CRES  ','NH3   ','DUST01','DUST02',&
-                              'DUST03','DUST04','BC_HL ','BC_HB ',&
-                              'OC_HL ','OC_HB ','SSLT01','SSLT02',&
-                              'ANO3  ','ANH4  ','SM1   ','SM2   ' ]
+      if ( ismoke == 1 ) then
+        ntr = 52
+        allocate(chtrname(ntr))
+        chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
+                                'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                                'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                                'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                                'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                                'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                                'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                                'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                                'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                                'CRES  ','NH3   ','DUST01','DUST02',&
+                                'DUST03','DUST04','BC_HL ','BC_HB ',&
+                                'OC_HL ','OC_HB ','SSLT01','SSLT02',&
+                                'ANO3  ','ANH4  ','SM1   ','SM2   ' ]
+      else
+        ntr = 50
+        allocate(chtrname(ntr))
+        chtrname(1:ntr)(1:6) = ['NO    ','NO2   ','N2O5  ','HNO2  ',&
+                                'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                                'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                                'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                                'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                                'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                                'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                                'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                                'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                                'CRES  ','NH3   ','DUST01','DUST02',&
+                                'DUST03','DUST04','BC_HL ','BC_HB ',&
+                                'OC_HL ','OC_HB ','SSLT01','SSLT02',&
+                                'ANO3  ','ANH4  ']
+      end if
       iaerosol = 1
       igaschem = 1
       iisoropia = 1
