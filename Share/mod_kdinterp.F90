@@ -111,7 +111,7 @@ module mod_kdinterp
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
-    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j , i1 , j1
+    integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
     integer(ik4) :: imode
     real(rkx) :: dx , r2
 

@@ -55,32 +55,32 @@ program interpinic
   integer(ik4) :: ongc , onlu , onco , onpft , ongrd
 
   integer(ik4) , parameter :: itypeveg = 1
-  real(rk8) , parameter :: missl = -9999.0_rk8
+  real(rkx) , parameter :: missl = -9999.0_rkx
 
-  real(rk8) , pointer , dimension(:) :: i_grid1d_lon
-  real(rk8) , pointer , dimension(:) :: i_grid1d_lat
-  real(rk8) , pointer , dimension(:) :: i_pft1d_lon
-  real(rk8) , pointer , dimension(:) :: i_pft1d_lat
-  real(rk8) , pointer , dimension(:) :: i_col1d_lon
-  real(rk8) , pointer , dimension(:) :: i_col1d_lat
-  real(rk8) , pointer , dimension(:) :: o_grid1d_lon
-  real(rk8) , pointer , dimension(:) :: o_grid1d_lat
-  real(rk8) , pointer , dimension(:) :: o_pft1d_lon
-  real(rk8) , pointer , dimension(:) :: o_pft1d_lat
-  real(rk8) , pointer , dimension(:) :: o_col1d_lon
-  real(rk8) , pointer , dimension(:) :: o_col1d_lat
-  real(rk8) , pointer , dimension(:) :: o_pfts1d_wtxy
-  real(rk8) , pointer , dimension(:) :: o_cols1d_wtxy
-  real(rk8) , pointer , dimension(:) :: i_gval
-  real(rk8) , pointer , dimension(:) :: o_gval
-  real(rk8) , pointer , dimension(:) :: i_pval
-  real(rk8) , pointer , dimension(:) :: o_pval
-  real(rk8) , pointer , dimension(:) :: i_cval
-  real(rk8) , pointer , dimension(:,:) :: i_cval_ng
-  real(rk8) , pointer , dimension(:,:) :: i_cval_ng_t
-  real(rk8) , pointer , dimension(:) :: o_cval
-  real(rk8) , pointer , dimension(:,:) :: o_cval_ng
-  real(rk8) , pointer , dimension(:,:) :: o_cval_ng_t
+  real(rkx) , pointer , dimension(:) :: i_grid1d_lon
+  real(rkx) , pointer , dimension(:) :: i_grid1d_lat
+  real(rkx) , pointer , dimension(:) :: i_pft1d_lon
+  real(rkx) , pointer , dimension(:) :: i_pft1d_lat
+  real(rkx) , pointer , dimension(:) :: i_col1d_lon
+  real(rkx) , pointer , dimension(:) :: i_col1d_lat
+  real(rkx) , pointer , dimension(:) :: o_grid1d_lon
+  real(rkx) , pointer , dimension(:) :: o_grid1d_lat
+  real(rkx) , pointer , dimension(:) :: o_pft1d_lon
+  real(rkx) , pointer , dimension(:) :: o_pft1d_lat
+  real(rkx) , pointer , dimension(:) :: o_col1d_lon
+  real(rkx) , pointer , dimension(:) :: o_col1d_lat
+  real(rkx) , pointer , dimension(:) :: o_pfts1d_wtxy
+  real(rkx) , pointer , dimension(:) :: o_cols1d_wtxy
+  real(rkx) , pointer , dimension(:) :: i_gval
+  real(rkx) , pointer , dimension(:) :: o_gval
+  real(rkx) , pointer , dimension(:) :: i_pval
+  real(rkx) , pointer , dimension(:) :: o_pval
+  real(rkx) , pointer , dimension(:) :: i_cval
+  real(rkx) , pointer , dimension(:,:) :: i_cval_ng
+  real(rkx) , pointer , dimension(:,:) :: i_cval_ng_t
+  real(rkx) , pointer , dimension(:) :: o_cval
+  real(rkx) , pointer , dimension(:,:) :: o_cval_ng
+  real(rkx) , pointer , dimension(:,:) :: o_cval_ng_t
   integer(ik4) , pointer , dimension(:) :: i_ltype
   integer(ik4) , pointer , dimension(:) :: o_ltype
   integer(ik4) , pointer , dimension(:) :: i_vtype
@@ -658,7 +658,7 @@ program interpinic
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(inout) :: var
+    real(rkx) , dimension(:) , intent(inout) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -677,7 +677,7 @@ program interpinic
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(inout) :: var
+    real(rkx) , dimension(:,:) , intent(inout) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -715,7 +715,7 @@ program interpinic
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:) , intent(in) :: var
+    real(rkx) , dimension(:) , intent(in) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -734,7 +734,7 @@ program interpinic
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
-    real(rk8) , dimension(:,:) , intent(in) :: var
+    real(rkx) , dimension(:,:) , intent(in) :: var
     integer(ik4) :: ivarid
     istat = nf90_inq_varid(ncid, vname, ivarid)
     if ( istat /= nf90_noerr ) then
@@ -754,10 +754,10 @@ program interpinic
     integer(ik4) , intent(in) :: np , ng , mp
     integer(ik4) , intent(in) , dimension(np) :: ltype
     integer(ik4) , intent(in) , dimension(np) :: ptype
-    real(rk8) , intent(in) , dimension(ng) :: glat
-    real(rk8) , intent(in) , dimension(ng) :: glon
-    real(rk8) , intent(in) , dimension(np) :: plat
-    real(rk8) , intent(in) , dimension(np) :: plon
+    real(rkx) , intent(in) , dimension(ng) :: glat
+    real(rkx) , intent(in) , dimension(ng) :: glon
+    real(rkx) , intent(in) , dimension(np) :: plat
+    real(rkx) , intent(in) , dimension(np) :: plon
     integer(ik4) , intent(out) , dimension(ng,mp) :: map
     integer(ik4) :: ig , ip
 
@@ -781,10 +781,10 @@ program interpinic
     implicit none
     integer(ik4) , intent(in) :: nc , ng , mc
     integer(ik4) , intent(in) , dimension(nc) :: ctype
-    real(rk8) , intent(in) , dimension(ng) :: glat
-    real(rk8) , intent(in) , dimension(ng) :: glon
-    real(rk8) , intent(in) , dimension(nc) :: clat
-    real(rk8) , intent(in) , dimension(nc) :: clon
+    real(rkx) , intent(in) , dimension(ng) :: glat
+    real(rkx) , intent(in) , dimension(ng) :: glon
+    real(rkx) , intent(in) , dimension(nc) :: clat
+    real(rkx) , intent(in) , dimension(nc) :: clon
     integer(ik4) , intent(out) , dimension(ng,mc) :: map
     integer(ik4) :: ig , ic
 
@@ -834,7 +834,7 @@ program interpinic
       do ig = 1 , ongc
         if ( o_mapf(ig,ip) > 0 .and. &
              abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
-             o_pfts1d_wtxy(ip) > 0.0_rk8 ) then
+             o_pfts1d_wtxy(ip) > 0.0_rkx ) then
           o_pval(o_mapf(ig,ip)) = o_gval(ig)
         end if
       end do
@@ -883,7 +883,7 @@ program interpinic
         do ig = 1 , ongc
           if ( o_mapc(ig,ic) > 0 .and. &
                abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
-               o_cols1d_wtxy(ic) > 0.0_rk8 ) then
+               o_cols1d_wtxy(ic) > 0.0_rkx ) then
             o_cval_ng_t(o_mapc(ig,ic),igr) = o_gval(ig)
           end if
         end do
@@ -930,7 +930,7 @@ program interpinic
       do ig = 1 , ongc
         if ( o_mapc(ig,ic) > 0 .and. &
              abs(o_gval(ig)-missl) > epsilon(1.0) .and. &
-             o_cols1d_wtxy(ic) > 0.0_rk8 ) then
+             o_cols1d_wtxy(ic) > 0.0_rkx ) then
           o_cval(o_mapc(ig,ic)) = o_gval(ig)
         end if
       end do
