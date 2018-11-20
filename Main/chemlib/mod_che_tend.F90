@@ -63,7 +63,7 @@
     subroutine tractend2(lmonth,lday,declin)
       implicit none
       integer(ik4) , intent(in) :: lmonth , lday
-      real(rkx) , intent(in) :: declin
+      real(rk8) , intent(in) :: declin
 
 #ifndef CLM45
       real(rkx) :: facb , facs , facv , pres10 , qsat10 , shu10

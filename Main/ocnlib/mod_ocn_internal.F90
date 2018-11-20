@@ -104,7 +104,6 @@ module mod_ocn_internal
   real(rkx) , pointer , dimension(:) :: lwdifal
 
   integer(ik4) , pointer , dimension(:) :: mask
-  integer(ik4) , pointer , dimension(:) :: xmask
   integer(ik4) , pointer , dimension(:) :: icpl
   integer(ik4) , pointer , dimension(:) :: omask
 
@@ -171,7 +170,6 @@ module mod_ocn_internal
       dtsst = dtsrf
     end if
     if ( lseaice .or. llake ) then
-      call getmem1d(xmask,1,nocnp,'ocn_internal:xmask')
       call getmem1d(ilake,1,nocnp,'ocn_internal:ilake')
       call getmem1d(scvk,1,nocnp,'ocn_internal:scvk')
       call getmem1d(sfice,1,nocnp,'ocn_internal:sfice')

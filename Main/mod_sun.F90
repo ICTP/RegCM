@@ -258,7 +258,8 @@ module mod_sun
   !
   subroutine solar1
     implicit none
-    real(rkx) :: decdeg , obliq , mvelp
+    real(rk8) :: decdeg , obliq , mvelp
+    integer(ik4) , save :: lyear = bigint
     integer(ik4) :: iyear
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar1'
@@ -266,7 +267,10 @@ module mod_sun
     call time_begin(subroutine_name,idindx)
 #endif
     iyear = rcmtimer%year + int(year_offset,ik4)
-    call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+    if ( lyear /= iyear ) then
+      call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+      lyear = iyear
+    end if
     call orb_decl(yearpoint(rcmtimer%idate),eccen,mvelpp,lambm0, &
                   obliqr,declin,eccf)
     ! If we are fixing the solar constant, then fix the declination

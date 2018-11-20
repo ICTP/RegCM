@@ -554,7 +554,6 @@ module mod_init
     ! Initialize the Surface Model
     !
     call init_slice
-    call mkslice
     call initialize_surface_model
     call initialize_diffusion
     if ( idynamic == 2 ) then

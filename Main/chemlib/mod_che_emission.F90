@@ -166,7 +166,7 @@ module mod_che_emission
   subroutine emis_tend(j,declin)
     implicit none
     integer(ik4) , intent(in) :: j
-    real(rkx) , intent(in) :: declin
+    real(rk8) , intent(in) :: declin
 #else
   subroutine emis_tend(j)
     implicit none

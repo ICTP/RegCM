@@ -277,6 +277,7 @@ module mod_ocn_lake
         sfice(i) = d_zero
         sncv(i) = d_zero
         snag(i) = d_zero
+        scvk(i) = d_zero
         sm(i) = d_zero
         ribd = usw(i)**2 + vsw(i)**2 + wtur**2
         vspda = sqrt(ribd)
@@ -307,22 +308,24 @@ module mod_ocn_lake
         if ( sncv(i) < dlowval ) then
           sncv(i) = d_zero
           snag(i) = d_zero
+          scvk(i) = d_zero
+          age = d_zero
         else
           arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
           age1 = exp(arg)
           arg2 = min(d_zero,d_10*arg)
           age2 = exp(arg2)
           tage = age1 + age2 + age3
-          dela0 = 1.0e-6_rkx*dtocn
+          dela0 = 1.0e-6_rkx*dtlake
           dela = dela0*tage
           dels = d_r10*max(d_zero,sncv(i)-sold)
           snag(i) = (snag(i)+dela)*(d_one-dels)
           if ( snag(i) < dlowval ) snag(i) = d_zero
+          if ( sncv(i) > 800.0_rkx ) snag(i) = d_zero
+          age = (d_one-d_one/(d_one+snag(i)))
+          scrat = sncv(i)*0.01_rkx/(d_one+d_three*age)
+          scvk(i) = scrat/(0.1_rkx+scrat)
         end if
-        if ( sncv(i) > 800.0_rkx ) snag(i) = d_zero
-        age = (d_one-d_one/(d_one+snag(i)))
-        scrat = sncv(i)*0.01_rkx/(d_one+d_three*age)
-        scvk(i) = scrat/(0.1_rkx+scrat)
         cdrn = (vonkar/log(ht(i)/zlnd))**2
         if ( delt < d_zero ) then
           u1 = wtur + d_two*sqrt(-delt)
@@ -437,14 +440,12 @@ module mod_ocn_lake
   subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,tgl,  &
                   prec,ndpt,eta,hi,aveice,hsnow,evl,tprof,ps,dens)
     implicit none
-    real(rkx) :: dtlake , evl , aveice , hsen , hsnow , flw , &
-               prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl , ps , dens
-    real(rkx) , dimension(ndpmax) :: tprof
-    integer(ik4) :: ndpt
-    intent (in) hsen , ql , tl , vl , zl , ps , dens
-    intent (in) ndpt , eta
-    intent (out) tgl
-    intent (inout) tprof , evl , aveice , hsnow
+    real(rkx) , intent(in) :: dtlake , hsen , flw , &
+               prec , ql , fsw , tl , vl , zl , eta , xl , ps , dens
+    real(rkx) , intent(out) :: tgl
+    real(rkx) , intent(inout) :: hi , evl , aveice , hsnow
+    real(rkx) , dimension(ndpmax) , intent(inout) :: tprof
+    integer(ik4) , intent(in) :: ndpt
     real(rkx) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
     ! zo: surface roughness length
     real(rkx) , parameter :: zo = 0.001_rkx
@@ -477,6 +478,7 @@ module mod_ocn_lake
 
       hi     = iceminh
       aveice = d_zero
+      hsnow = d_zero
 
     else
 
@@ -504,10 +506,10 @@ module mod_ocn_lake
 
       if ( .not. lfreeze ) tprof(1) = twatui
 
-      evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
+      evl    = ev/secph      ! convert evl  from mm/hr to mm/sec
       aveice = ai
       hsnow  = hs*d_100      ! convert back. See Above.
-      if (aveice < dlowval) then
+      if ( aveice < dlowval ) then
         aveice = d_zero
         hsnow = d_zero
       end if
@@ -771,7 +773,7 @@ module mod_ocn_lake
     if ( t0 >= tf ) then
       if ( hs > d_zero ) then
         ds = dtx *                                                  &
-             ( (-ld + 0.97_rkx*sigm*t4(tf) + psi * (eomb(tf)-ea) +  &
+             ( (-ld + emsw*sigm*t4(tf) + psi * (eomb(tf)-ea) +      &
                 theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
               (rhosnowp*li)
         if ( ds > d_zero ) ds = d_zero
@@ -781,15 +783,15 @@ module mod_ocn_lake
         end if
       end if
       if ( (abs(hs) < dlowval) .and. (aveice > d_zero) ) then
-        di = dtx *                                                  &
-            ( (-ld + 0.97_rkx*sigm*t4(tf) + psi * (eomb(tf)-ea) +   &
-              theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) /   &
+        di = dtx *                                                &
+            ( (-ld + emsw*sigm*t4(tf) + psi * (eomb(tf)-ea) +     &
+              theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
              (rhoice*li)
         if ( di > d_zero ) di = d_zero
         hi = hi + di
       end if
     else
-      q0 = -ld + 0.97_rkx*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
+      q0 = -ld + emsw*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
            theta*(t0-tac) - fsw
       qpen = fsw*0.7_rkx*(d_one-exp(-(lams1*hs+lami1*hi))) + &
              fsw*0.3_rkx*(d_one-exp(-(lams2*hs+lami2*hi)))
@@ -828,7 +830,7 @@ module mod_ocn_lake
     pure real(rkx) function f(x)
       implicit none
       real(rkx) , intent(in) :: x
-      f = (-ld + 0.97_rkx*sigm*t4(x) + psi*(eomb(x)-ea) + &
+      f = (-ld + emsw*sigm*t4(x) + psi*(eomb(x)-ea) + &
            theta*(x-tac)-fsw) - d_one/khat*(qpen+tf-x)
     end function f
 

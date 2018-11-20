@@ -227,6 +227,7 @@ module mod_rad_colmod3
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout , labsem
+    real(rkx) :: efac
 
     integer(ik4) :: i , j , k , n , m , k2
 #ifdef DEBUG
@@ -378,11 +379,12 @@ module mod_rad_colmod3
     ! Main radiation driving routine.
     ! NB: All fluxes returned from radctl() have already been converted to MKS.
     !
+    efac = real(eccf,rkx)
     call radctl(1,npr,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1,       &
                 tm1,qm1,rh1,cld,effcld,clwp,fsns,qrs,qrl,flwds,         &
                 rel,rei,fice,sols,soll,solsd,solld,emiss,fsnt,fsntc,    &
                 fsnsc,flnt,lwout,lwin,flns,flntc,flnsc,solin,solout,alb,&
-                albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen, &
+                albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,efac,o3vmr,czen, &
                 czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw,abv,sol,    &
                 aeradfo,aeradfos,aerlwfo,aerlwfos,absgasnxt,absgastot,  &
                 emsgastot,tauxcl,tauxci,outtaucl,outtauci,labsem)

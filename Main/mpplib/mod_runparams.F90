@@ -76,12 +76,14 @@ module mod_runparams
   type(rcm_syncro) , save , public , pointer :: syncro_cpl
 
   ! Orbital paramters
-  real(rkx) , public :: year_offset
-  real(rkx) , public :: eccen
-  real(rkx) , public :: obliqr
-  real(rkx) , public :: lambm0
-  real(rkx) , public :: mvelpp
-  real(rkx) , public :: eccf
+  real(rk8) , public :: year_offset
+  real(rk8) , public :: eccen
+  real(rk8) , public :: obliq
+  real(rk8) , public :: mvelp
+  real(rk8) , public :: obliqr
+  real(rk8) , public :: lambm0
+  real(rk8) , public :: mvelpp
+  real(rk8) , public :: eccf
 
   type(rcm_time_and_date) , save , public :: bdydate1 , bdydate2
   type(rcm_time_and_date) , save , public :: somdate1 , somdate2
@@ -89,7 +91,7 @@ module mod_runparams
   type(rcm_time_interval) , save , public :: intbdy
   type(rcm_time_interval) , save , public :: intsom
 
-  real(rkx) , public :: declin
+  real(rk8) , public :: declin
   real(rkx) , public :: xbctime
   real(rkx) , public :: calday , twodt
   real(rk8) , public :: xslabtime

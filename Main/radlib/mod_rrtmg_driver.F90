@@ -279,10 +279,12 @@ module mod_rrtmg_driver
     logical , intent(in) :: lout
     integer(ik4) :: k , kj , n , i , j , kmincld , kmaxcld
     logical :: lradfor
+    real(rkx) :: adjes
 
     ! from water path and cloud radius / tauc_LW is not requested
     tauc_lw(:,:,:) = dlowval
     call prep_dat_rrtm(m2r,iyear)
+    adjes = real(eccf,rkx)
 
     lradfor = ( rcmtimer%start( ) .or. syncro_radfor%will_act( ) )
 
@@ -328,7 +330,7 @@ module mod_rrtmg_driver
                              taucmcl,ssacmcl,asmcmcl,fsfcmcl)
         call rrtmg_sw(npr,kth,icld,lradfor,idirect,play,plev,tlay,tlev, &
                       tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,   &
-                      o2vmr,asdir,asdif,aldir,aldif,czen,eccf,  &
+                      o2vmr,asdir,asdif,aldir,aldif,czen,adjes, &
                       0,solcon,inflgsw,iceflgsw,liqflgsw,       &
                       cldfmcl,taucmcl,ssacmcl,asmcmcl,fsfcmcl,  &
                       ciwpmcl,clwpmcl,reicmcl,relqmcl,tauaer,   &
@@ -338,17 +340,17 @@ module mod_rrtmg_driver
                       swdvisflx,aeradfo,aeradfos,asaeradfo,asaeradfos)
       else
         call rrtmg_sw_nomcica(npr,kth,icld,idirect,play,plev,tlay,tlev, &
-                              tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,  &
-                              n2ovmr,o2vmr,asdir,asdif,aldir,   &
-                              aldif,czen,eccf,0,solcon,inflgsw, &
-                              iceflgsw,liqflgsw,cldf,tauc,      &
-                              ssac,asmc,fsfc,ciwp,clwp,rei,rel, &
-                              tauaer,ssaaer,asmaer,ecaer,       &
-                              swuflx,swdflx,swhr,swuflxc,       &
-                              swdflxc,swhrc,swddiruviflx,       &
-                              swddifuviflx,swddirpirflx,        &
-                              swddifpirflx,swdvisflx,           &
-                              aeradfo,aeradfos,                 &
+                              tsfc,h2ovmr,o3vmr,co2vmr,ch4vmr,   &
+                              n2ovmr,o2vmr,asdir,asdif,aldir,    &
+                              aldif,czen,adjes,0,solcon,inflgsw, &
+                              iceflgsw,liqflgsw,cldf,tauc,       &
+                              ssac,asmc,fsfc,ciwp,clwp,rei,rel,  &
+                              tauaer,ssaaer,asmaer,ecaer,        &
+                              swuflx,swdflx,swhr,swuflxc,        &
+                              swdflxc,swhrc,swddiruviflx,        &
+                              swddifuviflx,swddirpirflx,         &
+                              swddifpirflx,swdvisflx,            &
+                              aeradfo,aeradfos,                  &
                               asaeradfo,asaeradfos)
       end if
     end if ! end shortwave call

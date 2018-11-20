@@ -5,6 +5,7 @@ module mod_clm_initialize
   use mod_intkinds
   use mod_realkinds
   use mod_runparams , only : rcmtimer , dtsrf
+  use mod_runparams , only : eccen , mvelpp , lambm0 , obliqr
   use mod_date
   use mod_stdio
   use mod_sunorbit
@@ -213,10 +214,9 @@ module mod_clm_initialize
     character(len=256) :: fnamer  ! name of netcdf restart file
     real(rk8) :: calday           ! calendar day
     real(rk8) :: caldaym1         ! calendar day for nstep-1
-    real(rk8) :: eccen , mvelpp , lambm0 , obliqr
+    real(rk8) :: eccf             ! solar declination angle in radians
     real(rk8) :: declin           ! solar declination angle in radians
     real(rk8) :: declinm1         ! solar declination angle in radians
-    real(rk8) :: eccf             ! earth orbit eccentricity factor
 
     ! ------------------------------------------------------------------------
     ! Initialize time constant variables
