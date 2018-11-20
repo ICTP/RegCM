@@ -97,9 +97,9 @@ module mod_clm_regcm
     ! The CLM outputs directly to RegCM the radiant Temperature.
     ! We fill it here the output not to leave it empy, but it is not
     ! used in computing the surface Long Wave Radiation
-    do n = 1 , nnsg
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%emisv(n,j,i) = lnd_sfcemiss
           end if
@@ -107,9 +107,9 @@ module mod_clm_regcm
       end do
     end do
     if ( rcmtimer%start( ) ) then
-      do n = 1 , nnsg
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
             if ( lm%ldmsk1(n,j,i) == 1 ) then
               lms%swdiralb(n,j,i) = 0.16_rkx
               lms%swdifalb(n,j,i) = 0.16_rkx
@@ -200,7 +200,7 @@ module mod_clm_regcm
 
     ! Run CLM
     call clm_drv(doalb,caldayp1,declinp1,declinp,rstwr,nlend,nlomon,rdate)
-    call land_to_atmosphere(lms)
+    call land_to_atmosphere(lm,lms)
 
   end subroutine runclm45
 
@@ -214,9 +214,9 @@ module mod_clm_regcm
     lastgood = lms%swdiralb
     clm_l2a%notused = clm_l2a%albd(:,1)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
-    do n = 1 , nnsg
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%swdiralb(n,j,i) > 0.9999_rkx ) then
               lms%swdiralb(n,j,i) = lastgood(n,j,i)
@@ -228,9 +228,9 @@ module mod_clm_regcm
     lastgood = lms%lwdiralb
     clm_l2a%notused = clm_l2a%albd(:,2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
-    do n = 1 , nnsg
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%lwdiralb(n,j,i) > 0.9999_rkx ) then
               lms%lwdiralb(n,j,i) = lastgood(n,j,i)
@@ -242,9 +242,9 @@ module mod_clm_regcm
     lastgood = lms%swdifalb
     clm_l2a%notused = clm_l2a%albi(:,1)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
-    do n = 1 , nnsg
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%swdifalb(n,j,i) > 0.9999_rkx ) then
               lms%swdifalb(n,j,i) = lastgood(n,j,i)
@@ -256,9 +256,9 @@ module mod_clm_regcm
     lastgood = lms%lwdifalb
     clm_l2a%notused = clm_l2a%albi(:,2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
-    do n = 1 , nnsg
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             if ( lms%lwdifalb(n,j,i) > 0.9999_rkx ) then
               lms%lwdifalb(n,j,i) = lastgood(n,j,i)
@@ -268,9 +268,9 @@ module mod_clm_regcm
       end do
     end do
     ! This should be the vegetation albedo!
-    do n = 1 , nnsg
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%swalb(n,j,i) = max(lms%swdiralb(n,j,i),lms%swdifalb(n,j,i))
             lms%lwalb(n,j,i) = max(lms%lwdiralb(n,j,i),lms%lwdifalb(n,j,i))
@@ -489,10 +489,11 @@ module mod_clm_regcm
 
   end subroutine atmosphere_to_land
 
-  subroutine land_to_atmosphere(lms)
+  subroutine land_to_atmosphere(lm,lms)
     implicit none
+    type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: k , begg , endg
+    integer(ik4) :: i , j , n , k , begg , endg
     real(rk8) , pointer , dimension(:,:,:) :: emis2d
 
     call get_proc_bounds(begg,endg)
@@ -537,8 +538,16 @@ module mod_clm_regcm
       lms%tsoi(:,:,:,k) = lms%tsw(:,:,:)
     end do
 
-    lms%tgrd = lms%tsoi(:,:,:,1)
-    lms%tgbrd = lms%tsoi(:,:,:,1)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            lms%tgrd(n,j,i) = lms%tsoi(n,j,i,1)
+            lms%tgbrd(n,j,i) = lms%tsoi(n,j,i,1)
+          end if
+        end do
+      end do
+    end do
 
     clm_l2a%notused = 0.0_rk8
 
