@@ -292,7 +292,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb0)
-      where ( mddom%ldmsk > 0 ) qflb0 = d_zero
+      where ( mddom%ldmsk == 1 ) qflb0 = d_zero
       tdif = bdydate1-monfirst(bdydate1)
       xslabtime = tohours(tdif)*secph
     end if
@@ -380,7 +380,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb1)
-      where ( mddom%ldmsk > 0 ) qflb1 = d_zero
+      where ( mddom%ldmsk == 1 ) qflb1 = d_zero
       tdif = bdydate2-prevmon(bdydate2)
       qflbt = (qflb1-qflb0)/(real(tohours(tdif),rkx)*secph)
     end if
@@ -448,6 +448,9 @@ module mod_bdycod
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( islake(mddom%lndcat(j,i)) ) then
+              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+                if ( cplmsk(j,i) /= 0 ) cycle
+              end if
               if ( xtsb%b0(j,i) <= icetriggert ) then
                 xtsb%b0(j,i) = icetriggert
                 mddom%ldmsk(j,i) = 2
@@ -608,7 +611,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb1)
-      where ( mddom%ldmsk > 0 ) qflb1 = d_zero
+      where ( mddom%ldmsk == 1 ) qflb1 = d_zero
       tdif = bdydate2-prevmon(bdydate2)
       qflbt = (qflb1-qflb0)/(real(tohours(tdif),rkx)*secph)
     end if
