@@ -306,7 +306,7 @@ module mod_pbl_uwtcm
         ! more surface variables
         thgb = tskx * rexnerfl(kzp1)
         ! Calculate the saturation mixing ratio just above the surface
-        if ( m2p%ldmsk(j,i) > 0 ) then
+        if ( m2p%ldmsk(j,i) == 1 ) then
           tvfac = d_one + ep1*m2p%q2m(j,i)
         else
           q0s = pfwsat(tskx,presfl(kzp1))

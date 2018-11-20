@@ -252,7 +252,7 @@ module mod_cu_tiedtke
       j = jmap(ii)
       xpqfx(ii) = m2c%qfx(j,i)
       xphfx(ii) = m2c%hfx(j,i)
-      ldland(ii) = (m2c%ldmsk(j,i) /= 0)
+      ldland(ii) = (m2c%ldmsk(j,i) == 1)
     end do
 
     do k = 1 , kz

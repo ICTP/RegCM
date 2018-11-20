@@ -444,7 +444,7 @@ module mod_lm_interface
     use mod_atm_interface , only : atms
 #endif
     implicit none
-    integer(ik4) :: i , j , n , nn , ierr , i1 , i2
+    integer(ik4) :: i , j , n , nn , ierr
 #ifdef CLM45
     real(rkx) :: tm , dz , dlnp , z1 , z2 , w1 , w2
 #endif
@@ -514,13 +514,12 @@ module mod_lm_interface
 #endif
 #endif
     call vecocn(lm,lms)
-
     ! Fill land part of this output vars
     do n = 1 , nnsg
       do i = ici1, ici2
         do j = jci1 , jci2
           lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
-          if ( lm%ldmsk1(n,j,i) > 0 ) then
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
             lms%ustar(n,j,i) = sqrt(sqrt( &
                                   (lms%u10m(n,j,i)*lms%drag(n,j,i))**2 + &
@@ -535,7 +534,7 @@ module mod_lm_interface
     do n = 1 , nnsg
       do i = ici1, ici2
         do j = jci1 , jci2
-          if ( lm%ldmsk1(n,j,i) > 0 ) then
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%taux(n,j,i) = lms%drag(n,j,i) * (lms%u10m(n,j,i)/lm%uatm(j,i))
             lms%tauy(n,j,i) = lms%drag(n,j,i) * (lms%v10m(n,j,i)/lm%vatm(j,i))
           end if
@@ -558,21 +557,6 @@ module mod_lm_interface
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg
     lm%tg = sum(lms%tgrd,1)*rdnnsg
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
-    if ( iseaice == 1 .or. lakemod == 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( lm%ldmsk(j,i) /= 1 ) then
-            i1 = count(lm%ldmsk1(:,j,i) == 0)
-            i2 = count(lm%ldmsk1(:,j,i) == 2)
-            if ( i1 > i2 ) then
-              lm%ldmsk(j,i) = 0
-            else
-              lm%ldmsk(j,i) = 2
-            end if
-          end if
-        end do
-      end do
-    end if
     if ( ichem == 1 ) then
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
@@ -686,7 +670,7 @@ module mod_lm_interface
     if ( rcmtimer%lcount == 1 .or. alarm_day%will_act(dtsec) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( lm%ldmsk(j,i) > 0 ) then
+          if ( lm%ldmsk(j,i) == 1 ) then
             expfie%rnof(j,i) = lm%dailyrnf(j,i,1)/runoffcount
             expfie%snof(j,i) = lm%dailyrnf(j,i,2)/runoffcount
           else

@@ -355,7 +355,7 @@ module mod_pbl_myj
         thsk = tg*rexnsfc
 
         ! Convert surface sensible temperature to potential temperature.
-        if ( m2p%ldmsk(j,i) > 0 ) then
+        if ( m2p%ldmsk(j,i) == 1 ) then
           ratiomx = m2p%q2m(j,i)
           qsfc = ratiomx / (d_one + ratiomx)
           tha = m2p%tatm(j,i,kz) * ape(j,i,kz)

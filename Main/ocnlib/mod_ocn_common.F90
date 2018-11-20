@@ -113,7 +113,6 @@ module mod_ocn_common
       call c2l_ss(ocncomm,lms%sfice,sfice)
       call c2l_ss(ocncomm,lms%sncv,sncv)
       call c2l_ss(ocncomm,lms%snag,snag)
-      call c2l_ss(ocncomm,lms%scvk,scvk)
     end if
     if ( llake ) then
       call initlake
@@ -125,16 +124,6 @@ module mod_ocn_common
       tgrd = tgb
       tgbrd = tgb
       t2m = tgb
-      if ( llake .or. lseaice ) then
-        where ( mask < 2 )
-          emiss = ocn_sfcemiss
-        else where
-          emiss = emsw
-        end where
-      else
-        emiss(:) = ocn_sfcemiss
-      end if
-      call l2c_ss(ocncomm,emiss,lms%emisv)
       um10 = 1.0_rkx ! Assume a mean of 1m/s wind for init.
     else
       call c2l_ss(ocncomm,lms%tgrd,tgrd)
@@ -157,8 +146,37 @@ module mod_ocn_common
         call lake_fillvar(var_hi,lakhi,1)
         call lake_fillvar(var_tlak,laktlake,1)
       end if
-      call c2l_ss(ocncomm,lms%emisv,emiss)
+      if ( llake .or. lseaice ) then
+        call c2l_ss(ocncomm,lm%ldmsk1,mask)
+        if ( llake ) then
+          do n = iocnbeg , iocnend
+            if ( ilake(n) == 1 ) then
+              if ( mask(n) == 2 ) then
+                mask(n) = 4
+              else
+                mask(n) = 3
+              end if
+            else
+              if ( mask(n) == 2 ) then
+                mask(n) = 2
+              else
+                mask(n) = 1
+              end if
+            end if
+          end do
+        else
+          do n = iocnbeg , iocnend
+            if ( mask(n) == 2 ) then
+              mask(n) = 2
+            else
+              mask(n) = 1
+            end if
+          end do
+        end if
+      end if
     end if
+    emiss(:) = ocn_sfcemiss
+    call l2c_ss(ocncomm,emiss,lms%emisv)
   end subroutine initocn
 
   subroutine ocn_interf(lm,lms,ivers)
@@ -166,7 +184,7 @@ module mod_ocn_common
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) , intent(in) :: ivers
-    integer(ik4) :: n
+    integer(ik4) :: i , j , i1 , i2 , n
     if ( ivers == 1 ) then
       ! RegCM -> OCN
       if ( llake .or. lseaice ) then
@@ -268,6 +286,7 @@ module mod_ocn_common
             mask(n) = 0
           end if
         end do
+        call l2c_ss(ocncomm,mask,lm%ldmsk1)
         if ( llake ) then
           call lake_fillvar(var_eta,laketa,0)
           call lake_fillvar(var_hi,lakhi,0)
@@ -276,26 +295,24 @@ module mod_ocn_common
           call l2c_ss(ocncomm,lakhi,lms%hi)
           call l2c_ss(ocncomm,laktlake,lms%tlake)
         end if
-        call l2c_ss(ocncomm,mask,lm%ldmsk1)
         call l2c_ss(ocncomm,sfice,lms%sfice)
         call l2c_ss(ocncomm,snag,lms%snag)
         call l2c_ss(ocncomm,sncv,lms%sncv)
-        call l2c_ss(ocncomm,scvk,lms%scvk)
         call l2c_ss(ocncomm,sm,lms%snwm)
-      end if
-      ! Emissivity change for surface ice
-      if ( llake .or. lseaice ) then
-        do n = iocnbeg , iocnend
-          if ( mask(n) == 0 ) then
-            emiss(n) = ocn_sfcemiss
-          else
-            emiss(n) = emsw
-          end if
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( lm%ldmsk(j,i) /= 1 ) then
+              i1 = count(lm%ldmsk1(:,j,i) == 0)
+              i2 = count(lm%ldmsk1(:,j,i) == 2)
+              if ( i1 > i2 ) then
+                lm%ldmsk(j,i) = 0
+              else
+                lm%ldmsk(j,i) = 2
+              end if
+            end if
+          end do
         end do
-      else
-        emiss(:) = ocn_sfcemiss
       end if
-      call l2c_ss(ocncomm,emiss,lms%emisv)
     end if
   end subroutine ocn_interf
 

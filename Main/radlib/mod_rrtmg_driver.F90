@@ -1088,14 +1088,14 @@ module mod_rrtmg_driver
         !
         ! tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05_rkx))
         !
-        if ( ioro(n) == 0 ) then
-          ! Effective liquid radius over ocean and sea ice
-          ! rel(n,k) = 7.0_rkx + 5.0_rkx * tpara
-          rel(n,k) = 11.0_rkx
-        else
+        if ( ioro(n) == 1 ) then
           ! Effective liquid radius over land
           ! rel(n,k) = 6.0_rkx + 5.0_rkx * tpara
           rel(n,k) = 8.50_rkx
+        else
+          ! Effective liquid radius over ocean and sea ice
+          ! rel(n,k) = 7.0_rkx + 5.0_rkx * tpara
+          rel(n,k) = 11.0_rkx
         end if
         !
         ! Determine rei as function of normalized pressure

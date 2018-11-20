@@ -62,7 +62,6 @@ module mod_ocn_internal
   real(rkx) , pointer , dimension(:) :: rhox    ! rhox
   real(rkx) , pointer , dimension(:) :: rlwf    ! rlwf
   real(rkx) , pointer , dimension(:) :: rswf    ! rswf
-  real(rkx) , pointer , dimension(:) :: scvk
   real(rkx) , pointer , dimension(:) :: sent
   real(rkx) , pointer , dimension(:) :: sfice
   real(rkx) , pointer , dimension(:) :: tatm    ! tatm
@@ -171,7 +170,6 @@ module mod_ocn_internal
     end if
     if ( lseaice .or. llake ) then
       call getmem1d(ilake,1,nocnp,'ocn_internal:ilake')
-      call getmem1d(scvk,1,nocnp,'ocn_internal:scvk')
       call getmem1d(sfice,1,nocnp,'ocn_internal:sfice')
       call getmem1d(snag,1,nocnp,'ocn_internal:snag')
       call getmem1d(sncv,1,nocnp,'ocn_internal:sncv')

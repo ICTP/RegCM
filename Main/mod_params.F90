@@ -1888,7 +1888,35 @@ module mod_params
     end if
     call exchange(mddom%msfx,idif,jde1,jde2,ide1,ide2)
     call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)
-
+    !
+    !-----compute land/water mask
+    !
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%mask(j,i) > 0.1_rkx ) then
+          mddom%ldmsk(j,i) = 1
+        else
+          mddom%ldmsk(j,i) = 0
+        end if
+      end do
+    end do
+    !
+    !-----compute land/water mask on subgrid space
+    !
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( mdsub%mask(n,j,i) > 0.1_rkx ) then
+            mdsub%ldmsk(n,j,i) = 1
+          else
+            mdsub%ldmsk(n,j,i) = 0
+          end if
+        end do
+      end do
+    end do
+    !
+    ! Initializations
+    !
     call init_advection
     if ( isladvec == 1 ) then
       call init_sladvection
@@ -1925,29 +1953,6 @@ module mod_params
         write(stdout,'(a,f11.6,a)') '  True Latitude 2       : ',truelath,' deg'
       end if
     end if
-    !
-    !-----compute land/water mask on subgrid space
-    !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( mddom%mask(j,i) > 0.1_rkx ) then
-          mddom%ldmsk(j,i) = 1
-        else
-          mddom%ldmsk(j,i) = 0
-        end if
-      end do
-    end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( mdsub%mask(n,j,i) > 0.1_rkx ) then
-            mdsub%ldmsk(n,j,i) = 1
-          else
-            mdsub%ldmsk(n,j,i) = 0
-          end if
-        end do
-      end do
-    end do
     !
     !----calculate max no of pbl levels: kmxpbl=k at highest allowed pbl level
     !-----1. caluclate sigma level at 700mb, assuming 600mb highest
@@ -2164,8 +2169,7 @@ module mod_params
 
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
-               mddom%lndcat(j,i) < 15.5_rkx) then
+          if ( isocean(mddom%lndcat(j,i)) ) then
             shrmax2d(j,i) = shrmax_ocn
             shrmin2d(j,i) = shrmin_ocn
             edtmax2d(j,i) = edtmax_ocn
@@ -2321,8 +2325,7 @@ module mod_params
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
-             mddom%lndcat(j,i) < 15.5_rkx) then
+        if ( isocean(mddom%lndcat(j,i)) ) then
           rh0(j,i)   = rh0oce
         else
           rh0(j,i)   = rh0land
@@ -2333,8 +2336,7 @@ module mod_params
     if ( ipptls == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
-               mddom%lndcat(j,i) < 15.5_rkx) then
+          if ( isocean(mddom%lndcat(j,i)) ) then
             qck1(j,i)  = qck1oce  ! OCEAN
             cgul(j,i)  = guloce
             cevap(j,i) = cevapoce

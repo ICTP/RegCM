@@ -97,8 +97,7 @@ module mod_cu_interface
     call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( mddom%lndcat(j,i) > 14.5_rkx .and. &
-             mddom%lndcat(j,i) < 15.5_rkx ) then
+        if ( isocean(mddom%lndcat(j,i)) ) then
           cuscheme(j,i) = icup_ocn
         else
           cuscheme(j,i) = icup_lnd

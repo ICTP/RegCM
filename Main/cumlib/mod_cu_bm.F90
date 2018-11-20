@@ -219,10 +219,10 @@ module mod_cu_bm
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( m2c%ldmsk(j,i) == 0 ) then
-          xsm(j,i) = d_one
-        else
+        if ( m2c%ldmsk(j,i) == 1 ) then
           xsm(j,i) = d_zero
+        else
+          xsm(j,i) = d_one
         end if
       end do
     end do

@@ -57,7 +57,7 @@ module mod_ocn_albedo
     real(rkx) :: age , albg , albgl , albgld , albgs , albgsd , &
                  cf1 , cff , conn , cons , wspd , czeta , czf , &
                  dfalbl , dfalbs , dralbl , dralbs , sl , sl2 , &
-                 sli , tdiff , tdiffs , wfac
+                 sli , tdiff , tdiffs , wfac , scrat , scvk
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocn_albedo'
@@ -125,6 +125,8 @@ module mod_ocn_albedo
           cons = 0.2_rkx
           conn = 0.5_rkx
           age = (d_one-d_one/(d_one+snag(i)))
+          scrat = sncv(i)*0.01_rkx/(d_one+d_three*age)
+          scvk = scrat/(0.1_rkx+scrat)
           ! sl helps control albedo zenith dependence
           sl = d_two
           sli = d_one/sl
@@ -143,10 +145,10 @@ module mod_ocn_albedo
           !------------------------------------------
           ! 4.1  compute albedo for snow on sea ice
           !------------------------------------------
-          albgs = (d_one-scvk(i))*albgs + dralbs*scvk(i)
-          albgl = (d_one-scvk(i))*albgl + dralbl*scvk(i)
-          albgsd = (d_one-scvk(i))*albgsd + dfalbs*scvk(i)
-          albgld = (d_one-scvk(i))*albgld + dfalbl*scvk(i)
+          albgs = (d_one-scvk)*albgs + dralbs*scvk
+          albgl = (d_one-scvk)*albgl + dralbl*scvk
+          albgsd = (d_one-scvk)*albgsd + dfalbs*scvk
+          albgld = (d_one-scvk)*albgld + dfalbl*scvk
         end if
       end if
       !

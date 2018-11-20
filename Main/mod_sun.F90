@@ -268,6 +268,9 @@ module mod_sun
 #endif
     iyear = rcmtimer%year + int(year_offset,ik4)
     if ( lyear /= iyear ) then
+      if ( myid == italk ) then
+        write (stdout, *) 'Updating orbit parameters at ',rcmtimer%str( )
+      end if
       call orb_params(iyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
       lyear = iyear
     end if

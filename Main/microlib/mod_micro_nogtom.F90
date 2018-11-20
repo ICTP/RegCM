@@ -346,7 +346,7 @@ module mod_micro_nogtom
     ! sea  (clean, low ccn, larger droplets, lower threshold)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( ldmsk(j,i) == 0 ) then ! landmask =0 land, =1 ocean
+        if ( ldmsk(j,i) == 1 ) then ! landmask =1 land
           xlcrit(j,i) = rclcrit_land ! landrclcrit_land = 5.e-4
         else
           xlcrit(j,i) = rclcrit_sea  ! oceanrclcrit_sea  = 3.e-4

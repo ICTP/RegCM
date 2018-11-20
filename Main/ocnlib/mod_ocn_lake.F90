@@ -23,7 +23,7 @@ module mod_ocn_lake
   use mod_realkinds
   use mod_dynparam
   use mod_service
-  use mod_runparams , only : rcmtimer , iocnrough , iocnzoq
+  use mod_runparams , only : rcmtimer , iocnrough
   use mod_ocn_internal
 
   implicit none
@@ -216,7 +216,7 @@ module mod_ocn_lake
     real(rkx) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
     real(rkx) :: cdrx , clead , dela , dela0 , delq , dels , delt
     real(rkx) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
-    real(rkx) :: ribd , ribl , ribn , scrat , tage
+    real(rkx) :: ribd , ribl , ribn
     real(rkx) :: sold , vspda , u1 , tc , visa , rho
     real(rkx) :: wt1 , wt2
     real(rkx) , dimension(ndpmax) :: tp
@@ -277,7 +277,6 @@ module mod_ocn_lake
         sfice(i) = d_zero
         sncv(i) = d_zero
         snag(i) = d_zero
-        scvk(i) = d_zero
         sm(i) = d_zero
         ribd = usw(i)**2 + vsw(i)**2 + wtur**2
         vspda = sqrt(ribd)
@@ -308,24 +307,20 @@ module mod_ocn_lake
         if ( sncv(i) < dlowval ) then
           sncv(i) = d_zero
           snag(i) = d_zero
-          scvk(i) = d_zero
-          age = d_zero
         else
           arg = 5.0e3_rkx*(d_one/tzero-d_one/tgrd(i))
           age1 = exp(arg)
           arg2 = min(d_zero,d_10*arg)
           age2 = exp(arg2)
-          tage = age1 + age2 + age3
+          age = age1 + age2 + age3
           dela0 = 1.0e-6_rkx*dtlake
-          dela = dela0*tage
+          dela = dela0*age
           dels = d_r10*max(d_zero,sncv(i)-sold)
           snag(i) = (snag(i)+dela)*(d_one-dels)
           if ( snag(i) < dlowval ) snag(i) = d_zero
           if ( sncv(i) > 800.0_rkx ) snag(i) = d_zero
-          age = (d_one-d_one/(d_one+snag(i)))
-          scrat = sncv(i)*0.01_rkx/(d_one+d_three*age)
-          scvk(i) = scrat/(0.1_rkx+scrat)
         end if
+        age = (d_one-d_one/(d_one+snag(i)))
         cdrn = (vonkar/log(ht(i)/zlnd))**2
         if ( delt < d_zero ) then
           u1 = wtur + d_two*sqrt(-delt)

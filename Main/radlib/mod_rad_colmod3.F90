@@ -500,14 +500,14 @@ module mod_rad_colmod3
         !
         ! tpara = min(d_one,max(d_zero,(minus10-tm1(n,k))*0.05_rkx))
         !
-        if ( ioro(n) == 0 ) then
-          ! Effective liquid radius over ocean and sea ice
-          ! rel(n,k) = 7.0_rkx + 5.0_rkx * tpara
-          rel(n,k) = 11.0_rkx
-        else
+        if ( ioro(n) == 1 ) then
           ! Effective liquid radius over land
           ! rel(n,k) = 6.0_rkx + 5.0_rkx * tpara
           rel(n,k) = 8.50_rkx
+        else
+          ! Effective liquid radius over ocean and sea ice
+          ! rel(n,k) = 7.0_rkx + 5.0_rkx * tpara
+          rel(n,k) = 11.0_rkx
         end if
         ! Determine rei as function of normalized pressure
         pnrml = pmidm1(n,k)/ps(n)
@@ -563,12 +563,12 @@ module mod_rad_colmod3
               ! kg/m3, already account fro cum and ls clouds
               lwc = clwp(n,k) / deltaz(n,k) * d_r1000
               if ( lwc < 1.e-6_rkx ) cycle
-              if ( ioro(n) /= 1 ) then
+              if ( ioro(n) == 1 ) then
+                ! Martin et al.(1994) parameter over land
+                kparam = 0.67_rkx
+              else
                 ! Martin et al.(1994) parameter over ocean and sea ice
                 kparam = 0.80_rkx
-              else
-                ! and over land
-                kparam = 0.67_rkx
               end if
               !finally modify effective radius
               !(1.e6 to convert to rel to microm,

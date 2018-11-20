@@ -422,27 +422,22 @@ module mod_bdycod
         if ( islab_ocean == 0 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( mddom%ldmsk(j,i) == 0 ) then
-                if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-                  if ( cplmsk(j,i) /= 0 ) cycle
-                end if
-              else
-                cycle
+              if ( mddom%ldmsk(j,i) == 1 ) cycle
+              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+                if ( cplmsk(j,i) /= 0 ) cycle
               end if
-              if ( isocean(mddom%lndcat(j,i)) ) then
-                if ( xtsb%b0(j,i) <= icetriggert ) then
-                  xtsb%b0(j,i) = icetriggert
-                  mddom%ldmsk(j,i) = 2
-                  do n = 1 , nnsg
-                    if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                      mdsub%ldmsk(n,j,i) = 2
-                      lms%sfice(n,j,i) = 1.00_rkx
-                      lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
-                      lms%scvk(n,j,i) = 0.2_rkx
-                      lms%snag(n,j,i) = 0.1_rkx
-                    end if
-                  end do
-                end if
+              if ( xtsb%b0(j,i) <= icetriggert ) then
+                xtsb%b0(j,i) = icetriggert
+                mddom%ldmsk(j,i) = 2
+                do n = 1 , nnsg
+                  if ( mdsub%ldmsk(n,j,i) == 0 ) then
+                    mdsub%ldmsk(n,j,i) = 2
+                    lms%sfice(n,j,i) = 1.00_rkx
+                    lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
+                    lms%snag(n,j,i) = 0.1_rkx
+                  end if
+                end do
               end if
             end do
           end do
@@ -461,7 +456,6 @@ module mod_bdycod
                     mdsub%ldmsk(n,j,i) = 2
                     lms%sfice(n,j,i) = 1.00_rkx
                     lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
-                    lms%scvk(n,j,i) = 0.2_rkx
                     lms%snag(n,j,i) = 0.1_rkx
                   end if
                 end do
@@ -478,13 +472,10 @@ module mod_bdycod
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! Update temperatures over ocean water and lakes
-            if ( mddom%ldmsk(j,i) /= 1 ) then
-              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
-              end if
-              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            else
-              cycle
+            if ( mddom%ldmsk(j,i) == 1 ) cycle
+            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
             end if
             if ( xtsb%b1(j,i) <= icetriggert ) then
               xtsb%b1(j,i) = icetriggert
@@ -673,13 +664,12 @@ module mod_bdycod
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! Update temperatures over ocean water only
-            if ( mddom%ldmsk(j,i) /= 1 ) then
-              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
-              end if
-              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            else
-              cycle
+            if ( mddom%ldmsk(j,i) == 1 ) cycle
+            ! Skip lake points if lake model active
+            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            ! Do not update if coupling and ocean active here
+            if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
             end if
             ! Sea ice correction
             if ( xtsb%b1(j,i) <= icetriggert ) then
@@ -1456,13 +1446,15 @@ module mod_bdycod
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( mddom%ldmsk(j,i) == 0 ) then
-          if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-            if ( cplmsk(j,i) /= 0 ) cycle
-          end if
-          if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-          sfs%tg(j,i) = xtsb%b0(j,i) + xt*xtsb%bt(j,i)
+        ! Update temperatures over ocean water only
+        if ( mddom%ldmsk(j,i) /= 0 ) cycle
+        ! Skip lake points if lake model active
+        if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+        ! Do not update if coupling and ocean active here
+        if ( iocncpl == 1 .or. iwavcpl == 1 ) then
+          if ( cplmsk(j,i) /= 0 ) cycle
         end if
+        sfs%tg(j,i) = xtsb%b0(j,i) + xt*xtsb%bt(j,i)
       end do
     end do
 

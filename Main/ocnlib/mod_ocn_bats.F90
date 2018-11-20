@@ -107,13 +107,13 @@ module mod_ocn_bats
 
   subroutine seaice
     implicit none
-    real(rkx) :: age , scrat , u1 , ribd
+    real(rkx) :: age , u1 , ribd
     real(rkx) :: cdrn , cdr , qgrd
     real(rkx) :: ps , qs , delq , delt , rhosw , ribl
     real(rkx) :: bb , fact , fss , hrl , hs , hsl
     real(rkx) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
     real(rkx) :: ksnow , rsi , uv995 , sficemm , tau , xdens
-    real(rkx) :: arg , arg2 , age1 , age2 , tage
+    real(rkx) :: arg , arg2 , age1 , age2
     real(rkx) :: cdrmin , cdrx , clead , dela , dela0 , dels
     real(rkx) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
     integer(ik4) :: i
@@ -155,21 +155,16 @@ module mod_ocn_bats
         age1 = exp(arg)
         arg2 = min(d_zero,d_10*arg)
         age2 = exp(arg2)
-        tage = age1 + age2 + age3
+        age = age1 + age2 + age3
         dela0 = 1.0e-6_rkx*dtocn
-        dela = dela0*tage
+        dela = dela0*age
         dels = d_r10*max(d_zero,sncv(i)-sold)
         snag(i) = (snag(i)+dela)*(d_one-dels)
         if ( snag(i) < dlowval ) snag(i) = d_zero
       end if
       if ( sncv(i) > 800.0_rkx ) snag(i) = d_zero
 
-      ! Scvk is used to compute albedo over seaice
-      ! Is the fraction of seaice covered by snow
       age = (d_one-d_one/(d_one+snag(i)))
-      scrat = sncv(i)*0.01_rkx/(d_one+d_three*age)
-      scvk(i) = scrat/(0.1_rkx+scrat)
-
       ! Compute drag velocity over seaice
       cdrn = (vonkar/log(ht(i)/zlnd))**2
       if ( delt < d_zero ) then
@@ -232,7 +227,6 @@ module mod_ocn_bats
       ! set sea ice parameter for melting if seaice less than 2 cm
       if ( sfice(i) <= iceminh ) then
         sncv(i) = d_zero
-        scvk(i) = d_zero
         snag(i) = d_zero
         if ( icpl(i) == 0 ) then
           tgrd(i) = tgb(i)
@@ -283,7 +277,6 @@ module mod_ocn_bats
           ! set sea ice parameter for melting if less than 2 cm
           if ( sfice(i) <= iceminh ) then
             sncv(i) = d_zero
-            scvk(i) = d_zero
             snag(i) = d_zero
             if ( icpl(i) == 0 ) then
               tgrd(i) = tgb(i)
