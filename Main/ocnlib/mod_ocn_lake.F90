@@ -697,11 +697,11 @@ module mod_ocn_lake
     ! thermal conductivity of ice (W/m/C)
     real(rkx) , parameter :: ki = 2.3_rkx
     ! thermal conductivity of snow (W/m/C)
-    ! 0.078 W m−1 K−1 for new snow
-    ! 0.290 W m−1 K−1 for an ubiquitous wind slab
-    ! the average bulk value for the full snowpack is 0.14 W m−1 K−1
+    ! 0.078 W m-1 K-1 for new snow
+    ! 0.290 W m-1 K-1 for an ubiquitous wind slab
+    ! the average bulk value for the full snowpack is 0.14 W m-1 K-1
     ! Sturm, Perovich and Holmgren
-    ! Journal of Geophysical Research: Oceans (1978–2012)
+    ! Journal of Geophysical Research: Oceans (1978-2012)
     !real(rkx) , parameter :: ks = 0.14_rkx
     real(rkx) , parameter :: ks = 0.31_rkx
     ! heat flux from water to ice (w m-2)
@@ -876,12 +876,12 @@ module mod_ocn_lake
     end select
     if ( idir == 1 ) then
       do k = 1 , ndpmax
-        p(:,k) = pack(rvar(:,k),lakmsk)-tzero
+        p(:,k) = pack(rvar(:,k),lakmsk)
       end do
     else
       rvar = dmissval
       do k = 1 , ndpmax
-        rvar(:,k) = unpack(p(:,k),lakmsk,rvar(:,k))+tzero
+        rvar(:,k) = unpack(p(:,k),lakmsk,rvar(:,k))
       end do
     end if
   end subroutine lake_fillvar_real8_2d

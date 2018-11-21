@@ -1127,7 +1127,13 @@ module mod_lm_interface
           lak_ice_out = sum(lms%sfice,1,lms%lakmsk)*rdnnsg
         if ( associated(lak_tlake_out) ) then
           do k = 1 , ndpmax
-            lak_tlake_out(:,:,k) = sum(lms%tlake(:,:,:,k),1,lms%lakmsk)*rdnnsg
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( lm%iveg(j,i) == 14 ) then
+                  lak_tlake_out(j,i,k) = tzero + sum(lms%tlake(:,j,i,k))*rdnnsg
+                end if
+              end do
+            end do
           end do
         end if
       end if
