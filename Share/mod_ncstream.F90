@@ -39,6 +39,8 @@ module mod_ncstream
   integer(ik4) , dimension(ncmaxdims) :: id_dim
   integer(ik4) , dimension(ncmaxdims) :: len_dim
 
+  integer(ik4) , parameter :: cordexvtype = nf90_float
+
   interface outstream_addrec
     module procedure outstream_addrec_date
     module procedure outstream_addrec_value
@@ -1267,25 +1269,25 @@ module mod_ncstream
         class is (ncvariable0d_char)
           var%nctype = nf90_char
         class is (ncvariable0d_mixed)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable1d_mixed)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable2d_mixed)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable3d_mixed)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable4d_mixed)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable0d_real)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable1d_real)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable2d_real)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable3d_real)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable4d_real)
-          var%nctype = nf90_float
+          var%nctype = cordexvtype
         class is (ncvariable0d_double)
           var%nctype = nf90_double
         class is (ncvariable1d_double)

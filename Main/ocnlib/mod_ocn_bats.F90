@@ -298,6 +298,7 @@ module mod_ocn_bats
       factuv = log(ht(i)*d_r10)/log(ht(i)/zoce)
       u10m(i) = usw(i)*(d_one-factuv)
       v10m(i) = vsw(i)*(d_one-factuv)
+      rhoa(i) = rhox(i)
       xdens = sfps(i)/(rgas*tgrd(i)*(d_one+ep1*qv(i)))
       tau = xdens*ustr(i)*ustr(i)
       taux(i) = tau*(usw(i)/uv995)

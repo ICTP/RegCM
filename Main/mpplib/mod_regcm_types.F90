@@ -595,7 +595,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: heatrt   ! radiation heat rate
     real(rkx) , pointer , dimension(:,:,:) :: ccn     ! ccn
     integer(ik4) , pointer , dimension(:,:) :: ktrop
-    integer(ik4) , pointer , dimension(:,:) :: ldmsk
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk ! mddom
   end type mod_2_cum
 
   type cum_2_mod
@@ -699,6 +699,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: qsn    ! qxx(:,:,:,iqs)
     real(rkx) , pointer , dimension(:,:,:) :: qrn    ! qxx(:,:,:,iqr)
     integer(ik4) , pointer , dimension(:,:) :: ldmsk ! mddom
+    integer(ik4) , pointer , dimension(:,:) :: iveg  ! mddom
   end type mod_2_micro
 
   type micro_2_mod

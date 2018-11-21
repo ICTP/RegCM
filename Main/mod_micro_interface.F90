@@ -122,6 +122,7 @@ module mod_micro_interface
     implicit none
 
     call assignpnt(mddom%ldmsk,mo2mc%ldmsk)
+    call assignpnt(mddom%iveg,mo2mc%iveg)
     call assignpnt(mddom%xlat,mo2mc%xlat)
     call assignpnt(sfs%psb,mo2mc%psb)
     call assignpnt(atms%pb3d,mo2mc%phs)
@@ -255,7 +256,7 @@ module mod_micro_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( mo2mc%ldmsk(j,i) == 0 ) then
+            if ( mo2mc%iveg(j,i) == 15 ) then
               if ( mo2mc%phs(j,i,k) >= 70000.0_rkx ) then
                 ! Klein, S. A., and D. L. Hartmann,
                 ! The seasonal cycle of low stratiform clouds,

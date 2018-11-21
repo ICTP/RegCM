@@ -41,7 +41,7 @@ module mod_slabocean
   real(rkx) , pointer , dimension(:,:,:) :: qflux_restore_sst
   real(rkx) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
     hflx , qflb0 , qflb1 , qflbt
-  integer(ik4) , pointer , dimension (:,:) :: ocmask
+  logical , pointer , dimension(:,:) :: ocmask
 
   public :: allocate_mod_slabocean , init_slabocean , update_slabocean
   public :: fill_slaboc_outvars
@@ -60,26 +60,36 @@ module mod_slabocean
       call getmem2d(qflbt,jci1,jci2,ici1,ici2,'slab_ocean:qflbt')
       call getmem2d(net_hflx,jci1,jci2,ici1,ici2,'slab_ocean:net_hflx')
       call getmem2d(hflx,jci1,jci2,ici1,ici2,'slab_ocean:hflx')
+      call getmem2d(ocmask,jci1,jci2,ici1,ici2,'slab_ocean:ocmask')
       stepcount(:) = 0
       dtocean = dtsrf
     end subroutine allocate_mod_slabocean
 !
-    subroutine init_slabocean(sfs,ldmsk,fsw,flw)
+    subroutine init_slabocean(sfs,lndcat,fsw,flw)
       implicit none
       ! interface for regcm variable / slab ocean
       type(surfstate) , intent(in) :: sfs
-      integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
+      real(rkx) , pointer , intent(in) , dimension(:,:) :: lndcat
       real(rkx) , pointer , intent(in) , dimension(:,:) :: fsw , flw
+      integer :: i , j
 
       ! water heat capacity ~ 4 J/g/K
       mlcp = mixed_layer_depth*4.0e6_rkx
 
       call assignpnt(sfs%tg,sstemp)
-      call assignpnt(ldmsk,ocmask)
       call assignpnt(sfs%hfx,ohfx)
       call assignpnt(sfs%qfx,oqfx)
       call assignpnt(fsw,ofsw)
       call assignpnt(flw,oflw)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( isocean(lndcat(j,i)) ) then
+            ocmask(j,i) = .true.
+          else
+            ocmask(j,i) = .false.
+          end if
+        end do
+      end do
     end subroutine init_slabocean
 
     subroutine update_slabocean(xt)
@@ -94,7 +104,7 @@ module mod_slabocean
         stepcount(rcmtimer%month) = stepcount(rcmtimer%month)+1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( ocmask(j,i) == 0 ) then
+            if ( ocmask(j,i) ) then
               qflux_sst(j,i) = (xtsb%b1(j,i) - sstemp(j,i)) * &
                 mlcp / (sst_restore_timescale * 86400.0_rkx) ! w/m2
               qflux_restore_sst(j,i,rcmtimer%month) = &
@@ -138,7 +148,7 @@ module mod_slabocean
 #endif
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( ocmask(j,i) == 0 ) then
+          if ( ocmask(j,i) ) then
             ! The following are some key equations for this model:
             ! flux from or to the atmosphere ( convention = positive downward)
             ! multiply evaporation by latent heat of evaporation
@@ -160,7 +170,7 @@ module mod_slabocean
           if ( stepcount(imon) /= 0 ) then
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( ocmask(j,i) == 0 ) then
+                if ( ocmask(j,i) ) then
                   slab_qflx_out(j,i,imon) = &
                         qflux_restore_sst(j,i,imon)/real(stepcount(imon),rkx)
                 else
@@ -171,7 +181,7 @@ module mod_slabocean
           else
             do i = ici1 , ici2
               do j = jci1 , jci2
-                if ( ocmask(j,i) == 0 ) then
+                if ( ocmask(j,i) ) then
                   slab_qflx_out(j,i,imon) = d_zero
                 else
                   slab_qflx_out(j,i,imon) = dmissval

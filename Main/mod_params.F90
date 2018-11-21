@@ -1933,7 +1933,7 @@ module mod_params
     call init_radiation
     if ( islab_ocean == 1 ) then
       call allocate_mod_slabocean
-      call init_slabocean(sfs,mddom%ldmsk,fsw,flw)
+      call init_slabocean(sfs,mddom%lndcat,fsw,flw)
     end if
 
     if ( myid == italk ) then
@@ -2356,7 +2356,7 @@ module mod_params
     if ( ibltyp == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( mddom%ldmsk(j,i) == 1 ) then
+          if ( isocean(mddom%lndcat(j,i)) ) then
             ricr(j,i) = ricr_lnd
           else
             ricr(j,i) = ricr_ocn
@@ -2370,7 +2370,7 @@ module mod_params
     if ( any(icup == 4) ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( mddom%ldmsk(j,i) == 1 ) then
+          if ( isocean(mddom%lndcat(j,i)) ) then
             elcrit2d(j,i) = elcrit_lnd
             epmax2d(j,i) = epmax_lnd
           else

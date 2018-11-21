@@ -159,7 +159,7 @@ module mod_ocn_lake
       ! Put winter surface water a bit colder and summer or tropical
       ! surface water a little warmer to ease spinup nudging in the
       ! correct direction the profile.
-      if ( abs(lat(i)) > 25.0 ) then
+      if ( abs(lat(i)) > 25.0_rkx ) then
         tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,4.0_rkx),20.0_rkx)
         tlak(lp,2) = min(max(tlak(lp,1)-d_half,4.0_rkx),20.0_rkx)
         if ( idep(lp) >= 3 ) then
@@ -530,8 +530,8 @@ module mod_ocn_lake
     demin = hdmw
 
     ! Added to keep numerical stability of code
-    demax = .50_rkx*dz**2/dtlake
-    demax = .99_rkx*demax
+    demax = 0.50_rkx*dz**2/dtlake
+    demax = 0.99_rkx*demax
 
     do k = 1 , ndpt
       dnsty(k) = d_1000*(d_one-1.9549e-5_rkx*(abs(tprof(k)-4.0_rkx))**1.68_rkx)
@@ -549,7 +549,7 @@ module mod_ocn_lake
     if ( xl > 25.0_rkx ) then
       ks = 6.6_rkx*sqrt(sin(xl*degrad))*u2**(-1.84_rkx)
     else
-      ks = 0.001
+      ks = 0.001_rkx
     end if
 
     ! Ekman layer depth where eddy diffusion happens

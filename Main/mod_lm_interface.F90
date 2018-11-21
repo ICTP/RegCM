@@ -515,9 +515,9 @@ module mod_lm_interface
 #endif
     call vecocn(lm,lms)
     ! Fill land part of this output vars
-    do n = 1 , nnsg
-      do i = ici1, ici2
-        do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           lms%w10m(n,j,i)  = sqrt(lms%u10m(n,j,i)**2 + lms%v10m(n,j,i)**2)
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%rhoa(n,j,i) = lms%sfcp(n,j,i)/(rgas*lms%t2m(n,j,i))
@@ -529,11 +529,10 @@ module mod_lm_interface
         end do
       end do
     end do
-
 #ifndef CLM45
-    do n = 1 , nnsg
-      do i = ici1, ici2
-        do j = jci1 , jci2
+    do i = ici1, ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
           if ( lm%ldmsk1(n,j,i) == 1 ) then
             lms%taux(n,j,i) = lms%drag(n,j,i) * (lms%u10m(n,j,i)/lm%uatm(j,i))
             lms%tauy(n,j,i) = lms%drag(n,j,i) * (lms%v10m(n,j,i)/lm%vatm(j,i))
@@ -1045,7 +1044,7 @@ module mod_lm_interface
         if ( associated(srf_tg_out) ) &
           srf_tg_out = sum(lms%tgrd,1)*rdnnsg
         if ( associated(srf_tlef_out) ) then
-          where ( lm%ldmsk > 0 )
+          where ( lm%ldmsk == 1 )
             srf_tlef_out = sum(lms%tlef,1)*rdnnsg
           elsewhere
             srf_tlef_out = dmissval
@@ -1083,7 +1082,7 @@ module mod_lm_interface
           srf_v10m_out(:,:,1) = lm%v10m
         if ( associated(srf_smw_out) ) then
           do n = 1 , num_soil_layers
-            where ( lm%ldmsk > 0 )
+            where ( lm%ldmsk == 1 )
               srf_smw_out(:,:,n) = sum(lms%sw(:,:,:,n),1)*rdnnsg
             elsewhere
               srf_smw_out(:,:,n) = dmissval

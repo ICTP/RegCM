@@ -515,7 +515,7 @@ module mod_output
         end if
 
         if ( associated(atm_tsw_out) ) then
-          where ( mddom%ldmsk > 0 )
+          where ( mddom%ldmsk == 1 )
             atm_tsw_out = atm_tsw_out * rsrf_in_atm
           elsewhere
             atm_tsw_out = dmissval
@@ -711,14 +711,14 @@ module mod_output
           where ( srf_srunoff_out < dlowval )
             srf_srunoff_out = d_zero
           end where
-          where ( mddom%ldmsk > 0 )
+          where ( mddom%ldmsk == 1 )
             srf_srunoff_out = srf_srunoff_out*rnsrf_for_srffrq
           elsewhere
             srf_srunoff_out = dmissval
           end where
         end if
         if ( associated(srf_trunoff_out) ) then
-          where ( mddom%ldmsk > 0 )
+          where ( mddom%ldmsk == 1 )
             where ( srf_trunoff_out < dlowval )
               srf_trunoff_out = d_zero
             end where
@@ -1069,14 +1069,14 @@ module mod_output
         if ( associated(sts_psavg_out) ) &
           sts_psavg_out = sts_psavg_out*rnsrf_for_day
         if ( associated(sts_srunoff_out) ) then
-          where ( mddom%ldmsk > 0 )
+          where ( mddom%ldmsk == 1 )
             sts_srunoff_out = sts_srunoff_out*rnsrf_for_day
           elsewhere
             sts_srunoff_out = dmissval
           end where
         end if
         if ( associated(sts_trunoff_out) ) then
-          where ( mddom%ldmsk > 0 )
+          where ( mddom%ldmsk == 1 )
             sts_trunoff_out = sts_trunoff_out*rnsrf_for_day
           elsewhere
             sts_trunoff_out = dmissval
