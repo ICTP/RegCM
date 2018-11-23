@@ -119,7 +119,6 @@ module mod_ocn_zeng
       tha = tatm(i)*(p00/patm(i))**rovcp
       dth = tha - th
       qs = pfwsat(tgrd(i),sfps(i))*0.98_rkx
-      rhp = min(max(q995/qs,d_zero),d_one) * d_100
       ! in kg/kg
       dqh = q995 - qs
       ! virtual potential T
@@ -262,6 +261,7 @@ module mod_ocn_zeng
       end do
       if ( lpcpcool ) then
         ! Stull 2011
+        rhp = min(max(q995/qs,d_zero),d_one) * d_100
         twbulb = t995 * atan((rhp+8.313659_rkx)**0.5_rkx) + &
                  atan(t995+rhp) - atan(rhp-1.676331_rkx) +  &
                  0.00391838_rkx*(rhp)**1.5_rkx * atan(0.023101_rkx*rhp) - &

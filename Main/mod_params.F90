@@ -631,7 +631,7 @@ module mod_params
       else
         gnu1 = 0.0625_rkx
         gnu2 = 0.0625_rkx
-        diffu_hgtf = 0
+        diffu_hgtf = 1
       end if
       ckh = 1.0_rkx
       adyndif = 1.0_rkx
