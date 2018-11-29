@@ -855,7 +855,7 @@ module mod_clm_regcm
           if ( acp0(j,i) < 10000.0_rk8 ) then
             m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
             m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
-            temps(j,i) = (m1+m2) / (2.0_rk8*secpd) * ihfac(ih)
+            temps(j,i) = (m1+m2) / (2.0_rk8*secpd) * ihfac(ih+1)
           end if
         end do
       end do
