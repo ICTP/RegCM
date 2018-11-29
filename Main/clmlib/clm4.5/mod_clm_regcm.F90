@@ -3,10 +3,12 @@ module mod_clm_regcm
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_kdinterp
   use mod_runparams
   use mod_ipcc_scenario , only : cgas , igh_co2 , igh_ch4
   use mod_memutil
   use mod_mppparam
+  use mod_ensemble
   use mod_mpmessage
   use mod_constants
   use mod_sunorbit
@@ -15,7 +17,7 @@ module mod_clm_regcm
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv , tcrit , nextdate
-  use mod_clm_varctl , only : ndep_nochem , luse_cru
+  use mod_clm_varctl , only : ndep_nochem , luse_cru , crufile , lcru_rand
   use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
@@ -28,7 +30,12 @@ module mod_clm_regcm
 
   public :: initclm45 , runclm45 , albedoclm45
 
+  real(rk8) , dimension(:) , pointer :: glon , glat , ihfac
   real(rk8) , dimension(:,:) , pointer :: temps
+  real(rk8) , dimension(:,:) , pointer :: alon , alat , rcp
+  real(rk8) , dimension(:,:) , pointer :: crupre , acp0 , acp1 , acp2
+
+  type(h_interpolator) :: hint
 
   contains
 
@@ -299,13 +306,11 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
     call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
+    temps = (lm%cprate+lm%ncprate) * syncro_srf%rw
     if ( luse_cru ) then
-      call read_cru_pre(temps)
-      call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
-    else
-      temps = (lm%cprate+lm%ncprate) * syncro_srf%rw
-      call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
+      call read_cru_pre(lm,temps)
     end if
+    call glb_c2l_gs(lndcomm,temps,clm_a2l%rainf)
 
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,1) = clm_a2l%notused
@@ -644,10 +649,227 @@ module mod_clm_regcm
     !clm_l2a%ddvel
   end subroutine land_to_atmosphere
 
-  subroutine read_cru_pre(temps)
+  subroutine read_cru_pre(lm,temps)
     implicit none
-    real(rk8) , dimension(:,:) , pointer :: temps
+    type(lm_exchange) , intent(inout) :: lm
+    real(rk8) , dimension(:,:) , pointer , intent(inout) :: temps
+    integer(ik4) , save :: ncid = -1
+    integer(ik4) , save :: ivar = -1
+    integer(ik4) , save :: imon = -1
+    integer(ik4) , save :: iday = -1
+    integer(ik4) :: istatus , idimid
+    integer(ik4) :: nlat , nlon
+    character(len=256) :: fname
+    integer(ik4) :: iy , im , id , ih , imm , iss , ndm
+    integer(ik4) :: iym1 , iyp1 , imm1 , imp1
+    integer(ik4) :: i , j
+    real(rk8) :: pm , f1 , f2 , m1 , m2
+    integer(ik4) , dimension(3) , save :: istart , icount
 
+    call split_idate(nextdate,iy,im,id,ih,imm,iss)
+
+    if ( myid == iocpu ) then
+      if ( ncid == -1 ) then
+        call getmem2d(alon,jcross1,jcross2,icross1,icross2,'clm45:alon')
+        call getmem2d(alat,jcross1,jcross2,icross1,icross2,'clm45:alat')
+        call getmem2d(rcp,jcross1,jcross2,icross1,icross2,'clm45:rcp')
+        call grid_collect(lm%xlon,alon,jci1,jci2,ici1,ici2)
+        call grid_collect(lm%xlat,alat,jci1,jci2,ici1,ici2)
+        fname = trim(inpglob)//pthsep//'CLM45'//pthsep// &
+                'crudata'//pthsep//trim(crufile)
+        istatus = nf90_open(fname,nf90_nowrite,ncid)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR OPEN CRU DATASET')
+        end if
+        istatus = nf90_inq_dimid(ncid,'lat',idimid)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR SEARCH DIM LAT IN CRU DATASET')
+        end if
+        istatus = nf90_inquire_dimension(ncid,idimid,len=nlat)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ DIM LAT IN CRU DATASET')
+        end if
+        istatus = nf90_inq_dimid(ncid,'lon',idimid)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR SEARCH DIM LON IN CRU DATASET')
+        end if
+        istatus = nf90_inquire_dimension(ncid,idimid,len=nlon)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ DIM LON IN CRU DATASET')
+        end if
+        call getmem2d(crupre,1,nlon,1,nlat,'clm45:crupre')
+        call getmem1d(glon,1,nlon,'clm45:glon')
+        call getmem1d(glat,1,nlat,'clm45:glat')
+        call getmem2d(acp0,jci1,jci2,ici1,ici2,'clm45:acp0')
+        call getmem2d(acp1,jci1,jci2,ici1,ici2,'clm45:acp1')
+        call getmem2d(acp2,jci1,jci2,ici1,ici2,'clm45:acp2')
+        if ( lcru_rand ) then
+          call getmem1d(ihfac,1,24,'clm45:ihfac')
+        end if
+        istatus = nf90_inq_varid(ncid,'lat',ivar)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR SEARCH VAR LAT IN CRU DATASET')
+        end if
+        istatus = nf90_get_var(ncid,ivar,glat)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ VAR LAT FROM CRU DATASET')
+        end if
+        istatus = nf90_inq_varid(ncid,'lon',ivar)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR SEARCH VAR LON IN CRU DATASET')
+        end if
+        istatus = nf90_get_var(ncid,ivar,glon)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ VAR LON FROM CRU DATASET')
+        end if
+        istatus = nf90_inq_varid(ncid,'pre',ivar)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR SEARCH VAR PRE IN CRU DATASET')
+        end if
+        istart(1) = 1
+        istart(2) = 1
+        icount(1) = nlon
+        icount(2) = nlat
+        icount(3) = 1
+        call h_interpolator_create(hint,glat,glon,alat,alon)
+        write (stdout,*) 'Reading CRU Precipitation for month ', im
+        iym1 = iy
+        imm1 = im - 1
+        if ( imm1 == 0 ) then
+          imm1 = 12
+          iym1 = iy - 1
+        end if
+        istart(3) = imm1
+        istatus = nf90_get_var(ncid,ivar,crupre,istart,icount)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
+        end if
+        call h_interpolate_cont(hint,crupre,rcp)
+        ndm = ndaypm(iym1,imm1,nextdate%calendar)
+        rcp = rcp / real(ndm,rk8)
+        call grid_distribute(rcp,acp0,jci1,jci2,ici1,ici2)
+        istart(3) = im
+        istatus = nf90_get_var(ncid,ivar,crupre,istart,icount)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
+        end if
+        call h_interpolate_cont(hint,crupre,rcp)
+        ndm = ndaypm(iy,im,nextdate%calendar)
+        rcp = rcp / real(ndm,rk8)
+        call grid_distribute(rcp,acp1,jci1,jci2,ici1,ici2)
+        iyp1 = iy
+        imp1 = im + 1
+        if ( imp1 == 13 ) then
+          iyp1 = iy + 1
+          imp1 = 1
+        end if
+        istart(3) = imp1
+        istatus = nf90_get_var(ncid,ivar,crupre,istart,icount)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
+        end if
+        call h_interpolate_cont(hint,crupre,rcp)
+        ndm = ndaypm(iyp1,imp1,nextdate%calendar)
+        rcp = rcp / real(ndm,rk8)
+        call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)
+        imon = im
+      end if
+      if ( imon /= im ) then
+        acp0 = acp1
+        acp1 = acp2
+        write (stdout,*) 'Reading CRU Precipitation for month ', im
+        iyp1 = iy
+        imp1 = im + 1
+        if ( imp1 == 13 ) then
+          imp1 = 1
+          iyp1 = iy + 1
+        end if
+        istart(3) = imp1
+        istatus = nf90_get_var(ncid,ivar,crupre,istart,icount)
+        if ( istatus /= nf90_noerr ) then
+          write (stderr, *) nf90_strerror(istatus)
+          call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
+        end if
+        call h_interpolate_cont(hint,crupre,rcp)
+        ndm = ndaypm(iyp1,imp1,nextdate%calendar)
+        rcp = rcp / real(ndm,rk8)
+        call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)
+        imon = im
+      end if
+      if ( lcru_rand ) then
+        if ( iday /= id ) then
+          call random_pick(24.0_rk8,ihfac,24)
+          call bcast(ihfac)
+          iday = id
+        end if
+      end if
+    else
+      if ( ncid == -1 ) then
+        call grid_collect(lm%xlon,alon,jci1,jci2,ici1,ici2)
+        call grid_collect(lm%xlat,alat,jci1,jci2,ici1,ici2)
+        call getmem2d(acp0,jci1,jci2,ici1,ici2,'clm45:acp0')
+        call getmem2d(acp1,jci1,jci2,ici1,ici2,'clm45:acp1')
+        call getmem2d(acp2,jci1,jci2,ici1,ici2,'clm45:acp2')
+        if ( lcru_rand ) then
+          call getmem1d(ihfac,1,24,'clm45:ihfac')
+        end if
+        call grid_distribute(rcp,acp0,jci1,jci2,ici1,ici2)
+        call grid_distribute(rcp,acp1,jci1,jci2,ici1,ici2)
+        call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)
+        ncid = 0
+        imon = im
+      end if
+      if ( imon /= im ) then
+        acp0 = acp1
+        acp1 = acp2
+        call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)
+        imon = im
+      end if
+      if ( lcru_rand ) then
+        if ( iday /= id ) then
+          call bcast(ihfac)
+          iday = id
+        end if
+      end if
+    end if
+    ndm = ndaypm(iy,im,nextdate%calendar)
+    pm = real(id,rk8)/real(ndm,rk8)
+    f1 = max(0.5_rk8 - pm,0.0_rkx)
+    f2 = max(pm - 0.5_rk8,0.0_rkx)
+    if ( lcru_rand ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( acp0(j,i) < 10000.0_rk8 ) then
+            m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
+            m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
+            temps(j,i) = (m1+m2) / (2.0_rk8*secpd) * ihfac(ih)
+          end if
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( acp0(j,i) < 10000.0_rk8 ) then
+            m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
+            m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
+            temps(j,i) = (m1+m2) / (2.0_rk8*secpd)
+          end if
+        end do
+      end do
+    end if
   end subroutine read_cru_pre
 
 end module mod_clm_regcm

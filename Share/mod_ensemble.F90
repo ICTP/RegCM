@@ -41,33 +41,41 @@ module mod_ensemble
     module procedure randify2D
   end interface randify
 
+  interface random_pick
+    module procedure random_pick_1d_r4
+    module procedure random_pick_2d_r4
+    module procedure random_pick_1d_r8
+    module procedure random_pick_2d_r8
+  end interface random_pick
+
   public :: randify , random_pick
 
   integer(ik4) , dimension(:) , pointer :: seed => null( )
 
   contains
 
-  subroutine random_pick(thesum,values)
+  subroutine random_pick_1d_r4(thesum,values,nv)
     implicit none
-    real(rkx) , intent(in) :: thesum
-    real(rkx) , pointer , dimension(:) , intent(inout) :: values
-    real(rkx) , allocatable , dimension(:) :: yi
-    real(rkx) :: rsum
+    real(rk4) , intent(in) :: thesum
+    real(rk4) , pointer , dimension(:) , intent(inout) :: values
+    integer(ik4) , intent(in) :: nv
+    real(rk4) , allocatable , dimension(:) :: yi
+    real(rk4) :: rsum
     integer(ik4) :: i
     integer(ik4) :: nseed
     integer(ik8) :: sclock
 
     if ( .not. associated(values) ) return
-    values = 0.0
+    values = 0.0_rk4
     if ( thesum < dlowval ) then
       return
     end if
-    allocate(yi(size(values)))
+    allocate(yi(nv))
     if ( .not. associated(seed) ) then
       ! get the size of the seed array
       call random_seed(size = nseed)
       ! allocate a new seed array
-      call getmem1d(seed,1,nseed,'randify2D:seed')
+      call getmem1d(seed,1,nseed,'random_pick_1d_r8:seed')
       ! Get the system time
       call system_clock(sclock)
       ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
@@ -82,7 +90,89 @@ module mod_ensemble
     rsum = sum(yi)
     values = yi/rsum * thesum
     deallocate(yi)
-  end subroutine random_pick
+  end subroutine random_pick_1d_r4
+
+  subroutine random_pick_1d_r8(thesum,values,nv)
+    implicit none
+    real(rk8) , intent(in) :: thesum
+    real(rk8) , pointer , dimension(:) , intent(inout) :: values
+    integer(ik4) , intent(in) :: nv
+    real(rk8) , allocatable , dimension(:) :: yi
+    real(rk8) :: rsum
+    integer(ik4) :: i
+    integer(ik4) :: nseed
+    integer(ik8) :: sclock
+
+    if ( .not. associated(values) ) return
+    values = 0.0_rk8
+    if ( thesum < dlowval ) then
+      return
+    end if
+    allocate(yi(nv))
+    if ( .not. associated(seed) ) then
+      ! get the size of the seed array
+      call random_seed(size = nseed)
+      ! allocate a new seed array
+      call getmem1d(seed,1,nseed,'random_pick_1d_r8:seed')
+      ! Get the system time
+      call system_clock(sclock)
+      ! TAO:  The odd syntax for this line comes from GNU documentation. I don't
+      ! understand why 37 is used as opposed to any other number.
+      seed = int(sclock) + 37*[(i-1,i=1,nseed)]
+      ! Set the seed for the random number generator.  This makes it so that we
+      ! get a pseudo-random sequence of numbers
+      call random_seed(put = seed)
+    end if
+    call random_number(yi)
+    yi = -log(yi)
+    rsum = sum(yi)
+    values = yi/rsum * thesum
+    deallocate(yi)
+  end subroutine random_pick_1d_r8
+
+  subroutine random_pick_2d_r4(thesum,values,nv)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(in) :: thesum
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: values
+    integer(ik4) , intent(in) :: nv
+    real(rk4) , pointer , dimension(:) :: p
+    integer(ik4) :: i , j , is , ie , js , je
+
+    js = lbound(thesum,2)
+    je = ubound(thesum,2)
+    is = lbound(thesum,1)
+    ie = ubound(thesum,1)
+    allocate(p(nv))
+    do j = js , je
+      do i = is , ie
+        call random_pick_1d_r4(thesum(i,j),p,nv)
+        values(i,j,1:nv) = p(:)
+      end do
+    end do
+    deallocate(p)
+  end subroutine random_pick_2d_r4
+
+  subroutine random_pick_2d_r8(thesum,values,nv)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: thesum
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: values
+    integer(ik4) , intent(in) :: nv
+    real(rk8) , pointer , dimension(:) :: p
+    integer(ik4) :: i , j , is , ie , js , je
+
+    js = lbound(thesum,2)
+    je = ubound(thesum,2)
+    is = lbound(thesum,1)
+    ie = ubound(thesum,1)
+    allocate(p(nv))
+    do j = js , je
+      do i = is , ie
+        call random_pick_1d_r8(thesum(i,j),p,nv)
+        values(i,j,1:nv) = p(:)
+      end do
+    end do
+    deallocate(p)
+  end subroutine random_pick_2d_r8
 !
 ! Takes a 3D variable (dVariable3D) and adds random noise to all of its
 ! values.  At point (i,j,k) in dVariable3D, the random noise will be
