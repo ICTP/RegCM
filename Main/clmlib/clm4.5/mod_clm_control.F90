@@ -24,7 +24,7 @@ module mod_clm_control
           pertlim , username , fsnowaging , fsnowoptics ,         &
           subgridflag , use_c13 , use_c14 , irrigate ,            &
           spinup_state , override_bgc_restart_mismatch_dump ,     &
-          source , ialblawr , tcrit , q10_maintenance
+          source , ialblawr , tcrit , q10_maintenance , luse_cru
   use mod_clm_varpar, only : numrad
   use mod_clm_varctl , only : ctitle , caseid , nsrest
   use mod_clm_varcon , only : secspday
@@ -394,6 +394,10 @@ module mod_clm_control
     call bcast(enable_more_crop_pft)
     ! CNDV COLD START
     call bcast(enable_dv_baresoil)
+#ifdef CNDV
+    ! CRU Precip
+    call bcast(enable_cru_precip)
+#endif
 
 #if (defined CN) && (defined VERTSOILC)
     ! vertical soil mixing variables
@@ -603,6 +607,13 @@ module mod_clm_control
     write(stdout, *) &
       '   enable_more_crop_pft                                  : ', &
       enable_more_crop_pft
+
+#ifdef CNDV
+    write(stdout, *) &
+      '   enable_cru_precip                                     : ', &
+      enable_cru_precip
+    if ( enable_cru_precip ) luse_cru = .true.
+#endif
 
 #if (defined CN)
     write(stdout, *) &

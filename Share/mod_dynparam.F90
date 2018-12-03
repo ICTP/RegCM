@@ -422,6 +422,7 @@ module mod_dynparam
   logical :: enable_urban_landunit = .true.
   logical :: enable_more_crop_pft = .false.
   logical :: enable_dv_baresoil = .false.
+  logical :: enable_cru_precip = .false.
 #endif
 
   contains
@@ -454,7 +455,7 @@ module mod_dynparam
       lperturb_v , perturb_frac_v
 #ifdef CLM45
     namelist /clm_regcm/ enable_megan_emission , enable_urban_landunit, &
-      enable_more_crop_pft , enable_dv_baresoil
+      enable_more_crop_pft , enable_dv_baresoil , enable_cru_precip
 #endif
     namelist /referenceatm/ base_state_pressure , logp_lrate
 

@@ -750,6 +750,7 @@
  enable_urban_landunit = .true.,
  enable_more_crop_pft = .false.,
  enable_dv_baresoil = .false.,
+ enable_cru_precip = .false.,
  /
 !
 ! Debug I/O printout level.
