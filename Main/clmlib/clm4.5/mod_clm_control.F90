@@ -397,6 +397,7 @@ module mod_clm_control
 #ifdef CNDV
     ! CRU Precip
     call bcast(enable_cru_precip)
+    if ( enable_cru_precip ) luse_cru = .true.
 #endif
 
 #if (defined CN) && (defined VERTSOILC)
@@ -612,7 +613,6 @@ module mod_clm_control
     write(stdout, *) &
       '   enable_cru_precip                                     : ', &
       enable_cru_precip
-    if ( enable_cru_precip ) luse_cru = .true.
 #endif
 
 #if (defined CN)
