@@ -138,6 +138,13 @@ module mod_slice
       do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz )
         atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
       end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
+        atms%pb3d(j,i,k) = atm0%pr(j,i,k) + atms%ppb3d(j,i,k)
+      end do
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
+        atms%pb3d(j,i,1) = max(atm0%pr(j,i,1) + atms%ppb3d(j,i,1), &
+                          ptop*d_1000+1.0_rkx)
+      end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         atms%ps2d(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
       end do
@@ -152,6 +159,9 @@ module mod_slice
                    d_half*(atms%ppb3d(j,i,k-1)+atms%ppb3d(j,i,k))
       end do
     else
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+        atms%pb3d(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+      end do
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000
       end do
@@ -167,7 +177,6 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%pb3d(j,i,k) = atm2%pr(j,i,k)
           atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
           atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
                           (p00/atms%pb3d(j,i,k))**rovcp

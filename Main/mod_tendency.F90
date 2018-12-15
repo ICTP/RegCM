@@ -1593,6 +1593,13 @@ module mod_tendency
             tdyn(j,i,k) = tdyn(j,i,k) + &
                               atm1%t(j,i,k)*thten(j,i,k)/tha(j,i,k)
           end do
+#ifdef DEBUG
+          call check_temperature_tendency('HADV',pc_dynamic)
+#endif
+          if ( idiag > 0 ) then
+            call ten2diag(aten%t,tdiag%adh,pc_dynamic,ten0)
+            ten0 = tdyn
+          end if
         end if
         !
         ! Divergence term in the pressure perturbation tendency equation in the
