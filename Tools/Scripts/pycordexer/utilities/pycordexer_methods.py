@@ -1948,7 +1948,7 @@ class ComputeGeopotentialHeight(ActionStarter):
                 data=MemoryData(copy(pval)),
                 dimensions=(),
                 attributes={
-                    'standard_name': 'pressure',
+                    'standard_name': 'air_pressure',
                     'long_name': 'Pressure',
                     'positive': 'down',
                     'units': 'Pa',

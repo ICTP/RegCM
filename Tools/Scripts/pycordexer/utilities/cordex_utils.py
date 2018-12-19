@@ -685,11 +685,11 @@ class CordexDataset(Dataset):
             regcm_file.xlat_dimensions,
             attributes=regcm_file.xlat_attributes
         )
-        LOGGER.debug(
-            'Adding attribute named "grid_mapping" with value "crs" to %s',
-            REPLACE_VARS['xlat']
-        )
-        xlat.setncattr('grid_mapping', 'crs')
+        #LOGGER.debug(
+        #    'Adding attribute named "grid_mapping" with value "crs" to %s',
+        #    REPLACE_VARS['xlat']
+        #)
+        #xlat.setncattr('grid_mapping', 'crs')
 
         xlon = self.create_var_from_data(
             REPLACE_VARS['xlon'],
@@ -697,11 +697,11 @@ class CordexDataset(Dataset):
             regcm_file.xlon_dimensions,
             attributes=regcm_file.xlon_attributes
         )
-        LOGGER.debug(
-            'Adding attribute named "grid_mapping" with value "crs" to %s',
-            REPLACE_VARS['xlon']
-        )
-        xlon.setncattr('grid_mapping', 'crs')
+        #LOGGER.debug(
+        #    'Adding attribute named "grid_mapping" with value "crs" to %s',
+        #    REPLACE_VARS['xlon']
+        #)
+        #xlon.setncattr('grid_mapping', 'crs')
 
         x = self.create_var_from_data(
             REPLACE_VARS['jx'],
