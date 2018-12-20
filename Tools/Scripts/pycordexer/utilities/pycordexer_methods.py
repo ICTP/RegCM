@@ -583,8 +583,8 @@ class InterpolateHeight(Filter):
                 data=MemoryData(copy(pval)),
                 dimensions=(),
                 attributes={
-                    'standard_name': 'pressure',
-                    'long_name': 'Pressure',
+                    'standard_name': 'air_pressure',
+                    'long_name': 'pressure level',
                     'positive': 'down',
                     'units': 'Pa',
                     'axis': 'Z'
@@ -999,6 +999,7 @@ class ComputeMaximum(Filter):
         if prev_result.needs_time_bounds:
             corr_factor = 0
         else:
+            # NEED TO INVESTIGATE. WHY THIS?
             corr_factor = -prev_result.time_step_size / 2.
         LOGGER.debug(
             'Using a correction factor for times of value %s',
@@ -1367,7 +1368,7 @@ class ComputeAverage(Filter):
             corr_factor = 0
         else:
             # NEED TO INVESTIGATE. WHY THIS?
-            corr_factor = +prev_result.time_step_size / 2.
+            corr_factor = -prev_result.time_step_size / 2.
         LOGGER.debug(
             'Using a correction factor for times of value %s',
             corr_factor
@@ -1470,6 +1471,8 @@ class ComputeAverage(Filter):
         var_data = MemoryData(new_data_array)
 
         LOGGER.debug('Going to save the variable with name %s', prev_result.name)
+
+        prev_result.attributes['cell_methods'] = 'time: mean'
 
         return Variable(
             name=prev_result.name,
@@ -1949,7 +1952,7 @@ class ComputeGeopotentialHeight(ActionStarter):
                 dimensions=(),
                 attributes={
                     'standard_name': 'air_pressure',
-                    'long_name': 'Pressure',
+                    'long_name': 'pressure level',
                     'positive': 'down',
                     'units': 'Pa',
                     'axis': 'Z'

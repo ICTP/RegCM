@@ -31,6 +31,7 @@ class RegcmSimulation(object):
                  experiment='none', ensemble='NN', notes='none'):
         self.mail = mail
         self.domain = domain
+        self.product = 'output'
         self.global_model = global_model
         self.experiment = experiment
         self.ensemble = ensemble
@@ -113,36 +114,32 @@ def get_first_and_last_date_str(dates, frequency):
             dates[0].day
         )
         dd2 = '{:04d}{:02d}{:02d}'.format(
-            dates[-1].year,
-            dates[-1].month,
-            dates[-1].day
+            dates[-2].year,
+            dates[-2].month,
+            dates[-2].day
         )
     elif frequency == 'day':
         # Notice the trailing '12'.
-        dd1 = '{:04d}{:02d}{:02d}12'.format(
+        dd1 = '{:04d}{:02d}{:02d}'.format(
             dates[0].year,
             dates[0].month,
             dates[0].day
         )
-        dd2 = '{:04d}{:02d}{:02d}12'.format(
+        dd2 = '{:04d}{:02d}{:02d}'.format(
+            dates[-2].year,
+            dates[-2].month,
+            dates[-2].day
+        )
+    else:
+        dd1 = '{:04d}{:02d}{:02d}00'.format(
+            dates[0].year,
+            dates[0].month,
+            dates[0].day
+        )
+        dd2 = '{:04d}{:02d}{:02d}00'.format(
             dates[-1].year,
             dates[-1].month,
             dates[-1].day
-        )
-    else:
-        dd1 = '{:04d}{:02d}{:02d}{:02d}{:02d}'.format(
-            dates[0].year,
-            dates[0].month,
-            dates[0].day,
-            dates[0].hour,
-            dates[0].minute
-        )
-        dd2 = '{:04d}{:02d}{:02d}{:02d}{:02d}'.format(
-            dates[-1].year,
-            dates[-1].month,
-            dates[-1].day,
-            dates[-1].hour,
-            dates[-1].minute
         )
     return dd1, dd2
 
@@ -280,7 +277,9 @@ class RegcmOutputFile(object):
 
         LOGGER.debug('Reading the domain attribute%s', of_file)
         self._domain = getattr(ncf, 'experiment')
+        self._product = 'output'
         LOGGER.debug('The domain is %s', self._domain)
+        LOGGER.debug('The product is %s', self._product)
 
         LOGGER.debug('Reading the RegCM revision attribute%s', of_file)
         try:
@@ -520,6 +519,10 @@ class RegcmOutputFile(object):
     @property
     def domain(self):
         return self._domain
+
+    @property
+    def product(self):
+        return self._product
 
     @property
     def revision(self):
@@ -808,7 +811,10 @@ class CordexDataset(Dataset):
                     dim_name,
                     dim_len
                 )
-                self.createDimension(dim_name, dim_len)
+                if dim_name == 'time':
+                    self.createDimension(dim_name, None)
+                else:
+                    self.createDimension(dim_name, dim_len)
 
         # Finding the fill value
         if '_FillValue' in attributes:
@@ -854,7 +860,8 @@ class CordexDataset(Dataset):
 
         # Copy attributes
         for attr, attr_val in attributes.items():
-            if attr == '_FillValue':
+            if attr == '_FillValue' or attr == 'missing_value':
+                ncdf_variable.setncattr('missing_value', attr_val)
                 continue
 
             if attr in EXCLUDED_ATTRIBUTES:
@@ -1249,6 +1256,7 @@ def prepare_cordex_file_dir(var_name, var_dates, var_freq, simul, regcm_file,
     # This is the directory where the NetCDf file will be saved
     cordex_last_dir = os.path.join(
         cordex_dir,
+        simul.product,
         simul.domain,
         'ICTP',
         simul.global_model,
