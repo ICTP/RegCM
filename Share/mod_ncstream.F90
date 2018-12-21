@@ -483,6 +483,12 @@ module mod_ncstream
             attr%aname = 'latitude_of_projection_origin'
             attr%theval = clat
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_easting'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_northing'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
@@ -535,6 +541,12 @@ module mod_ncstream
             attr%aname = 'scale_factor_at_projection_origin'
             attr%theval = 1.0
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_easting'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_northing'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
@@ -578,12 +590,15 @@ module mod_ncstream
             attr%aname = 'standard_parallel'
             attr%theval = clat
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-            attr%aname = 'latitude_of_projection_origin'
-            attr%theval = clat
-            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
             attr%aname = 'longitude_of_projection_origin'
             attr%theval = clon
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_easting'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_northing'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
@@ -621,7 +636,7 @@ module mod_ncstream
               ' +b='//trim(adjustl(tempstr(6)))//' +units=m +no_defs'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'grid_mapping_name'
-            attc%theval = 'rotated_mercator'
+            attc%theval = 'oblique_mercator'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attr%aname = 'latitude_of_projection_origin'
             attr%theval = plat
@@ -632,6 +647,15 @@ module mod_ncstream
             attr%aname = 'scale_factor_at_projection_origin'
             attr%theval = 1.0
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'azimuth_of_central_line'
+            attc%theval = 89.999999
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_easting'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'false_northing'
+            attc%theval = x0
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
@@ -2785,7 +2809,7 @@ module mod_ncstream
       attc%theval = __DATE__
       call add_attribute(stream,attc)
       attc%aname = 'Conventions'
-      attc%theval = 'CF-1.7'
+      attc%theval = 'CF-1.8'
       call add_attribute(stream,attc)
       attc%aname = 'references'
       attc%theval = 'http://gforge.ictp.it/gf/project/regcm'
