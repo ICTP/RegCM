@@ -483,12 +483,12 @@ module mod_ncstream
             attr%aname = 'latitude_of_projection_origin'
             attr%theval = clat
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_easting'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_northing'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_easting'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_northing'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
@@ -541,12 +541,12 @@ module mod_ncstream
             attr%aname = 'scale_factor_at_projection_origin'
             attr%theval = 1.0
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_easting'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_northing'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_easting'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_northing'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
@@ -593,12 +593,12 @@ module mod_ncstream
             attr%aname = 'longitude_of_projection_origin'
             attr%theval = clon
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_easting'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_northing'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_easting'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_northing'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
@@ -647,15 +647,15 @@ module mod_ncstream
             attr%aname = 'scale_factor_at_projection_origin'
             attr%theval = 1.0
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'azimuth_of_central_line'
-            attc%theval = 89.999999
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_easting'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
-            attc%aname = 'false_northing'
-            attc%theval = x0
-            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'azimuth_of_central_line'
+            attr%theval = 89.999999
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_easting'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_northing'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'crs_wkt'
             attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
                 '    GEOGCS["Normal Sphere (r='//                              &
