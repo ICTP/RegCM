@@ -934,12 +934,16 @@ class CordexDataset(Dataset):
                     regcm_file.map_projection_standard_parallel
                 )
                 crs_var.setncattr(
-                    'longitude_of_central_meridian',
-                    regcm_file.map_projection_longitude_origin,
-                )
-                crs_var.setncattr(
                     'latitude_of_projection_origin',
                     regcm_file.map_projection_latitude_origin,
+                )
+                crs_var.setncattr(
+                    'false_easting',
+                    -regcm_file.grid_size / 2.0,
+                )
+                crs_var.setncattr(
+                    'false_northing',
+                    -regcm_file.grid_size / 2.0,
                 )
             elif regcm_file.map_projection == 'POLSTR':
                 LOGGER.debug('Setting attributes for POLSTR proj')
@@ -959,6 +963,14 @@ class CordexDataset(Dataset):
                     'scale_factor_at_projection_origin',
                     1.0
                 )
+                crs_var.setncattr(
+                    'false_easting',
+                    -regcm_file.grid_size / 2.0,
+                )
+                crs_var.setncattr(
+                    'false_northing',
+                    -regcm_file.grid_size / 2.0,
+                )
             elif regcm_file.map_projection == 'NORMER':
                 LOGGER.debug('Setting attributes for NORMER proj')
                 crs_var.setncattr(
@@ -977,11 +989,23 @@ class CordexDataset(Dataset):
                     'longitude_of_projection_origin',
                     regcm_file.map_projection_longitude_origin,
                 )
+                crs_var.setncattr(
+                    'false_easting',
+                    -regcm_file.grid_size / 2.0,
+                )
+                crs_var.setncattr(
+                    'false_northing',
+                    -regcm_file.grid_size / 2.0,
+                )
             elif regcm_file.map_projection == 'ROTMER':
                 LOGGER.debug('Setting attributes for ROTMER proj')
                 crs_var.setncattr(
                     'grid_mapping_name',
-                    'rotated_mercator'
+                    'oblique_mercator'
+                )
+                crs_var.setncattr(
+                    'azimuth_of_central_line',
+                    89.999999,
                 )
                 crs_var.setncattr(
                     'latitude_of_projection_origin',
@@ -994,6 +1018,14 @@ class CordexDataset(Dataset):
                 crs_var.setncattr(
                     'scale_factor_at_projection_origin',
                     1.0
+                )
+                crs_var.setncattr(
+                    'false_easting',
+                    -regcm_file.grid_size / 2.0,
+                )
+                crs_var.setncattr(
+                    'false_northing',
+                    -regcm_file.grid_size / 2.0,
                 )
             else:
                 raise ValueError(
