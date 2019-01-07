@@ -78,6 +78,7 @@ program terrain
   use mod_nhinterp
   use mod_earth
   use mod_stdatm
+  use mod_zita
 
   implicit none
   character(len=256) :: char_lnd , char_tex , char_lak
@@ -89,7 +90,7 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
-  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig
+  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig , dz , zita , sigh
   real(rkx) :: ts0
   !type(globalfile) :: gfile
   character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
@@ -149,13 +150,29 @@ program terrain
   end if
   call setup_outvars
 
-  call init_sigma(kz,dsmax,dsmin)
-  sigma(:) = sigma_coordinate(:)
+  if ( idynamic < 3 ) then
+    call init_sigma(kz,dsmax,dsmin)
+    sigma(:) = sigma_coordinate(:)
+  else if ( idynamic == 3 ) then
+    dz = hzita / real(kz,rkx)
+    sigma(kzp1) = 0.0_rkx
+    do k = kz , 1 , -1
+      sigma(k) = sigma(k+1) + dz
+    end do
+    sigma = 1.0_rkx - sigma/hzita
+    sigma(1) = 0.0_rkx
+  else
+    write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
+  end if
 
   if ( idynamic == 2 ) then
     write(stdout, *) 'Using non hydrostatic parameters'
     write(stdout, '(a,f10.2)') ' base_state_pressure    = ', base_state_pressure
     write(stdout, '(a,f10.2)') ' logp_lrate             = ', logp_lrate
+  end if
+
+  if ( idynamic == 3 ) then
+    write(stdout, *) 'Using non hydrostatic Moloch dynamic'
   end if
 
   clong = clon
@@ -742,13 +759,29 @@ program terrain
                   ps0_s,pr0_s,t0_s,rho0_s,z0_s)
     end if
 
+    if ( idynamic == 3 ) then
+      ! Here we compute zeta on model levels.
+      do k = kzp1 , 2 , -1
+        zita = (kzp1-k) * dz + dz*d_half
+        do i = 1 , iysg
+          do j = 1 , jxsg
+            zeta_s(j,i,k) = md_zeta_h(zita,htgrid_s(j,i))
+            fmz_s(j,i,k) = md_fmz_h(zita,htgrid_s(j,i))
+          end do
+        end do
+      end do
+      ! Filling.
+      zeta_s(:,:,1) = 100000.0_rkx
+      fmz_s(:,:,1) = 0.0_rkx
+    end if
+
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
     call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
                       ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,  &
                       dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,  &
                       smoist_s,rmoist_s,dpth_s,texout_s,frac_tex_s,ps0_s, &
-                      pr0_s,t0_s,rho0_s,z0_s,ts0)
+                      pr0_s,t0_s,rho0_s,z0_s,ts0,zeta_s,fmz_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
@@ -776,7 +809,7 @@ program terrain
       write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') &
              k, sigma(k), psig, zsig, tsig
     end do
-  else
+  else if ( idynamic == 2 ) then
     ts0 = base_state_temperature(1,iy,1,jx,xlat)
     call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
     call nhbase(1,iy,1,jx,kz+1,sigma,htgrid,ps0,pr0,t0,rho0,z0)
@@ -790,6 +823,40 @@ program terrain
         d_r100*sum(pr0(:,:,k))/real(jx*iy,rkx), &
         sum(z0(:,:,k))/real(jx*iy,rkx), sum(t0(:,:,k))/real(jx*iy,rkx)
     end do
+  else if ( idynamic == 3 ) then
+    ! Here we compute zeta on model levels.
+    do k = kzp1 , 2 , -1
+      zita = (kzp1-k) * dz + dz*d_half
+      do i = 1 , iy
+        do j = 1 , jx
+          zeta(j,i,k) = md_zeta_h(zita,htgrid(j,i))
+          fmz(j,i,k) = md_fmz_h(zita,htgrid(j,i))
+        end do
+      end do
+    end do
+    ! Filling.
+    fmz(:,:,1) = 0.0_rkx
+    zeta(:,:,1) = 100000.0_rkx
+    ! Write the levels out to the screen
+    write (stdout,*) 'Vertical Grid Description (mean over domain)'
+    write (stdout,*) ''
+    write (stdout,*) '--------------------------------------------------'
+    write (stdout,*) 'k        sigma       p(mb)          h(m)      T(K)'
+    write (stdout,*) '--------------------------------------------------'
+    do k = kz, 1, -1
+      sigh = 1.0_rkx - (((kz-k) * dz + dz*d_half)/hzita)
+      zsig = sum(zeta(:,:,k+1))/real(jx*iy,rkx)
+      if ( zsig > 20000.0_rkx ) then
+        tsig = (tzero - 56.5_rkx) + 0.0045_rkx * (zsig-20000.0_rkx)
+      else if ( zsig > 10000.0_rkx ) then
+        tsig = tzero - 56.5_rkx
+      else
+        tsig = stdt - lrate * zsig
+      end if
+      psig = stdp*exp(-zsig/hzita)
+      write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigh, &
+        psig * d_r100 , zsig , tsig
+    end do
   end if
 
   write (outname,'(a,i0.3,a)') &
@@ -797,7 +864,7 @@ program terrain
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,      &
                     htgrid,lndout,snowam,smoist,rmoist,dpth,texout,       &
-                    frac_tex,ps0,pr0,t0,rho0,z0,ts0)
+                    frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

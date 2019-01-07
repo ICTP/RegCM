@@ -32,7 +32,7 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 interpinic.o : interpinic.F90 mod_constants.o mod_intkinds.o mod_message.o mod_memutil.o mod_realkinds.o mod_kdinterp.o
-mksurfdata.o : mksurfdata.F90 mod_constants.o mod_date.o mod_domain.o mod_dynparam.o mod_grid.o mod_intkinds.o mod_memutil.o mod_message.o mod_mkabm.o mod_mkfmax.o mod_mkgdp.o mod_mkglacier.o mod_mklaisai.o mod_mklake.o mod_mkorganic.o mod_mkpeatf.o mod_mkpft.o mod_mksoilcol.o mod_mksoitex.o mod_mkurban.o mod_mkvocef.o mod_mkwetland.o mod_nchelper.o mod_realkinds.o mod_stdio.o mod_mklightning.o mod_mkpopd.o mod_mkharvest.o mod_mkdynpft.o mod_mkvic.o mod_mkch4topm.o mod_mksoilph.o mod_mkq10soil.o mod_mkndep.o $(REGCM_ROOT)/makeinc $(REGCM_ROOT)/version
+mksurfdata.o : mksurfdata.F90 mod_constants.o mod_date.o mod_domain.o mod_dynparam.o mod_grid.o mod_intkinds.o mod_memutil.o mod_message.o mod_zita.o mod_mkabm.o mod_mkfmax.o mod_mkgdp.o mod_mkglacier.o mod_mklaisai.o mod_mklake.o mod_mkorganic.o mod_mkpeatf.o mod_mkpft.o mod_mksoilcol.o mod_mksoitex.o mod_mkurban.o mod_mkvocef.o mod_mkwetland.o mod_nchelper.o mod_realkinds.o mod_stdio.o mod_mklightning.o mod_mkpopd.o mod_mkharvest.o mod_mkdynpft.o mod_mkvic.o mod_mkch4topm.o mod_mksoilph.o mod_mkq10soil.o mod_mkndep.o $(REGCM_ROOT)/makeinc $(REGCM_ROOT)/version
 mod_grid.o : mod_grid.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_message.o mod_realkinds.o mod_stdio.o
 mod_mkabm.o : mod_mkabm.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o
 mod_mkfmax.o : mod_mkfmax.F90 mod_dynparam.o mod_grid.o mod_intkinds.o mod_realkinds.o mod_rdldtr.o

@@ -37,6 +37,7 @@ program clm2rcm
   use mod_stdio
   use mod_domain
   use mod_nchelper
+  use mod_zita
   use netcdf
 
   implicit none
@@ -57,7 +58,7 @@ program clm2rcm
   real(rk8) , dimension(1) :: xdate
   integer(ik4) , dimension(2) :: ihvar
   integer(ik4) , dimension(2) :: illvar
-  integer(ik4) , dimension(2) :: izvar
+  integer(ik4) , dimension(3) :: izvar
   integer(ik4) , dimension(4) :: icount , istart
   integer(ik4) , dimension(1) :: istart1 , icount1
   integer(ik4) , dimension(3) :: iadim
@@ -149,8 +150,15 @@ program clm2rcm
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error End Definitions NetCDF output')
-  hptop = real(ptop*10.0_rkx,rk4)
-  call write_vertical_coord(ncid,sigx,hptop,izvar)
+  if ( idynamic < 3 ) then
+    hptop = real(ptop*10.0_rkx)
+    call write_vertical_coord(ncid,sigx,hptop,izvar)
+  else
+    zita = d_one - sigx*hzita
+    ax = -hzita*(bzita(zita)*log(sigx))
+    bx = gzita(zita)
+    call write_vertical_coord_zita(ncid,sigx,ax,bx,izvar)
+  end if
   call write_horizontal_coord(ncid,xjx,yiy,ihvar)
   ipnt = 1
   call write_var2d_static(ncid,'xlat',xlat,ipnt,illvar)

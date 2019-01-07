@@ -28,6 +28,7 @@ module mod_maps
                    smoist , texout , xlat , xlon , xmap , ps0
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist
   real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0 , z0
+  real(rkx) , pointer , dimension(:,:,:) :: zeta , fmz
 
   real(rkx) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
                       dlon_s , dmap_s , htgrid_s , lndout_s , &
@@ -35,6 +36,7 @@ module mod_maps
                       texout_s , xlat_s , xlon_s , xmap_s , ps0_s
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
   real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s , z0_s
+  real(rkx) , pointer , dimension(:,:,:) :: zeta_s , fmz_s
 
   real(rkx) , pointer , dimension(:) :: sigma
 
@@ -66,7 +68,11 @@ module mod_maps
       call getmem3d(t0,1,jx,1,iy,1,kz+1,'maps:t0')
       call getmem3d(rho0,1,jx,1,iy,1,kz+1,'maps:rho0')
       call getmem3d(z0,1,jx,1,iy,1,kz+1,'maps:z0')
+    else if ( idyn == 3 ) then
+      call getmem3d(zeta,1,jx,1,iy,1,kz+1,'maps:zeta')
+      call getmem3d(fmz,1,jx,1,iy,1,kz+1,'maps:fmz')
     end if
+
   end subroutine prepare_grid
 
   subroutine prepare_subgrid(jxsg,iysg,kz,ntex,nsoil,idyn)
@@ -94,6 +100,9 @@ module mod_maps
       call getmem3d(t0_s,1,jxsg,1,iysg,1,kz+1,'maps:t0_s')
       call getmem3d(rho0_s,1,jxsg,1,iysg,1,kz+1,'maps:rho0_s')
       call getmem3d(z0_s,1,jxsg,1,iysg,1,kz+1,'maps:z0_s')
+    else if ( idyn == 3 ) then
+      call getmem3d(zeta_s,1,jxsg,1,iysg,1,kz+1,'maps:zeta_s')
+      call getmem3d(fmz_s,1,jxsg,1,iysg,1,kz+1,'maps:fmz_s')
     end if
   end subroutine prepare_subgrid
 

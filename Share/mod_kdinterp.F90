@@ -608,7 +608,7 @@ module mod_kdinterp
         end if
       end do
     end do
-    if ( idynamic == 2 ) then
+    if ( idynamic > 1 ) then
       call smther(f)
     else
       call smtdsmt(f)

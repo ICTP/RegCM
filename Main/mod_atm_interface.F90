@@ -54,6 +54,10 @@ module mod_atm_interface
   type(mass_divergence) , public :: mdv
   type(nhboundhelp) , public :: nhbh0 , nhbh1
 
+  ! For idynamic 3
+
+  type(atmosphere) , public :: mo_atm
+
   public :: allocate_mod_atm_interface
   public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
@@ -765,6 +769,10 @@ module mod_atm_interface
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
       call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
       call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
+      if ( idynamic == 3 ) then
+        call getmem2d(dom%cosxlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:cosxlat')
+        call getmem2d(dom%cosdlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:cosdlat')
+      end if
       call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
       call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
       call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
@@ -939,15 +947,18 @@ module mod_atm_interface
         call allocate_nhbh(nhbh0)
         call allocate_nhbh(nhbh1)
       end if
-      call allocate_atmstate_a(atm1)
-      call allocate_atmstate_b(atm2)
-      call allocate_atmstate_decoupled(atmx)
-      call allocate_atmstate_c(atmc)
-      call allocate_atmstate_tendency(aten)
+      if ( idynamic == 3 ) then
+      else
+        call allocate_atmstate_a(atm1)
+        call allocate_atmstate_b(atm2)
+        call allocate_atmstate_decoupled(atmx)
+        call allocate_atmstate_c(atmc)
+        call allocate_atmstate_tendency(aten)
+        call allocate_slice(atms,atm0)
+        call allocate_mass_divergence(mdv)
+      end if
 
       call allocate_surfstate(sfs)
-      call allocate_slice(atms,atm0)
-      call allocate_mass_divergence(mdv)
 
       ! FAB:
       !    complete for diag on water quantitiies idiag = 2, 3 etc

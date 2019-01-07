@@ -166,6 +166,10 @@ program icbc
     write(stdout, '(a,f10.2)') ' logp_lrate             = ', logp_lrate
   end if
 
+  if ( idynamic == 3 ) then
+    write(stdout, *) 'Using Moloch non-hydrostatic dynamica core'
+  end if
+
   if ( dattyp == 'FVGCM' .or. dattyp == 'EH5RF' .or. &
        dattyp == 'EH5A2' .or. dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
     call init_globwindow(namelistfile,lat0,lon0,lat1,lon1)

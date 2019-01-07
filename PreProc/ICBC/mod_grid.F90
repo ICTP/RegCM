@@ -27,6 +27,7 @@ module mod_grid
   use mod_nchelper
   use mod_domain
   use mod_nhinterp
+  use mod_zita
   use mod_dynparam , only : base_state_pressure , logp_lrate
 
   private
@@ -77,6 +78,9 @@ module mod_grid
       call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
       call getmem3d(t0,1,nx,1,ny,1,nz,'mod_write:t0')
     end if
+    if ( idynamic == 3 ) then
+      call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
+    end if
     call read_domain_info
   end subroutine init_grid
 
@@ -85,7 +89,8 @@ module mod_grid
     implicit none
     integer(ik4) :: incin
     character(len=256) :: fname
-    integer(ik4) :: k
+    integer(ik4) :: i , j , k
+    real(rkx) :: dz , zita
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     if ( idynamic == 2 ) then
@@ -93,6 +98,18 @@ module mod_grid
                        mask,landuse,msfx,msfd)
       call read_reference_surface_temp(incin,ts0)
       call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
+    else if ( idynamic == 3 ) then
+      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
+                       mask,landuse)
+      dz = hzita/real(kz,rkx)
+      do k = 1 , kz
+        zita = (kz - k) * dz + dz*0.5_rkx 
+        do i = 1 , iy
+          do j = 1 , jx
+            z0(j,i,k) = md_zeta_h(zita,topogm(j,i))
+          end do
+        end do
+      end do
     else
       call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
                        mask,landuse)

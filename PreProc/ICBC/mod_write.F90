@@ -29,13 +29,14 @@ module mod_write
   use mod_ncstream
   use mod_nhinterp
   use mod_vectutil
+  use mod_zita
 
   private
 
   real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
   real(rkx) , pointer , dimension(:,:,:) :: q4
   real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
+  real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4 , zd4
 
   public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , dispose_output , newfile , writef
@@ -66,6 +67,13 @@ module mod_write
       call getmem2d(topod,1,jx,1,iy,'mod_write:topod')
       call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
       call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
+      call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
+      call getmem3d(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
+    else if ( idynamic == 3 ) then
+      nvar2d = 8
+      nvar3d = 4
+      call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
+      call getmem3d(zd4,1,jx,1,iy,1,kz,'mod_write:zd4')
       call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
       call getmem3d(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
     else
@@ -235,9 +243,24 @@ module mod_write
       tv4 = t4 * (d_one + ep1 * q4)
       ! Compute the nonhydrostatic perturbation pressure field (pp).
       call nhpp(1,iy,1,jx,kz,sigmaf,t4,pr0,t0,tv4,ps4,ps0,pp4)
+      ps4 = (ps4+ptop)*d_10
     end if
 
-    ps4 = (ps4+ptop)*d_10
+    if ( idynamic == 3 ) then
+      ps4 = (ps4+ptop)*d_1000
+      pd4 = (pd4+ptop)*d_1000
+      tv4 = t4 * (d_one + ep1 * q4)
+      do k = 1 , kz
+        call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band)
+        call crs2dot(zd4(:,:,k),z0(:,:,k),jx,iy,i_band)
+      end do
+      call zita_interp(jx,iy,kz,u4,zd4,tvd4,sigmah,pd4,ptop*d_1000)
+      call zita_interp(jx,iy,kz,v4,zd4,tvd4,sigmah,pd4,ptop*d_1000)
+      call zita_interp(jx,iy,kz,t4,z0,tv4,sigmah,ps4,ptop*d_1000)
+      call zita_interp(jx,iy,kz,q4,z0,tv4,sigmah,ps4,ptop*d_1000)
+      ps4 = ps4*d_r100
+    end if
+
     call outstream_addrec(ncout,idate)
     do ivar = nvar2d_static , nvar2d
       call outstream_writevar(ncout,v2dvar_icbc(ivar))

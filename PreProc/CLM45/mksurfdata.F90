@@ -67,6 +67,7 @@ program mksurfdata
   use mod_mkvocef
   use mod_mkorganic
   use mod_mklake
+  use mod_zita
   use netcdf
 #ifdef CN
   use mod_mklightning
@@ -158,7 +159,7 @@ program mksurfdata
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(2) :: ihvar
   integer(ik4) , dimension(2) :: illvar
-  integer(ik4) , dimension(2) :: izvar
+  integer(ik4) , dimension(3) :: izvar
   integer(ik4) , dimension(1) :: istart1 , icount1 , mxsoil_color , iloc
   real(rkx) :: spft , mean , diff
   integer(ik4) :: ierr
@@ -810,8 +811,15 @@ program mksurfdata
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
 
-  hptop = real(ptop*10.0_rkx)
-  call write_vertical_coord(ncid,rsigx,hptop,izvar)
+  if ( idynamic < 3 ) then
+    hptop = real(ptop*10.0_rkx)
+    call write_vertical_coord(ncid,rsigx,hptop,izvar)
+  else
+    zita = d_one - sigx*hzita
+    ax = real(-hzita*(bzita(zita)*log(sigx)),rk4)
+    bx = real(gzita(zita),rk4)
+    call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
+  end if
   call write_horizontal_coord(ncid,xjx,yiy,ihvar)
   ipnt = 1
   call write_var2d_static(ncid,'xlat',rxlat,ipnt,illvar)
@@ -895,7 +903,7 @@ program mksurfdata
     var3d(:,:,2) = vmisdat
   end where
   call mypack(var3d(:,:,1),gcvar)
-  gcvar = gcvar*real(raddeg)
+  gcvar = gcvar*real(raddeg,rkx)
   istatus = nf90_put_var(ncid, islopevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
   call mypack(var3d(:,:,2),gcvar)
@@ -1440,8 +1448,15 @@ program mksurfdata
     istatus = nf90_enddef(ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
 
-    hptop = real(ptop*10.0_rkx)
-    call write_vertical_coord(ncid,rsigx,hptop,izvar)
+    if ( idynamic < 3 ) then
+      hptop = real(ptop*10.0_rkx)
+      call write_vertical_coord(ncid,rsigx,hptop,izvar)
+    else
+      zita = d_one - sigx*hzita
+      ax = real(-hzita*(bzita(zita)*log(sigx)),rk4)
+      bx = real(gzita(zita),rk4)
+      call write_vertical_coord_sigma(ncid,rsigx,ax,bx,izvar)
+    end if
     call write_horizontal_coord(ncid,xjx,yiy,ihvar)
     ipnt = 1
     call write_var2d_static(ncid,'xlat',rxlat,ipnt,illvar)

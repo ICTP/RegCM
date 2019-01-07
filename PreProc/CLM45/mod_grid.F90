@@ -33,9 +33,9 @@ module mod_grid
   real(rkx) , public :: clatx , clonx
 
   real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon , xmask , topo
-  real(rkx) , public , pointer , dimension(:) :: sigx
+  real(rkx) , public , pointer , dimension(:) :: sigx , zita
   real(rk4) , public , pointer , dimension(:,:) :: rxlat , rxlon
-  real(rk4) , public , pointer , dimension(:) :: rsigx
+  real(rk4) , public , pointer , dimension(:) :: rsigx , ax , bx
   logical , public , pointer , dimension(:,:,:) :: sgmask
   real(rk4) , pointer , dimension(:,:,:) :: xtrans_r4
   integer(ik4) , pointer , dimension(:,:,:) :: xtrans_i4
@@ -73,7 +73,10 @@ module mod_grid
     call getmem3d(xtrans_r8,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_r8')
     call getmem3d(sgmask,1,nnsg,1,jx,1,iy,'mod_read_domain:sgmask')
     call getmem1d(sigx,1,kzp1,'mod_read_domain:sigx')
+    call getmem1d(zita,1,kzp1,'mod_read_domain:zita')
     call getmem1d(rsigx,1,kzp1,'mod_read_domain:rsigx')
+    call getmem1d(ax,1,kzp1,'mod_read_domain:ax')
+    call getmem1d(bx,1,kzp1,'mod_read_domain:bx')
   end subroutine init_domain
 
   subroutine g2s_i(m2,m3)

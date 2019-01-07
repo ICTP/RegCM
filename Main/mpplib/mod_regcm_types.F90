@@ -67,9 +67,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: lndcat
     real(rkx) , pointer , dimension(:,:) :: lndtex
     real(rkx) , pointer , dimension(:,:) :: xlat
+    real(rkx) , pointer , dimension(:,:) :: cosxlat
     real(rkx) , pointer , dimension(:,:) :: xlon
     real(rkx) , pointer , dimension(:,:) :: mask
     real(rkx) , pointer , dimension(:,:) :: dlat
+    real(rkx) , pointer , dimension(:,:) :: cosdlat
     real(rkx) , pointer , dimension(:,:) :: dlon
     real(rkx) , pointer , dimension(:,:) :: msfx
     real(rkx) , pointer , dimension(:,:) :: msfd
@@ -109,6 +111,22 @@ module mod_regcm_types
   type mass_divergence
     real(rkx) , pointer , dimension(:,:,:) :: cr ! cross points
   end type mass_divergence
+
+  type vertical_grid
+    real(rkx) , pointer , dimension(:,:,:) :: zeta
+    real(rkx) , pointer , dimension(:,:,:) :: fmz
+    real(rkx) , pointer , dimension(:,:,:) :: fmzh
+    real(rkx) , pointer , dimension(:,:) :: dhdx
+    real(rkx) , pointer , dimension(:,:) :: dhdy
+  end type vertical_grid
+
+  type atmosphere
+    real(rkx) , pointer , dimension(:,:,:) :: u
+    real(rkx) , pointer , dimension(:,:,:) :: v
+    real(rkx) , pointer , dimension(:,:,:) :: w
+    real(rkx) , pointer , dimension(:,:,:) :: pai
+    real(rkx) , pointer , dimension(:,:,:) :: tetav
+  end type atmosphere
 
   type reference_atmosphere
     real(rkx) , pointer , dimension(:,:) :: ps

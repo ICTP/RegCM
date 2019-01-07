@@ -437,6 +437,7 @@ module mod_dynparam
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
+    !namelist /molochparam/ 
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , cntri , cntrj , truelatl , truelath , i_band , i_crm
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
@@ -494,6 +495,12 @@ module mod_dynparam
       read(ipunit, nml=referenceatm, iostat=iresult)
     end if
 
+    ! Moloch NH
+    if ( idynamic == 3 ) then
+      rewind(ipunit)
+      !read(ipunit, nml=molochparam, iostat=iresult)
+    end if
+
     i_band = 0
     i_crm = 0
     cntri = -1.0_rkx
@@ -515,6 +522,11 @@ module mod_dynparam
 !   Ensure that band mode is active if CRM mode is active
     if ( i_crm == 1 ) then
       i_band = 1
+    end if
+
+    ! No need of ptop here.
+    if ( idynamic == 3 ) then
+      ptop = 0.0_rkx
     end if
 
 !   Setup all convenience dimensions

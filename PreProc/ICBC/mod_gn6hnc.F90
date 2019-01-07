@@ -371,7 +371,7 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read PHYS var')
-      zsvar(:,:) = zsvar(:,:)*real(regrav)
+      zsvar(:,:) = zsvar(:,:)*real(regrav,rkx)
       where (zsvar < 0.0) zsvar = 0.0
     else if ( dattyp == 'JRA55' ) then
       npl = klev ! Data are on pressure levels
@@ -388,7 +388,7 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var6 var')
-      zsvar(:,:) = zsvar(:,:)*real(regrav)
+      zsvar(:,:) = zsvar(:,:)*real(regrav,rkx)
       where (zsvar < 0.0) zsvar = 0.0
     else if ( dattyp(1:3) == 'HA_' ) then
       istatus = nf90_inq_varid(inet1,'lev',ivar1)
@@ -435,7 +435,7 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
-      zsvar(:,:) = zsvar(:,:)*real(regrav)
+      zsvar(:,:) = zsvar(:,:)*real(regrav,rkx)
     else if ( dattyp(1:2) == 'MP' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -468,7 +468,7 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read geosp var')
-      zsvar(:,:) = zsvar(:,:)*real(regrav)
+      zsvar(:,:) = zsvar(:,:)*real(regrav,rkx)
     else if ( dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -739,7 +739,7 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read geo var')
       ! Transform geopotential to elevation
-      zsvar(:,:) = zsvar(:,:)/real(egrav)
+      zsvar(:,:) = zsvar(:,:)/real(egrav,rkx)
     end if
 
     istatus = nf90_close(inet1)

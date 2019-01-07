@@ -49,6 +49,7 @@ module mod_nchelper
   public :: define_lakedepth
   public :: define_textures
   public :: write_vertical_coord
+  public :: write_vertical_coord_zita
   public :: write_horizontal_coord
   public :: check_dims
   public :: check_var
@@ -271,13 +272,18 @@ module mod_nchelper
     implicit none
     integer(ik4) , intent(in) :: ncid
     integer(ik4) , intent(in) , dimension(:) :: idims
-    integer(ik4) , intent(out) , dimension(2) :: izvar
+    integer(ik4) , intent(out) , dimension(3) :: izvar
 
     incstat = nf90_def_var(ncid, 'kz', nf90_double, idims(3), izvar(1))
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding variable kz')
-    incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
-                           'atmosphere_sigma_coordinate')
+    if ( idynamic < 3 ) then
+      incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
+                             'atmosphere_sigma_coordinate')
+    else
+      incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
+                             'atmosphere_hybrid_height_coordinate')
+    end if
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding sigma standard_name')
     incstat = nf90_put_att(ncid, izvar(1), 'long_name', &
@@ -293,7 +299,12 @@ module mod_nchelper
     incstat = nf90_put_att(ncid, izvar(1), 'positive', 'down')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding sigma positive')
-    if ( idynamic == 2 ) then
+    if ( idynamic == 3 ) then
+      incstat = nf90_put_att(ncid, izvar(1), 'formula', &
+             'z(k,j,i) = a(k) + b(k) * topo(j,i)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                             'Error adding zeta formula')
+    else if ( idynamic == 2 ) then
       incstat = nf90_put_att(ncid, izvar(1), 'formula', &
              'p(n,k,j,i) = ptop + sigma(k)*(p0(j,i)-ptop) + ppa(n,k,j,i)')
       call checkncerr(incstat,__FILE__,__LINE__, &
@@ -304,20 +315,33 @@ module mod_nchelper
       call checkncerr(incstat,__FILE__,__LINE__, &
                              'Error adding sigma formula_terms')
     end if
-    incstat = nf90_def_var(ncid, 'ptop', nf90_double, varid=izvar(2))
-    call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error adding variable ptop')
-    incstat = nf90_put_att(ncid, izvar(2), 'standard_name', &
-                           'air_pressure')
-    call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error adding ptop standard_name')
-    incstat = nf90_put_att(ncid, izvar(2), 'long_name', &
-                           'Pressure at model top')
-    call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error adding ptop long_name')
-    incstat = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
-    call checkncerr(incstat,__FILE__,__LINE__, &
-                    'Error adding ptop units')
+    if ( idynamic < 3 ) then
+      incstat = nf90_def_var(ncid, 'ptop', nf90_double, varid=izvar(2))
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding variable ptop')
+      incstat = nf90_put_att(ncid, izvar(2), 'standard_name', &
+                             'air_pressure')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding ptop standard_name')
+      incstat = nf90_put_att(ncid, izvar(2), 'long_name', &
+                             'Pressure at model top')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding ptop long_name')
+      incstat = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding ptop units')
+    else
+      incstat = nf90_def_var(ncid, 'a', nf90_double, idims(3), izvar(2))
+      incstat = nf90_put_att(ncid, izvar(2), 'long_name', &
+                             'vertical coordinate formula term a(k)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding a long_name')
+      incstat = nf90_def_var(ncid, 'b', nf90_double, idims(3), izvar(3))
+      incstat = nf90_put_att(ncid, izvar(3), 'long_name', &
+                             'vertical coordinate formula term b(k)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding b long_name')
+    end if
   end subroutine define_vertical_coord
 
   subroutine define_cross_geolocation_coord(ncid,idims,ipnt,ivar)
@@ -778,7 +802,7 @@ module mod_nchelper
     integer(ik4) , intent(in) :: ncid
     real(rk4) , dimension(:) , intent(in) :: sigma
     real(rk4) , intent(in) :: ptop
-    integer(ik4) , intent(in) , dimension(2) :: izvar
+    integer(ik4) , intent(in) , dimension(3) :: izvar
     incstat = nf90_put_var(ncid, izvar(1), sigma)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable sigma write')
@@ -786,6 +810,24 @@ module mod_nchelper
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error variable ptop write')
   end subroutine write_vertical_coord
+
+  subroutine write_vertical_coord_zita(ncid,sigma,a,b,izvar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    real(rk4) , dimension(:) , intent(in) :: sigma
+    real(rk4) , dimension(:) , intent(in) :: a
+    real(rk4) , dimension(:) , intent(in) :: b
+    integer(ik4) , intent(in) , dimension(3) :: izvar
+    incstat = nf90_put_var(ncid, izvar(1), sigma)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable sigma write')
+    incstat = nf90_put_var(ncid, izvar(2), a)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable a write')
+    incstat = nf90_put_var(ncid, izvar(3), b)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable b write')
+  end subroutine write_vertical_coord_zita
 
   subroutine write_horizontal_coord(ncid,xjx,yiy,ihvar)
     implicit none

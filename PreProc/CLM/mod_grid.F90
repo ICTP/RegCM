@@ -31,6 +31,8 @@ module mod_grid
   real(rk4) , public , pointer , dimension(:) :: xlat1d
   real(rk4) , public , pointer , dimension(:) :: xlon1d
   real(rk4) , public , pointer , dimension(:) :: sigx
+  real(rkx) , public , pointer , dimension(:) :: zita
+  real(rk4) , public , pointer , dimension(:) :: ax , bx
 
   public :: init_domain
 
@@ -44,6 +46,9 @@ module mod_grid
     call getmem1d(xlon1d,1,jx,'mod_read_domain:xlon1d')
     call getmem1d(xlat1d,1,iy,'mod_read_domain:xlat1d')
     call getmem1d(sigx,1,kzp1,'mod_read_domain:sigx')
+    call getmem1d(zita,1,kzp1,'mod_read_domain:zita')
+    call getmem1d(ax,1,kzp1,'mod_read_domain:ax')
+    call getmem1d(bx,1,kzp1,'mod_read_domain:bx')
   end subroutine init_domain
 
 end module mod_grid

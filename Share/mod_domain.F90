@@ -289,16 +289,20 @@ module mod_domain
         call die('Mismatch: KZ in DOMAIN file /= KZ+1 in namelist')
       end if
     end if
-    istatus = nf90_inq_varid(ncid, 'ptop', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error search variable PTOP')
-    istatus = nf90_get_var(ncid, ivarid, ptsp)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'Error read variable ptop')
-    if ( abs(real(ptsp*d_r10,rkx)-real(ptop,rkx)) > 0.001_rkx ) then
-      write(stderr,*) 'DOMAIN FILE : ', ptsp
-      write(stderr,*) 'NAMELIST    : ', ptop
-      call die('Mismatch: PTOP in DOMAIN file /= PTOP in namelist')
+    if ( idynamic < 3 ) then
+      istatus = nf90_inq_varid(ncid, 'ptop', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error search variable PTOP')
+      istatus = nf90_get_var(ncid, ivarid, ptsp)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read variable ptop')
+      if ( abs(real(ptsp*d_r10,rkx)-real(ptop,rkx)) > 0.001_rkx ) then
+        write(stderr,*) 'DOMAIN FILE : ', ptsp
+        write(stderr,*) 'NAMELIST    : ', ptop
+        call die('Mismatch: PTOP in DOMAIN file /= PTOP in namelist')
+      end if
+    else
+      ptop = d_zero
     end if
     istatus = nf90_get_att(ncid, nf90_global, 'projection', proj)
     call checkncerr(istatus,__FILE__,__LINE__, &

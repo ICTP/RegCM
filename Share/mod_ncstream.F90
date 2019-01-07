@@ -27,6 +27,7 @@ module mod_ncstream
   use mod_message
   use mod_date
   use mod_ncstream_types
+  use mod_zita
   use netcdf
 
   implicit none
@@ -398,6 +399,7 @@ module mod_ncstream
       implicit none
       type(nc_output_stream) , intent(inout) :: ncout
       real(rkx) , dimension(:) , pointer , intent(in) :: sigma
+      real(rkx) , dimension(size(sigma)) :: zita
 
       type(ncoutstream) , pointer :: stream
       type(internal_obuffer) , pointer :: buffer
@@ -828,8 +830,17 @@ module mod_ncstream
       call outstream_writevar(ncout,stvar%iy_var,nocopy)
       buffer%doublebuff(1:size(sigma)) = real(sigma,rk8)
       call outstream_writevar(ncout,stvar%sigma_var,nocopy)
-      stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
-      call outstream_writevar(ncout,stvar%ptop_var)
+      if ( idynamic < 3 ) then
+        stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
+        call outstream_writevar(ncout,stvar%ptop_var)
+      else
+        zita = d_one - sigma*hzita
+        buffer%doublebuff(1:size(sigma)) = real( -hzita * &
+                  (bzita(zita) * log(max(sigma,1e-20_rkx))),rk8)
+        call outstream_writevar(ncout,stvar%ak_var,nocopy)
+        buffer%doublebuff(1:size(sigma)) = real(gzita(zita),rk8)
+        call outstream_writevar(ncout,stvar%bk_var,nocopy)
+      end if
       if ( stream%l_has2mlev ) then
         buffer%doublebuff(1) = 2.0_rk8
         call outstream_writevar(ncout,stvar%lev2m_var,nocopy)
@@ -2888,16 +2899,33 @@ module mod_ncstream
       else
         stvar%sigma_var%long_name = "sigma at layer midpoints"
       end if
-      stvar%sigma_var%standard_name = 'atmosphere_sigma_coordinate'
+      if ( idynamic < 3 ) then
+        stvar%sigma_var%standard_name = 'atmosphere_sigma_coordinate'
+      else
+        stvar%sigma_var%standard_name = 'atmosphere_hybrid_height_coordinate'
+      end if
       stvar%sigma_var%axis = 'z'
-      stvar%ptop_var%vname='ptop'
-      stvar%ptop_var%vunit='hPa'
-      stvar%ptop_var%long_name = "Pressure at model top"
-      stvar%ptop_var%standard_name = 'air_pressure'
+      if ( idynamic < 3 ) then
+        stvar%ptop_var%vname = 'ptop'
+        stvar%ptop_var%vunit = 'hPa'
+        stvar%ptop_var%long_name = "Pressure at model top"
+        stvar%ptop_var%standard_name = 'air_pressure'
+        call outstream_addvar(ncout,stvar%ptop_var)
+      else
+        stvar%ak_var%vname = 'a'
+        stvar%ak_var%vunit = 'm'
+        stvar%ak_var%standard_name = "atmosphere_hybrid_height_coordinate"
+        stvar%ak_var%long_name = "vertical coordinate formula term a(k)"
+        call outstream_addvar(ncout,stvar%ak_var)
+        stvar%bk_var%vname = 'b'
+        stvar%bk_var%vunit = '1'
+        stvar%bk_var%standard_name = "atmosphere_hybrid_height_coordinate"
+        stvar%bk_var%long_name = "vertical coordinate formula term b(k)"
+        call outstream_addvar(ncout,stvar%bk_var)
+      end if
       call outstream_addvar(ncout,stvar%jx_var)
       call outstream_addvar(ncout,stvar%iy_var)
       call outstream_addvar(ncout,stvar%sigma_var)
-      call outstream_addvar(ncout,stvar%ptop_var)
       attc%aname = 'axis'
       attc%theval = 'X'
       call add_attribute(stream,attc,stvar%jx_var%id,stvar%jx_var%vname)
@@ -2914,7 +2942,10 @@ module mod_ncstream
       attc%aname = 'positive'
       attc%theval = 'down'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
-      if ( idynamic == 2 ) then
+      if ( idynamic == 3 ) then
+        attc%aname = 'formula'
+        attc%theval = 'z(k,j,i) = a(k) * topo(j,i) + b(k)'
+      else if ( idynamic == 2 ) then
         attc%aname = 'formula'
         attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'
       else

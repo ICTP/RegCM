@@ -414,6 +414,8 @@ module mod_ncstream_types
     type(ncvariable1d_double) :: tbound_var
     type(ncvariable0d_double) :: ptop_var
     type(ncvariable1d_double) :: sigma_var
+    type(ncvariable1d_double) :: ak_var
+    type(ncvariable1d_double) :: bk_var
     type(ncvariable1d_double) :: jx_var
     type(ncvariable1d_double) :: iy_var
     type(ncvariable0d_char) :: map_var

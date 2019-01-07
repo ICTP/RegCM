@@ -99,9 +99,12 @@ module mod_write
     if ( idynamic == 1 ) then
       nvar2d = 13
       nvar3d = 2
-    else
+    else if ( idynamic == 2 ) then
       nvar2d = 14
       nvar3d = 6
+    else if ( idynamic == 3 ) then
+      nvar2d = 13
+      nvar3d = 4
     end if
     allocate(v2dvar_base(nvar2d))
     allocate(v3dvar_base(nvar3d))
@@ -206,12 +209,25 @@ module mod_write
       v3dvar_base(6)%standard_name = 'heigth'
       v3dvar_base(6)%axis = 'xyz'
     end if
+
+    if ( idynamic == 3 ) then
+      v3dvar_base(3)%vname = 'zeta'
+      v3dvar_base(3)%vunit = 'm'
+      v3dvar_base(3)%long_name = 'Elevation above ground'
+      v3dvar_base(3)%standard_name = 'heigth'
+      v3dvar_base(3)%axis = 'xyz'
+      v3dvar_base(4)%vname = 'fmz'
+      v3dvar_base(4)%vunit = ''
+      v3dvar_base(4)%long_name = 'Vertical factor'
+      v3dvar_base(4)%standard_name = ''
+      v3dvar_base(4)%axis = 'xyz'
+    end if
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,htgrid,  &
                           lndout,snowam,smoist,rmoist,dpth,texout,frac_tex,  &
-                          ps0,pr0,t0,rho0,z0,ts0)
+                          ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -233,6 +249,8 @@ module mod_write
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: t0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: rho0
     real(rkx) , dimension(:,:,:) , pointer , intent(in) :: z0
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: zeta
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: fmz
     real(rkx) , intent(in) :: ts0
 
     type(nc_output_stream) :: ncout
@@ -330,6 +348,11 @@ module mod_write
       v3dvar_base(4)%rval => t0
       v3dvar_base(5)%rval => rho0
       v3dvar_base(6)%rval => z0
+    end if
+
+    if ( idynamic == 3 ) then
+      v3dvar_base(3)%rval => zeta
+      v3dvar_base(4)%rval => fmz
     end if
 
     call outstream_enable(ncout,sigma)
