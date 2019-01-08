@@ -215,6 +215,24 @@ module mod_mppparam
                      real4_4d_exchange
   end interface exchange
 
+  interface exchange_lr
+    module procedure real8_2d_exchange_left_right , &
+                     real8_3d_exchange_left_right , &
+                     real8_4d_exchange_left_right , &
+                     real4_2d_exchange_left_right , &
+                     real4_3d_exchange_left_right , &
+                     real4_4d_exchange_left_right
+  end interface exchange_lr
+
+  interface exchange_tb
+    module procedure real8_2d_exchange_top_bottom , &
+                     real8_3d_exchange_top_bottom , &
+                     real8_4d_exchange_top_bottom , &
+                     real4_2d_exchange_top_bottom , &
+                     real4_3d_exchange_top_bottom , &
+                     real4_4d_exchange_top_bottom
+  end interface exchange_tb
+
   interface exchange_lb
     module procedure real8_2d_exchange_left_bottom , &
                      real8_3d_exchange_left_bottom , &
@@ -2907,6 +2925,2078 @@ module mod_mppparam
     end do
   end subroutine logical_3d_sub_collect
 
+  subroutine real8_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , ssize , j , i , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    isize = i2-i1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ssize = nex * 2*isize
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_left_right')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_left_right')
+    end if
+
+    if ( ma%bandflag ) then
+      ssize = nex*isize
+      !********************************************************
+      ! (1) Send right boundary to left side of right neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the right boundary into a vector
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r8vector1(ib) = ml(j2-j+1,i)
+          ib = ib + 1
+        end do
+      end do
+      ! do the send-right exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the left boundary of this block
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j1-j,i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+      !********************************************************
+      ! (2) Send left boundary to right side of left neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the left boundary into a vector
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r8vector1(ib) = ml(j1+j-1,i)
+          ib = ib + 1
+        end do
+      end do
+      ! do the send-left exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the right boundary of this block
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j2+j,i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+    else
+
+      ! RIGHT AND LEFT EXCHANGE
+
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize
+        ib = ipos
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j2-j+1,i)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize
+        ib = ipos
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j1+j-1,i)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*isize
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex*isize
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real8_2d_exchange_left_right
+
+  subroutine real8_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , ksize , ssize , j , i , k , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    isize = i2-i1+1
+    ksize = k2-k1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! ksize is the height of a block in the T-B direction
+    ssize = nex * ksize * 2*isize
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_left_right')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_left_right')
+    end if
+
+    if ( ma%bandflag ) then
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! isize is the height of a block in the N-S direction
+      ssize = nex*isize*ksize
+
+      !********************************************************
+      ! (1) Send right boundary to left side of right neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the right boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      ! do the send-right exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the left boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      !********************************************************
+      ! (2) Send left boundary to right side of left neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the left boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r8vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      ! do the send-left exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the right boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+    else
+
+      ! RIGHT AND LEFT EXCHANGE
+
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*isize*ksize
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex*isize*ksize
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real8_3d_exchange_left_right
+
+  subroutine real8_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! ksize is the height of a block in the T-B direction
+    ! nsize is the height of a block in the tracer direction
+    ssize = nex * ksize * nsize * 2*isize
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_left_right')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_left_right')
+    end if
+
+    if ( ma%bandflag ) then
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! isize is the height of a block in the N-S direction
+      ssize = nex*isize*ksize*nsize
+
+      !********************************************************
+      ! (1) Send right boundary to left side of right neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the right boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      ! do the send-right exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%right,ma%left,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the left boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      !********************************************************
+      ! (2) Send left boundary to right side of left neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the left boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r8vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      ! do the send-left exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%left,ma%right,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the right boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+    else
+
+      ! RIGHT AND LEFT EXCHANGE
+
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r8vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r8vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*isize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j2+j,i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex*isize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j1-j,i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real8_4d_exchange_left_right
+
+  subroutine real4_2d_exchange_left_right(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: isize , ssize , j , i , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    isize = i2-i1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ssize = nex * 2*isize
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_left_right')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_left_right')
+    end if
+
+    if ( ma%bandflag ) then
+      ssize = nex*isize
+      !********************************************************
+      ! (1) Send right boundary to left side of right neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the right boundary into a vector
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r4vector1(ib) = ml(j2-j+1,i)
+          ib = ib + 1
+        end do
+      end do
+      ! do the send-right exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the left boundary of this block
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j1-j,i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+      !********************************************************
+      ! (2) Send left boundary to right side of left neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the left boundary into a vector
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          r4vector1(ib) = ml(j1+j-1,i)
+          ib = ib + 1
+        end do
+      end do
+      ! do the send-left exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the right boundary of this block
+      ib = 1
+      do i = i1 , i2
+        do j = 1 , nex
+          ml(j2+j,i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+    else
+
+      ! RIGHT AND LEFT EXCHANGE
+
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize
+        ib = ipos
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize
+        ib = ipos
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*isize
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex*isize
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real4_2d_exchange_left_right
+
+  subroutine real4_3d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: isize , ksize , ssize , j , i , k , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    isize = i2-i1+1
+    ksize = k2-k1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! ksize is the height of a block in the T-B direction
+    ssize = nex * ksize * 2*isize
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_left_right')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_left_right')
+    end if
+
+    if ( ma%bandflag ) then
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! isize is the height of a block in the N-S direction
+      ssize = nex*isize*ksize
+
+      !********************************************************
+      ! (1) Send right boundary to left side of right neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the right boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j2-j+1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      ! do the send-right exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the left boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j1-j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      !********************************************************
+      ! (2) Send left boundary to right side of left neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the left boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            r4vector1(ib) = ml(j1+j-1,i,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      ! do the send-left exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the right boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = 1 , nex
+            ml(j2+j,i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+    else
+
+      ! RIGHT AND LEFT EXCHANGE
+
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*isize*ksize
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j2+j,i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex*isize*ksize
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                ml(j1-j,i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real4_3d_exchange_left_right
+
+  subroutine real4_4d_exchange_left_right(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: isize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    isize = i2-i1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! isize is the height of a block in the N-S direction
+    ! ksize is the height of a block in the T-B direction
+    ! nsize is the height of a block in the tracer direction
+    ssize = nex * ksize * nsize * 2*isize
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_left_right')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_left_right')
+    end if
+
+    if ( ma%bandflag ) then
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! isize is the height of a block in the N-S direction
+      ssize = nex*isize*ksize*nsize
+
+      !********************************************************
+      ! (1) Send right boundary to left side of right neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the right boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j2-j+1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      ! do the send-right exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%right,ma%left,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the left boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j1-j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      !********************************************************
+      ! (2) Send left boundary to right side of left neighbor
+      !********************************************************
+      ! loop over the given latitudes and number of exchange blocks
+      ! and unravel the left boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              r4vector1(ib) = ml(j1+j-1,i,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+      ! do the send-left exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%left,ma%right,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the right boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = 1 , nex
+              ml(j2+j,i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+    else
+
+      ! RIGHT AND LEFT EXCHANGE
+
+      if ( ma%right /= mpi_proc_null) then
+        ssize = nex*isize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j2-j+1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%right,tag_rl,tag_lr, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%left /= mpi_proc_null ) then
+        ssize = nex*isize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = i1 , i2
+              do j = 1 , nex
+                r4vector1(ib) = ml(j1+j-1,i,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%left,tag_lr,tag_rl, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%bandflag ) then
+        if ( ma%right /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*isize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j2+j,i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%left /= mpi_proc_null ) then
+          ib = ipos
+          ssize = nex*isize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = i1 , i2
+                do j = 1 , nex
+                  ml(j1-j,i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real4_4d_exchange_left_right
+
+  subroutine real8_2d_exchange_top_bottom(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: jsize , ssize , j , i , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    jsize = j2-j1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! jsize is the height of a block in the W-E direction
+    ssize = nex * 2*jsize
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_top_bottom')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_top_bottom')
+    end if
+
+    if ( ma%crmflag ) then
+      !*********************************************************
+      ! (1) Send bottom boundary to top side of bottom neighbor
+      !*********************************************************
+      ssize = nex*jsize
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the bottom boundary into a vector
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r8vector1(ib) = ml(j,i1+i-1)
+          ib = ib + 1
+        end do
+      end do
+
+      ! do the send-up exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%bottom,ma%top,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the top boundary of this block
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i2+i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+      !******************************************************
+      ! (2) Send top boundary to bottom side of top neighbor
+      !******************************************************
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the top boundary into a vector
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r8vector1(ib) = ml(j,i2-i+1)
+          ib = ib + 1
+        end do
+      end do
+
+      ! do the send-down exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%top,ma%bottom,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the bottom boundary of this block
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i1-i) = r8vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+    else
+
+      ! BOTTOM AND TOP EXCHANGE
+
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize
+        ib = ipos
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i2-i+1)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ssize = nex*jsize
+        ib = ipos
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i1+i-1)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real8_2d_exchange_top_bottom
+
+  subroutine real8_3d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: jsize , ksize , ssize , j , i , k , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ssize = nex * ksize * 2*jsize
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_top_bottom')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_top_bottom')
+    end if
+
+    if ( ma%crmflag ) then
+      !*********************************************************
+      ! (1) Send bottom boundary to top side of bottom neighbor
+      !*********************************************************
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! jsize is the width of a block in the E-W direction
+      ssize = nex*jsize*ksize
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the bottom boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      ! do the send-up exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%bottom,ma%top,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the top boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      !******************************************************
+      ! (2) Send top boundary to bottom side of top neighbor
+      !******************************************************
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the top boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r8vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      ! do the send-down exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%top,ma%bottom,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the bottom boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r8vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+    else
+
+      ! BOTTOM AND TOP EXCHANGE
+
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i2-i+1,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ssize = nex*jsize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i1+i-1,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i2+i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i1-i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real8_3d_exchange_top_bottom
+
+  subroutine real8_4d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: jsize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ! nsize is the height of a block in the tracer direction
+    ssize = nex * ksize * nsize * 2*jsize
+    if ( size(r8vector1) < ssize ) then
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_top_bottom')
+    end if
+    if ( size(r8vector2) < ssize ) then
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_top_bottom')
+    end if
+
+    if ( ma%crmflag ) then
+      !*********************************************************
+      ! (1) Send bottom boundary to top side of bottom neighbor
+      !*********************************************************
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! jsize is the width of a block in the E-W direction
+      ssize = nex*jsize*ksize*nsize
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the bottom boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      ! do the send-up exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%bottom,ma%top,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the top boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      !******************************************************
+      ! (2) Send top boundary to bottom side of top neighbor
+      !******************************************************
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the top boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r8vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      ! do the send-down exchange
+      call cyclic_exchange_array(r8vector1,r8vector2, &
+                                 ssize,ma%top,ma%bottom,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the bottom boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+    else
+
+      ! BOTTOM AND TOP EXCHANGE
+
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                r8vector1(ib) = ml(j,i2-i+1,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ssize = nex*jsize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                r8vector1(ib) = ml(j,i1+i-1,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r8vector1(ipos:ipos+ssize), &
+                            r8vector2(ipos:ipos+ssize),ssize, &
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i2+i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i1-i,k,n) = r8vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real8_4d_exchange_top_bottom
+
+  subroutine real4_2d_exchange_top_bottom(ml,nex,j1,j2,i1,i2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
+    integer(ik4) :: jsize , ssize , j , i , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    jsize = j2-j1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! jsize is the height of a block in the W-E direction
+    ssize = nex * 2*jsize
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_top_bottom')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_top_bottom')
+    end if
+
+    if ( ma%crmflag ) then
+      !*********************************************************
+      ! (1) Send bottom boundary to top side of bottom neighbor
+      !*********************************************************
+      ssize = nex*jsize
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the bottom boundary into a vector
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r4vector1(ib) = ml(j,i1+i-1)
+          ib = ib + 1
+        end do
+      end do
+
+      ! do the send-up exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%bottom,ma%top,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the top boundary of this block
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i2+i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+      !******************************************************
+      ! (2) Send top boundary to bottom side of top neighbor
+      !******************************************************
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the top boundary into a vector
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          r4vector1(ib) = ml(j,i2-i+1)
+          ib = ib + 1
+        end do
+      end do
+
+      ! do the send-down exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%top,ma%bottom,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the bottom boundary of this block
+      ib = 1
+      do i = 1 , nex
+        do j = j1 , j2
+          ml(j,i1-i) = r4vector2(ib)
+          ib = ib + 1
+        end do
+      end do
+
+    else
+
+      ! BOTTOM AND TOP EXCHANGE
+
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize
+        ib = ipos
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i2-i+1)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ssize = nex*jsize
+        ib = ipos
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i1+i-1)
+            ib = ib + 1
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real4_2d_exchange_top_bottom
+
+  subroutine real4_3d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
+    integer(ik4) :: jsize , ksize , ssize , j , i , k , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ssize = nex * ksize * 2*jsize
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_top_bottom')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_top_bottom')
+    end if
+
+    if ( ma%crmflag ) then
+      !*********************************************************
+      ! (1) Send bottom boundary to top side of bottom neighbor
+      !*********************************************************
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! jsize is the width of a block in the E-W direction
+      ssize = nex*jsize*ksize
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the bottom boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i1+i-1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      ! do the send-up exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%bottom,ma%top,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the top boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i2+i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      !******************************************************
+      ! (2) Send top boundary to bottom side of top neighbor
+      !******************************************************
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the top boundary into a vector
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            r4vector1(ib) = ml(j,i2-i+1,k)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+      ! do the send-down exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%top,ma%bottom,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the bottom boundary of this block
+      ib = 1
+      do k = k1 , k2
+        do i = 1 , nex
+          do j = j1 , j2
+            ml(j,i1-i,k) = r4vector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+
+    else
+
+      ! BOTTOM AND TOP EXCHANGE
+
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i2-i+1,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ssize = nex*jsize*ksize
+        ib = ipos
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i1+i-1,k)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i2+i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                ml(j,i1-i,k) = r4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real4_3d_exchange_top_bottom
+
+  subroutine real4_4d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
+    integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
+    integer(ik4) :: jsize , ksize , nsize , ssize
+    integer(ik4) :: j , i , k , n , ib , irc , ipos
+    integer(ik4) , dimension(4) :: req
+
+    jsize = j2-j1+1
+    ksize = k2-k1+1
+    nsize = n2-n1+1
+
+    irc = 0
+    ipos = 1
+    req = mpi_request_null
+
+    ! Total max possible communication size
+    ! set the size of the dummy exchange vector
+    ! nex is the width of the exchange stencil
+    ! jsize is the height of a block in the W-E direction
+    ! ksize is the height of a block in the T-B direction
+    ! nsize is the height of a block in the tracer direction
+    ssize = nex * ksize * nsize * 2*jsize
+    if ( size(r4vector1) < ssize ) then
+      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_top_bottom')
+    end if
+    if ( size(r4vector2) < ssize ) then
+      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_top_bottom')
+    end if
+
+    if ( ma%crmflag ) then
+      !*********************************************************
+      ! (1) Send bottom boundary to top side of bottom neighbor
+      !*********************************************************
+      ! set the size of the dummy exchange vector
+      ! nex is the width of the exchange stencil
+      ! jsize is the width of a block in the E-W direction
+      ssize = nex*jsize*ksize*nsize
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the bottom boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i1+i-1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      ! do the send-up exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%bottom,ma%top,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the top boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i2+i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      !******************************************************
+      ! (2) Send top boundary to bottom side of top neighbor
+      !******************************************************
+      ! loop over the given longitudes and number of exchange blocks
+      ! and unravel the top boundary into a vector
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              r4vector1(ib) = ml(j,i2-i+1,k,n)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+      ! do the send-down exchange
+      call cyclic_exchange_array(r4vector1,r4vector2, &
+                                 ssize,ma%top,ma%bottom,__LINE__)
+      ! loop over the receiving dummy vector and ravel it into
+      ! the bottom boundary of this block
+      ib = 1
+      do n = n1 , n2
+        do k = k1 , k2
+          do i = 1 , nex
+            do j = j1 , j2
+              ml(j,i1-i,k,n) = r4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+
+    else
+
+      ! BOTTOM AND TOP EXCHANGE
+
+      if ( ma%top /= mpi_proc_null) then
+        ssize = nex*jsize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                r4vector1(ib) = ml(j,i2-i+1,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%top,tag_tb,tag_bt, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+      if ( ma%bottom /= mpi_proc_null) then
+        ssize = nex*jsize*ksize*nsize
+        ib = ipos
+        do n = n1 , n2
+          do k = k1 , k2
+            do i = 1 , nex
+              do j = j1 , j2
+                r4vector1(ib) = ml(j,i1+i-1,k,n)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+        irc = irc + 1
+        call exchange_array(r4vector1(ipos:ipos+ssize), &
+                            r4vector2(ipos:ipos+ssize),ssize, &
+                            ma%bottom,tag_bt,tag_tb, &
+                            req(irc),req(irc+2))
+        ipos = ipos + ssize
+      end if
+
+    end if
+
+    ! Finalize non cyclic comms
+
+    if ( irc /= 0 ) then
+      ipos = 1
+      call mpi_waitall(4,req,mpi_statuses_ignore,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_waitall error.')
+      end if
+      if ( .not. ma%crmflag ) then
+        if ( ma%top /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i2+i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+        if ( ma%bottom /= mpi_proc_null) then
+          ib = ipos
+          ssize = nex*jsize*ksize*nsize
+          do n = n1 , n2
+            do k = k1 , k2
+              do i = 1 , nex
+                do j = j1 , j2
+                  ml(j,i1-i,k,n) = r4vector2(ib)
+                  ib = ib + 1
+                end do
+              end do
+            end do
+          end do
+          ipos = ipos + ssize
+        end if
+      end if
+    end if
+  end subroutine real4_4d_exchange_top_bottom
+
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
@@ -3181,7 +5271,7 @@ module mod_mppparam
                             r8vector2(ipos:ipos+ssize),ssize, &
                             ma%left,tag_lr,tag_rl, &
                             req(irc),req(irc+8))
-        ipos =ipos + ssize
+        ipos = ipos + ssize
       end if
 
     end if
@@ -3347,7 +5437,7 @@ module mod_mppparam
               ib = ib + 1
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
@@ -3369,7 +5459,7 @@ module mod_mppparam
               ib = ib + 1
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
@@ -3380,7 +5470,7 @@ module mod_mppparam
               ib = ib + 1
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
@@ -3678,7 +5768,7 @@ module mod_mppparam
                             r4vector2(ipos:ipos+ssize),ssize, &
                             ma%left,tag_lr,tag_rl, &
                             req(irc),req(irc+8))
-        ipos =ipos + ssize
+        ipos = ipos + ssize
       end if
 
     end if
@@ -3844,7 +5934,7 @@ module mod_mppparam
               ib = ib + 1
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
@@ -3866,7 +5956,7 @@ module mod_mppparam
               ib = ib + 1
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
@@ -3877,7 +5967,7 @@ module mod_mppparam
               ib = ib + 1
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
@@ -4213,7 +6303,7 @@ module mod_mppparam
                             r8vector2(ipos:ipos+ssize),ssize, &
                             ma%left,tag_lr,tag_rl, &
                             req(irc),req(irc+8))
-        ipos =ipos + ssize
+        ipos = ipos + ssize
       end if
 
     end if
@@ -4399,7 +6489,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
@@ -4425,7 +6515,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
@@ -4438,7 +6528,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
@@ -4776,7 +6866,7 @@ module mod_mppparam
                             r4vector2(ipos:ipos+ssize),ssize, &
                             ma%left,tag_lr,tag_rl, &
                             req(irc),req(irc+8))
-        ipos =ipos + ssize
+        ipos = ipos + ssize
       end if
 
     end if
@@ -4962,7 +7052,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
@@ -4988,7 +7078,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
@@ -5001,7 +7091,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
@@ -5378,7 +7468,7 @@ module mod_mppparam
                             r8vector2(ipos:ipos+ssize),ssize, &
                             ma%left,tag_lr,tag_rl, &
                             req(irc),req(irc+8))
-        ipos =ipos + ssize
+        ipos = ipos + ssize
       end if
 
     end if
@@ -5584,7 +7674,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
@@ -5614,7 +7704,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
@@ -5629,7 +7719,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
@@ -6008,7 +8098,7 @@ module mod_mppparam
                             r4vector2(ipos:ipos+ssize),ssize, &
                             ma%left,tag_lr,tag_rl, &
                             req(irc),req(irc+8))
-        ipos =ipos + ssize
+        ipos = ipos + ssize
       end if
 
     end if
@@ -6214,7 +8304,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topleft /= mpi_proc_null ) then
           ib = ipos
@@ -6244,7 +8334,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%topright /= mpi_proc_null ) then
           ib = ipos
@@ -6259,7 +8349,7 @@ module mod_mppparam
               end do
             end do
           end do
-          ipos =ipos + ssize
+          ipos = ipos + ssize
         end if
         if ( ma%bottomleft /= mpi_proc_null ) then
           ib = ipos
