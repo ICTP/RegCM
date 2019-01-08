@@ -127,103 +127,124 @@ module mod_moloch
         end do
       end subroutine filt3d
 
-      subroutine wafone(p,dz,dt,clv,j1,j2,i1,i2)
+      subroutine wafone(p,u,v,dx,dy,dz,dt,clv,fmyu)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: p
+        real(rkx) , dimension(:,:,:) , pointer , intent(in) :: u , v
         real(rkx) , dimension(:,:) , pointer , intent(in) :: clv , fmyu
-        real(rkx) , intent(in) :: dz , dt
-        integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
+        real(rkx) , intent(in) :: dx , dy , dz , dt
         integer(ik4) :: j , i , k
-        integer(ik4) :: is , k1 , k1m1 , ih
-        real(rkx) , dimension(j1:j2,1:kzp1) :: wfw
-        real(rkx) , dimension(j1-1:j2+1,i1-1:i2+1,1:kz) :: wz
-        real(rkx) , dimension(j1-1:j2+1,i1-1:i2+1,1:kz) :: p0
-        real(rkx) , dimension(j1:j2,i1:i2) :: zpby
+        integer(ik4) :: k1 , k1m1 , ih , ihm1 , im1 , jh , jhm1 , jm1
+        real(rkx) , dimension(jci1:jci2,1:kzp1) :: wfw
+        real(rkx) , dimension(jci1:jci2,ici1gb:ici2gb,1:kz) :: wz
+        real(rkx) , dimension(jci1gb:jci2gb,ici1:ici2,1:kz) :: p0
+        real(rkx) , dimension(jci1:jci2,ici1:ice2) :: zpby
+        real(rkx) , dimension(jci1:jce2) :: zpbw
         real(rkx) :: zamu , zcost , r , b , zphi , is , zdv
-        real(rkx) :: zcosty , zhxvtn , zhxvtn
+        real(rkx) :: zcostx , zcosty , zhxvt , zhxvtn
 
         ! Vertical advection
 
         zcost = dt / dz
-        do j = j1 , j2
+        do j = jci1 , jci2
           wfw(j,1) = d_zero
           wfw(j,kzp1) = d_zero
         end do
 
-        do i = i1 , i2
+        do i = ici1 , ici2
           do k = 2 , kz
-            do j = j1 , j2
+            do j = jci1 , jci2
               zamu = s(j,i,k)*zcost
               if ( zamu >= d_zero ) then
                 is = d_one
                 k1 = k - 1
-                k1m1 = j1 - 1
-                if ( k1m1 < 1 ) k1m1 = 1
+                k1m1 = k1 - 1
+                k1m1 = max(k1m1,1)
               else
-                is = -d_One
+                is = -d_one
                 k1 = k + 1
                 k1m1 = k1 - 1
-                if ( k1 > kz ) k1 = kz
+                k1 = min(k1,kz)
               end if
-              r = rdeno(p(j,i,k1),p(j,i,j1m1),p(j,i,k),p(j,i,k-1))
+              r = rdeno(p(j,i,k1),p(j,i,k1m1),p(j,i,k),p(j,i,k-1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu*b - is * b
+              zphi = is + zamu * b - is * b
               wfw(j,k) = d_half * zamu*((d_one+zphi)*p(j,i,k-1) + &
                                         (d_one-zphi)*p(j,i,k))
             end do
           end do
           do k = 1 , kz
-            do j = j1 , j2
+            do j = jci1 , jci2
               zdv = (s(j,i,k+1)-s(j,i,k)) * zcost
               wz(j,i,k) = p(j,i,k) + wfw(j,k) - wfw(j,k+1) + p(j,i,k)*zdv
             end do
           end do
         end do
-                
-        call exchange(wz,1,j1,j2,i1,i2,1,kz)
+
+        call exchange_tb(wz,2,jci1,jci2,ici1,ici2,1,kz)
 
         ! Meridional advection
 
-        zcosty = dy/dy
-        
+        zcosty = dt/dy
+
         do k = 1 , kz
-          do i = i1 , i2
-            do j = j1 , j2
-              zamu = mo_atm%v(j,i,k)*zcosty
+          do i = ici1 , ici2
+            do j = jci1 , jce2
+              zamu = v(j,i,k)*zcosty
               if ( zamu > d_zero ) then
                 is = d_one
-                ih = i - 1
+                ih = max(i-1,icross1+1)
               else
-                is = - d_one
-                ih = i + 1
+                is = -d_one
+                ih = min(i+1,icross2-1)
               end if
-              r = rdeno(wz(j,ih,k), wz(j,ih-1,k), wz(j,i,k), wz(j,i-1,k))
-              b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one)))) 
+              ihm1 = max(ih-1,icross1+1)
+              im1 = max(i-1,icross1+1)
+              r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,im1,k))
+              b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is+zamu*b -is*b
               zpby(j,i) = d_half*zamu * &
-                ((d_one+zphi)*wz(j,i-1,k)+(d_one-zphi)*wz(j,i,k))
+                ((d_one+zphi)*wz(j,im1,k)+(d_one-zphi)*wz(j,i,k))
             end do
           end do
-          do i = i1 , i2
+          do i = ici1 , ici2
             zhxvtn = clv(j,i+1)*fmyu(j,i)
             zhxvt  = clv(j,i)*fmyu(j,i)
-            do j = j1 , j2
-              zdv = (mo_atm%v(j,i+1,k)*zhxvtn - mo_atm%v(j,i,k)*zhxvt)*zcosty
+            do j = jci1 , jci2
+              zdv = (v(j,i+1,k)*zhxvtn - v(j,i,k)*zhxvt)*zcosty
               p0(j,i,k) = wz(j,i,k) + &
-                      zpby(j,i)*zhxvt -zpby(j,i+1)*zhxvtn + p(j,i,k)*zdv
+                      zpby(j,i)*zhxvt - zpby(j,i+1)*zhxvtn + p(j,i,k)*zdv
             end do
           end do
         end do
 
-        call exchange(p0,1,j1,j2,i1,i2,1,kz)
+        call exchange_lr(p0,2,jci1,jci2,ici1,ici2,1,kz)
 
         ! Zonal advection
 
         do k = 1 , kz
-          do i = i1 , i2
-            zcostx = dt*fmyu(jlat)/dx
-            do j = j1 , j2
-              
+          do i = ici1 , ici2
+            zcostx = dt*fmyu(j,i)/dx
+            do j = jci1 , jce2
+              zamu = u(j-1,i,k)*zcostx
+              if ( zamu > d_zero ) then
+                is = d_one
+                jh = max(j-1,jcross1+1)
+              else
+                is = -d_one
+                jh = min(j+1,jcross2-1)
+              end if
+              jhm1 = max(jh-1,jcross1+1)
+              jm1 = max(j-1,jcross1+1)
+              r = rdeno (p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
+              b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+              zphi = is+zamu*b -is*b
+              zpbw(j) = d_half*zamu * &
+                   ((d_one+zphi)*p0(j-1,i,k)+(d_one-zphi)*p0(j,i,k))
+            end do
+            do j = jci1 , jci2
+              p(j,i,k) = p0(j,i,k) + zpbw(j) - zpbw(j+1) + &
+                        p(j,i,k)*zdv
             end do
           end do
         end do
