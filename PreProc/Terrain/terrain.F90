@@ -90,7 +90,7 @@ program terrain
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
-  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig , dz , zita , sigh
+  real(rkx) :: psig , psig1 , zsig , pstar , tswap , tsig , dz , sigh
   real(rkx) :: ts0
   !type(globalfile) :: gfile
   character(len=*) , parameter :: f99001 = '(a,a,a,a,i0.3)'
@@ -155,12 +155,14 @@ program terrain
     sigma(:) = sigma_coordinate(:)
   else if ( idynamic == 3 ) then
     dz = hzita / real(kz,rkx)
-    sigma(kzp1) = 0.0_rkx
+    zita(kzp1) = 0.0_rkx
     do k = kz , 1 , -1
-      sigma(k) = sigma(k+1) + dz
+      zita(k) = zita(k+1) + dz
     end do
-    sigma = 1.0_rkx - sigma/hzita
+    sigma = 1.0_rkx - zita/hzita
     sigma(1) = 0.0_rkx
+    ak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+    bk = gzita(zita)
   else
     write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
   end if
@@ -760,18 +762,24 @@ program terrain
     end if
 
     if ( idynamic == 3 ) then
-      ! Here we compute zeta on model levels.
-      do k = kzp1 , 2 , -1
-        zita = (kzp1-k) * dz + dz*d_half
+      ! Here we compute zeta on full model levels.
+      do k = 2 , kzp1
         do i = 1 , iysg
           do j = 1 , jxsg
-            zeta_s(j,i,k) = md_zeta_h(zita,htgrid_s(j,i))
-            fmz_s(j,i,k) = md_fmz_h(zita,htgrid_s(j,i))
+            zeta_s(j,i,k) = ak(k) + bk(k) * htgrid_s(j,i)
+          end do
+        end do
+      end do
+      ! Should be infinite, put it conventional for plot
+      zeta_s(:,:,1) = 1.5_rkx * zeta_s(:,:,2)
+      do k = 2 , kzp1
+        do i = 1 , iysg
+          do j = 1 , jxsg
+            fmz_s(j,i,k) = md_fmz_h(zita(k),htgrid_s(j,i))
           end do
         end do
       end do
       ! Filling.
-      zeta_s(:,:,1) = 100000.0_rkx
       fmz_s(:,:,1) = 0.0_rkx
     end if
 
@@ -824,19 +832,25 @@ program terrain
         sum(z0(:,:,k))/real(jx*iy,rkx), sum(t0(:,:,k))/real(jx*iy,rkx)
     end do
   else if ( idynamic == 3 ) then
-    ! Here we compute zeta on model levels.
-    do k = kzp1 , 2 , -1
-      zita = (kzp1-k) * dz + dz*d_half
+    ! Here we compute zeta on full model levels.
+    do k = 2 , kzp1
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          zeta(j,i,k) = ak(k) + bk(k) * htgrid(j,i)
+        end do
+      end do
+    end do
+    ! Should be infinite, put it conventional for plot
+    zeta(:,:,1) = 1.5_rkx * zeta(:,:,2)
+    do k = 2 , kzp1
       do i = 1 , iy
         do j = 1 , jx
-          zeta(j,i,k) = md_zeta_h(zita,htgrid(j,i))
-          fmz(j,i,k) = md_fmz_h(zita,htgrid(j,i))
+          fmz(j,i,k) = md_fmz_h(zita(k),htgrid(j,i))
         end do
       end do
     end do
     ! Filling.
     fmz(:,:,1) = 0.0_rkx
-    zeta(:,:,1) = 100000.0_rkx
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
     write (stdout,*) ''

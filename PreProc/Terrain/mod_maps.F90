@@ -39,6 +39,9 @@ module mod_maps
   real(rkx) , pointer , dimension(:,:,:) :: zeta_s , fmz_s
 
   real(rkx) , pointer , dimension(:) :: sigma
+  real(rkx) , pointer , dimension(:) :: zita
+  real(rkx) , pointer , dimension(:) :: ak
+  real(rkx) , pointer , dimension(:) :: bk
 
   contains
 
@@ -69,6 +72,9 @@ module mod_maps
       call getmem3d(rho0,1,jx,1,iy,1,kz+1,'maps:rho0')
       call getmem3d(z0,1,jx,1,iy,1,kz+1,'maps:z0')
     else if ( idyn == 3 ) then
+      call getmem1d(zita,1,kz+1,'maps:zita')
+      call getmem1d(ak,1,kz+1,'maps:ak')
+      call getmem1d(bk,1,kz+1,'maps:bk')
       call getmem3d(zeta,1,jx,1,iy,1,kz+1,'maps:zeta')
       call getmem3d(fmz,1,jx,1,iy,1,kz+1,'maps:fmz')
     end if

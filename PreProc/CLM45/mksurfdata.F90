@@ -816,7 +816,7 @@ program mksurfdata
     call write_vertical_coord(ncid,rsigx,hptop,izvar)
   else
     zita = d_one - sigx*hzita
-    ax = real(-hzita*(bzita(zita)*log(sigx)),rk4)
+    ax = real(-hzita*(bzita(zita)*log(max(sigx,tiny(d_one)))),rk4)
     bx = real(gzita(zita),rk4)
     call write_vertical_coord_zita(ncid,rsigx,ax,bx,izvar)
   end if
@@ -1453,7 +1453,7 @@ program mksurfdata
       call write_vertical_coord(ncid,rsigx,hptop,izvar)
     else
       zita = d_one - sigx*hzita
-      ax = real(-hzita*(bzita(zita)*log(sigx)),rk4)
+      ax = real(-hzita*(bzita(zita)*log(max(sigx,tiny(d_one))),rk4)
       bx = real(gzita(zita),rk4)
       call write_vertical_coord_sigma(ncid,rsigx,ax,bx,izvar)
     end if

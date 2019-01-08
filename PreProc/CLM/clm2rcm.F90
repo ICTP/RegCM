@@ -155,7 +155,7 @@ program clm2rcm
     call write_vertical_coord(ncid,sigx,hptop,izvar)
   else
     zita = d_one - sigx*hzita
-    ax = -hzita*(bzita(zita)*log(sigx))
+    ax = -hzita*(bzita(zita)*log(max(sigx,tiny(1.0))))
     bx = gzita(zita)
     call write_vertical_coord_zita(ncid,sigx,ax,bx,izvar)
   end if

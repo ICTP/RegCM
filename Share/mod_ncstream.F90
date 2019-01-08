@@ -836,7 +836,7 @@ module mod_ncstream
       else
         zita = d_one - sigma*hzita
         buffer%doublebuff(1:size(sigma)) = real( -hzita * &
-                  (bzita(zita) * log(max(sigma,1e-20_rkx))),rk8)
+                  (bzita(zita) * log(max(sigma,tiny(d_one)))),rk8)
         call outstream_writevar(ncout,stvar%ak_var,nocopy)
         buffer%doublebuff(1:size(sigma)) = real(gzita(zita),rk8)
         call outstream_writevar(ncout,stvar%bk_var,nocopy)
@@ -2912,13 +2912,17 @@ module mod_ncstream
         stvar%ptop_var%standard_name = 'air_pressure'
         call outstream_addvar(ncout,stvar%ptop_var)
       else
+        stvar%ak_var%vname = 'kz'
         stvar%ak_var%vname = 'a'
         stvar%ak_var%vunit = 'm'
+        stvar%ak_var%axis = 'z'
         stvar%ak_var%standard_name = "atmosphere_hybrid_height_coordinate"
         stvar%ak_var%long_name = "vertical coordinate formula term a(k)"
         call outstream_addvar(ncout,stvar%ak_var)
+        stvar%bk_var%vname = 'kz'
         stvar%bk_var%vname = 'b'
         stvar%bk_var%vunit = '1'
+        stvar%bk_var%axis = 'z'
         stvar%bk_var%standard_name = "atmosphere_hybrid_height_coordinate"
         stvar%bk_var%long_name = "vertical coordinate formula term b(k)"
         call outstream_addvar(ncout,stvar%bk_var)
