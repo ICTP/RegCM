@@ -127,6 +127,38 @@ module mod_moloch
         end do
       end subroutine filt3d
 
+      subroutine advection
+        implicit none
+        real(rkx) , dimension(jce1:jce2,ice1:ice2,1:kz) :: ux , vx
+        integer(ik4) :: i , j , k
+
+        call exchange(mo_atm%u,2,jde1,jde2,ide1,ide2,1,kz)
+        call exchange(mo_atm%v,2,jde1,jde2,ide1,ide2,1,kz)
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ux(j,i,k) = 0.5625_rkx * (mo_atm%u(j,i,k)+mo_atm%u(j+1,i,k)) - &
+                          0.0625_rkx * (mo_atm%u(j+2,i,k)+mo_atm%u(j-1,i,k))
+            end do
+          end do
+        end do
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              ux(jce1,i,k) = 0.5_rkx*(mo_atm%u(jde1,i,k) + mo_atm%u(jde1+1,i,k))
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              ux(jce1,i,k) = 0.5_rkx*(mo_atm%u(jde1,i,k) + mo_atm%u(jde1+1,i,k))
+            end do
+          end do
+        end if
+      end subroutine advection
+
       subroutine wafone(p,u,v,dx,dy,dz,dt,clv,fmyu)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: p

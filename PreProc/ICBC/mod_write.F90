@@ -36,7 +36,9 @@ module mod_write
   real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
   real(rkx) , pointer , dimension(:,:,:) :: q4
   real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4
-  real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4 , zd4
+  real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
+  real(rkx) , pointer , dimension(:,:,:) :: zud4 , zvd4
+  real(rkx) , pointer , dimension(:,:,:) :: tvud4 , tvvd4
 
   public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
   public :: init_output , close_output , dispose_output , newfile , writef
@@ -73,9 +75,11 @@ module mod_write
       nvar2d = 8
       nvar3d = 4
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
-      call getmem3d(zd4,1,jx,1,iy,1,kz,'mod_write:zd4')
       call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
-      call getmem3d(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
+      call getmem3d(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
+      call getmem3d(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
+      call getmem3d(tvud4,1,jx,1,iy,1,kz,'mod_write:tvud4')
+      call getmem3d(tvvd4,1,jx,1,iy,1,kz,'mod_write:tvvd4')
     else
       nvar2d = 8
       nvar3d = 4
@@ -214,8 +218,8 @@ module mod_write
       call outstream_writevar(ncout,v2dvar_icbc(ivar))
     end do
     if ( idynamic == 2 ) then
-      call crs2dot(psd0,ps0,jx,iy,i_band)
-      call crs2dot(topod,topogm,jx,iy,i_band)
+      call crs2dot(psd0,ps0,jx,iy,i_band,i_crm)
+      call crs2dot(topod,topogm,jx,iy,i_band,i_crm)
     end if
   end subroutine newfile
 
@@ -230,7 +234,7 @@ module mod_write
       call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)
       tv4 = t4 * (d_one + ep1 * q4)
       do k = 1 , kz
-        call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band)
+        call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band,i_crm)
       end do
       ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
       call nhw(1,iy,1,jx,kz,sigmaf,dsigma,u4,v4,tv4, &
@@ -249,14 +253,17 @@ module mod_write
     if ( idynamic == 3 ) then
       ! Remember in this case ptop is zero!
       ps4 = ps4*d_1000
-      pd4 = pd4*d_1000
+      pud4 = pud4*d_1000
+      pvd4 = pvd4*d_1000
       tv4 = t4 * (d_one + ep1 * q4)
       do k = 1 , kz
-        call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band)
-        call crs2dot(zd4(:,:,k),z0(:,:,k),jx,iy,i_band)
+        call ucrs2dot(tvud4(:,:,k),tv4(:,:,k),jx,iy,i_band)
+        call vcrs2dot(tvvd4(:,:,k),tv4(:,:,k),jx,iy,i_crm)
+        call ucrs2dot(zud4(:,:,k),z0(:,:,k),jx,iy,i_band)
+        call vcrs2dot(zvd4(:,:,k),z0(:,:,k),jx,iy,i_crm)
       end do
-      call zita_interp(1,jx,1,iy,kz,u4,zd4,tvd4,sigmah,pd4)
-      call zita_interp(1,jx,1,iy,kz,v4,zd4,tvd4,sigmah,pd4)
+      call zita_interp(1,jx,1,iy,kz,u4,zud4,tvud4,sigmah,pud4)
+      call zita_interp(1,jx,1,iy,kz,v4,zvd4,tvvd4,sigmah,pvd4)
       call zita_interp(1,jx,1,iy,kz,t4,z0,tv4,sigmah,ps4)
       call zita_interp(1,jx,1,iy,kz,q4,z0,tv4,sigmah,ps4)
       ps4 = ps4*d_r100

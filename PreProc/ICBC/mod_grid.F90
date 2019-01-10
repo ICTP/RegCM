@@ -37,6 +37,7 @@ module mod_grid
   real(rkx) , public , pointer , dimension(:,:) :: msfx , msfd
   real(rkx) , public , pointer , dimension(:,:) :: pa , tlayer , za
   real(rkx) , public , pointer , dimension(:,:) :: pd4
+  real(rkx) , public , pointer , dimension(:,:) :: pud4 , pvd4
   real(rkx) , public , pointer , dimension(:) :: sigmah
   real(rkx) , public , pointer , dimension(:) :: sigmaf
   real(rkx) , public , pointer , dimension(:) :: dsigma
@@ -65,11 +66,13 @@ module mod_grid
     call getmem2d(pa,1,nx,1,ny,'mod_grid:pa')
     call getmem2d(tlayer,1,nx,1,ny,'mod_grid:tlayer')
     call getmem2d(za,1,nx,1,ny,'mod_grid:za')
-    call getmem2d(pd4,1,nx,1,ny,'mod_grid:pd4')
     call getmem1d(sigmah,1,nz,'mod_grid:sigmah')
     call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
     call getmem1d(dsigma,1,nz,'mod_write:dsigma')
-    if ( idynamic == 2 ) then
+    if ( idynamic == 1 ) then
+      call getmem2d(pd4,1,nx,1,ny,'mod_grid:pd4')
+    else if ( idynamic == 2 ) then
+      call getmem2d(pd4,1,nx,1,ny,'mod_grid:pd4')
       call getmem2d(msfx,1,nx,1,ny,'mod_write:msfx')
       call getmem2d(msfd,1,nx,1,ny,'mod_write:msfd')
       call getmem2d(ps0,1,nx,1,ny,'mod_write:ps0')
@@ -77,9 +80,13 @@ module mod_grid
       call getmem3d(rho0,1,nx,1,ny,1,nz,'mod_write:rho0')
       call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
       call getmem3d(t0,1,nx,1,ny,1,nz,'mod_write:t0')
-    end if
-    if ( idynamic == 3 ) then
+    else if ( idynamic == 3 ) then
+      call getmem2d(pud4,1,nx,1,ny,'mod_grid:pud4')
+      call getmem2d(pvd4,1,nx,1,ny,'mod_grid:pvd4')
       call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
+    else
+      write(stderr,*) 'Dynamical core : ', idynamic
+      call die('init_grid','Unrecognized dynamical core',1)
     end if
     call read_domain_info
   end subroutine init_grid
@@ -103,7 +110,7 @@ module mod_grid
                        mask,landuse)
       dz = hzita/real(kz,rkx)
       do k = 1 , kz
-        zita = (kz - k) * dz + dz*0.5_rkx 
+        zita = (kz - k) * dz + dz*0.5_rkx
         do i = 1 , iy
           do j = 1 , jx
             z0(j,i,k) = md_zeta_h(zita,topogm(j,i))

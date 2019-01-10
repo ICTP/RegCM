@@ -27,17 +27,18 @@ module mod_vectutil
   private
 
   public :: crs2dot , dot2crs , top2btm , btm2top , meandiv , meandivf
+  public :: ucrs2dot , vcrs2dot
 
   contains
 
-  subroutine crs2dot(pd,px,ni,nj,iband)
+  subroutine ucrs2dot(pd,px,ni,nj,iband)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     integer(ik4) , intent(in) :: iband
     real(rkx) , intent(in) , dimension(ni,nj) :: px
     real(rkx) , intent(out) , dimension(ni,nj) :: pd
 
-    integer(ik4) :: i , j , ni1 , nj1 , im1
+    integer(ik4) :: i , j , ni1 , im1 , im2 , ip1
     !
     ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
     ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
@@ -45,20 +46,116 @@ module mod_vectutil
     ! I'S.
     !
     if ( iband == 1 ) then
+      do j = 1 , nj
+        do i = 1 , ni
+          im1 = i-1
+          im2 = i-2
+          ip1 = i+1
+          if (ip1 > ni) ip1 = 1
+          if (im1 == 0) im1 = ni
+          if (im2 == 0) im2 = ni
+          if (im2 == -1) im2 = ni-1
+          pd(i,j) = 0.5625_rkx*(px(i,j)+px(im1,j)) - &
+                    0.0625_rkx*(px(ip1,j)+px(im2,j))
+        end do
+      end do
+    else
+      ni1 = ni - 1
+      do j = 1 , nj
+        do i = 3 , ni1
+          pd(i,j) = 0.5625_rkx*(px(i,j)+px(i-1,j)) - &
+                    0.0625_rkx*(px(i+1,j)+px(i-2,j))
+        end do
+      end do
+      pd(1,:) = px(1,:)
+      pd(2,:) = 0.5_rkx * (px(1,:)+px(2,:))
+      pd(ni,:) = 0.5_rkx * (px(ni-1,:)+px(ni,:))
+    end if
+  end subroutine ucrs2dot
+
+  subroutine vcrs2dot(pd,px,ni,nj,icrs)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj
+    integer(ik4) , intent(in) :: icrs
+    real(rkx) , intent(in) , dimension(ni,nj) :: px
+    real(rkx) , intent(out) , dimension(ni,nj) :: pd
+
+    integer(ik4) :: i , j , nj1 , jm1 , jm2 , jp1
+    !
+    ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
+    ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
+    ! SATISFY P(0,J) = P(1,J); P(NI,J) = P(NI-1,J); AND SIMILARLY FOR THE
+    ! I'S.
+    !
+    if ( icrs == 1 ) then
+      do j = 1 , nj
+        jm1 = j-1
+        jm2 = j-2
+        jp1 = j+1
+        if (jp1 > ni) jp1 = 1
+        if (jm1 == 0) jm1 = nj
+        if (jm2 == 0) jm2 = nj
+        if (jm2 == -1) jm2 = nj-1
+        do i = 1 , ni
+          pd(i,j) = 0.5625_rkx*(px(i,j)+px(i,jm1)) - &
+                    0.0625_rkx*(px(i,jp1)+px(i,jm2))
+        end do
+      end do
+    else
       nj1 = nj - 1
-      do j = 2 , nj1
+      do j = 3 , nj1
+        do i = 1 , ni
+          pd(i,j) = 0.5625_rkx*(px(i,j)+px(i,j-1)) - &
+                    0.0625_rkx*(px(i,j+1)+px(i,j-2))
+        end do
+      end do
+      pd(:,1) = px(:,1)
+      pd(:,2) = 0.5_rkx * (px(:,1)+px(:,2))
+      pd(:,nj) = 0.5_rkx * (px(:,nj-1)+px(:,nj))
+    end if
+  end subroutine vcrs2dot
+
+  subroutine crs2dot(pd,px,ni,nj,iband,icrm)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj
+    integer(ik4) , intent(in) :: iband , icrm
+    real(rkx) , intent(in) , dimension(ni,nj) :: px
+    real(rkx) , intent(out) , dimension(ni,nj) :: pd
+
+    integer(ik4) :: i , j , ni1 , nj1 , im1 , jm1
+    !
+    ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
+    ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
+    ! SATISFY P(0,J) = P(1,J); P(NI,J) = P(NI-1,J); AND SIMILARLY FOR THE
+    ! I'S.
+    !
+    if ( iband == 1 ) then
+      if ( icrm == 1 ) then
+        do j = 1 , nj
+          do i = 1 , ni
+            im1 = i-1
+            jm1 = j-1
+            if (im1 == 0) im1 = ni
+            if (jm1 == 0) jm1 = nj
+            pd(i,j) = d_rfour*(px(i,j)+px(im1,j)+px(i,jm1)+px(im1,jm1))
+          end do
+        end do
+      else
+        nj1 = nj - 1
+        do j = 2 , nj1
+          do i = 1 , ni
+            im1 = i-1
+            if (im1 == 0) im1 = ni
+            pd(i,j) = d_rfour*(px(i,j)+px(im1,j)+px(i,j-1)+px(im1,j-1))
+          end do
+        end do
         do i = 1 , ni
           im1 = i-1
           if (im1 == 0) im1 = ni
-          pd(i,j) = d_rfour*(px(i,j)+px(im1,j)+px(i,j-1)+px(im1,j-1))
+          pd(i,1) = d_half*(px(i,1)+px(im1,1))
+          pd(i,nj) = d_half*(px(i,nj1)+px(im1,nj1))
         end do
-      end do
-      do i = 1 , ni
-        im1 = i-1
-        if (im1 == 0) im1 = ni
-        pd(i,1) = d_half*(px(i,1)+px(im1,1))
-        pd(i,nj) = d_half*(px(i,nj1)+px(im1,nj1))
-      end do
+      end if
     else
       ni1 = ni - 1
       nj1 = nj - 1
@@ -84,27 +181,47 @@ module mod_vectutil
   !
   !-----------------------------------------------------------------------
   !
-  subroutine dot2crs(px,pd,ni,nj,iband)
+  subroutine dot2crs(px,pd,ni,nj,iband,icrm)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     real(rkx) , intent(in) , dimension(ni,nj) :: pd
     real(rkx) , intent(out) , dimension(ni,nj) :: px
-    integer(ik4) , intent(in) :: iband
-    integer(ik4) :: i , j
-    do j = 1 , nj - 1
-      do i = 1 , ni - 1
-        px(i,j) = ( pd(i  ,j  ) + &
-                    pd(i+1,j  ) + &
-                    pd(i  ,j+1) + &
-                    pd(i+1,j+1) ) * 0.25_rkx
-      end do
-    end do
+    integer(ik4) , intent(in) :: iband , icrm
+    integer(ik4) :: i , j , ip1 , jp1
     if ( iband == 1 ) then
+      if ( icrm == 1 ) then
+        do j = 1 , nj
+          jp1 = j + 1
+          if ( jp1 > nj ) jp1 = 1
+          do i = 1 , ni
+            ip1 = i + 1
+            if ( ip1 > ni ) ip1 = 1
+            px(i,j) = ( pd(i  ,j  ) + &
+                        pd(ip1,j  ) + &
+                        pd(i  ,jp1) + &
+                        pd(ip1,jp1) ) * 0.25_rkx
+          end do
+        end do
+      else
+        do j = 1 , nj - 1
+          do i = 1 , ni
+            ip1 = i + 1
+            if ( ip1 > ni ) ip1 = 1
+            px(i,j) = ( pd(i  ,j  ) + &
+                        pd(ip1,j  ) + &
+                        pd(i  ,j+1) + &
+                        pd(ip1,j+1) ) * 0.25_rkx
+          end do
+        end do
+      end if
+    else
       do j = 1 , nj - 1
-        px(ni,j) = ( pd(ni,j  ) + &
-                     pd(1 ,j  ) + &
-                     pd(ni,j+1) + &
-                     pd(1, j+1) ) * 0.25_rkx
+        do i = 1 , ni - 1
+          px(i,j) = ( pd(i  ,j  ) + &
+                      pd(i+1,j  ) + &
+                      pd(i  ,j+1) + &
+                      pd(i+1,j+1) ) * 0.25_rkx
+        end do
       end do
     end if
   end subroutine dot2crs

@@ -65,7 +65,7 @@ module mod_erahi
 
   public :: get_ehi , init_ehi , conclude_ehi
 
-  type(h_interpolator) :: cross_hint , dot_hint
+  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
 
   contains
 
@@ -396,7 +396,12 @@ module mod_erahi
     call getmem3d(d3,1,jx,1,iy,1,nlev2*2,'mod_erahi:b3')
 
     call h_interpolator_create(cross_hint,slat,slon,xlat,xlon)
-    call h_interpolator_create(dot_hint,slat,slon,dlat,dlon)
+    if ( idynamic < 3 ) then
+      call h_interpolator_create(udot_hint,slat,slon,dlat,dlon)
+    else
+      call h_interpolator_create(udot_hint,slat,slon,xlat,dlon)
+      call h_interpolator_create(vdot_hint,slat,slon,dlat,xlon)
+    end if
 
     ! Set up pointers
 
@@ -523,7 +528,12 @@ module mod_erahi
     ! Horizontal interpolation of both the scalar and vector fields
     !
     call h_interpolate_cont(cross_hint,b2,b3)
-    call h_interpolate_cont(dot_hint,d2,d3)
+    if ( idynamic < 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3)
+    else
+      call h_interpolate_cont(udot_hint,up,u3)
+      call h_interpolate_cont(vdot_hint,vp,v3)
+    end if
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -546,7 +556,12 @@ module mod_erahi
     ! New calculation of P* on RegCM topography.
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev2)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    call crs2dot(pd4,ps4,jx,iy,i_band)
+    if ( idynamic < 3 ) then
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
+    else
+      call ucrs2dot(pud4,ps4,jx,iy,i_band)
+      call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    end if
     !
     ! Determine surface temps on RegCM topography.
     ! Interpolation from pressure levels
@@ -557,9 +572,17 @@ module mod_erahi
     ! Interpolate U, V, T, and Q.
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    if ( idynamic < 3 ) then
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    else
+      call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    end if
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    if ( idynamic < 3 ) then
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    else
+      call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
 !$OMP SECTION
@@ -571,7 +594,10 @@ module mod_erahi
   subroutine conclude_ehi
     implicit none
     call h_interpolator_destroy(cross_hint)
-    call h_interpolator_destroy(dot_hint)
+    call h_interpolator_destroy(udot_hint)
+    if ( idynamic == 3 ) then
+      call h_interpolator_destroy(vdot_hint)
+    end if
   end subroutine conclude_ehi
 
 end module mod_erahi

@@ -116,7 +116,7 @@ module mod_gn6hnc
   type(rcm_time_and_date) , save :: refdate
   type(rcm_time_and_date) , save :: filedate
 
-  type(h_interpolator) :: cross_hint , dot_hint
+  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
 
   data inet /nvars*-1/
 
@@ -747,7 +747,12 @@ module mod_gn6hnc
                     'Error close file '//trim(pathaddname))
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
-    call h_interpolator_create(dot_hint,glat,glon,dlat,dlon)
+    if ( idynamic < 3 ) then
+      call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
+    else
+      call h_interpolator_create(udot_hint,glat,glon,xlat,dlon)
+      call h_interpolator_create(vdot_hint,glat,glon,dlat,xlon)
+    end if
 
     call getmem1d(sigmar,1,npl,'mod_gn6hnc:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,npl*3,'mod_gn6hnc:b3')
@@ -919,7 +924,12 @@ module mod_gn6hnc
     ! Horizontal interpolation on RegCM grid
 
     call h_interpolate_cont(cross_hint,b2,b3)
-    call h_interpolate_cont(dot_hint,d2,d3)
+    if ( idynamic < 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3)
+    else
+      call h_interpolate_cont(udot_hint,uvar,u3)
+      call h_interpolate_cont(vdot_hint,vvar,v3)
+    end if
 
     ! Rotate winds
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
@@ -943,7 +953,12 @@ module mod_gn6hnc
     ! Recalculate pressure on RegCM orography
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,npl)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    call crs2dot(pd4,ps4,jx,iy,i_band)
+    if ( idynamic < 3 ) then
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
+    else
+      call ucrs2dot(pud4,ps4,jx,iy,i_band)
+      call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    end if
 
     ! Recalculate temperature on RegCM orography
     call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,npl)
@@ -953,9 +968,17 @@ module mod_gn6hnc
     ! Vertically interpolate on RegCM sigma levels
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+    if ( idynamic < 3 ) then
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+    else
+      call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+    end if
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+    if ( idynamic < 3 ) then
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+    else
+      call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+    end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
 !$OMP SECTION
@@ -1917,7 +1940,10 @@ module mod_gn6hnc
   subroutine conclude_gn6hnc
     implicit none
     call h_interpolator_destroy(cross_hint)
-    call h_interpolator_destroy(dot_hint)
+    call h_interpolator_destroy(udot_hint)
+    if ( idynamic == 3 ) then
+      call h_interpolator_destroy(vdot_hint)
+    end if
   end subroutine conclude_gn6hnc
 
 end module mod_gn6hnc

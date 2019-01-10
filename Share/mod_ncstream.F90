@@ -1167,6 +1167,8 @@ module mod_ncstream
       class(ncvariable_standard) , intent(in) :: var
       character(len=16) :: coords_cross = 'xlat xlon'
       character(len=16) :: coords_dot   = 'dlat dlon'
+      character(len=16) :: coords_udot  = 'xlat dlon'
+      character(len=16) :: coords_vdot  = 'dlat xlon'
       if ( len_trim(var%long_name) > 0 ) &
         call add_attribute(stream, &
           ncattribute_string('long_name',var%long_name),var%id,var%vname)
@@ -1178,10 +1180,32 @@ module mod_ncstream
           ncattribute_string('units',var%vunit),var%id,var%vname)
       if ( var%lgridded ) then
         if ( var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
-          if ( stream%l_bound .and. &
-              (var%vname == 'u' .or. var%vname == 'v') ) then
-            call add_attribute(stream, &
-              ncattribute_string('coordinates',coords_dot),var%id,var%vname)
+          if ( stream%l_bound ) then
+            if ( idynamic < 3 ) then
+              if (var%vname == 'u' .or. var%vname == 'v') then
+                call add_attribute(stream, &
+                        ncattribute_string('coordinates', &
+                        coords_dot),var%id,var%vname)
+              else
+                call add_attribute(stream, &
+                        ncattribute_string('coordinates', &
+                        coords_cross),var%id,var%vname)
+              end if
+            else
+              if ( var%vname == 'u' ) then
+                call add_attribute(stream, &
+                        ncattribute_string('coordinates', &
+                        coords_udot),var%id,var%vname)
+              else if ( var%vname == 'v') then
+                call add_attribute(stream, &
+                        ncattribute_string('coordinates', &
+                        coords_vdot),var%id,var%vname)
+              else
+                call add_attribute(stream, &
+                        ncattribute_string('coordinates', &
+                        coords_cross),var%id,var%vname)
+              end if
+            end if
           else
             call add_attribute(stream, &
               ncattribute_string('coordinates',coords_cross),var%id,var%vname)

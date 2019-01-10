@@ -90,7 +90,7 @@ module mod_nest
   real(rkx) , dimension(:) , pointer :: xtimes
   character(len=64) :: timeunits , timecal
 
-  type(h_interpolator) :: cross_hint , dot_hint
+  type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
 
   contains
 
@@ -340,7 +340,12 @@ module mod_nest
     end if
 
     call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon)
-    call h_interpolator_create(dot_hint,xlat_in,xlon_in,dlat,dlon)
+    if ( idynamic < 3 ) then
+      call h_interpolator_create(udot_hint,xlat_in,xlon_in,dlat,dlon)
+    else
+      call h_interpolator_create(udot_hint,xlat_in,xlon_in,xlat,dlon)
+      call h_interpolator_create(vdot_hint,xlat_in,xlon_in,dlat,xlon)
+    end if
 
     ! Set up pointers
 
@@ -616,7 +621,12 @@ module mod_nest
     ! Horizontal interpolation of both the scalar and vector fields
     !
     call h_interpolate_cont(cross_hint,b2,b3)
-    call h_interpolate_cont(dot_hint,d2,d3)
+    if ( idynamic < 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3)
+    else
+      call h_interpolate_cont(udot_hint,up,u3)
+      call h_interpolate_cont(vdot_hint,vp,v3)
+    end if
     call h_interpolate_cont(cross_hint,xts,ts)
     !
     ! Rotate U-V fields after horizontal interpolation
@@ -642,7 +652,12 @@ module mod_nest
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,np)
     call intpsn(ps4,topogm,pa,za,tlayer,ptoppa,jx,iy)
-    call crs2dot(pd4,ps4,jx,iy,i_band)
+    if ( idynamic < 3 ) then
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
+    else
+      call ucrs2dot(pud4,ps4,jx,iy,i_band)
+      call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    end if
     !
     ! Determine surface temps on RegCM topography.
     ! Interpolation from pressure levels
@@ -659,9 +674,17 @@ module mod_nest
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    if ( idynamic < 3 ) then
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    else
+      call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    end if
 !$OMP SECTION
-    call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    if ( idynamic < 3 ) then
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    else
+      call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
 !$OMP SECTION
@@ -671,13 +694,21 @@ module mod_nest
     ! Put surface pressures in cb now to be conforming to other modules.
     !
     ps4 = ps4 * d_r1000
-    pd4 = pd4 * d_r1000
+    if ( idynamic < 3 ) then
+      pd4 = pd4 * d_r1000
+    else
+      pud4 = pud4 * d_r1000
+      pvd4 = pvd4 * d_r1000
+    end if
   end subroutine get_nest
 
   subroutine conclude_nest
     implicit none
     call h_interpolator_destroy(cross_hint)
-    call h_interpolator_destroy(dot_hint)
+    call h_interpolator_destroy(udot_hint)
+    if ( idynamic == 3 ) then
+      call h_interpolator_destroy(vdot_hint)
+    end if
   end subroutine conclude_nest
 
 end module mod_nest
