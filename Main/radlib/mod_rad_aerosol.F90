@@ -30,6 +30,7 @@ module mod_rad_aerosol
   use mod_regcm_types
   use mod_mppparam
   use mod_nhinterp
+  use mod_zita
   use parrrsw , only : nbndsw
   use parrrtm , only : nbndlw
   use netcdf
@@ -1346,6 +1347,15 @@ module mod_rad_aerosol
         else if ( step == 2 ) then
           call nhinterp(ice1,ice2,jce1,jce2,kz,ntr, &
                         hsigma,sigma,aerm,m2r%btv1,m2r%bps1,m2r%ps0)
+        end if
+      end if
+      if ( idynamic == 3 ) then
+        if ( step == 1 ) then
+          call zita_interp(ice1,ice2,jce1,jce2,kz,ntr, &
+                           aerm,m2r%za,m2r%btv0,hsigma,m2r%bps0)
+        else if ( step == 2 ) then
+          call zita_interp(ice1,ice2,jce1,jce2,kz,ntr, &
+                           aerm,m2r%za,m2r%btv1,hsigma,m2r%bps1)
         end if
       end if
 

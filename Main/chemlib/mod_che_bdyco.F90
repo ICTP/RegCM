@@ -41,6 +41,7 @@ module mod_che_bdyco
   use mod_che_indices
   use mod_che_emission
   use mod_mppparam
+  use mod_zita
 
   implicit none
 
@@ -141,10 +142,14 @@ module mod_che_bdyco
 
       call read_chbc(chebdy)
 
+      ! Interpolate to non-hydrostatic levels
       if ( idynamic == 2 ) then
-        ! Interpolate to non-hydrostatic levels
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
                       hsigma,sigma,chebdy,tvirt0,bndp0,cps0)
+      end if
+      if ( idynamic == 3 ) then
+        call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+                         chebdy,cza,tvirt0,hsigma,bndp0)
       end if
 
       chib0 = d_zero
@@ -206,6 +211,10 @@ module mod_che_bdyco
       if ( idynamic == 2 ) then
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
                       hsigma,sigma,chebdy,tvirt1,bndp1,cps0)
+      end if
+      if ( idynamic == 3 ) then
+        call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+                         chebdy,cza,tvirt1,hsigma,bndp1)
       end if
 
       chib1 = d_zero
@@ -323,6 +332,10 @@ module mod_che_bdyco
       if ( idynamic == 2 ) then
         call nhinterp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
                       hsigma,sigma,chebdy,tvirt1,bndp1,cps0)
+      end if
+      if ( idynamic == 3 ) then
+        call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+                         chebdy,cza,tvirt1,hsigma,bndp1)
       end if
 
       chib1 = d_zero

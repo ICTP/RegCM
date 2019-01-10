@@ -31,6 +31,11 @@ module mod_zita
   real(rkx) , parameter :: b0 = 0.5_rkx
   real(rkx) , parameter :: hzita = rgas*t0/egrav
 
+  interface zita_interp
+    module procedure zh3d
+    module procedure zh4d
+  end interface zita_interp
+
   public :: rdeno , md_zeta , md_zeta_h , md_fmz , md_fmz_h , hzita
   public :: bzita , gzita
   public :: zita_interp
@@ -66,7 +71,7 @@ module mod_zita
     real(rkx) , intent(in) :: zita
     bzita = b0 + (1.0_rkx-b0)*(zita/hzita)
   end function bzita
-  
+
   ! Derivative of stretching function
   real(rkx) elemental function bzitap(zita)
     implicit none
@@ -116,22 +121,21 @@ module mod_zita
     md_zeta_h = max((orog*gzita(zita)-hzita*bzita(zita)*log(zfz))-orog, 0.0_rkx)
   end function md_zeta_h
 
-  subroutine zita_interp(nx,ny,nz,f,zeta,tvirt,sigmah,ps,ptop)
+  subroutine zh3d(nx1,nx2,ny1,ny2,nz,f,zeta,tvirt,sigmah,ps)
     implicit none
-    integer(ik4) , intent(in) :: nx , ny , nz
-    real(rkx) , dimension(:,:,:) , intent(inout) :: f
-    real(rkx) , dimension(:,:,:) , intent(in) :: zeta
-    real(rkx) , dimension(:,:,:) , intent(in) :: tvirt
-    real(rkx) , dimension(:) , intent(in) :: sigmah
-    real(rkx) , dimension(:,:) , intent(in) :: ps
-    real(rkx) , intent(in) :: ptop
+    integer(ik4) , intent(in) :: nx1 , nx2 , ny1 , ny2 , nz
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: f
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: zeta
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: tvirt
+    real(rkx) , dimension(:) , pointer , intent(in) :: sigmah
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ps
     real(rkx) , dimension(nz) :: psigma , pz
     real(rkx) , dimension(nz) :: fz
     integer(ik4) :: i , j , k , kk , ik
     real(rkx) :: iw1 , iw2
-    do j = 1 , ny
-      do i = 1 , nx
-        psigma = (ps(i,j)-ptop)* sigmah + ptop
+    do j = ny1 , ny2
+      do i = nx1 , nx2
+        psigma = ps(i,j) * sigmah
         pz = ps(i,j)*exp(-egrav*zeta(i,j,:)/rgas/tvirt(i,j,:))
         do k = 1 , nz
           if ( pz(k) < psigma(1) ) then
@@ -155,7 +159,49 @@ module mod_zita
         f(i,j,:) = fz
       end do
     end do
-  end subroutine zita_interp
+  end subroutine zh3d
+
+  subroutine zh4d(nx1,nx2,ny1,ny2,nz,nn,f,zeta,tvirt,sigmah,ps)
+    implicit none
+    integer(ik4) , intent(in) :: nx1 , nx2 , ny1 , ny2 , nz , nn
+    real(rkx) , dimension(:,:,:,:) , pointer , intent(inout) :: f
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: zeta
+    real(rkx) , dimension(:,:,:) , pointer , intent(in) :: tvirt
+    real(rkx) , dimension(:) , pointer , intent(in) :: sigmah
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ps
+    real(rkx) , dimension(nz) :: psigma , pz
+    real(rkx) , dimension(nz) :: fz
+    integer(ik4) :: i , j , k , n , kk , ik
+    real(rkx) :: iw1 , iw2
+    do n = 1 , nn
+      do j = ny1 , ny2
+        do i = nx1 , nx2
+          psigma = ps(i,j) * sigmah
+          pz = ps(i,j)*exp(-egrav*zeta(i,j,:)/rgas/tvirt(i,j,:))
+          do k = 1 , nz
+            if ( pz(k) < psigma(1) ) then
+              fz(k) = f(i,j,1,n)
+            else if ( pz(k) > psigma(nz) ) then
+              fz(k) = f(i,j,nz,n)
+            else
+              ! Find requested pressure level
+              ik = 1
+              do kk = 2 , nz
+                if ( pz(k) < psigma(kk) ) then
+                  ik = kk
+                  exit
+                end if
+              end do
+              iw1 = log(pz(k)/psigma(ik-1))/log(psigma(ik)/psigma(ik-1))
+              iw2 = 1.0_rkx - iw1
+              fz(k) = iw1 * f(i,j,ik,n) + iw2 * f(i,j,ik-1,n)
+            end if
+          end do
+          f(i,j,:,n) = fz
+        end do
+      end do
+    end do
+  end subroutine zh4d
 
 end module mod_zita
 

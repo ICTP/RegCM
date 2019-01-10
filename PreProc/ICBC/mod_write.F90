@@ -247,17 +247,18 @@ module mod_write
     end if
 
     if ( idynamic == 3 ) then
-      ps4 = (ps4+ptop)*d_1000
-      pd4 = (pd4+ptop)*d_1000
+      ! Remember in this case ptop is zero!
+      ps4 = ps4*d_1000
+      pd4 = pd4*d_1000
       tv4 = t4 * (d_one + ep1 * q4)
       do k = 1 , kz
         call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band)
         call crs2dot(zd4(:,:,k),z0(:,:,k),jx,iy,i_band)
       end do
-      call zita_interp(jx,iy,kz,u4,zd4,tvd4,sigmah,pd4,ptop*d_1000)
-      call zita_interp(jx,iy,kz,v4,zd4,tvd4,sigmah,pd4,ptop*d_1000)
-      call zita_interp(jx,iy,kz,t4,z0,tv4,sigmah,ps4,ptop*d_1000)
-      call zita_interp(jx,iy,kz,q4,z0,tv4,sigmah,ps4,ptop*d_1000)
+      call zita_interp(1,jx,1,iy,kz,u4,zd4,tvd4,sigmah,pd4)
+      call zita_interp(1,jx,1,iy,kz,v4,zd4,tvd4,sigmah,pd4)
+      call zita_interp(1,jx,1,iy,kz,t4,z0,tv4,sigmah,ps4)
+      call zita_interp(1,jx,1,iy,kz,q4,z0,tv4,sigmah,ps4)
       ps4 = ps4*d_r100
     end if
 
