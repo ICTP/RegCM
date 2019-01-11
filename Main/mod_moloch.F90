@@ -55,6 +55,8 @@ module mod_moloch
   private
 
   real(rkx) , pointer , dimension(:,:,:) :: s
+  real(rkx) , pointer , dimension(:,:,:) :: ux , vx , wx
+  real(rkx) , pointer , dimension(:,:,:) :: tkex
 
   contains
 
@@ -63,6 +65,12 @@ module mod_moloch
   subroutine allocate_moloch
     implicit none
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+    call getmem3d(ux,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:ux')
+    call getmem3d(vx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:vx')
+    call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
+    if ( ibltyp == 2 ) then
+      call getmem3d(tkex,jci1,jci2,ici1,ici2,1,kz,'moloch:tkex')
+    end if
   end subroutine allocate_moloch
 
   !
@@ -129,31 +137,186 @@ module mod_moloch
 
       subroutine advection
         implicit none
-        real(rkx) , dimension(jce1:jce2,ice1:ice2,1:kz) :: ux , vx
         integer(ik4) :: i , j , k
+        real(rkx) :: dz
 
-        call exchange(mo_atm%u,2,jde1,jde2,ide1,ide2,1,kz)
-        call exchange(mo_atm%v,2,jde1,jde2,ide1,ide2,1,kz)
+        dz = hzita / real(kz,rkx)
+
+        call exchange_lr(mo_atm%u,2,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_bt(mo_atm%v,2,jde1,jde2,ide1,ide2,1,kz)
+
+        ! Compute U-wind on T points
 
         do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ux(j,i,k) = 0.5625_rkx * (mo_atm%u(j,i,k)+mo_atm%u(j+1,i,k)) - &
-                          0.0625_rkx * (mo_atm%u(j+2,i,k)+mo_atm%u(j-1,i,k))
+          do i = ice1 , ice2
+            do j = jcii1 , jci2
+              ux(j,i,k) = 0.5625_rkx * (mo_atm%u(j,i,k)+mo_atm%u(j-1,i,k)) - &
+                          0.0625_rkx * (mo_atm%u(j+1,i,k)+mo_atm%u(j-2,i,k))
             end do
           end do
         end do
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ice1 , ice2
-              ux(jce1,i,k) = 0.5_rkx*(mo_atm%u(jde1,i,k) + mo_atm%u(jde1+1,i,k))
+              ux(jce1,i,k) = mo_atm%u(jde1,i,k)
+              ux(jci1,i,k) = 0.5_rkx * (mo_atm%u(jde1,i,k)+mo_atm%u(jdi1,i,k))
             end do
           end do
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kz
             do i = ice1 , ice2
-              ux(jce1,i,k) = 0.5_rkx*(mo_atm%u(jde1,i,k) + mo_atm%u(jde1+1,i,k))
+              ux(jce2,i,k) = 0.5_rkx*(mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
+            end do
+          end do
+        end if
+
+        ! Compute V-wind on T points
+
+        do k = 1 , kz
+          do i = icii1 , jci2
+            do j = jce1 , jce2
+              vx(j,i,k) = 0.5625_rkx * (mo_atm%v(j,i,k)+mo_atm%v(j,i-1,k)) - &
+                          0.0625_rkx * (mo_atm%v(j,i+1,k)+mo_atm%v(j,i-2,k))
+            end do
+          end do
+        end do
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              vx(j,ice1,k) = mo_atm%v(j,ide1,k)
+              vx(j,ici1,k) = 0.5_rkx * (mo_atm%v(j,ide1,k)+mo_atm%v(j,idi1,k))
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              vx(j,ice2,k) = 0.5_rkx*(mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
+            end do
+          end do
+        end if
+
+        ! Compute W (and TKE if required) on zita levels
+
+        do k = 2 , kz-1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              wx(j,i,k) = 0.5625_rkx * (mo_atm%w(j,i,k+1)+mo_atm%w(j,i,k)) - &
+                          0.0625_rkx * (mo_atm%w(j,i,k+2)+mo_atm%w(j,i,k-1))
+            end do
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            wx(j,i,1) = 0.5_rkx * (mo_atm%w(j,i,2)+mo_atm%w(j,i,1))
+            wx(j,i,kz) = 0.5_rkx * (mo_atm%w(j,i,kzp1)+mo_atm%w(j,i,kz))
+          end do
+        end do
+
+        if ( ibltyp == 2 ) then
+          do k = 2 , kz-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                tkex(j,i,k) = 0.5625_rkx * &
+                              (mo_atm%tke(j,i,k+1)+mo_atm%tke(j,i,k)) - &
+                              0.0625_rkx * &
+                              (mo_atm%tke(j,i,k+2)+mo_atm%tke(j,i,k-1))
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tkex(j,i,1) = 0.5_rkx*(mo_atm%tke(j,i,2)+mo_atm%tke(j,i,1))
+              tkex(j,i,kz) = 0.5_rkx*(mo_atm%tke(j,i,kzp1)+mo_atm%tke(j,i,kz))
+            end do
+          end do
+        end if
+
+        call wafone(mo_atm%tetav,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                    mddom%clv,mddom%fmyu)
+        call wafone(mo_atm%pai,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                    mddom%clv,mddom%fmyu)
+        call wafone(ux,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                    mddom%clv,mddom%fmyu)
+        call wafone(vx,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                    mddom%clv,mddom%fmyu)
+        call wafone(wx,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                    mddom%clv,mddom%fmyu)
+        if ( ibltyp == 2 ) then
+          call wafone(tkex,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                      mddom%clv,mddom%fmyu)
+        end if
+
+        call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
+
+        ! Back to wind points: U (fourth order)
+
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdii2
+              mo_atm%u(j,i,k) = 0.5625_rkx * (ux(j,i,k)+ux(j+1,i,k)) - &
+                                0.0625_rkx * (ux(j-1,i,k)+ux(j+2,i,k))
+            end do
+          end do
+        end do
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              mo_atm%u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
+            end do
+          end do
+        end if
+
+        ! Back to wind points: V (fourth order)
+
+        do k = 1 , kz
+          do i = idi1 , idii2
+            do j = jdi1 , jdi2
+              mo_atm%v(j,i,k) = 0.5625_rkx * (vx(j,i,k)+vx(j,i+1,k)) - &
+                                0.0625_rkx * (vx(j,i-1,k)+vx(j,i+2,k))
+            end do
+          end do
+        end do
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jdi1 , jdi2
+              mo_atm%v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
+            end do
+          end do
+        end if
+
+        ! Back to half-levels
+
+        do k = 3 , kz - 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              mo_atm%w(j,i,k) = 0.5625_rkx * (wx(j,i,k)+wx(j,i,k-1)) - &
+                                0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
+            end do
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mo_atm%w(j,i,2) = 0.5_rkx * (wx(j,i,2)+wx(j,i,1))
+            mo_atm%w(j,i,kz) = 0.5_rkx * (wx(j,i,kz)+wx(j,i,kzm1))
+          end do
+        end do
+
+        if ( ibltyp == 2 ) then
+          do k = 3 , kz - 1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                mo_atm%tke(j,i,k) = 0.5625_rkx*(tkex(j,i,k)+tkex(j,i,k-1)) - &
+                                    0.0625_rkx*(tkex(j,i,k+1)+tkex(j,i,k-2))
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              mo_atm%tke(j,i,2) = 0.5_rkx * (tkex(j,i,2)+tkex(j,i,1))
+              mo_atm%tke(j,i,kz) = 0.5_rkx * (tkex(j,i,kz)+tkex(j,i,kzm1))
             end do
           end do
         end if

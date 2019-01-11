@@ -67,11 +67,11 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: lndcat
     real(rkx) , pointer , dimension(:,:) :: lndtex
     real(rkx) , pointer , dimension(:,:) :: xlat
-    real(rkx) , pointer , dimension(:,:) :: cosxlat
+    real(rkx) , pointer , dimension(:,:) :: clv
+    real(rkx) , pointer , dimension(:,:) :: fmyu
     real(rkx) , pointer , dimension(:,:) :: xlon
     real(rkx) , pointer , dimension(:,:) :: mask
     real(rkx) , pointer , dimension(:,:) :: dlat
-    real(rkx) , pointer , dimension(:,:) :: cosdlat
     real(rkx) , pointer , dimension(:,:) :: dlon
     real(rkx) , pointer , dimension(:,:) :: msfx
     real(rkx) , pointer , dimension(:,:) :: msfd
@@ -126,6 +126,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: w
     real(rkx) , pointer , dimension(:,:,:) :: pai
     real(rkx) , pointer , dimension(:,:,:) :: tetav
+    real(rkx) , pointer , dimension(:,:,:) :: tke
   end type atmosphere
 
   type reference_atmosphere
