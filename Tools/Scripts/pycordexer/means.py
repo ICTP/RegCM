@@ -57,7 +57,7 @@ compressed in disk.
         except:
             print(str.join('_',pieces[0:7])+'_'+window+'_'+f1+'12-'+f2+'12.nc')
             raise RuntimeError('Cannot open output file')
-        tunit = 'days since 1949-12-01 00:00:00 UTC'
+        tunit = 'days since 1949-12-01 00:00:00'
     elif window == 'mon':
         if ncf.frequency == 'mon':
             print('How to make monthly mean on monthly dataset?')
@@ -68,7 +68,7 @@ compressed in disk.
                           'w', format='NETCDF4_CLASSIC')
         except:
             raise RuntimeError('Cannot open output file')
-        tunit = 'days since 1949-12-01 00:00:00 UTC'
+        tunit = 'days since 1949-12-01 00:00:00'
     else:
         raise RuntimeError(
                 'Unsupported time window. Only day and mon implemented')
@@ -89,10 +89,10 @@ compressed in disk.
         else:
             nco.createDimension(dim,len(ncf.dimensions[dim]))
 
-    if 'time_bnds' not in ncf.dimensions:
-        nco.createDimension('time_bnds',2)
+    if 'bnds' not in ncf.dimensions:
+        nco.createDimension('bnds',2)
 
-    tbnds = nco.createVariable('time_bnds','f8',['time','time_bnds'])
+    tbnds = nco.createVariable('time_bnds','f8',['time','bnds'])
     tbnds.setncattr('units',tunit)
     tbnds.setncattr('calendar',times.calendar)
 
@@ -144,8 +144,6 @@ compressed in disk.
                 else:
                     nco.variables[var].setncattr('cell_methods',  
                                                  'time: mean')
-            else:
-                nco.variables[var].setncattr('cell_methods', 'time: mean')
             for attr in ncf.variables[var].ncattrs():
                 if attr != 'cell_methods':
                     if attr != '_FillValue':
