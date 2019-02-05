@@ -47,11 +47,11 @@ module mod_ccsm4_helper
     if ( .not. date_in_scenario(idate,5,.true.) ) then
       fname = trim(inpglob)//pthsep//'CCSM4'//pthsep//'SST'// &
               pthsep//'tos_Omon_CCSM4_historical'// &
-              '_r1i1p1_185001-200512.nc'
+              '_r6i1p1_185001-200512.nc'
     else
       fname = trim(inpglob)//pthsep//'CCSM4'//pthsep//'SST'// &
               pthsep//'tos_Omon_CCSM4_rcp'//ssttyp(4:5)//  &
-              '_r1i1p1_200601-210012.nc'
+              '_r6i1p1_200601-210012.nc'
     end if
   end subroutine find_ccsm4_sst
 
