@@ -2844,7 +2844,7 @@ module mod_ncstream
       attc%theval = __DATE__
       call add_attribute(stream,attc)
       attc%aname = 'Conventions'
-      attc%theval = 'CF-1.8'
+      attc%theval = 'CF-1.7'
       call add_attribute(stream,attc)
       attc%aname = 'references'
       attc%theval = 'http://gforge.ictp.it/gf/project/regcm'
