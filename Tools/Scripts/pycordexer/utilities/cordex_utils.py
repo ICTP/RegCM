@@ -650,6 +650,7 @@ class CordexDataset(Dataset):
             'ICTP_version_note': simulation.notes,
             'contact': simulation.mail,
             'product': 'output',
+            'Conventions': 'CF-1.7',
             'tracking_id': str(uuid.uuid1()),
         }
 
