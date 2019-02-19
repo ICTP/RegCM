@@ -127,6 +127,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: pai
     real(rkx) , pointer , dimension(:,:,:) :: tetav
     real(rkx) , pointer , dimension(:,:,:) :: tke
+    real(rkx) , pointer , dimension(:,:,:,:) :: qx
+    real(rkx) , pointer , dimension(:,:,:,:) :: trac
   end type atmosphere
 
   type reference_atmosphere

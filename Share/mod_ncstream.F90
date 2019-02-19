@@ -28,7 +28,11 @@ module mod_ncstream
   use mod_date
   use mod_ncstream_types
   use mod_zita
+#ifdef PNETCDF
+  use pnetcdf
+#else
   use netcdf
+#endif
 
   implicit none
 
@@ -119,8 +123,15 @@ module mod_ncstream
       end if
 #else
       if ( params%mpi_comm /= -1 ) then
+#ifdef PNETCDF_IN_NETCDF
+        imode = ior(nf90_nowrite,ior(nf90_share,nf90_pnetcdf))
+        ncstat = nf90_open(stream%filename,imode, &
+          stream%id,comm=params%mpi_comm,info=params%mpi_info)
+        stream%l_parallel = .true.
+#else
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-        call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
+        call die('nc_stream','Parallel netcdf with Pnetcdf not implemented',1)
+#endif
       else
         ncstat = nf90_open(stream%filename,imode,stream%id)
       end if
@@ -225,9 +236,7 @@ module mod_ncstream
       type(ncoutstream_params) , intent(in) :: params
       type(ncoutstream) , pointer :: stream
       type(rcm_time_and_date) :: tt
-#ifdef NETCDF4_HDF5
       integer(ik4) :: imode
-#endif
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
       ! Allocate all space
@@ -253,12 +262,20 @@ module mod_ncstream
         end if
 #else
         if ( params%mpi_comm /= -1 ) then
-          !imode = ior(nf90_pnetcdf,nf90_write)
-          !ncstat = nf90_open(stream%filename,imode, &
-          !  params%mpi_comm,params%mpi_info,stream%id)
-          !stream%l_parallel = .true.
+#ifdef PNETCDF_IN_NETCDF
+          if ( params%mpi_iotype /= -1 ) then
+            imode = ior(params%mpi_iotype,nf90_write)
+          else
+            write(stderr,*) 'PARALLEL WRITE USING PNETCDF'
+            imode = ior(nf90_pnetcdf,nf90_write)
+          end if
+          ncstat = nf90_open_par(stream%filename,imode, &
+                          params%mpi_comm,params%mpi_info,stream%id)
+          stream%l_parallel = .true.
+#else
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
+          call die('nc_stream','Parallel netcdf with Pnetcdf not implemented',1)
+#endif
         else
           ncstat = nf90_open(stream%filename,nf90_write,stream%id)
         end if
@@ -272,19 +289,26 @@ module mod_ncstream
             imode = ior(nf90_mpiio,iomode)
           end if
           ncstat = nf90_create_par(stream%filename,imode, &
-            comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
+                    comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
           stream%l_parallel = .true.
         else
           ncstat = nf90_create(stream%filename,iomode,stream%id)
         end if
 #else
         if ( params%mpi_comm /= -1 ) then
-          !imode = ior(nf90_pnetcdf,iomode)
-          !ncstat = nf90_create(stream%filename,imode, &
-          !  params%mpi_comm,params%mpi_info,stream%id)
-          !stream%l_parallel = .true.
+#ifdef PNETCDF_IN_NETCDF
+          if ( params%mpi_iotype /= -1 ) then
+            imode = ior(params%mpi_iotype,nf90_write)
+          else
+            imode = ior(nf90_pnetcdf,nf90_write)
+          end if
+          ncstat = nf90_create_par(stream%filename,imode, &
+                    comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
+          stream%l_parallel = .true.
+#else
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
+          call die('nc_stream','Parallel netcdf with Pnetcdf not implemented',1)
+#endif
         else
           ncstat = nf90_create(stream%filename,iomode,stream%id)
         end if

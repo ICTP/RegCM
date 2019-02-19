@@ -229,6 +229,10 @@ module mod_write
     integer(ik4) :: ivar , k
     real(rkx) :: dx
 
+    if ( idynamic == 1 ) then
+      ps4 = (ps4+ptop)*d_10
+    end if
+
     if ( idynamic == 2 ) then
       dx = ds * d_1000
       call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)

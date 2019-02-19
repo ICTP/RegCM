@@ -48,6 +48,7 @@ module mod_params
   use mod_sldepparam
   use mod_sound
   use mod_timer
+  use mod_moloch
   use mod_timefilter
 
   implicit none
@@ -622,52 +623,56 @@ module mod_params
 #endif
       end if
 
-      upstream_mode = .true.
-      stability_enhance = .true.
-      if ( idynamic == 2 ) then
-        gnu1 = 0.1000_rkx
-        gnu2 = 0.1000_rkx
-        diffu_hgtf = 0
-      else
-        gnu1 = 0.0625_rkx
-        gnu2 = 0.0625_rkx
-        diffu_hgtf = 1
-      end if
-      ckh = 1.0_rkx
-      adyndif = 1.0_rkx
-      uoffc = 0.250_rkx
-      t_extrema = 5.0_rkx
-      q_rel_extrema = 0.20_rkx
-      rewind(ipunit)
-      read (ipunit, nml=dynparam, iostat=iretval, err=104)
-      if ( iretval /= 0 ) then
-        write(stdout,*) 'Using default dynamical parameters.'
+      if ( idynamic < 3 ) then
+        upstream_mode = .true.
+        stability_enhance = .true.
+        if ( idynamic == 2 ) then
+          gnu1 = 0.1000_rkx
+          gnu2 = 0.1000_rkx
+          diffu_hgtf = 0
+        else if ( idynamic == 1 ) then
+          gnu1 = 0.0625_rkx
+          gnu2 = 0.0625_rkx
+          diffu_hgtf = 1
+        end if
+        ckh = 1.0_rkx
+        adyndif = 1.0_rkx
+        uoffc = 0.250_rkx
+        t_extrema = 5.0_rkx
+        q_rel_extrema = 0.20_rkx
+        rewind(ipunit)
+        read (ipunit, nml=dynparam, iostat=iretval, err=104)
+        if ( iretval /= 0 ) then
+          write(stdout,*) 'Using default dynamical parameters.'
 #ifdef DEBUG
-      else
-        write(stdout,*) 'Read dynparam OK'
+        else
+          write(stdout,*) 'Read dynparam OK'
 #endif
-      end if
+        end if
 
-      if ( idynamic == 2 ) then
-        rewind(ipunit)
-        read (ipunit, nml=nonhydroparam, iostat=iretval, err=105)
-        if ( iretval /= 0 ) then
-          write(stdout,*) 'Using default non-hydrostatc parameters.'
+        if ( idynamic == 2 ) then
+          rewind(ipunit)
+          read (ipunit, nml=nonhydroparam, iostat=iretval, err=105)
+          if ( iretval /= 0 ) then
+            write(stdout,*) 'Using default non-hydrostatc parameters.'
 #ifdef DEBUG
-        else
-          write(stdout,*) 'Read nonhydroparam OK'
+          else
+            write(stdout,*) 'Read nonhydroparam OK'
 #endif
+          end if
+        else if ( idynamic == 1 ) then
+          rewind(ipunit)
+          read (ipunit, nml=hydroparam, iostat=iretval, err=106)
+          if ( iretval /= 0 ) then
+            write(stdout,*) 'Using default hydrostatc parameters.'
+#ifdef DEBUG
+          else
+            write(stdout,*) 'Read hydroparam OK'
+#endif
+          end if
         end if
       else
-        rewind(ipunit)
-        read (ipunit, nml=hydroparam, iostat=iretval, err=106)
-        if ( iretval /= 0 ) then
-          write(stdout,*) 'Using default hydrostatc parameters.'
-#ifdef DEBUG
-        else
-          write(stdout,*) 'Read hydroparam OK'
-#endif
-        end if
+        ! Moloch dynamic
       end if
 
       ! Hack. permanently disable seasonal albedo.
@@ -1108,7 +1113,9 @@ module mod_params
     call bcast(ichem)
     call bcast(ntr)
 
-    if ( idynamic == 2 ) then
+    if ( idynamic == 3 ) then
+      ! Moloch paramters here
+    else if ( idynamic == 2 ) then
       call bcast(base_state_pressure)
       call bcast(logp_lrate)
       call bcast(ifupr)
@@ -1519,6 +1526,8 @@ module mod_params
 
     if ( idynamic == 2 ) then
       call allocate_mod_sound
+    else if ( idynamic == 3 ) then
+      call allocate_moloch
     end if
 
     call allocate_mod_diffusion
@@ -2396,6 +2405,8 @@ module mod_params
     if ( idynamic == 2 ) then
       call make_reference_atmosphere
       call compute_full_coriolis_coefficients
+    else if ( idynamic == 3 ) then
+      call compute_latfac
     end if
 
     if ( iboudy < 0 .or. iboudy > 5 ) then
@@ -2623,6 +2634,17 @@ module mod_params
           write(stdout,*) 'Full Coriolis coefficients computed.'
         end if
       end subroutine compute_full_coriolis_coefficients
+
+      subroutine compute_latfac
+        implicit none
+        integer :: i , j
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mddom%clv(j,i) = cos(mddom%xlat(j,i))
+            mddom%clv(j,i) = 1.0_rkx/cos(mddom%xlat(j,i))
+          end do
+        end do
+      end subroutine compute_latfac
 
       recursive integer function gcd_rec(u,v) result(gcd)
         implicit none

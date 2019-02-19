@@ -58,6 +58,8 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: ux , vx , wx
   real(rkx) , pointer , dimension(:,:,:) :: tkex
 
+  public allocate_moloch
+
   contains
 
 #include <cpmf.inc>
@@ -137,8 +139,9 @@ module mod_moloch
 
       subroutine advection
         implicit none
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i , j , k , n
         real(rkx) :: dz
+        real(rkx) , pointer , dimension(:,:,:) :: ptr
 
         dz = hzita / real(kz,rkx)
 
@@ -243,9 +246,21 @@ module mod_moloch
                     mddom%clv,mddom%fmyu)
         call wafone(wx,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
                     mddom%clv,mddom%fmyu)
+        do n = 1 , nqx
+          call assignpnt(mo_atm%qx,ptr,n)
+          call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                      mddom%clv,mddom%fmyu)
+        end do
         if ( ibltyp == 2 ) then
           call wafone(tkex,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
                       mddom%clv,mddom%fmyu)
+        end if
+        if ( ichem == 1 ) then
+          do n = 1 , ntr
+            call assignpnt(mo_atm%trac,ptr,n)
+            call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+                        mddom%clv,mddom%fmyu)
+          end do
         end if
 
         call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)

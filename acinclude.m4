@@ -300,3 +300,60 @@ else
 fi
 ])dnl ACX_MPI
 
+dnl
+dnl autoconf macro for detecting pNetCDF
+dnl
+
+AC_DEFUN([AX_PROG_PNETCDF_CONFIG], [
+  AC_REQUIRE([AC_PROG_EGREP])
+
+  AC_CACHE_CHECK([if pnetcdf-config program is present],[ax_cv_prog_pnetcdf_config],[
+  AS_IF([pnetcdf-config --version 2>/dev/null | egrep -q '^PnetCDF '],
+        [ax_cv_prog_pnetcdf_config=yes], [ax_cv_prog_pnetcdf_config=no])
+      ])
+  AS_IF([test "$ax_cv_prog_pnetcdf_config" = "yes"], [[$1]], [[$2]])
+])
+
+AC_DEFUN([RR_PATH_PNETCDF],[
+
+  AC_CHECKING([for Parallel NetCDF])
+
+  save_CPPFLAGS="$CPPFLAGS"
+  save_LDFLAGS="$LDFLAGS"
+
+  CPPFLAGS="$CPPFLAGS $NC_INCLUDES"
+  AMDEPFLAGS="$AMDEPFLAGS $NC_INCLUDES"
+  LIBS="$LIBS $NC_LIBS"
+  LDFLAGS="$LDFLAGS $NC_LDFLAGS"
+
+  AC_SUBST([AMDEPFLAGS])
+
+  pnetcdf=no
+
+  AC_LANG_PUSH([C])
+  AC_CHECKING([for pnetcdf.h])
+  AC_CHECK_HEADER([pnetcdf.h],
+                  [pnetcdf=yes], [pnetcdf=no])
+
+  if test "x$pnetcdf" = xno; then
+      AC_MSG_ERROR([Parallel NetCDF include not found])
+  fi
+
+  AC_CHECKING([for libpnetcdf.a])
+  AC_CHECK_LIB([pnetcdf], [ncmpi_close],
+               [pnetcdf=yes], [pnetcdf=no])
+  if test "x$pnetcdf" = xno; then
+    AC_MSG_ERROR([Parallel NetCDF library not found])
+  fi
+
+# Put them back to how they used to be and set the AM versions
+# The AM versions must be substituted explicitly
+
+  CPPFLAGS="$save_CPPFLAGS"
+  LDFLAGS="$save_LDFLAGS"
+  AM_CPPFLAGS="$NC_INCLUDES $AM_CPPFLAGS"
+  AM_LDFLAGS="$NC_LDFLAGS $AM_LDFLAGS"
+  AC_SUBST([AM_CPPFLAGS])
+  AC_SUBST([AM_LDFLAGS])
+  AC_LANG_POP([C])
+])

@@ -25,7 +25,7 @@ module mod_maps
 
   real(rkx) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
                    dmap , htgrid , lndout , mask , dpth , snowam , &
-                   smoist , texout , xlat , xlon , xmap , ps0
+                   smoist , texout , xlat , xlon , xmap , ps0 , askip
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist
   real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0 , z0
   real(rkx) , pointer , dimension(:,:,:) :: zeta , fmz
@@ -72,6 +72,7 @@ module mod_maps
       call getmem3d(rho0,1,jx,1,iy,1,kz+1,'maps:rho0')
       call getmem3d(z0,1,jx,1,iy,1,kz+1,'maps:z0')
     else if ( idyn == 3 ) then
+      call getmem2d(askip,1,jx,1,iy,'maps:askip')
       call getmem1d(zita,1,kz+1,'maps:zita')
       call getmem1d(ak,1,kz+1,'maps:ak')
       call getmem1d(bk,1,kz+1,'maps:bk')

@@ -24,6 +24,7 @@ module mod_header
   use mod_constants
   use mod_mppparam
   use mod_date
+  use mod_dynparam , only : nproc
   use mod_stdio
 
   implicit none
@@ -116,6 +117,7 @@ module mod_header
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
             tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
       write (stdout,*) ': this run stops at  : ', trim(cdata)
+      write (stdout,*) ': Run has been completed using ', nproc, ' processors.'
       write (stdout,*) ': Total elapsed seconds of run : ', &
                 (finish_time - start_time)
     end if

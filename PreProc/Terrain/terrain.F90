@@ -196,27 +196,55 @@ program terrain
     write(stdout,*) 'Subgrid setup done'
 
     if ( iproj=='LAMCON' ) then
-      call lambrt(xlon_s,xlat_s,xmap_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
-      call lambrt(dlon_s,dlat_s,dmap_s,jxsg,iysg,clong,    &
-                  clat,dsinm,1,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
+      call lambrt(xlon_s,xlat_s,jxsg,iysg,clong,    &
+                  clat,dsinm,0,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
+      if ( idynamic == 3 ) then
+        call lambrt(dlon_s,askip,jxsg,iysg,clong,    &
+                    clat,dsinm,0,1,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
+        call lambrt(askip,dlat_s,jxsg,iysg,clong,    &
+                    clat,dsinm,1,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
+      else
+        call lambrt(dlon_s,dlat_s,jxsg,iysg,clong,    &
+                    clat,dsinm,1,1,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
+      end if
     else if ( iproj=='POLSTR' ) then
-      call mappol(xlon_s,xlat_s,xmap_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0,cntri*nsg,cntrj*nsg)
-      call mappol(dlon_s,dlat_s,dmap_s,jxsg,iysg,clong,    &
-                  clat,dsinm,1,cntri*nsg,cntrj*nsg)
+      call mappol(xlon_s,xlat_s,jxsg,iysg,clong,    &
+                  clat,dsinm,0,0,cntri*nsg,cntrj*nsg)
+      if ( idynamic == 3 ) then
+        call mappol(dlon_s,askip,jxsg,iysg,clong,    &
+                    clat,dsinm,0,1,cntri*nsg,cntrj*nsg)
+        call mappol(askip,dlat_s,jxsg,iysg,clong,    &
+                    clat,dsinm,1,0,cntri*nsg,cntrj*nsg)
+      else
+        call mappol(dlon_s,dlat_s,jxsg,iysg,clong,    &
+                    clat,dsinm,1,1,cntri*nsg,cntrj*nsg)
+      end if
       xcone = d_one
     else if ( iproj=='NORMER' ) then
-      call normer(xlon_s,xlat_s,xmap_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0,cntri*nsg,cntrj*nsg)
-      call normer(dlon_s,dlat_s,dmap_s,jxsg,iysg,clong,    &
-                  clat,dsinm,1,cntri*nsg,cntrj*nsg)
+      call normer(xlon_s,xlat_s,jxsg,iysg,clong,    &
+                  clat,dsinm,0,0,cntri*nsg,cntrj*nsg)
+      if ( idynamic == 3 ) then
+        call normer(dlon_s,askip,jxsg,iysg,clong,    &
+                    clat,dsinm,0,1,cntri*nsg,cntrj*nsg)
+        call normer(askip,dlat_s,jxsg,iysg,clong,    &
+                    clat,dsinm,1,0,cntri*nsg,cntrj*nsg)
+      else
+        call normer(dlon_s,dlat_s,jxsg,iysg,clong,    &
+                    clat,dsinm,1,1,cntri*nsg,cntrj*nsg)
+      end if
       xcone = d_zero
     else if ( iproj=='ROTMER' ) then
-      call rotmer(xlon_s,xlat_s,xmap_s,jxsg,iysg,clon,     &
-                  clat,plon,plat,dsinm,0,cntri*nsg,cntrj*nsg)
-      call rotmer(dlon_s,dlat_s,dmap_s,jxsg,iysg,clon,     &
-                  clat,plon,plat,dsinm,1,cntri*nsg,cntrj*nsg)
+      call rotmer(xlon_s,xlat_s,jxsg,iysg,clon,     &
+                  clat,plon,plat,dsinm,0,0,cntri*nsg,cntrj*nsg)
+      if ( idynamic == 3 ) then
+        call rotmer(dlon_s,askip,jxsg,iysg,clon,     &
+                    clat,plon,plat,dsinm,0,1,cntri*nsg,cntrj*nsg)
+        call rotmer(askip,dlat_s,jxsg,iysg,clon,     &
+                    clat,plon,plat,dsinm,1,0,cntri*nsg,cntrj*nsg)
+      else
+        call rotmer(dlon_s,dlat_s,jxsg,iysg,clon,     &
+                    clat,plon,plat,dsinm,1,1,cntri*nsg,cntrj*nsg)
+      end if
       xcone = d_zero
     else
       write (stderr,*) 'iproj = ', iproj
@@ -224,6 +252,8 @@ program terrain
       write (stderr,*) 'Set iproj in LAMCON,POLSTR,NORMER,ROTMER'
       call die('terrain')
     end if
+    call mapfac(xlat_s,xmap_s,jxsg,iysg,iproj)
+    call mapfac(dlat_s,dmap_s,jxsg,iysg,iproj)
     call corpar(dlat_s,coriol_s,jxsg,iysg)
     write(stdout,*) 'Subgrid Geo mapping done'
     !
@@ -394,23 +424,47 @@ program terrain
   ! calling the map projection subroutine
   !
   if ( iproj=='LAMCON' ) then
-    call lambrt(xlon,xlat,xmap,jx,iy,clong,clat,dsinm,0,xcone,  &
+    call lambrt(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,xcone,  &
                 truelatl,truelath,cntri,cntrj)
-    call lambrt(dlon,dlat,dmap,jx,iy,clong,clat,dsinm,1,xcone,  &
-                truelatl,truelath,cntri,cntrj)
+    if ( idynamic == 3 ) then
+      call lambrt(dlon,askip,jx,iy,clong,clat,dsinm,0,1,xcone,  &
+                  truelatl,truelath,cntri,cntrj)
+      call lambrt(askip,dlat,jx,iy,clong,clat,dsinm,1,0,xcone,  &
+                  truelatl,truelath,cntri,cntrj)
+    else
+      call lambrt(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,xcone,  &
+                  truelatl,truelath,cntri,cntrj)
+    end if
   else if ( iproj=='POLSTR' ) then
-    call mappol(xlon,xlat,xmap,jx,iy,clong,clat,dsinm,0,cntri,cntrj)
-    call mappol(dlon,dlat,dmap,jx,iy,clong,clat,dsinm,1,cntri,cntrj)
+    call mappol(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,cntri,cntrj)
+    if ( idynamic == 3 ) then
+      call mappol(dlon,askip,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
+      call mappol(askip,dlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
+    else
+      call mappol(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,cntri,cntrj)
+    end if
     xcone = d_one
   else if ( iproj=='NORMER' ) then
-    call normer(xlon,xlat,xmap,jx,iy,clong,clat,dsinm,0,cntri,cntrj)
-    call normer(dlon,dlat,dmap,jx,iy,clong,clat,dsinm,1,cntri,cntrj)
+    call normer(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,cntri,cntrj)
+    if ( idynamic == 3 ) then
+      call normer(dlon,askip,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
+      call normer(askip,dlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
+    else
+      call normer(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,cntri,cntrj)
+    end if
     xcone = d_zero
   else if ( iproj=='ROTMER' ) then
-    call rotmer(xlon,xlat,xmap,jx,iy,clong,clat,plon,plat,   &
-                dsinm,0,cntri,cntrj)
-    call rotmer(dlon,dlat,dmap,jx,iy,clong,clat,plon,plat,   &
-                dsinm,1,cntri,cntrj)
+    call rotmer(xlon,xlat,jx,iy,clong,clat,plon,plat,   &
+                dsinm,0,0,cntri,cntrj)
+    if ( idynamic == 3 ) then
+      call rotmer(dlon,askip,jx,iy,clong,clat,plon,plat,   &
+                  dsinm,0,1,cntri,cntrj)
+      call rotmer(askip,dlat,jx,iy,clong,clat,plon,plat,   &
+                  dsinm,1,0,cntri,cntrj)
+    else
+      call rotmer(dlon,dlat,jx,iy,clong,clat,plon,plat,   &
+                  dsinm,1,1,cntri,cntrj)
+    end if
     xcone = d_zero
   else
     write (stderr,*) 'iproj = ', iproj
@@ -418,6 +472,8 @@ program terrain
     write (stderr,*) 'Set iproj in LAMCON, POLSTR, NORMER, ROTMER'
     call die('terrain')
   end if
+  call mapfac(xlat,xmap,jx,iy,iproj)
+  call mapfac(dlat,dmap,jx,iy,iproj)
   call corpar(dlat,coriol,jx,iy)
   write(stdout,*) 'Geo mapping done'
   !
