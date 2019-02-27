@@ -57,6 +57,8 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: s
   real(rkx) , pointer , dimension(:,:,:) :: ux , vx , wx
   real(rkx) , pointer , dimension(:,:,:) :: tkex
+  real(rkx) , pointer , dimension(:,:,:) :: wz
+  real(rkx) , pointer , dimension(:,:,:) :: p0
 
   public allocate_moloch
 
@@ -70,6 +72,8 @@ module mod_moloch
     call getmem3d(ux,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:ux')
     call getmem3d(vx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'moloch:vx')
     call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
+    call getmem3d(wz,jci1,jci2,ici1gb,ici2gb,1,kz,'moloch:wz')
+    call getmem3d(p0,jci1gb,jci2gb,ici1,ici2,1,kz,'moloch:p0')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jci1,jci2,ici1,ici2,1,kz,'moloch:tkex')
     end if
@@ -346,8 +350,6 @@ module mod_moloch
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1m1 , ih , ihm1 , im1 , jh , jhm1 , jm1
         real(rkx) , dimension(jci1:jci2,1:kzp1) :: wfw
-        real(rkx) , dimension(jci1:jci2,ici1gb:ici2gb,1:kz) :: wz
-        real(rkx) , dimension(jci1gb:jci2gb,ici1:ici2,1:kz) :: p0
         real(rkx) , dimension(jci1:jci2,ici1:ice2) :: zpby
         real(rkx) , dimension(jci1:jce2) :: zpbw
         real(rkx) :: zamu , zcost , r , b , zphi , is , zdv

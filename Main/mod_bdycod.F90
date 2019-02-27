@@ -904,17 +904,17 @@ module mod_bdycod
     end if
 
     if ( ma%has_bdyleft ) then
-      call exchange_bdy_tb(wue,1,kz)
-      call exchange_bdy_tb(wui,1,kz)
-      call exchange_bdy_tb(wve,1,kz)
-      call exchange_bdy_tb(wvi,1,kz)
+      call exchange_bdy_bt(wue,1,kz)
+      call exchange_bdy_bt(wui,1,kz)
+      call exchange_bdy_bt(wve,1,kz)
+      call exchange_bdy_bt(wvi,1,kz)
     end if
 
     if ( ma%has_bdyright ) then
-      call exchange_bdy_tb(eue,1,kz)
-      call exchange_bdy_tb(eui,1,kz)
-      call exchange_bdy_tb(eve,1,kz)
-      call exchange_bdy_tb(evi,1,kz)
+      call exchange_bdy_bt(eue,1,kz)
+      call exchange_bdy_bt(eui,1,kz)
+      call exchange_bdy_bt(eve,1,kz)
+      call exchange_bdy_bt(evi,1,kz)
     end if
 
 #ifdef DEBUG

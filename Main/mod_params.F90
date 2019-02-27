@@ -1686,6 +1686,7 @@ module mod_params
     dx8 = 8.0_rkx*dx
     dx16 = 16.0_rkx*dx
     dxsq = dx*dx
+    rdx = 1.0_rkx/dx
     rdxsq = 1.0_rkx/dxsq
     !
     ! Calculate boundary areas per processor
@@ -2406,7 +2407,7 @@ module mod_params
       call make_reference_atmosphere
       call compute_full_coriolis_coefficients
     else if ( idynamic == 3 ) then
-      call compute_latfac
+      call compute_moloch_static
     end if
 
     if ( iboudy < 0 .or. iboudy > 5 ) then
@@ -2635,16 +2636,32 @@ module mod_params
         end if
       end subroutine compute_full_coriolis_coefficients
 
-      subroutine compute_latfac
+      subroutine compute_moloch_static
         implicit none
         integer :: i , j
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            mddom%clv(j,i) = cos(mddom%xlat(j,i))
-            mddom%clv(j,i) = 1.0_rkx/cos(mddom%xlat(j,i))
+        do i = idi1 , idi2
+          do j = jci1 , jci2
+            mddom%clv(j,i) = cos(degrad*mddom%dlat(j,i))
           end do
         end do
-      end subroutine compute_latfac
+        call exchange_bt(mddom%clv,1,jci1,jci2,idi1,idi2)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mddom%fmyu(j,i) = 1.0_rkx/cos(degrad*mddom%xlat(j,i))
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jdi1 , jdi2
+            mddom%hx(j,i) = mddom%ht(j+1,i)-mddom%ht(j,i) * &
+                     mddom%fmyu(j,i)*rdx*regrav
+          end do
+        end do
+        do i = idi1 , idi2
+          do j = jce1 , jce2
+            mddom%hy(j,i) = mddom%ht(j,i)-mddom%ht(j,i-1)*rdx*regrav
+          end do
+        end do
+      end subroutine compute_moloch_static
 
       recursive integer function gcd_rec(u,v) result(gcd)
         implicit none

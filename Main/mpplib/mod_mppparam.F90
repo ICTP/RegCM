@@ -224,14 +224,14 @@ module mod_mppparam
                      real4_4d_exchange_left_right
   end interface exchange_lr
 
-  interface exchange_tb
-    module procedure real8_2d_exchange_top_bottom , &
-                     real8_3d_exchange_top_bottom , &
-                     real8_4d_exchange_top_bottom , &
-                     real4_2d_exchange_top_bottom , &
-                     real4_3d_exchange_top_bottom , &
-                     real4_4d_exchange_top_bottom
-  end interface exchange_tb
+  interface exchange_bt
+    module procedure real8_2d_exchange_bottom_top , &
+                     real8_3d_exchange_bottom_top , &
+                     real8_4d_exchange_bottom_top , &
+                     real4_2d_exchange_bottom_top , &
+                     real4_3d_exchange_bottom_top , &
+                     real4_4d_exchange_bottom_top
+  end interface exchange_bt
 
   interface exchange_lb
     module procedure real8_2d_exchange_left_bottom , &
@@ -256,10 +256,10 @@ module mod_mppparam
                      real4_bdy_exchange_left_right
   end interface exchange_bdy_lr
 
-  interface exchange_bdy_tb
-    module procedure real8_bdy_exchange_top_bottom , &
-                     real4_bdy_exchange_top_bottom
-  end interface exchange_bdy_tb
+  interface exchange_bdy_bt
+    module procedure real8_bdy_exchange_bottom_top , &
+                     real4_bdy_exchange_bottom_top
+  end interface exchange_bdy_bt
 
   interface grid_fill
     module procedure real8_2d_grid_fill_extend1 , &
@@ -538,7 +538,8 @@ module mod_mppparam
   integer(ik4) , parameter :: tag_trbl = 8 ! FROM topright TO bottomleft
 
   public :: exchange , exchange_lb , exchange_rt
-  public :: exchange_bdy_lr , exchange_bdy_tb
+  public :: exchange_lr , exchange_bt
+  public :: exchange_bdy_lr , exchange_bdy_bt
   public :: grid_distribute , grid_collect , grid_fill
   public :: subgrid_distribute , subgrid_collect
   public :: uvcross2dot , uvdot2cross , cross2dot , psc2psd
@@ -3957,7 +3958,7 @@ module mod_mppparam
     end if
   end subroutine real4_4d_exchange_left_right
 
-  subroutine real8_2d_exchange_top_bottom(ml,nex,j1,j2,i1,i2)
+  subroutine real8_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
@@ -3976,10 +3977,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * 2*jsize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_top_bottom')
+      call getmem1d(r8vector1,1,ssize,'real8_2d_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_top_bottom')
+      call getmem1d(r8vector2,1,ssize,'real8_2d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -4108,9 +4109,9 @@ module mod_mppparam
         end if
       end if
     end if
-  end subroutine real8_2d_exchange_top_bottom
+  end subroutine real8_2d_exchange_bottom_top
 
-  subroutine real8_3d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
+  subroutine real8_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
@@ -4131,10 +4132,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * 2*jsize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_top_bottom')
+      call getmem1d(r8vector1,1,ssize,'real8_3d_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_top_bottom')
+      call getmem1d(r8vector2,1,ssize,'real8_3d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -4282,9 +4283,9 @@ module mod_mppparam
         end if
       end if
     end if
-  end subroutine real8_3d_exchange_top_bottom
+  end subroutine real8_3d_exchange_bottom_top
 
-  subroutine real8_4d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+  subroutine real8_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
@@ -4308,10 +4309,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * 2*jsize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_top_bottom')
+      call getmem1d(r8vector1,1,ssize,'real8_4d_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_top_bottom')
+      call getmem1d(r8vector2,1,ssize,'real8_4d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -4475,9 +4476,9 @@ module mod_mppparam
         end if
       end if
     end if
-  end subroutine real8_4d_exchange_top_bottom
+  end subroutine real8_4d_exchange_bottom_top
 
-  subroutine real4_2d_exchange_top_bottom(ml,nex,j1,j2,i1,i2)
+  subroutine real4_2d_exchange_bottom_top(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
@@ -4496,10 +4497,10 @@ module mod_mppparam
     ! jsize is the height of a block in the W-E direction
     ssize = nex * 2*jsize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_top_bottom')
+      call getmem1d(r4vector1,1,ssize,'real4_2d_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_top_bottom')
+      call getmem1d(r4vector2,1,ssize,'real4_2d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -4628,9 +4629,9 @@ module mod_mppparam
         end if
       end if
     end if
-  end subroutine real4_2d_exchange_top_bottom
+  end subroutine real4_2d_exchange_bottom_top
 
-  subroutine real4_3d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
+  subroutine real4_3d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
@@ -4651,10 +4652,10 @@ module mod_mppparam
     ! ksize is the height of a block in the T-B direction
     ssize = nex * ksize * 2*jsize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_top_bottom')
+      call getmem1d(r4vector1,1,ssize,'real4_3d_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_top_bottom')
+      call getmem1d(r4vector2,1,ssize,'real4_3d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -4802,9 +4803,9 @@ module mod_mppparam
         end if
       end if
     end if
-  end subroutine real4_3d_exchange_top_bottom
+  end subroutine real4_3d_exchange_bottom_top
 
-  subroutine real4_4d_exchange_top_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
+  subroutine real4_4d_exchange_bottom_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
@@ -4828,10 +4829,10 @@ module mod_mppparam
     ! nsize is the height of a block in the tracer direction
     ssize = nex * ksize * nsize * 2*jsize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_top_bottom')
+      call getmem1d(r4vector1,1,ssize,'real4_4d_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_top_bottom')
+      call getmem1d(r4vector2,1,ssize,'real4_4d_exchange_bottom_top')
     end if
 
     if ( ma%crmflag ) then
@@ -4995,7 +4996,7 @@ module mod_mppparam
         end if
       end if
     end if
-  end subroutine real4_4d_exchange_top_bottom
+  end subroutine real4_4d_exchange_bottom_top
 
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
@@ -11396,7 +11397,7 @@ module mod_mppparam
     end if
   end subroutine real4_bdy_exchange_left_right
 
-  subroutine real8_bdy_exchange_top_bottom(ml,k1,k2)
+  subroutine real8_bdy_exchange_bottom_top(ml,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
@@ -11406,10 +11407,10 @@ module mod_mppparam
     ksize = k2-k1+1
     ssize = 2*ksize
     if ( size(r8vector1) < ssize ) then
-      call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_top_bottom')
+      call getmem1d(r8vector1,1,ssize,'real8_bdy_exchange_bottom_top')
     end if
     if ( size(r8vector2) < ssize ) then
-      call getmem1d(r8vector2,1,ssize,'real8_bdy_exchange_top_bottom')
+      call getmem1d(r8vector2,1,ssize,'real8_bdy_exchange_bottom_top')
     end if
     irc = 0
     ipos = 1
@@ -11462,9 +11463,9 @@ module mod_mppparam
         ipos = ipos + ksize
       end if
     end if
-  end subroutine real8_bdy_exchange_top_bottom
+  end subroutine real8_bdy_exchange_bottom_top
 
-  subroutine real4_bdy_exchange_top_bottom(ml,k1,k2)
+  subroutine real4_bdy_exchange_bottom_top(ml,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
@@ -11474,10 +11475,10 @@ module mod_mppparam
     ksize = k2-k1+1
     ssize = 2*ksize
     if ( size(r4vector1) < ssize ) then
-      call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_top_bottom')
+      call getmem1d(r4vector1,1,ssize,'real4_bdy_exchange_bottom_top')
     end if
     if ( size(r4vector2) < ssize ) then
-      call getmem1d(r4vector2,1,ssize,'real4_bdy_exchange_top_bottom')
+      call getmem1d(r4vector2,1,ssize,'real4_bdy_exchange_bottom_top')
     end if
     irc = 0
     ipos = 1
@@ -11530,7 +11531,7 @@ module mod_mppparam
         ipos = ipos + ksize
       end if
     end if
-  end subroutine real4_bdy_exchange_top_bottom
+  end subroutine real4_bdy_exchange_bottom_top
 
   subroutine real8_2d_grid_fill_extend1(a,b)
     implicit none

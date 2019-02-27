@@ -166,7 +166,7 @@ module mod_runparams
 
   real(rkx) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rkx) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(rkx) , public :: rdxsq
+  real(rkx) , public :: rdx , rdxsq
   real(rkx) , public :: dtsrf , dtabem , dtrad , dtcum , dtche
   real(rkx) , public :: cpldt , zomax , ustarmax
   real(rkx) , public :: ckh

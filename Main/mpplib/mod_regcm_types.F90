@@ -66,13 +66,15 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: ht
     real(rkx) , pointer , dimension(:,:) :: lndcat
     real(rkx) , pointer , dimension(:,:) :: lndtex
-    real(rkx) , pointer , dimension(:,:) :: xlat
-    real(rkx) , pointer , dimension(:,:) :: clv
-    real(rkx) , pointer , dimension(:,:) :: fmyu
-    real(rkx) , pointer , dimension(:,:) :: xlon
     real(rkx) , pointer , dimension(:,:) :: mask
     real(rkx) , pointer , dimension(:,:) :: dlat
     real(rkx) , pointer , dimension(:,:) :: dlon
+    real(rkx) , pointer , dimension(:,:) :: xlat
+    real(rkx) , pointer , dimension(:,:) :: xlon
+    real(rkx) , pointer , dimension(:,:) :: clv
+    real(rkx) , pointer , dimension(:,:) :: fmyu
+    real(rkx) , pointer , dimension(:,:) :: hx
+    real(rkx) , pointer , dimension(:,:) :: hy
     real(rkx) , pointer , dimension(:,:) :: msfx
     real(rkx) , pointer , dimension(:,:) :: msfd
     real(rkx) , pointer , dimension(:,:) :: coriol
