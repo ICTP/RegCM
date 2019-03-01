@@ -24,17 +24,17 @@
 # Destination directory
 #DEST=$PWD
 
-netcdf_c_ver=4.6.2
+netcdf_c_ver=4.6.3
 netcdf_f_ver=4.4.4
-hdf5_ver=1.10.4
+hdf5_ver=1.10.5
 zlib_ver=1.2.11
 ompi_ver=4.0.0
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
 hdf5_major=`echo $hdf5_ver | cut -d "." -f 1-2 | sed 's/\.//'`
 
-UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
+UNIDATA=https://www.unidata.ucar.edu/downloads/netcdf/ftp
 OPENMPI=http://www.open-mpi.org/software/ompi/v${ompi_major}/downloads
-HDFGROUP=http://www.hdfgroup.org/ftp/HDF5/current${hdf5_major}/src
+HDFGROUP=https://www.hdfgroup.org/package
 ZLIB=http://zlib.net
 
 export LD_LIBRARY_PATH=$DEST/lib:$LD_LIBRARY_PATH
@@ -89,7 +89,7 @@ then
   exit 1
 fi
 echo "Downloading netCDF Library..."
-$WGET -c $UNIDATA/netcdf-${netcdf_c_ver}.tar.gz -o $DEST/logs/download_C.log
+$WGET -c $UNIDATA/netcdf-c-${netcdf_c_ver}.tar.gz -o $DEST/logs/download_C.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF C library from www.unidata.ucar.edu"
@@ -175,8 +175,8 @@ cd $DEST
 rm -fr hdf5-${hdf5_ver}
 echo "Compiled HDF5 library."
 echo "Compiling netCDF Library."
-tar zxvf netcdf-${netcdf_c_ver}.tar.gz >> $DEST/logs/extract.log
-cd netcdf-${netcdf_c_ver}
+tar zxvf netcdf-c-${netcdf_c_ver}.tar.gz >> $DEST/logs/extract.log
+cd netcdf-c-${netcdf_c_ver}
 H5LIBS="-lhdf5_hl -lhdf5 -lz"
 if [ "X$FC" == "Xgfortran" ]
 then
@@ -196,7 +196,7 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr netcdf-${netcdf_c_ver}
+rm -fr netcdf-c-${netcdf_c_ver}
 echo "Compiled netCDF C library."
 tar zxvf netcdf-fortran-${netcdf_f_ver}.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-${netcdf_f_ver}
