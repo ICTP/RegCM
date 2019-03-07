@@ -30,11 +30,11 @@ hdf5_ver=1.10.5
 zlib_ver=1.2.11
 ompi_ver=4.0.0
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
-hdf5_major=`echo $hdf5_ver | cut -d "." -f 1-2 | sed 's/\.//'`
+hdf5_major=`echo $hdf5_ver | cut -d "." -f 1-2`
 
 UNIDATA=https://www.unidata.ucar.edu/downloads/netcdf/ftp
 OPENMPI=http://www.open-mpi.org/software/ompi/v${ompi_major}/downloads
-HDFGROUP=https://www.hdfgroup.org/package
+HDFGROUP=https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${hdf5_major}/hdf5-${hdf5_ver}/src
 ZLIB=http://zlib.net
 
 export LD_LIBRARY_PATH=$DEST/lib:$LD_LIBRARY_PATH
