@@ -1919,6 +1919,9 @@ module mod_clm_canopyfluxes
       if ( c3flag(p) ) then
         qe(p) = 0._rk8
         theta_cj(p) = 0.98_rk8
+#if (defined CNDV)
+        bbbopt(p) = 10000._rk8
+#else
         if ( ivt(p) == nbrdlf_evr_trp_tree ) then
           bbbopt(p) = 80000._rk8
         else if ( ivt(p) == nbrdlf_dcd_trp_tree ) then
@@ -1927,6 +1930,7 @@ module mod_clm_canopyfluxes
         else
           bbbopt(p) = 10000._rk8
         end if
+#endif
         mbbopt(p) = 9._rk8
       else
         qe(p) = 0.05_rk8
