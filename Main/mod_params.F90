@@ -510,6 +510,7 @@ module mod_params
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
     idirect = 0       ! tracer direct effect
+    isnowdark = 0     ! Snow darkening by CARB/DUST
     iindirect = 0
     ichdiag = 0       ! chem tend outputs
     ichsursrc = 1
@@ -900,6 +901,13 @@ module mod_params
         ichem = 0
         ntr = 0
       end if
+#if defined(CLM45)
+      if ( isnowdark > 0 ) then
+        write(stderr,*) 'Snow Darkening effect active only with CLM45'
+        write(stderr,*) 'Reset it to zero.'
+        isnowdark = 0
+      end if
+#endif
 #ifdef CLM
       rewind(ipunit)
       read (ipunit , clmparam, iostat=iretval, err=119)
@@ -1461,6 +1469,9 @@ module mod_params
       call bcast(ichdrdepo)
       call bcast(ichcumtra)
       call bcast(idirect)
+#ifdef CLM45
+      call bcast(isnowdark)
+#endif
       call bcast(iindirect)
       call bcast(ichsolver)
       call bcast(ichjphcld)

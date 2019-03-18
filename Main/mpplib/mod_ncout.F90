@@ -3228,6 +3228,9 @@ module mod_ncout
             ncattribute_integer('chem_enable_aerosol_radiation_feedback', &
                                 idirect))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_enable_snow_darkening', &
+                                isnowdark))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_enable_sulfate_indirect_effect', &
                                 iindirect))
           call outstream_addatt(outstream(i)%ncout(j), &

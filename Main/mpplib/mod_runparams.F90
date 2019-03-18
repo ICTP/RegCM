@@ -143,6 +143,7 @@ module mod_runparams
   integer(ik4) , public :: icopcpl
   ! Radiation switch controls
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst , ifixsolar
+  integer(ik4) , public :: isnowdark
   ! Fixed solar constant for ifixsolar = 1
   real(rkx) , public :: fixedsolarval
   ! Semi-Langrangian advection for tracers

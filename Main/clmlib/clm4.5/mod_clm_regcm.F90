@@ -387,7 +387,7 @@ module mod_clm_regcm
       !    flux arriving through lm interface are accumulated between
       !    two surface call : needs to average with syncro_srf%rw
       ! c) dry deposition BC HL
-      if ( idirect > 1 ) then
+      if ( isnowdark == 1 ) then
         if ( ibchl > 0 ) then
           temps(:,:) = lm%drydepflx (jci1:jci2,ici1:ici2,ibchl) * syncro_srf%rw
           call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
