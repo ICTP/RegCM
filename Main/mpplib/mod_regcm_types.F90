@@ -114,23 +114,22 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: cr ! cross points
   end type mass_divergence
 
-  type vertical_grid
-    real(rkx) , pointer , dimension(:,:,:) :: zeta
-    real(rkx) , pointer , dimension(:,:,:) :: fmz
-    real(rkx) , pointer , dimension(:,:,:) :: fmzh
-    real(rkx) , pointer , dimension(:,:) :: dhdx
-    real(rkx) , pointer , dimension(:,:) :: dhdy
-  end type vertical_grid
-
   type atmosphere
     real(rkx) , pointer , dimension(:,:,:) :: u
     real(rkx) , pointer , dimension(:,:,:) :: v
     real(rkx) , pointer , dimension(:,:,:) :: w
     real(rkx) , pointer , dimension(:,:,:) :: pai
+    real(rkx) , pointer , dimension(:,:,:) :: t
+    real(rkx) , pointer , dimension(:,:,:) :: tvirt
     real(rkx) , pointer , dimension(:,:,:) :: tetav
     real(rkx) , pointer , dimension(:,:,:) :: tke
     real(rkx) , pointer , dimension(:,:,:,:) :: qx
     real(rkx) , pointer , dimension(:,:,:,:) :: trac
+    real(rkx) , pointer , dimension(:,:,:) :: zeta
+    real(rkx) , pointer , dimension(:,:,:) :: fmz
+    real(rkx) , pointer , dimension(:,:,:) :: fmzf
+    real(rkx) , pointer , dimension(:,:) :: dhdx
+    real(rkx) , pointer , dimension(:,:) :: dhdy
   end type atmosphere
 
   type reference_atmosphere

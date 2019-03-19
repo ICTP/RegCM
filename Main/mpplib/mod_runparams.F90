@@ -167,6 +167,7 @@ module mod_runparams
 
   real(rkx) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rkx) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
+  real(rkx) , public :: mo_dz
   real(rkx) , public :: rdx , rdxsq
   real(rkx) , public :: dtsrf , dtabem , dtrad , dtcum , dtche
   real(rkx) , public :: cpldt , zomax , ustarmax
@@ -190,7 +191,8 @@ module mod_runparams
 
   real(rkx) , pointer , dimension(:) , public :: dtau , dtsplit
   real(rkx) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
-  real(rkx) , pointer , dimension(:) , public :: sigma
+  real(rkx) , pointer , dimension(:) , public :: sigma , zita , zitah
+  real(rkx) , pointer , dimension(:) , public :: ak , bk
   real(rkx) , pointer , dimension(:,:) , public :: twt
 
   real(rkx) , public :: clfrcv ! Cloud fractional cover for convective precip
@@ -507,13 +509,22 @@ module mod_runparams
 
   subroutine allocate_mod_runparams
     implicit none
-    call getmem1d(hsigma,1,kz,'mod_runparams:hsigma')
-    call getmem1d(dsigma,1,kz,'mod_runparams:dsigma')
-    call getmem1d(qcon,1,kz,'mod_runparams:qcon')
-    call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
-    call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
-    call getmem1d(dtau,1,nsplit,'mod_runparams:dtau')
-    call getmem1d(dtsplit,1,nsplit,'mod_runparams:dtsplit')
+    if ( idynamic < 3 ) then
+      call getmem1d(hsigma,1,kz,'mod_runparams:hsigma')
+      call getmem1d(dsigma,1,kz,'mod_runparams:dsigma')
+      call getmem1d(qcon,1,kz,'mod_runparams:qcon')
+      call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
+      call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
+      call getmem1d(dtau,1,nsplit,'mod_runparams:dtau')
+      call getmem1d(dtsplit,1,nsplit,'mod_runparams:dtsplit')
+    else
+      call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
+      call getmem1d(zita,1,kzp1,'mod_runparams:zita')
+      call getmem1d(hsigma,1,kz,'mod_runparams:hsigma')
+      call getmem1d(zitah,1,kz,'mod_runparams:zitah')
+      call getmem1d(ak,1,kz,'mod_runparams:ak')
+      call getmem1d(bk,1,kz,'mod_runparams:bk')
+    end if
   end subroutine allocate_mod_runparams
 
   logical function iswater(a)

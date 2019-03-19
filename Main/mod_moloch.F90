@@ -144,10 +144,7 @@ module mod_moloch
       subroutine advection
         implicit none
         integer(ik4) :: i , j , k , n
-        real(rkx) :: dz
         real(rkx) , pointer , dimension(:,:,:) :: ptr
-
-        dz = hzita / real(kz,rkx)
 
         call exchange_lr(mo_atm%u,2,jde1,jde2,ide1,ide2,1,kz)
         call exchange_bt(mo_atm%v,2,jde1,jde2,ide1,ide2,1,kz)
@@ -240,29 +237,29 @@ module mod_moloch
           end do
         end if
 
-        call wafone(mo_atm%tetav,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+        call wafone(mo_atm%tetav,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                     mddom%clv,mddom%fmyu)
-        call wafone(mo_atm%pai,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+        call wafone(mo_atm%pai,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                     mddom%clv,mddom%fmyu)
-        call wafone(ux,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+        call wafone(ux,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                     mddom%clv,mddom%fmyu)
-        call wafone(vx,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+        call wafone(vx,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                     mddom%clv,mddom%fmyu)
-        call wafone(wx,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+        call wafone(wx,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                     mddom%clv,mddom%fmyu)
         do n = 1 , nqx
           call assignpnt(mo_atm%qx,ptr,n)
-          call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+          call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                       mddom%clv,mddom%fmyu)
         end do
         if ( ibltyp == 2 ) then
-          call wafone(tkex,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+          call wafone(tkex,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                       mddom%clv,mddom%fmyu)
         end if
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(mo_atm%trac,ptr,n)
-            call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,dz,dt, &
+            call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
                         mddom%clv,mddom%fmyu)
           end do
         end if

@@ -48,6 +48,7 @@ module mod_params
   use mod_sldepparam
   use mod_sound
   use mod_timer
+  use mod_zita
   use mod_moloch
   use mod_timefilter
 
@@ -1123,6 +1124,7 @@ module mod_params
 
     if ( idynamic == 3 ) then
       ! Moloch paramters here
+      mo_dz = hzita / real(kz,rkx)
     else if ( idynamic == 2 ) then
       call bcast(base_state_pressure)
       call bcast(logp_lrate)

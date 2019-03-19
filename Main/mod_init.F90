@@ -48,6 +48,7 @@ module mod_init
   use mod_outvars
   use mod_service
   use mod_massck
+  use mod_zita
   use mod_sound , only : init_sound
 
   implicit none
@@ -72,7 +73,7 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens
+    real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens , zb , zdelta
     real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
@@ -87,62 +88,142 @@ module mod_init
       ! Initialize model atmospheric status variables
       ! Data are from the ICBC input at first timestep.
       !
-      do k = 1 , kz
-        do i = ide1 , ide2
-          do j = jde1 , jde2
-            atm1%u(j,i,k) = xub%b0(j,i,k)
-            atm1%v(j,i,k) = xvb%b0(j,i,k)
-            atm2%u(j,i,k) = xub%b0(j,i,k)
-            atm2%v(j,i,k) = xvb%b0(j,i,k)
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm1%t(j,i,k) = xtb%b0(j,i,k)
-            atm2%t(j,i,k) = xtb%b0(j,i,k)
-            atm1%qx(j,i,k,iqv) = xqb%b0(j,i,k)
-            atm2%qx(j,i,k,iqv) = xqb%b0(j,i,k)
-          end do
-        end do
-      end do
-      if ( idynamic == 1 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            sfs%psa(j,i) = xpsb%b0(j,i)
-            sfs%psb(j,i) = xpsb%b0(j,i)
-          end do
-        end do
-      else
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            sfs%psa(j,i) = atm0%ps(j,i) * d_r1000
-            sfs%psb(j,i) = sfs%psa(j,i)
-            sfs%psc(j,i) = sfs%psa(j,i)
-          end do
-        end do
-      end if
-      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psa,sfs%psdota)
-      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-      call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psb,sfs%psdotb)
-      call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
-      if ( idynamic == 2 ) then
+      if ( idynamic < 3 ) then
         do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              atm1%pp(j,i,k) = xppb%b0(j,i,k)
-              atm2%pp(j,i,k) = xppb%b0(j,i,k)
+          do i = ide1 , ide2
+            do j = jde1 , jde2
+              atm1%u(j,i,k) = xub%b0(j,i,k)
+              atm1%v(j,i,k) = xvb%b0(j,i,k)
+              atm2%u(j,i,k) = xub%b0(j,i,k)
+              atm2%v(j,i,k) = xvb%b0(j,i,k)
             end do
           end do
         end do
-        do k = 1 , kzp1
+        do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              atm1%w(j,i,k) = xwwb%b0(j,i,k)
-              atm2%w(j,i,k) = xwwb%b0(j,i,k)
+              atm1%t(j,i,k) = xtb%b0(j,i,k)
+              atm2%t(j,i,k) = xtb%b0(j,i,k)
+              atm1%qx(j,i,k,iqv) = xqb%b0(j,i,k)
+              atm2%qx(j,i,k,iqv) = xqb%b0(j,i,k)
+            end do
+          end do
+        end do
+        if ( idynamic == 1 ) then
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              sfs%psa(j,i) = xpsb%b0(j,i)
+              sfs%psb(j,i) = xpsb%b0(j,i)
+            end do
+          end do
+        else
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              sfs%psa(j,i) = atm0%ps(j,i) * d_r1000
+              sfs%psb(j,i) = sfs%psa(j,i)
+              sfs%psc(j,i) = sfs%psa(j,i)
+            end do
+          end do
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                atm1%pp(j,i,k) = xppb%b0(j,i,k)
+                atm2%pp(j,i,k) = xppb%b0(j,i,k)
+              end do
+            end do
+          end do
+          do k = 1 , kzp1
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                atm1%w(j,i,k) = xwwb%b0(j,i,k)
+                atm2%w(j,i,k) = xwwb%b0(j,i,k)
+              end do
+            end do
+          end do
+        end if
+        call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+        call psc2psd(sfs%psa,sfs%psdota)
+        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
+        call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
+        call psc2psd(sfs%psb,sfs%psdotb)
+        call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
+      else
+        zita(kzp1) = d_zero
+        do k = kz , 1 , -1
+          zita(k) = zita(k+1) + mo_dz
+          zitah(k) = zita(k) - mo_dz*d_half
+        end do
+        sigma(1) = d_zero
+        sigma = d_one - zita/hzita
+        hsigma = d_one - zitah/hzita
+        ak = -hzita * bzita(zitah) * log(hsigma)
+        bk = gzita(zitah)
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%zeta(j,i,k) = ak(k) + bk(k) * mddom%ht(j,i)*regrav
+              mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
+            end do
+          end do
+        end do
+        mo_atm%fmzf(:,:,1) = 0.0_rkx
+        do k = 2 , kzp1
+          do i = 1 , iy
+            do j = 1 , jx
+              mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ide1 , ide2
+            do j = jce1 , jce2
+              mo_atm%v(j,i,k) = xvb%b0(j,i,k)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jde1 , jde2
+              mo_atm%u(j,i,k) = xub%b0(j,i,k)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%t(j,i,k) = xtb%b0(j,i,k)
+              mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
+            end do
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            sfs%psa(j,i) = xpsb%b0(j,i) * d_1000
+            sfs%psb(j,i) = xpsb%b0(j,i) * d_1000
+          end do
+        end do
+        ! Hydrostatic initialization of pai
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%tvirt(j,i,k) = xtb%b0(j,i,k)*(d_one + ep1*xqb%b0(j,i,k))
+            end do
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%pai(j,i,kz) = (xpsb%b0(j,i)/p00)**rovcp
+          end do
+        end do
+        do k = kzm1 , 1 , -1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              zb = d_two * egrav * mo_dz / (mo_atm%fmz(j,i,k)*cpd) + &
+                    mo_atm%tvirt(j,i,k+1) - mo_atm%tvirt(j,i,k)
+              zdelta = sqrt(zb**2 + d_four * &
+                    mo_atm%tvirt(j,i,k+1)*mo_atm%tvirt(j,i,k))
+              mo_atm%pai(j,i,k) = -mo_atm%pai(j,i,k+1) / &
+                    (d_two * mo_atm%tvirt(j,i,k+1)) * (zb - zdelta)
             end do
           end do
         end do
