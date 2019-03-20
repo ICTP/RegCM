@@ -218,10 +218,9 @@ module mod_clm_cnvegstructupdate
         else
           if ( dsladlai(ivt(p)) > 0._rk8 ) then
             tlai(p) = (slatop(ivt(p)) * &
-              (exp(0.037_rk8*leafc(p)*dsladlai(ivt(p))) - &
-              0.2_rk8))/dsladlai(ivt(p))
+              (exp(leafc(p)*dsladlai(ivt(p))) - 1.0_rk8))/dsladlai(ivt(p))
           else
-             tlai(p) = 0.37_rk8 * slatop(ivt(p)) * leafc(p)
+             tlai(p) = slatop(ivt(p)) * leafc(p)
           end if
           tlai(p) = max(0._rk8, tlai(p))
         end if
