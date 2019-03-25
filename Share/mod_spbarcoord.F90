@@ -67,7 +67,7 @@ module mod_spbarcoord
     real(rkx) , dimension(np) :: theta
     real(rkx) , dimension(np) :: tansum
     real(rkx) :: norm
-    integer(ik4) :: i , im1
+    integer(ik4) :: i
 
     ! Compute ordering centroid
 
@@ -81,10 +81,9 @@ module mod_spbarcoord
 
     call set_clockwise_order
     call compute_angles
-    do i = 1 , np
-      im1 = i - 1
-      if ( im1 == 0 ) im1 = np
-      tansum(i) = tan(alpha(im1)*0.5_rkx) + tan(alpha(i)*0.5_rkx)
+    tansum(1) = tan(alpha(np)*0.5_rkx) + tan(alpha(1)*0.5_rkx)
+    do i = 2 , np
+      tansum(i) = tan(alpha(i-1)*0.5_rkx) + tan(alpha(i)*0.5_rkx)
     end do
     norm = 0.0_rkx
     do i = 1 , np
@@ -156,11 +155,12 @@ module mod_spbarcoord
         do i = 1 , np
           theta(i) = angle_between(p,voc(i)%v)
         end do
-        do i = 1 , np
-          ip = i+1
-          if ( ip > np ) ip = 1
-          call vecprod(p,voc(i)%v,vp1)
-          call vecprod(p,voc(ip)%v,vp2)
+        call vecprod(p,voc(np)%v,vp1)
+        call vecprod(p,voc(1)%v,vp2)
+        alpha(np) = angle_between(vp1,vp2)
+        do i = 1 , np-1
+          call vecprod(p,voc(i+1)%v,vp1)
+          call vecprod(p,voc(i)%v,vp2)
           alpha(i) = angle_between(vp1,vp2)
         end do
       end subroutine compute_angles
@@ -180,11 +180,15 @@ module mod_spbarcoord
     n(2) = p1(3)*p2(1) - p1(1)*p2(3)
     n(3) = p1(1)*p2(2) - p1(2)*p2(1)
 
-    call vecdiff(x2%v,x1%v,p2)
+    xres = ((n(1)*centroid(1) + n(2)*centroid(2) + n(3)*centroid(3)))
 
-    xres = -((n(1)*p2(1) + n(2)*p2(2) + n(3)*p2(3)))
-
-    res = int(sign(1.0_rkx,xres))
+    if ( xres < 0 ) then
+      res = -1
+    else if ( xres > 0 ) then
+      res = 1
+    else
+      res = 0
+    end if
 
     contains
 

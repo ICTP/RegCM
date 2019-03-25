@@ -88,7 +88,7 @@ module mod_earth
     real(rkx) , intent(in) :: lat , lon
     real(rkx) , intent(out) :: x , y , z
     real(rkx) :: rlat , rlon
-    rlat = max(min(lat,89.99_rkx),-89.99_rkx)*degrad
+    rlat = max(min(lat,89.999_rkx),-89.999_rkx)*degrad
     rlon = lon*degrad
     x = cos(rlat) * sin(rlon)
     y = sin(rlat)
@@ -101,7 +101,7 @@ module mod_earth
     real(rkx) , intent(in) :: lon
     real(rkx) , intent(out) , dimension(3) :: x
     real(rkx) :: rlat , rlon
-    rlat = max(min(lat,89.99_rkx),-89.99_rkx)*degrad
+    rlat = max(min(lat,89.999_rkx),-89.999_rkx)*degrad
     rlon = lon*degrad
     x(1) = cos(rlat) * sin(rlon)
     x(2) = sin(rlat)
@@ -117,7 +117,7 @@ module mod_earth
     real(rkx) :: rlat , rlon
     integer(ik4) :: i
     do i = 1 , ni
-      rlat = max(min(lat(i),89.99_rkx),-89.99_rkx)*degrad
+      rlat = max(min(lat(i),89.999_rkx),-89.999_rkx)*degrad
       rlon = lon(i)*degrad
       x(1,i) = cos(rlat) * sin(rlon)
       x(2,i) = sin(rlat)
@@ -138,7 +138,7 @@ module mod_earth
     n = 1
     do j = 1 , size(lat)
       do i = 1 , size(lon)
-        rlat = max(min(lat(j),89.99_rkx),-89.99_rkx)*degrad
+        rlat = max(min(lat(j),89.999_rkx),-89.999_rkx)*degrad
         rlon = lon(i)*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
@@ -162,7 +162,7 @@ module mod_earth
     n = 1
     do j = 1 , size(lat,2)
       do i = 1 , size(lat,1)
-        rlat = max(min(lat(i,j),89.99_rkx),-89.99_rkx)*degrad
+        rlat = max(min(lat(i,j),89.999_rkx),-89.999_rkx)*degrad
         rlon = lon(i,j)*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
@@ -289,11 +289,15 @@ module mod_earth
       if ( glat(1) < glat(gj) ) then
         l1 = int((minval(xlat(:,1))-glat(1))/dlat) - 2
         l2 = int((minval(xlat(:,xj))-glat(1))/dlat) - 2
+        l1 = min(l1,l2)
+        l2 = int((minval(xlat(:,xj/2))-glat(1))/dlat) - 2
         domain%jgstart = min(l1,l2)
         domain%jgstop = gj
       else
         l1 = int((maxval(glat(1)-xlat(:,1)))/dlat) + 3
         l2 = int((maxval(glat(1)-xlat(:,xj)))/dlat) + 3
+        l1 = max(l1,l2)
+        l2 = int((maxval(glat(1)-xlat(:,xj/2)))/dlat) + 3
         domain%jgstart = 1
         domain%jgstop = max(l1,l2)
       end if
@@ -307,11 +311,15 @@ module mod_earth
       if ( glat(1) < glat(gj) ) then
         l1 = int((maxval(xlat(:,1))-glat(1))/dlat) + 3
         l2 = int((maxval(xlat(:,xj))-glat(1))/dlat) + 3
+        l1 = max(l1,l2)
+        l2 = int((maxval(xlat(:,xj/2))-glat(1))/dlat) + 3
         domain%jgstart = 1
         domain%jgstop = max(l1,l2)
       else
-        l1 = int((maxval(glat(1)-xlat(:,1)))/dlat) - 2
-        l2 = int((maxval(glat(1)-xlat(:,xj)))/dlat) - 2
+        l1 = int((minval(glat(1)-xlat(:,1)))/dlat) - 2
+        l2 = int((minval(glat(1)-xlat(:,xj)))/dlat) - 2
+        l1 = min(l1,l2)
+        l2 = int((minval(glat(1)-xlat(:,xj/2)))/dlat) - 2
         domain%jgstart = min(l1,l2)
         domain%jgstop = gj
       end if
