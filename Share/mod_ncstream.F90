@@ -236,7 +236,6 @@ module mod_ncstream
       type(ncoutstream_params) , intent(in) :: params
       type(ncoutstream) , pointer :: stream
       type(rcm_time_and_date) :: tt
-      integer(ik4) :: imode
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
       ! Allocate all space

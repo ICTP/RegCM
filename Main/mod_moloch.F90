@@ -390,7 +390,7 @@ module mod_moloch
           end do
         end do
 
-        call exchange_tb(wz,2,jci1,jci2,ici1,ici2,1,kz)
+        call exchange_bt(wz,2,jci1,jci2,ici1,ici2,1,kz)
 
         ! Meridional advection
 
