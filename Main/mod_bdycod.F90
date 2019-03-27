@@ -443,31 +443,6 @@ module mod_bdycod
           end do
         end if
       end if
-#ifndef CLM
-      if ( lakemod == 1 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( islake(mddom%lndcat(j,i)) ) then
-              if ( iocncpl == 1 .or. iwavcpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
-              end if
-              if ( xtsb%b0(j,i) <= icetriggert ) then
-                xtsb%b0(j,i) = icetriggert
-                mddom%ldmsk(j,i) = 2
-                do n = 1 , nnsg
-                  if ( mdsub%ldmsk(n,j,i) == 0 ) then
-                    mdsub%ldmsk(n,j,i) = 2
-                    lms%sfice(n,j,i) = 1.00_rkx
-                    lms%sncv(n,j,i) = 1.0_rkx   ! 1 mm of snow over the ice
-                    lms%snag(n,j,i) = 0.1_rkx
-                  end if
-                end do
-              end if
-            end if
-          end do
-        end do
-      end if
-#endif
     end if
 
     if ( iseaice == 1 ) then

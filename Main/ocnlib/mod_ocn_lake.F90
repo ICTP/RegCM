@@ -160,11 +160,11 @@ module mod_ocn_lake
       ! surface water a little warmer to ease spinup nudging in the
       ! correct direction the profile.
       if ( abs(lat(i)) > 25.0_rkx ) then
-        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,4.0_rkx),20.0_rkx)
-        tlak(lp,2) = min(max(tlak(lp,1)-d_half,4.0_rkx),20.0_rkx)
+        tlak(lp,1) = max(min(tgrd(i)-tzero+d_one,20.0_rkx),4.0_rkx)
+        tlak(lp,2) = tlak(lp,1)
         if ( idep(lp) >= 3 ) then
           do k = 3 , idep(lp)
-            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,4.0_rkx),20.0_rkx)
+            tlak(lp,k) = min(max(tlak(lp,k-1)-0.1,4.0_rkx),20.0_rkx)
           end do
         end if
       else
@@ -192,17 +192,8 @@ module mod_ocn_lake
         !  end do
         !end if
       end if
-      ! Ice over lake from the start
-      if ( mask(i) == 4 ) then
-        tlak(lp,1) = -2.0_rkx
-        tlak(lp,2) = -1.5_rkx
-        hi(lp) = 0.20_rkx ! Set this to 20 cm of ice
-        sfice(i) = hi(lp)
-        sncv(i) = 1.0_rkx ! Put 1 cm of snow on top.
-      else
-        sfice(i) = d_zero
-        sncv(i) = d_zero
-      end if
+      sfice(i) = d_zero
+      sncv(i) = d_zero
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -298,7 +289,6 @@ module mod_ocn_lake
       else
         mask(i) = 4
         tgbrd(i) = tzero - d_two
-        ! Reduce sensible heat flux for ice presence
         toth = sfice(i) + sncv(i)
         if ( sncv(i) < dlowval ) then
           sncv(i) = d_zero
@@ -354,6 +344,7 @@ module mod_ocn_lake
         delq = qs - qgrnd
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
+        ! Reduce sensible heat flux for ice presence
         if ( toth > href ) then
           sent(i) = sent(i) * (href/toth)**steepf
         end if
