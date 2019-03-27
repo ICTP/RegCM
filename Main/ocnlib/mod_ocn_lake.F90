@@ -300,10 +300,6 @@ module mod_ocn_lake
         tgbrd(i) = tzero - d_two
         ! Reduce sensible heat flux for ice presence
         toth = sfice(i) + sncv(i)
-        if ( toth > href ) then
-          sent(i) = sent(i) * (href/toth)**steepf
-        end if
-
         if ( sncv(i) < dlowval ) then
           sncv(i) = d_zero
           snag(i) = d_zero
@@ -354,9 +350,13 @@ module mod_ocn_lake
         qice = 3.3e-3_rkx * stdp/sfps(i)
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgb(i) = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8_rkx))/cdrx
-        fact = -drag(i)
         delt = tatm(i) - tgb(i)
         delq = qs - qgrnd
+        evpr(i) = -drag(i)*delq
+        sent(i) = -drag(i)*cpd*delt
+        if ( toth > href ) then
+          sent(i) = sent(i) * (href/toth)**steepf
+        end if
       end if
       if ( abs(sent(i)) < dlowval ) sent(i) = d_zero
       if ( abs(evpr(i)) < dlowval ) evpr(i) = d_zero
