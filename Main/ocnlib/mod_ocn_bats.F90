@@ -31,10 +31,7 @@ module mod_ocn_bats
 
   private
 
-  public :: ocnbats , seaice , bgicetemp
-
-  ! Assume ground temperature of -20.0 C
-  real(rkx) , parameter :: bgicetemp = tzero - 20.0_rkx
+  public :: ocnbats , seaice
 
   contains
 
@@ -130,7 +127,7 @@ module mod_ocn_bats
       if ( tgb(i) >= icetriggert ) then
         tgrd(i) = tgb(i)
       else
-        tgrd(i) = bgicetemp
+        tgrd(i) = icetriggert
       end if
       tgbrd(i) = icetriggert
 
@@ -208,7 +205,7 @@ module mod_ocn_bats
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
       rsd1 = shice*sficemm*d_r1000
-      qgrd = pfqsat(bgicetemp,sfps(i))
+      qgrd = pfqsat(icetriggert,sfps(i))
       if ( sncv(i) > d_zero ) then
         ! include snow heat capacity
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000
