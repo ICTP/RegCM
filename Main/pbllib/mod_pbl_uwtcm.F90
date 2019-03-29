@@ -73,7 +73,7 @@ module mod_pbl_uwtcm
   use mod_mpmessage
   use mod_mppparam
   use mod_pbl_common
-  !use mod_pbl_thetal
+  use mod_pbl_thetal
   use mod_runparams , only : iqv , iqc , iqi , atwo , rstbl , &
           czero , nuk , dt , rdt , ichem , ipptls
   use mod_regcm_types
@@ -102,12 +102,16 @@ module mod_pbl_uwtcm
   ! Variables that hold frequently-done calculations
   real(rkx) :: rczero , tkefac , b1
 
+  ! To enable original Travis code.
+  logical , parameter :: travis_code = .false.
   ! imethod = 1     ! Use the Brent 1973 method to solve for T
   ! imethod = 2     ! Use Bretherton's iterative method to solve for T
   ! imethod = 3     ! Use a finite difference method to solve for T
-  ! integer(ik4) , parameter :: imethod = 2
+  integer(ik4) , parameter :: imethod = 2
   ! Do a maximum of 100 iterations (usually are no more than about 30)
-  ! integer(ik4) , parameter :: itbound = 100
+  integer(ik4) , parameter :: itbound = 100
+
+  ! Flag for implicit diffusion of ice
   logical , parameter :: implicit_ice = .true.
 
   public :: allocate_tcm_state
@@ -134,7 +138,7 @@ module mod_pbl_uwtcm
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    integer(ik4) ::  i , j , k , itr
+    integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay , kpbconv , iteration
     real(rkx) :: temps , templ , deltat , rvls , rpfac , tbbls
     real(rkx) :: uflxp , vflxp , rhoxsf , tskx , tvcon , fracz , dudz , &
@@ -415,34 +419,46 @@ module mod_pbl_uwtcm
         !*************************************************************
         !************ Re-calculate thx, qx, and qcx ******************
         !*************************************************************
-        do k = 1 , kz
-          ! Set thlx and qwx to their updated values
-          thlx(k) = uimp1(k)
-          qwx(k) = uimp2(k)
-          templ = thlx(k)*exnerhl(k)
-          temps = templ
-          rvls = pfwsat(temps,preshl(k))
-          !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
-          !         exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
-          do iteration = 1 , 3
-            deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls) / &
-              (cpowlhv + ep2*wlhv*rvls/rgas/temps/temps)
-            temps = temps + deltat
+        if ( travis_code ) then
+          do k = 1 , kz
+            thlx(k) = uimp1(k)
+            qwx(k) = uimp2(k)
+            ! Determine the temperature and qc and qv
+            ibnd = itbound
+            temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
+                                qwxs(k),qcxs(k),thlxs(k),ibnd,imethod,       &
+                                qx(k),qcx(k))
+            if ( ibnd == -999 ) then
+              call fatal(__FILE__,__LINE__, &
+                           'UW PBL SCHEME ALGO ERROR')
+            end if
+            thx(k) = temps*rexnerhl(k)
+            uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
+          end do
+        else
+          do k = 1 , kz
+            ! Set thlx and qwx to their updated values
+            thlx(k) = uimp1(k)
+            qwx(k) = uimp2(k)
+            templ = thlx(k)*exnerhl(k)
+            temps = templ
             rvls = pfwsat(temps,preshl(k))
             !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
-            !       exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
+            !         exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
+            do iteration = 1 , 3
+              deltat = ((templ-temps)*cpowlhv + qwx(k)-rvls) / &
+                (cpowlhv + ep2*wlhv*rvls/rgas/temps/temps)
+              temps = temps + deltat
+              rvls = pfwsat(temps,preshl(k))
+              !rvls = ep2/(preshl(k)/(d_100*svp1pa * &
+              !       exp(svp2*(temps-tzero)/(temps-svp3)))-d_one)
+            end do
+            qcx(k) = max(qwx(k)-rvls, d_zero)
+            qx(k) = qwx(k)-qcx(k)
+            thx(k) = (templ + wlhvocp*qcx(k))*rexnerhl(k)
+            uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
           end do
-          qcx(k) = max(qwx(k)-rvls, d_zero)
-          qx(k) = qwx(k)-qcx(k)
-          thx(k) = (templ + wlhvocp*qcx(k))*rexnerhl(k)
-          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
-          ! Determine the temperature and qc and qv
-          !temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
-          !                    qwxs(k),qcxs(k),thlxs(k),itbound,imethod,    &
-          !                    qx(k),qcx(k))
-          ! thx(k) = temps*rexnerhl(k)
-          ! uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
-        end do
+        end if
 
         !*************************************************************
         !****** Implicit Diffusion of U and V ************************

@@ -39,7 +39,7 @@ module mod_pbl_thetal
 
   contains
 
-  real(rkx) function zerofunc(t,bderiv)
+  pure real(rkx) function zerofunc(t,bderiv)
     implicit none
     real(rkx) , intent(in) :: t
     logical , intent(in) :: bderiv
@@ -53,16 +53,17 @@ module mod_pbl_thetal
       qv = myqt
       qc = d_zero
     end if
-    zerofunc = myexner*mythetal + wlhvocp*qc - t
+    zerofunc = myexner*mythetal + wlh(t)*rcpd*qc - t
     ! If necessary, find the minimum of the zerofuncion, which should be
     ! the place where it equals zero if no solution is available otherwise
     if ( bderiv ) then
-      zerofunc = -(cpd/rwat)*(myp/es)*(wlhvocp*qv/t)**2 - d_one
+      zerofunc = -(cpd/rwat)*(myp/es)*(wlh(t)*rcpd*qv/t)**2 - d_one
     end if
 
     contains
 
 #include <pfesat.inc>
+#include <wlh.inc>
 
   end function zerofunc
 
@@ -75,7 +76,8 @@ module mod_pbl_thetal
     implicit none
     real(rkx) , intent(in) :: thetal , qt , p , tprev , qtprev , &
                               qcprev , thlprev
-    integer(ik4) , intent(in) :: imethod , imax
+    integer(ik4) , intent(in) :: imethod
+    integer(ik4) , intent(inout) :: imax
     real(rkx) , intent(out) :: outqc , outqv
     real(rkx) :: a , b , c , d , s , dum
     real(rkx) :: fa , fb , fc , fs
@@ -83,21 +85,26 @@ module mod_pbl_thetal
     real(rkx) :: temps , templ , rvls
     real(rkx) :: dthetal , dqt , qvprev , deltat , es , qcthresh
     real(rkx) :: tempqv , tempqc , tempt , tempes , ddq
+    real(rkx) :: mylovcp , mycpovl , mywlhv
     logical :: mflag
-    integer(ik4) :: iteration , itqt
+    integer(ik4) :: iteration , itqt , itqtsupp , maxiter
     integer(ik4) , parameter :: itmax = 6
+    integer(ik4) , parameter :: itmin = 3
 
     ! set some interal module variables
     mythetal = thetal
     myqt = qt
     myp = p
     myexner = (myp/p00)**rovcp
-    templ = mythetal*myexner
+    mywlhv = wlh(tprev)
+    mylovcp = mywlhv/cpd
+    mycpovl = d_one/mylovcp
+
+    maxiter = imax
 
     ! Use the Brent 1973 method to determine t from liquid water pot.
     ! temp., pressure, and total water
     ! (see http://en.wikipedia.org/wiki/brent's_method)
-
     if ( imethod == 1 ) then
 
       ! set the bounds on t based on the change in thetal and qw:
@@ -105,7 +112,7 @@ module mod_pbl_thetal
       ! cloud water at one end, and none of the change in qw goes in to it
       ! in the other
       a = tprev + myexner*(mythetal - thlprev)
-      b = a + wlhvocp*(myqt-qtprev)
+      b = a + mylovcp*(myqt-qtprev)
 
       ! if a and b are essentially the same, then the total water did not
       ! change, and so t is given only by the change in liquid water
@@ -121,7 +128,7 @@ module mod_pbl_thetal
       if ( a > b ) call swap(a,b)
       dum = myexner*mythetal
       a = max(a, dum)
-      b = min(b, dum + wlhvocp*myqt)
+      b = min(b, dum + mylovcp*myqt)
       ! run these through the solution-finder
       fa = zerofunc(a,.false.)
       fb = zerofunc(b,.false.)
@@ -149,6 +156,7 @@ module mod_pbl_thetal
         solve_for_t = dum
         solve_for_t = tprev
         call getqvqc(solve_for_t,es,outqv,outqc)
+        imax = -999
       end if
 
       ! put a and b in the proper order
@@ -166,7 +174,7 @@ module mod_pbl_thetal
 
       !*************** the main iteration loop *******************
 
-      do iteration = 1 , imax
+      do iteration = 1 , maxiter
         if ( fa /= fc .and. fb /= fc ) then
           ! inverse quadratic interpolation
           s =   a*fb*fc/( (fa-fb)*(fa-fc) ) &
@@ -211,6 +219,7 @@ module mod_pbl_thetal
         if ( (abs(fa-fb) < mindq) .or. (abs(fb) < dlowval) ) then
           solve_for_t = b
           call getqvqc(solve_for_t,es,outqv,outqc)
+          imax = iteration
           return
         end if
         if ( abs(fa) < abs(fb) ) call swap(a,b)
@@ -229,6 +238,8 @@ module mod_pbl_thetal
       end if
 
     else if ( imethod == 2 ) then
+
+      templ = mythetal*myexner
       ! Bretherton's iterative method
       ! set the dummy temperature temps (which will eventually
       ! be the actual temperature)
@@ -238,11 +249,11 @@ module mod_pbl_thetal
       !******* condense any water, if possible ***************
       !*******************************************************
 
-      itqt = 0
+      itqtsupp = 0
       bigloop : &
       do
         ! calculate the saturation mixing ratio
-        rvls = ep2/(myp/pfesat(temps)-d_one)
+        rvls = pfwsat(temps,p)
         ! go through 3 iterations of calculating the saturation
         ! humidity and updating the temperature
 
@@ -250,15 +261,18 @@ module mod_pbl_thetal
         ! content; the algorithm takes longer to converge for high liquid
         ! water content.  for too few iterations, really high liquid water
         ! contents (and correspondingly high temperatures) result.
-
-        do iteration = 1 , itmax ! condenseliquid
+        itqt = max(min(int(d_two*(dble(itmax)+log(myqt))),itmax),itmin) + &
+                 itqtsupp
+        do iteration = 1 , itqt ! condenseliquid
           ! update the dummy temperature
-          deltat = ((templ-temps)*cpowlhv + myqt-rvls)/   &
-                    (cpowlhv+ep2*wlhv*rvls/rgas/temps/temps)
+          deltat = ((templ-temps)*mycpovl + myqt-rvls)/   &
+                    (mycpovl+ep2*mywlhv*rvls/rgas/temps/temps)
           temps = temps + deltat
+          mywlhv = wlh(temps)
+          mylovcp = mywlhv/cpd
+          mycpovl = d_one/mylovcp
           ! re-calculate the saturation mixing ratio
-          rvls = ep2/(myp/pfesat(temps)-d_one)
-          if ( abs(deltat) < mindt ) exit
+          rvls = pfwsat(temps,p)
         end do ! condenseliquid
         ! cloud water is the total minus the saturation
         ddq = max(myqt-rvls,d_zero)
@@ -267,22 +281,21 @@ module mod_pbl_thetal
         outqv = myqt - ddq
         ! add the enthalpy of condensation to templ and
         ! convert to potential temperature
-        solve_for_t = templ + ddq*wlhvocp
+        solve_for_t = templ + ddq*mylovcp
         ! if there is cloud, check that qv is consistent with t
         if ( ddq > d_zero ) then
-          dum = pfesat(solve_for_t)
-          rvls = ep2/(myp/dum-d_one)
+          rvls = pfwsat(solve_for_t,p)
           dum = rvls - outqv
           ! if the solution did not converge, add three more iterations
           if ( abs(dum) > mindq ) then
+            itqtsupp = itqtsupp + 3
             ! if the solution really is not converging, issue a warning
-            if ( itqt > imax ) then
+            if ( itqtsupp > maxiter ) then
               write(stderr,*) '(mod_thetal) warning: non-convergence of ', &
                          'temperature solution'
               call fatal(__FILE__,__LINE__, &
                          'model stops for UW PBL error')
             end if
-            itqt = itqt + 1
             cycle bigloop
           end if
         end if
@@ -293,6 +306,7 @@ module mod_pbl_thetal
 
       ! O'brien's finite difference method
 
+      templ = mythetal*myexner
       myqt = qt
       dthetal = thetal - thlprev
       dqt = qt - qtprev
@@ -307,20 +321,21 @@ module mod_pbl_thetal
       ! set the threshold for (approximately) zero cloud water
       ! have it be consistent with the threshold for determining
       ! when tprev+deltat is consistent enough with thetal
-      ! qcthresh = mindt*myexner/wlhvocp
+      ! qcthresh = mindt*myexner*mycpovl
       qcthresh = 1.0e-8_rkx
 
-      do iteration = 1 , imax
+      do iteration = 1 , maxiter
         ! if the air is undersaturated, then thetal is just the normal
         ! potential temperature, so the delta t is given by dthetal
         ! if(tempqc < qcthresh) then
+        imax = iteration
         if ( abs(qt-qvprev) <= qcthresh ) then
           deltat = myexner*dthetal
           ! otherwise, add a contribution from the change in cloud water.
         else
           dum = (myp/ep2/tempes)*(cpd/rwat)*      &
-                (wlhvocp*tempqv/(cpd*tempt))**2 + d_one
-          deltat = (myexner*dthetal + wlhvocp*dqt)/dum
+                (mylovcp*tempqv/(cpd*tempt))**2 + d_one
+          deltat = (myexner*dthetal + mylovcp*dqt)/dum
         end if
 
         if ( abs(deltat) < mindt ) then
@@ -335,7 +350,7 @@ module mod_pbl_thetal
         ! and get qc and qv from it
         call getqvqc(tempt,tempes,tempqv,tempqc)
         ! check if the solution has converged
-        dum = thetal - (tempt - wlhvocp*tempqc)/myexner
+        dum = thetal - (tempt - mylovcp*tempqc)/myexner
         if (abs(dum) < mindt ) exit
       end do
 
@@ -349,6 +364,8 @@ module mod_pbl_thetal
     contains
 
 #include <pfesat.inc>
+#include <pfwsat.inc>
+#include <wlh.inc>
 
   end function solve_for_t
 
@@ -409,6 +426,7 @@ module mod_pbl_thetal
       qc = myqt - qv
     else
       qv = myqt
+      qc = d_zero
     end if
 
     contains
