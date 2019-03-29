@@ -34,6 +34,7 @@ module mod_micro_interface
   use mod_cloud_xuran
   use mod_cloud_thomp
   use mod_cloud_guli2007
+  use mod_cloud_texeira
 
   implicit none
 
@@ -243,6 +244,8 @@ module mod_micro_interface
                            ds,mc2mo%fcc)
       case (3)
         call gulisa_cldfrac(mo2mc%qvn,mo2mc%qs,totc,mc2mo%fcc)
+      case (4)
+        call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
@@ -296,9 +299,10 @@ module mod_micro_interface
               ! the large scale clouds.
               exlwc = clwfromt(mo2mc%t(j,i,k))
             else
-              ! NOTE : IN CLOUD HERE IS NEEDED !!!
               ! In g / m^3
-              exlwc = ((totc(j,i,k)*d_1000)/mc2mo%fcc(j,i,k))*mo2mc%rho(j,i,k)
+              exlwc = (totc(j,i,k)*d_1000)*mo2mc%rho(j,i,k)
+              ! NOTE : IN CLOUD HERE IS NEEDED !!!
+              exlwc = exlwc/mc2mo%fcc(j,i,k)
             end if
             ! Scaling for CF
             ! Implements CF scaling as in Liang GRL 32, 2005
