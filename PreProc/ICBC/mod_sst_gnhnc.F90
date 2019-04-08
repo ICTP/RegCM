@@ -99,6 +99,11 @@ module mod_sst_gnhnc
       write (inpfile,'(a,i0.4,a)') &
         trim(inpglob)//pthsep//ssttyp//pthsep//'SST'//pthsep//'sst.',year, '.nc'
       varname(2) = 'sst'
+    else if ( ssttyp(1:4) == 'ERA5' ) then
+      write (inpfile,'(a,i0.4,a,i0.2,a)') &
+        trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SST'//pthsep// &
+         'sst_',year,'_',month,'.nc'
+      varname(2) = 'sst'
     else if ( ssttyp(1:3) == 'CFS' ) then
       write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
         trim(inpglob)//'/CFS/',year,month,day,hour, &
@@ -201,7 +206,7 @@ module mod_sst_gnhnc
     call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
 
     if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' .and. &
-         ssttyp(1:3) /= 'EIN' ) then
+         ssttyp(1:3) /= 'EIN' .and. ssttyp(1:4) /= 'ERA5' ) then
       istart(1) = 1
       icount(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
@@ -230,7 +235,9 @@ module mod_sst_gnhnc
       call getmem2d(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
     end if
 
-    if ( ssttyp(1:3) == 'CFS' .or. ssttyp(1:3) == 'EIN' ) then
+    if ( ssttyp(1:3) == 'CFS' .or. &
+         ssttyp(1:3) == 'EIN' .or. &
+         ssttyp(1:4) == 'ERA5' ) then
       idateo = globidate1
     else
       idateo = monfirst(globidate1)
@@ -302,6 +309,10 @@ module mod_sst_gnhnc
         write (inpfile,'(a,i0.4,a)') &
           trim(inpglob)//pthsep//ssttyp//pthsep//'SST'// &
           pthsep//'sst.',year, '.nc'
+      else if ( ssttyp(1:4) == 'ERA5' ) then
+        write (inpfile,'(a,i0.4,a,i0.2,a)') &
+          trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SST'//pthsep// &
+           'sst_',year,'_',month,'.nc'
       end if
       istatus = nf90_open(inpfile,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -313,7 +324,9 @@ module mod_sst_gnhnc
       istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//varname(2))
-      if ( ssttyp(1:3) == 'CFS' .or. ssttyp(1:3) == 'EIN' ) then
+      if ( ssttyp(1:3) == 'CFS' .or. &
+           ssttyp(1:3) == 'EIN' .or. &
+           ssttyp(1:4) == 'ERA5' ) then
         istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error read var '//varname(2)//' _FillValue')
@@ -351,7 +364,7 @@ module mod_sst_gnhnc
     icount(3) = 1
     istart(3) = it
     if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' .or. &
-         ssttyp(1:3) == 'EIN' ) then
+         ssttyp(1:3) == 'EIN' .or. ssttyp(1:4) == 'ERA5' ) then
       call getworki(2,work)
       work2 = 1E+20
       where ( work /= fillvalue )
