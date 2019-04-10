@@ -20,7 +20,7 @@ icbc_SOURCES = mod_vectutil.F90 mod_ecwcp.F90 mod_eh5om.F90 mod_ein.F90 \
                mod_ccsm3_helper.F90 mod_hadgem_helper.F90 mod_csiro_helper.F90 \
                mod_canesm_helper.F90 mod_miroc_helper.F90 mod_ipsl_helper.F90 \
                mod_gfdl_helper.F90 mod_cnrm_helper.F90 mod_mpiesm_helper.F90 \
-               mod_ecearth_helper.F90 mod_noresm_helper.F90 \
+               mod_ecearth_helper.F90 mod_noresm_helper.F90 mod_era5.F90 \
                mod_ccsm4_helper.F90 icbc.F90
 chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
                     mod_ox_icbc.F90 mod_ae_icbc.F90 mod_wrtoxd.F90 \
@@ -40,7 +40,7 @@ distclean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 chem_icbc.o : chem_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_date.o mod_dynparam.o mod_space.o mod_memutil.o mod_nchelper.o mod_domain.o mod_grid.o mod_ncstream_types.o mod_ncstream.o mod_wrtoxd.o mod_header.o mod_ch_icbc.o mod_ch_icbc_clim.o mod_ox_icbc.o mod_ae_icbc.o
-icbc.o : icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ecwcp.o mod_eh5om.o mod_ein.o mod_era40.o mod_erahi.o mod_ecens.o mod_fvgcm.o mod_ncep.o mod_nest.o mod_gn6hnc.o mod_write.o
+icbc.o : icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_mksst.o mod_date.o mod_grid.o mod_date.o mod_ecwcp.o mod_eh5om.o mod_ein.o mod_era5.o mod_era40.o mod_erahi.o mod_ecens.o mod_fvgcm.o mod_ncep.o mod_nest.o mod_gn6hnc.o mod_write.o
 mod_ch_icbc.o : mod_ch_icbc.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_ch_param.o
 mod_ch_icbc_clim.o : mod_ch_icbc_clim.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_dynparam.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_memutil.o mod_message.o mod_nchelper.o mod_ch_param.o
 mod_ox_icbc.o : mod_ox_icbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_grid.o mod_wrtoxd.o mod_kdinterp.o mod_date.o mod_nchelper.o
@@ -62,6 +62,7 @@ mod_ecens.o : mod_ecens.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_st
 mod_ecwcp.o : mod_ecwcp.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
 mod_eh5om.o : mod_eh5om.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_grid.o mod_memutil.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o
 mod_ein.o : mod_ein.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o
+mod_era5.o : mod_era5.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o mod_kdinterp.o mod_earth.o
 mod_era40.o : mod_era40.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_memutil.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o mod_message.o mod_nchelper.o
 mod_erahi.o : mod_erahi.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_message.o mod_stdio.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o
 mod_fvgcm.o : mod_fvgcm.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_message.o mod_grid.o mod_write.o mod_kdinterp.o mod_vertint.o mod_hgt.o mod_humid.o mod_mksst.o mod_uvrot.o mod_vectutil.o

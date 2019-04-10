@@ -135,6 +135,7 @@ program icbc
   use mod_eh5om
   use mod_ein
   use mod_era40
+  use mod_era5
   use mod_erahi
   use mod_ecens
   use mod_fvgcm
@@ -229,6 +230,8 @@ program icbc
     call init_ecwcp
   else if ( dattyp == 'ERA40' ) then
     call init_era40
+  else if ( dattyp(1:4) == 'ERA5' ) then
+    call init_era5
   else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
             dattyp == 'EIXXX' ) then
     call init_ein
@@ -265,6 +268,8 @@ program icbc
       call get_ecwcp(idate)
     else if ( dattyp == 'ERA40' ) then
       call get_era40(idate)
+    else if ( dattyp(1:4) == 'ERA5' ) then
+      call get_era5(idate)
     else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
               dattyp == 'EIXXX' ) then
       call get_ein(idate)
@@ -292,8 +297,10 @@ program icbc
   call close_output
   call closesst
 
-  if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
-       dattyp == 'EIXXX' ) then
+  if ( dattyp(1:4) == 'ERA5' ) then
+    call conclude_era5
+  else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
+            dattyp == 'EIXXX' ) then
     call conclude_ein
   else if ( dattyp(1:3) == 'ECE' ) then
     call conclude_ecens
