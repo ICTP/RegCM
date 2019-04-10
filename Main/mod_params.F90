@@ -1655,10 +1655,12 @@ module mod_params
     end if
     rsrffrq_sec = d_one/(srffrq*secph)
 
-    do ns = 1 , nsplit
-      dtsplit(ns) = dt*(d_half/real(nsplit-ns+1,rkx))
-      dtau(ns) = dtsplit(ns)
-    end do
+    if ( idynamic == 1 ) then
+      do ns = 1 , nsplit
+        dtsplit(ns) = dt*(d_half/real(nsplit-ns+1,rkx))
+        dtau(ns) = dtsplit(ns)
+      end do
+    end if
     dt2 = d_two*dt
     dtsq = dt*dt
     dtcb = dt*dt*dt
@@ -1891,10 +1893,12 @@ module mod_params
     !
     !-----compute dsigma and half sigma levels.
     !
-    do k = 1 , kz
-      dsigma(k) = (sigma(k+1) - sigma(k))
-      hsigma(k) = (sigma(k+1) + sigma(k))*d_half
-    end do
+    if ( idynamic < 3 ) then
+      do k = 1 , kz
+        dsigma(k) = (sigma(k+1) - sigma(k))
+        hsigma(k) = (sigma(k+1) + sigma(k))*d_half
+      end do
+    end if
 
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
@@ -1940,9 +1944,11 @@ module mod_params
     !
     ! Initializations
     !
-    call init_advection
-    if ( isladvec == 1 ) then
-      call init_sladvection
+    if ( idynamic /= 3 ) then
+      call init_advection
+      if ( isladvec == 1 ) then
+        call init_sladvection
+      end if
     end if
     call init_micro
     if ( ichem == 1 ) then
@@ -2324,14 +2330,16 @@ module mod_params
     !
     !-----compute the vertical interpolation coefficients for t and qv.
     !
-    twt(1,1) = d_zero
-    twt(1,2) = d_zero
-    qcon(1) = d_zero
-    do k = 2 , kz
-      twt(k,1) = (sigma(k)-hsigma(k-1))/(hsigma(k)-hsigma(k-1))
-      twt(k,2) = d_one - twt(k,1)
-      qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
-    end do
+    if ( idynamic /= 3 ) then
+      twt(1,1) = d_zero
+      twt(1,2) = d_zero
+      qcon(1) = d_zero
+      do k = 2 , kz
+        twt(k,1) = (sigma(k)-hsigma(k-1))/(hsigma(k)-hsigma(k-1))
+        twt(k,2) = d_one - twt(k,1)
+        qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
+      end do
+    end if
 
     chibot = 450.0_rkx
     ptmb = d_10*ptop
@@ -2448,15 +2456,17 @@ module mod_params
         write(stdout,*) 'Relaxation boundary conditions (exponential method)'
       end if
 
-      write(stdout,'(a,7x,a,11x,a,6x,a,7x,a,7x,a,9x,a)') '# k','sigma','a',&
-        'dsigma','twt(1)','twt(2)','qcon'
+      if ( idynamic /= 3 ) then
+        write(stdout,'(a,7x,a,11x,a,6x,a,7x,a,7x,a,9x,a)') '# k','sigma','a',&
+          'dsigma','twt(1)','twt(2)','qcon'
 
-      do k = 1 , kz
-        write(stdout, &
-          '(1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)') &
-          k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) , twt(k,2) , qcon(k)
-      end do
-      write(stdout,'(1x,i2,5x,f7.4)') kzp1 , sigma(kzp1)
+        do k = 1 , kz
+          write(stdout, &
+            '(1x,i2,5x,f7.4,5x,f7.4,5x,f7.4,5x,f8.4,5x,f8.4,5x,f8.4)') &
+            k , sigma(k) , hsigma(k) , dsigma(k) , twt(k,1) , twt(k,2) , qcon(k)
+        end do
+        write(stdout,'(1x,i2,5x,f7.4)') kzp1 , sigma(kzp1)
+      end if
     end if
 
     if (itweak == 1 ) then
@@ -2658,8 +2668,8 @@ module mod_params
           end do
         end do
         call exchange_bt(mddom%clv,1,jci1,jci2,idi1,idi2)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             mddom%fmyu(j,i) = 1.0_rkx/cos(degrad*mddom%xlat(j,i))
           end do
         end do

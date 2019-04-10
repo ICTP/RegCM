@@ -168,8 +168,8 @@ module mod_init
         end do
         mo_atm%fmzf(:,:,1) = 0.0_rkx
         do k = 2 , kzp1
-          do i = 1 , iy
-            do j = 1 , jx
+          do i = ice1 , ice2
+            do j = jce1 , jce2
               mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
             end do
           end do
@@ -212,7 +212,10 @@ module mod_init
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
-            mo_atm%pai(j,i,kz) = (xpsb%b0(j,i)/p00)**rovcp
+            zb = mddom%ht(j,i) * regrav + mo_atm%zeta(j,i,kz)
+            mo_atm%p(j,i,kz) = (xpsb%b0(j,i)*d_1000) * &
+              exp(-egrav*zb/rgas/mo_atm%tvirt(j,i,kz))
+            mo_atm%pai(j,i,kz) = (mo_atm%p(j,i,kz)/p00)**rovcp
           end do
         end do
         do k = kzm1 , 1 , -1
@@ -224,6 +227,14 @@ module mod_init
                     mo_atm%tvirt(j,i,k+1)*mo_atm%tvirt(j,i,k))
               mo_atm%pai(j,i,k) = -mo_atm%pai(j,i,k+1) / &
                     (d_two * mo_atm%tvirt(j,i,k+1)) * (zb - zdelta)
+            end do
+          end do
+        end do
+        ! Compute pressure
+        do k = 1 , kzm1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
             end do
           end do
         end do
@@ -256,15 +267,27 @@ module mod_init
       !
       ! Set the TKE variables for UW PBL to a default value
       !
-      if ( ibltyp == 2 ) then
-        atm1%tke(:,:,:) = tkemin
-        atm2%tke(:,:,:) = tkemin
-      else if ( ibltyp == 4 ) then
-        atms%tkepbl = tkemin
-        sfs%uz0 = d_zero
-        sfs%vz0 = d_zero
-        sfs%thz0 = d_zero
-        sfs%qz0 = d_zero
+      if ( idynamic == 3 ) then
+        if ( ibltyp == 2 ) then
+          mo_atm%tke(:,:,:) = tkemin
+        else if ( ibltyp == 4 ) then
+          atms%tkepbl(:,:,:) = tkemin
+          sfs%uz0 = d_zero
+          sfs%vz0 = d_zero
+          sfs%thz0 = d_zero
+          sfs%qz0 = d_zero
+        end if
+      else
+        if ( ibltyp == 2 ) then
+          atm1%tke(:,:,:) = tkemin
+          atm2%tke(:,:,:) = tkemin
+        else if ( ibltyp == 4 ) then
+          atms%tkepbl = tkemin
+          sfs%uz0 = d_zero
+          sfs%vz0 = d_zero
+          sfs%thz0 = d_zero
+          sfs%qz0 = d_zero
+        end if
       end if
       !
       ! Init the diurnal cycle SST scheme
@@ -299,45 +322,60 @@ module mod_init
       !
       ! Comunicate the data to other processors
       !
-      call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
-      call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
-      call grid_distribute(atm1_t_io,atm1%t,jce1,jce2,ice1,ice2,1,kz)
-      call grid_distribute(atm1_qx_io,atm1%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+      if ( idynamic == 3 ) then
+      else
+        call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
+        call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
+        call grid_distribute(atm1_t_io,atm1%t,jce1,jce2,ice1,ice2,1,kz)
+        call grid_distribute(atm1_qx_io,atm1%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-      call grid_distribute(atm2_u_io,atm2%u,jde1,jde2,ide1,ide2,1,kz)
-      call grid_distribute(atm2_v_io,atm2%v,jde1,jde2,ide1,ide2,1,kz)
-      call grid_distribute(atm2_t_io,atm2%t,jce1,jce2,ice1,ice2,1,kz)
-      call grid_distribute(atm2_qx_io,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        call grid_distribute(atm2_u_io,atm2%u,jde1,jde2,ide1,ide2,1,kz)
+        call grid_distribute(atm2_v_io,atm2%v,jde1,jde2,ide1,ide2,1,kz)
+        call grid_distribute(atm2_t_io,atm2%t,jce1,jce2,ice1,ice2,1,kz)
+        call grid_distribute(atm2_qx_io,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-      if ( ibltyp == 2 ) then
-        call grid_distribute(atm1_tke_io,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
-        call grid_distribute(atm2_tke_io,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
-        call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
-      else if ( ibltyp == 4 ) then
-        call grid_distribute(tke_pbl_io,atms%tkepbl,jci1,jci2,ici1,ici2,1,kz)
-        call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
-        call grid_distribute(myjsf_uz0_io,sfs%uz0,jci1,jci2,ici1,ici2)
-        call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
-        call grid_distribute(myjsf_thz0_io,sfs%thz0,jci1,jci2,ici1,ici2)
-        call grid_distribute(myjsf_qz0_io,sfs%qz0,jci1,jci2,ici1,ici2)
-      end if
+        if ( ibltyp == 2 ) then
+          call grid_distribute(atm1_tke_io,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_distribute(atm2_tke_io,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
+        else if ( ibltyp == 4 ) then
+          call grid_distribute(tke_pbl_io,atms%tkepbl,jci1,jci2,ici1,ici2,1,kz)
+          call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_uz0_io,sfs%uz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_thz0_io,sfs%thz0,jci1,jci2,ici1,ici2)
+          call grid_distribute(myjsf_qz0_io,sfs%qz0,jci1,jci2,ici1,ici2)
+        end if
 
-      if ( idynamic == 2 ) then
-        call grid_distribute(atm1_w_io,atm1%w,jce1,jce2,ice1,ice2,1,kzp1)
-        call grid_distribute(atm2_w_io,atm2%w,jce1,jce2,ice1,ice2,1,kzp1)
-        call grid_distribute(atm1_pp_io,atm1%pp,jce1,jce2,ice1,ice2,1,kz)
-        call grid_distribute(atm2_pp_io,atm2%pp,jce1,jce2,ice1,ice2,1,kz)
-      end if
+        if ( idynamic == 2 ) then
+          call grid_distribute(atm1_w_io,atm1%w,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_distribute(atm2_w_io,atm2%w,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_distribute(atm1_pp_io,atm1%pp,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(atm2_pp_io,atm2%pp,jce1,jce2,ice1,ice2,1,kz)
+        end if
 
-      call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
-      call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
+        call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
+        call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
 
-      if ( idynamic == 2 ) then
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            sfs%psc(j,i) = sfs%psa(j,i)
+        if ( idynamic == 2 ) then
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              sfs%psc(j,i) = sfs%psa(j,i)
+            end do
           end do
-        end do
+        end if
+
+        call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+        call psc2psd(sfs%psa,sfs%psdota)
+        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
+        call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
+        call psc2psd(sfs%psb,sfs%psdotb)
+        call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
+
+        if ( ichem == 1 ) then
+          call grid_distribute(chia_io,atm1%chi,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_distribute(chib_io,atm2%chi,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        end if
       end if
 
       call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
@@ -353,14 +391,6 @@ module mod_init
       call grid_distribute(v10m_io,sfs%v10m,jci1,jci2,ici1,ici2)
       call grid_distribute(w10m_io,sfs%w10m,jci1,jci2,ici1,ici2)
       call grid_distribute(ustar_io,sfs%ustar,jci1,jci2,ici1,ici2)
-
-      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psa,sfs%psdota)
-      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-      call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psb,sfs%psdotb)
-      call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
-
       if ( ipptls > 0 ) then
         call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
       end if
@@ -469,8 +499,6 @@ module mod_init
       end if
 
       if ( ichem == 1 ) then
-        call grid_distribute(chia_io,atm1%chi,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_distribute(chib_io,atm2%chi,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         call grid_distribute(rainout_io,rainout,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         call grid_distribute(washout_io,washout,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         call grid_distribute(remdrd_io,remdrd,jce1,jce2,ice1,ice2,1,ntr)
@@ -541,7 +569,7 @@ module mod_init
           end do
         end do
       end do
-    else
+    else if ( idynamic == 2 ) then
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -565,37 +593,69 @@ module mod_init
     if ( .not. ifrest ) then
       if ( ipptls > 1 ) then
         ! Initialize cloud liquid water
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              t = atm1%t(j,i,k) / sfs%psa(j,i)
-              p = atm1%pr(j,i,k)
-              qs = pfwsat(t,p)
-              qv = atm1%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx*sigma(k)
-              if ( qv > qs ) then
-                rh = min(max((qv/qs),rhmin),rhmax)
-                pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
-                dens = p/(rgas*t)
-                atm1%qx(j,i,k,iqv) = qs * sfs%psa(j,i)
-                atm2%qx(j,i,k,iqv) = atm1%qx(j,i,k,iqv)
-                if ( t > tzero-2.0_rkx ) then
-                  atm1%qx(j,i,k,iqc) = pfcc * dens * &
-                                 clwfromt(t)/d_1000 * sfs%psa(j,i)
-                  atm1%qx(j,i,k,iqi) = d_zero
+        if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                t = mo_atm%t(j,i,k) / sfs%psa(j,i)
+                p = mo_atm%p(j,i,k)
+                qs = pfwsat(t,p)
+                qv = mo_atm%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx*sigma(k)
+                if ( qv > qs ) then
+                  rh = min(max((qv/qs),rhmin),rhmax)
+                  pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
+                  dens = p/(rgas*t)
+                  mo_atm%qx(j,i,k,iqv) = qs * sfs%psa(j,i)
+                  atm2%qx(j,i,k,iqv) = mo_atm%qx(j,i,k,iqv)
+                  if ( t > tzero-2.0_rkx ) then
+                    mo_atm%qx(j,i,k,iqc) = pfcc * dens * &
+                                   clwfromt(t)/d_1000 * sfs%psa(j,i)
+                    mo_atm%qx(j,i,k,iqi) = d_zero
+                  else
+                    mo_atm%qx(j,i,k,iqc) = d_zero
+                    mo_atm%qx(j,i,k,iqi) = pfcc * dens * &
+                                   clwfromt(t)/d_1000 * sfs%psa(j,i)
+                  end if
                 else
-                  atm1%qx(j,i,k,iqc) = d_zero
-                  atm1%qx(j,i,k,iqi) = pfcc * dens * &
-                                 clwfromt(t)/d_1000 * sfs%psa(j,i)
+                  mo_atm%qx(j,i,k,iqc) = d_zero
+                  mo_atm%qx(j,i,k,iqi) = d_zero
                 end if
-              else
-                atm1%qx(j,i,k,iqc) = d_zero
-                atm1%qx(j,i,k,iqi) = d_zero
-              end if
-              atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
-              atm2%qx(j,i,k,iqi) = atm1%qx(j,i,k,iqi)
+              end do
             end do
           end do
-        end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                t = atm1%t(j,i,k) / sfs%psa(j,i)
+                p = atm1%pr(j,i,k)
+                qs = pfwsat(t,p)
+                qv = atm1%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx*sigma(k)
+                if ( qv > qs ) then
+                  rh = min(max((qv/qs),rhmin),rhmax)
+                  pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
+                  dens = p/(rgas*t)
+                  atm1%qx(j,i,k,iqv) = qs * sfs%psa(j,i)
+                  atm2%qx(j,i,k,iqv) = atm1%qx(j,i,k,iqv)
+                  if ( t > tzero-2.0_rkx ) then
+                    atm1%qx(j,i,k,iqc) = pfcc * dens * &
+                                   clwfromt(t)/d_1000 * sfs%psa(j,i)
+                    atm1%qx(j,i,k,iqi) = d_zero
+                  else
+                    atm1%qx(j,i,k,iqc) = d_zero
+                    atm1%qx(j,i,k,iqi) = pfcc * dens * &
+                                   clwfromt(t)/d_1000 * sfs%psa(j,i)
+                  end if
+                else
+                  atm1%qx(j,i,k,iqc) = d_zero
+                  atm1%qx(j,i,k,iqi) = d_zero
+                end if
+                atm2%qx(j,i,k,iqc) = atm1%qx(j,i,k,iqc)
+                atm2%qx(j,i,k,iqi) = atm1%qx(j,i,k,iqi)
+              end do
+            end do
+          end do
+        end if
       end if
       !
       if ( any(icup == 6) ) then
@@ -636,9 +696,11 @@ module mod_init
     !
     call init_slice
     call initialize_surface_model
-    call initialize_diffusion
-    if ( idynamic == 2 ) then
-      call init_sound
+    if ( idynamic /= 3 ) then
+      call initialize_diffusion
+      if ( idynamic == 2 ) then
+        call init_sound
+      end if
     end if
     !
     ! RRTM_SW gas / abs constant initialisation

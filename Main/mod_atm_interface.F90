@@ -563,6 +563,29 @@ module mod_atm_interface
       end if
     end subroutine allocate_v2dbound
 
+    subroutine allocate_atmosphere(atm)
+      implicit none
+      type(atmosphere) , intent(inout) :: atm
+      call getmem3d(atm%u,jde1gb,jde2gb,ice1,ice2,1,kz,'atmstate:u')
+      call getmem3d(atm%v,jce1,jce2,ide1gb,ide2gb,1,kz,'atmstate:v')
+      call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
+      call getmem3d(atm%pai,jce1,jce2,ice1,ice2,1,kz,'atmstate:pai')
+      call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
+      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
+      call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
+      call getmem3d(atm%tetav,jce1,jce2,ice1,ice2,1,kz,'atmstate:tetav')
+      call getmem3d(atm%zeta,jce1,jce2,ice1,ice2,1,kz,'atmstate:zeta')
+      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
+      if ( ibltyp == 2 ) then
+        call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
+      end if
+      if ( ichem == 1 ) then
+        call getmem4d(atm%trac,jce1,jce2,ice1,ice2,1,kz,1,ntr,'atmstate:trac')
+      end if
+      call getmem3d(atm%fmz,jce1,jce2,ice1,ice2,1,kz,'atmstate:fmz')
+      call getmem3d(atm%fmzf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:fmzf')
+    end subroutine allocate_atmosphere
+
     subroutine allocate_atmstate_a(atm)
       implicit none
       type(atmstate_a) , intent(out) :: atm
@@ -771,7 +794,7 @@ module mod_atm_interface
       call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
       if ( idynamic == 3 ) then
         call getmem2d(dom%clv,jci1,jci2,idi1ga,idi2ga,'storage:clv')
-        call getmem2d(dom%fmyu,jci1,jci2,ici1,ici2,'storage:fmyu')
+        call getmem2d(dom%fmyu,jce1,jce2,ice1,ice2,'storage:fmyu')
         call getmem2d(dom%hx,jdi1,jdi2,ice1,ice2,'storage:hx')
         call getmem2d(dom%hy,jce1,jce2,idi1,idi2,'storage:hy')
       end if
@@ -950,6 +973,7 @@ module mod_atm_interface
         call allocate_nhbh(nhbh1)
       end if
       if ( idynamic == 3 ) then
+        call allocate_atmosphere(mo_atm)
       else
         call allocate_atmstate_a(atm1)
         call allocate_atmstate_b(atm2)

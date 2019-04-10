@@ -146,8 +146,8 @@ module mod_moloch
         integer(ik4) :: i , j , k , n
         real(rkx) , pointer , dimension(:,:,:) :: ptr
 
-        call exchange_lr(mo_atm%u,2,jde1,jde2,ide1,ide2,1,kz)
-        call exchange_bt(mo_atm%v,2,jde1,jde2,ide1,ide2,1,kz)
+        call exchange_lr(mo_atm%u,2,jde1,jde2,ice1,ice2,1,kz)
+        call exchange_bt(mo_atm%v,2,jce1,jce2,ide1,ide2,1,kz)
 
         ! Compute U-wind on T points
 

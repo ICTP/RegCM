@@ -151,7 +151,6 @@ module mod_spbarcoord
       subroutine compute_angles
         implicit none
         real(rkx) , dimension(3) :: vp1 , vp2
-        integer(ik4) :: ip
         do i = 1 , np
           theta(i) = angle_between(p,voc(i)%v)
         end do

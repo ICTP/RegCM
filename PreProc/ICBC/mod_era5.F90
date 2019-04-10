@@ -394,7 +394,8 @@ module mod_era5
               max(real(real(work(i,j,:),rkx)*xscale+xadd,rkx),0.0_rkx)
           end do
         end do
-        q4 = d_10**q4
+        call sph2mxr(qvar,ilon,jlat,klev)
+        qvar = log10(qvar)
       else if ( kkrec == 4 ) then
         do j = 1 , jlat
           do i = 1 , ilon

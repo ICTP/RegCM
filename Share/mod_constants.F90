@@ -180,6 +180,7 @@ module mod_constants
   real(rkx) , parameter :: regrav = d_one/egrav
   real(rkx) , parameter :: rcpd = d_one/cpd
   real(rkx) , parameter :: rovcp = rgas*rcpd
+  real(rkx) , parameter :: cpovr = cpd/rgas
   real(rkx) , parameter :: rovg  = rgas/egrav
   real(rkx) , parameter :: govr  = egrav/rgas
   real(rkx) , parameter :: gdry  = -egrav/cpd

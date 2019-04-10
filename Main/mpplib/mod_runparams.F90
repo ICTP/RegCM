@@ -515,8 +515,10 @@ module mod_runparams
       call getmem1d(qcon,1,kz,'mod_runparams:qcon')
       call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
       call getmem2d(twt,1,kz,1,2,'mod_runparams:twt')
-      call getmem1d(dtau,1,nsplit,'mod_runparams:dtau')
-      call getmem1d(dtsplit,1,nsplit,'mod_runparams:dtsplit')
+      if ( idynamic == 1 ) then
+        call getmem1d(dtau,1,nsplit,'mod_runparams:dtau')
+        call getmem1d(dtsplit,1,nsplit,'mod_runparams:dtsplit')
+      end if
     else
       call getmem1d(sigma,1,kzp1,'mod_runparams:sigma')
       call getmem1d(zita,1,kzp1,'mod_runparams:zita')
