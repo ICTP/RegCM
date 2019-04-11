@@ -661,7 +661,15 @@ module mod_ncout
             'Air Temperature','air_temperature',.true.)
           atm_t_out => v3dvar_atm(atm_t)%rval
         end if
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          if ( enable_atm3d_vars(atm_omega) ) then
+            call setup_var(v3dvar_atm,atm_omega,vsize,'omega','hPa s-1', &
+              'Pressure Velocity','lagrangian_tendency_of_air_pressure',.true.)
+            atm_omega_out => v3dvar_atm(atm_omega)%rval
+          end if
+          enable_atm3d_vars(atm_w) = .false.
+          enable_atm3d_vars(atm_pp) = .false.
+        else if ( idynamic == 2 ) then
           if ( enable_atm3d_vars(atm_w) ) then
             call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
               'Vertical Component of Wind','upward_wind',.true.)
@@ -675,13 +683,13 @@ module mod_ncout
           end if
           enable_atm3d_vars(atm_omega) = .false.
         else
-          if ( enable_atm3d_vars(atm_omega) ) then
-            call setup_var(v3dvar_atm,atm_omega,vsize,'omega','hPa s-1', &
-              'Pressure Velocity','lagrangian_tendency_of_air_pressure',.true.)
-            atm_omega_out => v3dvar_atm(atm_omega)%rval
+          if ( enable_atm3d_vars(atm_w) ) then
+            call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
+              'Vertical Component of Wind','upward_wind',.true.)
+            atm_w_out => v3dvar_atm(atm_w)%rval
           end if
-          enable_atm3d_vars(atm_w) = .false.
           enable_atm3d_vars(atm_pp) = .false.
+          enable_atm3d_vars(atm_omega) = .false.
         end if
         if ( enable_atm3d_vars(atm_qv) ) then
           call setup_var(v3dvar_atm,atm_qv,vsize,'hus','kg kg-1', &

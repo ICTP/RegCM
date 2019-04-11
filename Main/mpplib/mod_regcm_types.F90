@@ -117,6 +117,8 @@ module mod_regcm_types
   type atmosphere
     real(rkx) , pointer , dimension(:,:,:) :: u
     real(rkx) , pointer , dimension(:,:,:) :: v
+    real(rkx) , pointer , dimension(:,:,:) :: ux
+    real(rkx) , pointer , dimension(:,:,:) :: vx
     real(rkx) , pointer , dimension(:,:,:) :: w
     real(rkx) , pointer , dimension(:,:,:) :: pai
     real(rkx) , pointer , dimension(:,:,:) :: t

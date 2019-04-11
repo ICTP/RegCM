@@ -67,9 +67,9 @@ module mod_mksoitex
             tsum = clay(j,i,n) + sand(j,i,n)
             if ( tsum > 100.0_rkx ) then
               if ( clay(j,i,n) > sand(j,i,n) ) then
-                clay(j,i,n) = clay(j,i,n) - (100.0_rkx - tsum)
+                clay(j,i,n) = clay(j,i,n) + (100.0_rkx - tsum)
               else
-                sand(j,i,n) = sand(j,i,n) - (100.0_rkx - tsum)
+                sand(j,i,n) = sand(j,i,n) + (100.0_rkx - tsum)
               end if
             else if ( tsum < 2.0_rkx ) then
               clay(j,i,n) = 1.0_rkx

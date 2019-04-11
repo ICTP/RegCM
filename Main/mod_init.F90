@@ -198,8 +198,8 @@ module mod_init
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
-            sfs%psa(j,i) = xpsb%b0(j,i) * d_1000
-            sfs%psb(j,i) = xpsb%b0(j,i) * d_1000
+            sfs%psa(j,i) = xpsb%b0(j,i)
+            sfs%psb(j,i) = xpsb%b0(j,i)
           end do
         end do
         ! Hydrostatic initialization of pai
@@ -213,7 +213,7 @@ module mod_init
         do i = ice1 , ice2
           do j = jce1 , jce2
             zb = mddom%ht(j,i) * regrav + mo_atm%zeta(j,i,kz)
-            mo_atm%p(j,i,kz) = (xpsb%b0(j,i)*d_1000) * &
+            mo_atm%p(j,i,kz) = xpsb%b0(j,i) * &
               exp(-egrav*zb/rgas/mo_atm%tvirt(j,i,kz))
             mo_atm%pai(j,i,kz) = (mo_atm%p(j,i,kz)/p00)**rovcp
           end do

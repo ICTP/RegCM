@@ -40,6 +40,7 @@ module mod_output
   use mod_split
   use mod_savefile
   use mod_slabocean
+  use mod_moloch
   use mod_capecin
 
   implicit none
@@ -205,38 +206,61 @@ module mod_output
       if ( ldoatm ) then
         ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         if ( associated(atm_t_out) ) then
-          do k = 1 , kz
-            atm_t_out(:,:,k) = atm1%t(jci1:jci2,ici1:ici2,k)/ps_out
-          end do
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_t_out(:,:,k) = mo_atm%t(jci1:jci2,ici1:ici2,k)
+            end do
+          else
+            do k = 1 , kz
+              atm_t_out(:,:,k) = atm1%t(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+          end if
         end if
         if ( associated(atm_u_out) .and. associated(atm_v_out) ) then
-          call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
-          call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                atm_u_out(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
-                                 atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k))/ps_out(j,i)
-                atm_v_out(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
-                                 atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k))/ps_out(j,i)
+          if ( idynamic == 3 ) then
+            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_u_out(j,i,k) = mo_atm%ux(j,i,k)
+                  atm_v_out(j,i,k) = mo_atm%vx(j,i,k)
+                end do
               end do
             end do
-          end do
+          else
+            call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+            call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_u_out(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k))/ps_out(j,i)
+                  atm_v_out(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k))/ps_out(j,i)
+                end do
+              end do
+            end do
+          end if
           if ( uvrotate ) then
             call uvrot(atm_u_out,atm_v_out)
           end if
         end if
-        if ( associated(atm_omega_out) ) &
+        if ( associated(atm_omega_out) ) then
           atm_omega_out = omega(jci1:jci2,ici1:ici2,:)*d_10
+        end if
         if ( associated(atm_w_out) ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                atm_w_out(j,i,k) = d_half * (atm1%w(j,i,k+1) + &
-                                             atm1%w(j,i,k)) / ps_out(j,i)
+          if ( idynamic == 3 ) then
+            call wstagtox(mo_atm%w,atm_w_out)
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_w_out(j,i,k) = d_half * (atm1%w(j,i,k+1) + &
+                                               atm1%w(j,i,k)) / ps_out(j,i)
+                end do
               end do
             end do
-          end do
+          end if
         end if
         if ( associated(atm_pp_out) ) then
           do k = 1 , kz
@@ -244,51 +268,103 @@ module mod_output
           end do
         end if
         if ( associated(atm_qv_out) ) then
-          do k = 1 , kz
-            atm_qv_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqv)/ps_out
-          end do
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qv_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqv)
+            end do
+          else
+            do k = 1 , kz
+              atm_qv_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqv)/ps_out
+            end do
+          end if
           ! Specific humidity in the output, not mixing ratio
           atm_qv_out = atm_qv_out/(d_one+atm_qv_out)
         end if
         if ( associated(atm_qc_out) ) then
-          do k = 1 , kz
-            atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
-          end do
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qc_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqc)
+            end do
+          else
+            do k = 1 , kz
+              atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
+            end do
+          end if
         end if
         if ( associated(atm_qr_out) ) then
-          do k = 1 , kz
-            atm_qr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqr)/ps_out
-          end do
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qr_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqr)
+            end do
+          else
+            do k = 1 , kz
+              atm_qr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqr)/ps_out
+            end do
+          end if
         end if
         if ( associated(atm_qi_out) ) then
-          do k = 1 , kz
-            atm_qi_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqi)/ps_out
-          end do
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qi_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqi)
+            end do
+          else
+            do k = 1 , kz
+              atm_qi_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqi)/ps_out
+            end do
+          end if
         end if
         if ( associated(atm_qs_out) ) then
-           do k = 1 , kz
-            atm_qs_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqs)/ps_out
-          end do
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qs_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqs)
+            end do
+          else
+            do k = 1 , kz
+              atm_qs_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqs)/ps_out
+            end do
+          end if
         end if
         if ( associated(atm_rh_out) ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
-                   (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
-                   pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_rh_out(j,i,k) = d_100 * &
+                    min(rhmax,max(rhmin,(mo_atm%qx(j,i,k,iqv) / &
+                           pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
+                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                end do
+              end do
+            end do
+          end if
         end if
         if ( associated(atm_pf_out) ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                atm_pf_out(j,i,k) = atm1%pr(j,i,k)
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_pf_out(j,i,k) = mo_atm%p(j,i,k)
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_pf_out(j,i,k) = atm1%pr(j,i,k)
+                end do
+              end do
+            end do
+          end if
         end if
         if ( idynamic == 1 ) then
           if ( associated(atm_ph_out) ) then
@@ -314,7 +390,7 @@ module mod_output
               end do
             end do
           end if
-        else
+        else if ( idynamic == 2 ) then
           if ( associated(atm_ph_out) ) then
             atm_ph_out(:,:,1) = ptop*d_1000
             do k = 2 , kz
@@ -467,8 +543,13 @@ module mod_output
 #endif
 
         if ( ibltyp == 2 ) then
-          if ( associated(atm_tke_out) ) &
-            atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
+          if ( associated(atm_tke_out) ) then
+            if ( idynamic == 3 ) then
+              atm_tke_out = mo_atm%tke(jci1:jci2,ici1:ici2,1:kz)
+            else
+              atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
+            end if
+          end if
           if ( associated(atm_kth_out) ) &
             atm_kth_out = uwstate%kth(jci1:jci2,ici1:ici2,1:kz)
           if ( associated(atm_kzm_out) ) &
@@ -523,19 +604,34 @@ module mod_output
         end if
 
         if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              do k = 1 , kz
-                kk = kzp1 - k
-                p1d(kk) = atm1%pr(j,i,k)
-                t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
-                rh1d(kk) = min(d_one,max(d_zero, &
-                   (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
-                   pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+          if ( idynamic == 3 ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = mo_atm%p(j,i,k)
+                  t1d(kk) = mo_atm%t(j,i,k)
+                  rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
+                      pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
               end do
-              call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
             end do
-          end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = atm1%pr(j,i,k)
+                  t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
+                  rh1d(kk) = min(d_one,max(d_zero, &
+                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
+              end do
+            end do
+          end if
         end if
 
         ! FAB add tendency diagnostic here
@@ -650,15 +746,15 @@ module mod_output
           end if
         end if
 
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(ps_out+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
                          atm1%pp(j,i,kz)/sfs%psa(j,i)
             end do
           end do
-        else
-          ps_out = d_1000*(ps_out+ptop)
         end if
 
         call write_record_output_stream(atm_stream,alarm_out_atm%idate)
@@ -675,7 +771,9 @@ module mod_output
     if ( srf_stream > 0 ) then
       if ( ldosrf ) then
 
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -683,7 +781,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         ! Averaged values
         if ( associated(srf_tpr_out) ) &
@@ -772,52 +870,79 @@ module mod_output
 
         if ( associated(srf_ua100_out) .and. &
              associated(srf_va100_out) ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              cell = ptop / sfs%psa(j,i)
-              zz = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
-                     log((sigma(kzp1)+cell)/(sigma(kz)+cell))
-              if ( zz > 100.0_rkx ) then
-                srf_ua100_out(j,i,1) = &
-                  (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
-                            atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
-                            sfs%psa(j,i))
-                srf_va100_out(j,i,1) = &
-                  (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
-                            atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
-                            sfs%psa(j,i))
-              else
-                vertloop: &
-                do k = kz-1 , 1 , -1
-                  zz1 = zz + rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
-                        log((sigma(k+1)+cell)/(sigma(k)+cell))
-                  if ( zz1 > 100.0_rkx ) then
-                    ww = (100.0_rkx-zz)/(zz1-zz)
-                    srf_ua100_out(j,i,1) = &
-                      ww * &
-                         (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
-                                   atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
-                                   sfs%psa(j,i)) + &
-                      (d_one - ww) * &
-                         (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
-                                   atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
-                                   sfs%psa(j,i))
-                    srf_va100_out(j,i,1) = &
-                      ww * &
-                         (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
-                                   atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
-                                   sfs%psa(j,i)) + &
-                      (d_one - ww) * &
-                         (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
-                                   atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
-                                   sfs%psa(j,i))
-                    exit vertloop
-                  end if
-                  zz = zz1
-                end do vertloop
-              end if
+          if ( idynamic == 3 ) then
+            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zz = mo_atm%zeta(j,i,kz)
+                if ( zz > 100.0_rkx ) then
+                  srf_ua100_out(j,i,1) = mo_atm%ux(j,i,k)
+                  srf_va100_out(j,i,1) = mo_atm%vx(j,i,k)
+                else
+                  vertloop: &
+                  do k = kz-1 , 1 , -1
+                    zz1 = mo_atm%zeta(j,i,k)
+                    if ( zz1 > 100.0_rkx ) then
+                      ww = (100.0_rkx-zz)/(zz1-zz)
+                      srf_ua100_out(j,i,1) = &
+                        ww*mo_atm%ux(j,i,k)+(d_one-ww)*mo_atm%ux(j,i,k+1)
+                      srf_va100_out(j,i,1) = &
+                        ww*mo_atm%vx(j,i,k)+(d_one-ww)*mo_atm%vx(j,i,k+1)
+                      exit vertloop
+                    end if
+                    zz = zz1
+                  end do vertloop
+                end if
+              end do
             end do
-          end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cell = ptop / sfs%psa(j,i)
+                zz = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                       log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+                if ( zz > 100.0_rkx ) then
+                  srf_ua100_out(j,i,1) = &
+                    (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
+                              atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+                  srf_va100_out(j,i,1) = &
+                    (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
+                              atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+                else
+                  vloop: &
+                  do k = kz-1 , 1 , -1
+                    zz1 = zz + rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
+                          log((sigma(k+1)+cell)/(sigma(k)+cell))
+                    if ( zz1 > 100.0_rkx ) then
+                      ww = (100.0_rkx-zz)/(zz1-zz)
+                      srf_ua100_out(j,i,1) = &
+                        ww * &
+                           (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                     atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
+                                     atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                      srf_va100_out(j,i,1) = &
+                        ww * &
+                           (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                     atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
+                                     atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                      exit vloop
+                    end if
+                    zz = zz1
+                  end do vloop
+                end if
+              end do
+            end do
+          end if
           if ( uvrotate ) then
             call uvrot(srf_ua100_out,srf_va100_out)
           end if
@@ -896,7 +1021,9 @@ module mod_output
     if ( lak_stream > 0 ) then
       if ( ldolak ) then
 
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -904,7 +1031,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         if ( associated(lak_tpr_out) ) &
           lak_tpr_out = lak_tpr_out*rnsrf_for_lakfrq
@@ -947,7 +1074,9 @@ module mod_output
 
     if ( opt_stream > 0 .and. rcmtimer%integrating( ) ) then
       if ( ldoche ) then
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -955,7 +1084,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         if ( associated(opt_pp_out) ) then
           do k = 1 , kz
@@ -996,7 +1125,9 @@ module mod_output
 
     if ( che_stream > 0 ) then
       if ( ldoche ) then
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -1004,7 +1135,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         if ( associated(che_pp_out) ) then
           do k = 1 , kz
@@ -1024,7 +1155,9 @@ module mod_output
 
     if ( shf_stream > 0 ) then
       if ( ldoshf ) then
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -1032,7 +1165,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
 
         if ( associated(shf_pcpavg_out) ) &
@@ -1052,7 +1185,9 @@ module mod_output
     if ( sts_stream > 0 ) then
       if ( ldosts ) then
 
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -1060,7 +1195,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         if ( associated(sts_pcpavg_out) ) &
           sts_pcpavg_out = sts_pcpavg_out*rnsrf_for_day
@@ -1106,7 +1241,9 @@ module mod_output
 
     if ( rad_stream > 0 ) then
       if ( ldorad ) then
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -1114,7 +1251,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         if ( associated(rad_pp_out) ) then
           do k = 1 , kz
@@ -1139,7 +1276,9 @@ module mod_output
 
     if ( slaboc_stream > 0 ) then
       if ( ldoslab ) then
-        if ( idynamic == 2 ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
@@ -1147,7 +1286,7 @@ module mod_output
             end do
           end do
         else
-          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         call fill_slaboc_outvars
         call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
@@ -1159,15 +1298,18 @@ module mod_output
 
     if ( ifsave ) then
       if ( ldosav ) then
-        call grid_collect(atm1%u,atm1_u_io,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm1%v,atm1_v_io,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm1%t,atm1_t_io,jce1,jce2,ice1,ice2,1,kz)
-        call grid_collect(atm1%qx,atm1_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        if ( idynamic == 3 ) then
+        else
+          call grid_collect(atm1%u,atm1_u_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm1%v,atm1_v_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm1%t,atm1_t_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm1%qx,atm1_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-        call grid_collect(atm2%u,atm2_u_io,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm2%v,atm2_v_io,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm2%t,atm2_t_io,jce1,jce2,ice1,ice2,1,kz)
-        call grid_collect(atm2%qx,atm2_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+          call grid_collect(atm2%u,atm2_u_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm2%v,atm2_v_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm2%t,atm2_t_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm2%qx,atm2_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        end if
 
         if ( ibltyp == 2 ) then
           call grid_collect(atm1%tke,atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1)

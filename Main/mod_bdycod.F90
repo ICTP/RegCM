@@ -306,23 +306,27 @@ module mod_bdycod
       end if
     end if
 
-    if ( idynamic == 2 ) then
+    if ( idynamic == 1 ) then
+      xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
+      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
+      call psc2psd(xpsb%b0,psdot)
+    else if ( idynamic == 2 ) then
       xpsb%b0(:,:) = atm0%ps(:,:) * d_r1000 ! Cb
       psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
       xpsb%b1(:,:) = xpsb%b0(:,:)
     else
-      xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
-      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
-      call psc2psd(xpsb%b0,psdot)
+      xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
     end if
     !
     ! Calculate P* on dot points
     ! Couple pressure u,v,t,q (pp,ww)
     !
-    call couple(xub%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xvb%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xtb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
-    call couple(xqb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic /= 3 ) then
+      call couple(xub%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
+      call couple(xvb%b0,psdot,jde1,jde2,ide1,ide2,1,kz)
+      call couple(xtb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+      call couple(xqb%b0,xpsb%b0,jce1,jce2,ice1,ice2,1,kz)
+    end if
     call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%b0,1,jce1,jce2,ice1,ice2,1,kz)
@@ -398,14 +402,18 @@ module mod_bdycod
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
+    else if ( idynamic == 3 ) then
+      xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
     end if
     !
     ! Couple pressure u,v,t,q
     !
-    call couple(xub%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
-    call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic /= 3 ) then
+      call couple(xub%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+      call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+      call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
@@ -490,14 +498,14 @@ module mod_bdycod
     call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-    if ( idynamic == 2 ) then
+    if ( idynamic == 1 ) then
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
+      call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
+    else if ( idynamic == 2 ) then
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1,jce2,ice1,ice2,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
-    else
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
-      call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
     end if
 
 #ifdef DEBUG
@@ -597,14 +605,18 @@ module mod_bdycod
       xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
+    else if ( idynamic == 3 ) then
+      xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
     end if
     !
     ! Couple pressure u,v,t,q
     !
-    call couple(xub%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
-    call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
-    call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+    if ( idynamic /= 3 ) then
+      call couple(xub%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+      call couple(xvb%b1,psdot,jde1,jde2,ide1,ide2,1,kz)
+      call couple(xtb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+      call couple(xqb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kz)
+    end if
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xtb%b1,1,jce1,jce2,ice1,ice2,1,kz)
@@ -928,185 +940,187 @@ module mod_bdycod
     !
     xt = xbctime + dt
     if ( rcmtimer%integrating( ) ) then
-      !
-      ! West boundary
-      !
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atm2%u(jde1,i,k) = atm1%u(jde1,i,k)
-            atm2%v(jde1,i,k) = atm1%v(jde1,i,k)
+      if ( idynamic /= 3 ) then
+        !
+        ! West boundary
+        !
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm2%u(jde1,i,k) = atm1%u(jde1,i,k)
+              atm2%v(jde1,i,k) = atm1%v(jde1,i,k)
+            end do
           end do
-        end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atm2%t(jce1,i,k) = atm1%t(jce1,i,k)
-          end do
-        end do
-        do n = 1 , nqx
           do k = 1 , kz
             do i = ici1 , ici2
-              atm2%qx(jce1,i,k,n) = atm1%qx(jce1,i,k,n)
+              atm2%t(jce1,i,k) = atm1%t(jce1,i,k)
             end do
           end do
-        end do
-        if ( idynamic == 2 ) then
-          do k = 1 , kz
+          do n = 1 , nqx
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm2%qx(jce1,i,k,n) = atm1%qx(jce1,i,k,n)
+              end do
+            end do
+          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm2%pp(jce1,i,k) = atm1%pp(jce1,i,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm2%w(jce1,i,k) = atm1%w(jce1,i,k)
+              end do
+            end do
+          else
             do i = ici1 , ici2
-              atm2%pp(jce1,i,k) = atm1%pp(jce1,i,k)
+              sfs%psb(jce1,i) = sfs%psa(jce1,i)
             end do
-          end do
-          do k = 1 , kzp1
-            do i = ici1 , ici2
-              atm2%w(jce1,i,k) = atm1%w(jce1,i,k)
+          end if
+          if ( ibltyp == 2 ) then
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm2%tke(jce1,i,k) = atm1%tke(jce1,i,k)
+              end do
             end do
-          end do
-        else
-          do i = ici1 , ici2
-            sfs%psb(jce1,i) = sfs%psa(jce1,i)
-          end do
+          end if
         end if
-        if ( ibltyp == 2 ) then
-          do k = 1 , kzp1
-            do i = ici1 , ici2
-              atm2%tke(jce1,i,k) = atm1%tke(jce1,i,k)
+        !
+        ! East boundary
+        !
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm2%u(jde2,i,k) = atm1%u(jde2,i,k)
+              atm2%v(jde2,i,k) = atm1%v(jde2,i,k)
             end do
           end do
-        end if
-      end if
-      !
-      ! East boundary
-      !
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atm2%u(jde2,i,k) = atm1%u(jde2,i,k)
-            atm2%v(jde2,i,k) = atm1%v(jde2,i,k)
-          end do
-        end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atm2%t(jce2,i,k) = atm1%t(jce2,i,k)
-          end do
-        end do
-        do n = 1 , nqx
           do k = 1 , kz
             do i = ici1 , ici2
-              atm2%qx(jce2,i,k,n) = atm1%qx(jce2,i,k,n)
+              atm2%t(jce2,i,k) = atm1%t(jce2,i,k)
             end do
           end do
-        end do
-        if ( idynamic == 2 ) then
-          do k = 1 , kz
+          do n = 1 , nqx
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm2%qx(jce2,i,k,n) = atm1%qx(jce2,i,k,n)
+              end do
+            end do
+          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm2%pp(jce2,i,k) = atm1%pp(jce2,i,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm2%w(jce2,i,k) = atm1%w(jce2,i,k)
+              end do
+            end do
+          else
             do i = ici1 , ici2
-              atm2%pp(jce2,i,k) = atm1%pp(jce2,i,k)
+              sfs%psb(jce2,i) = sfs%psa(jce2,i)
             end do
-          end do
-          do k = 1 , kzp1
-            do i = ici1 , ici2
-              atm2%w(jce2,i,k) = atm1%w(jce2,i,k)
+          end if
+          if ( ibltyp == 2 ) then
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm2%tke(jce2,i,k) = atm1%tke(jce2,i,k)
+              end do
             end do
-          end do
-        else
-          do i = ici1 , ici2
-            sfs%psb(jce2,i) = sfs%psa(jce2,i)
-          end do
+          end if
         end if
-        if ( ibltyp == 2 ) then
-          do k = 1 , kzp1
-            do i = ici1 , ici2
-              atm2%tke(jce2,i,k) = atm1%tke(jce2,i,k)
+        !
+        ! North and South boundaries
+        !
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm2%u(j,ide1,k) = atm1%u(j,ide1,k)
+              atm2%v(j,ide1,k) = atm1%v(j,ide1,k)
             end do
           end do
-        end if
-      end if
-      !
-      ! North and South boundaries
-      !
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atm2%u(j,ide1,k) = atm1%u(j,ide1,k)
-            atm2%v(j,ide1,k) = atm1%v(j,ide1,k)
-          end do
-        end do
-        do k = 1 , kz
-          do j = jce1 , jce2
-            atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
-          end do
-        end do
-        do n = 1 , nqx
           do k = 1 , kz
             do j = jce1 , jce2
-              atm2%qx(j,ice1,k,n) = atm1%qx(j,ice1,k,n)
+              atm2%t(j,ice1,k) = atm1%t(j,ice1,k)
             end do
           end do
-        end do
-        if ( idynamic == 2 ) then
+          do n = 1 , nqx
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm2%qx(j,ice1,k,n) = atm1%qx(j,ice1,k,n)
+              end do
+            end do
+          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm2%pp(j,ice1,k) = atm1%pp(j,ice1,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm2%w(j,ice1,k) = atm1%w(j,ice1,k)
+              end do
+            end do
+          else
+            do j = jce1 , jce2
+              sfs%psb(j,ice1) = sfs%psa(j,ice1)
+            end do
+          end if
+          if ( ibltyp == 2 ) then
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm2%tke(j,ice1,k) = atm1%tke(j,ice1,k)
+              end do
+            end do
+          end if
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm2%u(j,ide2,k) = atm1%u(j,ide2,k)
+              atm2%v(j,ide2,k) = atm1%v(j,ide2,k)
+            end do
+          end do
           do k = 1 , kz
             do j = jce1 , jce2
-              atm2%pp(j,ice1,k) = atm1%pp(j,ice1,k)
+              atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
             end do
           end do
-          do k = 1 , kzp1
+          do n = 1 , nqx
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm2%qx(j,ice2,k,n) = atm1%qx(j,ice2,k,n)
+              end do
+            end do
+          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm2%pp(j,ice2,k) = atm1%pp(j,ice2,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm2%w(j,ice2,k) = atm1%w(j,ice2,k)
+              end do
+            end do
+          else
             do j = jce1 , jce2
-              atm2%w(j,ice1,k) = atm1%w(j,ice1,k)
+              sfs%psb(j,ice2) = sfs%psa(j,ice2)
             end do
-          end do
-        else
-          do j = jce1 , jce2
-            sfs%psb(j,ice1) = sfs%psa(j,ice1)
-          end do
-        end if
-        if ( ibltyp == 2 ) then
-          do k = 1 , kzp1
-            do j = jce1 , jce2
-              atm2%tke(j,ice1,k) = atm1%tke(j,ice1,k)
+          end if
+          if ( ibltyp == 2 ) then
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm2%tke(j,ice2,k) = atm1%tke(j,ice2,k)
+              end do
             end do
-          end do
-        end if
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atm2%u(j,ide2,k) = atm1%u(j,ide2,k)
-            atm2%v(j,ide2,k) = atm1%v(j,ide2,k)
-          end do
-        end do
-        do k = 1 , kz
-          do j = jce1 , jce2
-            atm2%t(j,ice2,k) = atm1%t(j,ice2,k)
-          end do
-        end do
-        do n = 1 , nqx
-          do k = 1 , kz
-            do j = jce1 , jce2
-              atm2%qx(j,ice2,k,n) = atm1%qx(j,ice2,k,n)
-            end do
-          end do
-        end do
-        if ( idynamic == 2 ) then
-          do k = 1 , kz
-            do j = jce1 , jce2
-              atm2%pp(j,ice2,k) = atm1%pp(j,ice2,k)
-            end do
-          end do
-          do k = 1 , kzp1
-            do j = jce1 , jce2
-              atm2%w(j,ice2,k) = atm1%w(j,ice2,k)
-            end do
-          end do
-        else
-          do j = jce1 , jce2
-            sfs%psb(j,ice2) = sfs%psa(j,ice2)
-          end do
-        end if
-        if ( ibltyp == 2 ) then
-          do k = 1 , kzp1
-            do j = jce1 , jce2
-              atm2%tke(j,ice2,k) = atm1%tke(j,ice2,k)
-            end do
-          end do
+          end if
         end if
       end if
     end if
@@ -1142,37 +1156,72 @@ module mod_bdycod
           end do
         end if
       end if
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atm1%u(jde1,i,k) = xub%b0(jde1,i,k)
-            atm1%v(jde1,i,k) = xvb%b0(jde1,i,k)
+      if ( idynamic == 3 ) then
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k)
+              mo_atm%v(jce1,i,k) = xub%b0(jce1,i,k)
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atm1%u(jde2,i,k) = xub%b0(jde2,i,k)
-            atm1%v(jde2,i,k) = xvb%b0(jde2,i,k)
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k)
+              mo_atm%u(jce2,i,k) = xub%b0(jce2,i,k)
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atm1%u(j,ide1,k) = xub%b0(j,ide1,k)
-            atm1%v(j,ide1,k) = xvb%b0(j,ide1,k)
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%u(j,ice1,k) = xvb%b0(j,ice1,k)
+              mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k)
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atm1%u(j,ide2,k) = xub%b0(j,ide2,k)
-            atm1%v(j,ide2,k) = xvb%b0(j,ide2,k)
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%v(j,ice2,k) = xvb%b0(j,ice2,k)
+              mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k)
+            end do
           end do
-        end do
+        end if
+      else
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde1,i,k) = xub%b0(jde1,i,k)
+              atm1%v(jde1,i,k) = xvb%b0(jde1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde2,i,k) = xub%b0(jde2,i,k)
+              atm1%v(jde2,i,k) = xvb%b0(jde2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide1,k) = xub%b0(j,ide1,k)
+              atm1%v(j,ide1,k) = xvb%b0(j,ide1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide2,k) = xub%b0(j,ide2,k)
+              atm1%v(j,ide2,k) = xvb%b0(j,ide2,k)
+            end do
+          end do
+        end if
       end if
     else
       !
@@ -1200,41 +1249,76 @@ module mod_bdycod
           end do
         end if
       end if
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
-            atm1%v(jde1,i,k) = xvb%b0(jde1,i,k) + xt*xvb%bt(jde1,i,k)
+      if ( idynamic == 3 ) then
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
+              mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k) + xt*xvb%bt(jce1,i,k)
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
-            atm1%v(jde2,i,k) = xvb%b0(jde2,i,k) + xt*xvb%bt(jde2,i,k)
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
+              mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k) + xt*xvb%bt(jce2,i,k)
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k)
-            atm1%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k) + xt*xub%bt(j,ice1,k)
+              mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
+            end do
           end do
-        end do
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jde1 , jde2
-            atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k)
-            atm1%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k) + xt*xub%bt(j,ice2,k)
+              mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
+            end do
           end do
-        end do
+        end if
+      else
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
+              atm1%v(jde1,i,k) = xvb%b0(jde1,i,k) + xt*xvb%bt(jde1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              atm1%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
+              atm1%v(jde2,i,k) = xvb%b0(jde2,i,k) + xt*xvb%bt(jde2,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide1,k) = xub%b0(j,ide1,k) + xt*xub%bt(j,ide1,k)
+              atm1%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jde1 , jde2
+              atm1%u(j,ide2,k) = xub%b0(j,ide2,k) + xt*xub%bt(j,ide2,k)
+              atm1%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
+            end do
+          end do
+        end if
       end if
     end if
 
-    call bdyuv(xt)
+    if ( idynamic /= 3 ) call bdyuv(xt)
 
     !
     ! Set boundary values for p*t:
@@ -1244,180 +1328,250 @@ module mod_bdycod
       !
       ! fixed boundary conditions:
       !
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atm1%t(jce1,i,k) = xtb%b0(jce1,i,k)
-            atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
-          end do
-        end do
-        if ( idynamic == 2 ) then
+      if ( idynamic == 3 ) then
+        if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k)
-            end do
-          end do
-          do k = 1 , kzp1
-            do i = ici1 , ici2
-              atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k)
+              mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k)
+              mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
             end do
           end do
         end if
-      end if
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atm1%t(jce2,i,k) = xtb%b0(jce2,i,k)
-            atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
-          end do
-        end do
-        if ( idynamic == 2 ) then
+        if ( ma%has_bdyright ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k)
-            end do
-          end do
-          do k = 1 , kzp1
-            do i = ici1 , ici2
-              atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k)
+              mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k)
+              mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
             end do
           end do
         end if
-      end if
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            atm1%t(j,ice1,k) = xtb%b0(j,ice1,k)
-            atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
-          end do
-        end do
-        if ( idynamic == 2 ) then
+        if ( ma%has_bdybottom ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k)
-            end do
-          end do
-          do k = 1 , kzp1
-            do j = jce1 , jce2
-              atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k)
+              mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k)
+              mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
             end do
           end do
         end if
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            atm1%t(j,ice2,k) = xtb%b0(j,ice2,k)
-            atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
-          end do
-        end do
-        if ( idynamic == 2 ) then
+        if ( ma%has_bdytop ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k)
+              mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k)
+              mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
             end do
           end do
-          do k = 1 , kzp1
+        end if
+      else
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%t(jce1,i,k) = xtb%b0(jce1,i,k)
+              atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
+            end do
+          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k)
+              end do
+            end do
+          end if
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%t(jce2,i,k) = xtb%b0(jce2,i,k)
+              atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
+            end do
+          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k)
+              end do
+            end do
+          end if
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
             do j = jce1 , jce2
-              atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k)
+              atm1%t(j,ice1,k) = xtb%b0(j,ice1,k)
+              atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
             end do
           end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k)
+              end do
+            end do
+          end if
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              atm1%t(j,ice2,k) = xtb%b0(j,ice2,k)
+              atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
+            end do
+          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k)
+              end do
+            end do
+          end if
         end if
       end if
     else
       !
       ! time-dependent boundary conditions:
       !
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atm1%t(jce1,i,k)      = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
-            atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
-          end do
-        end do
-        if ( idynamic == 2 ) then
+      if ( idynamic == 3 ) then
+        if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
+              mo_atm%t(jce1,i,k)      = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
+              mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
             end do
-          end do
-          do k = 1 , kzp1
-            do i = ici1 , ici2
-              atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
-            end do
-          end do
-          do i = ici1 , ici2
-            atm1%w(jce1,i,1) = atm1%w(jci1,i,1)
           end do
         end if
-      end if
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            atm1%t(jce2,i,k)      = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
-            atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
-          end do
-        end do
-        if ( idynamic == 2 ) then
+        if ( ma%has_bdyright ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
+              mo_atm%t(jce2,i,k)      = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
+              mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
             end do
           end do
-          do k = 1 , kzp1
+        end if
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%t(j,ice1,k)      = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
+              mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              mo_atm%t(j,ice2,k)      = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
+              mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
+            end do
+          end do
+        end if
+      else
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
             do i = ici1 , ici2
-              atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
+              atm1%t(jce1,i,k)      = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
+              atm1%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
             end do
           end do
-          do i = ici1 , ici2
-            atm1%w(jce2,i,1) = atm1%w(jci2,i,1)
-          end do
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%pp(jce1,i,k) = xppb%b0(jce1,i,k) + xt*xppb%bt(jce1,i,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm1%w(jce1,i,k) = xwwb%b0(jce1,i,k) + xt*xwwb%bt(jce1,i,k)
+              end do
+            end do
+            do i = ici1 , ici2
+              atm1%w(jce1,i,1) = atm1%w(jci1,i,1)
+            end do
+          end if
         end if
-      end if
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            atm1%t(j,ice1,k)      = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
-            atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              atm1%t(jce2,i,k)      = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
+              atm1%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
+            end do
           end do
-        end do
-        if ( idynamic == 2 ) then
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                atm1%pp(jce2,i,k) = xppb%b0(jce2,i,k) + xt*xppb%bt(jce2,i,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                atm1%w(jce2,i,k) = xwwb%b0(jce2,i,k) + xt*xwwb%bt(jce2,i,k)
+              end do
+            end do
+            do i = ici1 , ici2
+              atm1%w(jce2,i,1) = atm1%w(jci2,i,1)
+            end do
+          end if
+        end if
+        if ( ma%has_bdybottom ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
+              atm1%t(j,ice1,k)      = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
+              atm1%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
             end do
           end do
-          do k = 1 , kzp1
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%pp(j,ice1,k) = xppb%b0(j,ice1,k) + xt*xppb%bt(j,ice1,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
+              end do
+            end do
             do j = jce1 , jce2
-              atm1%w(j,ice1,k) = xwwb%b0(j,ice1,k) + xt*xwwb%bt(j,ice1,k)
+              atm1%w(j,ice1,1) = atm1%w(j,ici1,1)
             end do
-          end do
-          do j = jce1 , jce2
-            atm1%w(j,ice1,1) = atm1%w(j,ici1,1)
-          end do
+          end if
         end if
-      end if
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            atm1%t(j,ice2,k)      = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
-            atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
-          end do
-        end do
-        if ( idynamic == 2 ) then
+        if ( ma%has_bdytop ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
+              atm1%t(j,ice2,k)      = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
+              atm1%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
             end do
           end do
-          do k = 1 , kzp1
+          if ( idynamic == 2 ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                atm1%pp(j,ice2,k) = xppb%b0(j,ice2,k) + xt*xppb%bt(j,ice2,k)
+              end do
+            end do
+            do k = 1 , kzp1
+              do j = jce1 , jce2
+                atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
+              end do
+            end do
             do j = jce1 , jce2
-              atm1%w(j,ice2,k) = xwwb%b0(j,ice2,k) + xt*xwwb%bt(j,ice2,k)
+              atm1%w(j,ice2,1) = atm1%w(j,ici2,1)
             end do
-          end do
-          do j = jce1 , jce2
-            atm1%w(j,ice2,1) = atm1%w(j,ici2,1)
-          end do
+          end if
         end if
       end if
     end if
@@ -1436,76 +1590,78 @@ module mod_bdycod
       end do
     end do
 
-    if ( iboudy == 3 .or. iboudy == 4 ) then
-      !
-      ! determine QV boundary values depends on inflow/outflow:
-      !
-      ! west boundary:
-      !
-      if ( ma%has_bdyleft ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            qext = atm1%qx(jce1,i,k,iqv)/sfs%psa(jce1,i)
-            qint = atm1%qx(jci1,i,k,iqv)/sfs%psa(jci1,i)
-            windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
-            if ( windavg > d_zero ) then
-              atm1%qx(jce1,i,k,iqv) = qext*sfs%psa(jce1,i)
-            else
-              atm1%qx(jce1,i,k,iqv) = qint*sfs%psa(jce1,i)
-            end if
+    if ( idynamic /= 3 ) then
+      if ( iboudy == 3 .or. iboudy == 4 ) then
+        !
+        ! determine QV boundary values depends on inflow/outflow:
+        !
+        ! west boundary:
+        !
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              qext = atm1%qx(jce1,i,k,iqv)/sfs%psa(jce1,i)
+              qint = atm1%qx(jci1,i,k,iqv)/sfs%psa(jci1,i)
+              windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+              if ( windavg > d_zero ) then
+                atm1%qx(jce1,i,k,iqv) = qext*sfs%psa(jce1,i)
+              else
+                atm1%qx(jce1,i,k,iqv) = qint*sfs%psa(jce1,i)
+              end if
+            end do
           end do
-        end do
-      end if
-      !
-      ! east boundary:
-      !
-      if ( ma%has_bdyright ) then
-        do k = 1 , kz
-          do i = ici1 , ici2
-            qext = atm1%qx(jce2,i,k,iqv)/sfs%psa(jce2,i)
-            qint = atm1%qx(jci2,i,k,iqv)/sfs%psa(jci2,i)
-            windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
-            if ( windavg < d_zero ) then
-              atm1%qx(jce2,i,k,iqv) = qext*sfs%psa(jce2,i)
-            else
-              atm1%qx(jce2,i,k,iqv) = qint*sfs%psa(jce2,i)
-            end if
+        end if
+        !
+        ! east boundary:
+        !
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              qext = atm1%qx(jce2,i,k,iqv)/sfs%psa(jce2,i)
+              qint = atm1%qx(jci2,i,k,iqv)/sfs%psa(jci2,i)
+              windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+              if ( windavg < d_zero ) then
+                atm1%qx(jce2,i,k,iqv) = qext*sfs%psa(jce2,i)
+              else
+                atm1%qx(jce2,i,k,iqv) = qint*sfs%psa(jce2,i)
+              end if
+            end do
           end do
-        end do
-      end if
-      !
-      ! south boundary:
-      !
-      if ( ma%has_bdybottom ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            qext = atm1%qx(j,ice1,k,iqv)/sfs%psa(j,ice1)
-            qint = atm1%qx(j,ici1,k,iqv)/sfs%psa(j,ici1)
-            windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
-            if ( windavg > d_zero ) then
-              atm1%qx(j,ice1,k,iqv) = qext*sfs%psa(j,ice1)
-            else
-              atm1%qx(j,ice1,k,iqv) = qint*sfs%psa(j,ice1)
-            end if
+        end if
+        !
+        ! south boundary:
+        !
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              qext = atm1%qx(j,ice1,k,iqv)/sfs%psa(j,ice1)
+              qint = atm1%qx(j,ici1,k,iqv)/sfs%psa(j,ici1)
+              windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+              if ( windavg > d_zero ) then
+                atm1%qx(j,ice1,k,iqv) = qext*sfs%psa(j,ice1)
+              else
+                atm1%qx(j,ice1,k,iqv) = qint*sfs%psa(j,ice1)
+              end if
+            end do
           end do
-        end do
-      end if
-      !
-      ! north boundary:
-      !
-      if ( ma%has_bdytop ) then
-        do k = 1 , kz
-          do j = jce1 , jce2
-            qext = atm1%qx(j,ice2,k,iqv)/sfs%psa(j,ice2)
-            qint = atm1%qx(j,ici2,k,iqv)/sfs%psa(j,ici2)
-            windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
-            if ( windavg < d_zero ) then
-              atm1%qx(j,ice2,k,iqv) = qext*sfs%psa(j,ice2)
-            else
-              atm1%qx(j,ice2,k,iqv) = qint*sfs%psa(j,ice2)
-            end if
+        end if
+        !
+        ! north boundary:
+        !
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jce1 , jce2
+              qext = atm1%qx(j,ice2,k,iqv)/sfs%psa(j,ice2)
+              qint = atm1%qx(j,ici2,k,iqv)/sfs%psa(j,ici2)
+              windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+              if ( windavg < d_zero ) then
+                atm1%qx(j,ice2,k,iqv) = qext*sfs%psa(j,ice2)
+              else
+                atm1%qx(j,ice2,k,iqv) = qint*sfs%psa(j,ice2)
+              end if
+            end do
           end do
-        end do
+        end if
       end if
     end if
     !

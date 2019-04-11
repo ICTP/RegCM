@@ -568,6 +568,8 @@ module mod_atm_interface
       type(atmosphere) , intent(inout) :: atm
       call getmem3d(atm%u,jde1gb,jde2gb,ice1,ice2,1,kz,'atmstate:u')
       call getmem3d(atm%v,jce1,jce2,ide1gb,ide2gb,1,kz,'atmstate:v')
+      call getmem3d(atm%ux,jce1,jce2,ice1,ice2,1,kz,'atmstate:ux')
+      call getmem3d(atm%vx,jce1,jce2,ice1,ice2,1,kz,'atmstate:vx')
       call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       call getmem3d(atm%pai,jce1,jce2,ice1,ice2,1,kz,'atmstate:pai')
       call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
