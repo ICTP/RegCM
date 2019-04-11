@@ -264,6 +264,7 @@ module mod_service
           do nsubs = 1 , n_of_nsubs
             write(ndebug,*) info_serial(nsubs)%name_of_section
           end do
+          flush(ndebug)
           call fatal(__FILE__,__LINE__,'different trees on different pe!')
         end if
       end do

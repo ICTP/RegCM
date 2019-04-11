@@ -531,11 +531,6 @@ module mod_cu_tiedtke
     real(rkx) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
     real(rkx) , dimension(kbdim) :: pcape
     real(rkx) , dimension(kbdim,klev+1) :: pqhfl , pahfs
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'cucall'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
 
     lookupoverflow = .false.
     !
@@ -722,9 +717,6 @@ module mod_cu_tiedtke
         ptopmax(jl) = min(ptopmax(jl),ztopmax(jl))
       end do
     end if
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
   end subroutine cucall
   !
   ! CUMASTR  MASTER ROUTINE FOR CUMULUS MASSFLUX-SCHEME
