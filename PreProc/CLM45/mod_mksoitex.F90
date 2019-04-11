@@ -43,6 +43,7 @@ module mod_mksoitex
     real(rkx) , dimension(:,:,:) , intent(out) :: sand , clay
     integer(ik4) :: i , j , nc , n
     type(globalfile) :: gfile
+    real(rkx) :: tsum
     character(len=256) :: inpfile
 
     nc = size(sand,3)
@@ -63,12 +64,16 @@ module mod_mksoitex
             end do
           end if
           do n = 1 , nc
-            if ( clay(j,i,n) + sand(j,i,n) /= 100.0_rkx ) then
+            tsum = clay(j,i,n) + sand(j,i,n)
+            if ( tsum > 100.0_rkx ) then
               if ( clay(j,i,n) > sand(j,i,n) ) then
-                sand(j,i,n) = 100.0_rkx - clay(j,i,n)
+                clay(j,i,n) = clay(j,i,n) - (100.0_rkx - tsum)
               else
-                clay(j,i,n) = 100.0_rkx - sand(j,i,n)
+                sand(j,i,n) = sand(j,i,n) - (100.0_rkx - tsum)
               end if
+            else if ( tsum < 2.0_rkx ) then
+              clay(j,i,n) = 1.0_rkx
+              sand(j,i,n) = 1.0_rkx
             end if
           end do
         else
