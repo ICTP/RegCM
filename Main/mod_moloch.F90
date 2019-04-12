@@ -76,7 +76,7 @@ module mod_moloch
     implicit none
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
     call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
-    call getmem3d(wz,jci1,jci2,ici1gb,ici2gb,1,kz,'moloch:wz')
+    call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1ga,jce2ga,ici1,ici2,'moloch:zpbw')
@@ -113,13 +113,6 @@ module mod_moloch
     !
     call rcmtimer%advance( )
     if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
-    if ( rcmtimer%lcount == 2 ) then
-      dtbat = dtsrf
-      dt = dt2
-      rdt = d_one/dt
-      dtsq = dt*dt
-      dtcb = dt*dt*dt
-    end if
     !
     ! calculate new solar zenith angle
     !
@@ -380,7 +373,7 @@ module mod_moloch
 
         ! Vertical advection
 
-        zcost = dt / dz
+        zcost = dt/dz
         do j = jci1 , jci2
           wfw(j,1) = d_zero
           wfw(j,kzp1) = d_zero
@@ -416,14 +409,20 @@ module mod_moloch
           end do
         end do
 
-        call exchange_bt(wz,2,jci1,jci2,ici1,ici2,1,kz)
+        call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
+        if ( ma%has_bdytop ) then
+          wz(:,ice2,:) = wz(:,ici2,:)
+        end if
+        if ( ma%has_bdybottom ) then
+          wz(:,ice1,:) = wz(:,ici1,:)
+        end if
 
         ! Meridional advection
 
         zcosty = dt/dy
 
         do k = 1 , kz
-          do i = ici1 , ici2
+          do i = ici1 , ice2
             do j = jci1 , jci2
               zamu = v(j,i,k)*zcosty
               if ( zamu > d_zero ) then
@@ -431,10 +430,10 @@ module mod_moloch
                 ih = max(i-1,icross1+1)
               else
                 is = -d_one
-                ih = min(i+1,icross2-1)
+                ih = min(i+1,icross2)
               end if
-              ihm1 = max(ih-1,icross1+1)
-              im1 = max(i-1,icross1+1)
+              ihm1 = max(ih-1,icross1)
+              im1 = max(i-1,icross1)
               r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,im1,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is+zamu*b -is*b
@@ -474,14 +473,14 @@ module mod_moloch
               zamu = u(j-1,i,k)*zcostx
               if ( zamu > d_zero ) then
                 is = d_one
-                jh = max(j-1,jcross1+1)
+                jh = max(j-1,jcross1)
               else
                 is = -d_one
-                jh = min(j+1,jcross2-1)
+                jh = min(j+1,jcross2)
               end if
-              jhm1 = max(jh-1,jcross1+1)
-              jm1 = max(j-1,jcross1+1)
-              r = rdeno (p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
+              jhm1 = max(jh-1,jcross1)
+              jm1 = max(j-1,jcross1)
+              r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is+zamu*b -is*b
               zpbw(j,i) = d_half*zamu * &
@@ -493,12 +492,12 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p(j,i,k) = p0(j,i,k) + zpbw(j,i) - zpbw(j+1,i) + &
-                        p(j,i,k)*zdv
+              zcostx = dt*fmyu(j,i)/dx
+              zdv = (u(j,i,k)-u(j-1,i,k))*zcostx
+              p(j,i,k) = p0(j,i,k)+zpbw(j,i)-zpbw(j+1,i)+p(j,i,k)*zdv
             end do
           end do
         end do
-
       end subroutine wafone
 
   end subroutine moloch
@@ -529,8 +528,10 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
     integer(ik4) :: i , j , k
+
     call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
     call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
+
     ! Compute U-wind on T points
     do k = 1 , kz
       do i = ice1 , ice2
