@@ -566,23 +566,24 @@ module mod_atm_interface
     subroutine allocate_atmosphere(atm)
       implicit none
       type(atmosphere) , intent(inout) :: atm
-      call getmem3d(atm%u,jde1gb,jde2gb,ice1,ice2,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jce1,jce2,ide1gb,ide2gb,1,kz,'atmstate:v')
-      call getmem3d(atm%ux,jce1,jce2,ice1,ice2,1,kz,'atmstate:ux')
-      call getmem3d(atm%vx,jce1,jce2,ice1,ice2,1,kz,'atmstate:vx')
+      call getmem3d(atm%u,jde1gb,jde2gb,ice1ga,ice2ga,1,kz,'atmstate:u')
+      call getmem3d(atm%v,jce1ga,jce2ga,ide1gb,ide2gb,1,kz,'atmstate:v')
+      call getmem3d(atm%ux,jce1gb,jce2gb,ice1,ice2,1,kz,'atmstate:ux')
+      call getmem3d(atm%vx,jce1,jce2,ice1gb,ice2gb,1,kz,'atmstate:vx')
       call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       call getmem3d(atm%pai,jce1,jce2,ice1,ice2,1,kz,'atmstate:pai')
       call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
-      call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
+      call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
       call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
       call getmem3d(atm%tetav,jce1,jce2,ice1,ice2,1,kz,'atmstate:tetav')
       call getmem3d(atm%zeta,jce1,jce2,ice1,ice2,1,kz,'atmstate:zeta')
-      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
+      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
       end if
       if ( ichem == 1 ) then
-        call getmem4d(atm%trac,jce1,jce2,ice1,ice2,1,kz,1,ntr,'atmstate:trac')
+        call getmem4d(atm%trac,jce1ga,jce2ga, &
+                               ice1ga,ice2ga,1,kz,1,ntr,'atmstate:trac')
       end if
       call getmem3d(atm%fmz,jce1,jce2,ice1,ice2,1,kz,'atmstate:fmz')
       call getmem3d(atm%fmzf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:fmzf')

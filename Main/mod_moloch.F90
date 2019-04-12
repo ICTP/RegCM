@@ -58,8 +58,14 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: tkex
   real(rkx) , pointer , dimension(:,:,:) :: wz
   real(rkx) , pointer , dimension(:,:,:) :: p0
+  real(rkx) , pointer , dimension(:,:) :: zpby
+  real(rkx) , pointer , dimension(:,:) :: zpbw
 
-  public :: allocate_moloch
+  real(rkx) , pointer , dimension(:,:,:) :: ten0
+  real(rkx) , pointer , dimension(:,:,:) :: qen0
+  real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
+
+  public :: allocate_moloch , moloch
   public :: uvstagtox , wstagtox
 
   contains
@@ -71,12 +77,22 @@ module mod_moloch
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
     call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
     call getmem3d(wz,jci1,jci2,ici1gb,ici2gb,1,kz,'moloch:wz')
-    call getmem3d(p0,jci1gb,jci2gb,ici1,ici2,1,kz,'moloch:p0')
+    call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
+    call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
+    call getmem2d(zpbw,jci1ga,jce2ga,ici1,ici2,'moloch:zpbw')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jci1,jci2,ici1,ici2,1,kz,'moloch:tkex')
     end if
+    if ( idiag > 0 ) then
+      call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'moloch:ten0')
+      call getmem3d(qen0,jci1,jci2,ici1,ici2,1,kz,'moloch:qen0')
+    end if
+    if ( ichem == 1 ) then
+      if ( ichdiag > 0 ) then
+        call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
+      end if
+    end if
   end subroutine allocate_moloch
-
   !
   ! Moloch dynamical integration engine
   !
@@ -88,11 +104,76 @@ module mod_moloch
     call time_begin(subroutine_name,idindx)
 #endif
 
+    call boundary
+
+    call advection
+
+    !
+    ! Next timestep ready : increment elapsed forecast time
+    !
+    call rcmtimer%advance( )
+    if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
+    if ( rcmtimer%lcount == 2 ) then
+      dtbat = dtsrf
+      dt = dt2
+      rdt = d_one/dt
+      dtsq = dt*dt
+      dtcb = dt*dt*dt
+    end if
+    !
+    ! calculate new solar zenith angle
+    !
+    call zenitm(coszrs)
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
 
     contains
+
+      subroutine boundary
+        implicit none
+        call exchange(mo_atm%u,1,jde1,jde2,ice1,ice2,1,kz)
+        call exchange(mo_atm%v,1,jce1,jce2,ide1,ide2,1,kz)
+        call exchange(mo_atm%t,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange(mo_atm%qx,1,jce1,jce2,ice1,ice2,1,kz,iqv,iqv)
+        if ( ichem == 1 ) then
+          call exchange(mo_atm%trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        end if
+
+        if ( iboudy == 1 .or. iboudy == 5 ) then
+          if ( idiag > 0 ) then
+            ten0 = mo_atm%t(jci1:jci2,ici1:ici2,:)
+            qen0 = mo_atm%qx(jci1:jci2,ici1:ici2,:,iqv)
+          end if
+          call nudge(iboudy,mo_atm%t,xtb)
+          call nudge(iboudy,mo_atm%qx,xqb,iqv)
+          call nudge(iboudy,mo_atm%u,mo_atm%v,xub,xvb)
+          if ( idiag > 0 ) then
+            tdiag%bdy = mo_atm%t(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%bdy = mo_atm%qx(jci1:jci2,ici1:ici2,:,iqv) - qen0
+          end if
+        else if ( iboudy == 4 ) then
+          call sponge(mo_atm%t,xtb)
+          call sponge(mo_atm%qx,xqb,iqv)
+          call sponge(mo_atm%u,mo_atm%v,xub,xvb)
+          if ( idiag > 0 ) then
+            tdiag%bdy = mo_atm%t(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%bdy = mo_atm%qx(jci1:jci2,ici1:ici2,:,iqv) - qen0
+          end if
+        end if
+        if ( ichem == 1 ) then
+          if ( ichdiag > 0 ) then
+            chiten0 = mo_atm%trac(jci1:jci2,ici1:ici2,:,:)
+          end if
+          if ( iboudy == 1 .or. iboudy == 5 ) then
+            ! call nudge_chi(kz,mo_atm%trac)
+          end if
+          if ( ichdiag > 0 ) then
+            cbdydiag = mo_atm%trac(jci1:jci2,ici1:ici2,:,:) - chiten0
+          end if
+        end if
+      end subroutine boundary
 
       subroutine filt2d(p,anu2,j1,j2,i1,i2)
         implicit none
@@ -186,40 +267,66 @@ module mod_moloch
 
         ! Back to wind points: U (fourth order)
 
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdii2
-              mo_atm%u(j,i,k) = &
-                0.5625_rkx * (mo_atm%ux(j,i,k)+mo_atm%ux(j+1,i,k)) - &
-                0.0625_rkx * (mo_atm%ux(j-1,i,k)+mo_atm%ux(j+2,i,k))
-            end do
-          end do
-        end do
         if ( ma%has_bdyright ) then
           do k = 1 , kz
-            do i = idi1 , idi2
+            do i = ici1 , ici2
+              do j = jdi1 , jdii2-1
+                mo_atm%u(j,i,k) = &
+                  0.5625_rkx * (mo_atm%ux(j,i,k)+mo_atm%ux(j+1,i,k)) - &
+                  0.0625_rkx * (mo_atm%ux(j-1,i,k)+mo_atm%ux(j+2,i,k))
+              end do
+            end do
+          end do
+          do k = 1 , kz
+            do i = ici1 , ici2
+              mo_atm%u(jdii2,i,k) = &
+                0.5625_rkx * (mo_atm%ux(jci2,i,k)+mo_atm%ux(jce2,i,k)) - &
+                0.0625_rkx * (mo_atm%ux(jcii2,i,k)+mo_atm%ux(jce2,i,k))
               mo_atm%u(jdi2,i,k) = &
                 0.5_rkx * (mo_atm%ux(jci2,i,k)+mo_atm%ux(jce2,i,k))
+            end do
+          end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jdi1 , jdii2
+                mo_atm%u(j,i,k) = &
+                  0.5625_rkx * (mo_atm%ux(j,i,k)+mo_atm%ux(j+1,i,k)) - &
+                  0.0625_rkx * (mo_atm%ux(j-1,i,k)+mo_atm%ux(j+2,i,k))
+              end do
             end do
           end do
         end if
 
         ! Back to wind points: V (fourth order)
 
-        do k = 1 , kz
-          do i = idi1 , idii2
-            do j = jdi1 , jdi2
-              mo_atm%v(j,i,k) = &
-                0.5625_rkx * (mo_atm%vx(j,i,k)+mo_atm%vx(j,i+1,k)) - &
-                0.0625_rkx * (mo_atm%vx(j,i-1,k)+mo_atm%vx(j,i+2,k))
-            end do
-          end do
-        end do
         if ( ma%has_bdytop ) then
           do k = 1 , kz
-            do j = jdi1 , jdi2
+            do i = idi1 , idii2-1
+              do j = jci1 , jci2
+                mo_atm%v(j,i,k) = &
+                  0.5625_rkx * (mo_atm%vx(j,i,k)+mo_atm%vx(j,i+1,k)) - &
+                  0.0625_rkx * (mo_atm%vx(j,i-1,k)+mo_atm%vx(j,i+2,k))
+              end do
+            end do
+          end do
+          do k = 1 , kz
+            do j = jci1 , jci2
+              mo_atm%v(j,idii2,k) = &
+                0.5625_rkx * (mo_atm%vx(j,ici2,k)+mo_atm%vx(j,ice2,k)) - &
+                0.0625_rkx * (mo_atm%vx(j,icii2,k)+mo_atm%vx(j,ice2,k))
               mo_atm%v(j,idi2,k) = &
                 0.5_rkx * (mo_atm%vx(j,ici2,k)+mo_atm%vx(j,ice2,k))
+            end do
+          end do
+        else
+          do k = 1 , kz
+            do i = idi1 , idii2
+              do j = jci1 , jci2
+                mo_atm%v(j,i,k) = &
+                  0.5625_rkx * (mo_atm%vx(j,i,k)+mo_atm%vx(j,i+1,k)) - &
+                  0.0625_rkx * (mo_atm%vx(j,i-1,k)+mo_atm%vx(j,i+2,k))
+              end do
             end do
           end do
         end if
@@ -268,8 +375,6 @@ module mod_moloch
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1m1 , ih , ihm1 , im1 , jh , jhm1 , jm1
         real(rkx) , dimension(jci1:jci2,1:kzp1) :: wfw
-        real(rkx) , dimension(jci1:jci2,ici1:ice2) :: zpby
-        real(rkx) , dimension(jci1:jce2) :: zpbw
         real(rkx) :: zamu , zcost , r , b , zphi , is , zdv
         real(rkx) :: zcostx , zcosty , zhxvt , zhxvtn
 
@@ -319,7 +424,7 @@ module mod_moloch
 
         do k = 1 , kz
           do i = ici1 , ici2
-            do j = jci1 , jce2
+            do j = jci1 , jci2
               zamu = v(j,i,k)*zcosty
               if ( zamu > d_zero ) then
                 is = d_one
@@ -337,10 +442,13 @@ module mod_moloch
                 ((d_one+zphi)*wz(j,im1,k)+(d_one-zphi)*wz(j,i,k))
             end do
           end do
+
+          call exchange_bt(zpby,1,jci1,jci2,ici1,ice2)
+
           do i = ici1 , ici2
-            zhxvtn = clv(j,i+1)*fmyu(j,i)
-            zhxvt  = clv(j,i)*fmyu(j,i)
             do j = jci1 , jci2
+              zhxvtn = clv(j,i+1)*fmyu(j,i)
+              zhxvt  = clv(j,i)*fmyu(j,i)
               zdv = (v(j,i+1,k)*zhxvtn - v(j,i,k)*zhxvt)*zcosty
               p0(j,i,k) = wz(j,i,k) + &
                       zpby(j,i)*zhxvt - zpby(j,i+1)*zhxvtn + p(j,i,k)*zdv
@@ -350,12 +458,19 @@ module mod_moloch
 
         call exchange_lr(p0,2,jci1,jci2,ici1,ici2,1,kz)
 
+        if ( ma%has_bdyleft ) then
+          p0(jce1,:,:) = p0(jci1,:,:)
+        end if
+        if ( ma%has_bdyright ) then
+          p0(jce2,:,:) = p0(jci2,:,:)
+        end if
+
         ! Zonal advection
 
         do k = 1 , kz
           do i = ici1 , ici2
-            zcostx = dt*fmyu(j,i)/dx
             do j = jci1 , jce2
+              zcostx = dt*fmyu(j,i)/dx
               zamu = u(j-1,i,k)*zcostx
               if ( zamu > d_zero ) then
                 is = d_one
@@ -369,15 +484,21 @@ module mod_moloch
               r = rdeno (p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is+zamu*b -is*b
-              zpbw(j) = d_half*zamu * &
+              zpbw(j,i) = d_half*zamu * &
                    ((d_one+zphi)*p0(j-1,i,k)+(d_one-zphi)*p0(j,i,k))
             end do
+          end do
+
+          call exchange_lr(zpbw,1,jci1,jce2,ici1,ici2)
+
+          do i = ici1 , ici2
             do j = jci1 , jci2
-              p(j,i,k) = p0(j,i,k) + zpbw(j) - zpbw(j+1) + &
+              p(j,i,k) = p0(j,i,k) + zpbw(j,i) - zpbw(j+1,i) + &
                         p(j,i,k)*zdv
             end do
           end do
         end do
+
       end subroutine wafone
 
   end subroutine moloch

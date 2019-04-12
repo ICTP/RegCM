@@ -876,8 +876,8 @@ module mod_output
               do j = jci1 , jci2
                 zz = mo_atm%zeta(j,i,kz)
                 if ( zz > 100.0_rkx ) then
-                  srf_ua100_out(j,i,1) = mo_atm%ux(j,i,k)
-                  srf_va100_out(j,i,1) = mo_atm%vx(j,i,k)
+                  srf_ua100_out(j,i,1) = mo_atm%ux(j,i,1)
+                  srf_va100_out(j,i,1) = mo_atm%vx(j,i,1)
                 else
                   vertloop: &
                   do k = kz-1 , 1 , -1
@@ -1312,8 +1312,11 @@ module mod_output
         end if
 
         if ( ibltyp == 2 ) then
-          call grid_collect(atm1%tke,atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
-          call grid_collect(atm2%tke,atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
+          if ( idynamic == 3 ) then
+          else
+            call grid_collect(atm1%tke,atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
+            call grid_collect(atm2%tke,atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
+          end if
           call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
         else if ( ibltyp == 4 ) then
           call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
@@ -1429,8 +1432,11 @@ module mod_output
         end if
 
         if ( ichem == 1 ) then
-          call grid_collect(atm1%chi,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-          call grid_collect(atm2%chi,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          if ( idynamic == 3 ) then
+          else
+            call grid_collect(atm1%chi,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+            call grid_collect(atm2%chi,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          end if
           call grid_collect(rainout,rainout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(washout,washout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)

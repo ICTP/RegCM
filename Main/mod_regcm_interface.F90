@@ -39,6 +39,7 @@ module mod_regcm_interface
   use mod_params
   use mod_tendency
   use mod_service
+  use mod_moloch
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif
@@ -182,7 +183,11 @@ module mod_regcm_interface
       !
       ! Compute tendencies
       !
-      call tend
+      if ( idynamic == 3 ) then
+        call moloch
+      else
+        call tend
+      end if
       !
       ! Write output for this timestep if requested
       !
