@@ -61,6 +61,7 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:) :: zpby
   real(rkx) , pointer , dimension(:,:) :: zpbw
 
+  real(rkx) , pointer , dimension(:,:,:) :: pf , tf
   real(rkx) , pointer , dimension(:,:,:) :: ten0
   real(rkx) , pointer , dimension(:,:,:) :: qen0
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
@@ -68,12 +69,17 @@ module mod_moloch
   public :: allocate_moloch , moloch
   public :: uvstagtox , wstagtox
 
+  integer(ik4) :: nadv = 1
+  integer(ik4) :: nsound = 1
+
   contains
 
 #include <cpmf.inc>
 
   subroutine allocate_moloch
     implicit none
+    call getmem3d(pf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:pf')
+    call getmem3d(tf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:tf')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
     call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
@@ -98,6 +104,8 @@ module mod_moloch
   !
   subroutine moloch
     implicit none
+    integer(ik4) :: jadv , jsound
+    real(rkx) :: zuh , zvh
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
     integer(ik4) , save :: idindx = 0
@@ -106,7 +114,44 @@ module mod_moloch
 
     call boundary
 
-    call advection
+    mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
+      mo_atm%t(jce1:jce2,ice1:ice2,1:kz)/mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
+    tf(jce1:jce2,ice1:ice2,1:kz) = mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz)
+
+    do jadv = 1 , nadv
+
+      pf(jce1:jce2,ice1:ice2,1:kz) = mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
+
+      call exchange(mo_atm%tetav,2,jce1,jce2,ice1,ice2,1,kz)
+
+      !  sound waves
+
+      do jsound = 1 , nsound
+
+        ! partial definition of the generalized vertical velocity
+        call exchange_lr(mo_atm%u,2,jde1,jde2,ice1,ice2,1,kz)
+        call exchange_bt(mo_atm%v,2,jce1,jce2,ide1,ide2,1,kz)
+
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zuh = mo_atm%u(j,i,kz)*mddom%hx(j,i) + &
+                  mo_atm%u(j-1,i,kz)*mddom%hx(j-1,i)
+            zvh = mo_atm%v(j,i,kz)*mddom%hy(j,i) + &
+                  mo_atm%u(j+1,i,kz)*mddom%hy(j+1,i)
+            mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
+            s(j,i,kz) = -w(j,i,kz)
+          end do
+        end do
+
+        do k = kz-1, 1 , -1
+
+        end do
+
+      end do
+
+      call advection
+
+    end do
 
     !
     ! Next timestep ready : increment elapsed forecast time
