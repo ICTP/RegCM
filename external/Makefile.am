@@ -27,7 +27,7 @@ mpif.h:
 	  $(FC) $(CPPFLAGS) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
 %.o: %.F90
-	  $(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
+	  $(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) $(MPEUFCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod mpif.h

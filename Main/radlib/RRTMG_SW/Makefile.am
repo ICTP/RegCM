@@ -35,7 +35,7 @@ rrlw_kg04.F90  rrlw_kg14.F90  rrsw_con.F90    rrsw_kg25.F90  rrlw_kg05.F90  \
 rrlw_kg15.F90  rrsw_kg16.F90  rrsw_kg26.F90
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod *__genmod.F90

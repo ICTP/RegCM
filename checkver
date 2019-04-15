@@ -18,16 +18,4 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-[ -f tag ] && nv="tag-`cat tag`"
-if [ -z "$nv" ]
-then
-  has_svnversion=`which svnversion`
-  if [ -z "$has_svnversion" ]
-  then
-    nv="export"
-  else
-    nv=`svnversion`
-  fi
-fi
-[ -f version ] && ov=`cat version` || ov="export"
-[ "${nv}" != "${ov}" -o ! -f version ] && echo ${nv} > version
+git describe --abbrev=4 --dirty --always --tags > version

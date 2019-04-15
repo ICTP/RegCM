@@ -11,7 +11,7 @@ terrain_SOURCES = mod_header.F90 mod_fudge.F90 mod_maps.F90 \
 LDADD = $(OMPFLAGS)
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 clean-local:
 	rm -f *.mod *__genmod.*

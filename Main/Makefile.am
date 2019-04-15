@@ -114,7 +114,7 @@ regcm_SOURCES += mod_update.F90
 endif
 
 %.o: %.F90
-	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod *__genmod.*

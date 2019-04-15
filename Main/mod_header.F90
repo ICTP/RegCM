@@ -50,7 +50,7 @@ module mod_header
       call cpu_time(start_time)
       last_time = start_time
       write (stdout,"(/,2x,'This is RegCM trunk')")
-      write (stdout,f99001)  SVN_REV, __DATE__ , __TIME__
+      write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
     end if
 
   end subroutine whoami

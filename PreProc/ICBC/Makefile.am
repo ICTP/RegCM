@@ -29,7 +29,7 @@ chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
 LDADD = $(OMPFLAGS)
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 clean-local:
 	rm -f *.mod *__genmod.*

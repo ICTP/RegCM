@@ -43,7 +43,7 @@ module mod_header
            '(2x," SVN Revision: ",A," compiled at: data : ",A,"  time: ",A,/)'
 
     write (nrite,f99001)  myname
-    write (nrite,f99002)  SVN_REV, __DATE__ , __TIME__
+    write (nrite,f99002)  GIT_VER, __DATE__ , __TIME__
 
 #ifdef IBM
     hostname = 'ibm platform '

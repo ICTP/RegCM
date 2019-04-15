@@ -158,7 +158,7 @@ endif
 	$(MPIFC) $(FPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(MPIFC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(MPIFC) $(FPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 %.o: %.c
 	$(CC) -o $@ $(CFLAGS) $(DEFFLAGS) -c $<

@@ -199,7 +199,7 @@ program mksurfdata
 
   write (stdout,  &
      "(/,2x,'This is mksurfdata part of RegCM package version 4')")
-  write (stdout,f99001)  SVN_REV, __DATE__ , __TIME__
+  write (stdout,f99001)  GIT_VER, __DATE__ , __TIME__
 
 #ifdef IBM
   hostname='ibm platform '

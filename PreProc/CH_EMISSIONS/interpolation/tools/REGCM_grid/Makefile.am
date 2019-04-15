@@ -5,7 +5,7 @@ emcre_grid_SOURCES = emcre_grid.F90 emcre_netcdf.F90 emcre_tools.F90 \
                      spline.F90
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 clean-local:
 	rm -f *.mod *__genmod.F90

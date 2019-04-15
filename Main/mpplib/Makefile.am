@@ -10,7 +10,7 @@ libmpp_a_SOURCES = mod_mppparam.F90 mod_mpmessage.F90 mod_service.F90 \
                    mod_timer.F90
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod

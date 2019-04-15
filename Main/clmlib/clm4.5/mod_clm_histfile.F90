@@ -1583,7 +1583,7 @@ module mod_clm_histfile
     call clm_addatt(lnfid, 'username', trim(username))
     call clm_addatt(lnfid, 'version' , trim(version))
 
-    str = SVN_REV
+    str = GIT_VER
     call clm_addatt(lnfid, 'revision_id', trim(str))
     call clm_addatt(lnfid, 'case_title', trim(ctitle))
     call clm_addatt(lnfid, 'case_id', trim(caseid))

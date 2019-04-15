@@ -26,7 +26,9 @@ endif
 $(REGCM_ROOT)/version :
 	@cd $(REGCM_ROOT) && sh checkver
 
-SVNDEF := $(DEFINE)'SVN_REV="$(shell cat $(REGCM_ROOT)/version)"'
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+
+GITVER := -DGIT_VER=\"$(GIT_VERSION)\"
 
 # CLM45 flags to activate schemes.
 

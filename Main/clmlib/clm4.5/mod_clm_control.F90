@@ -276,10 +276,10 @@ module mod_clm_control
 #endif
     if ( ifrest ) then
       call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrContinue, &
-                         SVN_REV, hostname, user)
+                         GIT_VER, hostname, user)
     else
       call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrStartup, &
-                         SVN_REV, hostname, user)
+                         GIT_VER, hostname, user)
     end if
 
     call clmvarctl_init

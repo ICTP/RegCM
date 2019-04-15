@@ -7,7 +7,7 @@ noinst_LIBRARIES = libnetlib.a
 libnetlib_a_SOURCES = linpack.F90 eispack.F90 lapack_dgbsv.F90
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod

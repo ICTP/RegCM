@@ -2874,7 +2874,7 @@ module mod_ncstream
       attc%theval = 'http://gforge.ictp.it/gf/project/regcm'
       call add_attribute(stream,attc)
       attc%aname = 'model_revision'
-      attc%theval = SVN_REV
+      attc%theval = GIT_VER
       call add_attribute(stream,attc)
       call date_and_time(values=tvals)
       write(history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)') &

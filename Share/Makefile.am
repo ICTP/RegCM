@@ -18,7 +18,7 @@ librcmlib_a_SOURCES = mod_constants.F90 mod_date.F90 mod_space.F90 mod_hgt.F90 \
                       mod_hash.F90
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod
@@ -62,6 +62,6 @@ mod_kdtree2.o : mod_kdtree2.F90 mod_realkinds.o mod_message.o mod_stdio.o mod_kd
 mod_earth.o : mod_earth.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
 mod_spbarcoord.o : mod_spbarcoord.F90 mod_realkinds.o mod_intkinds.o mod_constants.o
 mod_kdinterp.o : mod_kdinterp.F90 mod_realkinds.o mod_intkinds.o mod_constants.o mod_stdio.o mod_message.o mod_earth.o mod_kdtree2.o mod_spbarcoord.o mod_dynparam.o
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(OMPFLAGS) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(GITVER) $(OMPFLAGS) $(FCFLAGS) -c $<
 mod_zita.o : mod_zita.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_hash.o : mod_hash.F90 mod_intkinds.o

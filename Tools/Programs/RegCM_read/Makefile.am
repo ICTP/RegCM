@@ -10,7 +10,7 @@ ReadRegcmio_SOURCES = ReadRegcmio.F90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 
 clean-local:
 	rm -f *.mod
