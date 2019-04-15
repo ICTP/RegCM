@@ -77,7 +77,7 @@ then
   internal=1
 elif [ "$tspan" == "month" ]
 then
-  operator="monmean"
+  operator="timmean"
   internal=1
 elif [ "$tspan" == "year" ]
 then

@@ -15,15 +15,22 @@
 %%   along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 %%
 \documentclass[10pt,twoside,a4paper]{report}
+\usepackage{amsmath} %%Added by TA OBrien for UW equation sets
+\usepackage{boxedminipage}
 \usepackage{pdflscape}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{url}
 \usepackage{acronym}
 \usepackage{epsfig}
 \usepackage{rotating}
 \usepackage{pslatex}
 \usepackage{natbib}
 \usepackage{graphicx}
+\usepackage{graphics}
 \usepackage{wrapfig}
 
+\linespread{1.05}
 \topmargin=-10pt
 \textwidth=16cm
 \textheight=23.35cm
@@ -33,11 +40,13 @@
 %% pretolerance stops words from breaking
 \pretolerance=10000
 
+\newcommand*\mean[1]{\bar{#1}}
+
 \begin{document}
 
 \begin{titlepage}
 
-\begin{wrapfigure}{l}{4cm}
+\begin{wrapfigure}{l}{6cm}
 \vspace{-35pt}
 \begin{center}
 \includegraphics{ICTP_logo}
@@ -51,19 +60,22 @@
 
 \vspace{3cm}
 
+\begin{boxedminipage}{\textwidth}
 \begin{center}
-\noindent{{\Large
-{\bf Regional Climatic Model RegCM User Manual} \\
-{\bf Version 4.1} \\
-}}
+\vspace{0.5cm}
+{\Large
+{\bf Regional Climate Model RegCM\\Reference Manual} \\
+\vspace{0.2cm}
+{\bf Version 4.7}}\\
+\vspace{0.5cm}
+Nellie Elguindi, Xunqiang Bi, Filippo Giorgi,\\
+Badrinath Nagarajan, Jeremy Pal, Fabien Solmon,\\
+Sara Rauscher, Ashraf Zakey, Travis O'Brien,\\
+Rita Nogherotto and Graziano Giuliani\\
+Trieste, Italy\\January 2017
+\vspace{0.5cm}
 \end{center}
-\begin{center}
-\noindent{
-Nellie Elguindi, Xunqiang Bi, Filippo Giorgi, Badrinath Nagarajan,\\
-Jeremy Pal, Fabien Solmon, Sara Rauscher, Ashraf Zakey and Graziano Giuliani\\
-{Trieste, Italy\\May 2011}
-}
-\end{center}
+\end{boxedminipage}
 
 \end{titlepage}
 
@@ -82,8 +94,6 @@ Jeremy Pal, Fabien Solmon, Sara Rauscher, Ashraf Zakey and Graziano Giuliani\\
 \input{intro}
 
 \input{description}
-
-\input{future}
 
 \bibliography{references}
 \bibliographystyle{agu}

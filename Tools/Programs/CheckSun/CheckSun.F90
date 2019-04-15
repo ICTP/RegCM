@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  call abort
+endsubroutine myabort
+
 program checksun
   use mod_date
   use mod_constants
@@ -29,21 +33,21 @@ program checksun
   integer , dimension(3) :: idims , istart , icount
   integer , dimension(1) :: ixtime
   integer :: ivarid , itimid , ilonid , ilatid
-  integer :: idate0 , idate1 , idate2 , idate , ifrq
+  integer :: idate0 , idate1 , idate2 , ifrq
+  integer :: year , month , day , hour
+  type(rcm_time_and_date) :: xidate0 , xidate1 , xidate2 , xidate
+  type(rcm_time_interval) :: tdif
   integer :: jxdimid , iydimid
   integer :: jx , iy
-  integer :: it , nt , julday , ibase
+  integer :: it , nt , ibase
   real(8) :: xtime , gmt
-  integer :: iyear , imonth , iday , ihour
   character(32) :: csdate
   character(256) :: ofname
-#ifdef IBM
-  integer , external :: iargc
-#endif
   real(8) , parameter :: dayspy = 365.2422D0
+  real(8) , parameter :: solcon = 1367.0D0
 
-  call getarg(0, chararg)
-  numarg = iargc( )
+  call get_command_argument(0,value=chararg)
+  numarg = command_argument_count( )
   if (numarg < 5) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
@@ -61,35 +65,37 @@ program checksun
     stop
   end if
 
-  call getarg(1, ncfile)
-  call getarg(2, chararg)
+  call get_command_argument(1,value=ncfile)
+  call get_command_argument(2,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate0
   if (istatus /= 0) then
     print *, 'Cannot parse idate0'
     stop
   end if
-  call getarg(3, chararg)
+  xidate0 = idate0
+  call get_command_argument(3,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate1
   if (istatus /= 0) then
     print *, 'Cannot parse idate1'
     stop
   end if
-  call getarg(4, chararg)
+  xidate1 = idate1
+  call get_command_argument(4,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate2
   if (istatus /= 0) then
     print *, 'Cannot parse idate2'
     stop
   end if
-  call getarg(5, chararg)
+  xidate2 = idate2
+  call get_command_argument(5,value=chararg)
   read(chararg, '(i5)',iostat=istatus) ifrq
   if (istatus /= 0) then
     print *, 'Cannot parse ifrq'
     stop
   end if
 
-  call split_idate(idate0,iyear,imonth,iday,ihour)
-  gmt = dble(ihour)
-  call split_idate(idate1,iyear,imonth,iday,ihour)
+  call split_idate(xidate0,year,month,day,hour)
+  gmt = dble(hour)
 
 ! Open the file
 
@@ -177,8 +183,7 @@ program checksun
     stop
   end if
 
-  call normidate(idate0)
-  write (ofname,'(a,i10,a)') 'solin_',idate0,'.nc'
+  write (ofname,'(a,i10,a)') 'solin_',toint10(xidate0),'.nc'
   istatus = nf90_create(ofname, nf90_clobber, ncid)
   if (istatus /= nf90_noerr) then
     write (6,*) 'Error create NetCDF file '//ofname
@@ -211,10 +216,8 @@ program checksun
     write (6,*) nf90_strerror(istatus)
     stop
   end if
-  write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-         iyear,'-',imonth,'-',iday,' ',ihour,':00:00 UTC'
   istatus = nf90_put_att(ncid, itimid, 'units', &
-                         'hours since '//csdate)
+                         'hours since '//tochar(xidate0))
   if (istatus /= nf90_noerr) then
     write (6,*) 'Error adding time units'
     write (6,*) nf90_strerror(istatus)
@@ -265,10 +268,12 @@ program checksun
   end if
 
   xtime = 0.0D0
-  idate = idate1
-  nt = idatediff(idate2,idate1)/ifrq+1
-  julday = idayofyear(idate0)
-  ibase = idatediff(idate1,idate0)/ifrq
+  xidate = xidate1
+
+  tdif = xidate2-xidate1
+  nt = tohours(tdif)/ifrq+1
+  tdif = xidate1-xidate0
+  ibase =tohours(tdif)/ifrq
 
   istatus = nf90_put_var(ncid,ilatid,xlat)
   if (istatus /= nf90_noerr) then
@@ -291,7 +296,7 @@ program checksun
   do it = 1 , nt
     call calcsolin
     istart(3) = it
-    print *, 'Doing ', idate
+    print *, 'Doing ', tochar(xidate)
     ixtime(1) = (it-1)*ifrq
     istatus = nf90_put_var(ncid,itimid,ixtime,istart(3:3),icount(3:3))
     if (istatus /= nf90_noerr) then
@@ -305,7 +310,8 @@ program checksun
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    call addhours(idate,ifrq)
+    tdif = rcm_time_interval(ifrq,uhrs)
+    xidate = xidate + tdif
   end do
 
   istatus = nf90_close(ncid)
@@ -321,12 +327,13 @@ program checksun
     implicit none
     integer :: i , j , idiff
     real(8) :: eccf , theta , calday , xt24 , tlocap , omga , xxlat , coszrs
-    real(8) :: delta , decdeg, lhour , xday
-    call split_idate(idate,iyear,imonth,iday,ihour)
-    lhour = dble(ihour)
-    idiff = (idatediff(idate,idate0)/ifrq)-ibase
+    real(8) :: delta , decdeg, xday , lhour
+    call split_idate(xidate,year,month,day,hour)
+    lhour = dble(hour)
+    tdif = xidate-xidate0
+    idiff = (tohours(tdif)/ifrq)-ibase
     xday = dble(idiff)/24.0D0
-    calday = dble(julday) + xday + gmt/24.0D0 + xtime/24.0D0
+    calday = yeardayfrac(xidate)
     theta = twopi*calday/dayspy
     delta = 0.006918D0 - 0.399912D0*dcos(theta) + &
             0.070257D0*dsin(theta) -              &
@@ -358,3 +365,4 @@ program checksun
   end subroutine calcsolin
 
 end program checksun
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

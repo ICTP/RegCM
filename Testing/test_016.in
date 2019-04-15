@@ -1,0 +1,113 @@
+!Caspian domain
+ &dimparam
+ iy     = 86,
+ jx     = 96,
+ kz     = 18,
+ nsg    = 1,
+ /
+ &geoparam
+ iproj = 'LAMCON',
+ ds = 50.0,
+ ptop = 5.0,
+ clat = 50.0,
+ clon = 55.0,
+ plat = 50.0,
+ plon = 55.0,
+ truelatl = 30.0,
+ truelath = 60.0,
+ i_band = 0,
+ /
+ &terrainparam
+ domname = 'CAS',
+ lakedpth = .false.,
+ fudge_lnd   = .false.,
+ fudge_lnd_s = .false.,
+ fudge_tex   = .false.,
+ fudge_tex_s = .false.,
+ fudge_lak   = .false.,
+ fudge_lak_s  = .false.,
+ h2opct = 75.,
+ dirter = 'input',
+ inpter = 'RCMDATA',
+ /
+ &debugparam
+ debug_level = 0
+ /
+ &boundaryparam
+ nspgx  = 12,
+ nspgd  = 12,
+ /
+ &globdatparam
+ ibdyfrq = 6,
+ ssttyp = 'OI2WK',
+ dattyp = 'EIN15',
+ calendar = 'gregorian',
+ gdate1 = 1995010100,
+ gdate2 = 1995020100,
+ dirglob = 'input',
+ inpglob = 'RCMDATA',
+ /
+ &restartparam
+ ifrest  = .false. ,
+ mdate0  = 1995010100,
+ mdate1  = 1995010100, 
+ mdate2  = 1995020100,
+ /
+ &timeparam
+ dtrad   =    30.,
+ dtabem  =    18.,
+ dtsrf   =   600.,
+ dt      =   150.,
+ /
+ &outparam
+ ifsave  = .true. ,
+   savfrq  =  0.,
+ ifatm  = .true. ,
+   atmfrq  =     6.,
+ ifrad   = .true. ,
+   radfrq  =     6.,
+ ifsrf   = .true. ,
+ iflak   = .true. ,
+   lakfrq  =     6.,
+ ifsub   = .true. ,
+   srffrq  =     3.,
+ ifchem  = .false.,
+   chemfrq =     6., 
+ dirout = 'output',
+ /
+ &physicsparam
+ iboudy  =          5,
+ ibltyp  =          1,
+ icup_lnd =         2,
+ icup_ocn =         2,
+ ipptls  =          1,
+ iocnflx =          2,
+ iocncpl =          1,
+ ipgf    =          0,
+ iemiss  =          0,
+ lakemod =          0,
+ ichem   =          0,
+ idcsst = 1,
+ iseaice = 0,
+ idesseas = 0,
+ iconvlwp = 0,
+ /
+ &subexparam
+ /
+ &grellparam
+ /
+ &holtslagparam
+ /
+ &cplparam
+ cpldt        = 10800.,
+ cpldbglevel  = 1,
+ /
+ &clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ /
+ &clm_soilhydrology_inparm
+ /
+ &clm_hydrology1_inparm
+ /

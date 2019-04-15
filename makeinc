@@ -1,0 +1,57 @@
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#
+#    This file is part of ICTP RegCM.
+#
+#    ICTP RegCM is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    ICTP RegCM is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
+#
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+ifeq ($(findstring xlf, $(FC)),xlf)
+  DEFINE = -WF,-D
+else
+  DEFINE = -D
+endif
+
+$(REGCM_ROOT)/version :
+	@cd $(REGCM_ROOT) && sh checkver
+
+SVNDEF := $(DEFINE)'SVN_REV="$(shell cat $(REGCM_ROOT)/version)"'
+
+# CLM45 flags to activate schemes.
+
+ifeq ($(findstring DCLM45, $(CPPFLAGS)),DCLM45)
+  #CPPFLAGS += $(DEFINE)CENTURY_DECOMP
+  #CPPFLAGS += $(DEFINE)CN
+  #CPPFLAGS += $(DEFINE)DYNPFT
+  #CPPFLAGS += $(DEFINE)CNDV
+  #CPPFLAGS += $(DEFINE)CROP
+  #CPPFLAGS += $(DEFINE)LCH4
+  #CPPFLAGS += $(DEFINE)NITRIF_DENITRIF
+  #CPPFLAGS += $(DEFINE)EXTRALAKELAYERS
+  #CPPFLAGS += $(DEFINE)MEXICOCITY
+  #CPPFLAGS += $(DEFINE)PERGRO
+  #CPPFLAGS += $(DEFINE)SNICAR_FRC
+  #CPPFLAGS += $(DEFINE)VERTSOILC
+  #CPPFLAGS += $(DEFINE)VANCOUVER
+  #CPPFLAGS += $(DEFINE)VICHYDRO
+endif
+
+space :=
+space +=
+fortflag := -D_FORTIFY_SOURCE=2
+scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
+scppfla := $(filter-out -DMPI_SERIAL,$(scppfla))
+flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(scppfla))))
+
+program_transform_name := s&$$&$(rcsuffix)$(flagsuffix)&

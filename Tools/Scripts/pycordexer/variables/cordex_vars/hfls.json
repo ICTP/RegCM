@@ -1,0 +1,121 @@
+{
+  "hfls": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "hfls",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "IfNeededAverageAndSave",
+        {
+          "new_time_step": 3,
+          "var_name": "hfls",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Upward Latent Heat Flux",
+            "standard_name": "surface_upward_latent_heat_flux",
+            "units": "W m-2"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Surface Upward Latent Heat Flux",
+            "standard_name": "surface_upward_latent_heat_flux",
+            "units": "W m-2"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "hfls",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Upward Latent Heat Flux",
+            "standard_name": "surface_upward_latent_heat_flux",
+            "units": "W m-2"
+          }
+        }
+      ]
+    ],
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "evspsbl",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "hfls",
+          "new_attributes": {
+            "long_name": "Surface Upward Latent Heat Flux",
+            "standard_name": "surface_upward_latent_heat_flux",
+            "units": "W m-2"
+          }
+        }
+      ],
+      [
+        "IfNeededAverageAndSave",
+        {
+          "new_time_step": 3,
+          "var_name": "hfls",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Upward Latent Heat Flux",
+            "standard_name": "surface_upward_latent_heat_flux",
+            "units": "W m-2"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "hfls",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Surface Upward Latent Heat Flux",
+            "standard_name": "surface_upward_latent_heat_flux",
+            "units": "W m-2"
+          }
+        }
+      ]
+    ]
+  ]
+}

@@ -17,6 +17,10 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+subroutine myabort
+  call abort
+end subroutine myabort
+
 program readregcm
   use mod_date
   use netcdf
@@ -24,7 +28,7 @@ program readregcm
 
   character(256) :: prgname , ncfile
   character(32) :: varname
-  character(64) :: vardesc , timeunit
+  character(64) :: vardesc , timeunit , timecal
   character(16) :: varunit
   integer :: numarg , istatus , ncid
 
@@ -43,12 +47,9 @@ program readregcm
   integer :: jx , iy , kz, nt , nlat , nlon
   integer :: i
   integer , dimension(4) :: istart , icount
-#ifdef IBM
-  integer , external :: iargc
-#endif
 
-  call getarg(0, prgname)
-  numarg = iargc( )
+  call get_command_argument(0,value=prgname)
+  numarg = command_argument_count( )
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
@@ -57,7 +58,7 @@ program readregcm
     stop
   end if
 
-  call getarg(1, ncfile)
+  call get_command_argument(1,value=ncfile)
 
 ! Open the file
 
@@ -214,7 +215,7 @@ program readregcm
     stop
   end if
 
-  print *, 'Centered on (lat,lon)         : (', clat, ',', clon, ')' 
+  print *, 'Centered on (lat,lon)         : (', clat, ',', clon, ')'
 
   istatus = nf90_get_att(ncid, nf90_global, 'grid_size_in_meters', ds)
   if ( istatus /= nf90_noerr) then
@@ -261,7 +262,7 @@ program readregcm
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    
+
     print *, 'Lambert parallels are         : ', trlat
 
   else if (iproj == 'ROTMER') then
@@ -292,21 +293,21 @@ program readregcm
       write (6,*) 'Memory error allocating sigma'
       stop
     end if
-    istatus = nf90_inq_varid(ncid, "sigma", ivarid)
+    istatus = nf90_inq_varid(ncid, "kz", ivarid)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error : sigma variable undefined'
+      write (6,*) 'Error : kz variable undefined'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
     istatus = nf90_get_var(ncid, ivarid, sigma)
     if (istatus /= nf90_noerr) then
-      write (6,*) 'Error reading sigma variable'
+      write (6,*) 'Error reading kz variable'
       write (6,*) nf90_strerror(istatus)
       stop
     end if
 
     print *, 'Sigma coordinate values       : ', sigma
-    
+
     deallocate(sigma)
 
   end if
@@ -331,6 +332,12 @@ program readregcm
       write (6,*) nf90_strerror(istatus)
       stop
     end if
+    istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
+    if (istatus /= nf90_noerr) then
+      write (6,*) 'Error reading time variable'
+      write (6,*) nf90_strerror(istatus)
+      stop
+    end if
     istatus = nf90_get_var(ncid, ivarid, times)
     if (istatus /= nf90_noerr) then
       write (6,*) 'Error reading time variable'
@@ -340,7 +347,7 @@ program readregcm
     print *, 'Time units                    : ', trim(timeunit)
     do i = 1 , nt
       print *, '    Time                      : ', &
-                timeval2idate(times(i),timeunit)
+             tochar(timeval2date(times(i),timeunit,timecal))
     end do
 
     deallocate(times)
@@ -371,7 +378,7 @@ program readregcm
 
 !   EXAMPLE READING T2M to obtain statistics for this var at second timestep
 
-    if (varname == 't2m') then
+    if (varname == 'tas') then
       allocate(var(jx,iy))
       if (nt >= 2) then
         istart(4) = 2 ! Second timestep : this is record number
@@ -432,3 +439,4 @@ program readregcm
   end function rounder
 
 end program readregcm
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

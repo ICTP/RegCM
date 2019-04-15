@@ -1,0 +1,2 @@
+### FORCHECK ANALYSIS:
+forchk -rigor -cond -f95 -obs -ff -decl -ext -intr -spec -ancmpl -anprg -anref -shcom -shinc -shmod -shprg -shref -shsrc -shsub -inf -plen 25 -pwid 132 -I /soft/netcdf/v3.5.1b11_lf/include -l edgar2nc -refstruc edgar2nc.xml -rep report.log mo_f2kcli.f90 edgar2nc.f90 -lib /soft/ECHAM5/lib/netcdf90

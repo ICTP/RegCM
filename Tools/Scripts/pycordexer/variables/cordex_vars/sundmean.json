@@ -1,0 +1,30 @@
+{
+  "sundmean": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "sund"
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "STS": -12.0
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Duration of Sunshine",
+            "standard_name": "duration_of_sunshine",
+            "units": "s"
+          }
+        }
+      ]
+    ]
+  ]
+}

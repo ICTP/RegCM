@@ -1,0 +1,22 @@
+{
+  "rootd": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "rootd"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Maximum Root Depth",
+            "standard_name": "root_depth",
+            "units": "m"
+          }
+        }
+      ]
+    ]
+  ]
+}

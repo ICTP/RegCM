@@ -18,75 +18,52 @@
  /
  &terrainparam
  domname = 'test_011',
- ntypec = 10,
- ntypec_s = 10,
- smthbdy = .false.,
  lakedpth = .false.,
  fudge_lnd   = .false.,
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
- h2opct = 75.,
  dirter = '/set/this/to/where/your/domain/file/is',
  inpter = '/set/this/to/where/your/surface/dataset/is',
  /
- &ioparam
- ibyte = 4,
- /
  &debugparam
- debug_level = 1,
- dbgfrq = 3,
+ debug_level = 0,
  /
  &boundaryparam
  nspgx  = 12,
  nspgd  = 12,
  /
- &modesparam
- nsplit = 2,
- /
  &globdatparam
  ibdyfrq = 6,
  ssttyp = 'OI_WK',
  dattyp = 'EIN15',
- ehso4 = .false.,
- globidate1 = 1990060100,
- globidate2 = 1990070100,
+ gdate1 = 1990060100,
+ gdate2 = 1990070100,
  dirglob = '/set/this/to/where/your/icbc/for/model/is',
  inpglob = '/set/this/to/where/your/input/global/data/is',
  /
- &globwindow
- lat0 = 0.0
- lat1 = 0.0
- lon0 = 0.0
- lon1 = 0.0
- /
- &aerosolparam
- aertyp = 'AER11D1'
- ntr = 2,
- nbin = 4,
- /
  &restartparam
  ifrest  = .false. ,
- idate0  = 1990060100,
- idate1  = 1990060100,
- idate2  = 1990060600,
+ mdate0  = 1990060100,
+ mdate1  = 1990060100,
+ mdate2  = 1990060600,
  /
  &timeparam
- radfrq  =    30.,
- abemh   =    18.,
- abatm   =   600.,
+ dtrad   =    30.,
+ dtabem  =    18.,
+ dtsrf   =   600.,
  dt      =   150.,
  /
  &outparam
  ifsave  = .true. ,
-   savfrq  =    7200.,
- iftape  = .true. ,
-   tapfrq  =     6.,
+   savfrq  =    0.,
+ ifatm  = .true. ,
+   atmfrq  =     6.,
  ifrad   = .true. ,
-   radisp  =     6.,
- ifbat   = .true. ,
+   radfrq  =     6.,
+ ifsrf   = .true. ,
  ifsub   = .true. ,
-   batfrq  =     3.,
+   srffrq  =     3.,
  ifchem  = .true.,
    chemfrq =     6.,
  dirout='/set/this/to/where/your/output/files/will/be/written'
@@ -94,44 +71,37 @@
  &physicsparam
  iboudy  =          5,
  ibltyp  =          1,
- icup    =          4,
-   igcc    =          1,
+ icup_lnd =         4,
+ icup_ocn =         4,
  ipptls  =          1,
  iocnflx =          2,
  ipgf    =          0,
  iemiss  =          0,
  lakemod =          0,
  ichem   =          1,
- scenario = 'A1B',
  idcsst = 0,
  iseaice = 0,
- idesseas = 1,
- iconvlwp = 1,
+ idesseas = 0,
+ iconvlwp = 0,
  /
  &subexparam
- qck1land=   .250E-03,
- qck1oce =   .250E-03,
- cevap   =   .100E-02,
- caccr   =      3.000,
- cftotmax =      0.75,
  /
  &grellparam
  /
  &emanparam
- elcrit  = 0.0011D0,
- coeffr  = 1.0D0,
  /
-  &chemparam
+ &holtslagparam
+ /
+ &chemparam
+ chemsimtype = 'SULF   ',
  idirect   =    1,
- inpchtrname  =  'SO2','SO4',
- inpchtrsol   =   0.20, 0.80,
- inpchtrdpv(:,1) = 0.003,0.0020
- inpchtrdpv(:,2) = 0.008,0.0020   
- inpdustbsiz(:,1)  = 0.01, 1.00, 2.50, 5.00
- inpdustbsiz(:,2)= 1.00, 2.50, 5.00,20.00
  /
- &clmparam
- dirclm = '/set/this/to/where/your/input/clm/data/are',
- imask  = 1,
- clmfrq = 12.,
+ &clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ /
+ &clm_soilhydrology_inparm
+ /
+ &clm_hydrology1_inparm
  /

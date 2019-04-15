@@ -35,11 +35,11 @@ Sample usage patterns:
 ncdump -c test_001_SRF.1990060100.nc
 \end{Verbatim}
 \item Produce a fully-annotated (one data value per line) listing of the data
-for the variables time and t2m, using FORTRAN conventions for indices, and show
+for the variables time and tas, using FORTRAN conventions for indices, and show
 the floating-point data with only four significant digits of precision and the
 time values with ISO format:
 \begin{Verbatim}
-ncdump -v time,t2m -p 4 -t -f \
+ncdump -v time,tas -p 4 -t -f \
          fortran test_001_SRF.1990060100.nc
 \end{Verbatim}
 \end{enumerate}
@@ -53,7 +53,7 @@ Sample usage patterns:
 ncgen -o test_001_SRF.1990060100_modif.nc \
          test_001_SRF.1990060100.cdl
 \end{Verbatim}
-\item From a CDL file, generate a Fortran 77 program to write the netCDF file:
+\item From a CDL file, generate a Fortran program to write the netCDF file:
 \begin{Verbatim}
 ncgen -f test_001_SRF.1990060100.cdl > prog.f
 \end{Verbatim}
@@ -75,8 +75,6 @@ nccopy -k 4 -d 9 -s test_001_SRF.1990060100.nc \
 You can also find, in the \verb=Tools/Programs/RegCM_read= directory
 under \verb=$REGCM_ROOT= a sample program to read an output file using
 the netCDF library you can modify to fit your needs.
-Another sample program to read SAV output file format can be found
-under the directory \verb=SAV_read= in the \verb=Tools/Programs= directory.
 
 \subsection{NetCDF operators NCO}
 
@@ -111,26 +109,26 @@ http://nco.sourceforge.net/nco.html
 
 Sample usage patterns:
 \begin{enumerate}
-\item Get value of t2m variable at a particular point for all timesteps with
+\item Get value of tas variable at a particular point for all timesteps with
 a prescribed format one per line on stdout:
 \begin{Verbatim}
-ncks -C -H -s "%6.2f\n" -v t2m -d iy,16 -d jx,16 \
+ncks -C -H -s "%6.2f\n" -v tas -d iy,16 -d jx,16 \
          test_001_SRF.1990060100.nc
 \end{Verbatim}
-\item Extract one timestep of t2m from a file and save into a new netCDF file:
+\item Extract one timestep of tas from a file and save into a new netCDF file:
 \begin{Verbatim}
-ncks -c -v t2m -d time,6 test_001_SRF.1990060100.nc \
+ncks -c -v tas -d time,6 test_001_SRF.1990060100.nc \
        test_001_SRF.1990060212.nc
 \end{Verbatim}
-\item Cat together a year worth of output data for the single t2m variable
+\item Cat together a year worth of output data for the single tas variable
 into a single file:
 \begin{Verbatim}
-ncrcat -c -v t2m test_001_SRF.1990??0100.nc \
+ncrcat -c -v tas test_001_SRF.1990??0100.nc \
          test_001_T2M.1990.nc
 \end{Verbatim}
 \item Get the DJF mean value of the tempertaure from a multiyear run:
 \begin{Verbatim}
-ncra -c -v t2m test_001_SRF.????120100.nc \
+ncra -c -v tas test_001_SRF.????120100.nc \
                test_001_SRF.????010100.nc \
                test_001_SRF.????020100.nc \
                test_001_DJF_T2M.nc
@@ -220,6 +218,14 @@ files sharing the same RegCM domain (i.e. it creates just only once the
 \verb=proj= file). To use the \verb=grads= program, you need to have both
 this ancillary files together with the data netCDF file.
 
+To create the \verb=CTL= file for the history \verb=CLM= output file, you need
+to provide to the helper programs the path to both the history \verb=CLM= and
+the \verb=RegCM= \verb=DOMAIN= file, as in:
+
+\begin{Verbatim}
+$ GrADSNcPrepare clmoutput.clm2.h0.2000-07-30-00000.nc test_DOMAIN000.nc
+\end{Verbatim}
+
 A collection of sample \verb=grads= scripts commonly used at ICTP to plot
 simulation results can be found in the \verb=Tools/Scripts/GrADS=
 directory under \verb=$REGCM_ROOT=.
@@ -231,7 +237,7 @@ data analysis and visualization. Noah Diffenbaugh and Mark Snyder have
 created a website dedicated to visualizing RegCM3 output using the NCAR Command Language (NCL). These scripts where built using RegCM3 model output
 converted to netCDF using an external converter.
 They have been adapted to serve as very basic example scripts to process a
-native RegCM 4.1 output data file or do some data analysis using the \verb=NCL=
+native RegCM 4.2 output data file or do some data analysis using the \verb=NCL=
 language and are available in the \verb=Tools/Scripts/NCL/examples= directory.
 Travis O'Brien from the User Community also contributed sample scripts,
 which may be found under the \verb=Tools/Scripts/NCL= directory.

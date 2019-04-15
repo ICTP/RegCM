@@ -26,7 +26,7 @@ begin
 ; read in data
 ;*************************
   a = addfile("CAS_SRF.1990010100.nc","r")
-  prec = a->tpr
+  prec = a->pr
 
   xlat = a->xlat
   xlon = a->xlon

@@ -1,0 +1,22 @@
+{
+  "mrsofc": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "mrsofc"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Capacity of Soil to Store Water",
+            "standard_name": "soil_moisture_content_at_field_capacity",
+            "units": "kg m-2"
+          }
+        }
+      ]
+    ]
+  ]
+}

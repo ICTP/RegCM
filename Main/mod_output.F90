@@ -16,1621 +16,1691 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
-      module mod_output
 
-      use mod_runparams
-      use mod_ncio
-      use mod_date
-      use mod_lake
-      use mod_main
-      use mod_mainchem
-      use mod_bats
-      use mod_message
-      use mod_bdycod
-      use mod_pmoist
-      use mod_rad
-      use mod_trachem
-      use mod_cvaria
-      use mod_outrad
-      use mod_radiation
-      use mod_split
-      use mod_savefile
-      use mod_service
-      use mod_cu_bm
-#ifdef MPP1
-      use mod_mppio
-#ifdef CLM
-      use mod_clm
+module mod_output
+
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
+  use mod_runparams
+  use mod_header
+  use mod_mpmessage
+  use mod_mppparam
+  use mod_service
+  use mod_atm_interface
+  use mod_che_interface
+  use mod_che_output
+  use mod_lm_interface
+  use mod_rad_interface
+  use mod_cu_interface
+  use mod_pbl_interface
+  use mod_micro_interface
+  use mod_ncout
+  use mod_bdycod
+  use mod_split
+  use mod_savefile
+  use mod_slabocean
+  use mod_moloch
+  use mod_capecin
+
+  implicit none
+
+  private
+
+  public :: output
+
+  type(rcm_time_and_date) , save , public :: lastout
+
+  real(rkx) , pointer , dimension(:,:) :: alpharotsin => null( )
+  real(rkx) , pointer , dimension(:,:) :: alpharotcos => null( )
+
+  interface uvrot
+    module procedure uvrot2d
+    module procedure uvrot3d
+  end interface uvrot
+
+  contains
+
+  subroutine output
+    implicit none
+    logical :: ldoatm , ldosrf , ldorad , ldoche
+    logical :: ldosav , ldolak , ldosub , ldosts , ldoshf , lnewf
+    logical :: ldoslab
+    logical :: lstartup
+    integer(ik4) :: i , j , k , kk , itr
+    real(rkx) , dimension(kz) :: p1d , t1d , rh1d
+    real(rkx) :: cell , zz , zz1 , ww
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'output'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
 #endif
-#else
-      use mod_lake
-#endif
 
-      private
-
-      integer :: iolak
-      logical :: lskipsrf , lskiprad , lskipche
-
-      public :: output , mkfile
-
-      data iolak /0/
-      data lskipsrf /.false./
-      data lskiprad /.false./
-      data lskipche /.false./
-
-      contains
-
-      subroutine output
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine handles all of the output                       c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-#ifdef MPP1
-      use mpi
-#endif
-      implicit none
-!
-      integer :: i , j
-#ifdef MPP1
-      integer :: allrec , ierr , l , k , n
-#endif
-      logical :: ldoatm , ldosrf , ldorad , ldoche , ldosav , ldotmp
-      logical :: lstartup
-      character (len=50) :: subroutine_name='output'
-      integer :: idindx=0
-!
-!
-      call time_begin(subroutine_name,idindx)
-!
-!----------------------------------------------------------------------
-!
-      lstartup = .false.
-#ifdef MPP1
-      if ( myid == 0 ) then
-#endif        
-        if ( (jyear == jyear0 .and. ktau == 0) .or. &
-             (ifrest .and. .not. done_restart) ) then
-          call mkfile
-          lstartup = .true.
+    lstartup = .false.
+    if ( rcmtimer%start( ) .or. doing_restart ) then
+      !
+      ! Set up static variables (first time in)
+      !
+      if ( associated(xlon_out) ) then
+        xlon_out = mddom%xlon(jci1:jci2,ici1:ici2)
+        xlat_out = mddom%xlat(jci1:jci2,ici1:ici2)
+        mask_out = mddom%mask(jci1:jci2,ici1:ici2)
+        topo_out = mddom%ht(jci1:jci2,ici1:ici2)
+        topo_out = topo_out*regrav
+      end if
+      if ( associated(sub_xlon_out) ) then
+        call reorder_subgrid(mdsub%xlon,sub_xlon_out)
+        call reorder_subgrid(mdsub%xlat,sub_xlat_out)
+        call reorder_subgrid(mdsub%mask,sub_mask_out)
+        call reorder_subgrid(mdsub%ht,sub_topo_out)
+        sub_topo_out = sub_topo_out*regrav
+      end if
+      if ( idynamic == 2 ) then
+        if ( associated(p0_out) ) then
+          p0_out = atm0%ps(jci1:jci2,ici1:ici2) + ptop*d_1000
         end if
-#ifdef MPP1
       end if
+      !
+      ! Reset the accumulation arrays
+      !
+      if ( associated(sts_tgmax_out) )  sts_tgmax_out  = -1.e30_rkx
+      if ( associated(sts_tgmin_out) )  sts_tgmin_out  =  1.e30_rkx
+      if ( associated(sts_t2max_out) )  sts_t2max_out  = -1.e30_rkx
+      if ( associated(sts_t2min_out) )  sts_t2min_out  =  1.e30_rkx
+      if ( associated(sts_w10max_out) ) sts_w10max_out = -1.e30_rkx
+      if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.e30_rkx
+      if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.e30_rkx
+      call newoutfiles(rcmtimer%idate)
+      lastout = rcmtimer%idate
+      lstartup = .true.
+      if ( doing_restart ) then
+        doing_restart = .false.
+#ifdef DEBUG
+        call time_end(subroutine_name,idindx)
 #endif
-!
-      ldoatm = .false.
-      ldosrf = .false.
-      ldorad = .false.
-      ldoche = .false.
-      ldosav = .false.
-      ldotmp = .false.
+        return
+      end if
+    end if
 
-      if ( mod(ktau,ksav) == 0 .and. idatex /= idate1 ) then
-        ldotmp = .true.
+    lnewf = .false.
+    ldoatm = .false.
+    ldosrf = .false.
+    ldolak = .false.
+    ldosub = .false.
+    ldorad = .false.
+    ldoche = .false.
+    ldosav = .false.
+    ldoslab = .false.
+    ldosts = .false.
+    ldoshf = .false.
+
+    if ( rcmtimer%integrating( ) ) then
+      if ( associated(alarm_out_nwf) ) then
+        if ( alarm_out_nwf%act( ) .and. .not. rcmtimer%reached_endtime ) then
+          lnewf = .true.
+        end if
       end if
-      if ( ((lday==1 .and. lhour==0 .and. ntime == 0) .and. &
-            idatex /= idate1) .or. idatex == idate2 ) then
-        ldosav = .true.
-        ldotmp = .false.
+      if ( associated(alarm_out_sav) ) then
+        if ( savfrq > d_zero ) then
+          if ( rcmtimer%reached_endtime .or. alarm_out_sav%act( ) ) then
+            ldosav = .true.
+          end if
+        else
+          if ( rcmtimer%reached_endtime .or. &
+               alarm_out_sav%act( ) .or. &
+               (lfdomonth(rcmtimer%idate) .and. &
+                lmidnight(rcmtimer%idate)) ) then
+            ldosav = .true.
+          end if
+        end if
+      else
+        if ( ( rcmtimer%reached_endtime ) .or. &
+             (lfdomonth(rcmtimer%idate) .and. &
+              lmidnight(rcmtimer%idate)) ) then
+          ldosav = .true.
+        end if
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,ktap) == 0) then
+      if ( alarm_out_atm%act( ) ) then
         ldoatm = .true.
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,ksrf) == 0) then
+      if ( alarm_out_srf%act( ) ) then
         ldosrf = .true.
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,krad) == 0) then
+      if ( alarm_out_sts%act( ) ) then
+        ldosts = .true.
+      end if
+      if ( alarm_out_shf%act( ) ) then
+        ldoshf = .true.
+      end if
+      if ( lakemod == 1 ) then
+        if ( alarm_out_lak%act( ) ) then
+          ldolak= .true.
+        end if
+      end if
+      if ( nsg > 1 ) then
+        if ( alarm_out_sub%act( ) ) then
+          ldosub= .true.
+        end if
+      end if
+      if ( alarm_out_rad%act( ) ) then
         ldorad = .true.
       end if
-      if ( (jyear == jyear0 .and. ktau == 0) .or. mod(ktau,kche) == 0) then
-        ldoche = .true.
-      end if
-
-      if ( ifrest .and. .not. done_restart ) then
-        ldoatm = .false.
-        ldosrf = .false.
-        ldorad = .false.
-        ldoche = .false.
-      end if
-
-      if ( lskipsrf ) then
-        lskipsrf = .false.
-        ldosrf = .true.
-      end if
-      if ( lskiprad ) then
-        lskiprad = .false.
-        ldorad = .true.
-      end if
-      if ( lskipche ) then
-        lskipche = .false.
-        ldoche = .true.
-      end if
-!
-      if ( jyear == jyear0 .and. ktau == 0 ) then
-        ldosrf = .false.
-        ldorad = .false.
-        ldoche = .false.
-        lskipsrf = .true.
-        lskiprad = .true.
-        lskipche = .true.
-      end if
-!
-#ifdef MPP1
-!
-!-----output for dataflow analyses:
-!
-      if ( iftape ) then
-        if ( ldoatm ) then
-!=======================================================================
-!         gather  ua,va,ta,qva,qca,rainc,rainnc,tgb2d,swt2d,olcd2d,rno2d
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                atm0(i,k,j) = atm1%u(i,k,j)
-                atm0(i,k+kz,j) = atm1%v(i,k,j)
-                atm0(i,k+kz*2,j) = omega(i,k,j)
-                atm0(i,k+kz*3,j) = atm1%t(i,k,j)
-                atm0(i,k+kz*4,j) = atm1%qv(i,k,j)
-                atm0(i,k+kz*5,j) = atm1%qc(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              atm0(i,1+kz*6,j) = sps1%ps(i,j)
-              atm0(i,2+kz*6,j) = sfsta%rainc(i,j)
-              atm0(i,3+kz*6,j) = sfsta%rainnc(i,j)
-            end do
-          end do
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                atm0(i,3+kz*6+n,j)        = tgb2d(n,i,j)
-                atm0(i,3+kz*6+n+nnsg,j)   = swt2d(n,i,j)
-                atm0(i,3+kz*6+n+nnsg*2,j) = rno2d(n,i,j)
-              end do
-            end do
-          end do
-          call mpi_gather(atm0, iy*(kz*6+3+nnsg*3)*jxp,mpi_real8,&
-                        & atm_0,iy*(kz*6+3+nnsg*3)*jxp,mpi_real8,&
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%u(i,k,j) = atm_0(i,k,j)
-                  atm1_io%v(i,k,j) = atm_0(i,k+kz,j)
-                  omega_io(i,k,j) = atm_0(i,k+kz*2,j)
-                  atm1_io%t(i,k,j) = atm_0(i,k+kz*3,j)
-                  atm1_io%qv(i,k,j) = atm_0(i,k+kz*4,j)
-                  atm1_io%qc(i,k,j) = atm_0(i,k+kz*5,j)
-                end do
-              end do
-              do i = 1 , iy
-                psa_io(i,j)    = atm_0(i,1+kz*6,j)
-                rainc_io(i,j)  = atm_0(i,2+kz*6,j)
-                rainnc_io(i,j) = atm_0(i,3+kz*6,j)
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  tgb2d_io(n,i,j) = atm_0(i,3+kz*6+n,j)
-                  swt2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg,j)
-                  rno2d_io(n,i,j) = atm_0(i,3+kz*6+n+nnsg*2,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                var2d0(i,n,j) = ocld2d(n,i,j)
-              end do
-            end do
-          end do
-          call mpi_gather(var2d0, iy*nnsg*jxp,mpi_integer, &
-                        & var2d_0,iy*nnsg*jxp,mpi_integer, &
-                        & 0,mpi_comm_world,ierr)
-          if (myid == 0) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  ocld2d_io(n,i,j) = var2d_0(i,n,j)
-                end do
-              end do
-            end do
-          end if
-          if ( myid == 0 ) then
-            call outatm
-          end if
-          do j = 1 , jendx
-            do i = 1 , iym1
-              do n = 1 , nnsg
-                rno2d(n,i,j) = d_zero
-              end do
-              sfsta%rainc(i,j)  = d_zero
-              sfsta%rainnc(i,j) = d_zero
-            end do
-          end do
-        end if
-      end if
- 
-!     Call surface output
- 
-      if ( ifbat ) then
-        if ( ldosrf ) then
-          if ( lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
-           call lakegather
-          end if
-          if ( iseaice == 1 .or. lakemod == 1 ) then
-            do j = 1 , jendx
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  var2d0(i,n,j) = ocld2d(n,i,j)
-                end do
-              end do
-            end do
-            call mpi_gather(var2d0, iy*nnsg*jxp,mpi_integer, &
-                          & var2d_0,iy*nnsg*jxp,mpi_integer, &
-                          & 0,mpi_comm_world,ierr)
-            if (myid == 0) then
-#ifdef BAND
-              do j = 1 , jx
-#else
-              do j = 1 , jxm1
-#endif
-                do n = 1 , nnsg
-                  do i = 1 , iym1
-                    ocld2d_io(n,i,j) = var2d_0(i,n,j)
-                  end do
-                end do
-              end do
-            end if
-          end if
-          do j = 1 , jendx
-            do l = 1 , numbat
-              do i = 1 , iym2
-                bat0(i,l,j) = fbat(j,i,l)
-              end do
-            end do
-          end do
-          call mpi_gather(bat0, iym2*numbat*jxp,mpi_real4,       &
-                        & bat_0,iym2*numbat*jxp,mpi_real4,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do l = 1 , numbat
-              do i = 1 , iym2
-#ifdef BAND
-                do j = 1 , jx
-                  fbat_io(j,i,l) = bat_0(i,l,j)
-#else
-                do j = 1 , jxm2
-                  fbat_io(j,i,l) = bat_0(i,l,j+1)
-#endif
-                end do
-              end do
-            end do
-            call outsrf
-          end if
-          iolak = iolak + 1
-
-          do i = 1 , iym2
-            do j = 1 , jxp
-              tgmx_o(j,i) = -1.E30
-              t2mx_o(j,i) = -1.E30
-              tgmn_o(j,i) =  1.E30
-              t2mn_o(j,i) =  1.E30
-              w10x_o(j,i) = -1.E30
-              psmn_o(j,i) =  1.E30
-            end do
-          end do
-
-          if ( ifsub .and. nsg > 1 ) then
-
-            do j = 1 , jxp
-              do l = 1 , numsub
-                do n = 1 , nnsg
-                  do i = 1 , iym2
-                    sub0(i,n,l,j) = fsub(n,j,i,l)
-                  end do
-                end do
-              end do
-            end do
-            call mpi_gather(sub0, iym2*nnsg*numsub*jxp,mpi_real4, &
-                          & sub_0,iym2*nnsg*numsub*jxp,mpi_real4, &
-                          & 0,mpi_comm_world,ierr)
-
-            if ( myid == 0 ) then
-              do l = 1 , numsub
-#ifdef BAND
-                do j = 1 , jx
-                  do n = 1 , nnsg
-                    do i = 1 , iym2
-                      fsub_io(n,j,i,l) = sub_0(i,n,l,j)
-#else
-                do j = 1 , jxm2
-                  do n = 1 , nnsg
-                    do i = 1 , iym2
-                      fsub_io(n,j,i,l) = sub_0(i,n,l,j+1)
-#endif
-                    end do
-                  end do
-                end do
-              end do
-              call outsub
-            end if
-          end if
-
-        end if
-      end if
- 
-!     Call radiation output
-      if ( ifrad ) then
-        if ( ldorad ) then
-!=======================================================================
-!         frad2d, frad3d , psa
-          do n = 1 , nrad2d
-            do j = 1 , jxp
-              do i = 1 , iym2
-                rad0(i,n,j) = frad2d(j,i,n)
-              end do
-            end do
-          end do
-          do n = 1 , nrad3d
-            do k = 1 , kz
-              do j = 1 , jxp
-                do i = 1 , iym2
-                  rad0(i,nrad2d+(n-1)*kz+k,j) = frad3d(j,i,k,n)
-                end do
-              end do
-            end do
-          end do
-          call mpi_gather(rad0,iym2*(nrad3d*kz+nrad2d)*jxp,      &
-                        & mpi_real4,rad_0,(iym2)                 &
-                        & *(nrad3d*kz+nrad2d)*jxp,mpi_real4,0,   &
-                        & mpi_comm_world,ierr)
-         call mpi_gather(sps1%ps(:,1:jxp), iy*jxp,mpi_real8,     &
-                        & psa_io,iy*jxp,mpi_real8,               &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do n = 1 , nrad2d
-#ifdef BAND
-              do j = 1 , jx
-                do i = 1 , iym2
-                  frad2d_io(j,i,n) = rad_0(i,n,j)
-#else
-              do j = 1 , jxm2
-                do i = 1 , iym2
-                  frad2d_io(j,i,n) = rad_0(i,n,j+1)
-#endif
-                end do
-              end do
-            end do
-            do n = 1 , nrad3d
-              do k = 1 , kz
-#ifdef BAND
-                do j = 1 , jx
-                  do i = 1 , iym2
-                    frad3d_io(j,i,k,n) = rad_0(i,nrad2d+(n-1)*kz+k,j)
-#else
-                do j = 1 , jxm2
-                  do i = 1 , iym2
-                    frad3d_io(j,i,k,n) = rad_0(i,nrad2d+(n-1)*kz+k,j+1)
-#endif
-                  end do
-                end do
-              end do
-            end do
-            call outrad
-          end if
-        end if
-      end if
- 
-!chem2
-!     Call chem output
-      if ( ifchem ) then
-        if ( ldoche ) then
-          do j = 1 , jendl
-            do n = 1 , ntr
-              do k = 1 , kz
-                do i = 1 , iy
-                  chem0(i,(n-1)*kz+k,j) = chia(i,k,j,n)
-                end do
-              end do
-            end do
-          end do
-          do j = 1 , jendx
-            do k = 1 , kz
-              do i = 1 , iym1
-                chem0(i,ntr*kz+k,j) = aerext(i,k,j)
-                chem0(i,ntr*kz+kz+k,j) = aerssa(i,k,j)
-                chem0(i,ntr*kz+kz*2+k,j) = aerasp(i,k,j)
-              end do
-            end do
-          end do
-          do j = 1 , jendl
-            do n = 1 , ntr
-              do i = 1 , iy
-                chem0(i,(ntr+3)*kz+n,j) = dtrace(i,j,n)
-                chem0(i,(ntr+3)*kz+ntr+n,j) = wdlsc(i,j,n)
-                chem0(i,(ntr+3)*kz+ntr*2+n,j) = wdcvc(i,j,n)
-                chem0(i,(ntr+3)*kz+ntr*3+n,j) = ddsfc(i,j,n)
-                chem0(i,(ntr+3)*kz+ntr*4+n,j) = wxsg(i,j,n)
-                chem0(i,(ntr+3)*kz+ntr*5+n,j) = wxaq(i,j,n)
-                chem0(i,(ntr+3)*kz+ntr*6+n,j) = cemtrac(i,j,n)
-              end do
-            end do
-          end do
-          do j = 1 , jendx
-            do i = 1 , iym1
-              chem0(i,(ntr+3)*kz+ntr*7+1,j) = aertarf(i,j)
-              chem0(i,(ntr+3)*kz+ntr*7+2,j) = aersrrf(i,j)
-              chem0(i,(ntr+3)*kz+ntr*7+3,j) = aertalwrf(i,j)
-              chem0(i,(ntr+3)*kz+ntr*7+4,j) = aersrlwrf(i,j)             
-
-            end do
-          end do
-          do j = 1 , jendl
-            do i = 1 , iy
-              chem0(i,(ntr+3)*kz+ntr*7+5,j) = sps1%ps(i,j)
-            end do
-          end do
-          call mpi_gather(chem0,iy*((ntr+3)*kz+ntr*7+5)*jxp,            &
-                        & mpi_real8,chem_0,iy*((ntr+3)*kz+ntr*7+5)*jxp, &
-                        & mpi_real8,0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do n = 1 , ntr
-                do k = 1 , kz
-                  do i = 1 , iy
-                    chia_io(i,k,j,n) = chem_0(i,(n-1)*kz+k,j)
-                  end do
-                end do
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iym1
-                  aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j)
-                  aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j)
-                  aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j)
-#else
-            do j = 1 , jxm1
-              do k = 1 , kz
-                do i = 1 , iym1
-                  aerext_io(i,k,j) = chem_0(i,ntr*kz+k,j+1)
-                  aerssa_io(i,k,j) = chem_0(i,ntr*kz+kz+k,j+1)
-                  aerasp_io(i,k,j) = chem_0(i,ntr*kz+kz*2+k,j+1)
-#endif
-                end do
-              end do
-            end do
-            do j = 1 , jx
-              do n = 1 , ntr
-                do i = 1 , iy
-                  dtrace_io(i,j,n) = chem_0(i,(ntr+3)*kz+n,j)
-                  wdlsc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr+n,j)
-                  wdcvc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*2+n,j)
-                  ddsfc_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*3+n,j)
-                  wxsg_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*4+n,j)
-                  wxaq_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*5+n,j)
-                  cemtrac_io(i,j,n) = chem_0(i,(ntr+3)*kz+ntr*6+n,j)
-                end do
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-              do i = 1 , iym1
-                aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j)
-                aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j)
-                aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j)
-                aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j)
-#else
-            do j = 1 , jxm1
-              do i = 1 , iym1
-                aertarf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+1,j+1)
-                aersrrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+2,j+1)
-                aertalwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+3,j+1)
-                aersrlwrf_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+4,j+1)
-#endif
-              end do
-            end do
-            do j = 1 , jx
-              do i = 1 , iy
-                psa_io(i,j) = chem_0(i,(ntr+3)*kz+ntr*7+5,j)
-              end do
-            end do
-            call outche
-            remlsc_io  = d_zero
-            remcvc_io  = d_zero
-            rxsg_io    = d_zero
-            rxsaq1_io  = d_zero
-            rxsaq2_io  = d_zero
-            cemtr_io   = d_zero
-            remdrd_io  = d_zero
-            wdlsc_io   = d_zero
-            wdcvc_io   = d_zero
-            ddsfc_io   = d_zero
-            wxsg_io    = d_zero
-            wxaq_io    = d_zero
-            cemtrac_io = d_zero
-            aertarf_io = d_zero
-            aersrrf_io = d_zero
-            aersrlwrf_io=d_zero
-            aertalwrf_io=d_zero
-          end if
-          do n = 1 , ntr
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  remlsc(i,k,j,n) = d_zero
-                  remcvc(i,k,j,n) = d_zero
-                  rxsg(i,k,j,n) = d_zero
-                  rxsaq1(i,k,j,n) = d_zero
-                  rxsaq2(i,k,j,n) = d_zero
-                end do
-              end do
-            end do
-          end do
-          do n = 1 , ntr
-            do j = 1 , jendl
-              do i = 1 , iy
-                cemtr(i,j,n) = d_zero
-                remdrd(i,j,n) = d_zero
-                wdlsc(i,j,n) = d_zero
-                wdcvc(i,j,n) = d_zero
-                ddsfc(i,j,n) = d_zero
-                wxsg(i,j,n) = d_zero
-                wxaq(i,j,n) = d_zero
-                cemtrac(i,j,n) = d_zero
-              end do
-            end do
-          end do
-          do j = 1 , jendl
-            do i = 1 , iym1
-              aertarf(i,j) = d_zero
-              aersrrf(i,j) = d_zero
-              aertalwrf(i,j) = d_zero              
-              aersrlwrf(i,j) = d_zero
-            end do
-          end do
-        end if
-      end if
-!
-!-----output for restart:
-!
-      if ( ifsave ) then
-        if ( ldosav .or. ldotmp ) then
-          if ( lakemod == 1 ) call lakegather
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = ub0(i,k,j)
-                sav0(i,kz+k,j) = vb0(i,k,j)
-                sav0(i,kz*2+k,j) = qb0(i,k,j)
-                sav0(i,kz*3+k,j) = tb0(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = ps0(i,j)
-              sav0(i,kz*4+2,j) = ts0(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  ub0_io(i,k,j) = sav_0(i,k,j)
-                  vb0_io(i,k,j) = sav_0(i,kz+k,j)
-                  qb0_io(i,k,j) = sav_0(i,kz*2+k,j)
-                  tb0_io(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                ps0_io(i,j) = sav_0(i,kz*4+1,j)
-                ts0_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          if ( ehso4 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0s(i,k,j) = so0(i,k,j)
-                end do
-              end do
-            end do
-            call mpi_gather(sav0s, iy*kz*jxp,mpi_real8,          &
-                          & sav_0s,iy*kz*jxp,mpi_real8,          &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid == 0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    so0_io(i,k,j) = sav_0s(i,k,j)
-                  end do
-                end do
-              end do
-            end if
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%u(i,k,j)
-                sav0(i,kz+k,j) = atm2%u(i,k,j)
-                sav0(i,kz*2+k,j) = atm1%v(i,k,j)
-                sav0(i,kz*3+k,j) = atm2%v(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sps1%ps(i,j)
-              sav0(i,kz*4+2,j) = sps2%ps(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%u(i,k,j) = sav_0(i,k,j)
-                  atm2_io%u(i,k,j) = sav_0(i,kz+k,j)
-                  atm1_io%v(i,k,j) = sav_0(i,kz*2+k,j)
-                  atm2_io%v(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                psa_io(i,j) = sav_0(i,kz*4+1,j)
-                psb_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%t(i,k,j)
-                sav0(i,kz+k,j) = atm2%t(i,k,j)
-                sav0(i,kz*2+k,j) = atm1%qv(i,k,j)
-                sav0(i,kz*3+k,j) = atm2%qv(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sts1%tg(i,j)
-              sav0(i,kz*4+2,j) = sts2%tg(i,j)
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%t(i,k,j) = sav_0(i,k,j)
-                  atm2_io%t(i,k,j) = sav_0(i,kz+k,j)
-                  atm1_io%qv(i,k,j) = sav_0(i,kz*2+k,j)
-                  atm2_io%qv(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                tga_io(i,j) = sav_0(i,kz*4+1,j)
-                tgb_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              do i = 1 , iy
-                sav0(i,k,j) = atm1%qc(i,k,j)
-                sav0(i,kz+k,j) = atm2%qc(i,k,j)
-                sav0(i,kz*2+k,j) = fcc(i,k,j)
-              end do
-            end do
-            do i = 1 , iy
-              sav0(i,kz*4+1,j) = sfsta%rainc(i,j)
-              sav0(i,kz*4+2,j) = sfsta%rainnc(i,j)
-            end do
-          end do
-          do j = 1 , jendx
-            do k = 1 , kz
-              do i = 1 , iym1
-                sav0(i,kz*3+k,j) = heatrt(i,k,j)
-              end do
-            end do
-          end do
-          allrec = kz*4 + 2
-          call mpi_gather(sav0, iy*allrec*jxp,mpi_real8,         &
-                        & sav_0,iy*allrec*jxp,mpi_real8,         &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                do i = 1 , iy
-                  atm1_io%qc(i,k,j) = sav_0(i,k,j)
-                  atm2_io%qc(i,k,j) = sav_0(i,kz+k,j)
-                  fcc_io(i,k,j) = sav_0(i,kz*2+k,j)
-                end do
-              end do
-              do i = 1 , iy
-                rainc_io(i,j)  = sav_0(i,kz*4+1,j)
-                rainnc_io(i,j) = sav_0(i,kz*4+2,j)
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kz
-                do i = 1 , iym1
-                  heatrt_io(i,k,j) = sav_0(i,kz*3+k,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do i = 1 , iy
-              sav0a(i,1,j) = sfsta%hfx(i,j)
-              sav0a(i,2,j) = sfsta%qfx(i,j)
-              sav0a(i,3,j) = sfsta%uvdrag(i,j)
-              sav0a(i,4,j) = sfsta%tgbb(i,j)
-            end do
-          end do
-          do j = 1 , jendx
-            do k = 1 , kzp1
-              do i = 1 , iym1
-                sav0a(i,4+k,j) = o3prof(i,k,j)
-              end do
-            end do
-          end do
-          allrec = 4 + kzp1
-          call mpi_gather(sav0a, iy*allrec*jxp,mpi_real8,        &
-                        & sav_0a,iy*allrec*jxp,mpi_real8,        &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do i = 1 , iy
-                hfx_io(i,j) = sav_0a(i,1,j)
-                qfx_io(i,j) = sav_0a(i,2,j)
-                uvdrag_io(i,j) = sav_0a(i,3,j)
-                tgbb_io(i,j) = sav_0a(i,4,j)
-              end do
-            end do
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  o3prof_io(i,k,j) = sav_0a(i,4+k,j)
-                end do
-              end do
-            end do
-          end if
-          if ( iocnflx == 2 )                                      &
-             & call mpi_gather(sfsta%zpbl,   iy*jxp,mpi_real8,     &
-             &                 zpbl_io,iy*jxp,mpi_real8,           &
-             &                 0,mpi_comm_world,ierr)
-          if ( icup == 1 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0c(i,k,j) = rsheat(i,k,j)
-                  sav0c(i,kz+k,j) = rswat(i,k,j)
-                end do
-              end do
-            end do
-            allrec = kz*2
-            call mpi_gather(sav0c, iy*allrec*jxp,mpi_real8,      &
-                          & sav_0c,iy*allrec*jxp,mpi_real8,      &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid == 0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    rsheat_io(i,k,j) = sav_0c(i,k,j)
-                    rswat_io(i,k,j) = sav_0c(i,kz+k,j)
-                  end do
-                end do
-              end do
-            end if
-          end if
-          if ( icup == 3 ) then
-            do j = 1 , jendl
-              do k = 1 , kz
-                do i = 1 , iy
-                  sav0b(i,k,j) = tbase(i,k,j)
-                end do
-              end do
-              do i = 1 , iy
-                sav0b(i,kzp1,j) = cldefi(i,j)
-              end do
-            end do
-            allrec = kzp1
-            call mpi_gather(sav0b, iy*allrec*jxp,mpi_real8,      &
-                          & sav_0b,iy*allrec*jxp,mpi_real8,      &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid == 0 ) then
-              do j = 1 , jx
-                do k = 1 , kz
-                  do i = 1 , iy
-                    tbase_io(i,k,j) = sav_0b(i,k,j)
-                  end do
-                end do
-                do i = 1 , iy
-                  cldefi_io(i,j) = sav_0b(i,kzp1,j)
-                end do
-              end do
-            end if
-          end if
-          if ( icup==4 .or. icup==99 .or. icup==98 ) then
-            call mpi_gather(cbmf2d,   iy*jxp,mpi_real8,            &
-                          & cbmf2d_io,iy*jxp,mpi_real8,            &
-                          & 0,mpi_comm_world,ierr)
-          end if
-          do j = 1 , jendx
-            do l = 1 , 4
-              do k = 1 , kz
-                do i = 1 , iym1
-                  sav1(i,(l-1)*kz+k,j) = absnxt(i,k,l,j)
-                end do
-              end do
-            end do
-          end do
-          allrec = kz*4
-          do j = 1 , jendx
-            do l = 1 , kzp1
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  sav1(i,allrec+(l-1)*(kzp1)+k,j) = abstot(i,k,l,j)
-                end do
-              end do
-            end do
-          end do
-          allrec = allrec + (kzp1)*(kz+1)
-          do j = 1 , jendx
-            do k = 1 , kzp1
-              do i = 1 , iym1
-                sav1(i,allrec+k,j) = emstot(i,k,j)
-              end do
-            end do
-          end do
-          allrec = kz*4+(kzp1*kzp2)
-          call mpi_gather(sav1, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_1,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do l = 1 , 4
-                do k = 1 , kz
-                  do i = 1 , iym1
-                    absnxt_io(i,k,l,j) = sav_1(i,(l-1)*kz+k,j)
-                  end do
-                end do
-              end do
-            end do
-            allrec = kz*4
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do l = 1 , kzp1
-                do k = 1 , kzp1
-                  do i = 1 , iym1
-                    abstot_io(i,k,l,j)                                  &
-                    & = sav_1(i,allrec+(l-1)*(kzp1)+k,j)
-                  end do
-                end do
-              end do
-            end do
-            allrec = allrec + (kzp1)*(kz+1)
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do k = 1 , kzp1
-                do i = 1 , iym1
-                  emstot_io(i,k,j) = sav_1(i,allrec+k,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = taf2d(n,i,j)
-                sav2(i,nnsg+n,j) = tlef2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = ssw2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = srw2d(n,i,j)
-                sav2(i,nnsg*4+n,j) = col2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*5+1,j) = sol2d(i,j)
-              sav2(i,nnsg*5+2,j) = solvd2d(i,j)
-              sav2(i,nnsg*5+3,j) = solvs2d(i,j)
-              sav2(i,nnsg*5+4,j) = flw2d(i,j)
-            end do
-          end do
-          allrec = nnsg*5 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  taf2d_io(n,i,j) = sav_2(i,n,j)
-                  tlef2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  ssw2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  srw2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                  col2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                sol2d_io(i,j) = sav_2(i,nnsg*5+1,j)
-                solvd2d_io(i,j) = sav_2(i,nnsg*5+2,j)
-                solvs2d_io(i,j) = sav_2(i,nnsg*5+3,j)
-                flw2d_io(i,j) = sav_2(i,nnsg*5+4,j)
-              end do
-            end do
-          end if
-#ifdef CLM
-          do j = 1 , jendx
-            do i = 1 , iym1
-              sav_clmin(i,1,j)  = sols2d(i,j)
-              sav_clmin(i,2,j)  = soll2d(i,j)
-              sav_clmin(i,3,j)  = solsd2d(i,j)
-              sav_clmin(i,4,j)  = solld2d(i,j)
-              sav_clmin(i,5,j)  = aldirs2d(i,j)
-              sav_clmin(i,6,j)  = aldirl2d(i,j)
-              sav_clmin(i,7,j)  = aldifs2d(i,j)
-              sav_clmin(i,8,j)  = aldifl2d(i,j)
-            end do
-          end do
-          call mpi_gather(sav_clmin, iym1*8*jxp,mpi_real8,       &
-                        & sav_clmout,iym1*8*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do i = 1 , iym1
-                sols2d_io(i,j)   = sav_clmout(i,1,j)
-                soll2d_io(i,j)   = sav_clmout(i,2,j)
-                solsd2d_io(i,j)  = sav_clmout(i,3,j)
-                solld2d_io(i,j)  = sav_clmout(i,4,j)
-                aldirs2d_io(i,j) = sav_clmout(i,5,j)
-                aldirl2d_io(i,j) = sav_clmout(i,6,j)
-                aldifs2d_io(i,j) = sav_clmout(i,7,j)
-                aldifl2d_io(i,j) = sav_clmout(i,8,j)
-              end do
-            end do
-          end if
-          call mpi_gather(satbrt2d,   iy*jxp,mpi_real8, &
-                        & satbrt2d_io,iy*jxp,mpi_real8, &
-                        & 0,mpi_comm_world,ierr)
-#endif
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j) = tgb2d(n,i,j)
-                sav2(i,nnsg+n,j) = swt2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = scv2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = gwet2d(n,i,j)
-                sav2(i,nnsg*4+n,j) = tg2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*5+1,j) = flwd2d(i,j)
-              sav2(i,nnsg*5+2,j) = fsw2d(i,j)
-              sav2(i,nnsg*5+3,j) = sabv2d(i,j)
-              sav2(i,nnsg*5+4,j) = sinc2d(i,j)
-            end do
-          end do
-          allrec = nnsg*5 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  tgb2d_io(n,i,j) = sav_2(i,n,j)
-                  swt2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  scv2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  gwet2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                  tg2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                flwd2d_io(i,j) = sav_2(i,nnsg*5+1,j)
-                fsw2d_io(i,j) = sav_2(i,nnsg*5+2,j)
-                sabv2d_io(i,j) = sav_2(i,nnsg*5+3,j)
-                sinc2d_io(i,j) = sav_2(i,nnsg*5+4,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2(i,n,j)        = ircp2d(n,i,j)
-                sav2(i,nnsg+n,j)   = sag2d(n,i,j)
-                sav2(i,nnsg*2+n,j) = sice2d(n,i,j)
-                sav2(i,nnsg*3+n,j) = dew2d(n,i,j)
-                sav2(i,nnsg*4+n,j) = emiss2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2(i,nnsg*5+1,j) = pptnc(i,j)
-              sav2(i,nnsg*5+2,j) = pptc(i,j)
-              sav2(i,nnsg*5+3,j) = prca2d(i,j)
-              sav2(i,nnsg*5+4,j) = prnca2d(i,j)
-            end do
-          end do
-          allrec = nnsg*5 + 4
-          call mpi_gather(sav2, iym1*allrec*jxp,mpi_real8,       &
-                        & sav_2,iym1*allrec*jxp,mpi_real8,       &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  ircp2d_io(n,i,j) = sav_2(i,n,j)
-                  sag2d_io(n,i,j) = sav_2(i,nnsg+n,j)
-                  sice2d_io(n,i,j) = sav_2(i,nnsg*2+n,j)
-                  dew2d_io(n,i,j) = sav_2(i,nnsg*3+n,j)
-                  emiss2d_io(n,i,j) = sav_2(i,nnsg*4+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                pptnc_io(i,j) = sav_2(i,nnsg*5+1,j)
-                pptc_io(i,j) = sav_2(i,nnsg*5+2,j)
-                prca2d_io(i,j) = sav_2(i,nnsg*5+3,j)
-                prnca2d_io(i,j) = sav_2(i,nnsg*5+4,j)
-              end do
-            end do
-          end if
-          do j = 1 , jendx
-            do n = 1 , nnsg
-              do i = 1 , iym1
-                sav2a(i,n,j)      = veg2d1(n,i,j)
-                sav2a(i,nnsg+n,j) = ocld2d(n,i,j)
-              end do
-            end do
-            do i = 1 , iym1
-              sav2a(i,nnsg*2+1,j) = veg2d(i,j)
-            end do
-          end do
-          allrec = nnsg*2 + 1
-          call mpi_gather(sav2a, iym1*allrec*jxp,mpi_integer, &
-                        & sav_2a,iym1*allrec*jxp,mpi_integer, &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm1
-#endif
-              do n = 1 , nnsg
-                do i = 1 , iym1
-                  veg2d1_io(n,i,j) = sav_2a(i,n,j)
-                  ocld2d_io(n,i,j) = sav_2a(i,nnsg+n,j)
-                end do
-              end do
-              do i = 1 , iym1
-                veg2d_io(i,j) = sav_2a(i,nnsg*2+1,j)
-              end do
-            end do
-          end if
- 
-          if ( ichem == 1 ) then
-            do j = 1 , jendl
-              do n = 1 , ntr
-                do k = 1 , kz
-                  do i = 1 , iy
-                    sav4(i,(n-1)*kz+k,j) = chia(i,k,j,n)
-                    sav4(i,ntr*kz+(n-1)*kz+k,j) = chib(i,k,j,n)
-                    sav4(i,ntr*kz*2+(n-1)*kz+k,j) = remlsc(i,k,j,n)
-                    sav4(i,ntr*kz*3+(n-1)*kz+k,j) = remcvc(i,k,j,n)
-                  end do
-                end do
-              end do
-            end do
-            allrec = 4*ntr*kz
-            do j = 1 , jendl
-              do n = 1 , ntr
-                do i = 1 , iy
-                  sav4(i,allrec+n,j) = remdrd(i,j,n)
-                end do
-              end do
-            end do
-            allrec = ntr*(kz*4+1)
-            call mpi_gather(sav4, iy*allrec*jxp,mpi_real8,       &
-                          & sav_4,iy*allrec*jxp,mpi_real8,       &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid == 0 ) then
-              do j = 1 , jx
-                do n = 1 , ntr
-                  do k = 1 , kz
-                    do i = 1 , iy
-                      chia_io(i,k,j,n)   = sav_4(i,(n-1)*kz+k,j)
-                      chib_io(i,k,j,n)   = sav_4(i,ntr*kz+(n-1)*kz+k,j)
-                      remlsc_io(i,k,j,n) = sav_4(i,ntr*kz*2+(n-1)*kz+k,j)
-                      remcvc_io(i,k,j,n) = sav_4(i,ntr*kz*3+(n-1)*kz+k,j)
-                    end do
-                  end do
-                end do
-              end do
-              allrec = 4*ntr*kz
-              do j = 1 , jx
-                do n = 1 , ntr
-                  do i = 1 , iy
-                    remdrd_io(i,j,n) = sav_4(i,allrec+n,j)
-                  end do
-                end do
-              end do
-            end if
-            do j = 1 , jendx
-              do i = 1 , iym1
-                sav4a(i,1,j) = ssw2da(i,j)
-                sav4a(i,2,j) = sdeltk2d(i,j)
-                sav4a(i,3,j) = sdelqk2d(i,j)
-                sav4a(i,4,j) = sfracv2d(i,j)
-                sav4a(i,5,j) = sfracb2d(i,j)
-                sav4a(i,6,j) = sfracs2d(i,j)
-                sav4a(i,7,j) = svegfrac2d(i,j)
-              end do
-            end do
-            call mpi_gather(sav4a, iym1*7*jxp,mpi_real8,                &
-                          & sav_4a,iym1*7*jxp,mpi_real8,                &
-                          & 0,mpi_comm_world,ierr)
-            if ( myid == 0 ) then
-#ifdef BAND
-              do j = 1 , jx
-#else
-              do j = 1 , jxm1
-#endif
-                do i = 1 , iym1
-                  ssw2da_io(i,j) = sav_4a(i,1,j)
-                  sdeltk2d_io(i,j) = sav_4a(i,2,j)
-                  sdelqk2d_io(i,j) = sav_4a(i,3,j)
-                  sfracv2d_io(i,j) = sav_4a(i,4,j)
-                  sfracb2d_io(i,j) = sav_4a(i,5,j)
-                  sfracs2d_io(i,j) = sav_4a(i,6,j)
-                  svegfrac2d_io(i,j) = sav_4a(i,7,j)
-                end do
-              end do
-            end if
-          end if
-          do j = 1 , jendl
-            do n = 1 , nsplit
-              do i = 1 , iy
-                sav0d(i,n,j) = spsav%dstor(i,j,n)
-                sav0d(i,n+nsplit,j) = spsav%hstor(i,j,n)
-              end do
-            end do
-          end do
-          call mpi_gather(sav0d, iy*nsplit*2*jxp,mpi_real8,      &
-                        & sav_0d,iy*nsplit*2*jxp,mpi_real8,      &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do n = 1 , nsplit
-                do i = 1 , iy
-                  dstor_io(i,j,n) = sav_0d(i,n,j)
-                  hstor_io(i,j,n) = sav_0d(i,n+nsplit,j)
-                end do
-              end do
-            end do
-          end if
-          do j = 1 , jendl
-            do k = 1 , kz
-              sav6(k,1,j) = ui1(k,j)
-              sav6(k,2,j) = ui2(k,j)
-              sav6(k,3,j) = uilx(k,j)
-              sav6(k,4,j) = uil(k,j)
-              sav6(k,5,j) = vi1(k,j)
-              sav6(k,6,j) = vi2(k,j)
-              sav6(k,7,j) = vilx(k,j)
-              sav6(k,8,j) = vil(k,j)
-            end do
-          end do
-          call mpi_gather(sav6, kz*8*jxp,mpi_real8,              &
-                        & sav_6,kz*8*jxp,mpi_real8,              &
-                        & 0,mpi_comm_world,ierr)
-          if ( myid == 0 ) then
-            do j = 1 , jx
-              do k = 1 , kz
-                ui1_io(k,j) = sav_6(k,1,j)
-                ui2_io(k,j) = sav_6(k,2,j)
-                uilx_io(k,j) = sav_6(k,3,j)
-                uil_io(k,j) = sav_6(k,4,j)
-                vi1_io(k,j) = sav_6(k,5,j)
-                vi2_io(k,j) = sav_6(k,6,j)
-                vilx_io(k,j) = sav_6(k,7,j)
-                vil_io(k,j) = sav_6(k,8,j)
-              end do
-            end do
-          end if
-#ifndef BAND
-          call mpi_bcast(ujlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(ujl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(vjlx(1,1),iy*kz,mpi_real8,nproc-1,             &
-                       & mpi_comm_world,ierr)
-          call mpi_bcast(vjl(1,1),iy*kz,mpi_real8,nproc-1,              &
-                       & mpi_comm_world,ierr)
-#endif
-          if ( ldosav ) then
-            call write_savefile(idatex, .false.)
-          else
-            call write_savefile(idatex, .true.)
-          end if
-        end if
-      end if
-
-#else
-!
-!-----output for dataflow analyses:
-!
-      if ( iftape ) then
-        if ( ldoatm ) then
-          call outatm
-        end if
-      end if
-!
-!
-!     Call surface output
-      if ( ifbat ) then
-        if ( ldosrf ) then
-          call outsrf
-          do i = 1 , iym2
-#ifdef BAND
-            do j = 1 , jx
-#else
-            do j = 1 , jxm2
-#endif
-              tgmx_o(j,i) = -1.E30
-              t2mx_o(j,i) = -1.E30
-              tgmn_o(j,i) =  1.E30
-              t2mn_o(j,i) =  1.E30
-              w10x_o(j,i) = -1.E30
-              psmn_o(j,i) =  1.E30
-            end do
-          end do
-          if ( ifsub .and. nsg > 1 ) then
-            call outsub
-          end if
-        end if
-      end if
-! 
-! 
-!     Call radiation output
-      if ( ifrad ) then
-        if ( ldorad ) then
-          call outrad
-        end if
-      end if
-!
-!
-!     Call chem output
-      if ( ifchem ) then
-        if ( ldoche ) then
-          call outche
-          remlsc    = d_zero
-          remcvc    = d_zero
-          rxsg      = d_zero
-          rxsaq1    = d_zero
-          rxsaq2    = d_zero
-          cemtr     = d_zero
-          remdrd    = d_zero
-          wdlsc     = d_zero
-          wdcvc     = d_zero
-          ddsfc     = d_zero
-          wxsg      = d_zero
-          wxaq      = d_zero
-          cemtrac   = d_zero
-          aertarf   = d_zero
-          aersrrf   = d_zero
-          aersrlwrf = d_zero
-          aertalwrf = d_zero
-        end if
-      end if
-!
-!-----output for restart:
-!
-      if ( ifsave ) then
-        if ( ldosav .or. ldotmp ) then
-          if (ldosav) then
-            call write_savefile(idatex,.false.)
-          else
-            call write_savefile(idatex,.true.)
-          end if
-        end if
-      end if
-!
-#endif
-
-#ifdef MPP1
-      if ( myid == 0 ) then
-#endif        
-        if ( lday == 1 .and. lhour == 0 .and. ntime == 0 ) then
-          if ( .not. lstartup .and. idatex /= idate2 ) then
-            call mkfile
-          end if
-        end if
-#ifdef MPP1
-      end if
-#endif
-!
-      call time_end(subroutine_name,idindx) 
-
-      end subroutine output
-!
-      subroutine mkfile
- 
-      implicit none
-!
-      if (myid /= 0) return
-
-      print * , ' '
-      print * , '******* OPENING NEW OUTPUT FILES:' , idatex
-      print * , ' '
-
-      if ( iftape ) then
-        call prepare_common_out(idatex,'ATM')
-      end if
- 
-      if ( ifbat ) then
-        call prepare_common_out(idatex,'SRF')
-        if (lakemod == 1 .and. iflak) then
-          call prepare_common_out(idatex,'LAK')
-        end if
-      end if
- 
-      if ( nsg > 1 .and. ifsub ) then
-        call prepare_common_out(idatex,'SUB')
-      end if
- 
-      if ( ifrad ) then
-        call prepare_common_out(idatex,'RAD')
-      end if
- 
       if ( ichem == 1 ) then
-        if ( ifchem ) then
-          call prepare_common_out(idatex,'CHE')
+        if ( alarm_out_che%act( ) ) then
+          ldoche = .true.
         end if
       end if
-
-      end subroutine mkfile
-!
-      subroutine outatm
-
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine writes the model output to tape or disk for use c
-!     in dataflow analyses.                                           c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-      implicit none
-      integer :: jjx , iiy
-#ifdef BAND
-      jjx = jx
-      iiy = iym1
-#else
-      jjx = jxm1
-      iiy = iym1
-#endif
-
-#ifdef MPP1
-      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1_io%u,atm1_io%v,  &
-              omega_io,atm1_io%t,atm1_io%qv,atm1_io%qc,psa_io,      &
-              rainc_io,rainnc_io,tgb2d_io,swt2d_io,rno2d_io,        &
-              ocld2d_io,idatex)
-#else
-      call writerec_atm(jx,iy,jjx,iiy,kz,nnsg,atm1%u,atm1%v,omega, &
-                        atm1%t,atm1%qv,atm1%qc,sps1%ps,sfsta%rainc,&
-                        sfsta%rainnc,tgb2d,swt2d,rno2d,ocld2d,idatex)
-#endif
- 
-      write (*,*) 'ATM variables written at ' , idatex , xtime
- 
-      end subroutine outatm
-!
-      subroutine outsrf
-
-      implicit none
-!
-      integer :: i , j
-!
-#ifdef BAND
-      i = iy-2
-      j = jx
-#else
-      i = iy-2
-      j = jx-2
-#endif
-
-#ifdef MPP1
-      call writerec_srf(j,i,numbat,fbat_io,ocld2d_io,idatex)
-#else
-      call writerec_srf(j,i,numbat,fbat,ocld2d,idatex)
-#endif
-      write (*,*) 'SRF variables written at ' , idatex , xtime
- 
-      if (lakemod == 1 .and. iflak .and. mod(iolak,klak) == 0) then
-#ifdef MPP1
-        call writerec_lak(j,i,numbat,fbat_io,evl2d_io,aveice2d_io, &
-                          hsnow2d_io,tlak3d_io,idatex)
-#else
-        call writerec_lak(j,i,numbat,fbat,evpa2d,aveice2d,hsnow2d, &
-                          tlak3d,idatex)
-#endif
-        write (*,*) 'LAK variables written at ' , idatex , xtime
+      if ( rcmtimer%reached_endtime ) then
+        ldoslab = .true.
       end if
+    end if
 
-      end subroutine outsrf
-!
-      subroutine outsub
+    if ( rcmtimer%start( ) ) then
+      ldoatm = .true.
+      if ( ichem == 1 ) then
+        ldoche = .true.
+      end if
+    end if
 
+    if ( atm_stream > 0 ) then
+      if ( ldoatm ) then
+        ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        if ( associated(atm_t_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_t_out(:,:,k) = mo_atm%t(jci1:jci2,ici1:ici2,k)
+            end do
+          else
+            do k = 1 , kz
+              atm_t_out(:,:,k) = atm1%t(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_u_out) .and. associated(atm_v_out) ) then
+          if ( idynamic == 3 ) then
+            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_u_out(j,i,k) = mo_atm%ux(j,i,k)
+                  atm_v_out(j,i,k) = mo_atm%vx(j,i,k)
+                end do
+              end do
+            end do
+          else
+            call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+            call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_u_out(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k))/ps_out(j,i)
+                  atm_v_out(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k))/ps_out(j,i)
+                end do
+              end do
+            end do
+          end if
+          if ( uvrotate ) then
+            call uvrot(atm_u_out,atm_v_out)
+          end if
+        end if
+        if ( associated(atm_omega_out) ) then
+          atm_omega_out = omega(jci1:jci2,ici1:ici2,:)*d_10
+        end if
+        if ( associated(atm_w_out) ) then
+          if ( idynamic == 3 ) then
+            call wstagtox(mo_atm%w,atm_w_out)
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_w_out(j,i,k) = d_half * (atm1%w(j,i,k+1) + &
+                                               atm1%w(j,i,k)) / ps_out(j,i)
+                end do
+              end do
+            end do
+          end if
+        end if
+        if ( associated(atm_pp_out) ) then
+          do k = 1 , kz
+            atm_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out
+          end do
+        end if
+        if ( associated(atm_qv_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qv_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqv)
+            end do
+          else
+            do k = 1 , kz
+              atm_qv_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqv)/ps_out
+            end do
+          end if
+          ! Specific humidity in the output, not mixing ratio
+          atm_qv_out = atm_qv_out/(d_one+atm_qv_out)
+        end if
+        if ( associated(atm_qc_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qc_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqc)
+            end do
+          else
+            do k = 1 , kz
+              atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_qr_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qr_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqr)
+            end do
+          else
+            do k = 1 , kz
+              atm_qr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqr)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_qi_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qi_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqi)
+            end do
+          else
+            do k = 1 , kz
+              atm_qi_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqi)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_qs_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              atm_qs_out(:,:,k) = mo_atm%qx(jci1:jci2,ici1:ici2,k,iqs)
+            end do
+          else
+            do k = 1 , kz
+              atm_qs_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqs)/ps_out
+            end do
+          end if
+        end if
+        if ( associated(atm_rh_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_rh_out(j,i,k) = d_100 * &
+                    min(rhmax,max(rhmin,(mo_atm%qx(j,i,k,iqv) / &
+                           pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_rh_out(j,i,k) = d_100 * min(rhmax,max(rhmin, &
+                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                end do
+              end do
+            end do
+          end if
+        end if
+        if ( associated(atm_pf_out) ) then
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_pf_out(j,i,k) = mo_atm%p(j,i,k)
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_pf_out(j,i,k) = atm1%pr(j,i,k)
+                end do
+              end do
+            end do
+          end if
+        end if
+        if ( idynamic == 1 ) then
+          if ( associated(atm_ph_out) ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_ph_out(j,i,k) = (sigma(k)*sfs%psa(j,i)+ptop)*d_1000
+                end do
+              end do
+            end do
+          end if
+          if ( associated(atm_zh_out) ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cell = ptop / sfs%psa(j,i)
+                atm_zh_out(j,i,kz) = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                     log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+                do k = kz-1 , 1 , -1
+                  atm_zh_out(j,i,k) = atms%zq(j,i,k+1) +&
+                      rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
+                        log((sigma(k+1)+cell)/(sigma(k)+cell))
+                end do
+              end do
+            end do
+          end if
+        else if ( idynamic == 2 ) then
+          if ( associated(atm_ph_out) ) then
+            atm_ph_out(:,:,1) = ptop*d_1000
+            do k = 2 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_ph_out(j,i,k) = atm0%pf(j,i,k) + &
+                       d_half*(atm1%pp(j,i,k-1)+atm1%pp(j,i,k))/sfs%psa(j,i)
+                end do
+              end do
+            end do
+          end if
+          if ( associated(atm_zh_out) ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cell = ptop / sfs%psa(j,i)
+                atm_zh_out(j,i,kz) = rovg * atm0%t(j,i,kz) * &
+                     log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+                do k = kz-1 , 1 , -1
+                  atm_zh_out(j,i,k) = atms%zq(j,i,k+1) +&
+                      rovg * atm0%t(j,i,k) *  &
+                        log((sigma(k+1)+cell)/(sigma(k)+cell))
+                end do
+              end do
+            end do
+          end if
+        end if
+        if ( associated(atm_zf_out) .and. associated(atm_zh_out) ) then
+          do k = 1 , kz-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                atm_zf_out(j,i,k) = d_half*(atm_zh_out(j,i,k) + &
+                                            atm_zh_out(j,i,k+1))
+              end do
+            end do
+          end do
+          atm_zf_out(:,:,kz) = d_half*atm_zh_out(:,:,kz)
+        end if
+        if ( ipptls == 2 ) then
+          if ( associated(atm_rainls_out) ) then
+            do k = 1 , kz
+              atm_rainls_out(:,:,k) = rain_ls(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+        end if
+        if ( associated(atm_raincc_out) ) then
+          do k = 1 , kz
+            atm_raincc_out(:,:,k) = rain_cc(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+        if ( associated(atm_q_detr_out) ) then
+          do k = 1 , kz
+            atm_q_detr_out(:,:,k) = q_detr(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+
+#ifdef DEBUG
+        if ( ipptls == 2 .and. stats ) then
+          if ( associated(atm_stats_supw_out) ) then
+            do k = 1 , kz
+              atm_stats_supw_out(:,:,k) = ngs%statssupw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_supc_out) ) then
+            do k = 1 , kz
+              atm_stats_supc_out(:,:,k) = ngs%statssupc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_detw_out) ) then
+            do k = 1 , kz
+              atm_stats_detw_out(:,:,k) = ngs%statsdetrw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_detc_out) ) then
+            do k = 1 , kz
+              atm_stats_detc_out(:,:,k) = ngs%statsdetrc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_erow_out) ) then
+            do k = 1 , kz
+              atm_stats_erow_out(:,:,k) = ngs%statserosw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_eroc_out) ) then
+            do k = 1 , kz
+              atm_stats_eroc_out(:,:,k) = ngs%statserosc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_evw_out) ) then
+            do k = 1 , kz
+              atm_stats_evw_out(:,:,k) = ngs%statsevapw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_evc_out) ) then
+            do k = 1 , kz
+              atm_stats_evc_out(:,:,k) = ngs%statsevapc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_con1w_out) ) then
+            do k = 1 , kz
+              atm_stats_con1w_out(:,:,k) = &
+                             ngs%statscond1w(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_con1c_out) ) then
+            do k = 1 , kz
+              atm_stats_con1c_out(:,:,k) = &
+                             ngs%statscond1c(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_dep_out) ) then
+            do k = 1 , kz
+              atm_stats_dep_out(:,:,k) = ngs%statsdepos(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_melt_out) ) then
+            do k = 1 , kz
+              atm_stats_melt_out(:,:,k) = ngs%statsmelt(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_frz_out) ) then
+            do k = 1 , kz
+              atm_stats_frz_out(:,:,k) = ngs%statsfrz(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_rainev_out) ) then
+            do k = 1 , kz
+              atm_stats_rainev_out(:,:,k) = &
+                             ngs%statsrainev(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_snowev_out) ) then
+            do k = 1 , kz
+              atm_stats_snowev_out(:,:,k) = &
+                             ngs%statssnowev(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_autocw_out) ) then
+            do k = 1 , kz
+              atm_stats_autocw_out(:,:,k) = &
+                             ngs%statsautocvw(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+          if ( associated(atm_stats_autocc_out) ) then
+            do k = 1 , kz
+              atm_stats_autocc_out(:,:,k) = &
+                             ngs%statsautocvc(jci1:jci2,ici1:ici2,k)
+            end do
+          end if
+        end if
+#endif
+
+        if ( ibltyp == 2 ) then
+          if ( associated(atm_tke_out) ) then
+            if ( idynamic == 3 ) then
+              atm_tke_out = mo_atm%tke(jci1:jci2,ici1:ici2,1:kz)
+            else
+              atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
+            end if
+          end if
+          if ( associated(atm_kth_out) ) &
+            atm_kth_out = uwstate%kth(jci1:jci2,ici1:ici2,1:kz)
+          if ( associated(atm_kzm_out) ) &
+            atm_kzm_out = uwstate%kzm(jci1:jci2,ici1:ici2,1:kz)
+        else if ( ibltyp == 4 ) then
+          if ( associated(atm_tke_out) ) &
+            atm_tke_out = atms%tkepbl(jci1:jci2,ici1:ici2,1:kz)
+        end if
+
+        if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
+          if ( associated(atm_ccnnum_out) ) then
+            do k = 1 , kz
+              ! convert to 1/cm3
+              atm_ccnnum_out(:,:,k) = ccn(jci1:jci2,ici1:ici2,k) * 1.e-6_rkx
+            end do
+          end if
+          if ( idiag > 0 ) then
+            if ( associated(atm_qcrit_out) ) then
+              do k = 1 , kz
+                atm_qcrit_out(:,:,k) = qdiag%qcr(jci1:jci2,ici1:ici2,k)
+              end do
+            end if
+            if ( associated(atm_qincl_out) ) then
+              do k = 1 , kz
+                atm_qincl_out(:,:,k) = qdiag%qcl(jci1:jci2,ici1:ici2,k)
+              end do
+            end if
+            if ( associated(atm_autoconvr_out) ) then
+              do k = 1 , kz
+                atm_autoconvr_out(:,:,k) = qdiag%acr(jci1:jci2,ici1:ici2,k)
+              end do
+            end if
+          end if
+        end if
+
+        if ( associated(atm_tpr_out) ) then
+          atm_tpr_out = (sfs%rainc+sfs%rainnc)/(atmfrq*secph)
+        end if
+        if ( associated(atm_tsn_out) ) then
+          atm_tsn_out = sfs%snownc/(atmfrq*secph)
+        end if
+        if ( associated(atm_tgb_out) .and. rcmtimer%lcount == 0 ) then
+          atm_tgb_out = sfs%tgbb(jci1:jci2,ici1:ici2)
+        end if
+
+        if ( associated(atm_tsw_out) ) then
+          where ( mddom%ldmsk == 1 )
+            atm_tsw_out = atm_tsw_out * rsrf_in_atm
+          elsewhere
+            atm_tsw_out = dmissval
+          end where
+        end if
+
+        if ( associated(atm_cape_out) .and. associated(atm_cin_out) ) then
+          if ( idynamic == 3 ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = mo_atm%p(j,i,k)
+                  t1d(kk) = mo_atm%t(j,i,k)
+                  rh1d(kk) = min(d_one,max(d_zero,(mo_atm%qx(j,i,k,iqv) / &
+                      pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k)))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                do k = 1 , kz
+                  kk = kzp1 - k
+                  p1d(kk) = atm1%pr(j,i,k)
+                  t1d(kk) = atm1%t(j,i,k)/sfs%psa(j,i)
+                  rh1d(kk) = min(d_one,max(d_zero, &
+                     (atm1%qx(j,i,k,iqv)/ps_out(j,i)) / &
+                     pfwsat(atm1%t(j,i,k)/ps_out(j,i),atm1%pr(j,i,k))))
+                end do
+                call getcape(kz,p1d,t1d,rh1d,atm_cape_out(j,i),atm_cin_out(j,i))
+              end do
+            end do
+          end if
+        end if
+
+        ! FAB add tendency diagnostic here
+        if ( idiag > 0 ) then
+          if ( associated(atm_tten_adh_out) ) then
+            do k = 1 , kz
+              atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%adh = d_zero
+          end if
+          if ( associated(atm_tten_adv_out) ) then
+            do k = 1 , kz
+              atm_tten_adv_out(:,:,k) = tdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%adv = d_zero
+          end if
+          if ( associated(atm_tten_tbl_out) ) then
+            do k = 1 , kz
+              atm_tten_tbl_out(:,:,k) = tdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%tbl = d_zero
+          end if
+          if ( associated(atm_tten_dif_out) ) then
+            do k = 1 , kz
+              atm_tten_dif_out(:,:,k) = tdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%dif = d_zero
+          end if
+          if ( associated(atm_tten_bdy_out) ) then
+            do k = 1 , kz
+              atm_tten_bdy_out(:,:,k) = tdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%bdy = d_zero
+          end if
+          if ( associated(atm_tten_con_out) ) then
+            do k = 1 , kz
+              atm_tten_con_out(:,:,k) = tdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%con = d_zero
+          end if
+          if ( associated(atm_tten_adi_out) ) then
+            do k = 1 , kz
+              atm_tten_adi_out(:,:,k) = tdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%adi = d_zero
+          end if
+          if ( associated(atm_tten_rad_out) ) then
+            do k = 1 , kz
+              atm_tten_rad_out(:,:,k) = tdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%rad = d_zero
+          end if
+          if ( associated(atm_tten_lsc_out) ) then
+            do k = 1 , kz
+              atm_tten_lsc_out(:,:,k) = tdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            tdiag%lsc = d_zero
+          end if
+          if ( associated(atm_qten_adh_out) ) then
+            do k = 1 , kz
+              atm_qten_adh_out(:,:,k) = qdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%adh = d_zero
+          end if
+          if ( associated(atm_qten_adv_out) ) then
+            do k = 1 , kz
+              atm_qten_adv_out(:,:,k) = qdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%adv = d_zero
+          end if
+          if ( associated(atm_qten_tbl_out) ) then
+            do k = 1 , kz
+              atm_qten_tbl_out(:,:,k) = qdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%tbl = d_zero
+          end if
+          if ( associated(atm_qten_dif_out) ) then
+            do k = 1 , kz
+              atm_qten_dif_out(:,:,k) = qdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%dif = d_zero
+          end if
+          if ( associated(atm_qten_bdy_out) ) then
+            do k = 1 , kz
+              atm_qten_bdy_out(:,:,k) = qdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%bdy = d_zero
+          end if
+          if ( associated(atm_qten_con_out) ) then
+            do k = 1 , kz
+              atm_qten_con_out(:,:,k) = qdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%con = d_zero
+          end if
+          if ( associated(atm_qten_adi_out) ) then
+            do k = 1 , kz
+              atm_qten_adi_out(:,:,k) = qdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%adi = d_zero
+          end if
+          if ( associated(atm_qten_rad_out) ) then
+            do k = 1 , kz
+              atm_qten_rad_out(:,:,k) = qdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%rad = d_zero
+          end if
+          if ( associated(atm_qten_lsc_out) ) then
+            do k = 1 , kz
+              atm_qten_lsc_out(:,:,k) = qdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
+            end do
+            qdiag%lsc = d_zero
+          end if
+        end if
+
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(ps_out+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                         atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        end if
+
+        call write_record_output_stream(atm_stream,alarm_out_atm%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'ATM variables written at ' , rcmtimer%str( )
+
+        if ( associated(atm_tsw_out) ) atm_tsw_out = d_zero
+        sfs%rainc  = d_zero
+        sfs%rainnc = d_zero
+        if ( ipptls > 1 ) sfs%snownc  = d_zero
+      end if
+    end if
+
+    if ( srf_stream > 0 ) then
+      if ( ldosrf ) then
+
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                             atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        ! Averaged values
+        if ( associated(srf_tpr_out) ) &
+          srf_tpr_out = srf_tpr_out*rnsrf_for_srffrq
+        if ( associated(srf_prcv_out) ) &
+          srf_prcv_out = srf_prcv_out*rnsrf_for_srffrq
+        if ( associated(srf_zpbl_out) ) &
+          srf_zpbl_out = srf_zpbl_out*rnsrf_for_srffrq
+        if ( associated(srf_dew_out) .and. associated(srf_evp_out) ) then
+          srf_dew_out = -(srf_evp_out*rnsrf_for_srffrq)
+          srf_dew_out = max(srf_dew_out, d_zero)
+        end if
+        if ( associated(srf_evp_out) ) then
+          srf_evp_out = srf_evp_out*rnsrf_for_srffrq
+          srf_evp_out = max(srf_evp_out, d_zero)
+        end if
+        if ( associated(srf_scv_out) ) then
+          where ( mddom%ldmsk > 0 )
+            srf_scv_out = srf_scv_out*rnsrf_for_srffrq
+          elsewhere
+            srf_scv_out = dmissval
+          end where
+        end if
+        if ( associated(srf_srunoff_out) ) then
+          where ( srf_srunoff_out < dlowval )
+            srf_srunoff_out = d_zero
+          end where
+          where ( mddom%ldmsk == 1 )
+            srf_srunoff_out = srf_srunoff_out*rnsrf_for_srffrq
+          elsewhere
+            srf_srunoff_out = dmissval
+          end where
+        end if
+        if ( associated(srf_trunoff_out) ) then
+          where ( mddom%ldmsk == 1 )
+            where ( srf_trunoff_out < dlowval )
+              srf_trunoff_out = d_zero
+            end where
+            srf_trunoff_out = srf_trunoff_out*rnsrf_for_srffrq
+          elsewhere
+            srf_trunoff_out = dmissval
+          end where
+        end if
+        if ( associated(srf_sena_out) ) &
+          srf_sena_out = srf_sena_out*rnsrf_for_srffrq
+        if ( associated(srf_lena_out) ) &
+          srf_lena_out = srf_lena_out*rnsrf_for_srffrq
+        if ( associated(srf_flw_out) ) &
+          srf_flw_out = srf_flw_out*rnsrf_for_srffrq
+        if ( associated(srf_fsw_out) ) &
+          srf_fsw_out = srf_fsw_out*rnsrf_for_srffrq
+        if ( associated(srf_fld_out) ) &
+          srf_fld_out = srf_fld_out*rnsrf_for_srffrq
+        if ( associated(srf_sina_out) ) &
+          srf_sina_out = srf_sina_out*rnsrf_for_srffrq
+        if ( associated(srf_uflw_out) ) &
+          srf_uflw_out = srf_fld_out - srf_flw_out
+        if ( associated(srf_ufsw_out) ) &
+          srf_ufsw_out = srf_sina_out - srf_fsw_out
+        if ( associated(srf_taux_out) .and. associated(srf_tauy_out) ) then
+          srf_taux_out = srf_taux_out*rnsrf_for_srffrq
+          srf_tauy_out = srf_tauy_out*rnsrf_for_srffrq
+          if ( uvrotate ) then
+            call uvrot(srf_taux_out,srf_tauy_out)
+          end if
+        end if
+        if ( associated(srf_snowmelt_out) ) &
+          srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq / &
+                             alarm_out_srf%dt
+        if ( associated(srf_u10m_out) .and. associated(srf_v10m_out) ) then
+          if ( associated(srf_wspd_out) ) then
+            srf_wspd_out = sqrt(srf_u10m_out(:,:,1)*srf_u10m_out(:,:,1) + &
+                                srf_v10m_out(:,:,1)*srf_v10m_out(:,:,1))
+          end if
+          if ( uvrotate ) then
+            call uvrot(srf_u10m_out,srf_v10m_out)
+          end if
+        end if
+
+        if ( associated(srf_totcf_out) ) then
+          srf_totcf_out = srf_totcf_out * rnrad_for_srffrq * d_100
+        end if
+        if ( associated(srf_evpot_out) ) then
+          srf_evpot_out = srf_evpot_out*rnsrf_for_srffrq
+        end if
+
+        if ( associated(srf_ua100_out) .and. &
+             associated(srf_va100_out) ) then
+          if ( idynamic == 3 ) then
+            call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zz = mo_atm%zeta(j,i,kz)
+                if ( zz > 100.0_rkx ) then
+                  srf_ua100_out(j,i,1) = mo_atm%ux(j,i,1)
+                  srf_va100_out(j,i,1) = mo_atm%vx(j,i,1)
+                else
+                  vertloop: &
+                  do k = kz-1 , 1 , -1
+                    zz1 = mo_atm%zeta(j,i,k)
+                    if ( zz1 > 100.0_rkx ) then
+                      ww = (100.0_rkx-zz)/(zz1-zz)
+                      srf_ua100_out(j,i,1) = &
+                        ww*mo_atm%ux(j,i,k)+(d_one-ww)*mo_atm%ux(j,i,k+1)
+                      srf_va100_out(j,i,1) = &
+                        ww*mo_atm%vx(j,i,k)+(d_one-ww)*mo_atm%vx(j,i,k+1)
+                      exit vertloop
+                    end if
+                    zz = zz1
+                  end do vertloop
+                end if
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cell = ptop / sfs%psa(j,i)
+                zz = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                       log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+                if ( zz > 100.0_rkx ) then
+                  srf_ua100_out(j,i,1) = &
+                    (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
+                              atm1%u(j,i+1,kz)+atm1%u(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+                  srf_va100_out(j,i,1) = &
+                    (d_rfour*(atm1%v(j,i,kz)+atm1%v(j+1,i,kz) + &
+                              atm1%v(j,i+1,kz)+atm1%v(j+1,i+1,kz)) / &
+                              sfs%psa(j,i))
+                else
+                  vloop: &
+                  do k = kz-1 , 1 , -1
+                    zz1 = zz + rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
+                          log((sigma(k+1)+cell)/(sigma(k)+cell))
+                    if ( zz1 > 100.0_rkx ) then
+                      ww = (100.0_rkx-zz)/(zz1-zz)
+                      srf_ua100_out(j,i,1) = &
+                        ww * &
+                           (d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                     atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%u(j,i,k+1)+atm1%u(j+1,i,k+1) + &
+                                     atm1%u(j,i+1,k+1)+atm1%u(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                      srf_va100_out(j,i,1) = &
+                        ww * &
+                           (d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                     atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k)) / &
+                                     sfs%psa(j,i)) + &
+                        (d_one - ww) * &
+                           (d_rfour*(atm1%v(j,i,k+1)+atm1%v(j+1,i,k+1) + &
+                                     atm1%v(j,i+1,k+1)+atm1%v(j+1,i+1,k+1)) / &
+                                     sfs%psa(j,i))
+                      exit vloop
+                    end if
+                    zz = zz1
+                  end do vloop
+                end if
+              end do
+            end do
+          end if
+          if ( uvrotate ) then
+            call uvrot(srf_ua100_out,srf_va100_out)
+          end if
+        end if
+
+        call write_record_output_stream(srf_stream,alarm_out_srf%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'SRF variables written at ' , rcmtimer%str( )
+
+        if ( associated(srf_tpr_out) ) srf_tpr_out = d_zero
+        if ( associated(srf_prcv_out) ) srf_prcv_out = d_zero
+        if ( associated(srf_zpbl_out) ) srf_zpbl_out = d_zero
+        if ( associated(srf_evp_out) ) srf_evp_out = d_zero
+        if ( associated(srf_scv_out) ) srf_scv_out = d_zero
+        if ( associated(srf_srunoff_out) ) srf_srunoff_out = d_zero
+        if ( associated(srf_trunoff_out) ) srf_trunoff_out = d_zero
+        if ( associated(srf_sena_out) ) srf_sena_out = d_zero
+        if ( associated(srf_lena_out) ) srf_lena_out = d_zero
+        if ( associated(srf_flw_out) ) srf_flw_out = d_zero
+        if ( associated(srf_fsw_out) ) srf_fsw_out = d_zero
+        if ( associated(srf_fld_out) ) srf_fld_out = d_zero
+        if ( associated(srf_sina_out) ) srf_sina_out = d_zero
+        if ( associated(srf_sund_out) ) srf_sund_out = d_zero
+        if ( associated(srf_taux_out) ) srf_taux_out = d_zero
+        if ( associated(srf_tauy_out) ) srf_tauy_out = d_zero
+        if ( associated(srf_snowmelt_out) ) srf_snowmelt_out = d_zero
+        if ( associated(srf_totcf_out) ) srf_totcf_out = d_zero
+        if ( associated(srf_evpot_out) ) srf_evpot_out = d_zero
+      end if
+    end if
+
+    if ( sub_stream > 0 ) then
+      if ( ldosub ) then
+
+        sub_ps_out = sub_ps_out*rnsrf_for_subfrq
+
+        if ( associated(sub_evp_out) ) then
+          sub_evp_out = sub_evp_out*rnsrf_for_subfrq
+          sub_evp_out = max(sub_evp_out, d_zero)
+        end if
+        if ( associated(sub_scv_out) ) then
+          where ( sub_scv_out < dmissval )
+            sub_scv_out = sub_scv_out*rnsrf_for_subfrq
+          end where
+        end if
+        if ( associated(sub_sena_out) ) &
+          sub_sena_out = sub_sena_out*rnsrf_for_subfrq
+        if ( associated(sub_srunoff_out) ) then
+          where ( sub_srunoff_out < dmissval )
+            sub_srunoff_out = sub_srunoff_out*rnsrf_for_subfrq
+          end where
+        end if
+        if ( associated(sub_trunoff_out) ) then
+          where ( sub_trunoff_out < dmissval )
+            sub_trunoff_out = sub_trunoff_out*rnsrf_for_subfrq
+          end where
+        end if
+
+        if ( associated(sub_u10m_out) .and. associated(sub_v10m_out) ) then
+          if ( uvrotate ) then
+            call uvrot(sub_u10m_out,sub_v10m_out)
+          end if
+        end if
+        call write_record_output_stream(sub_stream,alarm_out_sub%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'SUB variables written at ' , rcmtimer%str( )
+
+        if ( associated(sub_evp_out) ) sub_evp_out = d_zero
+        if ( associated(sub_scv_out) ) sub_scv_out = d_zero
+        if ( associated(sub_sena_out) ) sub_sena_out = d_zero
+        if ( associated(sub_srunoff_out) ) sub_srunoff_out = d_zero
+        if ( associated(sub_trunoff_out) ) sub_trunoff_out = d_zero
+      end if
+    end if
+
+    if ( lak_stream > 0 ) then
+      if ( ldolak ) then
+
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                     atm1%pp(j,i,kz) / sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        if ( associated(lak_tpr_out) ) &
+          lak_tpr_out = lak_tpr_out*rnsrf_for_lakfrq
+        if ( associated(lak_scv_out) ) then
+          where ( mddom%ldmsk > 0 )
+            lak_scv_out = lak_scv_out*rnsrf_for_lakfrq
+          elsewhere
+            lak_scv_out = dmissval
+          end where
+        end if
+        if ( associated(lak_sena_out) ) &
+          lak_sena_out = lak_sena_out*rnsrf_for_lakfrq
+        if ( associated(lak_flw_out) ) &
+          lak_flw_out = lak_flw_out*rnsrf_for_lakfrq
+        if ( associated(lak_fsw_out) ) &
+          lak_fsw_out = lak_fsw_out*rnsrf_for_lakfrq
+        if ( associated(lak_fld_out) ) &
+          lak_fld_out = lak_fld_out*rnsrf_for_lakfrq
+        if ( associated(lak_sina_out) ) &
+          lak_sina_out = lak_sina_out*rnsrf_for_lakfrq
+        if ( associated(lak_evp_out) ) then
+          lak_evp_out = lak_evp_out*rnsrf_for_lakfrq
+          lak_evp_out = max(lak_evp_out, d_zero)
+        end if
+
+        call write_record_output_stream(lak_stream,alarm_out_lak%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'LAK variables written at ' , rcmtimer%str( )
+
+        if ( associated(lak_tpr_out) )    lak_tpr_out = d_zero
+        if ( associated(lak_scv_out) )    lak_scv_out = d_zero
+        if ( associated(lak_sena_out) )   lak_sena_out = d_zero
+        if ( associated(lak_flw_out) )    lak_flw_out = d_zero
+        if ( associated(lak_fsw_out) )    lak_fsw_out = d_zero
+        if ( associated(lak_fld_out) )    lak_fld_out = d_zero
+        if ( associated(lak_sina_out) )   lak_sina_out = d_zero
+        if ( associated(lak_evp_out) )    lak_evp_out = d_zero
+      end if
+    end if
+
+    if ( opt_stream > 0 .and. rcmtimer%integrating( ) ) then
+      if ( ldoche ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        if ( associated(opt_pp_out) ) then
+          do k = 1 , kz
+            opt_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k) / &
+                                  sfs%psa(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        if ( associated(opt_acstoarf_out) ) &
+          opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
+        if ( associated(opt_acstsrrf_out) ) &
+          opt_acstsrrf_out = opt_acstsrrf_out * rnrad_for_chem
+        if ( associated(opt_acstalrf_out) ) &
+          opt_acstalrf_out = opt_acstalrf_out * rnrad_for_chem
+        if ( associated(opt_acssrlrf_out) ) &
+          opt_acssrlrf_out = opt_acssrlrf_out * rnrad_for_chem
+        if ( associated(opt_aastoarf_out) ) &
+          opt_aastoarf_out = opt_aastoarf_out * rnrad_for_chem
+        if ( associated(opt_aastsrrf_out) ) &
+          opt_aastsrrf_out = opt_aastsrrf_out * rnrad_for_chem
+        if ( associated(opt_aastalrf_out) ) &
+          opt_aastalrf_out = opt_aastalrf_out * rnrad_for_chem
+        if ( associated(opt_aassrlrf_out) ) &
+          opt_aassrlrf_out = opt_aassrlrf_out * rnrad_for_chem
+
+        call write_record_output_stream(opt_stream,alarm_out_che%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'OPT variables written at ' , rcmtimer%str( )
+        if ( associated(opt_acstoarf_out) ) opt_acstoarf_out = d_zero
+        if ( associated(opt_acstsrrf_out) ) opt_acstsrrf_out = d_zero
+        if ( associated(opt_acstalrf_out) ) opt_acstalrf_out = d_zero
+        if ( associated(opt_acssrlrf_out) ) opt_acssrlrf_out = d_zero
+        if ( associated(opt_aastoarf_out) ) opt_aastoarf_out = d_zero
+        if ( associated(opt_aastsrrf_out) ) opt_aastsrrf_out = d_zero
+        if ( associated(opt_aastalrf_out) ) opt_aastalrf_out = d_zero
+        if ( associated(opt_aassrlrf_out) ) opt_aassrlrf_out = d_zero
+      end if
+    end if
+
+    if ( che_stream > 0 ) then
+      if ( ldoche ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        if ( associated(che_pp_out) ) then
+          do k = 1 , kz
+            che_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k) / &
+                                 sfs%psa(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        do itr = 1 , ntr
+          call fill_chem_outvars(itr)
+          call write_record_output_stream(che_stream,alarm_out_che%idate,itr)
+        end do
+        if ( myid == italk ) then
+          write(stdout,*) 'CHE variables written at ' , rcmtimer%str( )
+        end if
+      end if
+    end if
+
+    if ( shf_stream > 0 ) then
+      if ( ldoshf ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+
+        if ( associated(shf_pcpavg_out) ) &
+          shf_pcpavg_out = shf_pcpavg_out * dtsrf/3600.0_rkx
+        if ( associated(shf_pcprcv_out) ) &
+          shf_pcprcv_out = shf_pcprcv_out * dtsrf/3600.0_rkx
+        call write_record_output_stream(shf_stream,alarm_out_shf%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'SHF variables written at ' , rcmtimer%str( )
+
+        if ( associated(shf_pcpavg_out) ) shf_pcpavg_out = d_zero
+        if ( associated(shf_pcpmax_out) ) shf_pcpmax_out = d_zero
+        if ( associated(shf_pcprcv_out) ) shf_pcprcv_out = d_zero
+      end if
+    end if
+
+    if ( sts_stream > 0 ) then
+      if ( ldosts ) then
+
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        if ( associated(sts_pcpavg_out) ) &
+          sts_pcpavg_out = sts_pcpavg_out*rnsrf_for_day
+        if ( associated(sts_t2avg_out) ) &
+          sts_t2avg_out = sts_t2avg_out*rnsrf_for_day
+        if ( associated(sts_psavg_out) ) &
+          sts_psavg_out = sts_psavg_out*rnsrf_for_day
+        if ( associated(sts_srunoff_out) ) then
+          where ( mddom%ldmsk == 1 )
+            sts_srunoff_out = sts_srunoff_out*rnsrf_for_day
+          elsewhere
+            sts_srunoff_out = dmissval
+          end where
+        end if
+        if ( associated(sts_trunoff_out) ) then
+          where ( mddom%ldmsk == 1 )
+            sts_trunoff_out = sts_trunoff_out*rnsrf_for_day
+          elsewhere
+            sts_trunoff_out = dmissval
+          end where
+        end if
+
+        call write_record_output_stream(sts_stream,alarm_out_sts%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'STS variables written at ' , rcmtimer%str( )
+
+        if ( associated(sts_pcpavg_out) )  sts_pcpavg_out  = d_zero
+        if ( associated(sts_t2avg_out) )   sts_t2avg_out   = d_zero
+        if ( associated(sts_psavg_out) )   sts_psavg_out   = d_zero
+        if ( associated(sts_tgmax_out) )   sts_tgmax_out   = -1.e30_rkx
+        if ( associated(sts_tgmin_out) )   sts_tgmin_out   =  1.e30_rkx
+        if ( associated(sts_t2max_out) )   sts_t2max_out   = -1.e30_rkx
+        if ( associated(sts_t2min_out) )   sts_t2min_out   =  1.e30_rkx
+        if ( associated(sts_w10max_out) )  sts_w10max_out  = -1.e30_rkx
+        if ( associated(sts_psmin_out) )   sts_psmin_out   =  1.e30_rkx
+        if ( associated(sts_pcpmax_out) )  sts_pcpmax_out  = -1.e30_rkx
+        if ( associated(sts_sund_out) )    sts_sund_out    = d_zero
+        if ( associated(sts_srunoff_out) ) sts_srunoff_out = d_zero
+        if ( associated(sts_trunoff_out) ) sts_trunoff_out = d_zero
+
+      end if
+    end if
+
+    if ( rad_stream > 0 ) then
+      if ( ldorad ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                 atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        if ( associated(rad_pp_out) ) then
+          do k = 1 , kz
+            rad_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ &
+                             sfs%psa(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        if ( associated(rad_higcl_out) ) &
+          rad_higcl_out = min(rad_higcl_out * rnrad_for_radfrq,d_one) * d_100
+        if ( associated(rad_midcl_out) ) &
+          rad_midcl_out = min(rad_midcl_out * rnrad_for_radfrq,d_one) * d_100
+        if ( associated(rad_lowcl_out) ) &
+          rad_lowcl_out = min(rad_lowcl_out * rnrad_for_radfrq,d_one) * d_100
+        call write_record_output_stream(rad_stream,alarm_out_rad%idate)
+        if ( myid == italk ) &
+          write(stdout,*) 'RAD variables written at ' , rcmtimer%str( )
+        if ( associated(rad_higcl_out) ) rad_higcl_out = d_zero
+        if ( associated(rad_midcl_out) ) rad_midcl_out = d_zero
+        if ( associated(rad_lowcl_out) ) rad_lowcl_out = d_zero
+      end if
+    end if
+
+    if ( slaboc_stream > 0 ) then
+      if ( ldoslab ) then
+        if ( idynamic == 1 ) then
+          ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        else if ( idynamic == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ps_out(j,i) = atm0%ps(j,i) + ptop*d_1000 + &
+                atm1%pp(j,i,kz)/sfs%psa(j,i)
+            end do
+          end do
+        else
+          ps_out = sfs%psa(jci1:jci2,ici1:ici2)
+        end if
+        call fill_slaboc_outvars
+        call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
+        if ( myid == italk ) then
+          write(stdout,*) 'SOM variables written at ' , rcmtimer%str( )
+        end if
+      end if
+    end if
+
+    if ( ifsave ) then
+      if ( ldosav ) then
+        if ( idynamic == 3 ) then
+        else
+          call grid_collect(atm1%u,atm1_u_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm1%v,atm1_v_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm1%t,atm1_t_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm1%qx,atm1_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+
+          call grid_collect(atm2%u,atm2_u_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm2%v,atm2_v_io,jde1,jde2,ide1,ide2,1,kz)
+          call grid_collect(atm2%t,atm2_t_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm2%qx,atm2_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        end if
+
+        if ( ibltyp == 2 ) then
+          if ( idynamic == 3 ) then
+          else
+            call grid_collect(atm1%tke,atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
+            call grid_collect(atm2%tke,atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
+          end if
+          call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
+        else if ( ibltyp == 4 ) then
+          call grid_collect(atms%tkepbl,tke_pbl_io,jci1,jci2,ici1,ici2,1,kz)
+          call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfs%uz0,myjsf_uz0_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfs%vz0,myjsf_vz0_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfs%thz0,myjsf_thz0_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfs%qz0,myjsf_qz0_io,jci1,jci2,ici1,ici2)
+        end if
+
+        if ( idynamic == 2 ) then
+          call grid_collect(atm1%pp,atm1_pp_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm2%pp,atm2_pp_io,jce1,jce2,ice1,ice2,1,kz)
+          call grid_collect(atm1%w,atm1_w_io,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_collect(atm2%w,atm2_w_io,jce1,jce2,ice1,ice2,1,kzp1)
+        end if
+
+        call grid_collect(sfs%psa,psa_io,jce1,jce2,ice1,ice2)
+        call grid_collect(sfs%psb,psb_io,jce1,jce2,ice1,ice2)
+
+        call grid_collect(sfs%hfx,hfx_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%tgbb,tgbb_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%zo,zo_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%uvdrag,uvdrag_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%ram1,ram_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%rah1,rah_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%br,br_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%q2m,q2m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%u10m,u10m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%v10m,v10m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%w10m,w10m_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%ustar,ustar_io,jci1,jci2,ici1,ici2)
+
+        if ( ipptls > 0 ) then
+          call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
+        end if
+        call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
+        call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)
+
+        if ( iocnflx == 2 ) then
+          call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 3) ) then
+          call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 4) ) then
+          call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 6) .or. any(icup == 5) ) then
+          call grid_collect(avg_ww,cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz)
+        end if
+        if ( irrtm == 0 ) then
+          call grid_collect(gasabsnxt,gasabsnxt_io,jci1,jci2,ici1,ici2,1,kz,1,4)
+          call grid_collect(gasabstot,gasabstot_io, &
+                            jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
+          call grid_collect(gasemstot,gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1)
+        end if
+
+        call subgrid_collect(lms%sw,sw_io,jci1,jci2,ici1,ici2,1,num_soil_layers)
+        call subgrid_collect(lms%gwet,gwet_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%ldew,ldew_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%tgrd,tgrd_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%tgbrd,tgbrd_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%taf,taf_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%tlef,tlef_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%sncv,sncv_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%snag,snag_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%sfice,sfice_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%emisv,emisv_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%um10,um10_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%swalb,swalb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%lwalb,lwalb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%swdiralb,swdiralb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%swdifalb,swdifalb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%lwdiralb,lwdiralb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%lwdifalb,lwdifalb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
+
+        call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
+        call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
+        call grid_collect(solvsd,solvsd_io,jci1,jci2,ici1,ici2)
+        call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)
+        call grid_collect(solvld,solvld_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sabveg,sabveg_io,jci1,jci2,ici1,ici2)
+        call grid_collect(flw,flw_io,jci1,jci2,ici1,ici2)
+        call grid_collect(flwd,flwd_io,jci1,jci2,ici1,ici2)
+        call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sinc,sinc_io,jci1,jci2,ici1,ici2)
+        call grid_collect(mddom%ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
+
+#ifndef CLM
+        if ( lakemod == 1 ) then
+          call subgrid_collect(lms%eta,eta_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%hi,hi_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
+        end if
+#else
+        if ( imask == 2 ) then
+          call grid_collect(mddom%lndcat,lndcat_io,jci1,jci2,ici1,ici2)
+        end if
+#endif
+        if ( idcsst == 1 ) then
+          call subgrid_collect(lms%sst,sst_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%tskin,tskin_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%deltas,deltas_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%tdeltas,tdeltas_io,jci1,jci2,ici1,ici2)
+        end if
+
+        if ( idynamic == 1 ) then
+          call grid_collect(dstor,dstor_io,jde1,jde2,ide1,ide2,1,nsplit)
+          call grid_collect(hstor,hstor_io,jde1,jde2,ide1,ide2,1,nsplit)
+        end if
+
+        if ( ichem == 1 ) then
+          if ( idynamic == 3 ) then
+          else
+            call grid_collect(atm1%chi,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+            call grid_collect(atm2%chi,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          end if
+          call grid_collect(rainout,rainout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_collect(washout,washout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)
+          if ( igaschem == 1 .and. ichsolver > 0 ) then
+            call grid_collect(chemall,chemall_io,jci1,jci2,ici1,ici2, &
+                              1,kz,1,totsp)
+            call grid_collect(taucldsp,taucldsp_io,jci1,jci2,ici1,ici2, &
+                              0,kz,1,nspi)
+          end if
+
+          call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sdelt,sdelt_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sdelq,sdelq_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfracv2d,sfracv2d_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfracb2d,sfracb2d_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sfracs2d,sfracs2d_io,jci1,jci2,ici1,ici2)
+          call grid_collect(svegfrac2d,svegfrac2d_io,jci1,jci2,ici1,ici2)
+        end if
+
+        if ( islab_ocean == 1 .and. do_restore_sst ) then
+          call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
+            jci1,jci2,ici1,ici2,1,12)
+        end if
+        call write_savefile(rcmtimer%idate)
+      end if
+    end if
+
+    if ( associated(alarm_out_nwf) ) then
+      if ( lnewf ) then
+        call newoutfiles(rcmtimer%idate)
+        call checktime(myid,trim(dirout)//pthsep//trim(domname)// &
+                       '.'//tochar10(lastout))
+        lastout = rcmtimer%idate
+      end if
+    else
+      if ( lfdomonth(rcmtimer%idate) .and. lmidnight(rcmtimer%idate) ) then
+        if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
+          call newoutfiles(rcmtimer%idate)
+          call checktime(myid,trim(dirout)//pthsep//trim(domname)// &
+                         '.'//tochar10(lastout))
+          lastout = rcmtimer%idate
+        end if
+      end if
+    end if
+
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+
+    contains
+
+#include <pfesat.inc>
+#include <pfwsat.inc>
+
+  end subroutine output
+
+  subroutine vertint(f3,p3,f2,plev)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: f3
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: p3
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: f2
+    real(rkx) , intent(in) :: plev
+    integer(ik4) :: i , j , ik
+    real(rkx) , dimension(kz) :: f1 , p1
+    real(rkx) :: blw , tlw , dp
+
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        f1 = f3(j,i,:)
+        p1 = p3(j,i,:)
+        ik = findlev()
+        if ( ik < 1 ) then
+          ! higher than top
+          f2(j,i) = f3(j,i,1)
+        else if ( ik > kz-1 ) then
+          ! lower than bottom
+          f2(j,i) = f3(j,i,kz)
+        else
+          ! in between two levels
+          dp = p3(j,i,ik+1) - p3(j,i,ik)
+          blw = (plev - p3(j,i,ik)) / dp
+          tlw = d_one - blw
+          f2(j,i) = (f3(j,i,ik+1)*blw+f3(j,i,ik)*tlw)
+        end if
+      end do
+    end do
+
+    contains
+
+    integer(ik4) function findlev() result(kk)
       implicit none
+      integer(ik4) :: k
+      kk = 0
+      if ( plev >= p1(1) ) then
+        do k = 1 , kz
+          if ( plev > p1(k) ) then
+            kk = k
+          end if
+        end do
+      end if
+    end function findlev
 
-      integer :: i , j
+  end subroutine vertint
+  !
+  ! Change U and V from map values (X,Y) to true (N,E)
+  !
+  subroutine uvrot2d(u,v)
+    implicit none
 
-#ifdef BAND
-      i = iym2sg
-      j = jxsg
-#else
-      i = iym2sg
-      j = jxm2sg
-#endif
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
+    real(rkx) :: us , vs
+    integer(ik4) :: i , j
 
-#ifdef MPP1
-      call writerec_sub(j,i,nsg,numsub,fsub_io,idatex)
-#else
-      call writerec_sub(j,i,nsg,numsub,fsub,idatex)
-#endif
+    if ( .not. associated(alpharotcos) ) then
+      call alpharot_compute
+    end if
 
-      write (*,*) 'SUB variables written at ' , idatex , xtime
-
-      end subroutine outsub
-!
-      subroutine outrad
-!
-      implicit none
-!
-      integer :: i , j , imax , jmax , istart, jstart
-!
-!      character (len=50) :: subroutine_name='outrad'
-!      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
-#ifdef BAND
-      imax = iym2
-      jmax = jx
-      istart = 1
-      jstart = 0
-#else
-      imax = iym2
-      jmax = jxm2
-      istart = 1
-      jstart = 1
-#endif
-
-      do i = 1 , imax
-        do j = 1 , jmax
-#ifdef MPP1
-          radpsa_io(j,i) = real((psa_io(i+istart,j+jstart)+r8pt)*d_10)
-#else
-          radpsa(j,i) = real((sps1%ps(i+istart,j+jstart)+r8pt)*d_10)
-#endif
+    if ( iproj == 'ROTMER' ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          us = u(j,i)*alpharotcos(j,i) + v(j,i)*alpharotsin(j,i)
+          vs = v(j,i)*alpharotcos(j,i) - u(j,i)*alpharotsin(j,i)
+          u(j,i) = us
+          v(j,i) = vs
         end do
       end do
+    else
+      if ( clat >= d_zero ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            us = u(j,i)*alpharotcos(j,i) - v(j,i)*alpharotsin(j,i)
+            vs = u(j,i)*alpharotsin(j,i) + v(j,i)*alpharotcos(j,i)
+            u(j,i) = us
+            v(j,i) = vs
+          end do
+        end do
+      else
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            us = u(j,i)*alpharotcos(j,i) + v(j,i)*alpharotsin(j,i)
+            vs = v(j,i)*alpharotcos(j,i) - u(j,i)*alpharotsin(j,i)
+            u(j,i) = us
+            v(j,i) = vs
+          end do
+        end do
+      end if
+    end if
+  end subroutine uvrot2d
 
-#ifdef MPP1
-      call writerec_rad(jmax, imax, kz, 4, 9, &
-                        frad3d_io(:,:,:,2:5), frad2d_io(:,:,1:10), &
-                        radpsa_io, idatex)
-#else
-      call writerec_rad(jmax, imax, kz, 4, 9, &
-                        frad3d(:,:,:,2:5), frad2d(:,:,1:10), &
-                        radpsa, idatex)
-#endif
+  !
+  ! Change U and V from map values (X,Y) to true (N,E)
+  !
+  subroutine uvrot3d(u,v)
+    implicit none
 
-      print * , 'RAD variables written at ' , idatex , xtime
- 
-!      call time_end(subroutine_name,idindx)
-      end subroutine outrad
-!
-      subroutine outche
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
+    real(rkx) :: us , vs
+    integer(ik4) :: i , j , k , nk
 
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-!     this subroutine writes the model chem                           c
-!                                                                     c
-!     iutl : is the output unit number for large-domain variables.    c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+    if ( .not. associated(alpharotcos) ) then
+      call alpharot_compute
+    end if
 
-      implicit none
-!
-      integer :: ni , itr , nj , nk , ie , je
+    nk = size(u,3)
 
-!      character (len=50) :: subroutine_name='outche'
-!      integer :: idindx=0
-!
-!      call time_begin(subroutine_name,idindx)
-#ifdef BAND
-      ni = iym2
-      nj = jx
-      nk = kz
-      itr = ntr
-      ie = iym1
-      je = jx
-#else
-      ni = iym2
-      nj = jxm2
-      nk = kz
-      itr = ntr
-      ie = iym1
-      je = jxm1
-#endif
+    if ( iproj == 'ROTMER' ) then
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            us = u(j,i,k)*alpharotcos(j,i) + v(j,i,k)*alpharotsin(j,i)
+            vs = v(j,i,k)*alpharotcos(j,i) - u(j,i,k)*alpharotsin(j,i)
+            u(j,i,k) = us
+            v(j,i,k) = vs
+          end do
+        end do
+      end do
+    else
+      if ( clat >= d_zero ) then
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              us = u(j,i,k)*alpharotcos(j,i) - v(j,i,k)*alpharotsin(j,i)
+              vs = u(j,i,k)*alpharotsin(j,i) + v(j,i,k)*alpharotcos(j,i)
+              u(j,i,k) = us
+              v(j,i,k) = vs
+            end do
+          end do
+        end do
+      else
+        do k = 1 , nk
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              us = u(j,i,k)*alpharotcos(j,i) + v(j,i,k)*alpharotsin(j,i)
+              vs = v(j,i,k)*alpharotcos(j,i) - u(j,i,k)*alpharotsin(j,i)
+              u(j,i,k) = us
+              v(j,i,k) = vs
+            end do
+          end do
+        end do
+      end if
+    end if
+  end subroutine uvrot3d
 
-#ifdef MPP1
-     call writerec_che(nj, ni, je, ie, nk, itr, chia_io,     &
-                aerext_io, aerssa_io, aerasp_io, dtrace_io,  &
-                wdlsc_io, wdcvc_io, ddsfc_io, wxsg_io,       &
-                wxaq_io, cemtrac_io, aertarf_io, aersrrf_io, &
-                aertalwrf_io, aersrlwrf_io, psa_io, idatex)
-#else
-     call writerec_che(nj, ni, je , ie , nk, itr, chia, aerext,   &
-                aerssa, aerasp, dtrace, wdlsc, wdcvc, ddsfc,      &
-                wxsg, wxaq, cemtrac, aertarf, aersrrf, aertalwrf, &
-                aersrlwrf, sps1%ps, idatex)
-#endif
-      write (*,*) 'CHE variables written at ' , idatex , xtime
+  subroutine alpharot_compute
+    implicit none
+    real(rkx) :: polcphi , pollam , polphi , polsphi ,  &
+            x , zarg1 , zarg2 , znorm , zphi , zrla , zrlap
+    integer(ik4) :: i , j
 
-      end subroutine outche
-!
-      end module mod_output
+    call getmem2d(alpharotsin,jci1,jci2,ici1,ici2,'mod_output:alpharotsin')
+    call getmem2d(alpharotcos,jci1,jci2,ici1,ici2,'mod_output:alpharotcos')
+
+    if ( iproj == 'ROTMER' ) then
+      if ( plat > d_zero ) then
+        pollam = plon + deg180
+        polphi = deg90 - plat
+      else
+        polphi = deg90 + plat
+        pollam = plon
+      end if
+      if ( pollam > deg180 ) pollam = pollam - deg360
+
+      polcphi = cos(degrad*polphi)
+      polsphi = sin(degrad*polphi)
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          zphi = mddom%xlat(j,i)*degrad
+          zrla = mddom%xlon(j,i)*degrad
+          if ( mddom%xlat(j,i) > 89.999999_rkx ) zrla = d_zero
+          zrlap = pollam*degrad - zrla
+          zarg1 = polcphi*sin(zrlap)
+          zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
+          znorm = d_one/sqrt(zarg1**2+zarg2**2)
+          alpharotsin(j,i) = zarg1*znorm
+          alpharotcos(j,i) = zarg2*znorm
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( (clon >= d_zero .and. mddom%xlon(j,i) >= deg00) .or.  &
+               (clon < d_zero .and. mddom%xlon(j,i) < deg00) ) then
+            x = (clon-mddom%xlon(j,i))*degrad*xcone
+          else if ( clon >= d_zero ) then
+            if ( abs(clon-(mddom%xlon(j,i)+deg360)) < &
+                 abs(clon-mddom%xlon(j,i)) ) then
+              x = (clon-(mddom%xlon(j,i)+deg360))*degrad*xcone
+            else
+              x = (clon-mddom%xlon(j,i))*degrad*xcone
+            end if
+          else if ( abs(clon-(mddom%xlon(j,i)-deg360)) < &
+                    abs(clon-mddom%xlon(j,i)) ) then
+            x = (clon-(mddom%xlon(j,i)-deg360))*degrad*xcone
+          else
+            x = (clon-mddom%xlon(j,i))*degrad*xcone
+          end if
+          alpharotsin(j,i) = sin(x)
+          alpharotcos(j,i) = cos(x)
+        end do
+      end do
+    end if
+  end subroutine alpharot_compute
+
+end module mod_output
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

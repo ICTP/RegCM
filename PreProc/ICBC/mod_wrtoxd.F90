@@ -17,414 +17,401 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_wrtoxd
+module mod_wrtoxd
 
-      use mod_dynparam
-      use mod_date
-      use mod_grid
+  use mod_dynparam
+  use mod_date
+  use mod_grid
+  use mod_realkinds
+  use mod_memutil
+  use mod_message
+  use mod_stdio
+  use mod_ncstream_types
+  use mod_ncstream
 
-      private
+  private
 
-      public :: oh4 , ho24 , o34 , no34 , h2o24
-      public :: init_outoxd , free_outoxd , newfile , writeox
+  public :: chv4 , oxv4 , aev4 , mw
+  public :: nchsp , noxsp , naesp , ncbmz
+  public :: chspec , oxspec , aespec , cbmzspec
 
-      integer :: ncid
-      character(256) :: ofname
-      integer :: irefdate
-      integer :: itime
-      integer , dimension(5) :: idims
-      integer , dimension(6) :: ivar
-      integer :: istatus
+  public :: init_outoxd , close_outoxd
+  public :: newfile_ch_icbc , newfile_ox_icbc , newfile_ae_icbc
+  public :: write_ch_icbc , write_ox_icbc , write_ae_icbc
 
-      real(4) , allocatable , dimension(:,:,:) :: oh4 , ho24 , o34 , &
-                                                  no34 , h2o24
+  character(len=256) :: ofname
+  character(len=8) :: chtype
 
-      data ncid /-1/
+  ! species in Mozart output
+  integer(ik4) , parameter :: nchsp = 40
+  ! cbmz species in chemistry lateral boundaries
+  integer(ik4) , parameter :: ncbmz = 33
+  integer(ik4) , parameter :: noxsp = 5
+  integer(ik4) :: naesp = -1
 
-      contains
+  character(len=8) , dimension(nchsp) :: chspec   ! Names of Mozart species
+  character(len=8) , dimension(ncbmz) :: cbmzspec ! Name of CBMZ species
+  character(len=8) , dimension(noxsp) :: oxspec
+  real(rkx) , dimension(nchsp) :: mw
 
-      subroutine init_outoxd
-        implicit none
-        allocate(oh4(jx,iy,kz))
-        allocate(ho24(jx,iy,kz))
-        allocate(o34(jx,iy,kz))
-        allocate(no34(jx,iy,kz))
-        allocate(h2o24(jx,iy,kz))
-      end subroutine init_outoxd
+  character(len=8) , pointer , dimension(:) :: aespec
+  character(len=8) , target , dimension(4) :: aedust
+  character(len=8) , target , dimension(12) :: aedu12
+  character(len=8) , target , dimension(8) :: aedccb
+  character(len=8) , target , dimension(4) :: aesslt
+  character(len=8) , target , dimension(8) :: aeduss
+  character(len=8) , target , dimension(5) :: aecarb
+  character(len=8) , target , dimension(2) :: aesulf
+  character(len=8) , target , dimension(7) :: aesuca
+  character(len=8) , target , dimension(15) :: aeaero
 
-      subroutine free_outoxd
-        use netcdf
-        implicit none
-        deallocate(oh4)
-        deallocate(ho24)
-        deallocate(o34)
-        deallocate(no34)
-        deallocate(h2o24)
-        if (ncid > 0) then
-          istatus = nf90_close(ncid)
-          call check_ok(istatus,('Error closing file '//trim(ofname)))
-        end if
-      end subroutine free_outoxd
+  real(rkx) , pointer , dimension(:,:,:,:) :: chv4
+  real(rkx) , pointer , dimension(:,:,:,:) :: oxv4
+  real(rkx) , pointer , dimension(:,:,:,:) :: aev4
 
-      subroutine newfile(idate1)
-        use netcdf
-        implicit none
-        integer , intent(in) :: idate1
-        integer :: istatus
-        integer :: iyy , im , id , ih , i , j
-        integer , dimension(8) :: tvals
-        integer , dimension(2) :: izvar
-        integer , dimension(2) :: ivvar
-        integer , dimension(2) :: illvar
-        integer , dimension(4) :: x3ddim
-        real(4) , allocatable , dimension(:) :: yiy
-        real(4) , allocatable , dimension(:) :: xjx
-        character(64) :: csdate
-        character(256) :: history
-        real(4) , dimension(2) :: trlat
-        real(4) :: hptop
+  data oxspec / 'OH' , 'HO2' , 'O3' , 'NO3' , 'H2O2' /
 
-        if (ncid > 0) then
-          istatus = nf90_close(ncid)
-          call check_ok(istatus,('Error closing file '//trim(ofname)))
-        end if
+  data chspec / 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',  &
+                'O3      ','H2O2    ','SO2     ','SO4     ','CH4     ',  &
+                'CH2O    ','CH3OH   ','PAN     ','C2H6    ','C3H8    ',  &
+                'BIGALK  ','C2H4    ','C3H6    ','BIGENE  ','TOLUENE ',  &
+                'ISOP    ','CH3CHO  ','CH3COOH ','GLYALD  ','CH3OOH  ',  &
+                'C2H5OOH ','CH3COCH3','HYAC    ','CH3COCHO','ONIT    ',  &
+                'MEK     ','MVK     ','MACR    ','HYDRALD ','BIGALD  ',  &
+                'ISOPNO3 ','ONITR   ','CRESOL  ','CO      ','DMS     ' /
 
-        write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
-              &     '_OXBC.', idate1, '.nc'
 
-        irefdate = idate1
-        itime = 1
+ data cbmzspec / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ', &
+                 'N2O5    ','H2O2    ','CH4     ','CO      ','SO2     ', &
+                 'H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ', &
+                 'OLET    ','OLEI    ','TOL     ','XYL     ','ISOP    ', &
+                 'CRES    ','OPEN    ','ISOPN   ','ISOPRD  ','ONIT    ', &
+                 'MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ', &
+                 'ALD2    ','HCHO    ','CH3OH   '/
 
-        call split_idate(idate1,iyy,im,id,ih)
-        write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-                & iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
+  integer , parameter :: maxaeout = 16
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_create(ofname, &
-                  ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), &
-                  ncid)
-#else
-        istatus = nf90_create(ofname, nf90_clobber, ncid)
-#endif
-        call check_ok(istatus,('Error creating file '//trim(ofname)))
+  data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
+  data aedu12 / 'D1201', 'D1202', 'D1203', 'D1204', &
+                'D1205', 'D1206', 'D1207', 'D1208', &
+                'D1209', 'D1210', 'D1211', 'D1212' /
+  data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
+  data aeduss / 'DST01', 'DST02', 'DST03', 'DST04', &
+                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
+  data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
+  data aesulf / 'SO2' , 'SO4' /
+  data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' /
+  data aeaero / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' , &
+                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' , 'DST01',      &
+                'DST02', 'DST03', 'DST04' /
+  data aedccb / 'CB1' , 'CB2' , 'OC1' , 'OC2' ,'DST01', 'DST02',  &
+                'DST03', 'DST04' /
 
-        istatus = nf90_put_att(ncid, nf90_global, 'title',  &
-            & 'ICTP Regional Climatic model V4 oxidant program output')
-        call check_ok(istatus,'Error adding global title')
-        istatus = nf90_put_att(ncid, nf90_global, 'institution', &
-                 & 'ICTP')
-        call check_ok(istatus,'Error adding global institution')
-        istatus = nf90_put_att(ncid, nf90_global, 'source', &
-                 & 'RegCM Model simulation SST output')
-        call check_ok(istatus,'Error adding global source')
-        istatus = nf90_put_att(ncid, nf90_global, 'Conventions', &
-                 & 'CF-1.4')
-        call check_ok(istatus,'Error adding global Conventions')
-        call date_and_time(values=tvals)
-        write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
-             tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
-             tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
-             ' : Created by RegCM oxidant program'
-        istatus = nf90_put_att(ncid, nf90_global, 'history', history)
-        call check_ok(istatus,'Error adding global history')
-        istatus = nf90_put_att(ncid, nf90_global, 'references', &
-                 & 'http://eforge.escience-lab.org/gf/project/regcm')
-        call check_ok(istatus,'Error adding global references')
-        istatus = nf90_put_att(ncid, nf90_global, 'experiment', &
-                 & domname)
-        call check_ok(istatus,'Error adding global experiment')
-        istatus = nf90_put_att(ncid, nf90_global, 'projection', iproj)
-        call check_ok(istatus,'Error adding global projection')
-        istatus = nf90_put_att(ncid, nf90_global,   &
-                 &   'grid_size_in_meters', ds*1000.0)
-        call check_ok(istatus,'Error adding global gridsize')
-        istatus = nf90_put_att(ncid, nf90_global,   &
-                 &   'latitude_of_projection_origin', clat)
-        call check_ok(istatus,'Error adding global clat')
-        istatus = nf90_put_att(ncid, nf90_global,   &
-                 &   'longitude_of_projection_origin', clon)
-        call check_ok(istatus,'Error adding global clon')
-        if (iproj == 'ROTMER') then
-          istatus = nf90_put_att(ncid, nf90_global, &
-                   &   'grid_north_pole_latitude', plat)
-          call check_ok(istatus,'Error adding global plat')
-          istatus = nf90_put_att(ncid, nf90_global, &
-                   &   'grid_north_pole_longitude', plon)
-          call check_ok(istatus,'Error adding global plon')
-        else if (iproj == 'LAMCON') then
-          trlat(1) = real(truelatl)
-          trlat(2) = real(truelath)
-          istatus = nf90_put_att(ncid, nf90_global, &
-                   &   'standard_parallel', trlat)
-          call check_ok(istatus,'Error adding global truelat')
-        end if
-        istatus = nf90_put_att(ncid, nf90_global,  &
-                           &   'global_data_source', dattyp)
-        call check_ok(istatus,'Error adding global data_source')
-        istatus = nf90_def_dim(ncid, 'iy', iy, idims(2))
-        call check_ok(istatus,'Error creating dimension iy')
-        istatus = nf90_def_dim(ncid, 'jx', jx, idims(1))
-        call check_ok(istatus,'Error creating dimension jx')
-        istatus = nf90_def_dim(ncid, 'time', nf90_unlimited, idims(3))
-        call check_ok(istatus,'Error creating dimension time')
-        istatus = nf90_def_dim(ncid, 'kz', kz, idims(4))
-        call check_ok(istatus,'Error creating dimension kz')
-        x3ddim(1) = idims(1)
-        x3ddim(2) = idims(2)
-        x3ddim(3) = idims(4)
-        x3ddim(4) = idims(3)
+  integer(ik4) :: ioc2 , isoa
+  integer(ik4) :: isslt1 , isslt2 , isslt3 , isslt4
+
+  logical :: sum_soa_to_oc2
+  logical :: sum_sslt_bins
+
+  type(nc_output_stream) , save :: ncoutch
+  type(nc_output_stream) , save :: ncoutox
+  type(nc_output_stream) , save :: ncoutae
+
+  type(ncvariable2d_mixed) , save , dimension(2) :: v2dvar_base
+  type(ncvariable3d_mixed) , save , dimension(ncbmz) :: v3dvar_ch
+  type(ncvariable3d_mixed) , save , dimension(noxsp) :: v3dvar_ox
+  type(ncvariable3d_mixed) , save , dimension(maxaeout) :: v3dvar_ae
+
+  data sum_soa_to_oc2 /.false./
+  data sum_sslt_bins  /.false./
+
+  contains
+
+  subroutine init_outoxd(chemsimtype)
+    implicit none
+    character(len=8) , intent(in) :: chemsimtype
+    logical :: doaero , dochem , dooxcl
+    integer(ik4) :: i
+    data doaero /.false./
+    data dochem /.false./
+    data dooxcl /.false./
+    chtype = chemsimtype
+    select case ( chemsimtype )
+      case ( 'DUST' )
+        naesp = 4
+        aespec => aedust
+        doaero = .true.
+      case ( 'DU12' )
+        naesp = 12
+        aespec => aedu12
+        doaero = .true.
+      case ( 'SSLT' )
+        naesp = 4
+        aespec => aesslt
+        doaero = .true.
+        sum_sslt_bins = .true.
+      case ( 'DUSS' )
+        naesp = 8
+        aespec => aeduss
+        doaero = .true.
+        sum_sslt_bins = .true.
+      case ( 'CARB' )
+        naesp = 5
+        aespec => aecarb
+        doaero = .true.
+        dooxcl = .true.
+        sum_soa_to_oc2 = .true.
+      case ( 'SULF' )
+        naesp = 2
+        aespec => aesulf
+        doaero = .true.
+        dooxcl = .true.
+      case ( 'SUCA' )
+        naesp = 7
+        aespec => aesuca
+        doaero = .true.
+        dooxcl = .true.
+        sum_soa_to_oc2 = .true.
+      case ( 'AERO' )
+        naesp = 15
+        aespec => aeaero
+        doaero = .true.
+        dooxcl = .true.
+        sum_sslt_bins = .true.
+        sum_soa_to_oc2 = .true.
+      case ( 'CBMZ' )
+        dochem = .true.
+      case ( 'DCCB' )
+        naesp = 8
+        aespec => aedccb
+        doaero = .true.
+        dooxcl = .true.
+        dochem = .true.
+      case default
+        call die('init_outoxd','Unknown chemsimtype')
+    end select
+    if ( doaero ) then
+      if ( naesp > maxaeout ) then
+        write(stderr,*) 'Added more species without increasing maxaeout'
+        call die('init_outoxd','INCRESE maxaeout AND RECOMPILE')
+      end if
+      call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
+    end if
+    if ( dochem ) call getmem4d(chv4,1,jx,1,iy,1,kz,1,ncbmz,'mod_wrtoxd:chv4')
+    if ( dooxcl ) call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
+    if ( sum_soa_to_oc2 ) then
+      ioc2 = -1
+      isoa = -1
+      do i = 1 , naesp
+        if ( aespec(i) == 'SOA' ) isoa = i
+        if ( aespec(i) == 'OC2' ) ioc2 = i
+      end do
+      if ( isoa < 0 .or. ioc2 < 0 ) then
+        call fatal(__FILE__,__LINE__, &
+                   'Logical error: Search SOA error')
+      end if
+    end if
+    if ( sum_sslt_bins ) then
+      isslt1 = -1
+      isslt2 = -1
+      isslt3 = -1
+      isslt4 = -1
+      do i = 1 , naesp
+        if ( aespec(i) == 'SSLT01' ) isslt1 = i
+        if ( aespec(i) == 'SSLT02' ) isslt2 = i
+        if ( aespec(i) == 'SSLT03' ) isslt3 = i
+        if ( aespec(i) == 'SSLT04' ) isslt4 = i
+      end do
+      if ( isslt1 < 0 .or. isslt2 < 0 .or. isslt3 < 0 .or. isslt4 < 0 ) then
+        call fatal(__FILE__,__LINE__, &
+                   'Logical error: Search SSLT error.')
+      end if
+    end if
+    v2dvar_base(1)%vname = 'xlon'
+    v2dvar_base(1)%vunit = 'degrees_east'
+    v2dvar_base(1)%long_name = 'Longitude on Cross Points'
+    v2dvar_base(1)%standard_name = 'longitude'
+    v2dvar_base(2)%vname = 'xlat'
+    v2dvar_base(2)%vunit = 'degrees_north'
+    v2dvar_base(2)%long_name = 'Latitude on Cross Points'
+    v2dvar_base(2)%standard_name = 'latitude'
+    v2dvar_base(1)%rval => xlon
+    v2dvar_base(2)%rval => xlat
+  end subroutine init_outoxd
+
+  subroutine close_outoxd
+    implicit none
+    call outstream_dispose(ncoutch)
+    call outstream_dispose(ncoutox)
+    call outstream_dispose(ncoutae)
+  end subroutine close_outoxd
+
+  subroutine newfile_ch_icbc(idate1)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate1
+    type(ncoutstream_params) :: opar
+    integer(ik4) :: ivar
+
+    call outstream_dispose(ncoutch)
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, trim(domname), &
+      '_CHBC.', trim(tochar10(idate1)), '.nc'
+    opar%fname = ofname
+    opar%pname = 'chem_icbc'
+    opar%zero_date = idate1
+    opar%l_bound = .true.
+    call outstream_setup(ncoutch,opar)
+    call outstream_addatt(ncoutch, &
+      ncattribute_string('simulation_type',chtype))
+    call outstream_addvar(ncoutch,v2dvar_base(1))
+    call outstream_addvar(ncoutch,v2dvar_base(2))
+    do ivar = 1 , ncbmz
+      v3dvar_ch(ivar)%vname = cbmzspec(ivar)
+      v3dvar_ch(ivar)%vunit = 'kg kg-1'
+      v3dvar_ch(ivar)%long_name = trim(cbmzspec(ivar))//' Volume Mixing Ratio'
+      v3dvar_ch(ivar)%standard_name = &
+        'mass_fraction_of_'//trim(cbmzspec(ivar))//'_in_air'
+      v3dvar_ch(ivar)%lrecords = .true.
+      v3dvar_ch(ivar)%is_slice = .true.
+      v3dvar_ch(ivar)%rval_slice => chv4
+      call outstream_addvar(ncoutch,v3dvar_ch(ivar))
+    end do
+    call outstream_enable(ncoutch,sigmah)
+    call outstream_writevar(ncoutch,v2dvar_base(1))
+    call outstream_writevar(ncoutch,v2dvar_base(2))
+  end subroutine newfile_ch_icbc
+
+  subroutine newfile_ox_icbc(idate1)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate1
+    type(ncoutstream_params) :: opar
+    integer(ik4) :: ivar
+
+    call outstream_dispose(ncoutox)
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, trim(domname), &
+      '_OXBC.', trim(tochar10(idate1)), '.nc'
+    opar%fname = ofname
+    opar%pname = 'chem_icbc'
+    opar%zero_date = idate1
+    opar%l_bound = .true.
+    call outstream_setup(ncoutox,opar)
+    call outstream_addatt(ncoutox, &
+      ncattribute_string('simulation_type',chtype))
+    call outstream_addvar(ncoutox,v2dvar_base(1))
+    call outstream_addvar(ncoutox,v2dvar_base(2))
+    do ivar = 1 , noxsp
+      v3dvar_ox(ivar)%vname = oxspec(ivar)
+      v3dvar_ox(ivar)%vunit = 'kg kg-1'
+      v3dvar_ox(ivar)%long_name = trim(oxspec(ivar))//' Volume Mixing Ratio'
+      v3dvar_ox(ivar)%standard_name = &
+        'mass_fraction_of_'//trim(oxspec(ivar))//'_in_air'
+      v3dvar_ox(ivar)%lrecords = .true.
+      v3dvar_ox(ivar)%is_slice = .true.
+      v3dvar_ox(ivar)%rval_slice => oxv4
+      call outstream_addvar(ncoutox,v3dvar_ox(ivar))
+    end do
+    call outstream_enable(ncoutox,sigmah)
+    call outstream_writevar(ncoutox,v2dvar_base(1))
+    call outstream_writevar(ncoutox,v2dvar_base(2))
+  end subroutine newfile_ox_icbc
+
+  subroutine newfile_ae_icbc(idate1)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate1
+    type(ncoutstream_params) :: opar
+    character(len=8) :: specname
+    integer(ik4) :: ivar
+
+    call outstream_dispose(ncoutae)
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, trim(domname), &
+      '_AEBC.', trim(tochar10(idate1)), '.nc'
+    opar%fname = ofname
+    opar%pname = 'chem_icbc'
+    opar%zero_date = idate1
+    opar%l_bound = .true.
+    call outstream_setup(ncoutae,opar)
+    call outstream_addatt(ncoutae, &
+      ncattribute_string('simulation_type',chtype))
+    call outstream_addvar(ncoutae,v2dvar_base(1))
+    call outstream_addvar(ncoutae,v2dvar_base(2))
+    do ivar = 1 , naesp
+      if ( aespec(ivar) == 'SOA' ) cycle
+      if ( aespec(ivar) == 'SSLT03' ) cycle
+      if ( aespec(ivar) == 'SSLT04' ) cycle
+      if ( aespec(ivar)(1:3) == 'DST' ) then
+        specname = 'DUST'//aespec(ivar)(4:5)
+      else if ( aespec(ivar)(1:3) == 'D12' ) then
+        specname = 'DUST'//aespec(ivar)(4:5)
+      else if ( aespec(ivar)(1:3) == 'OC1' ) then
+        specname = 'OC_HB'
+      else if ( aespec(ivar)(1:3) == 'OC2' ) then
+        specname = 'OC_HL'
+      else if ( aespec(ivar)(1:3) == 'CB1' ) then
+        specname = 'BC_HB'
+      else if ( aespec(ivar)(1:3) == 'CB2' ) then
+        specname = 'BC_HL'
+      else
+        specname = aespec(ivar)
+      end if
+      v3dvar_ae(ivar)%vname = specname
+      v3dvar_ae(ivar)%vunit = 'kg kg-1'
+      v3dvar_ae(ivar)%long_name = trim(specname)//' Volume Mixing Ratio'
+      v3dvar_ae(ivar)%standard_name = &
+        'mass_fraction_of_'//trim(specname)//'_in_air'
+      v3dvar_ae(ivar)%lrecords = .true.
+      v3dvar_ae(ivar)%is_slice = .true.
+      v3dvar_ae(ivar)%rval_slice => aev4
+      call outstream_addvar(ncoutae,v3dvar_ae(ivar))
+    end do
+    call outstream_enable(ncoutae,sigmah)
+    call outstream_writevar(ncoutae,v2dvar_base(1))
+    call outstream_writevar(ncoutae,v2dvar_base(2))
+  end subroutine newfile_ae_icbc
+
+  subroutine write_ch_icbc(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4):: ivar
+    call outstream_addrec(ncoutch,idate)
+    do ivar = 1 , ncbmz
+      call outstream_writevar(ncoutch,v3dvar_ch(ivar),is=ivar)
+    end do
+    write (stdout ,*) 'Write ch_icbc : ', tochar(idate)
+  end subroutine write_ch_icbc
+
+  subroutine write_ox_icbc(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4) :: ivar
+    call outstream_addrec(ncoutox,idate)
+    do ivar = 1 , noxsp
+      call outstream_writevar(ncoutox,v3dvar_ox(ivar),is=ivar)
+    end do
+    write (stdout ,*) 'Write ox_icbc : ', tochar(idate)
+  end subroutine write_ox_icbc
 !
-        istatus = nf90_def_var(ncid, 'sigma', nf90_float, idims(4),   &
-                            &  izvar(1))
-        call check_ok(istatus,'Error adding variable sigma')
-        istatus = nf90_put_att(ncid, izvar(1), 'standard_name',       &
-                            &  'atmosphere_sigma_coordinate')      
-        call check_ok(istatus,'Error adding sigma standard_name')
-        istatus = nf90_put_att(ncid, izvar(1), 'long_name',      &
-                            &  'Sigma at model layers')
-        call check_ok(istatus,'Error adding sigma long_name')
-        istatus = nf90_put_att(ncid, izvar(1), 'units', '1')
-        call check_ok(istatus,'Error adding sigma units')
-        istatus = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
-        call check_ok(istatus,'Error adding sigma axis')
-        istatus = nf90_put_att(ncid, izvar(1), 'positive', 'down')
-        call check_ok(istatus,'Error adding sigma positive')
-        istatus = nf90_put_att(ncid, izvar(1), 'formula_terms',  &
-                     &         'sigma: sigma ps: ps ptop: ptop')
-        call check_ok(istatus,'Error adding sigma formula_terms')
-        istatus = nf90_def_var(ncid, 'ptop', nf90_float,         &
-                           &   varid=izvar(2))
-        call check_ok(istatus,'Error adding variable ptop')
-        istatus = nf90_put_att(ncid, izvar(2), 'standard_name',  &
-                            &  'air_pressure')
-        call check_ok(istatus,'Error adding ptop standard_name')
-        istatus = nf90_put_att(ncid, izvar(2), 'long_name',      &
-                            &  'Pressure at model top')
-        call check_ok(istatus,'Error adding ptop long_name')
-        istatus = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
-        call check_ok(istatus,'Error adding ptop units')
-        istatus = nf90_def_var(ncid, 'iy', nf90_float, idims(2), &
-                            &  ivvar(1))
-        call check_ok(istatus,'Error adding variable iy')
-        istatus = nf90_put_att(ncid, ivvar(1), 'standard_name',  &
-                            &  'projection_y_coordinate')
-        call check_ok(istatus,'Error adding iy standard_name')
-        istatus = nf90_put_att(ncid, ivvar(1), 'long_name',      &
-                            &  'y-coordinate in Cartesian system')
-        call check_ok(istatus,'Error adding iy long_name')
-        istatus = nf90_put_att(ncid, ivvar(1), 'units', 'km')
-        call check_ok(istatus,'Error adding iy units')
-        istatus = nf90_def_var(ncid, 'jx', nf90_float, idims(1), &
-                            &  ivvar(2))
-        call check_ok(istatus,'Error adding variable jx')
-        istatus = nf90_put_att(ncid, ivvar(2), 'standard_name', &
-                            &  'projection_x_coordinate')
-        call check_ok(istatus,'Error adding jx standard_name')
-        istatus = nf90_put_att(ncid, ivvar(2), 'long_name',    &
-                            &  'x-coordinate in Cartesian system')
-        call check_ok(istatus,'Error adding jx long_name')
-        istatus = nf90_put_att(ncid, ivvar(2), 'units', 'km')
-        call check_ok(istatus,'Error adding jx units')
-        istatus = nf90_def_var(ncid, 'xlat', nf90_float, idims(1:2),  &
-                            &  illvar(1))
-        call check_ok(istatus,'Error adding variable xlat')
-        istatus = nf90_put_att(ncid, illvar(1), 'standard_name', &
-                            &  'latitude')
-        call check_ok(istatus,'Error adding xlat standard_name')
-        istatus = nf90_put_att(ncid, illvar(1), 'long_name',     &
-                            &  'Latitude at cross points')
-        call check_ok(istatus,'Error adding xlat long_name')
-        istatus = nf90_put_att(ncid, illvar(1), 'units',         &
-                            &  'degrees_north')
-        call check_ok(istatus,'Error adding xlat units')
-        istatus = nf90_def_var(ncid, 'xlon', nf90_float, idims(1:2),  &
-                            &  illvar(2))
-        call check_ok(istatus,'Error adding variable xlon')
-        istatus = nf90_put_att(ncid, illvar(2), 'standard_name', &
-                            &  'longitude')
-        call check_ok(istatus,'Error adding xlon standard_name')
-        istatus = nf90_put_att(ncid, illvar(2), 'long_name',     &
-                            &  'Longitude at cross points')
-        call check_ok(istatus,'Error adding xlon long_name')
-        istatus = nf90_put_att(ncid, illvar(2), 'units',         &
-                            &  'degrees_east')
-        call check_ok(istatus,'Error adding xlon units')
-        istatus = nf90_def_var(ncid, 'time', nf90_double, idims(3:3),  &
-                            &  ivar(1))
-        call check_ok(istatus,'Error adding variable time')
-        istatus = nf90_put_att(ncid, ivar(1), 'units', &
-                       &   'hours since '//csdate)
-        call check_ok(istatus,'Error adding time units')
-        istatus = nf90_def_var(ncid, 'oh', nf90_float, x3ddim,  &
-                            &  ivar(2))
-        call check_ok(istatus,'Error adding variable oh')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(2), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on oh')
-#endif
-        istatus = nf90_put_att(ncid, ivar(2), 'standard_name', &
-                            &  'hydroxide_molecular_density')
-        call check_ok(istatus,'Error adding oh standard_name')
-        istatus = nf90_put_att(ncid, ivar(2), 'long_name',     &
-                            & 'Hydroxide molecular density')
-        call check_ok(istatus,'Error adding oh long_name')
-        istatus = nf90_put_att(ncid, ivar(2), 'units', 'moleculs cm-3')
-        call check_ok(istatus,'Error adding oh units')
-        istatus = nf90_put_att(ncid, ivar(2), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding oh coordinates')
-        istatus = nf90_def_var(ncid, 'ho2', nf90_float, x3ddim,  &
-                            &  ivar(3))
-        call check_ok(istatus,'Error adding variable ho2')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(3), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on ho2')
-#endif
-        istatus = nf90_put_att(ncid, ivar(3), 'standard_name', &
-                          & 'hydrogen_dioxide_molecular_density')
-        call check_ok(istatus,'Error adding ho2 standard_name')
-        istatus = nf90_put_att(ncid, ivar(3), 'long_name',     &
-                          & 'Hydrogen dioxide molecular density')
-        call check_ok(istatus,'Error adding ho2 long_name')
-        istatus = nf90_put_att(ncid, ivar(3), 'units', 'moleculs cm-3')
-        call check_ok(istatus,'Error adding ho2 units')
-        istatus = nf90_put_att(ncid, ivar(3), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding ho2 coordinates')
-        istatus = nf90_def_var(ncid, 'o3', nf90_float, x3ddim,  &
-                            &  ivar(4))
-        call check_ok(istatus,'Error adding variable o3')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(4), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on o3')
-#endif
-        istatus = nf90_put_att(ncid, ivar(4), 'standard_name', &
-                            &  'ozone_mixing_ratio')
-        call check_ok(istatus,'Error adding o3 standard_name')
-        istatus = nf90_put_att(ncid, ivar(4), 'long_name',     &
-                            &  'Ozone mixing ratio')
-        call check_ok(istatus,'Error adding o3 long_name')
-        istatus = nf90_put_att(ncid, ivar(4), 'units', 'm^3/m^3')
-        call check_ok(istatus,'Error adding o3 units')
-        istatus = nf90_put_att(ncid, ivar(4), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding o3 coordinates')
-        istatus = nf90_def_var(ncid, 'no3', nf90_float, x3ddim,  &
-                            &  ivar(5))
-        call check_ok(istatus,'Error adding variable no3')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(5), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on no3')
-#endif
-        istatus = nf90_put_att(ncid, ivar(5), 'standard_name', &
-                            &  'nitrate_molecular_density')
-        call check_ok(istatus,'Error adding no3 standard_name')
-        istatus = nf90_put_att(ncid, ivar(5), 'long_name',     &
-                            &  'Nitrate molecular density')
-        call check_ok(istatus,'Error adding no3 long_name')
-        istatus = nf90_put_att(ncid, ivar(5), 'units', 'moleculs cm^3')
-        call check_ok(istatus,'Error adding no3 units')
-        istatus = nf90_put_att(ncid, ivar(5), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding no3 coordinates')
-        istatus = nf90_def_var(ncid, 'h2o2', nf90_float, x3ddim, &
-                              &  ivar(6))
-        call check_ok(istatus,'Error adding variable h2o2')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncid, ivar(6), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on h2o2')
-#endif
-        istatus = nf90_put_att(ncid, ivar(6), 'standard_name', &
-                           &  'hydrogen_peroxide_mixing_ratio')
-        call check_ok(istatus,'Error adding h2o2 standard_name')
-        istatus = nf90_put_att(ncid, ivar(6), 'long_name',     &
-                           &  'Hydrogen peroxide mixing ratio')
-        call check_ok(istatus,'Error adding h2o2 long_name')
-        istatus = nf90_put_att(ncid, ivar(6), 'units', 'm^3/m^3')
-        call check_ok(istatus,'Error adding h2o2 units')
-        istatus = nf90_put_att(ncid, ivar(6), 'coordinates', &
-                           &  'xlon xlat')
-        call check_ok(istatus,'Error adding h2o2 coordinates')
-!
-        istatus = nf90_enddef(ncid)
-        call check_ok(istatus,'Error End Definitions NetCDF output')
-!
-        istatus = nf90_put_var(ncid, izvar(1), sigma2)
-        call check_ok(istatus,'Error variable sigma write')
-        hptop = real(ptop*10.0D0)
-        istatus = nf90_put_var(ncid, izvar(2), hptop)
-        call check_ok(istatus,'Error variable ptop write')
-        allocate(yiy(iy))
-        allocate(xjx(jx))
-        yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
-        xjx(1) = -real((dble(jx-1)/2.0D0) * ds)
-        do i = 2 , iy
-          yiy(i) = real(dble(yiy(i-1))+ds)
-        end do
-        do j = 2 , jx
-          xjx(j) = real(dble(xjx(j-1))+ds)
-        end do
-        istatus = nf90_put_var(ncid, ivvar(1), yiy)
-        call check_ok(istatus,'Error variable iy write')
-        istatus = nf90_put_var(ncid, ivvar(2), xjx)
-        call check_ok(istatus,'Error variable jx write')
-        deallocate(yiy)
-        deallocate(xjx)
-        istatus = nf90_put_var(ncid, illvar(1), xlat)
-        call check_ok(istatus,'Error variable xlat write')
-        istatus = nf90_put_var(ncid, illvar(2), xlon)
-        call check_ok(istatus,'Error variable xlon write')
+  subroutine write_ae_icbc(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4) :: ivar
 
-99001 format (a,a,a,a,i10,a)
+    if ( sum_sslt_bins ) then
+      aev4(:,:,:,isslt1) = aev4(:,:,:,isslt1) + aev4(:,:,:,isslt2)
+      aev4(:,:,:,isslt2) = aev4(:,:,:,isslt3) + aev4(:,:,:,isslt4)
+    end if
 
-      end subroutine newfile
+    if ( sum_soa_to_oc2 ) then
+      aev4(:,:,:,ioc2) = aev4(:,:,:,ioc2) + aev4(:,:,:,isoa)
+    end if
 
-      subroutine writeox(idate)
-        use netcdf
-        implicit none
-        integer , intent(in) :: idate
-        integer :: istatus
-        integer , dimension(1) :: istart1 , icount1
-        integer , dimension(4) :: istart , icount
-        real(8) , dimension(1) :: xdate
-!
-        istart1(1) = itime
-        icount1(1) = 1
-        xdate(1) = dble(idatediff(idate,irefdate))
-        istatus = nf90_put_var(ncid, ivar(1), xdate, istart1, icount1)
-        call check_ok(istatus,'Error variable time write')
-        istart(4) = itime
-        istart(3) = 1
-        istart(2) = 1
-        istart(1) = 1
-        icount(4) = 1
-        icount(3) = kz
-        icount(2) = iy
-        icount(1) = jx
-        istatus = nf90_put_var(ncid, ivar(2), oh4, istart, icount)
-        call check_ok(istatus,'Error variable oh write')
-        istatus = nf90_put_var(ncid, ivar(3), ho24, istart, icount)
-        call check_ok(istatus,'Error variable ho2 write')
-        istatus = nf90_put_var(ncid, ivar(4), o34, istart, icount)
-        call check_ok(istatus,'Error variable o3 write')
-        istatus = nf90_put_var(ncid, ivar(5), no34, istart, icount)
-        call check_ok(istatus,'Error variable no3 write')
-        istatus = nf90_put_var(ncid, ivar(6), h2o24, istart, icount)
-        call check_ok(istatus,'Error variable h2o2 write')
-        itime = itime + 1
-!
-      end subroutine writeox
-!
-      subroutine check_ok(ierr,message)
-        use netcdf
-        implicit none
-        integer , intent(in) :: ierr
-        character(*) :: message
-        if (ierr /= nf90_noerr) then
-          write (6,*) message
-          write (6,*) nf90_strerror(ierr)
-          stop
-        end if
-      end subroutine check_ok
-!
-      end module mod_wrtoxd
+    call outstream_addrec(ncoutae,idate)
+    do ivar = 1 , naesp
+      if ( aespec(ivar) == 'SOA' ) cycle
+      if ( aespec(ivar) == 'SSLT03' ) cycle
+      if ( aespec(ivar) == 'SSLT04' ) cycle
+      call outstream_writevar(ncoutae,v3dvar_ae(ivar),is=ivar)
+    end do
+    write (stdout ,*) 'Write ae_icbc : ', tochar(idate)
+  end subroutine write_ae_icbc
+
+end module mod_wrtoxd
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

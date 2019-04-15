@@ -4,27 +4,47 @@
 % See the file COPYING for copying conditions.
 %
 
-RegCM-4.1 is a new step in recoding the RegCM3 model after the effort put into
-the RegCM4.0 version. The code base now is actively developed by a community
-of developers internal and external to ICTP, and this work is merged on the
-eforge site on e-science-lab.org site.
+The Regional Climate Model developed at ICTP has now reached its 4.5 release.
+The code base is actively developed by a community of developers internal and
+external to ICTP, and this work is merged on the
+Gforge site on gforge.ictp.it site.
 
-The main new technical features of the code are summarized in the following
-points
+The main new technical features of the release 4.5 are summarized in the
+following points:
 
 \begin{itemize}
-\item Dynamic memory allocation
-\item F95 programming language
-\item Module approach
-\item Unique makefile for the whole code from pre-processing to post-processing
-\item netCDF I/O format from model components following the CF-1.4 standard
+  \item The MM5 non-hydrostatic dynamical core has been ported to the ICTP
+	  RegCM without removing the existing hydrostatic core. Now the user
+	  can select in the input namelist which of the two dynamical cores
+	  he wish to use.
+  \item The SAV file strategy has changed to allow a better integration of
+	  the RegCM into the RegESM framework and the user is required to
+	  modify the setting from previous version namelist files.
+  \item The source for the topography is now the GMTED dataset which is an
+	  update to the USGS GTOPO dataset.
+  \item The DUST 12 bin option has been added to the aerosol simulation types
+  \item The chemistry/aerosol option now works along the CLM4.5 option
+  \item The model supports soil moisture initialization from a previous run
+	  for both the BATS and the CLM4.5 surface models.
+\end{itemize}
+Bug Fixing:
+\begin{itemize}
+  \item Bugs present in the CN schemes for the CLM4.5 implemented in RegCM
+	  have been fixed
+  \item A problematic interaction between the UW pbl and the new Microphisics
+	  has been fixed
 \end{itemize}
 
-The model code is in Fortran 90 ANSI standard with some language extensions of
-Fortran 2003 implemented in all the supported compilers.
+Next release V 5.X :
+
+\begin{itemize}
+  \item New dynamical core from Giovanni Tumolo semi-implicit, semi-Lagrangian,
+   p-adaptive Discontinuous Galerkin method three dimensional model.
+\end{itemize}
+
+The model code is in Fortran 2003 ANSI standard.
 The development is done on Linux boxes, and the model is known to run
-on Oracle Solaris\texttrademark platforms, IBM AIX\texttrademark platforms,
-MacOS\texttrademark platforms.
+on IBM AIX\texttrademark platforms, MacOS\texttrademark platforms.
 No porting effort has been done towards non Unix-like Operating Systems.
 We will for this User Guide assume that the reference platform is a recent
 Linux distributon with a \verb=bash= shell.
@@ -48,8 +68,8 @@ Any shell variable is supposed to be set by the User with the following example
 syntax:
 
 \begin{Verbatim}
-$> export REGCM_ROOT="/home/graziano/RegCM4.1"
+$> export REGCM_ROOT="/home/user/RegCM-4.5.0"
 \end{Verbatim}
 
-Hope you will find this document useful. Any error found belongs to me and can
-be reported to be corrected in future revisions. Enjoy.
+Hope you will find this document useful. Any error found belongs to the
+RegCNET and can be reported to be corrected in future revisions. Enjoy.

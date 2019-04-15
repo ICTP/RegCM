@@ -31,7 +31,9 @@ endstr="0100"
 endstrd="010100"
 us="_"
 
-SLEEPTIME=300
+#Have a high wake rate to make sure that ICBC daemon sees files
+#before recmppdaemon removes them
+SLEEPTIME=15
 
 
 echo "Parsing $REGCMIN..."
@@ -43,10 +45,11 @@ EXPNAME=`echo $EXPNAME`
 #Use grep and sed to pull the output directory and the start/end dates
 #from the regcm.in file
 #Start date of run
-IDATE0=`grep -i idate0 $REGCMIN | sed "s/[Ii][Dd][Aa][Tt][Ee]0\s*=\s*\(.*\),/\1/"`
-IDATE0=`echo $IDATE0`
+IDATE1=`grep -i "globidate1" $REGCMIN | sed "s/[Gg][Ll][Oo][Bb][Ii][Dd][Aa][Tt][Ee]1\s*=\s*\(.*\),/\1/"`
+IDATE1=`echo $IDATE1`
 #End date of run; inverse search for glob to avoid globidate2
-IDATE2=`grep -i "idate2" $REGCMIN | grep -iv glob |  sed "s/[Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
+#IDATE2=`grep -i "idate2" $REGCMIN | grep -iv glob |  sed "s/[Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
+IDATE2=`grep -i "globidate2" $REGCMIN |  sed "s/[Gg][Ll][Oo][Bb][Ii][Dd][Aa][Tt][Ee]2\s*=\s*\(.*\),/\1/"`
 IDATE2=`echo $IDATE2`
 #Output directory (allow for no comma at the end, since it is the last item in 
 #the namelist
@@ -56,14 +59,17 @@ INPDIR=`grep -i dirglob $REGCMIN | sed "s/[Dd][Ii][Rr][Gg][Ll][Oo][Bb]\s*=\s*'\(
 INPDIR=`echo $INPDIR`
 echo $INPDIR
 
+#TAO
+echo "Dates: $IDATE1 $IDATE2"
+
 #Assume that icbc lives in Bin, which is a directory up from the output
 #directory
 ICBCBIN="$OUTDIR/../Bin/icbc"
 
 
 #Parse the start and end date strings
-STARTYEAR=`echo $IDATE0 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
-STARTMONTH=`echo $IDATE0 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
+STARTYEAR=`echo $IDATE1 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
+STARTMONTH=`echo $IDATE1 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
 ENDYEAR=`echo $IDATE2 | sed "s/\(\w\w\w\w\)\w\w\w\w\w\w/\1/"`
 ENDMONTH=`echo $IDATE2 | sed "s/\w\w\w\w\(\w\w\)\w\w\w\w/\1/"`
 

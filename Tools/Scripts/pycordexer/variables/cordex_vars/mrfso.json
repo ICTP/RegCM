@@ -1,0 +1,22 @@
+{
+  "mrfso": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "mrfso"
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Soil Frozen Water Content",
+            "standard_name": "soil_frozen_water_content",
+            "units": "kg m-2"
+          }
+        }
+      ]
+    ]
+  ]
+}

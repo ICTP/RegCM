@@ -31,6 +31,11 @@ def compare_nc_file(filename,refname,varname):
     
     try :
         p_1 = subprocess.Popen("ncdiff -v "+varname+" "+filename+" "+refname+" temp.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+        while not p_1.poll():
+            if p_1.returncode is not None: break
+            time.sleep(10)
+            print "   ...ncdiff: still alive..."
+        
     except OSError :
         print "Could not run ncdiff!"
         output,error = p_1.communicate()
@@ -39,6 +44,10 @@ def compare_nc_file(filename,refname,varname):
     if p_1.wait() == 0 :
         try :
             p_2 = subprocess.Popen("ncwa -y rms temp.nc rms.nc",stdout=subprocess.PIPE,stderr=subprocess.STDOUT,shell=True)
+            while not p_2.poll():
+                if p_2.returncode is not None: break
+                time.sleep(10)
+                print "   ...ncwa: still alive..."
         except OSError :
            print "Could not run ncwa!"
            output,error = p_2.communicate()
@@ -52,6 +61,10 @@ def compare_nc_file(filename,refname,varname):
         os.remove("temp.nc")
         try :
             p_3 = subprocess.Popen('ncks -H -s "%g\n" -v '+varname+' rms.nc',stdout=subprocess.PIPE,stderr=subprocess.PIPE,shell=True)
+            while not p_3.poll():
+                if p_3.returncode is not None: break
+                time.sleep(10)
+                print "   ...ncks: still alive..."
         except OSError :
             print "Could not run ncks!"
             output,error = p_3.communicate()

@@ -89,7 +89,7 @@ contains
     lptr => clm3%g%l
     cptr => clm3%g%l%c
     pptr => clm3%g%l%c%p
-    
+
 
     ! accumulation variable - c24/c240
 
@@ -115,103 +115,6 @@ contains
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_iolocal(varname='monlai', data=pptr%pva%monlai, &
             dim1name='pft', dim2name='numrad', &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-    end if
-
-    ! pft previous temperature/ppfd variable - t_sum24
-
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='TEMP_24', xtype=nf_double,  &
-            dim1name='pft', dim2name='nday', &
-            long_name='past 24 hour temp', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_iolocal(varname='TEMP_24', data=pptr%pva%t_sum24, &
-!            dim1name='nday', dim2name='pft', &
-            dim1name='pft', dim2name='nday', &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-    end if
-
-    ! pft previous temperature/ppfd variable - t_sum240
-
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='TEMP_240', xtype=nf_double,  &
-!            dim1name='nten', dim2name='pft', &
-            dim1name='pft', dim2name='nten', &
-            long_name='past 240 hour temp', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_iolocal(varname='TEMP_240', data=pptr%pva%t_sum240, &
-!            dim1name='nten', dim2name='pft', &
-            dim1name='pft', dim2name='nten', &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-    end if
-
-    ! pft previous temperature/ppfd variable - p_sum24su
-
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='PPFD_24su', xtype=nf_double,  &
-!            dim1name='nday', dim2name='pft', &
-            dim1name='pft', dim2name='nday', &
-            long_name='past 24 hour ppfd for sunlit portion', units='umol/m2/s')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_iolocal(varname='PPFD_24su', data=pptr%pva%p_sum24su, &
-!            dim1name='nday', dim2name='pft', &
-            dim1name='pft', dim2name='nday', &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-    end if
-
-    ! pft previous temperature/ppfd variable - p_sum240su
-
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='PPFD_240su', xtype=nf_double,  &
-!            dim1name='nten', dim2name='pft', &
-            dim1name='pft', dim2name='nten', &
-            long_name='past 240 hour ppfd for sunlit', units='umol/m2/s')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_iolocal(varname='PPFD_240su', data=pptr%pva%p_sum240su, &
-!            dim1name='nten', dim2name='pft', &
-            dim1name='pft', dim2name='nten', &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-    end if
-
-    ! pft previous temperature/ppfd variable - p_sum24sh
-
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='PPFD_24sh', xtype=nf_double,  &
-            dim1name='pft', dim2name='nday', &
-            long_name='past 24 hour ppfd for shaded', units='umol/m2/s')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_iolocal(varname='PPFD_24sh', data=pptr%pva%p_sum24sh, &
-            dim1name='pft', dim2name='nday', &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-    end if
-
-    ! pft previous temperature/ppfd variable - p_sum240sh
-
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='PPFD_240sh', xtype=nf_double,  &
-            dim1name='pft', dim2name='nten', &
-            long_name='past 240 hour ppfd for shaded', units='umol/m2/s')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_iolocal(varname='PPFD_240sh', data=pptr%pva%p_sum240sh, &
-            dim1name='pft', dim2name='nten', &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
           if (is_restart()) call endrun()
@@ -257,3 +160,4 @@ contains
   end function is_restart
 
 end module VOCRestMod
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

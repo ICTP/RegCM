@@ -17,89 +17,111 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_header
+module mod_header
 
-      use mod_date
-      use mod_constants
+  use mod_intkinds
+  use mod_realkinds
+  use mod_constants
+  use mod_mppparam
+  use mod_date
+  use mod_dynparam , only : nproc
+  use mod_stdio
 
-      private
+  implicit none
 
-      public :: whoami , header , finaltime
+  private
 
-      integer , parameter :: nrite=6
-      character (len=24) :: cdata='?'
-      integer , dimension(8) :: timearr
-      real(8) :: start_time
+  public :: whoami , header , checktime , finaltime
 
-      contains
+  character (len=32) :: cdata='?'
+  character (len=5) :: czone='?'
+  integer(ik4) , dimension(8) :: tval
+  real(rk4) :: start_time , last_time
 
-      subroutine whoami(myid)
-        implicit none 
-        integer , intent(in) :: myid
+  contains
 
-        if ( myid == 0 )  then 
-          call date_and_time(values=timearr)
-          start_time = julianday(timearr(1), timearr(2), timearr(3)) + &
-                       timearr(5)*secph+ timearr(6)*secpm + &
-                       dble(timearr(7)) + d_r1000*timearr(8)
-          write (nrite,"(/,2x,'This is RegCM version 4.1 ')")
-          write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
-        end if
+  subroutine whoami(myid)
+    implicit none
+    integer(ik4) , intent(in) :: myid
+    character(len=*) , parameter :: f99001 = &
+        '(2x," SVN Revision: ",a," compiled at: data : ",a,"  time: ",a,/)'
 
-99001   format(2x,' SVN Revision: ',a,' compiled at: data : ',a,  &
-        &    '  time: ',a,/)
-      end subroutine whoami
+    if ( myid == iocpu ) then
+      call cpu_time(start_time)
+      last_time = start_time
+      write (stdout,"(/,2x,'This is RegCM trunk')")
+      write (stdout,f99001)  SVN_REV, __DATE__ , __TIME__
+    end if
 
-      subroutine header(myid,nproc)
-        implicit none 
-        integer , intent(in) :: myid , nproc
-        integer :: ihost , idir
-        integer :: hostnm
-        integer :: getcwd
-        character (len=32) :: hostname='?' 
-        character (len=32) :: user='?' 
-        character (len=256) :: directory='?'
-  
-        if ( myid == 0 )  then 
+  end subroutine whoami
+
+  subroutine header(myid,nproc)
+    implicit none
+    integer(ik4) , intent(in) :: myid , nproc
+    integer(ik4) :: ihost , idir
+    integer(ik4) :: hostnm
+    integer(ik4) :: getcwd
+    character (len=32) :: hostname='?'
+    character (len=32) :: user='?'
+    character (len=256) :: directory='?'
+
+    if ( myid == iocpu )  then
 #ifdef IBM
-          hostname='ibm platform '
-          user= 'Unknown'
-          call fdate_(cdata)
+      hostname='ibm platform '
+      user= 'Unknown'
 #else
-          ihost = hostnm(hostname)
-          call getlog(user)
-          call fdate(cdata)
-#endif 
-          idir = getcwd(directory)
-          write (nrite,*) ": this run start at  : ",cdata
-          write (nrite,*) ": it is submitted by : ",trim(user)
-          write (nrite,*) ": it is running on   : ",trim(hostname)
-          write (nrite,*) ": it is using        : ",nproc, &
-                           '  processors' 
-          write (nrite,*) ": in directory       : ",trim(directory)
-          write (nrite,*) "                      " 
-        end if 
-      end subroutine header
+      ihost = hostnm(hostname)
+      call getlog(user)
+#endif
+      idir = getcwd(directory)
+      call date_and_time(zone=czone,values=tval)
+      write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
+            tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
+      write (stdout,*) ": this run start at  : ",trim(cdata)
+      write (stdout,*) ": it is submitted by : ",trim(user)
+      write (stdout,*) ": it is running on   : ",trim(hostname)
+      write (stdout,*) ": it is using        : ",nproc, &
+                       '  processors'
+      write (stdout,*) ": in directory       : ",trim(directory)
+      write (stdout,*) "                      "
+    end if
+  end subroutine header
 
-      subroutine finaltime(myid)
-        implicit none
-        integer , intent (in) :: myid
-        real(8) :: finish_time
+  subroutine checktime(myid,ctime)
+    implicit none
+    integer(ik4) , intent(in) :: myid
+    character(len=*) , intent(in) :: ctime
+    integer(ik4) :: iunit
+    real(rk4) :: check_time
+    if ( myid == iocpu ) then
+      call cpu_time(check_time)
+      write (stdout,*) 'Elapsed seconds of run for this month : ', &
+                (check_time-last_time)
+      open(newunit=iunit,file=trim(ctime)//'.txt',form='formatted', &
+           status='replace',action='write')
+      write(iunit,*) 'Elapsed seconds of run for this month : ', &
+            (check_time-last_time)
+      close(iunit)
+      last_time = check_time
+    end if
+  end subroutine checktime
 
-        if ( myid ==  0 ) then
-#ifdef IBM
-          call fdate_(cdata)
-#else
-          call fdate(cdata)
-#endif 
-          call date_and_time(values=timearr)
-          finish_time = julianday(timearr(1), timearr(2), timearr(3)) + &
-                        timearr(5)*secph+ timearr(6)*secpm + &
-                        dble(timearr(7)) + d_r1000*timearr(8)
-          write (nrite,*) ': this run stops at  : ', cdata
-          write (nrite,*) ': Total elapsed seconds of run : ', &
-                          finish_time - start_time
-        end if
-      end subroutine finaltime
+  subroutine finaltime(myid)
+    implicit none
+    integer(ik4) , intent (in) :: myid
+    real(rkx) :: finish_time
 
-      end module mod_header
+    if ( myid == iocpu ) then
+      call cpu_time(finish_time)
+      call date_and_time(zone=czone,values=tval)
+      write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
+            tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
+      write (stdout,*) ': this run stops at  : ', trim(cdata)
+      write (stdout,*) ': Run has been completed using ', nproc, ' processors.'
+      write (stdout,*) ': Total elapsed seconds of run : ', &
+                (finish_time - start_time)
+    end if
+  end subroutine finaltime
+
+end module mod_header
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

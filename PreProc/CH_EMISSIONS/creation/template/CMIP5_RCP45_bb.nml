@@ -1,0 +1,45 @@
+! -*- f90 -*-
+&CTRL
+VERBOSE =.TRUE.
+! NAME OF OUTPUT netCDF FILE
+OUTPUT      = './output/output_xyz'
+! SPECIES NAME
+SPECIES     = 'species_xyz'
+! FREQUENCY: 'monthly' 'annual'. DEFAULT: 'monthly'
+TIME_FREQUENCY = 'monthly'
+! OUTPUT UNITS: 'mcl m-2 s-1' 'Kg m-2 s-1'. DEFAULT: 'mcl m-2 s-1' 
+OUT_UNIT='Kg m-2 s-1'
+GLOBALSCALE = scale_xyz
+! INTERPOLATION : 'linear', 'spline'
+INTERPOLATION ='linear'
+! MOLAR MASS OF SPECIES
+MOLARMASS   = mm_xyz
+YEAR_START  = start_xyz
+YEAR_END    = end_xyz
+GLOBALSCALE = scale_xyz
+! EMISSION HEIGHTS [m] (up to 100 levels)
+HEIGHT    =   0.0
+INPUTPATH   = './input/'
+!----------------------------------------------------------
+! FILE (EMISSION-CLASS), LEVEL, FACTOR ### (up to 10000 classes)
+!----------------------------------------------------------
+! GRASSFIRE
+!----------------------------------------------------------
+SOURCE(1) = 'grassfire', 
+FRAC(1)   =  1.00 
+YEAR(1) =  1990, 2000, 2005, 2010
+FILE_NAME(1) ='IPCC_GriddedBiomassBurningEmissions_input_xyz_decadalmonthlymean1990_v1.nc',
+              'IPCC_emissions_RCP45_input_xyz_biomassburning_2000_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP45_input_xyz_biomassburning_2005_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP45_input_xyz_biomassburning_2010_0.5x0.5_v1_21_12_2009.nc'
+!----------------------------------------------------------
+! FORESTFIRE
+!----------------------------------------------------------
+SOURCE(2) = 'forestfire', 
+FRAC(2)   =  1.00
+YEAR(2) =  1990, 2000, 2005, 2010 
+FILE_NAME(2) ='IPCC_GriddedBiomassBurningEmissions_input_xyz_decadalmonthlymean1990_v1.nc',
+              'IPCC_emissions_RCP45_input_xyz_biomassburning_2000_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP45_input_xyz_biomassburning_2005_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP45_input_xyz_biomassburning_2010_0.5x0.5_v1_21_12_2009.nc'
+/

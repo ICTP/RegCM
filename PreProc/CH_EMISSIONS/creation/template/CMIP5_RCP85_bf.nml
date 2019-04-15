@@ -1,0 +1,65 @@
+! -*- f90 -*-
+&CTRL
+VERBOSE =.TRUE.
+! NAME OF OUTPUT netCDF FILE
+OUTPUT      = './output/output_xyz'
+! SPECIES NAME
+SPECIES     = 'species_xyz'
+! FREQUENCY: 'monthly' 'annual'. DEFAULT: 'monthly'
+TIME_FREQUENCY = 'monthly'
+! OUTPUT UNITS: 'mcl m-2 s-1' 'Kg m-2 s-1'. DEFAULT: 'mcl m-2 s-1' 
+OUT_UNIT='Kg m-2 s-1'
+GLOBALSCALE = scale_xyz
+! INTERPOLATION : 'linear', 'spline'
+INTERPOLATION ='linear'
+! MOLAR MASS OF SPECIES
+MOLARMASS   = mm_xyz
+YEAR_START  = start_xyz
+YEAR_END    = end_xyz
+GLOBALSCALE = scale_xyz
+! EMISSION HEIGHTS [m] (up to 100 levels)
+HEIGHT    =  0.0
+INPUTPATH   = './input/'
+!----------------------------------------------------------
+! FILE (EMISSION-CLASS), LEVEL, FACTOR ### (up to 10000 classes)
+!----------------------------------------------------------
+! Energy/Power related ! NB: 70% FF,  30% BF
+!----------------------------------------------------------
+SOURCE(1) = 'emiss_ene', 
+FRAC(1)   =  0.30
+YEAR(1) =  1990, 2000, 2005, 2010
+FILE_NAME(1) ='IPCC_emissions_input_xyz_anthropogenic_1990_0.5x0.5_v1_20_04_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2000_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2005_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2010_0.5x0.5_v1_21_12_2009.nc'
+!----------------------------------------------------------
+! Industrial processes : 60% FF, 40% BF
+!----------------------------------------------------------
+SOURCE(2) = 'emiss_ind', 
+FRAC(2)   =  0.40,   0.016, 0.076, 0.164, 0.12,  0.024 ! *0.4
+YEAR(2) =  1990, 2000, 2005, 2010 
+FILE_NAME(2) ='IPCC_emissions_input_xyz_anthropogenic_1990_0.5x0.5_v1_20_04_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2000_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2005_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2010_0.5x0.5_v1_21_12_2009.nc'
+!----------------------------------------------------------
+! Residential  : 96% BF, 4% FF -> all BF  
+!----------------------------------------------------------
+SOURCE(3) = 'emiss_dom', 
+FRAC(3)   = 1.00
+YEAR(3) =  1990, 2000, 2005, 2010 
+FILE_NAME(3) ='IPCC_emissions_input_xyz_anthropogenic_1990_0.5x0.5_v1_20_04_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2000_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2005_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2010_0.5x0.5_v1_21_12_2009.nc'
+!----------------------------------------------------------
+!  Agricultural waste burning : 100% BF
+!----------------------------------------------------------
+SOURCE(4) = 'emiss_awb', 
+FRAC(4)   = 1.00
+YEAR(4) =  1990, 2000, 2005, 2010
+FILE_NAME(4) ='IPCC_emissions_input_xyz_anthropogenic_1990_0.5x0.5_v1_20_04_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2000_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2005_0.5x0.5_v1_21_12_2009.nc',
+              'IPCC_emissions_RCP85_input_xyz_anthropogenic_2010_0.5x0.5_v1_21_12_2009.nc'
+/

@@ -48,7 +48,7 @@ f = addfile(diri+fili,"r")
 fout = addfile(dirout+filout,"c")
 
 ; Read in variables
-ts_in     = f->t(:,17,:,:)
+ts_in     = f->ta(:,17,:,:)
 lat2d_in  = f->xlat
 lon2d_in  = f->xlon
 

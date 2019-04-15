@@ -1,0 +1,57 @@
+{
+  "va": [
+    [
+      [
+        "ComputeGeoCoordinateFromGridCoordinate",
+        {
+          "var_name": "va",
+          "grid_eastward": "ua",
+          "grid_northward": "va",
+          "direction": "northward",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "InterpolateOnMultipleHeights",
+        {
+          "pressure_levels": [925, 850, 700, 600, 500, 400, 300, 200],
+          "method": "linear"
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "m s-1",
+            "standard_name": "northward_wind",
+            "long_name": "Northward Wind"
+          }
+        }
+      ],
+      [
+        "IfNeededThinAndSaveForEach",
+        {
+          "new_time_step": 6
+        }
+      ],
+      [
+        "ComputeAverageOfEachVariable",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "m s-1",
+            "standard_name": "northward_wind",
+            "long_name": "Northward Wind"
+          }
+        }
+      ]
+    ]
+  ]
+}

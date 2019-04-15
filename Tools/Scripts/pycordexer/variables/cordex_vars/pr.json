@@ -1,0 +1,47 @@
+{
+  "pr": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "pr",
+          "need_time_bounds": true
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": "-HALFFREQUENCY",
+            "SHF": "-HALFFREQUENCY"
+          }
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "pr",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "kg m-2 s-1",
+            "long_name": "Precipitation",
+            "standard_name": "precipitation_flux"
+          }
+        }
+      ],
+      [
+        "IfNeededAverageAndSave",
+        {
+          "new_time_step": 3,
+          "var_name": "pr",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "units": "kg m-2 s-1",
+            "long_name": "Precipitation",
+            "standard_name": "precipitation_flux"
+          }
+        }
+      ]
+    ]
+  ]
+}

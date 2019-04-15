@@ -1,0 +1,67 @@
+{
+  "vas": [
+    [
+      [
+        "ComputeGeoCoordinateFromGridCoordinate",
+        {
+          "var_name": "vas",
+          "grid_eastward": "uas",
+          "grid_northward": "vas",
+          "direction": "northward",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "SRF": 0
+          }
+        }
+      ],
+      [
+        "ExtractGroundHeight",
+        {}
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Northward Near-Surface Wind",
+            "standard_name": "northward_wind",
+            "units": "m s-1"
+          }
+        }
+      ],
+      [
+        "IfNeededThinAndSave",
+        {
+          "new_time_step": 6,
+          "var_name": "vas",
+          "fill_value": "1e+20",
+          "new_attributes": {
+            "long_name": "Northward Near-Surface Wind",
+            "standard_name": "northward_wind",
+            "units": "m s-1"
+          }
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "new_attributes": {
+            "long_name": "Northward Near-Surface Wind",
+            "standard_name": "northward_wind",
+            "units": "m s-1"
+          }
+        }
+      ]
+    ]
+  ]
+}

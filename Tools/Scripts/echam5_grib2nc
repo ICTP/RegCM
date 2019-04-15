@@ -1,0 +1,52 @@
+#!/bin/bash
+
+startyear=2000
+endyear=2100
+
+startmonth=1
+endmonth=12
+
+ipcc=A2
+
+for (( year=$startyear; year<=$endyear; year++ ))
+do
+  for (( month=$startmonth; month<=$endmonth; month++ ))
+  do
+    cmonth=`printf %02d $month`
+    cmonthp1=`printf %02d $(( $month + 1))`
+    time1=${year}${cmonth}0100
+    time2=${year}${cmonthp1}0100
+    fname_t=EH5_OM_${ipcc}_1_STP_${time1}-${time2}.nc
+    fname_r=EH5_OM_${ipcc}_1_RELHUM_${time1}-${time2}.nc
+    fname_z=EH5_OM_${ipcc}_1_GPH_${time1}-${time2}.nc
+    fname_u=EH5_OM_${ipcc}_1_U_${time1}-${time2}.nc
+    fname_v=EH5_OM_${ipcc}_1_V_${time1}-${time2}.nc
+    fname_ts=EH5_OM_${ipcc}_1_TSW_${time1}-${time2}.nc
+    cdo merge EH5_OM_${ipcc}_1_STP*_${year}${cmonth}*.grb tmp.grb
+    cdo -f nc4 -z zip -t echam5 -chname,t,ta -settunits,days \
+      -setreftime,1859-12-01,00:00:00 -setcalendar,standard tmp.grb $fname_t
+    rm -f tmp.grb
+    cdo merge EH5_OM_${ipcc}_1_RELHUM*_${year}${cmonth}*.grb tmp.grb
+    cdo -f nc4 -z zip -t echam5 -chname,rhumidity,rha -settunits,days \
+      -setreftime,1859-12-01,00:00:00 -setcalendar,standard tmp.grb $fname_r
+    rm -f tmp.grb
+    cdo merge EH5_OM_${ipcc}_1_GPH*_${year}${cmonth}*.grb tmp.grb
+    cdo -f nc4 -z zip -t echam5 -chname,geopoth,gpa -settunits,days \
+      -setreftime,1859-12-01,00:00:00 -setcalendar,standard tmp.grb $fname_z
+    rm -f tmp.grb
+    cdo merge EH5_OM_${ipcc}_1_U*_${year}${cmonth}*.grb tmp.grb
+    cdo -f nc4 -z zip -t echam5 -chname,u,ua -settunits,days \
+      -setreftime,1859-12-01,00:00:00 -setcalendar,standard tmp.grb $fname_u
+    rm -f tmp.grb
+    cdo merge EH5_OM_${ipcc}_1_V*_${year}${cmonth}*.grb tmp.grb
+    cdo -f nc4 -z zip -t echam5 -chname,v,va -settunits,days \
+      -setreftime,1859-12-01,00:00:00 -setcalendar,standard tmp.grb $fname_v
+    rm -f tmp.grb
+    cdo -f nc4 -z zip -t echam5 -chname,tsw,tos -settunits,days \
+         -setreftime,1859-12-01,00:00:00 -setcalendar,standard  \
+         -setmissval,273.15 \
+         EH5_OM_${ipcc}_1_TSW_${year}${cmonth}*.grb $fname_ts
+  done
+done
+
+

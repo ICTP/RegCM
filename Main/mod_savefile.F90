@@ -17,592 +17,1221 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_savefile
+module mod_savefile
 
-        use mod_runparams
-        use mod_message
-        use mod_bats
-        use mod_lake, only : lakesav_i, lakesav_o
-        use mod_pmoist
-        use mod_main
-        use mod_mainchem
-        use mod_bdycod
-        use mod_rad
-        use mod_trachem
-        use mod_date
-        use mod_radiation
-        use mod_cu_bm
-#ifndef BAND
-        use mod_diagnosis
-#endif
-#ifdef MPP1
-        use mod_mppio
-#ifdef CLM
-        use mod_clm
-        use restFileMod, only : restFile_write, restFile_write_binary
-        use restFileMod, only : restFile_filename
-        use clm_varctl , only : filer_rest
-        use clm_time_manager, only : get_step_size
-#endif
-#endif
-        private
+  use mod_nchelper , only : regcm_vartype
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
+  use mod_runparams
+  use mod_mpmessage
+  use mod_mppparam
+  use mod_memutil
+  use mod_atm_interface , only : tmask
+  use mod_lm_interface
+  use mod_che_interface
+  use mod_che_mppio
+  use mod_massck
 
-        public :: read_savefile_part1 , read_savefile_part2
-        public :: write_savefile
+  implicit none
 
-        integer :: isavlast
-        integer :: iutrst
-        logical :: lrp1
-#ifdef CLM
-        character(len=256) :: thisclmrest
-        character(len=256) :: lastclmrest
-#endif
+  private
 
-        data isavlast /-1/
-        data iutrst   /-1/
-        data lrp1 /.false./
-
-        contains
-
-        subroutine read_savefile_part1(idate)
-          implicit none
-          integer , intent(in) :: idate
-          character(256) :: ffin
-          character(16) :: fbname
-          logical :: existing
-
-#ifdef MPP1
-          if ( myid == 0 ) then
-#endif
-            iutrst = 14
-            write (fbname, '(a,i10)') 'SAV.', idate
-            ffin = trim(dirout)//pthsep//trim(domname)// &
-                           '_'//trim(fbname)
-            inquire (file=ffin,exist=existing)
-            if ( .not.existing ) then
-              write (aline,*) 'The following SAV File does not exist: ',&
-                  &            trim(ffin), ' please check location'
-              call say
-              call fatal(__FILE__,__LINE__, 'SAV FILE NOT FOUND')
-            else
-              open (iutrst,file=ffin,form='unformatted',status='old')
-            end if
-
-            read (iutrst) mdate0
-            jyear0 = mdate0/1000000
-            read (iutrst) ktau, xtime, xbtime , idatex, &
-                          lyear, lmonth, lday, lhour, ntime
-            jyear = lyear
-#ifdef MPP1
-            if ( ehso4 ) then
-              read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, &
-                         & ts0_io, so0_io
-            else
-              read (iutrst) ub0_io, vb0_io, qb0_io, tb0_io, ps0_io, &
-                         & ts0_io
-            end if
-            read (iutrst) atm1_io%u
-            read (iutrst) atm1_io%v
-            read (iutrst) atm1_io%t
-            read (iutrst) atm1_io%qv
-            read (iutrst) atm1_io%qc
-            read (iutrst) atm2_io%u
-            read (iutrst) atm2_io%v
-            read (iutrst) atm2_io%t
-            read (iutrst) atm2_io%qv
-            read (iutrst) atm2_io%qc
-            read (iutrst) psa_io , psb_io
-            read (iutrst) tga_io , tgb_io , rainc_io , rainnc_io
-            if ( icup == 1 ) then
-              read (iutrst) rsheat_io , rswat_io
-            end if
-            if ( icup == 3 ) then
-              read (iutrst) tbase_io , cldefi_io
-            end if
-            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-              read (iutrst) cbmf2d_io
-            end if
-            read (iutrst) hfx_io , qfx_io , uvdrag_io
-#ifndef BAND
-            call restdiag(iutrst)
-#endif
-            read (iutrst) absnxt_io , abstot_io , emstot_io
-            if ( ipptls == 1 ) read (iutrst) fcc_io
-#ifdef CLM
-            read (iutrst) sols2d_io
-            read (iutrst) soll2d_io
-            read (iutrst) solsd2d_io
-            read (iutrst) solld2d_io
-            read (iutrst) aldirs2d_io
-            read (iutrst) aldirl2d_io
-            read (iutrst) aldifs2d_io
-            read (iutrst) aldifl2d_io
-            read (iutrst) satbrt2d_io
-#endif
-            read (iutrst) sol2d_io
-            read (iutrst) solvd2d_io
-            read (iutrst) solvs2d_io
-            read (iutrst) sabv2d_io
-            read (iutrst) tlef2d_io
-            read (iutrst) ssw2d_io
-            read (iutrst) srw2d_io
-            read (iutrst) tg2d_io
-            read (iutrst) tgb2d_io
-            read (iutrst) scv2d_io
-            read (iutrst) gwet2d_io
-            read (iutrst) sag2d_io
-            read (iutrst) sice2d_io
-            read (iutrst) dew2d_io
-            read (iutrst) ircp2d_io
-            read (iutrst) col2d_io
-            read (iutrst) veg2d_io
-            read (iutrst) veg2d1_io
-            read (iutrst) heatrt_io
-            read (iutrst) o3prof_io
-            read (iutrst) tgbb_io
-            read (iutrst) flw2d_io
-            read (iutrst) flwd2d_io
-            read (iutrst) fsw2d_io
-            read (iutrst) swt2d_io
-            read (iutrst) sinc2d_io
-            read (iutrst) taf2d_io
-            read (iutrst) ocld2d_io
-            read (iutrst) emiss2d_io
-            read (iutrst) pptnc_io, pptc_io, prca2d_io, prnca2d_io
-            if ( iocnflx == 2 ) read (iutrst) zpbl_io
-            if ( ichem == 1 ) then
-              read (iutrst) chia_io
-              read (iutrst) chib_io
-!             cumul removal terms (3d, 2d)
-              read (iutrst) remlsc_io
-              read (iutrst) remcvc_io
-              read (iutrst) remdrd_io
-!             cumul ad, dif, emis terms ( scalar)
-              read (iutrst) ssw2da_io
-              read (iutrst) sdeltk2d_io
-              read (iutrst) sdelqk2d_io
-              read (iutrst) sfracv2d_io
-              read (iutrst) sfracb2d_io
-              read (iutrst) sfracs2d_io
-              read (iutrst) svegfrac2d_io
-#ifndef BAND
-              call restchemdiag(iutrst)
-#endif
-            end if
+#ifndef QUAD_PRECISION
+  integer , parameter :: wrkp = rk8
 #else
-            if ( ehso4 ) then
-              read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
-            else
-              read (iutrst) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
-            end if
-            read (iutrst) atm1%u
-            read (iutrst) atm1%v
-            read (iutrst) atm1%t
-            read (iutrst) atm1%qv
-            read (iutrst) atm1%qc
-            read (iutrst) atm2%u
-            read (iutrst) atm2%v
-            read (iutrst) atm2%t
-            read (iutrst) atm2%qv
-            read (iutrst) atm2%qc
-            read (iutrst) sps1%ps , sps2%ps
-            read (iutrst) sts1%tg , sts2%tg , sfsta%rainc , sfsta%rainnc
-            if ( icup == 1 ) then
-              read (iutrst) rsheat , rswat
-            end if
-            if ( icup == 3 ) then
-              read (iutrst) tbase , cldefi
-            end if
-            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-              read (iutrst) cbmf2d
-            end if
-            read (iutrst) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
-#ifndef BAND
-            call restdiag(iutrst)
+  integer , parameter :: wrkp = rk16
 #endif
-            read (iutrst) absnxt , abstot , emstot
-            if ( ipptls == 1 ) read (iutrst) fcc
-            read (iutrst) sol2d
-            read (iutrst) solvd2d
-            read (iutrst) solvs2d
-            read (iutrst) sabv2d
-            read (iutrst) tlef2d
-            read (iutrst) ssw2d
-            read (iutrst) srw2d
-            read (iutrst) tg2d
-            read (iutrst) tgb2d
-            read (iutrst) scv2d
-            read (iutrst) gwet2d
-            read (iutrst) sag2d
-            read (iutrst) sice2d
-            read (iutrst) dew2d
-            read (iutrst) ircp2d
-            read (iutrst) col2d
-            read (iutrst) veg2d
-            read (iutrst) veg2d1
-            read (iutrst) heatrt
-            read (iutrst) o3prof
-            read (iutrst) sfsta%tgbb
-            read (iutrst) flw2d
-            read (iutrst) flwd2d
-            read (iutrst) fsw2d
-            read (iutrst) swt2d
-            read (iutrst) sinc2d
-            read (iutrst) taf2d
-            read (iutrst) ocld2d
-            read (iutrst) emiss2d
-            read (iutrst) pptnc , pptc , prca2d , prnca2d
-            if ( iocnflx == 2 ) read (iutrst) sfsta%zpbl
-            if ( ichem == 1 ) then
-              read (iutrst) chia
-              read (iutrst) chib
-!             cumul removal terms (3d, 2d)
-              read (iutrst) remlsc
-              read (iutrst) remcvc
-              read (iutrst) remdrd
-!             cumul ad, dif, emis terms ( scalar)
-              read (iutrst) ssw2da
-              read (iutrst) sdeltk2d
-              read (iutrst) sdelqk2d
-              read (iutrst) sfracv2d
-              read (iutrst) sfracb2d
-              read (iutrst) sfracs2d
-              read (iutrst) svegfrac2d
-#ifndef BAND
-              call restchemdiag(iutrst)
-#endif
-            end if
-#endif
-!------lake model
-            if ( lakemod == 1 ) then
-              call lakesav_i(iutrst)
-            end if
-            lrp1 = .true.
-#ifdef MPP1
-          end if
-#endif
-        end subroutine read_savefile_part1
 
-        subroutine read_savefile_part2
-          implicit none
+  public :: allocate_mod_savefile
+  public :: read_savefile
+  public :: write_savefile
 
-#ifdef MPP1
-          if ( myid == 0 ) then
-#endif
-            if (.not. lrp1) then
-              write (6,*) 'Reading part2 before part1'
-              call fatal(__FILE__,__LINE__, 'SAV FILE ERROR')
-            end if
+  integer(ik4) , parameter :: maxdims = 17
+  integer(ik4) , parameter :: maxvars = 128
+  integer(ik4) :: ncstatus
 
-#ifdef MPP1
-            read (iutrst) dstor_io
-            read (iutrst) hstor_io
-#ifndef BAND
-            read (iutrst) uj1 , uj2 , ujlx , ujl
+  integer(ik4) , parameter :: idjcross = 1
+  integer(ik4) , parameter :: idicross = 2
+  integer(ik4) , parameter :: idjdot = 3
+  integer(ik4) , parameter :: ididot = 4
+  integer(ik4) , parameter :: idkh = 5
+  integer(ik4) , parameter :: idkf = 6
+  integer(ik4) , parameter :: idnsplit = 7
+  integer(ik4) , parameter :: idnnsg = 8
+  integer(ik4) , parameter :: idmonth = 9
+  integer(ik4) , parameter :: idnqx = 10
+  integer(ik4) , parameter :: idspi = 11
+  integer(ik4) , parameter :: idspw = 12
+  integer(ik4) , parameter :: idntr = 13
+  integer(ik4) , parameter :: idtotsp = 14
+  integer(ik4) , parameter :: iddpt = 15
+  integer(ik4) , parameter :: ikern = 16
+  integer(ik4) , parameter :: indep = 17
+
+  integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io
+  integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_u_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_u_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_v_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_v_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_t_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_t_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_w_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_w_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_pp_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_pp_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm1_qx_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm2_qx_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm1_tke_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm2_tke_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tke_pbl_io
+
+  real(rkx) , public , pointer , dimension(:,:) :: psa_io
+  real(rkx) , public , pointer , dimension(:,:) :: psb_io
+  real(rkx) , public , pointer , dimension(:,:) :: hfx_io
+  real(rkx) , public , pointer , dimension(:,:) :: qfx_io
+  real(rkx) , public , pointer , dimension(:,:) :: tgbb_io
+  real(rkx) , public , pointer , dimension(:,:) :: uvdrag_io
+  real(rkx) , public , pointer , dimension(:,:) :: q2m_io
+  real(rkx) , public , pointer , dimension(:,:) :: u10m_io
+  real(rkx) , public , pointer , dimension(:,:) :: v10m_io
+  real(rkx) , public , pointer , dimension(:,:) :: w10m_io
+  real(rkx) , public , pointer , dimension(:,:) :: br_io
+  real(rkx) , public , pointer , dimension(:,:) :: ram_io
+  real(rkx) , public , pointer , dimension(:,:) :: rah_io
+  real(rkx) , public , pointer , dimension(:,:) :: ustar_io
+  real(rkx) , public , pointer , dimension(:,:) :: zo_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: ldew_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: snag_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: sncv_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: sfice_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: gwet_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: sw_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: taf_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tgrd_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tlef_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: emisv_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: um10_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: eta_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: hi_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: tlak_io
+
+  real(rkx) , public , pointer , dimension(:,:) :: flw_io
+  real(rkx) , public , pointer , dimension(:,:) :: flwd_io
+  real(rkx) , public , pointer , dimension(:,:) :: fsw_io
+  real(rkx) , public , pointer , dimension(:,:) :: sabveg_io
+  real(rkx) , public , pointer , dimension(:,:) :: sinc_io
+  real(rkx) , public , pointer , dimension(:,:) :: solis_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvs_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvsd_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvl_io
+  real(rkx) , public , pointer , dimension(:,:) :: solvld_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: sst_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tskin_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tdeltas_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: deltas_io
+
+  integer(ik4) , public , pointer , dimension(:,:) :: kpbl_io
+  real(rkx) , public , pointer , dimension(:,:) :: zpbl_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_uz0_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_vz0_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_thz0_io
+  real(rkx) , public , pointer , dimension(:,:) :: myjsf_qz0_io
+
+  real(rkx) , public , pointer , dimension(:,:) :: cbmf2d_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: fcc_io
+
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabsnxt_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: gasabstot_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: gasemstot_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: heatrt_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: o3prof_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: dstor_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: hstor_io
+
+  real(rkx) , public , pointer , dimension(:,:) :: cldefi_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: cu_avg_ww_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: qflux_restore_sst_io
+
+#ifdef CLM
+  real(rkx) , public , pointer , dimension(:,:) :: lndcat_io
 #endif
-            read (iutrst) ui1_io , ui2_io , uilx_io , uil_io
-#ifndef BAND
-            read (iutrst) vj1 , vj2 , vjlx , vjl
-#endif
-            read (iutrst) vi1_io , vi2_io , vilx_io , vil_io
+
+  real(rkx) , public , pointer , dimension(:,:,:) :: swalb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwalb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: swdiralb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: swdifalb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: lwdifalb_io
+
+  interface myputvar
+    module procedure myputvar2dd
+    module procedure myputvar2ddf
+    module procedure myputvar3dd
+    module procedure myputvar4dd
+    module procedure myputvar1dif
+    module procedure myputvar2di
+    module procedure myputvar3di
+  end interface myputvar
+
+  contains
+
+  subroutine allocate_mod_savefile
+    implicit none
+
+    if ( myid == iocpu ) then
+      call getmem3d(atm1_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_u_io')
+      call getmem3d(atm1_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_v_io')
+      call getmem3d(atm1_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm1_t_io')
+      call getmem4d(atm1_qx_io,jcross1,jcross2, &
+                    icross1,icross2,1,kz,1,nqx,'atm1_qx_io')
+      call getmem3d(atm2_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_u_io')
+      call getmem3d(atm2_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_v_io')
+      call getmem3d(atm2_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm2_t_io')
+      call getmem4d(atm2_qx_io,jcross1,jcross2, &
+                    icross1,icross2,1,kz,1,nqx,'atm2_qx_io')
+      if ( ibltyp == 2 ) then
+        call getmem3d(atm1_tke_io,jcross1,jcross2, &
+                      icross1,icross2,1,kzp1,'atm1_tke_io')
+        call getmem3d(atm2_tke_io,jcross1,jcross2, &
+                      icross1,icross2,1,kzp1,'atm2_tke_io')
+      else if ( ibltyp == 4 ) then
+        call getmem3d(tke_pbl_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,'tke_pbl_io')
+      end if
+      if ( idynamic == 2 ) then
+        call getmem3d(atm1_w_io,jcross1,jcross2, &
+                      icross1,icross2,1,kzp1,'atm1_w_io')
+        call getmem3d(atm2_w_io,jcross1,jcross2, &
+                      icross1,icross2,1,kzp1,'atm2_w_io')
+        call getmem3d(atm1_pp_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,'atm1_pp_io')
+        call getmem3d(atm2_pp_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,'atm2_pp_io')
+      end if
+      call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
+      call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
+      call getmem2d(hfx_io,jcross1,jcross2,icross1,icross2,'hfx_io')
+      call getmem2d(qfx_io,jcross1,jcross2,icross1,icross2,'qfx_io')
+      call getmem2d(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
+      call getmem2d(uvdrag_io,jcross1,jcross2,icross1,icross2,'uvdrag_io')
+      call getmem2d(q2m_io,jcross1,jcross2,icross1,icross2,'q2m_io')
+      call getmem2d(u10m_io,jcross1,jcross2,icross1,icross2,'u10m_io')
+      call getmem2d(v10m_io,jcross1,jcross2,icross1,icross2,'v10m_io')
+      call getmem2d(w10m_io,jcross1,jcross2,icross1,icross2,'w10m_io')
+      call getmem2d(br_io,jcross1,jcross2,icross1,icross2,'br_io')
+      call getmem2d(ram_io,jcross1,jcross2,icross1,icross2,'ram_io')
+      call getmem2d(rah_io,jcross1,jcross2,icross1,icross2,'rah_io')
+      call getmem2d(ustar_io,jcross1,jcross2,icross1,icross2,'ustar_io')
+      call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
+
+      call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
+      call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
+      call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
+      call getmem3d(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
+      call getmem3d(sfice_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sfice_io')
+      call getmem4d(sw_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
+                          1,num_soil_layers,'sw_io')
+      call getmem3d(tgrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd_io')
+      call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
+      call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
+      call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
+      call getmem3d(emisv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emisv_io')
+      call getmem3d(um10_io,1,nnsg,jcross1,jcross2,icross1,icross2,'um10_io')
+      call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
+      call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
+      call getmem2d(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
+      call getmem2d(flwd_io,jcross1,jcross2,icross1,icross2,'flwd_io')
+      call getmem2d(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
+      call getmem2d(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
+      call getmem2d(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
+      call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
+      call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
+      call getmem2d(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
+      call getmem2d(solvl_io,jcross1,jcross2,icross1,icross2,'solvl_io')
+      call getmem2d(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
+      if ( ibltyp == 2 ) then
+        call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+      else if ( ibltyp == 4 ) then
+        call getmem2d(myjsf_uz0_io,jcross1,jcross2, &
+                                   icross1,icross2,'myjsf_uz0_io')
+        call getmem2d(myjsf_vz0_io,jcross1,jcross2, &
+                                   icross1,icross2,'myjsf_vz0_io')
+        call getmem2d(myjsf_thz0_io,jcross1,jcross2, &
+                                    icross1,icross2,'myjsf_thz0_io')
+        call getmem2d(myjsf_qz0_io,jcross1,jcross2, &
+                                   icross1,icross2,'myjsf_qz0_io')
+        call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
+      end if
+      if ( idcsst == 1 ) then
+        call getmem3d(sst_io,1,nnsg,jcross1,jcross2, &
+                                    icross1,icross2,'sst_io')
+        call getmem3d(tskin_io,1,nnsg,jcross1,jcross2, &
+                                      icross1,icross2,'tskin_io')
+        call getmem3d(deltas_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'deltas_io')
+        call getmem3d(tdeltas_io,1,nnsg,jcross1,jcross2, &
+                                        icross1,icross2,'tdeltas_io')
+      end if
+
+      if ( any(icup == 4) ) then
+        call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
+      end if
+      if ( ipptls > 0 ) then
+        call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
+      end if
+
+      if ( idynamic == 1 ) then
+        call getmem3d(dstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'dstor_io')
+        call getmem3d(hstor_io,jdot1,jdot2,idot1,idot2,1,nsplit,'hstor_io')
+      end if
+
+      if ( irrtm == 0 ) then
+        call getmem4d(gasabsnxt_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,1,4,'gasabsnxt_io')
+        call getmem4d(gasabstot_io,jcross1,jcross2, &
+                      icross1,icross2,1,kzp1,1,kzp1,'gasabstot_io')
+        call getmem3d(gasemstot_io,jcross1,jcross2, &
+                      icross1,icross2,1,kzp1,'gasemstot_io')
+      end if
+
+      call getmem3d(heatrt_io,jcross1,jcross2, &
+                    icross1,icross2,1,kz,'heatrt_io')
+      call getmem3d(o3prof_io,jcross1,jcross2, &
+                    icross1,icross2,1,kzp1,'o3prof_io')
+
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        call getmem3d(qflux_restore_sst_io,jcross1,jcross2, &
+                      icross1,icross2,1,12,'qflux_restore_sst_io')
+      end if
+
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
+        call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
+      end if
+      if ( any(icup == 3) ) then
+        call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
+      end if
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        call getmem3d(cu_avg_ww_io,jcross1,jcross2, &
+                                   icross1,icross2,1,kz,'cu_avg_ww_io')
+      end if
+#ifdef CLM
+      if ( imask == 2 ) then
+        call getmem2d(lndcat_io,jcross1,jcross2,icross1,icross2,'lndcat_io')
+      end if
 #else
-            read (iutrst) spsav%dstor
-            read (iutrst) spsav%hstor
-#ifndef BAND
-            read (iutrst) uj1 , uj2 , ujlx , ujl
+      if ( lakemod == 1 ) then
+        call getmem3d(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2,'eta_io')
+        call getmem3d(hi_io,1,nnsg,jcross1,jcross2,icross1,icross2,'hi_io')
+        call getmem4d(tlak_io,1,nnsg,jcross1,jcross2, &
+                              icross1,icross2,1,ndpmax,'tlak_io')
+      end if
 #endif
-            read (iutrst) ui1 , ui2 , uilx , uil
-#ifndef BAND
-            read (iutrst) vj1 , vj2 , vjlx , vjl
-#endif
-            read (iutrst) vi1 , vi2 , vilx , vil
-#endif
-            close(iutrst)
-#ifdef MPP1
-          end if
-#endif
-        end subroutine read_savefile_part2
+      call getmem3d(swalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'swalb')
+      call getmem3d(lwalb_io,1,nnsg,jcross1,jcross2,icross1,icross2,'lwalb')
+      call getmem3d(swdiralb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'swdiralb')
+      call getmem3d(swdifalb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'swdifalb')
+      call getmem3d(lwdiralb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'lwdiralb')
+      call getmem3d(lwdifalb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'lwdifalb')
+    endif
+  end subroutine allocate_mod_savefile
 
-        subroutine write_savefile(idate,ltmp)
-          implicit none
-          integer , intent(in) :: idate
-          logical , intent(in) :: ltmp
-          integer , parameter :: iutsav = 52
-          character(256) :: ffout
-          character(32) :: fbname
-          logical :: existing
+  subroutine read_savefile(idate)
+    use netcdf
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: idate
+    type (rcm_time_and_date) :: idatex
+    integer(ik4) :: ncid
+    integer(ik4) :: int10d , ical , varid
+    real(rk8) :: rtmp
+    character(256) :: ffin
+    character(32) :: fbname
+
+    if ( myid == iocpu ) then
+      write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
+      ffin = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+      ncstatus = nf90_open(ffin,nf90_nowrite,ncid)
+      call check_ok(__FILE__,__LINE__,'Cannot open savefile '//trim(ffin))
+
+      ncstatus = nf90_get_att(ncid,nf90_global,'idatex',int10d)
+      call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
+      ncstatus = nf90_get_att(ncid,nf90_global,'calendar',ical)
+      call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
+      ncstatus = nf90_get_att(ncid,nf90_global,'declin',declin)
+      call check_ok(__FILE__,__LINE__,'Cannot get attribute declin')
+      ncstatus = nf90_get_att(ncid,nf90_global,'solcon',solcon)
+      call check_ok(__FILE__,__LINE__,'Cannot get attribute solcon')
+      if ( debug_level > 0 ) then
+        ! Do no give any error. User may have increased debug just now.
+        ncstatus = nf90_get_att(ncid,nf90_global,'dryini',rtmp)
+        if ( ncstatus == nf90_noerr ) then
+          dryini = real(rtmp,wrkp)
+        else
+          dryini = 0.0_wrkp
+        end if
+        ncstatus = nf90_get_att(ncid,nf90_global,'watini',rtmp)
+        if ( ncstatus == nf90_noerr ) then
+          watini = real(rtmp,wrkp)
+        else
+          watini = 0.0_wrkp
+        end if
+        ncstatus = nf90_get_att(ncid,nf90_global,'dryerror',dryerror)
+        if ( ncstatus /= nf90_noerr ) dryerror = 0.0_rk8
+        ncstatus = nf90_get_att(ncid,nf90_global,'waterror',waterror)
+        if ( ncstatus /= nf90_noerr ) waterror = 0.0_rk8
+      end if
+      idatex = int10d
+      call setcal(idatex,ical)
+      if ( idatex /= rcmtimer%idate ) then
+        write(stderr,*) 'Mismatch in dates namelist vs SAV file'
+        write(stderr,*) 'idate1 in namelist is ', rcmtimer%str( )
+        write(stderr,*) 'idate  in SAV file is ', tochar(idatex)
+        call fatal(__FILE__,__LINE__,'SAV FILE DO NOT MATCH IDATE1')
+      end if
+
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_u'),atm1_u_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm1_u')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_u'),atm2_u_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm2_u')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_v'),atm1_v_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm1_v')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_v'),atm2_v_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm2_v')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_t'),atm1_t_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm1_t')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_t'),atm2_t_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm2_t')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_qx'),atm1_qx_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm1_qx')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_qx'),atm2_qx_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read atm2_qx')
+      if ( ibltyp == 2 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_tke'),atm1_tke_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read atm1_tke')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_tke'),atm2_tke_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read atm2_tke')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'kpbl'),kpbl_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read kpbl')
+      else if ( ibltyp == 4 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tke_pbl'),tke_pbl_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read tke_pbl')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'kpbl'),kpbl_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read kpbl')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_uz0'),myjsf_uz0_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_uz0')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_vz0'),myjsf_vz0_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_vz0')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_thz0'),myjsf_thz0_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_thz0')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_qz0'),myjsf_qz0_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_qz0')
+      end if
+      if ( idynamic == 2 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_w'),atm1_w_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read atm1_w')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_w'),atm2_w_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read atm2_w')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_pp'),atm1_pp_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read atm1_pp')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_pp'),atm2_pp_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read atm2_pp')
+      end if
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'psa'),psa_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read psa')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'psb'),psb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read psb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'hfx'),hfx_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read hfx')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'qfx'),qfx_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read qfx')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbb'),tgbb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read tgbb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'uvdrag'),uvdrag_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read uvdrag')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'q2m'),q2m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read q2m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'u10m'),u10m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read u10m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'v10m'),v10m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read v10m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'w10m'),w10m_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read w10m')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'br'),br_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read br')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ram'),ram_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ram')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rah'),rah_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read rah')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ustar'),ustar_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ustar')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'zo'),zo_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read zo')
+      if ( any(icup == 3) ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cldefi'),cldefi_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cldefi')
+      end if
+      if ( any(icup == 4) ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cbmf2d'),cbmf2d_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read cbmf2d')
+      end if
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        ncstatus = nf90_inq_varid(ncid,'cu_avg_ww',varid)
+        if ( ncstatus /= nf90_noerr ) then
+          cu_avg_ww_io = 0.0_rkx
+        else
+          ncstatus = nf90_get_var(ncid,varid,cu_avg_ww_io)
+          call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_ww')
+        end if
+      end if
+      if ( idcsst == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sst'),sst_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sst')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tskin'),tskin_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read tskin')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'deltas'),deltas_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read deltas')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tdeltas'),tdeltas_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read tdeltas')
+      end if
+      if ( irrtm == 0 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'gasabsnxt'),gasabsnxt_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read gasabsnxt')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'gasabstot'),gasabstot_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read gasabstot')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'gasemstot'),gasemstot_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read gasemstot')
+      end if
+      if ( ipptls > 0 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'fcc'),fcc_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read fcc')
+      end if
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solis'),solis_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read solis')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvs'),solvs_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read solvs')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvsd'),solvsd_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read solvsd')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvl'),solvl_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read solvl')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvld'),solvld_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read solvld')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sabveg'),sabveg_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read sabveg')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sw'),sw_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read sw')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlef'),tlef_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read tlef')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgrd'),tgrd_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read tgrd')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbrd'),tgbrd_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read tgbrd')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sncv'),sncv_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read sncv')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'gwet'),gwet_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read gwet')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ldew')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'snag'),snag_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read snag')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfice'),sfice_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read sfice')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk1'),ldmsk1_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ldmsk1')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'taf'),taf_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read taf')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emisv_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read emiss')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'um10'),um10_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read um10')
+#ifndef CLM
+      if ( lakemod == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'eta'),eta_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read eta')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'hi'),hi_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read hi')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlak'),tlak_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read tlak')
+      end if
+#endif
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'heatrt'),heatrt_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read heatrt')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'o3prof'),o3prof_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read o3prof')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'flw'),flw_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read flw')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'flwd'),flwd_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read flwd')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'fsw'),fsw_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read fsw')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sinc'),sinc_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read sinc')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk'),ldmsk_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ldmsk')
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'zpbl'),zpbl_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read zpbl')
+      end if
+      if ( ichem == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'chia'),chia_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read chia')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'chib'),chib_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read chib')
+        if ( igaschem == 1 .and. ichsolver > 0 ) then
+          ncstatus = nf90_get_var(ncid,get_varid(ncid,'chemall'),chemall_io)
+          call check_ok(__FILE__,__LINE__,'Cannot read chemall')
+          ncstatus = nf90_get_var(ncid,get_varid(ncid,'taucldsp'),taucldsp_io)
+          call check_ok(__FILE__,__LINE__,'Cannot read taucldsp')
+        end if
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'rainout'),rainout_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read rainout')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'washout'),washout_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read washout')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'remdrd'),remdrd_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read remdrd')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw2da'),ssw2da_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read ssw2da')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelq'),sdelq_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sdelq')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelt'),sdelt_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sdelt')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracb2d'),sfracb2d_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sfracb2d')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracs2d'),sfracs2d_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sfracs2d')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracv2d'),sfracv2d_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sfracv2d')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'svegfrac2d'),svegfrac2d_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read svegfrac2d')
+      end if
+      if ( idynamic == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'dstor'),dstor_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read dstor')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'hstor'),hstor_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read hstor')
+      end if
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'qflux_restore_sst'), &
+                                qflux_restore_sst_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read qflux_restore_sst')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'stepcount'),stepcount)
+        call check_ok(__FILE__,__LINE__,'Cannot read stepcount')
+      end if
 #ifdef CLM
-          real(8) :: cdtime
+      if ( imask == 2 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'lndcat'),lndcat_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read lndcat')
+      end if
 #endif
-#ifdef MPP1
-          if ( myid == 0 ) then
-#endif
-            if (ltmp) then
-              write (fbname, '(a,i10)') 'TMPSAV.', idate
-            else
-              write (fbname, '(a,i10)') 'SAV.', idate
-            end if
-            ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)
-            open (iutsav,file=ffout,form='unformatted',status='replace')
-            write (iutsav) mdate0
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swalb'),swalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read swalb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwalb'),lwalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read lwalb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdiralb'),swdiralb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read swdiralb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdifalb'),swdifalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read swdifalb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwdiralb'),lwdiralb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read lwdiralb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwdifalb'),lwdifalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read lwdifalb')
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tmask'),tmask)
+        call check_ok(__FILE__,__LINE__,'Cannot read tmask')
+      end if
+      ncstatus = nf90_close(ncid)
+      call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffin))
+    end if
+  end subroutine read_savefile
 
-            inquire (file=ffout,exist=existing)
-            if ( .not.existing ) then
-              write (aline,*) 'The SAV File cannot be created: ' , &
-                  &            trim(ffout), ' please check directory'
-              call say
-              call fatal(__FILE__,__LINE__, 'SAV FILE WRITE ERROR')
-            end if
-
-            write (iutsav) ktau , xtime , xbtime , idatex , &
-                       lyear , lmonth , lday , lhour , ntime
-#ifdef MPP1
-            if ( ehso4 ) then
-              write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
-                       & ps0_io , ts0_io , so0_io
-            else
-              write (iutsav) ub0_io , vb0_io , qb0_io , tb0_io , &
-                       & ps0_io , ts0_io
-            end if
-            write (iutsav) atm1_io%u
-            write (iutsav) atm1_io%v
-            write (iutsav) atm1_io%t
-            write (iutsav) atm1_io%qv
-            write (iutsav) atm1_io%qc
-            write (iutsav) atm2_io%u
-            write (iutsav) atm2_io%v
-            write (iutsav) atm2_io%t
-            write (iutsav) atm2_io%qv
-            write (iutsav) atm2_io%qc
-            write (iutsav) psa_io , psb_io
-            write (iutsav) tga_io , tgb_io , rainc_io , rainnc_io
-            if ( icup == 1 ) then
-              write (iutsav) rsheat_io , rswat_io
-            end if
-            if ( icup == 3 ) then
-              write (iutsav) tbase_io , cldefi_io
-            end if
-            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-              write (iutsav) cbmf2d_io
-            end if
-            write (iutsav) hfx_io , qfx_io , uvdrag_io
-#ifndef BAND
-            call savediag(iutsav)
-#endif
-            write (iutsav) absnxt_io , abstot_io , emstot_io
-            if ( ipptls == 1 ) write (iutsav) fcc_io
+  subroutine write_savefile(idate)
+    use netcdf
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4) :: ncid , ivcc
+    integer(ik4) , dimension(maxdims) :: dimids
+    integer(ik4) , dimension(maxdims) :: wrkdim
+    integer(ik4) , dimension(maxvars) :: varids
+    character(256) :: ffout
+    character(32) :: fbname
 #ifdef CLM
-            write (iutsav) sols2d_io
-            write (iutsav) soll2d_io
-            write (iutsav) solsd2d_io
-            write (iutsav) solld2d_io
-            write (iutsav) aldirs2d_io
-            write (iutsav) aldirl2d_io
-            write (iutsav) aldifs2d_io
-            write (iutsav) aldifl2d_io
-            write (iutsav) satbrt2d_io
-#endif
-            write (iutsav) sol2d_io
-            write (iutsav) solvd2d_io
-            write (iutsav) solvs2d_io
-            write (iutsav) sabv2d_io
-            write (iutsav) tlef2d_io
-            write (iutsav) ssw2d_io
-            write (iutsav) srw2d_io
-            write (iutsav) tg2d_io
-            write (iutsav) tgb2d_io
-            write (iutsav) scv2d_io
-            write (iutsav) gwet2d_io
-            write (iutsav) sag2d_io
-            write (iutsav) sice2d_io
-            write (iutsav) dew2d_io
-            write (iutsav) ircp2d_io
-            write (iutsav) col2d_io
-            write (iutsav) veg2d_io
-            write (iutsav) veg2d1_io
-            write (iutsav) heatrt_io
-            write (iutsav) o3prof_io
-            write (iutsav) tgbb_io
-            write (iutsav) flw2d_io
-            write (iutsav) flwd2d_io
-            write (iutsav) fsw2d_io
-            write (iutsav) swt2d_io
-            write (iutsav) sinc2d_io
-            write (iutsav) taf2d_io
-            write (iutsav) ocld2d_io
-            write (iutsav) emiss2d_io
-            write (iutsav) pptnc_io , pptc_io , prca2d_io , prnca2d_io
-            if ( iocnflx == 2 ) write (iutsav) zpbl_io
-            if ( ichem == 1 ) then
-              write (iutsav) chia_io
-              write (iutsav) chib_io
-!             cumul removal terms (3d, 2d)
-              write (iutsav) remlsc_io
-              write (iutsav) remcvc_io
-              write (iutsav) remdrd_io
-!             cumul ad, dif, emis terms ( scalar)
-              write (iutsav) ssw2da_io
-              write (iutsav) sdeltk2d_io
-              write (iutsav) sdelqk2d_io
-              write (iutsav) sfracv2d_io
-              write (iutsav) sfracb2d_io
-              write (iutsav) sfracs2d_io
-              write (iutsav) svegfrac2d_io
-#ifndef BAND
-              call savechemdiag(iutsav)
-#endif
-            end if
-#else
-            if ( ehso4 ) then
-              write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0 , so0
-            else
-              write (iutsav) ub0 , vb0 , qb0 , tb0 , ps0 , ts0
-            end if
-            write (iutsav) atm1%u
-            write (iutsav) atm1%v
-            write (iutsav) atm1%t
-            write (iutsav) atm1%qv
-            write (iutsav) atm1%qc
-            write (iutsav) atm2%u
-            write (iutsav) atm2%v
-            write (iutsav) atm2%t
-            write (iutsav) atm2%qv
-            write (iutsav) atm2%qc
-            write (iutsav) sps1%ps, sps2%ps
-            write (iutsav) sts1%tg, sts2%tg, sfsta%rainc, sfsta%rainnc
-            if ( icup == 1 ) then
-              write (iutsav) rsheat, rswat
-            end if
-            if ( icup == 3 ) then
-              write (iutsav) tbase, cldefi
-            end if
-            if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-              write (iutsav) cbmf2d
-            end if
-            write (iutsav) sfsta%hfx , sfsta%qfx , sfsta%uvdrag
-#ifndef BAND
-            call savediag(iutsav)
-#endif
-            write (iutsav) absnxt , abstot , emstot
-            if ( ipptls == 1 ) write (iutsav) fcc
-            write (iutsav) sol2d
-            write (iutsav) solvd2d
-            write (iutsav) solvs2d
-            write (iutsav) sabv2d
-            write (iutsav) tlef2d
-            write (iutsav) ssw2d
-            write (iutsav) srw2d
-            write (iutsav) tg2d
-            write (iutsav) tgb2d
-            write (iutsav) scv2d
-            write (iutsav) gwet2d
-            write (iutsav) sag2d
-            write (iutsav) sice2d
-            write (iutsav) dew2d
-            write (iutsav) ircp2d
-            write (iutsav) col2d
-            write (iutsav) veg2d
-            write (iutsav) veg2d1
-            write (iutsav) heatrt
-            write (iutsav) o3prof
-            write (iutsav) sfsta%tgbb
-            write (iutsav) flw2d
-            write (iutsav) flwd2d
-            write (iutsav) fsw2d
-            write (iutsav) swt2d
-            write (iutsav) sinc2d
-            write (iutsav) taf2d
-            write (iutsav) ocld2d
-            write (iutsav) emiss2d
-            write (iutsav) pptnc , pptc , prca2d , prnca2d
-            if ( iocnflx == 2 ) write (iutsav) sfsta%zpbl
-            if ( ichem == 1 ) then
-              write (iutsav) chia
-              write (iutsav) chib
-!             cumul removal terms (3d, 2d)
-              write (iutsav) remlsc
-              write (iutsav) remcvc
-              write (iutsav) remdrd
-!             cumul ad, dif, emis terms ( scalar)
-              write (iutsav) ssw2da
-              write (iutsav) sdeltk2d
-              write (iutsav) sdelqk2d
-              write (iutsav) sfracv2d
-              write (iutsav) sfracb2d
-              write (iutsav) sfracs2d
-              write (iutsav) svegfrac2d
-#ifndef BAND
-              call savechemdiag(iutsav)
-#endif
-            end if
-#endif
-            if ( lakemod == 1 ) then
-              call lakesav_o(iutsav)
-            end if
-#ifdef MPP1
-            write (iutsav) dstor_io
-            write (iutsav) hstor_io
-#ifndef BAND
-            write (iutsav) uj1 , uj2 , ujlx , ujl
-#endif
-            write (iutsav) ui1_io , ui2_io , uilx_io , uil_io
-#ifndef BAND
-            write (iutsav) vj1 , vj2 , vjlx , vjl
-#endif
-            write (iutsav) vi1_io , vi2_io , vilx_io , vil_io
-#else
-            write (iutsav) spsav%dstor
-            write (iutsav) spsav%hstor
-#ifndef BAND
-            write (iutsav) uj1 , uj2 , ujlx , ujl
-#endif
-            write (iutsav) ui1 , ui2 , uilx , uil
-#ifndef BAND
-            write (iutsav) vj1 , vj2 , vjlx , vjl
-#endif
-            write (iutsav) vi1 , vi2 , vilx , vil
-#endif
-            close(iutsav)
-#ifdef MPP1
-          end if
+    integer(ik4) :: ioff
 #endif
 
-#ifdef CLM
-          cdtime = dble(get_step_size())
-          filer_rest = restFile_filename(type='netcdf', &
-                     & offset=-idint(cdtime))
-          call restFile_write(filer_rest)
-          filer_rest = restFile_filename(type='binary', &
-                     & offset=-idint(cdtime))
-          call restFile_write_binary(filer_rest)
-          thisclmrest = filer_rest(1:256)
-#endif
-#ifdef MPP1
-          if ( myid == 0 ) then
-#endif
-            write (6,*) 'SAV variables written at ', idate, xtime
+    if ( myid == iocpu ) then
+      write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
+      ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
 
-            if (isavlast > 0) then
-              write (fbname, '(a,i10)') 'TMPSAV.', isavlast
-              ffout = trim(dirout)//pthsep//trim(domname)// &
-                      '_'//trim(fbname)
-              call unlink(ffout)
-#ifdef CLM
-              call unlink(trim(lastclmrest))
-              call unlink((trim(lastclmrest)//'.nc'))
-#endif            
-            end if
-            if (ltmp) then
-              isavlast = idate
-            else
-              isavlast = 0
-            end if
-#ifdef MPP1
-#ifdef CLM
-            lastclmrest = thisclmrest
-#endif
-          end if
-#endif
-        end subroutine write_savefile
+      ! Use 64-bit offset format file, instead of a netCDF classic format file.
+      ! Sometimes SAV files can be really big...
+      ncstatus = nf90_create(ffout, iomode, ncid)
+      call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(ffout))
 
-      end module mod_savefile
+      ncstatus = nf90_def_dim(ncid,'jcross',jcross2-jcross1+1,dimids(idjcross))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension jcross')
+      ncstatus = nf90_def_dim(ncid,'icross',icross2-icross1+1,dimids(idicross))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension icross')
+      ncstatus = nf90_def_dim(ncid,'jdot',jdot2-jdot1+1,dimids(idjdot))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension jdot')
+      ncstatus = nf90_def_dim(ncid,'idot',idot2-idot1+1,dimids(ididot))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension idot')
+      ncstatus = nf90_def_dim(ncid,'khalf',kz,dimids(idkh))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension khalf')
+      ncstatus = nf90_def_dim(ncid,'kfull',kz+1,dimids(idkf))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension kfull')
+      if ( idynamic == 1 ) then
+        ncstatus = nf90_def_dim(ncid,'nsplit',nsplit,dimids(idnsplit))
+        call check_ok(__FILE__,__LINE__,'Cannot create dimension nsplit')
+      end if
+      ncstatus = nf90_def_dim(ncid,'nnsg',nnsg,dimids(idnnsg))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension nnsg')
+      ncstatus = nf90_def_dim(ncid,'month',12,dimids(idmonth))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension month')
+      ncstatus = nf90_def_dim(ncid,'nqx',nqx,dimids(idnqx))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension nqx')
+      if ( irrtm == 0 ) then
+        ncstatus = nf90_def_dim(ncid,'spw',4,dimids(idspw))
+        call check_ok(__FILE__,__LINE__,'Cannot create dimension spw')
+      end if
+      if ( ichem == 1 ) then
+        ncstatus = nf90_def_dim(ncid,'ntr',ntr,dimids(idntr))
+        call check_ok(__FILE__,__LINE__,'Cannot create dimension ntr')
+        if ( igaschem == 1 .and. ichsolver > 0 ) then
+          ncstatus = nf90_def_dim(ncid,'nspi',nspi,dimids(idspi))
+          call check_ok(__FILE__,__LINE__,'Cannot create dimension nspi')
+          ncstatus = nf90_def_dim(ncid,'totsp',totsp,dimids(idtotsp))
+          call check_ok(__FILE__,__LINE__,'Cannot create dimension totsp')
+        end if
+      end if
+      if ( lakemod == 1 ) then
+        ncstatus = nf90_def_dim(ncid,'dpt',ndpmax,dimids(iddpt))
+        call check_ok(__FILE__,__LINE__,'Cannot create dimension dpt')
+      end if
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        ncstatus = nf90_def_dim(ncid,'ikern',13,dimids(ikern))
+        call check_ok(__FILE__,__LINE__,'Cannot create dimension ikern')
+      end if
+      ncstatus = nf90_def_dim(ncid,'soil_layers',num_soil_layers,dimids(indep))
+      call check_ok(__FILE__,__LINE__,'Cannot create dimension indep')
+
+      ivcc = 0
+      wrkdim(1) = dimids(idjdot)
+      wrkdim(2) = dimids(ididot)
+      wrkdim(3) = dimids(idkh)
+      call mydefvar(ncid,'atm1_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm1_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
+      wrkdim(3) = dimids(idkh)
+      call mydefvar(ncid,'atm1_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'atm2_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(4) = dimids(idnqx)
+      call mydefvar(ncid,'atm1_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call mydefvar(ncid,'atm2_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      if ( ibltyp == 2 ) then
+        wrkdim(3) = dimids(idkf)
+        call mydefvar(ncid,'atm1_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
+      else if ( ibltyp == 4 ) then
+        wrkdim(3) = dimids(idkh)
+        call mydefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_uz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_vz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_thz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'myjsf_qz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      end if
+      if ( idynamic == 2 ) then
+        wrkdim(3) = dimids(idkf)
+        call mydefvar(ncid,'atm1_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        wrkdim(3) = dimids(idkh)
+        call mydefvar(ncid,'atm1_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'atm2_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      call mydefvar(ncid,'psa',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'psb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'hfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'qfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'uvdrag',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'q2m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'u10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'v10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'w10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'br',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'ram',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'rah',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'ustar',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'zo',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      wrkdim(3) = dimids(idkh)
+      if ( any(icup == 3) ) then
+        call mydefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      end if
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        call mydefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      if ( any(icup == 4) ) then
+        call mydefvar(ncid,'cbmf2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      end if
+      if ( irrtm == 0 ) then
+        wrkdim(3) = dimids(idkh)
+        wrkdim(4) = dimids(idspw)
+        call mydefvar(ncid,'gasabsnxt',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        wrkdim(3) = dimids(idkf)
+        wrkdim(4) = dimids(idkf)
+        call mydefvar(ncid,'gasabstot',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'gasemstot',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      if ( ipptls > 0 ) then
+        wrkdim(3) = dimids(idkh)
+        call mydefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      call mydefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'solvld',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'sabveg',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      wrkdim(1) = dimids(idnnsg)
+      wrkdim(2) = dimids(idjcross)
+      wrkdim(3) = dimids(idicross)
+      wrkdim(4) = dimids(indep)
+      call mydefvar(ncid,'sw',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call mydefvar(ncid,'tlef',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tgrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'um10',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      if ( idcsst == 1 ) then
+        call mydefvar(ncid,'sst',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'tskin',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'deltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'tdeltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+#ifndef CLM
+      if ( lakemod == 1 ) then
+        call mydefvar(ncid,'eta',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'hi',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        wrkdim(4) = dimids(iddpt)
+        call mydefvar(ncid,'tlak',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      end if
+#endif
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
+      wrkdim(3) = dimids(idkh)
+      call mydefvar(ncid,'heatrt',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(3) = dimids(idkf)
+      call mydefvar(ncid,'o3prof',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'flw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'flwd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call mydefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
+        call mydefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      end if
+      if ( ichem == 1 ) then
+        wrkdim(3) = dimids(idkh)
+        wrkdim(4) = dimids(idntr)
+        call mydefvar(ncid,'chia',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'chib',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        if ( igaschem == 1 .and. ichsolver > 0 ) then
+          wrkdim(3) = dimids(idkh)
+          wrkdim(4) = dimids(idtotsp)
+          call mydefvar(ncid,'chemall',regcm_vartype,wrkdim,1,4,varids,ivcc)
+          wrkdim(3) = dimids(idkf)
+          wrkdim(4) = dimids(idspi)
+          call mydefvar(ncid,'taucldsp',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        end if
+        wrkdim(3) = dimids(idkh)
+        wrkdim(4) = dimids(idntr)
+        call mydefvar(ncid,'rainout',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        call mydefvar(ncid,'washout',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        wrkdim(3) = dimids(idntr)
+        call mydefvar(ncid,'remdrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'ssw2da',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sdelq',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sdelt',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracb2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracs2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'sfracv2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      end if
+      if ( idynamic == 1 ) then
+        wrkdim(1) = dimids(idjdot)
+        wrkdim(2) = dimids(ididot)
+        wrkdim(3) = dimids(idnsplit)
+        call mydefvar(ncid,'dstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call mydefvar(ncid,'hstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        wrkdim(1) = dimids(idjcross)
+        wrkdim(2) = dimids(idicross)
+        wrkdim(3) = dimids(idmonth)
+        call mydefvar(ncid,'qflux_restore_sst',regcm_vartype, &
+                      wrkdim,1,3,varids,ivcc)
+        wrkdim(1) = dimids(idmonth)
+        call mydefvar(ncid,'stepcount',nf90_int,wrkdim,1,1,varids,ivcc)
+      end if
+#ifdef CLM
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
+      if ( imask == 2 ) then
+        call mydefvar(ncid,'lndcat',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      end if
+#endif
+      wrkdim(1) = dimids(idnnsg)
+      wrkdim(2) = dimids(idjcross)
+      wrkdim(3) = dimids(idicross)
+      call mydefvar(ncid,'swalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'swdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'swdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'lwdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        wrkdim(1) = dimids(ikern)
+        wrkdim(2) = dimids(ikern)
+        call mydefvar(ncid,'tmask',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      end if
+
+      ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idate))
+      call check_ok(__FILE__,__LINE__,'Cannot save idatex')
+      ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idate%calendar)
+      call check_ok(__FILE__,__LINE__,'Cannot save calendar')
+      ncstatus = nf90_put_att(ncid,nf90_global,'declin',declin)
+      call check_ok(__FILE__,__LINE__,'Cannot save declin')
+      ncstatus = nf90_put_att(ncid,nf90_global,'solcon',solcon)
+      call check_ok(__FILE__,__LINE__,'Cannot save solcon')
+      if ( debug_level > 0 ) then
+        ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
+        call check_ok(__FILE__,__LINE__,'Cannot save dryini')
+        ncstatus = nf90_put_att(ncid,nf90_global,'watini',real(watini,rk8))
+        call check_ok(__FILE__,__LINE__,'Cannot save watini')
+        ncstatus = nf90_put_att(ncid,nf90_global,'dryerror',dryerror)
+        call check_ok(__FILE__,__LINE__,'Cannot save dryerror')
+        ncstatus = nf90_put_att(ncid,nf90_global,'waterror',waterror)
+        call check_ok(__FILE__,__LINE__,'Cannot save waterror')
+      end if
+
+      ncstatus = nf90_enddef(ncid)
+      call check_ok(__FILE__,__LINE__,'Cannot setup savefile '//trim(ffout))
+
+      ivcc = 0
+      call myputvar(ncid,'atm1_u',atm1_u_io,varids,ivcc)
+      call myputvar(ncid,'atm2_u',atm2_u_io,varids,ivcc)
+      call myputvar(ncid,'atm1_v',atm1_v_io,varids,ivcc)
+      call myputvar(ncid,'atm2_v',atm2_v_io,varids,ivcc)
+      call myputvar(ncid,'atm1_t',atm1_t_io,varids,ivcc)
+      call myputvar(ncid,'atm2_t',atm2_t_io,varids,ivcc)
+      call myputvar(ncid,'atm1_qx',atm1_qx_io,varids,ivcc)
+      call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
+      if ( ibltyp == 2 ) then
+        call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
+        call myputvar(ncid,'atm2_tke',atm2_tke_io,varids,ivcc)
+        call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
+      else if ( ibltyp == 4 ) then
+        call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
+        call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
+        call myputvar(ncid,'myjsf_uz0',myjsf_uz0_io,varids,ivcc)
+        call myputvar(ncid,'myjsf_vz0',myjsf_vz0_io,varids,ivcc)
+        call myputvar(ncid,'myjsf_thz0',myjsf_thz0_io,varids,ivcc)
+        call myputvar(ncid,'myjsf_qz0',myjsf_qz0_io,varids,ivcc)
+      end if
+      if ( idynamic == 2 ) then
+        call myputvar(ncid,'atm1_w',atm1_w_io,varids,ivcc)
+        call myputvar(ncid,'atm2_w',atm2_w_io,varids,ivcc)
+        call myputvar(ncid,'atm1_pp',atm1_pp_io,varids,ivcc)
+        call myputvar(ncid,'atm2_pp',atm2_pp_io,varids,ivcc)
+      end if
+      call myputvar(ncid,'psa',psa_io,varids,ivcc)
+      call myputvar(ncid,'psb',psb_io,varids,ivcc)
+      call myputvar(ncid,'hfx',hfx_io,varids,ivcc)
+      call myputvar(ncid,'qfx',qfx_io,varids,ivcc)
+      call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
+      call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
+      call myputvar(ncid,'q2m',q2m_io,varids,ivcc)
+      call myputvar(ncid,'u10m',u10m_io,varids,ivcc)
+      call myputvar(ncid,'v10m',v10m_io,varids,ivcc)
+      call myputvar(ncid,'w10m',w10m_io,varids,ivcc)
+      call myputvar(ncid,'br',br_io,varids,ivcc)
+      call myputvar(ncid,'ram',ram_io,varids,ivcc)
+      call myputvar(ncid,'rah',rah_io,varids,ivcc)
+      call myputvar(ncid,'ustar',ustar_io,varids,ivcc)
+      call myputvar(ncid,'zo',zo_io,varids,ivcc)
+      if ( any(icup == 3) ) then
+        call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
+      end if
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)
+      end if
+      if ( any(icup == 4) ) then
+        call myputvar(ncid,'cbmf2d',cbmf2d_io,varids,ivcc)
+      end if
+      if ( irrtm == 0 ) then
+        call myputvar(ncid,'gasabsnxt',gasabsnxt_io,varids,ivcc)
+        call myputvar(ncid,'gasabstot',gasabstot_io,varids,ivcc)
+        call myputvar(ncid,'gasemstot',gasemstot_io,varids,ivcc)
+      end if
+      if ( ipptls > 0 ) then
+        call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
+      end if
+      call myputvar(ncid,'solis',solis_io,varids,ivcc)
+      call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
+      call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)
+      call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
+      call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
+      call myputvar(ncid,'sabveg',sabveg_io,varids,ivcc)
+      call myputvar(ncid,'sw',sw_io,varids,ivcc)
+      call myputvar(ncid,'tlef',tlef_io,varids,ivcc)
+      call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
+      call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
+      call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
+      call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
+      call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
+      call myputvar(ncid,'snag',snag_io,varids,ivcc)
+      call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
+      call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
+      call myputvar(ncid,'taf',taf_io,varids,ivcc)
+      call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
+      call myputvar(ncid,'um10',um10_io,varids,ivcc)
+      if ( idcsst == 1 ) then
+        call myputvar(ncid,'sst',sst_io,varids,ivcc)
+        call myputvar(ncid,'tskin',tskin_io,varids,ivcc)
+        call myputvar(ncid,'deltas',deltas_io,varids,ivcc)
+        call myputvar(ncid,'tdeltas',tdeltas_io,varids,ivcc)
+      end if
+#ifndef CLM
+      if ( lakemod == 1 ) then
+        call myputvar(ncid,'eta',eta_io,varids,ivcc)
+        call myputvar(ncid,'hi',hi_io,varids,ivcc)
+        call myputvar(ncid,'tlak',tlak_io,varids,ivcc)
+      end if
+#endif
+      call myputvar(ncid,'heatrt',heatrt_io,varids,ivcc)
+      call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
+      call myputvar(ncid,'flw',flw_io,varids,ivcc)
+      call myputvar(ncid,'flwd',flwd_io,varids,ivcc)
+      call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
+      call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
+      call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
+        call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
+      end if
+      if ( ichem == 1 ) then
+        call myputvar(ncid,'chia',chia_io,varids,ivcc)
+        call myputvar(ncid,'chib',chib_io,varids,ivcc)
+        if ( igaschem == 1 .and. ichsolver > 0 ) then
+          call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
+          call myputvar(ncid,'taucldsp',taucldsp_io,varids,ivcc)
+        end if
+        call myputvar(ncid,'rainout',rainout_io,varids,ivcc)
+        call myputvar(ncid,'washout',washout_io,varids,ivcc)
+        call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
+        call myputvar(ncid,'ssw2da',ssw2da_io,varids,ivcc)
+        call myputvar(ncid,'sdelq',sdelq_io,varids,ivcc)
+        call myputvar(ncid,'sdelt',sdelt_io,varids,ivcc)
+        call myputvar(ncid,'sfracb2d',sfracb2d_io,varids,ivcc)
+        call myputvar(ncid,'sfracs2d',sfracs2d_io,varids,ivcc)
+        call myputvar(ncid,'sfracv2d',sfracv2d_io,varids,ivcc)
+        call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)
+      end if
+      if ( idynamic == 1 ) then
+        call myputvar(ncid,'dstor',dstor_io,varids,ivcc)
+        call myputvar(ncid,'hstor',hstor_io,varids,ivcc)
+      end if
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        call myputvar(ncid,'qflux_restore_sst',qflux_restore_sst_io,varids,ivcc)
+        call myputvar(ncid,'stepcount',stepcount,size(stepcount),varids,ivcc)
+      end if
+#ifdef CLM
+      if ( imask == 2 ) then
+        call myputvar(ncid,'lndcat',lndcat_io,varids,ivcc)
+      end if
+#endif
+      call myputvar(ncid,'swalb',swalb_io,varids,ivcc)
+      call myputvar(ncid,'lwalb',lwalb_io,varids,ivcc)
+      call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
+      call myputvar(ncid,'swdifalb',swdifalb_io,varids,ivcc)
+      call myputvar(ncid,'lwdiralb',lwdiralb_io,varids,ivcc)
+      call myputvar(ncid,'lwdifalb',lwdifalb_io,varids,ivcc)
+      if ( idynamic == 2 .and. ifupr == 1 ) then
+        call myputvar(ncid,'tmask',tmask, &
+                      size(tmask,1),size(tmask,2),varids,ivcc)
+      end if
+
+      ncstatus = nf90_close(ncid)
+      call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffout))
+    end if
+
+#ifdef CLM
+    ioff = dtsrf-dtsec
+    filer_rest = restFile_filename(type='netcdf',offset=ioff)
+    call restFile_write(filer_rest)
+    filer_rest = restFile_filename(type='binary',offset=ioff)
+    call restFile_write_binary(filer_rest)
+#endif
+
+    if ( myid == iocpu ) then
+      write(stdout,*) 'SAV variables written at ', rcmtimer%str( )
+    end if
+  end subroutine write_savefile
+
+  subroutine check_ok(f,l,m1)
+    use netcdf
+    implicit none
+    character(*) , intent(in) :: f, m1
+    integer(ik4) , intent(in) :: l
+    if ( ncstatus /= nf90_noerr ) then
+      write (stderr,*) trim(m1)
+      write (stderr,*) nf90_strerror(ncstatus)
+      call fatal(f,l,'SAVEFILE')
+    end if
+  end subroutine check_ok
+
+  integer(ik4) function get_varid(ncid,vname) result(varid)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) :: vname
+    ncstatus = nf90_inq_varid(ncid,vname,varid)
+    call check_ok(__FILE__,__LINE__,'Cannot find variable '//trim(vname))
+  end function get_varid
+
+  subroutine mydefvar(ncid,str,ityp,idims,i1,i2,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid , ityp , i1 , i2
+    integer(ik4) , intent(inout) :: iivar
+    integer(ik4) , dimension(:) , intent(in) :: idims
+    integer(ik4) , dimension(:) , intent(inout) :: ivar
+    character(len=*) , intent(in) :: str
+    iivar = iivar + 1
+    ncstatus = nf90_def_var(ncid,str,ityp,idims(i1:i2),ivar(iivar))
+    call check_ok(__FILE__,__LINE__,'Cannot create var '//trim(str))
+#if defined(NETCDF4_HDF5)
+#if defined (NETCDF4_COMPRESS)
+    ncstatus = nf90_def_var_deflate(ncid,ivar(iivar),1,1,deflate_level)
+    call check_ok(__FILE__,__LINE__, &
+      'Cannot set compression level to variable '//trim(str))
+#endif
+#endif
+  end subroutine mydefvar
+
+  subroutine myputvar2dd(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar2dd
+
+  subroutine myputvar2ddf(ncid,str,var,nx,ny,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid , nx , ny
+    character(len=*) , intent(in) :: str
+    real(rkx) , dimension(nx,ny) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar2ddf
+
+  subroutine myputvar3dd(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar3dd
+
+  subroutine myputvar4dd(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar4dd
+
+  subroutine myputvar1dif(ncid,str,var,nx,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid , nx
+    character(len=*) , intent(in) :: str
+    integer(ik4) , dimension(nx) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar1dif
+
+  subroutine myputvar2di(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar2di
+
+  subroutine myputvar3di(ncid,str,var,ivar,iivar)
+    use netcdf
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: var
+    integer(ik4) , dimension(:) , intent(in) :: ivar
+    integer(ik4) , intent(inout) :: iivar
+    iivar = iivar + 1
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
+  end subroutine myputvar3di
+
+end module mod_savefile
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -9,31 +9,31 @@
 A packed archive file with the model code can be downloaded from:
 
 \begin{Verbatim}
-http://eforge.escience-lab.org/gf/project/regcm/frs/RegCM-4.1.tar.gz
+http://gforge.ictp.it/gf/project/regcm/frs
 \end{Verbatim}
 
 and it can be later on decompressed and unpacked using:
 
 \begin{Verbatim}
-$> tar -zxvf RegCM-4.1.tar.gz
+$> tar -zxvf RegCM-4.5.0.tar.gz
 \end{Verbatim}
 
 \section{Model Developer}
 
 If you plan to become a model developer, source code can be obtained via svn.
-The RegCM team strongly encouragethe contributing developers to enroll on
-the eforge site to always be up to date and to check on-line all the news of
+The RegCM team strongly encourages the contributing developers to enroll on
+the gforge site to always be up to date and to check on-line all the news of
 the package.
 
 \vspace{0.5cm}
 \begin{tabular}{|c|}
 \hline
-{\bf https://eforge.escience-lab.org/gf/project/regcm} \\
+{\bf https://gforge.ictp.it/gf/project/regcm} \\
 \hline
 \end{tabular}
 \vspace{0.5cm}
 
-The correct procedure is first to register on the e-forge site, then ask
+The correct procedure is first to register on the G-forge site, then ask
 the ICTP scientific team head Filippo Giorgi to be enrolled as a model
 developer. After being officially granted the status, you will gain
 access to the model subversion repository.
@@ -54,9 +54,18 @@ to install it as root is:
 #> yum install subversion
 \end{verbatim}
 
-If Subversion is installed, just type the following command:
+If Subversion is installed, after enrolled just type the following command:
 
 \begin{verbatim}
-$> svn checkout https://eforge.escience-lab.org/svn/regcm/tags/RegCM-4.1
+$> svn checkout https://gforge.ictp.it/svn/regcm/branches/regcm-core
 \end{verbatim}
 
+To setup the model code from the SVN for your system, run the
+\verb=bootstrap.sh= script:
+
+\begin{verbatim}
+$> ./bootstrap.sh
+\end{verbatim}
+
+The system must have installed the \verb=autoconf=, \verb=automake= and
+\verb=libtool= programs.

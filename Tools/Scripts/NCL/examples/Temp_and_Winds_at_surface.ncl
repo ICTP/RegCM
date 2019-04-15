@@ -26,9 +26,9 @@ begin
 ; read in data
 ;*************************
   a = addfile("CAS_SRF.1990010100.nc","r")
-  t2m  = a->t2m(:,0,:,:)
-  u10m = a->u10m(:,0,:,:)
-  v10m = a->v10m(:,0,:,:)
+  t2m  = a->tas(:,0,:,:)
+  u10m = a->uas(:,0,:,:)
+  v10m = a->vas(:,0,:,:)
 
   xlat = a->xlat
   xlon = a->xlon

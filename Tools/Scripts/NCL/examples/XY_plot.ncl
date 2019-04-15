@@ -34,7 +34,7 @@ begin
   f  = addfile(diri+fili,"r")
 
 ; Read in variables
-  var    = f->t(:,17,:,:)      ; (time,lev,lat,lon)
+  var    = f->ta(:,17,:,:)      ; (time,lev,lat,lon)
   var1   = f->time
 
 ; Calculate area average temperature over the entire domain

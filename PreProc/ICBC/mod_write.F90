@@ -17,512 +17,270 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-      module mod_write
+module mod_write
 
-      use mod_dynparam
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
+  use mod_grid
+  use mod_memutil
+  use mod_message
+  use mod_ncstream_types
+  use mod_ncstream
+  use mod_nhinterp
+  use mod_vectutil
+  use mod_zita
 
-      private
+  private
 
-      integer :: ncout
-      character(256) :: ofname
-      integer :: irefdate
-      integer :: itime
-      integer , dimension(5) :: idims
-      integer , dimension(8) :: ivar
+  real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
+  real(rkx) , pointer , dimension(:,:,:) :: q4
+  real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4
+  real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
+  real(rkx) , pointer , dimension(:,:,:) :: zud4 , zvd4
+  real(rkx) , pointer , dimension(:,:,:) :: tvud4 , tvvd4
 
-      real(4) , allocatable , dimension(:,:) :: ps4 , ts4
-      real(4) , allocatable , dimension(:,:,:) :: h4 , q4
-      real(4) , allocatable , dimension(:,:,:) :: t4 , u4 , v4
-      real(4) , allocatable , dimension(:,:,:) :: sulfate4
+  public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
+  public :: init_output , close_output , dispose_output , newfile , writef
 
-      public :: ps4 , ts4 , h4 , q4 , t4 , u4 , v4 , sulfate4
-      public :: init_output , free_output , newfile , writef
+  type(nc_output_stream) , save :: ncout
+  integer(ik4) , parameter :: nvar2d_static = 6
+  integer(ik4) :: nvar3d
+  integer(ik4) :: nvar2d
+  type(ncvariable2d_mixed) , allocatable , save , dimension(:) :: v2dvar_icbc
+  type(ncvariable3d_mixed) , allocatable , save , dimension(:) :: v3dvar_icbc
 
-      data ncout /-1/
+  contains
 
-      contains
+  subroutine init_output
+  implicit none
+    integer(ik4) :: ierr
+    call getmem2d(ps4,1,jx,1,iy,'mod_write:ps4')
+    call getmem2d(ts4,1,jx,1,iy,'mod_write:ts4')
+    call getmem3d(q4,1,jx,1,iy,1,kz,'mod_write:q4')
+    call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
+    call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
+    call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
+    if ( idynamic == 2 ) then
+      nvar3d = 6
+      nvar2d = 9
+      call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
+      call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
+      call getmem2d(topod,1,jx,1,iy,'mod_write:topod')
+      call getmem3d(pp4,1,jx,1,iy,1,kz,'mod_write:pp4')
+      call getmem3d(ww4,1,jx,1,iy,1,kz,'mod_write:ww4')
+      call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
+      call getmem3d(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
+    else if ( idynamic == 3 ) then
+      nvar2d = 8
+      nvar3d = 4
+      call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
+      call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
+      call getmem3d(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
+      call getmem3d(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
+      call getmem3d(tvud4,1,jx,1,iy,1,kz,'mod_write:tvud4')
+      call getmem3d(tvvd4,1,jx,1,iy,1,kz,'mod_write:tvvd4')
+    else
+      nvar2d = 8
+      nvar3d = 4
+    end if
+    allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
+    if ( ierr /= 0 ) then
+      write(stderr,*) 'Allocation error in init_output'
+      call die('icbc','Allocation error',1)
+    end if
+    v2dvar_icbc(1)%vname = 'xlon'
+    v2dvar_icbc(1)%vunit = 'degrees_east'
+    v2dvar_icbc(1)%long_name = 'Longitude on Cross Points'
+    v2dvar_icbc(1)%standard_name = 'longitude'
+    v2dvar_icbc(2)%vname = 'xlat'
+    v2dvar_icbc(2)%vunit = 'degrees_north'
+    v2dvar_icbc(2)%long_name = 'Latitude on Cross Points'
+    v2dvar_icbc(2)%standard_name = 'latitude'
+    v2dvar_icbc(3)%vname = 'dlon'
+    v2dvar_icbc(3)%vunit = 'degrees_east'
+    v2dvar_icbc(3)%long_name = 'Longitude on Dot Points'
+    v2dvar_icbc(3)%standard_name = 'longitude'
+    v2dvar_icbc(4)%vname = 'dlat'
+    v2dvar_icbc(4)%vunit = 'degrees_north'
+    v2dvar_icbc(4)%long_name = 'Latitude on Dot Points'
+    v2dvar_icbc(4)%standard_name = 'latitude'
+    v2dvar_icbc(5)%vname = 'mask'
+    v2dvar_icbc(5)%vunit = '1'
+    v2dvar_icbc(5)%long_name = 'Land Mask'
+    v2dvar_icbc(5)%standard_name = 'land_binary_mask'
+    v2dvar_icbc(6)%vname = 'topo'
+    v2dvar_icbc(6)%vunit = 'm'
+    v2dvar_icbc(6)%long_name = 'Surface Model Elevation'
+    v2dvar_icbc(6)%standard_name = 'surface_altitude'
+    v2dvar_icbc(7)%vname = 'ps'
+    v2dvar_icbc(7)%vunit = 'hPa'
+    v2dvar_icbc(7)%long_name = 'Surface pressure'
+    v2dvar_icbc(7)%standard_name = 'surface_air_pressure'
+    v2dvar_icbc(7)%lrecords = .true.
+    v2dvar_icbc(8)%vname = 'ts'
+    v2dvar_icbc(8)%vunit = 'K'
+    v2dvar_icbc(8)%long_name = 'Surface Temperature'
+    v2dvar_icbc(8)%standard_name = 'surface_temperature'
+    v2dvar_icbc(8)%lrecords = .true.
+    v3dvar_icbc(1)%vname = 't'
+    v3dvar_icbc(1)%vunit = 'K'
+    v3dvar_icbc(1)%long_name = 'Temperature'
+    v3dvar_icbc(1)%standard_name = 'air_temperature'
+    v3dvar_icbc(1)%lrecords = .true.
+    v3dvar_icbc(2)%vname = 'qv'
+    v3dvar_icbc(2)%vunit = 'kg kg-1'
+    v3dvar_icbc(2)%long_name = 'Water vapor mixing ratio'
+    v3dvar_icbc(2)%standard_name = 'humidity_mixing_ratio'
+    v3dvar_icbc(2)%lrecords = .true.
+    v3dvar_icbc(3)%vname = 'u'
+    v3dvar_icbc(3)%vunit = 'm s-1'
+    v3dvar_icbc(3)%long_name = 'Zonal component (westerly) of wind'
+    v3dvar_icbc(3)%standard_name = 'grid_eastward_wind'
+    v3dvar_icbc(3)%lrecords = .true.
+    v3dvar_icbc(4)%vname = 'v'
+    v3dvar_icbc(4)%vunit = 'm s-1'
+    v3dvar_icbc(4)%long_name = 'Meridional component (southerly) of wind'
+    v3dvar_icbc(4)%standard_name = 'grid_northward_wind'
+    v3dvar_icbc(4)%lrecords = .true.
+    if ( idynamic == 2 ) then
+      v2dvar_icbc(9)%vname = 'wtop'
+      v2dvar_icbc(9)%vunit = 'm s-1'
+      v2dvar_icbc(9)%long_name = 'Model top vertical velocity'
+      v2dvar_icbc(9)%standard_name = 'upward_air_velocity'
+      v2dvar_icbc(9)%lrecords = .true.
+      v3dvar_icbc(5)%vname = 'w'
+      v3dvar_icbc(5)%vunit = 'm s-1'
+      v3dvar_icbc(5)%long_name = 'Vertical wind'
+      v3dvar_icbc(5)%standard_name = 'upward_air_velocity'
+      v3dvar_icbc(5)%lrecords = .true.
+      v3dvar_icbc(6)%vname = 'pp'
+      v3dvar_icbc(6)%vunit = 'Pa'
+      v3dvar_icbc(6)%long_name = 'Pressure perturbation'
+      v3dvar_icbc(6)%standard_name = &
+        'difference_of_air_pressure_from_model_reference'
+      v3dvar_icbc(6)%lrecords = .true.
+    end if
+  end subroutine init_output
 
-      subroutine init_output
-      implicit none
-        allocate(ps4(jx,iy))
-        allocate(ts4(jx,iy))
-        allocate(h4(jx,iy,kz))
-        allocate(q4(jx,iy,kz))
-        allocate(t4(jx,iy,kz))
-        allocate(u4(jx,iy,kz))
-        allocate(v4(jx,iy,kz))
-        if ( ehso4) then
-          allocate(sulfate4(jx,iy,kz))
-        end if
-      end subroutine init_output
+  subroutine close_output
+    implicit none
+    call outstream_dispose(ncout)
+  end subroutine close_output
 
-      subroutine free_output
-        use netcdf
-        implicit none
-        integer :: istatus
-        deallocate(ps4)
-        deallocate(ts4)
-        deallocate(h4)
-        deallocate(q4)
-        deallocate(t4)
-        deallocate(u4)
-        deallocate(v4)
-        if ( ehso4) then
-          deallocate(sulfate4)
-        end if
-        if (ncout > 0) then
-          istatus = nf90_close(ncout)
-          call check_ok(istatus,('Error closing file '//trim(ofname)))
-        end if
-      end subroutine free_output
+  subroutine dispose_output
+    implicit none
+    deallocate(v2dvar_icbc,v3dvar_icbc)
+  end subroutine dispose_output
 
-      subroutine newfile(idate1)
-        use mod_date
-        use mod_grid , only : xlat , xlon , topogm , sigma2
-        use netcdf
-        implicit none
-        integer , intent(in) :: idate1
-        integer :: istatus
-        integer :: iyy , im , id , ih , i , j
-        integer , dimension(8) :: tvals
-        integer , dimension(2) :: izvar
-        integer , dimension(2) :: ivvar
-        integer , dimension(3) :: illvar
-        integer , dimension(4) :: x3ddim
-        real(4) , allocatable , dimension(:) :: yiy
-        real(4) , allocatable , dimension(:) :: xjx
-        character(64) :: csdate , cdum
-        character(256) :: history
-        real(4) , dimension(2) :: trlat
-        real(4) :: hptop
+  subroutine newfile(idate1)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate1
 
-        if (ncout > 0) then
-          istatus = nf90_close(ncout)
-          call check_ok(istatus,('Error closing file '//trim(ofname)))
-        end if
+    type(ncoutstream_params) :: opar
+    integer(ik4) :: ivar
+    character(len=256) :: ofname
 
-        write (ofname,99001) trim(dirglob), pthsep, trim(domname),    &
-              &     '_ICBC.', idate1, '.nc'
+    call outstream_dispose(ncout)
+    write (ofname,'(a,a,a,a,a,a)') trim(dirglob), pthsep, &
+      trim(domname), '_ICBC.', trim(tochar10(idate1)), '.nc'
+    opar%fname = ofname
+    opar%pname = 'icbc'
+    opar%zero_date = idate1
+    opar%l_bound = .true.
+    call outstream_setup(ncout,opar)
+    call outstream_addatt(ncout,ncattribute_string('global_atm_source',dattyp))
+    v2dvar_icbc(1)%rval => xlon
+    v2dvar_icbc(2)%rval => xlat
+    v2dvar_icbc(3)%rval => dlon
+    v2dvar_icbc(4)%rval => dlat
+    v2dvar_icbc(5)%rval => mask
+    v2dvar_icbc(6)%rval => topogm
+    v2dvar_icbc(7)%rval => ps4
+    v2dvar_icbc(8)%rval => ts4
+    v3dvar_icbc(1)%rval => t4
+    v3dvar_icbc(2)%rval => q4
+    v3dvar_icbc(3)%rval => u4
+    v3dvar_icbc(4)%rval => v4
+    if ( idynamic == 2 ) then
+      v2dvar_icbc(9)%rval => wtop4
+      v3dvar_icbc(5)%rval => ww4
+      v3dvar_icbc(6)%rval => pp4
+    end if
+    do ivar = 1 , nvar2d
+      call outstream_addvar(ncout,v2dvar_icbc(ivar))
+    end do
+    do ivar = 1 , nvar3d
+      call outstream_addvar(ncout,v3dvar_icbc(ivar))
+    end do
+    call outstream_enable(ncout,sigmah)
+    do ivar = 1 , nvar2d_static
+      call outstream_writevar(ncout,v2dvar_icbc(ivar))
+    end do
+    if ( idynamic == 2 ) then
+      call crs2dot(psd0,ps0,jx,iy,i_band,i_crm)
+      call crs2dot(topod,topogm,jx,iy,i_band,i_crm)
+    end if
+  end subroutine newfile
 
-        irefdate = idate1
-        itime = 1
+  subroutine writef(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4) :: ivar , k
+    real(rkx) :: dx
 
-        call split_idate(idate1,iyy,im,id,ih)
-        write (csdate,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a)') &
-                & iyy,'-',im,'-',id,' ',ih,':00:00 UTC'
+    if ( idynamic == 1 ) then
+      ps4 = (ps4+ptop)*d_10
+    end if
 
-#ifdef NETCDF4_HDF5
-        istatus = nf90_create(ofname, &
-                  ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), &
-                  ncout)
-#else
-        istatus = nf90_create(ofname, nf90_clobber, ncout)
-#endif
-        call check_ok(istatus,('Error creating file '//trim(ofname)))
+    if ( idynamic == 2 ) then
+      dx = ds * d_1000
+      call meandiv(u4,v4,pd4,msfd,sigmah,dsigma,jx,iy,kz,dx,jx-1,iy-1)
+      tv4 = t4 * (d_one + ep1 * q4)
+      do k = 1 , kz
+        call crs2dot(tvd4(:,:,k),tv4(:,:,k),jx,iy,i_band,i_crm)
+      end do
+      ! Compute nonhydrostatic vertical velocity (w) on full sigma levels.
+      call nhw(1,iy,1,jx,kz,sigmaf,dsigma,u4,v4,tv4, &
+               ps4,pd4,ps0,msfx,ww4,wtop4,dx,i_band,i_crm)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,u4,tvd4,pd4,psd0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,v4,tvd4,pd4,psd0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,t4,tv4,ps4,ps0,1)
+      call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,q4,tv4,ps4,ps0,2)
+      ! Recompute virtual temperature on non hydrostatic sigma.
+      tv4 = t4 * (d_one + ep1 * q4)
+      ! Compute the nonhydrostatic perturbation pressure field (pp).
+      call nhpp(1,iy,1,jx,kz,sigmaf,t4,pr0,t0,tv4,ps4,ps0,pp4)
+      ps4 = (ps4+ptop)*d_10
+    end if
 
-        istatus = nf90_put_att(ncout, nf90_global, 'title',  &
-                & 'ICTP Regional Climatic model V4 ICBC program output')
-        call check_ok(istatus,'Error adding global title')
-        istatus = nf90_put_att(ncout, nf90_global, 'institution', &
-                 & 'ICTP')
-        call check_ok(istatus,'Error adding global institution')
-        istatus = nf90_put_att(ncout, nf90_global, 'source', &
-                 & 'RegCM Model simulation SST output')
-        call check_ok(istatus,'Error adding global source')
-        istatus = nf90_put_att(ncout, nf90_global, 'Conventions', &
-                 & 'CF-1.4')
-        call check_ok(istatus,'Error adding global Conventions')
-        call date_and_time(values=tvals)
-        write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
-             tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
-             tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
-             ' : Created by RegCM icbc program'
-        istatus = nf90_put_att(ncout, nf90_global, 'history', history)
-        call check_ok(istatus,'Error adding global history')
-        istatus = nf90_put_att(ncout, nf90_global, 'references', &
-                 & 'http://eforge.escience-lab.org/gf/project/regcm')
-        call check_ok(istatus,'Error adding global references')
-        istatus = nf90_put_att(ncout, nf90_global, 'experiment', &
-                 & domname)
-        call check_ok(istatus,'Error adding global experiment')
-        istatus = nf90_put_att(ncout, nf90_global, 'projection', iproj)
-        call check_ok(istatus,'Error adding global projection')
-        istatus = nf90_put_att(ncout, nf90_global,   &
-                 &   'grid_size_in_meters', ds*1000.0)
-        call check_ok(istatus,'Error adding global gridsize')
-        istatus = nf90_put_att(ncout, nf90_global,   &
-                 &   'latitude_of_projection_origin', clat)
-        call check_ok(istatus,'Error adding global clat')
-        istatus = nf90_put_att(ncout, nf90_global,   &
-                 &   'longitude_of_projection_origin', clon)
-        call check_ok(istatus,'Error adding global clon')
-        if (iproj == 'ROTMER') then
-          istatus = nf90_put_att(ncout, nf90_global, &
-                   &   'grid_north_pole_latitude', plat)
-          call check_ok(istatus,'Error adding global plat')
-          istatus = nf90_put_att(ncout, nf90_global, &
-                   &   'grid_north_pole_longitude', plon)
-          call check_ok(istatus,'Error adding global plon')
-        else if (iproj == 'LAMCON') then
-          trlat(1) = real(truelatl)
-          trlat(2) = real(truelath)
-          istatus = nf90_put_att(ncout, nf90_global, &
-                   &   'standard_parallel', trlat)
-          call check_ok(istatus,'Error adding global truelat')
-        end if
-        istatus = nf90_put_att(ncout, nf90_global,  &
-                           &   'global_data_source', dattyp)
-        call check_ok(istatus,'Error adding global data_source')
-        if (dattyp == 'EH5OM') then
-          if (ehso4) then
-            cdum = 'Yes'
-          else
-            cdum = 'No'
-          end if
-          istatus = nf90_put_att(ncout, nf90_global,  &
-                             &   'sulfate_data_present', cdum)
-          call check_ok(istatus,'Error adding global sulfate_present')
-        end if
-        istatus = nf90_def_dim(ncout, 'iy', iy, idims(2))
-        call check_ok(istatus,'Error creating dimension iy')
-        istatus = nf90_def_dim(ncout, 'jx', jx, idims(1))
-        call check_ok(istatus,'Error creating dimension jx')
-        istatus = nf90_def_dim(ncout, 'time', nf90_unlimited, idims(3))
-        call check_ok(istatus,'Error creating dimension time')
-        istatus = nf90_def_dim(ncout, 'kz', kz, idims(4))
-        call check_ok(istatus,'Error creating dimension kz')
-        x3ddim(1) = idims(1)
-        x3ddim(2) = idims(2)
-        x3ddim(3) = idims(4)
-        x3ddim(4) = idims(3)
+    if ( idynamic == 3 ) then
+      ! Remember in this case ptop is zero!
+      ps4 = ps4*d_1000
+      pud4 = pud4*d_1000
+      pvd4 = pvd4*d_1000
+      tv4 = t4 * (d_one + ep1 * q4)
+      do k = 1 , kz
+        call ucrs2dot(tvud4(:,:,k),tv4(:,:,k),jx,iy,i_band)
+        call vcrs2dot(tvvd4(:,:,k),tv4(:,:,k),jx,iy,i_crm)
+        call ucrs2dot(zud4(:,:,k),z0(:,:,k),jx,iy,i_band)
+        call vcrs2dot(zvd4(:,:,k),z0(:,:,k),jx,iy,i_crm)
+      end do
+      call zita_interp(1,jx,1,iy,kz,u4,zud4,tvud4,sigmah,pud4)
+      call zita_interp(1,jx,1,iy,kz,v4,zvd4,tvvd4,sigmah,pvd4)
+      call zita_interp(1,jx,1,iy,kz,t4,z0,tv4,sigmah,ps4)
+      call zita_interp(1,jx,1,iy,kz,q4,z0,tv4,sigmah,ps4)
+      ps4 = ps4*d_r100
+    end if
+
+    call outstream_addrec(ncout,idate)
+    do ivar = nvar2d_static , nvar2d
+      call outstream_writevar(ncout,v2dvar_icbc(ivar))
+    end do
+    do ivar = 1 , nvar3d
+      call outstream_writevar(ncout,v3dvar_icbc(ivar))
+    end do
+  end subroutine writef
 !
-        istatus = nf90_def_var(ncout, 'sigma', nf90_float, idims(4),   &
-                            &  izvar(1))
-        call check_ok(istatus,'Error adding variable sigma')
-        istatus = nf90_put_att(ncout, izvar(1), 'standard_name',       &
-                            &  'atmosphere_sigma_coordinate')      
-        call check_ok(istatus,'Error adding sigma standard_name')
-        istatus = nf90_put_att(ncout, izvar(1), 'long_name',      &
-                            &  'Sigma at model layers')
-        call check_ok(istatus,'Error adding sigma long_name')
-        istatus = nf90_put_att(ncout, izvar(1), 'units', '1')
-        call check_ok(istatus,'Error adding sigma units')
-        istatus = nf90_put_att(ncout, izvar(1), 'axis', 'Z')
-        call check_ok(istatus,'Error adding sigma axis')
-        istatus = nf90_put_att(ncout, izvar(1), 'positive', 'down')
-        call check_ok(istatus,'Error adding sigma positive')
-        istatus = nf90_put_att(ncout, izvar(1), 'formula_terms',  &
-                     &         'sigma: sigma ps: ps ptop: ptop')
-        call check_ok(istatus,'Error adding sigma formula_terms')
-        istatus = nf90_def_var(ncout, 'ptop', nf90_float,         &
-                           &   varid=izvar(2))
-        call check_ok(istatus,'Error adding variable ptop')
-        istatus = nf90_put_att(ncout, izvar(2), 'standard_name',  &
-                            &  'air_pressure')
-        call check_ok(istatus,'Error adding ptop standard_name')
-        istatus = nf90_put_att(ncout, izvar(2), 'long_name',      &
-                            &  'Pressure at model top')
-        call check_ok(istatus,'Error adding ptop long_name')
-        istatus = nf90_put_att(ncout, izvar(2), 'units', 'hPa')
-        call check_ok(istatus,'Error adding ptop units')
-        istatus = nf90_def_var(ncout, 'iy', nf90_float, idims(2), &
-                            &  ivvar(1))
-        call check_ok(istatus,'Error adding variable iy')
-        istatus = nf90_put_att(ncout, ivvar(1), 'standard_name',  &
-                            &  'projection_y_coordinate')
-        call check_ok(istatus,'Error adding iy standard_name')
-        istatus = nf90_put_att(ncout, ivvar(1), 'long_name',      &
-                            &  'y-coordinate in Cartesian system')
-        call check_ok(istatus,'Error adding iy long_name')
-        istatus = nf90_put_att(ncout, ivvar(1), 'units', 'km')
-        call check_ok(istatus,'Error adding iy units')
-        istatus = nf90_def_var(ncout, 'jx', nf90_float, idims(1), &
-                            &  ivvar(2))
-        call check_ok(istatus,'Error adding variable jx')
-        istatus = nf90_put_att(ncout, ivvar(2), 'standard_name', &
-                            &  'projection_x_coordinate')
-        call check_ok(istatus,'Error adding jx standard_name')
-        istatus = nf90_put_att(ncout, ivvar(2), 'long_name',    &
-                            &  'x-coordinate in Cartesian system')
-        call check_ok(istatus,'Error adding jx long_name')
-        istatus = nf90_put_att(ncout, ivvar(2), 'units', 'km')
-        call check_ok(istatus,'Error adding jx units')
-        istatus = nf90_def_var(ncout, 'xlat', nf90_float, idims(1:2),  &
-                            &  illvar(1))
-        call check_ok(istatus,'Error adding variable xlat')
-        istatus = nf90_put_att(ncout, illvar(1), 'standard_name', &
-                            &  'latitude')
-        call check_ok(istatus,'Error adding xlat standard_name')
-        istatus = nf90_put_att(ncout, illvar(1), 'long_name',     &
-                            &  'Latitude at cross points')
-        call check_ok(istatus,'Error adding xlat long_name')
-        istatus = nf90_put_att(ncout, illvar(1), 'units',         &
-                            &  'degrees_north')
-        call check_ok(istatus,'Error adding xlat units')
-        istatus = nf90_def_var(ncout, 'xlon', nf90_float, idims(1:2),  &
-                            &  illvar(2))
-        call check_ok(istatus,'Error adding variable xlon')
-        istatus = nf90_put_att(ncout, illvar(2), 'standard_name', &
-                            &  'longitude')
-        call check_ok(istatus,'Error adding xlon standard_name')
-        istatus = nf90_put_att(ncout, illvar(2), 'long_name',     &
-                            &  'Longitude at cross points')
-        call check_ok(istatus,'Error adding xlon long_name')
-        istatus = nf90_put_att(ncout, illvar(2), 'units',         &
-                            &  'degrees_east')
-        call check_ok(istatus,'Error adding xlon units')
-        istatus = nf90_def_var(ncout, 'topo', nf90_float, idims(1:2),  &
-                            &  illvar(3))
-        call check_ok(istatus,'Error adding variable topo')
-        istatus = nf90_put_att(ncout, illvar(3), 'standard_name', &
-                            &  'surface_altitude')
-        call check_ok(istatus,'Error adding topo standard_name')
-        istatus = nf90_put_att(ncout, illvar(3), 'long_name',     &
-                            &  'Domain surface elevation')
-        call check_ok(istatus,'Error adding topo long_name')
-        istatus = nf90_put_att(ncout, illvar(3), 'units',         &
-                            &  'm')
-        call check_ok(istatus,'Error adding topo units')
-        istatus = nf90_put_att(ncout, illvar(3), 'coordinates',          &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding topo coordinates')
-        istatus = nf90_def_var(ncout, 'time', nf90_double, idims(3:3),  &
-                            &  ivar(1))
-        call check_ok(istatus,'Error adding variable time')
-        istatus = nf90_put_att(ncout, ivar(1), 'units', &
-                       &   'hours since '//csdate)
-        call check_ok(istatus,'Error adding time units')
-        istatus = nf90_def_var(ncout, 'ps', nf90_float, idims(1:3),  &
-                            &  ivar(2))
-        call check_ok(istatus,'Error adding variable ps')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncout, ivar(2), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on ps')
-#endif
-        istatus = nf90_put_att(ncout, ivar(2), 'standard_name', &
-                            &  'surface_air_pressure')
-        call check_ok(istatus,'Error adding ps standard_name')
-        istatus = nf90_put_att(ncout, ivar(2), 'long_name',     &
-                            &  'Surface pressure')
-        call check_ok(istatus,'Error adding ps long_name')
-        istatus = nf90_put_att(ncout, ivar(2), 'units', 'hPa')
-        call check_ok(istatus,'Error adding ps units')
-        istatus = nf90_put_att(ncout, ivar(2), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding ps coordinates')
-        istatus = nf90_def_var(ncout, 'ts', nf90_float, idims(1:3),  &
-                            &  ivar(3))
-        call check_ok(istatus,'Error adding variable ts')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncout, ivar(3), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on ts')
-#endif
-        istatus = nf90_put_att(ncout, ivar(3), 'standard_name', &
-                            &  'surface_temperature')
-        call check_ok(istatus,'Error adding ts standard_name')
-        istatus = nf90_put_att(ncout, ivar(3), 'long_name',     &
-                            &  'Surface Temperature')
-        call check_ok(istatus,'Error adding ts long_name')
-        istatus = nf90_put_att(ncout, ivar(3), 'units', 'K')
-        call check_ok(istatus,'Error adding ts units')
-        istatus = nf90_put_att(ncout, ivar(3), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding ts coordinates')
-        istatus = nf90_def_var(ncout, 'u', nf90_float, x3ddim,  &
-                            &  ivar(4))
-        call check_ok(istatus,'Error adding variable u')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncout, ivar(4), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on u')
-#endif
-        istatus = nf90_put_att(ncout, ivar(4), 'standard_name', &
-                            &  'eastward_wind')
-        call check_ok(istatus,'Error adding u standard_name')
-        istatus = nf90_put_att(ncout, ivar(4), 'long_name',     &
-                            &  'U component (westerly) of wind')
-        call check_ok(istatus,'Error adding u long_name')
-        istatus = nf90_put_att(ncout, ivar(4), 'units', 'm s-1')
-        call check_ok(istatus,'Error adding u units')
-        istatus = nf90_put_att(ncout, ivar(4), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding u coordinates')
-        istatus = nf90_def_var(ncout, 'v', nf90_float, x3ddim,  &
-                            &  ivar(5))
-        call check_ok(istatus,'Error adding variable v')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncout, ivar(5), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on v')
-#endif
-        istatus = nf90_put_att(ncout, ivar(5), 'standard_name', &
-                            &  'northward_wind')
-        call check_ok(istatus,'Error adding v standard_name')
-        istatus = nf90_put_att(ncout, ivar(5), 'long_name',     &
-                            &  'V component (southerly) of wind')
-        call check_ok(istatus,'Error adding v long_name')
-        istatus = nf90_put_att(ncout, ivar(5), 'units', 'm s-1')
-        call check_ok(istatus,'Error adding v units')
-        istatus = nf90_put_att(ncout, ivar(5), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding v coordinates')
-        istatus = nf90_def_var(ncout, 't', nf90_float, x3ddim,  &
-                            &  ivar(6))
-        call check_ok(istatus,'Error adding variable t')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncout, ivar(6), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on t')
-#endif
-        istatus = nf90_put_att(ncout, ivar(6), 'standard_name', &
-                            &  'air_temperature')
-        call check_ok(istatus,'Error adding t standard_name')
-        istatus = nf90_put_att(ncout, ivar(6), 'long_name',     &
-                            &  'Temperature')
-        call check_ok(istatus,'Error adding t long_name')
-        istatus = nf90_put_att(ncout, ivar(6), 'units', 'K')
-        call check_ok(istatus,'Error adding t units')
-        istatus = nf90_put_att(ncout, ivar(6), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding t coordinates')
-        istatus = nf90_def_var(ncout, 'qv', nf90_float, x3ddim,  &
-                            &  ivar(7))
-        call check_ok(istatus,'Error adding variable qv')
-#ifdef NETCDF4_HDF5
-        istatus = nf90_def_var_deflate(ncout, ivar(7), 1, 1, 9)
-        call check_ok(istatus,'Error setting compression on qv')
-#endif
-        istatus = nf90_put_att(ncout, ivar(7), 'standard_name', &
-                            &  'humidity_mixing_ratio')
-        call check_ok(istatus,'Error adding qv standard_name')
-        istatus = nf90_put_att(ncout, ivar(7), 'long_name',     &
-                            &  'Water vapor mixing ratio')
-        call check_ok(istatus,'Error adding qv long_name')
-        istatus = nf90_put_att(ncout, ivar(7), 'units', 'kg kg-1')
-        call check_ok(istatus,'Error adding qv units')
-        istatus = nf90_put_att(ncout, ivar(7), 'coordinates', &
-                            &  'xlon xlat')
-        call check_ok(istatus,'Error adding qv coordinates')
-        if ( ehso4) then
-          istatus = nf90_def_var(ncout, 'so4', nf90_float, x3ddim, &
-                              &  ivar(8))
-          call check_ok(istatus,'Error adding variable so4')
-#ifdef NETCDF4_HDF5
-          istatus = nf90_def_var_deflate(ncout, ivar(8), 1, 1, 9)
-          call check_ok(istatus,'Error setting compression on qv')
-#endif
-          istatus = nf90_put_att(ncout, ivar(8), 'standard_name', &
-                              &  'atmosphere_sulfate_content')
-          call check_ok(istatus,'Error adding so4 standard_name')
-          istatus = nf90_put_att(ncout, ivar(8), 'long_name',     &
-                              &  'Sulfate')
-          call check_ok(istatus,'Error adding so4 long_name')
-          istatus = nf90_put_att(ncout, ivar(8), 'units', 'kg m-2')
-          call check_ok(istatus,'Error adding so4 units')
-          istatus = nf90_put_att(ncout, ivar(8), 'coordinates', &
-                              &  'xlon xlat')
-          call check_ok(istatus,'Error adding so4 coordinates')
-        end if
-!
-        istatus = nf90_enddef(ncout)
-        call check_ok(istatus,'Error End Definitions NetCDF output')
-!
-        istatus = nf90_put_var(ncout, izvar(1), sigma2)
-        call check_ok(istatus,'Error variable sigma write')
-        hptop = real(ptop*10.0D0)
-        istatus = nf90_put_var(ncout, izvar(2), hptop)
-        call check_ok(istatus,'Error variable ptop write')
-        allocate(yiy(iy))
-        allocate(xjx(jx))
-        yiy(1) = -real((dble(iy-1)/2.0D0) * ds)
-        xjx(1) = -real((dble(jx-1)/2.0D0) * ds)
-        do i = 2 , iy
-          yiy(i) = real(dble(yiy(i-1))+ds)
-        end do
-        do j = 2 , jx
-          xjx(j) = real(dble(xjx(j-1))+ds)
-        end do
-        istatus = nf90_put_var(ncout, ivvar(1), yiy)
-        call check_ok(istatus,'Error variable iy write')
-        istatus = nf90_put_var(ncout, ivvar(2), xjx)
-        call check_ok(istatus,'Error variable jx write')
-        deallocate(yiy)
-        deallocate(xjx)
-        istatus = nf90_put_var(ncout, illvar(1), xlat)
-        call check_ok(istatus,'Error variable xlat write')
-        istatus = nf90_put_var(ncout, illvar(2), xlon)
-        call check_ok(istatus,'Error variable xlon write')
-        istatus = nf90_put_var(ncout, illvar(3), topogm)
-        call check_ok(istatus,'Error variable xlon write')
-
-99001 format (a,a,a,a,i10,a)
-
-      end subroutine newfile
-
-      subroutine writef(idate)
-        use netcdf
-        use mod_date
-        implicit none
-        integer , intent(in) :: idate
-        integer :: istatus
-        integer , dimension(1) :: istart1 , icount1
-        integer , dimension(4) :: istart , icount
-        real(8) , dimension(1) :: xdate
-!
-        istart1(1) = itime
-        icount1(1) = 1
-        xdate(1) = dble(idatediff(idate,irefdate))
-        istatus = nf90_put_var(ncout, ivar(1), xdate, istart1, icount1)
-        call check_ok(istatus,'Error variable time write')
-        istart(3) = itime
-        istart(2) = 1
-        istart(1) = 1
-        icount(3) = 1
-        icount(2) = iy
-        icount(1) = jx
-        ps4 = (ps4+real(ptop))*10.0
-        istatus = nf90_put_var(ncout, ivar(2), ps4, istart(1:3), &
-                               icount(1:3))
-        call check_ok(istatus,'Error variable ps write')
-        istatus = nf90_put_var(ncout, ivar(3), ts4, istart(1:3), &
-                               icount(1:3))
-        call check_ok(istatus,'Error variable ts write')
-        istart(4) = itime
-        istart(3) = 1
-        istart(2) = 1
-        istart(1) = 1
-        icount(4) = 1
-        icount(3) = kz
-        icount(2) = iy
-        icount(1) = jx
-        istatus = nf90_put_var(ncout, ivar(4), u4, istart, icount)
-        call check_ok(istatus,'Error variable u write')
-        istatus = nf90_put_var(ncout, ivar(5), v4, istart, icount)
-        call check_ok(istatus,'Error variable v write')
-        istatus = nf90_put_var(ncout, ivar(6), t4, istart, icount)
-        call check_ok(istatus,'Error variable t write')
-        istatus = nf90_put_var(ncout, ivar(7), q4, istart, icount)
-        call check_ok(istatus,'Error variable qv write')
-        if ( ehso4) then
-          istatus = nf90_put_var(ncout, ivar(8), sulfate4,  &
-                            &    istart, icount)
-          call check_ok(istatus,'Error variable so4 write')
-        end if
-        if ( debug_level > 2 ) then
-          istatus = nf90_sync(ncout)
-          call check_ok(istatus,'Error sync output file')
-        end if
-        itime = itime + 1
-!
-      end subroutine writef
-!
-      subroutine check_ok(ierr,message)
-        use netcdf
-        implicit none
-        integer , intent(in) :: ierr
-        character(*) :: message
-        if (ierr /= nf90_noerr) then
-          write (6,*) message
-          write (6,*) nf90_strerror(ierr)
-          stop
-        end if
-      end subroutine check_ok
-!
-      end module mod_write
+end module mod_write
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

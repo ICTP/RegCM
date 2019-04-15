@@ -1,13 +1,34 @@
 %
 % This file is part of ICTP RegCM model.
-% Copyright (C) 2011 ICTP Trieste
+% Copyright (C) 2012 ICTP Trieste
 % See the file COPYING for copying conditions.
 %
 \documentclass[10pt,twoside,a4paper]{report}
+\usepackage{amsmath} %%Added by TA OBrien for UW equation sets
+\usepackage{boxedminipage}
+\usepackage{pdflscape}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{acronym}
+\usepackage{epsfig}
+\usepackage{rotating}
+\usepackage{pslatex}
 \usepackage{natbib}
 \usepackage{graphicx}
-\usepackage{fancyvrb}
+\usepackage{graphics}
 \usepackage{wrapfig}
+\usepackage{fancyvrb}
+
+\linespread{1.05}
+\topmargin=-10pt
+\textwidth=16cm
+\textheight=23.35cm
+\oddsidemargin=0.0cm
+\evensidemargin=0.0cm
+
+%% pretolerance stops words from breaking
+\pretolerance=10000
+
 
 \citestyle{apalike}
 
@@ -15,11 +36,9 @@
 
 \begin{titlepage}
 
-\begin{wrapfigure}{l}{4cm}
+\begin{wrapfigure}{l}{6cm}
 \vspace{-35pt}
-\begin{center}
 \includegraphics{ICTP_logo}
-\end{center}
 \end{wrapfigure}
 
 \noindent {\bf The Abdus Salam }\\
@@ -29,19 +48,21 @@
 
 \vspace{3cm}
 
+\begin{boxedminipage}{\textwidth}
 \begin{center}
 \noindent{{\Large
-  {\bf Regional Climatic Model RegCM User's Guide} \\
-  {\bf Version 4.1} \\
-  {\bf Trieste, Italy - May 2011}
+  {\bf Regional Climatic Model RegCM\\User's Guide} \\
+  {\bf Version 4.6} \\ \vspace{0.25cm}
+  {\bf Trieste, Italy \today}
 }}
 \end{center}
 \begin{center}
 \noindent{\small{
-\bf Filippo Giorgi, Nellie Elguindi, \\
-    Stefano Cozzini and Graziano Giuliani
-}} \\
+\bf Filippo Giorgi, Fabien Solmon, Graziano Giuliani
+}}
+\vspace{0.5cm}
 \end{center}
+\end{boxedminipage}
 
 \end{titlepage}
 
@@ -54,27 +75,32 @@
 \chapter{Release Notes}
 \input{ReleaseNotes}
 
-\chapter{Obtain the model}
+\chapter{Obtaining the model}
 \input{ObtainCode}
 
-\chapter{Installing procedure}
+\chapter{Installation procedure}
 \label{install}
 \input{Install}
 \newpage
 
-\chapter{Access global datasets}
+\chapter{Accessing global datasets}
 \label{obdata}
 \input{ObtainData}
 \newpage
 
-\chapter{Run a test simulation using the model}
+\chapter{Running a test simulation using the model}
 \label{tutorial}
 \input{TestRun}
 \newpage
 
-\chapter{Localize the model and run your simulation}
+\chapter{Localizing the model and running your simulation}
 \label{advanced}
 \input{AdvancedConfig}
+\newpage
+
+\chapter{How To}
+\label{howto}
+\input{HowTo}
 \newpage
 
 \chapter{Postprocessing tools}
