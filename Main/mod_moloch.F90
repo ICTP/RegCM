@@ -105,6 +105,7 @@ module mod_moloch
   subroutine moloch
     implicit none
     integer(ik4) :: jadv , jsound
+    integer(ik4) :: i , j , k
     real(rkx) :: zuh , zvh
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
@@ -139,7 +140,7 @@ module mod_moloch
             zvh = mo_atm%v(j,i,kz)*mddom%hy(j,i) + &
                   mo_atm%u(j+1,i,kz)*mddom%hy(j+1,i)
             mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
-            s(j,i,kz) = -w(j,i,kz)
+            s(j,i,kz) = -mo_atm%w(j,i,kz)
           end do
         end do
 
