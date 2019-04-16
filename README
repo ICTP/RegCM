@@ -1,4 +1,29 @@
- This is regcm version 4.8 realease candidate
+ This is ICTP Regional Climate Model
 
- To know more about the project visit:  http://gforge.ictp.it/gf/project/regcm
+ The Regional Climate Model system RegCM, originally developed at the National
+ Center for Atmospheric Research (NCAR), is maintained in the Earth System
+ Physics (ESP) section of the ICTP. The first version of the model, RegCM1,
+ was developed in 1989 and since then it has undergone major updates in 1993
+ (RegCM2), 1999 (RegCM2.5), 2006 (RegCM3) and most recently 2010 (RegCM4).
+ The latest version of the model, RegCM4, is now fully supported by the ESP,
+ while previous versions are no longer available. This version includes major
+ upgrades in the structure of the code and its pre- and post- processors,
+ along with the inclusion of some new physics parameterizations.
+ The model is flexible, portable and easy to use. It can be applied to any
+ region of the World, with grid spacing of up to about 3 km,  and for a wide
+ range of studies, from process studies to paleoclimate and future climate
+ simulation.
 
+ ESP also supports the Regional Climate Research Network, or RegCNET. The
+ objective of RegCNET is to expand and strengthen the network of model users
+ and to develop collaborative research projects across the network to improve
+ the understanding of climate change at the regional scale.
+ The RegCNET also provides a forum for current and future model users to
+ discuss relevant issues, exchange research experiences and formulate needs
+ and priorities for further model development and dissemination.
+
+ https://lists.ictp.it/mailman/listinfo/regcnet
+
+ Model input data at:
+
+ http://clima-dods.ictp.it/regcm4
