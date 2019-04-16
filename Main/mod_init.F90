@@ -73,8 +73,10 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens , zb , zdelta
+    real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens
+    real(rkx) :: zb , zdelta , zzi , zfilt
     real(rkx) , dimension(kzp1) :: ozprnt
+    integer(ik4) :: ntop
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
     integer(ik4) , save :: idindx = 0
@@ -166,6 +168,7 @@ module mod_init
             end do
           end do
         end do
+        call exchange(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         mo_atm%fmzf(:,:,1) = 0.0_rkx
         do k = 2 , kzp1
           do i = ice1 , ice2
@@ -238,6 +241,20 @@ module mod_init
             end do
           end do
         end do
+
+        ! Sponge layer at the top of the atmosphere
+
+        ntop = int(0.08_rkx * real(kz,rkx))
+        zfilt = (kzp1-ntop+3)*mo_dz
+        do k = 1 , kz
+          if ( k > ntop+2 ) then
+            ffilt(k) = d_zero
+          else
+            zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
+            ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
+          end if
+        end do
+
       end if
 
       do i = ici1 , ici2

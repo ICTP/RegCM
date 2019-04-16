@@ -2674,16 +2674,18 @@ module mod_params
           end do
         end do
         do i = ice1 , ice2
-          do j = jdi1 , jdi2
+          do j = jde1 , jdi2
             mddom%hx(j,i) = mddom%ht(j+1,i)-mddom%ht(j,i) * &
                      mddom%fmyu(j,i)*rdx*regrav
           end do
         end do
-        do i = idi1 , idi2
+        call exchange_lr(mddom%hx,1,jde1,jdi2,ice1,ice2)
+        do i = idi1 , ide2
           do j = jce1 , jce2
             mddom%hy(j,i) = mddom%ht(j,i)-mddom%ht(j,i-1)*rdx*regrav
           end do
         end do
+        call exchange_bt(mddom%hy,1,jce1,jce2,idi1,ide2)
       end subroutine compute_moloch_static
 
       recursive integer function gcd_rec(u,v) result(gcd)

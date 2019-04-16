@@ -192,7 +192,7 @@ module mod_runparams
   real(rkx) , pointer , dimension(:) , public :: dtau , dtsplit
   real(rkx) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
   real(rkx) , pointer , dimension(:) , public :: sigma , zita , zitah
-  real(rkx) , pointer , dimension(:) , public :: ak , bk
+  real(rkx) , pointer , dimension(:) , public :: ffilt , ak , bk
   real(rkx) , pointer , dimension(:,:) , public :: twt
 
   real(rkx) , public :: clfrcv ! Cloud fractional cover for convective precip
@@ -524,6 +524,7 @@ module mod_runparams
       call getmem1d(zita,1,kzp1,'mod_runparams:zita')
       call getmem1d(hsigma,1,kz,'mod_runparams:hsigma')
       call getmem1d(zitah,1,kz,'mod_runparams:zitah')
+      call getmem1d(ffilt,1,kz,'mod_runparams:ffilt')
       call getmem1d(ak,1,kz,'mod_runparams:ak')
       call getmem1d(bk,1,kz,'mod_runparams:bk')
     end if

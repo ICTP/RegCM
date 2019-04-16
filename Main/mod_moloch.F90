@@ -54,10 +54,12 @@ module mod_moloch
   private
 
   real(rkx) , pointer , dimension(:,:,:) :: s
+  real(rkx) , pointer , dimension(:,:,:) :: deltaw
   real(rkx) , pointer , dimension(:,:,:) :: wx
   real(rkx) , pointer , dimension(:,:,:) :: tkex
   real(rkx) , pointer , dimension(:,:,:) :: wz
   real(rkx) , pointer , dimension(:,:,:) :: p0
+  real(rkx) , pointer , dimension(:,:,:) :: zdiv2
   real(rkx) , pointer , dimension(:,:) :: zpby
   real(rkx) , pointer , dimension(:,:) :: zpbw
 
@@ -82,8 +84,10 @@ module mod_moloch
     implicit none
     call getmem3d(pf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:pf')
     call getmem3d(tf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:tf')
+    call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
     call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
+    call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
@@ -107,8 +111,6 @@ module mod_moloch
   subroutine moloch
     implicit none
     integer(ik4) :: jadv , jsound
-    integer(ik4) :: i , j , k
-    real(rkx) :: zuh , zvh
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
     integer(ik4) , save :: idindx = 0
@@ -134,7 +136,7 @@ module mod_moloch
 
       call sound
 
-      call advection
+      !call advection
 
     end do
 
@@ -205,11 +207,13 @@ module mod_moloch
         integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
         integer(ik4) :: j , i
         real(rkx) , dimension(j1:j2,i1:i2) :: p2
+
         call exchange(p,1,j1,j2,i1,i2)
+
         do i = i1 , i2
           do j = j1 , j2
             p2(j,i) = 0.125_rkx * (p(j,i-1)+p(j-1,i)+p(j+1,i)+p(j,i+1)) - &
-                0.5_rkx*p(j,i)
+                      0.5_rkx*p(j,i)
           end do
         end do
         do i = i1 , i2
@@ -219,14 +223,16 @@ module mod_moloch
         end do
       end subroutine filt2d
 
-      subroutine filt3d(p,anu2,i1,i2,j1,j2)
+      subroutine filt3d(p,anu2,j1,j2,i1,i2)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: p
         real(rkx) , intent(in) :: anu2
         integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
         integer(ik4) :: j , i , k
         real(rkx) , dimension(j1:j2,i1:i2) :: p2
+
         call exchange(p,1,j1,j2,i1,i2,1,kz)
+
         do k = 1  , kz
           do i = i1 , i2
             do j = j1 , j2
@@ -246,7 +252,10 @@ module mod_moloch
       subroutine sound
         implicit none
         integer(ik4) :: i , j , k
-        real(rkx) :: zcx , zcy , zcyp
+        real(rkx) :: zuh , zvh , zcx , zcy , zcyp
+        real(rkx) :: zrfmzu , zrfmzum , zrfmzv , zrfmzvp
+        real(rkx) :: zup , zum , zvp , zvm , zdiv
+        real(rkx) :: zrom1w , zwexpl , zp , zm
 
         !  sound waves
 
@@ -261,9 +270,9 @@ module mod_moloch
               zuh = mo_atm%u(j,i,kz)*mddom%hx(j,i) + &
                     mo_atm%u(j-1,i,kz)*mddom%hx(j-1,i)
               zvh = mo_atm%v(j,i,kz)*mddom%hy(j,i) + &
-                    mo_atm%u(j+1,i,kz)*mddom%hy(j+1,i)
+                    mo_atm%v(j,i+1,kz)*mddom%hy(j,i+1)
               mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
-              s(j,i,kz) = -mo_atm%w(j,i,kz)
+              s(j,i,kzp1) = -mo_atm%w(j,i,kz)
             end do
           end do
 
@@ -274,7 +283,7 @@ module mod_moloch
                       (mo_atm%u(j-1,i,k+1)+mo_atm%u(j-1,i,k))*mddom%hx(j-1,i)
                 zvh = (mo_atm%v(j,i,k+1)+mo_atm%v(j,i,k))*mddom%hy(j,i) + &
                       (mo_atm%v(j,i+1,k+1)+mo_atm%v(j,i+1,k))*mddom%hy(j,i+1)
-                s(j,i,k) = -0.25_rkx*(zuh+zvh)*gzita(zitah(k))
+                s(j,i,k+1) = -0.25_rkx*(zuh+zvh)*gzita(zitah(k))
               end do
             end do
           end do
@@ -287,10 +296,41 @@ module mod_moloch
                 zcx = zdtrdx*mddom%fmyu(j,i)
                 zcy = zdtrdy*mddom%fmyu(j,i)*mddom%clv(j,i)
                 zcyp= zdtrdy*mddom%fmyu(j,i)*mddom%clv(j,i+1)
+                zrfmzu = d_two/(mo_atm%fmz(j,i,k)+mo_atm%fmz(j+1,i,k))
+                zrfmzum = d_two/(mo_atm%fmz(j,i,k)+mo_atm%fmz(j-1,i,k))
+                zrfmzv = d_two/(mo_atm%fmz(j,i,k)+mo_atm%fmz(j,i-1,k))
+                zrfmzvp = d_two/(mo_atm%fmz(j,i,k)+mo_atm%fmz(j,i+1,k))
+                zup = mo_atm%u(j,i,k) * zrfmzu
+                zum = mo_atm%u(j-1,i,k) * zrfmzum
+                zvp = mo_atm%v(j,i+1,k) * zrfmzvp
+                zvm = mo_atm%v(j,i,k) * zrfmzv
+                zdiv = (zup-zum)*zcx +zvp*zcyp -zvm*zcy + &
+                    zdtrdz*(s(j,i,k)-s(j,i,k+1))
+                zdiv2(j,i,k) = zdiv*mo_atm%fmz(j,i,k)
               end do
             end do
           end do
-        end do
+
+          call filt3d(zdiv2,0.8_rkx,jci1,jci2,ici1,ici2)
+
+          ! new w (implicit scheme)
+
+          do k = 1 , kz-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                deltaw(j,i,k) = - mo_atm%w(j,i,k)
+                ! explicit w:
+                !    it must be consistent with the initialization of pai
+                zrom1w = d_half * cpd * mo_atm%fmzf(j,i,k) * &
+                  (mo_atm%tetav(j,i,k+1)+mo_atm%tetav(j,i,k))
+                zrom1w = zrom1w - cpd * mo_atm%w(j,i,k) * &
+                  mo_atm%fmzf(j,i,k)**2 * jsound * zdtrdz * &
+                  (mo_atm%tetav(j,i,k+1)+mo_atm%tetav(j,i,k)) !! GW
+              end do
+            end do
+          end do
+
+        end do ! sound loop
 
       end subroutine sound
 
