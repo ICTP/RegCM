@@ -20,7 +20,7 @@
 all : version
 
 version :
-	@sh checkver
+	@$(shell [ -f tag ] && cat tag > $@ || \
+            git describe --abbrev=4 --dirty --always --tags > $@)
 
 SUBDIRS = external Share PreProc Main PostProc
-

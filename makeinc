@@ -23,10 +23,14 @@ else
   DEFINE = -D
 endif
 
-$(REGCM_ROOT)/version :
-	@cd $(REGCM_ROOT) && sh checkver
+tag := $(REGCM_ROOT)/tag
 
-GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+$(REGCM_ROOT)/version :
+	@cd $(REGCM_ROOT) && $(shell \
+            [ -f $(tag) ] && cat $(tag) > $@ || \
+            git describe --abbrev=4 --dirty --always --tags > $@)
+
+GIT_VERSION := $(shell cat $(REGCM_ROOT)/version)
 
 GITVER := -DGIT_VER=\"$(GIT_VERSION)\"
 
