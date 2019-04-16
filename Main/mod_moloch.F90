@@ -72,6 +72,8 @@ module mod_moloch
   integer(ik4) :: nadv = 1
   integer(ik4) :: nsound = 1
 
+  real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
+
   contains
 
 #include <cpmf.inc>
@@ -113,6 +115,11 @@ module mod_moloch
     call time_begin(subroutine_name,idindx)
 #endif
 
+    zdtrdx = dt/dx
+    zdtrdy = dt/dx
+    zdtrdz = dt/mo_dz
+    zcs2   = zdtrdz**2*rdrcv
+
     call boundary
 
     mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
@@ -125,30 +132,7 @@ module mod_moloch
 
       call exchange(mo_atm%tetav,2,jce1,jce2,ice1,ice2,1,kz)
 
-      !  sound waves
-
-      do jsound = 1 , nsound
-
-        ! partial definition of the generalized vertical velocity
-        call exchange_lr(mo_atm%u,2,jde1,jde2,ice1,ice2,1,kz)
-        call exchange_bt(mo_atm%v,2,jce1,jce2,ide1,ide2,1,kz)
-
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            zuh = mo_atm%u(j,i,kz)*mddom%hx(j,i) + &
-                  mo_atm%u(j-1,i,kz)*mddom%hx(j-1,i)
-            zvh = mo_atm%v(j,i,kz)*mddom%hy(j,i) + &
-                  mo_atm%u(j+1,i,kz)*mddom%hy(j+1,i)
-            mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
-            s(j,i,kz) = -mo_atm%w(j,i,kz)
-          end do
-        end do
-
-        do k = kz-1, 1 , -1
-
-        end do
-
-      end do
+      call sound
 
       call advection
 
@@ -259,6 +243,57 @@ module mod_moloch
         end do
       end subroutine filt3d
 
+      subroutine sound
+        implicit none
+        integer(ik4) :: i , j , k
+        real(rkx) :: zcx , zcy , zcyp
+
+        !  sound waves
+
+        do jsound = 1 , nsound
+
+          ! partial definition of the generalized vertical velocity
+          call exchange_lr(mo_atm%u,2,jde1,jde2,ice1,ice2,1,kz)
+          call exchange_bt(mo_atm%v,2,jce1,jce2,ide1,ide2,1,kz)
+
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              zuh = mo_atm%u(j,i,kz)*mddom%hx(j,i) + &
+                    mo_atm%u(j-1,i,kz)*mddom%hx(j-1,i)
+              zvh = mo_atm%v(j,i,kz)*mddom%hy(j,i) + &
+                    mo_atm%u(j+1,i,kz)*mddom%hy(j+1,i)
+              mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
+              s(j,i,kz) = -mo_atm%w(j,i,kz)
+            end do
+          end do
+
+          do k = kz-1, 1 , -1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zuh = (mo_atm%u(j,i,k+1)+mo_atm%u(j,i,k))*mddom%hx(j,i) + &
+                      (mo_atm%u(j-1,i,k+1)+mo_atm%u(j-1,i,k))*mddom%hx(j-1,i)
+                zvh = (mo_atm%v(j,i,k+1)+mo_atm%v(j,i,k))*mddom%hy(j,i) + &
+                      (mo_atm%v(j,i+1,k+1)+mo_atm%v(j,i+1,k))*mddom%hy(j,i+1)
+                s(j,i,k) = -0.25_rkx*(zuh+zvh)*gzita(zitah(k))
+              end do
+            end do
+          end do
+
+          ! part of divergence (except w contribution) put in zdiv2
+
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zcx = zdtrdx*mddom%fmyu(j,i)
+                zcy = zdtrdy*mddom%fmyu(j,i)*mddom%clv(j,i)
+                zcyp= zdtrdy*mddom%fmyu(j,i)*mddom%clv(j,i+1)
+              end do
+            end do
+          end do
+        end do
+
+      end subroutine sound
+
       subroutine advection
         implicit none
         integer(ik4) :: i , j , k , n
@@ -274,30 +309,22 @@ module mod_moloch
           call wstagtox(mo_atm%tke,tkex)
         end if
 
-        call wafone(mo_atm%tetav,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                    mddom%clv,mddom%fmyu)
-        call wafone(mo_atm%pai,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                    mddom%clv,mddom%fmyu)
-        call wafone(mo_atm%ux,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                    mddom%clv,mddom%fmyu)
-        call wafone(mo_atm%vx,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                    mddom%clv,mddom%fmyu)
-        call wafone(wx,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                    mddom%clv,mddom%fmyu)
+        call wafone(mo_atm%tetav,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+        call wafone(mo_atm%pai,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+        call wafone(mo_atm%ux,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+        call wafone(mo_atm%vx,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+        call wafone(wx,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
         do n = 1 , nqx
           call assignpnt(mo_atm%qx,ptr,n)
-          call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                      mddom%clv,mddom%fmyu)
+          call wafone(ptr,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
         end do
         if ( ibltyp == 2 ) then
-          call wafone(tkex,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                      mddom%clv,mddom%fmyu)
+          call wafone(tkex,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
         end if
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(mo_atm%trac,ptr,n)
-            call wafone(ptr,mo_atm%u,mo_atm%v,dx,dx,mo_dz,dt, &
-                        mddom%clv,mddom%fmyu)
+            call wafone(ptr,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
           end do
         end if
 
@@ -405,21 +432,19 @@ module mod_moloch
         end if
       end subroutine advection
 
-      subroutine wafone(p,u,v,dx,dy,dz,dt,clv,fmyu)
+      subroutine wafone(p,u,v,clv,fmyu)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: p
         real(rkx) , dimension(:,:,:) , pointer , intent(in) :: u , v
         real(rkx) , dimension(:,:) , pointer , intent(in) :: clv , fmyu
-        real(rkx) , intent(in) :: dx , dy , dz , dt
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1m1 , ih , ihm1 , im1 , jh , jhm1 , jm1
         real(rkx) , dimension(jci1:jci2,1:kzp1) :: wfw
-        real(rkx) :: zamu , zcost , r , b , zphi , is , zdv
-        real(rkx) :: zcostx , zcosty , zhxvt , zhxvtn
+        real(rkx) :: zamu , r , b , zphi , is , zdv
+        real(rkx) :: zhxvt , zhxvtn
 
         ! Vertical advection
 
-        zcost = dt/dz
         do j = jci1 , jci2
           wfw(j,1) = d_zero
           wfw(j,kzp1) = d_zero
@@ -428,7 +453,7 @@ module mod_moloch
         do i = ici1 , ici2
           do k = 2 , kz
             do j = jci1 , jci2
-              zamu = s(j,i,k)*zcost
+              zamu = s(j,i,k)*zdtrdz
               if ( zamu >= d_zero ) then
                 is = d_one
                 k1 = k - 1
@@ -449,7 +474,7 @@ module mod_moloch
           end do
           do k = 1 , kz
             do j = jci1 , jci2
-              zdv = (s(j,i,k+1)-s(j,i,k)) * zcost
+              zdv = (s(j,i,k+1)-s(j,i,k)) * zdtrdz
               wz(j,i,k) = p(j,i,k) + wfw(j,k) - wfw(j,k+1) + p(j,i,k)*zdv
             end do
           end do
@@ -465,12 +490,10 @@ module mod_moloch
 
         ! Meridional advection
 
-        zcosty = dt/dy
-
         do k = 1 , kz
           do i = ici1 , ice2
             do j = jci1 , jci2
-              zamu = v(j,i,k)*zcosty
+              zamu = v(j,i,k)*zdtrdy
               if ( zamu > d_zero ) then
                 is = d_one
                 ih = max(i-1,icross1+1)
@@ -494,7 +517,7 @@ module mod_moloch
             do j = jci1 , jci2
               zhxvtn = clv(j,i+1)*fmyu(j,i)
               zhxvt  = clv(j,i)*fmyu(j,i)
-              zdv = (v(j,i+1,k)*zhxvtn - v(j,i,k)*zhxvt)*zcosty
+              zdv = (v(j,i+1,k)*zhxvtn - v(j,i,k)*zhxvt)*zdtrdy
               p0(j,i,k) = wz(j,i,k) + &
                       zpby(j,i)*zhxvt - zpby(j,i+1)*zhxvtn + p(j,i,k)*zdv
             end do
@@ -515,8 +538,7 @@ module mod_moloch
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jce2
-              zcostx = dt*fmyu(j,i)/dx
-              zamu = u(j-1,i,k)*zcostx
+              zamu = u(j-1,i,k)*zdtrdx*fmyu(j,i)
               if ( zamu > d_zero ) then
                 is = d_one
                 jh = max(j-1,jcross1)
@@ -538,8 +560,7 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zcostx = dt*fmyu(j,i)/dx
-              zdv = (u(j,i,k)-u(j-1,i,k))*zcostx
+              zdv = (u(j,i,k)-u(j-1,i,k))*zdtrdx*fmyu(j,i)
               p(j,i,k) = p0(j,i,k)+zpbw(j,i)-zpbw(j+1,i)+p(j,i,k)*zdv
             end do
           end do

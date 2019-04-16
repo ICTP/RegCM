@@ -140,7 +140,8 @@ module mod_constants
   real(rkx) , parameter :: rgowi = rwat/rgas
 
   ! Specific heat at constant pressure for dry air J/kg/K
-  real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.6992368000
+  real(rkx) , parameter :: cpd = 3.5_rkx*rgas  ! 1004.6992368
+  real(rkx) , parameter :: cvd = 2.5_rkx*rgas  !  717.6423120
   ! Specific heat at constant pressure for moist air J/kg/K
   real(rkx) , parameter :: cpv = 4.0_rkx*rwat  ! 1846.0932676000
   ! Specific heat of water at 15 Celsius J/kg/K
@@ -180,6 +181,7 @@ module mod_constants
   real(rkx) , parameter :: regrav = d_one/egrav
   real(rkx) , parameter :: rcpd = d_one/cpd
   real(rkx) , parameter :: rovcp = rgas*rcpd
+  real(rkx) , parameter :: rdrcv = rgas/cvd
   real(rkx) , parameter :: cpovr = cpd/rgas
   real(rkx) , parameter :: rovg  = rgas/egrav
   real(rkx) , parameter :: govr  = egrav/rgas
