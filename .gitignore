@@ -20,6 +20,9 @@ Main/clmlib/Makefile
 Main/clmlib/Makefile.in
 Main/clmlib/clm4.5/Makefile
 Main/clmlib/clm4.5/Makefile.in
+Main/clmlib/clm4.5/libclm45.a
+Main/clmlib/clm4.5/*.mod
+Main/clmlib/clm4.5/*.o
 Main/clmlib/libclm.a
 Main/clmlib/*.mod
 Main/clmlib/*.o
@@ -87,8 +90,10 @@ PostProc/Makefile
 PostProc/Makefile.in
 PostProc/GrADSNcPlot
 PostProc/GrADSNcPrepare
+PostProc/clm45_1dto2d
 PostProc/sigma2p
 PostProc/sigma2z
+PostProc/*.mod
 PostProc/*.o
 
 PreProc/CH_EMISSIONS/Makefile
@@ -105,11 +110,14 @@ PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/*.mod
 
 PreProc/CLM/Makefile
 PreProc/CLM/Makefile.in
+PreProc/CLM/clm2rcm
 PreProc/CLM/*.o
 PreProc/CLM/*.mod
 
 PreProc/CLM45/Makefile
 PreProc/CLM45/Makefile.in
+PreProc/CLM45/interpinic
+PreProc/CLM45/mksurfdata
 PreProc/CLM45/*.o
 PreProc/CLM45/*.mod
 

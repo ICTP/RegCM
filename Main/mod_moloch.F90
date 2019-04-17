@@ -124,8 +124,6 @@ module mod_moloch
     zdtrdz = dt/mo_dz
     zcs2   = zdtrdz**2*rdrcv
 
-    call boundary
-
     mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
       mo_atm%t(jce1:jce2,ice1:ice2,1:kz)/mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
     tf(jce1:jce2,ice1:ice2,1:kz) = mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz)
@@ -135,12 +133,39 @@ module mod_moloch
       pf(jce1:jce2,ice1:ice2,1:kz) = mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
 
       call exchange(mo_atm%tetav,2,jce1,jce2,ice1,ice2,1,kz)
-
       call sound
+      call advection
 
-      !call advection
+      mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) = &
+        mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) - pf(jce1:jce2,ice1:ice2,1:kz)
+      call filt3d(mo_atm%pai,0.05_rkx,jci1,jci2,ici1,ici2)
+      mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) = &
+        mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) + pf(jce1:jce2,ice1:ice2,1:kz)
 
     end do
+
+    if ( mod(rcmtimer%lcount,25_ik8) == 0 ) then
+      call filt3d(mo_atm%u,0.06_rkx,jdi1,jdi2,ici1,ici2)
+      call filt3d(mo_atm%v,0.06_rkx,jci1,jci2,idi1,idi2)
+      call filt3d(mo_atm%w,0.06_rkx,jci1,jci2,ici1,ici2)
+      mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
+          mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) - tf(jce1:jce2,ice1:ice2,1:kz)
+      call filt3d(mo_atm%tetav,0.06_rkx,jci1,jci2,ici1,ici2)
+      mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
+          mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) + tf(jce1:jce2,ice1:ice2,1:kz)
+    end if
+
+    !
+    ! PHYSICS
+    !
+
+    call physical_parametrizations
+
+    !
+    ! lateral boundary condition
+    !
+
+    call boundary
 
     !
     ! Next timestep ready : increment elapsed forecast time
@@ -422,6 +447,14 @@ module mod_moloch
           end do
 
         end do ! sound loop
+
+        ! complete computation of generalized vertical velocity
+
+        s(jci1:jci2,ici1:ici2,2:kz) = &
+          (mo_atm%w(jci1:jci2,ici1:ici2,2:kz)+s(jci1:jci2,ici1:ici2,2:kz)) * &
+          mo_atm%fmzf(jci1:jci2,ici1:ici2,2:kz)
+        s(jci1:jci2,ici1:ici2,1) = d_zero
+        s(jci1:jci2,ici1:ici2,kzp1) = d_zero
 
       end subroutine sound
 
@@ -779,6 +812,10 @@ module mod_moloch
       end do
     end if
   end subroutine uvstagtox
+
+  subroutine physical_parametrizations
+    implicit none
+  end subroutine physical_parametrizations
 
 end module mod_moloch
 
