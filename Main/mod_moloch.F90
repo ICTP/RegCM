@@ -60,6 +60,7 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: wz
   real(rkx) , pointer , dimension(:,:,:) :: p0
   real(rkx) , pointer , dimension(:,:,:) :: zdiv2
+  real(rkx) , pointer , dimension(:,:,:) :: wwkw
   real(rkx) , pointer , dimension(:,:) :: zpby
   real(rkx) , pointer , dimension(:,:) :: zpbw
 
@@ -88,6 +89,7 @@ module mod_moloch
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
     call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
     call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
+    call getmem3d(wwkw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wwkw')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
@@ -251,11 +253,13 @@ module mod_moloch
 
       subroutine sound
         implicit none
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i , j , k , km1 , kp1
         real(rkx) :: zuh , zvh , zcx , zcy , zcyp
         real(rkx) :: zrfmzu , zrfmzum , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zdiv
-        real(rkx) :: zrom1w , zwexpl , zp , zm
+        real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
+        real(rkx) :: zzww0 , zzww , zfz
+        real(rkx) :: zrom1u , zrom1v
 
         !  sound waves
 
@@ -271,12 +275,12 @@ module mod_moloch
                     mo_atm%u(j-1,i,kz)*mddom%hx(j-1,i)
               zvh = mo_atm%v(j,i,kz)*mddom%hy(j,i) + &
                     mo_atm%v(j,i+1,kz)*mddom%hy(j,i+1)
-              mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
-              s(j,i,kzp1) = -mo_atm%w(j,i,kz)
+              mo_atm%w(j,i,kzp1) = d_half * (zuh+zvh)
+              s(j,i,kzp1) = -mo_atm%w(j,i,kzp1)
             end do
           end do
 
-          do k = kz-1, 1 , -1
+          do k = kzm1, 1 , -1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zuh = (mo_atm%u(j,i,k+1)+mo_atm%u(j,i,k))*mddom%hx(j,i) + &
@@ -315,17 +319,104 @@ module mod_moloch
 
           ! new w (implicit scheme)
 
-          do k = 1 , kz-1
+          do k = kz , 2 , -1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                deltaw(j,i,k) = - mo_atm%w(j,i,k)
+                deltaw(j,i,k) = -mo_atm%w(j,i,k)
                 ! explicit w:
                 !    it must be consistent with the initialization of pai
                 zrom1w = d_half * cpd * mo_atm%fmzf(j,i,k) * &
-                  (mo_atm%tetav(j,i,k+1)+mo_atm%tetav(j,i,k))
+                  (mo_atm%tetav(j,i,k-1) + mo_atm%tetav(j,i,k))
                 zrom1w = zrom1w - cpd * mo_atm%w(j,i,k) * &
                   mo_atm%fmzf(j,i,k)**2 * jsound * zdtrdz * &
-                  (mo_atm%tetav(j,i,k+1)+mo_atm%tetav(j,i,k)) !! GW
+                  (mo_atm%tetav(j,i,k-1) - mo_atm%tetav(j,i,k)) !! GW
+                zwexpl = mo_atm%w(j,i,k) - zrom1w * zdtrdz * &
+                  (mo_atm%pai(j,i,k-1) - mo_atm%pai(j,i,k)) - egrav*dt
+                zwexpl = zwexpl + rdrcv * zrom1w * zdtrdz * &
+                   (mo_atm%pai(j,i,k-1) * zdiv2(j,i,k-1) - &
+                    mo_atm%pai(j,i,k) * zdiv2(j,i,k))
+                ! computation of the tridiagonal matrix coefficients
+                ! - zp*w(k+1) + (1+zp+zm)*w(k) - zm*w(k-1) = zwexpl
+                zp = zcs2 * mo_atm%fmz(j,i,k-1) * zrom1w * &
+                  mo_atm%pai(j,i,k-1) + ffilt(k)
+                zm = zcs2 * mo_atm%fmz(j,i,k) * zrom1w * &
+                  mo_atm%pai(j,i,k) + ffilt(k)
+                ! 1st loop for the tridiagonal inversion
+                zrapp = d_one/(d_one + zm + zp - zm*wwkw(j,i,k+1))
+                mo_atm%w(j,i,k) = zrapp * (zwexpl + zm * mo_atm%w(j,i,k+1))
+                wwkw(j,i,k) = zrapp*zp
+              end do
+            end do
+          end do
+
+          ! 2nd loop for the tridiagonal inversion
+          do k = 2, kzp1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                mo_atm%w(j,i,k) = mo_atm%w(j,i,k) + &
+                     wwkw(j,i,k)*mo_atm%w(j,i,k-1)
+                deltaw(j,i,k) = deltaw(j,i,k) + mo_atm%w(j,i,k)
+              end do
+            end do
+          end do
+
+          ! new Exner function
+
+          do k = 1, kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zdiv = zdiv2(j,i,k) + zdtrdz * mo_atm%fmz(j,i,k) * &
+                  (mo_atm%w(j,i,k)-mo_atm%w(j,i,k+1))
+                mo_atm%pai(j,i,k) = mo_atm%pai(j,i,k) * (d_one - rdrcv*zdiv)
+              end do
+            end do
+          end do
+
+          ! horizontal momentum equations
+
+          call exchange(mo_atm%pai,2,jce1,jce2,ice1,ice2,1,kz)
+          call exchange(deltaw,1,jce1,jce2,ice1,ice2,1,kz)
+          call exchange(mo_atm%w,1,jce1,jce2,ice1,ice2,1,kz)
+
+          do k = 1, kz
+            km1 = max(k-1,1)
+            kp1 = min(k+1,kz)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zcx = zdtrdx*mddom%fmyu(j,i)
+                zzww0 = mo_atm%fmz(j,i,k) * jsound * zdtrdz * &
+                  (mo_atm%w(j,i,k+1) * &
+                    (mo_atm%tetav(j,i,km1) - mo_atm%tetav(j,i,k)) + &
+                   mo_atm%w(j,i,k) * &
+                    (mo_atm%tetav(j,i,k) - mo_atm%tetav(j,i,kp1)))
+                zzww = zzww0 + mo_atm%fmz(j+1,i,k) * jsound * zdtrdz * &
+                  (mo_atm%w(j+1,i,k+1) * &
+                   (mo_atm%tetav(j+1,i,km1) - mo_atm%tetav(j+1,i,k)) + &
+                   mo_atm%w(j+1,i,k) * &
+                   (mo_atm%tetav(j+1,i,k) - mo_atm%tetav(j+1,i,kp1)))
+                zfz = 0.25_rkx * &
+                  (deltaw(j,i,k) + deltaw(j,i,k+1) + &
+                   deltaw(j+1,i,k) + deltaw(j+1,i,k+1)) + egrav*dt
+                zrom1u = d_half * cpd * &
+                  (mo_atm%tetav(j,i,k) + mo_atm%tetav(j+1,i,k) - d_half*zzww)
+                mo_atm%u(j,i,k) = mo_atm%u(j,i,k) - zrom1u * zcx * &
+                    (mo_atm%pai(j+1,i,k) - mo_atm%pai(j,i,k)) - &
+                    zfz * mddom%hx(j,i) * gzita(zita(k)) + &
+                    mddom%coriol(j,i) * mo_atm%v(j,i,k) * dt
+                zzww = zzww0 + mo_atm%fmz(j,i-1,k) * jsound * zdtrdz * &
+                  (mo_atm%w(j,i-1,k+1) * &
+                    (mo_atm%tetav(j,i-1,km1) - mo_atm%tetav(j,i-1,k)) + &
+                   mo_atm%w(j,i-1,k) * &
+                    (mo_atm%tetav(j,i-1,k) - mo_atm%tetav(j,i-1,kp1)))
+                zfz = 0.25_rkx * &
+                  (deltaw(j,i,k) + deltaw(j,i,k+1) + &
+                   deltaw(j,i-1,k) + deltaw(j,i-1,k+1)) + egrav*dt
+                zrom1v = d_half * cpd * &
+                  (mo_atm%tetav(j,i,k) + mo_atm%tetav(j,i-1,k) - d_half*zzww)
+                mo_atm%v(j,i,k) = mo_atm%v(j,i,k) - zrom1v * zdtrdy * &
+                  (mo_atm%pai(j,i,k) - mo_atm%pai(j,i-1,k)) - &
+                   zfz * mddom%hy(j,i) * gzita(zita(k)) - &
+                   mddom%coriol(j,i) * mo_atm%u(j,i,k) * dt
               end do
             end do
           end do
