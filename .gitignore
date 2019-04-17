@@ -143,6 +143,7 @@ Share/librcmlib.a
 Share/*.mod
 Share/*.o
 
+Tools/Scripts/pycordexer/utilities/__pycache__
 Tools/Programs/CheckSun/Makefile
 Tools/Programs/CheckSun/Makefile.in
 Tools/Programs/RegCM_read/Makefile
