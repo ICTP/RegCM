@@ -34,7 +34,7 @@ module mod_mkpft
 
   character(len=16) , parameter :: varname = 'PCT_PFT'
 
-  real(rkx) :: vcutoff = 19.0_rkx
+  real(rkx) :: vcutoff = 1.0_rkx
 
   contains
 

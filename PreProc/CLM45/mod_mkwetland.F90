@@ -36,7 +36,7 @@ module mod_mkwetland
   character(len=16) , parameter :: varname1 = 'PCT_WETLAND'
   character(len=16) , parameter :: varname2 = 'PCT_LAKE'
 
-  real(rkx) , parameter :: vcutoff = 75_rkx
+  real(rkx) , parameter :: vcutoff = 1.0_rkx
 
   contains
 

@@ -33,7 +33,7 @@ module mod_mkdynpft
 
   character(len=16) , parameter :: varname = 'PCT_PFT'
 
-  real(rkx) , parameter :: vcutoff = 19.0_rkx
+  real(rkx) , parameter :: vcutoff = 1.0_rkx
 
   contains
 

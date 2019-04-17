@@ -31,7 +31,7 @@ module mod_mkglacier
 
   character(len=16) , parameter :: varname = 'PCT_GLACIER'
 
-  real(rkx) , parameter :: vcutoff = 25.0_rkx
+  real(rkx) , parameter :: vcutoff = 1.0_rkx
 
   contains
 

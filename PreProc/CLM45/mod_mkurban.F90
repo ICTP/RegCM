@@ -94,7 +94,7 @@ module mod_mkurban
   integer(ik4) , dimension(nparam) , parameter :: parmdim = &
     [3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,5,5,5,5]
 
-  real(rkx) , parameter :: vcutoff = 40.0_rkx
+  real(rkx) , parameter :: vcutoff =  1.0_rkx
 
   contains
 
