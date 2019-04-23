@@ -2662,30 +2662,30 @@ module mod_params
       subroutine compute_moloch_static
         implicit none
         integer :: i , j
-        do i = idi1 , idi2
-          do j = jci1 , jci2
+        do i = ide1 , ide2
+          do j = jce1 , jce2
             mddom%clv(j,i) = cos(degrad*mddom%dlat(j,i))
           end do
         end do
-        call exchange_bt(mddom%clv,1,jci1,jci2,idi1,idi2)
+        call exchange_bt(mddom%clv,1,jce1,jce2,ide1,ide2)
         do i = ice1 , ice2
           do j = jce1 , jce2
             mddom%fmyu(j,i) = 1.0_rkx/cos(degrad*mddom%xlat(j,i))
           end do
         end do
         do i = ice1 , ice2
-          do j = jde1 , jdi2
-            mddom%hx(j,i) = mddom%ht(j+1,i)-mddom%ht(j,i) * &
+          do j = jdi1 , jdi2
+            mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * &
                      mddom%fmyu(j,i)*rdx*regrav
           end do
         end do
         call exchange_lr(mddom%hx,1,jde1,jdi2,ice1,ice2)
-        do i = idi1 , ide2
+        do i = idi1 , idi2
           do j = jce1 , jce2
-            mddom%hy(j,i) = mddom%ht(j,i)-mddom%ht(j,i-1)*rdx*regrav
+            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1))*rdx*regrav
           end do
         end do
-        call exchange_bt(mddom%hy,1,jce1,jce2,idi1,ide2)
+        call exchange_bt(mddom%hy,1,jce1,jce2,ide1,idi2)
       end subroutine compute_moloch_static
 
       recursive integer function gcd_rec(u,v) result(gcd)
