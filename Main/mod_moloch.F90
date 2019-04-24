@@ -50,14 +50,17 @@ module mod_moloch
 
   private
 
+  ! generalized vertical velocity
   real(rkx) , pointer , dimension(:,:,:) :: s
+  ! nonhydrostatic term in pressure gradient force
   real(rkx) , pointer , dimension(:,:,:) :: deltaw
+  ! tridiagonal inversion
+  real(rkx) , pointer , dimension(:,:,:) :: wwkw
   real(rkx) , pointer , dimension(:,:,:) :: wx
   real(rkx) , pointer , dimension(:,:,:) :: tkex
   real(rkx) , pointer , dimension(:,:,:) :: wz
   real(rkx) , pointer , dimension(:,:,:) :: p0
   real(rkx) , pointer , dimension(:,:,:) :: zdiv2
-  real(rkx) , pointer , dimension(:,:,:) :: wwkw
   real(rkx) , pointer , dimension(:,:) :: zpby
   real(rkx) , pointer , dimension(:,:) :: zpbw
 
@@ -70,9 +73,7 @@ module mod_moloch
   public :: uvstagtox , wstagtox
 
   integer(ik4) :: nadv = 1
-  integer(ik4) :: nsound = 1
-
-  real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
+  integer(ik4) :: nsound = 6
 
   contains
 
@@ -110,16 +111,16 @@ module mod_moloch
   subroutine moloch
     implicit none
     integer(ik4) :: jadv , jsound
+    real(rkx) :: dtsound , dtstepa
+    integer(ik4) :: i , j , k
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    zdtrdx = dt/dx
-    zdtrdy = dt/dx
-    zdtrdz = dt/mo_dz
-    zcs2   = zdtrdz**2*rdrcv
+    dtstepa = dtsec / real(nadv,rkx)
+    dtsound = dtsec / real(nsound,rkx)
 
     mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
       mo_atm%t(jce1:jce2,ice1:ice2,1:kz)/mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
@@ -128,10 +129,10 @@ module mod_moloch
     do jadv = 1 , nadv
 
       pf(jce1:jce2,ice1:ice2,1:kz) = mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
-
       call exchange(mo_atm%tetav,2,jce1,jce2,ice1,ice2,1,kz)
-      call sound
-      call advection
+
+      call sound(dtsound)
+      call advection(dtstepa)
 
       mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) = &
         mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) - pf(jce1:jce2,ice1:ice2,1:kz)
@@ -141,7 +142,7 @@ module mod_moloch
 
     end do
 
-    if ( mod(rcmtimer%lcount,25_ik8) == 0 ) then
+    if ( mod(rcmtimer%lcount,25_ik8*int(nadv,ik8)) == 0 ) then
       call filt3d(mo_atm%u,0.06_rkx,jdi1,jdi2,ici1,ici2)
       call filt3d(mo_atm%v,0.06_rkx,jci1,jci2,idi1,idi2)
       call filt3d(mo_atm%w,0.06_rkx,jci1,jci2,ici1,ici2)
@@ -151,6 +152,23 @@ module mod_moloch
       mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
           mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) + tf(jce1:jce2,ice1:ice2,1:kz)
     end if
+
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
+          mo_atm%tvirt(j,i,k) = mo_atm%tetav(j,i,k)/mo_atm%pai(j,i,k)
+          mo_atm%t(j,i,k) = mo_atm%tvirt(j,i,k) / &
+                   (d_one + ep1*mo_atm%qx(j,i,k,iqv))
+        end do
+      end do
+    end do
+
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        sfs%psa(j,i) = mo_atm%p(j,i,kz) !*exp(
+      end do
+    end do
 
     !
     ! PHYSICS
@@ -273,8 +291,9 @@ module mod_moloch
         end do
       end subroutine filt3d
 
-      subroutine sound
+      subroutine sound(dtsound)
         implicit none
+        real(rkx) , intent(in) :: dtsound
         integer(ik4) :: i , j , k , km1 , kp1
         real(rkx) :: zuh , zvh , zcx , zcy , zcyp
         real(rkx) :: zrfmzu , zrfmzum , zrfmzv , zrfmzvp
@@ -282,6 +301,12 @@ module mod_moloch
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
         real(rkx) :: zzww0 , zzww , zfz
         real(rkx) :: zrom1u , zrom1v
+        real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
+
+        zdtrdx = dtsound/dx
+        zdtrdy = dtsound/dx
+        zdtrdz = dtsound/mo_dz
+        zcs2   = zdtrdz**2*rdrcv
 
         !  sound waves
 
@@ -330,7 +355,7 @@ module mod_moloch
                 zum = mo_atm%u(j,i,k) * zrfmzum
                 zvp = mo_atm%v(j,i+1,k) * zrfmzvp
                 zvm = mo_atm%v(j,i,k) * zrfmzv
-                zdiv = (zup-zum)*zcx +zvp*zcyp -zvm*zcy + &
+                zdiv = zup*zcx - zum*zcx + zvp*zcyp - zvm*zcy + &
                     zdtrdz*(s(j,i,k)-s(j,i,k+1))
                 zdiv2(j,i,k) = zdiv*mo_atm%fmz(j,i,k)
               end do
@@ -353,7 +378,7 @@ module mod_moloch
                   mo_atm%fmzf(j,i,k)**2 * jsound * zdtrdz * &
                   (mo_atm%tetav(j,i,k-1) - mo_atm%tetav(j,i,k)) !! GW
                 zwexpl = mo_atm%w(j,i,k) - zrom1w * zdtrdz * &
-                  (mo_atm%pai(j,i,k-1) - mo_atm%pai(j,i,k)) - egrav*dt
+                  (mo_atm%pai(j,i,k-1) - mo_atm%pai(j,i,k)) - egrav*dtsound
                 zwexpl = zwexpl + rdrcv * zrom1w * zdtrdz * &
                    (mo_atm%pai(j,i,k-1) * zdiv2(j,i,k-1) - &
                     mo_atm%pai(j,i,k) * zdiv2(j,i,k))
@@ -418,13 +443,13 @@ module mod_moloch
                    (mo_atm%tetav(j-1,i,k) - mo_atm%tetav(j-1,i,kp1)))
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                   deltaw(j,i,k) + deltaw(j,i,k+1)) + egrav*dt
+                   deltaw(j,i,k) + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * &
                   (mo_atm%tetav(j-1,i,k) + mo_atm%tetav(j,i,k) - d_half*zzww)
                 mo_atm%u(j,i,k) = mo_atm%u(j,i,k) - zrom1u * zcx * &
                     (mo_atm%pai(j,i,k) - mo_atm%pai(j-1,i,k)) - &
                     zfz * mddom%hx(j,i) * gzita(zita(k)) + &
-                    mddom%coriol(j,i) * mo_atm%v(j,i,k) * dt
+                    mddom%coriol(j,i) * mo_atm%v(j,i,k) * dtsound
                 zzww = zzww0 + mo_atm%fmz(j,i-1,k) * jsound * zdtrdz * &
                   (mo_atm%w(j,i-1,k+1) * &
                     (mo_atm%tetav(j,i-1,km1) - mo_atm%tetav(j,i-1,k)) + &
@@ -432,13 +457,13 @@ module mod_moloch
                     (mo_atm%tetav(j,i-1,k) - mo_atm%tetav(j,i-1,kp1)))
                 zfz = 0.25_rkx * &
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                   deltaw(j,i,k) + deltaw(j,i,k+1)) + egrav*dt
+                   deltaw(j,i,k) + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * &
                   (mo_atm%tetav(j,i-1,k) + mo_atm%tetav(j,i,k) - d_half*zzww)
                 mo_atm%v(j,i,k) = mo_atm%v(j,i,k) - zrom1v * zdtrdy * &
                   (mo_atm%pai(j,i,k) - mo_atm%pai(j,i-1,k)) - &
                    zfz * mddom%hy(j,i) * gzita(zita(k)) - &
-                   mddom%coriol(j,i) * mo_atm%u(j,i,k) * dt
+                   mddom%coriol(j,i) * mo_atm%u(j,i,k) * dtsound
               end do
             end do
           end do
@@ -460,13 +485,13 @@ module mod_moloch
                       (mo_atm%tetav(j,ici2,k) - mo_atm%tetav(j,ici2,kp1)))
                 zfz = 0.25_rkx * &
                   (deltaw(j,ici2,k) + deltaw(j,ici2,k+1) + &
-                   deltaw(j,ice2,k) + deltaw(j,ice2,k+1)) + egrav*dt
+                   deltaw(j,ice2,k) + deltaw(j,ice2,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * &
                  (mo_atm%tetav(j,ici2,k) + mo_atm%tetav(j,ice2,k) - d_half*zzww)
                 mo_atm%v(j,idi2,k) = mo_atm%v(j,idi2,k) - zrom1v * zdtrdy * &
                     (mo_atm%pai(j,ice2,k) - mo_atm%pai(j,ici2,k)) - &
                      zfz * mddom%hy(j,idi2) * gzita(zita(k)) - &
-                     mddom%coriol(j,ice2) * mo_atm%u(j,ice2,k) * dt
+                     mddom%coriol(j,ice2) * mo_atm%u(j,ice2,k) * dtsound
               end do
             end do
           end if
@@ -489,13 +514,13 @@ module mod_moloch
                    (mo_atm%tetav(jci2,i,k) - mo_atm%tetav(jci2,i,kp1)))
                 zfz = 0.25_rkx * &
                   (deltaw(jci2,i,k) + deltaw(jci2,i,k+1) + &
-                   deltaw(jce2,i,k) + deltaw(jce2,i,k+1)) + egrav*dt
+                   deltaw(jce2,i,k) + deltaw(jce2,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * &
                  (mo_atm%tetav(jci2,i,k) + mo_atm%tetav(jce2,i,k) - d_half*zzww)
                 mo_atm%u(jdi2,i,k) = mo_atm%u(jdi2,i,k) - zrom1u * zcx * &
                     (mo_atm%pai(jce2,i,k) - mo_atm%pai(jci2,i,k)) - &
                     zfz * mddom%hx(jdi2,i) * gzita(zita(k)) + &
-                    mddom%coriol(jce2,i) * mo_atm%v(jce2,i,k) * dt
+                    mddom%coriol(jce2,i) * mo_atm%v(jce2,i,k) * dtsound
               end do
             end do
           end if
@@ -504,17 +529,29 @@ module mod_moloch
 
         ! complete computation of generalized vertical velocity
 
-        s(jci1:jci2,ici1:ici2,2:kz) = &
-          (mo_atm%w(jci1:jci2,ici1:ici2,2:kz)+s(jci1:jci2,ici1:ici2,2:kz)) * &
-          mo_atm%fmzf(jci1:jci2,ici1:ici2,2:kz)
-        s(jci1:jci2,ici1:ici2,1) = d_zero
-        s(jci1:jci2,ici1:ici2,kzp1) = d_zero
-
+        do k = 2 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              s(j,i,k) = (mo_atm%w(j,i,k)+s(j,i,k)) * mo_atm%fmzf(j,i,k)
+            end do
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            s(j,i,1) = d_zero
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            s(j,i,kzp1) = d_zero
+          end do
+        end do
       end subroutine sound
 
-      subroutine advection
+      subroutine advection(dtstepa)
         implicit none
         integer(ik4) :: i , j , k , n
+        real(rkx) :: dtstepa
         real(rkx) , pointer , dimension(:,:,:) :: ptr
 
         call uvstagtox(mo_atm%u,mo_atm%v,mo_atm%ux,mo_atm%vx)
@@ -527,22 +564,22 @@ module mod_moloch
           call wstagtox(mo_atm%tke,tkex)
         end if
 
-        call wafone(mo_atm%tetav,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
-        call wafone(mo_atm%pai,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
-        call wafone(mo_atm%ux,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
-        call wafone(mo_atm%vx,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
-        call wafone(wx,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+        call wafone(mo_atm%tetav,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
+        call wafone(mo_atm%pai,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
+        call wafone(mo_atm%ux,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
+        call wafone(mo_atm%vx,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
+        call wafone(wx,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
         do n = 1 , nqx
           call assignpnt(mo_atm%qx,ptr,n)
-          call wafone(ptr,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+          call wafone(ptr,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
         end do
         if ( ibltyp == 2 ) then
-          call wafone(tkex,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+          call wafone(tkex,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
         end if
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(mo_atm%trac,ptr,n)
-            call wafone(ptr,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu)
+            call wafone(ptr,mo_atm%u,mo_atm%v,mddom%clv,mddom%fmyu,dtstepa)
           end do
         end if
 
@@ -639,16 +676,22 @@ module mod_moloch
         end if
       end subroutine advection
 
-      subroutine wafone(p,u,v,clv,fmyu)
+      subroutine wafone(p,u,v,clv,fmyu,dtstepa)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: p
         real(rkx) , dimension(:,:,:) , pointer , intent(in) :: u , v
         real(rkx) , dimension(:,:) , pointer , intent(in) :: clv , fmyu
+        real(rkx) , intent(in) :: dtstepa
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1m1 , ih , ihm1 , im1 , jh , jhm1 , jm1
         real(rkx) , dimension(jci1:jci2,1:kzp1) :: wfw
         real(rkx) :: zamu , r , b , zphi , is , zdv
         real(rkx) :: zhxvt , zhxvtn
+        real(rkx) :: zdtrdx , zdtrdy , zdtrdz
+
+        zdtrdx = dtstepa/dx
+        zdtrdy = dtstepa/dx
+        zdtrdz = dtstepa/mo_dz
 
         ! Vertical advection
 
