@@ -574,12 +574,9 @@ module mod_params
 #endif
       end if
 
-      idate0 = mdate0
-      idate1 = mdate1
-      idate2 = mdate2
-      call setcal(idate0,ical)
-      call setcal(idate1,ical)
-      call setcal(idate2,ical)
+      idate0 = i8wcal(mdate0,ical)
+      idate1 = i8wcal(mdate1,ical)
+      idate2 = i8wcal(mdate2,ical)
       bdif = idate2 - idate1
       hspan = nint(tohours(bdif))
       if ( mod(hspan,24) /= 0 ) then

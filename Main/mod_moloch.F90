@@ -122,35 +122,67 @@ module mod_moloch
     dtstepa = dtsec / real(nadv,rkx)
     dtsound = dtsec / real(nsound,rkx)
 
-    mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
-      mo_atm%t(jce1:jce2,ice1:ice2,1:kz)/mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
-    tf(jce1:jce2,ice1:ice2,1:kz) = mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz)
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          mo_atm%tetav(j,i,k) =  mo_atm%tvirt(j,i,k)/mo_atm%pai(j,i,k)
+          tf(j,i,k) = mo_atm%tetav(j,i,k)
+        end do
+      end do
+    end do
 
     do jadv = 1 , nadv
 
-      pf(jce1:jce2,ice1:ice2,1:kz) = mo_atm%pai(jce1:jce2,ice1:ice2,1:kz)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            pf(j,i,k) = mo_atm%pai(j,i,k)
+          end do
+        end do
+      end do
+
       call exchange(mo_atm%tetav,2,jce1,jce2,ice1,ice2,1,kz)
 
       call sound(dtsound)
       call advection(dtstepa)
 
-      mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) = &
-        mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) - pf(jce1:jce2,ice1:ice2,1:kz)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%pai(j,i,k) = mo_atm%pai(j,i,k) - pf(j,i,k)
+          end do
+        end do
+      end do
       call filt3d(mo_atm%pai,0.05_rkx,jci1,jci2,ici1,ici2)
-      mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) = &
-        mo_atm%pai(jce1:jce2,ice1:ice2,1:kz) + pf(jce1:jce2,ice1:ice2,1:kz)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%pai(j,i,k) = mo_atm%pai(j,i,k) + pf(j,i,k)
+          end do
+        end do
+      end do
 
-    end do
+    end do ! Advection loop
 
     if ( mod(rcmtimer%lcount,25_ik8*int(nadv,ik8)) == 0 ) then
       call filt3d(mo_atm%u,0.06_rkx,jdi1,jdi2,ici1,ici2)
       call filt3d(mo_atm%v,0.06_rkx,jci1,jci2,idi1,idi2)
       call filt3d(mo_atm%w,0.06_rkx,jci1,jci2,ici1,ici2)
-      mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
-          mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) - tf(jce1:jce2,ice1:ice2,1:kz)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%tetav(j,i,k) = mo_atm%tetav(j,i,k) - tf(j,i,k)
+          end do
+        end do
+      end do
       call filt3d(mo_atm%tetav,0.06_rkx,jci1,jci2,ici1,ici2)
-      mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) = &
-          mo_atm%tetav(jce1:jce2,ice1:ice2,1:kz) + tf(jce1:jce2,ice1:ice2,1:kz)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%tetav(j,i,k) = mo_atm%tetav(j,i,k) + tf(j,i,k)
+          end do
+        end do
+      end do
     end if
 
     do k = 1 , kz
@@ -413,7 +445,7 @@ module mod_moloch
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zdiv = zdiv2(j,i,k) + zdtrdz * mo_atm%fmz(j,i,k) * &
-                  (mo_atm%w(j,i,k)-mo_atm%w(j,i,k+1))
+                  (mo_atm%w(j,i,k) - mo_atm%w(j,i,k+1))
                 mo_atm%pai(j,i,k) = mo_atm%pai(j,i,k) * (d_one - rdrcv*zdiv)
               end do
             end do

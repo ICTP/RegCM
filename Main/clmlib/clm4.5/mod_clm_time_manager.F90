@@ -105,9 +105,8 @@ module mod_clm_time_manager
     ! Calendar day 1.0 = 0Z on Jan 1.
     type (rcm_time_and_date) :: id
 
-    id = ymd
+    id = i4wcal(ymd,nextdate%calendar)
     id%second_of_day = tod
-    call setcal(id,nextdate)
     get_calday = yeardayfrac(id)
   end function get_calday
 

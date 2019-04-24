@@ -59,6 +59,18 @@ module mod_date
 
   integer(ik4) , dimension(12) :: mlen
 
+  type i4wcal
+    integer(ik4) :: i
+    integer(ik4) :: cal
+  end type i4wcal
+
+  type i8wcal
+    integer(ik8) :: i
+    integer(ik4) :: cal
+  end type i8wcal
+
+  public :: i4wcal , i8wcal
+
   type rcm_time_and_date
     integer(ik4) :: calendar = gregorian
     integer(ik8) :: days_from_reference = 0
@@ -84,7 +96,11 @@ module mod_date
   end type iatime
 
   interface assignment(=)
-    module procedure initfromintdt , initfromint8dt , initfromtypedt
+    module procedure initfromintdt ,    &
+                     initfromintdtwc ,  &
+                     initfromint8dt ,   &
+                     initfromint8dtwc , &
+                     initfromtypedt
     module procedure initfromintit ,    &
                      initfromsingleit , &
                      initfromdoubleit , &
@@ -416,6 +432,45 @@ module mod_date
     ih = int(ih8,ik4)
   end subroutine split_i10_8
 
+  subroutine initfromintdtwc(x, iwc)
+    implicit none
+    type(i4wcal) , intent(in) :: iwc
+    type (rcm_time_and_date) , intent(out) :: x
+    type (iadate) :: d
+    type (iatime) :: t
+    call split_i10(iwc%i, d%year, d%month, d%day, t%hour)
+    if ( d%year <= -10000 .or. d%year >= 10000 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
+      call die('mod_date','Inconsistent year in date')
+    end if
+    if ( d%month < 1 .or. d%month > 12 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
+      call die('mod_date','Inconsistent month in date')
+    end if
+    if ( d%day < 1 .or. d%day > 31 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
+      call die('mod_date','Inconsistent day in date')
+    end if
+    if ( t%hour+1 < 1 .or. t%hour+1 > 24 ) then
+      write(stderr,*) 'YEAR  = ', d%year
+      write(stderr,*) 'MONTH = ', d%month
+      write(stderr,*) 'DAY   = ', d%day
+      write(stderr,*) 'HOUR  = ', t%hour
+      call die('mod_date','Inconsistent hour in date')
+    end if
+    d%calendar = iwc%cal
+    call date_time_to_internal(d,t,x)
+  end subroutine initfromintdtwc
+
   subroutine initfromintdt(x, i)
     implicit none
     integer(ik4) , intent(in) :: i
@@ -477,6 +532,29 @@ module mod_date
     d%calendar = gregorian
     call date_time_to_internal(d,t,x)
   end subroutine initfromint8dt
+
+  subroutine initfromint8dtwc(x, iwc)
+    implicit none
+    type(i8wcal) , intent(in) :: iwc
+    type (rcm_time_and_date) , intent(out) :: x
+    type (iadate) :: d
+    type (iatime) :: t
+    call split_i10_8(iwc%i, d%year, d%month, d%day, t%hour)
+    if ( d%year <= -10000 .or. d%year >= 10000 ) then
+      call die('mod_date','Inconsistent year in date')
+    end if
+    if ( d%month < 1 .or. d%month > 12 ) then
+      call die('mod_date','Inconsistent month in date')
+    end if
+    if ( d%day < 1 .or. d%day > 31 ) then
+      call die('mod_date','Inconsistent day in date')
+    end if
+    if ( t%hour+1 < 1 .or. t%hour+1 > 24 ) then
+      call die('mod_date','Inconsistent hour in date')
+    end if
+    d%calendar = iwc%cal
+    call date_time_to_internal(d,t,x)
+  end subroutine initfromint8dtwc
 
   subroutine initfromintit(x, i)
     implicit none

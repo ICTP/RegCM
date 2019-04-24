@@ -437,7 +437,7 @@ module mod_dynparam
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
-    !namelist /molochparam/ 
+    !namelist /molochparam/
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , cntri , cntrj , truelatl , truelath , i_band , i_crm
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
@@ -688,10 +688,8 @@ module mod_dynparam
     dpd = 360.0_rkx/dayspy
     half_dayspy = dayspy/2.0_rkx
     sixteenth_dayspy = dayspy/16.0_rkx
-    globidate1 = gdate1
-    globidate2 = gdate2
-    call setcal(globidate1,ical)
-    call setcal(globidate2,ical)
+    globidate1 = i8wcal(gdate1,ical)
+    globidate2 = i8wcal(gdate2,ical)
     if ( ensemble_run ) then
       lperturb_topo = .false.
       lperturb_ts = .false.

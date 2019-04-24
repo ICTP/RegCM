@@ -394,8 +394,7 @@ module mod_savefile
         ncstatus = nf90_get_att(ncid,nf90_global,'waterror',waterror)
         if ( ncstatus /= nf90_noerr ) waterror = 0.0_rk8
       end if
-      idatex = int10d
-      call setcal(idatex,ical)
+      idatex = i4wcal(int10d,ical)
       if ( idatex /= rcmtimer%idate ) then
         write(stderr,*) 'Mismatch in dates namelist vs SAV file'
         write(stderr,*) 'idate1 in namelist is ', rcmtimer%str( )
