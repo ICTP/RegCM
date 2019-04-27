@@ -442,7 +442,7 @@ module mod_vertint
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk8) , dimension(km) :: sig
     real(rk8) , dimension(kp) :: pp1
-    real(rk8) :: sigp , w1 , wp , dp
+    real(rk8) :: sigp , w1 , wp , dp , tp , bp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -466,12 +466,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,1) - p3d(i,j,km)
+          tp = p3d(i,j,km)
+          bp = p3d(i,j,1)
+          dp = bp - tp
           !
           ! Sigma values in this point
           !
           do k = 1 , km
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -480,7 +482,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
@@ -526,12 +528,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,km) - p3d(i,j,1)
+          tp = p3d(i,j,1)
+          bp = p3d(i,j,km)
+          dp = bp - tp
           !
           ! Sigma values in this point
           !
           do k = 1 , km
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -540,7 +544,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
@@ -579,7 +583,7 @@ module mod_vertint
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) , dimension(km) :: sig
     real(rk4) , dimension(kp) :: pp1
-    real(rk4) :: sigp , w1 , wp , dp
+    real(rk4) :: sigp , w1 , wp , dp , tp , bp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
@@ -603,12 +607,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,1) - p3d(i,j,km)
+          tp = p3d(i,j,km)
+          bp = p3d(i,j,1)
+          dp = bp - tp
           !
           ! Sigma values in this point
           !
           do k = 1 , km
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -617,7 +623,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
@@ -663,12 +669,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,km) - p3d(i,j,1)
+          tp = p3d(i,j,1)
+          bp = p3d(i,j,km)
+          dp = bp - tp
           !
           ! Sigma values in this point
           !
           do k = 1 , km
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -677,7 +685,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
@@ -1173,7 +1181,7 @@ module mod_vertint
     real(rk8) , dimension(im,jm,km) , intent(in) :: f , p3d
     real(rk8) , dimension(kp) , intent(in) :: p
     real(rk8) , dimension(im,jm,kp) , intent(out) :: fp
-    real(rk8) :: sigp , w1 , wp , dp
+    real(rk8) :: sigp , w1 , wp , dp , tp , bp
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk8) , dimension(km) :: sig
     real(rk8) , dimension(kp) :: pp1
@@ -1204,12 +1212,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,1) - p3d(i,j,km)
+          tp = p3d(i,j,km)
+          bp = p3d(i,j,1)
+          dp = bp - tp
           !
           ! Sigma values in this point , and find boundary layer
           !
           do k = 1 , km
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -1218,7 +1228,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
@@ -1268,12 +1278,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,km) - p3d(i,j,1)
+          tp = p3d(i,j,1)
+          bp = p3d(i,j,km)
+          dp = bp - tp
           !
           ! Sigma values in this point , and find boundary layer
           !
           do k = km , 1 , -1
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -1282,7 +1294,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
@@ -1319,7 +1331,7 @@ module mod_vertint
     real(rk4) , dimension(im,jm,km) , intent(in) :: f , p3d
     real(rk4) , dimension(kp) , intent(in) :: p
     real(rk4) , dimension(im,jm,kp) , intent(out) :: fp
-    real(rk4) :: sigp , w1 , wp , dp
+    real(rk4) :: sigp , w1 , wp , dp , tp , bp
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) , dimension(km) :: sig
     real(rk4) , dimension(kp) :: pp1
@@ -1350,12 +1362,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,1) - p3d(i,j,km)
+          tp = p3d(i,j,km)
+          bp = p3d(i,j,1)
+          dp = bp - tp
           !
           ! Sigma values in this point , and find boundary layer
           !
           do k = 1 , km
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -1364,7 +1378,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
@@ -1411,12 +1425,14 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          dp = p3d(i,j,km) - p3d(i,j,1)
+          tp = p3d(i,j,1)
+          bp = p3d(i,j,km)
+          dp = bp - tp
           !
           ! Sigma values in this point , and find boundary layer
           !
           do k = km , 1 , -1
-            sig(k) = p3d(i,j,k)/dp
+            sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
           ! For each of the requested levels
@@ -1425,7 +1441,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = pp1(n)/dp
+            sigp = (pp1(n)-tp)/dp
             !
             ! Over the top or below bottom level
             !
