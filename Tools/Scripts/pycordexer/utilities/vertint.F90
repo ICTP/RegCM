@@ -30,7 +30,7 @@ module mod_vertint
 
     integer :: i , j , k , knx
     integer :: kx = 0
-    real(4) :: w1 , wp , sp , dp
+    real(4) :: w1 , wp , sp , dp , tp , bp
     real(4) , dimension(km) :: spp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -45,11 +45,13 @@ module mod_vertint
         !
         ! Over the top or below bottom level
         !
-        dp = mp(km,j,i) - mp(1,j,i)
+        tp = mp(1,j,i)
+        bp = mp(km,j,i)
+        dp = bp - tp
         do k = 1 , km
-          spp(k) = mp(k,j,i) / dp
+          spp(k) = (mp(k,j,i)-tp) / dp
         end do
-        sp = p / dp
+        sp = (p-tp) / dp
         if ( sp <= spp(1) ) then
           fp(j,i) = f(1,j,i)
         else if ( sp >= spp(km) ) then
@@ -79,7 +81,7 @@ module mod_vertint
     real(4) , intent(out) , dimension(jm,im) :: fp
     real(4) , intent(in) :: p
 
-    real(4) :: w1 , wp , sp , dp
+    real(4) :: w1 , wp , sp , dp , bp , tp
     real(4) , dimension(km) :: spp
     integer :: i , j , k , knx
     integer :: kx = 0
@@ -95,11 +97,13 @@ module mod_vertint
         !
         ! Over the top or below bottom level
         !
-        dp = mp(km,j,i) - mp(1,j,i)
+        bp = mp(km,j,i)
+        tp = mp(1,j,i)
+        dp = bp - tp
         do k = 1 , km
-          spp(k) = mp(k,j,i) / dp
+          spp(k) = (mp(k,j,i) - tp) / dp
         end do
-        sp = p / dp
+        sp = (p - tp) / dp
         if ( sp <= spp(1) ) then
           fp(j,i) = f(1,j,i)
         else if ( sp > spp(km) ) then
