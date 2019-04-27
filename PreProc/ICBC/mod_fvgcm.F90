@@ -366,14 +366,14 @@ module mod_fvgcm
     call htsig(t2,z1,pp3d,ps2,zs2,numx,numy,nlev)
     call height(hp,z1,t2,ps2,pp3d,zs2,numx,numy,nlev,pplev,nlev)
 !$OMP SECTION
-    call intlin(up,u2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
+    call intlin(up,u2,pp3d,numx,numy,nlev,pplev,nlev)
 !$OMP SECTION
-    call intlin(vp,v2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
+    call intlin(vp,v2,pp3d,numx,numy,nlev,pplev,nlev)
 !$OMP SECTION
-    call intlog(tp,t2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
+    call intlog(tp,t2,pp3d,numx,numy,nlev,pplev,nlev)
 !$OMP SECTION
     call mxr2rh(t2,q2,pp3d,numx,numy,nlev,-9999.0_rkx)
-    call intlin(qp,q2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
+    call intlin(qp,q2,pp3d,numx,numy,nlev,pplev,nlev)
 !$OMP END SECTIONS
 
     call h_interpolate_cont(cross_hint,b2,b3)

@@ -508,7 +508,7 @@ module mod_ch_fnest
       if ( oidyn == 1 ) then
         call intlin(mxcp,mxc,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
       else
-        call intlin(mxcp,mxc,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+        call intlin(mxcp,mxc,p3d,jx_in,iy_in,kz_in,plev,np)
       end if
       call h_interpolate_cont(hint,mxcp,mxcp4)
       do i = 1 , iy

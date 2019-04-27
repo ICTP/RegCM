@@ -513,16 +513,16 @@ module mod_erahi
     call height(hp,z1,t2,ps2,pp3d,zs2,nlons,nlats,nlev1,pplev,nlev2)
     ! 2. For Zonal and Meridional Winds
 !$OMP SECTION
-    call intlin(up,u2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    call intlin(up,u2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
 !$OMP SECTION
-    call intlin(vp,v2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    call intlin(vp,v2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     ! 3. For Temperatures
 !$OMP SECTION
-    call intlog(tp,t2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    call intlog(tp,t2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     ! 4. For Moisture
 !$OMP SECTION
     call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0_rkx)
-    call intlin(qp,q2,ps2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
+    call intlin(qp,q2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
 !$OMP END SECTIONS
     !
     ! Horizontal interpolation of both the scalar and vector fields

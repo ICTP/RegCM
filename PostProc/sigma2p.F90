@@ -244,6 +244,7 @@ program sigma2p
     else if (varname == 'ptop') then
       istatus = nf90_get_var(ncid,i,ptop)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
+      ptop = ptop * d_100
     else if (varname == 'crs' .or. varname == 'rcm_map' ) then
       ircm_map = i
     else if (varname == 'ps') then
@@ -429,7 +430,7 @@ program sigma2p
   if ( iodyn == 2 ) then
     istatus = nf90_get_var(ncid, ip0varid, ps0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable p0.')
-    ps0 = ps0 - real(ptop * d_100)
+    ps0 = ps0 - real(ptop)
   end if
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)
@@ -478,9 +479,7 @@ program sigma2p
     end if
   end do
 
-  if ( iodyn == 2 ) then
-    plevs = plevs * 100.0
-  end if
+  plevs = plevs * 100.0
 
   ! Write time dependent variables
 
@@ -502,8 +501,7 @@ program sigma2p
       istatus = nf90_get_var(ncid, ippvarid, pp, istart(1:4), icount(1:4))
       call checkncerr(istatus,__FILE__,__LINE__,'Error reading pp.')
       do k = 1 , kz
-        press(:,:,k) = ps0(:,:) * real(sigma(k)) + &
-                       real(ptop * 100.0) + pp(:,:,k)
+        press(:,:,k) = ps0(:,:)*real(sigma(k)) + real(ptop) + pp(:,:,k)
       end do
     end if
     istart(1) = 1
@@ -516,9 +514,6 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     istatus = nf90_put_var(ncout, ipsvarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
-    if ( iodyn == 1 .and. .not. is_icbc .and. maxval(ps) > 2000.0 ) then
-      ps = ps / 100.0
-    end if
     do i = 1 , nvars
       if (.not. ltvarflag(i)) cycle
       if (i == itvarid) cycle
@@ -548,9 +543,9 @@ program sigma2p
             xvar = reshape(avar((ii-1)*i3d+1:ii*i3d),[jx,iy,kz])
             if ( iodyn == 2 ) then
               if (intscheme(i) == 1) then
-                call intlin(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+                call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
               else if (intscheme(i) == 2) then
-                call intlog(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+                call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
               end if
               call top2btm(pvar,jx,iy,np)
             else
@@ -605,9 +600,9 @@ program sigma2p
                              [jx,iy,kz])
               if ( iodyn == 2 ) then
                 if (intscheme(i) == 1) then
-                  call intlin(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+                  call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
                 else if (intscheme(i) == 2) then
-                  call intlog(pvar,xvar,ps,press,jx,iy,kz,plevs,np)
+                  call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
                 end if
                 call top2btm(pvar,jx,iy,np)
               else
@@ -650,10 +645,10 @@ program sigma2p
     if ( make_rh ) then
       if ( iodyn == 2 ) then
         call mxr2rh(tmpvar,qvar,press,jx,iy,kz)
-        call intlin(pvar,qvar,ps,press,jx,iy,kz,plevs,np)
+        call intlin(pvar,qvar,press,jx,iy,kz,plevs,np)
         call top2btm(pvar,jx,iy,np)
       else
-        call mxr2rh(tmpvar,qvar,ps*100_rk4,sigma,ptop,jx,iy,kz)
+        call mxr2rh(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
         call intlin(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
       end if
       pvar = pvar * 100.0 ! Put in %
@@ -668,7 +663,7 @@ program sigma2p
     end if
     if ( make_hgt ) then
       if ( iodyn == 2 ) then
-        call nonhydrost(hzvar,tmpvar,ps0,ptop*100.0,topo,sigma,jx,iy,kz)
+        call nonhydrost(hzvar,tmpvar,press,ps,topo,jx,iy,kz)
         call height_o(pvar,hzvar,tmpvar,ps,topo,press,jx,iy,kz,plevs,np)
       else
         call htsig_o(tmpvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)

@@ -249,6 +249,7 @@ program sigma2z
     else if (varname == 'ptop') then
       istatus = nf90_get_var(ncid,i,ptop)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
+      ptop = ptop * d_100
     else if (varname == 'crs' .or. varname == 'rcm_map' ) then
       ircm_map = i
     else if (varname == 'ps') then
@@ -409,7 +410,7 @@ program sigma2z
   if ( iodyn == 2 ) then
     istatus = nf90_get_var(ncid, ip0varid, ps0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable p0.')
-    ps0 = ps0 - real(ptop * d_100)
+    ps0 = ps0 - real(ptop)
   end if
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)
@@ -478,8 +479,7 @@ program sigma2z
       istatus = nf90_get_var(ncid, ippvarid, pp, istart(1:4), icount(1:4))
       call checkncerr(istatus,__FILE__,__LINE__,'Error reading pp.')
       do k = 1 , kz
-        press(:,:,k) = ps0(:,:) * real(sigma(k)) + &
-                       real(ptop * 100.0) + pp(:,:,k)
+        press(:,:,k) = ps0(:,:)*real(sigma(k)) + real(ptop) + pp(:,:,k)
       end do
     end if
     istart(1) = 1
@@ -492,9 +492,6 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     istatus = nf90_put_var(ncout, ipsvarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
-    if ( iodyn == 1 .and. .not. is_icbc ) then
-      ps = ps / 100.0
-    end if
     istart(1) = 1
     istart(2) = 1
     istart(3) = 1
@@ -508,7 +505,7 @@ program sigma2z
     if ( iodyn == 1 ) then
       call htsig_o(tazvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
     else
-      call nonhydrost(hzvar,tazvar,ps0,ptop*100.0,topo,sigma,jx,iy,kz)
+      call nonhydrost(hzvar,tazvar,press,ps,topo,jx,iy,kz)
     end if
     do i = 1 , nvars
       if (.not. ltvarflag(i)) cycle
@@ -618,7 +615,7 @@ program sigma2z
       if ( iodyn == 2 ) then
         call mxr2rh(tazvar,qazvar,press,jx,iy,kz)
       else
-        call mxr2rh(tazvar,qazvar,ps*100_rk4,sigma,ptop,jx,iy,kz)
+        call mxr2rh(tazvar,qazvar,ps,sigma,ptop,jx,iy,kz)
       end if
       call intlin(zvar,qazvar,hzvar,sigma,jx,iy,kz,zlevs,nz)
       zvar = zvar * 100.0 ! Put in %

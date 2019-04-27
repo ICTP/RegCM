@@ -118,11 +118,11 @@ module mod_hgt
     end do
   end subroutine height_hydro
 
-  subroutine height_nonhydro(im,jm,km,t,ipstar,topo,sig,ptop,pp,p,hp)
+  subroutine height_nonhydro(im,jm,km,t,ipstar,ps,topo,sig,ptop,pp,p,hp)
     implicit none
     integer , intent(in) :: im , jm , km
     real(4) , intent(in) , dimension(km,jm,im) :: t , pp
-    real(4) , intent(in) , dimension(jm,im) :: topo , ipstar
+    real(4) , intent(in) , dimension(jm,im) :: topo , ipstar , ps
     real(8) , intent(in) :: ptop
     real(4) , intent(in) :: p
     real(4) , intent(in) , dimension(km) :: sig
@@ -153,7 +153,7 @@ module mod_hgt
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
     ptp = real(ptop)
-    pstar = ipstar * 0.01
+    pstar = ipstar * 0.01 - ptp
     kbc = 1
     do k = 1 , km
       if ( sig(k) < bltop ) kbc = k
@@ -161,15 +161,13 @@ module mod_hgt
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
-          psig(k) = sig(k)*(pstar(j,i)-ptp) + ptp + (pp(k,j,i) * 0.01)
+          psig(k) = sig(k)*pstar(j,i) + ptp + (pp(k,j,i) * 0.01)
         end do
-        psfc = pstar(j,i)
-        htsig(km) = topo(j,i) + rovg*t(km,j,i) * &
-                      log(psfc/((psfc-ptp)*sig(km)+ptp))
+        psfc = ps(j,i) * 0.01
+        htsig(km) = topo(j,i) + rovg*t(km,j,i) * log(psfc/psig(km))
         do k = km - 1 , 1 , -1
           tbar = 0.5*(t(k,j,i)+t(k+1,j,i))
-          htsig(k) = htsig(k+1) + rovg*tbar * &
-             log(((psfc-ptp)*sig(k+1)+ptp)/((psfc-ptp)*sig(k)+ptp))
+          htsig(k) = htsig(k+1) + rovg*tbar * log(psig(k+1)/psig(k))
         end do
         kt = 1
         do k = 1 , km

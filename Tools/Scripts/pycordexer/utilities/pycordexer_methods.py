@@ -492,11 +492,10 @@ class InterpolateHeight(Filter):
                     'Reading p0 variable from regcm file and saving its content '
                     'in memory'
                 )
-                # Set units in mb
                 p0 = np.array(
                     get_var_with_name(p0_names, f)[:],
                     dtype=DATATYPE_AUXILIARIES,
-                ) * 0.01
+                )
                 LOGGER.debug('Reading pp variable from regcm file')
                 pp = get_var_with_name(pp_names, f)
             LOGGER.debug(
@@ -527,9 +526,9 @@ class InterpolateHeight(Filter):
 
                     if self.core == 'hydrostatic':
                         LOGGER.debug('Reading time step %s of variable ps', t)
-                        # PS, PTOP, PLEV must have same units. Use hPa
+                        # PS, PTOP, PLEV must have same units. Use Pa
                         ps_t = np.array(ps[t, :], 
-                                        dtype=DATATYPE_AUXILIARIES)*0.01
+                                        dtype=DATATYPE_AUXILIARIES)
                         LOGGER.debug(
                             'Interpolating time step %s of %s',
                             t,
@@ -543,14 +542,11 @@ class InterpolateHeight(Filter):
                             self.pressure_level
                         )
                     else:
-                        LOGGER.debug('Reading time step %s of variable ps', t)
-                        # PS, PTOP, PLEV must have same units. Use hPa
-                        ps_t = np.array(ps[t, :], 
-                                        dtype=DATATYPE_AUXILIARIES)*0.01
+                        # PTOP, PLEV must have same units. Use Pa
                         LOGGER.debug('Reading time step %s of variable pp', t)
-                        # PS0, PP, PLEV must have same units. Use hPa
+                        # PS0, PP, PLEV must have same units. Use Pa
                         pp_t = np.array(pp[t, :], 
-                                        dtype=DATATYPE_AUXILIARIES)*0.01
+                                        dtype=DATATYPE_AUXILIARIES)
                         p_t = np.empty_like(prev_result.data(data_slice))
                         nk = np.shape(p_t)[0]
                         LOGGER.debug('Computing pressure')
@@ -564,7 +560,6 @@ class InterpolateHeight(Filter):
                         )
                         interpolation_result[t, :] = self.__interpolator(
                             prev_result.data(data_slice),
-                            ps_t,
                             p_t,
                             self.pressure_level
                         )
@@ -577,7 +572,7 @@ class InterpolateHeight(Filter):
                 attributes['coordinates'] = 'plev ' + attributes['coordinates']
 
             pval = np.array([1], dtype=DATATYPE_AUXILIARIES)
-            pval[0] = self.pressure_level*100.0
+            pval[0] = self.pressure_level
             height_var = Variable(
                 name='plev',
                 data=MemoryData(copy(pval)),
@@ -621,7 +616,7 @@ class InterpolateOnMultipleHeights(Filter):
     """
 
     def __init__(self, pressure_levels, method):
-        self.pressure_levels = [float(i) for i in pressure_levels]
+        self.pressure_levels = [float(i*100) for i in pressure_levels]
         self.method = method.lower()
         if method not in ('linear', 'logarithmic'):
             raise ValueError(
@@ -668,7 +663,7 @@ class InterpolateOnMultipleHeights(Filter):
         LOGGER.debug('Appending pressure level to the names of the variables')
         for interp_var, pressure in zip(interp_vars, self.pressure_levels):
             # The format .0f removes the ".0" at the end of the float
-            interp_var.name += '{:.0f}'.format(pressure)
+            interp_var.name += '{:.0f}'.format(pressure*0.01)
 
         return interp_vars
 
@@ -1826,7 +1821,7 @@ class ComputeGeopotentialHeight(ActionStarter):
     """
 
     def __init__(self, height):
-        self.height = float(height)
+        self.height = float(height * 100.0) #Pa
 
     def __call__(self, regcm_file, regcm_file_path, simulation, corrflag,
                  cordex_dir):
@@ -1863,7 +1858,7 @@ class ComputeGeopotentialHeight(ActionStarter):
             needed_var_names = ['ta', 'ps', 'topo', 'sigma', 'ptop']
             funcname = mod_hgt.height_hydro
         else:
-            needed_var_names = ['ta', 'p0', 'topo', 'sigma', 'ptop', 'pp']
+            needed_var_names = ['ta', 'p0', 'ps', 'topo', 'sigma', 'ptop', 'pp']
             funcname = mod_hgt.height_nonhydro
 
         with Dataset(regcm_file_path, 'r') as f:
@@ -1921,7 +1916,7 @@ class ComputeGeopotentialHeight(ActionStarter):
 
             for t in range(time_steps):
                 LOGGER.debug(
-                    'Computing geopotential height for %s hPa at timestep %s',
+                    'Computing geopotential height for %s Pa at timestep %s',
                     self.height,
                     t
                 )
@@ -1945,7 +1940,7 @@ class ComputeGeopotentialHeight(ActionStarter):
                 attributes['coordinates'] = 'plev ' + attributes['coordinates']
 
             pval = np.array([1], dtype=DATATYPE_AUXILIARIES)
-            pval[0] = self.height*100.0
+            pval[0] = self.height
             height_var = Variable(
                 name='plev',
                 data=MemoryData(copy(pval)),
@@ -1960,7 +1955,7 @@ class ComputeGeopotentialHeight(ActionStarter):
             )
 
             return Variable(
-                name="zg{:.0f}".format(self.height),
+                name="zg{:.0f}".format(self.height*0.01),
                 data=MemoryData(data),
                 dimensions=dimensions,
                 attributes=attributes,
@@ -1996,7 +1991,7 @@ class ComputeGeopotentialHeightOnSeveralPressures(ActionStarter):
         new_vars = []
         for height_generator in self.__height_gens:
             LOGGER.debug(
-                'Computing geopotential height on %s hPa',
+                'Computing geopotential height on %s Pa',
                 height_generator.height
             )
             new_var = height_generator(

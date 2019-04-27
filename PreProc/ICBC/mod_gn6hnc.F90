@@ -894,13 +894,13 @@ module mod_gn6hnc
 !$OMP SECTION
       call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlin(up,uvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+      call intlin(up,uvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlin(vp,vvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+      call intlin(vp,vvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlog(tp,tvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+      call intlog(tp,tvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlin(qp,qvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
+      call intlin(qp,qvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP END SECTIONS
     end if
 

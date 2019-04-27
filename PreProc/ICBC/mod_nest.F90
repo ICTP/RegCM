@@ -600,16 +600,16 @@ module mod_nest
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call nonhydrost(z1,t0_in,p0_in,ptop_in,ht_in,sigma_in,jx_in,iy_in,kz_in)
+      call nonhydrost(z1,t0_in,p3d,ps,ht_in,jx_in,iy_in,kz_in)
       call height_o(hp,z1,t,ps,ht_in,p3d,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlog(tp,t,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlog(tp,t,p3d,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(up,u,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(up,u,p3d,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(vp,v,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(vp,v,p3d,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(qp,q,ps,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(qp,q,p3d,jx_in,iy_in,kz_in,plev,np)
 !$OMP END SECTIONS
     end if
 

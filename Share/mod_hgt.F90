@@ -108,17 +108,14 @@ module mod_hgt
     end do
   end subroutine hydrost
 
-  subroutine nonhydrost_double(h,t0,p0,ptop,topo,sigmah,ni,nj,nk)
+  subroutine nonhydrost_double(h,t0,p0,ps,topo,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) :: ptop
-    real(rk8) , intent(in) , dimension(nk) :: sigmah
-    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t0
-    real(rk8) , intent(in) , dimension(ni,nj) :: p0 , topo
+    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t0 , p0
+    real(rk8) , intent(in) , dimension(ni,nj) :: ps , topo
     real(rk8) , intent(out) , dimension(ni,nj,nk) :: h
-
+    real(rk8) :: tbar
     integer(ik4) :: i , j , k
-    real(rk8) :: cell
     !
     ! ROUTINE TO COMPUTE HEIGHT FOR THE NON-HYDROSTATIC CORE
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
@@ -126,68 +123,55 @@ module mod_hgt
     !
     do j = 1 , nj
       do i = 1 , ni
-        cell = ptop / p0(i,j)
-        h(i,j,nk) = rovg * t0(i,j,nk) * &
-                 log((d_one+cell)/(sigmah(nk)+cell)) + topo(i,j)
+        h(i,j,nk) = topo(i,j) + rovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
       end do
     end do
     do k = nk-1 , 1 , -1
       do j = 1 , nj
         do i = 1 , ni
-          cell = ptop / p0(i,j)
-          h(i,j,k) = h(i,j,k+1) + rovg * t0(i,j,k) * &
-                   log((sigmah(k+1)+cell)/(sigmah(k)+cell))
+          tbar = d_half*(t0(i,j,k)+t0(i,j,k+1))
+          h(i,j,k) = h(i,j,k+1) + rovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
         end do
       end do
     end do
   end subroutine nonhydrost_double
 
-  subroutine nonhydrost_single(h,t0,p0,ptop,topo,sigmah,ni,nj,nk)
+  subroutine nonhydrost_single(h,t0,p0,ps,topo,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) :: ptop
-    real(rk4) , intent(in) , dimension(nk) :: sigmah
-    real(rk4) , intent(in) , dimension(ni,nj,nk) :: t0
-    real(rk4) , intent(in) , dimension(ni,nj) :: p0 , topo
+    real(rk4) , intent(in) , dimension(ni,nj,nk) :: t0 , p0
+    real(rk4) , intent(in) , dimension(ni,nj) :: ps , topo
     real(rk4) , intent(out) , dimension(ni,nj,nk) :: h
-
+    real(rk4) :: tbar
     integer(ik4) :: i , j , k
-    real(rk4) :: cell , ptp
     !
     ! ROUTINE TO COMPUTE HEIGHT FOR THE NON-HYDROSTATIC CORE
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
     ! HEIGHT IS COMPUTED IN THE RCM MODEL.
     !
-    ptp = real(ptop)
     do j = 1 , nj
       do i = 1 , ni
-        cell = ptp / p0(i,j)
-        h(i,j,nk) = srovg * t0(i,j,nk) * &
-                 log((1.0+cell)/(sigmah(nk)+cell)) + topo(i,j)
+        h(i,j,nk) = topo(i,j) + srovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
       end do
     end do
     do k = nk-1 , 1 , -1
       do j = 1 , nj
         do i = 1 , ni
-          cell = ptp / p0(i,j)
-          h(i,j,k) = h(i,j,k+1) + srovg * t0(i,j,k) * &
-                   log((sigmah(k+1)+cell)/(sigmah(k)+cell))
+          tbar = 0.5*(t0(i,j,k)+t0(i,j,k+1))
+          h(i,j,k) = h(i,j,k+1) + srovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
         end do
       end do
     end do
   end subroutine nonhydrost_single
 
-  subroutine nonhydrost_single_2(h,t0,p0,ptop,topo,sigmah,i1,i2,j1,j2,nk)
+  subroutine nonhydrost_single_2(h,t0,p0,ps,topo,i1,i2,j1,j2,nk)
     implicit none
     integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , nk
-    real(rk8) , intent(in) :: ptop
-    real(rk8) , intent(in) , dimension(nk) :: sigmah
-    real(rk8) , intent(in) , dimension(i1:i2,j1:j2,nk) :: t0
-    real(rk8) , intent(in) , dimension(i1:i2,j1:j2) :: p0 , topo
+    real(rk8) , intent(in) , dimension(i1:i2,j1:j2,nk) :: t0 , p0
+    real(rk8) , intent(in) , dimension(i1:i2,j1:j2) :: ps , topo
     real(rk8) , intent(out) , dimension(i1:i2,j1:j2,nk) :: h
-
+    real(rk8) :: tbar
     integer(ik4) :: i , j , k
-    real(rk8) :: cell
     !
     ! ROUTINE TO COMPUTE HEIGHT FOR THE NON-HYDROSTATIC CORE
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE
@@ -195,17 +179,14 @@ module mod_hgt
     !
     do j = j1 , j2
       do i = i1 , i2
-        cell = (ptop * d_100) / p0(i,j)
-        h(i,j,nk) = rovg * t0(i,j,nk) * &
-                 log((d_one+cell)/(sigmah(nk)+cell)) + topo(i,j)
+        h(i,j,nk) = topo(i,j) + srovg * t0(i,j,nk) * log(ps(i,j)/p0(i,j,nk))
       end do
     end do
     do k = nk-1 , 1 , -1
       do j = j1 , j2
         do i = i1 , i2
-          cell = (ptop * d_100) / p0(i,j)
-          h(i,j,k) = h(i,j,k+1) + rovg * t0(i,j,k) * &
-                   log((sigmah(k+1)+cell)/(sigmah(k)+cell))
+          tbar = d_half*(t0(i,j,k)+t0(i,j,k+1))
+          h(i,j,k) = h(i,j,k+1) + srovg * tbar * log(p0(i,j,k+1)/p0(i,j,k))
         end do
       end do
     end do

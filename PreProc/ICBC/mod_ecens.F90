@@ -265,16 +265,16 @@ module mod_ecens
     call height(hp,z1,t2,ps2,pp3d,zs2,nlon,nlat,mlev,pplev,nplev)
     ! 2. For Zonal and Meridional Winds
 !$OMP SECTION
-    call intlin(up,u2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
+    call intlin(up,u2,pp3d,nlon,nlat,mlev,pplev,nplev)
 !$OMP SECTION
-    call intlin(vp,v2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
+    call intlin(vp,v2,pp3d,nlon,nlat,mlev,pplev,nplev)
     ! 3. For Temperatures
 !$OMP SECTION
-    call intlog(tp,t2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
+    call intlog(tp,t2,pp3d,nlon,nlat,mlev,pplev,nplev)
     ! 4. For Moisture qva & qca
 !$OMP SECTION
     call mxr2rh(t2,q2,pp3d,nlon,nlat,mlev,-9999.0_rkx)
-    call intlin(qp,q2,ps2,pp3d,nlon,nlat,mlev,pplev,nplev)
+    call intlin(qp,q2,pp3d,nlon,nlat,mlev,pplev,nplev)
 !$OMP END SECTIONS
     !
     ! Horizontal interpolation of both the scalar and vector fields
