@@ -1484,7 +1484,7 @@ module mod_vertint
     real(rk8) , dimension(km) , intent(in) :: sig
     real(rk8) , dimension(im,jm,kp) , intent(out) :: fp
     real(rk8) :: sigp , w1 , wp
-    integer(ik4) :: i , j , k , kx , knx , kbc , n
+    integer(ik4) :: i , j , k , kx , knx , n
     !
     ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
     ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -1505,13 +1505,6 @@ module mod_vertint
       do j = 1 , jm
         do i = 1 , im
           !
-          ! find boundary layer top
-          !
-          kbc = 1
-          do k = 1 , km
-            if ( sig(k) >= bltop ) kbc = k
-          end do
-          !
           ! For each of the requested levels
           !
           do n = 1 , kp
@@ -1520,36 +1513,29 @@ module mod_vertint
             !
             sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
             !
-            ! Extrapolation
-            !
-            if ( sigp > d_one ) then
-              fp(i,j,n) = f(i,j,kbc)*dexp(rglrog*dlog(sigp/sig(kbc)))
-              cycle
-            end if
-            !
             ! Over the top or below bottom level
             !
             if ( sigp <= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
-              cycle
             else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
+              fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
+                             dexp(rglrog*dlog(sigp/sig(1)))
+            else
+              !
+              ! Search k level above the requested one
+              !
+              do k = 2 , km
+                kx = k
+                if ( sig(k) < sigp ) exit
+              end do
+              !
+              ! This is the below level
+              !
+              knx = kx - 1
+              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+              w1 = d_one - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end if
-            !
-            ! Search k level above the requested one
-            !
-            do k = 2 , km
-              kx = k
-              if ( sig(k) < sigp ) exit
-            end do
-            !
-            ! This is the below level
-            !
-            knx = kx - 1
-            wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -1563,13 +1549,6 @@ module mod_vertint
       do j = 1 , jm
         do i = 1 , im
           !
-          ! Find boundary layer Top
-          !
-          kbc = km
-          do k = km , 1 , -1
-            if ( sig(k) >= bltop ) kbc = k
-          end do
-          !
           ! For each of the requested levels
           !
           do n = 1 , kp
@@ -1578,36 +1557,29 @@ module mod_vertint
             !
             sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
             !
-            ! Extrapolation
-            !
-            if ( sigp > d_one ) then
-              fp(i,j,n) = f(i,j,kbc)*dexp(rglrog*dlog(sigp/sig(kbc)))
-              cycle
-            end if
-            !
             ! Over the top or below bottom level
             !
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
-              cycle
             else if ( sigp >= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-              cycle
+              fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
+                        dexp(rglrog*dlog(sigp/sig(km)))
+            else
+              !
+              ! Search k level below the requested one
+              !
+              do k = 2 , km
+                kx = k
+                if ( sig(k) > sigp ) exit
+              end do
+              !
+              ! This is the above level
+              !
+              knx = kx - 1
+              wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
+              w1 = d_one - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end if
-            !
-            ! Search k level below the requested one
-            !
-            do k = 2 , km
-              kx = k
-              if ( sig(k) > sigp ) exit
-            end do
-            !
-            ! This is the above level
-            !
-            knx = kx - 1
-            wp = dlog(sig(kx)/sigp)/dlog(sig(kx)/sig(knx))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -1624,7 +1596,7 @@ module mod_vertint
     real(rk4) , dimension(km) , intent(in) :: sig
     real(rk4) , dimension(im,jm,kp) , intent(out) :: fp
     real(rk4) :: sigp , w1 , wp , pt
-    integer(ik4) :: i , j , k , kx , knx , kbc , n
+    integer(ik4) :: i , j , k , kx , knx , n
     !
     ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
     ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -1645,13 +1617,6 @@ module mod_vertint
       do j = 1 , jm
         do i = 1 , im
           !
-          ! find boundary layer top
-          !
-          kbc = 1
-          do k = 1 , km
-            if ( sig(k) >= bltop ) kbc = k
-          end do
-          !
           ! For each of the requested levels
           !
           do n = 1 , kp
@@ -1660,36 +1625,29 @@ module mod_vertint
             !
             sigp = (p(n)-pt)/(pstar(i,j)-pt)
             !
-            ! Extrapolation
-            !
-            if ( sigp > 1.0 ) then
-              fp(i,j,n) = f(i,j,kbc)*exp(real(rglrog)*log(sigp/sig(kbc)))
-              cycle
-            end if
-            !
             ! Over the top or below bottom level
             !
             if ( sigp <= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
-              cycle
             else if ( sigp >= sig(1) ) then
-              fp(i,j,n) = f(i,j,1)
-              cycle
+              fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
+                        exp(real(rglrog)*log(sigp/sig(1)))
+            else
+              !
+              ! Search k level above the requested one
+              !
+              do k = 2 , km
+                kx = k
+                if ( sig(k) < sigp ) exit
+              end do
+              !
+              ! This is the below level
+              !
+              knx = kx - 1
+              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+              w1 = 1.0 - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end if
-            !
-            ! Search k level above the requested one
-            !
-            do k = 2 , km
-              kx = k
-              if ( sig(k) < sigp ) exit
-            end do
-            !
-            ! This is the below level
-            !
-            knx = kx - 1
-            wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-            w1 = 1.0 - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -1703,13 +1661,6 @@ module mod_vertint
       do j = 1 , jm
         do i = 1 , im
           !
-          ! Find boundary layer Top
-          !
-          kbc = km
-          do k = km , 1 , -1
-            if ( sig(k) >= bltop ) kbc = k
-          end do
-          !
           ! For each of the requested levels
           !
           do n = 1 , kp
@@ -1718,36 +1669,29 @@ module mod_vertint
             !
             sigp = (p(n)-pt)/(pstar(i,j)-pt)
             !
-            ! Extrapolation
-            !
-            if ( sigp > 1.0 ) then
-              fp(i,j,n) = f(i,j,kbc)*exp(real(rglrog)*log(sigp/sig(kbc)))
-              cycle
-            end if
-            !
             ! Over the top or below bottom level
             !
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
-              cycle
             else if ( sigp >= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-              cycle
+              fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
+                        exp(real(rglrog)*log(sigp/sig(km)))
+            else
+              !
+              ! Search k level below the requested one
+              !
+              do k = 2 , km
+                kx = k
+                if ( sig(k) > sigp ) exit
+              end do
+              !
+              ! This is the above level
+              !
+              knx = kx - 1
+              wp = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
+              w1 = 1.0 - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end if
-            !
-            ! Search k level below the requested one
-            !
-            do k = 2 , km
-              kx = k
-              if ( sig(k) > sigp ) exit
-            end do
-            !
-            ! This is the above level
-            !
-            knx = kx - 1
-            wp = log(sig(kx)/sigp)/log(sig(kx)/sig(knx))
-            w1 = 1.0 - wp
-            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
