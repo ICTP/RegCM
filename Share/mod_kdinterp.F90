@@ -181,8 +181,8 @@ module mod_kdinterp
         if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
         do j = 1 , nj
           call ll2xyz(tlat(j,i),tlon(j,i),p)
-          ! np = max(kdtree2_r_count(mr,p,r2),minp)
-          np = 2
+          np = max(kdtree2_r_count(mr,p,r2),minp)
+          ! np = 2
           allocate(results(np))
           call kdtree2_n_nearest(mr,p,np,results)
           call compwgt_genlin(np,n2,p,x,results,h_i%tg%ft(j,i)%wgt)
@@ -1011,120 +1011,18 @@ module mod_kdinterp
         return
       end if
     end do
-    if ( np == 2 ) then
-      np = 4
-      vp(:,1) = xp(:,r(1)%idx)
-      ib(1) = (r(1)%idx-1)/n2 + 1
-      jb(1) = r(1)%idx - n2*(ib(1)-1)
-      vp(:,2) = xp(:,r(2)%idx)
-      ib(2) = (r(2)%idx-1)/n2 + 1
-      jb(2) = r(2)%idx - n2*(ib(2)-1)
-      ! "EW" aligned points
-      if ( ib(1) == ib(2) ) then
-        ! Up or down of them ?
-        if ( vp(3,1) > p(3) .or. vp(3,2) > p(3) ) then
-          if ( r(1)%idx-n2 >= 1 ) then
-            vp(:,3) = xp(:,r(1)%idx-n2)
-            ib(3) = ib(1) - 1
-            jb(3) = jb(1)
-          else
-            vp(:,3) = xp(:,r(1)%idx+n2)
-            ib(3) = ib(1) + 1
-            jb(3) = jb(1)
-          end if
-          if ( r(2)%idx-n2 >= 1 ) then
-            vp(:,4) = xp(:,r(2)%idx-n2)
-            ib(4) = ib(2) - 1
-            jb(4) = jb(2)
-          else
-            vp(:,4) = xp(:,r(2)%idx+n2)
-            ib(4) = ib(2) + 1
-            jb(4) = jb(2)
-          end if
-        else
-          if ( r(1)%idx+n2 <= size(xp,2) ) then
-            vp(:,3) = xp(:,r(1)%idx+n2)
-            ib(3) = ib(1) + 1
-            jb(3) = jb(1)
-          else
-            vp(:,3) = xp(:,r(1)%idx-n2)
-            ib(3) = ib(1) - 1
-            jb(3) = jb(1)
-          end if
-          if ( r(2)%idx+n2 <= size(xp,2) ) then
-            vp(:,4) = xp(:,r(2)%idx+n2)
-            ib(4) = ib(2) + 1
-            jb(4) = jb(2)
-          else
-            vp(:,4) = xp(:,r(2)%idx-n2)
-            ib(4) = ib(2) - 1
-            jb(4) = jb(2)
-          end if
-        end if
-      else
-        ! Left or right of them ?
-        if ( atan2(vp(2,1),vp(1,1)) < atan2(p(2),p(1)) .or. &
-             atan2(vp(2,2),vp(1,2)) < atan2(p(2),p(1)) ) then
-          if ( jb(1) == 1 ) then
-            vp(:,3) = xp(:,r(1)%idx+n2-1)
-            ib(3) = ib(1)
-            jb(3) = n2
-          else
-            vp(:,3) = xp(:,r(1)%idx-1)
-            ib(3) = ib(1)
-            jb(3) = jb(1) - 1
-          end if
-          if ( jb(2) == 1 ) then
-            vp(:,4) = xp(:,r(2)%idx+n2-1)
-            ib(4) = ib(2)
-            jb(4) = n2
-          else
-            vp(:,4) = xp(:,r(2)%idx-1)
-            ib(4) = ib(2)
-            jb(4) = jb(2) - 1
-          end if
-        else
-          if ( jb(1) == n2 ) then
-            vp(:,3) = xp(:,r(1)%idx-n2+1)
-            ib(3) = ib(1)
-            jb(3) = 1
-          else
-            vp(:,3) = xp(:,r(1)%idx+1)
-            ib(3) = ib(1)
-            jb(3) = jb(1) + 1
-          end if
-          if ( jb(2) == n2 ) then
-            vp(:,4) = xp(:,r(2)%idx-n2+1)
-            ib(4) = ib(2)
-            jb(4) = 1
-          else
-            vp(:,4) = xp(:,r(2)%idx+1)
-            ib(4) = ib(2)
-            jb(4) = jb(2) + 1
-          end if
-        end if
-      end if
-      allocate(w(np))
-      call spherical_barycentric(np,p,vp,lambdap)
-      do n = 1 , np
-        w(n)%i = ib(n)
-        w(n)%j = jb(n)
-        w(n)%wgt = lambdap(n)
+    do n = 1 , np
+      do i = 1 , 3
+        v(i,n) = xp(i,r(n)%idx)
       end do
-    else
-      do n = 1 , np
-        do i = 1 , 3
-          v(i,n) = xp(i,r(n)%idx)
-        end do
-      end do
-      allocate(w(np))
-      call spherical_barycentric(np,p,v,lambda)
-      do n = 1 , np
-        w(n)%i = (r(n)%idx-1)/n2 + 1
-        w(n)%j = r(n)%idx - n2*(w(n)%i-1)
-        w(n)%wgt = lambda(n)
-      end do
-    end if
+    end do
+    allocate(w(np))
+    call spherical_barycentric(np,p,v,lambda)
+    do n = 1 , np
+      w(n)%i = (r(n)%idx-1)/n2 + 1
+      w(n)%j = r(n)%idx - n2*(w(n)%i-1)
+      w(n)%wgt = lambda(n)
+    end do
   end subroutine compwgt_genlin_2d
 
 end module mod_kdinterp
