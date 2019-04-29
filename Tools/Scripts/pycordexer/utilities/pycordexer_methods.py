@@ -550,9 +550,10 @@ class InterpolateHeight(Filter):
                         p_t = np.empty_like(prev_result.data(data_slice))
                         nk = np.shape(p_t)[0]
                         LOGGER.debug('Computing pressure')
+                        ptpa = ptop_array * 100.0
                         for k in range (0,nk):
-                            p_t[k,:] = ((p0[:]-ptop_array)*sigma_array[k] + 
-                                    ptop_array) + pp_t[k,:]
+                            p_t[k,:] = ((p0[:]-ptpa)*sigma_array[k] + 
+                                    ptpa) + pp_t[k,:]
                         LOGGER.debug(
                             'Interpolating time step %s of %s',
                             t,
