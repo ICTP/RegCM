@@ -201,7 +201,7 @@ module mod_hgt
     real(rkx) , intent(out) , dimension(im,jm,kp) :: hp
 
     real(rkx) :: psfc , temp , wb , wt
-    integer(ik4) :: i , j , k , kb , kbc , kt , n
+    integer(ik4) :: i , j , k , kb , kt , n
     real(rkx) , dimension(km+1) :: psig
     real(rkx) , dimension(km) :: sig
     !
@@ -227,11 +227,9 @@ module mod_hgt
     do j = 1 , jm
       do i = 1 , im
         psfc = ps(i,j)
-        kbc = 1
         if ( psfc > -9995.0_rkx ) then
           do k = 1 , km
             sig(k) = p3d(i,j,k)/ps(i,j)
-            if ( sig(k) < bltop ) kbc = k
             psig(k) = p3d(i,j,k)
           end do
           do n = 1 , kp
@@ -253,7 +251,7 @@ module mod_hgt
               temp = t(i,j,km)
               hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
             else if ( p(n) > psfc ) then
-              temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
+              temp = 0.5 * ( t(i,j,km) + t(i,j,km-1))
               hp(i,j,n) = ht(i,j)+ &
                       (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
             end if
@@ -280,7 +278,7 @@ module mod_hgt
     real(rk8) , intent(in) , dimension(km) :: sig
 
     real(rk8) :: psfc , temp , wb , wt
-    integer(ik4) :: i , j , k , kb , kbc , kt , n
+    integer(ik4) :: i , j , k , kb , kt , n
     real(rk8) , dimension(km) :: psig
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
@@ -301,10 +299,6 @@ module mod_hgt
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
-    kbc = 1
-    do k = 1 , km
-      if ( sig(k) < bltop ) kbc = k
-    end do
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
@@ -330,7 +324,7 @@ module mod_hgt
             temp = t(i,j,km)
             hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
-            temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
+            temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
           end if
@@ -348,7 +342,7 @@ module mod_hgt
     real(rk8) , intent(in) , dimension(kp) :: p
 
     real(rk8) :: psfc , temp , wb , wt
-    integer(ik4) :: i , j , k , kb , kbc , kt , n
+    integer(ik4) :: i , j , k , kb , kt , n
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
@@ -371,10 +365,6 @@ module mod_hgt
     do j = 1 , jm
       do i = 1 , im
         psfc = ps(i,j)
-        kbc = 1
-        do k = 1 , km
-           if ( p3(i,j,k) < 96000.0_rkx ) kbc = k
-        end do
         do n = 1 , kp
           kt = 1
           do k = 1 , km
@@ -394,7 +384,7 @@ module mod_hgt
             temp = t(i,j,km)
             hp(i,j,n) = ht(i,j) + rovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
-            temp = t(i,j,kbc) + lrate*(h(i,j,kbc)-ht(i,j))
+            temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/lrate)*(d_one-exp(+rovg*lrate*log(p(n)/psfc)))
           end if
@@ -414,7 +404,7 @@ module mod_hgt
     real(rk4) , intent(in) , dimension(km) :: sig
 
     real(rk4) :: psfc , temp , wb , wt , ptp
-    integer(ik4) :: i , j , k , kb , kbc , kt , n
+    integer(ik4) :: i , j , k , kb , kt , n
     real(rk4) , dimension(km) :: psig
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
@@ -436,10 +426,6 @@ module mod_hgt
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
     ptp = real(ptop)
-    kbc = 1
-    do k = 1 , km
-      if ( sig(k) < bltop ) kbc = k
-    end do
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
@@ -465,7 +451,7 @@ module mod_hgt
             temp = t(i,j,km)
             hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
-            temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
+            temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/slrate)*(1.0-exp(+srovg*slrate*log(p(n)/psfc)))
           end if
@@ -483,7 +469,7 @@ module mod_hgt
     real(rk4) , intent(in) , dimension(kp) :: p
 
     real(rk4) :: psfc , temp , wb , wt
-    integer(ik4) :: i , j , k , kb , kbc , kt , n
+    integer(ik4) :: i , j , k , kb , kt , n
     !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
@@ -506,10 +492,6 @@ module mod_hgt
     do j = 1 , jm
       do i = 1 , im
         psfc = ps(i,j)
-        kbc = 1
-        do k = 1 , km
-           if ( p3(i,j,k) < 96000.0 ) kbc = k
-        end do
         do n = 1 , kp
           kt = 1
           do k = 1 , km
@@ -529,7 +511,7 @@ module mod_hgt
             temp = t(i,j,km)
             hp(i,j,n) = ht(i,j) + srovg*temp*log(psfc/p(n))
           else if ( p(n) > psfc ) then
-            temp = t(i,j,kbc) + slrate*(h(i,j,kbc)-ht(i,j))
+            temp = 0.5 * (t(i,j,km) + t(i,j,km-1))
             hp(i,j,n) = ht(i,j) + &
                   (temp/slrate)*(1.0-exp(+srovg*slrate*log(p(n)/psfc)))
           end if

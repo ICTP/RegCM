@@ -232,7 +232,6 @@ module mod_constants
   real(rkx) , parameter :: stdt = 288.15_rkx
   real(rkx) , parameter :: stdrho = 1.28_rkx
   real(rkx) , parameter :: lrate = 0.00649_rkx ! K/m from MSL up to 11 km
-  real(rkx) , parameter :: bltop = 0.960_rkx
 
   ! Atmos. surface pressure mol/cm3
   real(rkx) , parameter :: atmos = 2.247e19_rkx

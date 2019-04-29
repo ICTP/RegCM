@@ -50,7 +50,7 @@ module mod_hgt
     real(4) , intent(out) , dimension(jm,im) :: hp
 
     real(4) :: psfc , temp , wb , wt , ptp , tbar
-    integer :: i , j , k , kb , kbc , kt
+    integer :: i , j , k , kb , kt
     real(4) , dimension(jm,im) :: pstar
     real(4) , dimension(km) :: psig
     real(4) , dimension(km) :: htsig
@@ -73,12 +73,8 @@ module mod_hgt
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
-    ptp = real(ptop)
-    pstar = ipstar * 0.01
-    kbc = 1
-    do k = 1 , km
-      if ( sig(k) < bltop ) kbc = k
-    end do
+    ptp = real(ptop) * 100.0
+    pstar = ipstar
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
@@ -110,7 +106,7 @@ module mod_hgt
           temp = t(km,j,i)
           hp(j,i) = topo(j,i) + rovg*temp*log(psfc/p)
         else if ( p > psfc ) then
-          temp = t(kbc,j,i) + lrate*(htsig(kbc)-topo(j,i))
+          temp = 0.5 * (t(km,j,i) + t(km-1,j,i))
           hp(j,i) = topo(j,i) + &
                   (temp/lrate)*(1.0-exp(+rovg*lrate*log(p/psfc)))
         end if
@@ -129,7 +125,7 @@ module mod_hgt
     real(4) , intent(out) , dimension(jm,im) :: hp
 
     real(4) :: psfc , temp , wb , wt , ptp , tbar
-    integer :: i , j , k , kb , kbc , kt
+    integer :: i , j , k , kb , kt
     real(4) , dimension(jm,im) :: pstar
     real(4) , dimension(km) :: psig
     real(4) , dimension(km) :: htsig
@@ -152,18 +148,14 @@ module mod_hgt
     !     GOTTEN FROM R. ERRICO (ALSO USED IN SLPRES ROUTINE):
     !      Z = Z0 - (T0/TLAPSE) * (1.-EXP(-R*TLAPSE*LN(P/P0)/G))
     !
-    ptp = real(ptop)
-    pstar = ipstar * 0.01 - ptp
-    kbc = 1
-    do k = 1 , km
-      if ( sig(k) < bltop ) kbc = k
-    end do
+    ptp = real(ptop) * 100.0
+    pstar = ipstar - ptp
     do j = 1 , jm
       do i = 1 , im
         do k = 1 , km
-          psig(k) = sig(k)*pstar(j,i) + ptp + (pp(k,j,i) * 0.01)
+          psig(k) = sig(k)*pstar(j,i) + ptp + pp(k,j,i)
         end do
-        psfc = ps(j,i) * 0.01
+        psfc = ps(j,i)
         htsig(km) = topo(j,i) + rovg*t(km,j,i) * log(psfc/psig(km))
         do k = km - 1 , 1 , -1
           tbar = 0.5*(t(k,j,i)+t(k+1,j,i))
@@ -187,7 +179,7 @@ module mod_hgt
           temp = t(km,j,i)
           hp(j,i) = topo(j,i) + rovg*temp*log(psfc/p)
         else if ( p > psfc ) then
-          temp = t(kbc,j,i) + lrate*(htsig(kbc)-topo(j,i))
+          temp = 0.5 * (t(km,j,i) + t(km-1,j,i))
           hp(j,i) = topo(j,i) + &
                   (temp/lrate)*(1.0-exp(+rovg*lrate*log(p/psfc)))
         end if
