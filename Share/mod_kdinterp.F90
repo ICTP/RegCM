@@ -539,7 +539,7 @@ module mod_kdinterp
     type(h_interpolator) , intent(in) :: h_i
     real(rkx) , dimension(:) , intent(in) :: g
     real(rkx) , dimension(:) , intent(out) :: f
-    integer(ik4) :: i , ni , n , si
+    integer(ik4) :: i , ni , n , si , gni
     real(rkx) :: gsum , gwgt , gmax , gmin
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
@@ -550,8 +550,15 @@ module mod_kdinterp
       call die('interp_1d','Non conforming shape for target',1)
     end if
     ni = size(f)
-    gmax = maxval(g)
-    gmin = minval(g)
+    gni = size(g)
+    gmax = -1e20_rkx
+    gmin = 1e20_rkx
+    do i = 1 , gni
+      if ( g(i) > missc ) then
+        if ( gmax < g(i) ) gmax = g(i)
+        if ( gmin > g(i) ) gmin = g(i)
+      end if
+    end do
     do i = 1 , ni
       gsum = d_zero
       gwgt = d_zero
@@ -576,7 +583,7 @@ module mod_kdinterp
     type(h_interpolator) , intent(in) :: h_i
     real(rkx) , dimension(:,:) , intent(in) :: g
     real(rkx) , dimension(:,:) , intent(out) :: f
-    integer(ik4) :: i , j , ni , nj , n , si , sj
+    integer(ik4) :: i , j , ni , nj , n , si , sj , gni , gnj
     real(rkx) :: gsum , gwgt , gmax , gmin
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
@@ -588,8 +595,18 @@ module mod_kdinterp
     end if
     nj = size(f,1)
     ni = size(f,2)
-    gmax = maxval(g)
-    gmin = minval(g)
+    gnj = size(g,1)
+    gni = size(g,2)
+    gmax = -1e20_rkx
+    gmin = 1e20_rkx
+    do i = 1 , gni
+      do j = 1 , gnj
+        if ( g(j,i) > missc ) then
+          if ( gmax < g(j,i) ) gmax = g(j,i)
+          if ( gmin > g(j,i) ) gmin = g(j,i)
+        end if
+      end do
+    end do
     do i = 1 , ni
       do j = 1 , nj
         gsum = d_zero

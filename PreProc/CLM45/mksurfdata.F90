@@ -1201,7 +1201,6 @@ program mksurfdata
       icount(3) = 1
       do i = 1 , npu3d
         call mypack(var5d(:,:,il,iu,ip3d(parm3d(i))),gcvar)
-        where ( gcvar < 0.0_rkx ) gcvar = vmisdat
         istatus = nf90_put_var(ncid, iurb3d(i), gcvar, istart(1:3), icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm3d(i))
       end do
@@ -1220,12 +1219,10 @@ program mksurfdata
       ! iurb4d indexes in the two nf90_put_var calls.
       do i = 1 , npu4d
         call mypack(var6d(:,:,1,ir,iu,ip4d(parm4d(i))),gcvar)
-        where ( gcvar < 0.0_rkx ) gcvar = vmisdat
         istatus = nf90_put_var(ncid, iurb4d(2*i-1), &
                 gcvar, istart(1:3), icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm4d(i))
         call mypack(var6d(:,:,2,ir,iu,ip4d(parm4d(i))),gcvar)
-        where ( gcvar < 0.0_rkx ) gcvar = vmisdat
         istatus = nf90_put_var(ncid, iurb4d(2*i), &
                 gcvar, istart(1:3), icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm4d(i))
