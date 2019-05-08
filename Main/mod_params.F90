@@ -154,7 +154,7 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac, ichlinox
+      ismoke , rocemfac, ichlinox , isnowdark
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
