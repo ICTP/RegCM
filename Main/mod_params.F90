@@ -899,7 +899,7 @@ module mod_params
         ichem = 0
         ntr = 0
       end if
-#if defined(CLM45)
+#ifndef CLM45
       if ( isnowdark > 0 ) then
         write(stderr,*) 'Snow Darkening effect active only with CLM45'
         write(stderr,*) 'Reset it to zero.'
