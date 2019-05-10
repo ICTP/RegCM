@@ -125,6 +125,7 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: fsw_io
   real(rkx) , public , pointer , dimension(:,:) :: sabveg_io
   real(rkx) , public , pointer , dimension(:,:) :: sinc_io
+  real(rkx) , public , pointer , dimension(:,:) :: dsol_io
   real(rkx) , public , pointer , dimension(:,:) :: solis_io
   real(rkx) , public , pointer , dimension(:,:) :: solvs_io
   real(rkx) , public , pointer , dimension(:,:) :: solvsd_io
@@ -255,6 +256,7 @@ module mod_savefile
       call getmem2d(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
       call getmem2d(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
       call getmem2d(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
+      call getmem2d(dsol_io,jcross1,jcross2,icross1,icross2,'dsol_io')
       call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
       call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
       call getmem2d(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
@@ -518,6 +520,8 @@ module mod_savefile
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'fcc'),fcc_io)
         call check_ok(__FILE__,__LINE__,'Cannot read fcc')
       end if
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'dsol'),dsol_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read dsol')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'solis'),solis_io)
       call check_ok(__FILE__,__LINE__,'Cannot read solis')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvs'),solvs_io)
@@ -802,6 +806,7 @@ module mod_savefile
         wrkdim(3) = dimids(idkh)
         call mydefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
       end if
+      call mydefvar(ncid,'dsol',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call mydefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
@@ -999,6 +1004,7 @@ module mod_savefile
       if ( ipptls > 0 ) then
         call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
       end if
+      call myputvar(ncid,'dsol',dsol_io,varids,ivcc)
       call myputvar(ncid,'solis',solis_io,varids,ivcc)
       call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
       call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)

@@ -321,9 +321,10 @@ module mod_init
         lms%deltas(:,:,:) = 0.001_rkx
         lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
       end if
-      do n = 1 , nnsg
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          dsol(j,i) = -999.0_rkx
+          do n = 1 , nnsg
             lms%um10(n,j,i) = 1.0_rkx
           end do
         end do
@@ -464,6 +465,7 @@ module mod_init
       call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
       call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
+      call grid_distribute(dsol_io,dsol,jci1,jci2,ici1,ici2)
       call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
       call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
       call grid_distribute(solvl_io,solvl,jci1,jci2,ici1,ici2)

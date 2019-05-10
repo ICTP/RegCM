@@ -38,6 +38,8 @@ module mod_clm_canopyfluxes
   ! true  => btran is based on active layer (defined over two years);
   ! false => btran is based on currently unfrozen levels
   logical,  public :: perchroot_alt = .false.
+  ! Marta Llopart hack
+  logical, public :: mlhack = .false.
 
   private :: Photosynthesis ! Leaf stomatal resistance and leaf photosynthesis
   private :: hybrid         ! hybrid solver for ci
@@ -1922,11 +1924,15 @@ module mod_clm_canopyfluxes
 #if (defined CNDV)
         bbbopt(p) = 10000._rk8
 #else
-        if ( ivt(p) == nbrdlf_evr_trp_tree ) then
-          bbbopt(p) = 80000._rk8
-        else if ( ivt(p) == nbrdlf_dcd_trp_tree ) then
-          bbbopt(p) = 40000._rk8
-          !bbbopt(p) = 1000._rk8
+        if ( mlhack ) then
+          if ( ivt(p) == nbrdlf_evr_trp_tree ) then
+            bbbopt(p) = 80000._rk8
+          else if ( ivt(p) == nbrdlf_dcd_trp_tree ) then
+            bbbopt(p) = 40000._rk8
+            !bbbopt(p) = 1000._rk8
+          else
+            bbbopt(p) = 10000._rk8
+          end if
         else
           bbbopt(p) = 10000._rk8
         end if

@@ -85,6 +85,7 @@ module mod_atm_interface
   ! vegetation absorbed radiation (full solar spectrum)
   real(rkx) , pointer , public , dimension(:,:) :: sabveg
   ! Incident solar flux
+  real(rkx) , pointer , public , dimension(:,:) :: dsol
   real(rkx) , pointer , public , dimension(:,:) :: solis
   real(rkx) , pointer , public , dimension(:,:) :: solvs
   real(rkx) , pointer , public , dimension(:,:) :: solvsd
@@ -1057,6 +1058,7 @@ module mod_atm_interface
       call getmem2d(fsw,jci1,jci2,ici1,ici2,'storage:fsw')
       call getmem2d(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
       call getmem2d(solis,jci1,jci2,ici1,ici2,'storage:solis')
+      call getmem2d(dsol,jci1,jci2,ici1,ici2,'storage:dsol')
       call getmem2d(solvs,jci1,jci2,ici1,ici2,'storage:solvs')
       call getmem2d(solvsd,jci1,jci2,ici1,ici2,'storage:solvsd')
       call getmem2d(solvl,jci1,jci2,ici1,ici2,'storage:solvl')
