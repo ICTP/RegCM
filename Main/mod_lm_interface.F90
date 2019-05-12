@@ -935,7 +935,9 @@ module mod_lm_interface
         if ( associated(srf_tauy_out) ) &
           srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
         if ( associated(srf_evpot_out) ) then
-          dmean = dmean * (d_one-rnsrf_for_day) + lm%solinc*rnsrf_for_day
+          ! Compute total available energy
+          dmean = dmean * (d_one-rnsrf_for_day) + &
+               max((lm%rswf + lm%dwrlwf),d_zero) * rnsrf_for_day
           if ( rcmtimer%lcount <= (86400.0_rkx/dtsec) ) then
             lm%dsol = dmean
           else
@@ -946,12 +948,12 @@ module mod_lm_interface
           end if
           do i = ici1 , ici2
             do j = jci1 , jci2
-              tas = sum(lms%tgrd(:,j,i))*rdnnsg
+              tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
               es = pfesat(tas)
               qs = pfwsat(tas,ps,es)
               qas = lm%q2m(j,i)
-              uas = sqrt(lm%u10m(j,i)**2+lm%v10m(j,i)**2)
+              uas = lm%w10m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)
               desdt = pfesdt(tas)
               di = lm%dsol(j,i)
