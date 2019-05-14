@@ -1017,6 +1017,12 @@ module mod_rdldtr
           end if
         end do
       end do
+    else
+      do i = 1 , nlat
+        do j = 1 , nlon
+          if ( vread(j,i) < 0.0_rkx ) vread(j,i) = rdef
+        end do
+      end do
     end if
 
     call h_interpolate_cont(gfile%hint,vread,var)
@@ -1082,6 +1088,12 @@ module mod_rdldtr
           end if
         end do
       end do
+    else
+      do i = 1 , nlat
+        do j = 1 , nlon
+          if ( vread(j,i) < 0.0_rkx ) vread(j,i) = rdef
+        end do
+      end do
     end if
 
     call h_interpolate_cont(gfile%hint,vread,var)
@@ -1135,6 +1147,14 @@ module mod_rdldtr
             else
               if ( vread(j,i,n) < 0.0_rkx ) vread(j,i,n) = rdef
             end if
+          end do
+        end do
+      end do
+    else
+      do n = 1 , nd
+        do i = 1 , nlat
+          do j = 1 , nlon
+            if ( vread(j,i,n) < 0.0_rkx ) vread(j,i,n) = rdef
           end do
         end do
       end do
@@ -1240,6 +1260,14 @@ module mod_rdldtr
           end do
         end do
       end do
+    else
+      do n = 1 , nlev
+        do i = 1 , nlat
+          do j = 1 , nlon
+            if ( vread(j,i,n) < 0.0_rkx ) vread(j,i,n) = rdef
+          end do
+        end do
+      end do
     end if
 
     call h_interpolate_cont(gfile%hint,vread,var)
@@ -1302,6 +1330,16 @@ module mod_rdldtr
               else
                 if ( vread(j,i,n,m) < 0.0_rkx ) vread(j,i,n,m) = rdef
               end if
+            end do
+          end do
+        end do
+      end do
+    else
+      do m = 1 , ne
+        do n = 1 , nd
+          do i = 1 , nlat
+            do j = 1 , nlon
+              if ( vread(j,i,n,m) < 0.0_rkx ) vread(j,i,n,m) = rdef
             end do
           end do
         end do
@@ -1416,6 +1454,16 @@ module mod_rdldtr
           end do
         end do
       end do
+    else
+      do n2 = 1 , nlev2
+        do n1 = 1 , nlev1
+          do i = 1 , nlat
+            do j = 1 , nlon
+              if ( vread(j,i,n1,n2) < 0.0_rkx ) vread(j,i,n1,n2) = rdef
+            end do
+          end do
+        end do
+      end do
     end if
 
     call h_interpolate_cont(gfile%hint,vread,var)
@@ -1485,6 +1533,18 @@ module mod_rdldtr
                 else
                   if ( vread(j,i,n,m,l) < 0.0_rkx ) vread(j,i,n,m,l) = rdef
                 end if
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      do l = 1 , nd
+        do m = 1 , ne
+          do n = 1 , nf
+            do i = 1 , nlat
+              do j = 1 , nlon
+                if ( vread(j,i,n,m,l) < 0.0_rkx ) vread(j,i,n,m,l) = rdef
               end do
             end do
           end do
@@ -1611,6 +1671,20 @@ module mod_rdldtr
                   if ( vread(j,i,n1,n2,n3) < 0.0_rkx ) then
                     vread(j,i,n1,n2,n3) = rdef
                   end if
+                end if
+              end do
+            end do
+          end do
+        end do
+      end do
+    else
+      do n3 = 1 , nlev3
+        do n2 = 1 , nlev2
+          do n1 = 1 , nlev1
+            do i = 1 , nlat
+              do j = 1 , nlon
+                if ( vread(j,i,n1,n2,n3) < 0.0_rkx ) then
+                  vread(j,i,n1,n2,n3) = rdef
                 end if
               end do
             end do
