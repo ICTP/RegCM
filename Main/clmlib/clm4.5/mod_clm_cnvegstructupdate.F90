@@ -29,8 +29,8 @@ module mod_clm_cnvegstructupdate
       nbrdlf_evr_shrub, nbrdlf_dcd_brl_shrub
     use mod_clm_pftvarcon , only : ncorn, ncornirrig, npcropmin, ztopmx, laimx
     use mod_clm_varcon , only : rpi
-    use mod_clm_pftvarcon , only : nbrdlf_evr_trp_tree, &
-      nc4_grass, nc3_nonarctic_grass
+    !use mod_clm_pftvarcon , only : nbrdlf_evr_trp_tree, &
+     ! nc4_grass, nc3_nonarctic_grass
     implicit none
     ! number of column soil points in pft filter
     integer(ik4), intent(in) :: num_soilp
@@ -172,55 +172,27 @@ module mod_clm_cnvegstructupdate
         ! Samy
         ! This modification is done to obtain LAI in the range of MODIS
         ! satellite derived values
-        ! The specification over evergreen forest was done to reduce bias in
-        ! comparison with MODIS dataset over Africa domain.
-        ! For any other domain, the pft under specification will be replaced
-        ! instead of nbrdlf_evr_trp_tree with tuning in the equation till
-        ! getting the least bias
         ! To get reseanoable values for LAI or GPP for Savannah region
         ! (as a  case study) BIOME-BGC model was used with multiplication
         ! coefficient specific to PFT under study
         if ( modis_limited ) then
           if ( dsladlai(ivt(p)) > 0._rk8 ) then
-            if ( ivt(p) == nbrdlf_evr_trp_tree ) then
-              tlai(p) = (slatop(ivt(p)) * exp(0.05_rk8 * leafc(p) * &
-                dsladlai(ivt(p)) - 0.40_rk8)) / dsladlai(ivt(p))
-            else
-              tlai(p) = (slatop(ivt(p)) * exp(0.04_rk8 * leafc(p) * &
-                dsladlai(ivt(p)) - 0.30_rk8)) / dsladlai(ivt(p))
-            end if
-          else
-             !tlai(p) = 100 * (slatop(ivt(p)) * exp(0.00005 * leafc(p) - 0.5))
-            if (ivt(p) == nc4_grass .or. ivt(p) == nc3_nonarctic_grass) then
-              tlai(p) = 0.32_rk8 * slatop(ivt(p)) * leafc(p)
-            else
-              if ( ivt(p) >= npcropmin ) then
-                tlai(p) = slatop(ivt(p)) * leafc(p)
-              else
-                tlai(p) = 0.40_rk8 * slatop(ivt(p)) * leafc(p)
-              end if
-            end if
-          end if
-          ! samy : Putting minimum value of leaf area index for each pft
-          ! (retrieved from BATS scheme). Idea of minimum leaf area index
-          ! value retireved from ACCESS carbon cycle model
-          if ( ivt(p) == nbrdlf_evr_trp_tree ) then
-            tlai_min = 5._rk8
-          else if ( ivt(p) < nbrdlf_evr_trp_tree ) then
-            tlai_min = 4._rk8
-          else if ( ivt(p) == nc4_grass .or. &
-                    ivt(p) == nc3_nonarctic_grass ) then
-            tlai_min = 0.5_rk8
-          else
-            tlai_min = 1._rk8
-          end if
-          tlai(p) = max(tlai_min, tlai(p))
-        else
-          if ( dsladlai(ivt(p)) > 0._rk8 ) then
             tlai(p) = (slatop(ivt(p)) * &
               (exp(leafc(p)*dsladlai(ivt(p))) - 1.0_rk8))/dsladlai(ivt(p))
           else
-             tlai(p) = slatop(ivt(p)) * leafc(p)
+             if ( ivt(p) >= npcropmin ) then
+               tlai(p) = slatop(ivt(p)) * leafc(p)
+             else
+               tlai(p) = 0.25_rk8 * slatop(ivt(p)) * leafc(p)
+             end if
+          end if
+          tlai(p) = max(0._rk8, tlai(p))
+        else
+          if (dsladlai(ivt(p)) > 0._r8) then
+            tlai(p) = (slatop(ivt(p)) * &
+              (exp(leafc(p)*dsladlai(ivt(p))) - 1.0_rk8))/dsladlai(ivt(p))
+          else
+            tlai(p) = slatop(ivt(p)) * leafc(p)
           end if
           tlai(p) = max(0._rk8, tlai(p))
         end if
