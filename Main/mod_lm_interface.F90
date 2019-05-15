@@ -259,7 +259,7 @@ module mod_lm_interface
     call getmem2d(sfp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:sfp')
     call getmem2d(slp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp')
     call getmem2d(slp1,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp1')
-    call getmem2d(dmean,jce1ga,jce2ga,ice1ga,ice2ga,'lm:dmean')
+    call getmem2d(dmean,jci1,jci2,ici1,ici2,'lm:dmean')
   end subroutine allocate_surface_model
 
   subroutine init_surface_model
