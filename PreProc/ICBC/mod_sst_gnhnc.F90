@@ -32,6 +32,7 @@ module mod_sst_gnhnc
   use mod_ccsm3_helper
   use mod_ecearth_helper
   use mod_mpiesm_helper
+  use mod_lgm_helper
   use netcdf
 
   private
@@ -104,6 +105,13 @@ module mod_sst_gnhnc
         trim(inpglob)//pthsep//ssttyp(1:4)//pthsep//'SST'//pthsep// &
          'sst_',year,'_',month,'.nc'
       varname(2) = 'sst'
+    else if ( ssttyp(1:3) == 'LGM' ) then
+      if ( ssttyp(4:4) == 'P' ) then
+        call find_lgm_sst(inpfile,globidate1,'P')
+      else
+        call find_lgm_sst(inpfile,globidate1,'C')
+      end if
+      varname(2) = 'tsurf'
     else if ( ssttyp(1:3) == 'CFS' ) then
       write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
         trim(inpglob)//'/CFS/',year,month,day,hour, &
@@ -205,8 +213,10 @@ module mod_sst_gnhnc
     call getmem2d(work2,1,ilon,1,jlat,'mod_gnhnc_sst:work2')
     call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
 
-    if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' .and. &
-         ssttyp(1:3) /= 'EIN' .and. ssttyp(1:4) /= 'ERA5' ) then
+    if (ssttyp(1:3) == 'LGM' ) then
+      ccal = 'gregorian'
+    else if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' .and. &
+              ssttyp(1:3) /= 'EIN' .and. ssttyp(1:4) /= 'ERA5' ) then
       istart(1) = 1
       icount(1) = timlen
       istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
@@ -237,7 +247,8 @@ module mod_sst_gnhnc
 
     if ( ssttyp(1:3) == 'CFS' .or. &
          ssttyp(1:3) == 'EIN' .or. &
-         ssttyp(1:4) == 'ERA5' ) then
+         ssttyp(1:4) == 'ERA5' .or. &
+         ssttyp(1:3) == 'LGM' ) then
       idateo = globidate1
     else
       idateo = monfirst(globidate1)
@@ -283,6 +294,9 @@ module mod_sst_gnhnc
     if ( ssttyp == 'EIXXX' ) then
       call split_idate(idate, year, month, day, hour)
       it = isteps(month) + (day-1)*4 + hour/6
+    else if ( ssttyp(1:3) == 'LGM' ) then
+      call split_idate(idate, year, month, day, hour)
+      it = (dayofyear(idate)-1)*4 + hour/6 + 1
     else if ( ssttyp(1:3) == 'CFS' ) then
       it = itcfs
       itcfs = itcfs + 1
@@ -305,6 +319,12 @@ module mod_sst_gnhnc
         call find_ecearth_sst(inpfile,idate,.true.)
       else if ( ssttyp == 'CCSM3' ) then
         call find_ccsm3_file(inpfile,year,month,day,hour)
+      else if ( ssttyp(1:3) == 'LGM' ) then
+        if ( ssttyp(4:4) == 'P' ) then
+          call find_lgm_sst(inpfile,globidate1,'P')
+        else
+          call find_lgm_sst(inpfile,globidate1,'C')
+        end if
       else if ( ssttyp(1:3) == 'EIN' ) then
         write (inpfile,'(a,i0.4,a)') &
           trim(inpglob)//pthsep//ssttyp//pthsep//'SST'// &
@@ -340,26 +360,37 @@ module mod_sst_gnhnc
         write(stdout,*) 'Scale factor = ',scale_factor
         write(stdout,*) 'Fill Value   = ',fillvalue
       end if
-      istatus = nf90_inq_dimid(inet1,'time',timid)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error find dim time')
-      istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error inquire dim time')
-      call getmem1d(work1,1,timlen,'mod_gnhnc_sst:work1')
-      istart(1) = 1
-      icount(1) = timlen
-      istatus = nf90_get_var(inet1,ivar2(1),work1,istart(1:1),icount(1:1))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1))
-      istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1)//' units')
-      istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-      if ( istatus /= nf90_noerr ) ccal = 'gregorian'
-      fidate1 = timeval2date(work1(1),cunit,ccal)
-      tdif = idate-fidate1
-      it = int(tohours(tdif))/6 + 1
+      if ( ssttyp(1:3) == 'LGM' ) then
+        istatus = nf90_inq_dimid(inet1,'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
+        istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
+        call split_idate(idate, year, month, day, hour)
+        it = (dayofyear(idate)-1)*4 + hour/6 + 1
+      else
+        istatus = nf90_inq_dimid(inet1,'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
+        istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
+        call getmem1d(work1,1,timlen,'mod_gnhnc_sst:work1')
+        istart(1) = 1
+        icount(1) = timlen
+        istatus = nf90_get_var(inet1,ivar2(1),work1,istart(1:1),icount(1:1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(1))
+        istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(1)//' units')
+        istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+        if ( istatus /= nf90_noerr ) ccal = 'gregorian'
+        fidate1 = timeval2date(work1(1),cunit,ccal)
+        tdif = idate-fidate1
+        it = int(tohours(tdif))/6 + 1
+      end if
     end if
     icount(3) = 1
     istart(3) = it

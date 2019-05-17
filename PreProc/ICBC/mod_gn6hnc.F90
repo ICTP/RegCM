@@ -55,6 +55,7 @@ module mod_gn6hnc
   use mod_noresm_helper
   use mod_ecearth_helper
   use mod_ccsm4_helper
+  use mod_lgm_helper
 
   private
 
@@ -198,6 +199,8 @@ module mod_gn6hnc
       ! Vertical info are not stored in the fixed orography file.
       ! Read part of the info from a T file.
       call find_miroc_dim(pathaddname)
+    else if ( dattyp(1:3) == 'LGM' ) then
+      call find_lgm_dim(pathaddname,dattyp(4:4))
     else if ( dattyp(1:2) == 'E5' ) then
       ! Vertical info are stored in the fixed vertinfo file.
       pathaddname = trim(inpglob)//'/ECHAM5/fixed/EH5_OM_1_VERTINFO.nc'
@@ -459,6 +462,35 @@ module mod_gn6hnc
       else
         call find_mpiesm_topo(pathaddname,'L')
       end if
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'geosp',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find geosp var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read geosp var')
+      zsvar(:,:) = zsvar(:,:)*real(regrav,rkx)
+    else if ( dattyp(1:3) == 'LGM' ) then
+      istatus = nf90_inq_varid(inet1,'hyam',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find hyam var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read hyam var')
+      istatus = nf90_inq_varid(inet1,'hybm',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      call find_lgm_topo(pathaddname,dattyp(4:4))
       istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error open '//trim(pathaddname))
@@ -812,6 +844,8 @@ module mod_gn6hnc
               dattyp(1:3) == 'CN_' .or. dattyp(1:2) == 'MP' .or. &
               dattyp(1:2) == 'E5' .or. dattyp == 'JRA55' ) then
       call setcal(itimes(1), gregorian)
+    else if ( dattyp(1:3) == 'LGM' ) then
+      timlen = 0
     else
       call setcal(itimes(1), noleap)
     end if
@@ -884,7 +918,7 @@ module mod_gn6hnc
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
 
-      if ( dattyp(1:2) == 'MP' ) then
+      if ( dattyp(1:2) == 'MP' .or. dattyp(1:3) == 'LGM' ) then
         ! Calculate HGT on model hybrid sigma levels
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
@@ -1076,6 +1110,71 @@ module mod_gn6hnc
         vvar(:,nlat-j+1,:) = vwork(:,j,:)
       end do
       call rh2mxr(tvar,qvar,pplev,nlon,nlat,klev)
+    else if ( dattyp(1:3) == 'LGM' ) then
+      varname => lgmvars
+      call split_idate(idate, year, month, day, hour)
+      it = (dayofyear(idate)-1)*4 + hour/6 + 1
+      if ( it > timlen ) then
+        if ( inet(1) > 0 ) then
+          istatus = nf90_close(inet(1))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error close file')
+        end if
+        call find_lgm_file(pathaddname,idate,dattyp(4:4))
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error open '//trim(pathaddname))
+        do i = 1 , size(lgmvars)
+          if ( lgmvars(i) /= 'XXX' ) then
+            istatus = nf90_inq_varid(inet(1),trim(lgmvars(i)),ivar(i))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error find var '//trim(lgmvars(i)))
+          end if
+        end do
+        istatus = nf90_inq_dimid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
+        istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
+        write (stdout,*) 'Open file ', trim(pathaddname)
+      end if
+      icount(1) = nlon
+      icount(2) = nlat
+      icount(3) = klev
+      icount(4) = 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//lgmvars(1))
+      istatus = nf90_get_var(inet(1),ivar(4),uvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//lgmvars(4))
+      istatus = nf90_get_var(inet(1),ivar(5),vvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//lgmvars(5))
+      istatus = nf90_get_var(inet(1),ivar(3),qvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//lgmvars(5))
+      call sph2mxr(qvar,nlon,nlat,klev)
+      icount(1) = nlon
+      icount(2) = nlat
+      icount(3) = 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = it
+      istatus = nf90_get_var(inet(1),ivar(6),psvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//lgmvars(6))
+      ! Data on hybrid sigma P levels
+      do k = 1, klev
+        pp3d(:,:,k) = ak(k) + bk(k)*psvar(:,:)
+      end do
+      psvar(:,:) = psvar(:,:)*0.01
+      pp3d(:,:,:) = pp3d(:,:,:)*0.01
     else if ( dattyp == 'JRA55' ) then
       varname => ec5vars
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then

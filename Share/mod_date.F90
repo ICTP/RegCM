@@ -173,7 +173,7 @@ module mod_date
   public :: hourdiff , nextmon , prevmon , yrfirst , nextwk , prevwk
   public :: lsameweek , iwkdiff , idayofweek , ifdoweek , ildoweek
   public :: timeval2date , lfdomonth , lfdoyear , lmidnight , yeardayfrac
-  public :: split_idate , julianday
+  public :: split_idate , julianday , dayofyear
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
   public :: date_is , time_is
@@ -286,6 +286,16 @@ module mod_date
         id = id + 30*(x%month-1)
     end select
   end function idayofyear
+
+  integer(ik4) function dayofyear(x) result(id)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: x
+    integer(ik4) :: i
+    type(iadate) :: d
+    type(iatime) :: t
+    call internal_to_date_time(x,d,t)
+    id = idayofyear(d)
+  end function dayofyear
 
   pure subroutine date_to_days_from_reference(d,x)
     type(iadate) , intent(in) :: d
