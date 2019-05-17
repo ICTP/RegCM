@@ -631,7 +631,13 @@ module mod_kdinterp
     else
       call smtdsmt(f)
     end if
-    f = max(gmin,min(gmax,f))
+    do i = 1 , ni
+      do j = 1 , nj
+        if ( f(j,i) > missc ) then
+          f(j,i) = max(gmin,min(gmax,f(j,i)))
+        end if
+      end do
+    end do
   end subroutine interp_2d
 
   subroutine interp_3d(h_i,g,f)
