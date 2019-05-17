@@ -33,7 +33,7 @@ module mod_lgm_helper
 
   integer(ik4) , parameter :: nvars = 6
   character(len=3) , target , dimension(nvars) :: lgmvars = &
-            ['t ' , 'XXX' , 'sq' , 'u ' , 'v ' , 'aps']
+            ['t  ' , 'XXX' , 'sq ' , 'u  ' , 'v  ' , 'aps']
 
   contains
 
@@ -49,16 +49,16 @@ module mod_lgm_helper
     if ( res == 'P' ) then
       fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_LGM_mod'// &
                   pthsep//'lgm_r1i1p1-P_echam6_echam_'// &
-                  cy//'_mod.nc' 
+                  cy//'_mod.nc'
     else
       if ( y > 1939 ) then
         fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_PiControl_mod'// &
                     pthsep//'piControl_r1i1p1-LR_echam6_echam_'// &
-                    cy//'_mod.nc' 
+                    cy//'_mod.nc'
       else
         fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_PiControl_mod'// &
                     pthsep//'piControl_r1i1p1-P_echam6_echam_'// &
-                    cy//'_mod.nc' 
+                    cy//'_mod.nc'
       end if
     end if
   end subroutine find_lgm_sst
@@ -73,11 +73,11 @@ module mod_lgm_helper
     if ( res == 'P' ) then
       fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_LGM_mod'// &
                   pthsep//'lgm_r1i1p1-P_echam6_echam_'// &
-                  cy//'_mod.nc' 
+                  cy//'_mod.nc'
     else
       fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_PiControl_mod'// &
                   pthsep//'piControl_r1i1p1-P_echam6_echam_'// &
-                  cy//'_mod.nc' 
+                  cy//'_mod.nc'
     end if
   end subroutine find_lgm_dim
 
@@ -106,16 +106,16 @@ module mod_lgm_helper
     if ( res == 'P' ) then
       fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_LGM_mod'// &
                   pthsep//'lgm_r1i1p1-P_echam6_echam_'// &
-                  cy//'_mod.nc' 
+                  cy//'_mod.nc'
     else
       if ( y > 1939 ) then
         fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_PiControl_mod'// &
                     pthsep//'piControl_r1i1p1-LR_echam6_echam_'// &
-                    cy//'_mod.nc' 
+                    cy//'_mod.nc'
       else
         fname = trim(inpglob)//pthsep//'LGM'//pthsep//'GCM_PiControl_mod'// &
                     pthsep//'piControl_r1i1p1-P_echam6_echam_'// &
-                    cy//'_mod.nc' 
+                    cy//'_mod.nc'
       end if
     end if
   end subroutine find_lgm_file
