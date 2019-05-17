@@ -68,10 +68,12 @@ module mod_sunorbit
     real(rk4) , intent(in) :: lat    ! Centered latitude (radians)
     real(rk4) , intent(in) :: lon    ! Centered longitude (radians)
     real(rk8) , intent(in) :: declin ! Solar declination (radians)
-    real(rkx) :: dec
-    dec = real(declin,rk4)
-    orb_cosz_r4 = sin(lat)*sin(dec) - &
-                  cos(lat)*cos(dec)*cos(jday*2.0_rk4*mathpi + lon)
+    real(rk8) :: dlat , dlon , djday
+    dlat = lat
+    dlon = lon
+    djday = jday
+    orb_cosz_r4 = real(sin(dlat)*sin(declin) - &
+                   cos(dlat)*cos(declin)*cos(djday*2.0_rk8*mathpi + dlon),rk4)
   end function orb_cosz_r4
   !
   ! Calculate earths orbital parameters using Dave Threshers formula which

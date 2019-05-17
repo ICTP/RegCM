@@ -76,7 +76,7 @@ module mod_era5
   subroutine init_era5
     implicit none
     integer(ik4) :: k , kr
-    integer(ik4) :: year , month , monthp1 , day , hour
+    integer(ik4) :: year , month , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
     character(len=64) :: inname
@@ -289,9 +289,8 @@ module mod_era5
     character(len=64) :: cunit , ccal
     real(rkx) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
-    integer(ik4) :: year , month , day , hour , monthp1
-    integer(ik4) , save :: lastmonth , lastyear
-    type(rcm_time_and_date) :: xdate
+    integer(ik4) :: year , month , day , hour
+    integer(ik4) , save :: lastmonth
     type(rcm_time_interval) :: tdif
     !
     ! This is the latitude, longitude dimension of the grid to be read.

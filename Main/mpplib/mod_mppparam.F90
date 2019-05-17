@@ -68,8 +68,6 @@ module mod_mppparam
   integer(ik4) :: node_local_communicator
   integer(ik4) :: ccid , ccio
 
-  character(len=mpi_max_processor_name) :: processor_name
-
   integer(ik4) , public :: ncout_mpi_info = mpi_info_null
 
   type grid_nc_var2d

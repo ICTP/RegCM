@@ -236,7 +236,9 @@ module mod_ncstream
       type(ncoutstream_params) , intent(in) :: params
       type(ncoutstream) , pointer :: stream
       type(rcm_time_and_date) :: tt
+#if defined(NETCDF4_HDF5) || defined(PNETCDF_IN_NETCDF)
       integer(ik4) :: imode
+#endif
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
       ! Allocate all space

@@ -38,8 +38,8 @@ module mod_spbarcoord
   public :: spherical_barycentric
 
   type , bind(C) :: vpoint
-    integer(ik4) :: idx
-    real(rkx) , dimension(3) :: v
+    integer(c_int) :: idx
+    real(c_double) , dimension(3) :: v
   end type vpoint
 
   real(rkx) , dimension(3) :: centroid

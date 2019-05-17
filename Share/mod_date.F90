@@ -74,7 +74,7 @@ module mod_date
   type rcm_time_and_date
     integer(ik4) :: calendar = gregorian
     integer(ik8) :: days_from_reference = 0
-    integer(ik4) :: second_of_day = 0
+    integer(ik8) :: second_of_day = 0
   end type rcm_time_and_date
 
   type rcm_time_interval
@@ -290,7 +290,6 @@ module mod_date
   integer(ik4) function dayofyear(x) result(id)
     implicit none
     type(rcm_time_and_date) , intent(in) :: x
-    integer(ik4) :: i
     type(iadate) :: d
     type(iatime) :: t
     call internal_to_date_time(x,d,t)
@@ -359,9 +358,9 @@ module mod_date
   subroutine second_of_day_to_time(x,t)
     type(rcm_time_and_date) , intent(in) :: x
     type(iatime) , intent(out) :: t
-    t%hour = x%second_of_day/3600
-    t%minute = mod(x%second_of_day,3600)/60
-    t%second = mod(x%second_of_day,60)
+    t%hour = int(x%second_of_day/3600,ik4)
+    t%minute = int(mod(x%second_of_day,3600_ik8)/60,ik4)
+    t%second = int(mod(x%second_of_day,60_ik8),ik4)
   end subroutine second_of_day_to_time
 
   subroutine date_time_to_internal(d,t,x)
@@ -927,27 +926,27 @@ module mod_date
     select case (y%iunit)
       case (usec)
         tmp = tmp + z%second_of_day
-        z%second_of_day = int(mod(tmp, i8spd),ik4)
+        z%second_of_day = mod(tmp, i8spd)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = int(i8spd,ik4)+z%second_of_day
+          z%second_of_day = i8spd+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference + tmp
       case (umin)
         tmp = tmp*i8spm+z%second_of_day
-        z%second_of_day = int(mod(tmp, i8spd),ik4)
+        z%second_of_day = mod(tmp, i8spd)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = int(i8spd,ik4)+z%second_of_day
+          z%second_of_day = i8spd+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference + tmp
       case (uhrs)
         tmp = tmp*i8sph+z%second_of_day
-        z%second_of_day = int(mod(tmp, i8spd),ik4)
+        z%second_of_day = mod(tmp, i8spd)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = int(i8spd,ik4)+z%second_of_day
+          z%second_of_day = i8spd+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
@@ -1086,27 +1085,27 @@ module mod_date
     select case (y%iunit)
       case (usec)
         tmp = tmp - z%second_of_day
-        z%second_of_day = int(mod(tmp,i8spd),ik4)
+        z%second_of_day = mod(tmp,i8spd)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = int(i8spd+z%second_of_day,ik4)
+          z%second_of_day = i8spd+z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference - tmp
       case (umin)
         tmp = tmp*i8spm - z%second_of_day
-        z%second_of_day = int(mod(tmp, i8spd),ik4)
+        z%second_of_day = mod(tmp, i8spd)
         if ( z%second_of_day > 0 ) then
-          z%second_of_day = int(i8spd,ik4)-z%second_of_day
+          z%second_of_day = i8spd-z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
         z%days_from_reference = z%days_from_reference - tmp
       case (uhrs)
         tmp = tmp*i8sph - z%second_of_day
-        z%second_of_day = int(mod(tmp, i8spd),ik4)
+        z%second_of_day = mod(tmp, i8spd)
         if ( z%second_of_day > 0 ) then
-          z%second_of_day = int(i8spd,ik4)-z%second_of_day
+          z%second_of_day = i8spd-z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
@@ -2036,7 +2035,7 @@ module mod_date
     iy = d%year
     im = d%month
     id = d%day
-    isec = y%second_of_day
+    isec = int(y%second_of_day,ik4)
   end subroutine curr_date
 
   ! Returns days and seconds from cordex reference date
@@ -2057,7 +2056,7 @@ module mod_date
       end if
     end if
     iday = int(x%days_from_reference - y%days_from_reference,ik4)
-    isec = x%second_of_day
+    isec = int(x%second_of_day,ik4)
   end subroutine curr_time
 
   subroutine split_rcm_date(x,iy,im,id)

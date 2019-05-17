@@ -1011,11 +1011,8 @@ module mod_kdinterp
     type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
     real(rkx) , dimension(3,np) :: v
-    real(rkx) , dimension(3,4) :: vp
     real(rkx) , dimension(np) :: lambda
-    real(rkx) , dimension(4) :: lambdap
     integer(ik4) :: i , n
-    integer(ik4) , dimension(4) :: ib , jb
 
     ! Check perfect match
     do n = 1 , np
