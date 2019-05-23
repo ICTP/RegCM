@@ -130,6 +130,12 @@ program interpinic
   write(stdout,*) "                     "
 
   call get_command_argument(0,value=prgname)
+  istat = command_argument_count()
+  if ( istat < 2 ) then
+    write(stderr, *) 'Usage : ', trim(prgname) , &
+              ' inputfile.r.nc outputfile.r.nc'
+    call die(__FILE__,'Input file name missing',__LINE__)
+  end if
   call get_command_argument(1,value=inputfile,status=istat)
   if ( istat < 0 ) then
     write(stderr, *) 'Usage : ', trim(prgname) , &
@@ -580,8 +586,6 @@ program interpinic
 
   call pft_interpolate('CROWNAREA')
   call pft_interpolate('annsum_litfall')
-  call pft_interpolate('TMOMIN20')
-  call pft_interpolate('AGDD20')
   call pft_interpolate('T_MO_MIN')
   call pft_interpolate('leafcmax')
 
