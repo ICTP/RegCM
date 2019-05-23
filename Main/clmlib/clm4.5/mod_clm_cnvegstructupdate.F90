@@ -188,13 +188,13 @@ module mod_clm_cnvegstructupdate
           end if
           tlai(p) = max(0._rk8, tlai(p))
         else
-          if (dsladlai(ivt(p)) > 0._r8) then
+          if (dsladlai(ivt(p)) > 0.0_rk8) then
             tlai(p) = (slatop(ivt(p)) * &
               (exp(leafc(p)*dsladlai(ivt(p))) - 1.0_rk8))/dsladlai(ivt(p))
           else
             tlai(p) = slatop(ivt(p)) * leafc(p)
           end if
-          tlai(p) = max(0._rk8, tlai(p))
+          tlai(p) = max(0.0_rk8, tlai(p))
         end if
 
         ! update the stem area index and height based on LAI,
