@@ -83,6 +83,7 @@ Main/radlib/*.o
 Main/Makefile
 Main/Makefile.in
 Main/regcm
+Main/clmsa
 Main/*.o
 Main/*.mod
 
