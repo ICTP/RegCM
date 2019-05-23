@@ -91,11 +91,14 @@ else
               -I$(RRTMSWLIBPTH) -I$(CLMLIBPTH)/clm4.5
 endif
 
-LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) $(LOCNLIB) \
-       $(LMICROLIB) $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
-       $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB)
+LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LOCNLIB) $(LMICROLIB) \
+       $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
+       $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB) $(LBATLIB)
 
-bin_PROGRAMS = regcm
+bin_PROGRAMS = regcm clmsa
+
+clmsa_SOURCES = clmsa.F90 abort.F90 mod_header.F90 mod_clm_params.F90 \
+  mod_atm_stub.F90 mod_ncio.F90 mod_sun.F90
 
 regcm_SOURCES = mod_regcm_interface.F90 mod_atm_interface.F90 \
   mod_che_interface.F90 mod_lm_interface.F90 mod_cu_interface.F90 \
@@ -189,4 +192,10 @@ regcm.o : regcm.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_inte
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) \
 	 $(OCNLIB) $(MICROLIB) $(CLOUDLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) \
          $(RRTMSWLIB)
+	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
+
+mod_atm_stub.o : mod_atm_stub.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_service.o mod_memutil.o mod_regcm_types.o
+mod_clm_params.o : mod_clm_params.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_domain.o mod_service.o mod_clm_regcm.o mod_ncio.o mod_timer.o mod_realkinds.o mod_intkinds.o mod_date.o mod_atm_stub.o mod_dynparam.o mod_ipcc_scenario.o mod_sun.o
+clmsa.o : clmsa.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_interface.o mod_runparams.o mod_memutil.o mod_service.o mod_header.o mod_params.o mod_date.o mod_dynparam.o mod_atm_stub.o mod_clm_params.o mod_clm_regcm.o \
+         $(MPPLIB) $(CLMLIB) $(NETLIB) $(BATLIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<

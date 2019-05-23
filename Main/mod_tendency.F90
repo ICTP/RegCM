@@ -613,7 +613,7 @@ module mod_tendency
     !
     ! calculate new solar zenith angle
     !
-    call zenitm(coszrs)
+    call zenitm(mddom%xlat,mddom%xlon,coszrs)
     !
     ! Print out noise parameter
     !

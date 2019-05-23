@@ -26,7 +26,6 @@ module mod_sun
    use mod_constants
    use mod_dynparam
    use mod_runparams
-   use mod_atm_interface
    use mod_mpmessage
    use mod_mppparam
    use mod_service
@@ -301,8 +300,9 @@ module mod_sun
   ! simulation and the gmt. All these quantities are specified
   ! in the initialization procedure of RegCM
   !
-  subroutine zenitm(coszrs)
+  subroutine zenitm(xlat,xlon,coszrs)
     implicit none
+    real(rkx) , pointer , intent (in), dimension(:,:) :: xlat , xlon
     real(rkx) , pointer , intent (inout), dimension(:,:) :: coszrs
     integer(ik4) :: i , j
     real(rkx) :: xxlat , xxlon
@@ -330,8 +330,8 @@ module mod_sun
     else
       do i = ici1 , ici2
         do j = jci1 , jci2
-          xxlat = mddom%xlat(j,i)*degrad
-          xxlon = mddom%xlon(j,i)*degrad
+          xxlat = xlat(j,i)*degrad
+          xxlon = xlon(j,i)*degrad
           coszrs(j,i) = orb_cosz(calday,xxlat,xxlon,declin)
           coszrs(j,i) = max(0.0_rkx,coszrs(j,i))
           coszrs(j,i) = min(1.0_rkx,coszrs(j,i))

@@ -709,7 +709,7 @@ module mod_init
     !
     ! Initialize solar elevation (zenith angle)
     !
-    call zenitm(coszrs)
+    call zenitm(mddom%xlat,mddom%xlon,coszrs)
     !
     ! Initialize the Surface Model
     !

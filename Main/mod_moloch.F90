@@ -144,6 +144,7 @@ module mod_moloch
       call exchange(mo_atm%tetav,2,jce1,jce2,ice1,ice2,1,kz)
 
       call sound(dtsound)
+
       call advection(dtstepa)
 
       do k = 1 , kz
@@ -222,7 +223,7 @@ module mod_moloch
     !
     ! calculate new solar zenith angle
     !
-    call zenitm(coszrs)
+    call zenitm(mddom%xlat,mddom%xlon,coszrs)
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -837,7 +838,7 @@ module mod_moloch
           do i = ici1 , ici2
             do j = jci1 , jci2
               zdv = (u(j+1,i,k)-u(j,i,k))*zdtrdx*fmyu(j,i)
-              p(j,i,k) = p0(j,i,k)+zpbw(j,i)-zpbw(j+1,i)+p(j,i,k)*zdv
+              p(j,i,k) = p0(j,i,k) + zpbw(j,i) - zpbw(j+1,i) + p(j,i,k)*zdv
             end do
           end do
         end do

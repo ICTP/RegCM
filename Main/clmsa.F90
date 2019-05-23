@@ -32,6 +32,7 @@ program clmsa
   use mod_date
   use mod_dynparam
   use mod_atm_stub
+  use mod_clm_regcm
 #ifndef MPI_SERIAL
   use mpi
 #endif
@@ -135,6 +136,10 @@ program clmsa
     !
     call param
     !
+    ! INIT
+    !
+    call initclm45(lm,lms)
+    !
     ! Clean up and logging
     !
 #ifdef DEBUG
@@ -156,6 +161,7 @@ program clmsa
     real(rk8) , intent(in) :: timeend   ! ending   time-step
 
     do while ( extime >= timestr .and. extime < timeend )
+      call runclm45(lm,lms)
       !
       ! Increment execution time and boundary time
       !

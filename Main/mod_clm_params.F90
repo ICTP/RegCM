@@ -28,6 +28,7 @@ module mod_clm_params
   use mod_mpmessage
   use mod_domain
   use mod_service
+  use mod_sun
   use mod_atm_stub
 #ifdef CLM45
   use mod_clm_regcm
@@ -50,13 +51,8 @@ module mod_clm_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl , afracs , bb , cc , chibot , delsig ,  &
-               dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk , &
-               qkp1 , sig700 , sigtbl , ssum , vqmax , wk ,     &
-               wkp1 , xbot , xtop , xx , yy
-    integer(ik4) :: kbmax
     integer(ik4) :: iretval
-    integer(ik4) :: i , j , k , kbase , ktop , ns
+    integer(ik4) :: i , j , k
     integer(ik8) :: mdate0 , mdate1 , mdate2
     integer(ik4) :: hspan , ipunit
     integer(ik4) :: n , len_path
@@ -308,6 +304,7 @@ module mod_clm_params
     !
 
     call allocate_mod_runparams
+    call allocate_mod_atm_interface
 
     if ( ifrest ) then
       doing_restart = .true.
@@ -327,22 +324,6 @@ module mod_clm_params
     alarm_day => rcm_alarm(rcmtimer,86400.0_rkx)
     alarm_in_bdy => rcm_alarm(rcmtimer,dtbdys)
 
-    if ( abs(outnwf) > d_zero ) then
-      alarm_out_nwf => rcm_alarm(rcmtimer,secpd*abs(outnwf))
-    else
-      alarm_out_nwf => null( )
-    end if
-    if ( abs(savfrq) > d_zero ) then
-      alarm_out_sav => rcm_alarm(rcmtimer,secpd*abs(savfrq))
-    else
-      alarm_out_sav => null( )
-    end if
-    alarm_out_atm => rcm_alarm(rcmtimer,secph*atmfrq)
-    alarm_out_rad => rcm_alarm(rcmtimer,secph*radfrq)
-    alarm_out_srf => rcm_alarm(rcmtimer,secph*srffrq)
-    alarm_out_shf => alarm_hour
-    alarm_out_sts => alarm_day
-
     syncro_rep => rcm_syncro(rcmtimer,3.0_rkx*3600.0_rkx)
     syncro_srf => rcm_syncro(rcmtimer,dtsrf)
     syncro_cum => rcm_syncro(rcmtimer,dtcum)
@@ -353,12 +334,7 @@ module mod_clm_params
       syncro_dbg => rcm_syncro(rcmtimer,secph*dbgfrq)
     end if
 
-    rnsrf_for_srffrq = syncro_srf/alarm_out_srf
-    rsrf_in_atm = syncro_srf/alarm_out_atm
     rnsrf_for_day = syncro_srf/alarm_day
-    rnrad_for_radfrq = syncro_rad/alarm_out_rad
-    rnrad_for_srffrq = syncro_rad/alarm_out_srf
-    rsrffrq_sec = d_one/(srffrq*secph)
 
     dtsq = dt*dt
     dtcb = dt*dt*dt
@@ -375,9 +351,6 @@ module mod_clm_params
       write(stdout,*) 'Final date of this run               : ', appdat
       write(stdout,*) 'Total simulation lenght              : ', hspan, ' hours'
       write(stdout,'(a,f11.6)') ' Timestep in seconds = ', dtsec
-      if ( idynamic == 1 ) then
-        write(stdout,'(a,2f11.6)') ' Split explicit dtau = ', dtau
-      end if
     end if
 
     call bcast(dirter,256)
@@ -498,6 +471,7 @@ module mod_clm_params
       end do
     end do
 
+    call allocate_surface_model
     call init_surface_model
 
     if ( myid == italk ) then
@@ -545,6 +519,21 @@ module mod_clm_params
       end if
     end if
 
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        mddom%iveg(j,i) = nint(mddom%lndcat(j,i))
+        mddom%itex(j,i) = nint(mddom%lndtex(j,i))
+        do n = 1 , nnsg
+          mdsub%iveg(n,j,i) = nint(mdsub%lndcat(n,j,i))
+          mdsub%itex(n,j,i) = nint(mdsub%lndtex(n,j,i))
+        end do
+      end do
+    end do
+    !
+    ! Initialize solar elevation (zenith angle)
+    !
+    call zenitm(mddom%xlat,mddom%xlon,coszrs)
+    !
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

@@ -36,10 +36,31 @@ module mod_atm_stub
   type(domain_subgrid) , public :: mdsub
   type(surfstate) , public :: sfs
 
+  type(lm_exchange) , public :: lm
+  type(lm_state) , public :: lms
+
   integer(ik4) :: ix1 , ix2 , jx1 , jx2
   integer(ik4) :: id1 , id2 , jd1 , jd2
 
-  public :: allocate_mod_atm_interface
+  real(rkx) , public :: rdnnsg
+
+  real(rkx) , dimension(:,:) , pointer , public :: patm
+  real(rkx) , dimension(:,:) , pointer , public :: tatm
+  real(rkx) , dimension(:,:) , pointer , public :: uatm
+  real(rkx) , dimension(:,:) , pointer , public :: vatm
+  real(rkx) , dimension(:,:) , pointer , public :: thatm
+  real(rkx) , dimension(:,:) , pointer , public :: qvatm
+  real(rkx) , dimension(:,:) , pointer , public :: zatm
+  real(rkx) , dimension(:,:) , pointer , public :: rho
+  real(rkx) , dimension(:,:) , pointer , public :: ps
+  real(rkx) , dimension(:,:) , pointer , public :: tp
+  real(rkx) , dimension(:,:) , pointer , public :: coszrs
+  real(rkx) , dimension(:,:) , pointer , public :: fsw
+  real(rkx) , dimension(:,:) , pointer , public :: flw
+  real(rkx) , dimension(:,:) , pointer , public :: flwd
+  real(rkx) , dimension(:,:) , pointer , public :: pptc
+
+  public :: allocate_mod_atm_interface , allocate_surface_model
   public :: setup_model_indexes
 
   contains
@@ -359,6 +380,166 @@ module mod_atm_stub
       call allocate_surfstate(sfs)
 
     end subroutine allocate_mod_atm_interface
+
+    subroutine allocate_surface_model
+      implicit none
+
+      rdnnsg = d_one/real(nnsg,rkx)
+
+      call getmem3d(lms%sent,1,nnsg,jci1,jci2,ici1,ici2,'lm:sent')
+      call getmem3d(lms%evpr,1,nnsg,jci1,jci2,ici1,ici2,'lm:evpr')
+      call getmem3d(lms%deltat,1,nnsg,jci1,jci2,ici1,ici2,'lm:deltat')
+      call getmem3d(lms%deltaq,1,nnsg,jci1,jci2,ici1,ici2,'lm:deltaq')
+      call getmem3d(lms%drag,1,nnsg,jci1,jci2,ici1,ici2,'lm:drag')
+      call getmem3d(lms%ustar,1,nnsg,jci1,jci2,ici1,ici2,'lm:ustar')
+      call getmem3d(lms%w10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:w10m')
+      call getmem3d(lms%zo,1,nnsg,jci1,jci2,ici1,ici2,'lm:zo')
+      call getmem3d(lms%rhoa,1,nnsg,jci1,jci2,ici1,ici2,'lm:rho')
+      call getmem3d(lms%lncl,1,nnsg,jci1,jci2,ici1,ici2,'lm:lncl')
+      call getmem3d(lms%prcp,1,nnsg,jci1,jci2,ici1,ici2,'lm:prcp')
+      call getmem3d(lms%snwm,1,nnsg,jci1,jci2,ici1,ici2,'lm:snwm')
+      call getmem3d(lms%trnof,1,nnsg,jci1,jci2,ici1,ici2,'lm:trnof')
+      call getmem3d(lms%srnof,1,nnsg,jci1,jci2,ici1,ici2,'lm:srnof')
+      call getmem3d(lms%xlai,1,nnsg,jci1,jci2,ici1,ici2,'lm:xlai')
+      call getmem3d(lms%sfcp,1,nnsg,jci1,jci2,ici1,ici2,'lm:sfcp')
+      call getmem3d(lms%q2m,1,nnsg,jci1,jci2,ici1,ici2,'lm:q2m')
+      call getmem3d(lms%t2m,1,nnsg,jci1,jci2,ici1,ici2,'lm:t2m')
+      call getmem3d(lms%u10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:u10m')
+      call getmem3d(lms%v10m,1,nnsg,jci1,jci2,ici1,ici2,'lm:v10m')
+      call getmem3d(lms%ram1,1,nnsg,jci1,jci2,ici1,ici2,'lm:ram1')
+      call getmem3d(lms%rah1,1,nnsg,jci1,jci2,ici1,ici2,'lm:rah1')
+      call getmem3d(lms%br,1,nnsg,jci1,jci2,ici1,ici2,'lm:br')
+      call getmem3d(lms%taux,1,nnsg,jci1,jci2,ici1,ici2,'lm:taux')
+      call getmem3d(lms%tauy,1,nnsg,jci1,jci2,ici1,ici2,'lm:tauy')
+      call getmem3d(lms%wt,1,nnsg,jci1,jci2,ici1,ici2,'lm:wt')
+      call getmem3d(lms%swalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:swalb')
+      call getmem3d(lms%lwalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:lwalb')
+      call getmem3d(lms%swdiralb,1,nnsg,jci1,jci2,ici1,ici2,'lm:swdiralb')
+      call getmem3d(lms%lwdiralb,1,nnsg,jci1,jci2,ici1,ici2,'lm:lwdiralb')
+      call getmem3d(lms%swdifalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:swdifalb')
+      call getmem3d(lms%lwdifalb,1,nnsg,jci1,jci2,ici1,ici2,'lm:lwdifalb')
+
+      call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'lm:gwet')
+      call getmem4d(lms%sw,1,nnsg,jci1,jci2,ici1,ici2,1,num_soil_layers,'lm:sw')
+
+      call assignpnt(lms%sw,lms%ssw,1)
+      call assignpnt(lms%sw,lms%rsw,2)
+      call assignpnt(lms%sw,lms%tsw,3)
+      call getmem3d(lms%tgbb,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgbb')
+      call getmem3d(lms%tgrd,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgrd')
+      call getmem3d(lms%tgbrd,1,nnsg,jci1,jci2,ici1,ici2,'lm:tgbrd')
+      call getmem3d(lms%tlef,1,nnsg,jci1,jci2,ici1,ici2,'lm:tlef')
+      call getmem3d(lms%taf,1,nnsg,jci1,jci2,ici1,ici2,'lm:taf')
+      call getmem3d(lms%sigf,1,nnsg,jci1,jci2,ici1,ici2,'lm:sigf')
+      call getmem3d(lms%sfice,1,nnsg,jci1,jci2,ici1,ici2,'lm:sfice')
+      call getmem3d(lms%snag,1,nnsg,jci1,jci2,ici1,ici2,'lm:snag')
+      call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'lm:ldew')
+      call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'lm:sncv')
+      call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'lm:scvk')
+      call getmem3d(lms%um10,1,nnsg,jci1,jci2,ici1,ici2,'lm:um10')
+      call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'lm:emisv')
+      call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
+      call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
+      call getmem4d(lms%drydepvels,1,nnsg,jci1,jci2, &
+                                          ici1,ici2,1,ntr,'lm:dustemiss')
+      call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2, &
+                                      ici1,ici2,1,num_soil_layers,'lm:sw_vol')
+      call getmem4d(lms%tsoi,1,nnsg,jci1,jci2, &
+                                    ici1,ici2,1,num_soil_layers,'lm:tsoi')
+
+      call getmem2d(tatm,jci1,jci2,ici1,ici2,'lm:tatm')
+      call getmem2d(patm,jci1,jci2,ici1,ici2,'lm:patm')
+      call getmem2d(uatm,jci1,jci2,ici1,ici2,'lm:uatm')
+      call getmem2d(vatm,jci1,jci2,ici1,ici2,'lm:vatm')
+      call getmem2d(thatm,jci1,jci2,ici1,ici2,'lm:thatm')
+      call getmem2d(qvatm,jci1,jci2,ici1,ici2,'lm:qvatm')
+      call getmem2d(zatm,jci1,jci2,ici1,ici2,'lm:zatm')
+      call getmem2d(rho,jci1,jci2,ici1,ici2,'lm:rho')
+      call getmem2d(ps,jci1,jci2,ici1,ici2,'lm:ps')
+      call getmem2d(tp,jci1,jci2,ici1,ici2,'lm:tp')
+      call getmem2d(coszrs,jci1,jci2,ici1,ici2,'lm:coszrs')
+      call getmem2d(flw,jci1,jci2,ici1,ici2,'lm:flw')
+      call getmem2d(fsw,jci1,jci2,ici1,ici2,'lm:fsw')
+      call getmem2d(flwd,jci1,jci2,ici1,ici2,'lm:flwd')
+      call getmem2d(pptc,jci1,jci2,ici1,ici2,'lm:pptc')
+
+      call cl_setup(lndcomm,mddom%mask,mdsub%mask)
+      call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
+
+#ifdef DEBUG
+      write(ndebug,*) 'TOTAL POINTS FOR LAND  IN LNDCOMM : ', &
+        lndcomm%linear_npoint_sg(myid+1)
+      write(ndebug,*) 'Cartesian p ', lndcomm%cartesian_npoint_g
+      write(ndebug,*) 'Cartesian d ', lndcomm%cartesian_displ_g
+      write(ndebug,*) 'Linear    p ', lndcomm%linear_npoint_g
+      write(ndebug,*) 'Linear    d ', lndcomm%linear_displ_g
+      write(ndebug,*) 'Subgrid Cartesian p ', lndcomm%cartesian_npoint_sg
+      write(ndebug,*) 'Subgrid Cartesian d ', lndcomm%cartesian_displ_sg
+      write(ndebug,*) 'Subgrid Linear    p ', lndcomm%linear_npoint_sg
+      write(ndebug,*) 'Subgrid Linear    d ', lndcomm%linear_displ_sg
+      write(ndebug,*) 'TOTAL POINTS FOR OCEAN IN OCNCOMM : ', &
+        ocncomm%linear_npoint_sg(myid+1)
+      write(ndebug,*) 'Cartesian p ', ocncomm%cartesian_npoint_g
+      write(ndebug,*) 'Cartesian d ', ocncomm%cartesian_displ_g
+      write(ndebug,*) 'Linear    p ', ocncomm%linear_npoint_g
+      write(ndebug,*) 'Linear    d ', ocncomm%linear_displ_g
+      write(ndebug,*) 'Subgrid Cartesian p ', ocncomm%cartesian_npoint_sg
+      write(ndebug,*) 'Subgrid Cartesian d ', ocncomm%cartesian_displ_sg
+      write(ndebug,*) 'Subgrid Linear    p ', ocncomm%linear_npoint_sg
+      write(ndebug,*) 'Subgrid Linear    d ', ocncomm%linear_displ_sg
+#endif
+
+      call assignpnt(mddom%xlat,lm%xlat)
+      call assignpnt(mddom%xlon,lm%xlon)
+      call assignpnt(mddom%lndcat,lm%lndcat)
+      call assignpnt(mddom%ldmsk,lm%ldmsk)
+      call assignpnt(mddom%iveg,lm%iveg)
+      call assignpnt(mddom%itex,lm%itex)
+      call assignpnt(mddom%ht,lm%ht)
+      call assignpnt(mddom%snowam,lm%snowam)
+      call assignpnt(mddom%smoist,lm%smoist)
+      call assignpnt(mddom%rmoist,lm%rmoist)
+      call assignpnt(mdsub%xlat,lm%xlat1)
+      call assignpnt(mdsub%xlon,lm%xlon1)
+      call assignpnt(mdsub%lndcat,lm%lndcat1)
+      call assignpnt(mdsub%ldmsk,lm%ldmsk1)
+      call assignpnt(mdsub%ht,lm%ht1)
+      call assignpnt(mdsub%iveg,lm%iveg1)
+      call assignpnt(mdsub%itex,lm%itex1)
+      call assignpnt(mdsub%dhlake,lm%dhlake1)
+      call assignpnt(uatm,lm%uatm)
+      call assignpnt(vatm,lm%vatm)
+      call assignpnt(thatm,lm%thatm)
+      call assignpnt(tatm,lm%tatm)
+      call assignpnt(patm,lm%patm)
+      call assignpnt(qvatm,lm%qvatm)
+      call assignpnt(zatm,lm%hgt)
+
+      call assignpnt(rho,lm%rhox)
+      call assignpnt(ps,lm%sfps)
+      call assignpnt(tp,lm%sfta)
+
+      call assignpnt(sfs%hfx,lm%hfx)
+      call assignpnt(sfs%qfx,lm%qfx)
+      call assignpnt(sfs%uvdrag,lm%uvdrag)
+      call assignpnt(sfs%ustar,lm%ustar)
+      call assignpnt(sfs%w10m,lm%w10m)
+      call assignpnt(sfs%zo,lm%zo)
+      call assignpnt(sfs%tg,lm%tg)
+      call assignpnt(sfs%tgbb,lm%tgbb)
+      call assignpnt(sfs%u10m,lm%u10m)
+      call assignpnt(sfs%v10m,lm%v10m)
+      call assignpnt(sfs%ram1,lm%ram1)
+      call assignpnt(sfs%rah1,lm%rah1)
+      call assignpnt(sfs%br,lm%br)
+      call assignpnt(sfs%q2m,lm%q2m)
+      call assignpnt(pptc,lm%cprate)
+      call assignpnt(coszrs,lm%zencos)
+      call assignpnt(fsw,lm%rswf)
+      call assignpnt(flw,lm%rlwf)
+      call assignpnt(flwd,lm%dwrlwf)
+
+    end subroutine allocate_surface_model
 
 end module mod_atm_stub
 
