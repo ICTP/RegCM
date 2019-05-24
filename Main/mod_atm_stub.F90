@@ -27,6 +27,7 @@ module mod_atm_stub
   use mod_service
   use mod_memutil
   use mod_regcm_types
+  use mod_ncio
 
   implicit none
 
@@ -36,6 +37,9 @@ module mod_atm_stub
   type(domain_subgrid) , public :: mdsub
   type(surfstate) , public :: sfs
 
+  type(v3dbound) , public :: xtb , xqb , xub , xvb
+  type(v2dbound) , public :: xpsb , xtsb
+
   type(lm_exchange) , public :: lm
   type(lm_state) , public :: lms
 
@@ -43,6 +47,10 @@ module mod_atm_stub
   integer(ik4) :: id1 , id2 , jd1 , jd2
 
   real(rkx) , public :: rdnnsg
+  real(rkx) :: rdtbdy
+
+  logical , parameter :: cross = .false.
+  logical , parameter :: dot = .true.
 
   real(rkx) , dimension(:,:) , pointer , public :: patm
   real(rkx) , dimension(:,:) , pointer , public :: tatm
@@ -58,10 +66,21 @@ module mod_atm_stub
   real(rkx) , dimension(:,:) , pointer , public :: fsw
   real(rkx) , dimension(:,:) , pointer , public :: flw
   real(rkx) , dimension(:,:) , pointer , public :: flwd
+  real(rkx) , dimension(:,:) , pointer , public :: solar
   real(rkx) , dimension(:,:) , pointer , public :: pptc
+  real(rkx) , dimension(:,:) , pointer , public :: pptnc
+  real(rkx) , dimension(:,:) , pointer , public :: swdir
+  real(rkx) , dimension(:,:) , pointer , public :: swdif
+  real(rkx) , dimension(:,:) , pointer , public :: lwdir
+  real(rkx) , dimension(:,:) , pointer , public :: lwdif
 
   public :: allocate_mod_atm_interface , allocate_surface_model
   public :: setup_model_indexes
+  public :: init_bdy , bdyin , atmval
+
+  interface timeint
+    module procedure timeint2 , timeint3
+  end interface timeint
 
   contains
 
@@ -267,25 +286,50 @@ module mod_atm_stub
 #endif
     end subroutine setup_model_indexes
 
+    subroutine allocate_v3dbound(xb,ke,ldot)
+      implicit none
+      type(v3dbound) , intent(out) :: xb
+      integer(ik4) , intent(in) :: ke
+      logical , intent(in) :: ldot
+      if ( ldot ) then
+        call getmem3d(xb%b0,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b0')
+        call getmem3d(xb%b1,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:b1')
+        call getmem3d(xb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,ke,'v3dbound:bt')
+      else
+        call getmem3d(xb%b0,jce1,jce2,ice1,ice2,1,ke,'v3dbound:b0')
+        call getmem3d(xb%b1,jce1,jce2,ice1,ice2,1,ke,'v3dbound:b1')
+        call getmem3d(xb%bt,jce1,jce2,ice1,ice2,1,ke,'v3dbound:bt')
+      end if
+    end subroutine allocate_v3dbound
+
+    subroutine allocate_v2dbound(xb,ldot)
+      implicit none
+      type(v2dbound) , intent(out) :: xb
+      logical , intent(in) :: ldot
+      if ( ldot ) then
+        call getmem2d(xb%b0,jde1,jde2,ide1,ide2,'v2dbound:b0')
+        call getmem2d(xb%b1,jde1,jde2,ide1,ide2,'v2dbound:b1')
+        call getmem2d(xb%bt,jde1,jde2,ide1,ide2,'v2dbound:bt')
+      else
+        call getmem2d(xb%b0,jce1,jce2,ice1,ice2,'v2dbound:b0')
+        call getmem2d(xb%b1,jce1,jce2,ice1,ice2,'v2dbound:b1')
+        call getmem2d(xb%bt,jce1,jce2,ice1,ice2,'v2dbound:bt')
+      end if
+    end subroutine allocate_v2dbound
+
     subroutine allocate_domain(dom)
       implicit none
       type(domain) , intent(out) :: dom
-      call getmem2d(dom%ht,jde1gb,jde2gb,ide1gb,ide2gb,'storage:ht')
+      call getmem2d(dom%ht,jde1,jde2,ide1,ide2,'storage:ht')
       call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
-      call getmem2d(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
-      call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
+      call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'storage:xlat')
+      call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'storage:xlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
       call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
       call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
-      if ( idynamic == 3 ) then
-        call getmem2d(dom%clv,jce1,jce2,ide1ga,ide2ga,'storage:clv')
-        call getmem2d(dom%fmyu,jce1,jce2,ice1,ice2,'storage:fmyu')
-        call getmem2d(dom%hx,jdi1ga,jdi2ga,ice1,ice2,'storage:hx')
-        call getmem2d(dom%hy,jce1,jce2,idi1ga,idi2ga,'storage:hy')
-      end if
-      call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
-      call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
+      call getmem2d(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
+      call getmem2d(dom%msfd,jde1,jde2,ide1,ide2,'storage:msfd')
       call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
@@ -296,19 +340,6 @@ module mod_atm_stub
       call getmem2d(dom%itex,jci1,jci2,ici1,ici2,'storage:itex')
       call getmem2d(dom%xmsf,jdi1,jdi2,idi1,idi2,'storage:xmsf')
       call getmem2d(dom%dmsf,jdi1,jdi2,idi1,idi2,'storage:dmsf')
-      if ( lakemod == 1 ) then
-        call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
-      end if
-      if ( idynamic == 2 ) then
-        call getmem2d(dom%ef,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ef')
-        call getmem2d(dom%ddx,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddx')
-        call getmem2d(dom%ddy,jdi1ga,jdi2ga,idi1ga,idi2ga,'storage:ddy')
-        call getmem2d(dom%ex,jci1,jci2,ici1,ici2,'storage:ex')
-        call getmem2d(dom%crx,jci1,jci2,ici1,ici2,'storage:crx')
-        call getmem2d(dom%cry,jci1,jci2,ici1,ici2,'storage:cry')
-        call getmem2d(dom%dmdy,jdi1,jdi2,idi1,idi2,'storage:dmdy')
-        call getmem2d(dom%dmdx,jdi1,jdi2,idi1,idi2,'storage:dmdx')
-      end if
     end subroutine allocate_domain
 
     subroutine allocate_domain_subgrid(sub)
@@ -323,16 +354,13 @@ module mod_atm_stub
       call getmem3d(sub%ldmsk,1,nnsg,jci1,jci2,ici1,ici2,'storage:ldmsk')
       call getmem3d(sub%iveg,1,nnsg,jci1,jci2,ici1,ici2,'storage:iveg')
       call getmem3d(sub%itex,1,nnsg,jci1,jci2,ici1,ici2,'storage:itex')
-      if ( lakemod == 1 ) then
-        call getmem3d(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
-      end if
     end subroutine allocate_domain_subgrid
 
     subroutine allocate_surfstate(sfs)
       implicit none
       type(surfstate) , intent(out) :: sfs
-      call getmem2d(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
-      call getmem2d(sfs%psdota,jde1ga,jde2ga,ide1ga,ide2ga,'surf:psdota')
+      call getmem2d(sfs%psa,jce1,jce2,ice1,ice2,'surf:psa')
+      call getmem2d(sfs%psdota,jde1,jde2,ide1,ide2,'surf:psdota')
       call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
       call getmem2d(sfs%psdotb,jd1,jd2,id1,id2,'surf:psdotb')
       call getmem2d(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
@@ -341,9 +369,6 @@ module mod_atm_stub
       call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
       call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
       call getmem2d(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
-      if ( ipptls > 1 ) then
-        call getmem2d(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
-      end if
       call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
       call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
       call getmem2d(sfs%zo,jci1,jci2,ici1,ici2,'surf:zo')
@@ -355,12 +380,6 @@ module mod_atm_stub
       call getmem2d(sfs%w10m,jci1,jci2,ici1,ici2,'surf:w10m')
       call getmem2d(sfs%u10m,jci1,jci2,ici1,ici2,'surf:u10m')
       call getmem2d(sfs%v10m,jci1,jci2,ici1,ici2,'surf:v10m')
-      if ( ibltyp == 4 ) then
-        call getmem2d(sfs%uz0,jci1,jci2,ici1,ici2,'surf:uz0')
-        call getmem2d(sfs%vz0,jci1,jci2,ici1,ici2,'surf:vz0')
-        call getmem2d(sfs%thz0,jci1,jci2,ici1,ici2,'surf:thz0')
-        call getmem2d(sfs%qz0,jci1,jci2,ici1,ici2,'surf:qz0')
-      end if
     end subroutine allocate_surfstate
 
     subroutine allocate_mod_atm_interface
@@ -378,6 +397,12 @@ module mod_atm_stub
       call allocate_domain(mddom)
       call allocate_domain_subgrid(mdsub)
       call allocate_surfstate(sfs)
+      call allocate_v2dbound(xpsb,cross)
+      call allocate_v2dbound(xtsb,cross)
+      call allocate_v3dbound(xtb,kz,cross)
+      call allocate_v3dbound(xqb,kz,cross)
+      call allocate_v3dbound(xub,kz,dot)
+      call allocate_v3dbound(xvb,kz,dot)
 
     end subroutine allocate_mod_atm_interface
 
@@ -461,7 +486,13 @@ module mod_atm_stub
       call getmem2d(flw,jci1,jci2,ici1,ici2,'lm:flw')
       call getmem2d(fsw,jci1,jci2,ici1,ici2,'lm:fsw')
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'lm:flwd')
+      call getmem2d(solar,jci1,jci2,ici1,ici2,'lm:solar')
       call getmem2d(pptc,jci1,jci2,ici1,ici2,'lm:pptc')
+      call getmem2d(pptnc,jci1,jci2,ici1,ici2,'lm:pptnc')
+      call getmem2d(swdir,jci1,jci2,ici1,ici2,'lm:swdir')
+      call getmem2d(swdif,jci1,jci2,ici1,ici2,'lm:swdif')
+      call getmem2d(lwdir,jci1,jci2,ici1,ici2,'lm:lwdir')
+      call getmem2d(lwdif,jci1,jci2,ici1,ici2,'lm:lwdif')
 
       call cl_setup(lndcomm,mddom%mask,mdsub%mask)
       call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
@@ -534,12 +565,239 @@ module mod_atm_stub
       call assignpnt(sfs%br,lm%br)
       call assignpnt(sfs%q2m,lm%q2m)
       call assignpnt(pptc,lm%cprate)
+      call assignpnt(pptnc,lm%ncprate)
       call assignpnt(coszrs,lm%zencos)
       call assignpnt(fsw,lm%rswf)
       call assignpnt(flw,lm%rlwf)
       call assignpnt(flwd,lm%dwrlwf)
+      call assignpnt(solar,lm%solar)
+      call assignpnt(swdir,lm%swdir)
+      call assignpnt(swdif,lm%swdif)
+      call assignpnt(lwdir,lm%lwdir)
+      call assignpnt(lwdif,lm%lwdif)
 
     end subroutine allocate_surface_model
+
+    subroutine init_bdy
+      implicit none
+      character(len=32) :: appdat
+      type (rcm_time_and_date) :: icbc_date
+      integer(ik4) :: i , j , datefound
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'init_bdy'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+
+      rdtbdy = d_one / dtbdys
+      bdydate1 = idate1
+      bdydate2 = idate1
+      xbctime = d_zero
+
+      if ( bdydate1 == globidate1 ) then
+        icbc_date = bdydate1
+      else
+        icbc_date = monfirst(bdydate1)
+      end if
+
+      call open_icbc(icbc_date)
+      datefound = icbc_search(bdydate1)
+      if (datefound < 0) then
+        !
+        ! Cannot run without initial conditions
+        !
+        appdat = tochar(bdydate1)
+        call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
+      end if
+
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+
+      if ( myid == italk ) then
+        appdat = tochar(bdydate1)
+        if ( rcmtimer%start( ) ) then
+          write(stdout,*) 'READY IC DATA for ', appdat
+        else
+          write(stdout,*) 'READY BC DATA for ', appdat
+        end if
+      end if
+
+      xpsb%b0(:,:) = (xpsb%b0(:,:)*d_r10)-ptop
+      call exchange(xub%b0,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(xvb%b0,1,jde1,jde2,ide1,ide2,1,kz)
+
+      bdydate2 = bdydate2 + intbdy
+      if ( myid == italk ) then
+        write(stdout,'(a,a,a,i8)') ' SEARCH BC data for ', tochar10(bdydate2), &
+                        ', step = ', rcmtimer%lcount
+      end if
+      datefound = icbc_search(bdydate2)
+      if ( datefound < 0 ) then
+        call open_icbc(monfirst(bdydate2))
+        datefound = icbc_search(bdydate2)
+        if ( datefound < 0 ) then
+          appdat = tochar(bdydate2)
+          call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
+        end if
+      end if
+
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+
+      if ( myid == italk ) then
+        write (stdout,*) 'READY  BC from     ' , &
+              tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
+      end if
+
+      bdydate1 = bdydate2
+      !
+      ! Repeat for T2
+      !
+      xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+      call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
+      !
+      ! Calculate time varying component
+      !
+      call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
+      call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
+      call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
+      call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
+
+      if ( rcmtimer%start( ) ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            sfs%tg(j,i) = xtsb%b0(j,i)
+          end do
+        end do
+      end if
+
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine init_bdy
+
+    subroutine bdyin
+      implicit none
+      integer(ik4) :: datefound
+      character(len=32) :: appdat
+#ifdef DEBUG
+      character(len=dbgslen) :: subroutine_name = 'bdyin'
+      integer(ik4) , save :: idindx = 0
+      call time_begin(subroutine_name,idindx)
+#endif
+
+      xbctime = d_zero
+
+      xub%b0(:,:,:) = xub%b1(:,:,:)
+      xvb%b0(:,:,:) = xvb%b1(:,:,:)
+      xtb%b0(:,:,:) = xtb%b1(:,:,:)
+      xqb%b0(:,:,:) = xqb%b1(:,:,:)
+      xtsb%b0(:,:) = xtsb%b1(:,:)
+      xpsb%b0(:,:) = xpsb%b1(:,:)
+
+      bdydate2 = bdydate2 + intbdy
+      if ( myid == italk ) then
+        write(stdout,'(a,a,a,i8)') ' SEARCH BC data for ', tochar10(bdydate2), &
+                        ', step = ', rcmtimer%lcount
+      end if
+      datefound = icbc_search(bdydate2)
+      if ( datefound < 0 ) then
+        call open_icbc(monfirst(bdydate2))
+        datefound = icbc_search(bdydate2)
+        if ( datefound < 0 ) then
+          appdat = tochar(bdydate2)
+          call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
+        end if
+      end if
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      xpsb%b1(:,:) = (xpsb%b1(:,:)*d_r10)-ptop
+      call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
+
+      ! Linear time interpolation
+
+      call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
+      call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
+      call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
+      call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
+
+      if ( myid == italk ) then
+        write (stdout,*) 'READY  BC from     ' , &
+              tochar10(bdydate1) , ' to ' , tochar10(bdydate2)
+      end if
+
+      bdydate1 = bdydate2
+
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+    end subroutine bdyin
+
+    subroutine atmval
+      implicit none
+      integer(ik4) :: i , j
+      real(rkx) :: psb , cell , zq , xt
+
+      xt = xbctime
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          psb = xpsb%b0(j,i) + xt*xpsb%bt(j,i)
+          cell = ptop /psb
+          ps(j,i) = (psb + ptop)*d_1000
+          patm(j,i) = (hsigma(kz)*psb + ptop)*d_1000
+          tatm(j,i) = xtb%b0(j,i,kz) + xt*xtb%bt(j,i,kz)
+          uatm(j,i) = 0.25_rkx*(xub%b0(j,i,kz) + xub%b0(j+1,i,kz) + &
+                                xub%b0(j,i+1,kz) + xub%b0(j+1,i+1,kz)) + &
+                            xt*(xub%bt(j,i,kz) + xub%bt(j+1,i,kz) + &
+                                xub%bt(j,i+1,kz) + xub%bt(j+1,i+1,kz))
+          vatm(j,i) = 0.25_rkx*(xvb%b0(j,i,kz) + xvb%b0(j+1,i,kz) + &
+                                xvb%b0(j,i+1,kz) + xvb%b0(j+1,i+1,kz)) + &
+                            xt*(xvb%bt(j,i,kz) + xvb%bt(j+1,i,kz) + &
+                                xvb%bt(j,i+1,kz) + xvb%bt(j+1,i+1,kz))
+          qvatm(j,i) = xqb%b0(j,i,kz) + xt*xqb%bt(j,i,kz)
+          rho(j,i) = ps(j,i)/(rgas*tatm(j,i))
+          thatm(j,i) = tatm(j,i) / (p00/patm(j,i))**rovcp
+          tp(j,i) = tatm(j,i) / (ps(j,i)/patm(j,i))**rovcp
+          zq = rovg * tatm(j,i) * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+          zatm(j,i) = d_half*zq
+        end do
+      end do
+      xbctime = xbctime + dtsrf
+    end subroutine atmval
+
+    subroutine timeint2(a,b,c,j1,j2,i1,i2)
+      implicit none
+      real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
+      integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+      integer(ik4) :: i , j
+      do i = i1 , i2
+        do j = j1 , j2
+          c(j,i) = (a(j,i)-b(j,i))*rdtbdy
+        end do
+      end do
+    end subroutine timeint2
+
+    subroutine timeint3(a,b,c,j1,j2,i1,i2,k1,k2)
+      implicit none
+      real(rkx) , pointer , dimension(:,:,:) , intent(in) :: a , b
+      real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: c
+      integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+      integer(ik4) :: i , j , k
+      do k = k1 , k2
+        do i = i1 , i2
+          do j = j1 , j2
+            c(j,i,k) = (a(j,i,k)-b(j,i,k))*rdtbdy
+          end do
+        end do
+      end do
+    end subroutine timeint3
 
 end module mod_atm_stub
 

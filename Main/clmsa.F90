@@ -33,6 +33,7 @@ program clmsa
   use mod_dynparam
   use mod_atm_stub
   use mod_clm_regcm
+  use mod_ncio
 #ifndef MPI_SERIAL
   use mpi
 #endif
@@ -138,6 +139,8 @@ program clmsa
     !
     ! INIT
     !
+    call init_bdy
+    call atmval
     call initclm45(lm,lms)
     !
     ! Clean up and logging
@@ -161,15 +164,25 @@ program clmsa
     real(rk8) , intent(in) :: timeend   ! ending   time-step
 
     do while ( extime >= timestr .and. extime < timeend )
+
+      call atmval
       call runclm45(lm,lms)
+      call rcmtimer%advance( )
+
+      if ( .not. rcmtimer%reached_endtime ) then
+        if ( alarm_in_bdy%act( ) ) then
+          !
+          ! Read in new boundary conditions
+          !
+          call bdyin
+        end if
+      end if
       !
       ! Increment execution time and boundary time
       !
-      extime = extime + real(dtsec,rk8)
-      if ( debug_level > 3 ) then
-        if ( myid == italk ) then
-          write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
-        end if
+      extime = extime + real(dtsrf,rk8)
+      if ( myid == italk ) then
+        write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
       end if
     end do
 
@@ -186,6 +199,8 @@ program clmsa
     if ( myid == italk ) then
       write(stdout,*) 'Final time ', trim(rcmtimer%str( )) , ' reached.'
     end if
+
+    call close_icbc
 
     call rcmtimer%dismiss( )
     call memory_destroy

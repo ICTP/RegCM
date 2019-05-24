@@ -100,7 +100,8 @@ module mod_clm_params
     do_parallel_netcdf_in = .false.
     scenario = 'RCP4.5'
     ghg_year_const = 1950
-    ifixsolar = 1
+    ifixsolar = 0
+    isolconst = 1
     fixedsolarval = 1367.0_rkx
     !
     ! tweakparam ;
@@ -297,7 +298,7 @@ module mod_clm_params
       call bcast(gas_tweak_factors)
     end if
 
-    rcmtimer => rcm_timer(idate0,idate1,idate2,dt)
+    rcmtimer => rcm_timer(idate0,idate1,idate2,dtsrf)
 
     !
     ! ALLOCATE NEEDED SPACE
@@ -438,12 +439,6 @@ module mod_clm_params
         hsigma(k) = (sigma(k+1) + sigma(k))*d_half
       end do
     end if
-
-    call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
-    call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
-    call exchange(mddom%ht,2,jde1,jde2,ide1,ide2)
-    call exchange(mddom%msfx,idif,jde1,jde2,ide1,ide2)
-    call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)
     !
     !-----compute land/water mask
     !
@@ -470,9 +465,6 @@ module mod_clm_params
         end do
       end do
     end do
-
-    call allocate_surface_model
-    call init_surface_model
 
     if ( myid == italk ) then
       write(stdout,*) 'Domain grid parameters:'
@@ -529,15 +521,14 @@ module mod_clm_params
         end do
       end do
     end do
-    !
-    ! Initialize solar elevation (zenith angle)
-    !
+
+    call allocate_surface_model
+    call init_surface_model
     call zenitm(mddom%xlat,mddom%xlon,coszrs)
-    !
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-
     return
 
 100 call fatal(__FILE__,__LINE__, 'Error reading RESTARTPARAM')

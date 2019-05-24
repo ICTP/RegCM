@@ -302,8 +302,8 @@ module mod_sun
   !
   subroutine zenitm(xlat,xlon,coszrs)
     implicit none
-    real(rkx) , pointer , intent (in), dimension(:,:) :: xlat , xlon
-    real(rkx) , pointer , intent (inout), dimension(:,:) :: coszrs
+    real(rkx) , pointer , intent(in), dimension(:,:) :: xlat , xlon
+    real(rkx) , pointer , intent(inout), dimension(:,:) :: coszrs
     integer(ik4) :: i , j
     real(rkx) :: xxlat , xxlon
 #ifdef DEBUG
