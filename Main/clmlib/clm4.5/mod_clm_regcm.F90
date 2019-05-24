@@ -29,6 +29,7 @@ module mod_clm_regcm
   save
 
   public :: initclm45 , runclm45 , albedoclm45
+  public :: initsaclm45 , runsaclm45
 
   real(rk8) , dimension(:) , pointer :: glon , glat , ihfac
   real(rk8) , dimension(:,:) , pointer :: temps
@@ -38,6 +39,68 @@ module mod_clm_regcm
   type(h_interpolator) :: hint
 
   contains
+
+  subroutine initsaclm45(lm)
+    implicit none
+    type(lm_exchange) , intent(inout) :: lm
+    integer(ik4) :: begg , endg , ilev
+    character(len=64) :: rdate
+    real(rkx) , pointer , dimension(:,:) :: p2
+    real(rk8) , pointer , dimension(:) :: p1
+
+    call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
+
+    allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
+    allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
+    allocate(adomain%topo(lndcomm%linear_npoint_sg(myid+1)))
+
+    call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
+    call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
+    call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    adomain%topo = adomain%topo*regrav
+
+    nextdate = rcmtimer%idate
+
+    call initialize1( )
+
+    call get_proc_bounds(begg,endg)
+
+    deallocate(adomain%topo)
+    deallocate(adomain%xlon)
+    deallocate(adomain%xlat)
+    allocate(adomain%snow(begg:endg))
+    allocate(adomain%smoist(begg:endg))
+    allocate(adomain%tgrd(begg:endg))
+    allocate(adomain%iveg(begg:endg))
+    allocate(adomain%itex(begg:endg))
+    allocate(adomain%topo(begg:endg))
+    allocate(adomain%xlon(begg:endg))
+    allocate(adomain%xlat(begg:endg))
+    allocate(adomain%rmoist(begg:endg,num_soil_layers))
+    call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
+    call glb_c2l_gs(lndcomm,lm%smoist,adomain%smoist)
+    call glb_c2l_gs(lndcomm,lm%tg,adomain%tgrd)
+    call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
+    call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
+    adomain%topo = adomain%topo*regrav
+    call glb_c2l_ss(lndcomm,lm%iveg1,adomain%iveg)
+    call glb_c2l_ss(lndcomm,lm%itex1,adomain%itex)
+    where ( adomain%itex == 14 )
+      adomain%itex = 17
+    end where
+    if ( replacemoist ) then
+      do ilev = 1 , num_soil_layers
+        call assignpnt(lm%rmoist,p2,ilev)
+        call assignpnt(adomain%rmoist,p1,ilev)
+        call glb_c2l_gs(lndcomm,p2,p1)
+      end do
+    end if
+
+    write(rdate,'(a)') tochar10(rcmtimer%idate)
+    call initialize2(rdate)
+
+  end subroutine initsaclm45
 
   subroutine initclm45(lm,lms)
     implicit none
@@ -132,6 +195,82 @@ module mod_clm_regcm
       end do
     end if
   end subroutine initclm45
+
+  subroutine runsaclm45(lm)
+    implicit none
+    type(lm_exchange) , intent(inout) :: lm
+    real(rk8) :: caldayp1 , declinp1 , eccfp1 , declinp
+    logical :: doalb , rstwr , nlend , nlomon
+    type(rcm_time_interval) :: tdiff , triff
+    type(rcm_time_and_date) :: nextt , nextr
+    character(len=64) :: rdate
+
+    call atmosphere_to_land(lm)
+
+    ! Compute NEXT calday
+    tdiff = dtsrf
+    triff = dtsec
+    nextt = rcmtimer%idate+tdiff
+    nextr = rcmtimer%idate+triff
+    declinp = declin
+    caldayp1 = yeardayfrac(nextt)
+    call orb_decl(real(yearpoint(nextt),rk8),eccen,mvelpp, &
+                  lambm0,obliqr,declinp1,eccfp1)
+    if ( rcmtimer%start( ) .or. syncro_rad%will_act() ) then
+      if ( debug_level > 3 .and. myid == italk ) then
+        write(stdout,*) 'Updating albedo at ',trim(rcmtimer%str())
+      end if
+      doalb = .true.
+    else
+      doalb = .false.
+    end if
+    rstwr = .false.
+    nlend = .false.
+    nlomon = .false.
+    if ( rcmtimer%integrating( ) ) then
+      ! Final timestep
+      if ( rcmtimer%next_is_endtime ) then
+        rstwr = .true.
+        nlend = .true.
+        if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+          nlomon = .true.
+        end if
+      else
+        if ( associated(alarm_out_sav) ) then
+          if ( savfrq > d_zero ) then
+            if ( alarm_out_sav%will_act(dtsrf) ) then
+              rstwr = .true.
+              if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+                nlomon = .true.
+              end if
+            end if
+          else
+            if ( alarm_out_sav%will_act(dtsrf) .or. &
+                 (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+              rstwr = .true.
+              if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+                nlomon = .true.
+              end if
+            end if
+          end if
+        else
+          if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
+            ! End of the month
+            nlomon = .true.
+            rstwr = .true.
+          end if
+        end if
+      end if
+      if ( rstwr .and. myid == italk ) then
+        write(rdate,'(a)') tochar10(nextr)
+        write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
+      end if
+    end if
+
+    ! Run CLM
+    call clm_drv(doalb,caldayp1,declinp1,declinp,rstwr,nlend,nlomon,rdate)
+
+  end subroutine runsaclm45
 
   subroutine runclm45(lm,lms)
     implicit none

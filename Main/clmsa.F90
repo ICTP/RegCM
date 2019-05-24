@@ -141,7 +141,7 @@ program clmsa
     !
     call init_bdy
     call atmval
-    call initclm45(lm,lms)
+    call initsaclm45(lm)
     !
     ! Clean up and logging
     !
@@ -166,7 +166,7 @@ program clmsa
     do while ( extime >= timestr .and. extime < timeend )
 
       call atmval
-      call runclm45(lm,lms)
+      call runsaclm45(lm)
       call rcmtimer%advance( )
 
       if ( .not. rcmtimer%reached_endtime ) then
