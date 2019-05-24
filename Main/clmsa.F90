@@ -181,8 +181,10 @@ program clmsa
       ! Increment execution time and boundary time
       !
       extime = extime + real(dtsrf,rk8)
-      if ( myid == italk ) then
-        write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
+      if ( debug_level > 3 ) then
+        if ( myid == italk ) then
+          write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
+        end if
       end if
     end do
 
