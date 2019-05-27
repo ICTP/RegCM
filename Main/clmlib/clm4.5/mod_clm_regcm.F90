@@ -997,7 +997,7 @@ module mod_clm_regcm
     if ( lcru_rand ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( acp0(j,i) < 10000.0_rk8 ) then
+          if ( acp0(j,i) > 0.0_rk8 .and. acp0(j,i) < 10000.0_rk8 ) then
             m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
             m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
             temps(j,i) = (m1+m2) / (2.0_rk8*secpd) * ihfac(ih+1)
@@ -1007,7 +1007,7 @@ module mod_clm_regcm
     else
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( acp0(j,i) < 10000.0_rk8 ) then
+          if ( acp0(j,i) > 0.0_rk8 .and. acp0(j,i) < 10000.0_rk8 ) then
             m1 = acp0(j,i) * f1 + acp1(j,i) * (1.0_rk8-f1)
             m2 = acp1(j,i) * (1.0_rk8-f2) + acp2(j,i) * f2
             temps(j,i) = (m1+m2) / (2.0_rk8*secpd)

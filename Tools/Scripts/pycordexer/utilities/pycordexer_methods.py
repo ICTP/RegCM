@@ -19,6 +19,7 @@ from utilities.cordex_utils import CordexDataset, prepare_cordex_file_dir, \
 # f2py modules
 from utilities.vertint import mod_vertint
 from utilities.hgt import mod_hgt
+from utilities.capecin import mod_capecin
 
 
 __copyright__ = 'Copyright (C) 2018 ICTP'
@@ -2005,6 +2006,184 @@ class ComputeGeopotentialHeightOnSeveralPressures(ActionStarter):
             new_vars.append(new_var)
 
         return new_vars
+
+
+class ComputeCapeCinFromVerticalProfile(ActionStarter):
+    """
+    Compute the integrated CAPE and CIN from vertical model profile
+
+    Parameters:
+
+    None
+
+    Returns:
+
+    list of ``Variable``: a list of ``Variable`` objects, containing the
+    CAPE and CIN for each model point
+    """
+
+    def __init__(self):
+        self.__generator = ComputeCapeCin( )
+
+    def __call__(self, regcm_file, regcm_file_path, simulation, corrflag,
+         cordex_dir):
+
+        LOGGER.debug(
+            'Computing CAPE and CIN'
+        )
+        new_vars = self.__generator(
+            regcm_file,
+            regcm_file_path,
+            simulation,
+            corrflag,
+            cordex_dir
+        )
+
+        return new_vars
+
+class ComputeCapeCin(ActionStarter):
+    """
+    Compute the integrated CAPE and CIN form a vertical profile
+
+    Parameters:
+
+    None
+
+    Returns:
+
+    ``Variable``: a ``Variable`` object list, containing CAPE and CIN
+    meters.
+    """
+
+    def __init__(self):
+        pass
+
+    def __call__(self, regcm_file, regcm_file_path, simulation, corrflag,
+                 cordex_dir):
+
+        mcore = 'hydrostatic'
+        try:
+            core = Dataset(regcm_file_path).dynamical_core
+            if core == 1:
+                mcore = 'hydrostatic'
+            elif core == 2:
+                mcore = 'non-hydrostatic'
+            else:
+                raise ValueError(
+                   'Unknown dynamical_core : "{}"'.format(core))
+        except:
+            pass
+
+        # Prepare a function to read exactly one timestep of a netcdf var
+        def read_timestep(var_pointer, t_step):
+            if 'time' not in var_pointer.dimensions:
+                return no_time_vars_data[var_pointer.name]
+
+            t_dim = var_pointer.dimensions.index('time')
+            slicer = [slice(None) for _ in var_pointer.shape]
+            slicer[t_dim] = t_step
+            LOGGER.debug(
+                'Reading timestep %s of variable %s',
+                t_step,
+                var_pointer.name
+            )
+            return np.array(var_pointer[slicer], dtype=DATATYPE_MAIN)
+
+        if mcore == 'hydrostatic':
+            needed_var_names = ['ps', 'ta', 'rh', 'sigma', 'ptop']
+            funcname = mod_capecin.getcape_hy
+        else:
+            needed_var_names = ['ps', 'ta', 'p0', 'rh', 'sigma', 'ptop', 'pp']
+            funcname = mod_capecin.getcape_nhy
+
+        with Dataset(regcm_file_path, 'r') as f:
+            needed_vars = []
+            for v in needed_var_names:
+                v_names = get_regcm_variable_names(v)
+                v_pointer = get_var_with_name(v_names, f)
+                needed_vars.append(v_pointer)
+
+            # This is the name of the variable that will be used to copy the
+            # time steps, the time attributes and so on...
+            reference_var_name = 'ps'
+
+            LOGGER.debug('Check the total number of steps')
+            time_dim = needed_vars[0].dimensions.index('time')
+            time_steps = needed_vars[0].shape[time_dim]
+            LOGGER.debug('%s timesteps found', time_steps)
+
+            new_shape = needed_vars[0].shape
+            new_dims = needed_vars[0].dimensions
+            dimensions = list(zip(new_dims, new_shape))
+            LOGGER.debug(
+                'The 2 output data will have the following shape: %s',
+                new_shape
+            )
+            LOGGER.debug(
+                'The 2 output data will have the following dimensions: %s',
+                dimensions
+            )
+            LOGGER.debug('Allocating memory')
+            cape = np.empty(new_shape, dtype=DATATYPE_MAIN)
+            cin = np.empty(new_shape, dtype=DATATYPE_MAIN)
+
+            # Read the data of the variables that do not depend on time
+            no_time_vars_data = {}
+            for v in needed_vars:
+                if 'time' not in v.dimensions:
+                    LOGGER.debug('Reading data of variable %s', v.name)
+                    if v.name == 'ptop':
+                        v_data = np.array(v[:], dtype=DATATYPE_AUXILIARIES)
+                    else:
+                        v_data = np.array(v[:], dtype=DATATYPE_MAIN)
+                    no_time_vars_data[v.name] = v_data
+
+            for t in range(time_steps):
+                LOGGER.debug(
+                    'Computing CAPE and CIN at timestep %s',
+                    t
+                )
+                getc_args = [read_timestep(data_v, t) for data_v in needed_vars]
+
+                LOGGER.debug('Calling Fortran function mod_capecin.getcape')
+                cape[t, :],cin[t, :] = funcname(*getc_args)
+
+        LOGGER.debug('Reading reference var')
+        reference_var = read_variable_from_regcmfile(
+            reference_var_name,
+            regcm_file,
+            regcm_file_path,
+            False,
+        )
+
+        attributes = copy(reference_var.attributes)
+        attributes['standard_name'] = 'atmosphere_convective_available_potential_energy_wrt_surface'
+        attributes['long_name'] = '2-D Maximum available convective potential energy'
+        attributes['units'] = 'J kg-1'
+
+        v1 = Variable(
+            name="CAPE",
+            data=MemoryData(cape),
+            dimensions=dimensions,
+            attributes=attributes,
+            times=reference_var.times,
+            times_attributes=reference_var.times_attributes,
+            needs_time_bounds=False,
+        )
+        attributes['standard_name'] = 'atmosphere_convective_inhibition_wrt_surface'
+        attributes['long_name'] = '2-D Maximum convective inhibition'
+        attributes['units'] = 'J kg-1'
+        v2 = Variable(
+            name="CIN",
+            data=MemoryData(cin),
+            dimensions=dimensions,
+            attributes=attributes,
+            times=reference_var.times,
+            times_attributes=reference_var.times_attributes,
+            needs_time_bounds=False,
+        )
+
+        return [v1, v2]
 
 
 class ComputeGeoCoordinateFromGridCoordinate(ActionStarter):
