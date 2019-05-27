@@ -65,7 +65,8 @@
       "va",
       "ta",
       "hus",
-      "zg"
+      "zg",
+      "capecin"
     ],
     "mask":"_ATM\\.\\d+\\.[nN][cC]$"
   },
