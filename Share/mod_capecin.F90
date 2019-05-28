@@ -257,7 +257,7 @@ module mod_capecin
           i = i + 1
           t2 = thlast*pi2
           if ( ice ) then
-            fliq = max(min((t2-233.15_rkx)/(tzero-233.15),d_one),d_one)
+            fliq = max(min((t2-233.15_rkx)/(tzero-233.15),d_one),d_zero)
             fice = d_one-fliq
           else
             fliq = d_one
