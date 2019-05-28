@@ -1,0 +1,27 @@
+{
+  "capecin": [
+    [
+      [
+        "ComputeCapeCinFromVerticalProfile",
+        {
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+        }
+      ],
+      [
+        "ComputeAverageOfEachVariable",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveMultipleVariablesToDisk",
+        {
+        }
+      ]
+    ]
+  ]
+}
