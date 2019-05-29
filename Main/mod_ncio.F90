@@ -613,6 +613,9 @@ module mod_ncio
     write (ctime, '(a)') tochar10(idate)
     clmbcname = trim(dirglob)//pthsep//trim(domname)// &
                '_SFBC.'//trim(ctime)//'.nc'
+    if ( myid == italk ) then
+      write(stdout,*) 'Open ',trim(clmbcname)
+    end if
     call openfile_withname(clmbcname,clmbcin)
     clmbcrec = 1
     clmbcnrec = 0
@@ -687,6 +690,12 @@ module mod_ncio
 
     integer(ik4) , dimension(3) :: istart , icount
 
+    if ( clmbcrec > clmbcnrec ) then
+      call open_clmbc(rcmtimer%idate)
+    end if
+    if ( myid == italk ) then
+      write(stdout,*) 'Reading SF values for ',tochar(clmbc_idate(clmbcrec))
+    end if
     if ( do_parallel_netcdf_in ) then
       istart(1) = jde1
       istart(2) = ide1

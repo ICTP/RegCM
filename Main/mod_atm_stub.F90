@@ -604,6 +604,7 @@ module mod_atm_stub
 
       call open_icbc(icbc_date)
       call open_clmbc(icbc_date)
+
       datefound = icbc_search(bdydate1)
       if (datefound < 0) then
         !
@@ -636,7 +637,6 @@ module mod_atm_stub
       datefound = icbc_search(bdydate2)
       if ( datefound < 0 ) then
         call open_icbc(monfirst(bdydate2))
-        call open_clmbc(monfirst(bdydate2))
         datefound = icbc_search(bdydate2)
         if ( datefound < 0 ) then
           appdat = tochar(bdydate2)
@@ -710,7 +710,6 @@ module mod_atm_stub
       datefound = icbc_search(bdydate2)
       if ( datefound < 0 ) then
         call open_icbc(monfirst(bdydate2))
-        call open_clmbc(monfirst(bdydate2))
         datefound = icbc_search(bdydate2)
         if ( datefound < 0 ) then
           appdat = tochar(bdydate2)
