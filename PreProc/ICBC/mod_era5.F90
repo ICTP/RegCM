@@ -603,7 +603,7 @@ module mod_era5
           end do
         end do
         call sph2mxr(qvar,ilon,jlat,klev)
-        qvar = log10(qvar)
+        qvar = log10(max(qvar,dlowval))
       else if ( kkrec == 4 ) then
         do j = 1 , jlat
           do i = 1 , ilon
