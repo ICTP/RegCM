@@ -3,7 +3,11 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:.
 
+if DO_COMPILE_LIBCLM45
 bin_PROGRAMS = sst icbc chem_icbc clmbc
+else
+bin_PROGRAMS = sst icbc chem_icbc
+endif
 
 sst_SOURCES = mod_sst_eh5om.F90 mod_sst_ersst.F90 mod_sst_fvgcm.F90 \
               mod_sst_1deg.F90 mod_sst_gnmnc.F90 mod_sst_grid.F90 \
