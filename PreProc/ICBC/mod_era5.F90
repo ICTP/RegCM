@@ -275,8 +275,8 @@ module mod_era5
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     call h_interpolate_cont(cross_hint,b2,b3)
     pr(:,:) = b3(:,:,1)
-    ssr(:,:) = b3(:,:,2)
-    strd(:,:) = b3(:,:,3)
+    ssr(:,:) = b3(:,:,2) / secph
+    strd(:,:) = b3(:,:,3) / secph
     clt(:,:) = b3(:,:,4)
   end subroutine get_era5h
 
