@@ -44,14 +44,12 @@ module mod_era5
 
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
-
-  real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
-  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rkx) , pointer :: hvar(:,:,:) , qvar(:,:,:) , tvar(:,:,:)
-
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
+
+  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , h3 , q3 , t3
+  real(rkx) , pointer , dimension(:,:,:) :: uvar , vvar , hvar , qvar , tvar
+
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
@@ -59,6 +57,7 @@ module mod_era5
   real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
   real(rkx) :: pss
   integer(2) , pointer , dimension(:,:,:) :: work
+  integer(2) , pointer , dimension(:,:) :: iwork
 
   integer(ik4) , dimension(5,4) :: inet5
   integer(ik4) , dimension(5,4) :: ivar5
@@ -70,8 +69,80 @@ module mod_era5
   type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
 
   public :: init_era5 , get_era5 , conclude_era5
+  public :: init_era5h , get_era5h , conclude_era5h
 
   contains
+
+  subroutine init_era5h
+    implicit none
+    integer(ik4) :: year , month , day , hour
+    character(len=256) :: pathaddname
+    integer(ik4) :: istatus , ncid , ivarid , idimid
+    character(len=64) :: inname
+
+    call split_idate(globidate1,year,month,day,hour)
+    write(inname,'(a,i0.4,a,i0.2,a)') 'pr_', year, '_', month,'.nc'
+    pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+         'hourly'//pthsep//inname
+    istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error open file '//trim(pathaddname))
+    istatus = nf90_inq_dimid(ncid,'latitude',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Missing latitude dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=jlat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading latitude dimelen in file '//trim(pathaddname))
+    istatus = nf90_inq_dimid(ncid,'longitude',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing longitude dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=ilon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading longitude dimelen in file '//trim(pathaddname))
+    !
+    ! Allocate working space
+    !
+    call getmem1d(glat,1,jlat,'mod_era5:glat')
+    call getmem1d(glon,1,ilon,'mod_era5:glon')
+    call getmem1d(grev,1,max(jlat,ilon),'mod_era5:grev')
+    call getmem3d(b3,1,jx,1,iy,1,4,'mod_era5:b3')
+
+    istatus = nf90_inq_varid(ncid,'latitude',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing latitude variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,glat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading latitude variable in file '//trim(pathaddname))
+    istatus = nf90_inq_varid(ncid,'longitude',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing longitude variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,glon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading longitude variable in file '//trim(pathaddname))
+    istatus = nf90_close(ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error close file '//trim(pathaddname))
+    !
+    ! Find window to read
+    !
+    call get_window(glat,glon,xlat,xlon,i_band,gdomain)
+
+    grev(1:jlat) = glat
+    jlat = gdomain%nj
+    call getmem1d(glat,1,jlat,'mod_era5:glat')
+    glat = grev(gdomain%jgstart:gdomain%jgstop)
+    grev(1:ilon) = glon
+    ilon = sum(gdomain%ni)
+    call getmem1d(glon,1,ilon,'mod_era5:glon')
+    glon(1:gdomain%ni(1)) = grev(gdomain%igstart(1):gdomain%igstop(1))
+    if ( gdomain%ntiles == 2 ) then
+      glon(gdomain%ni(1)+1:ilon) = grev(gdomain%igstart(2):gdomain%igstop(2))
+    end if
+
+    call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
+    call getmem3d(b2,1,ilon,1,jlat,1,4,'mod_era5:b2')
+    call getmem2d(iwork,1,ilon,1,jlat,'mod_era5:iwork')
+  end subroutine init_era5h
 
   subroutine init_era5
     implicit none
@@ -197,6 +268,18 @@ module mod_era5
     qvar => b2(:,:,2*klev+1:3*klev)
   end subroutine init_era5
 
+  subroutine get_era5h(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    call era5hour(idate,globidate1)
+    write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    call h_interpolate_cont(cross_hint,b2,b3)
+    pr(:,:) = b3(:,:,1)
+    ssr(:,:) = b3(:,:,2)
+    strd(:,:) = b3(:,:,3)
+    clt(:,:) = b3(:,:,4)
+  end subroutine get_era5h
+
   subroutine get_era5(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
@@ -275,6 +358,132 @@ module mod_era5
     ! Get from RHUM to mixing ratio
     q4 = d_10**q4
   end subroutine get_era5
+
+  subroutine era5hour(idate,idate0)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate , idate0
+    integer(ik4) :: i , inet , it , j , k4 , kkrec , istatus , ivar
+    integer(ik4) :: timid
+    character(len=64) :: inname
+    character(len=256) :: pathaddname
+    character(len=4) , dimension(4) :: varname
+    character(len=4) , dimension(4) :: fname
+    character(len=64) :: cunit , ccal
+    real(rkx) :: xadd , xscale
+    integer(ik4) , dimension(3) :: icount , istart
+    integer(ik4) :: year , month , day , hour
+    integer(ik4) , save :: lastmonth
+    type(rcm_time_interval) :: tdif
+    !
+    ! This is the latitude, longitude dimension of the grid to be read.
+    ! This corresponds to the lat and lon dimension variables in the
+    ! netCDF file.
+    ! The data are packed into short integers (INTEGER*2).  The array
+    ! work will be used to hold the packed integers.  The array 'x'
+    ! will contain the unpacked data.
+    !
+    data varname /'tp  ' , 'ssr ' , 'strd' , 'tcc '/
+    data fname   /'pr  ' , 'ssr ' , 'strd' , 'clt '/
+
+    k4 = 1
+    call split_idate(idate,year,month,day,hour)
+
+    if ( idate == idate0 .or. month /= lastmonth ) then
+      lastmonth = month
+      do kkrec = 1 , 4
+        write(inname,'(a,a,i0.4,a,i0.2,a)') &
+          trim(fname(kkrec)), '_', year, '_', month,'.nc'
+        pathaddname = trim(inpglob)//pthsep//'ERA5'//pthsep// &
+            pthsep//'hourly'//pthsep//inname
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec,1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error open file '//trim(pathaddname))
+        istatus = nf90_inq_varid(inet5(kkrec,1),trim(varname(kkrec)), &
+                                 ivar5(kkrec,1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error find var '//varname(kkrec))
+        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1), &
+                 'scale_factor',xscl(kkrec,1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error find att scale_factor')
+        istatus = nf90_get_att(inet5(kkrec,1),ivar5(kkrec,1),  &
+                   'add_offset',xoff(kkrec,1))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error find att add_offset')
+        write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
+                         xscl(kkrec,1) , xoff(kkrec,1)
+        if ( kkrec == 1 ) then
+          istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find dim time')
+          istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error inquire time')
+          istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+          if ( istatus /= nf90_noerr ) then
+            istatus = nf90_inq_varid(inet5(1,1),'date',timid)
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var time/date')
+          end if
+          istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error read time units')
+          istatus = nf90_get_att(inet5(1,1),timid,'calendar',ccal)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                              'Error read time units')
+          call getmem1d(itimes,1,timlen,'mod_era5:itimes')
+          call getmem1d(xtimes,1,timlen,'mod_era5:xtimes')
+          istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read time')
+          do it = 1 , timlen
+            itimes(it) = timeval2date(real(xtimes(it),rkx),cunit,ccal)
+          end do
+        end if
+      end do
+    end if
+
+    tdif = idate - itimes(1)
+    it = nint(tohours(tdif)) + 1
+
+    istart(3) = it
+    icount(3) = 1
+
+    do kkrec = 1 , 4
+      inet = inet5(kkrec,k4)
+      ivar = ivar5(kkrec,k4)
+      xscale = xscl(kkrec,k4)
+      xadd = xoff(kkrec,k4)
+      call getwork(kkrec)
+      do j = 1 , jlat
+        do i = 1 , ilon
+          b2(i,j,kkrec) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+        end do
+      end do
+    end do
+
+    contains
+
+      subroutine getwork(irec)
+        implicit none
+        integer(ik4) , intent(in) :: irec
+        integer(ik4) :: itile , iti , itf
+        iti = 1
+        do itile = 1 , gdomain%ntiles
+          istart(1) = gdomain%igstart(itile)
+          icount(1) = gdomain%ni(itile)
+          ! Latitudes are reversed in original file
+          istart(2) = gdomain%jgstart
+          icount(2) = gdomain%nj
+          itf = iti + gdomain%ni(itile) - 1
+          istatus = nf90_get_var(inet,ivar,iwork(iti:itf,:),istart,icount)
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error read var '//varname(irec))
+          iti = iti + gdomain%ni(itile)
+        end do
+      end subroutine getwork
+
+  end subroutine era5hour
 
   subroutine era56hour(dattyp,idate,idate0)
     implicit none
@@ -440,6 +649,11 @@ module mod_era5
       call h_interpolator_destroy(vdot_hint)
     end if
   end subroutine conclude_era5
+
+  subroutine conclude_era5h
+    implicit none
+    call h_interpolator_destroy(cross_hint)
+  end subroutine conclude_era5h
 
 end module mod_era5
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
