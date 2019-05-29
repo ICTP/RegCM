@@ -19,6 +19,7 @@
 !
 program clmsa
 
+#ifdef CLM45
   use mod_realkinds
   use mod_intkinds
   use mod_memutil
@@ -225,6 +226,10 @@ program clmsa
       write(stdout,*) 'CLM45 simulation successfully reached end'
     end if
   end subroutine CLM_finalize
+
+#else
+  write(0,*) 'This programs is enabled only if CLM45 is compiled in.'
+#endif
 
 end program clmsa
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

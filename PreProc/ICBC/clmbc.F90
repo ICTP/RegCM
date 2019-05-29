@@ -25,6 +25,8 @@ end subroutine myabort
 
 program clmbc
 
+#ifdef CLM45
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                      !
 !  CLMBCC reads ERA5 surface hourly fields and creates hourly input    !
@@ -116,6 +118,9 @@ program clmbc
 
   call finaltime(0)
   write(stdout,*) 'Successfully completed CLMBC'
+#else
+  write(0,*) 'This programs is enabled only if CLM45 is compiled in.'
+#endif
 
 end program clmbc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
