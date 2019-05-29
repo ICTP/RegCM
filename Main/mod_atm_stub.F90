@@ -73,6 +73,7 @@ module mod_atm_stub
   real(rkx) , dimension(:,:) , pointer , public :: swdif
   real(rkx) , dimension(:,:) , pointer , public :: lwdir
   real(rkx) , dimension(:,:) , pointer , public :: lwdif
+  real(rkx) , dimension(:,:) , pointer , public :: totc
 
   public :: allocate_mod_atm_interface , allocate_surface_model
   public :: setup_model_indexes
@@ -493,6 +494,7 @@ module mod_atm_stub
       call getmem2d(swdif,jci1,jci2,ici1,ici2,'lm:swdif')
       call getmem2d(lwdir,jci1,jci2,ici1,ici2,'lm:lwdir')
       call getmem2d(lwdif,jci1,jci2,ici1,ici2,'lm:lwdif')
+      call getmem2d(totc,jci1,jci2,ici1,ici2,'lm:totc')
 
       call cl_setup(lndcomm,mddom%mask,mdsub%mask)
       call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
@@ -601,6 +603,7 @@ module mod_atm_stub
       end if
 
       call open_icbc(icbc_date)
+      call open_clmbc(icbc_date)
       datefound = icbc_search(bdydate1)
       if (datefound < 0) then
         !
@@ -633,6 +636,7 @@ module mod_atm_stub
       datefound = icbc_search(bdydate2)
       if ( datefound < 0 ) then
         call open_icbc(monfirst(bdydate2))
+        call open_clmbc(monfirst(bdydate2))
         datefound = icbc_search(bdydate2)
         if ( datefound < 0 ) then
           appdat = tochar(bdydate2)
@@ -706,6 +710,7 @@ module mod_atm_stub
       datefound = icbc_search(bdydate2)
       if ( datefound < 0 ) then
         call open_icbc(monfirst(bdydate2))
+        call open_clmbc(monfirst(bdydate2))
         datefound = icbc_search(bdydate2)
         if ( datefound < 0 ) then
           appdat = tochar(bdydate2)

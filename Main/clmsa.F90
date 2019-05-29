@@ -141,6 +141,11 @@ program clmsa
     !
     call init_bdy
     call atmval
+    call read_clmbc(pptc,solar,flwd,totc)
+    swdif = solar * 0.75_rkx * totc
+    swdir = solar - swdif
+    lwdif = flwd * 0.75_rkx * totc
+    lwdir = flwd - lwdif
     call initsaclm45(lm)
     !
     ! Clean up and logging
@@ -176,6 +181,13 @@ program clmsa
           !
           call bdyin
         end if
+        if ( alarm_hour%act( ) ) then
+          call read_clmbc(pptc,solar,flwd,totc)
+          swdif = solar * 0.75_rkx * totc
+          swdir = solar - swdif
+          lwdif = flwd * 0.75_rkx * totc
+          lwdir = flwd - lwdif
+        end if
       end if
       !
       ! Increment execution time and boundary time
@@ -203,6 +215,7 @@ program clmsa
     end if
 
     call close_icbc
+    call close_clmbc
 
     call rcmtimer%dismiss( )
     call memory_destroy

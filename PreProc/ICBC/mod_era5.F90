@@ -274,7 +274,7 @@ module mod_era5
     call era5hour(idate,globidate1)
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     call h_interpolate_cont(cross_hint,b2,b3)
-    pr(:,:) = b3(:,:,1)
+    pr(:,:) = b3(:,:,1) / secph * 0.001_rkx
     ssr(:,:) = b3(:,:,2) / secph
     strd(:,:) = b3(:,:,3) / secph
     clt(:,:) = b3(:,:,4)
