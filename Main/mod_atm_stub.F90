@@ -603,7 +603,9 @@ module mod_atm_stub
       end if
 
       call open_icbc(icbc_date)
-      call open_clmbc(icbc_date)
+      if ( sfbcread == 1 ) then
+        call open_clmbc(icbc_date)
+      end if
 
       datefound = icbc_search(bdydate1)
       if (datefound < 0) then
