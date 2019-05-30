@@ -49,6 +49,7 @@ module mod_era5
 
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , h3 , q3 , t3
   real(rkx) , pointer , dimension(:,:,:) :: uvar , vvar , hvar , qvar , tvar
+  real(rkx) , pointer , dimension(:,:) :: prvar
 
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
@@ -105,7 +106,7 @@ module mod_era5
     call getmem1d(glat,1,jlat,'mod_era5:glat')
     call getmem1d(glon,1,ilon,'mod_era5:glon')
     call getmem1d(grev,1,max(jlat,ilon),'mod_era5:grev')
-    call getmem3d(b3,1,jx,1,iy,1,4,'mod_era5:b3')
+    call getmem3d(b3,1,jx,1,iy,1,3,'mod_era5:b3')
 
     istatus = nf90_inq_varid(ncid,'latitude',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -140,7 +141,8 @@ module mod_era5
     end if
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
-    call getmem3d(b2,1,ilon,1,jlat,1,4,'mod_era5:b2')
+    call getmem3d(b2,1,ilon,1,jlat,1,3,'mod_era5:b2')
+    call getmem2d(prvar,1,ilon,1,jlat,'mod_era5:prvar')
     call getmem2d(iwork,1,ilon,1,jlat,'mod_era5:iwork')
   end subroutine init_era5h
 
@@ -273,11 +275,12 @@ module mod_era5
     type(rcm_time_and_date) , intent(in) :: idate
     call era5hour(idate,globidate1)
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
+    call h_interpolate_nn(cross_hint,prvar,pr)
     call h_interpolate_cont(cross_hint,b2,b3)
-    pr(:,:) = b3(:,:,1) / secph * 0.001_rkx
-    ssr(:,:) = b3(:,:,2) / secph
-    strd(:,:) = b3(:,:,3) / secph
-    clt(:,:) = b3(:,:,4)
+    pr(:,:) = pr(:,:) / secph * 0.001_rkx
+    ssr(:,:) = b3(:,:,1) / secph
+    strd(:,:) = b3(:,:,2) / secph
+    clt(:,:) = b3(:,:,3)
   end subroutine get_era5h
 
   subroutine get_era5(idate)
@@ -455,11 +458,19 @@ module mod_era5
       xscale = xscl(kkrec,k4)
       xadd = xoff(kkrec,k4)
       call getwork(kkrec)
-      do j = 1 , jlat
-        do i = 1 , ilon
-          b2(i,j,kkrec) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+      if ( kkrec == 1 ) then
+        do j = 1 , jlat
+          do i = 1 , ilon
+            prvar(i,j) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+          end do
         end do
-      end do
+      else
+        do j = 1 , jlat
+          do i = 1 , ilon
+            b2(i,j,kkrec-1) = real(real(iwork(i,j),rkx)*xscale+xadd,rkx)
+          end do
+        end do
+      end if
     end do
 
     contains
