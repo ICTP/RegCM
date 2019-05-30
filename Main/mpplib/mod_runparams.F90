@@ -177,7 +177,10 @@ module mod_runparams
   ! Set this to zero to remove dynamical dependency of diffusion
   real(rkx) , public :: adyndif = d_one
 
+#ifdef CLM45
   integer(ik4) , public :: sfbcread
+  logical , public :: rcm_megan_enabled
+#endif
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
   integer(ik4) , public :: iaerosol , igaschem , ioxclim , iisoropia

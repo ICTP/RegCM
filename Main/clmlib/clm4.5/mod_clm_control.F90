@@ -297,7 +297,12 @@ module mod_clm_control
 
     call control_spmd()
 
-    if ( enable_megan_emission ) call shr_megan_readnl(namelistfile)
+    if ( enable_megan_emission ) then
+      rcm_megan_enabled = .true.
+      call shr_megan_readnl(namelistfile)
+    else
+      rcm_megan_enabled = .false.
+    end if
     ! Set input file path in RegCM world
 
     fpftcon = trim(inpglob)//pthsep//'CLM45'//pthsep// &

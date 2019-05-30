@@ -27,6 +27,7 @@ module mod_che_emission
   use mod_mpmessage
   use mod_service
   use mod_dynparam
+  use mod_runparams , only : rcm_megan_enabled
   use mod_che_common
   use mod_che_param
   use mod_che_mppio
@@ -193,20 +194,24 @@ module mod_che_emission
     ! isoprene ( overwrite biogenic emission from inventory  / rq
     ! this way  we  negelect the anthropog isoprene emissions )
     if ( iisop > 0 ) then
-      do i = ici1, ici2
-        chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
-      end do
+      if ( rcm_megan_enabled ) then
+        do i = ici1, ici2
+          chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
+        end do
+      end if
     end if
 
     ! other BVOC : to do !!
 
     ! methane : add the biogenic part from CLM to anthropogenic
     ! nb the CN/LCH4 CLM flag have to be activated
+#ifdef LCH4
     if ( ich4 > 0 ) then
       do i = ici1, ici2
         chemsrc(j,i,ich4) = chemsrc(j,i,ich4) +  cvoc_em_clm(j,i,ich4)
       end do
     end if
+#endif
 #else
     ! Modify chemsrc for isoprene from inventory to account for
     ! simplified dirunal cycle
