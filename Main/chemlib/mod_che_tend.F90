@@ -365,11 +365,7 @@
       ! handle biogenic emission fluxes coming from CLM45
       if ( ichsursrc == 1 ) then
         do j = jci1 , jci2
-#ifndef CLM45
           call emis_tend(j,declin)
-#else
-          call emis_tend(j)
-#endif
         end do
       end if
       !
