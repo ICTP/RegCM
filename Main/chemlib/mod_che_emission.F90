@@ -189,26 +189,26 @@ module mod_che_emission
         do i = ici1, ici2
           chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
         end do
+      else
+        do i = ici1 , ici2
+          dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
+          if ( dayhr < -1 .or. dayhr > 1 ) then
+            tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+            chemsrc(j,i,iisop) = 0.0
+          else
+            daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
+            daylen = d_two*acos(dayhr)*raddeg
+            daylen = daylen*24.0_rkx/360.0_rkx
+            ! Maximum sun elevation
+            maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
+            fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
+            amp = 12.0_rkx*mathpi/daylen
+            tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+            chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * &
+                                sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
+          end if
+        end do
       end if
-    else
-      do i = ici1 , ici2
-        dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
-        if ( dayhr < -1 .or. dayhr > 1 ) then
-          tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-          chemsrc(j,i,iisop) = 0.0
-        else
-          daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
-          daylen = d_two*acos(dayhr)*raddeg
-          daylen = daylen*24.0_rkx/360.0_rkx
-          ! Maximum sun elevation
-          maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
-          fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
-          amp = 12.0_rkx*mathpi/daylen
-          tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-          chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * &
-                              sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
-        end if
-      end do
     end if
 
     ! other BVOC : to do !!
