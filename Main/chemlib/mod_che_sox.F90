@@ -27,6 +27,7 @@ module mod_che_sox
   use mod_che_common
   use mod_che_species
   use mod_che_indices
+  use mod_che_carbonaer
 
   implicit none
 
@@ -41,7 +42,6 @@ module mod_che_sox
 
     subroutine chemsox(j,wl,fracloud,fracum,rho,ttb)
      implicit none
-
      integer(ik4) , intent(in) :: j
      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: ttb , wl , rho
      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
@@ -118,6 +118,9 @@ module mod_che_sox
          so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
          so2_snk(i,k) = so2_avail*(d_one-exp(-so2_rate*dt))
 
+         if ( aging_control ) then
+           so4chagct(j,i,k) = 1.5_rkx*so2_snk(i,k)
+         end if
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(i,k)*cldno
 

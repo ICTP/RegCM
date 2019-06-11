@@ -335,6 +335,10 @@ module mod_che_start
 
     cfdout = alarm_out_che%rw
 
+    if ( count(icarb > 0) > 0 .and. aging_control ) then
+      call carb_init( )
+    end if
+
     !
     ! define now correspndance between boundary species indices and
     ! determine tracer indices corresponding to ch boundary conditions

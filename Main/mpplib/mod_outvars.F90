@@ -247,6 +247,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: che_pblten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_pp_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_mixrat_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: che_chagct_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_cheten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_advhten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_advvten_out => null()

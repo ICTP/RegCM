@@ -25,6 +25,8 @@ module mod_che_output
   use mod_dynparam
   use mod_che_param
   use mod_che_common
+  use mod_che_indices
+  use mod_che_carbonaer
   use mod_outvars
 
   implicit none
@@ -67,6 +69,19 @@ module mod_che_output
           che_mixrat_out(:,:,k) = chia(jci1:jci2,ici1:ici2,k,itr) / &
                            cpsb(jci1:jci2,ici1:ici2)
         end do
+      end if
+      if ( itr == ibchb .and. aging_control ) then
+        if ( associated(che_chagct_out) ) then
+          che_chagct_out = chagct_bc(jci1:jci2,ici1:ici2,:)
+        end if
+      else if ( itr == iochb .and. aging_control ) then
+        if ( associated(che_chagct_out) ) then
+          che_chagct_out = chagct_oc(jci1:jci2,ici1:ici2,:)
+        end if
+      else
+        if ( associated(che_chagct_out) ) then
+          che_chagct_out = d_zero
+        end if
       end if
       if ( associated(che_burden_out) ) then
         che_burden_out = dtrace(jci1:jci2,ici1:ici2,itr)*1.0e6_rkx
@@ -147,7 +162,7 @@ module mod_che_output
           ! no need to normalise by ps here !!
          do k = 1 , kz
           che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr)
-         end do 
+         end do
         end if
         cemisdiag(:,:,:,itr) = d_zero
       endif

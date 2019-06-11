@@ -88,7 +88,7 @@ module mod_ncout
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 8 + nbase
-  integer(ik4) , parameter :: nche3dvars = 13
+  integer(ik4) , parameter :: nche3dvars = 14
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -435,7 +435,7 @@ module mod_ncout
   integer(ik4) , parameter :: che_bdyten   = 11
   integer(ik4) , parameter :: che_sedten   = 12
   integer(ik4) , parameter :: che_emten    = 13
-
+  integer(ik4) , parameter :: che_chagct   = 14
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -2416,7 +2416,11 @@ module mod_ncout
             'atmosphere_mixing_ratio_of_tracer',.true.)
           che_mixrat_out => v3dvar_che(che_mixrat)%rval
         end if
-
+        if ( enable_che3d_vars(che_chagct) ) then
+          call setup_var(v3dvar_che,che_chagct,vsize,'chagct', 's',&
+            'Aging efolding time', 'aging_efolding_time',.true.)
+          che_chagct_out => v3dvar_che(che_chagct)%rval
+        end if
         if ( ichdiag > 0 ) then
           if ( enable_che3d_vars(che_cheten) ) then
             call setup_var(v3dvar_che,che_cheten,vsize,'cheten', &

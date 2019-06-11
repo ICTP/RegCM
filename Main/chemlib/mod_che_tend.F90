@@ -130,6 +130,10 @@
           end do
         end do
       end do
+
+      if ( count(icarb > 0) > 0 .and. aging_control ) then
+        call carb_prepare( )
+      end if
       !
       ! cloud fractionnal cover for wet deposition
       ! large scale : fracloud, calculated from fcc coming from
