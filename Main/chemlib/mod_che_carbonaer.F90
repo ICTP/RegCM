@@ -78,28 +78,22 @@ module mod_che_carbonaer
   real(rkx) , pointer , dimension(:,:,:) :: ncon
   ! variable for surface area of aerosol
   real(rkx) , pointer , dimension(:,:,:) :: surf
-  real(rkx) , pointer , dimension(:,:,:) :: chagct_oc , chagct_bc , so4chagct
-
-  logical , parameter :: aging_control = .false.
+  real(rkx) , pointer , dimension(:,:,:) :: so4chagct
 
   public :: solbc , solbchl , soloc , solochl , solsm1 , solsm2
   ! unit of so4chagct = kg kg-1 sec-1
-  public :: chagct_oc , chagct_bc , so4chagct
-  public :: aging_control , carb_init , carb_prepare , aging_carb
+  public :: so4chagct
+  public :: carb_init , carb_prepare , aging_carb
 
   contains
 
     subroutine carb_init( )
       implicit none
-      if ( aging_control ) then
+      if ( carb_aging_control ) then
         call getmem3d(ncon,jci1,jci2,ici1,ici2,1,kz,'carbonaer:ncon')
         call getmem3d(surf,jci1,jci2,ici1,ici2,1,kz,'carbonaer:surf')
         call getmem3d(so4chagct,jci1,jci2, &
                       ici1,ici2,1,kz,'che_common:so4chagct')
-        call getmem3d(chagct_oc,jci1,jci2, &
-                      ici1,ici2,1,kz,'che_common:chagct_oc')
-        call getmem3d(chagct_bc,jci1,jci2, &
-                      ici1,ici2,1,kz,'che_common:chagct_bc')
       end if
     end subroutine carb_init
 
@@ -107,7 +101,7 @@ module mod_che_carbonaer
       implicit none
       integer(ik4) :: i , j , k
       real(rkx) :: kav , pm
-      if ( .not. aging_control ) return
+      if ( .not. carb_aging_control ) return
       ncon(:,:,:) = d_zero
       surf(:,:,:) = d_zero
       if ( ibchb > 0 ) then
@@ -198,7 +192,7 @@ module mod_che_carbonaer
       ! ( 1.15 day Cooke et al.,1999 )
       !
       if ( ibchb > 0 .and. ibchl > 0 ) then
-        if ( aging_control ) then
+        if ( carb_aging_control ) then
           do k = 1 , kz
             do i = ici1 , ici2
               !in nm/hr from m/sec
@@ -208,9 +202,8 @@ module mod_che_carbonaer
               else
                 icon = d_zero
               end if
-              chagct = d_one/(kcond * icon + &
-                              kcoag * ncon(j,i,k))*3600.0_rkx
-              chagct_bc(j,i,k) = chagct
+              arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
+              chagct = 3600.0_rkx * d_one/arg
               ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
               arg = max(min(dt/chagct,25.0_rkx),d_zero)
               agingtend1 = -ksp*(d_one-exp(-arg))/dt
@@ -241,7 +234,7 @@ module mod_che_carbonaer
         end if
       end if
       if ( iochb > 0  .and. iochl > 0 ) then
-        if ( aging_control ) then
+        if ( carb_aging_control ) then
           do k = 1 , kz
             do i = ici1 , ici2
               ! in nm/hr from m/sec
@@ -251,9 +244,8 @@ module mod_che_carbonaer
               else
                 icon = d_zero
               end if
-              chagct = d_one/(kcond * icon + &
-                              kcoag * ncon(j,i,k))*3600.0_rkx
-              chagct_oc(j,i,k) = chagct
+              arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
+              chagct = 3600.0_rkx * d_one/arg
               ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
               arg = max(min(dt/chagct,25.0_rkx),d_zero)
               agingtend1 = -ksp*(d_one-exp(-arg))/dt

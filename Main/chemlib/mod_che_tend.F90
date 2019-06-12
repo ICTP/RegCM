@@ -131,7 +131,7 @@
         end do
       end do
 
-      if ( count(icarb > 0) > 0 .and. aging_control ) then
+      if ( count(icarb > 0) > 0 .and. carb_aging_control ) then
         call carb_prepare( )
       end if
       !

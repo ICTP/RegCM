@@ -118,7 +118,7 @@ module mod_che_sox
          so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
          so2_snk(i,k) = so2_avail*(d_one-exp(-so2_rate*dt))
 
-         if ( aging_control ) then
+         if ( carb_aging_control ) then
            so4chagct(j,i,k) = 1.5_rkx*so2_snk(i,k)
          end if
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno

@@ -70,19 +70,6 @@ module mod_che_output
                            cpsb(jci1:jci2,ici1:ici2)
         end do
       end if
-      if ( itr == ibchb .and. aging_control ) then
-        if ( associated(che_chagct_out) ) then
-          che_chagct_out = chagct_bc(jci1:jci2,ici1:ici2,:)
-        end if
-      else if ( itr == iochb .and. aging_control ) then
-        if ( associated(che_chagct_out) ) then
-          che_chagct_out = chagct_oc(jci1:jci2,ici1:ici2,:)
-        end if
-      else
-        if ( associated(che_chagct_out) ) then
-          che_chagct_out = d_zero
-        end if
-      end if
       if ( associated(che_burden_out) ) then
         che_burden_out = dtrace(jci1:jci2,ici1:ici2,itr)*1.0e6_rkx
       end if

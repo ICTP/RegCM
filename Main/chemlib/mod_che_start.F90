@@ -335,7 +335,7 @@ module mod_che_start
 
     cfdout = alarm_out_che%rw
 
-    if ( count(icarb > 0) > 0 .and. aging_control ) then
+    if ( count(icarb > 0) > 0 .and. carb_aging_control ) then
       call carb_init( )
     end if
 
