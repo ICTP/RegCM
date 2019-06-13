@@ -51,7 +51,7 @@ module mod_sst_1deg
   ! Comments on dataset sources and location:
   !
   ! GISST2.3b    UKMO SST (Rayner et al 1996), 1 degree
-  !              from UKMO DATA archive (http://www.badc.rl.ac.uk]
+  !              from UKMO DATA archive (http://www.badc.rl.ac.uk)
   !              and reformed as direct-accessed binary GrADS format
   !              in file GISST_187101_200209
   !          ML = 1 is-179.5; ML = 2 is-178.5; => ML = 360 is 179.5E

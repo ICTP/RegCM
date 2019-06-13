@@ -36,18 +36,24 @@ module mod_ncio
   public :: read_domain_info , read_subdomain_info
   public :: open_icbc , icbc_search , read_icbc , close_icbc
   public :: open_som , som_search , read_som , close_som
+  public :: open_clmbc , clmbc_search , close_clmbc , read_clmbc
 
-  integer(ik4) :: ibcin , somin
+  integer(ik4) :: ibcin , somin , clmbcin
   integer(ik4) :: istatus
-  integer(ik4) :: ibcrec , ibcnrec
+  integer(ik4) :: ibcrec , ibcnrec , clmbcrec , clmbcnrec
   integer(ik4) :: somrec
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
+  type(rcm_time_and_date) , dimension(:) , allocatable :: clmbc_idate
   integer(ik4) , dimension(9) :: icbc_ivar
+  integer(ik4) , dimension(4) :: clmbc_ivar
   integer(ik4) , dimension(1) :: som_ivar
 
   data ibcin   /-1/
+  data clmbcin /-1/
   data ibcrec  / 1/
   data ibcnrec / 0/
+  data clmbcrec  / 1/
+  data clmbcnrec / 0/
   data somin   /-1/
   data somrec  / 1/
 
@@ -422,6 +428,34 @@ module mod_ncio
     end if
   end subroutine read_subdomain_info
 
+  integer function clmbc_search(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_interval) :: tdif
+    character(len=32) :: appdat1 , appdat2
+    if ( .not. do_parallel_netcdf_in ) then
+      if ( myid /= iocpu ) then
+        clmbc_search = 1
+        return
+      end if
+    end if
+    if (idate > clmbc_idate(ibcnrec) .or. idate < clmbc_idate(1)) then
+      clmbc_search = -1
+    else
+      tdif = idate-clmbc_idate(1)
+      clmbcrec = nint(tohours(tdif))+1
+      if ( clmbcrec < 1 .or. clmbcrec > clmbcnrec ) then
+        appdat1 = tochar(idate)
+        write (stderr,*) 'Record is not found in SFBC file for ',appdat1
+        appdat1 = tochar(clmbc_idate(1))
+        appdat2 = tochar(clmbc_idate(clmbcnrec))
+        write (stderr,*) 'Range is : ', appdat1, '-', appdat2
+        call fatal(__FILE__,__LINE__,'SFBC READ')
+      end if
+      clmbc_search = clmbcrec
+    end if
+  end function clmbc_search
+
   integer function icbc_search(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
@@ -565,6 +599,68 @@ module mod_ncio
     end if
   end subroutine open_icbc
 
+  subroutine open_clmbc(idate)
+    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=11) :: ctime
+    integer(ik4) :: idimid , itvar , i
+    real(rkx) , dimension(:) , allocatable :: clmbc_nctime
+    character(len=64) :: clmbc_timeunits , clmbc_timecal
+    character(len=256) :: clmbcname
+    if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
+      return
+    end if
+    call close_clmbc
+    write (ctime, '(a)') tochar10(idate)
+    clmbcname = trim(dirglob)//pthsep//trim(domname)// &
+               '_SFBC.'//trim(ctime)//'.nc'
+    if ( myid == italk ) then
+      write(stdout,*) 'Open ',trim(clmbcname)
+    end if
+    call openfile_withname(clmbcname,clmbcin)
+    clmbcrec = 1
+    clmbcnrec = 0
+    call check_domain(clmbcin,.true.)
+    istatus = nf90_inq_dimid(clmbcin, 'time', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension time miss', 'SFBC FILE')
+    istatus = nf90_inquire_dimension(clmbcin, idimid, len=clmbcnrec)
+    call check_ok(__FILE__,__LINE__,'Dimension time read error', 'SFBC FILE')
+    if ( clmbcnrec < 1 ) then
+      write (stderr,*) 'Time var in SFBC has zero dim.'
+      call fatal(__FILE__,__LINE__,'SFBC READ')
+    end if
+    istatus = nf90_inq_varid(clmbcin, 'time', itvar)
+    call check_ok(__FILE__,__LINE__,'variable time miss', 'SFBC FILE')
+    istatus = nf90_get_att(clmbcin, itvar, 'units', clmbc_timeunits)
+    call check_ok(__FILE__,__LINE__,'variable time units miss','SFBC FILE')
+    istatus = nf90_get_att(clmbcin, itvar, 'calendar', clmbc_timecal)
+    call check_ok(__FILE__,__LINE__,'variable time calendar miss','SFBC FILE')
+    allocate(clmbc_nctime(clmbcnrec), stat=istatus)
+    if ( istatus /= 0 ) then
+      write(stderr,*) 'Memory allocation error in SFBC for time real values'
+      call fatal(__FILE__,__LINE__,'SFBC READ')
+    end if
+    allocate(clmbc_idate(clmbcnrec), stat=istatus)
+    if ( istatus /= 0 ) then
+      write(stderr,*) 'Memory allocation error in SFBC for time array'
+      call fatal(__FILE__,__LINE__,'SFBC READ')
+    end if
+    istatus = nf90_get_var(clmbcin, itvar, clmbc_nctime)
+    call check_ok(__FILE__,__LINE__,'variable time read error', 'SFBC FILE')
+    do i = 1 , clmbcnrec
+      clmbc_idate(i) = timeval2date(clmbc_nctime(i), &
+                                    clmbc_timeunits,clmbc_timecal)
+    end do
+    deallocate(clmbc_nctime)
+    istatus = nf90_inq_varid(clmbcin, 'pr', clmbc_ivar(1))
+    call check_ok(__FILE__,__LINE__,'variable pr miss', 'SFBC FILE')
+    istatus = nf90_inq_varid(clmbcin, 'ssr', clmbc_ivar(2))
+    call check_ok(__FILE__,__LINE__,'variable ssr miss', 'SFBC FILE')
+    istatus = nf90_inq_varid(clmbcin, 'strd', clmbc_ivar(3))
+    call check_ok(__FILE__,__LINE__,'variable strd miss', 'SFBC FILE')
+    istatus = nf90_inq_varid(clmbcin, 'clt', clmbc_ivar(4))
+    call check_ok(__FILE__,__LINE__,'variable clt miss', 'SFBC FILE')
+  end subroutine open_clmbc
+
   subroutine open_som
     character(len=10) :: ctime
     character(len=256) :: somname
@@ -584,6 +680,70 @@ module mod_ncio
       allocate(rspacesom(2:jx-2,2:iy-2))
     end if
   end subroutine open_som
+
+  subroutine read_clmbc(pr,ssr,strd,clt)
+    implicit none
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: pr
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ssr
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: strd
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: clt
+
+    integer(ik4) , dimension(3) :: istart , icount
+
+    if ( clmbcrec > clmbcnrec ) then
+      call open_clmbc(rcmtimer%idate)
+    end if
+    if ( myid == italk ) then
+      write(stdout,*) 'Reading SF values for ',tochar(clmbc_idate(clmbcrec))
+    end if
+    if ( do_parallel_netcdf_in ) then
+      istart(1) = jde1
+      istart(2) = ide1
+      istart(3) = clmbcrec
+      icount(1) = jde2-jde1+1
+      icount(2) = ide2-ide1+1
+      icount(3) = 1
+      istatus = nf90_get_var(clmbcin,clmbc_ivar(1),rspace2,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable pr read error', 'SFBC FILE')
+      pr(jci1:jci2,ici1:ici2) = rspace2(jci1:jci2,ici1:ici2)
+      istatus = nf90_get_var(clmbcin,clmbc_ivar(2),rspace2,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable ssr read error', 'SFBC FILE')
+      ssr(jci1:jci2,ici1:ici2) = rspace2(jci1:jci2,ici1:ici2)
+      istatus = nf90_get_var(clmbcin,clmbc_ivar(3),rspace2,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable ssr read error', 'SFBC FILE')
+      strd(jci1:jci2,ici1:ici2) = rspace2(jci1:jci2,ici1:ici2)
+      istatus = nf90_get_var(clmbcin,clmbc_ivar(4),rspace2,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable ssr read error', 'SFBC FILE')
+      clt(jci1:jci2,ici1:ici2) = rspace2(jci1:jci2,ici1:ici2)
+    else
+      if ( myid == iocpu ) then
+        istart(1) = 1
+        istart(2) = 1
+        istart(3) = clmbcrec
+        icount(1) = jx
+        icount(2) = iy
+        icount(3) = 1
+        istatus = nf90_get_var(clmbcin,clmbc_ivar(1),rspace2,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable pr read error', 'SFBC FILE')
+        call grid_distribute(rspace2,pr,jci1,jci2,ici1,ici2)
+        istatus = nf90_get_var(clmbcin,clmbc_ivar(2),rspace2,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable ssr read error', 'SFBC FILE')
+        call grid_distribute(rspace2,ssr,jci1,jci2,ici1,ici2)
+        istatus = nf90_get_var(clmbcin,clmbc_ivar(3),rspace2,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable strd read error', 'SFBC FILE')
+        call grid_distribute(rspace2,strd,jci1,jci2,ici1,ici2)
+        istatus = nf90_get_var(clmbcin,clmbc_ivar(4),rspace2,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable clt read error', 'SFBC FILE')
+        call grid_distribute(rspace2,clt,jci1,jci2,ici1,ici2)
+      else
+        call grid_distribute(rspace2,pr,jci1,jci2,ici1,ici2)
+        call grid_distribute(rspace2,ssr,jci1,jci2,ici1,ici2)
+        call grid_distribute(rspace2,strd,jci1,jci2,ici1,ici2)
+        call grid_distribute(rspace2,clt,jci1,jci2,ici1,ici2)
+      end if
+    end if
+    clmbcrec = clmbcrec + 1
+  end subroutine read_clmbc
 
   subroutine read_icbc(ps,ts,ilnd,u,v,t,qv,pp,ww)
     implicit none
@@ -904,6 +1064,16 @@ module mod_ncio
     if ( associated(rspace2) ) deallocate(rspace2)
     if ( associated(rspace3) ) deallocate(rspace3)
   end subroutine close_icbc
+
+  subroutine close_clmbc
+    implicit none
+    if (clmbcin >= 0) then
+      istatus = nf90_close(clmbcin)
+      call check_ok(__FILE__,__LINE__,'Error Close SFBC file','SFBC FILE')
+      if ( allocated(clmbc_idate) ) deallocate(clmbc_idate)
+      clmbcin = -1
+    end if
+  end subroutine close_clmbc
 
   subroutine close_som
     implicit none

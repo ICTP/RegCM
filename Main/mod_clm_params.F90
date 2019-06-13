@@ -73,6 +73,8 @@ module mod_clm_params
             itweak_sst , itweak_greenhouse_gases , temperature_tweak ,   &
             sst_tweak , solar_tweak , gas_tweak_factors
 
+    namelist /clmsaparam/ dirout , sfbcread
+
 #ifdef DEBUG
     call time_begin(subroutine_name,idindx)
 #endif
@@ -96,6 +98,7 @@ module mod_clm_params
     dtabem = 0.0_rkx ! time interval absorption-emission calculated (hours)
     dtche = 900.0_rkx ! time interval at which bats is called (secs)
     dirout = './output'
+    sfbcread = 1
     lsync = .true.
     do_parallel_netcdf_in = .false.
     scenario = 'RCP4.5'
@@ -151,6 +154,18 @@ module mod_clm_params
 #ifdef DEBUG
       else
         write(stdout,*) 'Read restartparam OK'
+#endif
+      end if
+
+      rewind(ipunit)
+      read (ipunit, nml=clmsaparam, iostat=iretval, err=200)
+      if ( iretval /= 0 ) then
+        write(stderr,*) 'Error reading clmsaparam namelist'
+        call fatal(__FILE__,__LINE__, &
+                   'INPUT NAMELIST READ ERROR')
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read clmsaparam OK'
 #endif
       end if
 
@@ -286,6 +301,8 @@ module mod_clm_params
     call bcast(dtche)
     call bcast(dtabem)
     call bcast(itweak)
+
+    call bcast(sfbcread)
 
     if ( itweak == 1 ) then
       call bcast(itweak_sst)
@@ -534,6 +551,7 @@ module mod_clm_params
 100 call fatal(__FILE__,__LINE__, 'Error reading RESTARTPARAM')
 101 call fatal(__FILE__,__LINE__, 'Error reading TIMEPARAM')
 121 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
+200 call fatal(__FILE__,__LINE__, 'Error reading CLMSAPARAM')
 
     contains
 

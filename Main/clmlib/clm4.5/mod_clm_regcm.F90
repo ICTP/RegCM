@@ -900,7 +900,7 @@ module mod_clm_regcm
           write (stderr, *) nf90_strerror(istatus)
           call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
         end if
-        call h_interpolate_cont(hint,crupre,rcp)
+        call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iym1,imm1,nextdate%calendar)
         rcp = rcp / real(ndm,rk8)
         call grid_distribute(rcp,acp0,jci1,jci2,ici1,ici2)
@@ -910,7 +910,7 @@ module mod_clm_regcm
           write (stderr, *) nf90_strerror(istatus)
           call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
         end if
-        call h_interpolate_cont(hint,crupre,rcp)
+        call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iy,im,nextdate%calendar)
         rcp = rcp / real(ndm,rk8)
         call grid_distribute(rcp,acp1,jci1,jci2,ici1,ici2)
@@ -926,7 +926,7 @@ module mod_clm_regcm
           write (stderr, *) nf90_strerror(istatus)
           call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
         end if
-        call h_interpolate_cont(hint,crupre,rcp)
+        call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iyp1,imp1,nextdate%calendar)
         rcp = rcp / real(ndm,rk8)
         call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)
@@ -948,7 +948,7 @@ module mod_clm_regcm
           write (stderr, *) nf90_strerror(istatus)
           call fatal(__FILE__,__LINE__,'ERROR READ VAR PRE FROM CRU DATASET')
         end if
-        call h_interpolate_cont(hint,crupre,rcp)
+        call h_interpolate_nn(hint,crupre,rcp)
         ndm = ndaypm(iyp1,imp1,nextdate%calendar)
         rcp = rcp / real(ndm,rk8)
         call grid_distribute(rcp,acp2,jci1,jci2,ici1,ici2)

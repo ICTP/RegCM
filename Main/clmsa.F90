@@ -19,6 +19,7 @@
 !
 program clmsa
 
+#ifdef CLM45
   use mod_realkinds
   use mod_intkinds
   use mod_memutil
@@ -141,6 +142,13 @@ program clmsa
     !
     call init_bdy
     call atmval
+    if ( sfbcread == 1 ) then
+      call read_clmbc(pptc,solar,flwd,totc)
+      swdif = solar * 0.75_rkx * totc
+      swdir = solar - swdif
+      lwdif = flwd * 0.75_rkx * totc
+      lwdir = flwd - lwdif
+    end if
     call initsaclm45(lm)
     !
     ! Clean up and logging
@@ -176,6 +184,15 @@ program clmsa
           !
           call bdyin
         end if
+        if ( sfbcread == 1 ) then
+          if ( alarm_hour%act( ) ) then
+            call read_clmbc(pptc,solar,flwd,totc)
+            swdif = solar * 0.75_rkx * totc
+            swdir = solar - swdif
+            lwdif = flwd * 0.75_rkx * totc
+            lwdir = flwd - lwdif
+          end if
+        end if
       end if
       !
       ! Increment execution time and boundary time
@@ -203,6 +220,9 @@ program clmsa
     end if
 
     call close_icbc
+    if ( sfbcread == 1 ) then
+      call close_clmbc
+    end if
 
     call rcmtimer%dismiss( )
     call memory_destroy
@@ -212,6 +232,10 @@ program clmsa
       write(stdout,*) 'CLM45 simulation successfully reached end'
     end if
   end subroutine CLM_finalize
+
+#else
+  write(0,*) 'This programs is enabled only if CLM45 is compiled in.'
+#endif
 
 end program clmsa
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

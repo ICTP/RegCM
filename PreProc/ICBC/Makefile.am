@@ -3,7 +3,11 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:.
 
+if DO_COMPILE_LIBCLM45
+bin_PROGRAMS = sst icbc chem_icbc clmbc
+else
 bin_PROGRAMS = sst icbc chem_icbc
+endif
 
 sst_SOURCES = mod_sst_eh5om.F90 mod_sst_ersst.F90 mod_sst_fvgcm.F90 \
               mod_sst_1deg.F90 mod_sst_gnmnc.F90 mod_sst_grid.F90 \
@@ -22,6 +26,8 @@ icbc_SOURCES = mod_vectutil.F90 mod_ecwcp.F90 mod_eh5om.F90 mod_ein.F90 \
                mod_gfdl_helper.F90 mod_cnrm_helper.F90 mod_mpiesm_helper.F90 \
                mod_ecearth_helper.F90 mod_noresm_helper.F90 mod_era5.F90 \
                mod_lgm_helper.F90 mod_ccsm4_helper.F90 icbc.F90
+clmbc_SOURCES = mod_vectutil.F90 mod_grid.F90 mod_write.F90 mod_header.F90 \
+               mod_mksst.F90 mod_uvrot.F90 mod_era5.F90 clmbc.F90
 chem_icbc_SOURCES = mod_ch_param.F90 mod_ch_icbc.F90 mod_ch_icbc_clim.F90 \
                     mod_ox_icbc.F90 mod_ae_icbc.F90 mod_wrtoxd.F90 \
                     mod_ch_fnest.F90 mod_grid.F90 mod_header.F90 chem_icbc.F90
@@ -87,3 +93,4 @@ mod_write.o : mod_write.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_gr
 mod_wrtoxd.o : mod_wrtoxd.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_date.o mod_grid.o mod_memutil.o mod_message.o mod_stdio.o mod_nchelper.o mod_ncstream.o
 sst.o : sst.F90 mod_intkinds.o mod_realkinds.o mod_header.o mod_dynparam.o mod_memutil.o mod_stdio.o mod_message.o mod_sst_grid.o mod_sst_1deg.o mod_sst_eh5om.o mod_sst_ersst.o mod_sst_fvgcm.o mod_sst_gnmnc.o mod_sst_gndnc.o mod_sst_gnhnc.o
 mod_ch_param.o : mod_ch_param.F90 mod_intkinds.o mod_realkinds.o
+clmbc.o : clmbc.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_message.o mod_header.o mod_stdio.o mod_memutil.o mod_date.o mod_grid.o mod_date.o mod_write.o mod_era5.o

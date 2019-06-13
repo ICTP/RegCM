@@ -33,7 +33,7 @@ module mod_kdinterp
 
   public :: h_interpolator
   public :: h_interpolator_create
-  public :: h_interpolate_cont , h_interpolate_class
+  public :: h_interpolate_cont , h_interpolate_class , h_interpolate_nn
   public :: h_interpolator_destroy
   public :: h_missing_value
 
@@ -52,6 +52,11 @@ module mod_kdinterp
     module procedure interp_4d
     module procedure interp_5d
   end interface h_interpolate_cont
+
+  interface h_interpolate_nn
+    module procedure interp_1d_nn
+    module procedure interp_2d_nn
+  end interface h_interpolate_nn
 
   interface h_interpolate_class
     module procedure interp_class_r
@@ -534,6 +539,36 @@ module mod_kdinterp
     end if
   end subroutine h_interpolator_destroy
 
+  subroutine interp_1d_nn(h_i,g,f)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    real(rkx) , dimension(:) , intent(in) :: g
+    real(rkx) , dimension(:) , intent(out) :: f
+    integer(ik4) :: i , ni , n , si , gni
+    real(rkx) :: gmax
+    if ( size(g) /= h_i%sshape(1) ) then
+      write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
+      call die('interp_1d_nn','Non conforming shape for source',1)
+    end if
+    if ( size(f) /= h_i%tg%tshape(1) ) then
+      write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape(1),' /= ',size(f)
+      call die('interp_1d_nn','Non conforming shape for target',1)
+    end if
+    ni = size(f)
+    gni = size(g)
+    do i = 1 , ni
+      gmax = -1.0_rkx
+      f(i) = missl
+      do n = 1 , h_i%tg%ft(i,1)%np
+        si = h_i%tg%ft(i,1)%wgt(n)%i
+        if ( g(si) > missc .and. gmax < h_i%tg%ft(i,1)%wgt(n)%wgt ) then
+          gmax = h_i%tg%ft(i,1)%wgt(n)%wgt
+          f(i) = g(si)
+        end if
+      end do
+    end do
+  end subroutine interp_1d_nn
+
   subroutine interp_1d(h_i,g,f)
     implicit none
     type(h_interpolator) , intent(in) :: h_i
@@ -639,6 +674,41 @@ module mod_kdinterp
       end do
     end do
   end subroutine interp_2d
+
+  subroutine interp_2d_nn(h_i,g,f)
+    implicit none
+    type(h_interpolator) , intent(in) :: h_i
+    real(rkx) , dimension(:,:) , intent(in) :: g
+    real(rkx) , dimension(:,:) , intent(out) :: f
+    integer(ik4) :: i , j , ni , nj , n , si , sj , gni , gnj
+    real(rkx) :: gmax
+    if ( any(shape(g) /= h_i%sshape) ) then
+      write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
+      call die('interp_2d_nn','Non conforming shape for source',1)
+    end if
+    if ( any(shape(f) /= h_i%tg%tshape) ) then
+      write(stderr,*) 'TARGET SHAPE INTERP = ',h_i%tg%tshape,' /= ',shape(f)
+      call die('interp_2d_nn','Non conforming shape for target',1)
+    end if
+    nj = size(f,1)
+    ni = size(f,2)
+    gnj = size(g,1)
+    gni = size(g,2)
+    do i = 1 , ni
+      do j = 1 , nj
+        gmax = -1.0_rkx
+        f(j,i) = missl
+        do n = 1 , h_i%tg%ft(j,i)%np
+          si = h_i%tg%ft(j,i)%wgt(n)%i
+          sj = h_i%tg%ft(j,i)%wgt(n)%j
+          if ( g(sj,si) > missc .and. gmax < h_i%tg%ft(j,i)%wgt(n)%wgt ) then
+            gmax = h_i%tg%ft(j,i)%wgt(n)%wgt
+            f(j,i) = g(sj,si)
+          end if
+        end do
+      end do
+    end do
+  end subroutine interp_2d_nn
 
   subroutine interp_3d(h_i,g,f)
     implicit none

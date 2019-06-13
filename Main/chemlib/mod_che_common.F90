@@ -154,7 +154,6 @@ module mod_che_common
       call getmem4d(washout,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                     'che_common:washout')
       call getmem3d(remdrd,jce1,jce2,ice1,ice2,1,ntr,'che_common:remdrd')
-
       call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
       call getmem1d(idust,1,nbin,'mod_che_common:idust')
       call getmem1d(isslt,1,sbin,'mod_che_common:isslt')

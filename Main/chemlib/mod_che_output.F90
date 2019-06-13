@@ -25,6 +25,8 @@ module mod_che_output
   use mod_dynparam
   use mod_che_param
   use mod_che_common
+  use mod_che_indices
+  use mod_che_carbonaer
   use mod_outvars
 
   implicit none
@@ -147,7 +149,7 @@ module mod_che_output
           ! no need to normalise by ps here !!
          do k = 1 , kz
           che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr)
-         end do 
+         end do
         end if
         cemisdiag(:,:,:,itr) = d_zero
       endif

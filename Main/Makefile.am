@@ -95,7 +95,11 @@ LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LOCNLIB) $(LMICROLIB) \
        $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
        $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB) $(LBATLIB)
 
+if DO_COMPILE_LIBCLM45
 bin_PROGRAMS = regcm clmsa
+else
+bin_PROGRAMS = regcm
+endif
 
 clmsa_SOURCES = clmsa.F90 abort.F90 mod_header.F90 mod_clm_params.F90 \
   mod_atm_stub.F90 mod_ncio.F90 mod_sun.F90

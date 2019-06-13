@@ -27,6 +27,7 @@ module mod_che_emission
   use mod_mpmessage
   use mod_service
   use mod_dynparam
+  use mod_runparams , only : rcm_megan_enabled
   use mod_che_common
   use mod_che_param
   use mod_che_mppio
@@ -162,21 +163,13 @@ module mod_che_emission
   !
   ! Calculation of emission tendency
   !
-#ifndef CLM45
   subroutine emis_tend(j,declin)
     implicit none
     integer(ik4) , intent(in) :: j
     real(rk8) , intent(in) :: declin
-#else
-  subroutine emis_tend(j)
-    implicit none
-    integer(ik4) , intent(in) :: j
-#endif
 
     integer(ik4)  :: i , itr
-#ifndef CLM45
     real(rkx) :: daylen , fact , maxelev , amp , dayhr
-#endif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
     integer(ik4) , save :: idindx = 0
@@ -189,24 +182,46 @@ module mod_che_emission
 #ifdef CLM45
     ! overwrite or add chemsrc for biogenic in case of CLM45/BVOC option
     ! test if CLM BVOC is activated and add bio component to chemsrc.
-
     ! isoprene ( overwrite biogenic emission from inventory  / rq
     ! this way  we  negelect the anthropog isoprene emissions )
     if ( iisop > 0 ) then
-      do i = ici1, ici2
-        chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
-      end do
+      if ( rcm_megan_enabled ) then
+        do i = ici1, ici2
+          chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
+        end do
+      else
+        do i = ici1 , ici2
+          dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
+          if ( dayhr < -1 .or. dayhr > 1 ) then
+            tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+            chemsrc(j,i,iisop) = 0.0
+          else
+            daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
+            daylen = d_two*acos(dayhr)*raddeg
+            daylen = daylen*24.0_rkx/360.0_rkx
+            ! Maximum sun elevation
+            maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
+            fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
+            amp = 12.0_rkx*mathpi/daylen
+            tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+            chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * &
+                                sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
+          end if
+        end do
+      end if
     end if
 
     ! other BVOC : to do !!
 
     ! methane : add the biogenic part from CLM to anthropogenic
     ! nb the CN/LCH4 CLM flag have to be activated
+#ifdef LCH4
     if ( ich4 > 0 ) then
       do i = ici1, ici2
         chemsrc(j,i,ich4) = chemsrc(j,i,ich4) +  cvoc_em_clm(j,i,ich4)
       end do
     end if
+#endif
 #else
     ! Modify chemsrc for isoprene from inventory to account for
     ! simplified dirunal cycle
@@ -281,10 +296,16 @@ module mod_che_emission
       end do
     end if
 
+    ! put back chemsrc to its mean value after diurnal cycle
 #ifndef CLM45
-! put back chemsrc to its mean value after diurnal cycle
     if ( iisop > 0 ) then
       chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+    end if
+#else
+    if ( .not. rcm_megan_enabled ) then
+      if ( iisop > 0 ) then
+        chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+      end if
     end if
 #endif
 

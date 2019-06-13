@@ -48,9 +48,21 @@ module mod_grid
   integer(ik4) , public :: i0 , i1 , j0 , j1
   real(rkx) , public :: lat0 , lat1 , lon0 , lon1 , ts0
 
-  public :: init_grid
+  public :: init_grid , init_hgrid
 
   contains
+
+  subroutine init_hgrid(nx,ny,nz)
+    use mod_dynparam
+    implicit none
+    integer(ik4) , intent(in) :: nx , ny , nz
+    call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
+    call getmem2d(xlon,1,nx,1,ny,'mod_grid:xlon')
+    call getmem2d(topogm,1,nx,1,ny,'mod_grid:topogm')
+    call getmem2d(mask,1,nx,1,ny,'mod_grid:mask')
+    call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
+    call read_domain_hinfo
+  end subroutine init_hgrid
 
   subroutine init_grid(nx,ny,nz)
     use mod_dynparam
@@ -90,6 +102,17 @@ module mod_grid
     end if
     call read_domain_info
   end subroutine init_grid
+
+  subroutine read_domain_hinfo
+    use mod_dynparam
+    implicit none
+    integer(ik4) :: incin
+    character(len=256) :: fname
+    fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+    call openfile_withname(fname,incin)
+    call read_domain(incin,sigmaf,xlat,xlon,ht=topogm,mask=mask)
+    call closefile(incin)
+  end subroutine read_domain_hinfo
 
   subroutine read_domain_info
     use mod_dynparam

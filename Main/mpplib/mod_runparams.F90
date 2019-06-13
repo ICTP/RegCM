@@ -32,6 +32,8 @@ module mod_runparams
 
   character(len=256) , public :: namelistfile , prgname
 
+  logical , public , parameter :: carb_aging_control = .false.
+
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
   integer(ik4) , public , parameter :: iqc = 2
@@ -177,6 +179,10 @@ module mod_runparams
   ! Set this to zero to remove dynamical dependency of diffusion
   real(rkx) , public :: adyndif = d_one
 
+#ifdef CLM45
+  integer(ik4) , public :: sfbcread
+  logical , public :: rcm_megan_enabled
+#endif
   integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
   integer(ik4) , public :: iaerosol , igaschem , ioxclim , iisoropia
