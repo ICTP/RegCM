@@ -123,21 +123,27 @@ module mod_ncstream
       end if
 #else
       if ( params%mpi_comm /= -1 ) then
+#ifdef PNETCDF
+        imode = nf90_nowrite
+        ncstat = nf90mpi_open(params%mpi_comm, stream%filename, &
+                              imode, params%mpi_info, stream%id)
+        stream%l_parallel = .true.
+#else
 #ifdef PNETCDF_IN_NETCDF
         imode = ior(nf90_nowrite,ior(nf90_share,nf90_pnetcdf))
         ncstat = nf90_open(stream%filename,imode, &
           stream%id,comm=params%mpi_comm,info=params%mpi_info)
         stream%l_parallel = .true.
 #else
-        write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-        call die('nc_stream','Parallel netcdf with Pnetcdf not implemented',1)
+        ncstat = nf90_open(stream%filename,imode,stream%id)
+#endif
 #endif
       else
         ncstat = nf90_open(stream%filename,imode,stream%id)
       end if
 #endif
       if ( ncstat /= nf90_noerr ) then
-        write(stderr,*) nf90_strerror(ncstat)
+        call printerror
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream','Cannot open file '//trim(stream%filename),1)
       end if
@@ -160,7 +166,7 @@ module mod_ncstream
       if ( ncstat == nf90_noerr ) then
         ncstat = nf90_inquire_dimension(stream%id,dimtime,len=stream%nrec)
         if ( ncstat /= nf90_noerr ) then
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream','Error reading time dimension in '// &
             trim(stream%filename),1)
@@ -168,14 +174,14 @@ module mod_ncstream
         if ( stream%nrec > 0 ) then
           ncstat = nf90_inq_varid(stream%id,'time',stream%timeid)
           if ( ncstat /= nf90_noerr ) then
-            write(stderr,*) nf90_strerror(ncstat)
+            call printerror
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             call die('nc_stream','Error reading time variable in '// &
               trim(stream%filename),1)
           end if
           ncstat = nf90_get_att(stream%id,stream%timeid,'units',stream%tunit)
           if ( ncstat /= nf90_noerr ) then
-            write(stderr,*) nf90_strerror(ncstat)
+            call printerror
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             write(stderr,*) 'Assuming hours since 1949-12-01 00:00:00 UTC'
             write(stderr,*) 'for file ',trim(stream%filename)
@@ -183,7 +189,7 @@ module mod_ncstream
           end if
           ncstat = nf90_get_att(stream%id,stream%timeid,'calendar',stream%tcal)
           if ( ncstat /= nf90_noerr ) then
-            write(stderr,*) nf90_strerror(ncstat)
+            call printerror
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             write(stderr,*) 'Assuming gregorian calendar'
             write(stderr,*) 'for file ',trim(stream%filename)
@@ -208,7 +214,7 @@ module mod_ncstream
       end if
       ncstat = nf90_inquire(stream%id,nDimensions=stream%ndims)
       if ( ncstat /= nf90_noerr ) then
-        write(stderr,*) nf90_strerror(ncstat)
+        call printerror
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         write(stderr,*) 'Cannot get dimensional infos for file '// &
           trim(stream%filename)
@@ -218,7 +224,7 @@ module mod_ncstream
       do i = 1 , stream%ndims
         ncstat = nf90_inquire_dimension(stream%id,i,len=stream%len_dims(i))
         if ( ncstat /= nf90_noerr ) then
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           write(stderr,*) 'Cannot get dimensional infos for file '// &
             trim(stream%filename)
@@ -236,7 +242,7 @@ module mod_ncstream
       type(ncoutstream_params) , intent(in) :: params
       type(ncoutstream) , pointer :: stream
       type(rcm_time_and_date) :: tt
-#if defined(NETCDF4_HDF5) || defined(PNETCDF_IN_NETCDF)
+#if defined(NETCDF4_HDF5) || defined(PNETCDF_IN_NETCDF) || defined(PNETCDF)
       integer(ik4) :: imode
 #endif
 
@@ -264,6 +270,16 @@ module mod_ncstream
         end if
 #else
         if ( params%mpi_comm /= -1 ) then
+#ifdef PNETCDF
+          if ( params%mpi_iotype /= -1 ) then
+            imode = ior(params%mpi_iotype,nf90_write)
+          else
+            imode = nf90_write
+          end if
+          ncstat = nf90mpi_open(params%mpi_comm,stream%filename,imode, &
+                                params%mpi_info,stream%id)
+          stream%l_parallel = .true.
+#else
 #ifdef PNETCDF_IN_NETCDF
           if ( params%mpi_iotype /= -1 ) then
             imode = ior(params%mpi_iotype,nf90_write)
@@ -275,8 +291,8 @@ module mod_ncstream
                           params%mpi_comm,params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
-          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream','Parallel netcdf with Pnetcdf not implemented',1)
+          ncstat = nf90_open(stream%filename,nf90_write,stream%id)
+#endif
 #endif
         else
           ncstat = nf90_open(stream%filename,nf90_write,stream%id)
@@ -298,6 +314,16 @@ module mod_ncstream
         end if
 #else
         if ( params%mpi_comm /= -1 ) then
+#ifdef PNETCDF
+          if ( params%mpi_iotype /= -1 ) then
+            imode = ior(params%mpi_iotype,nf90_write)
+          else
+            imode = nf90_write
+          end if
+          ncstat = nf90mpi_create(params%mpi_comm,stream%filename, &
+                                  imode,params%mpi_info,stream%id)
+          stream%l_parallel = .true.
+#else
 #ifdef PNETCDF_IN_NETCDF
           if ( params%mpi_iotype /= -1 ) then
             imode = ior(params%mpi_iotype,nf90_write)
@@ -308,8 +334,8 @@ module mod_ncstream
                     comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
           stream%l_parallel = .true.
 #else
-          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream','Parallel netcdf with Pnetcdf not implemented',1)
+          ncstat = nf90_create(stream%filename,iomode,stream%id)
+#endif
 #endif
         else
           ncstat = nf90_create(stream%filename,iomode,stream%id)
@@ -317,7 +343,7 @@ module mod_ncstream
 #endif
       end if
       if ( ncstat /= nf90_noerr ) then
-        write(stderr,*) nf90_strerror(ncstat)
+        call printerror
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream', &
                  'Cannot create or open file '//trim(stream%filename),1)
@@ -366,7 +392,7 @@ module mod_ncstream
         ncstat = nf90_close(stream%id)
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           call die('nc_stream','Cannot close file '//trim(stream%filename),1)
         end if
       end if
@@ -390,7 +416,7 @@ module mod_ncstream
         ncstat = nf90_close(stream%id)
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           call die('nc_stream','Cannot close file '//trim(stream%filename),1)
         end if
       end if
@@ -775,10 +801,14 @@ module mod_ncstream
         call outstream_addvar(ncout,stvar%spectral_var)
       end if
       if ( .not. stream%l_keep ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_enddef(stream%id)
+#else
         ncstat = nf90_enddef(stream%id)
+#endif
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           call die('nc_stream','Cannot enable file '//trim(stream%filename),1)
         end if
       end if
@@ -915,7 +945,7 @@ module mod_ncstream
         ncstat = nf90_sync(stream%id)
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           call die('nc_stream', &
                    'Cannot sync file '//trim(stream%filename), 1)
         end if
@@ -1079,7 +1109,7 @@ module mod_ncstream
       end if
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-        write(stderr,*) nf90_strerror(ncstat)
+        call printerror
         call die('nc_stream', &
           'Cannot add or find dimension '//trim(the_name)//' to file '// &
           trim(stream%filename), 1)
@@ -1172,7 +1202,7 @@ module mod_ncstream
           call die('nc_stream', 'Cannot add attribute of unknow type',1)
       end select
       if ( ncstat /= nf90_noerr ) then
-        write(stderr,*) nf90_strerror(ncstat)
+        call printerror
         if ( present(iloc) ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
@@ -1283,7 +1313,7 @@ module mod_ncstream
         end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           call die('nc_stream', &
             'Cannot add variable '//trim(var%vname)//' to file '// &
             trim(stream%filename), 1)
@@ -1297,7 +1327,7 @@ module mod_ncstream
         end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           call die('nc_stream', &
             'Cannot define variable '//trim(var%vname)// &
             ' in file '//trim(stream%filename), 1)
@@ -1312,7 +1342,7 @@ module mod_ncstream
               ncstat = nf90_def_var_deflate(stream%id,var%id,1,1,deflate_level)
               if ( ncstat /= nf90_noerr ) then
                 write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-                write(stderr,*) nf90_strerror(ncstat)
+                call printerror
                 call die('nc_stream', &
                   'Cannot set compression on variable '//trim(var%vname)// &
                   ' in file '//trim(stream%filename), 1)
@@ -1326,7 +1356,7 @@ module mod_ncstream
           ncstat = nf90_var_par_access(stream%id,var%id,nf90_collective)
           if ( ncstat /= nf90_noerr ) then
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-            write(stderr,*) nf90_strerror(ncstat)
+            call printerror
             call die('nc_stream', &
               'Cannot set correct mode (collective) for variable I/O'// &
               'on var'//trim(var%vname)//' in file '// &
@@ -2826,7 +2856,7 @@ module mod_ncstream
       end select
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-        write(stderr,*) nf90_strerror(ncstat)
+        call printerror
         call die('nc_stream','Cannot write variable '//trim(var%vname)// &
           ' in file '//trim(stream%filename), 1)
       end if
@@ -3029,7 +3059,7 @@ module mod_ncstream
       if ( var%id < 0 ) then
         ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
         if ( ncstat /= nf90_noerr ) then
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream','Cannot find variable '//trim(var%vname)// &
             ' in '//trim(stream%filename),1)
@@ -3037,7 +3067,7 @@ module mod_ncstream
         ncstat = nf90_inquire_variable(stream%id,var%id,ndims=var%ndims, &
           dimids=var%idims)
         if ( ncstat /= nf90_noerr ) then
-          write(stderr,*) nf90_strerror(ncstat)
+          call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream','Cannot inquire variable '//trim(var%vname)// &
             ' in '//trim(stream%filename),1)
@@ -4429,12 +4459,21 @@ module mod_ncstream
           call die('nc_stream', 'Cannot read variable of unknown type',1)
       end select
       if ( ncstat /= nf90_noerr ) then
-        write(stderr,*) nf90_strerror(ncstat)
+        call printerror
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream','Cannot read variable '//trim(var%vname)// &
           ' in '//trim(stream%filename),1)
       end if
     end subroutine instream_readvar
+
+    subroutine printerror
+      implicit none
+#ifdef PNETCDF
+      write(stderr, *) nf90mpi_strerror(ncstat)
+#else
+      write(stderr,*) nf90_strerror(ncstat)
+#endif
+    end subroutine printerror
 
 end module mod_ncstream
 

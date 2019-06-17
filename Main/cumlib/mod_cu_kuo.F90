@@ -50,7 +50,7 @@ module mod_cu_kuo
   real(rkx) , parameter :: perq   = 1.0e-3_rkx
   real(rkx) , parameter :: dlt    = 3.0_rkx
   real(rkx) , parameter :: cdscld = 0.3_rkx
-  real(rkx) , parameter :: bfac   = 2.0_rkx
+  real(rkx) , parameter :: bfac   = 0.5_rkx
 
   real(rkx) , public , pointer , dimension(:) :: qwght
   real(rkx) , public , pointer , dimension(:,:,:) :: twght , vqflx
@@ -126,7 +126,7 @@ module mod_cu_kuo
             ttp = tux(k) + pert
             q = qux(k) + perq
             t1 = ttp*(d_100/psg)**rovcp
-            ee = psg * q/(ep2+q)
+            ee = psg * q/(0.622_rkx+q)
             tdpt = min((d_one/(d_one/svpt0-rwat/wlhv*log(ee/0.611_rkx))),ttp)
             tlcl = tdpt - (0.212_rkx + 1.571e-3_rkx*(tdpt-svpt0) - &
                            4.36e-4_rkx*(ttp-svpt0)) * (ttp-tdpt)

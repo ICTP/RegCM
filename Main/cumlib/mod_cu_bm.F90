@@ -25,7 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams , only : iqv , dt , ichem , hsigma , dsigma
+  use mod_runparams , only : iqv , dt , dtsec , ichem , hsigma , dsigma
   use mod_runparams , only : rhmin , rhmax
   use mod_regcm_types
 
@@ -211,7 +211,7 @@ module mod_cu_bm
     call time_begin(subroutine_name,idindx)
 #endif
 
-    trel = 1800.0_rkx ! Half an hour. Was 3000
+    trel = 900.0_rkx ! 15 minutes
     tauk = dt/trel
     cthrs = (0.00635_rkx/secpd)*dt/cprlg
     !
@@ -283,7 +283,7 @@ module mod_cu_bm
         do j = jci1 , jci2
           if ( m2c%pas(j,i,k) >= m2c%psf(j,i)-pbm ) then
             tthbt(j,i) = t(j,i,k)*ape(j,i,k)
-            ee = m2c%pas(j,i,k)*q(j,i,k)/(ep2+q(j,i,k))
+            ee = m2c%pas(j,i,k)*q(j,i,k)/(0.622_rkx+q(j,i,k))
             tdpt = d_one/(rtzero-rwat*rwlhv*log(ee/611.0_rkx))
             tdpt = min(tdpt,t(j,i,k))
             tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
@@ -340,7 +340,7 @@ module mod_cu_bm
       do i = ici1 , ici2
         do j = jci1 , jci2
           es = aliq*exp((bliq*t(j,i,l)-cliq)/(t(j,i,l)-dliq))
-          qs = ep2 * es/(m2c%pas(j,i,l)-es)
+          qs = 0.622_rkx * es/(m2c%pas(j,i,l)-es)
           ths(j,i) = t(j,i,l)*ape(j,i,l)*exp(elocp*qs/t(j,i,l))
         end do
       end do
@@ -586,9 +586,7 @@ module mod_cu_bm
       drheat = (preck*xsm(j,i)+max(epsp,preck-pthrs)*(h1-xsm(j,i)))*cpd/avrgt
       efi = efifc*dentpy/drheat
       !
-      ! unified or separate land/sea conv.
-      !
-      efi = (cldefi(j,i)*fcp+efi*fcc1)*xsm(j,i) + h1 - xsm(j,i)
+      efi = (cldefi(j,i)*fcp + efi*fcc1) * xsm(j,i) + (h1-xsm(j,i))
       if ( efi > h1 ) efi = h1
       if ( efi < efimn ) efi = efimn
       cldefi(j,i) = efi
@@ -597,7 +595,7 @@ module mod_cu_bm
       !
       ! update precipitation, temperature & moisture
       !
-      pratec = d_half*((m2c%psf(j,i)*preck*cprlg)*d_100)/dt
+      pratec = ((m2c%psf(j,i)*preck*cprlg)*d_100)/dtsec
       if ( pratec > dlowval ) then
         ! precipitation rate for surface (mm/s)
         cu_prate(j,i) = cu_prate(j,i) + pratec
@@ -705,7 +703,7 @@ module mod_cu_bm
       ltp1 = ltpk + 1
       do l = ltpk , lbtk
         es = aliq*exp((bliq*tk(l)-cliq)/(tk(l)-dliq))
-        qsatk(l) = ep2 * es/(pk(l)-es)
+        qsatk(l) = 0.622_rkx * es/(pk(l)-es)
       end do
       do l = ltp1 , lbm1
         rhl = min(max(qk(l)/qsatk(l),rhmin),rhmax)
@@ -723,7 +721,7 @@ module mod_cu_bm
       end if
       ! scaling potential temperature & table index at top
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
-      ee = m2c%pas(j,i,ltp1)*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
+      ee = m2c%pas(j,i,ltp1)*q(j,i,ltp1)/(0.622_rkx+q(j,i,ltp1))
       tdpt = d_one/(rtzero-rwat*rwlhv*log(ee/611._rkx))
       tdpt = min(tdpt,t(j,i,ltp1))
       tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
@@ -829,7 +827,7 @@ module mod_cu_bm
           cu_ktop(j,i) = cu_kbot(j,i)
           exit shallow
         end if
-        thvref(l) = trefk(l)*apek(l)*(qrfkl*d608+h1)
+        thvref(l) = trefk(l)*apek(l)*(qrfkl*d608+d_one)
         qrefk(l) = qrfkl
       end do
       !
@@ -889,19 +887,20 @@ module mod_cu_bm
         real(rkx) , parameter :: rl461 = wlhv/rwat
         real(rkx) , parameter :: rl1004 = wlhv/cpd
         integer(ik4) :: iloop
+        integer(ik4) , parameter :: maxiter = 100
         !
         ! iteratively extract temperature from equivalent potential temperature.
         !
         rp = thetae/pi
         es = 611.0_rkx * exp(rl461*(rtzero-d_one/tgs))
-        qs = ep2*es/(press-es)
+        qs = 0.622_rkx*es/(press-es)
         fo = tgs * exp(rl1004*qs/tgs) - rp
         t1 = tgs - d_half*fo
         tguess = tgs
         iloop = 0
         do
           es = 611.0_rkx * exp(rl461*(rtzero-d_one/t1))
-          qs = ep2*es/(press-es)
+          qs = 0.622_rkx*es/(press-es)
           f1 = t1*exp(rl1004*qs/t1) - rp
           if ( abs(f1) < 0.1_rkx ) then
             tpfc = t1
@@ -912,7 +911,7 @@ module mod_cu_bm
             fo = f1
             t1 = t1 - dtx
             iloop = iloop + 1
-            if ( iloop > 10 ) then
+            if ( iloop > maxiter ) then
               tpfc = t1
               exit
             end if
