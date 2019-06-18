@@ -17,10 +17,21 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#ifdef PNETCDF
+subroutine myabort
+  use mod_stdio
+  use mpi
+  implicit none
+  integer :: ierr
+  write(stderr,*) ' Execution terminated because of runtime error'
+  call mpi_abort(mpi_comm_self,1,ierr)
+end subroutine myabort
+#else
 subroutine myabort
   implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
+#endif
 
 program terrain
 
@@ -79,6 +90,9 @@ program terrain
   use mod_earth
   use mod_stdatm
   use mod_zita
+#ifdef PNETCDF
+  use mpi
+#endif
 
   implicit none
   character(len=256) :: char_lnd , char_tex , char_lak
@@ -124,6 +138,10 @@ program terrain
   integer(ik4) :: class_interp_method = 4
   integer(ik4) :: percent_interp_method = 5
   integer(ik4) :: moist_interp_method = 1
+
+#ifdef PNETCDF
+  call mpi_init(ierr)
+#endif
 
   call header(1)
   !
@@ -947,6 +965,10 @@ program terrain
   call memory_destroy
 
   write(stdout,*)'Successfully completed terrain fields generation'
+
+#ifdef PNETCDF
+  call mpi_finalize(ierr)
+#endif
 
   contains
 

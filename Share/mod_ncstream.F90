@@ -29,6 +29,7 @@ module mod_ncstream
   use mod_ncstream_types
   use mod_zita
 #ifdef PNETCDF
+  use mpi , only : mpi_comm_self , mpi_info_null
   use pnetcdf
 #else
   use netcdf
@@ -139,7 +140,13 @@ module mod_ncstream
 #endif
 #endif
       else
+#ifdef PNETCDF
+        imode = nf90_nowrite
+        ncstat = nf90mpi_open(mpi_comm_self,stream%filename, &
+                              imode, mpi_info_null, stream%id)
+#else
         ncstat = nf90_open(stream%filename,imode,stream%id)
+#endif
       end if
 #endif
       if ( ncstat /= nf90_noerr ) then
@@ -162,9 +169,17 @@ module mod_ncstream
           stream%jparbound(1) , ',', stream%iparbound(1)
 #endif
       end if
+#ifdef PNETCDF
+      ncstat = nf90mpi_inq_dimid(stream%id,'time',dimtime)
+#else
       ncstat = nf90_inq_dimid(stream%id,'time',dimtime)
+#endif
       if ( ncstat == nf90_noerr ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_inquire_dimension(stream%id,dimtime,len=stream%nrec)
+#else
         ncstat = nf90_inquire_dimension(stream%id,dimtime,len=stream%nrec)
+#endif
         if ( ncstat /= nf90_noerr ) then
           call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -172,14 +187,22 @@ module mod_ncstream
             trim(stream%filename),1)
         end if
         if ( stream%nrec > 0 ) then
+#ifdef PNETCDF
+          ncstat = nf90mpi_inq_varid(stream%id,'time',stream%timeid)
+#else
           ncstat = nf90_inq_varid(stream%id,'time',stream%timeid)
+#endif
           if ( ncstat /= nf90_noerr ) then
             call printerror
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             call die('nc_stream','Error reading time variable in '// &
               trim(stream%filename),1)
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_att(stream%id,stream%timeid,'units',stream%tunit)
+#else
           ncstat = nf90_get_att(stream%id,stream%timeid,'units',stream%tunit)
+#endif
           if ( ncstat /= nf90_noerr ) then
             call printerror
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -187,7 +210,12 @@ module mod_ncstream
             write(stderr,*) 'for file ',trim(stream%filename)
             stream%tunit = 'hours since 1949-12-01 00:00:00 UTC'
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_att(stream%id,stream%timeid, &
+                                   'calendar',stream%tcal)
+#else
           ncstat = nf90_get_att(stream%id,stream%timeid,'calendar',stream%tcal)
+#endif
           if ( ncstat /= nf90_noerr ) then
             call printerror
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -199,8 +227,13 @@ module mod_ncstream
           stream%istart(1) = 1
           stream%icount(1) = stream%nrec
           stream%istride(1) = stream%nrec-1
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,stream%timeid,stream%xtime, &
+            stream%istart(1:1),stream%icount(1:1),stream%istride(1:1))
+#else
           ncstat = nf90_get_var(stream%id,stream%timeid,stream%xtime, &
             stream%istart(1:1),stream%icount(1:1),stream%istride(1:1))
+#endif
           ! Transform to hours since refdate
           tt = timeval2date(stream%xtime(1),stream%tunit,stream%tcal)
           stream%xtime(1) = hourdiff(tt,stream%refdate)
@@ -212,7 +245,11 @@ module mod_ncstream
           stream%deltat = (stream%xtime(2)-stream%xtime(1))/stream%nrec
         end if
       end if
+#ifdef PNETCDF
+      ncstat = nf90mpi_inquire(stream%id,nDimensions=stream%ndims)
+#else
       ncstat = nf90_inquire(stream%id,nDimensions=stream%ndims)
+#endif
       if ( ncstat /= nf90_noerr ) then
         call printerror
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -222,7 +259,11 @@ module mod_ncstream
       end if
       allocate(stream%len_dims(stream%ndims))
       do i = 1 , stream%ndims
+#ifdef PNETCDF
+        ncstat = nf90mpi_inquire_dimension(stream%id,i,len=stream%len_dims(i))
+#else
         ncstat = nf90_inquire_dimension(stream%id,i,len=stream%len_dims(i))
+#endif
         if ( ncstat /= nf90_noerr ) then
           call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -295,7 +336,12 @@ module mod_ncstream
 #endif
 #endif
         else
+#ifdef PNETCDF
+          ncstat = nf90mpi_open(mpi_comm_self,stream%filename, &
+                                nf90_write,mpi_info_null,stream%id)
+#else
           ncstat = nf90_open(stream%filename,nf90_write,stream%id)
+#endif
         end if
 #endif
       else
@@ -315,20 +361,21 @@ module mod_ncstream
 #else
         if ( params%mpi_comm /= -1 ) then
 #ifdef PNETCDF
+          imode = ior(nf90_clobber, nf90_64bit_offset)
           if ( params%mpi_iotype /= -1 ) then
-            imode = ior(params%mpi_iotype,nf90_write)
-          else
-            imode = nf90_write
+            imode = ior(imode,params%mpi_iotype)
           end if
+          imode = ior(imode,nf90_write)
           ncstat = nf90mpi_create(params%mpi_comm,stream%filename, &
                                   imode,params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
 #ifdef PNETCDF_IN_NETCDF
           if ( params%mpi_iotype /= -1 ) then
-            imode = ior(params%mpi_iotype,nf90_write)
+            imode = ior(iomode,params%mpi_iotype)
+            imode = ior(imode,nf90_write)
           else
-            imode = ior(nf90_pnetcdf,nf90_write)
+            imode = ior(iomode,nf90_write)
           end if
           ncstat = nf90_create_par(stream%filename,imode, &
                     comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
@@ -338,7 +385,13 @@ module mod_ncstream
 #endif
 #endif
         else
+#ifdef PNETCDF
+          imode = ior(nf90_clobber, nf90_64bit_offset)
+          ncstat = nf90mpi_create(mpi_comm_self,stream%filename, &
+                                  imode,mpi_info_null,stream%id)
+#else
           ncstat = nf90_create(stream%filename,iomode,stream%id)
+#endif
         end if
 #endif
       end if
@@ -388,8 +441,12 @@ module mod_ncstream
 
       if ( .not. associated(ncin%ncp%xs) ) return
       stream => ncin%ncp%xs
-      if ( stream%id > 0 ) then
+      if ( stream%id >= 0 ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_close(stream%id)
+#else
         ncstat = nf90_close(stream%id)
+#endif
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call printerror
@@ -412,8 +469,12 @@ module mod_ncstream
 
       if ( .not. associated(ncout%ncp%xs) ) return
       stream => ncout%ncp%xs
-      if ( stream%id > 0 ) then
+      if ( stream%id >= 0 ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_close(stream%id)
+#else
         ncstat = nf90_close(stream%id)
+#endif
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call printerror
@@ -812,6 +873,17 @@ module mod_ncstream
           call die('nc_stream','Cannot enable file '//trim(stream%filename),1)
         end if
       end if
+#ifdef PNETCDF
+      if ( .not. stream%l_parallel ) then
+        ncstat = nf90mpi_begin_indep_data(stream%id)
+        if ( ncstat /= nf90_noerr ) then
+          call printerror
+          write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
+          call die('nc_stream', &
+                   'Cannot access file '//trim(stream%filename),1)
+        end if
+      end if
+#endif
       !
       ! Allocate buffer space shared by all vars
       !
@@ -942,7 +1014,11 @@ module mod_ncstream
       type(ncoutstream) , pointer , intent(in) :: stream
       if ( .not. stream%l_enabled ) return
       if ( stream%l_sync ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_sync(stream%id)
+#else
         ncstat = nf90_sync(stream%id)
+#endif
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call printerror
@@ -1008,7 +1084,12 @@ module mod_ncstream
       type(ncoutstream) , pointer , intent(inout) :: stream
       character(len=*) , intent(in) :: dname
       character(len=16) :: the_name , in_name
+#ifdef PNETCDF
+      integer(ik4) :: pdim = -1
+      integer(kind=mpi_offset_kind) :: num
+#else
       integer(ik4) :: pdim = -1, num
+#endif
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
       in_name = dname
@@ -1103,9 +1184,17 @@ module mod_ncstream
             trim(stream%filename)//': Undefined in add_dimension', 1)
       end select
       if ( stream%l_keep ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_inq_dimid(stream%id,the_name,stream%id_dims(pdim))
+#else
         ncstat = nf90_inq_dimid(stream%id,the_name,stream%id_dims(pdim))
+#endif
       else
+#ifdef PNETCDF
+        ncstat = nf90mpi_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
+#else
         ncstat = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
+#endif
       end if
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -1154,48 +1243,106 @@ module mod_ncstream
       select type(att)
         class is (ncattribute_string)
           if ( stream%l_keep ) then
+#ifdef PNETCDF
+            ncstat = nf90mpi_inquire_attribute(stream%id,iv,att%aname)
+#else
             ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_att(stream%id,iv,att%aname,att%theval)
+#else
             ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+#endif
           end if
         class is (ncattribute_logical)
           if ( stream%l_keep ) then
+#ifdef PNETCDF
+            ncstat = nf90mpi_inquire_attribute(stream%id,iv,att%aname)
+#else
             ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+#endif
           else
             call cdumlogical(cdum,att%theval)
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_att(stream%id,iv,att%aname,cdum)
+#else
             ncstat = nf90_put_att(stream%id,iv,att%aname,cdum)
+#endif
           end if
         class is (ncattribute_integer)
           if ( stream%l_keep ) then
+#ifdef PNETCDF
+            ncstat = nf90mpi_inquire_attribute(stream%id,iv,att%aname)
+#else
             ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_att(stream%id,iv,att%aname,att%theval)
+#else
             ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+#endif
           end if
         class is (ncattribute_real4)
           if ( stream%l_keep ) then
+#ifdef PNETCDF
+            ncstat = nf90mpi_inquire_attribute(stream%id,iv,att%aname)
+#else
             ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_att(stream%id,iv,att%aname,att%theval)
+#else
             ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+#endif
           end if
         class is (ncattribute_real8)
           if ( stream%l_keep ) then
+#ifdef PNETCDF
+            ncstat = nf90mpi_inquire_attribute(stream%id,iv,att%aname)
+#else
             ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_att(stream%id,iv,att%aname,att%theval)
+#else
             ncstat = nf90_put_att(stream%id,iv,att%aname,att%theval)
+#endif
           end if
         class is (ncattribute_real4_array)
           if ( stream%l_keep ) then
+#ifdef PNETCDF
+            ncstat = nf90mpi_inquire_attribute(stream%id,iv,att%aname)
+#else
             ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_att(stream%id,iv, &
+                      att%aname,att%theval(1:att%numval))
+#else
             ncstat = nf90_put_att(stream%id,iv, &
                       att%aname,att%theval(1:att%numval))
+#endif
           end if
         class is (ncattribute_real8_array)
           if ( stream%l_keep ) then
+#ifdef PNETCDF
+            ncstat = nf90mpi_inquire_attribute(stream%id,iv,att%aname)
+#else
             ncstat = nf90_inquire_attribute(stream%id,iv,att%aname)
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_att(stream%id,iv, &
+                       att%aname,att%theval(1:att%numval))
+#else
             ncstat = nf90_put_att(stream%id,iv, &
                        att%aname,att%theval(1:att%numval))
+#endif
           end if
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -1307,9 +1454,17 @@ module mod_ncstream
       if ( stream%l_enabled ) return
       if ( ndims == 0 ) then
         if ( stream%l_keep ) then
+#ifdef PNETCDF
+          ncstat = nf90mpi_inq_varid(stream%id,var%vname,var%id)
+#else
           ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
+#endif
         else
+#ifdef PNETCDF
+          ncstat = nf90mpi_def_var(stream%id,var%vname,var%nctype,var%id)
+#else
           ncstat = nf90_def_var(stream%id,var%vname,var%nctype,var%id)
+#endif
         end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -1320,10 +1475,19 @@ module mod_ncstream
         end if
       else
         if ( stream%l_keep ) then
+#ifdef PNETCDF
+          ncstat = nf90mpi_inq_varid(stream%id,var%vname,var%id)
+#else
           ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
+#endif
         else
+#ifdef PNETCDF
+          ncstat = nf90mpi_def_var(stream%id,var%vname,var%nctype, &
+                                id_dim(1:ndims),var%id)
+#else
           ncstat = nf90_def_var(stream%id,var%vname,var%nctype, &
                                 id_dim(1:ndims),var%id)
+#endif
         end if
         if ( ncstat /= nf90_noerr ) then
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -1786,10 +1950,19 @@ module mod_ncstream
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%rval, &
+              stream%istart(1:1),stream%icount(1:1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%rval(1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+#endif
           end if
         class is (ncvariable1d_double)
           if ( docopy ) then
@@ -1809,8 +1982,13 @@ module mod_ncstream
             stream%icount(2) = 1
             nd = 2
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable2d_double)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -1878,8 +2056,13 @@ module mod_ncstream
             stream%icount(3) = 1
             nd = 3
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable3d_double)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -1960,8 +2143,13 @@ module mod_ncstream
             stream%icount(4) = 1
             nd = 4
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable4d_double)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2047,25 +2235,48 @@ module mod_ncstream
             stream%icount(5) = 1
             nd = 5
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%doublebuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable0d_real)
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%rval, &
+              stream%istart(1:1),stream%icount(1:1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%rval(1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+#endif
           end if
         class is (ncvariable0d_mixed)
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%rval, &
+              stream%istart(1:1),stream%icount(1:1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%rval, &
               stream%istart(1:1),stream%icount(1:1))
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%rval(1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%rval(1))
+#endif
           end if
         class is (ncvariable1d_real)
           if ( docopy ) then
@@ -2085,8 +2296,13 @@ module mod_ncstream
             stream%icount(2) = 1
             nd = 2
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable1d_mixed)
           if ( docopy ) then
             if ( .not. associated(var%rval) ) then
@@ -2105,8 +2321,13 @@ module mod_ncstream
             stream%icount(2) = 1
             nd = 2
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable2d_real)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2175,8 +2396,13 @@ module mod_ncstream
             stream%icount(3) = 1
             nd = 3
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable2d_mixed)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2245,8 +2471,13 @@ module mod_ncstream
             stream%icount(3) = 1
             nd = 3
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable3d_real)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2327,8 +2558,13 @@ module mod_ncstream
             stream%icount(4) = 1
             nd = 4
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable3d_mixed)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2409,8 +2645,13 @@ module mod_ncstream
             stream%icount(4) = 1
             nd = 4
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable4d_real)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2496,8 +2737,13 @@ module mod_ncstream
             stream%icount(5) = 1
             nd = 5
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable4d_mixed)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2583,16 +2829,30 @@ module mod_ncstream
             stream%icount(5) = 1
             nd = 5
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%realbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable0d_integer)
           if ( var%lrecords ) then
             stream%istart(1) = stream%irec
             stream%icount(1) = 1
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%ival, &
+              stream%istart(1:1),stream%icount(1:1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%ival, &
               stream%istart(1:1),stream%icount(1:1))
+#endif
           else
+#ifdef PNETCDF
+            ncstat = nf90mpi_put_var(stream%id,var%id,var%ival(1))
+#else
             ncstat = nf90_put_var(stream%id,var%id,var%ival(1))
+#endif
           end if
         class is (ncvariable1d_integer)
           if ( docopy ) then
@@ -2612,8 +2872,13 @@ module mod_ncstream
             stream%icount(2) = 1
             nd = 2
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable2d_integer)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2679,8 +2944,13 @@ module mod_ncstream
             stream%icount(3) = 1
             nd = 3
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable3d_integer)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2761,8 +3031,13 @@ module mod_ncstream
             stream%icount(4) = 1
             nd = 4
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class is (ncvariable4d_integer)
           if ( stream%l_parallel .and. var%lgridded ) then
             stream%istart(1) = stream%jparbound(1)
@@ -2848,8 +3123,13 @@ module mod_ncstream
             stream%icount(5) = 1
             nd = 5
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_put_var(stream%id,var%id, &
+            buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#else
           ncstat = nf90_put_var(stream%id,var%id, &
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
+#endif
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', 'Cannot write variable of unknown type',1)
@@ -3057,15 +3337,24 @@ module mod_ncstream
       buffer => ncin%ibp%xb
       if ( stream%id < 0 ) return
       if ( var%id < 0 ) then
+#ifdef PNETCDF
+        ncstat = nf90mpi_inq_varid(stream%id,var%vname,var%id)
+#else
         ncstat = nf90_inq_varid(stream%id,var%vname,var%id)
+#endif
         if ( ncstat /= nf90_noerr ) then
           call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream','Cannot find variable '//trim(var%vname)// &
             ' in '//trim(stream%filename),1)
         end if
+#ifdef PNETCDF
+        ncstat = nf90mpi_inquire_variable(stream%id,var%id,ndims=var%ndims, &
+          dimids=var%idims)
+#else
         ncstat = nf90_inquire_variable(stream%id,var%id,ndims=var%ndims, &
           dimids=var%idims)
+#endif
         if ( ncstat /= nf90_noerr ) then
           call printerror
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -3075,9 +3364,17 @@ module mod_ncstream
       end if
       select type(var)
         class is (ncvariable0d_double)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%rval)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
+#endif
         class is (ncvariable1d_double)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%rval)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
+#endif
         class is (ncvariable2d_double)
           ndims = 2
           if ( present(window) ) then
@@ -3159,8 +3456,13 @@ module mod_ncstream
             deallocate(buffer%doublebuff)
             allocate(buffer%doublebuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%doublebuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%doublebuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 ) then
             if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
@@ -3270,8 +3572,13 @@ module mod_ncstream
             deallocate(buffer%doublebuff)
             allocate(buffer%doublebuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%doublebuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%doublebuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 ) then
@@ -3396,8 +3703,13 @@ module mod_ncstream
             deallocate(buffer%doublebuff)
             allocate(buffer%doublebuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%doublebuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%doublebuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 .and. &
@@ -3420,9 +3732,17 @@ module mod_ncstream
                  reshape(buffer%doublebuff(1:var%totsize),stream%icount(1:4))
           end if
         class is (ncvariable0d_real)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%rval)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
+#endif
         class is (ncvariable1d_real)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%rval)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
+#endif
         class is (ncvariable2d_real)
           ndims = 2
           if ( present(window) ) then
@@ -3504,8 +3824,13 @@ module mod_ncstream
             deallocate(buffer%realbuff)
             allocate(buffer%realbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 ) then
             if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
@@ -3615,8 +3940,13 @@ module mod_ncstream
             deallocate(buffer%realbuff)
             allocate(buffer%realbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 ) then
@@ -3741,8 +4071,13 @@ module mod_ncstream
             deallocate(buffer%realbuff)
             allocate(buffer%realbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 .and. &
@@ -3765,9 +4100,17 @@ module mod_ncstream
               reshape(buffer%realbuff(1:var%totsize),stream%icount(1:4))
           end if
         class is (ncvariable0d_mixed)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%rval)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
+#endif
         class is (ncvariable1d_mixed)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%rval)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%rval)
+#endif
         class is (ncvariable2d_mixed)
           ndims = 2
           if ( present(window) ) then
@@ -3849,8 +4192,13 @@ module mod_ncstream
             deallocate(buffer%realbuff)
             allocate(buffer%realbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 ) then
             if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
@@ -3960,8 +4308,13 @@ module mod_ncstream
             deallocate(buffer%realbuff)
             allocate(buffer%realbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 ) then
@@ -4086,8 +4439,13 @@ module mod_ncstream
             deallocate(buffer%realbuff)
             allocate(buffer%realbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%realbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%realbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 .and. &
@@ -4110,9 +4468,17 @@ module mod_ncstream
               reshape(buffer%realbuff(1:var%totsize),stream%icount(1:4))
           end if
         class is (ncvariable0d_integer)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%ival)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%ival)
+#endif
         class is (ncvariable1d_integer)
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,var%ival)
+#else
           ncstat = nf90_get_var(stream%id,var%id,var%ival)
+#endif
         class is (ncvariable2d_integer)
           ndims = 2
           if ( present(window) ) then
@@ -4194,8 +4560,13 @@ module mod_ncstream
             deallocate(buffer%intbuff)
             allocate(buffer%intbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%intbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%intbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 ) then
             if ( (var%j2-var%j1+1) /= var%nval(1) .or. &
@@ -4305,8 +4676,13 @@ module mod_ncstream
             deallocate(buffer%intbuff)
             allocate(buffer%intbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%intbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%intbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 ) then
@@ -4431,8 +4807,13 @@ module mod_ncstream
             deallocate(buffer%intbuff)
             allocate(buffer%intbuff(var%totsize))
           end if
+#ifdef PNETCDF
+          ncstat = nf90mpi_get_var(stream%id,var%id,buffer%intbuff, &
+            stream%istart(1:ndims),stream%icount(1:ndims))
+#else
           ncstat = nf90_get_var(stream%id,var%id,buffer%intbuff, &
             stream%istart(1:ndims),stream%icount(1:ndims))
+#endif
           if ( var%j1 > 0 .and. var%j2 > 0 .and. &
                var%i1 > 0 .and. var%i2 > 0 .and. &
                var%k1 > 0 .and. var%k2 > 0 .and. &

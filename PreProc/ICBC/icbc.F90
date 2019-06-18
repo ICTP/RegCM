@@ -18,10 +18,21 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 
+#ifdef PNETCDF
+subroutine myabort
+  use mod_stdio
+  use mpi
+  implicit none
+  integer :: ierr
+  write(stderr,*) ' Execution terminated because of runtime error'
+  call mpi_abort(mpi_comm_self,1,ierr)
+end subroutine myabort
+#else
 subroutine myabort
   implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
+#endif
 
 program icbc
 
@@ -143,6 +154,9 @@ program icbc
   use mod_nest
   use mod_gn6hnc
   use mod_write
+#ifdef PNETCDF
+  use mpi
+#endif
 
   implicit none
 
@@ -153,6 +167,9 @@ program icbc
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname
 
+#ifdef PNETCDF
+  call mpi_init(ierr)
+#endif
 
   call header('icbc')
   !
@@ -328,6 +345,10 @@ program icbc
 
   call finaltime(0)
   write(stdout,*) 'Successfully completed ICBC'
+
+#ifdef PNETCDF
+  call mpi_finalize(ierr)
+#endif
 
 end program icbc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

@@ -27,7 +27,9 @@ module mod_che_emission
   use mod_mpmessage
   use mod_service
   use mod_dynparam
+#ifdef CLM45
   use mod_runparams , only : rcm_megan_enabled
+#endif
   use mod_che_common
   use mod_che_param
   use mod_che_mppio

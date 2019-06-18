@@ -265,56 +265,56 @@ NC_INCLUDES=""
 NC_LDFLAGS=""
 NC_LIBS=""
 
-if eval "test x$PNETCDF = x0"; then
-  AX_PROG_NF_CONFIG([NC_PREFIX=`nf-config --prefix`; NFAUTO="yes"],
-                    [NC_PREFIX="${NETCDF}"; NFAUTO="no"])
+AX_PROG_NF_CONFIG([NC_PREFIX=`nf-config --prefix`; NFAUTO="yes"],
+                  [NC_PREFIX="${NETCDF}"; NFAUTO="no"])
 
-  AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
-                    [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
+AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix`; NCAUTO="yes"],
+                  [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
 
-  if eval "test x$NFAUTO = xyes"; then
-    if eval "test x$NCAUTO = xyes"; then
-      NC_INCLUDES="`nc-config --cflags` `nf-config --fflags`"
-      NC_LDFLAGS=""
-      NC_LIBS="`nc-config --libs` `nf-config --flibs`"
-    else
-      NC_INCLUDES="`nf-config --fflags`"
-      NC_LDFLAGS=""
-      NC_LIBS="`nf-config --flibs`"
-    fi
+if eval "test x$NFAUTO = xyes"; then
+  if eval "test x$NCAUTO = xyes"; then
+    NC_INCLUDES="`nc-config --cflags` `nf-config --fflags`"
+    NC_LDFLAGS=""
+    NC_LIBS="`nc-config --libs` `nf-config --flibs`"
   else
-    if eval "test x$NCAUTO = xno"; then
-      NC_INCLUDES="-I$NC_PREFIX/include"
-      NC_LDFLAGS="-L$NC_PREFIX/lib"
-      NC_LIBS="-lnetcdf"
-    else
-      NCVER=`nc-config --version | cut -d " " -f 2`
-      if eval "test x$NCVER = x4.0.1"; then
-        NC_INCLUDES="`nc-config --fflags`"
-      else
-        # new netcdf library has this
-        NC_INCLUDES="-I`nc-config --includedir`"
-      fi
-      NC_LDFLAGS=""
-      NC_LIBS="`nc-config --libs`"
-    fi
+    NC_INCLUDES="`nf-config --fflags`"
+    NC_LDFLAGS=""
+    NC_LIBS="`nf-config --flibs`"
   fi
 else
+  if eval "test x$NCAUTO = xno"; then
+    NC_INCLUDES="-I$NC_PREFIX/include"
+    NC_LDFLAGS="-L$NC_PREFIX/lib"
+    NC_LIBS="-lnetcdf"
+  else
+    NCVER=`nc-config --version | cut -d " " -f 2`
+    if eval "test x$NCVER = x4.0.1"; then
+      NC_INCLUDES="`nc-config --fflags`"
+    else
+      # new netcdf library has this
+      NC_INCLUDES="-I`nc-config --includedir`"
+    fi
+    NC_LDFLAGS=""
+    NC_LIBS="`nc-config --libs`"
+  fi
+fi
+
+if eval "test x$PNETCDF = x1"; then
   AX_PROG_PNETCDF_CONFIG([NC_PREFIX=`pnetcdf-config --prefix`; NCAUTO="yes"],
                          [NC_PREFIX="${NETCDF}"; NCAUTO="no"])
   echo $NCAUTO
 
   if eval "test x$NCAUTO = xno"; then
-    NC_INCLUDES="-I$NC_PREFIX/include"
-    NC_LDFLAGS="-L$NC_PREFIX/lib"
-    NC_LIBS="-lpnetcdf"
+    NC_INCLUDES="$NC_INCLUDES -I$NC_PREFIX/include"
+    NC_LDFLAGS="$NC_LDFLAGS -L$NC_PREFIX/lib"
+    NC_LIBS="$NC_LIBS -lpnetcdf"
   else
     CC=`pnetcdf-config --cc`
     AC_SUBST(CC)
     NCVER=`pnetcdf-config --version | cut -d " " -f 2`
-    NC_INCLUDES="-I`pnetcdf-config --includedir`"
-    NC_LDFLAGS="-L`pnetcdf-config --libdir`"
-    NC_LIBS="-lpnetcdf"
+    NC_INCLUDES="$NC_INCLUDES -I`pnetcdf-config --includedir`"
+    NC_LDFLAGS="$NC_LDFLAGS -L`pnetcdf-config --libdir`"
+    NC_LIBS="$NC_LIBS -lpnetcdf"
   fi
 fi
 

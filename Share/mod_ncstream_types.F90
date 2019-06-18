@@ -23,6 +23,9 @@ module mod_ncstream_types
   use mod_realkinds
   use mod_constants
   use mod_date
+#ifdef PNETCDF
+  use mpi , only: mpi_offset_kind
+#endif
 
   implicit none
 
@@ -147,7 +150,11 @@ module mod_ncstream_types
     logical :: l_parallel = .false.
     integer(ik4) :: id = -1
     integer(ik4) :: timeid = -1
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) :: nrec = -1
+#else
     integer(ik4) :: nrec = -1
+#endif
     integer(ik4) , dimension(2) :: jparbound
     integer(ik4) , dimension(2) :: iparbound
     integer(ik4) :: global_nj , global_ni , parsize
@@ -155,9 +162,17 @@ module mod_ncstream_types
     type(rcm_time_and_date) :: refdate
     character(len=maxunit) :: tunit , tcal
     real(rk8) :: deltat = 1.0_rk8
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(5) :: istart , icount , istride
+#else
     integer(ik4) , dimension(5) :: istart , icount , istride
+#endif
     integer(ik4) :: ndims
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , allocatable , dimension(:) :: len_dims
+#else
     integer(ik4) , allocatable , dimension(:) :: len_dims
+#endif
   end type ncinstream
 
   type ncoutstream
@@ -200,7 +215,11 @@ module mod_ncstream_types
     integer(ik4) , dimension(ncmaxdims) :: len_dims
     integer(ik4) :: irec = 0
     ! Implemented up to 4d var with records
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(5) :: istart , icount
+#else
     integer(ik4) , dimension(5) :: istart , icount
+#endif
     ! If using parallel I/O, those are the patch window
     integer(ik4) , dimension(2) :: jparbound
     integer(ik4) , dimension(2) :: iparbound
