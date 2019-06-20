@@ -56,21 +56,24 @@ module mod_capecin
     real(4) , intent(in) , dimension(km) :: sigma
     real(4) , intent(out) , dimension(jm,im) :: cape , cin
     real(4) , dimension(km) :: pa , ta , rha
-    integer :: i , j , k , kk
+    integer :: i , j , k , kk , iloop , icount
     real(4) :: ptp , z1
     ptp = real(ptop) * 100.0
-    do i = 1 , im
-      do j = 1 , jm
-        do k = 1 , km
-          kk = km - k + 1
-          pa(kk) = sigma(k)*(ps(j,i)-ptp) + ptp
-          ta(kk) = t(k,j,i)
-          rha(kk) = rh(k,j,i) * 0.01
-        end do
-        z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
-        call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
+    icount = im * jm
+!$OMP PARALLEL DO PRIVATE (k,kk,pa,ta,rha,z1)
+    do iloop = 1 , icount
+      i = iloop/jm + 1
+      j = iloop - (i-1)*jm
+      do k = 1 , km
+        kk = km - k + 1
+        pa(kk) = sigma(k)*(ps(j,i)-ptp) + ptp
+        ta(kk) = t(k,j,i)
+        rha(kk) = rh(k,j,i) * 0.01
       end do
+      z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
+      call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
     end do
+!$OMP END PARALLEL DO
   end subroutine getcape_hy
 
   subroutine getcape_nhy(im,jm,km,ps,t,p0,rh,sigma,ptop,pp,cape,cin)
