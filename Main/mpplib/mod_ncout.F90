@@ -2530,6 +2530,10 @@ module mod_ncout
         outstream(nstream)%opar%mpi_info = ncout_mpi_info
 #ifdef NETCDF4_HDF5
         outstream(nstream)%opar%mpi_iotype = nf90_mpiio
+#else
+#ifdef PNETCDF_IN_NETCDF
+        outstream(nstream)%opar%mpi_iotype = nf90_pnetcdf
+#endif
 #endif
         ! The "global" indexes in the output stream refer to the INTERNAL
         ! CROSS grid, i.e. for processor 0 this is (2,2) => (1,1) so we must
