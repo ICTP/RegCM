@@ -466,7 +466,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,km)
+          tp = 0.001_rk8
           bp = p3d(i,j,1)
           dp = bp - tp
           !
@@ -528,7 +528,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,1)
+          tp = 0.001_rk8
           bp = p3d(i,j,km)
           dp = bp - tp
           !
@@ -607,7 +607,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,km)
+          tp = 0.001_rk4
           bp = p3d(i,j,1)
           dp = bp - tp
           !
@@ -669,7 +669,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,1)
+          tp = 0.001_rk4
           bp = p3d(i,j,km)
           dp = bp - tp
           !
@@ -1212,11 +1212,11 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,km)
+          tp = 0.001_rk8
           bp = p3d(i,j,1)
           dp = bp - tp
           !
-          ! Sigma values in this point , and find boundary layer
+          ! Sigma values in this point
           !
           do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/dp
@@ -1278,11 +1278,11 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,1)
+          tp = 0.001_rk8
           bp = p3d(i,j,km)
           dp = bp - tp
           !
-          ! Sigma values in this point , and find boundary layer
+          ! Sigma values in this point
           !
           do k = km , 1 , -1
             sig(k) = (p3d(i,j,k)-tp)/dp
@@ -1362,11 +1362,11 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,km)
+          tp = 0.001_rk4
           bp = p3d(i,j,1)
           dp = bp - tp
           !
-          ! Sigma values in this point , and find boundary layer
+          ! Sigma values in this point
           !
           do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/dp
@@ -1425,11 +1425,11 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = p3d(i,j,1)
+          tp = 0.001_rk4
           bp = p3d(i,j,km)
           dp = bp - tp
           !
-          ! Sigma values in this point , and find boundary layer
+          ! Sigma values in this point
           !
           do k = km , 1 , -1
             sig(k) = (p3d(i,j,k)-tp)/dp
