@@ -298,11 +298,7 @@ module mod_ncstream
         stream%l_keep = params%l_keep
 #ifdef NETCDF4_HDF5
         if ( params%mpi_comm /= -1 ) then
-          if ( params%mpi_iotype /= -1 ) then
-            imode = ior(params%mpi_iotype,nf90_write)
-          else
-            imode = ior(nf90_mpiio,nf90_write)
-          end if
+          imode = ior(params%mpi_iotype,nf90_write)
           ncstat = nf90_open(stream%filename,imode, &
              stream%id,comm=params%mpi_comm,info=params%mpi_info)
           stream%l_parallel = .true.
@@ -312,22 +308,13 @@ module mod_ncstream
 #else
         if ( params%mpi_comm /= -1 ) then
 #ifdef PNETCDF
-          if ( params%mpi_iotype /= -1 ) then
-            imode = ior(params%mpi_iotype,nf90_write)
-          else
-            imode = nf90_write
-          end if
+          imode = nf90_write
           ncstat = nf90mpi_open(params%mpi_comm,stream%filename,imode, &
                                 params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
 #ifdef PNETCDF_IN_NETCDF
-          if ( params%mpi_iotype /= -1 ) then
-            imode = ior(params%mpi_iotype,nf90_write)
-          else
-            write(stderr,*) 'PARALLEL WRITE USING PNETCDF'
-            imode = ior(nf90_pnetcdf,nf90_write)
-          end if
+          imode = ior(params%mpi_iotype,nf90_write)
           ncstat = nf90_open_par(stream%filename,imode, &
                           params%mpi_comm,params%mpi_info,stream%id)
           stream%l_parallel = .true.
@@ -347,12 +334,8 @@ module mod_ncstream
       else
 #ifdef NETCDF4_HDF5
         if ( params%mpi_comm /= -1 ) then
-          if ( params%mpi_iotype /= -1 ) then
-            imode = ior(params%mpi_iotype,iomode)
-          else
-            imode = ior(nf90_mpiio,iomode)
-          end if
-          ncstat = nf90_create_par(stream%filename,imode, &
+          imode = ior(params%mpi_iotype,iomode)
+          ncstat = nf90_create(stream%filename,imode, &
                     comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
           stream%l_parallel = .true.
         else
@@ -362,21 +345,12 @@ module mod_ncstream
         if ( params%mpi_comm /= -1 ) then
 #ifdef PNETCDF
           imode = ior(nf90_clobber, nf90_64bit_offset)
-          if ( params%mpi_iotype /= -1 ) then
-            imode = ior(imode,params%mpi_iotype)
-          end if
-          imode = ior(imode,nf90_write)
           ncstat = nf90mpi_create(params%mpi_comm,stream%filename, &
                                   imode,params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
 #ifdef PNETCDF_IN_NETCDF
-          if ( params%mpi_iotype /= -1 ) then
-            imode = ior(iomode,params%mpi_iotype)
-            imode = ior(imode,nf90_write)
-          else
-            imode = ior(iomode,nf90_write)
-          end if
+          imode = ior(iomode,params%mpi_iotype)
           ncstat = nf90_create_par(stream%filename,imode, &
                     comm=params%mpi_comm,info=params%mpi_info,ncid=stream%id)
           stream%l_parallel = .true.
