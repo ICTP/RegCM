@@ -272,6 +272,10 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: fname
     type(clm_filetype) , intent(out) :: ncid
 
+#ifdef PNETCDF
+    iomode = ior(nf90_clobber, nf90_64bit_offset)
+#endif
+
     if ( myid /= iocpu ) return
     incstat = nf90_create(fname, iomode, ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__, &

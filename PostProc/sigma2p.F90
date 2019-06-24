@@ -90,6 +90,10 @@ program sigma2p
 
 !$OMP THREADPRIVATE(xvar,pvar)
 
+#ifdef PNETCDF
+  iomode = ior(nf90_clobber, nf90_64bit_offset)
+#endif
+
   call get_command_argument(0,value=prgname)
   numarg = command_argument_count()
   if (numarg < 1) then

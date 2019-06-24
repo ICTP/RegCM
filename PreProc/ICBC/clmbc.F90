@@ -18,10 +18,21 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 
+#ifdef PNETCDF
+subroutine myabort
+  use mod_stdio
+  use mpi
+  implicit none
+  integer :: ierr
+  write(stderr,*) ' Execution terminated because of runtime error'
+  call mpi_abort(mpi_comm_self,1,ierr)
+end subroutine myabort
+#else
 subroutine myabort
   implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
+#endif
 
 program clmbc
 
@@ -48,6 +59,9 @@ program clmbc
   use mod_date
   use mod_write
   use mod_era5
+#ifdef PNETCDF
+  use mpi
+#endif
 
   implicit none
 
@@ -57,6 +71,10 @@ program clmbc
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile , prgname
+
+#ifdef PNETCDF
+  call mpi_init(ierr)
+#endif
 
   call header('clmbc')
   !
@@ -120,6 +138,10 @@ program clmbc
   write(stdout,*) 'Successfully completed CLMBC'
 #else
   write(0,*) 'This programs is enabled only if CLM45 is compiled in.'
+#endif
+
+#ifdef PNETCDF
+  call mpi_finalize(ierr)
 #endif
 
 end program clmbc

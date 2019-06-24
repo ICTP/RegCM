@@ -27,7 +27,7 @@ module mod_cu_grell
   use mod_cu_common
   use mod_constants
   use mod_mpmessage
-  use mod_runparams , only : iqv , dtime => dt , igcc , ichem , clfrcv
+  use mod_runparams , only : iqv , igcc , ichem , clfrcv
   use mod_runparams , only : kfac_deep , kfac_shal , k2_const
   use mod_regcm_types
 
@@ -37,6 +37,7 @@ module mod_cu_grell
 
   real(rkx) , parameter :: xacact = -0.99999_rkx
   real(rkx) , parameter :: zdetr = 650.0_rkx
+  real(rkx) , parameter :: dtime = 900.0_rkx
 
   real(rkx) , pointer , dimension(:,:) :: outq , outt , p , po ,  &
                               q , qo , t , tn , vsp
@@ -610,25 +611,17 @@ module mod_cu_grell
       end if
     end do pointloop
     !
-    ! downdraft originating level
-    !
-    call minimi(he,kb,kz,kmin)
-    !
     ! static control
     !
     ! determine cloud top
     !
     do n = 1 , nap
       if ( xac(n) >= 0 ) then
-        if ( kmin(n) <= 3 ) then
-          xac(n) = -d_one
-          cycle
-        end if
         dby(n,kz) = hkb(n) - hes(n,kz)
         dbyo(n,kz) = hkbo(n) - heso(n,kz)
       end if
     end do
-    do k = 1 , kz - 1
+    do k = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) > xacact ) then
           dby(n,k) = hkb(n) - d_half*(hes(n,k)+hes(n,k+1))
@@ -658,11 +651,19 @@ module mod_cu_grell
       end if
     end do
     !
+    ! downdraft originating level
+    !
+    call minimi2(he,kb,ktop,kmin)
+    !
     ! moisture and cloud work functions
     !
-    do k = 2 , kz - 1
+    do k = 2 , kzm1
       do n = 1 , nap
         if ( xac(n) > xacact ) then
+          if ( kmin(n) <= 3 ) then
+            xac(n) = -d_one
+            cycle
+          end if
           if ( k > kbcon(n) ) then
             if ( k < ktop(n) ) then
               dz = d_half*(z(n,k+1)-z(n,k-1))
@@ -725,10 +726,10 @@ module mod_cu_grell
     !
     ! determine downdraft strength in terms of windshear
     !
-    do kk = 1 , kz-1
+    do kk = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) > xacact ) then
-          if ( kk <= min(ktop(n),kz-1) .and. kk >= kbcon(n) ) then
+          if ( kk <= min(ktop(n),kzm1) .and. kk >= kbcon(n) ) then
             vshear(n) = vshear(n) + &
                  (vsp(n,kk+1)-vsp(n,kk)/(z(n,kk+1)-z(n,kk))) * &
                  (po(n,kk)-po(n,kk+1))
@@ -758,7 +759,7 @@ module mod_cu_grell
         buo(n) = d_zero
       end if
     end do
-    do k = 1 , kz - 1
+    do k = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) > xacact ) then
           if ( k < kmin(n) ) then
@@ -823,7 +824,7 @@ module mod_cu_grell
       end if
     end do
 
-    do k = 1 , kz - 1
+    do k = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) > xacact ) then
           if ( k /= 1 .and. k < ktop(n) ) then
@@ -879,6 +880,11 @@ module mod_cu_grell
         dellah(n,k) = (hkb(n)-dv1)*egrav/dp_s
         dv1 = d_half*(q(n,k)+q(n,k-1))
         dellaq(n,k) = (qes(n,k)-dv1)*egrav/dp_s
+      end if
+    end do
+    do n = 1 , nap
+      if ( xac(n) > xacact ) then
+        k = ktop(n)
         xhe(n,k) = dellah(n,k)*mbdt + he(n,k)
         xq(n,k) = dellaq(n,k)*mbdt + q(n,k)
         dellat(n,k) = rcpd*(dellah(n,k)-wlhv*dellaq(n,k))
@@ -902,7 +908,7 @@ module mod_cu_grell
       end do
     end do
     ! bug fix
-    do k = 1 , kz - 1
+    do k = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) > xacact ) then
           xqrcd(n,k) = d_half*(xqes(n,k)+xqes(n,k+1))
@@ -946,7 +952,7 @@ module mod_cu_grell
     !
     ! moisture and cloud work functions
     !
-    do k = 1 , kz - 1
+    do k = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) >= d_zero ) then
           xdby(n,k) = xhkb(n) - d_half*(xhes(n,k)+xhes(n,k+1))
@@ -991,7 +997,7 @@ module mod_cu_grell
     ! downdraft calculations
     ! downdraft moisture properties
     !
-    do k = 1 , kz - 1
+    do k = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) >= d_zero ) then
           if ( k < kmin(n) ) then
@@ -1026,7 +1032,7 @@ module mod_cu_grell
     !
     ! downdraft cloudwork functions
     !
-    do k = 1 , kz - 1
+    do k = 1 , kzm1
       do n = 1 , nap
         if ( xac(n) >= d_zero ) then
           if ( k < kmin(n) ) then
@@ -1092,15 +1098,19 @@ module mod_cu_grell
     !
     ! feedback
     !
-    do n = 1 , nap
-      if ( xac(n) >= d_zero ) then
-        outtes = dellat(n,kbcon(n))*xmb(n)*secpd
-        if ( outtes > htmax(n) ) then
-          xmb(n) = 1.001_rkx*htmax(n)/outtes*xmb(n)
-        else if ( outtes < htmin(n) ) then
-          xmb(n) = 1.001_rkx*htmin(n)/outtes*xmb(n)
+    do k = 1 , kz
+      do n = 1 , nap
+        if ( xac(n) >= d_zero ) then
+          if ( k <= ktop(n) ) then
+            outtes = dellat(n,k)*xmb(n)*secpd
+            if ( outtes > htmax(n) ) then
+              xmb(n) = 1.001_rkx*htmax(n)/outtes*xmb(n)
+            else if ( outtes < htmin(n) ) then
+              xmb(n) = 1.001_rkx*htmin(n)/outtes*xmb(n)
+            end if
+          end if
         end if
-      end if
+      end do
     end do
     do k = 1 , kz
       do n = 1 , nap
@@ -1133,7 +1143,7 @@ module mod_cu_grell
 #include <pfesat.inc>
 #include <pfwsat.inc>
 
-     subroutine minimi(array,ks,ke,kt)
+     subroutine minimi1(array,ks,ke,kt)
        implicit none
        integer(ik4) , intent (in) :: ke
        real(rkx) , intent(in) , pointer , dimension(:,:) :: array
@@ -1151,7 +1161,26 @@ module mod_cu_grell
            end if
          end do
        end do
-     end subroutine minimi
+     end subroutine minimi1
+
+     subroutine minimi2(array,ks,ke,kt)
+       implicit none
+       real(rkx) , intent(in) , pointer , dimension(:,:) :: array
+       integer(ik4) , intent(in) , pointer , dimension(:) :: ks , ke
+       integer(ik4) , intent(inout) , pointer , dimension(:) :: kt
+       integer(ik4) :: n , k
+       real(rkx) :: x
+       do n = 1 , nap
+         kt(n) = ks(n)
+         x = array(n,ks(n))
+         do k = ks(n) + 1 , ke(n)
+           if ( array(n,k) < x ) then
+             x = array(n,k)
+             kt(n) = k
+           end if
+         end do
+       end do
+     end subroutine minimi2
 
      subroutine maximi1(array,ks,ke,imax)
       implicit none

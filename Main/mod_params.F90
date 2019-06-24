@@ -368,7 +368,7 @@ module mod_params
     ! grellparam ;
     ! Taken from MM5 Grell implementation
     !
-    igcc = 2               ! Closure scheme
+    igcc        = 2        ! Closure scheme
     edtmin      = 0.20_rkx ! Minimum Precipitation Efficiency land
     edtmin_ocn  = 0.20_rkx ! Minimum Precipitation Efficiency ocean
     edtmax      = 0.80_rkx ! Maximum Precipitation Efficiency land
@@ -385,7 +385,7 @@ module mod_params
     shrmin_ocn  = 0.30_rkx ! Minimum Shear effect on precip eff. ocean
     shrmax      = 0.90_rkx ! Maximum Shear effect on precip eff. land
     shrmax_ocn  = 0.90_rkx ! Maximum Shear effect on precip eff. ocean
-    pbcmax = 100.0_rkx     ! Max depth (mb) of stable layer b/twn LCL & LFC
+    pbcmax =  50.0_rkx     ! Max depth (mb) of stable layer b/twn LCL & LFC
     mincld = 50.0_rkx      ! Min cloud depth (mb).
     htmin = -250.0_rkx     ! Min convective heating
     htmax = 500.0_rkx      ! Max convective heating
@@ -396,7 +396,7 @@ module mod_params
     ! From Kerry Emanuel convect 4.3c original code
     !
     minsig = 0.950_rkx  ! Lowest sigma level from which convection can originate
-    elcrit_ocn = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
+    elcrit_ocn = 1.1e-4_rkx ! Autoconversion threshold water content (gm/gm)
     elcrit_lnd = 1.1e-3_rkx ! Autoconversion threshold water content (gm/gm)
     tlcrit = -55.0_rkx    ! Below tlcrit auto-conversion threshold is zero
     entp = 0.06_rkx       ! Coefficient of mixing in the entrainment formulation

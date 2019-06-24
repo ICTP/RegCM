@@ -24,7 +24,9 @@ module mod_dynparam
   use mod_realkinds
   use mod_constants
   use mod_date
+#ifndef PNETCDF
   use netcdf
+#endif
 
   implicit none
 
@@ -367,10 +369,13 @@ module mod_dynparam
   character(len=256) :: moist_filename
   character(len=8)   :: tersrc , smsrc
 #ifdef NETCDF4_HDF5
-  integer(ik4) :: iomode = ior(nf90_clobber, &
-                               ior(nf90_netcdf4,nf90_classic_model))
+  integer(ik4) :: iomode = ior(nf90_clobber, nf90_netcdf4)
 #else
+#ifndef PNETCDF
   integer(ik4) :: iomode = ior(nf90_clobber, nf90_64bit_offset)
+#else
+  integer(ik4) :: iomode = 0
+#endif
 #endif
 
   integer(ik4) :: deflate_level = 1

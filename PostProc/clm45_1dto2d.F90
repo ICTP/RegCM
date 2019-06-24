@@ -408,6 +408,10 @@ program clm45_1dto2d
   integer(ik4) , allocatable , dimension(:,:,:) :: int_var_3d
   integer(ik4) :: nsg
 
+#ifdef PNETCDF
+  iomode = ior(nf90_clobber, nf90_64bit_offset)
+#endif
+
   call get_command_argument(0,value=prgname)
   numarg = command_argument_count()
   if (numarg < 1) then

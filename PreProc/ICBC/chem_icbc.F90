@@ -17,10 +17,21 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#ifdef PNETCDF
+subroutine myabort
+  use mod_stdio
+  use mpi
+  implicit none
+  integer :: ierr
+  write(stderr,*) ' Execution terminated because of runtime error'
+  call mpi_abort(mpi_comm_self,1,ierr)
+end subroutine myabort
+#else
 subroutine myabort
   implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
+#endif
 
 program chem_icbc
 
@@ -37,6 +48,9 @@ program chem_icbc
   use mod_ae_icbc
   use mod_ch_fnest
   use mod_memutil
+#ifdef PNETCDF
+  use mpi
+#endif
 
   implicit none
 
@@ -81,6 +95,10 @@ program chem_icbc
     iclimaaer , isolconst , icumcloud , islab_ocean , itweak ,         &
     temp_tend_maxval , wind_tend_maxval , ghg_year_const , ifixsolar , &
     fixedsolarval , year_offset
+
+#ifdef PNETCDF
+  call mpi_init(ierr)
+#endif
 
   call header('chem_icbc')
   !
@@ -223,6 +241,10 @@ program chem_icbc
 
   call finaltime(0)
   write(stdout,*) 'Successfully completed CHEM ICBC'
+
+#ifdef PNETCDF
+  call mpi_finalize(ierr)
+#endif
 
 end program chem_icbc
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

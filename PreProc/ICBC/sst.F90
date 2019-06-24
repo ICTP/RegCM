@@ -17,10 +17,21 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#ifdef PNETCDF
+subroutine myabort
+  use mod_stdio
+  use mpi
+  implicit none
+  integer :: ierr
+  write(stderr,*) ' Execution terminated because of runtime error'
+  call mpi_abort(mpi_comm_self,1,ierr)
+end subroutine myabort
+#else
 subroutine myabort
   implicit none
   stop ' Execution terminated because of runtime error'
 end subroutine myabort
+#endif
 
 program sst
 
@@ -39,12 +50,19 @@ program sst
   use mod_sst_gnmnc
   use mod_sst_gndnc
   use mod_sst_gnhnc
+#ifdef PNETCDF
+  use mpi
+#endif
 
   implicit none
 
   integer(ik4) :: ierr
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile
+
+#ifdef PNETCDF
+  call mpi_init(ierr)
+#endif
 
   ! call and print header
   call header('sst')
@@ -199,6 +217,10 @@ program sst
 
   call finaltime(0)
   write (stdout,*) 'Successfully generated SST'
+
+#ifdef PNETCDF
+  call mpi_finalize(ierr)
+#endif
 
 end program sst
 

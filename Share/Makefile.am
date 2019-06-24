@@ -51,7 +51,9 @@ mod_spline.o: mod_spline.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_stdio.o: mod_stdio.F90 mod_intkinds.o
 mod_vertint.o: mod_vertint.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o
 mod_ncstream.o: mod_ncstream.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_dynparam.o mod_message.o mod_date.o mod_ncstream_types.o mod_dynparam.o mod_zita.o $(REGCM_ROOT)/version
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_ncstream_types.o: mod_ncstream_types.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o
+	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_posix.o : mod_posix.F90 mod_stdio.o
 mod_rdldtr.o : mod_rdldtr.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_memutil.o mod_nchelper.o mod_earth.o mod_message.o mod_kdinterp.o
 mod_sigma.o : mod_sigma.F90 mod_constants.o mod_intkinds.o mod_memutil.o mod_message.o mod_realkinds.o mod_stdio.o

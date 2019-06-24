@@ -23,6 +23,7 @@ module mod_clm_regcm
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
   use mod_clm_megan
+  use netcdf
 
   private
 

@@ -674,6 +674,10 @@ module mod_savefile
     integer(ik4) :: ioff
 #endif
 
+#ifdef PNETCDF
+    iomode = ior(nf90_clobber, nf90_64bit_offset)
+#endif
+
     if ( myid == iocpu ) then
       write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
       ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
