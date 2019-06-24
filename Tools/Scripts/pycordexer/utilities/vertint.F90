@@ -45,7 +45,7 @@ module mod_vertint
         !
         ! Over the top or below bottom level
         !
-        tp = 0.001
+        tp = 0.01 * mp(1,j,i)
         bp = mp(km,j,i)
         dp = bp - tp
         do k = 1 , km
@@ -94,7 +94,7 @@ module mod_vertint
         !
         ! Over the top or below bottom level
         !
-        tp = 0.001
+        tp = 0.01 * mp(1,j,i)
         bp = mp(km,j,i)
         dp = bp - tp
         do k = 1 , km

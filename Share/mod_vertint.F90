@@ -466,7 +466,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk8
+          tp = 0.01_rk8 * p3d(i,j,km)
           bp = p3d(i,j,1)
           dp = bp - tp
           !
@@ -528,7 +528,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk8
+          tp = 0.01_rk8 * p3d(i,j,1)
           bp = p3d(i,j,km)
           dp = bp - tp
           !
@@ -607,7 +607,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk4
+          tp = 0.01_rk4 * p3d(i,j,km)
           bp = p3d(i,j,1)
           dp = bp - tp
           !
@@ -669,7 +669,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk4
+          tp = 0.01_rk4 * p3d(i,j,1)
           bp = p3d(i,j,km)
           dp = bp - tp
           !
@@ -1212,7 +1212,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk8
+          tp = 0.01_rk8 * p3d(i,j,km)
           bp = p3d(i,j,1)
           dp = bp - tp
           !
@@ -1278,13 +1278,13 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk8
+          tp = 0.01_rk8 * p3d(i,j,1)
           bp = p3d(i,j,km)
           dp = bp - tp
           !
           ! Sigma values in this point
           !
-          do k = km , 1 , -1
+          do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !
@@ -1362,7 +1362,7 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk4
+          tp = 0.01_rk4 * p3d(i,j,km)
           bp = p3d(i,j,1)
           dp = bp - tp
           !
@@ -1425,13 +1425,13 @@ module mod_vertint
       !
       do j = 1 , jm
         do i = 1 , im
-          tp = 0.001_rk4
+          tp = 0.01_rk4 * p3d(i,j,1)
           bp = p3d(i,j,km)
           dp = bp - tp
           !
           ! Sigma values in this point
           !
-          do k = km , 1 , -1
+          do k = 1 , km
             sig(k) = (p3d(i,j,k)-tp)/dp
           end do
           !

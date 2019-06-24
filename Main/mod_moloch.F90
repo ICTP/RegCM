@@ -190,7 +190,7 @@ module mod_moloch
       do i = ice1 , ice2
         do j = jce1 , jce2
           mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
-          mo_atm%tvirt(j,i,k) = mo_atm%tetav(j,i,k)/mo_atm%pai(j,i,k)
+          mo_atm%tvirt(j,i,k) = mo_atm%tetav(j,i,k)*mo_atm%pai(j,i,k)
           mo_atm%t(j,i,k) = mo_atm%tvirt(j,i,k) / &
                    (d_one + ep1*mo_atm%qx(j,i,k,iqv))
         end do
@@ -782,7 +782,7 @@ module mod_moloch
               im1 = max(i-1,icross1+1)
               r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,im1,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
-              zphi = is+zamu*b -is*b
+              zphi = is+zamu*b - is*b
               zpby(j,i) = d_half*zamu * &
                 ((d_one+zphi)*wz(j,im1,k)+(d_one-zphi)*wz(j,i,k))
             end do
@@ -803,13 +803,6 @@ module mod_moloch
 
         call exchange_lr(p0,2,jci1,jci2,ici1,ici2,1,kz)
 
-        if ( ma%has_bdyleft ) then
-          p0(jce1,:,:) = p0(jci1,:,:)
-        end if
-        if ( ma%has_bdyright ) then
-          p0(jce2,:,:) = p0(jci2,:,:)
-        end if
-
         ! Zonal advection
 
         do k = 1 , kz
@@ -827,9 +820,9 @@ module mod_moloch
               jm1 = max(j-1,jcross1+1)
               r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
-              zphi = is+zamu*b -is*b
+              zphi = is+zamu*b - is*b
               zpbw(j,i) = d_half*zamu * &
-                   ((d_one+zphi)*p0(j-1,i,k)+(d_one-zphi)*p0(j,i,k))
+                   ((d_one+zphi)*p0(jm1,i,k)+(d_one-zphi)*p0(j,i,k))
             end do
           end do
 
