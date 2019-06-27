@@ -213,7 +213,9 @@ module mod_gn6hnc
     else if ( dattyp == 'GFS11' ) then
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
     else if ( dattyp(1:3) == 'EC_' ) then
-      call find_ecearth_dim(pathaddname)
+      call find_ecearth_dim(pathaddname,.false.)
+    else if ( dattyp(1:3) == 'ECC' ) then
+      call find_ecearth_dim(pathaddname,.true.)
     else if ( dattyp == 'CCSM3' ) then
       call find_ccsm3_topo(pathaddname)
     else if ( dattyp == 'JRA55' ) then
@@ -436,6 +438,35 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find geosporog var')
       istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read orog var')
+      zsvar(:,:) = zsvar(:,:)*real(regrav,rkx)
+    else if ( dattyp(1:3) == 'ECC' ) then
+      istatus = nf90_inq_varid(inet1,'hyam',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find hyam var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read hyam var')
+      istatus = nf90_inq_varid(inet1,'hybm',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      call find_ecearth_topo(pathaddname,.true.)
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'orog',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find orog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:2),icount(1:2))
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read orog var')
       zsvar(:,:) = zsvar(:,:)*real(regrav,rkx)
@@ -840,7 +871,7 @@ module mod_gn6hnc
       ipstimes(1) = 1500010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), noleap)
       call setcal(ipstimes(1), noleap)
-    else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' .or. &
+    else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:2) == 'EC' .or. &
               dattyp(1:3) == 'CN_' .or. dattyp(1:2) == 'MP' .or. &
               dattyp(1:2) == 'E5' .or. dattyp == 'JRA55' ) then
       call setcal(itimes(1), gregorian)
@@ -918,7 +949,9 @@ module mod_gn6hnc
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
 
-      if ( dattyp(1:2) == 'MP' .or. dattyp(1:3) == 'LGM' ) then
+      if ( dattyp(1:2) == 'MP' .or. &
+           dattyp(1:3) == 'LGM' .or. &
+           dattyp(1:3) == 'ECC' ) then
         ! Calculate HGT on model hybrid sigma levels
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
@@ -1357,7 +1390,7 @@ module mod_gn6hnc
         end do
         varname => echvars
         do kkrec = 1 , 5
-          call find_ecearth_file(pathaddname,varname(kkrec),idate)
+          call find_ecearth_file(pathaddname,varname(kkrec),idate,.false.)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(kkrec))
           call checkncerr(istatus,__FILE__,__LINE__, &
                           'Error open '//trim(pathaddname))
@@ -1423,6 +1456,95 @@ module mod_gn6hnc
       do k = 1, klev
         pp3d(:,:,k) = pplev(k)*0.01 ! Get in hPa
       end do
+    else if ( dattyp(1:3) == 'ECC' ) then
+      if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
+        do kkrec = 1 , 5
+          if ( inet(kkrec) > 0 ) then
+            istatus = nf90_close(inet(kkrec))
+            call checkncerr(istatus,__FILE__,__LINE__, &
+                            'Error close file')
+          end if
+        end do
+        varname => echcmorvars
+        do kkrec = 1 , 6
+          if ( trim(varname(kkrec)) == 'XXX' ) cycle
+          call find_ecearth_file(pathaddname,varname(kkrec),idate,.true.)
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error open '//trim(pathaddname))
+          istatus = nf90_inq_varid(inet(kkrec),trim(varname(kkrec)),ivar(kkrec))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                          'Error find var '//trim(varname(kkrec)))
+          write (stdout,*) inet(kkrec), trim(pathaddname)
+        end do
+        istatus = nf90_inq_dimid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find dim time')
+        istatus = nf90_inquire_dimension(inet(1),timid, len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error inquire dim time')
+        istatus = nf90_inq_varid(inet(1),'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error find var time')
+        istatus = nf90_get_att(inet(1),timid,'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time units')
+        istatus = nf90_get_att(inet(1),timid,'calendar',ccal)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time calendar')
+        call getmem1d(itimes,1,timlen,'mod_gn6hnc:itimes')
+        call getmem1d(xtimes,1,timlen,'mod_gn6hnc:xtimes')
+        istatus = nf90_get_var(inet(1),timid,xtimes)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read time')
+        do it = 1 , timlen
+          itimes(it) = timeval2date(xtimes(it),cunit,ccal)
+        end do
+      end if
+      tdif = idate - itimes(1)
+      it = nint(tohours(tdif))/6 + 1
+      icount(1) = nlon
+      icount(2) = nlat
+      icount(3) = klev
+      icount(4) = 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(1))
+      istatus = nf90_get_var(inet(3),ivar(3),qvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(3))
+      ! This is specific humidity
+      istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(4))
+      istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(5))
+      icount(1) = nlon
+      icount(2) = nlat
+      icount(3) = 1
+      icount(4) = 1
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      istatus = nf90_get_var(inet(6),ivar(6),psvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read var '//varname(6))
+      do k = 1 , klev
+        do j = 1 , nlat
+          do i = 1 , nlon
+            pp3d(i,j,k) = (ak(k) + bk(k)*psvar(i,j))
+          end do
+        end do
+      end do
+      psvar(:,:) = psvar(:,:)*0.01
+      pp3d(:,:,:) = pp3d(:,:,:)*0.01
+      call sph2mxr(qvar,nlon,nlat,klev)
     else
       ! Even more difficult. Each data type has its own quirks.
       tdif = rcm_time_interval(180,uhrs)

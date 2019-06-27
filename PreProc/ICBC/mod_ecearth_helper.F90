@@ -27,7 +27,7 @@ module mod_ecearth_helper
   private
 
   public :: echvars , echcmorvars
-  public :: find_ecearth_sst
+  public :: find_ecearth_sst , find_ecearth_topo
   public :: find_ecearth_dim , find_ecearth_file
 
   integer(ik4) , parameter :: nvars = 6
@@ -48,17 +48,14 @@ module mod_ecearth_helper
     integer(ik4) :: y1 , y2 , m1 , m2
     if ( cmor ) then
       call split_idate(idate,y,m,d,h)
+      y1 = y
+      m1 = m
       if ( d == 1 .and. h == 0 ) then
         m1 = m - 1
         if ( m1 == 0 ) then
           m1 = 12
           y1 = y1 - 1
-        else
-          y1 = y
         end if
-      else
-        y1 = y
-        m1 = m
       end if
       y2 = y1
       m2 = m1 + 1
@@ -87,31 +84,84 @@ module mod_ecearth_helper
     end if
   end subroutine find_ecearth_sst
 
-  subroutine find_ecearth_dim(dim_filename)
+  subroutine find_ecearth_topo(fname,cmor)
+    implicit none
+    character(len=256) , intent(out) :: fname
+    logical , intent(in) :: cmor
+    if ( cmor ) then
+      fname = trim(inpglob)// &
+                '/EC-EARTH/fixed/orog_fx_EC-EARTH_historical_r0i0p0.nc'
+    else
+      fname = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
+    end if
+  end subroutine find_ecearth_topo
+
+  subroutine find_ecearth_dim(dim_filename,cmor)
     implicit none
     character(len=256) , intent(out) :: dim_filename
+    logical , intent(in) :: cmor
     ! Just return the name of one file in the historical dataset
     ! we hope is there.
-    dim_filename = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
+    if ( cmor ) then
+      dim_filename = trim(inpglob)// &
+                '/EC-EARTH/RF/ta/ta_6hrLev_ICHEC-EC-EARTH_'//&
+                'historical_r12i1p1_196901010600-196902010000.nc'
+    else
+      dim_filename = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
+    end if
   end subroutine find_ecearth_dim
 
-  subroutine find_ecearth_file(ecearth_filename,var,idate)
+  subroutine find_ecearth_file(ecearth_filename,var,idate,cmor)
     implicit none
+    logical , intent(in) :: cmor
     character(len=256) , intent(out) :: ecearth_filename
     character(len=*) , intent(in) :: var
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=256) :: inname
+    character(len=10) :: d1 , d2
     integer(ik4) :: y , m , d , h
+    integer(ik4) :: y1 , y2 , m1 , m2
     call split_idate(idate,y,m,d,h)
-    if ( m == 1 .and. d == 1 .and. h == 0 ) y = y - 1
-    if ( .not. date_in_scenario(idate,5,.true.) ) then
-      write (inname,'(a,a,i0.4,a,a,a,i0.4,a)') 'RF', pthsep, y, pthsep, &
-                 'ich1_', trim(var)//'_', y, '.nc'
+    if ( cmor ) then
+      y1 = y
+      m1 = m
+      if ( d == 1 .and. h == 0 ) then
+        m1 = m - 1
+        if ( m1 == 0 ) then
+          m1 = 12
+          y1 = y1 - 1
+        end if
+      end if
+      y2 = y1
+      m2 = m1 + 1
+      if ( m2 > 12 ) then
+        m2 = 1
+        y2 = y2 + 1
+      end if
+      write(d1,'(i0.4,i0.2,i0.2,i0.2)') y1, m1, 1, 6
+      write(d2,'(i0.4,i0.2,i0.2,i0.2)') y2, m2, 1, 0
+      if ( idate < 2005120100 ) then
+        ecearth_filename = trim(inpglob)//pthsep//'EC-EARTH'//pthsep//'RF'// &
+                pthsep//trim(var)//pthsep//trim(var)// &
+                '_6hrLev_ICHEC-EC-EARTH_historical_r12i1p1_'// &
+                d1//'00-'//d2//'00.nc'
+      else
+        ecearth_filename = trim(inpglob)//pthsep//'EC-EARTH'//pthsep// &
+                'RCP'//dattyp(4:5)//pthsep//trim(var)//pthsep//trim(var)// &
+                '_6hrLev_ICHEC-EC-EARTH_historical_r12i1p1_'// &
+                d1//'00-'//d2//'00.nc'
+      end if
     else
-      write (inname,'(a,a,i0.4,a,a,a,i0.4,a)') 'RCP'//dattyp(4:5), pthsep, y, &
-                  pthsep, 'ich1_', trim(var)//'_', y, '.nc'
+      if ( m == 1 .and. d == 1 .and. h == 0 ) y = y - 1
+      if ( .not. date_in_scenario(idate,5,.true.) ) then
+        write (inname,'(a,a,i0.4,a,a,a,i0.4,a)') 'RF', pthsep, y, pthsep, &
+                   'ich1_', trim(var)//'_', y, '.nc'
+      else
+        write (inname,'(a,a,i0.4,a,a,a,i0.4,a)') 'RCP'//dattyp(4:5),  &
+                   pthsep, y, pthsep, 'ich1_', trim(var)//'_', y, '.nc'
+      end if
+      ecearth_filename = trim(inpglob)//'/EC-EARTH/'//inname
     end if
-    ecearth_filename = trim(inpglob)//'/EC-EARTH/'//inname
   end subroutine find_ecearth_file
 
 end module mod_ecearth_helper
