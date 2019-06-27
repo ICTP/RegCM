@@ -48,17 +48,14 @@ module mod_ecearth_helper
     integer(ik4) :: y1 , y2 , m1 , m2
     if ( cmor ) then
       call split_idate(idate,y,m,d,h)
+      y1 = y
+      m1 = m
       if ( d == 1 .and. h == 0 ) then
         m1 = m - 1
         if ( m1 == 0 ) then
           m1 = 12
           y1 = y1 - 1
-        else
-          y1 = y
         end if
-      else
-        y1 = y
-        m1 = m
       end if
       y2 = y1
       m2 = m1 + 1
@@ -96,7 +93,7 @@ module mod_ecearth_helper
                 '/EC-EARTH/fixed/orog_fx_EC-EARTH_historical_r0i0p0.nc'
     else
       fname = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
-    end if 
+    end if
   end subroutine find_ecearth_topo
 
   subroutine find_ecearth_dim(dim_filename,cmor)
@@ -111,7 +108,7 @@ module mod_ecearth_helper
                 'historical_r12i1p1_196901010600-196902010000.nc'
     else
       dim_filename = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
-    end if 
+    end if
   end subroutine find_ecearth_dim
 
   subroutine find_ecearth_file(ecearth_filename,var,idate,cmor)
@@ -126,17 +123,14 @@ module mod_ecearth_helper
     integer(ik4) :: y1 , y2 , m1 , m2
     call split_idate(idate,y,m,d,h)
     if ( cmor ) then
+      y1 = y
+      m1 = m
       if ( d == 1 .and. h == 0 ) then
         m1 = m - 1
         if ( m1 == 0 ) then
           m1 = 12
           y1 = y1 - 1
-        else
-          y1 = y
         end if
-      else
-        y1 = y
-        m1 = m
       end if
       y2 = y1
       m2 = m1 + 1
