@@ -96,10 +96,10 @@ module mod_gn6hnc
   ! Input space
   real(rkx) :: p0
   real(rkx) , pointer , dimension(:,:) :: psvar , zsvar ! , pmslvar
-  real(rkx) , pointer , dimension(:) :: ak , bk
+  real(rkx) , pointer , dimension(:) :: ak , bk , ak1 , bk1
   real(rkx) , pointer , dimension(:) :: glat , glon , gltemp
-  real(rkx) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
-                                           uvar , vvar , pp3d , vwork
+  real(rkx) , pointer , dimension(:,:,:) :: hvar , hvar1 , qvar , tvar , &
+                                           uvar , vvar , pp3d , pp3d1 , vwork
   integer(ik4) :: timlen , pstimlen
   type(rcm_time_and_date) , pointer , dimension(:) :: itimes
   type(rcm_time_and_date) , pointer , dimension(:) :: ipstimes
@@ -252,6 +252,8 @@ module mod_gn6hnc
     call getmem1d(glon,1,nlon,'mod_gn6hnc:glon')
 
     if ( dattyp(1:3) == 'HA_' ) then
+      call getmem1d(ak1,1,klev,'mod_gn6hnc:ak1')
+      call getmem1d(bk1,1,klev,'mod_gn6hnc:bk1')
       call find_hadgem_ufile(pathaddname)
       istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -278,6 +280,18 @@ module mod_gn6hnc
       istatus = nf90_close(inet3)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error close va file')
+      istatus = nf90_inq_varid(inet1,'lev',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find lev var')
+      istatus = nf90_get_var(inet1,ivar1,ak1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read lev var')
+      istatus = nf90_inq_varid(inet1,'b',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error read b var')
     end if
 
     call getmem2d(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
@@ -293,6 +307,8 @@ module mod_gn6hnc
       call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
       if ( dattyp(1:3) == 'HA_' ) then
         call getmem3d(vwork,1,nlon,1,nlat-1,1,klev,'mod_gn6hnc:vwork')
+        call getmem3d(hvar1,1,nlon,1,nlat,1,klev,'mod_gn6hnc:hvar1')
+        call getmem3d(pp3d1,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d1')
       end if
       call getmem1d(ak,1,klev,'mod_gn6hnc:ak')
       call getmem1d(bk,1,klev,'mod_gn6hnc:bk')
@@ -924,6 +940,8 @@ module mod_gn6hnc
 !$OMP SECTION
         call top2btm(pp3d,nlon,nlat,klev)
 !$OMP SECTION
+        call top2btm(pp3d1,nlon,nlat,klev)
+!$OMP SECTION
         call top2btm(hvar,nlon,nlat,klev)
 !$OMP END SECTIONS
       end if
@@ -956,19 +974,34 @@ module mod_gn6hnc
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
 
-      ! Interpolate vertically on Pressure levels
+      if ( dattyp(1:3) /= 'HA_' ) then
+        ! Interpolate vertically on Pressure levels
 !$OMP SECTIONS
 !$OMP SECTION
-      call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
+        call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlin(up,uvar,pp3d,nlon,nlat,klev,pplev,npl)
+        call intlin(up,uvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlin(vp,vvar,pp3d,nlon,nlat,klev,pplev,npl)
+        call intlin(vp,vvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlog(tp,tvar,pp3d,nlon,nlat,klev,pplev,npl)
+        call intlog(tp,tvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP SECTION
-      call intlin(qp,qvar,pp3d,nlon,nlat,klev,pplev,npl)
+        call intlin(qp,qvar,pp3d,nlon,nlat,klev,pplev,npl)
 !$OMP END SECTIONS
+      else
+!$OMP SECTIONS
+!$OMP SECTION
+        call height(hp,hvar,tvar,psvar,pp3d,zsvar,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
+        call intlin(up,uvar,pp3d1,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
+        call intlin(vp,vvar,pp3d1,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
+        call intlog(tp,tvar,pp3d,nlon,nlat,klev,pplev,npl)
+!$OMP SECTION
+        call intlin(qp,qvar,pp3d,nlon,nlat,klev,pplev,npl)
+!$OMP END SECTIONS
+      end if
     end if
 
     if ( dattyp == 'JRA55' ) then
@@ -2060,9 +2093,13 @@ module mod_gn6hnc
         do k = 1 , klev
           hvar(:,:,k) = ak(k) + bk(k)*zsvar(:,:)
         end do
+        do k = 1 , klev
+          hvar1(:,:,k) = ak1(k) + bk1(k)*zsvar(:,:)
+        end do
         ! If we have MSLP instead of PS
         ! call mslp2ps(hvar,tvar,pmslvar,zsvar,psvar,nlon,nlat,klev)
         call psig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
+        call psig1(tvar,hvar1,pp3d1,psvar,zsvar,nlon,nlat,klev)
       else if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' ) then
         ! Data on sigma P levels, the factor for ak is ipotized.
         ! Units in file is Pa, but calculations suggest mPa

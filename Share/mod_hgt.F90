@@ -61,7 +61,7 @@ module mod_hgt
   public :: hydrost , nonhydrost , mslp2ps
   public :: height , height_o
   public :: htsig , htsig_o
-  public :: psig , mslp , gs_filter
+  public :: psig , psig1 , mslp , gs_filter
 
   contains
 
@@ -715,7 +715,31 @@ module mod_hgt
       end do
     end do
   end subroutine psig
-!
+
+  subroutine psig1(t,h,p3d,ps,ht,im,jm,km)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km
+    real(rkx) , intent(in) , dimension(im,jm,km) :: h , t
+    real(rkx) , intent(in) , dimension(im,jm) :: ht , ps
+    real(rkx) , intent(out) , dimension(im,jm,km) :: p3d
+    real(rkx) :: tbar
+    integer(ik4) :: i , j , k
+
+    do j = 1 , jm
+      do i = 1 , im
+        p3d(i,j,1) = ps(i,j)*exp(-(h(i,j,1)-ht(i,j))/rovg/t(i,j,km))
+      end do
+    end do
+    do k = 2 , km
+      do j = 1 , jm
+        do i = 1 , im
+          tbar = t(i,j,k)
+          p3d(i,j,k) = p3d(i,j,k-1)*exp(-(h(i,j,k)-h(i,j,k-1))/rovg/tbar)
+        end do
+      end do
+    end do
+  end subroutine psig1
+
   ! Gauss Siedel Filtering
   subroutine gs_filter(v,vm,im,jm)
     implicit none
