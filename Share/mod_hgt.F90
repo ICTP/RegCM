@@ -62,6 +62,7 @@ module mod_hgt
   public :: height , height_o
   public :: htsig , htsig_o
   public :: psig , psig1 , mslp , gs_filter
+  public :: crc_zeta_from_p , crc_p_from_zeta
 
   contains
 
@@ -771,6 +772,27 @@ module mod_hgt
       v(:,:) = v1(:,:)
     end do
   end subroutine gs_filter
+
+  pure real(rkx) function crc_zeta_from_p(p) result(z)
+    implicit none
+    real(rkx) , intent(in) :: p
+    real(rk8) , parameter :: a1 = 44330.8_rk8
+    real(rk8) , parameter :: a2 = 4946.54_rk8
+    real(rk8) , parameter :: ex = 0.1902632_rk8
+    real(rk8) :: p8 , z8
+    p8 = real(p, rk8)
+    z8 = a1 - a2 * p8**ex
+    z = real(z8,rkx)
+  end function crc_zeta_from_p
+
+  pure real(rkx) function crc_p_from_zeta(z) result(p)
+    implicit none
+    real(rkx) , intent(in) :: z
+    real(rk8) :: p8 , z8
+    z8 = z
+    p8 = 100.0_rk8*((44331.514_rk8-z)/11880.516_rk8)**(1.0_rk8/0.1902632_rk8)
+    p = real(p8,rkx)
+  end function crc_p_from_zeta
 
 end module mod_hgt
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

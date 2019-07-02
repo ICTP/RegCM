@@ -290,6 +290,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: th700
     real(rkx) , pointer , dimension(:,:,:) :: tb3d
     real(rkx) , pointer , dimension(:,:,:) :: tp3d
+    real(rkx) , pointer , dimension(:,:,:) :: tv3d
     real(rkx) , pointer , dimension(:,:,:) :: pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pf3d
     real(rkx) , pointer , dimension(:,:,:) :: rhob3d

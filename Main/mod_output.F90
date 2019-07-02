@@ -69,7 +69,7 @@ module mod_output
     logical :: lstartup
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
-    real(rkx) :: cell , zz , zz1 , ww
+    real(rkx) :: cell , zz , zz1 , ww , tv
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -891,7 +891,7 @@ module mod_output
           else if ( idynamic == 2 ) then
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zz = atms%za(j,i,kz)
+                zz = atm0%z(j,i,kz)
                 if ( zz > 100.0_rkx ) then
                   srf_ua100_out(j,i,1) = &
                     (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
@@ -904,7 +904,7 @@ module mod_output
                 else
                   vloop2: &
                   do k = kz-1 , 1 , -1
-                    zz1 = atms%za(j,i,k)
+                    zz1 = atm0%z(j,i,k)
                     if ( zz1 > 100.0_rkx ) then
                       ww = (100.0_rkx-zz)/(zz1-zz)
                       srf_ua100_out(j,i,1) = &
@@ -936,8 +936,9 @@ module mod_output
             do i = ici1 , ici2
               do j = jci1 , jci2
                 cell = ptop / sfs%psa(j,i)
-                zz = rovg * atm1%t(j,i,kz)/sfs%psa(j,i) * &
-                       log((sigma(kzp1)+cell)/(sigma(kz)+cell))
+                tv = atm1%t(j,i,kz)/sfs%psa(j,i) * &
+                            (d_one + ep1*atm1%qx(j,i,kz,iqv)/sfs%psa(j,i))
+                zz = rovg * tv * log((sigma(kzp1)+cell)/(sigma(kz)+cell))
                 if ( zz > 100.0_rkx ) then
                   srf_ua100_out(j,i,1) = &
                     (d_rfour*(atm1%u(j,i,kz)+atm1%u(j+1,i,kz) + &
@@ -950,8 +951,9 @@ module mod_output
                 else
                   vloop3: &
                   do k = kz-1 , 1 , -1
-                    zz1 = zz + rovg * atm1%t(j,i,k)/sfs%psa(j,i) *  &
-                          log((sigma(k+1)+cell)/(sigma(k)+cell))
+                    tv = atm1%t(j,i,k)/sfs%psa(j,i) * &
+                            (d_one + ep1*atm1%qx(j,i,k,iqv)/sfs%psa(j,i))
+                    zz1 = zz + rovg*tv*log((sigma(k+1)+cell)/(sigma(k)+cell))
                     if ( zz1 > 100.0_rkx ) then
                       ww = (100.0_rkx-zz)/(zz1-zz)
                       srf_ua100_out(j,i,1) = &

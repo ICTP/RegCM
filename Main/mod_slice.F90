@@ -134,6 +134,11 @@ module mod_slice
       end do
     end if
 
+    do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+      atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
+              (d_one + ep1*atms%qxb3d(j,i,k,iqv) - atms%qxb3d(j,i,k,iqc))
+    end do
+
     if ( idynamic == 2 ) then
       do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz )
         atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
@@ -249,7 +254,7 @@ module mod_slice
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = kz:1:-1 )
         cell = ptop * rpsb(j,i)
-        atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tb3d(j,i,k) *  &
+        atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
                       log((sigma(k+1)+cell)/(sigma(k)+cell))
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
