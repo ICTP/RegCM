@@ -231,10 +231,11 @@ module mod_che_dust
       real(rkx) , dimension (mode)    :: texmmd , texstd
 
       logical :: rd_tex
+      integer(ik4) , dimension(1) :: p
       character(6) :: aerctl
       real(rkx) :: alogdi , amean1 , amean2 , amean3 , asigma1 , &
              asigma2 , asigma3 , totv1 , totv2 , totv3 , totv ,  &
-             exp1 , exp2 , exp3
+             exp1 , exp2 , exp3 , term
 #ifdef __PGI
       real(rkx) , external :: erf
 #endif
@@ -508,19 +509,27 @@ module mod_che_dust
         frac = 0._rkx
         totv = 0._rkx
         do ns = 1 , ndi
+          ! kok 2001
+          term = d_one/cv * (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
+                     log(sigmas)))*exp(-(di(ns)/lambda)**3)
           do n = 1 , nbin
              if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
-                frac(n) = frac(n) + di(ns)/cv * &
-                  (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(di(ns)/lambda)**3)  !see Kok (2011)
+                frac(n) = frac(n) + term
              end if
            end do
-           totv = totv + d_one / cv * (di(ns)+erf(log(di(ns)/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(di(ns)/lambda)**3)
+           totv = totv + term
         end do
         frac(:) = frac(:) / totv
         if ( abs(sum(frac) - d_one) > epsilon(1.0) ) then
+          p = maxloc(frac)
+          n = p(1)
+          frac(n) = frac(n) + (d_one-sum(frac))
+        end if
+        if ( abs(sum(frac) - d_one) > 0.005 ) then
           write(stderr,*) 'TOTFRAC = ', sum(frac)
+          write(stderr,*) 'ERROR = ', sum(frac)-d_one
+          call fatal(__FILE__,__LINE__, &
+               'Weight normalization failed')
         end if
       end if
 

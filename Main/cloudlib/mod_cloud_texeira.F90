@@ -56,10 +56,14 @@ module mod_cloud_texeira
       do i = ici1 , ici2
         do j = jci1 , jci2
           ! Adjusted relative humidity threshold
-          rhrng = min(max(rh(j,i,k),d_zero),d_one)
-          fcc(j,i,k) = d * qc(j,i,k) / (d_two*qs(j,i,k)*(d_one-rhrng)*kappa) * &
-            ( -d_one + sqrt(d_one + &
-               (d_four*qs(j,i,k)*((d_one-rhrng)*kappa))/(d*qc(j,i,k))) )
+          rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
+          if ( qc(j,i,k) > 1.0e-8_rkx ) then
+            fcc(j,i,k) = d*qc(j,i,k) / (d_two*qs(j,i,k)*(d_one-rhrng)*kappa) * &
+              ( -d_one + sqrt(d_one + &
+                 (d_four*qs(j,i,k)*((d_one-rhrng)*kappa))/(d*qc(j,i,k))) )
+          else
+            fcc(j,i,k) = d_zero
+          end if
         end do
       end do
     end do

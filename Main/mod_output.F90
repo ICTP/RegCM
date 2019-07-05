@@ -1416,15 +1416,17 @@ module mod_output
         end if
 
         call subgrid_collect(lms%sw,sw_io,jci1,jci2,ici1,ici2,1,num_soil_layers)
+#ifndef CLM45
         call subgrid_collect(lms%gwet,gwet_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%ldew,ldew_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%taf,taf_io,jci1,jci2,ici1,ici2)
+#endif
         call subgrid_collect(lms%tgrd,tgrd_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%tgbrd,tgbrd_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(lms%taf,taf_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%tlef,tlef_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%sncv,sncv_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(lms%snag,snag_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%sfice,sfice_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%snag,snag_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%emisv,emisv_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%um10,um10_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%swalb,swalb_io,jci1,jci2,ici1,ici2)
@@ -1436,6 +1438,7 @@ module mod_output
         call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
+        call grid_collect(dsol,dsol_io,jci1,jci2,ici1,ici2)
         call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
         call grid_collect(solvsd,solvsd_io,jci1,jci2,ici1,ici2)
         call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)
@@ -1487,12 +1490,14 @@ module mod_output
           end if
 
           call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
+#ifndef CLM45
           call grid_collect(sdelt,sdelt_io,jci1,jci2,ici1,ici2)
           call grid_collect(sdelq,sdelq_io,jci1,jci2,ici1,ici2)
+          call grid_collect(svegfrac2d,svegfrac2d_io,jci1,jci2,ici1,ici2)
+#endif
           call grid_collect(sfracv2d,sfracv2d_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfracb2d,sfracb2d_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfracs2d,sfracs2d_io,jci1,jci2,ici1,ici2)
-          call grid_collect(svegfrac2d,svegfrac2d_io,jci1,jci2,ici1,ici2)
         end if
 
         if ( islab_ocean == 1 .and. do_restore_sst ) then

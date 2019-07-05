@@ -444,16 +444,18 @@ module mod_init
 
       call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
                                            ici1,ici2,1,num_soil_layers)
+#ifndef CLM45
       call subgrid_distribute(gwet_io,lms%gwet,jci1,jci2,ici1,ici2)
       call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(taf_io,lms%taf,jci1,jci2,ici1,ici2)
+#endif
       call subgrid_distribute(tgrd_io,lms%tgrd,jci1,jci2,ici1,ici2)
       call subgrid_distribute(tgbrd_io,lms%tgbrd,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(taf_io,lms%taf,jci1,jci2,ici1,ici2)
       call subgrid_distribute(tlef_io,lms%tlef,jci1,jci2,ici1,ici2)
 
       call subgrid_distribute(sncv_io,lms%sncv,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
       call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
       call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
       call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
       call subgrid_distribute(swalb_io,lms%swalb,jci1,jci2,ici1,ici2)
@@ -529,12 +531,14 @@ module mod_init
         end if
 
         call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
+#ifndef CLM45
         call grid_distribute(sdelt_io,sdelt,jci1,jci2,ici1,ici2)
         call grid_distribute(sdelq_io,sdelq,jci1,jci2,ici1,ici2)
+        call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
+#endif
         call grid_distribute(sfracv2d_io,sfracv2d,jci1,jci2,ici1,ici2)
         call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
         call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
-        call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
       end if
 
       call bcast(declin)
