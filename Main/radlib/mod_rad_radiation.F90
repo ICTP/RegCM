@@ -42,6 +42,9 @@ module mod_rad_radiation
 
   public :: allocate_mod_rad_radiation , radini , radctl
 
+  logical :: linteract = .false.
+  logical :: lzero = .false.
+
   integer(ik4) :: npoints
 
   real(rkx) , pointer , dimension(:) :: co2plk , dtx , dty
@@ -753,6 +756,16 @@ module mod_rad_radiation
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif
+    lzero = .true.
+    linteract = (ichem == 1 .and. idirect > 0)
+    if ( ichem == 1 ) then
+      if ( idirect == 2 ) then
+        lzero = .false.
+      end if
+    end if
+    if ( iclimaaer == 1 ) then
+      lzero = .false.
+    end if
   end subroutine radini
   !
   !-----------------------------------------------------------------------
@@ -1183,7 +1196,6 @@ module mod_rad_radiation
                trayoslp , wavmid , wgtint , sfltot , x0fsnrtc
     real(rkx) , dimension(4) :: ww
     integer(ik4) :: n , indxsl , k , ns , is
-    logical :: lzero = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radcsw'
     integer(ik4) :: indx = 0
@@ -1466,17 +1478,7 @@ module mod_rad_radiation
       ! options for aerosol: no climatic feedback if idirect == 1
       ! should be consistent with aeroppt routine
       !
-      lzero = .true.
-      if ( ichem == 1 ) then
-        if ( idirect == 2 ) then
-          lzero = .false.
-        end if
-      end if
-      if ( iclimaaer == 1 ) then
-        lzero = .false.
-      end if
-
-      call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
+      call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns)
       !
       ! Compute reflectivity to direct and diffuse radiation for layers
       ! below by adding succesive layers starting from the surface and
@@ -1593,7 +1595,7 @@ module mod_rad_radiation
       ! case is saved as one more variable in the rad file. The
       ! outputed TOASW ( fsntc, clrst) is accounting for aerosol.
       !FAB
-      if ( ichem == 1 .and. idirect > 0 ) then
+      if ( linteract ) then
         !
         ! Following code is the diagnostic clear sky computation:
         !
@@ -1605,7 +1607,7 @@ module mod_rad_radiation
         ! 0 for interface quantities refers to top of atmos- phere,
         ! while 1 refers to the surface:
         !
-        call radclr(n1,n2,trayoslp,czen,czengt0,ns,.true.)
+        call radclr(n1,n2,trayoslp,czen,czengt0,ns)
         !
         ! Compute reflectivity to direct and diffuse radiation for
         ! entire column; 0,1 on layer quantities refers to two
@@ -1671,7 +1673,7 @@ module mod_rad_radiation
       ! quantities refers to top of atmos- phere, while 1 refers to the
       ! surface:
       !
-      call radclr(n1,n2,trayoslp,czen,czengt0,ns,.false.)
+      call radclr(n1,n2,trayoslp,czen,czengt0,ns)
       !
       ! Compute reflectivity to direct and diffuse radiation for entire
       ! column; 0,1 on layer quantities refers to two effective layers
@@ -1730,7 +1732,7 @@ module mod_rad_radiation
 
     ! FAB calculation of TOA aerosol radiative forcing
     ! convert from cgs to MKS
-    if ( (ichem == 1 .and. idirect > 0) .or. iclimaaer == 1 ) then
+    if ( linteract .or. iclimaaer == 1 ) then
       do n = n1 , n2
         if ( czengt0(n) ) then
           aeradfo(n) = -(x0fsntc(n)-fsntc(n)) * d_r1000
@@ -1933,7 +1935,7 @@ module mod_rad_radiation
     ! FAB LW radiative forcing ( rad=1 : avec dust)
     !
     nradaer = 1
-    if ( ichem == 1 .and. idirect > 0 ) then
+    if ( linteract ) then
       nradaer = 2
     end if
 
@@ -1943,8 +1945,7 @@ module mod_rad_radiation
 
     do irad = 1 , nradaer
 
-      if ( (ichem == 1 .and. idirect > 0 .and. irad == 2) .or. &
-           iclimaaer == 1 ) then
+      if ( (linteract .and. irad == 2) .or. iclimaaer == 1 ) then
         abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
         emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
@@ -2052,7 +2053,7 @@ module mod_rad_radiation
       !
       ! FAB radiative forcing sur fsul
       !
-      if ( ichem == 1 .and. idirect > 0 .and. irad == 1 ) then
+      if ( linteract .and. irad == 1 ) then
         fsul0(:,:) = fsul(:,:) ! save fsul0 = no dust
         fsdl0(:,:) = fsdl(:,:) !
         ful0(:,:) = ful(:,:)
@@ -2065,7 +2066,7 @@ module mod_rad_radiation
     ! FAB after this DO loop fsul account for dust LW effect
     ! which is OK in case of idirect=2
     ! also convert rad for to MKSA
-    if ( ichem == 1 .and. idirect > 0 ) then
+    if ( linteract ) then
       aerlwfo(:) = (fsul0(:,1) - fsul(:,1) ) * d_r1000
       aerlwfos(:) = ( (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
                     (fsul(:,kzp1)  - fsdl(:,kzp1) ) ) * d_r1000
@@ -2284,14 +2285,13 @@ module mod_rad_radiation
   !
   ! trayoslp - Tray/sslp
   !
-  subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns,lzero)
+  subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , intent(in) :: trayoslp
     real(rkx) , pointer , dimension(:) , intent(in) :: czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
     integer(ik4) , intent(in) :: ns
-    logical , intent(in) :: lzero
     !
     ! taugab   - Total column gas absorption optical depth
     ! tauray   - Column rayleigh optical depth
@@ -2496,10 +2496,9 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
+  subroutine radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    logical , intent(in) :: lzero
     real(rkx) , pointer , dimension(:) , intent(in) :: czen
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: tauxcl , tauxci
     logical , pointer , dimension(:) , intent(in) :: czengt0
@@ -3270,7 +3269,7 @@ module mod_rad_radiation
         pinpl(n,4) = (p2+pint(n,k2+1))*d_half
 
         ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        if ( ichem == 1 .and. idirect > 0 .or. iclimaaer == 1 ) then
+        if ( linteract .or. iclimaaer == 1 ) then
           do kn = 1 , 4
             xuinpl(n,k2,kn) = uinpl(n,kn)
           end do

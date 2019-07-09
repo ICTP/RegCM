@@ -658,7 +658,7 @@
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
- isnowdark = 0,  ! Snow darkening effect by CARB/DUST in CLM4.5
+ isnowdark = 1,  ! Snow darkening effect by CARB/DUST in CLM4.5
                  ! Reset to zero if CLM4.5 not used.
  iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
  ichjphcld = 1,  ! Impact of cloud aod on photolysis coef

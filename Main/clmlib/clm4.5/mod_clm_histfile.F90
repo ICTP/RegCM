@@ -2541,6 +2541,7 @@ module mod_clm_histfile
     real(rk8) , pointer :: hbuf1d(:)               ! 1d history buffer
     integer(ik4) , pointer :: nacs(:,:)            ! accumulation counter
     integer(ik4) , pointer :: nacs1d(:)            ! 1d accumulation counter
+    integer(ik4) , dimension(2) :: irange = [1,2]
     character(len=*) , parameter :: subname = 'hist_restart_ncd'
     type(subgrid_type) , pointer :: gcomm
     character(len=256) :: fnc
@@ -2683,7 +2684,7 @@ module mod_clm_histfile
                        &" positive is time-steps")
         call clm_addvar(clmvar_integer,ncid_hist(t),'ncprec', &
                   long_name="Flag for data precision", &
-                  flag_values=[1,2],valid_range=[1,2], &
+                  flag_values=irange,valid_range=irange, &
                   flag_meanings=["single-precision", "double-precision"])
         call clm_addvar(clmvar_logical,ncid_hist(t),'dov2xy', &
                   long_name="Output on 2D grid format (TRUE) or vector"&
