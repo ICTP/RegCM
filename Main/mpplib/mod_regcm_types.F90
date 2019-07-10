@@ -547,6 +547,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: phatms        ! atms%pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pfatms        ! atms%pf3d
     real(rkx) , pointer , dimension(:,:,:) :: za            ! atms%za
+    real(rkx) , pointer , dimension(:,:,:) :: zq            ! atms%zq
     real(rkx) , pointer , dimension(:,:,:) :: deltaz        ! atms%dzq
     real(rkx) , pointer , dimension(:,:) :: psatms          ! atms%ps2d
     real(rkx) , pointer , dimension(:,:,:,:) :: qxatms      ! atms%qxb3d

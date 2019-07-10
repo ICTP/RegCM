@@ -199,15 +199,16 @@ module mod_vertint
     end if
   end subroutine intlinreg_p
 
-  subroutine intlinreg_z(fz,f,hz,sig,i1,i2,j1,j2,km,z,kz)
+  subroutine intlinreg_z(fz,f,hz,sig,i1,i2,j1,j2,kz,z,km)
     implicit none
     integer(ik4) , intent(in) :: i1 , i2 , j1 , j2 , km , kz
-    real(rk8) , dimension(i1:i2,j1:j2,km) , intent(in) :: f , hz
-    real(rk8) , dimension(kz) , intent(in) :: z
-    real(rk8) , dimension(km) , intent(in) :: sig
-    real(rk8) , dimension(i1:i2,j1:j2,kz) , intent(out) :: fz
+    real(rkx) , dimension(i1:i2,j1:j2,km) , intent(in) ::  f
+    real(rkx) , dimension(i1:i2,j1:j2,kz) , intent(in) ::  hz
+    real(rkx) , dimension(km) , intent(in) :: z
+    real(rkx) , dimension(kz) , intent(in) :: sig
+    real(rkx) , dimension(i1:i2,j1:j2,kz) , intent(out) :: fz
     integer(ik4) :: i , j , k , kx , knx , n
-    real(rk8) :: w1 , wz
+    real(rkx) :: w1 , wz
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION
@@ -228,31 +229,30 @@ module mod_vertint
             !
             ! Over the top or below bottom level
             !
-            if ( z(n) <= hz(i,j,km) ) then
+            if ( z(km) >= hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,km)
               cycle
-            else if ( z(n) >= hz(i,j,1) ) then
+            else if ( z(1) <=  hz(i,j,n) ) then
               fz(i,j,n) = f(i,j,1)
               cycle
             end if
             !
             ! Search k level above the requested one
             !
-            do k = 2 , km
+            do k = km , 2, -1
               kx = k
-              if ( hz(i,j,k) > z(n) ) exit
+              if ( hz(i,j,n) < z(k) ) exit
             end do
             !
             ! This is the below level
             !
-            knx = kx - 1
-            wz = (hz(i,j,kx)-z(n))/(hz(i,j,kx)-hz(i,j,knx))
+            knx = kx +1
+            wz = (hz(i,j,n)-z(kx))/(z(knx)-z(kx))
             w1 = 1.0 - wz
             fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
           end do
         end do
       end do
-    !
     ! HERE TOP TO BOTTOM
     !
     else
