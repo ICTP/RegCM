@@ -511,7 +511,11 @@ module mod_params
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
     idirect = 0       ! tracer direct effect
+#ifdef CLM45
+    isnowdark = 1     ! Snow darkening by CARB/DUST
+#else
     isnowdark = 0     ! Snow darkening by CARB/DUST
+#endif
     iindirect = 0
     ichdiag = 0       ! chem tend outputs
     ichsursrc = 1
@@ -1485,6 +1489,7 @@ module mod_params
       call bcast(ismoke)
 
       call chem_config
+
       ! the following param are set according in chem-config !
       call bcast(ntr)
       call bcast(nbin)

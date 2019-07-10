@@ -516,7 +516,7 @@ module mod_che_drydep
 
             if ( lcov /= 9 .and.  lcov /= 10 .and.  lcov /= 12 .and. &
                  lcov /= 13 .and. lcov /= 15 .and. lcov /= 16 ) then
- 
+            if ( ast(lcov) > d_zero ) then
               st = taurel(i,kz,n)*ustar(i,l)*regrav/ast(lcov)
               eb = schm(i)**(-agam(lcov))
             else

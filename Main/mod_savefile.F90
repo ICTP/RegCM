@@ -236,16 +236,18 @@ module mod_savefile
       call getmem2d(ustar_io,jcross1,jcross2,icross1,icross2,'ustar_io')
       call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
 
-      call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
+#ifndef CLM45
       call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
-      call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
+      call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
+      call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
+#endif
       call getmem3d(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
       call getmem3d(sfice_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sfice_io')
+      call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
       call getmem4d(sw_io,1,nnsg,jcross1,jcross2,icross1,icross2, &
                           1,num_soil_layers,'sw_io')
       call getmem3d(tgrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd_io')
       call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
-      call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
       call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
       call getmem3d(emisv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emisv_io')
       call getmem3d(um10_io,1,nnsg,jcross1,jcross2,icross1,icross2,'um10_io')
@@ -544,18 +546,20 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read tgbrd')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'sncv'),sncv_io)
       call check_ok(__FILE__,__LINE__,'Cannot read sncv')
+#ifndef CLM45
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'gwet'),gwet_io)
       call check_ok(__FILE__,__LINE__,'Cannot read gwet')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew_io)
       call check_ok(__FILE__,__LINE__,'Cannot read ldew')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'snag'),snag_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read snag')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfice'),sfice_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read sfice')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk1'),ldmsk1_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ldmsk1')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'taf'),taf_io)
       call check_ok(__FILE__,__LINE__,'Cannot read taf')
+#endif
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfice'),sfice_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read sfice')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'snag'),snag_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read snag')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk1'),ldmsk1_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read ldmsk1')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emisv_io)
       call check_ok(__FILE__,__LINE__,'Cannot read emiss')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'um10'),um10_io)
@@ -607,18 +611,20 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot read remdrd')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw2da'),ssw2da_io)
         call check_ok(__FILE__,__LINE__,'Cannot read ssw2da')
+#ifndef CLM45
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelq'),sdelq_io)
         call check_ok(__FILE__,__LINE__,'Cannot read sdelq')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelt'),sdelt_io)
         call check_ok(__FILE__,__LINE__,'Cannot read sdelt')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'svegfrac2d'),svegfrac2d_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read svegfrac2d')
+#endif
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracb2d'),sfracb2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read sfracb2d')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracs2d'),sfracs2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read sfracs2d')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracv2d'),sfracv2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read sfracv2d')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'svegfrac2d'),svegfrac2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read svegfrac2d')
       end if
       if ( idynamic == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'dstor'),dstor_io)
@@ -826,12 +832,14 @@ module mod_savefile
       call mydefvar(ncid,'tgrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
+#ifndef CLM45
       call mydefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
+#endif
+      call mydefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call mydefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call mydefvar(ncid,'um10',regcm_vartype,wrkdim,1,3,varids,ivcc)
       if ( idcsst == 1 ) then
@@ -882,12 +890,14 @@ module mod_savefile
         wrkdim(3) = dimids(idntr)
         call mydefvar(ncid,'remdrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
         call mydefvar(ncid,'ssw2da',regcm_vartype,wrkdim,1,2,varids,ivcc)
+#ifndef CLM45
         call mydefvar(ncid,'sdelq',regcm_vartype,wrkdim,1,2,varids,ivcc)
         call mydefvar(ncid,'sdelt',regcm_vartype,wrkdim,1,2,varids,ivcc)
+        call mydefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+#endif
         call mydefvar(ncid,'sfracb2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
         call mydefvar(ncid,'sfracs2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
         call mydefvar(ncid,'sfracv2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
       end if
       if ( idynamic == 1 ) then
         wrkdim(1) = dimids(idjdot)
@@ -1020,12 +1030,14 @@ module mod_savefile
       call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
       call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
       call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
+#ifndef CLM45
       call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
       call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
-      call myputvar(ncid,'snag',snag_io,varids,ivcc)
-      call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
-      call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
       call myputvar(ncid,'taf',taf_io,varids,ivcc)
+#endif
+      call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
+      call myputvar(ncid,'snag',snag_io,varids,ivcc)
+      call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
       call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
       call myputvar(ncid,'um10',um10_io,varids,ivcc)
       if ( idcsst == 1 ) then
@@ -1062,12 +1074,14 @@ module mod_savefile
         call myputvar(ncid,'washout',washout_io,varids,ivcc)
         call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
         call myputvar(ncid,'ssw2da',ssw2da_io,varids,ivcc)
+#ifndef CLM45
         call myputvar(ncid,'sdelq',sdelq_io,varids,ivcc)
         call myputvar(ncid,'sdelt',sdelt_io,varids,ivcc)
+        call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)
+#endif
         call myputvar(ncid,'sfracb2d',sfracb2d_io,varids,ivcc)
         call myputvar(ncid,'sfracs2d',sfracs2d_io,varids,ivcc)
         call myputvar(ncid,'sfracv2d',sfracv2d_io,varids,ivcc)
-        call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)
       end if
       if ( idynamic == 1 ) then
         call myputvar(ncid,'dstor',dstor_io,varids,ivcc)
@@ -1142,7 +1156,7 @@ module mod_savefile
     iivar = iivar + 1
     ncstatus = nf90_def_var(ncid,str,ityp,idims(i1:i2),ivar(iivar))
     call check_ok(__FILE__,__LINE__,'Cannot create var '//trim(str))
-#if defined(NETCDF4_HDF5)
+#if defined (NETCDF4_HDF5)
 #if defined (NETCDF4_COMPRESS)
     ncstatus = nf90_def_var_deflate(ncid,ivar(iivar),1,1,deflate_level)
     call check_ok(__FILE__,__LINE__, &

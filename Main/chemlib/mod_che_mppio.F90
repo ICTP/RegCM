@@ -64,18 +64,20 @@ module mod_che_mppio
 
           call getmem2d(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')
+#ifndef CLM45
           call getmem2d(sdelq_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sdelq_io')
           call getmem2d(sdelt_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sdelt_io')
+          call getmem2d(svegfrac2d_io,jcross1,jcross2,icross1,icross2, &
+                        'che_mppio:svegfrac2d_io')
+#endif
           call getmem2d(sfracb2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracb2d_io')
           call getmem2d(sfracs2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracs2d_io')
           call getmem2d(sfracv2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracv2d_io')
-          call getmem2d(svegfrac2d_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:svegfrac2d_io')
 
           call getmem4d(chia_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:chia_io')
