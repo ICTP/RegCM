@@ -1156,7 +1156,7 @@ module mod_savefile
     iivar = iivar + 1
     ncstatus = nf90_def_var(ncid,str,ityp,idims(i1:i2),ivar(iivar))
     call check_ok(__FILE__,__LINE__,'Cannot create var '//trim(str))
-#if defined(NETCDF4_HDF5)
+#if defined (NETCDF4_HDF5)
 #if defined (NETCDF4_COMPRESS)
     ncstatus = nf90_def_var_deflate(ncid,ivar(iivar),1,1,deflate_level)
     call check_ok(__FILE__,__LINE__, &

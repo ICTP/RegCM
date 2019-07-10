@@ -510,6 +510,7 @@ module mod_mppparam
   logical , pointer , dimension(:) :: lvector2
   integer(ik4) , dimension(4) :: window
   integer(ik4) , pointer , dimension(:) :: windows
+  integer(ik4) , dimension(1) , target :: ifake
   integer(ik4) , pointer , dimension(:) :: wincount
   integer(ik4) , pointer , dimension(:) :: windispl
   integer(ik4) :: mpierr
@@ -1369,7 +1370,7 @@ module mod_mppparam
       if ( myid == ccio ) then
         call getmem1d(windows,1,nproc*4,'set_nproc:windows')
       else
-        windows => null()
+        windows => ifake
       end if
       call getmem1d(wincount,1,nproc*4,'set_nproc:wincount')
       call getmem1d(windispl,1,nproc*4,'set_nproc:windispl')

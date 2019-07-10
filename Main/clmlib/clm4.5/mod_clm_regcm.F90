@@ -493,7 +493,6 @@ module mod_clm_regcm
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
-! samy
 #ifdef LCH4
       clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
@@ -509,13 +508,12 @@ module mod_clm_regcm
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
       clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
-! samy
 #ifdef LCH4
       clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       if ( use_c13 ) then
-       ! C13O2 partial pressure (Pa)
-       clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
+        ! C13O2 partial pressure (Pa)
+        clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
       end if
       ! O2 partial pressure (Pa)
       clm_a2l%forc_po2 = o2_molar_const*clm_a2l%forc_psrf
