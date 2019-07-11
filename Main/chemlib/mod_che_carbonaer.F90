@@ -101,7 +101,6 @@ module mod_che_carbonaer
       implicit none
       integer(ik4) :: i , j , k
       real(rkx) :: kav , pm
-      if ( .not. carb_aging_control ) return
       ncon(:,:,:) = d_zero
       surf(:,:,:) = d_zero
       if ( ibchb > 0 ) then

@@ -66,9 +66,9 @@ module mod_che_interface
   public :: chemall , chemall_io
   public :: washout , washout_io
   public :: remdrd , remdrd_io
-  public :: rainout , rainout_io
+  public :: rainout , rainout_io , convpr_io
   public :: sdelq_io , sdelt_io , sfracb2d_io , sfracs2d_io , ssw2da_io
-  public :: sfracv2d_io , svegfrac2d_io , taucldsp_io
+  public :: duflux_io , voflux_io , sfracv2d_io , svegfrac2d_io , taucldsp_io
 
   contains
 
@@ -171,10 +171,11 @@ module mod_che_interface
     call assignpnt(voc_em_clm,cvoc_em_clm)
     call assignpnt(dustflx_clm,cdustflx_clm)
     call assignpnt(idusts,idust)
-    call assignpnt(dep_vels_clm,cdep_vels_clm)
     call assignpnt(sw_vol,csw_vol)
     call assignpnt(tsoi,ctsoi)
 #endif
+
+    call init_cumtran
 
   end subroutine init_chem
 

@@ -185,7 +185,7 @@ module mod_che_bdyco
         if ( .not. ifrest ) then
           write(stdout,*) 'READY ICCH DATA for ', appdat
         else
-          write(stdout,*) 'READY BCCH DATA for ', appdat
+          write(stdout,*) 'READY CHBC DATA for ', appdat
         end if
       end if
 

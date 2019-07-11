@@ -443,8 +443,13 @@ module mod_init
       end if
 
       call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
-                                           ici1,ici2,1,num_soil_layers)
-#ifndef CLM45
+                              ici1,ici2,1,num_soil_layers)
+#ifdef CLM45
+      call grid_distribute(tsoi_io,tsoi,jci1,jci2, &
+                              ici1,ici2,1,num_soil_layers)
+      call grid_distribute(swvol_io,sw_vol,jci1,jci2, &
+                              ici1,ici2,1,num_soil_layers)
+#else
       call subgrid_distribute(gwet_io,lms%gwet,jci1,jci2,ici1,ici2)
       call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
       call subgrid_distribute(taf_io,lms%taf,jci1,jci2,ici1,ici2)
@@ -520,9 +525,10 @@ module mod_init
       end if
 
       if ( ichem == 1 ) then
-        call grid_distribute(rainout_io,rainout,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_distribute(washout_io,washout,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call grid_distribute(remdrd_io,remdrd,jce1,jce2,ice1,ice2,1,ntr)
+        call grid_distribute(convpr_io,convpr,jci1,jci2,ici1,ici2,1,kz)
+        call grid_distribute(rainout_io,rainout,jci1,jci2,ici1,ici2,1,kz,1,ntr)
+        call grid_distribute(washout_io,washout,jci1,jci2,ici1,ici2,1,kz,1,ntr)
+        call grid_distribute(remdrd_io,remdrd,jci1,jci2,ici1,ici2,1,ntr)
         if ( igaschem == 1 .and. ichsolver > 0 ) then
           call grid_distribute(chemall_io,chemall, &
                                 jci1,jci2,ici1,ici2,1,kz,1,totsp)
@@ -531,7 +537,10 @@ module mod_init
         end if
 
         call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
-#ifndef CLM45
+#ifdef CLM45
+        call grid_distribute(duflux_io,dustflx_clm,jci1,jci2,ici1,ici2,1,4)
+        call grid_distribute(voflux_io,voc_em_clm,jci1,jci2,ici1,ici2,1,ntr)
+#else
         call grid_distribute(sdelt_io,sdelt,jci1,jci2,ici1,ici2)
         call grid_distribute(sdelq_io,sdelq,jci1,jci2,ici1,ici2)
         call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)

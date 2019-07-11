@@ -1250,7 +1250,7 @@ module mod_che_ncio
                 end do
               end do
             end do
-          iafter = iafter + 1
+            iafter = iafter + 1
           end do
         end if
         if ( ioxclim == 1 ) then
@@ -1307,7 +1307,7 @@ module mod_che_ncio
                   end do
                 end do
               end do
-            iafter = iafter + 1
+              iafter = iafter + 1
             end do
           end if
           if ( ioxclim == 1 ) then
@@ -1350,7 +1350,7 @@ module mod_che_ncio
                   end do
                 end do
               end do
-            iafter = iafter + 1
+              iafter = iafter + 1
             end do
           end if
           if ( ioxclim == 1 ) then
