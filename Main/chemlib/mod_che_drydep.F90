@@ -508,14 +508,6 @@ module mod_che_drydep
             !
             ! Graziano - 2018-02-09 - updated Stokes number computation
             ! Before, only the formulation for smooth surfaces was used
-            ! here.
-            !FAB Bugfix should be consistent with ast=0 param
-            ! use lcov instead of ivegcov
-            !if ( lcov /= 8 .and.  lcov /= 9 .and.  lcov /= 11 .and. &
-            !     lcov /= 12 .and. lcov /= 14 .and. lcov /= 15 ) then
-
-            if ( lcov /= 9 .and.  lcov /= 10 .and.  lcov /= 12 .and. &
-                 lcov /= 13 .and. lcov /= 15 .and. lcov /= 16 ) then
             if ( ast(lcov) > d_zero ) then
               st = taurel(i,kz,n)*ustar(i,l)*regrav/ast(lcov)
               eb = schm(i)**(-agam(lcov))
