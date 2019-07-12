@@ -125,6 +125,7 @@ PreProc/CLM45/*.mod
 PreProc/ICBC/Makefile
 PreProc/ICBC/Makefile.in
 PreProc/ICBC/chem_icbc
+PreProc/ICBC/clmbc
 PreProc/ICBC/icbc
 PreProc/ICBC/sst
 PreProc/ICBC/*.o
