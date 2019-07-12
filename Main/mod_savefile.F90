@@ -1086,6 +1086,7 @@ module mod_savefile
         call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
         call myputvar(ncid,'taucldsp',taucldsp_io,varids,ivcc)
       end if
+      call myputvar(ncid,'convpr',convpr_io,varids,ivcc)
       call myputvar(ncid,'rainout',rainout_io,varids,ivcc)
       call myputvar(ncid,'washout',washout_io,varids,ivcc)
       call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
