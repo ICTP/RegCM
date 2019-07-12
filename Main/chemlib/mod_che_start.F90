@@ -420,11 +420,13 @@ module mod_che_start
     ! Finally initialise chia and chib to chib0 over the whole domain
 
     if ( .not. ifrest ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            chia(j,i,k,:) = max(chib0(j,i,k,:),d_zero)
-            chib(j,i,k,:) = max(chib0(j,i,k,:),d_zero)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              chia(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+              chib(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+            end do
           end do
         end do
       end do

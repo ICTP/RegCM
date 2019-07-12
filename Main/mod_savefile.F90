@@ -47,7 +47,7 @@ module mod_savefile
   public :: read_savefile
   public :: write_savefile
 
-  integer(ik4) , parameter :: maxdims = 17
+  integer(ik4) , parameter :: maxdims = 18
   integer(ik4) , parameter :: maxvars = 128
   integer(ik4) :: ncstatus
 
@@ -68,6 +68,7 @@ module mod_savefile
   integer(ik4) , parameter :: iddpt = 15
   integer(ik4) , parameter :: ikern = 16
   integer(ik4) , parameter :: indep = 17
+  integer(ik4) , parameter :: idndu = 18
 
   integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io
   integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io
@@ -110,6 +111,8 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:) :: sfice_io
   real(rkx) , public , pointer , dimension(:,:,:) :: gwet_io
   real(rkx) , public , pointer , dimension(:,:,:,:) :: sw_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: tsoi_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: swvol_io
   real(rkx) , public , pointer , dimension(:,:,:) :: taf_io
   real(rkx) , public , pointer , dimension(:,:,:) :: tgrd_io
   real(rkx) , public , pointer , dimension(:,:,:) :: tgbrd_io
@@ -238,7 +241,12 @@ module mod_savefile
       call getmem2d(ustar_io,jcross1,jcross2,icross1,icross2,'ustar_io')
       call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
 
-#ifndef CLM45
+#ifdef CLM45
+      call getmem3d(tsoi_io,jcross1,jcross2,icross1,icross2, &
+                          1,num_soil_layers,'tsoi_io')
+      call getmem3d(swvol_io,jcross1,jcross2,icross1,icross2, &
+                          1,num_soil_layers,'swvol_io')
+#else
       call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
       call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
       call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
@@ -553,7 +561,12 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read tgbrd')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'sncv'),sncv_io)
       call check_ok(__FILE__,__LINE__,'Cannot read sncv')
-#ifndef CLM45
+#ifdef CLM45
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tsoi'),tsoi_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read tsoi')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swvol'),swvol_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read swvol')
+#else
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'gwet'),gwet_io)
       call check_ok(__FILE__,__LINE__,'Cannot read gwet')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew_io)
@@ -610,6 +623,8 @@ module mod_savefile
           ncstatus = nf90_get_var(ncid,get_varid(ncid,'taucldsp'),taucldsp_io)
           call check_ok(__FILE__,__LINE__,'Cannot read taucldsp')
         end if
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'convpr'),convpr_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read convpr')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'rainout'),rainout_io)
         call check_ok(__FILE__,__LINE__,'Cannot read rainout')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'washout'),washout_io)
@@ -618,7 +633,12 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot read remdrd')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw2da'),ssw2da_io)
         call check_ok(__FILE__,__LINE__,'Cannot read ssw2da')
-#ifndef CLM45
+#ifdef CLM45
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'duflux'),duflux_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read duflux')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'voflux'),voflux_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read voflux')
+#else
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelq'),sdelq_io)
         call check_ok(__FILE__,__LINE__,'Cannot read sdelq')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelt'),sdelt_io)
@@ -724,6 +744,9 @@ module mod_savefile
         dimids(idspi) = savedefdim(ncid,'nspi',nspi)
         dimids(idtotsp) = savedefdim(ncid,'totsp',totsp)
       end if
+#ifdef CLM45
+      dimids(idndu) = savedefdim(ncid,'ndust',4)
+#endif
     end if
     if ( lakemod == 1 ) then
       dimids(iddpt) = savedefdim(ncid,'dpt',ndpmax)
@@ -798,6 +821,7 @@ module mod_savefile
     end if
     if ( irrtm == 0 ) then
       wrkdim(3) = dimids(idkh)
+<<<<<<< HEAD
       wrkdim(4) = dimids(idspw)
       call savedefvar(ncid,'gasabsnxt',regcm_vartype,wrkdim,1,4,varids,ivcc)
       wrkdim(3) = dimids(idkf)
@@ -825,11 +849,21 @@ module mod_savefile
     call savedefvar(ncid,'tgrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
-#ifndef CLM45
+#ifdef CLM45
+    wrkdim(1) = dimids(idjcross)
+    wrkdim(2) = dimids(idicross)
+    wrkdim(3) = dimids(indep)
+    call savedefvar(ncid,'tsoi',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'swvol',regcm_vartype,wrkdim,1,3,varids,ivcc)
+#else
     call savedefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
 #endif
+    wrkdim(1) = dimids(idnnsg)
+    wrkdim(2) = dimids(idjcross)
+    wrkdim(3) = dimids(idicross)
+    wrkdim(4) = dimids(indep)
     call savedefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
@@ -878,12 +912,18 @@ module mod_savefile
       end if
       wrkdim(3) = dimids(idkh)
       wrkdim(4) = dimids(idntr)
+      call savedefvar(ncid,'convpr',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'rainout',regcm_vartype,wrkdim,1,4,varids,ivcc)
       call savedefvar(ncid,'washout',regcm_vartype,wrkdim,1,4,varids,ivcc)
       wrkdim(3) = dimids(idntr)
       call savedefvar(ncid,'remdrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'ssw2da',regcm_vartype,wrkdim,1,2,varids,ivcc)
-#ifndef CLM45
+#ifdef CLM45
+      wrkdim(3) = dimids(idndu)
+      call savedefvar(ncid,'duflux',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(3) = dimids(idntr)
+      call savedefvar(ncid,'voflux',regcm_vartype,wrkdim,1,3,varids,ivcc)
+#else
       call savedefvar(ncid,'sdelq',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'sdelt',regcm_vartype,wrkdim,1,2,varids,ivcc)
       call savedefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
@@ -1004,7 +1044,10 @@ module mod_savefile
     call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
     call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
     call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
-#ifndef CLM45
+#ifdef CLM45
+    call myputvar(ncid,'tsoi',tsoi_io,varids,ivcc)
+    call myputvar(ncid,'swvol',tsoi_io,varids,ivcc)
+#else
     call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
     call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
     call myputvar(ncid,'taf',taf_io,varids,ivcc)
@@ -1048,7 +1091,10 @@ module mod_savefile
       call myputvar(ncid,'washout',washout_io,varids,ivcc)
       call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
       call myputvar(ncid,'ssw2da',ssw2da_io,varids,ivcc)
-#ifndef CLM45
+#ifdef CLM45
+      call myputvar(ncid,'duflux',duflux_io,varids,ivcc)
+      call myputvar(ncid,'voflux',voflux_io,varids,ivcc)
+#else
       call myputvar(ncid,'sdelq',sdelq_io,varids,ivcc)
       call myputvar(ncid,'sdelt',sdelt_io,varids,ivcc)
       call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)

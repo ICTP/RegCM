@@ -25,6 +25,7 @@ module mod_micro_wsm5
   use mod_dynparam
   use mod_memutil
   use mod_runparams , only : ichem , dt , dtsec , iqi , iqc , iqr , iqs , iqv
+  use mod_runparams , only : dsigma
   use mod_regcm_types
 
   private
@@ -75,6 +76,9 @@ module mod_micro_wsm5
 
   real(rkx) , parameter :: minni = 1.0e3_rkx
   real(rkx) , parameter :: maxni = 1.0e6_rkx
+
+  real(rkx) , parameter :: thog = d_1000*regrav
+  real(rkx) , parameter :: uch = thog*secph
 
   !real(rkx) , parameter :: xa = -(cpv-cpw)/rwat
   !real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
@@ -214,7 +218,7 @@ module mod_micro_wsm5
     type(micro_2_mod) , intent(out) :: mc2mo
 
     integer(ik4) :: i , j , k , kk , n
-    real(rkx) :: pf1 , pf2
+    real(rkx) :: pf1 , pf2 , qcw
 
     ! to calculate effective radius for radiation
     !real(rkx) , dimension(kz) :: qv1d , t1d , p1d , qr1d , qs1d
@@ -307,6 +311,26 @@ module mod_micro_wsm5
             end if
             mc2mo%remrat(j,i,k) = pf1 + pf2
             n = n + 1
+          end do
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          mc2mo%rembc(j,i,1) = d_zero
+        end do
+      end do
+      do k = 2 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mc2mo%rembc(j,i,k) = d_zero
+            if ( mc2mo%remrat(j,i,k) > d_zero ) then
+              do kk = 1 , k - 1
+                qcw = mo2mc%qcn(j,i,k)
+                mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
+                  mc2mo%remrat(j,i,kk) * qcw * &
+                              mo2mc%psb(j,i) * dsigma(kk) * uch
+              end do
+            end if
           end do
         end do
       end do

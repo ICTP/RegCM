@@ -118,9 +118,6 @@ module mod_che_sox
          so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
          so2_snk(i,k) = so2_avail*(d_one-exp(-so2_rate*dt))
 
-         if ( carb_aging_control ) then
-           so4chagct(j,i,k) = 1.5_rkx*so2_snk(i,k)
-         end if
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(i,k)*cldno
 
@@ -133,6 +130,14 @@ module mod_che_sox
          end if
        end do
      end do
+
+     if ( carb_aging_control ) then
+       do k = 1 , kz
+         do i = ici1 , ici2
+           so4chagct(j,i,k) = 1.5_rkx*so2_snk(i,k)
+         end do
+       end do
+     end if
 
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      ! AQUEOUS CONVERSION IN CLOUDS

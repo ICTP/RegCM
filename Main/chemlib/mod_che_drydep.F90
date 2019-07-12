@@ -651,7 +651,7 @@ module mod_che_drydep
             ! frequency than drydepflx accum !
             ! do not use drydepflx in the formula
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                     (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
+                     (chib(j,i,kz,indsp(ib)) - settend(i,kz)*dt/d_two) / &
                       cpsb(j,i) * crhob3d(j,i,kz)*ddepv(i,indsp(ib)) * cfdout
             ! alternative formulation using tendency/flux relationship
             ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
