@@ -190,6 +190,8 @@ module mod_savefile
   subroutine allocate_mod_savefile
     implicit none
 
+    if ( do_parallel_netcdf_out .and. do_parallel_netcdf_in ) return
+
     if ( myid == iocpu ) then
       call getmem3d(atm1_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_u_io')
       call getmem3d(atm1_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_v_io')
@@ -355,7 +357,12 @@ module mod_savefile
   end subroutine allocate_mod_savefile
 
   subroutine read_savefile(idate)
+#ifdef PNETCDF
+    use pnetcdf
+    use mpi , only : mpi_comm_self
+#else
     use netcdf
+#endif
     implicit none
     type (rcm_time_and_date) , intent(in) :: idate
     type (rcm_time_and_date) :: idatex
@@ -680,436 +687,401 @@ module mod_savefile
     integer(ik4) :: ioff
 #endif
 
-#ifdef PNETCDF
-    iomode = ior(nf90_clobber, nf90_64bit_offset)
+    if ( .not. do_parallel_netcdf_out ) then
+      if ( myid /= iocpu ) then
+#ifdef CLM
+        ioff = dtsrf-dtsec
+        filer_rest = restFile_filename(type='netcdf',offset=ioff)
+        call restFile_write(filer_rest)
+        filer_rest = restFile_filename(type='binary',offset=ioff)
+        call restFile_write_binary(filer_rest)
 #endif
+        return
+      end if
+    end if
 
-    if ( myid == iocpu ) then
-      write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
-      ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+    write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
+    ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+    call savecreate(ffout,ncid)
+    dimids(idjcross) = savedefdim(ncid,'jcross',jcross2-jcross1+1)
+    dimids(idicross) = savedefdim(ncid,'icross',icross2-icross1+1)
+    dimids(idjdot) = savedefdim(ncid,'jdot',jdot2-jdot1+1)
+    dimids(ididot) = savedefdim(ncid,'idot',idot2-idot1+1)
+    dimids(idkh) = savedefdim(ncid,'khalf',kz)
+    dimids(idkf) = savedefdim(ncid,'kfull',kz+1)
+    if ( idynamic == 1 ) then
+      dimids(idnsplit) = savedefdim(ncid,'nsplit',nsplit)
+    end if
+    dimids(idnnsg) = savedefdim(ncid,'nnsg',nnsg)
+    dimids(idmonth) = savedefdim(ncid,'month',12)
+    dimids(idnqx) = savedefdim(ncid,'nqx',nqx)
+    if ( irrtm == 0 ) then
+      dimids(idspw) = savedefdim(ncid,'spw',4)
+    end if
+    if ( ichem == 1 ) then
+      dimids(idntr) = savedefdim(ncid,'ntr',ntr)
+      if ( igaschem == 1 .and. ichsolver > 0 ) then
+        dimids(idspi) = savedefdim(ncid,'nspi',nspi)
+        dimids(idtotsp) = savedefdim(ncid,'totsp',totsp)
+      end if
+    end if
+    if ( lakemod == 1 ) then
+      dimids(iddpt) = savedefdim(ncid,'dpt',ndpmax)
+    end if
+    if ( idynamic == 2 .and. ifupr == 1 ) then
+      dimids(ikern) = savedefdim(ncid,'ikern',13)
+    end if
+    dimids(indep) = savedefdim(ncid,'soil_layers',num_soil_layers)
 
-      ! Use 64-bit offset format file, instead of a netCDF classic format file.
-      ! Sometimes SAV files can be really big...
-      ncstatus = nf90_create(ffout, iomode, ncid)
-      call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(ffout))
-
-      ncstatus = nf90_def_dim(ncid,'jcross',jcross2-jcross1+1,dimids(idjcross))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension jcross')
-      ncstatus = nf90_def_dim(ncid,'icross',icross2-icross1+1,dimids(idicross))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension icross')
-      ncstatus = nf90_def_dim(ncid,'jdot',jdot2-jdot1+1,dimids(idjdot))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension jdot')
-      ncstatus = nf90_def_dim(ncid,'idot',idot2-idot1+1,dimids(ididot))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension idot')
-      ncstatus = nf90_def_dim(ncid,'khalf',kz,dimids(idkh))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension khalf')
-      ncstatus = nf90_def_dim(ncid,'kfull',kz+1,dimids(idkf))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension kfull')
-      if ( idynamic == 1 ) then
-        ncstatus = nf90_def_dim(ncid,'nsplit',nsplit,dimids(idnsplit))
-        call check_ok(__FILE__,__LINE__,'Cannot create dimension nsplit')
+    ivcc = 0
+    wrkdim(1) = dimids(idjdot)
+    wrkdim(2) = dimids(ididot)
+    wrkdim(3) = dimids(idkh)
+    call savedefvar(ncid,'atm1_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'atm2_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'atm1_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'atm2_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    wrkdim(1) = dimids(idjcross)
+    wrkdim(2) = dimids(idicross)
+    wrkdim(3) = dimids(idkh)
+    call savedefvar(ncid,'atm1_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'atm2_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    wrkdim(4) = dimids(idnqx)
+    call savedefvar(ncid,'atm1_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+    call savedefvar(ncid,'atm2_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+    if ( ibltyp == 2 ) then
+      wrkdim(3) = dimids(idkf)
+      call savedefvar(ncid,'atm1_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm2_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
+    else if ( ibltyp == 4 ) then
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_uz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_vz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_thz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'myjsf_qz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+    if ( idynamic == 2 ) then
+      wrkdim(3) = dimids(idkf)
+      call savedefvar(ncid,'atm1_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm2_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'atm1_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm2_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
+    call savedefvar(ncid,'psa',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'psb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'hfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'qfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'uvdrag',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'q2m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'u10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'v10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'w10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'br',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'ram',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'rah',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'ustar',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'zo',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    wrkdim(3) = dimids(idkh)
+    if ( any(icup == 3) ) then
+      call savedefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+    if ( any(icup == 6) .or. any(icup == 5) ) then
+      call savedefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
+    if ( any(icup == 4) ) then
+      call savedefvar(ncid,'cbmf2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+    if ( irrtm == 0 ) then
+      wrkdim(3) = dimids(idkh)
+      wrkdim(4) = dimids(idspw)
+      call savedefvar(ncid,'gasabsnxt',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      wrkdim(3) = dimids(idkf)
+      wrkdim(4) = dimids(idkf)
+      call savedefvar(ncid,'gasabstot',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call savedefvar(ncid,'gasemstot',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
+    if ( ipptls > 0 ) then
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
+    call savedefvar(ncid,'dsol',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'solvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'solvld',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'sabveg',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    wrkdim(1) = dimids(idnnsg)
+    wrkdim(2) = dimids(idjcross)
+    wrkdim(3) = dimids(idicross)
+    wrkdim(4) = dimids(indep)
+    call savedefvar(ncid,'sw',regcm_vartype,wrkdim,1,4,varids,ivcc)
+    call savedefvar(ncid,'tlef',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'tgrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
+#ifndef CLM45
+    call savedefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
+#endif
+    call savedefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'um10',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    if ( idcsst == 1 ) then
+      call savedefvar(ncid,'sst',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'tskin',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'deltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'tdeltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
+#ifndef CLM
+    if ( lakemod == 1 ) then
+      call savedefvar(ncid,'eta',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'hi',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(4) = dimids(iddpt)
+      call savedefvar(ncid,'tlak',regcm_vartype,wrkdim,1,4,varids,ivcc)
+    end if
+#endif
+    wrkdim(1) = dimids(idjcross)
+    wrkdim(2) = dimids(idicross)
+    wrkdim(3) = dimids(idkh)
+    call savedefvar(ncid,'heatrt',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    wrkdim(3) = dimids(idkf)
+    call savedefvar(ncid,'o3prof',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'flw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'flwd',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    call savedefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
+    if ( iocnflx == 2 .or. ibltyp == 3 ) then
+      call savedefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+    if ( ichem == 1 ) then
+      wrkdim(3) = dimids(idkh)
+      wrkdim(4) = dimids(idntr)
+      call savedefvar(ncid,'chia',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call savedefvar(ncid,'chib',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      if ( igaschem == 1 .and. ichsolver > 0 ) then
+        wrkdim(3) = dimids(idkh)
+        wrkdim(4) = dimids(idtotsp)
+        call savedefvar(ncid,'chemall',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        wrkdim(3) = dimids(idkf)
+        wrkdim(4) = dimids(idspi)
+        call savedefvar(ncid,'taucldsp',regcm_vartype,wrkdim,1,4,varids,ivcc)
       end if
-      ncstatus = nf90_def_dim(ncid,'nnsg',nnsg,dimids(idnnsg))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension nnsg')
-      ncstatus = nf90_def_dim(ncid,'month',12,dimids(idmonth))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension month')
-      ncstatus = nf90_def_dim(ncid,'nqx',nqx,dimids(idnqx))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension nqx')
-      if ( irrtm == 0 ) then
-        ncstatus = nf90_def_dim(ncid,'spw',4,dimids(idspw))
-        call check_ok(__FILE__,__LINE__,'Cannot create dimension spw')
-      end if
-      if ( ichem == 1 ) then
-        ncstatus = nf90_def_dim(ncid,'ntr',ntr,dimids(idntr))
-        call check_ok(__FILE__,__LINE__,'Cannot create dimension ntr')
-        if ( igaschem == 1 .and. ichsolver > 0 ) then
-          ncstatus = nf90_def_dim(ncid,'nspi',nspi,dimids(idspi))
-          call check_ok(__FILE__,__LINE__,'Cannot create dimension nspi')
-          ncstatus = nf90_def_dim(ncid,'totsp',totsp,dimids(idtotsp))
-          call check_ok(__FILE__,__LINE__,'Cannot create dimension totsp')
-        end if
-      end if
-      if ( lakemod == 1 ) then
-        ncstatus = nf90_def_dim(ncid,'dpt',ndpmax,dimids(iddpt))
-        call check_ok(__FILE__,__LINE__,'Cannot create dimension dpt')
-      end if
-      if ( idynamic == 2 .and. ifupr == 1 ) then
-        ncstatus = nf90_def_dim(ncid,'ikern',13,dimids(ikern))
-        call check_ok(__FILE__,__LINE__,'Cannot create dimension ikern')
-      end if
-      ncstatus = nf90_def_dim(ncid,'soil_layers',num_soil_layers,dimids(indep))
-      call check_ok(__FILE__,__LINE__,'Cannot create dimension indep')
-
-      ivcc = 0
+      wrkdim(3) = dimids(idkh)
+      wrkdim(4) = dimids(idntr)
+      call savedefvar(ncid,'rainout',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call savedefvar(ncid,'washout',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      wrkdim(3) = dimids(idntr)
+      call savedefvar(ncid,'remdrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'ssw2da',regcm_vartype,wrkdim,1,2,varids,ivcc)
+#ifndef CLM45
+      call savedefvar(ncid,'sdelq',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'sdelt',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+#endif
+      call savedefvar(ncid,'sfracb2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'sfracs2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'sfracv2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+    if ( idynamic == 1 ) then
       wrkdim(1) = dimids(idjdot)
       wrkdim(2) = dimids(ididot)
-      wrkdim(3) = dimids(idkh)
-      call mydefvar(ncid,'atm1_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm2_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm1_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm2_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      wrkdim(1) = dimids(idjcross)
-      wrkdim(2) = dimids(idicross)
-      wrkdim(3) = dimids(idkh)
-      call mydefvar(ncid,'atm1_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'atm2_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      wrkdim(4) = dimids(idnqx)
-      call mydefvar(ncid,'atm1_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      call mydefvar(ncid,'atm2_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      if ( ibltyp == 2 ) then
-        wrkdim(3) = dimids(idkf)
-        call mydefvar(ncid,'atm1_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'atm2_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
-      else if ( ibltyp == 4 ) then
-        wrkdim(3) = dimids(idkh)
-        call mydefvar(ncid,'tke_pbl',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_uz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_vz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_thz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'myjsf_qz0',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      end if
-      if ( idynamic == 2 ) then
-        wrkdim(3) = dimids(idkf)
-        call mydefvar(ncid,'atm1_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'atm2_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        wrkdim(3) = dimids(idkh)
-        call mydefvar(ncid,'atm1_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'atm2_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      end if
-      call mydefvar(ncid,'psa',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'psb',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'hfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'qfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'uvdrag',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'q2m',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'u10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'v10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'w10m',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'br',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'ram',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'rah',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'ustar',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'zo',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      wrkdim(3) = dimids(idkh)
-      if ( any(icup == 3) ) then
-        call mydefvar(ncid,'cldefi',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      end if
-      if ( any(icup == 6) .or. any(icup == 5) ) then
-        call mydefvar(ncid,'cu_avg_ww',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      end if
-      if ( any(icup == 4) ) then
-        call mydefvar(ncid,'cbmf2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      end if
-      if ( irrtm == 0 ) then
-        wrkdim(3) = dimids(idkh)
-        wrkdim(4) = dimids(idspw)
-        call mydefvar(ncid,'gasabsnxt',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        wrkdim(3) = dimids(idkf)
-        wrkdim(4) = dimids(idkf)
-        call mydefvar(ncid,'gasabstot',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        call mydefvar(ncid,'gasemstot',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      end if
-      if ( ipptls > 0 ) then
-        wrkdim(3) = dimids(idkh)
-        call mydefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      end if
-      call mydefvar(ncid,'dsol',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvl',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'solvld',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'sabveg',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      wrkdim(1) = dimids(idnnsg)
-      wrkdim(2) = dimids(idjcross)
-      wrkdim(3) = dimids(idicross)
-      wrkdim(4) = dimids(indep)
-      call mydefvar(ncid,'sw',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      call mydefvar(ncid,'tlef',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'tgrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'tgbrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'sncv',regcm_vartype,wrkdim,1,3,varids,ivcc)
-#ifndef CLM45
-      call mydefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'taf',regcm_vartype,wrkdim,1,3,varids,ivcc)
-#endif
-      call mydefvar(ncid,'sfice',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'snag',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'ldmsk1',nf90_int,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'emiss',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'um10',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      if ( idcsst == 1 ) then
-        call mydefvar(ncid,'sst',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'tskin',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'deltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'tdeltas',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      end if
-#ifndef CLM
-      if ( lakemod == 1 ) then
-        call mydefvar(ncid,'eta',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'hi',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        wrkdim(4) = dimids(iddpt)
-        call mydefvar(ncid,'tlak',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      end if
-#endif
-      wrkdim(1) = dimids(idjcross)
-      wrkdim(2) = dimids(idicross)
-      wrkdim(3) = dimids(idkh)
-      call mydefvar(ncid,'heatrt',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      wrkdim(3) = dimids(idkf)
-      call mydefvar(ncid,'o3prof',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'flw',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'flwd',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'fsw',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'sinc',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      call mydefvar(ncid,'ldmsk',nf90_int,wrkdim,1,2,varids,ivcc)
-      if ( iocnflx == 2 .or. ibltyp == 3 ) then
-        call mydefvar(ncid,'zpbl',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      end if
-      if ( ichem == 1 ) then
-        wrkdim(3) = dimids(idkh)
-        wrkdim(4) = dimids(idntr)
-        call mydefvar(ncid,'chia',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        call mydefvar(ncid,'chib',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        if ( igaschem == 1 .and. ichsolver > 0 ) then
-          wrkdim(3) = dimids(idkh)
-          wrkdim(4) = dimids(idtotsp)
-          call mydefvar(ncid,'chemall',regcm_vartype,wrkdim,1,4,varids,ivcc)
-          wrkdim(3) = dimids(idkf)
-          wrkdim(4) = dimids(idspi)
-          call mydefvar(ncid,'taucldsp',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        end if
-        wrkdim(3) = dimids(idkh)
-        wrkdim(4) = dimids(idntr)
-        call mydefvar(ncid,'rainout',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        call mydefvar(ncid,'washout',regcm_vartype,wrkdim,1,4,varids,ivcc)
-        wrkdim(3) = dimids(idntr)
-        call mydefvar(ncid,'remdrd',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'ssw2da',regcm_vartype,wrkdim,1,2,varids,ivcc)
-#ifndef CLM45
-        call mydefvar(ncid,'sdelq',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sdelt',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'svegfrac2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
-#endif
-        call mydefvar(ncid,'sfracb2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sfracs2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
-        call mydefvar(ncid,'sfracv2d',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      end if
-      if ( idynamic == 1 ) then
-        wrkdim(1) = dimids(idjdot)
-        wrkdim(2) = dimids(ididot)
-        wrkdim(3) = dimids(idnsplit)
-        call mydefvar(ncid,'dstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
-        call mydefvar(ncid,'hstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      end if
-      if ( islab_ocean == 1 .and. do_restore_sst ) then
-        wrkdim(1) = dimids(idjcross)
-        wrkdim(2) = dimids(idicross)
-        wrkdim(3) = dimids(idmonth)
-        call mydefvar(ncid,'qflux_restore_sst',regcm_vartype, &
-                      wrkdim,1,3,varids,ivcc)
-        wrkdim(1) = dimids(idmonth)
-        call mydefvar(ncid,'stepcount',nf90_int,wrkdim,1,1,varids,ivcc)
-      end if
-#ifdef CLM
-      wrkdim(1) = dimids(idjcross)
-      wrkdim(2) = dimids(idicross)
-      if ( imask == 2 ) then
-        call mydefvar(ncid,'lndcat',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      end if
-#endif
-      wrkdim(1) = dimids(idnnsg)
-      wrkdim(2) = dimids(idjcross)
-      wrkdim(3) = dimids(idicross)
-      call mydefvar(ncid,'swalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'lwalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'swdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'swdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'lwdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call mydefvar(ncid,'lwdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      if ( idynamic == 2 .and. ifupr == 1 ) then
-        wrkdim(1) = dimids(ikern)
-        wrkdim(2) = dimids(ikern)
-        call mydefvar(ncid,'tmask',regcm_vartype,wrkdim,1,2,varids,ivcc)
-      end if
-
-      ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idate))
-      call check_ok(__FILE__,__LINE__,'Cannot save idatex')
-      ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idate%calendar)
-      call check_ok(__FILE__,__LINE__,'Cannot save calendar')
-      ncstatus = nf90_put_att(ncid,nf90_global,'declin',declin)
-      call check_ok(__FILE__,__LINE__,'Cannot save declin')
-      ncstatus = nf90_put_att(ncid,nf90_global,'solcon',solcon)
-      call check_ok(__FILE__,__LINE__,'Cannot save solcon')
-      if ( debug_level > 0 ) then
-        ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
-        call check_ok(__FILE__,__LINE__,'Cannot save dryini')
-        ncstatus = nf90_put_att(ncid,nf90_global,'watini',real(watini,rk8))
-        call check_ok(__FILE__,__LINE__,'Cannot save watini')
-        ncstatus = nf90_put_att(ncid,nf90_global,'dryerror',dryerror)
-        call check_ok(__FILE__,__LINE__,'Cannot save dryerror')
-        ncstatus = nf90_put_att(ncid,nf90_global,'waterror',waterror)
-        call check_ok(__FILE__,__LINE__,'Cannot save waterror')
-      end if
-
-      ncstatus = nf90_enddef(ncid)
-      call check_ok(__FILE__,__LINE__,'Cannot setup savefile '//trim(ffout))
-
-      ivcc = 0
-      call myputvar(ncid,'atm1_u',atm1_u_io,varids,ivcc)
-      call myputvar(ncid,'atm2_u',atm2_u_io,varids,ivcc)
-      call myputvar(ncid,'atm1_v',atm1_v_io,varids,ivcc)
-      call myputvar(ncid,'atm2_v',atm2_v_io,varids,ivcc)
-      call myputvar(ncid,'atm1_t',atm1_t_io,varids,ivcc)
-      call myputvar(ncid,'atm2_t',atm2_t_io,varids,ivcc)
-      call myputvar(ncid,'atm1_qx',atm1_qx_io,varids,ivcc)
-      call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
-      if ( ibltyp == 2 ) then
-        call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
-        call myputvar(ncid,'atm2_tke',atm2_tke_io,varids,ivcc)
-        call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
-      else if ( ibltyp == 4 ) then
-        call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
-        call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
-        call myputvar(ncid,'myjsf_uz0',myjsf_uz0_io,varids,ivcc)
-        call myputvar(ncid,'myjsf_vz0',myjsf_vz0_io,varids,ivcc)
-        call myputvar(ncid,'myjsf_thz0',myjsf_thz0_io,varids,ivcc)
-        call myputvar(ncid,'myjsf_qz0',myjsf_qz0_io,varids,ivcc)
-      end if
-      if ( idynamic == 2 ) then
-        call myputvar(ncid,'atm1_w',atm1_w_io,varids,ivcc)
-        call myputvar(ncid,'atm2_w',atm2_w_io,varids,ivcc)
-        call myputvar(ncid,'atm1_pp',atm1_pp_io,varids,ivcc)
-        call myputvar(ncid,'atm2_pp',atm2_pp_io,varids,ivcc)
-      end if
-      call myputvar(ncid,'psa',psa_io,varids,ivcc)
-      call myputvar(ncid,'psb',psb_io,varids,ivcc)
-      call myputvar(ncid,'hfx',hfx_io,varids,ivcc)
-      call myputvar(ncid,'qfx',qfx_io,varids,ivcc)
-      call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
-      call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
-      call myputvar(ncid,'q2m',q2m_io,varids,ivcc)
-      call myputvar(ncid,'u10m',u10m_io,varids,ivcc)
-      call myputvar(ncid,'v10m',v10m_io,varids,ivcc)
-      call myputvar(ncid,'w10m',w10m_io,varids,ivcc)
-      call myputvar(ncid,'br',br_io,varids,ivcc)
-      call myputvar(ncid,'ram',ram_io,varids,ivcc)
-      call myputvar(ncid,'rah',rah_io,varids,ivcc)
-      call myputvar(ncid,'ustar',ustar_io,varids,ivcc)
-      call myputvar(ncid,'zo',zo_io,varids,ivcc)
-      if ( any(icup == 3) ) then
-        call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
-      end if
-      if ( any(icup == 6) .or. any(icup == 5) ) then
-        call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)
-      end if
-      if ( any(icup == 4) ) then
-        call myputvar(ncid,'cbmf2d',cbmf2d_io,varids,ivcc)
-      end if
-      if ( irrtm == 0 ) then
-        call myputvar(ncid,'gasabsnxt',gasabsnxt_io,varids,ivcc)
-        call myputvar(ncid,'gasabstot',gasabstot_io,varids,ivcc)
-        call myputvar(ncid,'gasemstot',gasemstot_io,varids,ivcc)
-      end if
-      if ( ipptls > 0 ) then
-        call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
-      end if
-      call myputvar(ncid,'dsol',dsol_io,varids,ivcc)
-      call myputvar(ncid,'solis',solis_io,varids,ivcc)
-      call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
-      call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)
-      call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
-      call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
-      call myputvar(ncid,'sabveg',sabveg_io,varids,ivcc)
-      call myputvar(ncid,'sw',sw_io,varids,ivcc)
-      call myputvar(ncid,'tlef',tlef_io,varids,ivcc)
-      call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
-      call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
-      call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
-#ifndef CLM45
-      call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
-      call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
-      call myputvar(ncid,'taf',taf_io,varids,ivcc)
-#endif
-      call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
-      call myputvar(ncid,'snag',snag_io,varids,ivcc)
-      call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
-      call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
-      call myputvar(ncid,'um10',um10_io,varids,ivcc)
-      if ( idcsst == 1 ) then
-        call myputvar(ncid,'sst',sst_io,varids,ivcc)
-        call myputvar(ncid,'tskin',tskin_io,varids,ivcc)
-        call myputvar(ncid,'deltas',deltas_io,varids,ivcc)
-        call myputvar(ncid,'tdeltas',tdeltas_io,varids,ivcc)
-      end if
-#ifndef CLM
-      if ( lakemod == 1 ) then
-        call myputvar(ncid,'eta',eta_io,varids,ivcc)
-        call myputvar(ncid,'hi',hi_io,varids,ivcc)
-        call myputvar(ncid,'tlak',tlak_io,varids,ivcc)
-      end if
-#endif
-      call myputvar(ncid,'heatrt',heatrt_io,varids,ivcc)
-      call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
-      call myputvar(ncid,'flw',flw_io,varids,ivcc)
-      call myputvar(ncid,'flwd',flwd_io,varids,ivcc)
-      call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
-      call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
-      call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
-      if ( iocnflx == 2 .or. ibltyp == 3 ) then
-        call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
-      end if
-      if ( ichem == 1 ) then
-        call myputvar(ncid,'chia',chia_io,varids,ivcc)
-        call myputvar(ncid,'chib',chib_io,varids,ivcc)
-        if ( igaschem == 1 .and. ichsolver > 0 ) then
-          call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
-          call myputvar(ncid,'taucldsp',taucldsp_io,varids,ivcc)
-        end if
-        call myputvar(ncid,'rainout',rainout_io,varids,ivcc)
-        call myputvar(ncid,'washout',washout_io,varids,ivcc)
-        call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
-        call myputvar(ncid,'ssw2da',ssw2da_io,varids,ivcc)
-#ifndef CLM45
-        call myputvar(ncid,'sdelq',sdelq_io,varids,ivcc)
-        call myputvar(ncid,'sdelt',sdelt_io,varids,ivcc)
-        call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)
-#endif
-        call myputvar(ncid,'sfracb2d',sfracb2d_io,varids,ivcc)
-        call myputvar(ncid,'sfracs2d',sfracs2d_io,varids,ivcc)
-        call myputvar(ncid,'sfracv2d',sfracv2d_io,varids,ivcc)
-      end if
-      if ( idynamic == 1 ) then
-        call myputvar(ncid,'dstor',dstor_io,varids,ivcc)
-        call myputvar(ncid,'hstor',hstor_io,varids,ivcc)
-      end if
-      if ( islab_ocean == 1 .and. do_restore_sst ) then
-        call myputvar(ncid,'qflux_restore_sst',qflux_restore_sst_io,varids,ivcc)
-        call myputvar(ncid,'stepcount',stepcount,size(stepcount),varids,ivcc)
-      end if
-#ifdef CLM
-      if ( imask == 2 ) then
-        call myputvar(ncid,'lndcat',lndcat_io,varids,ivcc)
-      end if
-#endif
-      call myputvar(ncid,'swalb',swalb_io,varids,ivcc)
-      call myputvar(ncid,'lwalb',lwalb_io,varids,ivcc)
-      call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
-      call myputvar(ncid,'swdifalb',swdifalb_io,varids,ivcc)
-      call myputvar(ncid,'lwdiralb',lwdiralb_io,varids,ivcc)
-      call myputvar(ncid,'lwdifalb',lwdifalb_io,varids,ivcc)
-      if ( idynamic == 2 .and. ifupr == 1 ) then
-        call myputvar(ncid,'tmask',tmask, &
-                      size(tmask,1),size(tmask,2),varids,ivcc)
-      end if
-
-      ncstatus = nf90_close(ncid)
-      call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffout))
+      wrkdim(3) = dimids(idnsplit)
+      call savedefvar(ncid,'dstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'hstor',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
+    if ( islab_ocean == 1 .and. do_restore_sst ) then
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
+      wrkdim(3) = dimids(idmonth)
+      call savedefvar(ncid,'qflux_restore_sst',regcm_vartype, &
+                    wrkdim,1,3,varids,ivcc)
+      wrkdim(1) = dimids(idmonth)
+      call savedefvar(ncid,'stepcount',nf90_int,wrkdim,1,1,varids,ivcc)
+    end if
+#ifdef CLM
+    wrkdim(1) = dimids(idjcross)
+    wrkdim(2) = dimids(idicross)
+    if ( imask == 2 ) then
+      call savedefvar(ncid,'lndcat',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+#endif
+    wrkdim(1) = dimids(idnnsg)
+    wrkdim(2) = dimids(idjcross)
+    wrkdim(3) = dimids(idicross)
+    call savedefvar(ncid,'swalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'lwalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'swdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'swdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'lwdiralb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    call savedefvar(ncid,'lwdifalb',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    if ( idynamic == 2 .and. ifupr == 1 ) then
+      wrkdim(1) = dimids(ikern)
+      wrkdim(2) = dimids(ikern)
+      call savedefvar(ncid,'tmask',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+
+    call saveready(ffout,idate,ncid)
+
+    ivcc = 0
+
+    call myputvar(ncid,'atm1_u',atm1_u_io,varids,ivcc)
+    call myputvar(ncid,'atm2_u',atm2_u_io,varids,ivcc)
+    call myputvar(ncid,'atm1_v',atm1_v_io,varids,ivcc)
+    call myputvar(ncid,'atm2_v',atm2_v_io,varids,ivcc)
+    call myputvar(ncid,'atm1_t',atm1_t_io,varids,ivcc)
+    call myputvar(ncid,'atm2_t',atm2_t_io,varids,ivcc)
+    call myputvar(ncid,'atm1_qx',atm1_qx_io,varids,ivcc)
+    call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
+    if ( ibltyp == 2 ) then
+      call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
+      call myputvar(ncid,'atm2_tke',atm2_tke_io,varids,ivcc)
+      call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
+    else if ( ibltyp == 4 ) then
+      call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
+      call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_uz0',myjsf_uz0_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_vz0',myjsf_vz0_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_thz0',myjsf_thz0_io,varids,ivcc)
+      call myputvar(ncid,'myjsf_qz0',myjsf_qz0_io,varids,ivcc)
+    end if
+    if ( idynamic == 2 ) then
+      call myputvar(ncid,'atm1_w',atm1_w_io,varids,ivcc)
+      call myputvar(ncid,'atm2_w',atm2_w_io,varids,ivcc)
+      call myputvar(ncid,'atm1_pp',atm1_pp_io,varids,ivcc)
+      call myputvar(ncid,'atm2_pp',atm2_pp_io,varids,ivcc)
+    end if
+    call myputvar(ncid,'psa',psa_io,varids,ivcc)
+    call myputvar(ncid,'psb',psb_io,varids,ivcc)
+    call myputvar(ncid,'hfx',hfx_io,varids,ivcc)
+    call myputvar(ncid,'qfx',qfx_io,varids,ivcc)
+    call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
+    call myputvar(ncid,'uvdrag',uvdrag_io,varids,ivcc)
+    call myputvar(ncid,'q2m',q2m_io,varids,ivcc)
+    call myputvar(ncid,'u10m',u10m_io,varids,ivcc)
+    call myputvar(ncid,'v10m',v10m_io,varids,ivcc)
+    call myputvar(ncid,'w10m',w10m_io,varids,ivcc)
+    call myputvar(ncid,'br',br_io,varids,ivcc)
+    call myputvar(ncid,'ram',ram_io,varids,ivcc)
+    call myputvar(ncid,'rah',rah_io,varids,ivcc)
+    call myputvar(ncid,'ustar',ustar_io,varids,ivcc)
+    call myputvar(ncid,'zo',zo_io,varids,ivcc)
+    if ( any(icup == 3) ) then
+      call myputvar(ncid,'cldefi',cldefi_io,varids,ivcc)
+    end if
+    if ( any(icup == 6) .or. any(icup == 5) ) then
+      call myputvar(ncid,'cu_avg_ww',cu_avg_ww_io,varids,ivcc)
+    end if
+    if ( any(icup == 4) ) then
+      call myputvar(ncid,'cbmf2d',cbmf2d_io,varids,ivcc)
+    end if
+    if ( irrtm == 0 ) then
+      call myputvar(ncid,'gasabsnxt',gasabsnxt_io,varids,ivcc)
+      call myputvar(ncid,'gasabstot',gasabstot_io,varids,ivcc)
+      call myputvar(ncid,'gasemstot',gasemstot_io,varids,ivcc)
+    end if
+    if ( ipptls > 0 ) then
+      call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
+    end if
+    call myputvar(ncid,'dsol',dsol_io,varids,ivcc)
+    call myputvar(ncid,'solis',solis_io,varids,ivcc)
+    call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
+    call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)
+    call myputvar(ncid,'solvl',solvl_io,varids,ivcc)
+    call myputvar(ncid,'solvld',solvld_io,varids,ivcc)
+    call myputvar(ncid,'sabveg',sabveg_io,varids,ivcc)
+    call myputvar(ncid,'sw',sw_io,varids,ivcc)
+    call myputvar(ncid,'tlef',tlef_io,varids,ivcc)
+    call myputvar(ncid,'tgrd',tgrd_io,varids,ivcc)
+    call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
+    call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
+#ifndef CLM45
+    call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
+    call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
+    call myputvar(ncid,'taf',taf_io,varids,ivcc)
+#endif
+    call myputvar(ncid,'sfice',sfice_io,varids,ivcc)
+    call myputvar(ncid,'snag',snag_io,varids,ivcc)
+    call myputvar(ncid,'ldmsk1',ldmsk1_io,varids,ivcc)
+    call myputvar(ncid,'emiss',emisv_io,varids,ivcc)
+    call myputvar(ncid,'um10',um10_io,varids,ivcc)
+    if ( idcsst == 1 ) then
+      call myputvar(ncid,'sst',sst_io,varids,ivcc)
+      call myputvar(ncid,'tskin',tskin_io,varids,ivcc)
+      call myputvar(ncid,'deltas',deltas_io,varids,ivcc)
+      call myputvar(ncid,'tdeltas',tdeltas_io,varids,ivcc)
+    end if
+#ifndef CLM
+    if ( lakemod == 1 ) then
+      call myputvar(ncid,'eta',eta_io,varids,ivcc)
+      call myputvar(ncid,'hi',hi_io,varids,ivcc)
+      call myputvar(ncid,'tlak',tlak_io,varids,ivcc)
+    end if
+#endif
+    call myputvar(ncid,'heatrt',heatrt_io,varids,ivcc)
+    call myputvar(ncid,'o3prof',o3prof_io,varids,ivcc)
+    call myputvar(ncid,'flw',flw_io,varids,ivcc)
+    call myputvar(ncid,'flwd',flwd_io,varids,ivcc)
+    call myputvar(ncid,'fsw',fsw_io,varids,ivcc)
+    call myputvar(ncid,'sinc',sinc_io,varids,ivcc)
+    call myputvar(ncid,'ldmsk',ldmsk_io,varids,ivcc)
+    if ( iocnflx == 2 .or. ibltyp == 3 ) then
+      call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
+    end if
+    if ( ichem == 1 ) then
+      call myputvar(ncid,'chia',chia_io,varids,ivcc)
+      call myputvar(ncid,'chib',chib_io,varids,ivcc)
+      if ( igaschem == 1 .and. ichsolver > 0 ) then
+        call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
+        call myputvar(ncid,'taucldsp',taucldsp_io,varids,ivcc)
+      end if
+      call myputvar(ncid,'rainout',rainout_io,varids,ivcc)
+      call myputvar(ncid,'washout',washout_io,varids,ivcc)
+      call myputvar(ncid,'remdrd',remdrd_io,varids,ivcc)
+      call myputvar(ncid,'ssw2da',ssw2da_io,varids,ivcc)
+#ifndef CLM45
+      call myputvar(ncid,'sdelq',sdelq_io,varids,ivcc)
+      call myputvar(ncid,'sdelt',sdelt_io,varids,ivcc)
+      call myputvar(ncid,'svegfrac2d',svegfrac2d_io,varids,ivcc)
+#endif
+      call myputvar(ncid,'sfracb2d',sfracb2d_io,varids,ivcc)
+      call myputvar(ncid,'sfracs2d',sfracs2d_io,varids,ivcc)
+      call myputvar(ncid,'sfracv2d',sfracv2d_io,varids,ivcc)
+    end if
+    if ( idynamic == 1 ) then
+      call myputvar(ncid,'dstor',dstor_io,varids,ivcc)
+      call myputvar(ncid,'hstor',hstor_io,varids,ivcc)
+    end if
+    if ( islab_ocean == 1 .and. do_restore_sst ) then
+      call myputvar(ncid,'qflux_restore_sst',qflux_restore_sst_io,varids,ivcc)
+      call myputvar(ncid,'stepcount',stepcount,size(stepcount),varids,ivcc)
+    end if
+#ifdef CLM
+    if ( imask == 2 ) then
+      call myputvar(ncid,'lndcat',lndcat_io,varids,ivcc)
+    end if
+#endif
+    call myputvar(ncid,'swalb',swalb_io,varids,ivcc)
+    call myputvar(ncid,'lwalb',lwalb_io,varids,ivcc)
+    call myputvar(ncid,'swdiralb',swdiralb_io,varids,ivcc)
+    call myputvar(ncid,'swdifalb',swdifalb_io,varids,ivcc)
+    call myputvar(ncid,'lwdiralb',lwdiralb_io,varids,ivcc)
+    call myputvar(ncid,'lwdifalb',lwdifalb_io,varids,ivcc)
+    if ( idynamic == 2 .and. ifupr == 1 ) then
+      call myputvar(ncid,'tmask',tmask, &
+                    size(tmask,1),size(tmask,2),varids,ivcc)
+    end if
+
+    call saveclose(ffout,ncid)
 
 #ifdef CLM
     ioff = dtsrf-dtsec
@@ -1145,16 +1117,25 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot find variable '//trim(vname))
   end function get_varid
 
-  subroutine mydefvar(ncid,str,ityp,idims,i1,i2,ivar,iivar)
+  subroutine savedefvar(ncid,str,ityp,idims,i1,i2,ivar,iivar)
+#ifdef PNETCDF
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid , ityp , i1 , i2
     integer(ik4) , intent(inout) :: iivar
     integer(ik4) , dimension(:) , intent(in) :: idims
     integer(ik4) , dimension(:) , intent(inout) :: ivar
     character(len=*) , intent(in) :: str
+
     iivar = iivar + 1
+#ifdef PNETCDF
+    ncstatus = nf90mpi_def_var(ncid,str,ityp,idims(i1:i2),ivar(iivar))
+#else
     ncstatus = nf90_def_var(ncid,str,ityp,idims(i1:i2),ivar(iivar))
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot create var '//trim(str))
 #if defined (NETCDF4_HDF5)
 #if defined (NETCDF4_COMPRESS)
@@ -1163,23 +1144,45 @@ module mod_savefile
       'Cannot set compression level to variable '//trim(str))
 #endif
 #endif
-  end subroutine mydefvar
+  end subroutine savedefvar
 
   subroutine myputvar2dd(ncid,str,var,ivar,iivar)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
     real(rkx) , pointer , dimension(:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+#else
+    integer(ik4) , dimension(2) :: istart , icount
+#endif
     iivar = iivar + 1
-    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+#else
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2dd
 
   subroutine myputvar2ddf(ncid,str,var,nx,ny,ivar,iivar)
+#ifdef PNETCEF
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid , nx , ny
     character(len=*) , intent(in) :: str
@@ -1187,38 +1190,88 @@ module mod_savefile
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var)
+#else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2ddf
 
   subroutine myputvar3dd(ncid,str,var,ivar,iivar)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+#else
+    integer(ik4) , dimension(3) :: istart , icount
+#endif
     iivar = iivar + 1
-    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+    icount(3) = ubound(var,3)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+#else
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar3dd
 
   subroutine myputvar4dd(ncid,str,var,ivar,iivar)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(4) :: istart , icount
+#else
+    integer(ik4) , dimension(4) :: istart , icount
+#endif
     iivar = iivar + 1
-    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    istart(4) = lbound(var,4)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+    icount(3) = ubound(var,3)
+    icount(4) = ubound(var,4)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+#else
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar4dd
 
   subroutine myputvar1dif(ncid,str,var,nx,ivar,iivar)
+#ifdef PNETCEF
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid , nx
     character(len=*) , intent(in) :: str
@@ -1226,35 +1279,228 @@ module mod_savefile
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var)
+#else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar1dif
 
   subroutine myputvar2di(ncid,str,var,ivar,iivar)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+#else
+    integer(ik4) , dimension(2) :: istart , icount
+#endif
     iivar = iivar + 1
-    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+#else
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2di
 
   subroutine myputvar3di(ncid,str,var,ivar,iivar)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) , intent(in) :: str
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+#else
+    integer(ik4) , dimension(3) :: istart , icount
+#endif
     iivar = iivar + 1
-    ncstatus = nf90_put_var(ncid,ivar(iivar),var)
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+    icount(3) = ubound(var,3)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+#else
+    ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar3di
+
+  subroutine savecreate(sname,ncid)
+#ifdef PNETCDF
+    use pnetcdf
+    use mpi , only : mpi_comm_self
+#else
+    use netcdf
+#endif
+    implicit none
+    character(len=*) , intent(in) :: sname
+    integer(ik4) , intent(out) :: ncid
+    integer(ik4) :: imode
+#ifdef PNETCDF
+    imode = ior(nf90_clobber, nf90_64bit_offset)
+#else
+    imode = iomode
+#endif
+    if ( do_parallel_netcdf_out ) then
+#ifdef PNETCDF
+      ncstatus = nf90mpi_create(get_cartcomm( ),sname,imode, &
+                                ncout_mpi_info,ncid)
+#else
+#ifdef NETCDF4_HDF5
+      imode = ior(imode,nf90_mpiio)
+      ncstatus = nf90_create(sname,imode,comm=get_cartcomm( ), &
+                             info=ncout_mpi_info,ncid)
+#endif
+#ifdef PNETCDF_IN_NETCDF
+      imode = ior(imode,nf90_pnetcdf)
+      ncstatus = nf90_create_par(sname,imode,comm=get_cartcomm( ), &
+                                 info=ncout_mpi_info,ncid=ncid)
+#endif
+#endif
+    else
+#ifdef PNETCDF
+      ncstatus = nf90mpi_create(mpi_comm_self,sname,imode, &
+                                ncout_mpi_info,ncid)
+#else
+      ncstatus = nf90_create(sname, imode, ncid)
+#endif
+    end if
+    call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(sname))
+  end subroutine savecreate
+
+  subroutine saveready(sname,idate,ncid)
+#ifdef PNETCDF
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    character(len=*) , intent(in) :: sname
+    type (rcm_time_and_date) , intent(in) :: idate
+    integer(ik4) , intent(in) :: ncid
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',toint10(idate))
+#else
+    ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idate))
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot save idatex')
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_att(ncid,nf90_global,'calendar',idate%calendar)
+#else
+    ncstatus = nf90_put_att(ncid,nf90_global,'calendar',idate%calendar)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot save calendar')
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_att(ncid,nf90_global,'declin',declin)
+#else
+    ncstatus = nf90_put_att(ncid,nf90_global,'declin',declin)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot save declin')
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_att(ncid,nf90_global,'solcon',solcon)
+#else
+    ncstatus = nf90_put_att(ncid,nf90_global,'solcon',solcon)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot save solcon')
+    if ( debug_level > 0 ) then
+#ifdef PNETCDF
+      ncstatus = nf90mpi_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
+#else
+      ncstatus = nf90_put_att(ncid,nf90_global,'dryini',real(dryini,rk8))
+#endif
+      call check_ok(__FILE__,__LINE__,'Cannot save dryini')
+#ifdef PNETCDF
+      ncstatus = nf90mpi_put_att(ncid,nf90_global,'watini',real(watini,rk8))
+#else
+      ncstatus = nf90_put_att(ncid,nf90_global,'watini',real(watini,rk8))
+#endif
+      call check_ok(__FILE__,__LINE__,'Cannot save watini')
+#ifdef PNETCDF
+      ncstatus = nf90mpi_put_att(ncid,nf90_global,'dryerror',dryerror)
+#else
+      ncstatus = nf90_put_att(ncid,nf90_global,'dryerror',dryerror)
+#endif
+      call check_ok(__FILE__,__LINE__,'Cannot save dryerror')
+#ifdef PNETCDF
+      ncstatus = nf90mpi_put_att(ncid,nf90_global,'waterror',waterror)
+#else
+      ncstatus = nf90_put_att(ncid,nf90_global,'waterror',waterror)
+#endif
+      call check_ok(__FILE__,__LINE__,'Cannot save waterror')
+    end if
+
+#ifdef PNETCDF
+    ncstatus = nf90mpi_enddef(ncid)
+    call check_ok(__FILE__,__LINE__,'Cannot enable savefile '//trim(sname))
+    if ( .not. do_parallel_netcdf_out ) then
+      ncstatus = nf90mpi_begin_indep_data(ncid)
+      call check_ok(__FILE__,__LINE__,'Cannot enable savefile '//trim(sname))
+    end if
+#else
+    ncstatus = nf90_enddef(ncid)
+    call check_ok(__FILE__,__LINE__,'Cannot enable savefile '//trim(sname))
+#endif
+  end subroutine saveready
+
+  integer(ik4) function savedefdim(ncid,dname,dlen) result(dimid)
+#ifdef PNETCDF
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid , dlen
+    character(len=*) , intent(in) :: dname
+#ifdef PNETCDF
+    ncstatus = nf90mpi_def_dim(ncid,dname,dlen,dimid)
+#else
+    ncstatus = nf90_def_dim(ncid,dname,dlen,dimid)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot create dimension '//trim(dname))
+  end function savedefdim
+
+  subroutine saveclose(sname,ncid)
+#ifdef PNETCDF
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    character(len=*) , intent(in) :: sname
+    integer(ik4) , intent(inout) :: ncid
+#ifdef PNETCDF
+    ncstatus = nf90mpi_close(ncid)
+#else
+    ncstatus = nf90_close(ncid)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(sname))
+  end subroutine saveclose
 
 end module mod_savefile
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

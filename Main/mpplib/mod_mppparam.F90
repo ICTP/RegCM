@@ -37,6 +37,8 @@ module mod_mppparam
 
   private
 
+  public :: get_cartcomm
+
   integer(ik4) , public :: global_cross_istart , global_cross_iend
   integer(ik4) , public :: global_cross_jstart , global_cross_jend
   integer(ik4) , public :: global_dot_istart , global_dot_iend
@@ -15177,6 +15179,11 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_global_real8_real4_subgrid_slice
+
+  integer(ik4) function get_cartcomm( ) result(cc)
+    implicit none
+    cc = cartesian_communicator
+  end function get_cartcomm
 
 end module mod_mppparam
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
