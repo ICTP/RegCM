@@ -1548,7 +1548,7 @@ module mod_rad_aerosol
         clnlev = 20
         clnlon = 360
         clnlat = 180
-        cliyear = 1850
+        cliyear = 1980
       else
         call fatal(__FILE__,__LINE__,' XXXXX ')
       end if
@@ -1658,18 +1658,13 @@ module mod_rad_aerosol
       ssa = ssa1*xfac2+ssa2*xfac1
       asy = asy1*xfac2+asy2*xfac1
     end if
-    print* , 'ext' , ext(100,40,:)
-    print* , 'ssa' , ssa(100,40,:)
-    print* , 'asy' , asy(100,40,:)  
 
     call grid_distribute(ext,extprof,jci1,jci2,ici1,ici2,1,kz)
     call grid_distribute(ssa,ssaprof,jci1,jci2,ici1,ici2,1,kz)
     call grid_distribute(asy,asyprof,jci1,jci2,ici1,ici2,1,kz)
-    
 
     !Important :  radiation schemes expect AOD per layer, calculated from extinction  
     extprof(jci1:jci2,ici1:ici2,1:kz) = extprof(jci1:jci2,ici1:ici2,1:kz) * m2r%deltaz(jci1:jci2,ici1:ici2,1:kz)
-    print*, maxval(extprof),  maxval(ssaprof),  maxval(asyprof)
     if ( myid == italk .and. dointerp ) then
       ozprnt = extprof(3,3,:)
       call vprntv(ozprnt,kz,'Updated ext profile at (3,3)')
@@ -1706,7 +1701,6 @@ module mod_rad_aerosol
     integer(ik4) , intent(out) :: ncid
     real(rkx) , intent(out) , dimension(:) :: lat , lon
     integer(ik4) :: iret
-    print*, 'DANS INIT_aeroppt'
     iret = nf90_open(aeroppfile,nf90_nowrite,ncid)
     if ( iret /= nf90_noerr ) then
       write (stderr, *) nf90_strerror(iret) , aeroppfile
