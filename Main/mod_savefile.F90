@@ -1637,8 +1637,7 @@ module mod_savefile
                            info=ncout_mpi_info)
 #endif
 #ifdef PNETCDF_IN_NETCDF
-      imode = ior(imod,ior(nf90_share,nf90_pnetcdf))
-      ncstatus = nf90_open(sname,imode,ncid,comm=get_cartcomm( ), &
+      ncstatus = nf90_open(sname,imode,ncid=ncid,comm=get_cartcomm( ), &
                            info=ncout_mpi_info)
 #endif
 #endif
@@ -1743,13 +1742,13 @@ module mod_savefile
 #else
 #ifdef NETCDF4_HDF5
       imode = ior(imode,nf90_mpiio)
-      ncstatus = nf90_create(sname,imode,comm=get_cartcomm( ), &
-                             info=ncout_mpi_info,ncid)
+      ncstatus = nf90_create(sname,imode,ncid,comm=get_cartcomm( ), &
+                             info=ncout_mpi_info)
 #endif
 #ifdef PNETCDF_IN_NETCDF
       imode = ior(imode,nf90_pnetcdf)
-      ncstatus = nf90_create_par(sname,imode,comm=get_cartcomm( ), &
-                                 info=ncout_mpi_info,ncid=ncid)
+      ncstatus = nf90_create_par(sname,imode,ncid=ncid,comm=get_cartcomm( ), &
+                                 info=ncout_mpi_info)
 #endif
 #endif
     else
