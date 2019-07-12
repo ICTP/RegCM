@@ -821,7 +821,6 @@ module mod_savefile
     end if
     if ( irrtm == 0 ) then
       wrkdim(3) = dimids(idkh)
-<<<<<<< HEAD
       wrkdim(4) = dimids(idspw)
       call savedefvar(ncid,'gasabsnxt',regcm_vartype,wrkdim,1,4,varids,ivcc)
       wrkdim(3) = dimids(idkf)
