@@ -935,7 +935,7 @@ module mod_lm_interface
         if ( associated(srf_evpot_out) ) then
           ! Compute total available energy
           dmean = dmean * (d_one-rnsrf_for_day) + &
-               max((lm%rswf + lm%dwrlwf),d_zero) * rnsrf_for_day
+               max((lm%rswf + lm%dwrlwf - lm%rlwf),d_zero) * rnsrf_for_day
           if ( rcmtimer%lcount <= (86400.0_rkx/dtsec) ) then
             lm%dsol = dmean
           else

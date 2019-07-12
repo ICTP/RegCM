@@ -1072,12 +1072,12 @@ module mod_params
     call bcast(idiag)
     call bcast(icosp)
     call bcast(do_parallel_netcdf_in)
-#ifdef NETCDF4_HDF5
     call bcast(do_parallel_netcdf_out)
+#ifdef NETCDF4_HDF5
     call bcast(deflate_level)
-#else
-    do_parallel_netcdf_out = .false.
 #endif
+
+    do_parallel_save = (do_parallel_netcdf_in .and. do_parallel_netcdf_out)
 
     ! Reset the NEEDED 2D vars.
     enable_atm_vars(1:6) = .true.
