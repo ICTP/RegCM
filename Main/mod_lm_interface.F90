@@ -21,6 +21,7 @@ module mod_lm_interface
 !
 ! Link surface and atmospheric models
 !
+  use mod_dynparam
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
@@ -30,7 +31,6 @@ module mod_lm_interface
   use mod_service
   use mod_bats_common
   use mod_ocn_common
-  use mod_che_common
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -165,8 +165,6 @@ module mod_lm_interface
     call getmem2d(zatm,jce1,jce2,ice1,ice2,'lm:zatm')
     call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,ntr,'lm:vocemiss')
     call getmem4d(lms%dustemiss,1,nnsg,jci1,jci2,ici1,ici2,1,4,'lm:dustemiss')
-    call getmem4d(lms%drydepvels,1,nnsg,jci1,jci2, &
-                                        ici1,ici2,1,ntr,'lm:dustemiss')
     call getmem4d(lms%sw_vol,1,nnsg,jci1,jci2, &
                                     ici1,ici2,1,num_soil_layers,'lm:sw_vol')
     call getmem4d(lms%tsoi,1,nnsg,jci1,jci2, &
@@ -444,6 +442,7 @@ module mod_lm_interface
   subroutine surface_model
 #ifdef CLM45
     use mod_atm_interface , only : atms
+    use mod_atm_interface , only : voc_em_clm , dustflx_clm
 #endif
     implicit none
     integer(ik4) :: i , j , n , nn , ierr
@@ -498,15 +497,14 @@ module mod_lm_interface
       do n = 1 , ntr
         do i = ici1 , ici2
           do j = jci1 , jci2
-            cvoc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
-            cdep_vels_clm(j,i,n) = sum(lms%drydepvels(:,j,i,n),1) * rdnnsg
+            voc_em_clm(j,i,n) = sum(lms%vocemiss(:,j,i,n),1) * rdnnsg
           end do
         end do
       end do
       do n = 1 , 4
         do i = ici1 , ici2
           do j = jci1 , jci2
-            cdustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
+            dustflx_clm(j,i,n) = sum(lms%dustemiss(:,j,i,n),1) * rdnnsg
           end do
         end do
       end do

@@ -35,7 +35,8 @@ module mod_che_mppio
   private
 
   real(rkx) , pointer , public , dimension(:,:,:,:) :: rainout_io , washout_io
-  real(rkx) , pointer , public , dimension(:,:,:) :: remdrd_io
+  real(rkx) , pointer , public , dimension(:,:,:) :: remdrd_io , convpr_io
+  real(rkx) , pointer , public , dimension(:,:,:) :: duflux_io , voflux_io
   real(rkx) , pointer , public , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
                                          sdelq_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
@@ -55,6 +56,8 @@ module mod_che_mppio
 
       if ( ichem == 1 ) then
         if ( myid == iocpu ) then
+          call getmem3d(convpr_io,jcross1,jcross2,icross1,icross2, &
+                        1,kz,'che_mppio:convpr_io')
           call getmem4d(rainout_io,jcross1,jcross2,icross1,icross2, &
                         1,kz,1,ntr,'che_mppio:rainout_io')
           call getmem4d(washout_io,jcross1,jcross2,icross1,icross2, &
@@ -64,7 +67,12 @@ module mod_che_mppio
 
           call getmem2d(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')
-#ifndef CLM45
+#ifdef CLM45
+          call getmem3d(duflux_io,jcross1,jcross2,icross1,icross2, &
+                        1,4,'che_mppio:duflux_io')
+          call getmem3d(voflux_io,jcross1,jcross2,icross1,icross2, &
+                        1,ntr,'che_mppio:voflux_io')
+#else
           call getmem2d(sdelq_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sdelq_io')
           call getmem2d(sdelt_io,jcross1,jcross2,icross1,icross2, &

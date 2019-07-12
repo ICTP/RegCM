@@ -220,7 +220,7 @@ module mod_che_emission
 #ifdef LCH4
     if ( ich4 > 0 ) then
       do i = ici1, ici2
-        chemsrc(j,i,ich4) = chemsrc(j,i,ich4) +  cvoc_em_clm(j,i,ich4)
+        chemsrc(j,i,ich4) = chemsrc(j,i,ich4) + cvoc_em_clm(j,i,ich4)
       end do
     end if
 #endif

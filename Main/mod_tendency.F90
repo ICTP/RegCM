@@ -590,12 +590,14 @@ module mod_tendency
       ! are not updated in the other convec scheme,
       ! cf mod_cu_em and mod_cu_tiedke.
       !
-      if ( rcmtimer%integrating( ) .and. syncro_cum%act( ) .and. &
-           ichcumtra == 1 .and. any(icup == 2 .or. icup == 6) ) then
-        if ( debug_level > 3 .and. myid == italk ) then
-          write(stdout,*) 'Calling cumulus transport at ',trim(rcmtimer%str())
+      if ( ichcumtra == 1 ) then
+        if ( rcmtimer%integrating( ) .and. syncro_cum%act( ) ) then
+          if ( debug_level > 3 .and. myid == italk ) then
+            write(stdout,*) 'Calling cumulus transport at ', &
+                         trim(rcmtimer%str())
+          end if
+          call cumtran
         end if
-        call cumtran
       end if
     end if
     !

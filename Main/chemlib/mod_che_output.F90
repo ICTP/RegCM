@@ -156,11 +156,6 @@ module mod_che_output
 
       rainout(:,:,:,itr) = d_zero
       washout(:,:,:,itr) = d_zero
-      rxsg(:,:,:,itr) = d_zero
-      rxsaq1(:,:,:,itr) = d_zero
-      rxsaq2(:,:,:,itr) = d_zero
-      wxaq(:,:,itr) = d_zero
-      wxsg(:,:,itr) = d_zero
 
     end subroutine fill_chem_outvars
 

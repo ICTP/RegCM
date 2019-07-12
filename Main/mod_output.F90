@@ -1415,8 +1415,16 @@ module mod_output
           call grid_collect(gasemstot,gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1)
         end if
 
-        call subgrid_collect(lms%sw,sw_io,jci1,jci2,ici1,ici2,1,num_soil_layers)
-#ifndef CLM45
+        call subgrid_collect(lms%sw,sw_io,jci1,jci2,ici1,ici2, &
+                             1,num_soil_layers)
+#ifdef CLM45
+        if ( ichem == 1 ) then
+          call grid_collect(tsoi,tsoi_io,jci1,jci2,ici1,ici2, &
+                               1,num_soil_layers)
+          call grid_collect(sw_vol,swvol_io,jci1,jci2,ici1,ici2, &
+                               1,num_soil_layers)
+        end if
+#else
         call subgrid_collect(lms%gwet,gwet_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%ldew,ldew_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%taf,taf_io,jci1,jci2,ici1,ici2)
@@ -1479,9 +1487,10 @@ module mod_output
             call grid_collect(atm1%chi,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
             call grid_collect(atm2%chi,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
           end if
-          call grid_collect(rainout,rainout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-          call grid_collect(washout,washout_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-          call grid_collect(remdrd,remdrd_io,jce1,jce2,ice1,ice2,1,ntr)
+          call grid_collect(convpr,convpr_io,jci1,jci2,ici1,ici2,1,kz)
+          call grid_collect(rainout,rainout_io,jci1,jci2,ici1,ici2,1,kz,1,ntr)
+          call grid_collect(washout,washout_io,jci1,jci2,ici1,ici2,1,kz,1,ntr)
+          call grid_collect(remdrd,remdrd_io,jci1,jci2,ici1,ici2,1,ntr)
           if ( igaschem == 1 .and. ichsolver > 0 ) then
             call grid_collect(chemall,chemall_io,jci1,jci2,ici1,ici2, &
                               1,kz,1,totsp)
@@ -1490,7 +1499,10 @@ module mod_output
           end if
 
           call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
-#ifndef CLM45
+#ifdef CLM45
+          call grid_collect(dustflx_clm,duflux_io,jci1,jci2,ici1,ici2,1,4)
+          call grid_collect(voc_em_clm,voflux_io,jci1,jci2,ici1,ici2,1,ntr)
+#else
           call grid_collect(sdelt,sdelt_io,jci1,jci2,ici1,ici2)
           call grid_collect(sdelq,sdelq_io,jci1,jci2,ici1,ici2)
           call grid_collect(svegfrac2d,svegfrac2d_io,jci1,jci2,ici1,ici2)
