@@ -1418,10 +1418,12 @@ module mod_output
         call subgrid_collect(lms%sw,sw_io,jci1,jci2,ici1,ici2, &
                              1,num_soil_layers)
 #ifdef CLM45
-        call grid_collect(tsoi,tsoi_io,jci1,jci2,ici1,ici2, &
-                             1,num_soil_layers)
-        call grid_collect(sw_vol,swvol_io,jci1,jci2,ici1,ici2, &
-                             1,num_soil_layers)
+        if ( ichem == 1 ) then
+          call grid_collect(tsoi,tsoi_io,jci1,jci2,ici1,ici2, &
+                               1,num_soil_layers)
+          call grid_collect(sw_vol,swvol_io,jci1,jci2,ici1,ici2, &
+                               1,num_soil_layers)
+        end if
 #else
         call subgrid_collect(lms%gwet,gwet_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%ldew,ldew_io,jci1,jci2,ici1,ici2)

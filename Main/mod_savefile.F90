@@ -188,6 +188,16 @@ module mod_savefile
     module procedure myputvar3di
   end interface myputvar
 
+  interface mygetvar
+    module procedure mygetvar2dd
+    module procedure mygetvar2ddf
+    module procedure mygetvar3dd
+    module procedure mygetvar4dd
+    module procedure mygetvar1dif
+    module procedure mygetvar2di
+    module procedure mygetvar3di
+  end interface mygetvar
+
   contains
 
   subroutine allocate_mod_savefile
@@ -242,10 +252,12 @@ module mod_savefile
       call getmem2d(zo_io,jcross1,jcross2,icross1,icross2,'zo_io')
 
 #ifdef CLM45
-      call getmem3d(tsoi_io,jcross1,jcross2,icross1,icross2, &
-                          1,num_soil_layers,'tsoi_io')
-      call getmem3d(swvol_io,jcross1,jcross2,icross1,icross2, &
-                          1,num_soil_layers,'swvol_io')
+      if ( ichem == 1 ) then
+        call getmem3d(tsoi_io,jcross1,jcross2,icross1,icross2, &
+                            1,num_soil_layers,'tsoi_io')
+        call getmem3d(swvol_io,jcross1,jcross2,icross1,icross2, &
+                            1,num_soil_layers,'swvol_io')
+      end if
 #else
       call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
       call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
@@ -375,7 +387,7 @@ module mod_savefile
     type (rcm_time_and_date) , intent(in) :: idate
     type (rcm_time_and_date) :: idatex
     integer(ik4) :: ncid
-    integer(ik4) :: int10d , ical , varid
+    integer(ik4) :: int10d , ical
     real(rk8) :: rtmp
     character(256) :: ffin
     character(32) :: fbname
@@ -421,275 +433,161 @@ module mod_savefile
         call fatal(__FILE__,__LINE__,'SAV FILE DO NOT MATCH IDATE1')
       end if
 
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_u'),atm1_u_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm1_u')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_u'),atm2_u_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm2_u')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_v'),atm1_v_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm1_v')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_v'),atm2_v_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm2_v')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_t'),atm1_t_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm1_t')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_t'),atm2_t_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm2_t')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_qx'),atm1_qx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm1_qx')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_qx'),atm2_qx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read atm2_qx')
+      call mygetvar(ncid,'atm1_u',atm1_u_io)
+      call mygetvar(ncid,'atm2_u',atm2_u_io)
+      call mygetvar(ncid,'atm1_v',atm1_v_io)
+      call mygetvar(ncid,'atm2_v',atm2_v_io)
+      call mygetvar(ncid,'atm1_t',atm1_t_io)
+      call mygetvar(ncid,'atm2_t',atm2_t_io)
+      call mygetvar(ncid,'atm1_qx',atm1_qx_io)
+      call mygetvar(ncid,'atm2_qx',atm2_qx_io)
       if ( ibltyp == 2 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_tke'),atm1_tke_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read atm1_tke')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_tke'),atm2_tke_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read atm2_tke')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'kpbl'),kpbl_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read kpbl')
+        call mygetvar(ncid,'atm1_tke',atm1_tke_io)
+        call mygetvar(ncid,'atm2_tke',atm2_tke_io)
+        call mygetvar(ncid,'kpbl',kpbl_io)
       else if ( ibltyp == 4 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tke_pbl'),tke_pbl_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read tke_pbl')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'kpbl'),kpbl_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read kpbl')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_uz0'),myjsf_uz0_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_uz0')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_vz0'),myjsf_vz0_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_vz0')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_thz0'),myjsf_thz0_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_thz0')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'myjsf_qz0'),myjsf_qz0_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read myjsf_qz0')
+        call mygetvar(ncid,'tke_pbl',tke_pbl_io)
+        call mygetvar(ncid,'kpbl',kpbl_io)
+        call mygetvar(ncid,'myjsf_uz0',myjsf_uz0_io)
+        call mygetvar(ncid,'myjsf_vz0',myjsf_vz0_io)
+        call mygetvar(ncid,'myjsf_thz0',myjsf_thz0_io)
+        call mygetvar(ncid,'myjsf_qz0',myjsf_qz0_io)
       end if
       if ( idynamic == 2 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_w'),atm1_w_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read atm1_w')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_w'),atm2_w_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read atm2_w')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_pp'),atm1_pp_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read atm1_pp')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_pp'),atm2_pp_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read atm2_pp')
+        call mygetvar(ncid,'atm1_w',atm1_w_io)
+        call mygetvar(ncid,'atm2_w',atm2_w_io)
+        call mygetvar(ncid,'atm1_pp',atm1_pp_io)
+        call mygetvar(ncid,'atm2_pp',atm2_pp_io)
       end if
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'psa'),psa_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read psa')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'psb'),psb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read psb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'hfx'),hfx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read hfx')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'qfx'),qfx_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read qfx')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbb'),tgbb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tgbb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'uvdrag'),uvdrag_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read uvdrag')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'q2m'),q2m_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read q2m')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'u10m'),u10m_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read u10m')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'v10m'),v10m_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read v10m')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'w10m'),w10m_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read w10m')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'br'),br_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read br')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ram'),ram_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ram')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rah'),rah_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read rah')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ustar'),ustar_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ustar')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'zo'),zo_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read zo')
+      call mygetvar(ncid,'psa',psa_io)
+      call mygetvar(ncid,'psb',psb_io)
+      call mygetvar(ncid,'hfx',hfx_io)
+      call mygetvar(ncid,'qfx',qfx_io)
+      call mygetvar(ncid,'tgbb',tgbb_io)
+      call mygetvar(ncid,'uvdrag',uvdrag_io)
+      call mygetvar(ncid,'q2m',q2m_io)
+      call mygetvar(ncid,'u10m',u10m_io)
+      call mygetvar(ncid,'v10m',v10m_io)
+      call mygetvar(ncid,'w10m',w10m_io)
+      call mygetvar(ncid,'br',br_io)
+      call mygetvar(ncid,'ram',ram_io)
+      call mygetvar(ncid,'rah',rah_io)
+      call mygetvar(ncid,'ustar',ustar_io)
+      call mygetvar(ncid,'zo',zo_io)
       if ( any(icup == 3) ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cldefi'),cldefi_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read cldefi')
+        call mygetvar(ncid,'cldefi',cldefi_io)
       end if
       if ( any(icup == 4) ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'cbmf2d'),cbmf2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read cbmf2d')
+        call mygetvar(ncid,'cbmf2d',cbmf2d_io)
       end if
       if ( any(icup == 6) .or. any(icup == 5) ) then
-        ncstatus = nf90_inq_varid(ncid,'cu_avg_ww',varid)
-        if ( ncstatus /= nf90_noerr ) then
-          cu_avg_ww_io = 0.0_rkx
-        else
-          ncstatus = nf90_get_var(ncid,varid,cu_avg_ww_io)
-          call check_ok(__FILE__,__LINE__,'Cannot read cu_avg_ww')
-        end if
+        call mygetvar(ncid,'cu_avg_ww',cu_avg_ww_io)
       end if
       if ( idcsst == 1 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sst'),sst_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sst')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tskin'),tskin_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read tskin')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'deltas'),deltas_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read deltas')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tdeltas'),tdeltas_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read tdeltas')
+        call mygetvar(ncid,'sst',sst_io)
+        call mygetvar(ncid,'tskin',tskin_io)
+        call mygetvar(ncid,'deltas',deltas_io)
+        call mygetvar(ncid,'tdeltas',tdeltas_io)
       end if
       if ( irrtm == 0 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'gasabsnxt'),gasabsnxt_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read gasabsnxt')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'gasabstot'),gasabstot_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read gasabstot')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'gasemstot'),gasemstot_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read gasemstot')
+        call mygetvar(ncid,'gasabsnxt',gasabsnxt_io)
+        call mygetvar(ncid,'gasabstot',gasabstot_io)
+        call mygetvar(ncid,'gasemstot',gasemstot_io)
       end if
       if ( ipptls > 0 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'fcc'),fcc_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read fcc')
+        call mygetvar(ncid,'fcc',fcc_io)
       end if
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'dsol'),dsol_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read dsol')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solis'),solis_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read solis')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvs'),solvs_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read solvs')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvsd'),solvsd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read solvsd')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvl'),solvl_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read solvl')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'solvld'),solvld_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read solvld')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sabveg'),sabveg_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read sabveg')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sw'),sw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read sw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlef'),tlef_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tlef')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgrd'),tgrd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tgrd')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbrd'),tgbrd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tgbrd')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sncv'),sncv_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read sncv')
+      call mygetvar(ncid,'dsol',dsol_io)
+      call mygetvar(ncid,'solis',solis_io)
+      call mygetvar(ncid,'solvs',solvs_io)
+      call mygetvar(ncid,'solvsd',solvsd_io)
+      call mygetvar(ncid,'solvl',solvl_io)
+      call mygetvar(ncid,'solvld',solvld_io)
+      call mygetvar(ncid,'sabveg',sabveg_io)
+      call mygetvar(ncid,'sw',sw_io)
+      call mygetvar(ncid,'tlef',tlef_io)
+      call mygetvar(ncid,'tgrd',tgrd_io)
+      call mygetvar(ncid,'tgbrd',tgbrd_io)
+      call mygetvar(ncid,'sncv',sncv_io)
 #ifdef CLM45
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tsoi'),tsoi_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read tsoi')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swvol'),swvol_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read swvol')
+      if ( ichem == 1 ) then
+        call mygetvar(ncid,'tsoi',tsoi_io)
+        call mygetvar(ncid,'swvol',swvol_io)
+      end if
 #else
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'gwet'),gwet_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read gwet')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ldew')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'taf'),taf_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read taf')
+      call mygetvar(ncid,'gwet',gwet_io)
+      call mygetvar(ncid,'ldew',ldew_io)
+      call mygetvar(ncid,'taf',taf_io)
 #endif
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfice'),sfice_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read sfice')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'snag'),snag_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read snag')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk1'),ldmsk1_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ldmsk1')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emisv_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read emiss')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'um10'),um10_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read um10')
+      call mygetvar(ncid,'sfice',sfice_io)
+      call mygetvar(ncid,'snag',snag_io)
+      call mygetvar(ncid,'ldmsk1',ldmsk1_io)
+      call mygetvar(ncid,'emiss',emisv_io)
+      call mygetvar(ncid,'um10',um10_io)
 #ifndef CLM
       if ( lakemod == 1 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'eta'),eta_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read eta')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'hi'),hi_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read hi')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlak'),tlak_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read tlak')
+        call mygetvar(ncid,'eta',eta_io)
+        call mygetvar(ncid,'hi',hi_io)
+        call mygetvar(ncid,'tlak',tlak_io)
       end if
 #endif
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'heatrt'),heatrt_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read heatrt')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'o3prof'),o3prof_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read o3prof')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'flw'),flw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read flw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'flwd'),flwd_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read flwd')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'fsw'),fsw_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read fsw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sinc'),sinc_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read sinc')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk'),ldmsk_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read ldmsk')
+      call mygetvar(ncid,'heatrt',heatrt_io)
+      call mygetvar(ncid,'o3prof',o3prof_io)
+      call mygetvar(ncid,'flw',flw_io)
+      call mygetvar(ncid,'flwd',flwd_io)
+      call mygetvar(ncid,'fsw',fsw_io)
+      call mygetvar(ncid,'sinc',sinc_io)
+      call mygetvar(ncid,'ldmsk',ldmsk_io)
       if ( iocnflx == 2 .or. ibltyp == 3 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'zpbl'),zpbl_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read zpbl')
+        call mygetvar(ncid,'zpbl',zpbl_io)
       end if
       if ( ichem == 1 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'chia'),chia_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read chia')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'chib'),chib_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read chib')
+        call mygetvar(ncid,'chia',chia_io)
+        call mygetvar(ncid,'chib',chib_io)
         if ( igaschem == 1 .and. ichsolver > 0 ) then
-          ncstatus = nf90_get_var(ncid,get_varid(ncid,'chemall'),chemall_io)
-          call check_ok(__FILE__,__LINE__,'Cannot read chemall')
-          ncstatus = nf90_get_var(ncid,get_varid(ncid,'taucldsp'),taucldsp_io)
-          call check_ok(__FILE__,__LINE__,'Cannot read taucldsp')
+          call mygetvar(ncid,'chemall',chemall_io)
+          call mygetvar(ncid,'taucldsp',taucldsp_io)
         end if
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'convpr'),convpr_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read convpr')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'rainout'),rainout_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read rainout')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'washout'),washout_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read washout')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'remdrd'),remdrd_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read remdrd')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw2da'),ssw2da_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read ssw2da')
+        call mygetvar(ncid,'convpr',convpr_io)
+        call mygetvar(ncid,'rainout',rainout_io)
+        call mygetvar(ncid,'washout',washout_io)
+        call mygetvar(ncid,'remdrd',remdrd_io)
+        call mygetvar(ncid,'ssw2da',ssw2da_io)
 #ifdef CLM45
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'duflux'),duflux_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read duflux')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'voflux'),voflux_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read voflux')
+        call mygetvar(ncid,'duflux',duflux_io)
+        call mygetvar(ncid,'voflux',voflux_io)
 #else
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelq'),sdelq_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sdelq')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelt'),sdelt_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sdelt')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'svegfrac2d'),svegfrac2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read svegfrac2d')
+        call mygetvar(ncid,'sdelq',sdelq_io)
+        call mygetvar(ncid,'sdelt',sdelt_io)
+        call mygetvar(ncid,'svegfrac2d',svegfrac2d_io)
 #endif
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracb2d'),sfracb2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sfracb2d')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracs2d'),sfracs2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sfracs2d')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracv2d'),sfracv2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sfracv2d')
+        call mygetvar(ncid,'sfracb2d',sfracb2d_io)
+        call mygetvar(ncid,'sfracs2d',sfracs2d_io)
+        call mygetvar(ncid,'sfracv2d',sfracv2d_io)
       end if
       if ( idynamic == 1 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'dstor'),dstor_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read dstor')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'hstor'),hstor_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read hstor')
+        call mygetvar(ncid,'dstor',dstor_io)
+        call mygetvar(ncid,'hstor',hstor_io)
       end if
       if ( islab_ocean == 1 .and. do_restore_sst ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'qflux_restore_sst'), &
-                                qflux_restore_sst_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read qflux_restore_sst')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'stepcount'),stepcount)
-        call check_ok(__FILE__,__LINE__,'Cannot read stepcount')
+        call mygetvar(ncid,'qflux_restore_sst',qflux_restore_sst_io)
+        call mygetvar(ncid,'stepcount',stepcount,get_varid(ncid,'stepcount'))
       end if
 #ifdef CLM
       if ( imask == 2 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'lndcat'),lndcat_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read lndcat')
+        call mygetvar(ncid,'lndcat',lndcat_io)
       end if
 #endif
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swalb'),swalb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read swalb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwalb'),lwalb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read lwalb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdiralb'),swdiralb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read swdiralb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdifalb'),swdifalb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read swdifalb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwdiralb'),lwdiralb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read lwdiralb')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwdifalb'),lwdifalb_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read lwdifalb')
+      call mygetvar(ncid,'swalb',swalb_io)
+      call mygetvar(ncid,'lwalb',lwalb_io)
+      call mygetvar(ncid,'swdiralb',swdiralb_io)
+      call mygetvar(ncid,'swdifalb',swdifalb_io)
+      call mygetvar(ncid,'lwdiralb',lwdiralb_io)
+      call mygetvar(ncid,'lwdifalb',lwdifalb_io)
       if ( idynamic == 2 .and. ifupr == 1 ) then
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'tmask'),tmask)
-        call check_ok(__FILE__,__LINE__,'Cannot read tmask')
+        call mygetvar(ncid,'tmask',tmask,get_varid(ncid,'tmask'))
       end if
-      ncstatus = nf90_close(ncid)
-      call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffin))
+      call saveclose(ffin,ncid)
     end if
   end subroutine read_savefile
 
@@ -852,8 +750,10 @@ module mod_savefile
     wrkdim(1) = dimids(idjcross)
     wrkdim(2) = dimids(idicross)
     wrkdim(3) = dimids(indep)
-    call savedefvar(ncid,'tsoi',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'swvol',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    if ( ichem == 1 ) then
+      call savedefvar(ncid,'tsoi',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'swvol',regcm_vartype,wrkdim,1,3,varids,ivcc)
+    end if
 #else
     call savedefvar(ncid,'gwet',regcm_vartype,wrkdim,1,3,varids,ivcc)
     call savedefvar(ncid,'ldew',regcm_vartype,wrkdim,1,3,varids,ivcc)
@@ -1044,8 +944,10 @@ module mod_savefile
     call myputvar(ncid,'tgbrd',tgbrd_io,varids,ivcc)
     call myputvar(ncid,'sncv',sncv_io,varids,ivcc)
 #ifdef CLM45
-    call myputvar(ncid,'tsoi',tsoi_io,varids,ivcc)
-    call myputvar(ncid,'swvol',tsoi_io,varids,ivcc)
+    if ( ichem == 1 ) then
+      call myputvar(ncid,'tsoi',tsoi_io,varids,ivcc)
+      call myputvar(ncid,'swvol',swvol_io,varids,ivcc)
+    end if
 #else
     call myputvar(ncid,'gwet',gwet_io,varids,ivcc)
     call myputvar(ncid,'ldew',ldew_io,varids,ivcc)
@@ -1223,6 +1125,34 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2dd
 
+  subroutine mygetvar2dd(ncid,str,var)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: var
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+#else
+    integer(ik4) , dimension(2) :: istart , icount
+#endif
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#else
+    ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar2dd
+
   subroutine myputvar2ddf(ncid,str,var,nx,ny,ivar,iivar)
 #ifdef PNETCEF
     use pnetcdf
@@ -1243,6 +1173,25 @@ module mod_savefile
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2ddf
+
+  subroutine mygetvar2ddf(ncid,str,var,ivar)
+#ifdef PNETCEF
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rkx) , dimension(:,:) , intent(inout) :: var
+    integer(ik4) , intent(in) :: ivar
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var(ncid,ivar,var)
+#else
+    ncstatus = nf90_get_var(ncid,ivar,var)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar2ddf
 
   subroutine myputvar3dd(ncid,str,var,ivar,iivar)
 #ifdef PNETCEF
@@ -1276,6 +1225,36 @@ module mod_savefile
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar3dd
+
+  subroutine mygetvar3dd(ncid,str,var)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: var
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+#else
+    integer(ik4) , dimension(3) :: istart , icount
+#endif
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+    icount(3) = ubound(var,3)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#else
+    ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar3dd
 
   subroutine myputvar4dd(ncid,str,var,ivar,iivar)
 #ifdef PNETCEF
@@ -1312,6 +1291,38 @@ module mod_savefile
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar4dd
 
+  subroutine mygetvar4dd(ncid,str,var)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: var
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(4) :: istart , icount
+#else
+    integer(ik4) , dimension(4) :: istart , icount
+#endif
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    istart(4) = lbound(var,4)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+    icount(3) = ubound(var,3)
+    icount(4) = ubound(var,4)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#else
+    ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar4dd
+
   subroutine myputvar1dif(ncid,str,var,nx,ivar,iivar)
 #ifdef PNETCEF
     use pnetcdf
@@ -1332,6 +1343,25 @@ module mod_savefile
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar1dif
+
+  subroutine mygetvar1dif(ncid,str,var,ivar)
+#ifdef PNETCEF
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    integer(ik4) , dimension(:) , intent(inout) :: var
+    integer(ik4) , intent(in) :: ivar
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var(ncid,ivar,var)
+#else
+    ncstatus = nf90_get_var(ncid,ivar,var)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar1dif
 
   subroutine myputvar2di(ncid,str,var,ivar,iivar)
 #ifdef PNETCEF
@@ -1363,6 +1393,34 @@ module mod_savefile
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar2di
+
+  subroutine mygetvar2di(ncid,str,var)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: var
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(2) :: istart , icount
+#else
+    integer(ik4) , dimension(2) :: istart , icount
+#endif
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#else
+    ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar2di
 
   subroutine myputvar3di(ncid,str,var,ivar,iivar)
 #ifdef PNETCEF
@@ -1396,6 +1454,36 @@ module mod_savefile
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot write var '//trim(str))
   end subroutine myputvar3di
+
+  subroutine mygetvar3di(ncid,str,var)
+#ifdef PNETCEF
+    use mpi , only : mpi_offset_kind
+    use pnetcdf
+#else
+    use netcdf
+#endif
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: str
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: var
+#ifdef PNETCDF
+    integer(kind=mpi_offset_kind) , dimension(3) :: istart , icount
+#else
+    integer(ik4) , dimension(3) :: istart , icount
+#endif
+    istart(1) = lbound(var,1)
+    istart(2) = lbound(var,2)
+    istart(3) = lbound(var,3)
+    icount(1) = ubound(var,1)
+    icount(2) = ubound(var,2)
+    icount(3) = ubound(var,3)
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#else
+    ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
+  end subroutine mygetvar3di
 
   subroutine savecreate(sname,ncid)
 #ifdef PNETCDF

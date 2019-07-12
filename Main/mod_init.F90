@@ -445,10 +445,12 @@ module mod_init
       call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
                               ici1,ici2,1,num_soil_layers)
 #ifdef CLM45
-      call grid_distribute(tsoi_io,tsoi,jci1,jci2, &
-                              ici1,ici2,1,num_soil_layers)
-      call grid_distribute(swvol_io,sw_vol,jci1,jci2, &
-                              ici1,ici2,1,num_soil_layers)
+      if ( ichem == 1 ) then
+        call grid_distribute(tsoi_io,tsoi,jci1,jci2, &
+                             ici1,ici2,1,num_soil_layers)
+        call grid_distribute(swvol_io,sw_vol,jci1,jci2, &
+                             ici1,ici2,1,num_soil_layers)
+      end if
 #else
       call subgrid_distribute(gwet_io,lms%gwet,jci1,jci2,ici1,ici2)
       call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
