@@ -349,10 +349,9 @@ module mod_ncstream
           stream%l_parallel = .true.
 #else
 #ifdef PNETCDF_IN_NETCDF
-          imode = ior(nf90_clobber,nf90_pnetcdf)
-          imode = ior(imode, nf90_64bit_offset)
-          ncstat = nf90_create_par(stream%filename,imode,ncid=stream%id, &
-                    comm=params%mpi_comm,info=params%mpi_info)
+          imode = ior(params%mpi_iotype,iomode)
+          ncstat = nf90_create_par(stream%filename,imode, &
+                    params%mpi_comm,params%mpi_info,stream%id)
           stream%l_parallel = .true.
 #else
           ncstat = nf90_create(stream%filename,iomode,stream%id)

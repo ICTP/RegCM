@@ -1731,7 +1731,7 @@ module mod_savefile
     integer(ik4) , intent(out) :: ncid
     integer(ik4) :: imode
 #ifdef PNETCDF
-    imode = ior(nf90_clobber, nf90_64bit_offset)
+    imode = ior(nf90_clobber, nf90_cdf5)
 #else
     imode = iomode
 #endif
@@ -1746,9 +1746,9 @@ module mod_savefile
                              info=ncout_mpi_info)
 #endif
 #ifdef PNETCDF_IN_NETCDF
-      imode = ior(imode,nf90_pnetcdf)
-      ncstatus = nf90_create_par(sname,imode,ncid=ncid,comm=get_cartcomm( ), &
-                                 info=ncout_mpi_info)
+      imode = ior(imode,nf90_mpiio)
+      ncstatus = nf90_create_par(sname,imode, &
+                             get_cartcomm( ),ncout_mpi_info,ncid)
 #endif
 #endif
     else
@@ -1773,9 +1773,7 @@ module mod_savefile
     type (rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) :: ncid
 #ifdef PNETCDF
-    integer(ik4) :: ixdate
-    ixdate = int(toint10(idate),ik4)
-    ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',ixdate)
+    ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',toint10(idate))
 #else
     ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idate))
 #endif

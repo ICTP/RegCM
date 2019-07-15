@@ -372,7 +372,7 @@ module mod_dynparam
   integer(ik4) :: iomode = ior(nf90_clobber, nf90_netcdf4)
 #else
 #ifndef PNETCDF
-  integer(ik4) :: iomode = ior(nf90_clobber, nf90_64bit_offset)
+  integer(ik4) :: iomode = ior(nf90_clobber, nf90_cdf5)
 #else
   integer(ik4) :: iomode = 0
 #endif

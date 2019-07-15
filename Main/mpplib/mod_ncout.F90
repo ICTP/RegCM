@@ -2532,7 +2532,7 @@ module mod_ncout
         outstream(nstream)%opar%mpi_iotype = nf90_mpiio
 #else
 #ifdef PNETCDF_IN_NETCDF
-        outstream(nstream)%opar%mpi_iotype = nf90_pnetcdf
+        outstream(nstream)%opar%mpi_iotype = nf90_mpiio
 #endif
 #endif
         ! The "global" indexes in the output stream refer to the INTERNAL
