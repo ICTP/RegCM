@@ -1444,7 +1444,6 @@ module mod_output
           lwdifalb_io = lms%lwdifalb
           ldmsk1_io(:,jci1:jci2,ici1:ici2) = mdsub%ldmsk(:,jci1:jci2,ici1:ici2)
           solis_io = solis
-          dsol_io = dsol
           solvs_io = solvs
           solvsd_io = solvsd
           solvl_io = solvl
@@ -1607,7 +1606,6 @@ module mod_output
           call subgrid_collect(lms%lwdifalb,lwdifalb_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
           call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
-          call grid_collect(dsol,dsol_io,jci1,jci2,ici1,ici2)
           call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
           call grid_collect(solvsd,solvsd_io,jci1,jci2,ici1,ici2)
           call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)

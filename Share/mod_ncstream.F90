@@ -1344,6 +1344,9 @@ module mod_ncstream
       if ( len_trim(var%vunit) > 0 ) &
         call add_attribute(stream, &
           ncattribute_string('units',var%vunit),var%id,var%vname)
+      if ( len_trim(var%notes) > 0 ) &
+        call add_attribute(stream, &
+          ncattribute_string('notes',var%notes),var%id,var%vname)
       if ( var%lgridded ) then
         if ( var%vname(2:5) /= 'lat' .and. var%vname(2:5) /= 'lon' ) then
           if ( stream%l_bound ) then

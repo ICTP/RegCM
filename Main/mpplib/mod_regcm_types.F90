@@ -525,7 +525,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: lwdif       ! solvld
     real(rkx) , pointer , dimension(:,:) :: solinc      ! sinc
     real(rkx) , pointer , dimension(:,:) :: solar       ! solis
-    real(rkx) , pointer , dimension(:,:) :: dsol        ! daily averaged energy
     real(rkx) , pointer , dimension(:,:) :: emissivity  ! emiss
     real(rkx) , pointer , dimension(:,:) :: deltaq      ! sdelq
     real(rkx) , pointer , dimension(:,:) :: deltat      ! sdelt
