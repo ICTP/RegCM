@@ -3567,7 +3567,6 @@ module mod_ncout
       var(ivar)%notes = notes
     end if
     var(ivar)%j1 = vsize%j1
-    var(ivar)%j1 = vsize%j1
     var(ivar)%j2 = vsize%j2
     var(ivar)%i1 = vsize%i1
     var(ivar)%i2 = vsize%i2
