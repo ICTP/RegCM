@@ -320,7 +320,11 @@ module mod_micro_interface
             cldfra(j,i,k) = mc2mo%fcc(j,i,k)
             cldlwc(j,i,k) = exlwc
           end if
-          cldfra(j,i,k) = max(cldfra(j,i,k),d_zero)
+          if ( cldlwc(j,i,k) > d_zero ) then
+            cldfra(j,i,k) = min(max(cldfra(j,i,k),d_zero),hicld)
+          else
+            cldfra(j,i,k) = d_zero
+          end if
         end do
       end do
     end do

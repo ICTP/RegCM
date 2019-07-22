@@ -34,6 +34,7 @@ module mod_che_cumtran
   public :: init_cumtran , cumtran
 
   logical , dimension(:,:) , pointer :: dotran
+  real(rkx) , dimension(:,:,:,:) , pointer :: chiten0
 
   contains
 
@@ -41,6 +42,10 @@ module mod_che_cumtran
     implicit none
     integer(ik4) :: i , j
     call getmem2d(dotran,jci1,jci2,ici1,ici2,'cumtran:dotran')
+    if ( ichdiag > 0 ) then
+      call getmem4d(chiten0,jci1,jci2, &
+                            ici1,ici2,1,kz,1,ntr,'che_common:chiten0')
+    end if
     dotran(:,:) = .false.
     ! Emanuel anf Tiedtke do their transport internally
     do i = ici1 , ici2
