@@ -57,6 +57,7 @@ module mod_che_interface
   public :: allocate_mod_che_bionit
   public :: allocate_mod_che_linox
 
+  public :: idust
   public :: totsp
   public :: chia_io
   public :: chib_io
@@ -170,7 +171,6 @@ module mod_che_interface
 #if (defined CLM45)
     call assignpnt(voc_em_clm,cvoc_em_clm)
     call assignpnt(dustflx_clm,cdustflx_clm)
-    call assignpnt(idusts,idust)
     call assignpnt(sw_vol,csw_vol)
     call assignpnt(tsoi,ctsoi)
 #endif

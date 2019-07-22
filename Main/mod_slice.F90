@@ -179,16 +179,12 @@ module mod_slice
       atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
     end do
 
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
-          atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz)
+      atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
+      atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
                           (p00/atms%pb3d(j,i,k))**rovcp
-          atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
+      atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
                           (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
-        end do
-      end do
     end do
 
     if ( idynamic == 2 ) then
@@ -252,10 +248,14 @@ module mod_slice
       do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
         atms%zq(j,i,kzp1) = d_zero
       end do
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = kz:1:-1 )
-        cell = ptop * rpsb(j,i)
-        atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
+      do k = kz , 1, -1
+        do i = ice1ga , ice2ga
+          do j = jce1ga , jce2ga
+            cell = ptop * rpsb(j,i)
+            atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg * atms%tv3d(j,i,k) *  &
                       log((sigma(k+1)+cell)/(sigma(k)+cell))
+          end do
+        end do
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
         atms%za(j,i,k) = d_half*(atms%zq(j,i,k) + atms%zq(j,i,k+1))

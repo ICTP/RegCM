@@ -138,7 +138,7 @@ module mod_che_wetdep
     real(rkx), parameter :: avo2 = navgdr * liter_per_gram * cm3_2_m3
 
     integer(ik4) :: ktop   ! index of top model layer that can have clouds
-    integer(ik4) :: i , k , kk , itr ! indicies
+    integer(ik4) :: i , k , n , kk , itr ! indicies
     real(rkx) :: xkgm         ! mass flux on rain drop
     real(rkx) :: all1 , all2  ! work variables
     real(rkx) :: stay         ! fraction of layer traversed by falling drop
@@ -294,9 +294,13 @@ module mod_che_wetdep
       xhen_macr(:,k)     = 4.3_rkx * exp(5300.0_rkx*work1(:))
       xhen_ch3cooh(:,k)  = 4.1e3_rkx * exp(6300.0_rkx*work1(:))
       xhen_nh3 (:,k)     = 1.e6_rkx
-      tmp_hetrates(:,k,:) = d_zero
     end do
 
+    do n = 1 , 2
+      do k = ktop + 1 , kz
+        tmp_hetrates(:,k,n) = d_zero
+      end do
+    end do
     !-----------------------------------------------------------------
     !   part 1, solve for high henry constant ( hno3, h2o2)
     !-----------------------------------------------------------------

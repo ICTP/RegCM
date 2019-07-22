@@ -1569,11 +1569,15 @@ module mod_tendency
         ! Adiabatic term in the temperature tendency equation in the
         ! hydrostatic model:    3rd RHS term in Eq. 2.1.3
         !
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          rovcpm = rgas/cpmf(qvd(j,i,k))
-          tdyn(j,i,k) = tdyn(j,i,k) +  &
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              rovcpm = rgas/cpmf(qvd(j,i,k))
+              tdyn(j,i,k) = tdyn(j,i,k) +  &
                      (omega(j,i,k)*rovcpm*atmx%tv(j,i,k)) / &
                      (ptop*rpsa(j,i)+hsigma(k))
+            end do
+          end do
         end do
       else if ( idynamic == 2 ) then
         !
@@ -1581,13 +1585,17 @@ module mod_tendency
         ! nonhydrostatic model: 3rd and 4th RHS term in Eq. 2.2.5 and Eq.2.3.9.
         !
         if ( ithadv == 0 ) then
-          do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-            cpm = cpmf(qvd(j,i,k))
-            scr1 = d_half*egrav*atm0%rho(j,i,k) * &
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                cpm = cpmf(qvd(j,i,k))
+                scr1 = d_half*egrav*atm0%rho(j,i,k) * &
                              (atm1%w(j,i,k)+atm1%w(j,i,k+1))
-            tdyn(j,i,k) = tdyn(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
+                tdyn(j,i,k) = tdyn(j,i,k) + atmx%t(j,i,k)*mdv%cr(j,i,k) - &
                            (scr1 + ppdyn(j,i,k) + ppten(j,i,k) +   &
                            atmx%pp(j,i,k)*mdv%cr(j,i,k))/(atm1%rho(j,i,k)*cpm)
+              end do
+            end do
           end do
         else
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
@@ -1634,16 +1642,18 @@ module mod_tendency
           vcc(j,i,k) = (atmx%vc(j,i,k)  + atmx%vc(j,i+1,k) + &
                         atmx%vc(j+1,i,k)+ atmx%vc(j+1,i+1,k))
         end do
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
-          rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +      &
-                    dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
-                  ( dsigma(k-1) * atm1%rho(j,i,k) +      &
-                    dsigma(k)   * atm1%rho(j,i,k-1) )
-          uaq = d_rfour * (twt(k,1) * ucc(j,i,k) + &
-                           twt(k,2) * ucc(j,i,k-1))
-          vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
-                           twt(k,2) * vcc(j,i,k-1))
-          wdyn(j,i,k) = wdyn(j,i,k) + &
+        do k = 2 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+            rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +      &
+                      dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
+                    ( dsigma(k-1) * atm1%rho(j,i,k) +      &
+                      dsigma(k)   * atm1%rho(j,i,k-1) )
+            uaq = d_rfour * (twt(k,1) * ucc(j,i,k) + &
+                             twt(k,2) * ucc(j,i,k-1))
+            vaq = d_rfour * (twt(k,1) * vcc(j,i,k) + &
+                             twt(k,2) * vcc(j,i,k-1))
+            wdyn(j,i,k) = wdyn(j,i,k) + &
                     (twt(k,2)*atmx%pr(j,i,k-1) +             &
                      twt(k,1)*atmx%pr(j,i,k)) *              &
                      rofac * egrav * sfs%psa(j,i) +          &
@@ -1652,6 +1662,8 @@ module mod_tendency
                      (uaq*uaq+vaq*vaq)*rearthrad*rpsa(j,i) + &
                      atmx%w(j,i,k)*(twt(k,1)*mdv%cr(j,i,k) + &
                                     twt(k,2)*mdv%cr(j,i,k-1))
+            end do
+          end do
         end do
         if ( ipptls > 0 ) then
           do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 2:kz )
@@ -1808,6 +1820,7 @@ module mod_tendency
         call check_wind_tendency('PBLL',pc_physic)
 #endif
       end if
+
     end subroutine physical_parametrizations
 
     subroutine curvature
@@ -1828,41 +1841,45 @@ module mod_tendency
           vdyn(j,i,k) = vdyn(j,i,k) - mddom%coriol(j,i)*atmx%uc(j,i,k)
         end do
       else if ( idynamic == 2 ) then
-        do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
-          !
-          ! Nonhydrostatic model:
-          ! (1) part of the horizontal component of the Coriolis force
-          !     due to the horizontal movement (5th RHS term in Eq.2.2.1,
-          !     Eq.2.2.2, Eq.2.2.9, Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
-          ! (2) part of the horizontal component of the Coriolis force
-          !     due to the vertical movement (6th RHS term in Eq.2.2.9,
-          !     Eq.2.2.10)
-          ! (3) horizontal curvature term
-          !     (not explicitly mentioned in the MM5 1994 manual)
-          ! (4) vertical curvature term
-          !     (not explicitly mentioned in the MM5 1994 manual)
-          ! (5) divergence term
-          !     (3rd RHS term in Eq.2.2.1, Eq.2.2.2, Eq.2.2.9,
-          !      Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
-          !
-          wadot   = 0.125_rkx * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k)     + &
-                                 atm1%w(j,i-1,k)   + atm1%w(j,i,k))
-          wadotp1 = 0.125_rkx * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
-                                 atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
-          wabar = wadot + wadotp1
-          amfac = wabar * rpsda(j,i) * rearthrad
-          duv = atmx%uc(j,i,k)*mddom%dmdy(j,i) - &
-                atmx%vc(j,i,k)*mddom%dmdx(j,i)
-          udyn(j,i,k) = udyn(j,i,k) + &
-                        mddom%coriol(j,i)*atmx%vc(j,i,k) -   & ! H Coriolis
-                        mddom%ef(j,i)*mddom%ddx(j,i)*wabar + & ! V Coriolis
-                        atmx%vmd(j,i,k)*duv -                & ! H curv
-                        atmx%uc(j,i,k)*amfac                   ! V curv
-          vdyn(j,i,k) = vdyn(j,i,k) - &
-                        mddom%coriol(j,i)*atmx%uc(j,i,k) +   & ! H Coriolis
-                        mddom%ef(j,i)*mddom%ddy(j,i)*wabar - & ! V Coriolis
-                        atmx%umd(j,i,k)*duv -                & ! H curv
-                        atmx%vc(j,i,k)*amfac                   ! V curv
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              !
+              ! Nonhydrostatic model:
+              ! (1) part of the horizontal component of the Coriolis force
+              !     due to the horizontal movement (5th RHS term in Eq.2.2.1,
+              !     Eq.2.2.2, Eq.2.2.9, Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
+              ! (2) part of the horizontal component of the Coriolis force
+              !     due to the vertical movement (6th RHS term in Eq.2.2.9,
+              !     Eq.2.2.10)
+              ! (3) horizontal curvature term
+              !     (not explicitly mentioned in the MM5 1994 manual)
+              ! (4) vertical curvature term
+              !     (not explicitly mentioned in the MM5 1994 manual)
+              ! (5) divergence term
+              !     (3rd RHS term in Eq.2.2.1, Eq.2.2.2, Eq.2.2.9,
+              !      Eq.2.2.10, Eq.2.3.3, Eq.2.3.4)
+              !
+              wadot   = 0.125_rkx * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k)     + &
+                                     atm1%w(j,i-1,k)   + atm1%w(j,i,k))
+              wadotp1 = 0.125_rkx * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
+                                     atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
+              wabar = wadot + wadotp1
+              amfac = wabar * rpsda(j,i) * rearthrad
+              duv = atmx%uc(j,i,k)*mddom%dmdy(j,i) - &
+                    atmx%vc(j,i,k)*mddom%dmdx(j,i)
+              udyn(j,i,k) = udyn(j,i,k) + &
+                            mddom%coriol(j,i)*atmx%vc(j,i,k) -   & ! H Coriolis
+                            mddom%ef(j,i)*mddom%ddx(j,i)*wabar + & ! V Coriolis
+                            atmx%vmd(j,i,k)*duv -                & ! H curv
+                            atmx%uc(j,i,k)*amfac                   ! V curv
+              vdyn(j,i,k) = vdyn(j,i,k) - &
+                            mddom%coriol(j,i)*atmx%uc(j,i,k) +   & ! H Coriolis
+                            mddom%ef(j,i)*mddom%ddy(j,i)*wabar - & ! V Coriolis
+                            atmx%umd(j,i,k)*duv -                & ! H curv
+                            atmx%vc(j,i,k)*amfac                   ! V curv
+            end do
+          end do
         end do
       end if
 #ifdef DEBUG
@@ -1878,13 +1895,17 @@ module mod_tendency
       ! compute weighted p*t (td) for use in ssi:
       !
       if ( ipgf == 1 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-          tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
-          tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-          td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
-          ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
+        do k = - 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
+              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
+              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
+              ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
                         t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
+            end do
+          end do
         end do
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2 , k = 1:kz )
@@ -1914,39 +1935,47 @@ module mod_tendency
                        t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
           end do
         end if
-        do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
-          rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) + &
-                             atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))  - &
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) + &
+                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))  - &
                   t00pg*((hsigma(k)*sfs%psdota(j,i)+ptop)/p00pg)**pgfaa1
-          rtbar = rgas*rtbar*sfs%psdota(j,i)
-          !
-          ! Hydrostatic model. The first part of the pressure gradient term:
-          ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-          ! (2) 2nd     term in Eq.2.4.1.
-          ! (2a) Warning: there is missing sigma in the denominator in the
-          !      MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
-          !      in MM4 manual)
-          ! (2b) Hint:
-          !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
-          !      This second form is discretized here.
-          !
-          udyn(j,i,k) = udyn(j,i,k) - rtbar * &
+              rtbar = rgas*rtbar*sfs%psdota(j,i)
+              !
+              ! Hydrostatic model. The first part of the pressure gradient term:
+              ! (1) 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
+              ! (2) 2nd     term in Eq.2.4.1.
+              ! (2a) Warning: there is missing sigma in the denominator in the
+              !      MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
+              !      in MM4 manual)
+              ! (2b) Hint:
+              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
+              !      This second form is discretized here.
+              !
+              udyn(j,i,k) = udyn(j,i,k) - rtbar * &
                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
                           hsigma(k)+ptop) -                         &
                      log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-          vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
+              vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
                     (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
                           hsigma(k)+ptop) -                         &
                      log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
                           hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+            end do
+          end do
         end do
       else if ( ipgf == 0 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-          tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
-          tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
-          td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
+              tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+              tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
+              td(j,i,k) = alpha_hyd*(tvc+tvb) + beta_hyd*tva
+            end do
+          end do
         end do
         if ( ma%has_bdyleft ) then
           do concurrent ( i = ici1:ici2 , k = 1:kz )
@@ -1968,31 +1997,35 @@ module mod_tendency
             td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
           end do
         end if
-        do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:kz )
-          rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) +   &
-                             atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))
-          rtbar = rgas*rtbar*sfs%psdota(j,i)
-          !
-          ! Hydrostatic model. The first part of the pressure gradient term:
-          ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
-          ! (2)    the 2nd     term in Eq.2.4.1.
-          ! (2a) Warning: there is missing sigma in the denominator in
-          !      the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
-          !      in MM4 manual)
-          ! (2b) Hint:
-          !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
-          !      This second form is discretized here.
-          !
-          udyn(j,i,k) = udyn(j,i,k) - rtbar * &
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              rtbar = d_rfour * (atmx%tv(j-1,i-1,k) + atmx%tv(j-1,i,k) +   &
+                                 atmx%tv(j,i-1,k)   + atmx%tv(j,i,k))
+              rtbar = rgas*rtbar*sfs%psdota(j,i)
+              !
+              ! Hydrostatic model. The first part of the pressure gradient term:
+              ! (1) in the 3rd RHS term in Eq.2.1.1, Eq.2.1.2., or
+              ! (2)    the 2nd     term in Eq.2.4.1.
+              ! (2a) Warning: there is missing sigma in the denominator in
+              !      the MM5 manual (cf. Eq.2.4.1 in MM5 manual and Eq.4.2.6
+              !      in MM4 manual)
+              ! (2b) Hint:
+              !      1/[1+p_top/(p* sigma)] dp*/dx = d log(sigma p* + p_top)/dx.
+              !      This second form is discretized here.
+              !
+              udyn(j,i,k) = udyn(j,i,k) - rtbar * &
                      (log(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*      &
                            hsigma(k)+ptop) -                         &
                       log(d_half*(sfs%psa(j-1,i)+sfs%psa(j-1,i-1))*  &
                            hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
-          vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
+              vdyn(j,i,k) = vdyn(j,i,k) - rtbar * &
                      (log(d_half*(sfs%psa(j,i)+sfs%psa(j-1,i))*      &
                            hsigma(k)+ptop) -                         &
                       log(d_half*(sfs%psa(j-1,i-1)+sfs%psa(j,i-1))*  &
                            hsigma(k)+ptop))/(dx*mddom%msfd(j,i))
+            end do
+          end do
         end do
       end if
 #ifdef DEBUG
@@ -2008,54 +2041,62 @@ module mod_tendency
         tvfac(j,i,k) = d_one / (d_one+qcd(j,i,k)/(d_one+qvd(j,i,k)))
       end do
       if ( ipgf == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-          !
-          ! Hydrostatic model: the 1st part of the Eq.2.4.5
-          !
-          tv = ttld(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
-          phi(j,i,kz) = mddom%ht(j,i) + &
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            !
+            ! Hydrostatic model: the 1st part of the Eq.2.4.5
+            !
+            tv = ttld(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
+            phi(j,i,kz) = mddom%ht(j,i) + &
                      rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
-          phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
+            phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
                     log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+          end do
         end do
         do k = 1 , kzm1
           lev = kz - k
-          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-            !
-            ! Hydrostatic model: the 1st part of the Eq.2.4.5
-            !    (also, cf. Eq.2.1.9)
-            !
-            tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! Hydrostatic model: the 1st part of the Eq.2.4.5
+              !    (also, cf. Eq.2.1.9)
+              !
+              tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
                       dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+   &
                       dsigma(lev+1))))*tvfac(j,i,lev)
-            phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
                    tvavg*log((hsigma(lev) + ptop*rpsa(j,i)) /      &
                              (hsigma(lev+1) + ptop*rpsa(j,i)))
+            end do
           end do
         end do
       else if ( ipgf == 0 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-          !
-          ! Hydrostatic model: the 1st part of the Eq.2.4.5
-          !         (also, cf. Eq.2.1.9)
-          !
-          tv = td(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
-          phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            !
+            ! Hydrostatic model: the 1st part of the Eq.2.4.5
+            !         (also, cf. Eq.2.1.9)
+            !
+            tv = td(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
+            phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
                  log((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+          end do
         end do
         do k = 1 , kzm1
           lev = kz - k
-          do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-            !
-            ! Hydrostatic model: the 1st part of the Eq.2.4.5
-            !        (also, cf. Eq.2.1.9)
-            !
-            tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              !
+              ! Hydrostatic model: the 1st part of the Eq.2.4.5
+              !        (also, cf. Eq.2.1.9)
+              !
+              tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
                       dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+   &
                       dsigma(lev+1))))*tvfac(j,i,lev)
-            phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *                 &
                    tvavg*log((hsigma(lev)+ptop*rpsa(j,i)) /        &
                              (hsigma(lev+1)+ptop*rpsa(j,i)))
+            end do
           end do
         end do
       end if

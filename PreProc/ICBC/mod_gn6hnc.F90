@@ -112,6 +112,7 @@ module mod_gn6hnc
   integer(ik4) , parameter :: nfiles = nvars
   integer(ik4) , dimension(nvars) :: inet
   integer(ik4) , dimension(nvars) :: ivar
+  integer(ik4) :: lyear
 
   character(len=256) :: pathaddname
   type(rcm_time_and_date) , save :: refdate
@@ -892,7 +893,7 @@ module mod_gn6hnc
               dattyp(1:2) == 'E5' .or. dattyp == 'JRA55' ) then
       call setcal(itimes(1), gregorian)
     else if ( dattyp(1:3) == 'LGM' ) then
-      timlen = 0
+      timlen = -1
     else
       call setcal(itimes(1), noleap)
     end if
@@ -1179,7 +1180,17 @@ module mod_gn6hnc
     else if ( dattyp(1:3) == 'LGM' ) then
       varname => lgmvars
       call split_idate(idate, year, month, day, hour)
-      it = (dayofyear(idate)-1)*4 + hour/6 + 1
+      if ( timlen < 0 ) then
+        lyear = year
+        it = (dayofyear(idate)-1)*4 + hour/6 + 1
+      else
+        if ( lyear /= year ) then
+          it = timlen + 1
+          lyear = year
+        else
+          it = (dayofyear(idate)-1)*4 + hour/6 + 1
+        end if
+      end if
       if ( it > timlen ) then
         if ( inet(1) > 0 ) then
           istatus = nf90_close(inet(1))
@@ -1204,6 +1215,7 @@ module mod_gn6hnc
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error inquire dim time')
         write (stdout,*) 'Open file ', trim(pathaddname)
+        it = (dayofyear(idate)-1)*4 + hour/6 + 1
       end if
       icount(1) = nlon
       icount(2) = nlat

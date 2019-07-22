@@ -560,11 +560,13 @@
       ! tracer instantaneous burden for diag
       !
       dtrace(:,:,:) = d_zero
-      do k=1,kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-           dtrace(j,i,:) = dtrace(j,i,:) +  &
-                  chib3d(j,i,k,:)*cdzq(j,i,k)*crhob3d(j,i,k)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              dtrace(j,i,n) = dtrace(j,i,n) +  &
+                  chib3d(j,i,k,n)*cdzq(j,i,k)*crhob3d(j,i,k)
+            end do
           end do
         end do
       end do

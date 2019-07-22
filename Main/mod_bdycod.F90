@@ -506,23 +506,16 @@ module mod_bdycod
     !
     ! Calculate time varying component
     !
-    call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
-    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
-    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
-    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
+    call timeint(xub%b1,xub%b0,xub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
+    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
+    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     call timeint(xtsb%b1,xtsb%b0,xtsb%bt,jce1,jce2,ice1,ice2)
-    call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
     if ( idynamic == 1 ) then
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
-      call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
     else if ( idynamic == 2 ) then
-      call timeint(xppb%b1,xppb%b0,xppb%bt,jce1,jce2,ice1,ice2,1,kz)
-      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1,jce2,ice1,ice2,1,kzp1)
-      call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
+      call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     end if
 
 #ifdef DEBUG
@@ -644,24 +637,17 @@ module mod_bdycod
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
     else
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1,jce2,ice1,ice2)
-      call exchange(xpsb%bt,1,jce1,jce2,ice1,ice2)
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
     end if
 
     ! Linear time interpolation
-    call timeint(xub%b1,xub%b0,xub%bt,jde1,jde2,ide1,ide2,1,kz)
-    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1,jde2,ide1,ide2,1,kz)
-    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1,jce2,ice1,ice2,1,kz)
-    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(xub%bt,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(xvb%bt,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(xtb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(xqb%bt,1,jce1,jce2,ice1,ice2,1,kz)
+    call timeint(xub%b1,xub%b0,xub%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
+    call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
+    call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+    call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     if ( idynamic == 2 ) then
-      call timeint(xppb%b1,xppb%b0,xppb%bt,jce1,jce2,ice1,ice2,1,kz)
-      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1,jce2,ice1,ice2,1,kzp1)
-      call exchange(xppb%bt,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(xwwb%bt,1,jce1,jce2,ice1,ice2,1,kzp1)
+      call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
+      call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     end if
     !
     ! Update ground temperature on Ocean/Lakes

@@ -128,13 +128,15 @@ module mod_diffusion
       end do
       if ( diffu_hgtf == 1 ) then
         ! Should we have a vertical profile for this?
-        do concurrent ( j = jci1ga:jci2ga , i = ici1ga:ici2ga )
-          hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
-          hg2 = abs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
-          hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
-          hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
-          hgmax = max(hg1,hg2,hg3,hg4)*regrav*1.0e3_rkx
-          hgfact(j,i) = xkhz/(d_one+hgmax**2)
+        do i = ici1ga , ici2ga
+          do j = jci1ga , jci2ga
+            hg1 = abs((mddom%ht(j,i)-mddom%ht(j,i-1))/dx)
+            hg2 = abs((mddom%ht(j,i)-mddom%ht(j,i+1))/dx)
+            hg3 = abs((mddom%ht(j,i)-mddom%ht(j-1,i))/dx)
+            hg4 = abs((mddom%ht(j,i)-mddom%ht(j+1,i))/dx)
+            hgmax = max(hg1,hg2,hg3,hg4)*regrav*1.0e3_rkx
+            hgfact(j,i) = xkhz/(d_one+hgmax**2)
+          end do
         end do
         call maxall(maxval(hgfact),maxxkh)
         call minall(minval(hgfact),minxkh)
@@ -189,34 +191,42 @@ module mod_diffusion
       ! for dot-point variables.
       !
       if ( idynamic == 1 ) then
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-          ! Following Smagorinsky et al, 1965 for eddy viscosity
-          dudx = ud(j+1,i,k) + ud(j+1,i+1,k) - &
-                 ud(j,i,k)   - ud(j,i+1,k)
-          dvdx = vd(j+1,i,k) + vd(j+1,i+1,k) - &
-                 vd(j,i,k)   - vd(j,i+1,k)
-          dudy = ud(j,i+1,k) + ud(j+1,i+1,k) - &
-                 ud(j,i,k)   - ud(j+1,i,k)
-          dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
-                 vd(j,i,k)   - vd(j+1,i,k)
-          duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
-          xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              ! Following Smagorinsky et al, 1965 for eddy viscosity
+              dudx = ud(j+1,i,k) + ud(j+1,i+1,k) - &
+                     ud(j,i,k)   - ud(j,i+1,k)
+              dvdx = vd(j+1,i,k) + vd(j+1,i+1,k) - &
+                     vd(j,i,k)   - vd(j,i+1,k)
+              dudy = ud(j,i+1,k) + ud(j+1,i+1,k) - &
+                     ud(j,i,k)   - ud(j+1,i,k)
+              dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
+                     vd(j,i,k)   - vd(j+1,i,k)
+              duv = sqrt((dudx-dvdy)*(dudx-dvdy)+(dvdx+dudy)*(dvdx+dudy))
+              xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+            end do
+          end do
         end do
       else
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-          ! Following Smagorinsky et al, 1965 for eddy viscosity
-          dudx = ud(j+1,i,k) + ud(j+1,i+1,k) - &
-                 ud(j,i,k)   - ud(j,i+1,k)
-          dvdx = vd(j+1,i,k) + vd(j+1,i+1,k) - &
-                 vd(j,i,k)   - vd(j,i+1,k)
-          dudy = ud(j,i+1,k) + ud(j+1,i+1,k) - &
-                 ud(j,i,k)   - ud(j+1,i,k)
-          dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
-                 vd(j,i,k)   - vd(j+1,i,k)
-          dwdz = wx(j,i,k) - wx(j,i,k+1)
-          duv = sqrt(max((dudx-dvdy)*(dudx-dvdy) + &
-                         (dvdx+dudy)*(dvdx+dudy) - dwdz*dwdz,d_zero))
-          xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              ! Following Smagorinsky et al, 1965 for eddy viscosity
+              dudx = ud(j+1,i,k) + ud(j+1,i+1,k) - &
+                     ud(j,i,k)   - ud(j,i+1,k)
+              dvdx = vd(j+1,i,k) + vd(j+1,i+1,k) - &
+                     vd(j,i,k)   - vd(j,i+1,k)
+              dudy = ud(j,i+1,k) + ud(j+1,i+1,k) - &
+                     ud(j,i,k)   - ud(j+1,i,k)
+              dvdy = vd(j,i+1,k) + vd(j+1,i+1,k) - &
+                     vd(j,i,k)   - vd(j+1,i,k)
+              dwdz = wx(j,i,k) - wx(j,i,k+1)
+              duv = sqrt(max((dudx-dvdy)*(dudx-dvdy) + &
+                             (dvdx+dudy)*(dvdx+dudy) - dwdz*dwdz,d_zero))
+              xkc(j,i,k) = min((hgfact(j,i) + dydc*duv),xkhmax)
+            end do
+          end do
         end do
       end if
       xkcf(:,:,1) = xkc(jci1:jci2,ici1:ici2,1)

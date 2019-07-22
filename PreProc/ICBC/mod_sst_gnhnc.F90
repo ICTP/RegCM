@@ -45,6 +45,7 @@ module mod_sst_gnhnc
   integer(ik4) :: timid
   integer(ik4) :: istatus
   integer(ik4) :: itcfs
+  integer(ik4) :: lyear
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik2) , pointer , dimension(:,:) :: work
   integer(ik2) :: fillvalue
@@ -106,6 +107,7 @@ module mod_sst_gnhnc
          'sst_',year,'_',month,'.nc'
       varname(2) = 'sst'
     else if ( ssttyp(1:3) == 'LGM' ) then
+      lyear = year
       if ( ssttyp(4:4) == 'P' ) then
         call find_lgm_sst(inpfile,globidate1,'P')
       else
@@ -296,7 +298,12 @@ module mod_sst_gnhnc
       it = isteps(month) + (day-1)*4 + hour/6
     else if ( ssttyp(1:3) == 'LGM' ) then
       call split_idate(idate, year, month, day, hour)
-      it = (dayofyear(idate)-1)*4 + hour/6 + 1
+      if ( lyear /= year ) then
+        lyear = year
+        it = timlen + 1
+      else
+        it = (dayofyear(idate)-1)*4 + hour/6 + 1
+      end if
     else if ( ssttyp(1:3) == 'CFS' ) then
       it = itcfs
       itcfs = itcfs + 1
@@ -321,9 +328,9 @@ module mod_sst_gnhnc
         call find_ccsm3_file(inpfile,year,month,day,hour)
       else if ( ssttyp(1:3) == 'LGM' ) then
         if ( ssttyp(4:4) == 'P' ) then
-          call find_lgm_sst(inpfile,globidate1,'P')
+          call find_lgm_sst(inpfile,idate,'P')
         else
-          call find_lgm_sst(inpfile,globidate1,'C')
+          call find_lgm_sst(inpfile,idate,'C')
         end if
       else if ( ssttyp(1:3) == 'EIN' ) then
         write (inpfile,'(a,i0.4,a)') &

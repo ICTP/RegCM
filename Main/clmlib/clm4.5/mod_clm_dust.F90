@@ -359,6 +359,8 @@ module mod_clm_dust
           if (lnd_frc_mbl(p) > 0.0_rk8) then
             flx_mss_vrt_dst(p,n) = flx_mss_vrt_dst(p,n) + &
                     ovr_src_snk_mss(m,n) * flx_mss_vrt_dst_ttl(p)
+          else
+            flx_mss_vrt_dst(p,n) = 0.0_rk8
           end if
         end do
       end do

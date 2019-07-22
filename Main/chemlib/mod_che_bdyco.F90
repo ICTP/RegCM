@@ -266,14 +266,15 @@ module mod_che_bdyco
       !
       ! Calculate time varying component
       !
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1ga , ice2ga
+            do j = jce1ga , jce2ga
+              chibt(j,i,k,n) = (chib1(j,i,k,n)-chib0(j,i,k,n))/dtbdys
+            end do
           end do
         end do
       end do
-      call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
 
       ! handle oxc lima
 
@@ -374,14 +375,15 @@ module mod_che_bdyco
         end do
       end do
       call exchange(chib1,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            chibt(j,i,k,:) = (chib1(j,i,k,:)-chib0(j,i,k,:))/dtbdys
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1ga , ice2ga
+            do j = jce1ga , jce2ga
+              chibt(j,i,k,n) = (chib1(j,i,k,n)-chib0(j,i,k,n))/dtbdys
+            end do
           end do
         end do
       end do
-      call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
 
       ! handle oxidant climatology
       if ( ioxclim == 1 ) then
@@ -410,7 +412,7 @@ module mod_che_bdyco
     real(rkx) , pointer , dimension(:,:) , intent(in) :: nve , nvi
     real(rkx) , pointer , dimension(:,:) , intent(in) :: sve , svi
     real(rkx) :: xt , windavg , trint
-    integer(ik4) :: itr , j , k , i
+    integer(ik4) :: itr , i , j , k , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'chem_bdyval'
     integer(ik4) , save :: idindx = 0
@@ -557,30 +559,38 @@ module mod_che_bdyco
     ! time dependant boundary conditions is considered
 
     if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          chia(jce1,i,k,:) = chib0(jce1,i,k,:) + xt*chibt(jce1,i,k,:)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            chia(jce1,i,k,n) = chib0(jce1,i,k,n) + xt*chibt(jce1,i,k,n)
+          end do
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          chia(jce2,i,k,:) = chib0(jce2,i,k,:) + xt*chibt(jce2,i,k,:)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ici1 , ici2
+            chia(jce2,i,k,n) = chib0(jce2,i,k,n) + xt*chibt(jce2,i,k,n)
+          end do
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jce1 , jce2
-          chia(j,ice1,k,:) = chib0(j,ice1,k,:) + xt*chibt(j,ice1,k,:)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do j = jce1 , jce2
+            chia(j,ice1,k,n) = chib0(j,ice1,k,n) + xt*chibt(j,ice1,k,n)
+          end do
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
-      do k = 1 , kz
-        do j = jce1 , jce2
-          chia(j,ice2,k,:) = chib0(j,ice2,k,:) + xt*chibt(j,ice2,k,:)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do j = jce1 , jce2
+            chia(j,ice2,k,n) = chib0(j,ice2,k,n) + xt*chibt(j,ice2,k,n)
+          end do
         end do
       end do
     end if

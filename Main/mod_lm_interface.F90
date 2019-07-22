@@ -385,10 +385,10 @@ module mod_lm_interface
       call assignpnt(sxlai2d,lm%sxlai2d)
       call assignpnt(wetdepflx,lm%wetdepflx)
       call assignpnt(drydepflx,lm%drydepflx)
-      call assignpnt(idusts,lm%idust)
 #ifdef CLM45
       call assignpnt(sw_vol,lm%sw_vol)
       call assignpnt(tsoi,lm%tsoi)
+      call assignpnt(idust,lm%idust)
 #endif
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1) then
