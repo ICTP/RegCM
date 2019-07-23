@@ -180,10 +180,10 @@ module mod_che_carbonaer
       end if
     end subroutine carb_prepare
 
-    subroutine aging_carb(j)
+    subroutine aging_carb(i)
       implicit none
-      integer, intent(in) :: j
-      integer(ik4) :: i , k
+      integer, intent(in) :: i
+      integer(ik4) :: j , k
       real(rkx) :: agingtend1 , agingtend2 , ksp , icon , arg
       !
       ! aging o carbon species : Conversion from hydrophobic to
@@ -193,7 +193,7 @@ module mod_che_carbonaer
       if ( ibchb > 0 .and. ibchl > 0 ) then
         if ( carb_aging_control ) then
           do k = 1 , kz
-            do i = ici1 , ici2
+            do j = jci1 , jci2
               !in nm/hr from m/sec
               if ( surf(j,i,k) > d_zero ) then
                 arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
@@ -217,7 +217,7 @@ module mod_che_carbonaer
           end do
         else
           do k = 1 , kz
-            do i = ici1 , ici2
+            do j = jci1 , jci2
               ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
               arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
               agingtend1 = -ksp*(d_one-exp(-arg))/dt
@@ -235,7 +235,7 @@ module mod_che_carbonaer
       if ( iochb > 0  .and. iochl > 0 ) then
         if ( carb_aging_control ) then
           do k = 1 , kz
-            do i = ici1 , ici2
+            do j = jci1 , jci2
               ! in nm/hr from m/sec
               if ( surf(j,i,k) > d_zero ) then
                 arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
@@ -259,7 +259,7 @@ module mod_che_carbonaer
           end do
         else
           do k = 1 , kz
-            do i = ici1 , ici2
+            do j = jci1 , jci2
               ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
               arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
               agingtend1 = -ksp*(d_one-exp(-arg))/dt
@@ -276,7 +276,7 @@ module mod_che_carbonaer
       end if
       if ( ism1 > 0  .and. ism2 > 0 ) then
         do k = 1 , kz
-          do i = ici1 , ici2
+          do j = jci1 , jci2
             ksp = max(chib(j,i,k,ism1)-mintr,d_zero)
             agingtend1 = -ksp*(d_one-exp(-dt/chsmct))/dt
             agingtend2 = -agingtend1

@@ -93,8 +93,8 @@ module mod_che_isorropia
     real(rkx) :: tempi , rhi
 
     do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do j = jci1 , jci2
+        do i = ici1 , ici2
           cntrl(1) = d_zero
           cntrl(2) = 1.0_rkx
           wt = d_zero

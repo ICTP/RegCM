@@ -44,13 +44,13 @@ module mod_che_ccn
 
   contains
 
-  subroutine ccn(j)
+  subroutine ccn(i)
     implicit none
-    integer, intent(in) :: j
-    integer(ik4) :: i , k
+    integer, intent(in) :: i
+    integer(ik4) :: j , k
     cccn(j,:,:) = d_zero
     do k = 1 , kz
-      do i = ici1 , ici2
+      do j = jci1 , jci2
         if ( ibchl > 0 ) then
           cccn(j,i,k) = cccn(j,i,k) + &
                  calc_ccn(rhobchl,chib3d(j,i,k,ibchl)*crhob3d(j,i,k))

@@ -69,24 +69,24 @@
       real(rkx) :: facb , facs , facv , pres10 , qsat10 , shu10
 #endif
       real(rkx) :: fact , u10 , v10
-      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
+      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: rho , ttb,  wl , prec , &
                                                       convprec
-      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt , ph
-      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: fracloud, fracum
-      integer(ik4) , dimension(ici1:ici2,jci1:jci2) :: ivegcov
-      real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: pdepv
-      real(rkx) , dimension(ici1:ici2,ntr,jci1:jci2) :: ddepa ! , ddepg
-      real(rkx) , dimension(ici1:ici2,jci1:jci2) :: psurf , rh10 , soilw , &
+      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: hgt , ph
+      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: fracloud, fracum
+      integer(ik4) , dimension(jci1:jci2,ici1:ici2) :: ivegcov
+      real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: pdepv
+      real(rkx) , dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa ! , ddepg
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: psurf , rh10 , soilw , &
           srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
-      real(rkx) , dimension(ici1:ici2,kz,ntr,jci1:jci2) :: bchi
-      real(rkx) , dimension(ici1:ici2,luc,jci1:jci2) :: ustar
-      real(rkx) , dimension(ici1:ici2,luc) :: xra
-      real(rkx) , dimension(ici1:ici2,nbin,jci1:jci2) :: dust_flx
-      real(rkx) , dimension(ici1:ici2,sbin,jci1:jci2) :: seasalt_flx
+      real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
+      real(rkx) , dimension(jci1:jci2,luc,ici1:ici2) :: ustar
+      real(rkx) , dimension(jci1:jci2,luc) :: xra
+      real(rkx) , dimension(jci1:jci2,nbin,ici1:ici2) :: dust_flx
+      real(rkx) , dimension(jci1:jci2,sbin,ici1:ici2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
-      real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
-!     real(rkx) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
+      real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: chevap
+!     real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: checum
       real(rkx) , dimension (1) :: polrftab
       integer(ik4) , dimension (1) :: poltab
       integer(ik4) :: i , j , k , n , ibin
@@ -115,18 +115,18 @@
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ! rho(j,i,k) = (sfs%psb(i,j)*a(k)+r8pt)* &
-            ! what the hell   1000./287./atm2%t(i,k,j)*sfs%psb(i,j)
-            hgt(i,k,j)  = cza(j,i,k)
-            ph(i,k,j)   = cpb3d(j,i,k)
-            rho(i,k,j)  = crhob3d(j,i,k)
-            wl(i,k,j)   = cqxb3d(j,i,k,iqc)*crhob3d(j,i,k)*d_1000
-            ttb(i,k,j)  = ctb3d(j,i,k)
+            ! rho(j,i,k) = (sfs%psb(j,i)*a(k)+r8pt)* &
+            ! what the hell   1000./287./atm2%t(j,k,i)*sfs%psb(j,i)
+            hgt(j,k,i)  = cza(j,i,k)
+            ph(j,k,i)   = cpb3d(j,i,k)
+            rho(j,k,i)  = crhob3d(j,i,k)
+            wl(j,k,i)   = cqxb3d(j,i,k,iqc)*crhob3d(j,i,k)*d_1000
+            ttb(j,k,i)  = ctb3d(j,i,k)
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !
-            prec(i,k,j) = crembc(j,i,k) / 3600._rkx !passed in mm/s
+            prec(j,k,i) = crembc(j,i,k) / 3600._rkx !passed in mm/s
             !and the quivalent for convective prec
-            convprec(i,k,j) = cconvpr(j,i,k) ! already in mm/s
+            convprec(j,k,i) = cconvpr(j,i,k) ! already in mm/s
           end do
         end do
       end do
@@ -148,13 +148,13 @@
         do i = ici1 , ici2
           do j = jci1 , jci2
 
-            fracloud(i,k,j)  =  cfcc(j,i,k)
-            fracum(i,k,j)    =  convcldfra (j,i,k)
+            fracloud(j,k,i)  =  cfcc(j,i,k)
+            fracum(j,k,i)    =  convcldfra (j,i,k)
 
 !            if ( kcumtop(j,i) > 0 ) then
 !              do kk = kcumtop(j,i) , kz
-!                fracum(i,kk,j) = ccldfra(j,i,kk) - cfcc(j,i,kk)
-!                 fracum(i,kk,j) = convcldfra (j,i,kk)
+!                fracum(j,kk,i) = ccldfra(j,i,kk) - cfcc(j,i,kk)
+!                 fracum(j,kk,i) = convcldfra (j,i,kk)
 !              end do
 !            end if
           end do
@@ -169,22 +169,22 @@
           ! care ocean-lake in veg2d is now back type 14-15 !!
           ! ivegcov mask is also defined when CLM45 is used
           if ( cveg2d(j,i) == 14 .or. cveg2d(j,i) == 15 ) then
-            ivegcov(i,j) = 0
+            ivegcov(j,i) = 0
           else
-            ivegcov(i,j) = cveg2d(j,i)
+            ivegcov(j,i) = cveg2d(j,i)
           end if
-          psurf(i,j) = cps2d(j,i)
+          psurf(j,i) = cps2d(j,i)
           ! incoming solar radiation (for stb criteria used to calculate
           ! aerodynamic resistance)
-          srad(i,j) = csol2d(j,i)
-          hsurf(i,j) = cht(j,i)
-          bchi(i,:,:,j) = chib(j,i,:,:)
+          srad(j,i) = csol2d(j,i)
+          hsurf(j,i) = cht(j,i)
+          bchi(j,:,:,i) = chib(j,i,:,:)
           ! fraction of vegetation
 #ifdef CLM45
-          vegfrac(i,j) = d_one - csfracb2d(j,i)
+          vegfrac(j,i) = d_one - csfracb2d(j,i)
 #else
-          vegfrac(i,j) = cvegfrac(j,i)
-          snowfrac(i,j) = csfracs2d(j,i)
+          vegfrac(j,i) = cvegfrac(j,i)
+          snowfrac(j,i) = csfracs2d(j,i)
 #endif
         end do
       end do
@@ -192,57 +192,57 @@
 #ifndef CLM45
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( ivegcov(i,j) /= 0 ) then
+          if ( ivegcov(j,i) /= 0 ) then
             facv = log(cza(j,i,kz)/d_10) / &
-                   log(cza(j,i,kz)/crough(ivegcov(i,j)))
+                   log(cza(j,i,kz)/crough(ivegcov(j,i)))
             facb = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zlnd)
             facs = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zsno)
             fact = csfracv2d(j,i)*facv + csfracb2d(j,i)*facb + &
                    csfracs2d(j,i)*facs
             !
             ! grid level effective roughness lenght (linear averaging for now)
-            zeff(i,j) = crough(ivegcov(i,j))*csfracv2d(j,i) + &
+            zeff(j,i) = crough(ivegcov(j,i))*csfracv2d(j,i) + &
                        zlnd * csfracb2d(j,i) + zsno * csfracs2d(j,i)
           else
             ! water surface
             fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zoce)
-            zeff(i,j) = zoce
+            zeff(j,i) = zoce
           end if
           ! 10 m wind
           u10 = (cubx3d(j,i,kz))*(d_one-fact)
           v10 = (cvbx3d(j,i,kz))*(d_one-fact)
-          wid10(i,j) = sqrt(u10**2+v10**2)
+          wid10(j,i) = sqrt(u10**2+v10**2)
           ! 10 m air temperature
-          temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
+          temp10(j,i) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
           ! specific  humidity at 10m
           shu10 = cqxb3d(j,i,kz,iqv)/(d_one+cqxb3d(j,i,kz,iqv)) - &
                   csdelqk2d(j,i)*fact
           ! back to mixing ratio
           shu10 = shu10/(d_one-shu10)
           ! saturation mixing ratio at 10m
-          pres10 = psurf(i,j) - 98.0_rkx
-          qsat10 = pfwsat(temp10(i,j),pres10)
+          pres10 = psurf(j,i) - 98.0_rkx
+          qsat10 = pfwsat(temp10(j,i),pres10)
           ! relative humidity at 10m
-          rh10(i,j) = d_zero
-          if ( qsat10 > d_zero ) rh10(i,j) = shu10/qsat10
+          rh10(j,i) = d_zero
+          if ( qsat10 > d_zero ) rh10(j,i) = shu10/qsat10
           !
           ! cssw2da is the soil water amount in kg/m2 of the 10 cm
           ! superficial layer
           ! depuv converted from mm to m. soil density assumed tp be 2650 kg/m3
           ! Fecan parametrisation for dust is expecting gravimetric
           ! soil water content in kg/kg
-          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
+          soilw(j,i) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
                        1.e-3_rkx/(2650.0_rkx * &
                        (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
           ! surface temperature
           ! over land recalculated from the BATS as deltk air/ surface
           ! temperature account for a composite temperature between
           ! bare ground and vegetation
-          if ( ivegcov(i,j) /= 0 ) then
-            tsurf(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)
+          if ( ivegcov(j,i) /= 0 ) then
+            tsurf(j,i) = ctb3d(j,i,kz) - csdeltk2d(j,i)
           else
             ! ocean temperature in this case
-            tsurf(i,j) = ctg(j,i)
+            tsurf(j,i) = ctg(j,i)
           end if
         end do
       end do
@@ -259,27 +259,27 @@
       ! ichdstem = 3
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( ivegcov(i,j) /= 0 .and. custar(j,i) > 0_rkx ) then
-            zeff(i,j) = d_10 * exp(-vonkar * cw10m (j,i) /custar (j,i))
+          if ( ivegcov(j,i) /= 0 .and. custar(j,i) > 0_rkx ) then
+            zeff(j,i) = d_10 * exp(-vonkar * cw10m (j,i) /custar (j,i))
           else
-            zeff(i,j) = zoce
+            zeff(j,i) = zoce
           end if
-          fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zeff(i,j))
+          fact = log(cza(j,i,kz)/d_10)/log(cza(j,i,kz)/zeff(j,i))
           u10 = (cubx3d(j,i,kz))*(d_one-fact)
           v10 = (cvbx3d(j,i,kz))*(d_one-fact)
-          wid10(i,j) = sqrt(u10**2+v10**2)
-          tsurf(i,j) = ctg(j,i)
+          wid10(j,i) = sqrt(u10**2+v10**2)
+          tsurf(j,i) = ctg(j,i)
           ! use simplifcations to approximate t and hr at 10 m from
           ! first model level
-          temp10(i,j) =  ctb3d(j,i,kz) + lrate * (cza(j,i,kz) - 10._rkx)
-          rh10(i,j) = crhb3d(j,i,kz)
+          temp10(j,i) =  ctb3d(j,i,kz) + lrate * (cza(j,i,kz) - 10._rkx)
+          rh10(j,i) = crhb3d(j,i,kz)
           ! when CLM45 we use directly the volumetic soil water of the
           ! first CLM layer
           ! converted to gravimetric water conrtent using a sandy soil
           ! bulk density ratio to water density of 0.45
           ! consistent with bionox data
-          !soilw(i,j) = csw_vol(j,i,1)*0.45_rkx
-          soilw(i,j) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
+          !soilw(j,i) = csw_vol(j,i,1)*0.45_rkx
+          soilw(j,i) = cssw2da(j,i)/cdepuv(nint(clndcat(j,i))) / &
                        1.e-3_rkx/(2650.0_rkx * &
                        (d_one-cxmopor(ciexsol(nint(clndcat(j,i))))))
         end do
@@ -296,9 +296,9 @@
       ! SOX CHEMSITRY ( from offline oxidant)
       !
       if ( iso2 > 0 .and. (iso4 > 0 .or. ih2so4 > 0) ) then
-        do j = jci1 , jci2
-          call chemsox(j,wl(:,:,j),fracloud(:,:,j), &
-                       fracum(:,:,j),rho(:,:,j),ttb(:,:,j))
+        do i = ici1 , ici2
+          call chemsox(i,wl(:,:,i),fracloud(:,:,i), &
+                       fracum(:,:,i),rho(:,:,i),ttb(:,:,i))
         end do
       end if
       !
@@ -306,8 +306,8 @@
       !
       if ( (ibchb > 0 .and. ibchl > 0 ) .or. &
            (iochb > 0 .and. iochl > 0) ) then
-        do j = jci1 , jci2
-          call aging_carb(j)
+        do i = ici1 , ici2
+          call aging_carb(i)
         end do
       end if
       !
@@ -320,12 +320,12 @@
       !
       if ( idust(1) > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
-          do j = jci1 , jci2
-            call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
-                     rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
-            call sfflux(j,ivegcov(:,j),vegfrac(:,j),snowfrac(:,j), &
-                        ustar(:,1,j),zeff(:,j),soilw(:,j),wid10(:,j), &
-                        rho(:,kz,j),dustbsiz,dust_flx(:,:,j))
+          do i = ici1 , ici2
+            call aerodyresis(zeff(:,i),wid10(:,i),temp10(:,i),tsurf(:,i), &
+                     rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(:,1))
+            call sfflux(i,ivegcov(:,i),vegfrac(:,i),snowfrac(:,i), &
+                        ustar(:,1,i),zeff(:,i),soilw(:,i),wid10(:,i), &
+                        rho(:,kz,i),dustbsiz,dust_flx(:,:,i))
           end do
         else
           ! OPTION for using CLM45 dust emission scheme
@@ -335,41 +335,41 @@
       end if
       !sea salt
       if ( isslt(1) > 0 .and. ichsursrc == 1 ) then
-        do j = jci1 , jci2
-          call sea_salt(j,wid10(:,j),ivegcov(:,j),seasalt_flx(:,:,j))
+        do i = ici1 , ici2
+          call sea_salt(i,wid10(:,i),ivegcov(:,i),seasalt_flx(:,:,i))
         end do
       end if
       !
       ! pollen emission
       !
       if ( ipollen > 0 ) then
-        do j = jci1 , jci2
-         call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
-           rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,:,j),xra(:,1))
-         call pollen_emission(j,ustar(:,1,j),wid10(:,j),rh10(:,j), &
-           prec(:,kz,j), convprec(:,kz,j))
+        do i = ici1 , ici2
+         call aerodyresis(zeff(:,i),wid10(:,i),temp10(:,i),tsurf(:,i), &
+           rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(:,1))
+         call pollen_emission(i,ustar(:,1,i),wid10(:,i),rh10(:,i), &
+           prec(:,kz,i), convprec(:,kz,i))
         end do
       end if
       !
       ! biogenic nox emission
       if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
-        do j = jci1 , jci2
-          call soilnitro_emissions(j,ivegcov(:,j),wid10(:,j))
+        do i = ici1 , ici2
+          call soilnitro_emissions(i,ivegcov(:,i),wid10(:,i))
         end do
       end if
       !
       ! linox emissions
       if ( ichlinox == 1 .and. ino > 0 ) then
-        do j = jci1 , jci2
-          call linox_em(j,ivegcov(:,j))
+        do i = ici1 , ici2
+          call linox_em(i,ivegcov(:,i))
         end do
       end if
 
       ! update emission tendencies from external inventories
       ! handle biogenic emission fluxes coming from CLM45
       if ( ichsursrc == 1 ) then
-        do j = jci1 , jci2
-          call emis_tend(j,declin)
+        do i = ici1 , ici2
+          call emis_tend(i,declin)
         end do
       end if
       !
@@ -381,56 +381,56 @@
       ddepa(:,:,:)   = d_zero
       ! ddepg(:,:,:)   = d_zero
       if ( idust(1) > 0 .and. ichdrdepo > 0 ) then
-        do j = jci1 , jci2
-          call drydep_aero(j,nbin,idust,rhodust,ivegcov(:,j),       &
-                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),         &
-                           temp10(:,j),tsurf(:,j),srad(:,j),        &
-                           rh10(:,j),wid10(:,j),zeff(:,j),dustbed,  &
-                           pdepv(:,:,:,j),ddepa(:,:,j))
+        do i = ici1 , ici2
+          call drydep_aero(i,nbin,idust,rhodust,ivegcov(:,i),       &
+                           ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
+                           temp10(:,i),tsurf(:,i),srad(:,i),        &
+                           rh10(:,i),wid10(:,i),zeff(:,i),dustbed,  &
+                           pdepv(:,:,:,i),ddepa(:,:,i))
         end do
         ! mineralogical tracers
-        if ( imine(1,1) > 0 ) then
+        if ( nmine > 0 ) then
           do n = 1 , nmine
-            do j = jci1 , jci2
-              call drydep_aero(j,nbin,imine(:,n),rhodust,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),            &
-                           temp10(:,j),tsurf(:,j),srad(:,j),           &
-                           rh10(:,j),wid10(:,j),zeff(:,j),dustbed,     &
-                           pdepv(:,:,:,j),ddepa(:,:,j))
+            do i = ici1 , ici2
+              call drydep_aero(i,nbin,imine(:,n),rhodust,ivegcov(:,i), &
+                           ttb(:,:,i),rho(:,:,i),ph(:,:,i),            &
+                           temp10(:,i),tsurf(:,i),srad(:,i),           &
+                           rh10(:,i),wid10(:,i),zeff(:,i),dustbed,     &
+                           pdepv(:,:,:,i),ddepa(:,:,i))
 
             end do
           end do
         end if
       end if
       if ( isslt(1) > 0 .and. ichdrdepo > 0 ) then
-        do j = jci1 , jci2
-          call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(:,j),      &
-                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),        &
-                           temp10(:,j),tsurf(:,j),srad(:,j),       &
-                           rh10(:,j),wid10(:,j),zeff(:,j),ssltbed, &
-                           pdepv(:,:,:,j),ddepa(:,:,j))
+        do i = ici1 , ici2
+          call drydep_aero(i,sbin,isslt,rhosslt,ivegcov(:,i),      &
+                           ttb(:,:,i),rho(:,:,i),ph(:,:,i),        &
+                           temp10(:,i),tsurf(:,i),srad(:,i),       &
+                           rh10(:,i),wid10(:,i),zeff(:,i),ssltbed, &
+                           pdepv(:,:,:,i),ddepa(:,:,i))
         end do
       end if
       if ( icarb(1) > 0 .and. ichdrdepo > 0 ) then
         ibin = count( icarb > 0 )
-        do j = jci1 , jci2
-          call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),         &
-                           temp10(:,j),tsurf(:,j),srad(:,j),        &
-                           rh10(:,j),wid10(:,j),zeff(:,j),          &
-                           carbed(1:ibin),pdepv(:,:,:,j),ddepa(:,:,j))
+        do i = ici1 , ici2
+          call drydep_aero(i,ibin,icarb(1:ibin),rhooc,ivegcov(:,i), &
+                           ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
+                           temp10(:,i),tsurf(:,i),srad(:,i),        &
+                           rh10(:,i),wid10(:,i),zeff(:,i),          &
+                           carbed(1:ibin),pdepv(:,:,:,i),ddepa(:,:,i))
         end do
       end if
       if ( ipollen > 0 .and. ichdrdepo > 0 ) then
         ibin = 1
         poltab(1) = ipollen
         polrftab(1) = reffpollen
-        do j = jci1 , jci2
-          call drydep_aero(j,ibin,poltab,rhopollen,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),ph(:,:,j),      &
-                           temp10(:,j),tsurf(:,j),srad(:,j),        &
-                           rh10(:,j),wid10(:,j),zeff(:,j),          &
-                           polrftab,pdepv(:,:,:,j),ddepa(:,:,j))
+        do i = ici1 , ici2
+          call drydep_aero(i,ibin,poltab,rhopollen,ivegcov(:,i), &
+                           ttb(:,:,i),rho(:,:,i),ph(:,:,i),      &
+                           temp10(:,i),tsurf(:,i),srad(:,i),        &
+                           rh10(:,i),wid10(:,i),zeff(:,i),          &
+                           polrftab,pdepv(:,:,:,i),ddepa(:,:,i))
         end do
       end if
       !
@@ -439,49 +439,49 @@
       ! dry deposition for SO2  is calculated also in non gaschem simulations
       !
       if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo > 0 ) then
-        do j = jci1 , jci2
-          call drydep_gas(j,lmonth,lday,ivegcov(:,j),rh10(:,j), &
-                          srad(:,j),tsurf(:,j),prec(:,kz,j),    &
-                          temp10(:,j),wid10(:,j),zeff(:,j))
+        do i = ici1 , ici2
+          call drydep_gas(i,lmonth,lday,ivegcov(:,i),rh10(:,i), &
+                          srad(:,i),tsurf(:,i),prec(:,kz,i),    &
+                          temp10(:,i),wid10(:,i),zeff(:,i))
         end do
       end if
       !
       ! WET deposition (rainout and washout) for aerosol
       !
       if ( idust(1) > 0 .and. ichremlsc == 1 ) then
-        do j = jci1 , jci2
-          call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(:,:,j),  &
-                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
-                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
-                       convprec(:,:,j), pdepv(:,:,:,j))
+        do i = ici1 , ici2
+          call wetdepa(i,nbin,idust,dustbed,rhodust,ttb(:,:,i),  &
+                       wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),  &
+                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i), &
+                       convprec(:,:,i), pdepv(:,:,:,i))
         end do
         ! mineralogical tracers
-        if ( imine(1,1) > 0 ) then
+        if ( nmine > 0 ) then
           do n = 1 , nmine
-            do j = jci1 , jci2
-              call wetdepa(j,nbin,imine(:,n),dustbed,rhodust,ttb(:,:,j), &
-                           wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),      &
-                           psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),     &
-                           convprec(:,:,j), pdepv(:,:,:,j))
+            do i = ici1 , ici2
+              call wetdepa(i,nbin,imine(:,n),dustbed,rhodust,ttb(:,:,i), &
+                           wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),      &
+                           psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),     &
+                           convprec(:,:,i), pdepv(:,:,:,i))
             end do
           end do
         end if
       end if
       if ( isslt(1) > 0 .and. ichremlsc == 1 )  then
-        do j = jci1 , jci2
-          call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j),  &
-                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
-                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
-                       convprec(:,:,j), pdepv(:,:,:,j))
+        do i = ici1 , ici2
+          call wetdepa(i,sbin,isslt,ssltbed,rhosslt,ttb(:,:,i),  &
+                       wl(:,:,i),fracloud(:,:,i),fracum(:,:,i),  &
+                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i), &
+                       convprec(:,:,i), pdepv(:,:,:,i))
         end do
       end if
       if ( icarb(1) > 0 .and. ichremlsc == 1 )  then
         ibin = count( icarb > 0 )
-        do j = jci1 , jci2
-          call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
-                       ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),           &
-                       convprec(:,:,j),pdepv(:,:,:,j))
+        do i = ici1 , ici2
+          call wetdepa(i,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
+                       ttb(:,:,i),wl(:,:,i),fracloud(:,:,i),fracum(:,:,i), &
+                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),           &
+                       convprec(:,:,i),pdepv(:,:,:,i))
         end do
       end if
       !
@@ -489,11 +489,11 @@
         ibin = 1
         poltab(1) = ipollen
         polrftab(1) = reffpollen
-        do j = jci1 , jci2
-          call wetdepa(j,ibin,poltab,polrftab,rhopollen,        &
-                       ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),           &
-                       convprec(:,:,j),pdepv(:,:,:,j))
+        do i = ici1 , ici2
+          call wetdepa(i,ibin,poltab,polrftab,rhopollen,        &
+                       ttb(:,:,i),wl(:,:,i),fracloud(:,:,i),fracum(:,:,i), &
+                       psurf(:,i),hsigma,rho(:,:,i),prec(:,:,i),           &
+                       convprec(:,:,i),pdepv(:,:,:,i))
         end do
       end if
       !
@@ -504,10 +504,10 @@
         ! no effect of cumulus scavenging now
         ! checum = d_zero
         chevap = d_zero
-        do j = jci1 , jci2
-          call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),        &
-                      prec(:,:,j),convprec(:,:,j),chevap(:,:,j), &
-                      dt,rho(:,:,j),bchi(:,:,:,j),psurf(:,j))
+        do i = ici1 , ici2
+          call sethet(i,hgt(:,:,i),hsurf(:,i),ttb(:,:,i),        &
+                      prec(:,:,i),convprec(:,:,i),chevap(:,:,i), &
+                      dt,rho(:,:,i),bchi(:,:,:,i),psurf(:,i))
         end do
       end if
       !
@@ -520,8 +520,8 @@
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         if ( syncro_che%act( ) ) then
           chemten(:,:,:,:) = d_zero
-          do j = jci1 , jci2
-            call chemistry(j)
+          do i = ici1 , ici2
+            call chemistry(i)
           end do
           if ( myid == italk .and. syncro_rep%will_act( ) ) then
             write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2surf : ', &
@@ -548,9 +548,9 @@
       ! set tracer total tracer tendency to zero if so ..
       ! threshold 0.005 mm/s = 432 mm/d
       !
-      !do j = jci1 , jci2
-      !  do i = ici1 , ici2
-      !    if ( maxval(convprec(i,:,j) + prec(i,:,j)) > 0.001_rkx ) then
+      !do i = ici1 , ici2
+      !  do j = jci1 , jci2
+      !    if ( maxval(convprec(j,:,i) + prec(j,:,i)) > 0.001_rkx ) then
       !      chiten (j,i,:,:) = d_zero
       !    end if
       !  end do
@@ -573,8 +573,8 @@
       ! calculate ccn number for use in precip autoconversion
       ! calculation ( 2nd indirect effect)
       if ( iindirect > 0 .and. iaerosol == 1 ) then
-        do j = jci1 , jci2
-          call ccn(j)
+        do i = ici1 , ici2
+          call ccn(i)
         end do
       end if
 

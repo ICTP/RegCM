@@ -49,15 +49,15 @@ module mod_che_pollen
 
   public :: solpollen, pollen_emission
 
-
   contains
 
-    subroutine pollen_emission(j, ustar, wind10, rh10, prec, convprec )
+    subroutine pollen_emission(i, ustar, wind10, rh10, prec, convprec )
       implicit none
-      integer, intent(in) :: j
-      real(rkx) , dimension(ici1:ici2) , intent(in) ::ustar, wind10, rh10, prec,convprec
-      real(rkx) , dimension(ici1:ici2) :: precip,emispol
-     integer(ik4) :: i
+      integer, intent(in) :: i
+      real(rkx) , dimension(jci1:jci2) , intent(in) :: ustar , wind10
+      real(rkx) , dimension(jci1:jci2) , intent(in) :: rh10 , prec , convprec
+      real(rkx) , dimension(jci1:jci2) :: precip , emispol
+      integer(ik4) :: j
       real (rkx) :: emispot, fh,fw,fr,uconv,htc,ce
 
 ! calculate the actual pollen flux corrected for meteo
@@ -67,55 +67,59 @@ module mod_che_pollen
       uconv = d_zero
       precip = (prec + convprec ) * 3600._rkx
       emispol = d_zero
-      ce = 1.e-4_rkx ! flowering factor, a raffiner en fonction calendrier floraison
+      ! flowering factor, a raffiner en fonction calendrier floraison
+      ce = 1.e-4_rkx
 
-      do i = ici1 , ici2
+      do j = jci1 , jci2
 
-       emispot = chemsrc(j,i,ipollen) * 24._rkx ! in particle/m2 + derniere correction
-       if (emispot < 1.e-20_rkx) cycle
-       ! in kg/m2
-       emispol(i) = emispot * mathpi / 6._rkx * (reffpollen * 1.e-6_rkx)**3 * rhopollen
+        ! in particle/m2 + derniere correction
+        emispot = chemsrc(j,i,ipollen) * 24._rkx
+        if (emispot < 1.e-20_rkx) cycle
+        ! in kg/m2
+        emispol(j) = emispot * mathpi / 6._rkx * &
+                (reffpollen * 1.e-6_rkx)**3 * rhopollen
 
-       if (  rh10(i)*100.0_rkx < 50._rkx ) then
-         fh =d_one
-       elseif (  rh10(i)*100.0_rkx > 80._rkx ) then
-         fh=d_zero
-       else
-       fh = (80._rkx - rh10(i)*100.0_rkx )/ (80._rkx - 50._rkx)
-       end if
-
-       if (  precip(i) < 1.0e-5_rkx ) then
-         fr =d_one
-       elseif ( precip(i) > 0.5_rkx ) then
-         fr=d_zero
-       else
-         fr = (0.5_rkx - precip(i))/0.5_rkx
-       end if
-
-! Sofiev et al., 2006
-
-       fw = 0.5_rkx + 1.0_rkx * ( 1._rkx - exp( -(wind10(i) + uconv) / 5._rkx ))
-
-       emispol(i) = emispol(i) * ustar(i)/ htc  * ce * fh * fw * fr
-
-       end do
-
-
-       if ( ichdrdepo /= 2 ) then
-        do i = ici1 , ici2
-            chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
-            emispol(i)*egrav/(dsigma(kz)*1.0e3_rkx)
-            ! diagnostic for source, cumul
-            cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cfdout
-        end do
-        elseif ( ichdrdepo ==2) then
-        do i = ici1 , ici2
-            !then emission is injected in the PBL scheme
-            chifxuw(j,i,ipollen) = chifxuw(j,i,ipollen) + emispol(i)
-            ! diagnostic for source, cumul
-            cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cfdout
-        end do
+        if (  rh10(j)*100.0_rkx < 50._rkx ) then
+          fh =d_one
+        else if (  rh10(j)*100.0_rkx > 80._rkx ) then
+          fh=d_zero
+        else
+          fh = (80._rkx - rh10(j)*100.0_rkx )/ (80._rkx - 50._rkx)
         end if
+
+        if (  precip(j) < 1.0e-5_rkx ) then
+          fr = d_one
+        else if ( precip(j) > 0.5_rkx ) then
+          fr = d_zero
+        else
+          fr = (0.5_rkx - precip(j))/0.5_rkx
+        end if
+
+        ! Sofiev et al., 2006
+
+        fw = 0.5_rkx + 1.0_rkx * ( 1._rkx - &
+                     exp( -(wind10(j) + uconv) / 5._rkx ))
+
+        emispol(j) = emispol(j) * ustar(j)/ htc  * ce * fh * fw * fr
+
+      end do
+
+
+      if ( ichdrdepo /= 2 ) then
+        do j = jci1 , jci2
+          chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
+          emispol(j)*egrav/(dsigma(kz)*1.0e3_rkx)
+          ! diagnostic for source, cumul
+          cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(j)*cfdout
+        end do
+      else if ( ichdrdepo == 2 ) then
+        do j = jci1 , jci2
+          !then emission is injected in the PBL scheme
+          chifxuw(j,i,ipollen) = chifxuw(j,i,ipollen) + emispol(j)
+          ! diagnostic for source, cumul
+          cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(j)*cfdout
+        end do
+      end if
 
     end subroutine pollen_emission
 !

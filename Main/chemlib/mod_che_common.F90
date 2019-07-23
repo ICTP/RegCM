@@ -150,8 +150,10 @@ module mod_che_common
     call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
     call getmem1d(icarb,1,9,'mod_che_common:icarb')
     call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
-    call getmem2d(imine,1,nbin,1,nmine,'mod_che_common:imine')
 
+    if ( nmine > 0 ) then
+      call getmem2d(imine,1,nbin,1,nmine,'mod_che_common:imine')
+    end if
     if ( igaschem == 1 .and. ichsolver > 0 ) then
       call getmem4d(chemall,jci1,jci2,ici1,ici2, &
                     1,kz,1,totsp,'mod_che_common:chemall')

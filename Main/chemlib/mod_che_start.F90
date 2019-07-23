@@ -71,7 +71,6 @@ module mod_che_start
     iochl = 0
     iochb = 0
     idust = 0
-    imine = 0
     isslt = 0
     icarb = 0
     ianh4 = 0
@@ -117,6 +116,8 @@ module mod_che_start
     iopen   = 0
     icres   = 0
     ipollen = 0
+
+    if ( nmine > 0 ) imine(:,:) = 0
 
     !abt *** For initializing megan tracer biogenic voc mask
     !    *** Mask not equal to zero when any MEGAN species is

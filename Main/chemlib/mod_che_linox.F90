@@ -33,30 +33,27 @@ module mod_che_linox
 
   public :: linox_em , allocate_mod_che_linox
 
-  real(rkx) , pointer, dimension(:,:) :: flashrate
+  real(rkx) , pointer , dimension(:,:) :: flashrate
 
-contains
+  contains
 
   subroutine allocate_mod_che_linox
     implicit none
     if ( ichem == 1 ) then
-       call getmem2d(flashrate,jce1,jce2,ice1,ice2,'che_linox:flashrate')
+       call getmem2d(flashrate,jci1,jci2,ici1,ici2,'che_linox:flashrate')
     end if
   end subroutine allocate_mod_che_linox
 
-  subroutine linox_em(j,ivegcov)
-
+  subroutine linox_em(i,ivegcov)
     implicit none
-
-    integer(ik4) , intent(in) :: j
-    integer(ik4) , dimension(ici1:ici2), intent(in) :: ivegcov
-    integer(ik4) :: i,k,kcumzero,kcumm10
+    integer(ik4) , intent(in) :: i
+    integer(ik4) , dimension(jci1:jci2), intent(in) :: ivegcov
+    integer(ik4) :: j,k,kcumzero,kcumm10
     real(rkx), dimension(kz) :: znox_prod_ic, znox_prod_cg, amass
     real(rkx):: zsum_lmass_ic ,zsum_lmass_cg, &
          pic_rate, pcg_rate, cloud_top_height,zthickice,zbeta, fac
 
-    do i = ici1,ici2
-
+    do j = jci1 , jci2
       ! cloud top heigh from convection scheme
       if ( kcumtop(j,i) <= 0 ) cycle
       cloud_top_height  =  cza(j,i,kcumtop(j,i)) + &
@@ -65,12 +62,12 @@ contains
       ! Lightning frequency for continentaland maritime clouds as a function
       ! of cloud top height : Price and Rind
 
-      if ( ivegcov(i) > 0 ) then
+      if ( ivegcov(j) > 0 ) then
          ! Flashes/min over land boxes
-        flashrate (j,i)   = 3.44e-5_rkx * &
+        flashrate(j,i)   = 3.44e-5_rkx * &
           ( ( cloud_top_height * 1.e-3_rkx )**4.9_rkx  )
-      else if (ivegcov(i) == 0 ) then
-        flashrate (j,i)  = 6.4e-4_rkx  * &
+      else if (ivegcov(j) == 0 ) then
+        flashrate(j,i)  = 6.4e-4_rkx  * &
           ( ( cloud_top_height  * 1e-3_rkx )**1.73_rkx )
       end if
       ! flash per second parameterization Price and Rind

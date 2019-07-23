@@ -40,19 +40,19 @@ module mod_che_sox
 
   contains
 
-    subroutine chemsox(j,wl,fracloud,fracum,rho,ttb)
+    subroutine chemsox(i,wl,fracloud,fracum,rho,ttb)
      implicit none
-     integer(ik4) , intent(in) :: j
-     real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: ttb , wl , rho
-     real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
+     integer(ik4) , intent(in) :: i
+     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: ttb , wl , rho
+     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: fracloud , fracum
      real(rkx) :: rxs1 , rxs11 , rxs2 , rxs21 , chimol , cldno , &
                  clmin , remcum , oh1int , so2_rate , so2_avail , krembc
      real(rkx) , dimension(ntr) ::  wetrem , wetrem_cvc
-     real(rkx) , dimension(ici1:ici2,kz) :: caircell , so2_snk , concmin
-     real(rkx) :: rk_com(ici1:ici2,kz,100)
+     real(rkx) , dimension(jci1:jci2,kz) :: caircell , so2_snk , concmin
+     real(rkx) :: rk_com(jci1:jci2,kz,100)
      real(rkx) :: h2o2mol
 
-     integer(ik4) :: i , k
+     integer(ik4) :: j , k
 
      !FAB
      caircell(:,:) = 1.e-6_rkx * rho(:,:)/amdk * navgdr
@@ -79,7 +79,7 @@ module mod_che_sox
      !---------------------------------------------
 
      do k = 1 , kz
-       do i = ici1 , ici2
+       do j = jci1 , jci2
 
          cldno = d_one ! no cloud fraction
 
@@ -104,37 +104,37 @@ module mod_che_sox
          ! here p1 unit: s^-1  and the ratio of molar mass
          ! of SO4 to SO2 is 96/64 = 1.5
          !---------------------------------------------
-         ! rk_com(i,k,12) : rate coef. in cm3/molec-s
+         ! rk_com(j,k,12) : rate coef. in cm3/molec-s
          ! rewrite the rate of reaction as first order
          ! rate coefficient  :
-         ! SO2_rate = rk_com(i,k,12) * [OH] (S-1)
+         ! SO2_rate = rk_com(j,k,12) * [OH] (S-1)
          !
          ! Note: 1.5 factor accounts for different molecular
          !       weights of  so4 and so2 mw(so4)=96;
          !       mw(so2)=64;  mw(so4)/mw(so2)=3/2=1.5
          !---------------------------------------------
-         ! so2_rate = rk_com(i,k,12) * oh1int * d_10
-         so2_rate = rk_com(i,k,12) * oh1int
+         ! so2_rate = rk_com(j,k,12) * oh1int * d_10
+         so2_rate = rk_com(j,k,12) * oh1int
          so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
-         so2_snk(i,k) = so2_avail*(d_one-exp(-so2_rate*dt))
+         so2_snk(j,k) = so2_avail*(d_one-exp(-so2_rate*dt))
 
-         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
-         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(i,k)*cldno
+         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(j,k) * cldno
+         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(j,k)*cldno
 
          !  gazeous conversion diagnostic
          if ( ichdiag > 0 ) then
           chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
-               - so2_snk(i,k) * cldno * cfdout
+               - so2_snk(j,k) * cldno * cfdout
           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
-               +  1.5_rkx*so2_snk(i,k)*cldno  * cfdout
+               +  1.5_rkx*so2_snk(j,k)*cldno  * cfdout
          end if
        end do
      end do
 
      if ( carb_aging_control ) then
        do k = 1 , kz
-         do i = ici1 , ici2
-           so4chagct(j,i,k) = 1.5_rkx*so2_snk(i,k)
+         do j = jci1 , jci2
+           so4chagct(j,i,k) = 1.5_rkx*so2_snk(j,k)
          end do
        end do
      end if
@@ -147,24 +147,24 @@ module mod_che_sox
      if ( igaschem == 0 ) then
        isulf = iso4
        do k = 1 , kz
-         do i = ici1 , ici2
+         do j = jci1 , jci2
            chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
            if ( ioxclim == 1 ) then
              h2o2mol =  oxcl(j,i,k,iox_h2o2)
-             concmin(i,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
+             concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
            else
              ! cb*kg/kg do tests, suppose h2o2 always enough
-             concmin(i,k) = chimol*64._rkx/28.9_rkx*cpsb(j,i)     ! cb*kg/kg
+             concmin(j,k) = chimol*64._rkx/28.9_rkx*cpsb(j,i)     ! cb*kg/kg
            end if
          end do
        end do
      elseif ( igaschem == 1 .and. ih2o2 > 0 ) then
        isulf = ih2so4
        do k = 1 , kz
-         do i = ici1 , ici2
+         do j = jci1 , jci2
            chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
            h2o2mol= 28.9_rkx/34.0_rkx*chib(j,i,k,ih2o2)/cpsb(j,i)
-           concmin(i,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
+           concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
          end do
        end do
      end if
@@ -172,24 +172,24 @@ module mod_che_sox
      ! conversion in   Large scale clouds
 
      do k = 1 , kz
-       do i = ici1 , ici2
+       do j = jci1 , jci2
          rxs1 = d_zero
          rxs11 = d_zero      ! fraction of conversion, not removed, as SO4 src
          wetrem(iso2) = d_zero
          ! scavenging for SO2, below lsc
          wetrem(isulf) = d_zero
-         if ( wl(i,k) > clmin ) then
+         if ( wl(j,k) > clmin ) then
            ! conversion from so2 to so4
-           rxs1 = fracloud(i,k)*chtrsol(iso2)*concmin(i,k) * &
-                  (exp(-wl(i,k)/360.0_rkx*dt)-d_one)
+           rxs1 = fracloud(j,k)*chtrsol(iso2)*concmin(j,k) * &
+                  (exp(-wl(j,k)/360.0_rkx*dt)-d_one)
            rxs11 = rxs1*1.5_rkx
            ! SO4 src term and the ratio of molar
            ! mass of SO4 to SO2 is 96/64 = 1.5
 
 ! FAB TEST : REMOVE WET DEP AS IT IS CALCULATED IN WETDEPA
 !!$           if ( cremrat(j,i,k) > d_zero ) then
-!!$             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
-!!$                      rxs11)*(exp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
+!!$             wetrem(iso4) = (fracloud(j,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
+!!$                      rxs11)*(exp(-cremrat(j,i,k)/fracloud(j,k)*dt)-d_one)
 !!$           end if
 
          end if
@@ -202,7 +202,7 @@ module mod_che_sox
            krembc = 6.5_rkx*1.0e-5_rkx*crembc(j,i,k)**0.68_rkx
 
          if ( crembc(j,i,k) > d_zero .and. igaschem == 0) then
-             wetrem(iso2) =  chtrsol(iso2)*concmin(i,k) * &
+             wetrem(iso2) =  chtrsol(iso2)*concmin(j,k) * &
                              (exp(-krembc*dt)-d_one)
          end if
 
@@ -230,7 +230,7 @@ module mod_che_sox
      ! cumulus clouds
      ! wet removal by cumulus clouds (over the fraction of grid box
      ! fracum) assume the cloud water content = 2 g/m3  (ref Kasibhatla )
-     do i = ici1 , ici2
+     do j = jci1 , jci2
        if ( kcumtop(j,i) > 0 ) then
          do k = kcumtop(j,i) , kz
            rxs2 = d_zero
@@ -239,14 +239,14 @@ module mod_che_sox
            wetrem_cvc(isulf) = d_zero
 
            ! conversion from so2 to so4
-           rxs2 = fracum(i,k)*chtrsol(iso2)*concmin(i,k) * &
+           rxs2 = fracum(j,k)*chtrsol(iso2)*concmin(j,k) * &
                   (exp(-d_two/360.0_rkx*dt)-d_one)
            rxs21 = rxs2*1.5_rkx
 
            ! removal (including theremoval on the rxs21 term)
            ! contratily to LS clouds, remcum is already an in cloud removal rate
 !!$ FAB TEST DON'T COSIDER REMOVAL HERE
-!!$          wetrem_cvc(iso4) = (fracum(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
+!!$          wetrem_cvc(iso4) = (fracum(j,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
 !!$                              rxs21)*(exp(-remcum*dt)-d_one)
 
            ! tendancies due to convective cloud processes
@@ -272,7 +272,7 @@ module mod_che_sox
 
      ! diagnostic for SO2 durface fluxes
 
-     do i = ici1 , ici2
+     do j = jci1 , jci2
        wdrout(j,i,iso2) = d_zero
        wdwout(j,i,iso2) = d_zero
        do k = 1 , kz
@@ -299,12 +299,12 @@ module mod_che_sox
 !!$    !---------------------------------------------
 !!$
 !!$    do  k = 1 , kx
-!!$      do  i = ici1 , ici2
+!!$      do  j = jci1 , jci2
 !!$
-!!$        no3int = no3(i,k,j)
-!!$        oh1int = oh(i,k,j)
+!!$        no3int = no3(j,k,i)
+!!$        oh1int = oh(j,k,i)
 !!$
-!!$        if ( coszrs(i) < 0.001_rkx ) then
+!!$        if ( coszrs(j) < 0.001_rkx ) then
 !!$          oh1int = oh1int*0.01_rkx
 !!$        end if
 !!$
@@ -312,20 +312,20 @@ module mod_che_sox
 !!$        ratdms_oh  = d_zero
 !!$        rattot_dms = d_zero
 !!$
-!!$        ratdms_no3 = rk_com(i,k,17)  * no3int
-!!$        ratdms_oh  = rk_com(i,k,10)  * oh1int
+!!$        ratdms_no3 = rk_com(j,k,17)  * no3int
+!!$        ratdms_oh  = rk_com(j,k,10)  * oh1int
 !!$        rattot_dms = ratdms_no3 + ratdms_oh
-!!$        ratmsa     = 0.6_rkx * rk_com(i,k,9) * oh1int
+!!$        ratmsa     = 0.6_rkx * rk_com(j,k,9) * oh1int
 !!$
-!!$        dmsoh_snk(i,k) = 0.4_rkx*chib(i,k,j,idms) * &
+!!$        dmsoh_snk(j,k) = 0.4_rkx*chib(j,i,k,idms) * &
 !!$                        (d_one-exp(-ratdms_oh*dt))/dt
-!!$        dmsno3_snk(i,k) = chib(i,k,j,idms) * &
+!!$        dmsno3_snk(j,k) = chib(j,i,k,idms) * &
 !!$                         (d_one-exp(-ratdms_no3*dt))/dt
 !!$
-!!$        dms_snk(i,k) = chib(i,k,j,idms)*(d_one-exp(-rattot_dms*dt))/dt
-!!$        chiten(i,k,j,idms) = chiten(i,k,j,idms) - dms_snk(i,k)
-!!$        dms_gas(i,k) = 1.032258_rkx * (dmsoh_snk(i,k) + dmsno3_snk(i,k))
-!!$        chiten(i,k,j,iso2) = chiten(i,k,j,iso2) + dms_gas(i,k)
+!!$        dms_snk(j,k) = chib(j,i,k,idms)*(d_one-exp(-rattot_dms*dt))/dt
+!!$        chiten(j,i,k,idms) = chiten(j,i,k,idms) - dms_snk(j,k)
+!!$        dms_gas(j,k) = 1.032258_rkx * (dmsoh_snk(j,k) + dmsno3_snk(j,k))
+!!$        chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + dms_gas(j,k)
 !!$
 !!$      end do
 !!$    end do
@@ -343,43 +343,43 @@ module mod_che_sox
 !
    subroutine chemrate(caircell,temp,rk_com)
      implicit none
-     real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: caircell , temp
-     real(rkx) , dimension(ici1:ici2,kz,100) , intent(out) ::  rk_com
+     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: caircell , temp
+     real(rkx) , dimension(jci1:jci2,kz,100) , intent(out) ::  rk_com
      real(rkx) :: rk0 , rnn , rki , rmm , te , cair_mlc , alpha
-     integer(ik4) :: i , k
+     integer(ik4) :: j , k
 
      rk_com(:,:,:) = d_zero
      do k = 1 , kz
-       do i = ici1 , ici2
+       do j = jci1 , jci2
 
           alpha = 0.4_rkx
-          te = temp(i,k)
+          te = temp(j,k)
 
-          rk_com(i,k,1) = arr(1.0_rkx,    -234._rkx,te)
-          rk_com(i,k,2) = arr(8.46e-10_rkx, 7230._rkx,te)
-          rk_com(i,k,3) = arr(2.68e-10_rkx, 7810._rkx,te)
-          rk_com(i,k,4) = arr(88.1_rkx,   7460._rkx,te)
+          rk_com(j,k,1) = arr(1.0_rkx,    -234._rkx,te)
+          rk_com(j,k,2) = arr(8.46e-10_rkx, 7230._rkx,te)
+          rk_com(j,k,3) = arr(2.68e-10_rkx, 7810._rkx,te)
+          rk_com(j,k,4) = arr(88.1_rkx,   7460._rkx,te)
 
-          rk_com(i,k,5) = temp(i,k)*rk_com(i,k,1) + rk_com(i,k,2)+ rk_com(i,k,3)
-          rk_com(i,k,6) = 1.04e11_rkx*temp(i,k) + rk_com(i,k,4)
-          rk_com(i,k,7) = rk_com(i,k,5)/rk_com(i,k,6)
-          rk_com(i,k,8) = arr(1.2e-11_rkx,  -260._rkx,te)
-          rk_com(i,k,9) = max(0.0_rkx, rk_com(i,k,7) - rk_com(i,k,8))
-          rk_com(i,k,10) = rk_com(i,k,8) + rk_com(i,k,9)
-          rk_com(i,k,11) = rk_com(i,k,8) + alpha * rk_com(i,k,9)
+          rk_com(j,k,5) = temp(j,k)*rk_com(j,k,1) + rk_com(j,k,2)+ rk_com(j,k,3)
+          rk_com(j,k,6) = 1.04e11_rkx*temp(j,k) + rk_com(j,k,4)
+          rk_com(j,k,7) = rk_com(j,k,5)/rk_com(j,k,6)
+          rk_com(j,k,8) = arr(1.2e-11_rkx,  -260._rkx,te)
+          rk_com(j,k,9) = max(0.0_rkx, rk_com(j,k,7) - rk_com(j,k,8))
+          rk_com(j,k,10) = rk_com(j,k,8) + rk_com(j,k,9)
+          rk_com(j,k,11) = rk_com(j,k,8) + alpha * rk_com(j,k,9)
 
-          cair_mlc = caircell(i,k)
+          cair_mlc = caircell(j,k)
           rk0 = 3.0e-31_rkx
           rnn = 3.3_rkx
           rki = 1.5e-12_rkx
           rmm = 0.0_rkx
-          rk_com(i,k,12) = troe(cair_mlc,te,rk0,rnn,rki,rmm)
+          rk_com(j,k,12) = troe(cair_mlc,te,rk0,rnn,rki,rmm)
 
-          rk_com(i,k,13) = abr(1.7e-12_rkx,   600._rkx,te)
-          rk_com(i,k,14) = abr(4.9e-32_rkx,  1000._rkx,te)
-          rk_com(i,k,15) = abr(1.4e-21_rkx,  2200._rkx,te)
-          rk_com(i,k,16) = abr(1.7e-12_rkx,  -200._rkx,te)
-          rk_com(i,k,17) = abr(1.0e-12_rkx,   500._rkx,te)
+          rk_com(j,k,13) = abr(1.7e-12_rkx,   600._rkx,te)
+          rk_com(j,k,14) = abr(4.9e-32_rkx,  1000._rkx,te)
+          rk_com(j,k,15) = abr(1.4e-21_rkx,  2200._rkx,te)
+          rk_com(j,k,16) = abr(1.7e-12_rkx,  -200._rkx,te)
+          rk_com(j,k,17) = abr(1.0e-12_rkx,   500._rkx,te)
 
        end do
      end do

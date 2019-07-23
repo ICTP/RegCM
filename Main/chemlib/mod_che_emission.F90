@@ -165,12 +165,12 @@ module mod_che_emission
   !
   ! Calculation of emission tendency
   !
-  subroutine emis_tend(j,declin)
+  subroutine emis_tend(i,declin)
     implicit none
-    integer(ik4) , intent(in) :: j
+    integer(ik4) , intent(in) :: i
     real(rk8) , intent(in) :: declin
 
-    integer(ik4)  :: i , itr
+    integer(ik4)  :: j , itr
     real(rkx) :: daylen , fact , maxelev , amp , dayhr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
@@ -188,11 +188,11 @@ module mod_che_emission
     ! this way  we  negelect the anthropog isoprene emissions )
     if ( iisop > 0 ) then
       if ( rcm_megan_enabled ) then
-        do i = ici1, ici2
+        do j = jci1, jci2
           chemsrc(j,i,iisop) = cvoc_em_clm(j,i,iisop)
         end do
       else
-        do i = ici1 , ici2
+        do j = jci1 , jci2
           dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
           if ( dayhr < -1 .or. dayhr > 1 ) then
             tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
@@ -219,7 +219,7 @@ module mod_che_emission
     ! nb the CN/LCH4 CLM flag have to be activated
 #ifdef LCH4
     if ( ich4 > 0 ) then
-      do i = ici1, ici2
+      do j = jci1, jci2
         chemsrc(j,i,ich4) = chemsrc(j,i,ich4) + cvoc_em_clm(j,i,ich4)
       end do
     end if
@@ -228,7 +228,7 @@ module mod_che_emission
     ! Modify chemsrc for isoprene from inventory to account for
     ! simplified dirunal cycle
     if ( iisop > 0 ) then
-      do i = ici1 , ici2
+      do j = jci1 , jci2
         dayhr = -tan(declin)*tan(cxlat(j,i)*degrad)
         if ( dayhr < -1 .or. dayhr > 1 ) then
           tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
@@ -257,7 +257,7 @@ module mod_che_emission
               chtrname(itr)(1:4) == 'SSLT' .or. &
               chtrname(itr)(1:6) == 'POLLEN'.or. &
               any ( mine_name == chtrname(itr)(1:4) )) cycle
-          do i = ici1 , ici2
+          do j = jci1 , jci2
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
             ! diagnostic for source, cumul
@@ -274,7 +274,7 @@ module mod_che_emission
              chtrname(itr)(1:4) == 'SSLT' .or. &
              chtrname(itr)(1:6) == 'POLLEN'.or. &
              any ( mine_name == chtrname(itr)(1:4) )) cycle
-        do i = ici1 , ici2
+        do j = jci1 , jci2
           ! if PBL scheme is not UW then calculate emission tendency
           if ( ibltyp /= 2 ) then
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
@@ -301,12 +301,12 @@ module mod_che_emission
     ! put back chemsrc to its mean value after diurnal cycle
 #ifndef CLM45
     if ( iisop > 0 ) then
-      chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+      chemsrc(:,i,iisop) = tmpsrc(:,i,iisop)
     end if
 #else
     if ( .not. rcm_megan_enabled ) then
       if ( iisop > 0 ) then
-        chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+        chemsrc(:,i,iisop) = tmpsrc(:,i,iisop)
       end if
     end if
 #endif

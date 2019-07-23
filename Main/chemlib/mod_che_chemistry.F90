@@ -47,19 +47,19 @@ module mod_che_chemistry
 
   contains
 
-    subroutine chemistry(j)
+    subroutine chemistry(i)
       implicit none
-      integer(ik4) , intent(in) :: j
+      integer(ik4) , intent(in) :: i
       real(rkx) :: cfactor , pfact
       real(rk8) :: change
-      integer(ik4) :: i , k , ic , n
+      integer(ik4) :: j , k , ic , n
 
       time = dtchsolv
 
       ! Begining of i , k loop
       ! do not solve chemistry anyway for topmost layer
       do k = kmin , kz
-        do i = ici1 , ici2
+        do j = jci1 , jci2
           altmid   = cpb3d(j,i,k)
           ! Skip stratosphere ( ? Should we ? )
           if ( altmid < cptrop(j,i) - d_100 ) cycle
