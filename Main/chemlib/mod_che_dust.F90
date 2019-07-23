@@ -38,6 +38,7 @@ module mod_che_dust
 
   real(rkx) , dimension(4,2) :: dustbsiz1
   real(rkx) , dimension(12,2) :: dustbsiz2
+  real(rkx) , pointer , dimension(:,:) :: sumdflux
 
   ! Fix the actual dust aerosol bin size: diameter in microm
 
@@ -191,6 +192,11 @@ module mod_che_dust
         call getmem1d(frac,1,nbin,'che_dust:frac')
         call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:cminer')
         call getmem3d(sminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:sminer')
+#ifdef CLM45
+        if ( ichdustemd == 3 ) then
+          call getmem2d(sumdflux,jci1,jci2,ici1,ici2,'che_dust:sumdflux')
+        end if
+#endif
       end if
       ilg = ici2-ici1+1
     end subroutine allocate_mod_che_dust
@@ -331,7 +337,7 @@ module mod_che_dust
         mmd = mmdd
         sigma = sigmad
         pcent = pcentd
-      else if ( ichdustemd == 2 ) then
+      else if ( ichdustemd >= 2 ) then
         do nm = 1 , mode
           mmd(nm,:) = texmmd(nm)
           sigma(nm,:) = texstd(nm)
@@ -656,7 +662,7 @@ module mod_che_dust
           xclayrow(ieff) = clayrow2(i,jloop)
           do n = 1 , nats
             xftex(ieff,n) = dustsotex(jloop,i,n)
-            if ( ichdustemd == 2 ) then
+            if ( ichdustemd >= 2 ) then
               if ( clay2row2(i,n,jloop) <= 20 ) then
                 xalphaprop(ieff,n) = d_10**(0.134_rkx * &
                               clay2row2(i,n,jloop)-6.0_rkx)
@@ -926,7 +932,7 @@ module mod_che_dust
                             (mathpi/6.0_rkx)*rhodust*((d2*1.0e-4_rkx)**3)
                   fsoil3(i,nt) = fsoil3(i,nt) + 1.0e-2_rkx*p3*(dec/e3)* &
                             (mathpi/6.0_rkx)*rhodust*((d3*1.0e-4_rkx)**3)
-                else if ( ichdustemd == 2 ) then
+                else if ( ichdustemd >= 2 ) then
                   fsoil(i,nt) = fsoil(i,nt) + alphaprop(i,nt)* &
                                  srel(i,ns,nt)*fdp1*fdp2
                 end if
@@ -949,7 +955,7 @@ module mod_che_dust
             end do
           end do
         end do
-      else if ( ichdustemd == 2 ) then
+      else if ( ichdustemd >= 2 ) then
         do nt = 1 , nats
           do n = 1 , nbin
             do i = il1 , il2
@@ -993,8 +999,7 @@ module mod_che_dust
     subroutine clm_dust_tend
       implicit none
 #ifdef CLM45
-      integer(ik4) :: i,j,n
-      real(rkx) , pointer , dimension(:,:) :: sumdflux
+      integer(ik4) :: i , j , n , ib
       ! real(rkx) :: cdsfrq
       ! Update dust tendency with dust fluxes calculated in CLM
       ! here sump up the total flux from clm ( initially defined on 4 bins)
@@ -1004,33 +1009,29 @@ module mod_che_dust
       ! readius and optical properties
       ! use the same tuning erodibility factor rdstemfac than for
       ! standard scheme
-      allocate(sumdflux(jci1:jci2,ici1:ici2))
-      sumdflux = d_zero
       sumdflux = sum(cdustflx_clm,3) * rdstemfac
-      do j = jci1 , jci2
+      do n = 1 , nbin
+        ib = idust(n)
         do i = ici1 , ici2
-          do n = 1 , nbin
+          do j = jci1 , jci2
             if ( ichdrdepo == 1 ) then
-              chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
+              chiten(j,i,kz,ib) = chiten(j,i,kz,ib) + &
                    sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.e3_rkx)
             else if ( ichdrdepo == 2 ) then
               ! pass the flux to BL scheme
-              chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
-                  sumdflux(j,i) * frac(n)
+              chifxuw(j,i,ib) = chifxuw(j,i,ib) + sumdflux(j,i) * frac(n)
             end if
             ! diagnostic source (accumulated)
             ! cdsfrq = cfdout
-            cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
-                    sumdflux(j,i)*frac(n) * cfdout
+            cemtrac(j,i,ib) = cemtrac(j,i,ib) + sumdflux(j,i)*frac(n) * cfdout
             if ( ichdiag > 0 ) then
-              cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
+              cemisdiag(j,i,kz,ib) = cemisdiag(j,i,kz,ib) + &
                                  sumdflux(j,i)*frac(n) / &
                                  (cdzq(j,i,kz)*crhob3d(j,i,kz))*cfdout
             end if
           end do
         end do
       end do
-      deallocate(sumdflux)
 #endif
     end subroutine clm_dust_tend
 

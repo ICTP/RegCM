@@ -323,7 +323,6 @@ module mod_init
       end if
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dsol(j,i) = -999.0_rkx
           do n = 1 , nnsg
             lms%um10(n,j,i) = 1.0_rkx
           end do
@@ -340,152 +339,373 @@ module mod_init
       !
       ! Comunicate the data to other processors
       !
-      if ( idynamic == 3 ) then
-      else
-        call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
-        call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
-        call grid_distribute(atm1_t_io,atm1%t,jce1,jce2,ice1,ice2,1,kz)
-        call grid_distribute(atm1_qx_io,atm1%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-
-        call grid_distribute(atm2_u_io,atm2%u,jde1,jde2,ide1,ide2,1,kz)
-        call grid_distribute(atm2_v_io,atm2%v,jde1,jde2,ide1,ide2,1,kz)
-        call grid_distribute(atm2_t_io,atm2%t,jce1,jce2,ice1,ice2,1,kz)
-        call grid_distribute(atm2_qx_io,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-
+      if ( do_parallel_save ) then
+        if ( idynamic == 3 ) then
+        else
+          atm1%u(jde1:jde2,ide1:ide2,:) = atm1_u_io(jde1:jde2,ide1:ide2,:)
+          atm1%v(jde1:jde2,ide1:ide2,:) = atm1_v_io(jde1:jde2,ide1:ide2,:)
+          atm1%t(jce1:jce2,ice1:ice2,:) = atm1_t_io(jce1:jce2,ice1:ice2,:)
+          atm1%qx(jce1:jce2,ice1:ice2,:,:) = &
+                             atm1_qx_io(jce1:jce2,ice1:ice2,:,:)
+          atm2%u(jde1:jde2,ide1:ide2,:) = atm2_u_io(jde1:jde2,ide1:ide2,:)
+          atm2%v(jde1:jde2,ide1:ide2,:) = atm2_v_io(jde1:jde2,ide1:ide2,:)
+          atm2%t(jce1:jce2,ice1:ice2,:) = atm2_t_io(jce1:jce2,ice1:ice2,:)
+          atm2%qx(jce1:jce2,ice1:ice2,:,:) = &
+                             atm2_qx_io(jce1:jce2,ice1:ice2,:,:)
+          if ( ibltyp == 2 ) then
+            atm1%tke(jce1:jce2,ice1:ice2,:) = &
+                     atm1_tke_io(jce1:jce2,ice1:ice2,:)
+            atm2%tke(jce1:jce2,ice1:ice2,:) = &
+                     atm2_tke_io(jce1:jce2,ice1:ice2,:)
+          end if
+          if ( ichem == 1 ) then
+            atm1%chi(jce1:jce2,ice1:ice2,:,:) = &
+                     chia_io(jce1:jce2,ice1:ice2,:,:)
+            atm2%chi(jce1:jce2,ice1:ice2,:,:) = &
+                     chib_io(jce1:jce2,ice1:ice2,:,:)
+          end if
+        end if
         if ( ibltyp == 2 ) then
-          call grid_distribute(atm1_tke_io,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
-          call grid_distribute(atm2_tke_io,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
+          kpbl = kpbl_io
+        end if
+        if ( ibltyp == 4 ) then
+          atms%tkepbl = tke_pbl_io
+          kpbl = kpbl_io
+          sfs%uz0 = myjsf_uz0_io
+          sfs%vz0 = myjsf_vz0_io
+          sfs%thz0 = myjsf_thz0_io
+          sfs%qz0 = myjsf_qz0_io
+        end if
+        if ( idynamic == 2 ) then
+          atm1%pp(jce1:jce2,ice1:ice2,:) = atm1_pp_io(jce1:jce2,ice1:ice2,:)
+          atm2%pp(jce1:jce2,ice1:ice2,:) = atm2_pp_io(jce1:jce2,ice1:ice2,:)
+          atm1%w(jce1:jce2,ice1:ice2,:) = atm1_w_io(jce1:jce2,ice1:ice2,:)
+          atm2%w(jce1:jce2,ice1:ice2,:) = atm2_w_io(jce1:jce2,ice1:ice2,:)
+        end if
+        sfs%psa(jce1:jce2,ice1:ice2) = psa_io(jce1:jce2,ice1:ice2)
+        sfs%psb(jce1:jce2,ice1:ice2) = psb_io(jce1:jce2,ice1:ice2)
+        sfs%hfx = hfx_io
+        sfs%qfx = qfx_io
+        sfs%tgbb = tgbb_io
+        sfs%zo = zo_io
+        sfs%uvdrag = uvdrag_io
+        sfs%ram1 = ram_io
+        sfs%rah1 = rah_io
+        sfs%br = br_io
+        sfs%q2m = q2m_io
+        sfs%u10m = u10m_io
+        sfs%v10m = v10m_io
+        sfs%w10m = w10m_io
+        sfs%ustar = ustar_io
+        if ( ipptls > 0 ) then
+          fcc = fcc_io
+        end if
+        heatrt = heatrt_io
+        o3prof = o3prof_io
+        if ( iocnflx == 2 ) then
+          zpbl = zpbl_io
+        end if
+        if ( any(icup == 3) ) then
+          cldefi = cldefi_io
+        end if
+        if ( any(icup == 4) ) then
+          cbmf2d = cbmf2d_io
+        end if
+        if ( any(icup == 6) .or. any(icup == 5) ) then
+          avg_ww = cu_avg_ww_io
+        end if
+        if ( irrtm == 0 ) then
+          gasabsnxt = gasabsnxt_io
+          gasabstot = gasabstot_io
+          gasemstot = gasemstot_io
+        end if
+        lms%sw = sw_io
+#ifdef CLM45
+        if ( ichem == 1 ) then
+          tsoi = tsoi_io
+          sw_vol = swvol_io
+        end if
+#else
+        lms%gwet = gwet_io
+        lms%ldew = ldew_io
+        lms%taf = taf_io
+#endif
+        lms%tgrd = tgrd_io
+        lms%tgbrd = tgbrd_io
+        lms%tlef = tlef_io
+        lms%sncv = sncv_io
+        lms%sfice = sfice_io
+        lms%snag = snag_io
+        lms%emisv = emisv_io
+        lms%um10 = um10_io
+        lms%swalb = swalb_io
+        lms%lwalb = lwalb_io
+        lms%swdiralb = swdiralb_io
+        lms%swdifalb = swdifalb_io
+        lms%lwdiralb = lwdiralb_io
+        lms%lwdifalb = lwdifalb_io
+        mdsub%ldmsk(:,jci1:jci2,ici1:ici2) = ldmsk1_io(:,jci1:jci2,ici1:ici2)
+        solis = solis_io
+        solvs = solvs_io
+        solvsd = solvsd_io
+        solvl = solvl_io
+        solvld = solvld_io
+        sabveg = sabveg_io
+        flw = flw_io
+        flwd = flwd_io
+        fsw = fsw_io
+        sinc = sinc_io
+        mddom%ldmsk = ldmsk_io
+#ifndef CLM
+        if ( lakemod == 1 ) then
+          lms%eta = eta_io
+          lms%hi = hi_io
+          lms%tlake = tlak_io
+        end if
+#else
+        if ( imask == 2 ) then
+          mddom%lndcat(jce1:jce2,ice1:ice2) = lndcat_io(jce1:jce2,ice1:ice2)
+        end if
+#endif
+        if ( idcsst == 1 ) then
+          lms%sst = sst_io
+          lms%tskin = tskin_io
+          lms%deltas = deltas_io
+          lms%tdeltas = tdeltas_io
+        end if
+        if ( idynamic == 1 ) then
+          dstor(jde1:jde2,ide1:ide2,:) = dstor_io(jde1:jde2,ide1:ide2,:)
+          hstor(jde1:jde2,ide1:ide2,:) = hstor_io(jde1:jde2,ide1:ide2,:)
+        end if
+        if ( ichem == 1 ) then
+          convpr = convpr_io
+          rainout = rainout_io
+          washout = washout_io
+          remdrd = remdrd_io
+          if ( igaschem == 1 .and. ichsolver > 0 ) then
+            chemall = chemall_io
+            taucldsp = taucldsp_io
+          end if
+          ssw2da = ssw2da_io
+#ifdef CLM45
+          dustflx_clm = duflux_io
+          voc_em_clm = voflux_io
+#else
+          sdelt = sdelt_io
+          sdelq = sdelq_io
+          svegfrac2d = svegfrac2d_io
+#endif
+          sfracv2d = sfracv2d_io
+          sfracb2d = sfracb2d_io
+          sfracs2d = sfracs2d_io
+        end if
+        if ( islab_ocean == 1 .and. do_restore_sst ) then
+          qflux_restore_sst = qflux_restore_sst_io
+        end if
+      else
+        if ( idynamic == 3 ) then
+        else
+          call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
+          call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
+          call grid_distribute(atm1_t_io,atm1%t,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(atm1_qx_io,atm1%qx, &
+                               jce1,jce2,ice1,ice2,1,kz,1,nqx)
+          call grid_distribute(atm2_u_io,atm2%u,jde1,jde2,ide1,ide2,1,kz)
+          call grid_distribute(atm2_v_io,atm2%v,jde1,jde2,ide1,ide2,1,kz)
+          call grid_distribute(atm2_t_io,atm2%t,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(atm2_qx_io,atm2%qx, &
+                               jce1,jce2,ice1,ice2,1,kz,1,nqx)
+          if ( ibltyp == 2 ) then
+            call grid_distribute(atm1_tke_io,atm1%tke, &
+                                 jce1,jce2,ice1,ice2,1,kzp1)
+            call grid_distribute(atm2_tke_io,atm2%tke, &
+                                 jce1,jce2,ice1,ice2,1,kzp1)
+          end if
+          if ( ichem == 1 ) then
+            call grid_distribute(chia_io,atm1%chi, &
+                                 jce1,jce2,ice1,ice2,1,kz,1,ntr)
+            call grid_distribute(chib_io,atm2%chi, &
+                                 jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          end if
+        end if
+        if ( ibltyp == 2 ) then
           call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
-        else if ( ibltyp == 4 ) then
-          call grid_distribute(tke_pbl_io,atms%tkepbl,jci1,jci2,ici1,ici2,1,kz)
+        end if
+        if ( ibltyp == 4 ) then
+          call grid_distribute(tke_pbl_io,atms%tkepbl, &
+                               jci1,jci2,ici1,ici2,1,kz)
           call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
           call grid_distribute(myjsf_uz0_io,sfs%uz0,jci1,jci2,ici1,ici2)
           call grid_distribute(myjsf_vz0_io,sfs%vz0,jci1,jci2,ici1,ici2)
           call grid_distribute(myjsf_thz0_io,sfs%thz0,jci1,jci2,ici1,ici2)
           call grid_distribute(myjsf_qz0_io,sfs%qz0,jci1,jci2,ici1,ici2)
         end if
-
         if ( idynamic == 2 ) then
           call grid_distribute(atm1_w_io,atm1%w,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_distribute(atm2_w_io,atm2%w,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_distribute(atm1_pp_io,atm1%pp,jce1,jce2,ice1,ice2,1,kz)
           call grid_distribute(atm2_pp_io,atm2%pp,jce1,jce2,ice1,ice2,1,kz)
         end if
-
         call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
         call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
-
-        if ( idynamic == 2 ) then
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              sfs%psc(j,i) = sfs%psa(j,i)
-            end do
-          end do
+        call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
+        call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
+        call grid_distribute(tgbb_io,sfs%tgbb,jci1,jci2,ici1,ici2)
+        call grid_distribute(zo_io,sfs%zo,jci1,jci2,ici1,ici2)
+        call grid_distribute(uvdrag_io,sfs%uvdrag,jci1,jci2,ici1,ici2)
+        call grid_distribute(ram_io,sfs%ram1,jci1,jci2,ici1,ici2)
+        call grid_distribute(rah_io,sfs%rah1,jci1,jci2,ici1,ici2)
+        call grid_distribute(br_io,sfs%br,jci1,jci2,ici1,ici2)
+        call grid_distribute(q2m_io,sfs%q2m,jci1,jci2,ici1,ici2)
+        call grid_distribute(u10m_io,sfs%u10m,jci1,jci2,ici1,ici2)
+        call grid_distribute(v10m_io,sfs%v10m,jci1,jci2,ici1,ici2)
+        call grid_distribute(w10m_io,sfs%w10m,jci1,jci2,ici1,ici2)
+        call grid_distribute(ustar_io,sfs%ustar,jci1,jci2,ici1,ici2)
+        if ( ipptls > 0 ) then
+          call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
         end if
-
-        call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-        call psc2psd(sfs%psa,sfs%psdota)
-        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-        call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
-        call psc2psd(sfs%psb,sfs%psdotb)
-        call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
-
+        call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
+        call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+        if ( iocnflx == 2 .or. ibltyp == 3 ) then
+          call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 3) ) then
+          call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 4) ) then
+          call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
+        end if
+        if ( any(icup == 6) .or. any(icup == 5 ) ) then
+          call grid_distribute(cu_avg_ww_io,avg_ww,jci1,jci2,ici1,ici2,1,kz)
+        end if
+        if ( irrtm == 0 ) then
+          call grid_distribute(gasabsnxt_io,gasabsnxt, &
+                               jci1,jci2,ici1,ici2,1,kz,1,4)
+          call grid_distribute(gasabstot_io,gasabstot, &
+                               jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
+          call grid_distribute(gasemstot_io,gasemstot, &
+                               jci1,jci2,ici1,ici2,1,kzp1)
+        end if
+        call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
+                                ici1,ici2,1,num_soil_layers)
+#ifdef CLM45
         if ( ichem == 1 ) then
-          call grid_distribute(chia_io,atm1%chi,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-          call grid_distribute(chib_io,atm2%chi,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call grid_distribute(tsoi_io,tsoi,jci1,jci2, &
+                               ici1,ici2,1,num_soil_layers)
+          call grid_distribute(swvol_io,sw_vol,jci1,jci2, &
+                               ici1,ici2,1,num_soil_layers)
+        end if
+#else
+        call subgrid_distribute(gwet_io,lms%gwet,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(taf_io,lms%taf,jci1,jci2,ici1,ici2)
+#endif
+        call subgrid_distribute(tgrd_io,lms%tgrd,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(tgbrd_io,lms%tgbrd,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(tlef_io,lms%tlef,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(sncv_io,lms%sncv,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(swalb_io,lms%swalb,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(lwalb_io,lms%lwalb,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
+        call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
+        call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
+        call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
+        call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
+        call grid_distribute(solvl_io,solvl,jci1,jci2,ici1,ici2)
+        call grid_distribute(solvld_io,solvld,jci1,jci2,ici1,ici2)
+        call grid_distribute(sabveg_io,sabveg,jci1,jci2,ici1,ici2)
+        call grid_distribute(flw_io,flw,jci1,jci2,ici1,ici2)
+        call grid_distribute(fsw_io,fsw,jci1,jci2,ici1,ici2)
+        call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
+        call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
+        call grid_distribute(ldmsk_io,mddom%ldmsk,jci1,jci2,ici1,ici2)
+#ifndef CLM
+        if ( lakemod == 1 ) then
+          call subgrid_distribute(eta_io,lms%eta,jci1,jci2,ici1,ici2)
+          call subgrid_distribute(hi_io,lms%hi,jci1,jci2,ici1,ici2)
+          call subgrid_distribute(tlak_io,lms%tlake, &
+                                  jci1,jci2,ici1,ici2,1,ndpmax)
+        endif
+#else
+        if ( imask == 2 ) then
+          call grid_distribute(lndcat_io,mddom%lndcat,jci1,jci2,ici1,ici2)
+        end if
+#endif
+        if ( idcsst == 1 ) then
+          call subgrid_distribute(sst_io,lms%sst,jci1,jci2,ici1,ici2)
+          call subgrid_distribute(tskin_io,lms%tskin,jci1,jci2,ici1,ici2)
+          call subgrid_distribute(deltas_io,lms%deltas,jci1,jci2,ici1,ici2)
+          call subgrid_distribute(tdeltas_io,lms%tdeltas,jci1,jci2,ici1,ici2)
+        end if
+        if ( idynamic == 1 ) then
+          call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
+          call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
+        end if
+        if ( ichem == 1 ) then
+          call grid_distribute(convpr_io,convpr,jci1,jci2,ici1,ici2,1,kz)
+          call grid_distribute(rainout_io,rainout, &
+                               jci1,jci2,ici1,ici2,1,kz,1,ntr)
+          call grid_distribute(washout_io,washout, &
+                               jci1,jci2,ici1,ici2,1,kz,1,ntr)
+          call grid_distribute(remdrd_io,remdrd,jci1,jci2,ici1,ici2,1,ntr)
+          if ( igaschem == 1 .and. ichsolver > 0 ) then
+            call grid_distribute(chemall_io,chemall, &
+                                  jci1,jci2,ici1,ici2,1,kz,1,totsp)
+            call grid_distribute(taucldsp_io,taucldsp, &
+                                 jci1,jci2,ici1,ici2,0,kz,1,nspi)
+          end if
+          call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
+#ifdef CLM45
+          call grid_distribute(duflux_io,dustflx_clm,jci1,jci2,ici1,ici2,1,4)
+          call grid_distribute(voflux_io,voc_em_clm,jci1,jci2,ici1,ici2,1,ntr)
+#else
+          call grid_distribute(sdelt_io,sdelt,jci1,jci2,ici1,ici2)
+          call grid_distribute(sdelq_io,sdelq,jci1,jci2,ici1,ici2)
+          call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
+#endif
+          call grid_distribute(sfracv2d_io,sfracv2d,jci1,jci2,ici1,ici2)
+          call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
+          call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
         end if
       end if
-
-      call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
-      call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
-      call grid_distribute(tgbb_io,sfs%tgbb,jci1,jci2,ici1,ici2)
-      call grid_distribute(zo_io,sfs%zo,jci1,jci2,ici1,ici2)
-      call grid_distribute(uvdrag_io,sfs%uvdrag,jci1,jci2,ici1,ici2)
-      call grid_distribute(ram_io,sfs%ram1,jci1,jci2,ici1,ici2)
-      call grid_distribute(rah_io,sfs%rah1,jci1,jci2,ici1,ici2)
-      call grid_distribute(br_io,sfs%br,jci1,jci2,ici1,ici2)
-      call grid_distribute(q2m_io,sfs%q2m,jci1,jci2,ici1,ici2)
-      call grid_distribute(u10m_io,sfs%u10m,jci1,jci2,ici1,ici2)
-      call grid_distribute(v10m_io,sfs%v10m,jci1,jci2,ici1,ici2)
-      call grid_distribute(w10m_io,sfs%w10m,jci1,jci2,ici1,ici2)
-      call grid_distribute(ustar_io,sfs%ustar,jci1,jci2,ici1,ici2)
-      if ( ipptls > 0 ) then
-        call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
-      end if
-      call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
-      call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
 
       if ( myid == italk ) then
         ozprnt = o3prof(3,3,:)
         call vprntv(ozprnt,kzp1,'Ozone profiles restart')
       end if
 
-      if ( iocnflx == 2 .or. ibltyp == 3 ) then
-        call grid_distribute(zpbl_io,zpbl,jci1,jci2,ici1,ici2)
-      end if
+      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
+      call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
+      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+      call psc2psd(sfs%psa,sfs%psdota)
+      call psc2psd(sfs%psb,sfs%psdotb)
+      call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
 
-      if ( any(icup == 3) ) then
-        call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
+      if ( idynamic == 2 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            sfs%psc(j,i) = sfs%psa(j,i)
+          end do
+        end do
       end if
-      if ( any(icup == 4) ) then
-        call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
+#ifdef CLM
+      !
+      ! CLM modifies landuse table. Get the modified one from restart file
+      !
+      if ( imask == 2 ) then
+        do n = 1 , nnsg
+          mdsub%lndcat(n,jci1:jci2,ici1:ici2) = &
+                              mddom%lndcat(jci1:jci2,ici1:ici2)
+        end do
       end if
-      if ( any(icup == 6) .or. any(icup == 5 ) ) then
-        call grid_distribute(cu_avg_ww_io,avg_ww,jci1,jci2,ici1,ici2,1,kz)
-      end if
-
-      if ( irrtm == 0 ) then
-        call grid_distribute(gasabsnxt_io,gasabsnxt, &
-                             jci1,jci2,ici1,ici2,1,kz,1,4)
-        call grid_distribute(gasabstot_io,gasabstot, &
-                             jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
-        call grid_distribute(gasemstot_io,gasemstot,jci1,jci2,ici1,ici2,1,kzp1)
-      end if
-
-      call subgrid_distribute(sw_io,lms%sw,jci1,jci2, &
-                              ici1,ici2,1,num_soil_layers)
-#ifdef CLM45
-      if ( ichem == 1 ) then
-        call grid_distribute(tsoi_io,tsoi,jci1,jci2, &
-                             ici1,ici2,1,num_soil_layers)
-        call grid_distribute(swvol_io,sw_vol,jci1,jci2, &
-                             ici1,ici2,1,num_soil_layers)
-      end if
-#else
-      call subgrid_distribute(gwet_io,lms%gwet,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(taf_io,lms%taf,jci1,jci2,ici1,ici2)
 #endif
-      call subgrid_distribute(tgrd_io,lms%tgrd,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(tgbrd_io,lms%tgbrd,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(tlef_io,lms%tlef,jci1,jci2,ici1,ici2)
-
-      call subgrid_distribute(sncv_io,lms%sncv,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(um10_io,lms%um10,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(swalb_io,lms%swalb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(lwalb_io,lms%lwalb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
-
-      call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
-      call grid_distribute(dsol_io,dsol,jci1,jci2,ici1,ici2)
-      call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
-      call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
-      call grid_distribute(solvl_io,solvl,jci1,jci2,ici1,ici2)
-      call grid_distribute(solvld_io,solvld,jci1,jci2,ici1,ici2)
-      call grid_distribute(sabveg_io,sabveg,jci1,jci2,ici1,ici2)
-      call grid_distribute(flw_io,flw,jci1,jci2,ici1,ici2)
-      call grid_distribute(fsw_io,fsw,jci1,jci2,ici1,ici2)
-      call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
-      call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
-      call grid_distribute(ldmsk_io,mddom%ldmsk,jci1,jci2,ici1,ici2)
-
       rdnnsg = d_one/real(nnsg,rkx)
       aldirs = sum(lms%swdiralb,1)*rdnnsg
       aldirl = sum(lms%lwdiralb,1)*rdnnsg
@@ -494,63 +714,6 @@ module mod_init
       albvs = sum(lms%swalb,1)*rdnnsg
       albvl = sum(lms%lwalb,1)*rdnnsg
       sfs%tg = sum(lms%tgrd,1)*rdnnsg
-
-#ifndef CLM
-      if ( lakemod == 1 ) then
-        call subgrid_distribute(eta_io,lms%eta,jci1,jci2,ici1,ici2)
-        call subgrid_distribute(hi_io,lms%hi,jci1,jci2,ici1,ici2)
-        call subgrid_distribute(tlak_io,lms%tlake,jci1,jci2,ici1,ici2,1,ndpmax)
-      endif
-#else
-      !
-      ! CLM modifies landuse table. Get the modified one from restart file
-      !
-      if ( imask == 2 ) then
-        call grid_distribute(lndcat_io,mddom%lndcat,jci1,jci2,ici1,ici2)
-        do n = 1 , nnsg
-          mdsub%lndcat(n,jci1:jci2,ici1:ici2) = &
-                              mddom%lndcat(jci1:jci2,ici1:ici2)
-        end do
-      end if
-#endif
-
-      if ( idcsst == 1 ) then
-        call subgrid_distribute(sst_io,lms%sst,jci1,jci2,ici1,ici2)
-        call subgrid_distribute(tskin_io,lms%tskin,jci1,jci2,ici1,ici2)
-        call subgrid_distribute(deltas_io,lms%deltas,jci1,jci2,ici1,ici2)
-        call subgrid_distribute(tdeltas_io,lms%tdeltas,jci1,jci2,ici1,ici2)
-      end if
-
-      if ( idynamic == 1 ) then
-        call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
-        call grid_distribute(hstor_io,hstor,jde1,jde2,ide1,ide2,1,nsplit)
-      end if
-
-      if ( ichem == 1 ) then
-        call grid_distribute(convpr_io,convpr,jci1,jci2,ici1,ici2,1,kz)
-        call grid_distribute(rainout_io,rainout,jci1,jci2,ici1,ici2,1,kz,1,ntr)
-        call grid_distribute(washout_io,washout,jci1,jci2,ici1,ici2,1,kz,1,ntr)
-        call grid_distribute(remdrd_io,remdrd,jci1,jci2,ici1,ici2,1,ntr)
-        if ( igaschem == 1 .and. ichsolver > 0 ) then
-          call grid_distribute(chemall_io,chemall, &
-                                jci1,jci2,ici1,ici2,1,kz,1,totsp)
-          call grid_distribute(taucldsp_io,taucldsp, &
-                               jci1,jci2,ici1,ici2,0,kz,1,nspi)
-        end if
-
-        call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
-#ifdef CLM45
-        call grid_distribute(duflux_io,dustflx_clm,jci1,jci2,ici1,ici2,1,4)
-        call grid_distribute(voflux_io,voc_em_clm,jci1,jci2,ici1,ici2,1,ntr)
-#else
-        call grid_distribute(sdelt_io,sdelt,jci1,jci2,ici1,ici2)
-        call grid_distribute(sdelq_io,sdelq,jci1,jci2,ici1,ici2)
-        call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
-#endif
-        call grid_distribute(sfracv2d_io,sfracv2d,jci1,jci2,ici1,ici2)
-        call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
-        call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
-      end if
 
       call bcast(declin)
       call bcast(solcon)

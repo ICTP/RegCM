@@ -191,6 +191,7 @@ module mod_runparams
   integer(ik4) , public :: nmine = 1
 
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
+  logical , public :: do_parallel_save
   logical , public :: ifrest , doing_restart , lsync
 
   integer(ik4) , public :: kchi , kclo , kcmd

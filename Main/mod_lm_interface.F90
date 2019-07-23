@@ -85,7 +85,7 @@ module mod_lm_interface
     thatm , qvatm , zatm
 #endif
 
-  real(rkx) , pointer , dimension(:,:) :: slp , sfp , slp1 , dmean
+  real(rkx) , pointer , dimension(:,:) :: slp , sfp , slp1
 
   type(lm_exchange) :: lm
   type(lm_state) :: lms
@@ -257,7 +257,6 @@ module mod_lm_interface
     call getmem2d(sfp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:sfp')
     call getmem2d(slp,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp')
     call getmem2d(slp1,jce1ga,jce2ga,ice1ga,ice2ga,'lm:slp1')
-    call getmem2d(dmean,jci1,jci2,ici1,ici2,'lm:dmean')
   end subroutine allocate_surface_model
 
   subroutine init_surface_model
@@ -367,7 +366,6 @@ module mod_lm_interface
     call assignpnt(aldirl,lm%lwdiralb)
     call assignpnt(aldifl,lm%lwdifalb)
     call assignpnt(solis,lm%solar)
-    call assignpnt(dsol,lm%dsol)
     call assignpnt(emiss,lm%emissivity)
     call assignpnt(sinc,lm%solinc)
     call assignpnt(solvs,lm%swdir)
@@ -387,10 +385,10 @@ module mod_lm_interface
       call assignpnt(sxlai2d,lm%sxlai2d)
       call assignpnt(wetdepflx,lm%wetdepflx)
       call assignpnt(drydepflx,lm%drydepflx)
-      call assignpnt(idusts,lm%idust)
 #ifdef CLM45
       call assignpnt(sw_vol,lm%sw_vol)
       call assignpnt(tsoi,lm%tsoi)
+      call assignpnt(idust,lm%idust)
 #endif
     end if
     if ( iocncpl == 1 .or. iwavcpl == 1) then
@@ -881,7 +879,7 @@ module mod_lm_interface
     integer(ik4) :: k
 #endif
     integer(ik4) :: i , j , n
-    real(rkx) :: qas , tas , uas , ps , qs , es , desdt , rh , di
+    real(rkx) :: qas , tas , uas , ps , qs , es , desdt , rh , sws , lws
 
     ! Fill accumulators
 
@@ -933,19 +931,12 @@ module mod_lm_interface
         if ( associated(srf_tauy_out) ) &
           srf_tauy_out = srf_tauy_out + sum(lms%tauy,1)*rdnnsg
         if ( associated(srf_evpot_out) ) then
-          ! Compute total available energy
-          dmean = dmean * (d_one-rnsrf_for_day) + &
-               max((lm%rswf + lm%dwrlwf),d_zero) * rnsrf_for_day
-          if ( rcmtimer%lcount <= (86400.0_rkx/dtsec) ) then
-            lm%dsol = dmean
-          else
-            if ( alarm_day%will_act(dtsec) ) then
-              lm%dsol = d_half * (dmean + lm%dsol)
-              dmean = 0.0_rkx
-            end if
-          end if
           do i = ici1 , ici2
             do j = jci1 , jci2
+              if ( lm%ldmsk(j,i) == 0 ) then
+                srf_evpot_out(j,i) = srf_evpot_out(j,i) + lm%qfx(j,i)
+                cycle
+              end if
               tas = sum(lms%t2m(:,j,i))*rdnnsg
               ps = sum(lms%sfcp(:,j,i))*rdnnsg
               es = pfesat(tas)
@@ -954,8 +945,10 @@ module mod_lm_interface
               uas = lm%w10m(j,i)
               rh = min(max((qas/qs),d_zero),d_one)
               desdt = pfesdt(tas)
-              di = lm%dsol(j,i)
-              srf_evpot_out(j,i) = evpt(ps,tas,uas,rh*es,es,desdt,di)
+              sws = lm%rswf(j,i)
+              lws = lm%rlwf(j,i)
+              srf_evpot_out(j,i) = srf_evpot_out(j,i) + &
+                   evpt_fao(ps,tas,uas,rh*es,es,desdt,sws,lws)
             end do
           end do
         end if

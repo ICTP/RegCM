@@ -160,7 +160,6 @@ module mod_atm_interface
   !chemistry for surface
   real(rkx) , public , pointer , dimension(:,:,:) :: wetdepflx
   real(rkx) , public , pointer , dimension(:,:,:) :: drydepflx
-  integer (ik4), public, pointer, dimension(:) :: idusts
 
   ! Coupling
   real(rkx) , public , pointer , dimension(:,:,:) :: dailyrnf
@@ -1035,7 +1034,6 @@ module mod_atm_interface
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
-        call getmem1d(idusts,1,nbin,'storage:idusts')
         if ( iindirect > 0 .and. iaerosol == 1 ) then
           call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
         end if

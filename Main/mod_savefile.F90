@@ -128,7 +128,6 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:) :: fsw_io
   real(rkx) , public , pointer , dimension(:,:) :: sabveg_io
   real(rkx) , public , pointer , dimension(:,:) :: sinc_io
-  real(rkx) , public , pointer , dimension(:,:) :: dsol_io
   real(rkx) , public , pointer , dimension(:,:) :: solis_io
   real(rkx) , public , pointer , dimension(:,:) :: solvs_io
   real(rkx) , public , pointer , dimension(:,:) :: solvsd_io
@@ -203,7 +202,151 @@ module mod_savefile
   subroutine allocate_mod_savefile
     implicit none
 
-    if ( do_parallel_netcdf_out .and. do_parallel_netcdf_in ) return
+    if ( do_parallel_save ) then
+      if ( idynamic == 3 ) then
+        ! Placeholder
+      else
+        call getmem3d(atm1_u_io,jde1,jde2,ide1,ide2,1,kz,'atm1_u_io')
+        call getmem3d(atm1_v_io,jde1,jde2,ide1,ide2,1,kz,'atm1_v_io')
+        call getmem3d(atm1_t_io,jce1,jce2,ice1,ice2,1,kz,'atm1_t_io')
+        call getmem4d(atm1_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atm1_qx_io')
+        call getmem3d(atm2_u_io,jde1,jde2,ide1,ide2,1,kz,'atm2_u_io')
+        call getmem3d(atm2_v_io,jde1,jde2,ide1,ide2,1,kz,'atm2_v_io')
+        call getmem3d(atm2_t_io,jce1,jce2,ice1,ice2,1,kz,'atm2_t_io')
+        call getmem4d(atm2_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atm2_qx_io')
+        if ( ibltyp == 2 ) then
+          call getmem3d(atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1,'atm1_tke_io')
+          call getmem3d(atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1,'atm2_tke_io')
+        end if
+      end if
+      if ( ibltyp == 4 ) then
+        call getmem3d(tke_pbl_io,jci1,jci2,ici1,ici2,1,kz,'tke_pbl_io')
+      end if
+      if ( idynamic == 2 ) then
+        call getmem3d(atm1_w_io,jce1,jce2,ice1,ice2,1,kzp1,'atm1_w_io')
+        call getmem3d(atm2_w_io,jce1,jce2,ice1,ice2,1,kzp1,'atm2_w_io')
+        call getmem3d(atm1_pp_io,jce1,jce2,ice1,ice2,1,kz,'atm1_pp_io')
+        call getmem3d(atm2_pp_io,jce1,jce2,ice1,ice2,1,kz,'atm2_pp_io')
+      end if
+      call getmem2d(psa_io,jce1,jce2,ice1,ice2,'psa_io')
+      call getmem2d(psb_io,jce1,jce2,ice1,ice2,'psb_io')
+      call getmem2d(hfx_io,jci1,jci2,ici1,ici2,'hfx_io')
+      call getmem2d(qfx_io,jci1,jci2,ici1,ici2,'qfx_io')
+      call getmem2d(tgbb_io,jci1,jci2,ici1,ici2,'tgbb_io')
+      call getmem2d(uvdrag_io,jci1,jci2,ici1,ici2,'uvdrag_io')
+      call getmem2d(q2m_io,jci1,jci2,ici1,ici2,'q2m_io')
+      call getmem2d(u10m_io,jci1,jci2,ici1,ici2,'u10m_io')
+      call getmem2d(v10m_io,jci1,jci2,ici1,ici2,'v10m_io')
+      call getmem2d(w10m_io,jci1,jci2,ici1,ici2,'w10m_io')
+      call getmem2d(br_io,jci1,jci2,ici1,ici2,'br_io')
+      call getmem2d(ram_io,jci1,jci2,ici1,ici2,'ram_io')
+      call getmem2d(rah_io,jci1,jci2,ici1,ici2,'rah_io')
+      call getmem2d(ustar_io,jci1,jci2,ici1,ici2,'ustar_io')
+      call getmem2d(zo_io,jci1,jci2,ici1,ici2,'zo_io')
+#ifdef CLM45
+      if ( ichem == 1 ) then
+        call getmem3d(tsoi_io,jci1,jci2,ici1,ici2, &
+                            1,num_soil_layers,'tsoi_io')
+        call getmem3d(swvol_io,jci1,jci2,ici1,ici2, &
+                            1,num_soil_layers,'swvol_io')
+      end if
+#else
+      call getmem3d(gwet_io,1,nnsg,jci1,jci2,ici1,ici2,'gwet_io')
+      call getmem3d(ldew_io,1,nnsg,jci1,jci2,ici1,ici2,'ldew_io')
+      call getmem3d(taf_io,1,nnsg,jci1,jci2,ici1,ici2,'taf_io')
+#endif
+      call getmem3d(sncv_io,1,nnsg,jci1,jci2,ici1,ici2,'sncv_io')
+      call getmem3d(sfice_io,1,nnsg,jci1,jci2,ici1,ici2,'sfice_io')
+      call getmem3d(snag_io,1,nnsg,jci1,jci2,ici1,ici2,'snag_io')
+      call getmem4d(sw_io,1,nnsg,jci1,jci2,ici1,ici2, &
+                          1,num_soil_layers,'sw_io')
+      call getmem3d(tgrd_io,1,nnsg,jci1,jci2,ici1,ici2,'tgrd_io')
+      call getmem3d(tgbrd_io,1,nnsg,jci1,jci2,ici1,ici2,'tgbrd_io')
+      call getmem3d(tlef_io,1,nnsg,jci1,jci2,ici1,ici2,'tlef_io')
+      call getmem3d(emisv_io,1,nnsg,jci1,jci2,ici1,ici2,'emisv_io')
+      call getmem3d(um10_io,1,nnsg,jci1,jci2,ici1,ici2,'um10_io')
+      call getmem3d(ldmsk1_io,1,nnsg,jci1,jci2,ici1,ici2,'ldmsk1')
+      call getmem2d(ldmsk_io,jci1,jci2,ici1,ici2,'ldmsk_io')
+      call getmem2d(flw_io,jci1,jci2,ici1,ici2,'flw_io')
+      call getmem2d(flwd_io,jci1,jci2,ici1,ici2,'flwd_io')
+      call getmem2d(fsw_io,jci1,jci2,ici1,ici2,'fsw_io')
+      call getmem2d(sabveg_io,jci1,jci2,ici1,ici2,'sabveg_io')
+      call getmem2d(sinc_io,jci1,jci2,ici1,ici2,'sinc_io')
+      call getmem2d(solis_io,jci1,jci2,ici1,ici2,'solis_io')
+      call getmem2d(solvs_io,jci1,jci2,ici1,ici2,'solvs_io')
+      call getmem2d(solvsd_io,jci1,jci2,ici1,ici2,'solvsd_io')
+      call getmem2d(solvl_io,jci1,jci2,ici1,ici2,'solvl_io')
+      call getmem2d(solvld_io,jci1,jci2,ici1,ici2,'solvld_io')
+      if ( ibltyp == 2 ) then
+        call getmem2d(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
+      else if ( ibltyp == 4 ) then
+        call getmem2d(myjsf_uz0_io,jci1,jci2,ici1,ici2,'myjsf_uz0_io')
+        call getmem2d(myjsf_vz0_io,jci1,jci2,ici1,ici2,'myjsf_vz0_io')
+        call getmem2d(myjsf_thz0_io,jci1,jci2,ici1,ici2,'myjsf_thz0_io')
+        call getmem2d(myjsf_qz0_io,jci1,jci2,ici1,ici2,'myjsf_qz0_io')
+        call getmem2d(kpbl_io,jci1,jci2,ici1,ici2,'kpbl_io')
+      end if
+      if ( idcsst == 1 ) then
+        call getmem3d(sst_io,1,nnsg,jci1,jci2,ici1,ici2,'sst_io')
+        call getmem3d(tskin_io,1,nnsg,jci1,jci2,ici1,ici2,'tskin_io')
+        call getmem3d(deltas_io,1,nnsg,jci1,jci2,ici1,ici2,'deltas_io')
+        call getmem3d(tdeltas_io,1,nnsg,jci1,jci2,ici1,ici2,'tdeltas_io')
+      end if
+      if ( any(icup == 4) ) then
+        call getmem2d(cbmf2d_io,jci1,jci2,ici1,ici2,'cbmf2d_io')
+      end if
+      if ( ipptls > 0 ) then
+        call getmem3d(fcc_io,jci1,jci2,ici1,ici2,1,kz,'fcc_io')
+      end if
+
+      if ( idynamic == 1 ) then
+        call getmem3d(dstor_io,jde1,jde2,ide1,ide2,1,nsplit,'dstor_io')
+        call getmem3d(hstor_io,jde1,jde2,ide1,ide2,1,nsplit,'hstor_io')
+      end if
+
+      if ( irrtm == 0 ) then
+        call getmem4d(gasabsnxt_io,jci1,jci2,ici1,ici2,1,kz,1,4,'gasabsnxt_io')
+        call getmem4d(gasabstot_io,jci1,jci2,ici1,ici2, &
+                      1,kzp1,1,kzp1,'gasabstot_io')
+        call getmem3d(gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1,'gasemstot_io')
+      end if
+
+      call getmem3d(heatrt_io,jci1,jci2,ici1,ici2,1,kz,'heatrt_io')
+      call getmem3d(o3prof_io,jci1,jci2,ici1,ici2,1,kzp1,'o3prof_io')
+
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        call getmem3d(qflux_restore_sst_io,jci1,jci2,ici1,ici2, &
+                      1,12,'qflux_restore_sst_io')
+      end if
+
+      if ( iocnflx == 2 .or. ibltyp == 3 ) then
+        call getmem2d(zpbl_io,jci1,jci2,ici1,ici2,'zpbl_io')
+      end if
+      if ( any(icup == 3) ) then
+        call getmem2d(cldefi_io,jci1,jci2,ici1,ici2,'cldefi_io')
+      end if
+      if ( any(icup == 6) .or. any(icup == 5) ) then
+        call getmem3d(cu_avg_ww_io,jci1,jci2,ici1,ici2,1,kz,'cu_avg_ww_io')
+      end if
+#ifdef CLM
+      if ( imask == 2 ) then
+        call getmem2d(lndcat_io,jce1,jce2,ice1,ice2,'lndcat_io')
+      end if
+#else
+      if ( lakemod == 1 ) then
+        call getmem3d(eta_io,1,nnsg,jci1,jci2,ici1,ici2,'eta_io')
+        call getmem3d(hi_io,1,nnsg,jci1,jci2,ici1,ici2,'hi_io')
+        call getmem4d(tlak_io,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'tlak_io')
+      end if
+#endif
+      call getmem3d(swalb_io,1,nnsg,jci1,jci2,ici1,ici2,'swalb')
+      call getmem3d(lwalb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwalb')
+      call getmem3d(swdiralb_io,1,nnsg,jci1,jci2,ici1,ici2,'swdiralb')
+      call getmem3d(swdifalb_io,1,nnsg,jci1,jci2,ici1,ici2,'swdifalb')
+      call getmem3d(lwdiralb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwdiralb')
+      call getmem3d(lwdifalb_io,1,nnsg,jci1,jci2,ici1,ici2,'lwdifalb')
+      return
+    end if
 
     if ( myid == iocpu ) then
       call getmem3d(atm1_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_u_io')
@@ -280,7 +423,6 @@ module mod_savefile
       call getmem2d(fsw_io,jcross1,jcross2,icross1,icross2,'fsw_io')
       call getmem2d(sabveg_io,jcross1,jcross2,icross1,icross2,'sabveg_io')
       call getmem2d(sinc_io,jcross1,jcross2,icross1,icross2,'sinc_io')
-      call getmem2d(dsol_io,jcross1,jcross2,icross1,icross2,'dsol_io')
       call getmem2d(solis_io,jcross1,jcross2,icross1,icross2,'solis_io')
       call getmem2d(solvs_io,jcross1,jcross2,icross1,icross2,'solvs_io')
       call getmem2d(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
@@ -379,216 +521,180 @@ module mod_savefile
   subroutine read_savefile(idate)
 #ifdef PNETCDF
     use pnetcdf
-    use mpi , only : mpi_comm_self
 #else
     use netcdf
 #endif
     implicit none
     type (rcm_time_and_date) , intent(in) :: idate
-    type (rcm_time_and_date) :: idatex
     integer(ik4) :: ncid
-    integer(ik4) :: int10d , ical
-    real(rk8) :: rtmp
     character(256) :: ffin
     character(32) :: fbname
 
-    if ( myid == iocpu ) then
-      write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
-      ffin = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
-      ncstatus = nf90_open(ffin,nf90_nowrite,ncid)
-      call check_ok(__FILE__,__LINE__,'Cannot open savefile '//trim(ffin))
-
-      ncstatus = nf90_get_att(ncid,nf90_global,'idatex',int10d)
-      call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
-      ncstatus = nf90_get_att(ncid,nf90_global,'calendar',ical)
-      call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
-      ncstatus = nf90_get_att(ncid,nf90_global,'declin',declin)
-      call check_ok(__FILE__,__LINE__,'Cannot get attribute declin')
-      ncstatus = nf90_get_att(ncid,nf90_global,'solcon',solcon)
-      call check_ok(__FILE__,__LINE__,'Cannot get attribute solcon')
-      if ( debug_level > 0 ) then
-        ! Do no give any error. User may have increased debug just now.
-        ncstatus = nf90_get_att(ncid,nf90_global,'dryini',rtmp)
-        if ( ncstatus == nf90_noerr ) then
-          dryini = real(rtmp,wrkp)
-        else
-          dryini = 0.0_wrkp
-        end if
-        ncstatus = nf90_get_att(ncid,nf90_global,'watini',rtmp)
-        if ( ncstatus == nf90_noerr ) then
-          watini = real(rtmp,wrkp)
-        else
-          watini = 0.0_wrkp
-        end if
-        ncstatus = nf90_get_att(ncid,nf90_global,'dryerror',dryerror)
-        if ( ncstatus /= nf90_noerr ) dryerror = 0.0_rk8
-        ncstatus = nf90_get_att(ncid,nf90_global,'waterror',waterror)
-        if ( ncstatus /= nf90_noerr ) waterror = 0.0_rk8
+    if ( .not. do_parallel_save ) then
+      if ( myid /= iocpu ) then
+        return
       end if
-      idatex = i4wcal(int10d,ical)
-      if ( idatex /= rcmtimer%idate ) then
-        write(stderr,*) 'Mismatch in dates namelist vs SAV file'
-        write(stderr,*) 'idate1 in namelist is ', rcmtimer%str( )
-        write(stderr,*) 'idate  in SAV file is ', tochar(idatex)
-        call fatal(__FILE__,__LINE__,'SAV FILE DO NOT MATCH IDATE1')
-      end if
-
-      call mygetvar(ncid,'atm1_u',atm1_u_io)
-      call mygetvar(ncid,'atm2_u',atm2_u_io)
-      call mygetvar(ncid,'atm1_v',atm1_v_io)
-      call mygetvar(ncid,'atm2_v',atm2_v_io)
-      call mygetvar(ncid,'atm1_t',atm1_t_io)
-      call mygetvar(ncid,'atm2_t',atm2_t_io)
-      call mygetvar(ncid,'atm1_qx',atm1_qx_io)
-      call mygetvar(ncid,'atm2_qx',atm2_qx_io)
-      if ( ibltyp == 2 ) then
-        call mygetvar(ncid,'atm1_tke',atm1_tke_io)
-        call mygetvar(ncid,'atm2_tke',atm2_tke_io)
-        call mygetvar(ncid,'kpbl',kpbl_io)
-      else if ( ibltyp == 4 ) then
-        call mygetvar(ncid,'tke_pbl',tke_pbl_io)
-        call mygetvar(ncid,'kpbl',kpbl_io)
-        call mygetvar(ncid,'myjsf_uz0',myjsf_uz0_io)
-        call mygetvar(ncid,'myjsf_vz0',myjsf_vz0_io)
-        call mygetvar(ncid,'myjsf_thz0',myjsf_thz0_io)
-        call mygetvar(ncid,'myjsf_qz0',myjsf_qz0_io)
-      end if
-      if ( idynamic == 2 ) then
-        call mygetvar(ncid,'atm1_w',atm1_w_io)
-        call mygetvar(ncid,'atm2_w',atm2_w_io)
-        call mygetvar(ncid,'atm1_pp',atm1_pp_io)
-        call mygetvar(ncid,'atm2_pp',atm2_pp_io)
-      end if
-      call mygetvar(ncid,'psa',psa_io)
-      call mygetvar(ncid,'psb',psb_io)
-      call mygetvar(ncid,'hfx',hfx_io)
-      call mygetvar(ncid,'qfx',qfx_io)
-      call mygetvar(ncid,'tgbb',tgbb_io)
-      call mygetvar(ncid,'uvdrag',uvdrag_io)
-      call mygetvar(ncid,'q2m',q2m_io)
-      call mygetvar(ncid,'u10m',u10m_io)
-      call mygetvar(ncid,'v10m',v10m_io)
-      call mygetvar(ncid,'w10m',w10m_io)
-      call mygetvar(ncid,'br',br_io)
-      call mygetvar(ncid,'ram',ram_io)
-      call mygetvar(ncid,'rah',rah_io)
-      call mygetvar(ncid,'ustar',ustar_io)
-      call mygetvar(ncid,'zo',zo_io)
-      if ( any(icup == 3) ) then
-        call mygetvar(ncid,'cldefi',cldefi_io)
-      end if
-      if ( any(icup == 4) ) then
-        call mygetvar(ncid,'cbmf2d',cbmf2d_io)
-      end if
-      if ( any(icup == 6) .or. any(icup == 5) ) then
-        call mygetvar(ncid,'cu_avg_ww',cu_avg_ww_io)
-      end if
-      if ( idcsst == 1 ) then
-        call mygetvar(ncid,'sst',sst_io)
-        call mygetvar(ncid,'tskin',tskin_io)
-        call mygetvar(ncid,'deltas',deltas_io)
-        call mygetvar(ncid,'tdeltas',tdeltas_io)
-      end if
-      if ( irrtm == 0 ) then
-        call mygetvar(ncid,'gasabsnxt',gasabsnxt_io)
-        call mygetvar(ncid,'gasabstot',gasabstot_io)
-        call mygetvar(ncid,'gasemstot',gasemstot_io)
-      end if
-      if ( ipptls > 0 ) then
-        call mygetvar(ncid,'fcc',fcc_io)
-      end if
-      call mygetvar(ncid,'dsol',dsol_io)
-      call mygetvar(ncid,'solis',solis_io)
-      call mygetvar(ncid,'solvs',solvs_io)
-      call mygetvar(ncid,'solvsd',solvsd_io)
-      call mygetvar(ncid,'solvl',solvl_io)
-      call mygetvar(ncid,'solvld',solvld_io)
-      call mygetvar(ncid,'sabveg',sabveg_io)
-      call mygetvar(ncid,'sw',sw_io)
-      call mygetvar(ncid,'tlef',tlef_io)
-      call mygetvar(ncid,'tgrd',tgrd_io)
-      call mygetvar(ncid,'tgbrd',tgbrd_io)
-      call mygetvar(ncid,'sncv',sncv_io)
-#ifdef CLM45
-      if ( ichem == 1 ) then
-        call mygetvar(ncid,'tsoi',tsoi_io)
-        call mygetvar(ncid,'swvol',swvol_io)
-      end if
-#else
-      call mygetvar(ncid,'gwet',gwet_io)
-      call mygetvar(ncid,'ldew',ldew_io)
-      call mygetvar(ncid,'taf',taf_io)
-#endif
-      call mygetvar(ncid,'sfice',sfice_io)
-      call mygetvar(ncid,'snag',snag_io)
-      call mygetvar(ncid,'ldmsk1',ldmsk1_io)
-      call mygetvar(ncid,'emiss',emisv_io)
-      call mygetvar(ncid,'um10',um10_io)
-#ifndef CLM
-      if ( lakemod == 1 ) then
-        call mygetvar(ncid,'eta',eta_io)
-        call mygetvar(ncid,'hi',hi_io)
-        call mygetvar(ncid,'tlak',tlak_io)
-      end if
-#endif
-      call mygetvar(ncid,'heatrt',heatrt_io)
-      call mygetvar(ncid,'o3prof',o3prof_io)
-      call mygetvar(ncid,'flw',flw_io)
-      call mygetvar(ncid,'flwd',flwd_io)
-      call mygetvar(ncid,'fsw',fsw_io)
-      call mygetvar(ncid,'sinc',sinc_io)
-      call mygetvar(ncid,'ldmsk',ldmsk_io)
-      if ( iocnflx == 2 .or. ibltyp == 3 ) then
-        call mygetvar(ncid,'zpbl',zpbl_io)
-      end if
-      if ( ichem == 1 ) then
-        call mygetvar(ncid,'chia',chia_io)
-        call mygetvar(ncid,'chib',chib_io)
-        if ( igaschem == 1 .and. ichsolver > 0 ) then
-          call mygetvar(ncid,'chemall',chemall_io)
-          call mygetvar(ncid,'taucldsp',taucldsp_io)
-        end if
-        call mygetvar(ncid,'convpr',convpr_io)
-        call mygetvar(ncid,'rainout',rainout_io)
-        call mygetvar(ncid,'washout',washout_io)
-        call mygetvar(ncid,'remdrd',remdrd_io)
-        call mygetvar(ncid,'ssw2da',ssw2da_io)
-#ifdef CLM45
-        call mygetvar(ncid,'duflux',duflux_io)
-        call mygetvar(ncid,'voflux',voflux_io)
-#else
-        call mygetvar(ncid,'sdelq',sdelq_io)
-        call mygetvar(ncid,'sdelt',sdelt_io)
-        call mygetvar(ncid,'svegfrac2d',svegfrac2d_io)
-#endif
-        call mygetvar(ncid,'sfracb2d',sfracb2d_io)
-        call mygetvar(ncid,'sfracs2d',sfracs2d_io)
-        call mygetvar(ncid,'sfracv2d',sfracv2d_io)
-      end if
-      if ( idynamic == 1 ) then
-        call mygetvar(ncid,'dstor',dstor_io)
-        call mygetvar(ncid,'hstor',hstor_io)
-      end if
-      if ( islab_ocean == 1 .and. do_restore_sst ) then
-        call mygetvar(ncid,'qflux_restore_sst',qflux_restore_sst_io)
-        call mygetvar(ncid,'stepcount',stepcount,get_varid(ncid,'stepcount'))
-      end if
-#ifdef CLM
-      if ( imask == 2 ) then
-        call mygetvar(ncid,'lndcat',lndcat_io)
-      end if
-#endif
-      call mygetvar(ncid,'swalb',swalb_io)
-      call mygetvar(ncid,'lwalb',lwalb_io)
-      call mygetvar(ncid,'swdiralb',swdiralb_io)
-      call mygetvar(ncid,'swdifalb',swdifalb_io)
-      call mygetvar(ncid,'lwdiralb',lwdiralb_io)
-      call mygetvar(ncid,'lwdifalb',lwdifalb_io)
-      if ( idynamic == 2 .and. ifupr == 1 ) then
-        call mygetvar(ncid,'tmask',tmask,get_varid(ncid,'tmask'))
-      end if
-      call saveclose(ffin,ncid)
     end if
+
+    write (fbname, '(a,a)') 'SAV.', trim(tochar10(idate))
+    ffin = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+
+    call saveopen(ffin,ncid)
+
+    call mygetvar(ncid,'atm1_u',atm1_u_io)
+    call mygetvar(ncid,'atm2_u',atm2_u_io)
+    call mygetvar(ncid,'atm1_v',atm1_v_io)
+    call mygetvar(ncid,'atm2_v',atm2_v_io)
+    call mygetvar(ncid,'atm1_t',atm1_t_io)
+    call mygetvar(ncid,'atm2_t',atm2_t_io)
+    call mygetvar(ncid,'atm1_qx',atm1_qx_io)
+    call mygetvar(ncid,'atm2_qx',atm2_qx_io)
+    if ( ibltyp == 2 ) then
+      call mygetvar(ncid,'atm1_tke',atm1_tke_io)
+      call mygetvar(ncid,'atm2_tke',atm2_tke_io)
+      call mygetvar(ncid,'kpbl',kpbl_io)
+    else if ( ibltyp == 4 ) then
+      call mygetvar(ncid,'tke_pbl',tke_pbl_io)
+      call mygetvar(ncid,'kpbl',kpbl_io)
+      call mygetvar(ncid,'myjsf_uz0',myjsf_uz0_io)
+      call mygetvar(ncid,'myjsf_vz0',myjsf_vz0_io)
+      call mygetvar(ncid,'myjsf_thz0',myjsf_thz0_io)
+      call mygetvar(ncid,'myjsf_qz0',myjsf_qz0_io)
+    end if
+    if ( idynamic == 2 ) then
+      call mygetvar(ncid,'atm1_w',atm1_w_io)
+      call mygetvar(ncid,'atm2_w',atm2_w_io)
+      call mygetvar(ncid,'atm1_pp',atm1_pp_io)
+      call mygetvar(ncid,'atm2_pp',atm2_pp_io)
+    end if
+    call mygetvar(ncid,'psa',psa_io)
+    call mygetvar(ncid,'psb',psb_io)
+    call mygetvar(ncid,'hfx',hfx_io)
+    call mygetvar(ncid,'qfx',qfx_io)
+    call mygetvar(ncid,'tgbb',tgbb_io)
+    call mygetvar(ncid,'uvdrag',uvdrag_io)
+    call mygetvar(ncid,'q2m',q2m_io)
+    call mygetvar(ncid,'u10m',u10m_io)
+    call mygetvar(ncid,'v10m',v10m_io)
+    call mygetvar(ncid,'w10m',w10m_io)
+    call mygetvar(ncid,'br',br_io)
+    call mygetvar(ncid,'ram',ram_io)
+    call mygetvar(ncid,'rah',rah_io)
+    call mygetvar(ncid,'ustar',ustar_io)
+    call mygetvar(ncid,'zo',zo_io)
+    if ( any(icup == 3) ) then
+      call mygetvar(ncid,'cldefi',cldefi_io)
+    end if
+    if ( any(icup == 4) ) then
+      call mygetvar(ncid,'cbmf2d',cbmf2d_io)
+    end if
+    if ( any(icup == 6) .or. any(icup == 5) ) then
+      call mygetvar(ncid,'cu_avg_ww',cu_avg_ww_io)
+    end if
+    if ( idcsst == 1 ) then
+      call mygetvar(ncid,'sst',sst_io)
+      call mygetvar(ncid,'tskin',tskin_io)
+      call mygetvar(ncid,'deltas',deltas_io)
+      call mygetvar(ncid,'tdeltas',tdeltas_io)
+    end if
+    if ( irrtm == 0 ) then
+      call mygetvar(ncid,'gasabsnxt',gasabsnxt_io)
+      call mygetvar(ncid,'gasabstot',gasabstot_io)
+      call mygetvar(ncid,'gasemstot',gasemstot_io)
+    end if
+    if ( ipptls > 0 ) then
+      call mygetvar(ncid,'fcc',fcc_io)
+    end if
+    call mygetvar(ncid,'solis',solis_io)
+    call mygetvar(ncid,'solvs',solvs_io)
+    call mygetvar(ncid,'solvsd',solvsd_io)
+    call mygetvar(ncid,'solvl',solvl_io)
+    call mygetvar(ncid,'solvld',solvld_io)
+    call mygetvar(ncid,'sabveg',sabveg_io)
+    call mygetvar(ncid,'sw',sw_io)
+    call mygetvar(ncid,'tlef',tlef_io)
+    call mygetvar(ncid,'tgrd',tgrd_io)
+    call mygetvar(ncid,'tgbrd',tgbrd_io)
+    call mygetvar(ncid,'sncv',sncv_io)
+#ifdef CLM45
+    if ( ichem == 1 ) then
+      call mygetvar(ncid,'tsoi',tsoi_io)
+      call mygetvar(ncid,'swvol',swvol_io)
+    end if
+#else
+    call mygetvar(ncid,'gwet',gwet_io)
+    call mygetvar(ncid,'ldew',ldew_io)
+    call mygetvar(ncid,'taf',taf_io)
+#endif
+    call mygetvar(ncid,'sfice',sfice_io)
+    call mygetvar(ncid,'snag',snag_io)
+    call mygetvar(ncid,'ldmsk1',ldmsk1_io)
+    call mygetvar(ncid,'emiss',emisv_io)
+    call mygetvar(ncid,'um10',um10_io)
+#ifndef CLM
+    if ( lakemod == 1 ) then
+      call mygetvar(ncid,'eta',eta_io)
+      call mygetvar(ncid,'hi',hi_io)
+      call mygetvar(ncid,'tlak',tlak_io)
+    end if
+#endif
+    call mygetvar(ncid,'heatrt',heatrt_io)
+    call mygetvar(ncid,'o3prof',o3prof_io)
+    call mygetvar(ncid,'flw',flw_io)
+    call mygetvar(ncid,'flwd',flwd_io)
+    call mygetvar(ncid,'fsw',fsw_io)
+    call mygetvar(ncid,'sinc',sinc_io)
+    call mygetvar(ncid,'ldmsk',ldmsk_io)
+    if ( iocnflx == 2 .or. ibltyp == 3 ) then
+      call mygetvar(ncid,'zpbl',zpbl_io)
+    end if
+    if ( ichem == 1 ) then
+      call mygetvar(ncid,'chia',chia_io)
+      call mygetvar(ncid,'chib',chib_io)
+      if ( igaschem == 1 .and. ichsolver > 0 ) then
+        call mygetvar(ncid,'chemall',chemall_io)
+        call mygetvar(ncid,'taucldsp',taucldsp_io)
+      end if
+      call mygetvar(ncid,'convpr',convpr_io)
+      call mygetvar(ncid,'rainout',rainout_io)
+      call mygetvar(ncid,'washout',washout_io)
+      call mygetvar(ncid,'remdrd',remdrd_io)
+      call mygetvar(ncid,'ssw2da',ssw2da_io)
+#ifdef CLM45
+      call mygetvar(ncid,'duflux',duflux_io)
+      call mygetvar(ncid,'voflux',voflux_io)
+#else
+      call mygetvar(ncid,'sdelq',sdelq_io)
+      call mygetvar(ncid,'sdelt',sdelt_io)
+      call mygetvar(ncid,'svegfrac2d',svegfrac2d_io)
+#endif
+      call mygetvar(ncid,'sfracb2d',sfracb2d_io)
+      call mygetvar(ncid,'sfracs2d',sfracs2d_io)
+      call mygetvar(ncid,'sfracv2d',sfracv2d_io)
+    end if
+    if ( idynamic == 1 ) then
+      call mygetvar(ncid,'dstor',dstor_io)
+      call mygetvar(ncid,'hstor',hstor_io)
+    end if
+    if ( islab_ocean == 1 .and. do_restore_sst ) then
+      call mygetvar(ncid,'qflux_restore_sst',qflux_restore_sst_io)
+      call mygetvar(ncid,'stepcount',stepcount,get_varid(ncid,'stepcount'))
+    end if
+#ifdef CLM
+    if ( imask == 2 ) then
+      call mygetvar(ncid,'lndcat',lndcat_io)
+    end if
+#endif
+    call mygetvar(ncid,'swalb',swalb_io)
+    call mygetvar(ncid,'lwalb',lwalb_io)
+    call mygetvar(ncid,'swdiralb',swdiralb_io)
+    call mygetvar(ncid,'swdifalb',swdifalb_io)
+    call mygetvar(ncid,'lwdiralb',lwdiralb_io)
+    call mygetvar(ncid,'lwdifalb',lwdifalb_io)
+    if ( idynamic == 2 .and. ifupr == 1 ) then
+      call mygetvar(ncid,'tmask',tmask,get_varid(ncid,'tmask'))
+    end if
+    call saveclose(ffin,ncid)
   end subroutine read_savefile
 
   subroutine write_savefile(idate)
@@ -605,7 +711,7 @@ module mod_savefile
     integer(ik4) :: ioff
 #endif
 
-    if ( .not. do_parallel_netcdf_out ) then
+    if ( .not. do_parallel_save ) then
       if ( myid /= iocpu ) then
 #ifdef CLM
         ioff = dtsrf-dtsec
@@ -730,7 +836,6 @@ module mod_savefile
       wrkdim(3) = dimids(idkh)
       call savedefvar(ncid,'fcc',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
-    call savedefvar(ncid,'dsol',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'solis',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'solvs',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'solvsd',regcm_vartype,wrkdim,1,2,varids,ivcc)
@@ -931,7 +1036,6 @@ module mod_savefile
     if ( ipptls > 0 ) then
       call myputvar(ncid,'fcc',fcc_io,varids,ivcc)
     end if
-    call myputvar(ncid,'dsol',dsol_io,varids,ivcc)
     call myputvar(ncid,'solis',solis_io,varids,ivcc)
     call myputvar(ncid,'solvs',solvs_io,varids,ivcc)
     call myputvar(ncid,'solvsd',solvsd_io,varids,ivcc)
@@ -1045,23 +1149,39 @@ module mod_savefile
   end subroutine write_savefile
 
   subroutine check_ok(f,l,m1)
+#ifdef PNETCDF
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     character(*) , intent(in) :: f, m1
     integer(ik4) , intent(in) :: l
     if ( ncstatus /= nf90_noerr ) then
       write (stderr,*) trim(m1)
+#ifdef PNETCDF
+      write (stderr,*) nf90mpi_strerror(ncstatus)
+#else
       write (stderr,*) nf90_strerror(ncstatus)
+#endif
       call fatal(f,l,'SAVEFILE')
     end if
   end subroutine check_ok
 
   integer(ik4) function get_varid(ncid,vname) result(varid)
+#ifdef PNETCDF
+    use pnetcdf
+#else
     use netcdf
+#endif
     implicit none
     integer(ik4) , intent(in) :: ncid
     character(len=*) :: vname
+#ifdef PNETCDF
+    ncstatus = nf90mpi_inq_varid(ncid,vname,varid)
+#else
     ncstatus = nf90_inq_varid(ncid,vname,varid)
+#endif
     call check_ok(__FILE__,__LINE__,'Cannot find variable '//trim(vname))
   end function get_varid
 
@@ -1095,7 +1215,7 @@ module mod_savefile
   end subroutine savedefvar
 
   subroutine myputvar2dd(ncid,str,var,ivar,iivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1115,10 +1235,10 @@ module mod_savefile
     iivar = iivar + 1
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1126,7 +1246,7 @@ module mod_savefile
   end subroutine myputvar2dd
 
   subroutine mygetvar2dd(ncid,str,var)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1143,10 +1263,10 @@ module mod_savefile
 #endif
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+    ncstatus = nf90mpi_get_var_all(ncid,get_varid(ncid,str),var,istart,icount)
 #else
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
@@ -1154,7 +1274,7 @@ module mod_savefile
   end subroutine mygetvar2dd
 
   subroutine myputvar2ddf(ncid,str,var,nx,ny,ivar,iivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use pnetcdf
 #else
     use netcdf
@@ -1162,12 +1282,12 @@ module mod_savefile
     implicit none
     integer(ik4) , intent(in) :: ncid , nx , ny
     character(len=*) , intent(in) :: str
-    real(rkx) , dimension(nx,ny) , intent(in) :: var
+    real(rkx) , dimension(nx,ny) , intent(inout) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var)
+    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var)
 #endif
@@ -1175,7 +1295,7 @@ module mod_savefile
   end subroutine myputvar2ddf
 
   subroutine mygetvar2ddf(ncid,str,var,ivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use pnetcdf
 #else
     use netcdf
@@ -1186,7 +1306,7 @@ module mod_savefile
     real(rkx) , dimension(:,:) , intent(inout) :: var
     integer(ik4) , intent(in) :: ivar
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_var(ncid,ivar,var)
+    ncstatus = nf90mpi_get_var_all(ncid,ivar,var)
 #else
     ncstatus = nf90_get_var(ncid,ivar,var)
 #endif
@@ -1194,7 +1314,7 @@ module mod_savefile
   end subroutine mygetvar2ddf
 
   subroutine myputvar3dd(ncid,str,var,ivar,iivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1215,11 +1335,11 @@ module mod_savefile
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
     istart(3) = lbound(var,3)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
-    icount(3) = ubound(var,3)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1227,7 +1347,7 @@ module mod_savefile
   end subroutine myputvar3dd
 
   subroutine mygetvar3dd(ncid,str,var)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1245,11 +1365,11 @@ module mod_savefile
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
     istart(3) = lbound(var,3)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
-    icount(3) = ubound(var,3)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+    ncstatus = nf90mpi_get_var_all(ncid,get_varid(ncid,str),var,istart,icount)
 #else
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
@@ -1257,7 +1377,7 @@ module mod_savefile
   end subroutine mygetvar3dd
 
   subroutine myputvar4dd(ncid,str,var,ivar,iivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1279,12 +1399,12 @@ module mod_savefile
     istart(2) = lbound(var,2)
     istart(3) = lbound(var,3)
     istart(4) = lbound(var,4)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
-    icount(3) = ubound(var,3)
-    icount(4) = ubound(var,4)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
+    icount(4) = ubound(var,4)-istart(4)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1292,7 +1412,7 @@ module mod_savefile
   end subroutine myputvar4dd
 
   subroutine mygetvar4dd(ncid,str,var)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1311,12 +1431,12 @@ module mod_savefile
     istart(2) = lbound(var,2)
     istart(3) = lbound(var,3)
     istart(4) = lbound(var,4)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
-    icount(3) = ubound(var,3)
-    icount(4) = ubound(var,4)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
+    icount(4) = ubound(var,4)-istart(4)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+    ncstatus = nf90mpi_get_var_all(ncid,get_varid(ncid,str),var,istart,icount)
 #else
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
@@ -1324,7 +1444,7 @@ module mod_savefile
   end subroutine mygetvar4dd
 
   subroutine myputvar1dif(ncid,str,var,nx,ivar,iivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use pnetcdf
 #else
     use netcdf
@@ -1332,12 +1452,12 @@ module mod_savefile
     implicit none
     integer(ik4) , intent(in) :: ncid , nx
     character(len=*) , intent(in) :: str
-    integer(ik4) , dimension(nx) , intent(in) :: var
+    integer(ik4) , dimension(nx) , intent(inout) :: var
     integer(ik4) , dimension(:) , intent(in) :: ivar
     integer(ik4) , intent(inout) :: iivar
     iivar = iivar + 1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var)
+    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var)
 #endif
@@ -1345,7 +1465,7 @@ module mod_savefile
   end subroutine myputvar1dif
 
   subroutine mygetvar1dif(ncid,str,var,ivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use pnetcdf
 #else
     use netcdf
@@ -1356,7 +1476,7 @@ module mod_savefile
     integer(ik4) , dimension(:) , intent(inout) :: var
     integer(ik4) , intent(in) :: ivar
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_var(ncid,ivar,var)
+    ncstatus = nf90mpi_get_var_all(ncid,ivar,var)
 #else
     ncstatus = nf90_get_var(ncid,ivar,var)
 #endif
@@ -1364,7 +1484,7 @@ module mod_savefile
   end subroutine mygetvar1dif
 
   subroutine myputvar2di(ncid,str,var,ivar,iivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1384,10 +1504,10 @@ module mod_savefile
     iivar = iivar + 1
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1395,7 +1515,7 @@ module mod_savefile
   end subroutine myputvar2di
 
   subroutine mygetvar2di(ncid,str,var)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1412,10 +1532,10 @@ module mod_savefile
 #endif
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+    ncstatus = nf90mpi_get_var_all(ncid,get_varid(ncid,str),var,istart,icount)
 #else
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
@@ -1423,7 +1543,7 @@ module mod_savefile
   end subroutine mygetvar2di
 
   subroutine myputvar3di(ncid,str,var,ivar,iivar)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1444,11 +1564,11 @@ module mod_savefile
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
     istart(3) = lbound(var,3)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
-    icount(3) = ubound(var,3)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_put_var(ncid,ivar(iivar),var,istart,icount)
+    ncstatus = nf90mpi_put_var_all(ncid,ivar(iivar),var,istart,icount)
 #else
     ncstatus = nf90_put_var(ncid,ivar(iivar),var,istart,icount)
 #endif
@@ -1456,7 +1576,7 @@ module mod_savefile
   end subroutine myputvar3di
 
   subroutine mygetvar3di(ncid,str,var)
-#ifdef PNETCEF
+#ifdef PNETCDF
     use mpi , only : mpi_offset_kind
     use pnetcdf
 #else
@@ -1474,16 +1594,124 @@ module mod_savefile
     istart(1) = lbound(var,1)
     istart(2) = lbound(var,2)
     istart(3) = lbound(var,3)
-    icount(1) = ubound(var,1)
-    icount(2) = ubound(var,2)
-    icount(3) = ubound(var,3)
+    icount(1) = ubound(var,1)-istart(1)+1
+    icount(2) = ubound(var,2)-istart(2)+1
+    icount(3) = ubound(var,3)-istart(3)+1
 #ifdef PNETCDF
-    ncstatus = nf90mpi_get_var(ncid,get_varid(ncid,str),var,istart,icount)
+    ncstatus = nf90mpi_get_var_all(ncid,get_varid(ncid,str),var,istart,icount)
 #else
     ncstatus = nf90_get_var(ncid,get_varid(ncid,str),var,istart,icount)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot read var '//trim(str))
   end subroutine mygetvar3di
+
+  subroutine saveopen(sname,ncid)
+#ifdef PNETCDF
+    use pnetcdf
+    use mpi , only : mpi_comm_self
+#else
+    use netcdf
+#endif
+    implicit none
+    character(len=*) , intent(in) :: sname
+    integer(ik4) , intent(out) :: ncid
+    integer(ik4) :: imode
+    integer(ik4) :: int10d , ical
+    type (rcm_time_and_date) :: idatex
+    real(rk8) :: rtmp
+    imode = nf90_nowrite
+    if ( do_parallel_save ) then
+#ifdef PNETCDF
+      ncstatus = nf90mpi_open(get_cartcomm( ),sname,imode, &
+                              ncout_mpi_info,ncid)
+#else
+#ifdef NETCDF4_HDF5
+      imode = ior(imode,nf90_share)
+      ncstatus = nf90_open(sname,imode,ncid,comm=get_cartcomm( ), &
+                           info=ncout_mpi_info)
+#endif
+#ifdef PNETCDF_IN_NETCDF
+      ncstatus = nf90_open(sname,imode,ncid=ncid,comm=get_cartcomm( ), &
+                           info=ncout_mpi_info)
+#endif
+#endif
+    else
+#ifdef PNETCDF
+      ncstatus = nf90mpi_open(mpi_comm_self,sname,imode, &
+                              ncout_mpi_info,ncid)
+#else
+      ncstatus = nf90_open(sname, imode, ncid)
+#endif
+    end if
+    call check_ok(__FILE__,__LINE__,'Cannot open savefile '//trim(sname))
+
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_att(ncid,nf90_global,'idatex',int10d)
+#else
+    ncstatus = nf90_get_att(ncid,nf90_global,'idatex',int10d)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot get attribute idatex')
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_att(ncid,nf90_global,'calendar',ical)
+#else
+    ncstatus = nf90_get_att(ncid,nf90_global,'calendar',ical)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot get attribute calendar')
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_att(ncid,nf90_global,'declin',declin)
+#else
+    ncstatus = nf90_get_att(ncid,nf90_global,'declin',declin)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot get attribute declin')
+#ifdef PNETCDF
+    ncstatus = nf90mpi_get_att(ncid,nf90_global,'solcon',solcon)
+#else
+    ncstatus = nf90_get_att(ncid,nf90_global,'solcon',solcon)
+#endif
+    call check_ok(__FILE__,__LINE__,'Cannot get attribute solcon')
+    if ( debug_level > 0 ) then
+      ! Do no give any error. User may have increased debug just now.
+#ifdef PNETCDF
+      ncstatus = nf90mpi_get_att(ncid,nf90_global,'dryini',rtmp)
+#else
+      ncstatus = nf90_get_att(ncid,nf90_global,'dryini',rtmp)
+#endif
+      if ( ncstatus == nf90_noerr ) then
+        dryini = real(rtmp,wrkp)
+      else
+        dryini = 0.0_wrkp
+      end if
+#ifdef PNETCDF
+      ncstatus = nf90mpi_get_att(ncid,nf90_global,'watini',rtmp)
+#else
+      ncstatus = nf90_get_att(ncid,nf90_global,'watini',rtmp)
+#endif
+      if ( ncstatus == nf90_noerr ) then
+        watini = real(rtmp,wrkp)
+      else
+        watini = 0.0_wrkp
+      end if
+#ifdef PNETCDF
+      ncstatus = nf90mpi_get_att(ncid,nf90_global,'dryerror',dryerror)
+#else
+      ncstatus = nf90_get_att(ncid,nf90_global,'dryerror',dryerror)
+#endif
+      if ( ncstatus /= nf90_noerr ) dryerror = 0.0_rk8
+#ifdef PNETCDF
+      ncstatus = nf90mpi_get_att(ncid,nf90_global,'waterror',waterror)
+#else
+      ncstatus = nf90_get_att(ncid,nf90_global,'waterror',waterror)
+#endif
+      if ( ncstatus /= nf90_noerr ) waterror = 0.0_rk8
+    end if
+    idatex = i4wcal(int10d,ical)
+    if ( idatex /= rcmtimer%idate ) then
+      write(stderr,*) 'Mismatch in dates namelist vs SAV file'
+      write(stderr,*) 'idate1 in namelist is ', rcmtimer%str( )
+      write(stderr,*) 'idate  in SAV file is ', tochar(idatex)
+      call fatal(__FILE__,__LINE__,'SAV FILE DO NOT MATCH IDATE1')
+    end if
+  end subroutine saveopen
 
   subroutine savecreate(sname,ncid)
 #ifdef PNETCDF
@@ -1497,24 +1725,24 @@ module mod_savefile
     integer(ik4) , intent(out) :: ncid
     integer(ik4) :: imode
 #ifdef PNETCDF
-    imode = ior(nf90_clobber, nf90_64bit_offset)
+    imode = ior(nf90_clobber, nf90_cdf5)
 #else
     imode = iomode
 #endif
-    if ( do_parallel_netcdf_out ) then
+    if ( do_parallel_save ) then
 #ifdef PNETCDF
       ncstatus = nf90mpi_create(get_cartcomm( ),sname,imode, &
                                 ncout_mpi_info,ncid)
 #else
 #ifdef NETCDF4_HDF5
       imode = ior(imode,nf90_mpiio)
-      ncstatus = nf90_create(sname,imode,comm=get_cartcomm( ), &
-                             info=ncout_mpi_info,ncid)
+      ncstatus = nf90_create(sname,imode,ncid,comm=get_cartcomm( ), &
+                             info=ncout_mpi_info)
 #endif
 #ifdef PNETCDF_IN_NETCDF
-      imode = ior(imode,nf90_pnetcdf)
-      ncstatus = nf90_create_par(sname,imode,comm=get_cartcomm( ), &
-                                 info=ncout_mpi_info,ncid=ncid)
+      imode = ior(imode,nf90_mpiio)
+      ncstatus = nf90_create_par(sname,imode, &
+                             get_cartcomm( ),ncout_mpi_info,ncid)
 #endif
 #endif
     else
@@ -1592,10 +1820,6 @@ module mod_savefile
 #ifdef PNETCDF
     ncstatus = nf90mpi_enddef(ncid)
     call check_ok(__FILE__,__LINE__,'Cannot enable savefile '//trim(sname))
-    if ( .not. do_parallel_netcdf_out ) then
-      ncstatus = nf90mpi_begin_indep_data(ncid)
-      call check_ok(__FILE__,__LINE__,'Cannot enable savefile '//trim(sname))
-    end if
 #else
     ncstatus = nf90_enddef(ncid)
     call check_ok(__FILE__,__LINE__,'Cannot enable savefile '//trim(sname))
@@ -1605,6 +1829,7 @@ module mod_savefile
   integer(ik4) function savedefdim(ncid,dname,dlen) result(dimid)
 #ifdef PNETCDF
     use pnetcdf
+    use mpi , only : mpi_offset_kind
 #else
     use netcdf
 #endif
@@ -1612,7 +1837,9 @@ module mod_savefile
     integer(ik4) , intent(in) :: ncid , dlen
     character(len=*) , intent(in) :: dname
 #ifdef PNETCDF
-    ncstatus = nf90mpi_def_dim(ncid,dname,dlen,dimid)
+    integer(kind=mpi_offset_kind) :: xlen
+    xlen = dlen
+    ncstatus = nf90mpi_def_dim(ncid,dname,xlen,dimid)
 #else
     ncstatus = nf90_def_dim(ncid,dname,dlen,dimid)
 #endif
