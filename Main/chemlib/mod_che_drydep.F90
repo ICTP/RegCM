@@ -508,7 +508,6 @@ module mod_che_drydep
             !
             ! Graziano - 2018-02-09 - updated Stokes number computation
             ! Before, only the formulation for smooth surfaces was used
-            ! here.
             if ( ast(lcov) > d_zero ) then
               st = taurel(j,kz,n)*ustar(j,l)*regrav/ast(lcov)
               eb = schm(j)**(-agam(lcov))
