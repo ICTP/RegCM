@@ -165,13 +165,13 @@ module mod_che_common
       call getmem1d(c,1,totsp+nfix,'che_common:c')
     end if
 
-    call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
-    call getmem3d(wdrout,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdrout')
-    call getmem3d(wdwout,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdwout')
+    call getmem3d(dtrace,jci1,jci2,ici1,ici2,1,ntr,'che_common:dtrace')
+    call getmem3d(wdrout,jci1,jci2,ici1,ici2,1,ntr,'che_common:wdrout')
+    call getmem3d(wdwout,jci1,jci2,ici1,ici2,1,ntr,'che_common:wdwout')
 
-    call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
-    call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
-    call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
+    call getmem3d(cemtrac,jci1,jci2,ici1,ici2,1,ntr,'che_common:cemtrac')
+    call getmem3d(drydepv,jci1,jci2,ici1,ici2,1,ntr,'che_common:drydepv')
+    call getmem3d(ddv_out,jci1,jci2,ici1,ici2,1,ntr,'che_common:ddv_out')
 
     if ( ichdiag > 0 ) then
       call getmem4d(chemdiag,jci1,jci2, &

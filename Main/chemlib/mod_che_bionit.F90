@@ -30,6 +30,9 @@ module mod_che_bionit
 
   public :: allocate_mod_che_bionit, ini_bionit
 
+  ! manure application rate (kg/m2/s)
+  ! fertiliser application rate (kg/m2/s)
+  ! soilpH/
   real(rkx) , pointer, dimension(:,:) :: nmanure , nfert , soilph
 
   !coefficients and weights derived from neural net analysis
@@ -106,10 +109,10 @@ contains
 
   subroutine allocate_mod_che_bionit
     implicit none
-    if ( ichem == 1 ) then
-      call getmem2d(nfert,jce1,jce2,ice1,ice2,'che_bionit:nfert')
-      call getmem2d(nmanure,jce1,jce2,ice1,ice2,'che_bionit:nmanure')
-      call getmem2d(soilph,jce1,jce2,ice1,ice2,'che_bionit:soilph')
+    if ( ichem == 1 .and. ichbion == 1 ) then
+      call getmem2d(nfert,jci1,jci2,ici1,ici2,'che_bionit:nfert')
+      call getmem2d(nmanure,jci1,jci2,ici1,ici2,'che_bionit:nmanure')
+      call getmem2d(soilph,jci1,jci2,ici1,ici2,'che_bionit:soilph')
     end if
   end subroutine allocate_mod_che_bionit
 
@@ -125,12 +128,6 @@ contains
     integer(ik4) , dimension(jci1:jci2), intent(in) :: ivegcov
     ! local variables
     integer(ik4) :: j
-    ! manure application rate (kg/m2/s)
-!!$ real, dimension(iy,jx), intent(in) :: manrate
-    ! fertiliser application rate (kg/m2/s)
-!!$ real, dimension(iy,jx), intent(in) :: fertrate
-    ! soilpH/
-!!$ real, dimension(iy,jx), intent(in) :: soilph
 
     real(rkx), dimension(jci1:jci2) :: &
          soiltemp_surf ,&    ! surface soil temperature (C)
