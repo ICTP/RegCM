@@ -31,7 +31,10 @@ module mod_rad_common
   ! emstot  - Total emissivity
 
   ! Those need to be saved in output file
-  real(rkx) , pointer , dimension(:,:,:) :: o3prof,extprof,ssaprof,asyprof
+  real(rkx) , pointer , dimension(:,:,:) :: o3prof
+  real(rkx) , pointer , dimension(:,:,:) :: extprof
+  real(rkx) , pointer , dimension(:,:,:) :: ssaprof
+  real(rkx) , pointer , dimension(:,:,:) :: asyprof
   real(rkx) , pointer , dimension(:,:,:,:)  :: gasabsnxt
   real(rkx) , pointer , dimension(:,:,:,:)  :: gasabstot
   real(rkx) , pointer , dimension(:,:,:) :: gasemstot

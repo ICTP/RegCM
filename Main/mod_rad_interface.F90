@@ -31,11 +31,12 @@ module mod_rad_interface
   use mod_rrtmg_driver , only : allocate_mod_rad_rrtmg , rrtmg_driver
   use mod_rad_o3blk , only : allocate_mod_rad_o3blk , o3data
   use mod_rad_o3blk , only : read_o3data , close_o3data
-  use mod_rad_aerosol , only : allocate_mod_rad_aerosol , init_aerclima, init_aeroppdata
-  use mod_rad_aerosol , only : read_aerclima , close_aerclima,read_aeroppdata
+  use mod_rad_aerosol , only : allocate_mod_rad_aerosol , init_aerclima
+  use mod_rad_aerosol , only : init_aeroppdata , read_aeroppdata
+  use mod_rad_aerosol , only : read_aerclima , close_aerclima
   use mod_rad_radiation , only : allocate_mod_rad_radiation
   use mod_rad_outrad , only : allocate_mod_rad_outrad
-  
+
   implicit none
 
   private
@@ -186,9 +187,6 @@ module mod_rad_interface
     type (rcm_time_and_date) , intent(in) :: idatex
     call read_aeroppdata(idatex,m2r)
   end subroutine updateaeropp
-
-
-
 
   subroutine closeo3
     implicit none
