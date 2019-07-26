@@ -107,30 +107,12 @@ module mod_slice
       atms%tb3d(j,i,k) = atm2%t(j,i,k)*rpsb(j,i)
       atms%qxb3d(j,i,k,iqv) = max(atm2%qx(j,i,k,iqv)*rpsb(j,i),minqq)
     end do
-    do n = iqfrst , iqlst
-      do k = 1 , kz
-        do i = ix1 , ix2
-          do j = jx1 , jx2
-            atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
-            if ( atms%qxb3d(j,i,k,n) < minqq * minqq ) then
-              atms%qxb3d(j,i,k,n) = d_zero
-            end if
-          end do
-        end do
-      end do
+    do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz , n = iqfrst:iqlst )
+      atms%qxb3d(j,i,k,n) = atm2%qx(j,i,k,n)*rpsb(j,i)
     end do
     if ( ichem == 1 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ix1 , ix2
-            do j = jx1 , jx2
-              atms%chib3d(j,i,k,n) = atm2%chi(j,i,k,n)*rpsb(j,i)
-              if ( atms%chib3d(j,i,k,n) < mintr ) then
-                atms%chib3d(j,i,k,n) = d_zero
-              end if
-            end do
-          end do
-        end do
+      do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz , n = 1:ntr )
+        atms%chib3d(j,i,k,n) = atm2%chi(j,i,k,n)*rpsb(j,i)
       end do
     end if
 

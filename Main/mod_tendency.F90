@@ -373,23 +373,20 @@ module mod_tendency
         end do
       end do
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) + dt * qxten(j,i,k,iqv)
-          if ( atmc%qx(j,i,k,iqv) < minqq * sfs%psc(j,i) ) then
-            atmc%qx(j,i,k,iqv) = minqq * sfs%psc(j,i)
-          end if
-        end do
-      end do
+    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:nqx )
+      atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n)
     end do
-    do n = iqfrst , iqlst
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:nqx )
+      atmc%qx(j,i,k,n) = atmc%qx(j,i,k,n) + dt * qxten(j,i,k,n)
+    end do
+    call exchange(atmc%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    do n = 1 , nqx
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            atmc%qx(j,i,k,n) = atm2%qx(j,i,k,n) + dt * qxten(j,i,k,n)
-            if ( atmc%qx(j,i,k,n) < minqq * minqq * sfs%psc(j,i) ) then
-              atmc%qx(j,i,k,n) = d_zero
+            if ( atmc%qx(j,i,k,n) < d_zero ) then
+              atmc%qx(j,i,k,n) = 0.1_rkx * &
+                    minval(abs(atmc%qx(j-1:j+1,i-1:i+1,k,n)))
             end if
           end do
         end do
@@ -428,7 +425,7 @@ module mod_tendency
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu1, &
                           0.53_rkx,sfs%psa,sfs%psb)
     call timefilter_apply(atm1%qx,atm2%qx,atmc%qx,gnu2,0.53_rkx, &
-                          iqfrst,iqlst,minqq*minqq,sfs%psa,sfs%psb)
+                          iqfrst,iqlst,d_zero,sfs%psa,sfs%psb)
 
     if ( idynamic == 1 ) then
       !
@@ -565,14 +562,20 @@ module mod_tendency
           end do
         end do
       end do
-      do itr = 1 , ntr
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz , n = 1:ntr )
+        atmc%chi(j,i,k,n) = atm2%chi(j,i,k,n)
+      end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz , n = 1:ntr )
+        atmc%chi(j,i,k,n) = atmc%chi(j,i,k,n) + dt * chiten(j,i,k,n)
+      end do
+      call exchange(atmc%chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      do n = 1 , ntr
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              atmc%chi(j,i,k,itr) = atm2%chi(j,i,k,itr) + &
-                                    dt * chiten(j,i,k,itr)
-              if ( atmc%chi(j,i,k,itr) < mintr * sfs%psc(j,i) ) then
-                atmc%chi(j,i,k,itr) = d_zero
+              if ( atmc%chi(j,i,k,n) < d_zero ) then
+                atmc%chi(j,i,k,n) = 0.1_rkx * &
+                        minval(abs(atmc%chi(j-1:j+1,i-1:i+1,k,n)))
               end if
             end do
           end do
@@ -581,7 +584,7 @@ module mod_tendency
       !call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2, &
       !                      1,ntr,mintr,sfs%psa)
       call timefilter_apply(atm1%chi,atm2%chi,atmc%chi,gnu2,0.53_rkx, &
-                            1,ntr,dlowval,sfs%psa,sfs%psb)
+                            1,ntr,d_zero,sfs%psa,sfs%psb)
       !
       ! do cumulus simple transport/mixing of tracers for the schemes
       ! without explicit convective transport (Grell and KF up to now).
@@ -1014,17 +1017,9 @@ module mod_tendency
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
         atmx%qx(j,i,k,iqv) = max(atm1%qx(j,i,k,iqv)*rpsa(j,i),minqq)
       end do
-      do n = iqfrst , iqlst
-        do k = 1 , kz
-          do i = ice1ga , ice2ga
-            do j = jce1ga , jce2ga
-              atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
-              if ( atmx%qx(j,i,k,n) < minqq ) then
-                atmx%qx(j,i,k,n) = d_zero
-              end if
-            end do
-          end do
-        end do
+      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , &
+                      k = 1:kz , n = iqfrst:iqlst )
+        atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
       end do
       do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
         atmx%tv(j,i,k) = atmx%t(j,i,k) * (d_one + ep1*atmx%qx(j,i,k,iqv))

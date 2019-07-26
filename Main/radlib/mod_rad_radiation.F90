@@ -1607,7 +1607,7 @@ module mod_rad_radiation
         ! 0 for interface quantities refers to top of atmos- phere,
         ! while 1 refers to the surface:
         !
-        call radclr(n1,n2,trayoslp,czen,czengt0,ns)
+        call radclr(n1,n2,trayoslp,czen,czengt0,ns,.true.)
         !
         ! Compute reflectivity to direct and diffuse radiation for
         ! entire column; 0,1 on layer quantities refers to two
@@ -1673,7 +1673,7 @@ module mod_rad_radiation
       ! quantities refers to top of atmos- phere, while 1 refers to the
       ! surface:
       !
-      call radclr(n1,n2,trayoslp,czen,czengt0,ns)
+      call radclr(n1,n2,trayoslp,czen,czengt0,ns,.false.)
       !
       ! Compute reflectivity to direct and diffuse radiation for entire
       ! column; 0,1 on layer quantities refers to two effective layers
@@ -2285,13 +2285,14 @@ module mod_rad_radiation
   !
   ! trayoslp - Tray/sslp
   !
-  subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns)
+  subroutine radclr(n1,n2,trayoslp,czen,czengt0,ns,lcls)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) , intent(in) :: trayoslp
     real(rkx) , pointer , dimension(:) , intent(in) :: czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
     integer(ik4) , intent(in) :: ns
+    logical , intent(in) :: lcls
     !
     ! taugab   - Total column gas absorption optical depth
     ! tauray   - Column rayleigh optical depth
@@ -2407,7 +2408,7 @@ module mod_rad_radiation
           !
           tauray(n) = trayoslp*pflx(n,kzp1)
           taugab(n) = abh2o(ns)*uth2o(n) + abco2(ns)*utco2(n) + abo2(ns)*uto2(n)
-          if ( lzero ) then
+          if ( lcls ) then
             tautot = tauray(n) + taugab(n)
             wtot = (wray*tauray(n))/tautot
             gtot = (gray*wray*tauray(n))/(wtot*tautot)

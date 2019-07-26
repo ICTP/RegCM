@@ -647,21 +647,23 @@ module mod_atm_interface
     subroutine allocate_atmstate_c(atm)
       implicit none
       type(atmstate_c) , intent(out) :: atm
-      call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
+        call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
       end if
-      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
       if ( idynamic == 2 ) then
+        call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
+        call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
         call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
         call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
         call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       else
-        call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
+        call getmem3d(atm%u,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:u')
+        call getmem3d(atm%v,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:v')
+        call getmem3d(atm%t,jci1,jci2,ici1,ici2,1,kz,'atmstate:t')
       end if
+      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( ichem == 1 ) then
-        call getmem4d(atm%chi,jce1,jce2,ice1,ice2, &
+        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
                               1,kz,1,ntr,'atmstate:chi')
       end if
     end subroutine allocate_atmstate_c

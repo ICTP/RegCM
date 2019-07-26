@@ -229,7 +229,7 @@ module mod_sound
       aten%u(j,i,k,pc_total) = aten%u(j,i,k,pc_total) * dts
       aten%v(j,i,k,pc_total) = aten%v(j,i,k,pc_total) * dts
     end do
-    do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
       atmc%qx(j,i,k,iqv) = atm2%qx(j,i,k,iqv) * rpsb(j,i)
     end do
     do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
