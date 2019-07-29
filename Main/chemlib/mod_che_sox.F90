@@ -36,6 +36,8 @@ module mod_che_sox
   real(rkx) , parameter :: solso4 = 1._rkx
   real(rkx) , parameter :: solso2 = 0.6_rkx
 
+  ! integer , parameter :: rk_com_max = 17
+
   public :: chemsox, solso4, solso2
 
   contains
@@ -49,7 +51,7 @@ module mod_che_sox
                  clmin , remcum , oh1int , so2_rate , so2_avail , krembc
      real(rkx) , dimension(ntr) ::  wetrem , wetrem_cvc
      real(rkx) , dimension(jci1:jci2,kz) :: caircell , so2_snk , concmin
-     real(rkx) :: rk_com(jci1:jci2,kz,100)
+     ! real(rkx) :: rk_com(jci1:jci2,kz,rk_com_max)
      real(rkx) :: h2o2mol
 
      integer(ik4) :: j , k
@@ -57,7 +59,7 @@ module mod_che_sox
      !FAB
      caircell(:,:) = 1.e-6_rkx * rho(:,:)/amdk * navgdr
 
-     call chemrate(caircell,ttb,rk_com)
+     ! call chemrate(caircell,ttb,rk_com)
 
      ! clmin = non-precipitating cloud
      ! conversion threshold, clmin=0.01g/m3
@@ -78,10 +80,10 @@ module mod_che_sox
      ! The variable name of the SO2 sink is snk_so2
      !---------------------------------------------
 
+     cldno = d_one ! no cloud fraction
+
      do k = 1 , kz
        do j = jci1 , jci2
-
-         cldno = d_one ! no cloud fraction
 
          if ( ioxclim == 1 ) then
            ! from the oxidant climatology
@@ -114,22 +116,26 @@ module mod_che_sox
          !       mw(so2)=64;  mw(so4)/mw(so2)=3/2=1.5
          !---------------------------------------------
          ! so2_rate = rk_com(j,k,12) * oh1int * d_10
-         so2_rate = rk_com(j,k,12) * oh1int
+         ! so2_rate = rk_com(j,k,12) * oh1int
+         so2_rate = rrate(caircell(j,k),ttb(j,k)) * oh1int
          so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
          so2_snk(j,k) = so2_avail*(d_one-exp(-so2_rate*dt))
-
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(j,k) * cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(j,k)*cldno
-
-         !  gazeous conversion diagnostic
-         if ( ichdiag > 0 ) then
-          chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
-               - so2_snk(j,k) * cldno * cfdout
-          chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
-               +  1.5_rkx*so2_snk(j,k)*cldno  * cfdout
-         end if
        end do
      end do
+
+     if ( ichdiag > 0 ) then
+       do k = 1 , kz
+         do j = jci1 , jci2
+          !  gazeous conversion diagnostic
+           chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
+                   - so2_snk(j,k) * cldno * cfdout
+           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
+                   +  1.5_rkx*so2_snk(j,k)*cldno  * cfdout
+         end do
+       end do
+     end if
 
      if ( carb_aging_control ) then
        do k = 1 , kz
@@ -331,7 +337,25 @@ module mod_che_sox
 !!$    end do
 !!$
 !!$  end if ! dms , so2
-!
+
+     contains
+     !
+     ! Only SO2 reaction rate
+     !
+     pure real(rkx) function rrate(cair,temp) result(rk)
+       implicit none
+       real(rkx) , intent(in) :: cair , temp
+       real(rk8) , parameter :: rk0 = 3.0e-31_rkx
+       real(rk8) , parameter :: rnn = 3.3_rkx
+       real(rk8) , parameter :: rki0 = 1.5e-12_rkx
+       real(rk8) , parameter :: rmm = 0.0_rkx
+       real(rk8) :: rkk , rki , expo
+       rkk = rk0*cair*(temp/300.0_rk8)**(-rnn)
+       rki = rki0*(temp/300.0_rk8)**(-rmm)
+       expo = d_one/(d_one + (log10(rkk/rki))**2)
+       rk  = real((rkk*rki/(rkk+rki))*0.6_rk8**expo,rkx)
+     end function rrate
+
    end subroutine chemsox
 !
 !  *****************************************************************
@@ -341,75 +365,75 @@ module mod_che_sox
 !  *  Trieste -Italy                                            ****
 !  *****************************************************************
 !
-   subroutine chemrate(caircell,temp,rk_com)
-     implicit none
-     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: caircell , temp
-     real(rkx) , dimension(jci1:jci2,kz,100) , intent(out) ::  rk_com
-     real(rkx) :: rk0 , rnn , rki , rmm , te , cair_mlc , alpha
-     integer(ik4) :: j , k
-
-     rk_com(:,:,:) = d_zero
-     do k = 1 , kz
-       do j = jci1 , jci2
-
-          alpha = 0.4_rkx
-          te = temp(j,k)
-
-          rk_com(j,k,1) = arr(1.0_rkx,    -234._rkx,te)
-          rk_com(j,k,2) = arr(8.46e-10_rkx, 7230._rkx,te)
-          rk_com(j,k,3) = arr(2.68e-10_rkx, 7810._rkx,te)
-          rk_com(j,k,4) = arr(88.1_rkx,   7460._rkx,te)
-
-          rk_com(j,k,5) = temp(j,k)*rk_com(j,k,1) + rk_com(j,k,2)+ rk_com(j,k,3)
-          rk_com(j,k,6) = 1.04e11_rkx*temp(j,k) + rk_com(j,k,4)
-          rk_com(j,k,7) = rk_com(j,k,5)/rk_com(j,k,6)
-          rk_com(j,k,8) = arr(1.2e-11_rkx,  -260._rkx,te)
-          rk_com(j,k,9) = max(0.0_rkx, rk_com(j,k,7) - rk_com(j,k,8))
-          rk_com(j,k,10) = rk_com(j,k,8) + rk_com(j,k,9)
-          rk_com(j,k,11) = rk_com(j,k,8) + alpha * rk_com(j,k,9)
-
-          cair_mlc = caircell(j,k)
-          rk0 = 3.0e-31_rkx
-          rnn = 3.3_rkx
-          rki = 1.5e-12_rkx
-          rmm = 0.0_rkx
-          rk_com(j,k,12) = troe(cair_mlc,te,rk0,rnn,rki,rmm)
-
-          rk_com(j,k,13) = abr(1.7e-12_rkx,   600._rkx,te)
-          rk_com(j,k,14) = abr(4.9e-32_rkx,  1000._rkx,te)
-          rk_com(j,k,15) = abr(1.4e-21_rkx,  2200._rkx,te)
-          rk_com(j,k,16) = abr(1.7e-12_rkx,  -200._rkx,te)
-          rk_com(j,k,17) = abr(1.0e-12_rkx,   500._rkx,te)
-
-       end do
-     end do
-
-     contains
-
-     real(rkx) function troe(cair_mlc,te,rk0,rnn,rki,rmm)
-       implicit none
-       real(rkx) , intent(in) ::  cair_mlc, te, rnn, rmm
-       real(rkx) , intent(inout) :: rk0 , rki
-       real(rkx) :: expo
-       rk0 = rk0*cair_mlc*(te/300.0_rkx)**(-rnn)
-       rki = rki*(te/300.0_rkx)**(-rmm)
-       expo= d_one/(d_one + (log10(rk0/rki))**2)
-       troe  = (rk0*rki/(rk0+rki))*0.6_rkx**expo
-     end function troe
-
-     real(rkx) function arr(aa,bb,te)
-       implicit none
-       real(rkx), intent(in) :: aa , bb , te
-       arr = aa*exp(bb/te)
-     end function arr
-
-     real(rkx) function abr(aa,bb,te)
-       implicit none
-       real(rkx), intent(in) ::  aa , bb , te
-       abr = aa*exp(bb*(d_one/te - 0.0033557_rkx))
-     end function abr
-
-   end subroutine chemrate
+!   subroutine chemrate(caircell,temp,rk_com)
+!     implicit none
+!     real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: caircell , temp
+!     real(rkx) , dimension(jci1:jci2,kz,rk_com_max) , intent(out) ::  rk_com
+!     real(rkx) :: rk0 , rnn , rki , rmm , te , cair_mlc , alpha
+!     integer(ik4) :: j , k
+!
+!     rk_com(:,:,:) = d_zero
+!     do k = 1 , kz
+!       do j = jci1 , jci2
+!
+!          alpha = 0.4_rkx
+!          te = temp(j,k)
+!
+!          rk_com(j,k,1) = arr(1.0_rkx,    -234._rkx,te)
+!          rk_com(j,k,2) = arr(8.46e-10_rkx, 7230._rkx,te)
+!          rk_com(j,k,3) = arr(2.68e-10_rkx, 7810._rkx,te)
+!          rk_com(j,k,4) = arr(88.1_rkx,   7460._rkx,te)
+!
+!          rk_com(j,k,5) = temp(j,k)*rk_com(j,k,1)+rk_com(j,k,2)+rk_com(j,k,3)
+!          rk_com(j,k,6) = 1.04e11_rkx*temp(j,k) + rk_com(j,k,4)
+!          rk_com(j,k,7) = rk_com(j,k,5)/rk_com(j,k,6)
+!          rk_com(j,k,8) = arr(1.2e-11_rkx,  -260._rkx,te)
+!          rk_com(j,k,9) = max(0.0_rkx, rk_com(j,k,7) - rk_com(j,k,8))
+!          rk_com(j,k,10) = rk_com(j,k,8) + rk_com(j,k,9)
+!          rk_com(j,k,11) = rk_com(j,k,8) + alpha * rk_com(j,k,9)
+!
+!          cair_mlc = caircell(j,k)
+!          rk0 = 3.0e-31_rkx
+!          rnn = 3.3_rkx
+!          rki = 1.5e-12_rkx
+!          rmm = 0.0_rkx
+!          rk_com(j,k,12) = troe(cair_mlc,te,rk0,rnn,rki,rmm)
+!
+!          rk_com(j,k,13) = abr(1.7e-12_rkx,   600._rkx,te)
+!          rk_com(j,k,14) = abr(4.9e-32_rkx,  1000._rkx,te)
+!          rk_com(j,k,15) = abr(1.4e-21_rkx,  2200._rkx,te)
+!          rk_com(j,k,16) = abr(1.7e-12_rkx,  -200._rkx,te)
+!          rk_com(j,k,17) = abr(1.0e-12_rkx,   500._rkx,te)
+!
+!       end do
+!     end do
+!
+!     contains
+!
+!     pure real(rkx) function troe(cair_mlc,te,rk0,rnn,rki,rmm)
+!       implicit none
+!       real(rkx) , intent(in) ::  cair_mlc, te, rnn, rmm
+!       real(rkx) , intent(in) :: rk0 , rki
+!       real(rkx) :: expo , rkk , rkki
+!       rkk = rk0*cair_mlc*(te/300.0_rkx)**(-rnn)
+!       rkki = rki*(te/300.0_rkx)**(-rmm)
+!       expo= d_one/(d_one + (log10(rkk/rkki))**2)
+!       troe  = (rkk*rkki/(rkk+rkki))*0.6_rkx**expo
+!     end function troe
+!
+!     pure real(rkx) function arr(aa,bb,te)
+!       implicit none
+!       real(rkx), intent(in) :: aa , bb , te
+!       arr = aa*exp(bb/te)
+!     end function arr
+!
+!     pure real(rkx) function abr(aa,bb,te)
+!       implicit none
+!       real(rkx), intent(in) ::  aa , bb , te
+!       abr = aa*exp(bb*(d_one/te - 0.0033557_rkx))
+!     end function abr
+!
+!   end subroutine chemrate
 
 end module mod_che_sox
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

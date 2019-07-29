@@ -121,55 +121,46 @@ contains
     if ( ichbion == 1 ) call read_bionem (nfert,nmanure,soilph)
   end subroutine ini_bionit
 
-  subroutine soilnitro_emissions(i,ivegcov,wid10)
+  subroutine soilnitro_emissions(ivegcov,wid10)
     implicit none
-    integer(ik4) , intent(in) :: i
-    real(rkx) , dimension(jci1:jci2) , intent(in) :: wid10
-    integer(ik4) , dimension(jci1:jci2), intent(in) :: ivegcov
+    real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wid10
+    integer(ik4) , dimension(jci1:jci2,ici1:ici2), intent(in) :: ivegcov
     ! local variables
-    integer(ik4) :: j
+    integer(ik4) :: i , j
 
-    real(rkx), dimension(jci1:jci2) :: &
+    real(rkx) :: &
+      canred        ,&    ! canopy reduction factor
+      fracnox       ,&  ! fraction emitted as NOx
+      fracnh3       ,&  ! fraction emitted as NH3
+      norm_sm       ,&    ! normalised soil moisture
+      norm_wi       ,&    ! normalised wind speed
+      norm_fe       ,&    ! normalised fertilisation rate
+      norm_sd       ,&    ! normalised deep soil temp
+      norm_ss       ,&    ! normalised surf soil temp
+      norm_ph       ,&    ! normalised ph value
+      norm_sa       ,&    ! normalised sand % content
+      norm_no       ,&    ! normalised NO flux
+      nsum1         ,&    ! normalised sum 1
+      nsum2         ,&    ! normalised sum 2
+      nsum3               ! normalised sum 3
+    real(rkx), dimension(jci1:jci2,ici1:ici2) :: &
          soiltemp_surf ,&    ! surface soil temperature (C)
          soiltemp_deep ,&    ! deep soil temperature (C)
          sandper       ,&    ! sand percentage (%)
          porewater     ,&    ! pore space water content (%)
-         canred        ,&    ! canopy reduction factor
          windsp        ,&    ! wind speed (m/s)
          soilfert      ,&    ! soil fertilisation rate (kg/m2/hr)
-         norm_sm       ,&    ! normalised soil moisture
-         norm_wi       ,&    ! normalised wind speed
-         norm_fe       ,&    ! normalised fertilisation rate
-         norm_sd       ,&    ! normalised deep soil temp
-         norm_ss       ,&    ! normalised surf soil temp
-         norm_ph       ,&    ! normalised ph value
-         norm_sa       ,&    ! normalised sand % content
-         norm_no       ,&    ! normalised NO flux
-         nsum1         ,&    ! normalised sum 1
-         nsum2         ,&    ! normalised sum 2
-         nsum3               ! normalised sum 3
-    real (rkx), dimension(jci1:jci2) :: &
-         man1d,     &
-         fert1d,    &
-         ph1d,      &
-         lai_int,   &  ! 1D manure/fertiliser app. rate + pH
-         totn1d,    &  ! 1D total N app. rate
-         fracnox,   &  ! fraction emitted as NOx
-         fracnh3,   &  ! fraction emitted as NH3
-         noxflux       ! calculated soil NOx flux
+         lai_int       ,&    ! manure/fertiliser app. rate + pH
+         noxflux       ,&    ! calculated soil NOx flux
+         totn          ,&    ! total N app. rate
+         ph
 
-    ! getting just 1D fert/man. rates
-    ! this  come from external data
-    man1d = nmanure(jci1:jci2,i)
-    fert1d = nfert(jci1:jci2,i)
-    ph1d = soilph(jci1:jci2,i)
-
-    totn1d = (man1d + fert1d)/(24._rkx * 365._rkx)
     ! convert from kg/ha/year to kg/ha/hr needed by the neural network
 
+    totn = (nmanure + nfert)/(24._rkx * 365._rkx)
 
     ! iFAB  ! put interactive LAI
-    lai_int = cxlai2d(jci1:jci2,i)
+    lai_int = cxlai2d(jci1:jci2,ici1:ici2)
 
     soiltemp_surf = d_zero
     soiltemp_deep = d_zero ! deep soil temperature (C)
@@ -192,162 +183,180 @@ contains
     noxflux       = d_zero
 
 #ifndef CLM45
-    do j = jci1 , jci2
-      ! cycle on sea points
-      if ( ivegcov(j) == 0 ) cycle
-      ! getting the soil sand percentage, pH and fert rate values
-      sandper(j) = sandrow2(j,i)
-      ! calculating water-filled pore space from soil moisture
-      porewater(j) = cssw2da(j,i)
-      ! converting soil moisture from kg/m2 to (m3 water/m3 soil)
-      ! divide first by depth of soil layer = 10cm = 0.1m : cdepuv = 100mm
-      ! then divide by density of water = 1000kg/m3
-      porewater(j) = (porewater(j)/(cdepuv(ivegcov(j)) * d_1000)) * d_r1000
-      ! calculating water-filled pore space (%)
-      ! coefficient of 0.45 derived from obs at Grignon(0.536),
-      ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
-      ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
-      porewater(j) = (porewater(j) / 0.45_rkx) * d_100
-
-      ! converting temperature from Kelvin to Celsius
-      soiltemp_deep(j) = ctg(j,i)
-      soiltemp_surf(j) = ctga(j,i)
-      if ( soiltemp_deep(j) /= 0 ) then
-        soiltemp_deep(j) = soiltemp_deep(j) - tzero
-      end if
-      if ( soiltemp_surf(j) /= 0 ) then
-        soiltemp_surf(j) = soiltemp_surf(j) - tzero
-      end if
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ! cycle on sea points
+        if ( ivegcov(j,i) == 0 ) cycle
+        ! getting the soil sand percentage, pH and fert rate values
+        sandper(j,i) = sandrow2(j,i)
+        ! calculating water-filled pore space from soil moisture
+        porewater(j,i) = cssw2da(j,i)
+        ! converting soil moisture from kg/m2 to (m3 water/m3 soil)
+        ! divide first by depth of soil layer = 10cm = 0.1m : cdepuv = 100mm
+        ! then divide by density of water = 1000kg/m3
+        porewater(j,i) = (porewater(j,i) / &
+                   (cdepuv(ivegcov(j,i)) * d_1000)) * d_r1000
+        ! calculating water-filled pore space (%)
+        ! coefficient of 0.45 derived from obs at Grignon(0.536),
+        ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
+        ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
+        porewater(j,i) = (porewater(j,i) / 0.45_rkx) * d_100
+        ! converting temperature from Kelvin to Celsius
+        soiltemp_deep(j,i) = ctg(j,i)
+        soiltemp_surf(j,i) = ctga(j,i)
+        if ( soiltemp_deep(j,i) /= 0 ) then
+          soiltemp_deep(j,i) = soiltemp_deep(j,i) - tzero
+        end if
+        if ( soiltemp_surf(j,i) /= 0 ) then
+          soiltemp_surf(j,i) = soiltemp_surf(j,i) - tzero
+        end if
+      end do
     end do
 #endif
 #ifdef CLM45
-    do j = jci1 , jci2
-      ! cycle on sea points
-      if ( ivegcov(j) == 0 ) cycle
-      ! getting the soil sand percentage, pH and fert rate values
-      sandper(j) = sandrow2(j,i)
-      ! calculating water-filled pore space from soil moisture
-      ! csw_vol voluletric soil moist (m3/m3)
-      ! here consider second soil level / to be perhaps tested
-      porewater(j) = csw_vol(j,i,2)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ! cycle on sea points
+        if ( ivegcov(j,i) == 0 ) cycle
+        ! getting the soil sand percentage, pH and fert rate values
+        sandper(j,i) = sandrow2(j,i)
+        ! calculating water-filled pore space from soil moisture
+        ! csw_vol voluletric soil moist (m3/m3)
+        ! here consider second soil level / to be perhaps tested
+        porewater(j,i) = csw_vol(j,i,2)
 
-      ! calculating water-filled pore space (%)
-      ! coefficient of 0.45 derived from obs at Grignon(0.536),
-      ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
-      ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
-      porewater(j) = (porewater(j) / 0.45_rkx) * d_100
+        ! calculating water-filled pore space (%)
+        ! coefficient of 0.45 derived from obs at Grignon(0.536),
+        ! Hombori(0.4) and Escompte(0.43) = avg. 0.45
+        ! in regcm/bats  this parameter would be cxmopor : consider replacing ?
+        porewater(j,i) = (porewater(j,i) / 0.45_rkx) * d_100
 
-      ! temperature profile
-      ! converting temperature from Kelvin to Celsius
-      soiltemp_deep(j) = ctsoi(j,i,3)
-      soiltemp_surf(j) = ctsoi(j,i,1)
+        ! temperature profile
+        ! converting temperature from Kelvin to Celsius
+        soiltemp_deep(j,i) = ctsoi(j,i,3)
+        soiltemp_surf(j,i) = ctsoi(j,i,1)
 
-      if ( soiltemp_deep(j) /= 0 ) then
-        soiltemp_deep(j) = soiltemp_deep(j) - tzero
-      end if
-      if ( soiltemp_surf(j) /= 0 ) then
-        soiltemp_surf(j) = soiltemp_surf(j) - tzero
-      end if
-
+        if ( soiltemp_deep(j,i) /= 0 ) then
+          soiltemp_deep(j,i) = soiltemp_deep(j,i) - tzero
+        end if
+        if ( soiltemp_surf(j,i) /= 0 ) then
+          soiltemp_surf(j,i) = soiltemp_surf(j,i) - tzero
+        end if
+      end do
     end do
-
 #endif
 
-    do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
 
-      ! calculating what percentage volatilised N gets incorporated
-      ! into NH3 and NOx
+        ! calculating what percentage volatilised N gets incorporated
+        ! into NH3 and NOx
 
-      fracnh3(j) = totn1d(j)*0.3_rkx
-      fracnox(j) = totn1d(j)*0.7_rkx
+        fracnh3 = totn(j,i)*0.3_rkx
+        fracnox = totn(j,i)*0.7_rkx
 
-      ! calculation of NOx flux from soil
-      ! normalised centered entries
+        ! calculation of NOx flux from soil
+        ! normalised centered entries
 
-      norm_ss(j) = xcoef1  + xcoef2*soiltemp_surf(j)
-      norm_sm(j) = xcoef3  + xcoef4*porewater(j)
-      norm_sd(j) = xcoef5  + xcoef6*soiltemp_deep(j)
-      norm_fe(j) = xcoef7  + xcoef8*fracnox(j)
-      norm_sa(j) = xcoef9  + xcoef10*sandper(j)
-      norm_ph(j) = xcoef11 + xcoef12*ph1d(j)
-      norm_wi(j) = xcoef13 + xcoef14*wid10(j)
+        norm_ss = xcoef1  + xcoef2*soiltemp_surf(j,i)
+        norm_sm = xcoef3  + xcoef4*porewater(j,i)
+        norm_sd = xcoef5  + xcoef6*soiltemp_deep(j,i)
+        norm_fe = xcoef7  + xcoef8*fracnox
+        norm_sa = xcoef9  + xcoef10*sandper(j,i)
+        norm_ph = xcoef11 + xcoef12*soilph(j,i)
+        norm_wi = xcoef13 + xcoef14*wid10(j,i)
 
-      ! weighted sums (coefficients from soil_nox_params)
-      nsum1(j) = xwgt0 + xwgt1*norm_ss(j) &
-            + xwgt2*norm_sm(j) + xwgt3*norm_sd(j) &
-            + xwgt4*norm_fe(j) + xwgt5*norm_sa(j) &
-            + xwgt6*norm_ph(j) + xwgt7*norm_wi(j)
+        ! weighted sums (coefficients from soil_nox_params)
+        nsum1 = xwgt0 + xwgt1*norm_ss &
+              + xwgt2*norm_sm + xwgt3*norm_sd &
+              + xwgt4*norm_fe + xwgt5*norm_sa &
+              + xwgt6*norm_ph + xwgt7*norm_wi
 
-      nsum2(j) = xwgt8 + xwgt9*norm_ss(j) &
-            + xwgt10*norm_sm(j) + xwgt11*norm_sd(j) &
-            + xwgt12*norm_fe(j) + xwgt13*norm_sa(j) &
-            + xwgt14*norm_ph(j) + xwgt15*norm_wi(j)
+        nsum2 = xwgt8 + xwgt9*norm_ss &
+              + xwgt10*norm_sm + xwgt11*norm_sd &
+              + xwgt12*norm_fe + xwgt13*norm_sa &
+              + xwgt14*norm_ph + xwgt15*norm_wi
 
-      nsum3(j) = xwgt16 + xwgt17*norm_ss(j) &
-            + xwgt18*norm_sm(j) + xwgt19*norm_sd(j)  &
-            + xwgt20*norm_fe(j) + xwgt21*norm_sa(j) &
-            + xwgt22*norm_ph(j) + xwgt23*norm_wi(j)
+        nsum3 = xwgt16 + xwgt17*norm_ss &
+              + xwgt18*norm_sm + xwgt19*norm_sd  &
+              + xwgt20*norm_fe + xwgt21*norm_sa &
+              + xwgt22*norm_ph + xwgt23*norm_wi
 
-      ! hyperbolic tangent calculation
-      norm_no(j) = xwgt24 + xwgt25*tanh(nsum1(j)) &
-            + xwgt26*tanh(nsum2(j)) + xwgt27*tanh(nsum3(j))
+        ! hyperbolic tangent calculation
+        norm_no = xwgt24 + xwgt25*tanh(nsum1) &
+              + xwgt26*tanh(nsum2) + xwgt27*tanh(nsum3)
 
-      !flux calculation
-      ! If sand > 50%, pulse effect, amplitude coefficient is maximum.
-      ! If sand < 50%, amplitude coefficient is reduced
-      !                to avoid strong emissions
-      ! Sand conditions are correlated to pH values.
-      if ( ph1d(j) >= 6._rkx ) then
+        !flux calculation
+        ! If sand > 50%, pulse effect, amplitude coefficient is maximum.
+        ! If sand < 50%, amplitude coefficient is reduced
+        !                to avoid strong emissions
+        ! Sand conditions are correlated to pH values.
+        if ( soilph(j,i) >= 6._rkx ) then
+          noxflux(j,i) = xcoef15 + xcoef16s*norm_no
+        else
+          noxflux(j,i) = xcoef15 + xcoef16l*norm_no
+        end if
 
-        noxflux(j) = xcoef15 + xcoef16s*norm_no(j)
-      else
-        noxflux(j) = xcoef15 + xcoef16l*norm_no(j)
+        ! avoiding negative fluxes
+        if ( noxflux(j,i) < d_zero ) then
+          noxflux(j,i)= d_zero
+        end if
 
-      end if
+        ! converting the NO flux from gN/ha/d to kg/m2/s
+        ! g to kg: /1000
+        ! ha to m2: /100 /100
+        ! d to s: /86400
+        noxflux(j,i) = noxflux(j,i) * &
+          (30.0_rkx/14.0_rkx)/ (1000.0_rkx*100.0_rkx*100.0_rkx*86400.0_rkx)
 
-      !avoiding negative fluxes
-      if ( noxflux(j) < d_zero ) then
-        noxflux(j)= d_zero
-      end if
-
-      ! converting the NO flux from gN/ha/d to kg/m2/s
-      ! g to kg: /1000
-      ! ha to m2: /100 /100
-      ! d to s: /86400
-      noxflux(j) = noxflux(j)* (30./14.)/ (1000._rkx*100._rkx*100._rkx*86400._rkx)
-
-      ! flux reduction because of canopy absorption
-      if ( lai_int(j) > 1.9_rkx .and. lai_int(j) <  5._rkx ) then
-        canred(j) = 0.5_rkx
-      else if ( lai_int(j) > 5._rkx ) then
-        canred(j) = 0.2_rkx
-      else
-        canred(j) = d_one
-      end if
-
-      noxflux(j) = noxflux(j)*canred(j)
+        ! flux reduction because of canopy absorption
+        if ( lai_int(j,i) > 1.9_rkx .and. lai_int(j,i) <  5._rkx ) then
+          canred = 0.5_rkx
+        else if ( lai_int(j,i) > 5._rkx ) then
+          canred = 0.2_rkx
+        else
+          canred = d_one
+        end if
+        noxflux(j,i) = noxflux(j,i)*canred
+      end do
     end do
 
     !if ( j == 25 ) write(stdout,*) maxval(noxflux)
     !
     ! update tendency for NO flux
-    do j  = jci1 , jci2
-      if ( ivegcov(j) == 0 ) cycle
-      if ( ichdrdepo == 1 ) then
-        chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
-               noxflux(j)*egrav/(dsigma(kz)*1.e3_rkx)
-      else if ( ichdrdepo == 2 ) then
-        ! pass the flux to BL scheme
-        chifxuw(j,i,ino) = chifxuw(j,i,ino) + noxflux(j)
-      end if
-      ! diagnostic source (accumulated)
-      cemtrac(j,i,ino) = cemtrac(j,i,ino) + noxflux(j)* cfdout
+    if ( ichdrdepo == 1 ) then
+      do i  = ici1 , ici2
+        do j  = jci1 , jci2
+          if ( ivegcov(j,i) == 0 ) cycle
+          chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
+                 noxflux(j,i)*egrav/(dsigma(kz)*1.e3_rkx)
+        end do
+      end do
+    else if ( ichdrdepo == 2 ) then
+      do i  = ici1 , ici2
+        do j  = jci1 , jci2
+          if ( ivegcov(j,i) == 0 ) cycle
+          ! pass the flux to BL scheme
+          chifxuw(j,i,ino) = chifxuw(j,i,ino) + noxflux(j,i)
+        end do
+      end do
+    end if
 
-      if ( ichdiag > 0 ) then
-        cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
-               noxflux(j)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
-      end if
+    do i  = ici1 , ici2
+      do j  = jci1 , jci2
+        ! diagnostic source (accumulated)
+        cemtrac(j,i,ino) = cemtrac(j,i,ino) + noxflux(j,i)* cfdout
+      end do
     end do
+
+    if ( ichdiag > 0 ) then
+      do i  = ici1 , ici2
+        do j  = jci1 , jci2
+          cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
+               noxflux(j,i)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+        end do
+      end do
+    end if
   end subroutine soilnitro_emissions
 
 end module mod_che_bionit

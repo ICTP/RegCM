@@ -304,11 +304,10 @@
       !
       ! aging of carboneaceous aerosols
       !
-      if ( (ibchb > 0 .and. ibchl > 0 ) .or. &
-           (iochb > 0 .and. iochl > 0) ) then
-        do i = ici1 , ici2
-          call aging_carb(i)
-        end do
+      if ( (ibchb > 0 .and. ibchl > 0) .or. &
+           (iochb > 0 .and. iochl > 0) .or. &
+           (ism1 > 0  .and. ism2 > 0) ) then
+        call aging_carb
       end if
       !
       ! Before emission and deposition routine set the surfecae netflux
@@ -353,9 +352,7 @@
       !
       ! biogenic nox emission
       if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
-        do i = ici1 , ici2
-          call soilnitro_emissions(i,ivegcov(:,i),wid10(:,i))
-        end do
+        call soilnitro_emissions(ivegcov,wid10)
       end if
       !
       ! linox emissions
@@ -573,9 +570,7 @@
       ! calculate ccn number for use in precip autoconversion
       ! calculation ( 2nd indirect effect)
       if ( iindirect > 0 .and. iaerosol == 1 ) then
-        do i = ici1 , ici2
-          call ccn(i)
-        end do
+        call ccn
       end if
 
       contains

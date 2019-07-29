@@ -180,11 +180,11 @@ module mod_che_carbonaer
       end if
     end subroutine carb_prepare
 
-    subroutine aging_carb(i)
+    subroutine aging_carb
       implicit none
-      integer, intent(in) :: i
-      integer(ik4) :: j , k
-      real(rkx) :: agingtend1 , agingtend2 , ksp , icon , arg
+      integer(ik4) :: i , j , k
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) :: agingtend
+      real(rkx) :: ksp , icon , arg
       !
       ! aging o carbon species : Conversion from hydrophobic to
       ! hydrophilic: Carbonaceopus species time constant
@@ -193,100 +193,135 @@ module mod_che_carbonaer
       if ( ibchb > 0 .and. ibchl > 0 ) then
         if ( carb_aging_control ) then
           do k = 1 , kz
-            do j = jci1 , jci2
-              !in nm/hr from m/sec
-              if ( surf(j,i,k) > d_zero ) then
-                arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
-                icon = arg*3.6e+12_rkx !?????????????
-              else
-                icon = d_zero
-              end if
-              arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
-              chagct = 3600.0_rkx * d_one/arg
-              ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
-              arg = max(min(dt/chagct,25.0_rkx),d_zero)
-              agingtend1 = -ksp*(d_one-exp(-arg))/dt
-              agingtend2 = -agingtend1
-              chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
-              chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
-              if ( ichdiag > 0 ) then
-                chemdiag(j,i,k,ibchb) = chemdiag(j,i,k,ibchb)+agingtend1*cfdout
-                chemdiag(j,i,k,ibchl) = chemdiag(j,i,k,ibchl)+agingtend2*cfdout
-              end if
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                !in nm/hr from m/sec
+                if ( surf(j,i,k) > d_zero ) then
+                  arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
+                  icon = arg*3.6e+12_rkx !?????????????
+                else
+                  icon = d_zero
+                end if
+                arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
+                chagct = 3600.0_rkx * d_one/arg
+                ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
+                arg = max(min(dt/chagct,25.0_rkx),d_zero)
+                agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
+                chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend(j,i)
+                chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) - agingtend(j,i)
+              end do
             end do
+            if ( ichdiag > 0 ) then
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  chemdiag(j,i,k,ibchb) = chemdiag(j,i,k,ibchb) + &
+                               agingtend(j,i)*cfdout
+                  chemdiag(j,i,k,ibchl) = chemdiag(j,i,k,ibchl) - &
+                               agingtend(j,i)*cfdout
+                end do
+              end do
+            end if
           end do
         else
           do k = 1 , kz
-            do j = jci1 , jci2
-              ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
-              arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
-              agingtend1 = -ksp*(d_one-exp(-arg))/dt
-              agingtend2 = -agingtend1
-              chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend1
-              chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) + agingtend2
-              if ( ichdiag > 0 ) then
-                chemdiag(j,i,k,ibchb) = chemdiag(j,i,k,ibchb)+agingtend1*cfdout
-                chemdiag(j,i,k,ibchl) = chemdiag(j,i,k,ibchl)+agingtend2*cfdout
-              end if
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
+                arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
+                agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
+                chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend(j,i)
+                chiten(j,i,k,ibchl) = chiten(j,i,k,ibchl) - agingtend(j,i)
+              end do
             end do
+            if ( ichdiag > 0 ) then
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  chemdiag(j,i,k,ibchb) = chemdiag(j,i,k,ibchb) + &
+                            agingtend(j,i)*cfdout
+                  chemdiag(j,i,k,ibchl) = chemdiag(j,i,k,ibchl) - &
+                            agingtend(j,i)*cfdout
+                end do
+              end do
+            end if
           end do
         end if
       end if
       if ( iochb > 0  .and. iochl > 0 ) then
         if ( carb_aging_control ) then
           do k = 1 , kz
-            do j = jci1 , jci2
-              ! in nm/hr from m/sec
-              if ( surf(j,i,k) > d_zero ) then
-                arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
-                icon = arg*3.6e+12_rkx !????????????
-              else
-                icon = d_zero
-              end if
-              arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
-              chagct = 3600.0_rkx * d_one/arg
-              ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
-              arg = max(min(dt/chagct,25.0_rkx),d_zero)
-              agingtend1 = -ksp*(d_one-exp(-arg))/dt
-              agingtend2 = -agingtend1
-              chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
-              chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
-              if ( ichdiag > 0 ) then
-                chemdiag(j,i,k,iochb) = chemdiag(j,i,k,iochb)+agingtend1*cfdout
-                chemdiag(j,i,k,iochl) = chemdiag(j,i,k,iochl)+agingtend2*cfdout
-              end if
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! in nm/hr from m/sec
+                if ( surf(j,i,k) > d_zero ) then
+                  arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
+                  icon = arg*3.6e+12_rkx !????????????
+                else
+                  icon = d_zero
+                end if
+                arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
+                chagct = 3600.0_rkx * d_one/arg
+                ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
+                arg = max(min(dt/chagct,25.0_rkx),d_zero)
+                agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
+                chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend(j,i)
+                chiten(j,i,k,iochl) = chiten(j,i,k,iochl) - agingtend(j,i)
+              end do
             end do
+            if ( ichdiag > 0 ) then
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  chemdiag(j,i,k,iochb) = chemdiag(j,i,k,iochb) + &
+                                     agingtend(j,i)*cfdout
+                  chemdiag(j,i,k,iochl) = chemdiag(j,i,k,iochl) - &
+                                     agingtend(j,i)*cfdout
+                end do
+              end do
+            end if
           end do
         else
           do k = 1 , kz
-            do j = jci1 , jci2
-              ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
-              arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
-              agingtend1 = -ksp*(d_one-exp(-arg))/dt
-              agingtend2 = -agingtend1
-              chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend1
-              chiten(j,i,k,iochl) = chiten(j,i,k,iochl) + agingtend2
-              if ( ichdiag > 0 ) then
-                chemdiag(j,i,k,iochb) = chemdiag(j,i,k,iochb)+agingtend1*cfdout
-                chemdiag(j,i,k,iochl) = chemdiag(j,i,k,iochl)+agingtend2*cfdout
-              end if
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
+                arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
+                agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
+                chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend(j,i)
+                chiten(j,i,k,iochl) = chiten(j,i,k,iochl) - agingtend(j,i)
+              end do
             end do
+            if ( ichdiag > 0 ) then
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  chemdiag(j,i,k,iochb) = chemdiag(j,i,k,iochb) + &
+                               agingtend(j,i)*cfdout
+                  chemdiag(j,i,k,iochl) = chemdiag(j,i,k,iochl) - &
+                               agingtend(j,i)*cfdout
+                end do
+              end do
+            end if
           end do
         end if
       end if
       if ( ism1 > 0  .and. ism2 > 0 ) then
         do k = 1 , kz
-          do j = jci1 , jci2
-            ksp = max(chib(j,i,k,ism1)-mintr,d_zero)
-            agingtend1 = -ksp*(d_one-exp(-dt/chsmct))/dt
-            agingtend2 = -agingtend1
-            chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend1
-            chiten(j,i,k,ism2) = chiten(j,i,k,ism2) + agingtend2
-            if ( ichdiag > 0 ) then
-              chemdiag(j,i,k,ism1) = chemdiag(j,i,k,ism1) + agingtend1*cfdout
-              chemdiag(j,i,k,ism2) = chemdiag(j,i,k,ism2) + agingtend2*cfdout
-            end if
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ksp = max(chib(j,i,k,ism1)-mintr,d_zero)
+              agingtend(j,i) = -ksp*(d_one-exp(-dt/chsmct))/dt
+              chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend(j,i)
+              chiten(j,i,k,ism2) = chiten(j,i,k,ism2) - agingtend(j,i)
+            end do
           end do
+          if ( ichdiag > 0 ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                chemdiag(j,i,k,ism1) = chemdiag(j,i,k,ism1) + &
+                              agingtend(j,i)*cfdout
+                chemdiag(j,i,k,ism2) = chemdiag(j,i,k,ism2) - &
+                              agingtend(j,i)*cfdout
+              end do
+            end do
+          end if
         end do
       end if
 
