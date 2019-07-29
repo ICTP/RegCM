@@ -78,9 +78,10 @@
       real(rkx) , dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa ! , ddepg
       real(rkx) , dimension(jci1:jci2,ici1:ici2) :: psurf , rh10 , soilw , &
           srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
+      real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ncpc
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
-      real(rkx) , dimension(jci1:jci2,luc,ici1:ici2) :: ustar
-      real(rkx) , dimension(jci1:jci2,luc) :: xra
+      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: ustar
+      real(rkx) , dimension(luc,jci1:jci2) :: xra
       real(rkx) , dimension(jci1:jci2,nbin,ici1:ici2) :: dust_flx
       real(rkx) , dimension(jci1:jci2,sbin,ici1:ici2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
@@ -124,7 +125,8 @@
             ttb(j,k,i)  = ctb3d(j,i,k)
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !
-            prec(j,k,i) = crembc(j,i,k) / 3600._rkx !passed in mm/s
+            ncpc(j,i,k) =  crembc(j,i,k) / 3600._rkx !passed in mm/s
+            prec(j,k,i) = ncpc(j,i,k)
             !and the quivalent for convective prec
             convprec(j,k,i) = cconvpr(j,i,k) ! already in mm/s
           end do
@@ -321,9 +323,9 @@
         if ( ichdustemd /= 3 ) then
           do i = ici1 , ici2
             call aerodyresis(zeff(:,i),wid10(:,i),temp10(:,i),tsurf(:,i), &
-                     rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(:,1))
+                     rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(1,:))
             call sfflux(i,ivegcov(:,i),vegfrac(:,i),snowfrac(:,i), &
-                        ustar(:,1,i),zeff(:,i),soilw(:,i),wid10(:,i), &
+                        ustar(1,:,i),zeff(:,i),soilw(:,i),wid10(:,i), &
                         rho(:,kz,i),dustbsiz,dust_flx(:,:,i))
           end do
         else
@@ -343,11 +345,10 @@
       !
       if ( ipollen > 0 ) then
         do i = ici1 , ici2
-         call aerodyresis(zeff(:,i),wid10(:,i),temp10(:,i),tsurf(:,i), &
-           rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(:,1))
-         call pollen_emission(i,ustar(:,1,i),wid10(:,i),rh10(:,i), &
-           prec(:,kz,i), convprec(:,kz,i))
+          call aerodyresis(zeff(:,i),wid10(:,i),temp10(:,i),tsurf(:,i), &
+            rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(1,:))
         end do
+        call pollen_emission(ustar,wid10,rh10,ncpc(:,:,kz),convprec(:,:,kz))
       end if
       !
       ! biogenic nox emission

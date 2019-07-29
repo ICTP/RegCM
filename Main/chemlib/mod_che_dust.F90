@@ -38,7 +38,9 @@ module mod_che_dust
 
   real(rkx) , dimension(4,2) :: dustbsiz1
   real(rkx) , dimension(12,2) :: dustbsiz2
+#ifdef CLM45
   real(rkx) , pointer , dimension(:,:) :: sumdflux
+#endif
 
   ! Fix the actual dust aerosol bin size: diameter in microm
 
@@ -722,7 +724,7 @@ module mod_che_dust
       end do
       ! Mineralogy flux option
       ! introduce mineralogy here, implicit loop on mineral types
-      if ( imine(1,1) > 0 ) then
+      if ( nmine > 0 ) then
         do n = 1 , nbin
           do j = jci1 , jci2
             chiten(j,iloop,kz,imine(n,:)) = &

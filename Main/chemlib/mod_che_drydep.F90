@@ -383,8 +383,8 @@ module mod_che_drydep
       real(rkx) , dimension(jci1:jci2,kz) :: amu
       real(rkx) , dimension(jci1:jci2) :: anu , schm
       real(rkx) , dimension(jci1:jci2,kz,mbin) :: cfac , pdepvsub , taurel
-      real(rkx) , dimension(jci1:jci2,luc) :: ra , ustar
-      real(rkx) , dimension(jci1:jci2,luc,mbin) :: rs
+      real(rkx) , dimension(luc,jci1:jci2) :: ra , ustar
+      real(rkx) , dimension(luc,jci1:jci2,mbin) :: rs
       real(rkx), dimension(jci1:jci2,2:kz) :: wk, settend
       real(rkx) , dimension(mbin) :: avesize
       integer(ik4) :: j , k , lcov , l , n , ib
@@ -482,8 +482,8 @@ module mod_che_drydep
           ! * ****************************************************
           !
         end do
-        do l = 1 , luc ! luc  = 1 for the moment
-          do j = jci1 , jci2
+        do j = jci1 , jci2
+          do l = 1 , luc ! luc  = 1 for the moment
             !
             ! find the right table index for the cell cover ( ocean
             ! and lake are 0 in the ivegcov and 14-15 in the table )
@@ -509,10 +509,10 @@ module mod_che_drydep
             ! Graziano - 2018-02-09 - updated Stokes number computation
             ! Before, only the formulation for smooth surfaces was used
             if ( ast(lcov) > d_zero ) then
-              st = taurel(j,kz,n)*ustar(j,l)*regrav/ast(lcov)
+              st = taurel(j,kz,n)*ustar(l,j)*regrav/ast(lcov)
               eb = schm(j)**(-agam(lcov))
             else
-              st = taurel(j,kz,n)*ustar(j,l)*ustar(j,l)/anu(j)
+              st = taurel(j,kz,n)*ustar(l,j)*ustar(l,j)/anu(j)
               !eb = schm(j)**(-twot)
               eb = schm(j)**(-d_half)
             end if
@@ -543,9 +543,9 @@ module mod_che_drydep
             ! * of the surface and is determined by the     *****
             ! * various deposition processes                *****
             ! ***************************************************
-            rs(j,l,n) = 3.0_rkx*ustar(j,l)*(eb+eim+ein)*r1
-            rs(j,l,n) = max(1.0e-5_rkx,min(1.e5_rkx,rs(j,l,n)))
-            rs(j,l,n) = d_one/rs(j,l,n)
+            rs(l,j,n) = 3.0_rkx*ustar(l,j)*(eb+eim+ein)*r1
+            rs(l,j,n) = max(1.0e-5_rkx,min(1.e5_rkx,rs(l,j,n)))
+            rs(l,j,n) = d_one/rs(l,j,n)
           end do
         end do
       end do
@@ -562,14 +562,14 @@ module mod_che_drydep
             pdepv(j,k,indsp(ib)) = pdepvsub(j,k,ib)
           end do
         end do
-        do l = 1 , luc ! luc  = 1 for the moment
-          do j = jci1 , jci2
+        do j = jci1 , jci2
+          do l = 1 , luc ! luc  = 1 for the moment
             ! agregate the dry deposition velocity, remember one cover per grid
             ! cell for now
             ! the dry deposition velocity must account also for the
             ! settling velocity at kz
             ! simple form now add the vs
-            ddepv(j,indsp(ib)) = 1.0_rkx/(ra(j,l)+rs(j,l,ib)) + &
+            ddepv(j,indsp(ib)) = 1.0_rkx/(ra(l,j)+rs(l,j,ib)) + &
                        pdepvsub(j,kz,ib)
           end do
         end do
@@ -697,10 +697,10 @@ module mod_che_drydep
                                             prec, temp10 , wind10 , zeff
       real(rkx),  dimension(jci1:jci2,ntr) :: drydepvg
 
-      integer(ik4) :: n , j , im , lcov
-      real(rkx) , dimension(jci1:jci2,luc) :: ustar , resa
-      real(rkx) , dimension(ngasd,jci1:jci2,luc) :: resb, resc
-      real(rkx) , dimension(ngasd,jci1:jci2,luc) :: vdg
+      integer(ik4) :: n , j , im , l , lcov
+      real(rkx) , dimension(luc,jci1:jci2) :: ustar , resa
+      real(rkx) , dimension(ngasd,luc,jci1:jci2) :: resb, resc
+      real(rkx) , dimension(ngasd,luc,jci1:jci2) :: vdg
       real(rkx) , dimension(jci1:jci2) :: icz , ddrem
       real(rkx) , dimension(jci1:jci2) :: lai_f , laimin , laimax , snow
       real(rkx) :: kd , kav , rdz
@@ -743,26 +743,28 @@ module mod_che_drydep
       ! vdg in m.s-1
       vdg(:,:,:) = d_zero
       do j = jci1 , jci2
-        do n = 1 , ngasd
-          vdg(n,j,:) = d_one/(resa(j,:)+resb(n,j,:)+resc(n,j,:))
+        do l = 1 , luc
+          do n = 1 , ngasd
+            vdg(n,l,j) = d_one/(resa(l,j)+resb(n,l,j)+resc(n,l,j))
+          end do
         end do
       end do
       ! this part depends on the chem mechanism
       ! for CBMZ , we can certainly improve this.
 
       drydepvg = d_zero
-      drydepvg(:,iso2)  =  vdg(1,:,1)
+      drydepvg(:,iso2)  =  vdg(1,1,:)
       ! SO2 deposition is used in SULF , AERO and CBMZ simulations
       if ( igaschem > 0 ) then
-        drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
-        drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
-        drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
-        drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
-!       drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
-        drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5
-        drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
-        drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
-        drydepvg(:,ich3oh)  =  vdg(23,:,1)!*0.5
+        drydepvg(:,ino2)  =  vdg(3,1,:)!*0.5
+        drydepvg(:,io3)   =  vdg(4,1,:)!*0.5
+        drydepvg(:,ih2o2) =  vdg(5,1,:)!*0.5
+        drydepvg(:,ihno3) =  vdg(6,1,:)!*0.5
+!       drydepvg(:,inh3)  =  vdg(9,1,:)!*0.5
+        drydepvg(:,ipan)  =  vdg(10,1,:)!*0.5
+        drydepvg(:,ihcho) =  vdg(14,1,:)!*0.5
+        drydepvg(:,iald2) =  vdg(15,1,:)!*0.5
+        drydepvg(:,ich3oh)  =  vdg(23,1,:)!*0.5
       end if
 
       ! Finally : gas phase dry dep tendency calculation
@@ -816,7 +818,7 @@ module mod_che_drydep
       integer(ik4) , dimension(jci1:jci2) , intent(in) :: ivegcov
       real(rkx) , dimension(jci1:jci2) , intent(in) :: temp2 , wind10 , rh10
       real(rkx) , dimension(jci1:jci2) , intent(in) :: sutemp , srad , zeff
-      real(rkx) , dimension(jci1:jci2,luc) , intent(out) :: ustar , ra
+      real(rkx) , dimension(luc,jci1:jci2) , intent(out) :: ustar , ra
       integer(ik4) :: j , l
       real(rkx) :: vp , tsv
       real(rkx) :: z , zl , ww
@@ -852,8 +854,8 @@ module mod_che_drydep
       ! *           (0.0-1.0)                           ****
       ! * stdpmb - sea level pressure (mb)              ****
       ! ****************************************************
-      do l = 1 , luc
-        do j = jci1 , jci2
+      do j = jci1 , jci2
+        do l = 1 , luc
           ww = max(wind10(j),1.0_rkx)
           zz0(j) = zeff(j)
           ! ***************************************************************
@@ -921,7 +923,7 @@ module mod_che_drydep
               psit = psiu
             end if
             z0water = 0.000002_rkx*ww**2.5_rkx
-            ustar(j,l) = vonkar*ww/(log(z10/z0water)-psiu)
+            ustar(l,j) = vonkar*ww/(log(z10/z0water)-psiu)
             thstar = vonkar*(ptemp2-sutemp(j)) / &
                      (0.74_rkx*log(z10/z0water)-psit)
             zz0(j) = z0water
@@ -955,12 +957,12 @@ module mod_che_drydep
             end if
             ustarsq = asq*ww**2*fm
             utstar = asq*ww*dtemp*fh/0.74_rkx
-            ustar(j,l) = sqrt(ustarsq)
-            thstar = utstar/ustar(j,l)
+            ustar(l,j) = sqrt(ustarsq)
+            thstar = utstar/ustar(l,j)
             mol = tbar*ustarsq/(vonkar*egrav*thstar)
           end if
 
-          kui = 1.0_rkx/(vonkar*ustar(j,l))
+          kui = 1.0_rkx/(vonkar*ustar(l,j))
 
           ! **************************************************************
           ! * compute the values of  ra                            *******
@@ -968,13 +970,13 @@ module mod_che_drydep
           z = z10
           zl = z/mol
           if ( zl >= 0.0_rkx ) then
-            ra(j,l) = kui*(0.74_rkx*log(z/zz0(j))+4.7_rkx*zl)
+            ra(l,j) = kui*(0.74_rkx*log(z/zz0(j))+4.7_rkx*zl)
           else
-            ra(j,l) = kui*0.74_rkx*(log(z/zz0(j))- &
+            ra(l,j) = kui*0.74_rkx*(log(z/zz0(j))- &
                       2.0_rkx*log((1.0_rkx+sqrt(1.0_rkx-9.0_rkx*zl))*0.5_rkx))
           end if
-          ra(j,l) = max(ra(j,l),0.99_rkx)
-          ra(j,l) = min(ra(j,l),999.9_rkx)
+          ra(l,j) = max(ra(l,j),0.99_rkx)
+          ra(l,j) = min(ra(l,j),999.9_rkx)
         end do
       end do
 #ifdef DEBUG
@@ -990,8 +992,8 @@ module mod_che_drydep
       real(rkx) , dimension(jci1:jci2) , intent(in) :: coszen, srad , &
                          ts , rh , prec , sd , t2
       real(rkx) , dimension(jci1:jci2) , intent(in) :: lai_f , laimin , laimax
-      real(rkx) , intent(in) , dimension(jci1:jci2,luc) :: ustar
-      real(rkx) , intent(out) , dimension(igas,jci1:jci2,luc) :: rb , rc
+      real(rkx) , intent(in) , dimension(luc,jci1:jci2) :: ustar
+      real(rkx) , intent(out) , dimension(igas,luc,jci1:jci2) :: rb , rc
 
       integer(ik4) :: j , l , lcov , ig
       real(rkx) :: rst , wst , rac , rgs_f
@@ -1021,8 +1023,8 @@ module mod_che_drydep
       call time_begin(subroutine_name,idindx)
 #endif
 
-      do l = 1 , luc
-        do j = jci1 , jci2
+      do j = jci1 , jci2
+        do l = 1 , luc
           is_rain = .false.
           is_dew  = .false.
           if ( ivegcov(j) == 0 ) then
@@ -1161,7 +1163,7 @@ module mod_che_drydep
           if ( ts(j) > tzero .and. prec(j) > rainthr ) then
             is_rain = .true.
 !           print *, 'rain==='
-          else if (ts(j) > tzero .and. ustar(j,l) < usmin) then
+          else if (ts(j) > tzero .and. ustar(l,j) < usmin) then
             is_dew = .true.
 !           print *, 'dew==='
 !           print *, 'NO dew, NO rain ==='
@@ -1180,7 +1182,7 @@ module mod_che_drydep
           rac = rac1(lcov)+(lai_f(j)-laimin(j))/ &
                 (laimax(j)-laimin(j)+1.e-10_rkx)*(rac2(lcov)-rac1(lcov))
 !         print *, 'rac1 = ', rac
-          rac = rac*lai_f(j)**0.25_rkx/ustar(j,l)/ustar(j,l)
+          rac = rac*lai_f(j)**0.25_rkx/ustar(l,j)/ustar(l,j)
 !         print *, 'rac2 = ', rac
           !================================================================
           ! Ground resistance for O3
@@ -1221,21 +1223,21 @@ module mod_che_drydep
             rcuts_f = 1.e25_rkx
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_rain ) then
-            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(j,l)
-            rcuts_f = 50.0_rkx/sqrt(lai_f(j))/ustar(j,l)
+            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(l,j)
+            rcuts_f = 50.0_rkx/sqrt(lai_f(j))/ustar(l,j)
             rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_dew ) then
-            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(j,l)
-            rcuts_f = 100.0_rkx/sqrt(lai_f(j))/ustar(j,l)
+            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(l,j)
+            rcuts_f = 100.0_rkx/sqrt(lai_f(j))/ustar(l,j)
             rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if (ts(j) < 272.156_rkx ) then
             ryx = exp(0.2_rkx * (272.156_rkx - ts(j) ))
             rcuto_f = rcutdo(lcov)/exp(3.0_rkx * rh(j))/     &
-                      lai_f(j)**0.25_rkx/ustar(j,l)
+                      lai_f(j)**0.25_rkx/ustar(l,j)
             rcuts_f = rcutds(lcov)/exp(3.0_rkx * rh(j))/     &
-                      lai_f(j)**0.25_rkx/ustar(j,l)
+                      lai_f(j)**0.25_rkx/ustar(l,j)
             rcuto_f = min(rcuto_f * 2.0_rkx, rcuto_f * ryx )
             rcuts_f = min(rcuts_f * 2.0_rkx, rcuts_f * ryx )
             rcuto_f = max(rcuto_f,100._rkx)
@@ -1243,9 +1245,9 @@ module mod_che_drydep
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else
             rcuto_f = rcutdo(lcov)/exp(3.0_rkx*rh(j)) / &
-                      lai_f(j)**0.25_rkx/ustar(j,l)
+                      lai_f(j)**0.25_rkx/ustar(l,j)
             rcuts_f = rcutds(lcov)/exp(3.0_rkx*rh(j)) / &
-                      lai_f(j)**0.25_rkx/ustar(j,l)
+                      lai_f(j)**0.25_rkx/ustar(l,j)
             rcuto_f = max(rcuto_f, 100._rkx)
             rcuts_f = max(rcuts_f, 100._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
@@ -1285,8 +1287,8 @@ module mod_che_drydep
             !================================================================
             ! Calculate quasi-laminar resistance
             !================================================================
-            rb(ig,j,l) = 5.0_rkx/ustar(j,l) * (vi/di)**.666667_rkx
-!           print *, 'rb==', rb(ig,j,l)
+            rb(ig,l,j) = 5.0_rkx/ustar(l,j) * (vi/di)**.666667_rkx
+!           print *, 'rb==', rb(ig,l,j)
             !================================================================
             ! Calculate stomatal resistance for each species from the ratio
             ! of  diffusity of water vapor to the gas species
@@ -1308,12 +1310,12 @@ module mod_che_drydep
             ! for bare surfaces)
             ! set wst to 1 also in that case (total stomatal blocking).
             if ( rst == -999.0 ) wst = 1.0_rkx
-!           rc(ig,j,l) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rg)+1.0_rkx/rcut
-            rc(ig,j,l) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rac+rg)+1.0_rkx/rcut
-            rc(ig,j,l) = max(10._rkx,1.0_rkx/rc(ig,j,l))
+!           rc(ig,l,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rg)+1.0_rkx/rcut
+            rc(ig,l,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rac+rg)+1.0_rkx/rcut
+            rc(ig,l,j) = max(10._rkx,1.0_rkx/rc(ig,l,j))
           end do !igas
-        end do !ilg
-      end do !luc
+        end do !luc
+      end do !ilg
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif
