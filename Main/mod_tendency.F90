@@ -385,8 +385,8 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( atmc%qx(j,i,k,n) < d_zero ) then
-              atmc%qx(j,i,k,n) = 0.1_rkx * &
-                    minval(abs(atmc%qx(j-1:j+1,i-1:i+1,k,n)))
+              atmc%qx(j,i,k,n) = 0.01_rkx * &
+                  sum(abs(atmc%qx(j-1:j+1,i-1:i+1,k,n)))/9.0_rkx
             end if
           end do
         end do
@@ -575,7 +575,7 @@ module mod_tendency
             do j = jci1 , jci2
               if ( atmc%chi(j,i,k,n) < d_zero ) then
                 atmc%chi(j,i,k,n) = 0.1_rkx * &
-                        minval(abs(atmc%chi(j-1:j+1,i-1:i+1,k,n)))
+                        sum(abs(atmc%chi(j-1:j+1,i-1:i+1,k,n)))/9.0_rkx
               end if
             end do
           end do
