@@ -126,8 +126,11 @@ module mod_che_common
     call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')
     call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
-    call getmem4d(chemten,jci1,jci2, &
-                  ici1,ici2,1,kz,1,ntr,'che_common:chemten')
+    if ( igaschem == 1 .and. ichsolver > 0 ) then
+      call getmem4d(chemten,jci1,jci2, &
+                    ici1,ici2,1,kz,1,ntr,'che_common:chemten')
+    end if
+
     call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
                   1,ntr,'mod_che_common:chemsrc')
     call getmem3d(chemsrcbb,jce1,jce2,ice1,ice2, &

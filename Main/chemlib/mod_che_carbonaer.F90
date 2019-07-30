@@ -195,14 +195,14 @@ module mod_che_carbonaer
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                !in nm/hr from m/sec
+                ! in nm/hr from m/sec
                 if ( surf(j,i,k) > d_zero ) then
                   arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
-                  icon = arg*3.6e+12_rkx !?????????????
+                  icon = arg*3.6e+12_rkx !????????????
                 else
                   icon = d_zero
                 end if
-                arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
+                arg = min(max(1.0e-3_rkx, kcond*icon + kcoag*ncon(j,i,k)),d_one)
                 chagct = 3600.0_rkx * d_one/arg
                 ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
                 arg = max(min(dt/chagct,25.0_rkx),d_zero)
@@ -258,7 +258,7 @@ module mod_che_carbonaer
                 else
                   icon = d_zero
                 end if
-                arg = min(max(1.0e-3, kcond*icon + kcoag*ncon(j,i,k)),d_one)
+                arg = min(max(1.0e-3_rkx, kcond*icon + kcoag*ncon(j,i,k)),d_one)
                 chagct = 3600.0_rkx * d_one/arg
                 ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
                 arg = max(min(dt/chagct,25.0_rkx),d_zero)
