@@ -354,9 +354,7 @@
       !
       ! linox emissions
       if ( ichlinox == 1 .and. ino > 0 ) then
-        do i = ici1 , ici2
-          call linox_em(i,ivegcov(:,i))
-        end do
+        call linox_em(ivegcov)
       end if
 
       ! update emission tendencies from external inventories

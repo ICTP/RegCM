@@ -55,7 +55,6 @@ module mod_che_interface
   public :: allocate_mod_che_dust
   public :: allocate_mod_che_bdyco
   public :: allocate_mod_che_bionit
-  public :: allocate_mod_che_linox
 
   public :: idust
   public :: totsp

@@ -152,8 +152,7 @@ contains
          soilfert      ,&    ! soil fertilisation rate (kg/m2/hr)
          lai_int       ,&    ! manure/fertiliser app. rate + pH
          noxflux       ,&    ! calculated soil NOx flux
-         totn          ,&    ! total N app. rate
-         ph
+         totn                ! total N app. rate
 
     ! convert from kg/ha/year to kg/ha/hr needed by the neural network
 

@@ -1532,7 +1532,6 @@ module mod_params
     call allocate_mod_che_dust
     call allocate_mod_che_bdyco
     call allocate_mod_che_bionit
-    call allocate_mod_che_linox
 
     if ( isladvec == 1 ) then
       call allocate_mod_sldepparam

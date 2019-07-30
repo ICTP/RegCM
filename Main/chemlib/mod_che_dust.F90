@@ -621,10 +621,10 @@ module mod_che_dust
     !   * Zakey et al., 2006                                ******
     !   **********************************************************
     !
-    subroutine sfflux(iloop,ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
+    subroutine sfflux(i,ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
                       surfwd,roarow,trsize,rsfrow)
       implicit none
-      integer(ik4) , intent(in) :: iloop
+      integer(ik4) , intent(in) :: i
       integer(ik4) , intent(in) , dimension(jci1:jci2) ::  ivegcov
       real(rkx) , intent(in) , dimension(jci1:jci2) :: roarow , soilw , &
                 surfwd , vegfrac , snowfrac , z0 , ustarnd
@@ -663,22 +663,22 @@ module mod_che_dust
           xz0(ieff) = z0(j)
           xroarow(ieff) = roarow(j)
           xustarnd(ieff) = ustarnd(j)
-          xclayrow(ieff) = clayrow2(j,iloop)
+          xclayrow(ieff) = clayrow2(j,i)
           do n = 1 , nats
-            xftex(ieff,n) = dustsotex(j,iloop,n)
+            xftex(ieff,n) = dustsotex(j,i,n)
             if ( ichdustemd >= 2 ) then
-              if ( clay2row2(j,n,iloop) <= 20 ) then
+              if ( clay2row2(j,n,i) <= 20 ) then
                 xalphaprop(ieff,n) = d_10**(0.134_rkx * &
-                              clay2row2(j,n,iloop)-6.0_rkx)
-!                              clay2row2(j,n,iloop)-6.0_rkx)*0.035_rkx
+                              clay2row2(j,n,i)-6.0_rkx)
+!                              clay2row2(j,n,i)-6.0_rkx)*0.035_rkx
               else
                 xalphaprop(ieff,n) = d_10**(-0.1_rkx * &
-                              clay2row2(j,n,iloop)-6.0_rkx)
-!                              clay2row2(j,n,iloop)-1.2_rkx)*0.035_rkx
+                              clay2row2(j,n,i)-6.0_rkx)
+!                              clay2row2(j,n,i)-1.2_rkx)*0.035_rkx
               end if
             end if
             do  ns = 1 , nsoil
-              xsrel2d(ieff,ns,n) = srel2d(j,iloop,ns,n)
+              xsrel2d(ieff,ns,n) = srel2d(j,i,ns,n)
             end do
           end do
         end if
@@ -703,20 +703,20 @@ module mod_che_dust
               ! dp = dsigma * ps in Pa = dsigma * psb * 1000
               ! Simplify psb
               ! Result is g/(dsigma * 1000)
-              chiten(j,iloop,kz,idust(n)) = chiten(j,iloop,kz,idust(n)) + &
+              chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
                    rsfrow(j,n)*egrav/(dsigma(kz)*1.e3_rkx)
             else if ( ichdrdepo == 2 ) then
               ! pass the flux to BL scheme
-              chifxuw(j,iloop,idust(n)) = chifxuw(j,iloop,idust(n)) + &
+              chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
                    rsfrow(j,n)
             end if
             ! diagnostic source (accumulated)
-            cemtrac(j,iloop,idust(n)) = cemtrac(j,iloop,idust(n)) + &
+            cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
                      rsfrow(j,n)* cfdout
              if ( ichdiag > 0 ) then
-               cemisdiag(j,iloop,kz,idust(n)) = &
-                    cemisdiag(j,iloop,kz,idust(n)) + rsfrow(j,n) / &
-                    (cdzq(j,iloop,kz)*crhob3d(j,iloop,kz)) * cfdout
+               cemisdiag(j,i,kz,idust(n)) = &
+                    cemisdiag(j,i,kz,idust(n)) + rsfrow(j,n) / &
+                    (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
              end if
           end do
           ieff = ieff + 1
@@ -727,14 +727,14 @@ module mod_che_dust
       if ( nmine > 0 ) then
         do n = 1 , nbin
           do j = jci1 , jci2
-            chiten(j,iloop,kz,imine(n,:)) = &
-                   chiten(j,iloop,kz,imine(n,:)) + &
-                   rsfrow(j,n)* ( cminer(j,iloop,:)*cfrac(n) + &
-                                  sminer(j,iloop,:)*sfrac(n) ) &
+            chiten(j,i,kz,imine(n,:)) = &
+                   chiten(j,i,kz,imine(n,:)) + &
+                   rsfrow(j,n)* ( cminer(j,i,:)*cfrac(n) + &
+                                  sminer(j,i,:)*sfrac(n) ) &
                    *egrav / (dsigma(kz)*1.e3_rkx)
-            cemtrac(j,iloop,imine(n,:)) = cemtrac(j,iloop,imine(n,:)) + &
-                     rsfrow(j,n)* (cminer(j,iloop,:) *cfrac(n)  + &
-                                   sminer(j,iloop,:) *sfrac(n)) * cfdout
+            cemtrac(j,i,imine(n,:)) = cemtrac(j,i,imine(n,:)) + &
+                     rsfrow(j,n)* (cminer(j,i,:) *cfrac(n)  + &
+                                   sminer(j,i,:) *sfrac(n)) * cfdout
           end do
         end do
       end if
