@@ -315,7 +315,7 @@ module mod_che_isorropia
     rh = 0.9_rkx
     eps = 1e-6_rkx
     maxit = 100
-    tiny1 = epsilon(1.0_rkx)
+    tiny1 = 1e-36_rkx
     great = 1e10_rkx
     zero = 0.0_rkx
     one = 1.0_rkx
@@ -16881,7 +16881,7 @@ module mod_che_isorropia
                thet1 = 120._rkx/180._rkx,       &
                thet2 = 240._rkx/180._rkx, &
                pi = 3.14159265358932, &
-               eps = epsilon(1.0_rkx))
+               eps = tiny(1.0_rkx))
     real(rkx) x(3)
 !
 ! *** special case : quadratic*x equation *****************************
@@ -19509,17 +19509,17 @@ module mod_che_isorropia
       else
         a7 = 0.0_rkx
       end if
-      if ( a2 < epsilon(1.0_rkx) ) a2 = 0.0_rkx
-      if ( a3 < epsilon(1.0_rkx) ) a3 = 0.0_rkx
-      if ( a4 < epsilon(1.0_rkx) ) a4 = 0.0_rkx
-      if ( a7 < epsilon(1.0_rkx) ) a7 = 0.0_rkx
+      if ( a2 < tiny1 ) a2 = tiny1
+      if ( a3 < tiny1 ) a3 = tiny1
+      if ( a4 < tiny1 ) a4 = tiny1
+      if ( a7 < tiny1 ) a7 = tiny1
 !
       psi3 = a3*a4*chi3*(chi4-psi4) - psi1*(2._rkx*psi2+psi1+psi4)
       psi3 = psi3/(a3*a4*(chi4-psi4)+2._rkx*psi2+psi1+psi4)
       psi3 = min(max(psi3,zero),chi3)
 !
       bb = psi4 - psi3
-      if ( bb < epsilon(1.0_rkx) ) bb = 0.0_rkx
+      if ( bb < tiny1 ) bb = tiny1
 
 !ol ahi  = 0.5d0*(-bb + sqrt(bb*bb + 4.d0*a7)) ! this is correct also
 !   ahi  = 2.0*a7/(bb+sqrt(bb*bb + 4.d0*a7)) ! avoid overflow when hi->0
