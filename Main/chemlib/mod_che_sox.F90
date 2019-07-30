@@ -56,7 +56,7 @@ module mod_che_sox
 
      ! remcum = removal rate for cumulus
      ! cloud scavenging (s-1) (in-cloud and not grid level)
-     real(rkx) , parameter :: remcum = 1.0e-3_rkx
+     ! real(rkx) , parameter :: remcum = 1.0e-3_rkx
 
      ! clmin = non-precipitating cloud
      ! conversion threshold, clmin = 0.01 g/m3

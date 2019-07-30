@@ -567,7 +567,7 @@ module mod_che_wetdep
     ! FAB: add diagnostic
     !-----------------------------------------------------------------
 
-    do k= 1 , kz
+    do k = 1 , kz
       do itr = 1 , ntr
         do j = jci1 , jci2
           if ( het_rates(j,k,itr) <= dlowval ) cycle

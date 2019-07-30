@@ -177,7 +177,7 @@ module mod_che_dust
     subroutine allocate_mod_che_dust
       implicit none
       if ( ichem == 1 ) then
-        call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
+        call getmem3d(dustsotex,jci1,jci2,ici1,ici2,1,nats,'che_dust:dustsotex')
         call getmem3d(clay2row2,jci1,jci2,1,nats,ici1,ici2,'che_dust:clay2row2')
         call getmem3d(sand2row2,jci1,jci2,1,nats,ici1,ici2,'che_dust:sand2row2')
         call getmem3d(silt2row2,jci1,jci2,1,nats,ici1,ici2,'che_dust:silt2row2')
@@ -193,8 +193,8 @@ module mod_che_dust
         call getmem1d(frac3,1,nbin,'che_dust:frac3')
         call getmem1d(frac,1,nbin,'che_dust:frac')
         if ( nmine > 0 ) then
-          call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:cminer')
-          call getmem3d(sminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:sminer')
+          call getmem3d(cminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:cminer')
+          call getmem3d(sminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:sminer')
         end if
 #ifdef CLM45
         if ( ichdustemd == 3 ) then
