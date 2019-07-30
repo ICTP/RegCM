@@ -33,12 +33,12 @@ module mod_che_sox
 
   private
 
-  real(rkx) , parameter :: solso4 = 1._rkx
+  real(rkx) , parameter :: solso4 = 1.0_rkx
   real(rkx) , parameter :: solso2 = 0.6_rkx
 
   ! integer , parameter :: rk_com_max = 17
 
-  public :: chemsox, solso4, solso2
+  public :: chemsox , solso4 , solso2
 
   contains
 
@@ -48,26 +48,31 @@ module mod_che_sox
      real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: ttb , wl , rho
      real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: fracloud , fracum
      real(rkx) :: rxs1 , rxs11 , rxs2 , rxs21 , chimol , cldno , &
-                 clmin , remcum , oh1int , so2_rate , so2_avail , krembc
+                 oh1int , so2_rate , so2_avail , krembc
      real(rkx) , dimension(ntr) ::  wetrem , wetrem_cvc
      real(rkx) , dimension(jci1:jci2,kz) :: caircell , so2_snk , concmin
      ! real(rkx) :: rk_com(jci1:jci2,kz,rk_com_max)
      real(rkx) :: h2o2mol
+
+     ! remcum = removal rate for cumulus
+     ! cloud scavenging (s-1) (in-cloud and not grid level)
+     real(rkx) , parameter :: remcum = 1.0e-3_rkx
+
+     ! clmin = non-precipitating cloud
+     ! conversion threshold, clmin = 0.01 g/m3
+     real(rkx) , parameter :: clmin = 0.01_rkx
 
      integer(ik4) :: j , k
 
      !FAB
      caircell(:,:) = 1.e-6_rkx * rho(:,:)/amdk * navgdr
 
+     !
+     ! Note: for DMS, we have to compute below all the reaction rates.
+     !       Uncomment all rk_com related bits and comment rrate for
+     !       just SO2
+     !
      ! call chemrate(caircell,ttb,rk_com)
-
-     ! clmin = non-precipitating cloud
-     ! conversion threshold, clmin=0.01g/m3
-     clmin = 0.01_rkx
-
-     ! remcum= removal rate for cumulus
-     ! cloud scavenging (s-1) (in-cloud and not grid level)
-     remcum = 1.0e-3_rkx
 
      !---------------------------------------------
      !     SO2 G A Z E O U S    C O N V E R S I O N
@@ -99,7 +104,7 @@ module mod_che_sox
              oh1int = oh1int * 0.01_rkx
            else
              oh1int = oh1int * 1.99_rkx
-          end if
+           end if
          end if
 
          ! Sink & Tendencies
