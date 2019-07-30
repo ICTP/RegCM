@@ -512,9 +512,7 @@
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         if ( syncro_che%act( ) ) then
           chemten(:,:,:,:) = d_zero
-          do i = ici1 , ici2
-            call chemistry(i)
-          end do
+          call chemistry
           if ( myid == italk .and. syncro_rep%will_act( ) ) then
             write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2surf : ', &
               minval(jphoto(:,:,kz,jvNO2 )),  maxval(jphoto(:,:,kz,jvNO2 ))
@@ -526,11 +524,9 @@
         end if ! end chem timestep
 
         ! add tendency due to chemistry reaction + thermo equilibrium (every dt)
-        chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
-                                  chemten(jci1:jci2,:,:,:)
+        chiten(:,:,:,:) = chiten(:,:,:,:) + chemten(:,:,:,:)
         if ( ichdiag > 0 ) then
-          chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
-              chemten(jci1:jci2,:,:,:) * cfdout
+          chemdiag(:,:,:,:) = chemdiag(:,:,:,:) + chemten(:,:,:,:) * cfdout
         end if
       end if
       !
