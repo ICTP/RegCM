@@ -83,7 +83,6 @@
       real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: ustar
       real(rkx) , dimension(luc,jci1:jci2) :: xra
       real(rkx) , dimension(jci1:jci2,nbin,ici1:ici2) :: dust_flx
-      real(rkx) , dimension(jci1:jci2,sbin,ici1:ici2) :: seasalt_flx
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
       real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: chevap
@@ -108,7 +107,6 @@
       fracum      = d_zero
       psurf       = d_zero
       dust_flx    = d_zero
-      seasalt_flx = d_zero
       ivegcov     = 0
       !
       ! the unit: rho - kg/m3, wl - g/m3
@@ -336,9 +334,7 @@
       end if
       !sea salt
       if ( isslt(1) > 0 .and. ichsursrc == 1 ) then
-        do i = ici1 , ici2
-          call sea_salt(i,wid10(:,i),ivegcov(:,i),seasalt_flx(:,:,i))
-        end do
+        call sea_salt(wid10,ivegcov)
       end if
       !
       ! pollen emission
