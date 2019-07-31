@@ -102,7 +102,7 @@ module mod_che_common
          cssw2da , cvegfrac , cxlai2d , csol2d , csdeltk2d , csdelqk2d , &
          custar , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc ,  &
          cps2d , cps0 , cptrop, cw10m, cdlat,cdlon
-  real(rkx) , pointer , dimension(:,:) :: psbb0 , psbb1
+  real(rkx) , pointer , dimension(:,:) :: psbb0 , psbb1 , crho2d
   real(rkx) , pointer , dimension(:,:) :: czen
   real(rkx) , pointer , dimension(:,:,:,:) :: ctaucld
 #if defined CLM45

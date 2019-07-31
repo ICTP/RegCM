@@ -77,12 +77,11 @@
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: pdepv
       real(rkx) , dimension(jci1:jci2,ntr,ici1:ici2) :: ddepa ! , ddepg
       real(rkx) , dimension(jci1:jci2,ici1:ici2) :: psurf , rh10 , soilw , &
-          srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
+       srad , temp10 , tsurf , vegfrac , snowfrac , wid10 , zeff , hsurf
       real(rkx) , dimension(jci1:jci2,ici1:ici2,kz) :: ncpc
       real(rkx) , dimension(jci1:jci2,kz,ntr,ici1:ici2) :: bchi
       real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: ustar
-      real(rkx) , dimension(luc,jci1:jci2) :: xra
-      real(rkx) , dimension(jci1:jci2,nbin,ici1:ici2) :: dust_flx
+      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) :: xra
       ! evap of l-s precip (see mod_precip.f90; [kg_h2o/kg_air/s)
       ! cum h2o vapor tendency for cum precip (kg_h2o/kg_air/s)
       real(rkx) , dimension(jci1:jci2,kz,ici1:ici2) :: chevap
@@ -106,7 +105,6 @@
       fracloud    = d_zero
       fracum      = d_zero
       psurf       = d_zero
-      dust_flx    = d_zero
       ivegcov     = 0
       !
       ! the unit: rho - kg/m3, wl - g/m3
@@ -310,6 +308,11 @@
         call aging_carb
       end if
       !
+      ! Compute aerodynamic resistance
+      !
+      call aerodyresis(zeff,wid10,temp10,tsurf, &
+                       rh10,srad,ivegcov,ustar,xra)
+      !
       ! Before emission and deposition routine set the surfecae netflux
       ! used by BL schems to zero
       !
@@ -319,13 +322,8 @@
       !
       if ( idust(1) > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
-          do i = ici1 , ici2
-            call aerodyresis(zeff(:,i),wid10(:,i),temp10(:,i),tsurf(:,i), &
-                     rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(1,:))
-            call sfflux(i,ivegcov(:,i),vegfrac(:,i),snowfrac(:,i), &
-                        ustar(1,:,i),zeff(:,i),soilw(:,i),wid10(:,i), &
-                        rho(:,kz,i),dustbsiz,dust_flx(:,:,i))
-          end do
+          call sfflux(ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
+                      crho2d,dustbsiz)
         else
           ! OPTION for using CLM45 dust emission scheme
           ! if flux calculated by clm45 / update the tendency if ichdustemd == 3
@@ -340,10 +338,6 @@
       ! pollen emission
       !
       if ( ipollen > 0 ) then
-        do i = ici1 , ici2
-          call aerodyresis(zeff(:,i),wid10(:,i),temp10(:,i),tsurf(:,i), &
-            rh10(:,i),srad(:,i),ivegcov(:,i),ustar(:,:,i),xra(1,:))
-        end do
         call pollen_emission(ustar,wid10,rh10,ncpc(:,:,kz),convprec(:,:,kz))
       end if
       !
@@ -378,7 +372,8 @@
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
                            rh10(:,i),wid10(:,i),zeff(:,i),dustbed,  &
-                           pdepv(:,:,:,i),ddepa(:,:,i))
+                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,:,i),&
+                           xra(:,:,i))
         end do
         ! mineralogical tracers
         if ( nmine > 0 ) then
@@ -388,7 +383,8 @@
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),            &
                            temp10(:,i),tsurf(:,i),srad(:,i),           &
                            rh10(:,i),wid10(:,i),zeff(:,i),dustbed,     &
-                           pdepv(:,:,:,i),ddepa(:,:,i))
+                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,:,i),   &
+                           xra(:,:,i))
 
             end do
           end do
@@ -396,11 +392,12 @@
       end if
       if ( isslt(1) > 0 .and. ichdrdepo > 0 ) then
         do i = ici1 , ici2
-          call drydep_aero(i,sbin,isslt,rhosslt,ivegcov(:,i),      &
-                           ttb(:,:,i),rho(:,:,i),ph(:,:,i),        &
-                           temp10(:,i),tsurf(:,i),srad(:,i),       &
-                           rh10(:,i),wid10(:,i),zeff(:,i),ssltbed, &
-                           pdepv(:,:,:,i),ddepa(:,:,i))
+          call drydep_aero(i,sbin,isslt,rhosslt,ivegcov(:,i),       &
+                           ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
+                           temp10(:,i),tsurf(:,i),srad(:,i),        &
+                           rh10(:,i),wid10(:,i),zeff(:,i),ssltbed,  &
+                           pdepv(:,:,:,i),ddepa(:,:,i),ustar(:,:,i),&
+                           xra(:,:,i))
         end do
       end if
       if ( icarb(1) > 0 .and. ichdrdepo > 0 ) then
@@ -410,7 +407,8 @@
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
                            temp10(:,i),tsurf(:,i),srad(:,i),        &
                            rh10(:,i),wid10(:,i),zeff(:,i),          &
-                           carbed(1:ibin),pdepv(:,:,:,i),ddepa(:,:,i))
+                           carbed(1:ibin),pdepv(:,:,:,i),           &
+                           ddepa(:,:,i),ustar(:,:,i),xra(:,:,i))
         end do
       end if
       if ( ipollen > 0 .and. ichdrdepo > 0 ) then
@@ -420,9 +418,10 @@
         do i = ici1 , ici2
           call drydep_aero(i,ibin,poltab,rhopollen,ivegcov(:,i), &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),      &
-                           temp10(:,i),tsurf(:,i),srad(:,i),        &
-                           rh10(:,i),wid10(:,i),zeff(:,i),          &
-                           polrftab,pdepv(:,:,:,i),ddepa(:,:,i))
+                           temp10(:,i),tsurf(:,i),srad(:,i),     &
+                           rh10(:,i),wid10(:,i),zeff(:,i),       &
+                           polrftab,pdepv(:,:,:,i),ddepa(:,:,i), &
+                           ustar(:,:,i),xra(:,:,i))
         end do
       end if
       !
@@ -434,7 +433,8 @@
         do i = ici1 , ici2
           call drydep_gas(i,lmonth,lday,ivegcov(:,i),rh10(:,i), &
                           srad(:,i),tsurf(:,i),prec(:,kz,i),    &
-                          temp10(:,i),wid10(:,i),zeff(:,i))
+                          temp10(:,i),wid10(:,i),zeff(:,i),     &
+                          ustar(:,:,i),xra(:,:,i))
         end do
       end if
       !

@@ -101,6 +101,7 @@ module mod_che_interface
     call assignpnt(atms%ubx3d,cubx3d)
     call assignpnt(atms%vbx3d,cvbx3d)
     call assignpnt(atms%chib3d,chib3d)
+    call assignpnt(atms%rhox2d,crho2d)
 
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%xlat,cxlat)

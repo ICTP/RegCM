@@ -362,7 +362,7 @@ module mod_che_drydep
 
     subroutine drydep_aero(i,mbin,indsp,rhop,ivegcov,throw,roarow, &
                            ph,temp2,sutemp,srad,rh10,      &
-                           wind10,zeff,beffdiam,pdepv,ddepv)
+                           wind10,zeff,beffdiam,pdepv,ddepv,ustar,ra)
       implicit none
       integer(ik4) , intent(in) :: i , mbin
       integer(ik4) , intent(in) , dimension(mbin) :: indsp
@@ -370,6 +370,7 @@ module mod_che_drydep
       real(rkx) , dimension(jci1:jci2) , intent(in) :: rh10 , &
                        srad , sutemp , temp2 , wind10 , zeff
       real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: ph , roarow , throw
+      real(rkx) , dimension(luc,jci1:jci2) , intent(in) :: ra , ustar
       real(rkx) , dimension(mbin) , intent(in) :: beffdiam
       real(rkx) , intent(in) :: rhop
 
@@ -383,7 +384,6 @@ module mod_che_drydep
       real(rkx) , dimension(jci1:jci2,kz) :: amu
       real(rkx) , dimension(jci1:jci2) :: anu , schm
       real(rkx) , dimension(jci1:jci2,kz,mbin) :: cfac , pdepvsub , taurel
-      real(rkx) , dimension(luc,jci1:jci2) :: ra , ustar
       real(rkx) , dimension(luc,jci1:jci2,mbin) :: rs
       real(rkx), dimension(jci1:jci2,2:kz) :: wk, settend
       real(rkx) , dimension(mbin) :: avesize
@@ -445,10 +445,6 @@ module mod_che_drydep
           end do
         end do
       end do
-      !
-      ! Find aerodynamic resistance
-      !
-      call aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       !
       ! *****************************************************
       ! * the schmidt number is the ratio of the         ****
@@ -687,7 +683,7 @@ module mod_che_drydep
     end subroutine drydep_aero
 
     subroutine drydep_gas(i,lmonth,lday,ivegcov,rh10,srad,tsurf, &
-                          prec,temp10,wind10,zeff)
+                          prec,temp10,wind10,zeff,ustar,resa)
       use mod_che_indices
       implicit none
       integer(ik4) , intent(in) :: i
@@ -695,10 +691,10 @@ module mod_che_drydep
       integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
       real(rkx) , intent(in) , dimension(jci1:jci2) :: rh10 , srad , tsurf , &
                                             prec, temp10 , wind10 , zeff
+      real(rkx) , dimension(luc,jci1:jci2) , intent(in) :: ustar , resa
       real(rkx),  dimension(jci1:jci2,ntr) :: drydepvg
 
       integer(ik4) :: n , j , im , l , lcov
-      real(rkx) , dimension(luc,jci1:jci2) :: ustar , resa
       real(rkx) , dimension(ngasd,luc,jci1:jci2) :: resb, resc
       real(rkx) , dimension(ngasd,luc,jci1:jci2) :: vdg
       real(rkx) , dimension(jci1:jci2) :: icz , ddrem
@@ -733,7 +729,6 @@ module mod_che_drydep
         laimin(j) = lai(lcov,14)
         laimax(j) = lai(lcov,15)
       end do
-      call aerodyresis(zeff,wind10,temp10,tsurf,rh10,srad,ivegcov,ustar,resa)
       snow(:) = d_zero
       icz(:) = czen(:,i)
       call stomtresis(lai_f,laimin,laimax,ivegcov,ngasd,ustar,prec,snow,srad, &
@@ -815,11 +810,16 @@ module mod_che_drydep
 
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       implicit none
-      integer(ik4) , dimension(jci1:jci2) , intent(in) :: ivegcov
-      real(rkx) , dimension(jci1:jci2) , intent(in) :: temp2 , wind10 , rh10
-      real(rkx) , dimension(jci1:jci2) , intent(in) :: sutemp , srad , zeff
-      real(rkx) , dimension(luc,jci1:jci2) , intent(out) :: ustar , ra
-      integer(ik4) :: j , l
+      integer(ik4) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: ivegcov
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: temp2
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wind10
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: rh10
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: sutemp
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: srad
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: zeff
+      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) , intent(out) :: ustar
+      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) , intent(out) :: ra
+      integer(ik4) :: i , j , l
       real(rkx) :: vp , tsv
       real(rkx) :: z , zl , ww
       real(rkx) :: ptemp2 , es , qs
@@ -829,8 +829,7 @@ module mod_che_drydep
       real(rkx) :: thstar , rib , dtemp , tbar
       real(rkx) :: ustarsq , utstar , kui
       real(rkx) :: ratioz , logratio , asq
-      real(rkx) :: aa , cm , ch , fm , fh
-      real(rkx) , dimension(jci1:jci2) :: zz0
+      real(rkx) :: aa , cm , ch , fm , fh , zz0
       real(rkx) , parameter :: z10 = 10.0_rkx
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'aerodyresis'
@@ -854,129 +853,132 @@ module mod_che_drydep
       ! *           (0.0-1.0)                           ****
       ! * stdpmb - sea level pressure (mb)              ****
       ! ****************************************************
-      do j = jci1 , jci2
-        do l = 1 , luc
-          ww = max(wind10(j),1.0_rkx)
-          zz0(j) = zeff(j)
-          ! ***************************************************************
-          ! * potential temperature at z2  (deg. k)
-          ! ***************************************************************
-          ptemp2 = temp2(j) + z10*0.0098_rkx
-          ! ***************************************************************
-          ! * for calculations over water compute values of critical
-          ! * profile variables: l and ustar
-          ! *           ******begin for water***
-          ! ***************************************************************
-          if ( ivegcov(j) == 0 ) then
-            ! **************************************************************
-            ! * vp  - vapour pressure at z2
-            ! * wvpm- water vapour mixing ratio at  z2
-            ! * vptemp- virtual potential temperature at z2
-            ! **************************************************************
-            es = 6.108_rkx*exp(17.27_rkx*(temp2(j)-tzero)/(temp2(j)-35.86_rkx))
-            vp = rh10(j)*es
-            wvpm = ep2*vp/(stdpmb-vp)
-            vptemp = ptemp2*(1.0_rkx+0.61_rkx*wvpm)
-            ! **************************************************************
-            ! * assume rh10 at water surface is 100%
-            ! *   vp = es(tsw-tzero) !sat. vap press at surface
-            ! *   saturated vapour pressure at surface
-            ! *   saturated mixing ratio at surface
-            ! *   tsv - virtual potential temperature at surface (deg. k)
-            ! **************************************************************
-            tsw = sutemp(j)
-            vp = 6.108_rkx*exp(17.27_rkx*(tsw-tzero)/(tsw-35.86_rkx))
-            qs = ep2*vp/(stdpmb-vp)
-            tsv = tsw*(1.0_rkx+0.61_rkx*qs)
-            z0water = 1.0e-4_rkx
-            ! **************************************************************
-            ! * scalet  :  not required if  z2 = 10m
-            ! **************************************************************
-            dthv = (vptemp-tsv)
-            ! **************************************************************
-            ! * calculate drag coefficient cun with neutral condition
-            ! * assumption  garratt (1977)
-            ! **************************************************************
-            cun = 7.5e-4_rkx + 6.7e-5_rkx*ww
-            mol = 9999.0_rkx
-            if ( abs(dthv) > 1.0e-6_rkx ) then
-              mol = vptemp*cun**1.5_rkx*ww**2/(5.096e-3_rkx*dthv)
-            end if
-            if ( mol > 0.0_rkx  .and. mol < 5.0_rkx ) mol =  5.0_rkx
-            if ( mol > -5.0_rkx .and. mol < 0.0_rkx ) mol = -5.0_rkx
-            zdl = z10/mol
-            if ( zdl < 0.0_rkx ) then
-              ! **************************************************************
-              ! * wind speed
-              ! **************************************************************
-              x = (1.0_rkx-15.0_rkx*zdl)**0.25_rkx
-              psiu = 2.0_rkx*log(0.5_rkx*(1.0_rkx+x)) + &
-                             log(0.5_rkx*(1.0_rkx+x*x)) - &
-                     2.0_rkx*atan(x) + 0.5_rkx*mathpi
-              ! **************************************************************
-              ! * pot temp
-              ! **************************************************************
-              y = sqrt(1.0_rkx-9.0_rkx*zdl)
-              psit = 2.0_rkx*0.74_rkx*log((1.0_rkx+y)/2.0_rkx)
-            else
-              psiu = -4.7_rkx*zdl
-              psit = psiu
-            end if
-            z0water = 0.000002_rkx*ww**2.5_rkx
-            ustar(l,j) = vonkar*ww/(log(z10/z0water)-psiu)
-            thstar = vonkar*(ptemp2-sutemp(j)) / &
-                     (0.74_rkx*log(z10/z0water)-psit)
-            zz0(j) = z0water
-          else
-            ! **************************************************************
-            ! * compute ustar and l for land use categories other than
-            ! * water use louis method. !pkk 7/16/85, find bulk
-            ! * richardson number.
-            ! **************************************************************
-            rib = egrav*z10*(ptemp2-sutemp(j))/(sutemp(j)*ww**2)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do l = 1 , luc
+            ww = max(wind10(j,i),1.0_rkx)
+            zz0 = zeff(j,i)
             ! ***************************************************************
-            ! * ensure that conditions over land are never stable when
-            ! * there is incoming solar radiation
+            ! * potential temperature at z2  (deg. k)
             ! ***************************************************************
-            if ( srad(j) > 0.0_rkx .and. rib > 0.0_rkx ) rib = 1.e-15_rkx
-            dtemp = ptemp2 - sutemp(j)
-            if ( abs(dtemp) < 1.e-10_rkx ) dtemp = sign(1.e-10_rkx,dtemp)
-            tbar = 0.5_rkx*(ptemp2+sutemp(j))
-            ratioz = z10/zz0(j)
-            logratio = log(ratioz)
-            asq = 0.16_rkx/(logratio**2)
-            if ( rib <= 0.0_rkx ) then
-              aa = asq*9.4_rkx*sqrt(ratioz)
-              cm = 7.4_rkx*aa
-              ch = 5.3_rkx*aa
-              fm = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+cm*sqrt(abs(rib))))
-              fh = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+ch*sqrt(abs(rib))))
+            ptemp2 = temp2(j,i) + z10*0.0098_rkx
+            ! ***************************************************************
+            ! * for calculations over water compute values of critical
+            ! * profile variables: l and ustar
+            ! *           ******begin for water***
+            ! ***************************************************************
+            if ( ivegcov(j,i) == 0 ) then
+              ! **************************************************************
+              ! * vp  - vapour pressure at z2
+              ! * wvpm- water vapour mixing ratio at  z2
+              ! * vptemp- virtual potential temperature at z2
+              ! **************************************************************
+              es = 6.108_rkx * &
+                exp(17.27_rkx*(temp2(j,i)-tzero)/(temp2(j,i)-35.86_rkx))
+              vp = rh10(j,i)*es
+              wvpm = ep2*vp/(stdpmb-vp)
+              vptemp = ptemp2*(1.0_rkx+0.61_rkx*wvpm)
+              ! **************************************************************
+              ! * assume rh10 at water surface is 100%
+              ! *   vp = es(tsw-tzero) !sat. vap press at surface
+              ! *   saturated vapour pressure at surface
+              ! *   saturated mixing ratio at surface
+              ! *   tsv - virtual potential temperature at surface (deg. k)
+              ! **************************************************************
+              tsw = sutemp(j,i)
+              vp = 6.108_rkx*exp(17.27_rkx*(tsw-tzero)/(tsw-35.86_rkx))
+              qs = ep2*vp/(stdpmb-vp)
+              tsv = tsw*(1.0_rkx+0.61_rkx*qs)
+              z0water = 1.0e-4_rkx
+              ! **************************************************************
+              ! * scalet  :  not required if  z2 = 10m
+              ! **************************************************************
+              dthv = (vptemp-tsv)
+              ! **************************************************************
+              ! * calculate drag coefficient cun with neutral condition
+              ! * assumption  garratt (1977)
+              ! **************************************************************
+              cun = 7.5e-4_rkx + 6.7e-5_rkx*ww
+              mol = 9999.0_rkx
+              if ( abs(dthv) > 1.0e-6_rkx ) then
+                mol = vptemp*cun**1.5_rkx*ww**2/(5.096e-3_rkx*dthv)
+              end if
+              if ( mol > 0.0_rkx  .and. mol < 5.0_rkx ) mol =  5.0_rkx
+              if ( mol > -5.0_rkx .and. mol < 0.0_rkx ) mol = -5.0_rkx
+              zdl = z10/mol
+              if ( zdl < 0.0_rkx ) then
+                ! **************************************************************
+                ! * wind speed
+                ! **************************************************************
+                x = (1.0_rkx-15.0_rkx*zdl)**0.25_rkx
+                psiu = 2.0_rkx*log(0.5_rkx*(1.0_rkx+x)) + &
+                               log(0.5_rkx*(1.0_rkx+x*x)) - &
+                       2.0_rkx*atan(x) + 0.5_rkx*mathpi
+                ! **************************************************************
+                ! * pot temp
+                ! **************************************************************
+                y = sqrt(1.0_rkx-9.0_rkx*zdl)
+                psit = 2.0_rkx*0.74_rkx*log((1.0_rkx+y)/2.0_rkx)
+              else
+                psiu = -4.7_rkx*zdl
+                psit = psiu
+              end if
+              z0water = 0.000002_rkx*ww**2.5_rkx
+              ustar(l,j,i) = vonkar*ww/(log(z10/z0water)-psiu)
+              thstar = vonkar*(ptemp2-sutemp(j,i)) / &
+                       (0.74_rkx*log(z10/z0water)-psit)
+              zz0 = z0water
             else
-              fm = 1.0_rkx/((1.0_rkx+4.7_rkx*rib)**2)
-              fh = fm
+              ! **************************************************************
+              ! * compute ustar and l for land use categories other than
+              ! * water use louis method. !pkk 7/16/85, find bulk
+              ! * richardson number.
+              ! **************************************************************
+              rib = egrav*z10*(ptemp2-sutemp(j,i))/(sutemp(j,i)*ww**2)
+              ! ***************************************************************
+              ! * ensure that conditions over land are never stable when
+              ! * there is incoming solar radiation
+              ! ***************************************************************
+              if ( srad(j,i) > 0.0_rkx .and. rib > 0.0_rkx ) rib = 1.e-15_rkx
+              dtemp = ptemp2 - sutemp(j,i)
+              if ( abs(dtemp) < 1.e-10_rkx ) dtemp = sign(1.e-10_rkx,dtemp)
+              tbar = 0.5_rkx*(ptemp2+sutemp(j,i))
+              ratioz = z10/zz0
+              logratio = log(ratioz)
+              asq = 0.16_rkx/(logratio**2)
+              if ( rib <= 0.0_rkx ) then
+                aa = asq*9.4_rkx*sqrt(ratioz)
+                cm = 7.4_rkx*aa
+                ch = 5.3_rkx*aa
+                fm = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+cm*sqrt(abs(rib))))
+                fh = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+ch*sqrt(abs(rib))))
+              else
+                fm = 1.0_rkx/((1.0_rkx+4.7_rkx*rib)**2)
+                fh = fm
+              end if
+              ustarsq = asq*ww**2*fm
+              utstar = asq*ww*dtemp*fh/0.74_rkx
+              ustar(l,j,i) = sqrt(ustarsq)
+              thstar = utstar/ustar(l,j,i)
+              mol = tbar*ustarsq/(vonkar*egrav*thstar)
             end if
-            ustarsq = asq*ww**2*fm
-            utstar = asq*ww*dtemp*fh/0.74_rkx
-            ustar(l,j) = sqrt(ustarsq)
-            thstar = utstar/ustar(l,j)
-            mol = tbar*ustarsq/(vonkar*egrav*thstar)
-          end if
 
-          kui = 1.0_rkx/(vonkar*ustar(l,j))
+            kui = 1.0_rkx/(vonkar*ustar(l,j,i))
 
-          ! **************************************************************
-          ! * compute the values of  ra                            *******
-          ! **************************************************************
-          z = z10
-          zl = z/mol
-          if ( zl >= 0.0_rkx ) then
-            ra(l,j) = kui*(0.74_rkx*log(z/zz0(j))+4.7_rkx*zl)
-          else
-            ra(l,j) = kui*0.74_rkx*(log(z/zz0(j))- &
+            ! **************************************************************
+            ! * compute the values of  ra                            *******
+            ! **************************************************************
+            z = z10
+            zl = z/mol
+            if ( zl >= 0.0_rkx ) then
+              ra(l,j,i) = kui*(0.74_rkx*log(z/zz0)+4.7_rkx*zl)
+            else
+              ra(l,j,i) = kui*0.74_rkx*(log(z/zz0)- &
                       2.0_rkx*log((1.0_rkx+sqrt(1.0_rkx-9.0_rkx*zl))*0.5_rkx))
-          end if
-          ra(l,j) = max(ra(l,j),0.99_rkx)
-          ra(l,j) = min(ra(l,j),999.9_rkx)
+            end if
+            ra(l,j,i) = max(ra(l,j,i),0.99_rkx)
+            ra(l,j,i) = min(ra(l,j,i),999.9_rkx)
+          end do
         end do
       end do
 #ifdef DEBUG
