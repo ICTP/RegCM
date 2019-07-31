@@ -44,35 +44,60 @@ module mod_che_ccn
 
   contains
 
-  subroutine ccn(j)
+  subroutine ccn
     implicit none
-    integer, intent(in) :: j
-    integer(ik4) :: i , k
-    cccn(j,:,:) = d_zero
+    integer(ik4) :: i , j , k
+    cccn(:,:,:) = d_zero
+    if ( ibchl > 0 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            cccn(j,i,k) = cccn(j,i,k) + &
+                 calc_ccn(rhobchl,chib3d(j,i,k,ibchl)*crhob3d(j,i,k))
+          end do
+        end do
+      end do
+    end if
+    if ( iochl > 0 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            cccn(j,i,k) = cccn(j,i,k) + &
+                 calc_ccn(rhoochl,chib3d(j,i,k,iochl)*crhob3d(j,i,k))
+          end do
+        end do
+      end do
+    end if
+    if ( iso4 > 0 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            cccn(j,i,k) = cccn(j,i,k) + &
+                 calc_ccn(rhos,chib3d(j,i,k,iso4)*crhob3d(j,i,k))
+          end do
+        end do
+      end do
+    end if
+    if ( isslt(1) > 0 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            cccn(j,i,k) = cccn(j,i,k) + &
+                 calc_ccn(rhosslt,chib3d(j,i,k,isslt(1))*crhob3d(j,i,k))
+          end do
+        end do
+      end do
+    end if
     do k = 1 , kz
       do i = ici1 , ici2
-        if ( ibchl > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + &
-                 calc_ccn(rhobchl,chib3d(j,i,k,ibchl)*crhob3d(j,i,k))
-        end if
-        if ( iochl > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + &
-                 calc_ccn(rhoochl,chib3d(j,i,k,iochl)*crhob3d(j,i,k))
-        end if
-        if ( iso4 > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + &
-                 calc_ccn(rhos,chib3d(j,i,k,iso4)*crhob3d(j,i,k))
-        end if
-        if ( isslt(1) > 0 ) then
-          cccn(j,i,k) = cccn(j,i,k) + &
-                 calc_ccn(rhosslt,chib3d(j,i,k,isslt(1))*crhob3d(j,i,k))
-        end if
-        ! now calculate ccn number from particle number
-        ! cccn = cccn * abulk
-        cccn(j,i,k) = c1 * (d_one - exp(c2 * cccn(j,i,k)))
-        !
-        ! finally consider a minimal concentration of CCN
-        cccn(j,i,k) = max(ccnmin, cccn(j,i,k))
+        do j = jci1 , jci2
+          ! now calculate ccn number from particle number
+          ! cccn = cccn * abulk
+          cccn(j,i,k) = c1 * (d_one - exp(c2 * cccn(j,i,k)))
+          !
+          ! finally consider a minimal concentration of CCN
+          cccn(j,i,k) = max(ccnmin, cccn(j,i,k))
+        end do
       end do
     end do
   end subroutine ccn

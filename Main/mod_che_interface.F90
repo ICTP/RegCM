@@ -55,8 +55,8 @@ module mod_che_interface
   public :: allocate_mod_che_dust
   public :: allocate_mod_che_bdyco
   public :: allocate_mod_che_bionit
-  public :: allocate_mod_che_linox
 
+  public :: idust
   public :: totsp
   public :: chia_io
   public :: chib_io
@@ -66,9 +66,9 @@ module mod_che_interface
   public :: chemall , chemall_io
   public :: washout , washout_io
   public :: remdrd , remdrd_io
-  public :: rainout , rainout_io
+  public :: rainout , rainout_io , convpr_io
   public :: sdelq_io , sdelt_io , sfracb2d_io , sfracs2d_io , ssw2da_io
-  public :: sfracv2d_io , svegfrac2d_io , taucldsp_io
+  public :: duflux_io , voflux_io , sfracv2d_io , svegfrac2d_io , taucldsp_io
 
   contains
 
@@ -101,6 +101,7 @@ module mod_che_interface
     call assignpnt(atms%ubx3d,cubx3d)
     call assignpnt(atms%vbx3d,cvbx3d)
     call assignpnt(atms%chib3d,chib3d)
+    call assignpnt(atms%rhox2d,crho2d)
 
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%xlat,cxlat)
@@ -170,11 +171,11 @@ module mod_che_interface
 #if (defined CLM45)
     call assignpnt(voc_em_clm,cvoc_em_clm)
     call assignpnt(dustflx_clm,cdustflx_clm)
-    call assignpnt(idusts,idust)
-    call assignpnt(dep_vels_clm,cdep_vels_clm)
     call assignpnt(sw_vol,csw_vol)
     call assignpnt(tsoi,ctsoi)
 #endif
+
+    call init_cumtran
 
   end subroutine init_chem
 

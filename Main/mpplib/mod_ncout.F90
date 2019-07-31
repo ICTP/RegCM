@@ -1225,7 +1225,8 @@ module mod_ncout
         if ( enable_srf2d_vars(srf_evpot) ) then
           call setup_var(v2dvar_srf,srf_evpot,vsize,'evspsblpot','kg m-2 s-1', &
             'Potential Evapotranspiration','water_potential_evaporation_flux', &
-            .true.,'time: mean')
+            .true.,'time: mean', &
+            notes='ASCE-EWRI 2004 reference evapotranspiration for 0.12 m tall reference surface')
           srf_evpot_out => v2dvar_srf(srf_evpot)%rval
         end if
         if ( enable_srf2d_vars(srf_ustar) ) then
@@ -2532,7 +2533,7 @@ module mod_ncout
         outstream(nstream)%opar%mpi_iotype = nf90_mpiio
 #else
 #ifdef PNETCDF_IN_NETCDF
-        outstream(nstream)%opar%mpi_iotype = nf90_pnetcdf
+        outstream(nstream)%opar%mpi_iotype = nf90_mpiio
 #endif
 #endif
         ! The "global" indexes in the output stream refer to the INTERNAL
@@ -3434,7 +3435,7 @@ module mod_ncout
   end subroutine setup_common_vars
 
   subroutine setup_var_2d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
-                         l_rec,cell_method,l_fill,rmissval,lgetspace)
+                         l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
     type(ncvariable2d_mixed) , dimension(:) , intent(inout) :: var
     integer , intent(in) :: ivar
@@ -3443,6 +3444,7 @@ module mod_ncout
     character(len=*) , intent(in) , optional :: cell_method
     logical , intent(in) , optional :: l_rec , l_fill , lgetspace
     real(rk4) , intent(in) , optional :: rmissval
+    character(len=*) , intent(in) , optional :: notes
     var(ivar)%vname = vname
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
@@ -3473,6 +3475,9 @@ module mod_ncout
       call getmem2d(var(ivar)%rval,vsize%j1,vsize%j2, &
             vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var(ivar)%vname))
     end if
+    if ( present(notes) ) then
+      var(ivar)%notes = notes
+    end if
     var(ivar)%j1 = vsize%j1
     var(ivar)%j2 = vsize%j2
     var(ivar)%i1 = vsize%i1
@@ -3480,7 +3485,7 @@ module mod_ncout
   end subroutine setup_var_2d
 
   subroutine setup_var_3d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
-                          l_rec,cell_method,l_fill,rmissval,lgetspace)
+                          l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
     type(ncvariable3d_mixed) , dimension(:) , intent(inout) :: var
     integer(ik4) , intent(in) :: ivar
@@ -3489,6 +3494,7 @@ module mod_ncout
     character(len=*) , intent(in) , optional :: cell_method
     logical , intent(in) , optional :: l_rec , l_fill , lgetspace
     real(rk4) , intent(in) , optional :: rmissval
+    character(len=*) , intent(in) , optional :: notes
     var(ivar)%vname = vname
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
@@ -3512,6 +3518,9 @@ module mod_ncout
       call getmem3d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
             vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var(ivar)%vname))
     end if
+    if ( present(notes) ) then
+      var(ivar)%notes = notes
+    end if
     var(ivar)%j1 = vsize%j1
     var(ivar)%j2 = vsize%j2
     var(ivar)%i1 = vsize%i1
@@ -3521,7 +3530,7 @@ module mod_ncout
   end subroutine setup_var_3d
 
   subroutine setup_var_4d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
-                          l_rec,cell_method,l_fill,rmissval,lgetspace)
+                          l_rec,cell_method,l_fill,rmissval,lgetspace,notes)
     implicit none
     type(ncvariable4d_mixed) , dimension(:) , intent(inout) :: var
     integer(ik4) , intent(in) :: ivar
@@ -3530,6 +3539,7 @@ module mod_ncout
     character(len=*) , intent(in) , optional :: cell_method
     logical , intent(in) , optional :: l_rec , l_fill , lgetspace
     real(rk4) , intent(in) , optional :: rmissval
+    character(len=*) , intent(in) , optional :: notes
     var(ivar)%vname = vname
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
@@ -3552,6 +3562,9 @@ module mod_ncout
     else
       call getmem4d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
             vsize%k1,vsize%k2,vsize%n1,vsize%n2,'ncout:setup_var:'//trim(var(ivar)%vname))
+    end if
+    if ( present(notes) ) then
+      var(ivar)%notes = notes
     end if
     var(ivar)%j1 = vsize%j1
     var(ivar)%j2 = vsize%j2

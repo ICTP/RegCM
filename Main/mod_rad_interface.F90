@@ -32,6 +32,7 @@ module mod_rad_interface
   use mod_rad_o3blk , only : allocate_mod_rad_o3blk , o3data
   use mod_rad_o3blk , only : read_o3data , close_o3data
   use mod_rad_aerosol , only : allocate_mod_rad_aerosol , init_aerclima
+  use mod_rad_aerosol , only : init_aeroppdata , read_aeroppdata
   use mod_rad_aerosol , only : read_aerclima , close_aerclima
   use mod_rad_radiation , only : allocate_mod_rad_radiation
   use mod_rad_outrad , only : allocate_mod_rad_outrad
@@ -46,6 +47,7 @@ module mod_rad_interface
   public :: radiation
   public :: init_aerclima
   public :: updateaerosol
+  public :: updateaeropp
   public :: closeaerosol
   public :: inito3
   public :: updateo3
@@ -70,6 +72,10 @@ module mod_rad_interface
   subroutine allocate_radiation
     implicit none
     call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
+    call getmem3d(extprof,jci1,jci2,ici1,ici2,1,kzp1,'rad:extprof')
+    call getmem3d(asyprof,jci1,jci2,ici1,ici2,1,kzp1,'rad:asyprof')
+    call getmem3d(ssaprof,jci1,jci2,ici1,ici2,1,kzp1,'rad:ssaprof')
+
     call allocate_mod_rad_aerosol
     call allocate_mod_rad_o3blk
     call allocate_mod_rad_outrad
@@ -101,6 +107,7 @@ module mod_rad_interface
     call assignpnt(atms%pf3d,m2r%pfatms)
     call assignpnt(atms%za,m2r%za)
     call assignpnt(atms%dzq,m2r%deltaz)
+    call assignpnt(atms%zq,m2r%zq)
     call assignpnt(atms%ps2d,m2r%psatms)
     call assignpnt(sfs%tgbb,m2r%tg)
     call assignpnt(mddom%xlat,m2r%xlat)
@@ -174,6 +181,12 @@ module mod_rad_interface
     character(len=8) , intent(in) :: scenario
     call read_o3data(idatex,scenario,m2r)
   end subroutine updateo3
+
+  subroutine updateaeropp(idatex)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: idatex
+    call read_aeroppdata(idatex,m2r)
+  end subroutine updateaeropp
 
   subroutine closeo3
     implicit none

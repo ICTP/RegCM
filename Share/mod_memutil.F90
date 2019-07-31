@@ -36,7 +36,7 @@ module mod_memutil
   public :: getmem3d , relmem3d
   public :: getmem4d , relmem4d
   public :: getmem5d , relmem5d
-  public :: assignpnt
+  public :: assignpnt , remappnt4
   !public :: memshare
 
   interface assignpnt
@@ -3075,6 +3075,17 @@ module mod_memutil
     b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3), &
                      lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_d
+
+  subroutine remappnt4(a,b)
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    b => remap_bound(lbound(a,1),lbound(a,2),1,lbound(a,4),a)
+  end subroutine remappnt4
 
 !  subroutine spaceshare_1d_r8r4(a,b)
 !    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer

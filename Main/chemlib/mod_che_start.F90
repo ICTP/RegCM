@@ -71,7 +71,6 @@ module mod_che_start
     iochl = 0
     iochb = 0
     idust = 0
-    imine = 0
     isslt = 0
     icarb = 0
     ianh4 = 0
@@ -117,6 +116,8 @@ module mod_che_start
     iopen   = 0
     icres   = 0
     ipollen = 0
+
+    if ( nmine > 0 ) imine(:,:) = 0
 
     !abt *** For initializing megan tracer biogenic voc mask
     !    *** Mask not equal to zero when any MEGAN species is
@@ -420,11 +421,13 @@ module mod_che_start
     ! Finally initialise chia and chib to chib0 over the whole domain
 
     if ( .not. ifrest ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            chia(j,i,k,:) = max(chib0(j,i,k,:),d_zero)
-            chib(j,i,k,:) = max(chib0(j,i,k,:),d_zero)
+      do n = 1 , ntr
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              chia(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+              chib(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+            end do
           end do
         end do
       end do

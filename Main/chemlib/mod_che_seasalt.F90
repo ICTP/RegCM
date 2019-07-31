@@ -63,29 +63,24 @@ module mod_che_seasalt
   !* measurements) at Dp < 0.2 micrometer.                  ***
   !************************************************************
 
-  subroutine sea_salt(j,wind10,ivegcov,seasalt_flx)
+  subroutine sea_salt(wind10,ivegcov)
 
     implicit none
 
-    integer(ik4) , intent(in) :: j
-    integer(ik4) , dimension(ici1:ici2) :: ivegcov
-    real(rkx) , dimension(ici1:ici2) :: wind10
-    real(rkx) , dimension(ici1:ici2,sbin) , intent(out) :: seasalt_flx
+    integer(ik4) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: ivegcov
+    real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wind10
 
+    real(rkx) , dimension(sbin) :: seasalt_flx
     real(rkx) :: dumu10
     real(rkx) :: dplo_acc , dphi_acc , dplo_cor , dphi_cor
     real(rkx) :: seasalt_emfac_mascor , seasalt_emfac_numcor
     real(rkx) :: seasalt_emfac_masacc , seasalt_emfac_numacc
-    integer(ik4) :: modeptr_coarseas
-    integer(ik4) :: modeptr_accum
-    integer(ik4) :: i , iflg , ib
+    integer(ik4) :: i , j
 
     real(rkx) :: specmw_seasalt_amode
     real(rkx) :: dum_mw
 
     specmw_seasalt_amode = 1.0_rkx
-    modeptr_coarseas = 1
-    modeptr_accum = 1
 
     dplo_acc = ssltbsiz(1,1)*1.0e-4_rkx
     dphi_acc = ssltbsiz(1,2)*1.0e-4_rkx
@@ -96,9 +91,6 @@ module mod_che_seasalt
     !* initialization -- compute seasalt emissions factors    ***
     !* for accumulation and coarse modes                      ***
     !************************************************************
-
-    seasalt_flx(:,1) = d_zero
-    seasalt_flx(:,2) = d_zero
 
     seasalt_emfac_numacc = d_zero
     seasalt_emfac_masacc = d_zero
@@ -129,38 +121,33 @@ module mod_che_seasalt
     ! print*, seasalt_emfac_masacc, seasalt_emfac_mascor
 
     do i = ici1 , ici2
-      if ( ivegcov(i) == 0 ) then
-        iflg = 1
-      else
-        iflg = 0
-      end if
+      do j = jci1 , jci2
+        if ( ivegcov(j,i) > 0 ) cycle
 
-      seasalt_flx(i,1) = seasalt_emfac_masacc * real(iflg,rkx)
-      seasalt_flx(i,2) = seasalt_emfac_mascor * real(iflg,rkx)
+        seasalt_flx(1) = seasalt_emfac_masacc
+        seasalt_flx(2) = seasalt_emfac_mascor
 
-      if ( wind10(i) > d_zero ) then
-        dumu10 = max( d_zero, min( 100.0_rkx, wind10(i) ))
-        dumu10 = dumu10**3.41_rkx
-        seasalt_flx(i,1) = seasalt_flx(i,1) * dumu10
-        seasalt_flx(i,2) = seasalt_flx(i,2) * dumu10
-      else
-        seasalt_flx(i,1) = d_zero
-        seasalt_flx(i,2) = d_zero
-      end if
-    end do
+        if ( wind10(j,i) > d_zero ) then
+          dumu10 = max( d_zero, min( 100.0_rkx, wind10(j,i) ))
+          dumu10 = dumu10**3.41_rkx
+          seasalt_flx(1) = seasalt_flx(1) * dumu10
+          seasalt_flx(2) = seasalt_flx(2) * dumu10
+        else
+          seasalt_flx(1) = d_zero
+          seasalt_flx(2) = d_zero
+        end if
 
-    ! Update the emission tendency
-    do ib = 1 , sbin
-      ! calculate the source tendancy
-      do i = ici1 , ici2
-        ! chemsrc(i,j,lmonth,isslt(ib)) = seasalt_flx(i,ib)
+        ! calculate the source tendancy
+        chiten(j,i,kz,isslt(1)) = chiten(j,i,kz,isslt(1)) + &
+                seasalt_flx(1)*egrav/(dsigma(kz)*1.e3_rkx)
+        chiten(j,i,kz,isslt(2)) = chiten(j,i,kz,isslt(2)) + &
+                seasalt_flx(2)*egrav/(dsigma(kz)*1.e3_rkx)
 
-        chiten(j,i,kz,isslt(ib)) = chiten(j,i,kz,isslt(ib)) + &
-                seasalt_flx(i,ib)*egrav/(dsigma(kz)*1.e3_rkx)
         ! diagnostic source
-        cemtrac(j,i,isslt(ib)) = cemtrac(j,i,isslt(ib)) + &
-                 seasalt_flx(i,ib)*cfdout
-
+        cemtrac(j,i,isslt(1)) = cemtrac(j,i,isslt(1)) + &
+                 seasalt_flx(1)*cfdout
+        cemtrac(j,i,isslt(2)) = cemtrac(j,i,isslt(2)) + &
+                 seasalt_flx(2)*cfdout
       end do
     end do
 

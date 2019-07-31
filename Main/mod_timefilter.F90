@@ -63,10 +63,12 @@ module mod_timefilter
     real(rkx) , intent(in) :: alpha
     real(rkx) :: d
     integer(ik4) :: i , j
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-      d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
-      phinm1(j,i) = phin(j,i) + d
-      phin(j,i) = phinp1(j,i)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
+        phinm1(j,i) = phin(j,i) + d
+        phin(j,i) = phinp1(j,i)
+      end do
     end do
   end subroutine filter_ra_2d
 
@@ -78,10 +80,12 @@ module mod_timefilter
     real(rkx) , intent(in) :: alpha , beta
     real(rkx) :: d
     integer(ik4) :: i , j
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
-      d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
-      phinm1(j,i) = phin(j,i) + beta * d
-      phin(j,i) = phinp1(j,i) + (beta - d_one) * d
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        d = alpha * (phinp1(j,i) + phinm1(j,i) - d_two * phin(j,i))
+        phinm1(j,i) = phin(j,i) + beta * d
+        phin(j,i) = phinp1(j,i) + (beta - d_one) * d
+      end do
     end do
   end subroutine filter_raw_2d
 
@@ -94,10 +98,14 @@ module mod_timefilter
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(phin,3)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:nk )
-      d = alpha * (phinp1(j,i,k) + phinm1(j,i,k) - d_two * phin(j,i,k))
-      phinm1(j,i,k) = phin(j,i,k) + d
-      phin(j,i,k) = phinp1(j,i,k)
+    do k = 1 , nk
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          d = alpha * (phinp1(j,i,k) + phinm1(j,i,k) - d_two * phin(j,i,k))
+          phinm1(j,i,k) = phin(j,i,k) + d
+          phin(j,i,k) = phinp1(j,i,k)
+        end do
+      end do
     end do
   end subroutine filter_ra_3d
 
@@ -110,10 +118,14 @@ module mod_timefilter
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(phin,3)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:nk )
-      d = alpha * (phinp1(j,i,k) + phinm1(j,i,k) - d_two * phin(j,i,k))
-      phinm1(j,i,k) = phin(j,i,k) + beta * d
-      phin(j,i,k) = phinp1(j,i,k) + (beta - d_one) * d
+    do k = 1 , nk
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          d = alpha * (phinp1(j,i,k) + phinm1(j,i,k) - d_two * phin(j,i,k))
+          phinm1(j,i,k) = phin(j,i,k) + beta * d
+          phin(j,i,k) = phinp1(j,i,k) + (beta - d_one) * d
+        end do
+      end do
     end do
   end subroutine filter_raw_3d
 
@@ -129,13 +141,17 @@ module mod_timefilter
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(un,3)
-    do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:nk )
-      d = alpha * (unp1(j,i,k) + unm1(j,i,k) - d_two * un(j,i,k))
-      unm1(j,i,k) = un(j,i,k) + d
-      un(j,i,k) = unp1(j,i,k)
-      d = alpha * (vnp1(j,i,k) + vnm1(j,i,k) - d_two * vn(j,i,k))
-      vnm1(j,i,k) = vn(j,i,k) + d
-      vn(j,i,k) = vnp1(j,i,k)
+    do k = 1 , nk
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          d = alpha * (unp1(j,i,k) + unm1(j,i,k) - d_two * un(j,i,k))
+          unm1(j,i,k) = un(j,i,k) + d
+          un(j,i,k) = unp1(j,i,k)
+          d = alpha * (vnp1(j,i,k) + vnm1(j,i,k) - d_two * vn(j,i,k))
+          vnm1(j,i,k) = vn(j,i,k) + d
+          vn(j,i,k) = vnp1(j,i,k)
+        end do
+      end do
     end do
   end subroutine filter_ra_uv
 
@@ -151,33 +167,42 @@ module mod_timefilter
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(un,3)
-    do concurrent ( j = jdi1:jdi2 , i = idi1:idi2 , k = 1:nk )
-      d = alpha * (unp1(j,i,k) + unm1(j,i,k) - d_two * un(j,i,k))
-      unm1(j,i,k) = un(j,i,k) + beta * d
-      un(j,i,k) = unp1(j,i,k) + (beta - d_one) * d
-      d = alpha * (vnp1(j,i,k) + vnm1(j,i,k) - d_two * vn(j,i,k))
-      vnm1(j,i,k) = vn(j,i,k) + beta * d
-      vn(j,i,k) = vnp1(j,i,k) + (beta - d_one) * d
+    do k = 1 , nk
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          d = alpha * (unp1(j,i,k) + unm1(j,i,k) - d_two * un(j,i,k))
+          unm1(j,i,k) = un(j,i,k) + beta * d
+          un(j,i,k) = unp1(j,i,k) + (beta - d_one) * d
+          d = alpha * (vnp1(j,i,k) + vnm1(j,i,k) - d_two * vn(j,i,k))
+          vnm1(j,i,k) = vn(j,i,k) + beta * d
+          vn(j,i,k) = vnp1(j,i,k) + (beta - d_one) * d
+        end do
+      end do
     end do
   end subroutine filter_raw_uv
 
-  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2,low,ps)
+  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2,low)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , intent(in) :: alpha , low
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
     integer(ik4) :: i , j , k , n , nk
     nk = size(phin,3)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:nk , n = n1:n2 )
-      d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
-          d_two * phin(j,i,k,n))
-      phinm1(j,i,k,n) = phin(j,i,k,n) + d
-      if ( phinm1(j,i,k,n) < ps(j,i)*low ) phinm1(j,i,k,n) = d_zero
-      phin(j,i,k,n) = phinp1(j,i,k,n)
+    do n = n1 , n2
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
+                d_two * phin(j,i,k,n))
+            phinm1(j,i,k,n) = phin(j,i,k,n) + d
+            if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = low
+            phin(j,i,k,n) = phinp1(j,i,k,n)
+          end do
+        end do
+      end do
     end do
   end subroutine filter_ra_4d
 
@@ -191,31 +216,41 @@ module mod_timefilter
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(phin,3)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:nk )
-      d = alpha * (phinp1(j,i,k,iqv) + phinm1(j,i,k,iqv) - &
-          d_two * phin(j,i,k,iqv))
-      phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + d, minqq*ps(j,i))
-      phin(j,i,k,iqv) = phinp1(j,i,k,iqv)
+    do k = 1 , nk
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          d = alpha * (phinp1(j,i,k,iqv) + phinm1(j,i,k,iqv) - &
+              d_two * phin(j,i,k,iqv))
+          phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + d, minqq*ps(j,i))
+          phin(j,i,k,iqv) = phinp1(j,i,k,iqv)
+        end do
+      end do
     end do
   end subroutine filter_ra_qv
 
-  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low,psa,psb)
+  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: psa , psb
     real(rkx) , intent(in) :: alpha , beta , low
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
     integer(ik4) :: i , j , k , n , nk
     nk = size(phin,3)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:nk , n = n1:n2 )
-      d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - d_two * phin(j,i,k,n))
-      phinm1(j,i,k,n) = phin(j,i,k,n) + beta * d
-      phin(j,i,k,n) = phinp1(j,i,k,n) + (beta - d_one) * d
-      if ( phinm1(j,i,k,n) < psa(j,i)*low ) phinm1(j,i,k,n) = d_zero
-      if ( phin(j,i,k,n) < psb(j,i)*low ) phin(j,i,k,n) = d_zero
+    do n = n1 , n2
+      do k = 1 , nk
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
+                        d_two * phin(j,i,k,n))
+            phinm1(j,i,k,n) = phin(j,i,k,n) + beta * d
+            phin(j,i,k,n) = phinp1(j,i,k,n) + (beta - d_one) * d
+            if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = low
+            if ( phin(j,i,k,n) < low ) phin(j,i,k,n) = low
+          end do
+        end do
+      end do
     end do
   end subroutine filter_raw_4d
 
@@ -229,12 +264,16 @@ module mod_timefilter
     real(rkx) :: d
     integer(ik4) :: i , j , k , nk
     nk = size(phin,3)
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:nk )
-      d = alpha * (phinp1(j,i,k,iqv) + phinm1(j,i,k,iqv) - &
-          d_two * phin(j,i,k,iqv))
-      phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + beta * d, minqq*psa(j,i))
-      phin(j,i,k,iqv) = max(phinp1(j,i,k,iqv) + &
+    do k = 1 , nk
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          d = alpha * (phinp1(j,i,k,iqv) + phinm1(j,i,k,iqv) - &
+              d_two * phin(j,i,k,iqv))
+          phinm1(j,i,k,iqv) = max(phin(j,i,k,iqv) + beta * d, minqq*psa(j,i))
+          phin(j,i,k,iqv) = max(phinp1(j,i,k,iqv) + &
                         (beta - d_one) * d, minqq*psb(j,i))
+        end do
+      end do
     end do
   end subroutine filter_raw_qv
 

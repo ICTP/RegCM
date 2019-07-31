@@ -511,7 +511,11 @@ module mod_params
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
     idirect = 0       ! tracer direct effect
+#ifdef CLM45
+    isnowdark = 1     ! Snow darkening by CARB/DUST
+#else
     isnowdark = 0     ! Snow darkening by CARB/DUST
+#endif
     iindirect = 0
     ichdiag = 0       ! chem tend outputs
     ichsursrc = 1
@@ -520,6 +524,13 @@ module mod_params
     rdstemfac = d_one
     ichbion = 0
     rocemfac = 1.33_rkx
+
+    ntr = 0
+    nbin = 0
+    igaschem = 0
+    iaerosol = 0
+    iisoropia = 0
+    ioxclim = 0
 
 #ifdef CLM
     !
@@ -884,6 +895,11 @@ module mod_params
       end if
 
       if ( ichem == 1 ) then
+        if ( iclimaaer == 1 ) then
+          write(stderr,*) 'Cannot define both ichem and iclimaaer'
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST INCONSISTENT AEROSOLS')
+        end if
         rewind(ipunit)
         read (ipunit, chemparam, iostat=iretval, err=118)
         if ( iretval /= 0 ) then
@@ -895,9 +911,6 @@ module mod_params
           write(stdout,*) 'Read chemparam OK'
 #endif
         end if
-      else
-        ichem = 0
-        ntr = 0
       end if
 #ifndef CLM45
       if ( isnowdark > 0 ) then
@@ -1068,12 +1081,12 @@ module mod_params
     call bcast(idiag)
     call bcast(icosp)
     call bcast(do_parallel_netcdf_in)
-#ifdef NETCDF4_HDF5
     call bcast(do_parallel_netcdf_out)
+#ifdef NETCDF4_HDF5
     call bcast(deflate_level)
-#else
-    do_parallel_netcdf_out = .false.
 #endif
+
+    do_parallel_save = (do_parallel_netcdf_in .and. do_parallel_netcdf_out)
 
     ! Reset the NEEDED 2D vars.
     enable_atm_vars(1:6) = .true.
@@ -1117,7 +1130,6 @@ module mod_params
     call bcast(iemiss)
     call bcast(lakemod)
     call bcast(ichem)
-    call bcast(ntr)
 
     if ( idynamic == 3 ) then
       ! Moloch paramters here
@@ -1468,9 +1480,7 @@ module mod_params
       call bcast(ichdrdepo)
       call bcast(ichcumtra)
       call bcast(idirect)
-#ifdef CLM45
       call bcast(isnowdark)
-#endif
       call bcast(iindirect)
       call bcast(ichsolver)
       call bcast(ichjphcld)
@@ -1484,13 +1494,9 @@ module mod_params
       call bcast(ichbion)
       call bcast(ismoke)
 
+      ! Set chemistry dimensions and tracer names
       call chem_config
-      ! the following param are set according in chem-config !
-      call bcast(ntr)
-      call bcast(nbin)
-      call bcast(iaerosol)
-      call bcast(ioxclim)
-      call bcast(igaschem)
+
     end if
 
     rcmtimer => rcm_timer(idate0,idate1,idate2,dt)
@@ -1498,11 +1504,9 @@ module mod_params
     if ( iclimaaer == 1 ) then
       call init_aerclima
     end if
-
     !
     ! ALLOCATE NEEDED SPACE
     !
-
     call allocate_mod_runparams
 
     call allocate_mod_atm_interface
@@ -1528,7 +1532,6 @@ module mod_params
     call allocate_mod_che_dust
     call allocate_mod_che_bdyco
     call allocate_mod_che_bionit
-    call allocate_mod_che_linox
 
     if ( isladvec == 1 ) then
       call allocate_mod_sldepparam

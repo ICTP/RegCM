@@ -267,6 +267,7 @@ module mod_ncstream_types
     character(len=maxunit) :: vunit
     character(len=maxstring) :: long_name
     character(len=maxstring) :: standard_name
+    character(len=maxstring) :: notes = " "
     character(len=maxstring) :: cell_method = "time: point"
     integer(ik4) :: totsize = 0
     logical :: lgridded = .false.

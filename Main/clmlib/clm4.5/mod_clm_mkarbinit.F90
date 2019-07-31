@@ -22,6 +22,8 @@ module mod_clm_mkarbinit
 
   private
 
+  logical , parameter :: lsnowhack = .false.
+
   save
 
   public mkarbinit   ! Make arbitrary initial conditions
@@ -968,11 +970,7 @@ module mod_clm_mkarbinit
 
       if ( .not. lakpoi(l) ) then  !not lake
         if ( ltype(l) == istice ) then
-          if ( adomain%tgrd(g) < 268.0_rk8 ) then
-            h2osno(c) = h2osno_max
-          else
-            h2osno(c) = 0.0_rk8
-          end if
+          h2osno(c) = h2osno_max
         else if ( ltype(l) /= isturb ) then
           if ( adomain%snow(g) < 1.0e+10_rk8 ) then
             h2osno(c) = adomain%snow(g)
@@ -983,14 +981,18 @@ module mod_clm_mkarbinit
           h2osno(c) = 0.0_rk8
         end if
 
-        if ( h2osno(c) < 0.1_rk8 ) then
-          if ( ltype(l) /= isturb ) then
-            ! Start with some snow on mountains and on cold regions
-            if ( adomain%tgrd(g) < 263.0_rk8 .and. &
-                 adomain%topo(g) > 500.0_rk8 ) then
-              h2osno(c) = adomain%topo(g)/1000.0_rk8 * (1.0_rk8 - &
-                     (min(1.0_rk8,max((adomain%tgrd(g)-253.0_rk8) / &
+        if ( lsnowhack ) then
+          if ( h2osno(c) < 0.1_rk8 ) then
+            if ( ltype(l) /= isturb ) then
+              ! Start with some snow on mountains and on cold regions
+              if ( adomain%tgrd(g) < 263.0_rk8 .and. &
+                   adomain%topo(g) > 500.0_rk8 ) then
+                  h2osno(c) = adomain%topo(g)/1000.0_rk8 * (1.0_rk8 - &
+                       (min(1.0_rk8,max((adomain%tgrd(g)-253.0_rk8) / &
                                               20.0_rk8,0.0_rk8))))
+              else
+                h2osno(c) = 0.0_rk8
+              end if
             end if
           end if
         end if

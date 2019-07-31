@@ -38,6 +38,9 @@ module mod_che_dust
 
   real(rkx) , dimension(4,2) :: dustbsiz1
   real(rkx) , dimension(12,2) :: dustbsiz2
+#ifdef CLM45
+  real(rkx) , pointer , dimension(:,:) :: sumdflux
+#endif
 
   ! Fix the actual dust aerosol bin size: diameter in microm
 
@@ -139,7 +142,7 @@ module mod_che_dust
   ! in each texture type.
   real(rkx) , pointer,  dimension(:) :: dustbed , soldust
   real(rkx) , pointer,  dimension(:) :: frac1 , frac2 , frac3 , frac
-  real(rkx) , pointer , dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
+  real(rkx) , pointer , dimension(:,:,:) :: clay2row2 , sand2row2
   real(rkx) , pointer , dimension(:,:) :: clayrow2 , sandrow2 , dustbsiz
   real(rkx) , pointer , dimension(:,:,:,:) :: srel2d
   real(rkx) , pointer , dimension(:,:,:) :: dustsotex
@@ -174,14 +177,13 @@ module mod_che_dust
     subroutine allocate_mod_che_dust
       implicit none
       if ( ichem == 1 ) then
-        call getmem3d(dustsotex,jce1,jce2,ice1,ice2,1,nats,'che_dust:dustsotex')
-        call getmem3d(clay2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:clay2row2')
-        call getmem3d(sand2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:sand2row2')
-        call getmem3d(silt2row2,ici1,ici2,1,nats,jci1,jci2,'che_dust:silt2row2')
-        call getmem2d(clayrow2,ici1,ici2,jci1,jci2,'che_dust:clayrow2')
-        call getmem2d(sandrow2,ici1,ici2,jci1,jci2,'che_dust:sandrow2')
-        call getmem4d(srel2d,ici1,ici2,jci1,jci2,1,nsoil,1,nats, &
-                      'che_dust:srel2d')
+        call getmem3d(dustsotex,jci1,jci2,ici1,ici2,1,nats,'che_dust:dustsotex')
+        call getmem3d(clay2row2,1,nats,jci1,jci2,ici1,ici2,'che_dust:clay2row2')
+        call getmem3d(sand2row2,1,nats,jci1,jci2,ici1,ici2,'che_dust:sand2row2')
+        call getmem2d(clayrow2,jci1,jci2,ici1,ici2,'che_dust:clayrow2')
+        call getmem2d(sandrow2,jci1,jci2,ici1,ici2,'che_dust:sandrow2')
+        call getmem4d(srel2d,1,nsoil,1,nats, &
+                      jci1,jci2,ici1,ici2,'che_dust:srel2d')
         call getmem2d(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
         call getmem1d(dustbed,1,nbin,'che_dust:dustbed')
         call getmem1d(soldust,1,nbin,'che_dust:soldust')
@@ -189,10 +191,17 @@ module mod_che_dust
         call getmem1d(frac2,1,nbin,'che_dust:frac2')
         call getmem1d(frac3,1,nbin,'che_dust:frac3')
         call getmem1d(frac,1,nbin,'che_dust:frac')
-        call getmem3d(cminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:cminer')
-        call getmem3d(sminer,jce1,jce2,ice1,ice2,1,nmine,'che_dust:sminer')
+        if ( nmine > 0 ) then
+          call getmem3d(cminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:cminer')
+          call getmem3d(sminer,jci1,jci2,ici1,ici2,1,nmine,'che_dust:sminer')
+        end if
+#ifdef CLM45
+        if ( ichdustemd == 3 ) then
+          call getmem2d(sumdflux,jci1,jci2,ici1,ici2,'che_dust:sumdflux')
+        end if
+#endif
       end if
-      ilg = ici2-ici1+1
+      ilg = (ici2-ici1+1)*(jci2-jci1+1)
     end subroutine allocate_mod_che_dust
     !
     !  ***********************************************************
@@ -216,12 +225,12 @@ module mod_che_dust
     !
     subroutine inidust
       implicit none
-      real(rkx) , dimension(nats) :: bcly , bslt , bsnd
+      real(rkx) , dimension(nats) :: bcly , bsnd
+      ! real(rkx) , dimension(nats) :: bslt
       real(rkx) :: deldp , stotal , xk , xl , xm , xn
       integer(ik4) :: i , j , n , nm , ns , nt , itr , ndi
       real(rkx) , dimension(mode,nats) :: mmdd , pcentd , sigmad
       real(rkx) , dimension(mode,nats) :: mmd , pcent , sigma
-      real(rkx) , dimension(iy,nsoil,nats) :: srel
       real(rkx) , dimension(nsoil) :: ss
       real(rkx) , dimension(:) , allocatable :: di
       ! modif new distribution
@@ -231,10 +240,11 @@ module mod_che_dust
       real(rkx) , dimension (mode)    :: texmmd , texstd
 
       logical :: rd_tex
+      integer(ik4) , dimension(1) :: p
       character(6) :: aerctl
       real(rkx) :: alogdi , amean1 , amean2 , amean3 , asigma1 , &
              asigma2 , asigma3 , totv1 , totv2 , totv3 , totv ,  &
-             exp1 , exp2 , exp3
+             exp1 , exp2 , exp3 , term
 #ifdef __PGI
       real(rkx) , external :: erf
 #endif
@@ -262,9 +272,9 @@ module mod_che_dust
       data bsnd / 0.90_rkx , 0.85_rkx , 0.80_rkx , 0.50_rkx , 0.45_rkx , &
                   0.35_rkx , 0.30_rkx , 0.30_rkx , 0.20_rkx , 0.65_rkx , &
                   0.60_rkx , 0.50_rkx /
-      data bslt / 0.050_rkx , 0.050_rkx , 0.051_rkx , 0.350_rkx , 0.400_rkx , &
-                  0.600_rkx , 0.650_rkx , 0.500_rkx , 0.050_rkx , 0.000_rkx , &
-                  0.000_rkx , 0.000_rkx/
+      !data bslt / 0.050_rkx , 0.050_rkx , 0.051_rkx , 0.350_rkx , 0.400_rkx , &
+      !            0.600_rkx , 0.650_rkx , 0.500_rkx , 0.050_rkx , 0.000_rkx , &
+      !            0.000_rkx , 0.000_rkx/
 
       data mmdd /690.0_rkx ,   0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
                  690.0_rkx , 210.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
@@ -330,7 +340,7 @@ module mod_che_dust
         mmd = mmdd
         sigma = sigmad
         pcent = pcentd
-      else if ( ichdustemd == 2 ) then
+      else if ( ichdustemd >= 2 ) then
         do nm = 1 , mode
           mmd(nm,:) = texmmd(nm)
           sigma(nm,:) = texstd(nm)
@@ -358,24 +368,22 @@ module mod_che_dust
       end if
 
       ! read mineral fractions
-      if ( imine(1,1) > 0 ) then
+      if ( nmine > 0 ) then
         call read_miner(nmine,cminer,sminer)
       end if
 
       clay2row2 = d_zero
       clayrow2  = d_zero
       sand2row2 = d_zero
-      silt2row2 = d_zero
       srel2d    = d_zero
 
-      do j = jci1 , jci2
-        do i = ici1 , ici2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           do nt = 1 , nats
-            clay2row2(i,nt,j) = bcly(nt)*d_100
-            sand2row2(i,nt,j) = bsnd(nt)*d_100
-            silt2row2(i,nt,j) = bslt(nt)*d_100
-            sandrow2(i,j) = sandrow2(i,j) + dustsotex(j,i,nt)*sand2row2(i,nt,j)
-            clayrow2(i,j) = clayrow2(i,j) + dustsotex(j,i,nt)*clay2row2(i,nt,j)
+            clay2row2(nt,j,i) = bcly(nt)*d_100
+            sand2row2(nt,j,i) = bsnd(nt)*d_100
+            sandrow2(j,i) = sandrow2(j,i) + dustsotex(j,i,nt)*sand2row2(nt,j,i)
+            clayrow2(j,i) = clayrow2(j,i) + dustsotex(j,i,nt)*clay2row2(nt,j,i)
           end do
         end do
       end do ! end j loop
@@ -397,13 +405,12 @@ module mod_che_dust
         di(ns) = 0.01_rkx * real(ns-1,rkx)
       end do
 
-      do j = jci1 , jci2
-        srel(:,:,:) = d_zero
-        do i = ici1 , ici2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           do nt = 1 , nats
             ss(:) = d_zero
             stotal = d_zero
-            if ( sand2row2(i,nt,j) > d_zero ) then
+            if ( sand2row2(nt,j,i) > d_zero ) then
               do ns = 1 , nsoil          !soil size segregatoin no
                 do nm = 1 , mode       !soil mode = 5
                   if ( (pcent(nm,nt) > eps) .and. (sigma(nm,nt) > eps) ) then
@@ -426,21 +433,12 @@ module mod_che_dust
               end do
               do ns = 1 , nsoil
                 if ( stotal > d_zero ) then
-                  srel(i,ns,nt) = min(ss(ns)/stotal,d_one)
+                  srel2d(ns,nt,j,i) = min(ss(ns)/stotal,d_one)
                 end if
               end do
             end if
           end do ! soil types
         end do
-
-        do nt = 1 , nats
-          do i = ici1 , ici2
-            do ns = 1 , nsoil
-              srel2d(i,j,ns,nt) = srel(i,ns,nt)
-            end do
-          end do
-        end do
-
       end do  ! end J loop
       !
       ! Finally calculate the emission stribution weights in function of
@@ -508,19 +506,27 @@ module mod_che_dust
         frac = 0._rkx
         totv = 0._rkx
         do ns = 1 , ndi
+          ! kok 2001
+          term = d_one/cv * (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
+                     log(sigmas)))*exp(-(di(ns)/lambda)**3)
           do n = 1 , nbin
              if ( di(ns) > dustbsiz(n,1) .and. di(ns) <= dustbsiz(n,2) ) then
-                frac(n) = frac(n) + di(ns)/cv * &
-                  (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(di(ns)/lambda)**3)  !see Kok (2011)
+                frac(n) = frac(n) + term
              end if
            end do
-           totv = totv + d_one / cv * (di(ns)+erf(log(di(ns)/d)/sqrt(d_two)/ &
-                  log(sigmas)))*exp(-(di(ns)/lambda)**3)
+           totv = totv + term
         end do
         frac(:) = frac(:) / totv
         if ( abs(sum(frac) - d_one) > epsilon(1.0) ) then
+          p = maxloc(frac)
+          n = p(1)
+          frac(n) = frac(n) + (d_one-sum(frac))
+        end if
+        if ( abs(sum(frac) - d_one) > 0.005 ) then
           write(stderr,*) 'TOTFRAC = ', sum(frac)
+          write(stderr,*) 'ERROR = ', sum(frac)-d_one
+          call fatal(__FILE__,__LINE__, &
+               'Weight normalization failed')
         end if
       end if
 
@@ -602,23 +608,25 @@ module mod_che_dust
     !   * Zakey et al., 2006                                ******
     !   **********************************************************
     !
-    subroutine sfflux(jloop,ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
-                      surfwd,roarow,trsize,rsfrow)
+    subroutine sfflux(ivegcov,vegfrac,snowfrac,ustarnd,z0,soilw, &
+                      surfwd,roarow,trsize)
       implicit none
-      integer(ik4) , intent(in) :: jloop
-      integer(ik4) , intent(in) , dimension(ici1:ici2) ::  ivegcov
-      real(rkx) , intent(in) , dimension(ici1:ici2) :: roarow , soilw , &
-                surfwd , vegfrac , snowfrac , z0 , ustarnd
-      real(rkx) , intent(out) , dimension(ici1:ici2,nbin) :: rsfrow
+      integer(ik4) , intent(in) , dimension(jci1:jci2,ici1:ici2) ::  ivegcov
+      real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: roarow
+      real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: soilw
+      real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: surfwd
+      real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: vegfrac
+      real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: snowfrac
+      real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: z0
+      real(rkx) , intent(in) , dimension(jci1:jci2,ici1:ici2) :: ustarnd
       real(rkx) , intent(in) , dimension(nbin,2) :: trsize
       real(rkx) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
                 xsurfwd , xvegfrac , xz0 , xustarnd , xsnowfrac
       real(rkx) , dimension(ilg,nbin) :: xrsfrow
       real(rkx) , dimension(ilg,nats) :: xftex , xalphaprop
       real(rkx) , dimension(ilg,nsoil,nats) :: xsrel2d
-      integer(ik4) :: i , ieff , n , ns
+      integer(ik4) :: i , j , ieff , n , ns , m
 
-      rsfrow = d_zero
       ! effective emitter cell ( depending on ivegcov)
       xvegfrac = d_zero
       xsnowfrac = d_zero
@@ -635,34 +643,36 @@ module mod_che_dust
 
       ieff = 0
       do i = ici1 , ici2
-        if ( ivegcov(i) == 8 .or. ivegcov(i) == 11 ) then
-          ieff = ieff + 1
-          xvegfrac(ieff) = vegfrac(i)
-          xsnowfrac(ieff) =  snowfrac(i)
-          xsoilw(ieff) = soilw(i)
-          xsurfwd(ieff) = surfwd(i)
-          xz0(ieff) = z0(i)
-          xroarow(ieff) = roarow(i)
-          xustarnd(ieff) = ustarnd(i)
-          xclayrow(ieff) = clayrow2(i,jloop)
-          do n = 1 , nats
-            xftex(ieff,n) = dustsotex(jloop,i,n)
-            if ( ichdustemd == 2 ) then
-              if ( clay2row2(i,n,jloop) <= 20 ) then
-                xalphaprop(ieff,n) = d_10**(0.134_rkx * &
-                              clay2row2(i,n,jloop)-6.0_rkx)
-!                              clay2row2(i,n,jloop)-6.0_rkx)*0.035_rkx
-              else
-                xalphaprop(ieff,n) = d_10**(-0.1_rkx * &
-                              clay2row2(i,n,jloop)-6.0_rkx)
-!                              clay2row2(i,n,jloop)-1.2_rkx)*0.035_rkx
+        do j = jci1 , jci2
+          if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+            ieff = ieff + 1
+            xvegfrac(ieff) = vegfrac(j,i)
+            xsnowfrac(ieff) =  snowfrac(j,i)
+            xsoilw(ieff) = soilw(j,i)
+            xsurfwd(ieff) = surfwd(j,i)
+            xz0(ieff) = z0(j,i)
+            xroarow(ieff) = roarow(j,i)
+            xustarnd(ieff) = ustarnd(j,i)
+            xclayrow(ieff) = clayrow2(j,i)
+            do n = 1 , nats
+              xftex(ieff,n) = dustsotex(j,i,n)
+              if ( ichdustemd >= 2 ) then
+                if ( clay2row2(n,j,i) <= 20 ) then
+                  xalphaprop(ieff,n) = d_10**(0.134_rkx * &
+                                clay2row2(n,j,i)-6.0_rkx)
+!                                clay2row2(n,j,i)-6.0_rkx)*0.035_rkx
+                else
+                  xalphaprop(ieff,n) = d_10**(-0.1_rkx * &
+                                clay2row2(n,j,i)-6.0_rkx)
+!                                clay2row2(n,j,i)-1.2_rkx)*0.035_rkx
+                end if
               end if
-            end if
-            do  ns = 1 , nsoil
-              xsrel2d(ieff,ns,n) = srel2d(i,jloop,ns,n)
+              do  ns = 1 , nsoil
+                xsrel2d(ieff,ns,n) = srel2d(ns,n,j,i)
+              end do
             end do
-          end do
-        end if
+          end if
+        end do
       end do
 
       if ( ieff > 0 ) then
@@ -673,58 +683,70 @@ module mod_che_dust
 
       ! put back the dust flux on the right grid
 
-      ieff = 1
-      do i = ici1 , ici2
-        if ( ivegcov(i) == 8 .or. ivegcov(i) == 11 ) then
-          do n = 1 , nbin
-            rsfrow(i,n) = xrsfrow(ieff,n)
-            if ( ichdrdepo == 1 ) then
-              ! kg m-2 s-1 => kg/kg * s-1 * psb : use hydrostatic eq
-              ! multiply by g/dp * psb
-              ! dp = dsigma * ps in Pa = dsigma * psb * 1000
-              ! Simplify psb
-              ! Result is g/(dsigma * 1000)
-              chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + &
-                   rsfrow(i,n)*egrav/(dsigma(kz)*1.e3_rkx)
-            else if ( ichdrdepo == 2 ) then
-              ! pass the flux to BL scheme
-              chifxuw(jloop,i,idust(n)) = chifxuw(jloop,i,idust(n)) + &
-                   rsfrow(i,n)
+      do n = 1 , nbin
+        ieff = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+              if ( ichdrdepo == 1 ) then
+                ! kg m-2 s-1 => kg/kg * s-1 * psb : use hydrostatic eq
+                ! multiply by g/dp * psb
+                ! dp = dsigma * ps in Pa = dsigma * psb * 1000
+                ! Simplify psb
+                ! Result is g/(dsigma * 1000)
+                chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
+                     xrsfrow(ieff,n)*egrav/(dsigma(kz)*1.e3_rkx)
+              else if ( ichdrdepo == 2 ) then
+                ! pass the flux to BL scheme
+                chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
+                     xrsfrow(ieff,n)
+              end if
+              ! diagnostic source (accumulated)
+              cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
+                       xrsfrow(ieff,n)* cfdout
+              if ( ichdiag > 0 ) then
+                cemisdiag(j,i,kz,idust(n)) = &
+                     cemisdiag(j,i,kz,idust(n)) + xrsfrow(ieff,n) / &
+                     (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+              end if
+              ieff = ieff + 1
             end if
-            ! diagnostic source (accumulated)
-            cemtrac(jloop,i,idust(n)) = cemtrac(jloop,i,idust(n)) + &
-                     rsfrow(i,n)* cfdout
-             if ( ichdiag > 0 ) then
-               cemisdiag(jloop,i,kz,idust(n)) = &
-                    cemisdiag(jloop,i,kz,idust(n)) + rsfrow(i,n) / &
-                    (cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
-             end if
           end do
-          ieff = ieff + 1
-        end if
+        end do
       end do
+
       ! Mineralogy flux option
       ! introduce mineralogy here, implicit loop on mineral types
-      if ( imine(1,1) > 0 ) then
-        do n = 1 , nbin
-          do i = ici1 , ici2
-            chiten(jloop,i,kz,imine(n,:)) = &
-                   chiten(jloop,i,kz,imine(n,:)) + &
-                   rsfrow(i,n)* ( cminer(jloop,i,:)*cfrac(n) + &
-                                  sminer(jloop,i,:)*sfrac(n) ) &
-                   *egrav / (dsigma(kz)*1.e3_rkx)
-            cemtrac(jloop,i,imine(n,:)) = cemtrac(jloop,i,imine(n,:)) + &
-                     rsfrow(i,n)* (cminer(jloop,i,:) *cfrac(n)  + &
-                                   sminer(jloop,i,:) *sfrac(n)) * cfdout
+      ! mines only in desert ?
+
+      if ( nmine > 0 ) then
+        do m = 1 , nmine
+          do n = 1 , nbin
+            ieff = 1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
+                  chiten(j,i,kz,imine(n,m)) = &
+                       chiten(j,i,kz,imine(n,m)) + &
+                       xrsfrow(ieff,n)* ( cminer(j,i,m)*cfrac(n) + &
+                                      sminer(j,i,m)*sfrac(n) ) &
+                       *egrav / (dsigma(kz)*1.e3_rkx)
+                  cemtrac(j,i,imine(n,m)) = cemtrac(j,i,imine(n,m)) + &
+                         xrsfrow(ieff,n)* (cminer(j,i,m) *cfrac(n)  + &
+                                       sminer(j,i,m) *sfrac(n)) * cfdout
+                  ieff = ieff + 1
+                end if
+              end do
+            end do
           end do
         end do
       end if
     end subroutine sfflux
 
-    subroutine dust_module(il1,il2,trsize,soilw,vegfrac,snowfrac,surfwd,ftex, &
+    subroutine dust_module(jl1,jl2,trsize,soilw,vegfrac,snowfrac,surfwd,ftex, &
                            clayrow,roarow,alphaprop,z0,srel,ustarnd,rsfrow)
       implicit none
-      integer(ik4) :: il1 , il2
+      integer(ik4) :: jl1 , jl2
       real(rkx) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                                    vegfrac , z0 , ustarnd , snowfrac
       real(rkx) , dimension(ilg,nbin) :: rsfrow
@@ -736,7 +758,7 @@ module mod_che_dust
       real(rkx) , dimension(ilg) :: alamda , hc , rc , srl , wprim
       real(rkx) :: arc1 , arc2 , cly1 , cly2 , tempd , &
           ustarns , uth , utmin , ustarfw
-      integer(ik4) :: i
+      integer(ik4) :: j
       real(rkx) , dimension(ilg) :: ustar
       real(rkx) , dimension(ilg,nsoil) :: utheff
 
@@ -748,111 +770,111 @@ module mod_che_dust
       real(rkx) , parameter :: z0s = 3.0e-3_rkx
       real(rkx) , parameter :: x = d_10
 
-      do i = il1 , il2
+      do j = jl1 , jl2
 
-        srl(i) = z0(i)*d_100
-        rc(i) = d_one
+        srl(j) = z0(j)*d_100
+        rc(j) = d_one
 
         if ( jfs == 0 ) then
           ! * raupach et al. (1993)
-          if ( vegfrac(i) < d_one ) then
-            alamda(i) = xz*(log(d_one-vegfrac(i)))*(-d_one)
-            arc1 = sigr*ym*alamda(i)
-            arc2 = br*ym*alamda(i)
+          if ( vegfrac(j) < d_one ) then
+            alamda(j) = xz*(log(d_one-vegfrac(j)))*(-d_one)
+            arc1 = sigr*ym*alamda(j)
+            arc2 = br*ym*alamda(j)
             if ( arc1 <= d_one .and. arc2 <= d_one ) then
-              rc(i) = (sqrt(d_one-arc1)*sqrt(d_one+arc2))
+              rc(j) = (sqrt(d_one-arc1)*sqrt(d_one+arc2))
             end if
           end if
         else if ( jfs == 1 ) then
           ! Marticorena et al., 1997: correction factor for non
           ! erodible elements
-          rc(i) = d_one - (log(0.50e-2_rkx/z0s) / &
+          rc(j) = d_one - (log(0.50e-2_rkx/z0s) / &
                           (log(0.35_rkx*(x/z0s)**0.8_rkx)))
         end if
         ! threshold velocity correction for soil humidity hc
         if ( jsoilm == 0 ) then
-          if ( soilw(i) < d_zero ) then
-            write(stderr,*) 'hc, rc = ' , soilw(i) , ' less than zero'
+          if ( soilw(j) < d_zero ) then
+            write(stderr,*) 'hc, rc = ' , soilw(j) , ' less than zero'
             call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
-          else if ( soilw(i) < 0.03_rkx ) then
-            hc(i) = exp(22.7_rkx*soilw(i))
-          else if ( soilw(i) >= 0.03_rkx ) then
-            hc(i) = exp(95.3_rkx*soilw(i)-2.029_rkx)
+          else if ( soilw(j) < 0.03_rkx ) then
+            hc(j) = exp(22.7_rkx*soilw(j))
+          else if ( soilw(j) >= 0.03_rkx ) then
+            hc(j) = exp(95.3_rkx*soilw(j)-2.029_rkx)
           else
-            hc(i) = d_one
+            hc(j) = d_one
           end if
         else if ( jsoilm == 1 ) then
-          cly1 = clayrow(i)
+          cly1 = clayrow(j)
           cly2 = cly1*cly1
-          wprim(i) = 0.0014_rkx*cly2 + 0.17_rkx*cly1
-          tempd =  max(0.00001_rkx,soilw(i)*d_100 -wprim(i))
-!         print*,'humidity',i,cly1,soilw(i)*100,wprim(i),tempd
-          if ( soilw(i)*d_100 > wprim(i) ) then
-            hc(i) = sqrt(d_one+1.21_rkx*tempd**0.68_rkx)
-!           print*,'hc',i,hc(i)
+          wprim(j) = 0.0014_rkx*cly2 + 0.17_rkx*cly1
+          tempd =  max(0.00001_rkx,soilw(j)*d_100 -wprim(j))
+!         print*,'humidity',i,cly1,soilw(j)*100,wprim(j),tempd
+          if ( soilw(j)*d_100 > wprim(j) ) then
+            hc(j) = sqrt(d_one+1.21_rkx*tempd**0.68_rkx)
+!           print*,'hc',i,hc(j)
           else
-            hc(i) = d_one
+            hc(j) = d_one
           end if
           ! no soil humidity correction facor if jsoilm > 1
         else
-          hc(i) = d_one
+          hc(j) = d_one
         end if
         ! * total correction factor for both hc and rc
-        rc(i) = rc(i)/hc(i)
+        rc(j) = rc(j)/hc(j)
         ! * computation of the wind friction velocity
         ! * accounting for the increase of the roughness length
         ! * due to the saltation layer (gillette etal. jgr 103,
         ! * no. d6, p6203-6209, 1998
-        ustarfw = (vonkar*100.0_rkx*surfwd(i))/(log(1000.0_rkx/srl(i)))
-        ustarns = ustarnd(i)*d_100 !cm.s-1
-        utmin = (umin/(d_100*vonkar*rc(i)))*log(d_1000/srl(i))
-        if ( surfwd(i) >= utmin ) then
-          ustar(i) = ustarns + 0.3_rkx*(surfwd(i)-utmin)*(surfwd(i)-utmin)
+        ustarfw = (vonkar*100.0_rkx*surfwd(j))/(log(1000.0_rkx/srl(j)))
+        ustarns = ustarnd(j)*d_100 !cm.s-1
+        utmin = (umin/(d_100*vonkar*rc(j)))*log(d_1000/srl(j))
+        if ( surfwd(j) >= utmin ) then
+          ustar(j) = ustarns + 0.3_rkx*(surfwd(j)-utmin)*(surfwd(j)-utmin)
         else
-          ustar(i) = ustarns
+          ustar(j) = ustarns
         end if
       end do       ! end i loop
 
-      call uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
+      call uthefft(jl1,jl2,ust,nsoil,roarow,utheff,rhodust)
 
-      call emission(il1,il2,rhodust,ftex,alphaprop,uth,roarow,rc,utheff, &
+      call emission(jl1,jl2,rhodust,ftex,alphaprop,uth,roarow,rc,utheff, &
                     ustar,srel,rsfrow,vegfrac,snowfrac)
 
     end subroutine dust_module
 
-    subroutine uthefft(il1,il2,ust,nsoil,roarow,utheff,rhodust)
+    subroutine uthefft(jl1,jl2,ust,nsoil,roarow,utheff,rhodust)
       implicit none
-      integer(ik4) :: il1 , il2 , nsoil , ust
+      integer(ik4) :: jl1 , jl2 , nsoil , ust
       real(rkx) :: rhodust
       real(rkx) , dimension(ilg) :: roarow
       real(rkx) , dimension(ilg,nsoil) :: utheff
-      intent (in) il1 , il2 , nsoil , ust
+      intent (in) jl1 , jl2 , nsoil , ust
       intent (out) utheff
-      integer(ik4) :: n , i
+      integer(ik4) :: n , j
       do n = 1 , nsoil
-        do i = il1 , il2
-          if ( ust == 0 ) utheff(i,n) = ustart0(rhodust,dp_array(n),roarow(i))
-          if ( ust == 1 ) utheff(i,n) = ustart01(rhodust,dp_array(n),roarow(i))
+        do j = jl1 , jl2
+          if ( ust == 0 ) utheff(j,n) = ustart0(rhodust,dp_array(n),roarow(j))
+          if ( ust == 1 ) utheff(j,n) = ustart01(rhodust,dp_array(n),roarow(j))
         end do
       end do
     end subroutine uthefft
 
-    subroutine emission(il1,il2,rhodust,ftex,alphaprop,uth,roarow,rc, &
+    subroutine emission(jl1,jl2,rhodust,ftex,alphaprop,uth,roarow,rc, &
                         utheff,ustar,srel,rsfrow,vegfrac,snowfrac)
       implicit none
-      integer(ik4) :: il1 , il2
+      integer(ik4) :: jl1 , jl2
       real(rkx) :: rhodust , uth
       real(rkx) , dimension(ilg) :: rc , ustar, roarow , vegfrac , snowfrac
       real(rkx) , dimension(ilg,nbin) :: rsfrow
       real(rkx) , dimension(ilg,nats) :: ftex , alphaprop
       real(rkx) , dimension(ilg,nsoil,nats) :: srel
       real(rkx) , dimension(ilg,nsoil) :: utheff
-      intent (in)  il1 , il2 , rc , rhodust , roarow , srel ,  &
+      intent (in)  jl1 , jl2 , rc , rhodust , roarow , srel ,  &
                    ustar , utheff , vegfrac, ftex
       intent (inout) rsfrow , uth
       real(rkx) :: p1 , p2 , p3 , dec , ec , fdp1 , fdp2
       real(rkx) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
-      integer(ik4) :: i , k , n , nt , ns
+      integer(ik4) :: j , k , n , nt , ns
 
       real(rkx), dimension(ilg,nbin,nats):: rsfrowt
 
@@ -872,14 +894,14 @@ module mod_che_dust
       fsoil3(:,:) = d_zero
 
       do nt = 1 , nats
-        do i = il1 , il2
-          if ( ftex(i,nt) < 1.e-10_rkx ) cycle
+        do j = jl1 , jl2
+          if ( ftex(j,nt) < 1.e-10_rkx ) cycle
           do ns = 1 , nsoil
-            if ( rc(i) > d_zero .and. ustar(i) /= d_zero ) then
-              uth = utheff(i,ns)/(rc(i)*ustar(i))
+            if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
+              uth = utheff(j,ns)/(rc(j)*ustar(j))
               if ( uth <= d_one ) then
-                fdp1 = ustar(i)**3*(d_one-uth*uth)
-                fdp2 = (d_one+uth)*rdstemfac*(1.0e-5_rkx)*roarow(i)*regrav
+                fdp1 = ustar(j)**3*(d_one-uth*uth)
+                fdp2 = (d_one+uth)*rdstemfac*(1.0e-5_rkx)*roarow(j)*regrav
                 if ( fdp2 <= d_zero ) fdp2 = d_zero
                 ! FAB: with subgrid soil texture, the aggregation of vertical
                 ! fluxes per texture type at the grid cell level is done in
@@ -887,13 +909,13 @@ module mod_che_dust
                 ! fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
                 ! FAB
                 if ( ichdustemd == 1 ) then
-                  fsoil(i,nt) = srel(i,ns,nt)*fdp1*fdp2
+                  fsoil(j,nt) = srel(j,ns,nt)*fdp1*fdp2
                   ! size-distributed kinetic energy flux(per texture type)
-                  dec = fsoil(i,nt)*beta
+                  dec = fsoil(j,nt)*beta
                   ! individual kinetic energy for an aggregate of size dp (
                   ! g cm2 s-2) cf alfaro (dp) is in cm
                   ec = (mathpi/12.0_rkx)*rhodust*1.0e-3_rkx * &
-                    (dp_array(ns)**3)*(20.0_rkx*ustar(i))**2
+                    (dp_array(ns)**3)*(20.0_rkx*ustar(j))**2
                   if ( ec > e1 ) then
                     p1 = (ec-e1)/(ec-e3)
                     p2 = (d_one-p1)*(ec-e2)/(ec-e3)
@@ -911,15 +933,15 @@ module mod_che_dust
                     p2 = d_zero
                     p3 = d_zero
                   end if
-                  fsoil1(i,nt) = fsoil1(i,nt) + 1.0e-2_rkx*p1*(dec/e1)* &
+                  fsoil1(j,nt) = fsoil1(j,nt) + 1.0e-2_rkx*p1*(dec/e1)* &
                             (mathpi/6.0_rkx)*rhodust*((d1*1.0e-4_rkx)**3)
-                  fsoil2(i,nt) = fsoil2(i,nt) + 1.0e-2_rkx*p2*(dec/e2)* &
+                  fsoil2(j,nt) = fsoil2(j,nt) + 1.0e-2_rkx*p2*(dec/e2)* &
                             (mathpi/6.0_rkx)*rhodust*((d2*1.0e-4_rkx)**3)
-                  fsoil3(i,nt) = fsoil3(i,nt) + 1.0e-2_rkx*p3*(dec/e3)* &
+                  fsoil3(j,nt) = fsoil3(j,nt) + 1.0e-2_rkx*p3*(dec/e3)* &
                             (mathpi/6.0_rkx)*rhodust*((d3*1.0e-4_rkx)**3)
-                else if ( ichdustemd == 2 ) then
-                  fsoil(i,nt) = fsoil(i,nt) + alphaprop(i,nt)* &
-                                 srel(i,ns,nt)*fdp1*fdp2
+                else if ( ichdustemd >= 2 ) then
+                  fsoil(j,nt) = fsoil(j,nt) + alphaprop(j,nt)* &
+                                 srel(j,ns,nt)*fdp1*fdp2
                 end if
               end if
             end if
@@ -933,18 +955,18 @@ module mod_che_dust
       if ( ichdustemd == 1 ) then
         do nt = 1 , nats
           do n = 1 , nbin
-            do i = il1 , il2
-              rsfrowt(i,n,nt) = fsoil1(i,nt)*frac1(n) + &
-                                fsoil2(i,nt)*frac2(n) + &
-                                fsoil3(i,nt)*frac3(n)
+            do j = jl1 , jl2
+              rsfrowt(j,n,nt) = fsoil1(j,nt)*frac1(n) + &
+                                fsoil2(j,nt)*frac2(n) + &
+                                fsoil3(j,nt)*frac3(n)
             end do
           end do
         end do
-      else if ( ichdustemd == 2 ) then
+      else if ( ichdustemd >= 2 ) then
         do nt = 1 , nats
           do n = 1 , nbin
-            do i = il1 , il2
-              rsfrowt(i,n,nt) = fsoil(i,nt)*frac(n)
+            do j = jl1 , jl2
+              rsfrowt(j,n,nt) = fsoil(j,nt)*frac(n)
             end do
           end do
         end do
@@ -965,16 +987,16 @@ module mod_che_dust
       rsfrow(:,:) = d_zero
       do k = 1 , nbin
         do nt = 1 , nats
-          do i = il1 , il2
+          do j = jl1 , jl2
 #ifdef CLM45
             ! CLM45 sends fraction of ground emitting dust
-            rsfrow(i,k) = rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
-                          (d_one - vegfrac(i))
+            rsfrow(j,k) = rsfrow(j,k) + rsfrowt(j,k,nt)*ftex(j,nt) * &
+                          (d_one - vegfrac(j))
 #else
-            rsfrow(i,k) = rsfrow(i,k) + rsfrowt(i,k,nt)*ftex(i,nt) * &
-                          (d_one - vegfrac(i))*(d_one - snowfrac(i))
+            rsfrow(j,k) = rsfrow(j,k) + rsfrowt(j,k,nt)*ftex(j,nt) * &
+                          (d_one - vegfrac(j))*(d_one - snowfrac(j))
 #endif
-            ! * EBL(i)
+            ! * EBL(j)
             ! * (1-snowfrac)
           end do
         end do
@@ -984,8 +1006,7 @@ module mod_che_dust
     subroutine clm_dust_tend
       implicit none
 #ifdef CLM45
-      integer(ik4) :: i,j,n
-      real(rkx) , pointer , dimension(:,:) :: sumdflux
+      integer(ik4) :: i , j , n , ib
       ! real(rkx) :: cdsfrq
       ! Update dust tendency with dust fluxes calculated in CLM
       ! here sump up the total flux from clm ( initially defined on 4 bins)
@@ -995,33 +1016,29 @@ module mod_che_dust
       ! readius and optical properties
       ! use the same tuning erodibility factor rdstemfac than for
       ! standard scheme
-      allocate(sumdflux(jci1:jci2,ici1:ici2))
-      sumdflux = d_zero
       sumdflux = sum(cdustflx_clm,3) * rdstemfac
-      do j = jci1 , jci2
+      do n = 1 , nbin
+        ib = idust(n)
         do i = ici1 , ici2
-          do n = 1 , nbin
+          do j = jci1 , jci2
             if ( ichdrdepo == 1 ) then
-              chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
+              chiten(j,i,kz,ib) = chiten(j,i,kz,ib) + &
                    sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.e3_rkx)
             else if ( ichdrdepo == 2 ) then
               ! pass the flux to BL scheme
-              chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
-                  sumdflux(j,i) * frac(n)
+              chifxuw(j,i,ib) = chifxuw(j,i,ib) + sumdflux(j,i) * frac(n)
             end if
             ! diagnostic source (accumulated)
             ! cdsfrq = cfdout
-            cemtrac(j,i,idust(n)) = cemtrac(j,i,idust(n)) + &
-                    sumdflux(j,i)*frac(n) * cfdout
+            cemtrac(j,i,ib) = cemtrac(j,i,ib) + sumdflux(j,i)*frac(n) * cfdout
             if ( ichdiag > 0 ) then
-              cemisdiag(j,i,kz,idust(n)) = cemisdiag(j,i,kz,idust(n)) + &
+              cemisdiag(j,i,kz,ib) = cemisdiag(j,i,kz,ib) + &
                                  sumdflux(j,i)*frac(n) / &
                                  (cdzq(j,i,kz)*crhob3d(j,i,kz))*cfdout
             end if
           end do
         end do
       end do
-      deallocate(sumdflux)
 #endif
     end subroutine clm_dust_tend
 

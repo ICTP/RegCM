@@ -36,6 +36,7 @@ module mod_clm_regcm
   real(rk8) , dimension(:,:) , pointer :: temps
   real(rk8) , dimension(:,:) , pointer :: alon , alat , rcp
   real(rk8) , dimension(:,:) , pointer :: crupre , acp0 , acp1 , acp2
+  real(rk8) , dimension(:,:,:) , pointer :: emis2d
 
   type(h_interpolator) :: hint
 
@@ -50,6 +51,9 @@ module mod_clm_regcm
     real(rk8) , pointer , dimension(:) :: p1
 
     call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
+    if ( ichem == 1 ) then
+      call getmem3d(emis2d,1,nnsg,jci1,jci2,ici1,ici2,'initclm45:emis2d')
+    end if
 
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
@@ -113,6 +117,9 @@ module mod_clm_regcm
     real(rk8) , pointer , dimension(:) :: p1
 
     call getmem2d(temps,jci1,jci2,ici1,ici2,'initclm45:temps')
+    if ( ichem == 1 ) then
+      call getmem3d(emis2d,1,nnsg,jci1,jci2,ici1,ici2,'initclm45:emis2d')
+    end if
 
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
@@ -493,7 +500,6 @@ module mod_clm_regcm
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
-! samy
 #ifdef LCH4
       clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
@@ -509,13 +515,12 @@ module mod_clm_regcm
       ! interface with atmospheric chemistry
       ! CO2 partial pressure (Pa)
       clm_a2l%forc_pco2 = cgas(igh_co2,iy)*1.e-6_rk8*clm_a2l%forc_psrf
-! samy
 #ifdef LCH4
       clm_a2l%forc_pch4 = cgas(igh_ch4,iy)*1.e-9_rk8*clm_a2l%forc_psrf
 #endif
       if ( use_c13 ) then
-       ! C13O2 partial pressure (Pa)
-       clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
+        ! C13O2 partial pressure (Pa)
+        clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
       end if
       ! O2 partial pressure (Pa)
       clm_a2l%forc_po2 = o2_molar_const*clm_a2l%forc_psrf
@@ -566,49 +571,49 @@ module mod_clm_regcm
           clm_a2l%forc_aer(:,6) = clm_a2l%notused
         end if
         if ( size(lm%idust) == 4 ) then
-         ! wet dep dust 1
-         temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) + &
+          ! wet dep dust 1
+          temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1)) + &
                 lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(1))) * syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,7) = clm_a2l%notused
-         ! dry dep dust 1
-         temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1)) * &
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,7) = clm_a2l%notused
+          ! dry dep dust 1
+          temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(1)) * &
                        syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,8) = clm_a2l%notused
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,8) = clm_a2l%notused
 
-         ! wet dep dust 2
-         temps(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) + &
+          ! wet dep dust 2
+          temps(:,:) =(lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2)) + &
                  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(2))) * syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,9) = clm_a2l%notused
-         ! dry dep dust 2
-         temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2)) * &
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,9) = clm_a2l%notused
+          ! dry dep dust 2
+          temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(2)) * &
                        syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,10) = clm_a2l%notused
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,10) = clm_a2l%notused
 
-         ! wet dep dust 3
-         temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) + &
+          ! wet dep dust 3
+          temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3)) + &
                  lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(3))) * syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,11) = clm_a2l%notused
-         ! dry dep dust 3
-         temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3)) * &
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,11) = clm_a2l%notused
+          ! dry dep dust 3
+          temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(3)) * &
                        syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,12) = clm_a2l%notused
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,12) = clm_a2l%notused
 
-         ! wet dep dust 4
-         temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) + &
+          ! wet dep dust 4
+          temps(:,:) = (lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4)) + &
                   lm%wetdepflx(jci1:jci2,ici1:ici2,lm%idust(4))) * syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,13) = clm_a2l%notused
-         ! dry dep dust 4
-         temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(4)) * &
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,13) = clm_a2l%notused
+          ! dry dep dust 4
+          temps(:,:) = lm%drydepflx(jci1:jci2,ici1:ici2,lm%idust(4)) * &
                        syncro_srf%rw
-         call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
-         clm_a2l%forc_aer(:,14) = clm_a2l%notused
+          call glb_c2l_gs(lndcomm,temps,clm_a2l%notused)
+          clm_a2l%forc_aer(:,14) = clm_a2l%notused
         end if
       end if
       if ( ichsursrc == 1 .and. ino > 0 .and. ichbion == 1 ) then
@@ -645,7 +650,6 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , j , n , k , begg , endg
-    real(rk8) , pointer , dimension(:,:,:) :: emis2d
 
     call get_proc_bounds(begg,endg)
 
@@ -743,10 +747,9 @@ module mod_clm_regcm
       call glb_l2c_ss(lndcomm,clm_l2a%tlai,lms%xlai)
 
       if ( enable_megan_emission ) then
-        allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
         emis2d = 0.0_rk8
         do k = 1 , shr_megan_mechcomps_n
-          if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0) then
+          if (shr_megan_mechcomps(k)%name == 'ISOP' .and. iisop > 0 ) then
             clm_l2a%notused(:) = clm_l2a%flxvoc(:,k)
             call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
             lms%vocemiss(:,:,:,iisop) = real(emis2d,rkx)
@@ -754,7 +757,6 @@ module mod_clm_regcm
           ! add compatibility for other biogenic species !! /
           !
         end do
-        deallocate(emis2d)
       end if
 
       ! pass the CLM dust flux to regcm
@@ -763,24 +765,20 @@ module mod_clm_regcm
       ! if use the regcm 12 bin, the total mass is redistributed
       ! (chemlib/mod_che_dust)
       if ( ichdustemd == 3 ) then
-        allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
-        emis2d = 0.0_rk8
         do k = 1 , 4
+          emis2d = 0.0_rk8
           clm_l2a%notused(:) = clm_l2a%flxdst(:,k)
           call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
           lms%dustemiss(:,:,:,k) = real(emis2d,rkx)
         end do
-        deallocate(emis2d)
       end if
 #ifdef LCH4
       ! factor 1.33 is to convert from kgC to kgCH4
       if ( ich4 > 0 ) then
-        allocate(emis2d(1:nnsg,jci1:jci2,ici1:ici2))
         emis2d = 0.0_rk8
         clm_l2a%notused(:) = clm_l2a%flux_ch4(:) * 1.33_rk8
         call glb_l2c_ss(lndcomm, clm_l2a%notused, emis2d)
         lms%vocemiss(:,:,:,ich4) = real(emis2d,rkx)
-        deallocate(emis2d)
       end if
 #endif
     end if

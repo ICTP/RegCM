@@ -360,34 +360,34 @@ module mod_che_drydep
 
   contains
 
-    subroutine drydep_aero(j,mbin,indsp,rhop,ivegcov,throw,roarow, &
+    subroutine drydep_aero(i,mbin,indsp,rhop,ivegcov,throw,roarow, &
                            ph,temp2,sutemp,srad,rh10,      &
-                           wind10,zeff,beffdiam,pdepv,ddepv)
+                           wind10,zeff,beffdiam,pdepv,ddepv,ustar,ra)
       implicit none
-      integer(ik4) , intent(in) :: j , mbin
+      integer(ik4) , intent(in) :: i , mbin
       integer(ik4) , intent(in) , dimension(mbin) :: indsp
-      integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rkx) , dimension(ici1:ici2) , intent(in) :: rh10 , &
+      integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
+      real(rkx) , dimension(jci1:jci2) , intent(in) :: rh10 , &
                        srad , sutemp , temp2 , wind10 , zeff
-      real(rkx) , dimension(ici1:ici2,kz) , intent(in) :: ph , roarow , throw
+      real(rkx) , dimension(jci1:jci2,kz) , intent(in) :: ph , roarow , throw
+      real(rkx) , dimension(luc,jci1:jci2) , intent(in) :: ra , ustar
       real(rkx) , dimension(mbin) , intent(in) :: beffdiam
       real(rkx) , intent(in) :: rhop
 
       ! output table to be passed out. Care dimension is ntr
 
-      real(rkx) , intent(out) , dimension(ici1:ici2,kz,ntr) :: pdepv
-      real(rkx) , intent(out) , dimension(ici1:ici2,ntr) :: ddepv
+      real(rkx) , intent(out) , dimension(jci1:jci2,kz,ntr) :: pdepv
+      real(rkx) , intent(out) , dimension(jci1:jci2,ntr) :: ddepv
 
       real(rkx) :: amfp , amob , eb , eim , ein , frx1
       real(rkx) :: pre , prii , priiv , r1 , st , rhsize , pdiff
-      real(rkx) , dimension(ici1:ici2,kz) :: amu
-      real(rkx) , dimension(ici1:ici2) :: anu , schm
-      real(rkx) , dimension(ici1:ici2,kz,mbin) :: cfac , pdepvsub , taurel
-      real(rkx) , dimension(ici1:ici2,luc) :: ra , ustar
-      real(rkx) , dimension(ici1:ici2,luc,mbin) :: rs
-      real(rkx), dimension(ici1:ici2,2:kz) :: wk, settend
+      real(rkx) , dimension(jci1:jci2,kz) :: amu
+      real(rkx) , dimension(jci1:jci2) :: anu , schm
+      real(rkx) , dimension(jci1:jci2,kz,mbin) :: cfac , pdepvsub , taurel
+      real(rkx) , dimension(luc,jci1:jci2,mbin) :: rs
+      real(rkx), dimension(jci1:jci2,2:kz) :: wk, settend
       real(rkx) , dimension(mbin) :: avesize
-      integer(ik4) :: i , k , lcov , l , n , ib
+      integer(ik4) :: j , k , lcov , l , n , ib
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_aero'
       integer(ik4) , save :: idindx = 0
@@ -404,7 +404,7 @@ module mod_che_drydep
       ! ********************************************************
       do n = 1 , mbin
         do k = 1 , kz
-          do i = ici1 , ici2
+          do j = jci1 , jci2
             !
             ! ********************************************************
             ! *  aerosol gravitational settling velocity          ****
@@ -414,41 +414,37 @@ module mod_che_drydep
             ! * Sutherland Equation
             ! ********************************************************
             !
-            amu(i,k) = (a1*(throw(i,k)**a2))/(throw(i,k)+a3)
+            amu(j,k) = (a1*(throw(j,k)**a2))/(throw(j,k)+a3)
             ! mid layer pressure in [pascal].
-            pre = ph(i,k)
+            pre = ph(j,k)
             !
             ! ********************************************************
             ! * mean molecular free path.                         ****
             ! *     K.V. Beard [1976], J Atm. Sci., 33            ****
             ! ********************************************************
             !
-            amfp = c1*(amu(i,k)/c2)*(c3/pre)*sqrt(throw(i,k)/c4)
-            prii = 2.0_rkx/9.0_rkx*egrav/amu(i,k)
-            priiv = prii*(rhop-roarow(i,k))
+            amfp = c1*(amu(j,k)/c2)*(c3/pre)*sqrt(throw(j,k)/c4)
+            prii = 2.0_rkx/9.0_rkx*egrav/amu(j,k)
+            priiv = prii*(rhop-roarow(j,k))
             !
             ! ********************************************************
             ! * Cunningham slip correction factor and             ****
             ! * relaxation time = vg/grav.                        ****
             ! ********************************************************
             !
-            cfac(i,k,n) = d_one + amfp/avesize(n) * &
+            cfac(j,k,n) = d_one + amfp/avesize(n) * &
                          (aa1+aa2*exp(-aa3*avesize(n)/amfp))
-            taurel(i,k,n) = priiv*avesize(n)**2*cfac(i,k,n) * regrav
+            taurel(j,k,n) = priiv*avesize(n)**2*cfac(j,k,n) * regrav
             !
             ! ********************************************************
             ! * stokes friction                                  *****
-            ! ! pdepvsub(i,k,n) ' sellting dep. velocity = '
+            ! ! pdepvsub(j,k,n) ' sellting dep. velocity = '
             ! ********************************************************
             !
-            pdepvsub(i,k,n) = taurel(i,k,n)*egrav
+            pdepvsub(j,k,n) = taurel(j,k,n)*egrav
           end do
         end do
       end do
-      !
-      ! Find aerodynamic resistance
-      !
-      call aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       !
       ! *****************************************************
       ! * the schmidt number is the ratio of the         ****
@@ -457,7 +453,7 @@ module mod_che_drydep
       ! *****************************************************
       !
       do n = 1 , mbin
-        do i = ici1 , ici2
+        do j = jci1 , jci2
           !
           ! *****************************************************
           ! * for now we will not consider the humidity      ****
@@ -467,10 +463,10 @@ module mod_che_drydep
           !
           frx1 = 1.0_rkx
           rhsize = avesize(n)*frx1 ! still a radius
-          anu(i) = amu(i,kz)/roarow(i,kz)
-          amob = 6.0_rkx*mathpi*amu(i,kz)*rhsize/cfac(i,kz,n)
-          pdiff = boltzk*throw(i,kz)/amob
-          schm(i) = anu(i)/pdiff
+          anu(j) = amu(j,kz)/roarow(j,kz)
+          amob = 6.0_rkx*mathpi*amu(j,kz)*rhsize/cfac(j,kz,n)
+          pdiff = boltzk*throw(j,kz)/amob
+          schm(j) = anu(j)/pdiff
           !
           ! ******************************************************
           ! * for brownian diffusion, there is evidence that  ****
@@ -482,18 +478,18 @@ module mod_che_drydep
           ! * ****************************************************
           !
         end do
-        do l = 1 , luc ! luc  = 1 for the moment
-          do i = ici1 , ici2
+        do j = jci1 , jci2
+          do l = 1 , luc ! luc  = 1 for the moment
             !
             ! find the right table index for the cell cover ( ocean
             ! and lake are 0 in the ivegcov and 14-15 in the table )
             !
-            if ( ivegcov(i) == 0 ) then
+            if ( ivegcov(j) == 0 ) then
               lcov = 14
-            else if ( ivegcov(i) > 20 ) then
+            else if ( ivegcov(j) > 20 ) then
               lcov = 20
             else
-              lcov = ivegcov(i)
+              lcov = ivegcov(j)
             end if
             !
             ! ******************************************************
@@ -508,15 +504,13 @@ module mod_che_drydep
             !
             ! Graziano - 2018-02-09 - updated Stokes number computation
             ! Before, only the formulation for smooth surfaces was used
-            ! here.
-            if ( lcov /= 8 .and.  lcov /= 9 .and.  lcov /= 11 .and. &
-                 lcov /= 12 .and. lcov /= 14 .and. lcov /= 15 ) then
-              st = taurel(i,kz,n)*ustar(i,l)*regrav/ast(ivegcov(i))
-              eb = schm(i)**(-agam(ivegcov(i)))
+            if ( ast(lcov) > d_zero ) then
+              st = taurel(j,kz,n)*ustar(l,j)*regrav/ast(lcov)
+              eb = schm(j)**(-agam(lcov))
             else
-              st = taurel(i,kz,n)*ustar(i,l)*ustar(i,l)/anu(i)
-              !eb = schm(i)**(-twot)
-              eb = schm(i)**(-d_half)
+              st = taurel(j,kz,n)*ustar(l,j)*ustar(l,j)/anu(j)
+              !eb = schm(j)**(-twot)
+              eb = schm(j)**(-d_half)
             end if
             eim = (st/(st+aest(lcov)))**2
             eim = max(min(eim,0.6_rkx),1.0e-08_rkx)
@@ -545,9 +539,9 @@ module mod_che_drydep
             ! * of the surface and is determined by the     *****
             ! * various deposition processes                *****
             ! ***************************************************
-            rs(i,l,n) = 3.0_rkx*ustar(i,l)*(eb+eim+ein)*r1
-            rs(i,l,n) = max(1.0e-5_rkx,min(1.e5_rkx,rs(i,l,n)))
-            rs(i,l,n) = d_one/rs(i,l,n)
+            rs(l,j,n) = 3.0_rkx*ustar(l,j)*(eb+eim+ein)*r1
+            rs(l,j,n) = max(1.0e-5_rkx,min(1.e5_rkx,rs(l,j,n)))
+            rs(l,j,n) = d_one/rs(l,j,n)
           end do
         end do
       end do
@@ -560,19 +554,19 @@ module mod_che_drydep
         pdepv(:,:,indsp(ib)) = 0.0_rkx
         ddepv(:,indsp(ib))   = 0.0_rkx
         do k = 1 , kz
-          do i = ici1 , ici2
-            pdepv(i,k,indsp(ib)) = pdepvsub(i,k,ib)
+          do j = jci1 , jci2
+            pdepv(j,k,indsp(ib)) = pdepvsub(j,k,ib)
           end do
         end do
-        do l = 1 , luc ! luc  = 1 for the moment
-          do i = ici1 , ici2
+        do j = jci1 , jci2
+          do l = 1 , luc ! luc  = 1 for the moment
             ! agregate the dry deposition velocity, remember one cover per grid
             ! cell for now
             ! the dry deposition velocity must account also for the
             ! settling velocity at kz
             ! simple form now add the vs
-            ddepv(i,indsp(ib)) = 1.0_rkx/(ra(i,l)+rs(i,l,ib)) + &
-                       pdepvsub(i,kz,ib)
+            ddepv(j,indsp(ib)) = 1.0_rkx/(ra(l,j)+rs(l,j,ib)) + &
+                       pdepvsub(j,kz,ib)
           end do
         end do
       end do
@@ -584,29 +578,29 @@ module mod_che_drydep
         ! deposition, remember chiten must be normalised by psb and
         ! consistent with chib
         do k = 2 , kz
-          do i = ici1 , ici2
+          do j = jci1 , jci2
             if ( chib(j,i,k-1,indsp(ib)) > mintr * cpsb(j,i) ) then
-              wk(i,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
+              wk(j,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
                          twt(k,2)*chib(j,i,k-1,indsp(ib)))*rdt
             else
-              wk(i,k) = d_zero
+              wk(j,k) = d_zero
             end if
           end do
         end do
-        do i = ici1 , ici2
+        do j = jci1 , jci2
           do k = 2 , kz - 1
             ! do not apply to the first level
-            !settend(i,k) = (wk(i,k+1)*pdepv(i,k+1,indsp(ib)) - &
-            !                wk(i,k)*pdepv(i,k,indsp(ib))) / cdzq(j,i,k)
+            !settend(j,k) = (wk(j,k+1)*pdepv(j,k+1,indsp(ib)) - &
+            !                wk(j,k)*pdepv(j,k,indsp(ib))) / cdzq(j,i,k)
             ! use exponential form for stability
-            settend(i,k) =  wk(i,k+1) * &
-                (d_one - exp(-pdepvsub(i,k+1,ib)/cdzq(j,i,k)*dt)) - &
-                            wk(i,k)   * &
-                (d_one - exp(-pdepvsub(i,k,ib)/cdzq(j,i,k)*dt))
-            chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(i,k)
+            settend(j,k) =  wk(j,k+1) * &
+                (d_one - exp(-pdepvsub(j,k+1,ib)/cdzq(j,i,k)*dt)) - &
+                            wk(j,k)   * &
+                (d_one - exp(-pdepvsub(j,k,ib)/cdzq(j,i,k)*dt))
+            chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(j,k)
             if ( ichdiag > 0 ) then
               cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
-                                            settend(i,k) * cfdout
+                                            settend(j,k) * cfdout
             end if
           end do
           !
@@ -619,14 +613,14 @@ module mod_che_drydep
           ! net surface flux, cf also emission module)
           !
           if ( ichdrdepo == 1 ) then
-            !settend(i,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(i,indsp(ib))-  &
-            !                 wk(i,kz)*pdepv(i,kz,indsp(ib))) / cdzq(j,i,kz)
+            !settend(j,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(j,indsp(ib))-  &
+            !                 wk(j,kz)*pdepv(j,kz,indsp(ib))) / cdzq(j,i,kz)
             ! use exponential form for stability
-            settend(i,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
-                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) - &
-                              wk(i,kz) * &
-                (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))
-            chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(i,kz)
+            settend(j,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
+                (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) - &
+                              wk(j,kz) * &
+                (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
+            chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(j,kz)
             ! save the dry deposition flux for coupling with
             ! landsurface scheme (Kg.m2.s-1)
             ! consider ddflux = Cav . Vd where Cav would be the average
@@ -635,13 +629,13 @@ module mod_che_drydep
             ! cdrydepflux is a time accumulated array set to zero when surface
             ! scheme is called (cf atm to surf interface)
             cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + &
-              (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
-                 cpsb(j,i) * crhob3d(j,i,kz) * ddepv(i,indsp(ib))
+              (chib(j,i,kz,indsp(ib))  - settend(j,kz)*dt/d_two) / &
+                 cpsb(j,i) * crhob3d(j,i,kz) * ddepv(j,indsp(ib))
 
             !diagnostic for settling and drydeposition removal
             if ( ichdiag > 0 ) then
               cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
-                                             settend(i,kz) * cfdout
+                                             settend(j,kz) * cfdout
             end if
 
             ! accumulated diagnostic for dry deposition flux
@@ -652,12 +646,12 @@ module mod_che_drydep
             ! frequency than drydepflx accum !
             ! do not use drydepflx in the formula
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                     (chib(j,i,kz,indsp(ib))  - settend(i,kz)*dt/d_two) / &
-                      cpsb(j,i) * crhob3d(j,i,kz)*ddepv(i,indsp(ib)) * cfdout
+                     (chib(j,i,kz,indsp(ib)) - settend(j,kz)*dt/d_two) / &
+                      cpsb(j,i) * crhob3d(j,i,kz)*ddepv(j,indsp(ib)) * cfdout
             ! alternative formulation using tendency/flux relationship
             ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
             !            chib3d(j,i,kz,indsp(ib)) * &
-            !         (d_one - exp(-ddepv(i,indsp(ib)) / &
+            !         (d_one - exp(-ddepv(j,indsp(ib)) / &
             !                 cdzq(j,i,kz)*dt ))*rdt  &
             !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
 
@@ -671,16 +665,16 @@ module mod_che_drydep
             ! flux
             chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
                 max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
-                (d_one - exp(-ddepv(i,indsp(ib))/cdzq(j,i,kz)*dt)) + &
-                     wk(i,kz) * &
-                 (d_one - exp(-pdepvsub(i,kz,ib)/cdzq(j,i,kz)*dt))
-            drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib))
+                (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) + &
+                     wk(j,kz) * &
+                 (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
+            drydepv(j,i,indsp(ib)) = ddepv(j,indsp(ib))
           end if
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
           ! also settling , accumulated between two outputs time step)
           ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
-                 ddepv(i,indsp(ib))
+                 ddepv(j,indsp(ib))
         end do
       end do
 #ifdef DEBUG
@@ -688,23 +682,23 @@ module mod_che_drydep
 #endif
     end subroutine drydep_aero
 
-    subroutine drydep_gas(j,lmonth,lday,ivegcov,rh10,srad,tsurf, &
-                          prec,temp10,wind10,zeff)
+    subroutine drydep_gas(i,lmonth,lday,ivegcov,rh10,srad,tsurf, &
+                          prec,temp10,wind10,zeff,ustar,resa)
       use mod_che_indices
       implicit none
-      integer(ik4) , intent(in) :: j
+      integer(ik4) , intent(in) :: i
       integer(ik4), intent(in) :: lmonth , lday
-      integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rkx) , intent(in) , dimension(ici1:ici2) :: rh10 , srad , tsurf , &
+      integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
+      real(rkx) , intent(in) , dimension(jci1:jci2) :: rh10 , srad , tsurf , &
                                             prec, temp10 , wind10 , zeff
-      real(rkx),  dimension(ici1:ici2,ntr) :: drydepvg
+      real(rkx) , dimension(luc,jci1:jci2) , intent(in) :: ustar , resa
+      real(rkx),  dimension(jci1:jci2,ntr) :: drydepvg
 
-      integer(ik4) :: n , i , im , lcov
-      real(rkx) , dimension(ici1:ici2,luc) :: ustar , resa
-      real(rkx) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
-      real(rkx) , dimension(ngasd,ici1:ici2,luc) :: vdg
-      real(rkx) , dimension(ici1:ici2) :: icz , ddrem
-      real(rkx) , dimension(ici1:ici2) :: lai_f , laimin , laimax , snow
+      integer(ik4) :: n , j , im , l , lcov
+      real(rkx) , dimension(ngasd,luc,jci1:jci2) :: resb, resc
+      real(rkx) , dimension(ngasd,luc,jci1:jci2) :: vdg
+      real(rkx) , dimension(jci1:jci2) :: icz , ddrem
+      real(rkx) , dimension(jci1:jci2) :: lai_f , laimin , laimax , snow
       real(rkx) :: kd , kav , rdz
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'drydep_gas'
@@ -714,97 +708,98 @@ module mod_che_drydep
       ! Different options for LAI and roughness
       ! for the moment read from
 
-      do i = ici1 , ici2
-        if ( ivegcov(i) == 0 ) then
+      do j = jci1 , jci2
+        if ( ivegcov(j) == 0 ) then
           lcov = 14
-        else if ( ivegcov(i) > 20 ) then
+        else if ( ivegcov(j) > 20 ) then
           lcov = 20
         else
-          lcov = ivegcov(i)
+          lcov = ivegcov(j)
         end if
         im = lmonth - 1
         if ( lmonth == 1 ) im = 12
         if (lday <= 15 ) then
-          lai_f(i) = lai(lcov,im) + (lai(lcov,lmonth) - &
+          lai_f(j) = lai(lcov,im) + (lai(lcov,lmonth) - &
                      lai(lcov,im))/30._rkx * real(15 + lday,rkx)
         else
-          lai_f(i) = lai(lcov,lmonth) + (lai(lcov,lmonth+1) - &
+          lai_f(j) = lai(lcov,lmonth) + (lai(lcov,lmonth+1) - &
                      lai(lcov,lmonth))/30._rkx * real(lday - 15,rkx)
         end if
-        if ( lai_f(i) < d_zero) lai_f(i) = d_zero
-        laimin(i) = lai(lcov,14)
-        laimax(i) = lai(lcov,15)
+        if ( lai_f(j) < d_zero) lai_f(j) = d_zero
+        laimin(j) = lai(lcov,14)
+        laimax(j) = lai(lcov,15)
       end do
-      call aerodyresis(zeff,wind10,temp10,tsurf,rh10,srad,ivegcov,ustar,resa)
       snow(:) = d_zero
-      icz(:) = czen(j,:)
+      icz(:) = czen(:,i)
       call stomtresis(lai_f,laimin,laimax,ivegcov,ngasd,ustar,prec,snow,srad, &
                       tsurf,temp10,rh10,icz,resc,resb)
       ! now calculate the dry deposition velocities and select it
       ! according to the gasphase mechanism
       ! vdg in m.s-1
       vdg(:,:,:) = d_zero
-      do i = ici1 , ici2
-        do n = 1 , ngasd
-          vdg(n,i,:) = d_one/(resa(i,:)+resb(n,i,:)+resc(n,i,:))
+      do j = jci1 , jci2
+        do l = 1 , luc
+          do n = 1 , ngasd
+            vdg(n,l,j) = d_one/(resa(l,j)+resb(n,l,j)+resc(n,l,j))
+          end do
         end do
       end do
       ! this part depends on the chem mechanism
       ! for CBMZ , we can certainly improve this.
 
       drydepvg = d_zero
-      drydepvg(:,iso2)  =  vdg(1,:,1)
+      drydepvg(:,iso2)  =  vdg(1,1,:)
       ! SO2 deposition is used in SULF , AERO and CBMZ simulations
       if ( igaschem > 0 ) then
-        drydepvg(:,ino2)  =  vdg(3,:,1)!*0.5
-        drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
-        drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
-        drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
-!       drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
-        drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5
-        drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
-        drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
-        drydepvg(:,ich3oh)  =  vdg(23,:,1)!*0.5
+        drydepvg(:,ino2)  =  vdg(3,1,:)!*0.5
+        drydepvg(:,io3)   =  vdg(4,1,:)!*0.5
+        drydepvg(:,ih2o2) =  vdg(5,1,:)!*0.5
+        drydepvg(:,ihno3) =  vdg(6,1,:)!*0.5
+!       drydepvg(:,inh3)  =  vdg(9,1,:)!*0.5
+        drydepvg(:,ipan)  =  vdg(10,1,:)!*0.5
+        drydepvg(:,ihcho) =  vdg(14,1,:)!*0.5
+        drydepvg(:,iald2) =  vdg(15,1,:)!*0.5
+        drydepvg(:,ich3oh)  =  vdg(23,1,:)!*0.5
       end if
 
       ! Finally : gas phase dry dep tendency calculation
       if ( ichdrdepo == 1 ) then
-        do i = ici1 , ici2
+        do j = jci1 , jci2
           rdz = d_one / cdzq(j,i,kz)
           do n = 1 , ntr
-            kd = drydepvg(i,n) * rdz !Kd removal rate in s-1
+            kd = drydepvg(j,n) * rdz !Kd removal rate in s-1
             kav = max(chib(j,i,kz,n),d_zero)*rdt
             if ( kd*dt < 25.0_rkx ) then
               ! dry dep removal tendency (+)
-              ddrem(i) = kav * (d_one-exp(-kd*dt))
+              ddrem(j) = kav * (d_one-exp(-kd*dt))
             else
-              ddrem(i) = d_zero
+              ddrem(j) = d_zero
             end if
             ! update chiten
-            chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(i)
+            chiten(j,i,kz,n) = chiten(j,i,kz,n) - ddrem(j)
             ! diag dry dep tendency
             if ( ichdiag > 0 ) then
                cseddpdiag(j,i,kz,n) = cseddpdiag(j,i,kz,n) - &
-                                               ddrem(i) * cfdout
+                                               ddrem(j) * cfdout
             end if
             ! drydep flux diagnostic (accumulated between two outputs time
             ! step) ! flux is in kg/m2/s-1 so need to normalise by ps here.
-            remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cfdout
+            remdrd(j,i,n) = remdrd(j,i,n) + ddrem(j)/cpsb(j,i) * cfdout
             ! dry dep velocity diagnostic in m.s-1
             ! (accumulated between two outputs time step)
             drydepv(j,i,n) = d_zero
-            ddv_out(j,i,n) = ddv_out(j,i,n) + drydepvg(i,n)
+            ddv_out(j,i,n) = ddv_out(j,i,n) + drydepvg(j,n)
           end do
         end do
       else if ( ichdrdepo == 2 ) then
-        do i = ici1 , ici2
+        do j = jci1 , jci2
           do n = 1 , ntr
             chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
-                                cpsb(j,i)) * drydepvg(i,n)
+                                cpsb(j,i)) * drydepvg(j,n)
             ! dry dep velocity diagnostic in m.s-1
             ! (accumulated between two outputs time step)
-            drydepv(j,i,n) =  drydepvg(i,n)
-            ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepvg(i,n)
+            drydepv(j,i,n) =  drydepvg(j,n)
+            ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepvg(j,n)
           end do
         end do
       end if
@@ -815,11 +810,16 @@ module mod_che_drydep
 
     subroutine aerodyresis(zeff,wind10,temp2,sutemp,rh10,srad,ivegcov,ustar,ra)
       implicit none
-      integer(ik4) , dimension(ici1:ici2) , intent(in) :: ivegcov
-      real(rkx) , dimension(ici1:ici2) , intent(in) :: temp2 , wind10 , rh10
-      real(rkx) , dimension(ici1:ici2) , intent(in) :: sutemp , srad , zeff
-      real(rkx) , dimension(ici1:ici2,luc) , intent(out) :: ustar , ra
-      integer(ik4) :: i , l
+      integer(ik4) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: ivegcov
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: temp2
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: wind10
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: rh10
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: sutemp
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: srad
+      real(rkx) , dimension(jci1:jci2,ici1:ici2) , intent(in) :: zeff
+      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) , intent(out) :: ustar
+      real(rkx) , dimension(luc,jci1:jci2,ici1:ici2) , intent(out) :: ra
+      integer(ik4) :: i , j , l
       real(rkx) :: vp , tsv
       real(rkx) :: z , zl , ww
       real(rkx) :: ptemp2 , es , qs
@@ -829,8 +829,7 @@ module mod_che_drydep
       real(rkx) :: thstar , rib , dtemp , tbar
       real(rkx) :: ustarsq , utstar , kui
       real(rkx) :: ratioz , logratio , asq
-      real(rkx) :: aa , cm , ch , fm , fh
-      real(rkx) , dimension(ici1:ici2) :: zz0
+      real(rkx) :: aa , cm , ch , fm , fh , zz0
       real(rkx) , parameter :: z10 = 10.0_rkx
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'aerodyresis'
@@ -854,129 +853,132 @@ module mod_che_drydep
       ! *           (0.0-1.0)                           ****
       ! * stdpmb - sea level pressure (mb)              ****
       ! ****************************************************
-      do l = 1 , luc
-        do i = ici1 , ici2
-          ww = max(wind10(i),1.0_rkx)
-          zz0(i) = zeff(i)
-          ! ***************************************************************
-          ! * potential temperature at z2  (deg. k)
-          ! ***************************************************************
-          ptemp2 = temp2(i) + z10*0.0098_rkx
-          ! ***************************************************************
-          ! * for calculations over water compute values of critical
-          ! * profile variables: l and ustar
-          ! *           ******begin for water***
-          ! ***************************************************************
-          if ( ivegcov(i) == 0 ) then
-            ! **************************************************************
-            ! * vp  - vapour pressure at z2
-            ! * wvpm- water vapour mixing ratio at  z2
-            ! * vptemp- virtual potential temperature at z2
-            ! **************************************************************
-            es = 6.108_rkx*exp(17.27_rkx*(temp2(i)-tzero)/(temp2(i)-35.86_rkx))
-            vp = rh10(i)*es
-            wvpm = ep2*vp/(stdpmb-vp)
-            vptemp = ptemp2*(1.0_rkx+0.61_rkx*wvpm)
-            ! **************************************************************
-            ! * assume rh10 at water surface is 100%
-            ! *   vp = es(tsw-tzero) !sat. vap press at surface
-            ! *   saturated vapour pressure at surface
-            ! *   saturated mixing ratio at surface
-            ! *   tsv - virtual potential temperature at surface (deg. k)
-            ! **************************************************************
-            tsw = sutemp(i)
-            vp = 6.108_rkx*exp(17.27_rkx*(tsw-tzero)/(tsw-35.86_rkx))
-            qs = ep2*vp/(stdpmb-vp)
-            tsv = tsw*(1.0_rkx+0.61_rkx*qs)
-            z0water = 1.0e-4_rkx
-            ! **************************************************************
-            ! * scalet  :  not required if  z2 = 10m
-            ! **************************************************************
-            dthv = (vptemp-tsv)
-            ! **************************************************************
-            ! * calculate drag coefficient cun with neutral condition
-            ! * assumption  garratt (1977)
-            ! **************************************************************
-            cun = 7.5e-4_rkx + 6.7e-5_rkx*ww
-            mol = 9999.0_rkx
-            if ( abs(dthv) > 1.0e-6_rkx ) then
-              mol = vptemp*cun**1.5_rkx*ww**2/(5.096e-3_rkx*dthv)
-            end if
-            if ( mol > 0.0_rkx  .and. mol < 5.0_rkx ) mol =  5.0_rkx
-            if ( mol > -5.0_rkx .and. mol < 0.0_rkx ) mol = -5.0_rkx
-            zdl = z10/mol
-            if ( zdl < 0.0_rkx ) then
-              ! **************************************************************
-              ! * wind speed
-              ! **************************************************************
-              x = (1.0_rkx-15.0_rkx*zdl)**0.25_rkx
-              psiu = 2.0_rkx*log(0.5_rkx*(1.0_rkx+x)) + &
-                             log(0.5_rkx*(1.0_rkx+x*x)) - &
-                     2.0_rkx*atan(x) + 0.5_rkx*mathpi
-              ! **************************************************************
-              ! * pot temp
-              ! **************************************************************
-              y = sqrt(1.0_rkx-9.0_rkx*zdl)
-              psit = 2.0_rkx*0.74_rkx*log((1.0_rkx+y)/2.0_rkx)
-            else
-              psiu = -4.7_rkx*zdl
-              psit = psiu
-            end if
-            z0water = 0.000002_rkx*ww**2.5_rkx
-            ustar(i,l) = vonkar*ww/(log(z10/z0water)-psiu)
-            thstar = vonkar*(ptemp2-sutemp(i)) / &
-                     (0.74_rkx*log(z10/z0water)-psit)
-            zz0(i) = z0water
-          else
-            ! **************************************************************
-            ! * compute ustar and l for land use categories other than
-            ! * water use louis method. !pkk 7/16/85, find bulk
-            ! * richardson number.
-            ! **************************************************************
-            rib = egrav*z10*(ptemp2-sutemp(i))/(sutemp(i)*ww**2)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do l = 1 , luc
+            ww = max(wind10(j,i),1.0_rkx)
+            zz0 = zeff(j,i)
             ! ***************************************************************
-            ! * ensure that conditions over land are never stable when
-            ! * there is incoming solar radiation
+            ! * potential temperature at z2  (deg. k)
             ! ***************************************************************
-            if ( srad(i) > 0.0_rkx .and. rib > 0.0_rkx ) rib = 1.e-15_rkx
-            dtemp = ptemp2 - sutemp(i)
-            if ( abs(dtemp) < 1.e-10_rkx ) dtemp = sign(1.e-10_rkx,dtemp)
-            tbar = 0.5_rkx*(ptemp2+sutemp(i))
-            ratioz = z10/zz0(i)
-            logratio = log(ratioz)
-            asq = 0.16_rkx/(logratio**2)
-            if ( rib <= 0.0_rkx ) then
-              aa = asq*9.4_rkx*sqrt(ratioz)
-              cm = 7.4_rkx*aa
-              ch = 5.3_rkx*aa
-              fm = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+cm*sqrt(abs(rib))))
-              fh = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+ch*sqrt(abs(rib))))
+            ptemp2 = temp2(j,i) + z10*0.0098_rkx
+            ! ***************************************************************
+            ! * for calculations over water compute values of critical
+            ! * profile variables: l and ustar
+            ! *           ******begin for water***
+            ! ***************************************************************
+            if ( ivegcov(j,i) == 0 ) then
+              ! **************************************************************
+              ! * vp  - vapour pressure at z2
+              ! * wvpm- water vapour mixing ratio at  z2
+              ! * vptemp- virtual potential temperature at z2
+              ! **************************************************************
+              es = 6.108_rkx * &
+                exp(17.27_rkx*(temp2(j,i)-tzero)/(temp2(j,i)-35.86_rkx))
+              vp = rh10(j,i)*es
+              wvpm = ep2*vp/(stdpmb-vp)
+              vptemp = ptemp2*(1.0_rkx+0.61_rkx*wvpm)
+              ! **************************************************************
+              ! * assume rh10 at water surface is 100%
+              ! *   vp = es(tsw-tzero) !sat. vap press at surface
+              ! *   saturated vapour pressure at surface
+              ! *   saturated mixing ratio at surface
+              ! *   tsv - virtual potential temperature at surface (deg. k)
+              ! **************************************************************
+              tsw = sutemp(j,i)
+              vp = 6.108_rkx*exp(17.27_rkx*(tsw-tzero)/(tsw-35.86_rkx))
+              qs = ep2*vp/(stdpmb-vp)
+              tsv = tsw*(1.0_rkx+0.61_rkx*qs)
+              z0water = 1.0e-4_rkx
+              ! **************************************************************
+              ! * scalet  :  not required if  z2 = 10m
+              ! **************************************************************
+              dthv = (vptemp-tsv)
+              ! **************************************************************
+              ! * calculate drag coefficient cun with neutral condition
+              ! * assumption  garratt (1977)
+              ! **************************************************************
+              cun = 7.5e-4_rkx + 6.7e-5_rkx*ww
+              mol = 9999.0_rkx
+              if ( abs(dthv) > 1.0e-6_rkx ) then
+                mol = vptemp*cun**1.5_rkx*ww**2/(5.096e-3_rkx*dthv)
+              end if
+              if ( mol > 0.0_rkx  .and. mol < 5.0_rkx ) mol =  5.0_rkx
+              if ( mol > -5.0_rkx .and. mol < 0.0_rkx ) mol = -5.0_rkx
+              zdl = z10/mol
+              if ( zdl < 0.0_rkx ) then
+                ! **************************************************************
+                ! * wind speed
+                ! **************************************************************
+                x = (1.0_rkx-15.0_rkx*zdl)**0.25_rkx
+                psiu = 2.0_rkx*log(0.5_rkx*(1.0_rkx+x)) + &
+                               log(0.5_rkx*(1.0_rkx+x*x)) - &
+                       2.0_rkx*atan(x) + 0.5_rkx*mathpi
+                ! **************************************************************
+                ! * pot temp
+                ! **************************************************************
+                y = sqrt(1.0_rkx-9.0_rkx*zdl)
+                psit = 2.0_rkx*0.74_rkx*log((1.0_rkx+y)/2.0_rkx)
+              else
+                psiu = -4.7_rkx*zdl
+                psit = psiu
+              end if
+              z0water = 0.000002_rkx*ww**2.5_rkx
+              ustar(l,j,i) = vonkar*ww/(log(z10/z0water)-psiu)
+              thstar = vonkar*(ptemp2-sutemp(j,i)) / &
+                       (0.74_rkx*log(z10/z0water)-psit)
+              zz0 = z0water
             else
-              fm = 1.0_rkx/((1.0_rkx+4.7_rkx*rib)**2)
-              fh = fm
+              ! **************************************************************
+              ! * compute ustar and l for land use categories other than
+              ! * water use louis method. !pkk 7/16/85, find bulk
+              ! * richardson number.
+              ! **************************************************************
+              rib = egrav*z10*(ptemp2-sutemp(j,i))/(sutemp(j,i)*ww**2)
+              ! ***************************************************************
+              ! * ensure that conditions over land are never stable when
+              ! * there is incoming solar radiation
+              ! ***************************************************************
+              if ( srad(j,i) > 0.0_rkx .and. rib > 0.0_rkx ) rib = 1.e-15_rkx
+              dtemp = ptemp2 - sutemp(j,i)
+              if ( abs(dtemp) < 1.e-10_rkx ) dtemp = sign(1.e-10_rkx,dtemp)
+              tbar = 0.5_rkx*(ptemp2+sutemp(j,i))
+              ratioz = z10/zz0
+              logratio = log(ratioz)
+              asq = 0.16_rkx/(logratio**2)
+              if ( rib <= 0.0_rkx ) then
+                aa = asq*9.4_rkx*sqrt(ratioz)
+                cm = 7.4_rkx*aa
+                ch = 5.3_rkx*aa
+                fm = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+cm*sqrt(abs(rib))))
+                fh = 1.0_rkx - (9.4_rkx*rib/(1.0_rkx+ch*sqrt(abs(rib))))
+              else
+                fm = 1.0_rkx/((1.0_rkx+4.7_rkx*rib)**2)
+                fh = fm
+              end if
+              ustarsq = asq*ww**2*fm
+              utstar = asq*ww*dtemp*fh/0.74_rkx
+              ustar(l,j,i) = sqrt(ustarsq)
+              thstar = utstar/ustar(l,j,i)
+              mol = tbar*ustarsq/(vonkar*egrav*thstar)
             end if
-            ustarsq = asq*ww**2*fm
-            utstar = asq*ww*dtemp*fh/0.74_rkx
-            ustar(i,l) = sqrt(ustarsq)
-            thstar = utstar/ustar(i,l)
-            mol = tbar*ustarsq/(vonkar*egrav*thstar)
-          end if
 
-          kui = 1.0_rkx/(vonkar*ustar(i,l))
+            kui = 1.0_rkx/(vonkar*ustar(l,j,i))
 
-          ! **************************************************************
-          ! * compute the values of  ra                            *******
-          ! **************************************************************
-          z = z10
-          zl = z/mol
-          if ( zl >= 0.0_rkx ) then
-            ra(i,l) = kui*(0.74_rkx*log(z/zz0(i))+4.7_rkx*zl)
-          else
-            ra(i,l) = kui*0.74_rkx*(log(z/zz0(i))- &
+            ! **************************************************************
+            ! * compute the values of  ra                            *******
+            ! **************************************************************
+            z = z10
+            zl = z/mol
+            if ( zl >= 0.0_rkx ) then
+              ra(l,j,i) = kui*(0.74_rkx*log(z/zz0)+4.7_rkx*zl)
+            else
+              ra(l,j,i) = kui*0.74_rkx*(log(z/zz0)- &
                       2.0_rkx*log((1.0_rkx+sqrt(1.0_rkx-9.0_rkx*zl))*0.5_rkx))
-          end if
-          ra(i,l) = max(ra(i,l),0.99_rkx)
-          ra(i,l) = min(ra(i,l),999.9_rkx)
+            end if
+            ra(l,j,i) = max(ra(l,j,i),0.99_rkx)
+            ra(l,j,i) = min(ra(l,j,i),999.9_rkx)
+          end do
         end do
       end do
 #ifdef DEBUG
@@ -988,14 +990,14 @@ module mod_che_drydep
                           ustar,prec,sd,srad,ts,t2,rh,coszen,rc,rb)
       implicit none
       integer(ik4) , intent(in) :: igas
-      integer(ik4) , intent(in) , dimension(ici1:ici2) :: ivegcov
-      real(rkx) , dimension(ici1:ici2) , intent(in) :: coszen, srad , &
+      integer(ik4) , intent(in) , dimension(jci1:jci2) :: ivegcov
+      real(rkx) , dimension(jci1:jci2) , intent(in) :: coszen, srad , &
                          ts , rh , prec , sd , t2
-      real(rkx) , dimension(ici1:ici2) , intent(in) :: lai_f , laimin , laimax
-      real(rkx) , intent(in) , dimension(ici1:ici2,luc) :: ustar
-      real(rkx) , intent(out) , dimension(igas,ici1:ici2,luc) :: rb , rc
+      real(rkx) , dimension(jci1:jci2) , intent(in) :: lai_f , laimin , laimax
+      real(rkx) , intent(in) , dimension(luc,jci1:jci2) :: ustar
+      real(rkx) , intent(out) , dimension(igas,luc,jci1:jci2) :: rb , rc
 
-      integer(ik4) :: i , l , lcov , ig
+      integer(ik4) :: j , l , lcov , ig
       real(rkx) :: rst , wst , rac , rgs_f
       real(rkx) :: rdu , rdv , rgo_f
       real(rkx) :: rcuto_f , rcuts_f
@@ -1023,46 +1025,46 @@ module mod_che_drydep
       call time_begin(subroutine_name,idindx)
 #endif
 
-      do l = 1 , luc
-        do i = ici1 , ici2
+      do j = jci1 , jci2
+        do l = 1 , luc
           is_rain = .false.
           is_dew  = .false.
-          if ( ivegcov(i) == 0 ) then
+          if ( ivegcov(j) == 0 ) then
             lcov = 14
           else
-            lcov = ivegcov(i)
+            lcov = ivegcov(j)
           end if
-!         print*,'srad ====', srad(i)
-!         print*,' ts  ====', ts(i)
-!         print*,' coszen == ', coszen(i)
+!         print*,'srad ====', srad(j)
+!         print*,' ts  ====', ts(j)
+!         print*,' coszen == ', coszen(j)
 
           tmaxk = tmax(lcov) + tzero
           tmink = tmin(lcov) + tzero
 !         print *, ' tmax, tmin ==== ', tmaxk, tmink
           ! initialise rst as undef
           rst = -999.0_rkx
-          if (srad(i)   >= 0.1_rkx  .and. &
-              ts(i)     <  tmaxk    .and. &
-              ts(i)     >  tmink    .and. &
-              lai_f(i)  > 0.001_rkx .and. &
-              coszen(i) > 0.01_rkx ) then
+          if (srad(j)   >= 0.1_rkx  .and. &
+              ts(j)     <  tmaxk    .and. &
+              ts(j)     >  tmink    .and. &
+              lai_f(j)  > 0.001_rkx .and. &
+              coszen(j) > 0.01_rkx ) then
             !================================================================
             ! Calculate direct and diffuse PAR from solar radiation and
             ! solar zenith angle
             !================================================================
-            rdu   = 600.0_rkx * exp(-0.185_rkx/coszen(i))*coszen(i)
-            rdv   = 0.4_rkx * (600.0_rkx - rdu ) * coszen(i)
-            ww1   = -log(coszen(i))/2.302585_rkx
+            rdu   = 600.0_rkx * exp(-0.185_rkx/coszen(j))*coszen(j)
+            rdv   = 0.4_rkx * (600.0_rkx - rdu ) * coszen(j)
+            ww1   = -log(coszen(j))/2.302585_rkx
 !           print *, ' ww1 = ', ww1
             ww2   = -1.195_rkx + 0.4459_rkx * ww1 - 0.0345_rkx * ww1**2
             ww3   = 1320.0_rkx*10.0_rkx**ww2
 !           print *, 'ww= ', ww
-            rdm   = (720.0_rkx*exp(-0.06_rkx/coszen(i))-ww3)*coszen(i)
+            rdm   = (720.0_rkx*exp(-0.06_rkx/coszen(j))-ww3)*coszen(j)
 !           print *, 'ww3= ', ww3, rdm
-            rdn   = 0.6_rkx * (720.0_rkx - rdm - ww3) * coszen(i)
+            rdn   = 0.6_rkx * (720.0_rkx - rdm - ww3) * coszen(j)
             rv    = max(0.1_rkx,  rdu + rdv)
             rn    = max(0.01_rkx, rdm + rdn)
-            ratio = min(0.9_rkx,srad(i)/( rv + rn))
+            ratio = min(0.9_rkx,srad(j)/( rv + rn))
 !           print *, 'ratio= ', ratio, rdn, rv, rn
             sv    = ratio * rv                            ! Total PAR
             fv    = min(0.99_rkx, (0.901_rkx - ratio)/0.7_rkx)
@@ -1080,16 +1082,16 @@ module mod_che_drydep
             ! Calculate sunlit and shaded leaf area, PAR for sunlit and
             ! shaded leaves
             !===============================================================
-            if ( lai_f(i) > 2.5_rkx .and. srad(i) > 200.0_rkx ) then
-              pshad = pardif * exp(-0.5_rkx * lai_f(i)**0.8_rkx) + &
-                      0.07_rkx * pardir * (1.1_rkx-0.1_rkx*lai_f(i))* &
-                      exp(-coszen(i))
-              psun = pardir**0.8_rkx*0.5_rkx/coszen(i) + pshad
+            if ( lai_f(j) > 2.5_rkx .and. srad(j) > 200.0_rkx ) then
+              pshad = pardif * exp(-0.5_rkx * lai_f(j)**0.8_rkx) + &
+                      0.07_rkx * pardir * (1.1_rkx-0.1_rkx*lai_f(j))* &
+                      exp(-coszen(j))
+              psun = pardir**0.8_rkx*0.5_rkx/coszen(j) + pshad
             else
-              pshad = pardif * exp(-0.5_rkx * lai_f(i)**0.7_rkx) + &
-                      0.07_rkx * pardir *(1.1_rkx-0.1_rkx*lai_f(i)) * &
-                      exp(-coszen(i))
-              psun = pardir * 0.5_rkx/coszen(i) + pshad
+              pshad = pardif * exp(-0.5_rkx * lai_f(j)**0.7_rkx) + &
+                      0.07_rkx * pardir *(1.1_rkx-0.1_rkx*lai_f(j)) * &
+                      exp(-coszen(j))
+              psun = pardir * 0.5_rkx/coszen(j) + pshad
             end if
 !           print *, 'pshad   psun   ', pshad , psun
             rshad = rsminz(lcov) + brs(lcov) * rsminz(lcov)/pshad
@@ -1102,14 +1104,14 @@ module mod_che_drydep
             ! Fsun, Fshade are the total sunlit and shaded leaf area
             ! index
             !================================================================
-            xp = 0.5_rkx*lai_f(i)/coszen(i)
+            xp = 0.5_rkx*lai_f(j)/coszen(j)
             if ( xp < 25.0_rkx ) then
-              fsun  = 2.0_rkx*coszen(i)*(1.0_rkx-exp(-xp))
+              fsun  = 2.0_rkx*coszen(j)*(1.0_rkx-exp(-xp))
             else
               fsun = d_zero
             end if
             ! Sunlit leaf area
-            fshad = lai_f(i) - fsun
+            fshad = lai_f(j) - fsun
             ! Shaded leaf area
 !           print *, 'f, f ====',fshad,fsun
             !================================================================
@@ -1120,7 +1122,7 @@ module mod_che_drydep
             !================================================================
             ! function for temperature effect
             !================================================================
-            temps = ts(i) - tzero
+            temps = ts(j) - tzero
             bt = (tmax(lcov) - topt(lcov))/(topt(lcov) - tmin(lcov))
             gt = (tmax(lcov) - temps)/(tmax(lcov) - topt(lcov))
             gt = gt**bt
@@ -1129,14 +1131,14 @@ module mod_che_drydep
             !================================================================
             ! function for vapor pressure deficit
             !================================================================
-            es = 6.108_rkx*exp(17.27_rkx*(ts(i)-tzero)/(ts(i)-35.86_rkx))
-            d0 = es*(d_one-rh(i))/10.0_rkx ! kPa
+            es = 6.108_rkx*exp(17.27_rkx*(ts(j)-tzero)/(ts(j)-35.86_rkx))
+            d0 = es*(d_one-rh(j))/10.0_rkx ! kPa
             gd = 1.0_rkx - bvpd(lcov) * d0
 !           print *, 'gd===',gd
             !================================================================
             ! function for water stress
             !================================================================
-            psi = (-0.72_rkx - 0.0013_rkx * srad(i))
+            psi = (-0.72_rkx - 0.0013_rkx * srad(j))
 !           psi_s = (-0.395_rkx-0.043_rkx*(ts-tzero))*102.0_rkx
             gw = (psi - psi2(lcov))/(psi1(lcov) - psi2(lcov))
 !           print *, 'gw==',gw
@@ -1153,17 +1155,17 @@ module mod_che_drydep
 !           print *, 'rst===',rst
           end if
           coedew = 0.1_rkx  ! for clear cloud
-          es = 6.108_rkx*exp(17.27_rkx*(ts(i)-tzero)/(ts(i)-35.86_rkx))
-          dq = 0.622_rkx/1000.0_rkx*es*(1.0_rkx-rh(i))*1000.0_rkx ! unit g/kg
+          es = 6.108_rkx*exp(17.27_rkx*(ts(j)-tzero)/(ts(j)-35.86_rkx))
+          dq = 0.622_rkx/1000.0_rkx*es*(1.0_rkx-rh(j))*1000.0_rkx ! unit g/kg
           dq = max(0.0001_rkx,dq)
           usmin = 1.5_rkx/dq*coedew
-!         print *, 'prec===== ', prec(i)
+!         print *, 'prec===== ', prec(j)
 !         print *, 'usmin   ===  ', usmin
 !         what is the unit of precipitation threshold
-          if ( ts(i) > tzero .and. prec(i) > rainthr ) then
+          if ( ts(j) > tzero .and. prec(j) > rainthr ) then
             is_rain = .true.
 !           print *, 'rain==='
-          else if (ts(i) > tzero .and. ustar(i,l) < usmin) then
+          else if (ts(j) > tzero .and. ustar(l,j) < usmin) then
             is_dew = .true.
 !           print *, 'dew==='
 !           print *, 'NO dew, NO rain ==='
@@ -1172,25 +1174,25 @@ module mod_che_drydep
           ! Decide fraction of stomatal blocking due to wet conditions
           !================================================================
           wst = 0.0_rkx
-          if ( (is_dew .or. is_rain) .and. srad(i) > 200.0_rkx ) then
-            wst = (srad(i) - 200.0_rkx)/800.0_rkx
+          if ( (is_dew .or. is_rain) .and. srad(j) > 200.0_rkx ) then
+            wst = (srad(j) - 200.0_rkx)/800.0_rkx
             wst = min(wst, 0.5_rkx)
           end if
           !================================================================
           ! In-canopy aerodynamic resistance
           !================================================================
-          rac = rac1(lcov)+(lai_f(i)-laimin(i))/ &
-                (laimax(i)-laimin(i)+1.e-10_rkx)*(rac2(lcov)-rac1(lcov))
+          rac = rac1(lcov)+(lai_f(j)-laimin(j))/ &
+                (laimax(j)-laimin(j)+1.e-10_rkx)*(rac2(lcov)-rac1(lcov))
 !         print *, 'rac1 = ', rac
-          rac = rac*lai_f(i)**0.25_rkx/ustar(i,l)/ustar(i,l)
+          rac = rac*lai_f(j)**0.25_rkx/ustar(l,j)/ustar(l,j)
 !         print *, 'rac2 = ', rac
           !================================================================
           ! Ground resistance for O3
           !================================================================
-          if (ts(i) < 272.15_rkx .and. lcov /= 14 ) then
+          if (ts(j) < 272.15_rkx .and. lcov /= 14 ) then
             rgo_f = min( rgo(lcov)*2.0_rkx, rgo(lcov) *     &
-                           exp(0.2_rkx*(272.15_rkx-ts(i))))
-!           print *, 'rgo_f1 =',rgo_f, ts(i)
+                           exp(0.2_rkx*(272.15_rkx-ts(j))))
+!           print *, 'rgo_f1 =',rgo_f, ts(j)
           else
             rgo_f = rgo(lcov)
           end if
@@ -1198,7 +1200,7 @@ module mod_che_drydep
           ! Ground resistance for SO2
           !================================================================
           if ( lcov == 12 ) then
-            rgs_f = min(rgs(lcov)*(275.15_rkx - ts(i)), 500._rkx)
+            rgs_f = min(rgs(lcov)*(275.15_rkx - ts(j)), 500._rkx)
             rgs_f = max(rgs(lcov), 100._rkx)
 !           print *, 'rgs_f ==== ', rgs_f
           else if ( is_rain .and. lcov /= 14 ) then
@@ -1207,9 +1209,9 @@ module mod_che_drydep
           else if ( is_dew .and. lcov /= 14 ) then
             rgs_f = 100.0_rkx
 !           print *, 'rgs_f ==== ', rgs_f
-          else if ( ts(i) < 272.156_rkx .and. lcov /= 14 ) then
+          else if ( ts(j) < 272.156_rkx .and. lcov /= 14 ) then
             rgs_f = min(rgs(lcov)*2.0_rkx, rgs(lcov) *     &
-                          exp(0.2_rkx*(272.156_rkx - ts(i))))
+                          exp(0.2_rkx*(272.156_rkx - ts(j))))
 !           print *, 'rgs_f ==== ', rgs_f
           else
             rgs_f = rgs(lcov)
@@ -1223,31 +1225,31 @@ module mod_che_drydep
             rcuts_f = 1.e25_rkx
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_rain ) then
-            rcuto_f = rcutwo(lcov)/sqrt(lai_f(i))/ustar(i,l)
-            rcuts_f = 50.0_rkx/sqrt(lai_f(i))/ustar(i,l)
+            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(l,j)
+            rcuts_f = 50.0_rkx/sqrt(lai_f(j))/ustar(l,j)
             rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else if ( is_dew ) then
-            rcuto_f = rcutwo(lcov)/sqrt(lai_f(i))/ustar(i,l)
-            rcuts_f = 100.0_rkx/sqrt(lai_f(i))/ustar(i,l)
+            rcuto_f = rcutwo(lcov)/sqrt(lai_f(j))/ustar(l,j)
+            rcuts_f = 100.0_rkx/sqrt(lai_f(j))/ustar(l,j)
             rcuts_f = max(rcuts_f, 20._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
-          else if (ts(i) < 272.156_rkx ) then
-            ryx = exp(0.2_rkx * (272.156_rkx - ts(i) ))
-            rcuto_f = rcutdo(lcov)/exp(3.0_rkx * rh(i))/     &
-                      lai_f(i)**0.25_rkx/ustar(i,l)
-            rcuts_f = rcutds(lcov)/exp(3.0_rkx * rh(i))/     &
-                      lai_f(i)**0.25_rkx/ustar(i,l)
+          else if (ts(j) < 272.156_rkx ) then
+            ryx = exp(0.2_rkx * (272.156_rkx - ts(j) ))
+            rcuto_f = rcutdo(lcov)/exp(3.0_rkx * rh(j))/     &
+                      lai_f(j)**0.25_rkx/ustar(l,j)
+            rcuts_f = rcutds(lcov)/exp(3.0_rkx * rh(j))/     &
+                      lai_f(j)**0.25_rkx/ustar(l,j)
             rcuto_f = min(rcuto_f * 2.0_rkx, rcuto_f * ryx )
             rcuts_f = min(rcuts_f * 2.0_rkx, rcuts_f * ryx )
             rcuto_f = max(rcuto_f,100._rkx)
             rcuts_f = max(rcuts_f,100._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
           else
-            rcuto_f = rcutdo(lcov)/exp(3.0_rkx*rh(i)) / &
-                      lai_f(i)**0.25_rkx/ustar(i,l)
-            rcuts_f = rcutds(lcov)/exp(3.0_rkx*rh(i)) / &
-                      lai_f(i)**0.25_rkx/ustar(i,l)
+            rcuto_f = rcutdo(lcov)/exp(3.0_rkx*rh(j)) / &
+                      lai_f(j)**0.25_rkx/ustar(l,j)
+            rcuts_f = rcutds(lcov)/exp(3.0_rkx*rh(j)) / &
+                      lai_f(j)**0.25_rkx/ustar(l,j)
             rcuto_f = max(rcuto_f, 100._rkx)
             rcuts_f = max(rcuts_f, 100._rkx)
 !           print *, 'RCUT === ', rcuto_f,rcuts_f
@@ -1256,14 +1258,14 @@ module mod_che_drydep
           ! If snow occurs, Rg and Rcut are adjusted by snow cover
           ! fraction
           !================================================================
-          fsnow = sd(i)/sdmax(lcov)
+          fsnow = sd(j)/sdmax(lcov)
           fsnow = min(1.0_rkx, fsnow)   !snow cover fraction for leaves
 !         print *, ' fsnow=  ', fsnow
           if ( fsnow > 0.0001_rkx .and. lcov /= 20 .or. &
                                         lcov /= 15 .or. &
                                         lcov /= 14 .or. &
                                         lcov /= 12 ) then
-            rsnows = min(70.0_rkx*(275.15_rkx-ts(i)), 500._rkx)
+            rsnows = min(70.0_rkx*(275.15_rkx-ts(j)), 500._rkx)
             rsnows = max(rsnows, 100._rkx)
             rcuts_f = 1.0_rkx/((1.0_rkx - fsnow)/rcuts_f + fsnow/rsnows)
             rcuto_f = 1.0_rkx/((1.0_rkx - fsnow)/rcuto_f + fsnow/2000.0_rkx)
@@ -1278,22 +1280,22 @@ module mod_che_drydep
           !================================================================
           do ig = 1 , igas
             dgas = 0.369_rkx * mw(ig) + 6.29_rkx
-            di = 0.001_rkx*ts(i)**1.75_rkx * &
+            di = 0.001_rkx*ts(j)**1.75_rkx * &
               sqrt((29.0_rkx + mw(ig))/mw(ig)/29._rkx)
             di = di/1.0_rkx/(dair**0.3333_rkx + dgas**0.3333_rkx)**2
             vi = 145.8_rkx * 1.e-4_rkx * &
-                 (ts(i) * 0.5_rkx + t2(i) *0.5_rkx)**1.5_rkx/ &
-                 (ts(i) * 0.5_rkx + t2(i) *0.5_rkx + 110.4_rkx)
+                 (ts(j) * 0.5_rkx + t2(j) *0.5_rkx)**1.5_rkx/ &
+                 (ts(j) * 0.5_rkx + t2(j) *0.5_rkx + 110.4_rkx)
             !================================================================
             ! Calculate quasi-laminar resistance
             !================================================================
-            rb(ig,i,l) = 5.0_rkx/ustar(i,l) * (vi/di)**.666667_rkx
-!           print *, 'rb==', rb(ig,i,l)
+            rb(ig,l,j) = 5.0_rkx/ustar(l,j) * (vi/di)**.666667_rkx
+!           print *, 'rb==', rb(ig,l,j)
             !================================================================
             ! Calculate stomatal resistance for each species from the ratio
             ! of  diffusity of water vapor to the gas species
             !================================================================
-            dvh2o = 0.001_rkx*ts(i)**1.75_rkx * &
+            dvh2o = 0.001_rkx*ts(j)**1.75_rkx * &
               sqrt((29.0_rkx+18.0_rkx)/29.0_rkx/18.0_rkx)
             dvh2o = dvh2o/(dair**0.3333_rkx + dh2o**0.3333_rkx)**2
             rstom = rst * dVh2o/di + rm(ig)
@@ -1310,12 +1312,12 @@ module mod_che_drydep
             ! for bare surfaces)
             ! set wst to 1 also in that case (total stomatal blocking).
             if ( rst == -999.0 ) wst = 1.0_rkx
-!           rc(ig,i,l) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rg)+1.0_rkx/rcut
-            rc(ig,i,l) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rac+rg)+1.0_rkx/rcut
-            rc(ig,i,l) = max(10._rkx,1.0_rkx/rc(ig,i,l))
+!           rc(ig,l,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rg)+1.0_rkx/rcut
+            rc(ig,l,j) = (1.0_rkx - wst)/rstom + 1.0_rkx/(rac+rg)+1.0_rkx/rcut
+            rc(ig,l,j) = max(10._rkx,1.0_rkx/rc(ig,l,j))
           end do !igas
-        end do !ilg
-      end do !luc
+        end do !luc
+      end do !ilg
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif

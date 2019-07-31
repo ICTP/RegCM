@@ -1781,13 +1781,14 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       lval,sg%ic(myid+1),mpi_integer4, &
                       iocpu,sg%icomm,mpierr)
     xval = (lval > 0)
-    deallocate(lval)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(lval,rval)
   end subroutine clm_readvar_logical_1d_par_sg
 
   subroutine clm_readvar_logical_2d_par_sg(ncid,vname,xval,sg)
@@ -1816,8 +1817,8 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
         xval(:,kk) = (lval > 0)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
@@ -1826,7 +1827,7 @@ module mod_clm_nchelper
         xval(:,kk) = (lval > 0)
       end do
     end if
-    deallocate(lval)
+    deallocate(lval,rval)
   end subroutine clm_readvar_logical_2d_par_sg
 
   subroutine clm_readvar_logical_3d_par_sg(ncid,vname,xval,sg)
@@ -1859,8 +1860,8 @@ module mod_clm_nchelper
           xval(:,kk,ll) = (lval > 0)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
@@ -1872,7 +1873,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
-    deallocate(lval)
+    deallocate(lval,rval)
   end subroutine clm_readvar_logical_3d_par_sg
 
   subroutine clm_readvar_logical_4d_par_sg(ncid,vname,xval,sg)
@@ -1911,8 +1912,8 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1,1))
       do n = 1 , nv4
         nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
@@ -1927,7 +1928,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
-    deallocate(lval)
+    deallocate(lval,rval)
   end subroutine clm_readvar_logical_4d_par_sg
 
   subroutine clm_readvar_integer_1d_par_sg(ncid,vname,xval,sg)
@@ -1946,11 +1947,13 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       xval,sg%ic(myid+1),mpi_integer4, &
                       iocpu,sg%icomm,mpierr)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(rval)
   end subroutine clm_readvar_integer_1d_par_sg
 
   subroutine clm_readvar_integer_2d_par_sg(ncid,vname,xval,sg)
@@ -1976,8 +1979,8 @@ module mod_clm_nchelper
                           xval(:,kk),sg%ic(myid+1),mpi_integer4, &
                           iocpu,sg%icomm,mpierr)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,         &
@@ -1985,6 +1988,7 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_integer_2d_par_sg
 
   subroutine clm_readvar_integer_3d_par_sg(ncid,vname,xval,sg)
@@ -2014,8 +2018,8 @@ module mod_clm_nchelper
                             iocpu,sg%icomm,mpierr)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
@@ -2026,6 +2030,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_integer_3d_par_sg
 
   subroutine clm_readvar_integer_4d_par_sg(ncid,vname,xval,sg)
@@ -2060,8 +2065,8 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1,1))
       do n = 1 , nv4
         nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
@@ -2075,6 +2080,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_integer_4d_par_sg
 
   subroutine clm_readvar_real4_1d_par_sg(ncid,vname,xval,sg)
@@ -2093,11 +2099,13 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
                       xval,sg%ic(myid+1),mpi_real4, &
                       iocpu,sg%icomm,mpierr)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(rval)
   end subroutine clm_readvar_real4_1d_par_sg
 
   subroutine clm_readvar_real4_2d_par_sg(ncid,vname,xval,sg,switchdim)
@@ -2147,8 +2155,8 @@ module mod_clm_nchelper
                           xval(:,kk),sg%ic(myid+1),mpi_real4, &
                           iocpu,sg%icomm,mpierr)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,         &
@@ -2156,6 +2164,7 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_real4_2d_par_sg
 
   subroutine clm_readvar_real4_3d_par_sg(ncid,vname,xval,sg)
@@ -2185,8 +2194,8 @@ module mod_clm_nchelper
                             iocpu,sg%icomm,mpierr)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
@@ -2197,6 +2206,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_real4_3d_par_sg
 
   subroutine clm_readvar_real4_4d_par_sg(ncid,vname,xval,sg)
@@ -2231,8 +2241,8 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1,1))
       do n = 1 , nv4
         nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
@@ -2246,6 +2256,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_real4_4d_par_sg
 
   subroutine clm_readvar_real8_1d_par_sg(ncid,vname,xval,sg)
@@ -2264,11 +2275,13 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
                       xval,sg%ic(myid+1),mpi_real8, &
                       iocpu,sg%icomm,mpierr)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(rval)
   end subroutine clm_readvar_real8_1d_par_sg
 
   subroutine clm_readvar_real8_2d_par_sg(ncid,vname,xval,sg,switchdim)
@@ -2318,8 +2331,8 @@ module mod_clm_nchelper
                           xval(:,kk),sg%ic(myid+1),mpi_real8, &
                           iocpu,sg%icomm,mpierr)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,         &
@@ -2327,6 +2340,7 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_real8_2d_par_sg
 
   subroutine clm_readvar_real8_3d_par_sg(ncid,vname,xval,sg)
@@ -2356,8 +2370,8 @@ module mod_clm_nchelper
                             iocpu,sg%icomm,mpierr)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
@@ -2368,6 +2382,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_real8_3d_par_sg
 
   subroutine clm_readvar_real8_4d_par_sg(ncid,vname,xval,sg)
@@ -2402,8 +2417,8 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1,1))
       do n = 1 , nv4
         nn = lbound(xval,4)+(n-1)
         do l = 1 , nv3
@@ -2417,6 +2432,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readvar_real8_4d_par_sg
 
   subroutine clm_readrec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -2442,13 +2458,14 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       lval,sg%ic(myid+1),mpi_integer4, &
                       iocpu,sg%icomm,mpierr)
     xval = (lval > 0)
-    deallocate(lval)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(rval,lval)
   end subroutine clm_readrec_logical_1d_par_sg
 
   subroutine clm_readrec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -2483,8 +2500,8 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
         xval(:,lbound(xval,2)+(k-1)) = (lval > 0)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                           lval,sg%ic(myid+1),mpi_integer4, &
@@ -2492,7 +2509,7 @@ module mod_clm_nchelper
         xval(:,lbound(xval,2)+(k-1)) = (lval > 0)
       end do
     end if
-    deallocate(lval)
+    deallocate(rval,lval)
   end subroutine clm_readrec_logical_2d_par_sg
 
   subroutine clm_readrec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -2523,7 +2540,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-'Error read '//vname//' from file '//trim(ncid%fname))
+          'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
@@ -2532,8 +2549,8 @@ module mod_clm_nchelper
           xval(:,lbound(xval,2)+(k-1),lbound(xval,3)+(l-1)) = (lval > 0)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
@@ -2543,7 +2560,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
-    deallocate(lval)
+    deallocate(lval,rval)
   end subroutine clm_readrec_logical_3d_par_sg
 
   subroutine clm_readrec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -2567,11 +2584,13 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       xval,sg%ic(myid+1),mpi_integer4, &
                       iocpu,sg%icomm,mpierr)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(rval)
   end subroutine clm_readrec_integer_1d_par_sg
 
   subroutine clm_readrec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -2604,8 +2623,8 @@ module mod_clm_nchelper
                           xval(:,kk),sg%ic(myid+1),mpi_integer4, &
                           iocpu,sg%icomm,mpierr)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,         &
@@ -2613,6 +2632,7 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readrec_integer_2d_par_sg
 
   subroutine clm_readrec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -2651,8 +2671,8 @@ module mod_clm_nchelper
                             iocpu,sg%icomm,mpierr)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
@@ -2663,6 +2683,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readrec_integer_3d_par_sg
 
   subroutine clm_readrec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -2686,11 +2707,13 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
                       xval,sg%ic(myid+1),mpi_real4, &
                       iocpu,sg%icomm,mpierr)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(rval)
   end subroutine clm_readrec_real4_1d_par_sg
 
   subroutine clm_readrec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -2723,8 +2746,8 @@ module mod_clm_nchelper
                           xval(:,kk),sg%ic(myid+1),mpi_real4, &
                           iocpu,sg%icomm,mpierr)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,         &
@@ -2732,6 +2755,7 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readrec_real4_2d_par_sg
 
   subroutine clm_readrec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -2770,8 +2794,8 @@ module mod_clm_nchelper
                             iocpu,sg%icomm,mpierr)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
@@ -2782,6 +2806,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readrec_real4_3d_par_sg
 
   subroutine clm_readrec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -2805,11 +2830,13 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' from file '//trim(ncid%fname))
+    else
+      allocate(rval(1))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
                       xval,sg%ic(myid+1),mpi_real8, &
                       iocpu,sg%icomm,mpierr)
-    if ( myid == iocpu ) deallocate(rval)
+    deallocate(rval)
   end subroutine clm_readrec_real8_1d_par_sg
 
   subroutine clm_readrec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -2842,8 +2869,8 @@ module mod_clm_nchelper
                           xval(:,kk),sg%ic(myid+1),mpi_real8, &
                           iocpu,sg%icomm,mpierr)
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1))
       do k = 1 , nv2
         kk = lbound(xval,2)+(k-1)
         call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,         &
@@ -2851,6 +2878,7 @@ module mod_clm_nchelper
                           iocpu,sg%icomm,mpierr)
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readrec_real8_2d_par_sg
 
   subroutine clm_readrec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -2889,8 +2917,8 @@ module mod_clm_nchelper
                             iocpu,sg%icomm,mpierr)
         end do
       end do
-      deallocate(rval)
     else
+      allocate(rval(1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,3)+(l-1)
         do k = 1 , nv2
@@ -2901,6 +2929,7 @@ module mod_clm_nchelper
         end do
       end do
     end if
+    deallocate(rval)
   end subroutine clm_readrec_real8_3d_par_sg
 
   subroutine clm_writevar_text_0d(ncid,vname,xval)
@@ -3756,26 +3785,29 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , allocatable :: rval
     logical , dimension(:) , allocatable :: lval
     if ( myid == iocpu ) then
+      ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
       allocate(rval(sg%ns))
-      ivarid = searchvar(ncid,vname)
+    else
+      allocate(lval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_logical, &
                      lval,sg%ic,sg%id,mpi_logical,iocpu,sg%icomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    where (lval)
-      rval = 1
-    elsewhere
-      rval = 0
-    end where
+    if ( myid == iocpu ) then
+      where (lval)
+        rval = 1
+      elsewhere
+        rval = 0
+      end where
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+      deallocate(rval)
+    end if
     deallocate(lval)
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-    deallocate(rval)
   end subroutine clm_writevar_logical_1d_par_sg
 
   subroutine clm_writevar_logical_2d_par_sg(ncid,vname,xval,sg)
@@ -3789,9 +3821,11 @@ module mod_clm_nchelper
     logical , dimension(:) , allocatable :: lval
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
+      ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
       allocate(rval(sg%ns,nv1))
-      ivarid = searchvar(ncid,vname)
+    else
+      allocate(lval(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -3800,18 +3834,21 @@ module mod_clm_nchelper
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
-      where (lval)
-        rval(:,k) = 1
-      elsewhere
-        rval(:,k) = 0
-      end where
+      if ( myid == iocpu ) then
+        where (lval)
+          rval(:,k) = 1
+        elsewhere
+          rval(:,k) = 0
+        end where
+      end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-    deallocate(rval)
+    if ( myid == iocpu ) then
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+      deallocate(rval)
+    end if
   end subroutine clm_writevar_logical_2d_par_sg
 
   subroutine clm_writevar_logical_3d_par_sg(ncid,vname,xval,sg)
@@ -3826,9 +3863,11 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
+      ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
       allocate(rval(sg%ns,nv1,nv2))
-      ivarid = searchvar(ncid,vname)
+    else
+      allocate(lval(1))
     end if
     do n = 1 , nv2
       nn = lbound(xval,3)+(n-1)
@@ -3839,19 +3878,22 @@ module mod_clm_nchelper
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
-        where (lval)
-          rval(:,k,n) = 1
-        elsewhere
-          rval(:,k,n) = 0
-        end where
+        if ( myid == iocpu ) then
+          where (lval)
+            rval(:,k,n) = 1
+          elsewhere
+            rval(:,k,n) = 0
+          end where
+        end if
       end do
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-    deallocate(rval)
+    if ( myid == iocpu ) then
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+      deallocate(rval)
+    end if
   end subroutine clm_writevar_logical_3d_par_sg
 
   subroutine clm_writevar_logical_4d_par_sg(ncid,vname,xval,sg)
@@ -3868,9 +3910,11 @@ module mod_clm_nchelper
     nv2 = size(xval,3)
     nv3 = size(xval,4)
     if ( myid == iocpu ) then
+      ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
       allocate(rval(sg%ns,nv1,nv2,nv3))
-      ivarid = searchvar(ncid,vname)
+    else
+      allocate(lval(1))
     end if
     do l = 1 , nv3
       ll = lbound(xval,4)+(l-1)
@@ -3883,20 +3927,23 @@ module mod_clm_nchelper
           if ( mpierr /= mpi_success ) then
             call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
           end if
-          where (lval)
-            rval(:,k,n,l) = 1
-          elsewhere
-            rval(:,k,n,l) = 0
-          end where
+          if ( myid == iocpu ) then
+            where (lval)
+              rval(:,k,n,l) = 1
+            elsewhere
+              rval(:,k,n,l) = 0
+            end where
+          end if
         end do
       end do
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-    deallocate(rval)
+    if ( myid == iocpu ) then
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+      deallocate(rval)
+    end if
   end subroutine clm_writevar_logical_4d_par_sg
 
   subroutine clm_writevar_integer_1d_par_sg(ncid,vname,xval,sg)
@@ -3908,8 +3955,10 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , mpierr
     integer(ik4) , dimension(:) , allocatable :: rval
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns))
+    else
+      allocate(rval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_integer4, &
                      rval,sg%ic,sg%id,mpi_integer4,   &
@@ -3917,10 +3966,11 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
+    if ( myid == iocpu ) then
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(rval)
   end subroutine clm_writevar_integer_1d_par_sg
 
@@ -3934,8 +3984,8 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:) , allocatable :: rval
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -3945,7 +3995,11 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -3955,11 +4009,7 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_integer_2d_par_sg
 
@@ -3974,8 +4024,8 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -3988,7 +4038,11 @@ module mod_clm_nchelper
           end if
         end do
       end do
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4001,11 +4055,7 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_integer_3d_par_sg
 
@@ -4022,8 +4072,8 @@ module mod_clm_nchelper
     nv2 = size(xval,3)
     nv3 = size(xval,4)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2,nv3))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2,nv3))
       do l = 1 , nv3
         ll = lbound(xval,4)+(l-1)
         do n = 1 , nv2
@@ -4039,7 +4089,11 @@ module mod_clm_nchelper
           end do
         end do
       end do
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,4)+(l-1)
         do n = 1 , nv2
@@ -4055,11 +4109,7 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_integer_4d_par_sg
 
@@ -4072,8 +4122,10 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , mpierr
     real(rk4) , dimension(:) , allocatable :: rval
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns))
+    else
+      allocate(rval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_real4, &
                      rval,sg%ic,sg%id,mpi_real4,   &
@@ -4081,10 +4133,11 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
+    if ( myid == iocpu ) then
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(rval)
   end subroutine clm_writevar_real4_1d_par_sg
 
@@ -4104,14 +4157,14 @@ module mod_clm_nchelper
     if ( present(switchdim) ) then
       if ( switchdim ) then
         doswitch = .true.
-        if ( myid == iocpu ) then
-          allocate(sval(nv1,sg%ns))
-        end if
       end if
     end if
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1))
+      if ( doswitch ) then
+        allocate(sval(nv1,sg%ns))
+      end if
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -4121,7 +4174,17 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
+      if ( doswitch ) then
+        sval = transpose(rval)
+        incstat = nf90_put_var(ncid%ncid,ivarid,sval)
+        deallocate(sval)
+      else
+        incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      end if
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -4131,17 +4194,7 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-      return
     end if
-    if ( doswitch ) then
-      sval = transpose(rval)
-      incstat = nf90_put_var(ncid%ncid,ivarid,sval)
-      deallocate(sval)
-    else
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_real4_2d_par_sg
 
@@ -4156,8 +4209,8 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4170,7 +4223,11 @@ module mod_clm_nchelper
           end if
         end do
       end do
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4183,11 +4240,7 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_real4_3d_par_sg
 
@@ -4204,8 +4257,8 @@ module mod_clm_nchelper
     nv2 = size(xval,3)
     nv3 = size(xval,4)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2,nv3))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2,nv3))
       do l = 1 , nv3
         ll = lbound(xval,4)+(l-1)
         do n = 1 , nv2
@@ -4221,7 +4274,11 @@ module mod_clm_nchelper
           end do
         end do
       end do
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,4)+(l-1)
         do n = 1 , nv2
@@ -4237,11 +4294,7 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_real4_4d_par_sg
 
@@ -4254,8 +4307,10 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , mpierr
     real(rk8) , dimension(:) , allocatable :: rval
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns))
+    else
+      allocate(rval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_real8, &
                      rval,sg%ic,sg%id,mpi_real8,   &
@@ -4263,10 +4318,11 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
+    if ( myid == iocpu ) then
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(rval)
   end subroutine clm_writevar_real8_1d_par_sg
 
@@ -4286,14 +4342,14 @@ module mod_clm_nchelper
     if ( present(switchdim) ) then
       if ( switchdim ) then
         doswitch = .true.
-        if ( myid == iocpu ) then
-          allocate(sval(nv1,sg%ns))
-        end if
       end if
     end if
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1))
+      if ( doswitch ) then
+        allocate(sval(nv1,sg%ns))
+      end if
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -4303,7 +4359,17 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
+      if ( doswitch ) then
+        sval = transpose(rval)
+        incstat = nf90_put_var(ncid%ncid,ivarid,sval)
+        deallocate(sval)
+      else
+        incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      end if
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -4313,17 +4379,7 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-      return
     end if
-    if ( doswitch ) then
-      sval = transpose(rval)
-      incstat = nf90_put_var(ncid%ncid,ivarid,sval)
-      deallocate(sval)
-    else
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_real8_2d_par_sg
 
@@ -4338,8 +4394,8 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4352,7 +4408,11 @@ module mod_clm_nchelper
           end if
         end do
       end do
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4365,11 +4425,7 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_real8_3d_par_sg
 
@@ -4386,8 +4442,8 @@ module mod_clm_nchelper
     nv2 = size(xval,3)
     nv3 = size(xval,4)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2,nv3))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2,nv3))
       do l = 1 , nv3
         ll = lbound(xval,4)+(l-1)
         do n = 1 , nv2
@@ -4403,7 +4459,11 @@ module mod_clm_nchelper
           end do
         end do
       end do
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1,1))
       do l = 1 , nv3
         ll = lbound(xval,4)+(l-1)
         do n = 1 , nv2
@@ -4419,11 +4479,7 @@ module mod_clm_nchelper
           end do
         end do
       end do
-      return
     end if
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_real8_4d_par_sg
 
@@ -4438,9 +4494,11 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , allocatable :: rval
     integer(ik4) :: ivarid , mpierr
     if ( myid == iocpu ) then
+      ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
       allocate(rval(sg%ns))
-      ivarid = searchvar(ncid,vname)
+    else
+      allocate(lval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_logical, &
                      lval,sg%ic,sg%id,mpi_logical,   &
@@ -4448,21 +4506,22 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    where ( lval )
-      rval = 1
-    elsewhere
-      rval = 0
-    end where
+    if ( myid == iocpu ) then
+      where ( lval )
+        rval = 1
+      elsewhere
+        rval = 0
+      end where
+      istart(2) = nt
+      istart(1) = 1
+      icount(2) = 1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+      deallocate(rval)
+    end if
     deallocate(lval)
-    istart(2) = nt
-    istart(1) = 1
-    icount(2) = 1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
-    deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_1d_par_sg
 
   subroutine clm_writerec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4477,9 +4536,11 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
+      ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
       allocate(rval(sg%ns,nv1))
-      ivarid = searchvar(ncid,vname)
+    else
+      allocate(lval(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -4489,24 +4550,27 @@ module mod_clm_nchelper
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
-      where ( lval )
-        rval(:,k) = 1
-      elsewhere
-        rval(:,k) = 0
-      end where
+      if ( myid == iocpu ) then
+        where ( lval )
+          rval(:,k) = 1
+        elsewhere
+          rval(:,k) = 0
+        end where
+      end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
-    deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
+    if ( myid == iocpu ) then
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+      deallocate(rval)
+    end if
   end subroutine clm_writerec_logical_2d_par_sg
 
   subroutine clm_writerec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4522,9 +4586,11 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
+      ivarid = searchvar(ncid,vname)
       allocate(lval(sg%ns))
       allocate(rval(sg%ns,nv1,nv2))
-      ivarid = searchvar(ncid,vname)
+    else
+      allocate(lval(1))
     end if
     do n = 1 , nv2
       nn = lbound(xval,3)+(n-1)
@@ -4536,27 +4602,30 @@ module mod_clm_nchelper
         if ( mpierr /= mpi_success ) then
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
-        where ( lval )
-          rval(:,k,n) = 1
-        elsewhere
-          rval(:,k,n) = 0
-        end where
+        if ( myid == iocpu ) then
+          where ( lval )
+            rval(:,k,n) = 1
+          elsewhere
+            rval(:,k,n) = 0
+          end where
+        end if
       end do
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
-    istart(4) = nt
-    istart(3) = 1
-    istart(2) = 1
-    istart(1) = 1
-    icount(4) = 1
-    icount(3) = nv2
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
-    deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
+    if ( myid == iocpu ) then
+      istart(4) = nt
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = nv2
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+      deallocate(rval)
+    end if
   end subroutine clm_writerec_logical_3d_par_sg
 
   subroutine clm_writerec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -4569,8 +4638,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , allocatable :: rval
     integer(ik4) :: ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns))
+    else
+      allocate(rval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_integer4, &
                      rval,sg%ic,sg%id,mpi_integer4,   &
@@ -4578,15 +4649,16 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    istart(2) = nt
-    istart(1) = 1
-    icount(2) = 1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+    if ( myid == iocpu ) then
+      istart(2) = nt
+      istart(1) = 1
+      icount(2) = 1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_1d_par_sg
 
   subroutine clm_writerec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4600,8 +4672,8 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -4611,7 +4683,17 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_integer4, &
@@ -4621,18 +4703,8 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-      return
     end if
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_2d_par_sg
 
   subroutine clm_writerec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4647,8 +4719,8 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4661,7 +4733,19 @@ module mod_clm_nchelper
           end if
         end do
       end do
+      istart(4) = nt
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = nv2
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4674,20 +4758,8 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      return
     end if
-    istart(4) = nt
-    istart(3) = 1
-    istart(2) = 1
-    istart(1) = 1
-    icount(4) = 1
-    icount(3) = nv2
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_3d_par_sg
 
   subroutine clm_writerec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -4700,8 +4772,10 @@ module mod_clm_nchelper
     real(rk4) , dimension(:) , allocatable :: rval
     integer(ik4) :: ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns))
+    else
+      allocate(rval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_real4, &
                      rval,sg%ic,sg%id,mpi_real4,   &
@@ -4709,20 +4783,21 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
+    if ( myid == iocpu ) then
 #ifdef DEBUG
-    where ( abs(rval) < tiny(0.0) )
-      rval = 0.0
-    end where
+      where ( abs(rval) < tiny(0.0) )
+        rval = 0.0
+      end where
 #endif
-    istart(2) = nt
-    istart(1) = 1
-    icount(2) = 1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      istart(2) = nt
+      istart(1) = 1
+      icount(2) = 1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_1d_par_sg
 
   subroutine clm_writerec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4736,8 +4811,8 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -4747,7 +4822,22 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
+#ifdef DEBUG
+      where ( abs(rval) < tiny(0.0) )
+        rval = 0.0
+      end where
+#endif
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real4, &
@@ -4757,23 +4847,8 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-      return
     end if
-#ifdef DEBUG
-    where ( abs(rval) < tiny(0.0) )
-      rval = 0.0
-    end where
-#endif
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_2d_par_sg
 
   subroutine clm_writerec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4788,8 +4863,8 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4802,7 +4877,24 @@ module mod_clm_nchelper
           end if
         end do
       end do
+#ifdef DEBUG
+      where ( abs(rval) < tiny(0.0) )
+        rval = 0.0
+      end where
+#endif
+      istart(4) = nt
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = nv2
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4815,25 +4907,8 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      return
     end if
-#ifdef DEBUG
-    where ( abs(rval) < tiny(0.0) )
-      rval = 0.0
-    end where
-#endif
-    istart(4) = nt
-    istart(3) = 1
-    istart(2) = 1
-    istart(1) = 1
-    icount(4) = 1
-    icount(3) = nv2
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_3d_par_sg
 
   subroutine clm_writerec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -4846,8 +4921,10 @@ module mod_clm_nchelper
     real(rk8) , dimension(:) , allocatable :: rval
     integer(ik4) :: ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns))
+    else
+      allocate(rval(1))
     end if
     call mpi_gatherv(xval,sg%ic(myid+1),mpi_real8, &
                      rval,sg%ic,sg%id,mpi_real8,   &
@@ -4855,20 +4932,21 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
+    if ( myid == iocpu ) then
 #ifdef DEBUG
-    where ( abs(rval) < tiny(0.0) )
-      rval = d_zero
-    end where
+      where ( abs(rval) < tiny(0.0) )
+        rval = d_zero
+      end where
 #endif
-    istart(2) = nt
-    istart(1) = 1
-    icount(2) = 1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      istart(2) = nt
+      istart(1) = 1
+      icount(2) = 1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_1d_par_sg
 
   subroutine clm_writerec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4882,8 +4960,8 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , mpierr , nv1 , k , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -4893,7 +4971,22 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
+#ifdef DEBUG
+      where ( abs(rval) < tiny(0.0) )
+        rval = d_zero
+      end where
+#endif
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1))
       do k = 1 , nv1
         kk = lbound(xval,2)+(k-1)
         call mpi_gatherv(xval(:,kk),sg%ic(myid+1),mpi_real8, &
@@ -4903,23 +4996,8 @@ module mod_clm_nchelper
           call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
         end if
       end do
-      return
     end if
-#ifdef DEBUG
-    where ( abs(rval) < tiny(0.0) )
-      rval = d_zero
-    end where
-#endif
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_2d_par_sg
 
   subroutine clm_writerec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4934,8 +5012,8 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv2 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(rval(sg%ns,nv1,nv2))
       ivarid = searchvar(ncid,vname)
+      allocate(rval(sg%ns,nv1,nv2))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4948,7 +5026,24 @@ module mod_clm_nchelper
           end if
         end do
       end do
+#ifdef DEBUG
+      where ( abs(rval) < tiny(0.0) )
+        rval = d_zero
+      end where
+#endif
+      istart(4) = nt
+      istart(3) = 1
+      istart(2) = 1
+      istart(1) = 1
+      icount(4) = 1
+      icount(3) = nv2
+      icount(2) = nv1
+      icount(1) = sg%ns
+      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
     else
+      allocate(rval(1,1,1))
       do n = 1 , nv2
         nn = lbound(xval,3)+(n-1)
         do k = 1 , nv1
@@ -4961,25 +5056,8 @@ module mod_clm_nchelper
           end if
         end do
       end do
-      return
     end if
-#ifdef DEBUG
-    where ( abs(rval) < tiny(0.0) )
-      rval = d_zero
-    end where
-#endif
-    istart(4) = nt
-    istart(3) = 1
-    istart(2) = 1
-    istart(1) = 1
-    icount(4) = 1
-    icount(3) = nv2
-    icount(2) = nv1
-    icount(1) = sg%ns
-    incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_3d_par_sg
 
   subroutine clm_writevar_logical_2d_par_gg(ncid,vname,xval,gg)
@@ -4991,8 +5069,10 @@ module mod_clm_nchelper
     logical , dimension(:) , allocatable :: lval
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(lval(numg))
+    else
+      allocate(lval(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_logical, &
                      lval,gg%gc,gg%gd,mpi_logical,   &
@@ -5000,28 +5080,30 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          if ( lval(ib) ) then
-            ncid%i4buf(j,i) = 1
-          else
-            ncid%i4buf(j,i) = 0
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            if ( lval(ib) ) then
+              ncid%i4buf(j,i) = 1
+            else
+              ncid%i4buf(j,i) = 0
+            end if
+            ib = ib + 1
           end if
-          ib = ib + 1
-        end if
+        end do
       end do
-    end do
+      istart(2) = 1
+      istart(1) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+                             istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(lval)
-    istart(2) = 1
-    istart(1) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:2),icount(1:2))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_logical_2d_par_gg
 
   subroutine clm_writevar_logical_3d_par_gg(ncid,vname,xval,gg)
@@ -5034,8 +5116,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(lval(numg))
+    else
+      allocate(lval(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5071,7 +5155,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
   end subroutine clm_writevar_logical_3d_par_gg
 
@@ -5087,8 +5170,10 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(lval(numg))
+    else
+      allocate(lval(1))
     end if
     do l = 1 , nv3
       ll = lbound(xval,3)+(l-1)
@@ -5129,7 +5214,6 @@ module mod_clm_nchelper
         end if
       end do
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
   end subroutine clm_writevar_logical_4d_par_gg
 
@@ -5142,8 +5226,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , allocatable :: ival
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_integer4, &
                      ival,gg%gc,gg%gd,mpi_integer4,   &
@@ -5151,24 +5237,26 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          ncid%i4buf(j,i) = ival(ib)
-          ib = ib + 1
-        end if
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            ncid%i4buf(j,i) = ival(ib)
+            ib = ib + 1
+          end if
+        end do
       end do
-    end do
+      istart(2) = 1
+      istart(1) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+                             istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(ival)
-    istart(2) = 1
-    istart(1) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:2),icount(1:2))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_integer_2d_par_gg
 
   subroutine clm_writevar_integer_3d_par_gg(ncid,vname,xval,gg)
@@ -5181,8 +5269,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5214,7 +5304,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writevar_integer_3d_par_gg
 
@@ -5230,8 +5319,10 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do l = 1 , nv3
       ll = lbound(xval,3)+(l-1)
@@ -5268,7 +5359,6 @@ module mod_clm_nchelper
         end if
       end do
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writevar_integer_4d_par_gg
 
@@ -5281,8 +5371,10 @@ module mod_clm_nchelper
     real(rk4) , dimension(:) , allocatable :: ival
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_real4, &
                      ival,gg%gc,gg%gd,mpi_real4,   &
@@ -5290,24 +5382,26 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          ncid%r4buf(j,i) = ival(ib)
-          ib = ib + 1
-        end if
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            ncid%r4buf(j,i) = ival(ib)
+            ib = ib + 1
+          end if
+        end do
       end do
-    end do
+      istart(2) = 1
+      istart(1) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
+                             istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(ival)
-    istart(2) = 1
-    istart(1) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf,istart(1:2),icount(1:2))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real4_2d_par_gg
 
   subroutine clm_writevar_real4_3d_par_gg(ncid,vname,xval,gg)
@@ -5320,8 +5414,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5353,7 +5449,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writevar_real4_3d_par_gg
 
@@ -5369,8 +5464,10 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do l = 1 , nv3
       ll = lbound(xval,3)+(l-1)
@@ -5407,7 +5504,6 @@ module mod_clm_nchelper
         end if
       end do
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writevar_real4_4d_par_gg
 
@@ -5420,8 +5516,10 @@ module mod_clm_nchelper
     real(rk8) , dimension(:) , allocatable :: ival
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_real8, &
                      ival,gg%gc,gg%gd,mpi_real8,   &
@@ -5429,24 +5527,26 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          ncid%r8buf(j,i) = ival(ib)
-          ib = ib + 1
-        end if
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            ncid%r8buf(j,i) = ival(ib)
+            ib = ib + 1
+          end if
+        end do
       end do
-    end do
+      istart(2) = 1
+      istart(1) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
+                             istart(1:2),icount(1:2))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(ival)
-    istart(2) = 1
-    istart(1) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf,istart(1:2),icount(1:2))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real8_2d_par_gg
 
   subroutine clm_writevar_real8_3d_par_gg(ncid,vname,xval,gg)
@@ -5459,8 +5559,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5492,7 +5594,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writevar_real8_3d_par_gg
 
@@ -5508,8 +5609,10 @@ module mod_clm_nchelper
     nv1 = size(xval,2)
     nv3 = size(xval,3)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do l = 1 , nv3
       ll = lbound(xval,3)+(l-1)
@@ -5546,7 +5649,6 @@ module mod_clm_nchelper
         end if
       end do
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writevar_real8_4d_par_gg
 
@@ -5560,8 +5662,10 @@ module mod_clm_nchelper
     logical , dimension(:) , allocatable :: lval
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(lval(numg))
+    else
+      allocate(lval(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_logical, &
                      lval,gg%gc,gg%gd,mpi_logical,   &
@@ -5569,30 +5673,32 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          if ( lval(ib) ) then
-            ncid%i4buf(j,i) = 1
-          else
-            ncid%i4buf(j,i) = 0
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            if ( lval(ib) ) then
+              ncid%i4buf(j,i) = 1
+            else
+              ncid%i4buf(j,i) = 0
+            end if
+            ib = ib + 1
           end if
-          ib = ib + 1
-        end if
+        end do
       end do
-    end do
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+                             istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(lval)
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_2d_par_gg
 
   subroutine clm_writerec_integer_2d_par_gg(ncid,vname,xval,gg,nt)
@@ -5605,8 +5711,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , allocatable :: ival
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_integer4, &
                      ival,gg%gc,gg%gd,mpi_integer4,   &
@@ -5614,26 +5722,28 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          ncid%i4buf(j,i) = ival(ib)
-          ib = ib + 1
-        end if
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            ncid%i4buf(j,i) = ival(ib)
+            ib = ib + 1
+          end if
+        end do
       end do
-    end do
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+                             istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(ival)
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_2d_par_gg
 
   subroutine clm_writerec_logical_3d_par_gg(ncid,vname,xval,gg,nt)
@@ -5647,8 +5757,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(lval(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(lval(numg))
+    else
+      allocate(lval(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5686,7 +5798,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(lval)
   end subroutine clm_writerec_logical_3d_par_gg
 
@@ -5701,8 +5812,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5736,7 +5849,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writerec_integer_3d_par_gg
 
@@ -5750,8 +5862,10 @@ module mod_clm_nchelper
     real(rk4) , dimension(:) , allocatable :: ival
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_real4, &
                      ival,gg%gc,gg%gd,mpi_real4,   &
@@ -5759,26 +5873,28 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          ncid%r4buf(j,i) = ival(ib)
-          ib = ib + 1
-        end if
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            ncid%r4buf(j,i) = ival(ib)
+            ib = ib + 1
+          end if
+        end do
       end do
-    end do
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
+                             istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(ival)
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf,istart(1:3),icount(1:3))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_2d_par_gg
 
   subroutine clm_writerec_real4_3d_par_gg(ncid,vname,xval,gg,nt)
@@ -5792,8 +5908,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5827,7 +5945,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writerec_real4_3d_par_gg
 
@@ -5841,8 +5958,10 @@ module mod_clm_nchelper
     real(rk8) , dimension(:) , allocatable :: ival
     integer(ik4) :: i , j , ib , ivarid , mpierr
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     call mpi_gatherv(xval,gg%gc(myid+1),mpi_real8, &
                      ival,gg%gc,gg%gd,mpi_real8,   &
@@ -5850,26 +5969,28 @@ module mod_clm_nchelper
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    if ( myid /= iocpu ) return
-    ib = 1
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        if ( gg%gcmask(j,i) ) then
-          ncid%r8buf(j,i) = ival(ib)
-          ib = ib + 1
-        end if
+    if ( myid == iocpu ) then
+      ib = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          if ( gg%gcmask(j,i) ) then
+            ncid%r8buf(j,i) = ival(ib)
+            ib = ib + 1
+          end if
+        end do
       end do
-    end do
+      istart(3) = nt
+      istart(2) = 1
+      istart(1) = 1
+      icount(3) = 1
+      icount(2) = niout
+      icount(1) = njout
+      incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
+                             istart(1:3),icount(1:3))
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error write '//vname//' to file '//trim(ncid%fname))
+    end if
     deallocate(ival)
-    istart(3) = nt
-    istart(2) = 1
-    istart(1) = 1
-    icount(3) = 1
-    icount(2) = niout
-    icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf,istart(1:3),icount(1:3))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_2d_par_gg
 
   subroutine clm_writerec_real8_3d_par_gg(ncid,vname,xval,gg,nt)
@@ -5883,8 +6004,10 @@ module mod_clm_nchelper
     integer(ik4) :: i , j , k , nv1 , ib , ivarid , mpierr , kk
     nv1 = size(xval,2)
     if ( myid == iocpu ) then
-      allocate(ival(numg))
       ivarid = searchvar(ncid,vname)
+      allocate(ival(numg))
+    else
+      allocate(ival(1))
     end if
     do k = 1 , nv1
       kk = lbound(xval,2)+(k-1)
@@ -5918,7 +6041,6 @@ module mod_clm_nchelper
           'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
-    if ( myid /= iocpu ) return
     deallocate(ival)
   end subroutine clm_writerec_real8_3d_par_gg
 

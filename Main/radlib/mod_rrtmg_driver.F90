@@ -431,9 +431,11 @@ module mod_rrtmg_driver
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                        (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
-          cld_int(n,k) = min(cld_int(n,k),cftotmax)
+          if ( clwp_int(n,k) > d_zero ) then
+            cld_int(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                          (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
+            cld_int(n,k) = min(cld_int(n,k),cftotmax)
+          end if
           n = n + 1
         end do
       end do

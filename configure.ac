@@ -541,9 +541,7 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
-    FCFLAGS="-O0 -g \
-             -check arg_temp_created,bounds,format,output_conversion,uninit \
-             -traceback -warn all -ftz \
+    FCFLAGS="-O0 -g -check all -traceback -warn all -ftz \
              -fimf-arch-consistency=true -fltconsistency -mieee-fp $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi

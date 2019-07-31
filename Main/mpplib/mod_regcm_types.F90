@@ -290,6 +290,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: th700
     real(rkx) , pointer , dimension(:,:,:) :: tb3d
     real(rkx) , pointer , dimension(:,:,:) :: tp3d
+    real(rkx) , pointer , dimension(:,:,:) :: tv3d
     real(rkx) , pointer , dimension(:,:,:) :: pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pf3d
     real(rkx) , pointer , dimension(:,:,:) :: rhob3d
@@ -524,7 +525,6 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: lwdif       ! solvld
     real(rkx) , pointer , dimension(:,:) :: solinc      ! sinc
     real(rkx) , pointer , dimension(:,:) :: solar       ! solis
-    real(rkx) , pointer , dimension(:,:) :: dsol        ! daily averaged energy
     real(rkx) , pointer , dimension(:,:) :: emissivity  ! emiss
     real(rkx) , pointer , dimension(:,:) :: deltaq      ! sdelq
     real(rkx) , pointer , dimension(:,:) :: deltat      ! sdelt
@@ -547,6 +547,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: phatms        ! atms%pb3d
     real(rkx) , pointer , dimension(:,:,:) :: pfatms        ! atms%pf3d
     real(rkx) , pointer , dimension(:,:,:) :: za            ! atms%za
+    real(rkx) , pointer , dimension(:,:,:) :: zq            ! atms%zq
     real(rkx) , pointer , dimension(:,:,:) :: deltaz        ! atms%dzq
     real(rkx) , pointer , dimension(:,:) :: psatms          ! atms%ps2d
     real(rkx) , pointer , dimension(:,:,:,:) :: qxatms      ! atms%qxb3d

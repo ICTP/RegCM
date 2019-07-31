@@ -153,7 +153,6 @@ module mod_atm_interface
   ! real(rkx) , public , pointer , dimension(:,:) :: ustar
   real(rkx) , public , pointer , dimension(:,:,:) :: voc_em_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: dustflx_clm
-  real(rkx) , public , pointer , dimension(:,:,:) :: dep_vels_clm
   real(rkx) , public , pointer , dimension(:,:,:) :: sw_vol
   real(rkx) , public , pointer , dimension(:,:,:) :: tsoi
 #endif
@@ -161,7 +160,6 @@ module mod_atm_interface
   !chemistry for surface
   real(rkx) , public , pointer , dimension(:,:,:) :: wetdepflx
   real(rkx) , public , pointer , dimension(:,:,:) :: drydepflx
-  integer (ik4), public, pointer, dimension(:) :: idusts
 
   ! Coupling
   real(rkx) , public , pointer , dimension(:,:,:) :: dailyrnf
@@ -649,21 +647,23 @@ module mod_atm_interface
     subroutine allocate_atmstate_c(atm)
       implicit none
       type(atmstate_c) , intent(out) :: atm
-      call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
-      call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
       if ( ibltyp == 2 ) then
-        call getmem3d(atm%tke,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'atmstate:tke')
+        call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
       end if
-      call getmem4d(atm%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atmstate:qx')
       if ( idynamic == 2 ) then
+        call getmem3d(atm%u,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:u')
+        call getmem3d(atm%v,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'atmstate:v')
         call getmem3d(atm%pp,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pp')
         call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
         call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       else
-        call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
+        call getmem3d(atm%u,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:u')
+        call getmem3d(atm%v,jdi1,jdi2,idi1,idi2,1,kz,'atmstate:v')
+        call getmem3d(atm%t,jci1,jci2,ici1,ici2,1,kz,'atmstate:t')
       end if
+      call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( ichem == 1 ) then
-        call getmem4d(atm%chi,jce1,jce2,ice1,ice2, &
+        call getmem4d(atm%chi,jce1ga,jce2ga,ice1ga,ice2ga, &
                               1,kz,1,ntr,'atmstate:chi')
       end if
     end subroutine allocate_atmstate_c
@@ -893,6 +893,7 @@ module mod_atm_interface
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
       call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
+      call getmem3d(ax%tv3d,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:tv3d')
       if ( icldmstrat == 1 ) then
         call getmem2d(ax%th700,jce1,jce2,ice1,ice2,'slice:th700')
       end if
@@ -1028,8 +1029,6 @@ module mod_atm_interface
                                  ici1,ici2,1,ntr,'storage:voc_em_clm')
         call getmem3d(dustflx_clm,jci1,jci2, &
                                   ici1,ici2,1,4,'storage:dustflx_clm')
-        call getmem3d(dep_vels_clm,jci1,jci2, &
-                                   ici1,ici2,1,ntr,'storage:dep_vels_clm')
         call getmem3d(sw_vol,jci1,jci2, &
                              ici1,ici2,1,num_soil_layers,'storage:sw_vol')
         call getmem3d(tsoi,jci1,jci2, &
@@ -1037,7 +1036,6 @@ module mod_atm_interface
 #endif
         call getmem3d(drydepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:drydepflx')
         call getmem3d(wetdepflx,jci1,jci2,ici1,ici2,1,ntr,'storage:wetdepflx')
-        call getmem1d(idusts,1,nbin,'storage:idusts')
         if ( iindirect > 0 .and. iaerosol == 1 ) then
           call getmem3d(ccn,jci1,jci2,ici1,ici2,1,kz,'storage:ccn')
         end if

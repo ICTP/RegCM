@@ -815,12 +815,16 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          ! Use Maximum Random Overlap assumption
-          cld(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
-                       (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
-          cld(n,k) = min(cld(n,k),cftotmax)
           ! Convert liquid water content into liquid water path
           clwp(n,k) = m2r%cldlwc(j,i,k)*m2r%deltaz(j,i,k)
+          if ( clwp(n,k) > d_zero ) then
+            ! Use Maximum Random Overlap assumption
+            cld(n,k) = m2r%cldfrc(j,i,k-1)+m2r%cldfrc(j,i,k) - &
+                         (m2r%cldfrc(j,i,k-1)*m2r%cldfrc(j,i,k))
+            cld(n,k) = min(cld(n,k),cftotmax)
+          else
+            cld(n,k) = d_zero
+          end if
           n = n + 1
         end do
       end do

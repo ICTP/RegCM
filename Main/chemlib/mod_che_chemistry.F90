@@ -47,19 +47,19 @@ module mod_che_chemistry
 
   contains
 
-    subroutine chemistry(j)
-      implicit none
-      integer(ik4) , intent(in) :: j
-      real(rkx) :: cfactor , pfact
-      real(rk8) :: change
-      integer(ik4) :: i , k , ic , n
+  subroutine chemistry
+    implicit none
+    real(rkx) :: cfactor , pfact
+    real(rk8) :: change
+    integer(ik4) :: i , j , k , ic , n
 
-      time = dtchsolv
+    time = dtchsolv
 
-      ! Begining of i , k loop
-      ! do not solve chemistry anyway for topmost layer
-      do k = kmin , kz
-        do i = ici1 , ici2
+    ! Begining of i , k loop
+    ! do not solve chemistry anyway for topmost layer
+    do k = kmin , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           altmid   = cpb3d(j,i,k)
           ! Skip stratosphere ( ? Should we ? )
           if ( altmid < cptrop(j,i) - d_100 ) cycle
@@ -137,9 +137,10 @@ module mod_che_chemistry
               end if
             end if
           end do
-        end do ! end i , k loop
+        end do
       end do
-    end subroutine chemistry
+    end do
+  end subroutine chemistry
 
 end module mod_che_chemistry
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
