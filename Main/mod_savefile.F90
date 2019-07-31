@@ -177,6 +177,8 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:) :: lwdiralb_io
   real(rkx) , public , pointer , dimension(:,:,:) :: lwdifalb_io
 
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: tmp_io
+
   interface myputvar
     module procedure myputvar2dd
     module procedure myputvar2ddf
@@ -653,7 +655,8 @@ module mod_savefile
       call mygetvar(ncid,'chib',chib_io)
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         call mygetvar(ncid,'chemall',chemall_io)
-        call mygetvar(ncid,'taucldsp',taucldsp_io)
+        call remappnt4(taucldsp_io,tmp_io)
+        call mygetvar(ncid,'taucldsp',tmp_io)
       end if
       call mygetvar(ncid,'convpr',convpr_io)
       call mygetvar(ncid,'rainout',rainout_io)
@@ -1090,7 +1093,8 @@ module mod_savefile
       call myputvar(ncid,'chib',chib_io,varids,ivcc)
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
-        call myputvar(ncid,'taucldsp',taucldsp_io,varids,ivcc)
+        call remappnt4(taucldsp_io,tmp_io)
+        call myputvar(ncid,'taucldsp',tmp_io,varids,ivcc)
       end if
       call myputvar(ncid,'convpr',convpr_io,varids,ivcc)
       call myputvar(ncid,'rainout',rainout_io,varids,ivcc)

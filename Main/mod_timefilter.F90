@@ -181,12 +181,11 @@ module mod_timefilter
     end do
   end subroutine filter_raw_uv
 
-  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2,low,ps)
+  subroutine filter_ra_4d(phin,phinm1,phinp1,alpha,n1,n2,low)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , intent(in) :: alpha , low
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
@@ -229,12 +228,11 @@ module mod_timefilter
     end do
   end subroutine filter_ra_qv
 
-  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low,psa,psb)
+  subroutine filter_raw_4d(phin,phinm1,phinp1,alpha,beta,n1,n2,low)
     implicit none
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phinm1
     real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: phin
     real(rkx) , pointer , dimension(:,:,:,:) , intent(in) :: phinp1
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: psa , psb
     real(rkx) , intent(in) :: alpha , beta , low
     integer(ik4) , intent(in) :: n1 , n2
     real(rkx) :: d
