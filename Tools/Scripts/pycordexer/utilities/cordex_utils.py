@@ -359,6 +359,10 @@ class RegcmOutputFile(object):
             LOGGER.debug('Variable "tsmin" found: the type is "STS"')
             return 'STS'
 
+        if check_variable('lakets'):
+            LOGGER.debug('Variable "lakets" found: the type is "LAK"')
+            return 'LAK'
+
         if check_variable('ua'):
             LOGGER.debug('Variable "ua" found: the type is "ATM"')
             return 'ATM'

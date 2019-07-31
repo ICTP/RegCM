@@ -1,5 +1,12 @@
 [
   {
+    "name":"LAK",
+    "vars":[
+      "lakets"
+    ],
+    "mask":"_LAK\\.\\d+\\.[nN][cC]$"
+  },
+  {
     "name":"SHF",
     "vars":[
       "pr",
@@ -65,8 +72,7 @@
       "va",
       "ta",
       "hus",
-      "zg",
-      "capecin"
+      "zg"
     ],
     "mask":"_ATM\\.\\d+\\.[nN][cC]$"
   },

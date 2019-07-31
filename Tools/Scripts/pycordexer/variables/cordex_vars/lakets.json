@@ -1,0 +1,49 @@
+{
+  "lakets": [
+    [
+      [
+        "ReadVariableFromFile",
+        {
+          "var_name": "lakets",
+          "need_time_bounds": false
+        }
+      ],
+      [
+        "CorrectTime",
+        {
+          "offset": {
+            "LAK": 0.0
+          }
+        }
+      ],
+      [
+        "ExtractLevel",
+        {
+          "dimension": "depth",
+          "level": 0
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "lakets",
+          "fill_value": "0.0"
+        }
+      ],
+      [
+        "ComputeAverage",
+        {
+          "new_time_step": 24
+        }
+      ],
+      [
+        "SaveVariableToDisk",
+        {
+          "var_name": "lakets",
+          "fill_value": "0.0"
+        }
+      ]
+    ]
+  ]
+}
+
