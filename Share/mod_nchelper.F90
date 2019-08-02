@@ -40,7 +40,7 @@ module mod_nchelper
   public :: define_basic_dimensions
   public :: define_horizontal_coord
   public :: define_vertical_coord
-  public :: define_geolocation_coord
+  public :: define_cross_geolocation_coord
   public :: write_vertical_coord
   public :: write_vertical_coord_zita
   public :: write_horizontal_coord
@@ -161,7 +161,7 @@ module mod_nchelper
                'http://gforge.ictp.it/gf/project/regcm')
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding global references')
-    incstat = nf90_put_att(ncid, nf90_global, 'model_revision',SVN_REV)
+    incstat = nf90_put_att(ncid, nf90_global, 'model_revision',GIT_VER)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error adding global institution')
     incstat = nf90_put_att(ncid, nf90_global, 'experiment',domname)
