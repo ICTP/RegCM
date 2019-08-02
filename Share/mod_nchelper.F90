@@ -31,9 +31,19 @@ module mod_nchelper
 
   private
 
+  public :: cdumlogical
+
   public :: openfile_withname
   public :: createfile_withname
   public :: closefile
+  public :: add_common_global_params
+  public :: define_basic_dimensions
+  public :: define_horizontal_coord
+  public :: define_vertical_coord
+  public :: define_geolocation_coord
+  public :: write_vertical_coord
+  public :: write_vertical_coord_zita
+  public :: write_horizontal_coord
   public :: check_dims
   public :: check_var
   public :: ncd_inqdim
@@ -103,6 +113,325 @@ module mod_nchelper
   integer(ik4) :: incstat
 
   contains
+!
+  subroutine cdumlogical(cdum,yesno)
+    implicit none
+    character(len=*) , intent(out) :: cdum
+    logical , intent(in) :: yesno
+    if (yesno) then
+      write (cdum,'(a)') 'Yes'
+    else
+      write (cdum,'(a)') 'No'
+    end if
+  end subroutine cdumlogical
+
+  subroutine add_common_global_params(ncid,prgname,lsub)
+    implicit none
+
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: prgname
+    logical :: lsub
+
+    character(len=256) :: history
+    real(rk4) , dimension(2) :: trlat
+    integer(ik4) , dimension(8) :: tvals
+
+    incstat = nf90_put_att(ncid, nf90_global, 'title',  &
+               'ICTP Regional Climatic model V4')
+    call checkncerr(incstat,__FILE__,__LINE__,'Error adding global title')
+    incstat = nf90_put_att(ncid, nf90_global, 'institution','ICTP')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global institution')
+    incstat = nf90_put_att(ncid, nf90_global, 'source', &
+               'RegCM Model simulation '//trim(prgname)//' output')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global source')
+    incstat = nf90_put_att(ncid, nf90_global, 'Conventions','CF-1.4')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global Conventions')
+    call date_and_time(values=tvals)
+    write (history,'(i0.4,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a,i0.2,a)')   &
+         tvals(1) , '-' , tvals(2) , '-' , tvals(3) , ' ' ,         &
+         tvals(5) , ':' , tvals(6) , ':' , tvals(7) ,               &
+         ' : Created by RegCM '//trim(prgname)
+    incstat = nf90_put_att(ncid, nf90_global, 'history', history)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global history')
+    incstat = nf90_put_att(ncid, nf90_global, 'references', &
+               'http://gforge.ictp.it/gf/project/regcm')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global references')
+    incstat = nf90_put_att(ncid, nf90_global, 'model_revision',SVN_REV)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global institution')
+    incstat = nf90_put_att(ncid, nf90_global, 'experiment',domname)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global experiment')
+    incstat = nf90_put_att(ncid, nf90_global, 'projection',iproj)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global projection')
+    if ( lsub ) then
+      incstat = nf90_put_att(ncid, nf90_global, &
+                             'grid_size_in_meters', (ds*1000.0)/real(nsg,rkx))
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global gridsize')
+      incstat = nf90_put_att(ncid, nf90_global, 'model_subgrid', 'Yes');
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global subgrid flag')
+    else
+      incstat = nf90_put_att(ncid, nf90_global,'grid_size_in_meters', ds*1000.0)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global gridsize')
+    end if
+    incstat = nf90_put_att(ncid, nf90_global, &
+                 'latitude_of_projection_origin', clat)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global clat')
+    incstat = nf90_put_att(ncid, nf90_global,                     &
+                 'longitude_of_projection_origin', clon)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global clon')
+    if (iproj == 'ROTMER') then
+      incstat = nf90_put_att(ncid, nf90_global,'grid_north_pole_latitude', plat)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global plat')
+      incstat = nf90_put_att(ncid, nf90_global, &
+                             'grid_north_pole_longitude', plon)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global plon')
+    else if (iproj == 'LAMCON') then
+      trlat(1) = real(truelatl)
+      trlat(2) = real(truelath)
+      incstat = nf90_put_att(ncid, nf90_global,'standard_parallel', trlat)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding global truelat')
+    end if
+    incstat = nf90_put_att(ncid, nf90_global, 'grid_factor', xcone)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding global grid_factor')
+  end subroutine add_common_global_params
+
+  subroutine define_horizontal_coord(ncid,nx,ny,xjx,yiy,idims,ihvar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) :: nx , ny
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , dimension(2) , intent(out) :: ihvar
+    real(rk4) , pointer , dimension(:) , intent(inout) :: xjx
+    real(rk4) , pointer , dimension(:) , intent(inout) :: yiy
+    integer(ik4) :: i , j
+
+    call getmem1d(yiy,1,ny,'mod_write:yiy')
+    call getmem1d(xjx,1,nx,'mod_write:xjx')
+    yiy(1) = -real((real(iy-1,rkx)/d_two) * ds,rk4)
+    xjx(1) = -real((real(jx-1,rkx)/d_two) * ds,rk4)
+    do i = 2 , ny
+      yiy(i) = real(real(yiy(i-1),rkx)+ds,rk4)
+    end do
+    do j = 2 , nx
+      xjx(j) = real(real(xjx(j-1),rkx)+ds,rk4)
+    end do
+    incstat = nf90_def_var(ncid, 'jx', nf90_float, idims(1), ihvar(1))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable jx')
+    incstat = nf90_put_att(ncid, ihvar(1), 'standard_name',       &
+                           'projection_x_coordinate')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding jx standard_name')
+    incstat = nf90_put_att(ncid, ihvar(1), 'long_name',           &
+                           'x-coordinate in Cartesian system')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding jx long_name')
+    incstat = nf90_put_att(ncid, ihvar(1), 'units', 'km')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding jx units')
+    incstat = nf90_def_var(ncid, 'iy', nf90_float, idims(2), ihvar(2))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable iy')
+    incstat = nf90_put_att(ncid, ihvar(2), 'standard_name',       &
+                           'projection_y_coordinate')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding iy standard_name')
+    incstat = nf90_put_att(ncid, ihvar(2), 'long_name',           &
+                           'y-coordinate in Cartesian system')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding iy long_name')
+    incstat = nf90_put_att(ncid, ihvar(2), 'units', 'km')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding iy units')
+  end subroutine define_horizontal_coord
+
+  subroutine define_vertical_coord(ncid,idims,izvar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) , dimension(:) :: idims
+    integer(ik4) , intent(out) , dimension(3) :: izvar
+
+    incstat = nf90_def_var(ncid, 'kz', nf90_double, idims(3), izvar(1))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable kz')
+    if ( idynamic < 3 ) then
+      incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
+                             'atmosphere_sigma_coordinate')
+    else
+      incstat = nf90_put_att(ncid, izvar(1), 'standard_name', &
+                             'atmosphere_hybrid_height_coordinate')
+    end if
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma standard_name')
+    incstat = nf90_put_att(ncid, izvar(1), 'long_name', &
+                           'Sigma at model layer midpoints')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma long_name')
+    incstat = nf90_put_att(ncid, izvar(1), 'units', '1')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma units')
+    incstat = nf90_put_att(ncid, izvar(1), 'axis', 'Z')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma axis')
+    incstat = nf90_put_att(ncid, izvar(1), 'positive', 'down')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding sigma positive')
+    if ( idynamic == 3 ) then
+      incstat = nf90_put_att(ncid, izvar(1), 'formula', &
+             'z(k,j,i) = a(k) + b(k) * topo(j,i)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                             'Error adding zeta formula')
+    else if ( idynamic == 2 ) then
+      incstat = nf90_put_att(ncid, izvar(1), 'formula', &
+             'p(n,k,j,i) = ptop + sigma(k)*(p0(j,i)-ptop) + ppa(n,k,j,i)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                             'Error adding sigma formula')
+    else
+      incstat = nf90_put_att(ncid, izvar(1), 'formula_terms', &
+                             'kz: sigma ps: ps ptop: ptop')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                             'Error adding sigma formula_terms')
+    end if
+    if ( idynamic < 3 ) then
+      incstat = nf90_def_var(ncid, 'ptop', nf90_double, varid=izvar(2))
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding variable ptop')
+      incstat = nf90_put_att(ncid, izvar(2), 'standard_name', &
+                             'air_pressure')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding ptop standard_name')
+      incstat = nf90_put_att(ncid, izvar(2), 'long_name', &
+                             'Pressure at model top')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding ptop long_name')
+      incstat = nf90_put_att(ncid, izvar(2), 'units', 'hPa')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding ptop units')
+    else
+      incstat = nf90_def_var(ncid, 'a', nf90_double, idims(3), izvar(2))
+      incstat = nf90_put_att(ncid, izvar(2), 'long_name', &
+                             'vertical coordinate formula term a(k)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding a long_name')
+      incstat = nf90_def_var(ncid, 'b', nf90_double, idims(3), izvar(3))
+      incstat = nf90_put_att(ncid, izvar(3), 'long_name', &
+                             'vertical coordinate formula term b(k)')
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error adding b long_name')
+    end if
+  end subroutine define_vertical_coord
+
+  subroutine define_cross_geolocation_coord(ncid,idims,ipnt,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , dimension(:) , intent(in) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(out) :: ivar
+
+    incstat = nf90_def_var(ncid, 'xlat', nf90_double, idims(1:2), ivar(ipnt))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable xlat')
+#ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
+    incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on xlat')
+#endif
+#endif
+    incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'latitude')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlat standard_name')
+    incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
+                           'Latitude at cross points')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlat long_name')
+    incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'degrees_north')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlat units')
+    ipnt = ipnt+1
+    incstat = nf90_def_var(ncid, 'xlon', nf90_double, idims(1:2), ivar(ipnt))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding variable xlon')
+#ifdef NETCDF4_HDF5
+#if defined (NETCDF4_COMPRESS)
+    incstat = nf90_def_var_deflate(ncid, ivar(ipnt), 1, 1, deflate_level)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error setting deflate on xlon')
+#endif
+#endif
+    incstat = nf90_put_att(ncid, ivar(ipnt), 'standard_name', 'longitude')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlon standard_name')
+    incstat = nf90_put_att(ncid, ivar(ipnt), 'long_name', &
+                           'Longitude at cross points')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlon long_name')
+    incstat = nf90_put_att(ncid, ivar(ipnt), 'units', 'degrees_east')
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding xlon units')
+    ipnt = ipnt + 1
+  end subroutine define_cross_geolocation_coord
+
+  subroutine write_vertical_coord(ncid,sigma,ptop,izvar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    real(rk4) , dimension(:) , intent(in) :: sigma
+    real(rk4) , intent(in) :: ptop
+    integer(ik4) , intent(in) , dimension(3) :: izvar
+    incstat = nf90_put_var(ncid, izvar(1), sigma)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable sigma write')
+    incstat = nf90_put_var(ncid, izvar(2), ptop)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable ptop write')
+  end subroutine write_vertical_coord
+
+  subroutine write_vertical_coord_zita(ncid,sigma,a,b,izvar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    real(rk4) , dimension(:) , intent(in) :: sigma
+    real(rk4) , dimension(:) , intent(in) :: a
+    real(rk4) , dimension(:) , intent(in) :: b
+    integer(ik4) , intent(in) , dimension(3) :: izvar
+    incstat = nf90_put_var(ncid, izvar(1), sigma)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable sigma write')
+    incstat = nf90_put_var(ncid, izvar(2), a)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable a write')
+    incstat = nf90_put_var(ncid, izvar(3), b)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable b write')
+  end subroutine write_vertical_coord_zita
+
+  subroutine write_horizontal_coord(ncid,xjx,yiy,ihvar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    real(rk4) , dimension(:) , intent(in) :: xjx , yiy
+    integer(ik4) , intent(in) , dimension(2) :: ihvar
+    incstat = nf90_put_var(ncid, ihvar(1), xjx)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable jx write')
+    incstat = nf90_put_var(ncid, ihvar(2), yiy)
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error variable iy write')
+  end subroutine write_horizontal_coord
 
   subroutine write_var1d_static_single(ncid,vnam,values,ipnt,ivar)
     implicit none
@@ -769,6 +1098,24 @@ module mod_nchelper
     end if
   end subroutine read_var3d_static_integer_fix
 
+  subroutine define_basic_dimensions(ncid,nx,ny,nz,ipnt,idims)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    integer(ik4) , intent(in) :: nx , ny , nz
+    integer(ik4) , intent(inout) , dimension(:) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    incstat = nf90_def_dim(ncid, 'jx', nx, idims(ipnt))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dimension jx')
+    incstat = nf90_def_dim(ncid, 'iy', ny, idims(ipnt+1))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dimension iy')
+    incstat = nf90_def_dim(ncid, 'kz', nz, idims(ipnt+2))
+    call checkncerr(incstat,__FILE__,__LINE__, &
+                    'Error adding dimension kz')
+    ipnt = ipnt + 3
+  end subroutine define_basic_dimensions
+
   subroutine add_dimension(ncid,dnam,nd,ipnt,idims)
     implicit none
     integer(ik4) , intent(in) :: ncid
@@ -1046,6 +1393,6 @@ module mod_nchelper
       call die(filename,trim(cline)//':'//arg,ival)
     end if
   end subroutine checkncerr
-
+!
 end module mod_nchelper
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
