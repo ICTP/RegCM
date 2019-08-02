@@ -85,7 +85,7 @@ module mod_moloch
     call getmem3d(tf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:tf')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
-    call getmem3d(wx,jci1,jci2,ici1,ici2,1,kz,'moloch:wx')
+    call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
     call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wwkw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wwkw')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
@@ -93,7 +93,7 @@ module mod_moloch
     call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1ga,jce2ga,ici1,ici2,'moloch:zpbw')
     if ( ibltyp == 2 ) then
-      call getmem3d(tkex,jci1,jci2,ici1,ici2,1,kz,'moloch:tkex')
+      call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
     if ( idiag > 0 ) then
       call getmem3d(ten0,jci1,jci2,ici1,ici2,1,kz,'moloch:ten0')
@@ -141,9 +141,7 @@ module mod_moloch
         end do
       end do
 
-      call exchange(mo_atm%tetav,2,jce1,jce2,ice1,ice2,1,kz)
-
-      call sound(dtsound)
+      !call sound(dtsound)
 
       call advection(dtstepa)
 
@@ -187,8 +185,8 @@ module mod_moloch
     end if
 
     do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
           mo_atm%tvirt(j,i,k) = mo_atm%tetav(j,i,k)*mo_atm%pai(j,i,k)
           mo_atm%t(j,i,k) = mo_atm%tvirt(j,i,k) / &
@@ -360,7 +358,7 @@ module mod_moloch
             end do
           end do
 
-          do k = kzm1, 1 , -1
+          do k = kzm1 , 1 , -1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zuh = (mo_atm%u(j,i,k+1)+mo_atm%u(j,i,k))*mddom%hx(j,i) + &
@@ -430,7 +428,7 @@ module mod_moloch
           end do
 
           ! 2nd loop for the tridiagonal inversion
-          do k = 2, kzp1
+          do k = 2 , kzp1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 mo_atm%w(j,i,k) = mo_atm%w(j,i,k) + &
@@ -454,7 +452,8 @@ module mod_moloch
 
           ! horizontal momentum equations
 
-          call exchange(mo_atm%pai,2,jce1,jce2,ice1,ice2,1,kz)
+          call exchange(mo_atm%pai,1,jce1,jce2,ice1,ice2,1,kz)
+          call exchange(mo_atm%tetav,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange(deltaw,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange(mo_atm%w,1,jce1,jce2,ice1,ice2,1,kz)
 
@@ -475,8 +474,8 @@ module mod_moloch
                    mo_atm%w(j-1,i,k) * &
                    (mo_atm%tetav(j-1,i,k) - mo_atm%tetav(j-1,i,kp1)))
                 zfz = 0.25_rkx * &
-                  (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                   deltaw(j,i,k) + deltaw(j,i,k+1)) + egrav*dtsound
+                  (deltaw(j-1,i,k) + deltaw(j-1,i,kp1) + &
+                   deltaw(j,i,k) + deltaw(j,i,kp1)) + egrav*dtsound
                 zrom1u = d_half * cpd * &
                   (mo_atm%tetav(j-1,i,k) + mo_atm%tetav(j,i,k) - d_half*zzww)
                 mo_atm%u(j,i,k) = mo_atm%u(j,i,k) - zrom1u * zcx * &
@@ -489,8 +488,8 @@ module mod_moloch
                    mo_atm%w(j,i-1,k) * &
                     (mo_atm%tetav(j,i-1,k) - mo_atm%tetav(j,i-1,kp1)))
                 zfz = 0.25_rkx * &
-                  (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                   deltaw(j,i,k) + deltaw(j,i,k+1)) + egrav*dtsound
+                  (deltaw(j,i-1,k) + deltaw(j,i-1,kp1) + &
+                   deltaw(j,i,k) + deltaw(j,i,kp1)) + egrav*dtsound
                 zrom1v = d_half * cpd * &
                   (mo_atm%tetav(j,i-1,k) + mo_atm%tetav(j,i,k) - d_half*zzww)
                 mo_atm%v(j,i,k) = mo_atm%v(j,i,k) - zrom1v * zdtrdy * &
@@ -517,8 +516,8 @@ module mod_moloch
                      mo_atm%w(j,ici2,k) * &
                       (mo_atm%tetav(j,ici2,k) - mo_atm%tetav(j,ici2,kp1)))
                 zfz = 0.25_rkx * &
-                  (deltaw(j,ici2,k) + deltaw(j,ici2,k+1) + &
-                   deltaw(j,ice2,k) + deltaw(j,ice2,k+1)) + egrav*dtsound
+                  (deltaw(j,ici2,k) + deltaw(j,ici2,kp1) + &
+                   deltaw(j,ice2,k) + deltaw(j,ice2,kp1)) + egrav*dtsound
                 zrom1v = d_half * cpd * &
                  (mo_atm%tetav(j,ici2,k) + mo_atm%tetav(j,ice2,k) - d_half*zzww)
                 mo_atm%v(j,idi2,k) = mo_atm%v(j,idi2,k) - zrom1v * zdtrdy * &
@@ -546,8 +545,8 @@ module mod_moloch
                    mo_atm%w(jci2,i,k) * &
                    (mo_atm%tetav(jci2,i,k) - mo_atm%tetav(jci2,i,kp1)))
                 zfz = 0.25_rkx * &
-                  (deltaw(jci2,i,k) + deltaw(jci2,i,k+1) + &
-                   deltaw(jce2,i,k) + deltaw(jce2,i,k+1)) + egrav*dtsound
+                  (deltaw(jci2,i,k) + deltaw(jci2,i,kp1) + &
+                   deltaw(jce2,i,k) + deltaw(jce2,i,kp1)) + egrav*dtsound
                 zrom1u = d_half * cpd * &
                  (mo_atm%tetav(jci2,i,k) + mo_atm%tetav(jce2,i,k) - d_half*zzww)
                 mo_atm%u(jdi2,i,k) = mo_atm%u(jdi2,i,k) - zrom1u * zcx * &
@@ -763,7 +762,7 @@ module mod_moloch
           end do
         end do
 
-        call exchange_bt(wz,2,jci1,jci2,ici1,ici2,1,kz)
+        call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
         ! Meridional advection
 
@@ -845,15 +844,15 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
     integer(ik4) :: i , j , k
     do k = 2 , kz-1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = lbound(wx,2) , ubound(wx,2)
+        do j = lbound(wx,1) , ubound(wx,1)
           wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
                       0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
         end do
       end do
     end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = lbound(wx,2) , ubound(wx,2)
+      do j = lbound(wx,1) , ubound(wx,1)
         wx(j,i,1)  = 0.5_rkx * (w(j,i,2)+w(j,i,1))
         wx(j,i,kz) = 0.5_rkx * (w(j,i,kzp1)+w(j,i,kz))
       end do

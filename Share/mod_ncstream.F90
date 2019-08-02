@@ -1333,8 +1333,8 @@ module mod_ncstream
       class(ncvariable_standard) , intent(in) :: var
       character(len=16) :: coords_cross = 'xlat xlon'
       character(len=16) :: coords_dot   = 'dlat dlon'
-      character(len=16) :: coords_udot  = 'xlat dlon'
-      character(len=16) :: coords_vdot  = 'dlat xlon'
+      character(len=16) :: coords_udot  = 'ulat ulon'
+      character(len=16) :: coords_vdot  = 'vlat vlon'
       if ( len_trim(var%long_name) > 0 ) &
         call add_attribute(stream, &
           ncattribute_string('long_name',var%long_name),var%id,var%vname)

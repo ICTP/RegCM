@@ -51,6 +51,8 @@ module mod_ncep
   real(rkx) , pointer , dimension(:,:,:) :: d2
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: d3u
+  real(rkx) , pointer , dimension(:,:,:) :: d3v
   !
   ! The data are packed into short integers (INTEGER*2).  The array
   ! work will be used to hold the packed integers.
@@ -58,6 +60,7 @@ module mod_ncep
   integer(2) , pointer , dimension(:,:,:) :: work
 
   real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
+  real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
   real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
   real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
   real(rkx) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
@@ -161,23 +164,35 @@ module mod_ncep
     write(stdout,*) 'Read static data'
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
-    if ( idynamic < 3 ) then
-      call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
+    if ( idynamic == 3 ) then
+      call h_interpolator_create(udot_hint,glat,glon,ulat,ulon)
+      call h_interpolator_create(vdot_hint,glat,glon,vlat,vlon)
     else
-      call h_interpolator_create(udot_hint,glat,glon,xlat,dlon)
-      call h_interpolator_create(vdot_hint,glat,glon,dlat,xlon)
+      call h_interpolator_create(udot_hint,glat,glon,dlat,dlon)
     end if
 
     call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
     call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ncep:b3')
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ncep:d3')
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ncep:b3')
-    call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
+    if ( idynamic == 3 ) then
+      call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ncep:d3u')
+      call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ncep:d3v')
+    else
+      call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ncep:d3')
+    end if
 
     ! Set up pointers
 
-    u3 => d3(:,:,1:klev)
-    v3 => d3(:,:,klev+1:2*klev)
+    if ( idynamic == 3 ) then
+      u3 => d3u(:,:,1:klev)
+      v3u => d3u(:,:,klev+1:2*klev)
+      u3v => d3v(:,:,1:klev)
+      v3 => d3v(:,:,klev+1:2*klev)
+    else
+      u3 => d3(:,:,1:klev)
+      v3 => d3(:,:,klev+1:2*klev)
+    end if
     t3 => b3(:,:,1:klev)
     h3 => b3(:,:,klev+1:2*klev)
     q3 => b3(:,:,2*klev+1:3*klev)
@@ -204,16 +219,21 @@ module mod_ncep
     ! Horizontal interpolation of both the scalar and vector fields
     !
     call h_interpolate_cont(cross_hint,b2,b3)
-    if ( idynamic < 3 ) then
-      call h_interpolate_cont(udot_hint,d2,d3)
+    if ( idynamic == 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3u)
+      call h_interpolate_cont(vdot_hint,d2,d3v)
     else
-      call h_interpolate_cont(udot_hint,uvar,u3)
-      call h_interpolate_cont(vdot_hint,vvar,v3)
+      call h_interpolate_cont(udot_hint,d2,d3)
     end if
     !
     ! Rotate U-V fields after horizontal interpolation
     !
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
+    if ( idynamic == 3 ) then
+      call uvrot4(u3,v3u,ulon,ulat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
+      call uvrot4(u3v,v3,vlon,vlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
+    else
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
+    end if
     !
     ! Vertical interpolation
     !
@@ -221,11 +241,11 @@ module mod_ncep
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if ( idynamic < 3 ) then
-      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-    else
+    if ( idynamic == 3 ) then
       call ucrs2dot(pud4,ps4,jx,iy,i_band)
       call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    else
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
     !
     ! Determine surface temps on rcm topography.
@@ -239,16 +259,16 @@ module mod_ncep
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+    else
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
     end if
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+    else
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
     end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)

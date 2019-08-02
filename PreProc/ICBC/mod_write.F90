@@ -47,7 +47,6 @@ module mod_write
   public :: init_houtput , newhfile , writehf
 
   type(nc_output_stream) , save :: ncout
-  integer(ik4) , parameter :: nvar2d_static = 6
   integer(ik4) :: nvar3d
   integer(ik4) :: nvar2d
   type(ncvariable2d_mixed) , allocatable , save , dimension(:) :: v2dvar_icbc
@@ -126,7 +125,7 @@ module mod_write
       call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
       call getmem3d(tvd4,1,jx,1,iy,1,kz,'mod_write:tvd4')
     else if ( idynamic == 3 ) then
-      nvar2d = 8
+      nvar2d = 10
       nvar3d = 4
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
       call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
@@ -151,32 +150,24 @@ module mod_write
     v2dvar_icbc(2)%vunit = 'degrees_north'
     v2dvar_icbc(2)%long_name = 'Latitude on Cross Points'
     v2dvar_icbc(2)%standard_name = 'latitude'
-    v2dvar_icbc(3)%vname = 'dlon'
-    v2dvar_icbc(3)%vunit = 'degrees_east'
-    v2dvar_icbc(3)%long_name = 'Longitude on Dot Points'
-    v2dvar_icbc(3)%standard_name = 'longitude'
-    v2dvar_icbc(4)%vname = 'dlat'
-    v2dvar_icbc(4)%vunit = 'degrees_north'
-    v2dvar_icbc(4)%long_name = 'Latitude on Dot Points'
-    v2dvar_icbc(4)%standard_name = 'latitude'
-    v2dvar_icbc(5)%vname = 'mask'
-    v2dvar_icbc(5)%vunit = '1'
-    v2dvar_icbc(5)%long_name = 'Land Mask'
-    v2dvar_icbc(5)%standard_name = 'land_binary_mask'
-    v2dvar_icbc(6)%vname = 'topo'
-    v2dvar_icbc(6)%vunit = 'm'
-    v2dvar_icbc(6)%long_name = 'Surface Model Elevation'
-    v2dvar_icbc(6)%standard_name = 'surface_altitude'
-    v2dvar_icbc(7)%vname = 'ps'
-    v2dvar_icbc(7)%vunit = 'hPa'
-    v2dvar_icbc(7)%long_name = 'Surface pressure'
-    v2dvar_icbc(7)%standard_name = 'surface_air_pressure'
-    v2dvar_icbc(7)%lrecords = .true.
-    v2dvar_icbc(8)%vname = 'ts'
-    v2dvar_icbc(8)%vunit = 'K'
-    v2dvar_icbc(8)%long_name = 'Surface Temperature'
-    v2dvar_icbc(8)%standard_name = 'surface_temperature'
-    v2dvar_icbc(8)%lrecords = .true.
+    v2dvar_icbc(3)%vname = 'mask'
+    v2dvar_icbc(3)%vunit = '1'
+    v2dvar_icbc(3)%long_name = 'Land Mask'
+    v2dvar_icbc(3)%standard_name = 'land_binary_mask'
+    v2dvar_icbc(4)%vname = 'topo'
+    v2dvar_icbc(4)%vunit = 'm'
+    v2dvar_icbc(4)%long_name = 'Surface Model Elevation'
+    v2dvar_icbc(4)%standard_name = 'surface_altitude'
+    v2dvar_icbc(5)%vname = 'ps'
+    v2dvar_icbc(5)%vunit = 'hPa'
+    v2dvar_icbc(5)%long_name = 'Surface pressure'
+    v2dvar_icbc(5)%standard_name = 'surface_air_pressure'
+    v2dvar_icbc(5)%lrecords = .true.
+    v2dvar_icbc(6)%vname = 'ts'
+    v2dvar_icbc(6)%vunit = 'K'
+    v2dvar_icbc(6)%long_name = 'Surface Temperature'
+    v2dvar_icbc(6)%standard_name = 'surface_temperature'
+    v2dvar_icbc(6)%lrecords = .true.
     v3dvar_icbc(1)%vname = 't'
     v3dvar_icbc(1)%vunit = 'K'
     v3dvar_icbc(1)%long_name = 'Temperature'
@@ -214,6 +205,33 @@ module mod_write
       v3dvar_icbc(6)%standard_name = &
         'difference_of_air_pressure_from_model_reference'
       v3dvar_icbc(6)%lrecords = .true.
+    end if
+    if ( idynamic == 3 ) then
+      v2dvar_icbc(7)%vname = 'ulon'
+      v2dvar_icbc(7)%vunit = 'degrees_east'
+      v2dvar_icbc(7)%long_name = 'Longitude on U Points'
+      v2dvar_icbc(7)%standard_name = 'longitude'
+      v2dvar_icbc(8)%vname = 'ulat'
+      v2dvar_icbc(8)%vunit = 'degrees_north'
+      v2dvar_icbc(8)%long_name = 'Latitude on U Points'
+      v2dvar_icbc(8)%standard_name = 'latitude'
+      v2dvar_icbc(9)%vname = 'vlon'
+      v2dvar_icbc(9)%vunit = 'degrees_east'
+      v2dvar_icbc(9)%long_name = 'Longitude on V Points'
+      v2dvar_icbc(9)%standard_name = 'longitude'
+      v2dvar_icbc(10)%vname = 'vlat'
+      v2dvar_icbc(10)%vunit = 'degrees_north'
+      v2dvar_icbc(10)%long_name = 'Latitude on V Points'
+      v2dvar_icbc(10)%standard_name = 'latitude'
+    else
+      v2dvar_icbc(7)%vname = 'dlon'
+      v2dvar_icbc(7)%vunit = 'degrees_east'
+      v2dvar_icbc(7)%long_name = 'Longitude on Dot Points'
+      v2dvar_icbc(7)%standard_name = 'longitude'
+      v2dvar_icbc(8)%vname = 'dlat'
+      v2dvar_icbc(8)%vunit = 'degrees_north'
+      v2dvar_icbc(8)%long_name = 'Latitude on Dot Points'
+      v2dvar_icbc(8)%standard_name = 'latitude'
     end if
   end subroutine init_output
 
@@ -281,12 +299,10 @@ module mod_write
     call outstream_addatt(ncout,ncattribute_string('global_atm_source',dattyp))
     v2dvar_icbc(1)%rval => xlon
     v2dvar_icbc(2)%rval => xlat
-    v2dvar_icbc(3)%rval => dlon
-    v2dvar_icbc(4)%rval => dlat
-    v2dvar_icbc(5)%rval => mask
-    v2dvar_icbc(6)%rval => topogm
-    v2dvar_icbc(7)%rval => ps4
-    v2dvar_icbc(8)%rval => ts4
+    v2dvar_icbc(3)%rval => mask
+    v2dvar_icbc(4)%rval => topogm
+    v2dvar_icbc(5)%rval => ps4
+    v2dvar_icbc(6)%rval => ts4
     v3dvar_icbc(1)%rval => t4
     v3dvar_icbc(2)%rval => q4
     v3dvar_icbc(3)%rval => u4
@@ -296,6 +312,15 @@ module mod_write
       v3dvar_icbc(5)%rval => ww4
       v3dvar_icbc(6)%rval => pp4
     end if
+    if ( idynamic == 3 ) then
+      v2dvar_icbc(7)%rval => ulon
+      v2dvar_icbc(8)%rval => ulat
+      v2dvar_icbc(9)%rval => vlon
+      v2dvar_icbc(10)%rval => vlat
+    else
+      v2dvar_icbc(7)%rval => dlon
+      v2dvar_icbc(8)%rval => dlat
+    end if
     do ivar = 1 , nvar2d
       call outstream_addvar(ncout,v2dvar_icbc(ivar))
     end do
@@ -303,8 +328,10 @@ module mod_write
       call outstream_addvar(ncout,v3dvar_icbc(ivar))
     end do
     call outstream_enable(ncout,sigmah)
-    do ivar = 1 , nvar2d_static
-      call outstream_writevar(ncout,v2dvar_icbc(ivar))
+    do ivar = 1 , nvar2d
+      if ( .not. v2dvar_icbc(ivar)%lrecords ) then
+        call outstream_writevar(ncout,v2dvar_icbc(ivar))
+      end if
     end do
     if ( idynamic == 2 ) then
       call crs2dot(psd0,ps0,jx,iy,i_band,i_crm)
@@ -374,8 +401,10 @@ module mod_write
     end if
 
     call outstream_addrec(ncout,idate)
-    do ivar = nvar2d_static , nvar2d
-      call outstream_writevar(ncout,v2dvar_icbc(ivar))
+    do ivar = 1, nvar2d
+      if ( v2dvar_icbc(ivar)%lrecords ) then
+        call outstream_writevar(ncout,v2dvar_icbc(ivar))
+      end if
     end do
     do ivar = 1 , nvar3d
       call outstream_writevar(ncout,v3dvar_icbc(ivar))

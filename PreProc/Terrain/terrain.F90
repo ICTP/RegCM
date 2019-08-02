@@ -217,9 +217,9 @@ program terrain
       call lambrt(xlon_s,xlat_s,jxsg,iysg,clong,    &
                   clat,dsinm,0,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
       if ( idynamic == 3 ) then
-        call lambrt(dlon_s,askip,jxsg,iysg,clong,    &
+        call lambrt(ulon_s,ulat_s,jxsg,iysg,clong,    &
                     clat,dsinm,0,1,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
-        call lambrt(askip,dlat_s,jxsg,iysg,clong,    &
+        call lambrt(vlon_s,vlat_s,jxsg,iysg,clong,    &
                     clat,dsinm,1,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
       else
         call lambrt(dlon_s,dlat_s,jxsg,iysg,clong,    &
@@ -229,9 +229,9 @@ program terrain
       call mappol(xlon_s,xlat_s,jxsg,iysg,clong,    &
                   clat,dsinm,0,0,cntri*nsg,cntrj*nsg)
       if ( idynamic == 3 ) then
-        call mappol(dlon_s,askip,jxsg,iysg,clong,    &
+        call mappol(ulon_s,ulat_s,jxsg,iysg,clong,    &
                     clat,dsinm,0,1,cntri*nsg,cntrj*nsg)
-        call mappol(askip,dlat_s,jxsg,iysg,clong,    &
+        call mappol(vlon_s,vlat_s,jxsg,iysg,clong,    &
                     clat,dsinm,1,0,cntri*nsg,cntrj*nsg)
       else
         call mappol(dlon_s,dlat_s,jxsg,iysg,clong,    &
@@ -242,9 +242,9 @@ program terrain
       call normer(xlon_s,xlat_s,jxsg,iysg,clong,    &
                   clat,dsinm,0,0,cntri*nsg,cntrj*nsg)
       if ( idynamic == 3 ) then
-        call normer(dlon_s,askip,jxsg,iysg,clong,    &
+        call normer(ulon_s,ulat_s,jxsg,iysg,clong,    &
                     clat,dsinm,0,1,cntri*nsg,cntrj*nsg)
-        call normer(askip,dlat_s,jxsg,iysg,clong,    &
+        call normer(vlon_s,vlat_s,jxsg,iysg,clong,    &
                     clat,dsinm,1,0,cntri*nsg,cntrj*nsg)
       else
         call normer(dlon_s,dlat_s,jxsg,iysg,clong,    &
@@ -255,9 +255,9 @@ program terrain
       call rotmer(xlon_s,xlat_s,jxsg,iysg,clon,     &
                   clat,plon,plat,dsinm,0,0,cntri*nsg,cntrj*nsg)
       if ( idynamic == 3 ) then
-        call rotmer(dlon_s,askip,jxsg,iysg,clon,     &
+        call rotmer(ulon_s,ulat_s,jxsg,iysg,clon,     &
                     clat,plon,plat,dsinm,0,1,cntri*nsg,cntrj*nsg)
-        call rotmer(askip,dlat_s,jxsg,iysg,clon,     &
+        call rotmer(vlon_s,vlat_s,jxsg,iysg,clon,     &
                     clat,plon,plat,dsinm,1,0,cntri*nsg,cntrj*nsg)
       else
         call rotmer(dlon_s,dlat_s,jxsg,iysg,clon,     &
@@ -270,9 +270,13 @@ program terrain
       write (stderr,*) 'Set iproj in LAMCON,POLSTR,NORMER,ROTMER'
       call die('terrain')
     end if
-    call mapfac(xlat_s,xmap_s,jxsg,iysg,iproj)
-    call mapfac(dlat_s,dmap_s,jxsg,iysg,iproj)
-    call corpar(dlat_s,coriol_s,jxsg,iysg)
+    if ( idynamic == 3 ) then
+      call corpar(xlat_s,coriol_s,jxsg,iysg)
+    else
+      call mapfac(xlat_s,xmap_s,jxsg,iysg,iproj)
+      call mapfac(dlat_s,dmap_s,jxsg,iysg,iproj)
+      call corpar(dlat_s,coriol_s,jxsg,iysg)
+    end if
     write(stdout,*) 'Subgrid Geo mapping done'
     !
     ! reduce the search area for the domain
@@ -445,9 +449,9 @@ program terrain
     call lambrt(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,xcone,  &
                 truelatl,truelath,cntri,cntrj)
     if ( idynamic == 3 ) then
-      call lambrt(dlon,askip,jx,iy,clong,clat,dsinm,0,1,xcone,  &
+      call lambrt(ulon,ulat,jx,iy,clong,clat,dsinm,0,1,xcone,  &
                   truelatl,truelath,cntri,cntrj)
-      call lambrt(askip,dlat,jx,iy,clong,clat,dsinm,1,0,xcone,  &
+      call lambrt(vlon,vlat,jx,iy,clong,clat,dsinm,1,0,xcone,  &
                   truelatl,truelath,cntri,cntrj)
     else
       call lambrt(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,xcone,  &
@@ -456,8 +460,8 @@ program terrain
   else if ( iproj=='POLSTR' ) then
     call mappol(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,cntri,cntrj)
     if ( idynamic == 3 ) then
-      call mappol(dlon,askip,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
-      call mappol(askip,dlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
+      call mappol(ulon,ulat,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
+      call mappol(vlon,vlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
     else
       call mappol(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,cntri,cntrj)
     end if
@@ -465,8 +469,8 @@ program terrain
   else if ( iproj=='NORMER' ) then
     call normer(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,cntri,cntrj)
     if ( idynamic == 3 ) then
-      call normer(dlon,askip,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
-      call normer(askip,dlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
+      call normer(ulon,ulat,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
+      call normer(vlon,vlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
     else
       call normer(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,cntri,cntrj)
     end if
@@ -475,9 +479,9 @@ program terrain
     call rotmer(xlon,xlat,jx,iy,clong,clat,plon,plat,   &
                 dsinm,0,0,cntri,cntrj)
     if ( idynamic == 3 ) then
-      call rotmer(dlon,askip,jx,iy,clong,clat,plon,plat,   &
+      call rotmer(ulon,ulat,jx,iy,clong,clat,plon,plat,   &
                   dsinm,0,1,cntri,cntrj)
-      call rotmer(askip,dlat,jx,iy,clong,clat,plon,plat,   &
+      call rotmer(vlon,vlat,jx,iy,clong,clat,plon,plat,   &
                   dsinm,1,0,cntri,cntrj)
     else
       call rotmer(dlon,dlat,jx,iy,clong,clat,plon,plat,   &
@@ -490,9 +494,13 @@ program terrain
     write (stderr,*) 'Set iproj in LAMCON, POLSTR, NORMER, ROTMER'
     call die('terrain')
   end if
-  call mapfac(xlat,xmap,jx,iy,iproj)
-  call mapfac(dlat,dmap,jx,iy,iproj)
-  call corpar(dlat,coriol,jx,iy)
+  if ( idynamic == 3 ) then
+    call corpar(xlat,coriol,jx,iy)
+  else
+    call mapfac(xlat,xmap,jx,iy,iproj)
+    call mapfac(dlat,dmap,jx,iy,iproj)
+    call corpar(dlat,coriol,jx,iy)
+  end if
   write(stdout,*) 'Geo mapping done'
   !
   ! reduce the search area for the domain
@@ -860,10 +868,11 @@ program terrain
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
     call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
-                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,xmap_s,  &
-                      dmap_s,coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,  &
-                      smoist_s,rmoist_s,dpth_s,texout_s,frac_tex_s,ps0_s, &
-                      pr0_s,t0_s,rho0_s,z0_s,ts0,zeta_s,fmz_s)
+                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,  &
+                      ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,coriol_s,mask_s, &
+                      htgrid_s,lndout_s,snowam_s,smoist_s,rmoist_s,dpth_s,&
+                      texout_s,frac_tex_s,ps0_s,pr0_s,t0_s,rho0_s,z0_s,   &
+                      ts0,zeta_s,fmz_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
@@ -950,9 +959,9 @@ program terrain
   write (outname,'(a,i0.3,a)') &
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
-                    sigma,xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,      &
-                    htgrid,lndout,snowam,smoist,rmoist,dpth,texout,       &
-                    frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
+                    sigma,xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,   &
+                    dmap,coriol,mask,htgrid,lndout,snowam,smoist,rmoist,  &
+                    dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

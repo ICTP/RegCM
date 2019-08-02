@@ -1688,6 +1688,7 @@ module mod_params
     call bcast(domname,64)
     call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask,   &
                           mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,     &
+                          mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,     &
                           mddom%msfx,mddom%msfd,mddom%coriol,mddom%snowam, &
                           mddom%smoist,mddom%rmoist,mddom%dhlake,          &
                           base_state_ts0)
@@ -1875,21 +1876,44 @@ module mod_params
       end if
     end if
     !
+    ! Compute diffusion halo for idynamic /= 3
+    !
+    if ( idynamic /= 3 ) then
+      if ( idiffu == 1 ) then
+        idif = 2
+      else if ( idiffu == 2 ) then
+        idif = 1
+      else if ( idiffu == 3 ) then
+        idif = 3
+      else
+        call fatal(__FILE__,__LINE__, &
+          'INCORRECT DIFFUSION SCHEME! CHECK IDIFFU IN NAMELIST')
+      end if
+    end if
+    !
     !------invert mapscale factors and convert hgt to geopotential
     !
     do i = ide1 , ide2
       do j = jde1 , jde2
         mddom%ht(j,i)   = mddom%ht(j,i)*egrav
-        mddom%msfd(j,i) = d_one/mddom%msfd(j,i)
-        mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
       end do
     end do
-    do i = idi1 , idi2
-      do j = jdi1 , jdi2
-        mddom%dmsf(j,i) = d_one/(mddom%msfd(j,i)*mddom%msfd(j,i)*dx16)
-        mddom%xmsf(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i)*dx4)
+    if ( idynamic /= 3 ) then
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          mddom%msfd(j,i) = d_one/mddom%msfd(j,i)
+          mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
+        end do
       end do
-    end do
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          mddom%dmsf(j,i) = d_one/(mddom%msfd(j,i)*mddom%msfd(j,i)*dx16)
+          mddom%xmsf(j,i) = d_one/(mddom%msfx(j,i)*mddom%msfx(j,i)*dx4)
+        end do
+      end do
+      call exchange(mddom%msfx,idif,jde1,jde2,ide1,ide2)
+      call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)
+    end if
     !
     !-----compute dsigma and half sigma levels.
     !
@@ -1903,18 +1927,6 @@ module mod_params
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%ht,2,jde1,jde2,ide1,ide2)
-    if ( idiffu == 1 ) then
-      idif = 2
-    else if ( idiffu == 2 ) then
-      idif = 1
-    else if ( idiffu == 3 ) then
-      idif = 3
-    else
-      call fatal(__FILE__,__LINE__, &
-        'INCORRECT DIFFUSION SCHEME! CHECK IDIFFU IN NAMELIST')
-    end if
-    call exchange(mddom%msfx,idif,jde1,jde2,ide1,ide2)
-    call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)
     !
     !-----compute land/water mask
     !
@@ -2005,12 +2017,14 @@ module mod_params
     end if
 
     if ( myid == italk ) then
-      if ( idiffu == 1 ) then
-        write(stdout,*) 'Fourth order interior/second order boundary diffusion'
-      else if ( idiffu == 2 ) then
-        write(stdout,*) 'Fourth order diffusion LeVeque Laplacian'
-      else if ( idiffu == 3 ) then
-        write(stdout,*) 'Sixth order diffusion with flux limiter'
+      if ( idynamic /= 3 ) then
+        if ( idiffu == 1 ) then
+          write(stdout,*) 'Fourth order / second order boundary diffusion'
+        else if ( idiffu == 2 ) then
+          write(stdout,*) 'Fourth order diffusion LeVeque Laplacian'
+        else if ( idiffu == 3 ) then
+          write(stdout,*) 'Sixth order diffusion with flux limiter'
+        end if
       end if
       if ( ibltyp == 1 ) then
         write(stdout,*) 'PBL limit for Holtstag'
@@ -2664,13 +2678,20 @@ module mod_params
         integer :: i , j
         do i = ide1 , ide2
           do j = jce1 , jce2
-            mddom%clv(j,i) = cos(degrad*mddom%dlat(j,i))
+            mddom%clv(j,i) = cos(degrad*mddom%vlat(j,i))
           end do
         end do
         call exchange_bt(mddom%clv,1,jce1,jce2,ide1,ide2)
         do i = ice1 , ice2
+          do j = jde1 , jde2
+            mddom%clu(j,i) = cos(degrad*mddom%ulat(j,i))
+          end do
+        end do
+        call exchange_lr(mddom%clu,1,jde1,jde2,ice1,ice2)
+        do i = ice1 , ice2
           do j = jce1 , jce2
-            mddom%fmyu(j,i) = 1.0_rkx/cos(degrad*mddom%xlat(j,i))
+            mddom%fmyu(j,i) = 1.0_rkx/cos(degrad*mddom%ulat(j,i))
+            mddom%fmyv(j,i) = 1.0_rkx/cos(degrad*mddom%vlat(j,i))
           end do
         end do
         do i = ice1 , ice2
@@ -2679,13 +2700,14 @@ module mod_params
                      mddom%fmyu(j,i)*rdx*regrav
           end do
         end do
-        call exchange_lr(mddom%hx,1,jde1,jdi2,ice1,ice2)
+        call exchange_lr(mddom%hx,1,jdi1,jdi2,ice1,ice2)
         do i = idi1 , idi2
           do j = jce1 , jce2
-            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1))*rdx*regrav
+            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1)) * &
+                     mddom%fmyv(j,i)*rdx*regrav
           end do
         end do
-        call exchange_bt(mddom%hy,1,jce1,jce2,ide1,idi2)
+        call exchange_bt(mddom%hy,1,jce1,jce2,idi1,idi2)
       end subroutine compute_moloch_static
 
       recursive integer function gcd_rec(u,v) result(gcd)

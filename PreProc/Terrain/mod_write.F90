@@ -116,22 +116,6 @@ module mod_write
     v2dvar_base(2)%vunit = 'degrees_north'
     v2dvar_base(2)%long_name = 'Latitude on Cross Points'
     v2dvar_base(2)%standard_name = 'latitude'
-    v2dvar_base(3)%vname = 'dlon'
-    v2dvar_base(3)%vunit = 'degrees_east'
-    v2dvar_base(3)%long_name = 'Longitude on Dot Points'
-    v2dvar_base(3)%standard_name = 'longitude'
-    v2dvar_base(4)%vname = 'dlat'
-    v2dvar_base(4)%vunit = 'degrees_north'
-    v2dvar_base(4)%long_name = 'latitude'
-    v2dvar_base(4)%standard_name = 'Latitude on Dot Points'
-    v2dvar_base(5)%vname = 'xmap'
-    v2dvar_base(5)%vunit = '1'
-    v2dvar_base(5)%long_name = 'Map Factor on Cross Points'
-    v2dvar_base(5)%standard_name = 'map_factor'
-    v2dvar_base(6)%vname = 'dmap'
-    v2dvar_base(6)%vunit = '1'
-    v2dvar_base(6)%long_name = 'Map Factor on Dot Points'
-    v2dvar_base(6)%standard_name = 'map_factor'
     v2dvar_base(7)%vname = 'coriol'
     v2dvar_base(7)%vunit = 's-1'
     v2dvar_base(7)%long_name = 'Coriolis Parameter'
@@ -211,6 +195,22 @@ module mod_write
     end if
 
     if ( idynamic == 3 ) then
+      v2dvar_base(3)%vname = 'ulon'
+      v2dvar_base(3)%vunit = 'degrees_east'
+      v2dvar_base(3)%long_name = 'Longitude on U Points'
+      v2dvar_base(3)%standard_name = 'longitude'
+      v2dvar_base(4)%vname = 'ulat'
+      v2dvar_base(4)%vunit = 'degrees_north'
+      v2dvar_base(4)%long_name = 'latitude'
+      v2dvar_base(4)%standard_name = 'Latitude on U Points'
+      v2dvar_base(5)%vname = 'vlon'
+      v2dvar_base(5)%vunit = 'degrees_east'
+      v2dvar_base(5)%long_name = 'Longitude on V Points'
+      v2dvar_base(5)%standard_name = 'longitude'
+      v2dvar_base(6)%vname = 'vlat'
+      v2dvar_base(6)%vunit = 'degrees_north'
+      v2dvar_base(6)%long_name = 'latitude'
+      v2dvar_base(6)%standard_name = 'Latitude on V Points'
       v3dvar_base(3)%vname = 'zeta'
       v3dvar_base(3)%vunit = 'm'
       v3dvar_base(3)%long_name = 'Elevation above ground'
@@ -221,13 +221,30 @@ module mod_write
       v3dvar_base(4)%long_name = 'Vertical factor'
       v3dvar_base(4)%standard_name = ''
       v3dvar_base(4)%axis = 'xyz'
+    else
+      v2dvar_base(3)%vname = 'dlon'
+      v2dvar_base(3)%vunit = 'degrees_east'
+      v2dvar_base(3)%long_name = 'Longitude on Dot Points'
+      v2dvar_base(3)%standard_name = 'longitude'
+      v2dvar_base(4)%vname = 'dlat'
+      v2dvar_base(4)%vunit = 'degrees_north'
+      v2dvar_base(4)%long_name = 'latitude'
+      v2dvar_base(4)%standard_name = 'Latitude on Dot Points'
+      v2dvar_base(5)%vname = 'xmap'
+      v2dvar_base(5)%vunit = '1'
+      v2dvar_base(5)%long_name = 'Map Factor on Cross Points'
+      v2dvar_base(5)%standard_name = 'map_factor'
+      v2dvar_base(6)%vname = 'dmap'
+      v2dvar_base(6)%vunit = '1'
+      v2dvar_base(6)%long_name = 'Map Factor on Dot Points'
+      v2dvar_base(6)%standard_name = 'map_factor'
     end if
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
-                          xlat,xlon,dlat,dlon,xmap,dmap,coriol,mask,htgrid,  &
-                          lndout,snowam,smoist,rmoist,dpth,texout,frac_tex,  &
-                          ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
+                          xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,dmap, &
+                          coriol,mask,htgrid,lndout,snowam,smoist,rmoist,    &
+                          dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -235,6 +252,8 @@ module mod_write
     real(rkx) , dimension(:) , pointer , intent(in) :: sigma
     real(rkx) , dimension(:,:) , pointer , intent(in) :: xlat , xlon
     real(rkx) , dimension(:,:) , pointer , intent(in) :: dlat , dlon
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: ulat , ulon
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: vlat , vlon
     real(rkx) , dimension(:,:) , pointer , intent(in) :: xmap , dmap , coriol
     real(rkx) , dimension(:,:) , pointer , intent(in) :: mask
     real(rkx) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
@@ -308,10 +327,6 @@ module mod_write
       ncattribute_string('legend',texture_legend))
     v2dvar_base(1)%rval => xlon
     v2dvar_base(2)%rval => xlat
-    v2dvar_base(3)%rval => dlon
-    v2dvar_base(4)%rval => dlat
-    v2dvar_base(5)%rval => xmap
-    v2dvar_base(6)%rval => dmap
     v2dvar_base(7)%rval => coriol
     v2dvar_base(8)%rval => mask
     v2dvar_base(9)%rval => htgrid
@@ -351,8 +366,17 @@ module mod_write
     end if
 
     if ( idynamic == 3 ) then
+      v2dvar_base(3)%rval => ulon
+      v2dvar_base(4)%rval => ulat
+      v2dvar_base(5)%rval => vlon
+      v2dvar_base(6)%rval => vlat
       v3dvar_base(3)%rval => zeta
       v3dvar_base(4)%rval => fmz
+    else
+      v2dvar_base(3)%rval => dlon
+      v2dvar_base(4)%rval => dlat
+      v2dvar_base(5)%rval => xmap
+      v2dvar_base(6)%rval => dmap
     end if
 
     call outstream_enable(ncout,sigma)

@@ -44,8 +44,8 @@ module mod_ecens
   integer(ik4) :: mlev , nlat , nlon , ntime
   integer(ik4) , parameter :: nplev = 18
 
-  real(rkx) , pointer , dimension(:) :: vlat
-  real(rkx) , pointer , dimension(:) :: vlon
+  real(rkx) , pointer , dimension(:) :: elat
+  real(rkx) , pointer , dimension(:) :: elon
   real(rkx) , pointer , dimension(:) :: ak , bk
   real(rkx) , pointer , dimension(:,:,:) :: work
 
@@ -54,6 +54,8 @@ module mod_ecens
   real(rkx) , pointer , dimension(:,:,:) :: d2
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: d3u
+  real(rkx) , pointer , dimension(:,:,:) :: d3v
   real(rkx) , pointer , dimension(:,:,:) :: pp3d , z1
 
   real(rkx) , pointer , dimension(:,:) :: zs2
@@ -63,6 +65,7 @@ module mod_ecens
   real(rkx) , pointer , dimension(:,:,:) :: up , vp
   real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
 
   real(rkx) , dimension(nplev) :: pplev , sigmar
   real(rkx) :: pss
@@ -120,8 +123,8 @@ module mod_ecens
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error read dim mlev')
 
-    call getmem1d(vlat,1,nlat,'mod_ecens:vlat')
-    call getmem1d(vlon,1,nlon,'mod_ecens:vlon')
+    call getmem1d(elat,1,nlat,'mod_ecens:elat')
+    call getmem1d(elon,1,nlon,'mod_ecens:elon')
     call getmem1d(ak,1,mlev,'mod_ecens:ak')
     call getmem1d(bk,1,mlev,'mod_ecens:bk')
     call getmem3d(work,1,nlon,1,nlat,1,mlev,'mod_ecens:work')
@@ -129,13 +132,13 @@ module mod_ecens
     istat = nf90_inq_varid(inet,'lon',ivar)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error find var lon')
-    istat = nf90_get_var(inet,ivar,vlon)
+    istat = nf90_get_var(inet,ivar,elon)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error read var lon')
     istat = nf90_inq_varid(inet,'lat',ivar)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error find var lat')
-    istat = nf90_get_var(inet,ivar,vlat)
+    istat = nf90_get_var(inet,ivar,elat)
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error read var lat')
     istat = nf90_inq_varid(inet,'hyam',ivar)
@@ -151,12 +154,12 @@ module mod_ecens
     call checkncerr(istat,__FILE__,__LINE__, &
                     'Error read var hybm')
 
-    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon)
-    if ( idynamic < 3 ) then
-      call h_interpolator_create(udot_hint,vlat,vlon,dlat,dlon)
+    call h_interpolator_create(cross_hint,elat,elon,xlat,xlon)
+    if ( idynamic == 3 ) then
+      call h_interpolator_create(udot_hint,elat,elon,ulat,ulon)
+      call h_interpolator_create(vdot_hint,elat,elon,vlat,vlon)
     else
-      call h_interpolator_create(udot_hint,vlat,vlon,xlat,dlon)
-      call h_interpolator_create(vdot_hint,vlat,vlon,dlat,xlon)
+      call h_interpolator_create(udot_hint,elat,elon,dlat,dlon)
     end if
 
     pplev(1) = 30.
@@ -189,7 +192,12 @@ module mod_ecens
     call getmem3d(b2,1,nlon,1,nlat,1,nplev*3,'mod_ecens:b2')
     call getmem3d(d2,1,nlon,1,nlat,1,nplev*2,'mod_ecens:d2')
     call getmem3d(b3,1,jx,1,iy,1,nplev*3,'mod_ecens:b3')
-    call getmem3d(d3,1,jx,1,iy,1,nplev*2,'mod_ecens:d3')
+    if ( idynamic == 3 ) then
+      call getmem3d(d3u,1,jx,1,iy,1,nplev*2,'mod_ecens:d3u')
+      call getmem3d(d3v,1,jx,1,iy,1,nplev*2,'mod_ecens:d3v')
+    else
+      call getmem3d(d3,1,jx,1,iy,1,nplev*2,'mod_ecens:d3')
+    end if
 
     ! Set up pointers
 
@@ -208,8 +216,15 @@ module mod_ecens
     t3 => b3(:,:,1:nplev)
     q3 => b3(:,:,nplev+1:2*nplev)
     h3 => b3(:,:,2*nplev+1:3*nplev)
-    u3 => d3(:,:,1:nplev)
-    v3 => d3(:,:,nplev+1:2*nplev)
+    if ( idynamic == 3 ) then
+      u3 => d3u(:,:,1:nplev)
+      v3u => d3u(:,:,nplev+1:2*nplev)
+      u3v => d3v(:,:,1:nplev)
+      v3 => d3v(:,:,nplev+1:2*nplev)
+    else
+      u3 => d3(:,:,1:nplev)
+      v3 => d3(:,:,nplev+1:2*nplev)
+    end if
 
     istat = nf90_inq_varid(inet,'var129',ivar)
     call checkncerr(istat,__FILE__,__LINE__, &
@@ -280,16 +295,21 @@ module mod_ecens
     ! Horizontal interpolation of both the scalar and vector fields
     !
     call h_interpolate_cont(cross_hint,b2,b3)
-    if ( idynamic < 3 ) then
-      call h_interpolate_cont(udot_hint,d2,d3)
+    if ( idynamic == 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3u)
+      call h_interpolate_cont(vdot_hint,d2,d3v)
     else
-      call h_interpolate_cont(udot_hint,up,u3)
-      call h_interpolate_cont(vdot_hint,vp,v3)
+      call h_interpolate_cont(udot_hint,d2,d3)
     end if
     !
     ! Rotate U-V fields after horizontal interpolation
     !
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nplev,plon,plat,iproj)
+    if ( idynamic == 3 ) then
+      call uvrot4(u3,v3u,ulon,ulat,clon,clat,xcone,jx,iy,nplev,plon,plat,iproj)
+      call uvrot4(u3v,v3,vlon,vlat,clon,clat,xcone,jx,iy,nplev,plon,plat,iproj)
+    else
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nplev,plon,plat,iproj)
+    end if
     !
     ! Vertical interpolation
     !
@@ -310,11 +330,11 @@ module mod_ecens
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nplev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if ( idynamic < 3 ) then
-      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-    else
+    if ( idynamic == 3 ) then
       call ucrs2dot(pud4,ps4,jx,iy,i_band)
       call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    else
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
     !
     ! Determine surface temps on RegCM topography.
@@ -325,16 +345,16 @@ module mod_ecens
 !$OMP SECTIONS
 !$OMP SECTION
     ! Interpolate U, V, T, and Q.
-    if ( idynamic < 3 ) then
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
+    else
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
     end if
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(v4,v3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
+    else
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
     end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev)

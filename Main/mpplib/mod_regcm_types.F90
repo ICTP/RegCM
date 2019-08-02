@@ -69,10 +69,16 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: mask
     real(rkx) , pointer , dimension(:,:) :: dlat
     real(rkx) , pointer , dimension(:,:) :: dlon
+    real(rkx) , pointer , dimension(:,:) :: ulat
+    real(rkx) , pointer , dimension(:,:) :: ulon
+    real(rkx) , pointer , dimension(:,:) :: vlat
+    real(rkx) , pointer , dimension(:,:) :: vlon
     real(rkx) , pointer , dimension(:,:) :: xlat
     real(rkx) , pointer , dimension(:,:) :: xlon
+    real(rkx) , pointer , dimension(:,:) :: clu
     real(rkx) , pointer , dimension(:,:) :: clv
     real(rkx) , pointer , dimension(:,:) :: fmyu
+    real(rkx) , pointer , dimension(:,:) :: fmyv
     real(rkx) , pointer , dimension(:,:) :: hx
     real(rkx) , pointer , dimension(:,:) :: hy
     real(rkx) , pointer , dimension(:,:) :: msfx

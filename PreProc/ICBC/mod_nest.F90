@@ -49,6 +49,8 @@ module mod_nest
 
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: d3u
+  real(rkx) , pointer , dimension(:,:,:) :: d3v
   real(rkx) , pointer , dimension(:,:,:) :: z1
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
@@ -64,6 +66,7 @@ module mod_nest
 
   real(rkx) , pointer , dimension(:,:,:) :: h3 , q3 , t3
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
 
   real(rkx) , pointer , dimension(:,:,:) :: hp , qp , tp
   real(rkx) , pointer , dimension(:,:,:) :: up , vp
@@ -340,11 +343,11 @@ module mod_nest
     end if
 
     call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon)
-    if ( idynamic < 3 ) then
-      call h_interpolator_create(udot_hint,xlat_in,xlon_in,dlat,dlon)
+    if ( idynamic == 3 ) then
+      call h_interpolator_create(udot_hint,xlat_in,xlon_in,ulat,ulon)
+      call h_interpolator_create(vdot_hint,xlat_in,xlon_in,vlat,vlon)
     else
-      call h_interpolator_create(udot_hint,xlat_in,xlon_in,xlat,dlon)
-      call h_interpolator_create(vdot_hint,xlat_in,xlon_in,dlat,xlon)
+      call h_interpolator_create(udot_hint,xlat_in,xlon_in,dlat,dlon)
     end if
 
     ! Set up pointers
@@ -352,7 +355,12 @@ module mod_nest
     call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
     call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
     call getmem3d(b3,1,jx,1,iy,1,np*3,'mod_nest:b3')
-    call getmem3d(d3,1,jx,1,iy,1,np*2,'mod_nest:d3')
+    if ( idynamic == 3 ) then
+      call getmem3d(d3u,1,jx,1,iy,1,np*2,'mod_nest:d3u')
+      call getmem3d(d3v,1,jx,1,iy,1,np*2,'mod_nest:d3v')
+    else
+      call getmem3d(d3,1,jx,1,iy,1,np*2,'mod_nest:d3')
+    end if
     call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
     tp => b2(:,:,1:np)
     qp => b2(:,:,np+1:2*np)
@@ -362,8 +370,15 @@ module mod_nest
     t3 => b3(:,:,1:np)
     q3 => b3(:,:,np+1:2*np)
     h3 => b3(:,:,2*np+1:3*np)
-    u3 => d3(:,:,1:np)
-    v3 => d3(:,:,np+1:2*np)
+    if ( idynamic == 3 ) then
+      u3 => d3u(:,:,1:np)
+      v3u => d3u(:,:,np+1:2*np)
+      u3v => d3v(:,:,1:np)
+      v3 => d3v(:,:,np+1:2*np)
+    else
+      u3 => d3(:,:,1:np)
+      v3 => d3(:,:,np+1:2*np)
+    end if
 
     do k = 1 , np
       sigmar(k) = plev(k)/plev(np)
@@ -621,17 +636,22 @@ module mod_nest
     ! Horizontal interpolation of both the scalar and vector fields
     !
     call h_interpolate_cont(cross_hint,b2,b3)
-    if ( idynamic < 3 ) then
-      call h_interpolate_cont(udot_hint,d2,d3)
+    if ( idynamic == 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3u)
+      call h_interpolate_cont(vdot_hint,d2,d3v)
     else
-      call h_interpolate_cont(udot_hint,up,u3)
-      call h_interpolate_cont(vdot_hint,vp,v3)
+      call h_interpolate_cont(udot_hint,d2,d3)
     end if
     call h_interpolate_cont(cross_hint,xts,ts)
     !
     ! Rotate U-V fields after horizontal interpolation
     !
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
+    if ( idynamic == 3 ) then
+      call uvrot4(u3,v3u,ulon,ulat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
+      call uvrot4(u3v,v3,vlon,vlat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
+    else
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
+    end if
     !
     ! Vertical interpolation
     !
@@ -652,11 +672,11 @@ module mod_nest
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,np)
     call intpsn(ps4,topogm,pa,za,tlayer,ptoppa,jx,iy)
-    if ( idynamic < 3 ) then
-      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-    else
+    if ( idynamic == 3 ) then
       call ucrs2dot(pud4,ps4,jx,iy,i_band)
       call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    else
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
     !
     ! Determine surface temps on RegCM topography.
@@ -674,16 +694,16 @@ module mod_nest
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    else
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
     end if
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
+    else
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
     end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
@@ -694,11 +714,11 @@ module mod_nest
     ! Put surface pressures in cb now to be conforming to other modules.
     !
     ps4 = ps4 * d_r1000
-    if ( idynamic < 3 ) then
-      pd4 = pd4 * d_r1000
-    else
+    if ( idynamic == 3 ) then
       pud4 = pud4 * d_r1000
       pvd4 = pvd4 * d_r1000
+    else
+      pd4 = pd4 * d_r1000
     end if
   end subroutine get_nest
 

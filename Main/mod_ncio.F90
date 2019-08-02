@@ -66,9 +66,9 @@ module mod_ncio
 
   contains
 
-  subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon,   &
-                              msfx,msfd,coriol,snowam,smoist,rmoist, &
-                              hlake,ts0)
+  subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon,  &
+                              ulon,ulat,vlon,vlat,msfx,msfd,coriol, &
+                              snowam,smoist,rmoist,hlake,ts0)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ht
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: lnd
@@ -78,6 +78,10 @@ module mod_ncio
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: xlon
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: dlat
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: dlon
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ulat
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: ulon
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: vlat
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: vlon
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfx
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: msfd
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: coriol
@@ -125,10 +129,25 @@ module mod_ncio
       xlat(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
       xlon(jde1:jde2,ide1:ide2) = rspace
-      call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
-      dlat(jde1:jde2,ide1:ide2) = rspace
-      call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
-      dlon(jde1:jde2,ide1:ide2) = rspace
+      if ( idynamic == 3 ) then
+        call read_var2d_static(idmin,'ulat',rspace,istart=istart,icount=icount)
+        ulat(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'ulon',rspace,istart=istart,icount=icount)
+        ulon(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'vlat',rspace,istart=istart,icount=icount)
+        vlat(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'vlon',rspace,istart=istart,icount=icount)
+        vlon(jde1:jde2,ide1:ide2) = rspace
+      else
+        call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+        dlat(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+        dlon(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
+        msfx(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
+        msfd(jde1:jde2,ide1:ide2) = rspace
+      end if
       call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
       if ( ensemble_run ) then
         if ( myid == italk ) then
@@ -149,10 +168,6 @@ module mod_ncio
       lnd(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'texture',rspace,istart=istart,icount=icount)
       tex(jde1:jde2,ide1:ide2) = rspace
-      call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
-      msfx(jde1:jde2,ide1:ide2) = rspace
-      call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
-      msfd(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'coriol',rspace,istart=istart,icount=icount)
       coriol(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'smoist',rspace,istart=istart,icount=icount)
@@ -212,10 +227,33 @@ module mod_ncio
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
-        call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
-        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
-        call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
-        call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
+        if ( idynamic == 3 ) then
+          call read_var2d_static(idmin,'ulat',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,ulat,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'ulon',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,ulon,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'vlat',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,vlat,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'vlon',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,vlon,jde1,jde2,ide1,ide2)
+        else
+          call read_var2d_static(idmin,'dlat',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'dlon',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'xmap',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'dmap',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
+        end if
         call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
         if ( ensemble_run ) then
           write(stdout,*) 'Appling perturbation to input dataset:'
@@ -234,10 +272,6 @@ module mod_ncio
         call read_var2d_static(idmin,'texture',rspace, &
                 istart=istart,icount=icount)
         call grid_distribute(rspace,tex,jde1,jde2,ide1,ide2)
-        call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
-        call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
-        call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
-        call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'coriol',rspace, &
                 istart=istart,icount=icount)
         call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
@@ -275,14 +309,21 @@ module mod_ncio
         call bcast(sigma)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
-        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
-        call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
+        if ( idynamic == 3 ) then
+          call grid_distribute(rspace,ulat,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,ulon,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,vlat,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,vlon,jde1,jde2,ide1,ide2)
+        else
+          call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
+        end if
         call grid_distribute(rspace,ht,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,mask,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,lnd,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,tex,jde1,jde2,ide1,ide2)
-        call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
-        call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,smoist,jde1,jde2,ide1,ide2)
         if ( replacemoist ) then

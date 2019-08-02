@@ -28,11 +28,12 @@ module mod_grid
   use mod_domain
   use mod_nhinterp
   use mod_zita
-  use mod_dynparam , only : base_state_pressure , logp_lrate
+  use mod_dynparam , only : idynamic , base_state_pressure , logp_lrate
 
   private
 
   real(rkx) , public , pointer , dimension(:,:) :: xlat , xlon , dlat , dlon
+  real(rkx) , public , pointer , dimension(:,:) :: ulat , ulon , vlat , vlon
   real(rkx) , public , pointer , dimension(:,:) :: topogm , mask , landuse
   real(rkx) , public , pointer , dimension(:,:) :: msfx , msfd
   real(rkx) , public , pointer , dimension(:,:) :: pa , tlayer , za
@@ -70,8 +71,15 @@ module mod_grid
     integer(ik4) , intent(in) :: nx , ny , nz
     call getmem2d(xlat,1,nx,1,ny,'mod_grid:xlat')
     call getmem2d(xlon,1,nx,1,ny,'mod_grid:xlon')
-    call getmem2d(dlat,1,nx,1,ny,'mod_grid:dlat')
-    call getmem2d(dlon,1,nx,1,ny,'mod_grid:dlon')
+    if ( idynamic == 3 ) then
+      call getmem2d(ulat,1,nx,1,ny,'mod_grid:ulat')
+      call getmem2d(ulon,1,nx,1,ny,'mod_grid:ulon')
+      call getmem2d(vlat,1,nx,1,ny,'mod_grid:vlat')
+      call getmem2d(vlon,1,nx,1,ny,'mod_grid:vlon')
+    else
+      call getmem2d(dlat,1,nx,1,ny,'mod_grid:dlat')
+      call getmem2d(dlon,1,nx,1,ny,'mod_grid:dlon')
+    end if
     call getmem2d(topogm,1,nx,1,ny,'mod_grid:topogm')
     call getmem2d(mask,1,nx,1,ny,'mod_grid:mask')
     call getmem2d(landuse,1,nx,1,ny,'mod_grid:landuse')
@@ -124,13 +132,14 @@ module mod_grid
     fname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     call openfile_withname(fname,incin)
     if ( idynamic == 2 ) then
-      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
-                       mask,landuse,msfx,msfd)
+      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm, &
+                       mask=mask,lndcat=landuse,msfx=msfx,msfd=msfd)
       call read_reference_surface_temp(incin,ts0)
       call nhsetup(ptop,base_state_pressure,logp_lrate,ts0)
     else if ( idynamic == 3 ) then
-      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
-                       mask,landuse)
+      call read_domain(incin,sigmaf,xlat,xlon,ulat=ulat,ulon=ulon, &
+                       vlat=vlat,vlon=vlon,ht=topogm,mask=mask,    &
+                       lndcat=landuse)
       dz = hzita/real(kz,rkx)
       do k = 1 , kz
         zita = (kz - k) * dz + dz*0.5_rkx
@@ -141,8 +150,8 @@ module mod_grid
         end do
       end do
     else
-      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm, &
-                       mask,landuse)
+      call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,ht=topogm, &
+                       mask=mask,lndcat=landuse)
     end if
     call closefile(incin)
     do k = 1 , kz

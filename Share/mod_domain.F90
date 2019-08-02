@@ -37,6 +37,10 @@ module mod_domain
     real(rkx) , pointer , dimension(:,:) :: xlon
     real(rkx) , pointer , dimension(:,:) :: dlat
     real(rkx) , pointer , dimension(:,:) :: dlon
+    real(rkx) , pointer , dimension(:,:) :: ulat
+    real(rkx) , pointer , dimension(:,:) :: ulon
+    real(rkx) , pointer , dimension(:,:) :: vlat
+    real(rkx) , pointer , dimension(:,:) :: vlon
     real(rkx) , pointer , dimension(:,:) :: ht
     real(rkx) , pointer , dimension(:,:) :: mask
     real(rkx) , pointer , dimension(:,:) :: lndcat
@@ -75,21 +79,29 @@ module mod_domain
     end if
     call read_var2d_static(ncid,'xlat',mddom_io%xlat)
     call read_var2d_static(ncid,'xlon',mddom_io%xlon)
-    call read_var2d_static(ncid,'dlat',mddom_io%dlat)
-    call read_var2d_static(ncid,'dlon',mddom_io%dlon)
+    if ( idynamic == 3 ) then
+      call read_var2d_static(ncid,'ulat',mddom_io%ulat)
+      call read_var2d_static(ncid,'ulon',mddom_io%ulon)
+      call read_var2d_static(ncid,'vlat',mddom_io%vlat)
+      call read_var2d_static(ncid,'vlon',mddom_io%vlon)
+    else
+      call read_var2d_static(ncid,'dlat',mddom_io%dlat)
+      call read_var2d_static(ncid,'dlon',mddom_io%dlon)
+      call read_var2d_static(ncid,'xmap',mddom_io%msfx)
+      call read_var2d_static(ncid,'dmap',mddom_io%msfd)
+    end if
     call read_var2d_static(ncid,'topo',mddom_io%ht)
     call read_var2d_static(ncid,'mask',mddom_io%mask)
     call read_var2d_static(ncid,'landuse',mddom_io%lndcat)
-    call read_var2d_static(ncid,'xmap',mddom_io%msfx)
-    call read_var2d_static(ncid,'dmap',mddom_io%msfd)
     call read_var2d_static(ncid,'coriol',mddom_io%coriol)
     call read_var2d_static(ncid,'snowam',mddom_io%snowam,has_snow)
     call read_var2d_static(ncid,'dhlake',mddom_io%hlake,has_dhlake)
   end subroutine read_domain_type
 
-  subroutine read_domain_array_double(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                                      lndcat,msfx,msfd,coriol,snowam,hlake,   &
-                                      lsubgrid)
+  subroutine read_domain_array_double(ncid,sigma,xlat,xlon,dlat,dlon, &
+                                      ulat,ulon,vlat,vlon,ht,mask,    &
+                                      lndcat,msfx,msfd,coriol,snowam, &
+                                      hlake,lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk8) , pointer , dimension(:) , intent(inout) :: sigma
@@ -97,6 +109,10 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
     real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
     real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: ulat
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: ulon
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: vlat
+    real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: vlon
     real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: ht
     real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: mask
     real(rk8) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
@@ -121,21 +137,29 @@ module mod_domain
     end if
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
-    if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
-    if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
+    if ( idynamic == 3 ) then
+      if ( present(ulat) ) call read_var2d_static(ncid,'ulat',ulat)
+      if ( present(ulon) ) call read_var2d_static(ncid,'ulon',ulon)
+      if ( present(vlat) ) call read_var2d_static(ncid,'vlat',vlat)
+      if ( present(vlon) ) call read_var2d_static(ncid,'vlon',vlon)
+    else
+      if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
+      if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
+      if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
+      if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
+    end if
     if ( present(ht) ) call read_var2d_static(ncid,'topo',ht)
     if ( present(mask) ) call read_var2d_static(ncid,'mask',mask)
     if ( present(lndcat) ) call read_var2d_static(ncid,'landuse',lndcat)
-    if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
-    if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
   end subroutine read_domain_array_double
 
-  subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                                      lndcat,msfx,msfd,coriol,snowam,hlake,   &
-                                      lsubgrid)
+  subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon, &
+                                      ulat,ulon,vlat,vlon,ht,mask,    &
+                                      lndcat,msfx,msfd,coriol,snowam, &
+                                      hlake,lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk4) , pointer , dimension(:) , intent(inout) :: sigma
@@ -143,6 +167,10 @@ module mod_domain
     real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
     real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
     real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ulat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ulon
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: vlat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: vlon
     real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ht
     real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: mask
     real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
@@ -167,13 +195,20 @@ module mod_domain
     end if
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
-    if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
-    if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
+    if ( idynamic == 3 ) then
+      if ( present(ulat) ) call read_var2d_static(ncid,'ulat',ulat)
+      if ( present(ulon) ) call read_var2d_static(ncid,'ulon',ulon)
+      if ( present(vlat) ) call read_var2d_static(ncid,'vlat',vlat)
+      if ( present(vlon) ) call read_var2d_static(ncid,'vlon',vlon)
+    else
+      if ( present(dlat) ) call read_var2d_static(ncid,'dlat',dlat)
+      if ( present(dlon) ) call read_var2d_static(ncid,'dlon',dlon)
+      if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
+      if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
+    end if
     if ( present(ht) ) call read_var2d_static(ncid,'topo',ht)
     if ( present(mask) ) call read_var2d_static(ncid,'mask',mask)
     if ( present(lndcat) ) call read_var2d_static(ncid,'landuse',lndcat)
-    if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
-    if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
     if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
     if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
@@ -206,13 +241,20 @@ module mod_domain
     call getmem1d(mddom_io%sigma,1,kz+1,'domain:sigma')
     call getmem2d(mddom_io%xlat,1,jx,1,iy,'domain:xlat')
     call getmem2d(mddom_io%xlon,1,jx,1,iy,'domain:xlon')
-    call getmem2d(mddom_io%dlat,1,jx,1,iy,'domain:dlat')
-    call getmem2d(mddom_io%dlon,1,jx,1,iy,'domain:dlon')
+    if ( idynamic == 3 ) then
+      call getmem2d(mddom_io%ulat,1,jx,1,iy,'domain:ulat')
+      call getmem2d(mddom_io%ulon,1,jx,1,iy,'domain:ulon')
+      call getmem2d(mddom_io%vlat,1,jx,1,iy,'domain:vlat')
+      call getmem2d(mddom_io%vlon,1,jx,1,iy,'domain:vlon')
+    else
+      call getmem2d(mddom_io%dlat,1,jx,1,iy,'domain:dlat')
+      call getmem2d(mddom_io%dlon,1,jx,1,iy,'domain:dlon')
+      call getmem2d(mddom_io%msfx,1,jx,1,iy,'domain:msfx')
+      call getmem2d(mddom_io%msfd,1,jx,1,iy,'domain:msfd')
+    end if
     call getmem2d(mddom_io%ht,1,jx,1,iy,'domain:ht')
     call getmem2d(mddom_io%mask,1,jx,1,iy,'domain:mask')
     call getmem2d(mddom_io%lndcat,1,jx,1,iy,'domain:lndcat')
-    call getmem2d(mddom_io%msfx,1,jx,1,iy,'domain:msfx')
-    call getmem2d(mddom_io%msfd,1,jx,1,iy,'domain:msfd')
     call getmem2d(mddom_io%coriol,1,jx,1,iy,'domain:coriol')
     call getmem2d(mddom_io%snowam,1,jx,1,iy,'domain:snowam')
     call getmem2d(mddom_io%hlake,1,jx,1,iy,'domain:hlake')

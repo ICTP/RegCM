@@ -43,14 +43,16 @@ module mod_fvgcm
     real(rkx) , dimension(nlev) :: pplev , sigma1 , sigmar
     real(rkx) , parameter :: pss = 100.0_rkx
 
-    real(rkx) , pointer , dimension(:) :: vlat
-    real(rkx) , pointer , dimension(:) :: vlon
+    real(rkx) , pointer , dimension(:) :: flat
+    real(rkx) , pointer , dimension(:) :: flon
 
     real(rkx) , pointer , dimension(:,:,:) :: bb
     real(rkx) , pointer , dimension(:,:,:) :: b2
     real(rkx) , pointer , dimension(:,:,:) :: d2
     real(rkx) , pointer , dimension(:,:,:) :: b3
     real(rkx) , pointer , dimension(:,:,:) :: d3
+    real(rkx) , pointer , dimension(:,:,:) :: d3u
+    real(rkx) , pointer , dimension(:,:,:) :: d3v
     real(rk4) , pointer , dimension(:,:) :: temp
     integer(2) , pointer , dimension(:,:) :: itmp
 
@@ -63,6 +65,7 @@ module mod_fvgcm
     real(rkx) , pointer , dimension(:,:,:) :: up , vp
     real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
     real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
+    real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
 
     public :: get_fvgcm , init_fvgcm , conclude_fvgcm
 
@@ -77,14 +80,14 @@ module mod_fvgcm
     numy = nint(lat1-lat0) + 1
 
     write (stdout,*) 'Reading a ',numx,'x',numy,' point grid'
-    call getmem1d(vlat,1,numy,'fvgc:vlat')
-    call getmem1d(vlon,1,numx,'fvgc:vlon')
+    call getmem1d(flat,1,numy,'fvgc:flat')
+    call getmem1d(flon,1,numx,'fvgc:flon')
 
     do j = 1 , numy
-      vlat(j) = lat0 + real(j-1,rkx)*1.0_rkx
+      flat(j) = lat0 + real(j-1,rkx)*1.0_rkx
     end do
     do i = 1 , numx
-      vlon(i) = lon0 + real(i-1,rkx)*1.25_rkx
+      flon(i) = lon0 + real(i-1,rkx)*1.25_rkx
     end do
 
     pplev(1) = 30.
@@ -164,16 +167,21 @@ module mod_fvgcm
     call getmem2d(temp,1,numx,1,numy,'fvgc:temp')
     call getmem2d(itmp,1,numx,1,numy,'fvgc:itmp')
 
-    call h_interpolator_create(cross_hint,vlat,vlon,xlat,xlon)
-    if ( idynamic < 3 ) then
-      call h_interpolator_create(udot_hint,vlat,vlon,dlat,dlon)
+    call h_interpolator_create(cross_hint,flat,flon,xlat,xlon)
+    if ( idynamic == 3 ) then
+      call h_interpolator_create(udot_hint,flat,flon,ulat,ulon)
+      call h_interpolator_create(vdot_hint,flat,flon,vlat,vlon)
     else
-      call h_interpolator_create(udot_hint,vlat,vlon,xlat,dlon)
-      call h_interpolator_create(vdot_hint,vlat,vlon,dlat,xlon)
+      call h_interpolator_create(udot_hint,flat,flon,dlat,dlon)
     end if
 
     call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_fvgcm:b3')
-    call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
+    if ( idynamic == 3 ) then
+      call getmem3d(d3u,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3u')
+      call getmem3d(d3v,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3v')
+    else
+      call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
+    end if
 
     ps2 => bb(:,:,1)
     t2 => bb(:,:,2:nlev+1)
@@ -188,8 +196,15 @@ module mod_fvgcm
     t3 => b3(:,:,1:nlev)
     q3 => b3(:,:,nlev+1:2*nlev)
     h3 => b3(:,:,2*nlev+1:3*nlev)
-    u3 => d3(:,:,1:nlev)
-    v3 => d3(:,:,nlev+1:2*nlev)
+    if ( idynamic == 3 ) then
+      u3 => d3u(:,:,1:nlev)
+      v3u => d3u(:,:,nlev+1:2*nlev)
+      u3v => d3v(:,:,1:nlev)
+      v3 => d3v(:,:,nlev+1:2*nlev)
+    else
+      u3 => d3(:,:,1:nlev)
+      v3 => d3(:,:,nlev+1:2*nlev)
+    end if
   end subroutine init_fvgcm
 
     subroutine get_fvgcm(idate)
@@ -377,14 +392,19 @@ module mod_fvgcm
 !$OMP END SECTIONS
 
     call h_interpolate_cont(cross_hint,b2,b3)
-    if ( idynamic < 3 ) then
-      call h_interpolate_cont(udot_hint,d2,d3)
+    if ( idynamic == 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3u)
+      call h_interpolate_cont(vdot_hint,d2,d3v)
     else
-      call h_interpolate_cont(udot_hint,up,u3)
-      call h_interpolate_cont(vdot_hint,vp,v3)
+      call h_interpolate_cont(udot_hint,d2,d3)
     end if
 
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
+    if ( idynamic == 3 ) then
+      call uvrot4(u3,v3u,ulon,ulat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
+      call uvrot4(u3v,v3,vlon,vlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
+    else
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev,plon,plat,iproj)
+    end if
 
 !$OMP SECTIONS
 !$OMP SECTION
@@ -402,11 +422,11 @@ module mod_fvgcm
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev)
 
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if ( idynamic < 3 ) then
-      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-    else
+    if ( idynamic == 3 ) then
       call ucrs2dot(pud4,ps4,jx,iy,i_band)
       call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    else
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
 
     call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nlev)
@@ -415,16 +435,16 @@ module mod_fvgcm
 
 !$OMP SECTIONS
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
+    else
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
     end if
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
+    else
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
     end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)

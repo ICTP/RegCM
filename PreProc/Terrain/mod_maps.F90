@@ -25,7 +25,8 @@ module mod_maps
 
   real(rkx) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
                    dmap , htgrid , lndout , mask , dpth , snowam , &
-                   smoist , texout , xlat , xlon , xmap , ps0 , askip
+                   smoist , texout , xlat , xlon , xmap , ps0 ,    &
+                   ulat , ulon , vlat , vlon
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist
   real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0 , z0
   real(rkx) , pointer , dimension(:,:,:) :: zeta , fmz
@@ -33,7 +34,8 @@ module mod_maps
   real(rkx) , pointer , dimension(:,:) :: coriol_s , dlat_s , &
                       dlon_s , dmap_s , htgrid_s , lndout_s , &
                       mask_s , dpth_s , snowam_s , smoist_s , &
-                      texout_s , xlat_s , xlon_s , xmap_s , ps0_s
+                      texout_s , xlat_s , xlon_s , xmap_s ,   &
+                      ps0_s , ulat_s , ulon_s , vlat_s , vlon_s
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
   real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s , z0_s
   real(rkx) , pointer , dimension(:,:,:) :: zeta_s , fmz_s
@@ -52,10 +54,6 @@ module mod_maps
     call getmem2d(coriol,1,jx,1,iy,'maps:coriol')
     call getmem2d(xlat,1,jx,1,iy,'maps:xlat')
     call getmem2d(xlon,1,jx,1,iy,'maps:xlon')
-    call getmem2d(dlat,1,jx,1,iy,'maps:dlat')
-    call getmem2d(dlon,1,jx,1,iy,'maps:dlon')
-    call getmem2d(dmap,1,jx,1,iy,'maps:dmap')
-    call getmem2d(xmap,1,jx,1,iy,'maps:xmap')
     call getmem2d(htgrid,1,jx,1,iy,'maps:htgrid')
     call getmem2d(dpth,1,jx,1,iy,'maps:dpth')
     call getmem2d(lndout,1,jx,1,iy,'maps:lndout')
@@ -71,15 +69,23 @@ module mod_maps
       call getmem3d(t0,1,jx,1,iy,1,kz+1,'maps:t0')
       call getmem3d(rho0,1,jx,1,iy,1,kz+1,'maps:rho0')
       call getmem3d(z0,1,jx,1,iy,1,kz+1,'maps:z0')
-    else if ( idyn == 3 ) then
-      call getmem2d(askip,1,jx,1,iy,'maps:askip')
+    end if
+    if ( idyn == 3 ) then
       call getmem1d(zita,1,kz+1,'maps:zita')
       call getmem1d(ak,1,kz+1,'maps:ak')
       call getmem1d(bk,1,kz+1,'maps:bk')
       call getmem3d(zeta,1,jx,1,iy,1,kz+1,'maps:zeta')
       call getmem3d(fmz,1,jx,1,iy,1,kz+1,'maps:fmz')
+      call getmem2d(ulat,1,jx,1,iy,'maps:ulat')
+      call getmem2d(ulon,1,jx,1,iy,'maps:ulon')
+      call getmem2d(vlat,1,jx,1,iy,'maps:vlat')
+      call getmem2d(vlon,1,jx,1,iy,'maps:vlon')
+    else
+      call getmem2d(dlat,1,jx,1,iy,'maps:dlat')
+      call getmem2d(dlon,1,jx,1,iy,'maps:dlon')
+      call getmem2d(dmap,1,jx,1,iy,'maps:dmap')
+      call getmem2d(xmap,1,jx,1,iy,'maps:xmap')
     end if
-
   end subroutine prepare_grid
 
   subroutine prepare_subgrid(jxsg,iysg,kz,ntex,nsoil,idyn)
@@ -88,10 +94,6 @@ module mod_maps
     call getmem2d(coriol_s,1,jxsg,1,iysg,'maps:coriol_s')
     call getmem2d(xlat_s,1,jxsg,1,iysg,'maps:xlat_s')
     call getmem2d(xlon_s,1,jxsg,1,iysg,'maps:xlon_s')
-    call getmem2d(dlat_s,1,jxsg,1,iysg,'maps:dlat_s')
-    call getmem2d(dlon_s,1,jxsg,1,iysg,'maps:dlon_s')
-    call getmem2d(dmap_s,1,jxsg,1,iysg,'maps:dmap_s')
-    call getmem2d(xmap_s,1,jxsg,1,iysg,'maps:xmap_s')
     call getmem2d(htgrid_s,1,jxsg,1,iysg,'maps:htgrid_s')
     call getmem2d(dpth_s,1,jxsg,1,iysg,'maps:dpth_s')
     call getmem2d(lndout_s,1,jxsg,1,iysg,'maps:lndout_s')
@@ -107,9 +109,19 @@ module mod_maps
       call getmem3d(t0_s,1,jxsg,1,iysg,1,kz+1,'maps:t0_s')
       call getmem3d(rho0_s,1,jxsg,1,iysg,1,kz+1,'maps:rho0_s')
       call getmem3d(z0_s,1,jxsg,1,iysg,1,kz+1,'maps:z0_s')
-    else if ( idyn == 3 ) then
+    end if
+    if ( idyn == 3 ) then
       call getmem3d(zeta_s,1,jxsg,1,iysg,1,kz+1,'maps:zeta_s')
       call getmem3d(fmz_s,1,jxsg,1,iysg,1,kz+1,'maps:fmz_s')
+      call getmem2d(ulat_s,1,jxsg,1,iysg,'maps:ulat_s')
+      call getmem2d(ulon_s,1,jxsg,1,iysg,'maps:ulon_s')
+      call getmem2d(vlat_s,1,jxsg,1,iysg,'maps:vlat_s')
+      call getmem2d(vlon_s,1,jxsg,1,iysg,'maps:vlon_s')
+    else
+      call getmem2d(dlat_s,1,jxsg,1,iysg,'maps:dlat_s')
+      call getmem2d(dlon_s,1,jxsg,1,iysg,'maps:dlon_s')
+      call getmem2d(dmap_s,1,jxsg,1,iysg,'maps:dmap_s')
+      call getmem2d(xmap_s,1,jxsg,1,iysg,'maps:xmap_s')
     end if
   end subroutine prepare_subgrid
 

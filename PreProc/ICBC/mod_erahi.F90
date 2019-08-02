@@ -57,11 +57,14 @@ module mod_erahi
   real(rkx) , target , dimension(nlons,nlats,nlev2*2) :: d2
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
+  real(rkx) , pointer , dimension(:,:,:) :: d3u
+  real(rkx) , pointer , dimension(:,:,:) :: d3v
 
   real(rkx) , pointer , dimension(:,:,:) :: tp , qp , hp
   real(rkx) , pointer , dimension(:,:,:) :: up , vp
   real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , h3
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
 
   public :: get_ehi , init_ehi , conclude_ehi
 
@@ -393,14 +396,19 @@ module mod_erahi
     bk(61) = 1.00000000
 
     call getmem3d(b3,1,jx,1,iy,1,nlev2*3,'mod_erahi:b3')
-    call getmem3d(d3,1,jx,1,iy,1,nlev2*2,'mod_erahi:b3')
+    if ( idynamic == 3 ) then
+      call getmem3d(d3u,1,jx,1,iy,1,nlev2*2,'mod_erahi:d3u')
+      call getmem3d(d3v,1,jx,1,iy,1,nlev2*2,'mod_erahi:d3v')
+    else
+      call getmem3d(d3,1,jx,1,iy,1,nlev2*2,'mod_erahi:d3')
+    end if
 
     call h_interpolator_create(cross_hint,slat,slon,xlat,xlon)
-    if ( idynamic < 3 ) then
-      call h_interpolator_create(udot_hint,slat,slon,dlat,dlon)
+    if ( idynamic == 3 ) then
+      call h_interpolator_create(udot_hint,slat,slon,ulat,ulon)
+      call h_interpolator_create(vdot_hint,slat,slon,vlat,vlon)
     else
-      call h_interpolator_create(udot_hint,slat,slon,xlat,dlon)
-      call h_interpolator_create(vdot_hint,slat,slon,dlat,xlon)
+      call h_interpolator_create(udot_hint,slat,slon,dlat,dlon)
     end if
 
     ! Set up pointers
@@ -413,8 +421,15 @@ module mod_erahi
     t3 => b3(:,:,1:nlev2)
     q3 => b3(:,:,nlev2+1:2*nlev2)
     h3 => b3(:,:,2*nlev2+1:3*nlev2)
-    u3 => d3(:,:,1:nlev2)
-    v3 => d3(:,:,nlev2+1:2*nlev2)
+    if ( idynamic == 3 ) then
+      u3 => d3u(:,:,1:nlev2)
+      v3u => d3u(:,:,nlev2+1:2*nlev2)
+      u3v => d3v(:,:,1:nlev2)
+      v3 => d3v(:,:,nlev2+1:2*nlev2)
+    else
+      u3 => d3(:,:,1:nlev2)
+      v3 => d3(:,:,nlev2+1:2*nlev2)
+    end if
   end subroutine init_ehi
 
   subroutine get_ehi(idate)
@@ -528,16 +543,21 @@ module mod_erahi
     ! Horizontal interpolation of both the scalar and vector fields
     !
     call h_interpolate_cont(cross_hint,b2,b3)
-    if ( idynamic < 3 ) then
-      call h_interpolate_cont(udot_hint,d2,d3)
+    if ( idynamic == 3 ) then
+      call h_interpolate_cont(udot_hint,d2,d3u)
+      call h_interpolate_cont(vdot_hint,d2,d3v)
     else
-      call h_interpolate_cont(udot_hint,up,u3)
-      call h_interpolate_cont(vdot_hint,vp,v3)
+      call h_interpolate_cont(udot_hint,d2,d3)
     end if
     !
     ! Rotate U-V fields after horizontal interpolation
     !
-    call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev2,plon,plat,iproj)
+    if ( idynamic == 3 ) then
+      call uvrot4(u3,v3u,ulon,ulat,clon,clat,xcone,jx,iy,nlev2,plon,plat,iproj)
+      call uvrot4(u3v,v3,vlon,vlat,clon,clat,xcone,jx,iy,nlev2,plon,plat,iproj)
+    else
+      call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,nlev2,plon,plat,iproj)
+    end if
     !
     ! Vertical interpolation
     !
@@ -556,11 +576,11 @@ module mod_erahi
     ! New calculation of P* on RegCM topography.
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nlev2)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if ( idynamic < 3 ) then
-      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-    else
+    if ( idynamic == 3 ) then
       call ucrs2dot(pud4,ps4,jx,iy,i_band)
       call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+    else
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
     !
     ! Determine surface temps on RegCM topography.
@@ -572,16 +592,16 @@ module mod_erahi
     ! Interpolate U, V, T, and Q.
 !$OMP SECTIONS
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    else
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
     end if
 !$OMP SECTION
-    if ( idynamic < 3 ) then
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
-    else
+    if ( idynamic == 3 ) then
       call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
+    else
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2,1)
     end if
 !$OMP SECTION
     call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev2)
