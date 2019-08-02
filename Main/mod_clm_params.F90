@@ -377,6 +377,7 @@ module mod_clm_params
     call bcast(domname,64)
     call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask,   &
                           mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,     &
+                          mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,     &
                           mddom%msfx,mddom%msfd,mddom%coriol,mddom%snowam, &
                           mddom%smoist,mddom%rmoist,mddom%dhlake,          &
                           base_state_ts0)
