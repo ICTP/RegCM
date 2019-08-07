@@ -117,23 +117,23 @@ AC_DEFUN([RR_PATH_NETCDF_F90],[
   save_FCFLAGS="$FCFLAGS"
 
   if test -z "$NC_INCLUDES"; then
-  for flag in "-I" "-M" "-p"; do
-    FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
-    AC_COMPILE_IFELSE(
-      [AC_LANG_PROGRAM([[ ]],
-                       [[      use netcdf]])],
-                       [netcdf=yes; NC_FCFLAGS=$flag],
-                       [netcdf=no])
-    if test "x$netcdf" = xyes; then
-      break
+    for flag in "-I" "-M" "-p"; do
+      FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
+      AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[ ]],
+                         [[      use netcdf]])],
+                         [netcdf=yes; NC_FCFLAGS=$flag],
+                         [netcdf=no])
+      if test "x$netcdf" = xyes; then
+        break
+      fi
+    done
+    if test "x$netcdf" = xno; then
+      AC_MSG_ERROR([NetCDF module not found])
     fi
-  done
-  if test "x$netcdf" = xno; then
-    AC_MSG_ERROR([NetCDF module not found])
-  fi
 
-  FCFLAGS="$save_FCFLAGS"
-  AM_CPPFLAGS="$NC_FCFLAGS$NC_PREFIX/include $AM_CPPFLAGS"
+    FCFLAGS="$save_FCFLAGS"
+    AM_CPPFLAGS="$NC_FCFLAGS$NC_PREFIX/include $AM_CPPFLAGS"
   else
     FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
     AC_COMPILE_IFELSE(
@@ -148,6 +148,49 @@ AC_DEFUN([RR_PATH_NETCDF_F90],[
 
     FCFLAGS="$save_FCFLAGS"
     AM_CPPFLAGS="$NC_INCLUDES $AM_CPPFLAGS"
+  fi
+
+  AC_SUBST([AM_CPPFLAGS])
+])
+
+AC_DEFUN([RR_CDF5],[
+  AC_CHECKING([for NetCDF CDF5])
+  save_FCFLAGS="$FCFLAGS"
+
+  if test -z "$NC_INCLUDES"; then
+    for flag in "-I" "-M" "-p"; do
+      FCFLAGS="$flag$NC_PREFIX/include $save_FCFLAGS"
+      AC_COMPILE_IFELSE(
+        [AC_LANG_PROGRAM([[ ]],
+                         [[
+         use netcdf
+         implicit none
+         integer :: imode
+         imode = nf90_cdf5]])],
+                         [cdf5=yes],
+                         [cdf5=no])
+      if test "x$cdf5" = xyes; then
+        AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+        break
+      fi
+    done
+    FCFLAGS="$save_FCFLAGS"
+  else
+    FCFLAGS="$NC_INCLUDES $save_FCFLAGS"
+    AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM([[ ]],
+                       [[
+         use netcdf
+         implicit none
+         integer :: imode
+         imode = nf90_cdf5]])],
+                       [cdf5=yes],
+                       [cdf5=no])
+
+    if test "x$cdf5" = xyes; then
+      AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+    fi
+    FCFLAGS="$save_FCFLAGS"
   fi
 
   AC_SUBST([AM_CPPFLAGS])
@@ -319,9 +362,11 @@ AC_DEFUN([RR_PATH_PNETCDF],[
   AC_CHECKING([for Parallel NetCDF])
 
   save_CPPFLAGS="$CPPFLAGS"
+  save_FCFLAGS="$FCFLAGS"
   save_LDFLAGS="$LDFLAGS"
 
   CPPFLAGS="$CPPFLAGS $NC_INCLUDES"
+  FCFLAGS="$CPPFLAGS $NC_INCLUDES"
   AMDEPFLAGS="$AMDEPFLAGS $NC_INCLUDES"
   LIBS="$LIBS $NC_LIBS"
   LDFLAGS="$LDFLAGS $NC_LDFLAGS"
@@ -346,14 +391,29 @@ AC_DEFUN([RR_PATH_PNETCDF],[
     AC_MSG_ERROR([Parallel NetCDF library not found])
   fi
 
+  AC_LANG_POP([C])
+
+  AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([[ ]],
+                      [[
+         use pnetcdf
+         implicit none
+         integer :: imode
+         imode = nf90_cdf5]])],
+                     [cdf5=yes],
+                     [cdf5=no])
+  if test "x$cdf5" = xyes; then
+    AM_CPPFLAGS="-DNETCDF_CDF5 $AM_CPPFLAGS"
+  fi
+
 # Put them back to how they used to be and set the AM versions
 # The AM versions must be substituted explicitly
 
   CPPFLAGS="$save_CPPFLAGS"
+  FCFLAGS="$save_FCFLAGS"
   LDFLAGS="$save_LDFLAGS"
   AM_CPPFLAGS="$NC_INCLUDES $AM_CPPFLAGS"
   AM_LDFLAGS="$NC_LDFLAGS $AM_LDFLAGS"
   AC_SUBST([AM_CPPFLAGS])
   AC_SUBST([AM_LDFLAGS])
-  AC_LANG_POP([C])
 ])

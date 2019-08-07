@@ -1729,7 +1729,11 @@ module mod_savefile
     integer(ik4) , intent(out) :: ncid
     integer(ik4) :: imode
 #ifdef PNETCDF
+#ifdef NETCDF_CDF5
     imode = ior(nf90_clobber, nf90_cdf5)
+#else
+    imode = nf90_clobber
+#endif
 #else
     imode = iomode
 #endif
@@ -1770,10 +1774,17 @@ module mod_savefile
     character(len=*) , intent(in) :: sname
     type (rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) :: ncid
-#ifdef PNETCDF
-    ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',toint10(idate))
+#ifdef NETCDF_CDF5
+    integer(ik4) :: itemp
+    itemp = int(toint10(idate),ik4)
 #else
-    ncstatus = nf90_put_att(ncid,nf90_global,'idatex',toint10(idate))
+    integer(ik8) :: itemp
+    itemp = toint10(idate)
+#endif
+#ifdef PNETCDF
+    ncstatus = nf90mpi_put_att(ncid,nf90_global,'idatex',itemp)
+#else
+    ncstatus = nf90_put_att(ncid,nf90_global,'idatex',itemp)
 #endif
     call check_ok(__FILE__,__LINE__,'Cannot save idatex')
 #ifdef PNETCDF

@@ -58,6 +58,7 @@ space +=
 fortflag := -D_FORTIFY_SOURCE=2
 scppfla := $(filter-out $(fortflag),$(CPPFLAGS))
 scppfla := $(filter-out -DMPI_SERIAL,$(scppfla))
+scppfla := $(filter-out -DNETCDF_CDF5,$(scppfla))
 flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(scppfla))))
 
 program_transform_name := s&$$&$(rcsuffix)$(flagsuffix)&

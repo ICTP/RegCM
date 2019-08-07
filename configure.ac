@@ -347,6 +347,7 @@ esac
 if eval "test x$PNETCDF = x0"; then
   RR_PATH_NETCDF
   RR_PATH_NETCDF_F90
+  RR_CDF5
 else
   RR_PATH_PNETCDF
 fi

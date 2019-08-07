@@ -181,9 +181,9 @@ module mod_moloch
         end do
       end do
 
-      !call sound(dtsound)
+      !! call sound(dtsound)
 
-      call advection(dtstepa)
+      ! call advection(dtstepa)
 
       do k = 1 , kz
         do i = ice1 , ice2
