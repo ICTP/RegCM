@@ -301,7 +301,6 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             wten(j,i,k) = wten(j,i,k) + wdyn(j,i,k) + wphy(j,i,k)
-
           end do
         end do
       end do

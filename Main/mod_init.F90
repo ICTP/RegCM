@@ -50,6 +50,7 @@ module mod_init
   use mod_massck
   use mod_zita
   use mod_sound , only : init_sound
+  use mod_moloch , only : init_moloch
 
   implicit none
 
@@ -755,6 +756,9 @@ module mod_init
       !
       ! End of restart phase
       !
+      if ( idynamic == 3 ) then
+        call init_moloch
+      end if
     end if
 
     if ( idynamic == 1 ) then

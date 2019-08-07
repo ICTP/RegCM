@@ -3098,7 +3098,7 @@ module mod_bdycod
   subroutine monudge4d3d(ibdy,f,bnd,n)
     implicit none
     integer(ik4) , intent(in) :: ibdy , n
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     real(rkx) , parameter :: nfac = 1.0e3_rkx
@@ -3529,7 +3529,7 @@ module mod_bdycod
   subroutine monudgeuv(ibdy,fu,fv,bndu,bndv)
     implicit none
     integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: fu , fv
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: fu , fv
     type(v3dbound) , intent(in) :: bndu , bndv
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     integer(ik4) :: i , j , k , ib
@@ -3839,7 +3839,7 @@ module mod_bdycod
   subroutine monudge4d(ibdy,f,bnd,n1,n2)
     implicit none
     integer(ik4) , intent(in) :: ibdy , n1 , n2
-    real(rkx) , pointer , intent(in) , dimension(:,:,:,:) :: f
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     integer(ik4) :: n
 #ifdef DEBUG
@@ -4080,7 +4080,7 @@ module mod_bdycod
   subroutine monudge3d(ibdy,f,bnd)
     implicit none
     integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(in) , dimension(:,:,:) :: f
+    real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     integer(ik4) :: i , j , k , ib , ns , nk
@@ -4440,7 +4440,7 @@ module mod_bdycod
   subroutine monudge2d(ibdy,f,bnd)
     implicit none
     integer(ik4) , intent(in) :: ibdy
-    real(rkx) , pointer , intent(in) , dimension(:,:) :: f
+    real(rkx) , pointer , intent(inout) , dimension(:,:) :: f
     type(v2dbound) , intent(in) :: bnd
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
     integer(ik4) :: i , j , ib
