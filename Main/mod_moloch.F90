@@ -69,6 +69,7 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: qen0
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
 
+  real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: clu , fmyu
   real(rkx) , dimension(:,:) , pointer :: clv , fmyv
   real(rkx) , dimension(:,:,:) , pointer :: fmz
@@ -94,6 +95,7 @@ module mod_moloch
 
   subroutine allocate_moloch
     implicit none
+    call getmem2d(p2d,jde1,jde2,ide1,ide2,'moloch:p2d')
     call getmem3d(pf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:pf')
     call getmem3d(tf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:tf')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
@@ -162,7 +164,8 @@ module mod_moloch
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tetav(j,i,k) =  tvirt(j,i,k)/pai(j,i,k)
+          tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k))
+          tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
           tf(j,i,k) = tetav(j,i,k)
         end do
       end do
@@ -180,7 +183,7 @@ module mod_moloch
 
       !call sound(dtsound)
 
-      !call advection(dtstepa)
+      call advection(dtstepa)
 
       do k = 1 , kz
         do i = ice1 , ice2
@@ -200,33 +203,33 @@ module mod_moloch
 
     end do ! Advection loop
 
-    !if ( mod(rcmtimer%lcount,25_ik8*int(nadv,ik8)) == 0 ) then
-    !  call filt3d(u,0.06_rkx,jdi1,jdi2,ici1,ici2)
-    !  call filt3d(v,0.06_rkx,jci1,jci2,idi1,idi2)
-    !  call filt3d(w,0.06_rkx,jci1,jci2,ici1,ici2)
-    !  do k = 1 , kz
-    !    do i = ici1 , ici2
-    !      do j = jci1 , jci2
-    !        tetav(j,i,k) = tetav(j,i,k) - tf(j,i,k)
-    !      end do
-    !    end do
-    !  end do
-    !  call filt3d(tetav,0.06_rkx,jci1,jci2,ici1,ici2)
-    !  do k = 1 , kz
-    !    do i = ici1 , ici2
-    !      do j = jci1 , jci2
-    !        tetav(j,i,k) = tetav(j,i,k) + tf(j,i,k)
-    !      end do
-    !    end do
-    !  end do
-    !end if
+    if ( mod(rcmtimer%lcount,25_ik8*int(nadv,ik8)) == 0 ) then
+      call filt3d(u,0.06_rkx,jdi1,jdi2,ici1,ici2)
+      call filt3d(v,0.06_rkx,jci1,jci2,idi1,idi2)
+      call filt3d(w,0.06_rkx,jci1,jci2,ici1,ici2)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tetav(j,i,k) = tetav(j,i,k) - tf(j,i,k)
+          end do
+        end do
+      end do
+      call filt3d(tetav,0.06_rkx,jci1,jci2,ici1,ici2)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tetav(j,i,k) = tetav(j,i,k) + tf(j,i,k)
+          end do
+        end do
+      end do
+    end if
 
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          p(j,i,k) = (pai(j,i,k)**cpovr) * p00
           tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
           t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
+          p(j,i,k) = (pai(j,i,k)**cpovr) * p00
         end do
       end do
     end do
@@ -309,50 +312,50 @@ module mod_moloch
         end if
       end subroutine boundary
 
-      subroutine filt2d(p,anu2,j1,j2,i1,i2)
+      subroutine filt2d(pp,anu2,j1,j2,i1,i2)
         implicit none
-        real(rkx) , dimension(:,:) , pointer , intent(inout) :: p
+        real(rkx) , dimension(:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: anu2
         integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
         integer(ik4) :: j , i
-        real(rkx) , dimension(j1:j2,i1:i2) :: p2
 
-        call exchange(p,1,j1,j2,i1,i2)
+        call exchange(pp,1,j1,j2,i1,i2)
 
         do i = i1 , i2
           do j = j1 , j2
-            p2(j,i) = 0.125_rkx * (p(j,i-1)+p(j-1,i)+p(j+1,i)+p(j,i+1)) - &
-                      0.5_rkx*p(j,i)
+            p2d(j,i) = 0.125_rkx * (pp(j,i-1)+pp(j-1,i)+pp(j+1,i)+pp(j,i+1)) - &
+                       0.5_rkx * pp(j,i)
           end do
         end do
         do i = i1 , i2
           do j = j1 , j2
-            p(j,i) = p(j,i) + anu2 * p2(j,i)
+            pp(j,i) = pp(j,i) + anu2 * p2d(j,i)
           end do
         end do
       end subroutine filt2d
 
-      subroutine filt3d(p,anu2,j1,j2,i1,i2)
+      subroutine filt3d(pp,anu2,j1,j2,i1,i2)
         implicit none
-        real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: p
+        real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: anu2
         integer(ik4) , intent(in) :: i1 , i2 , j1 , j2
-        integer(ik4) :: j , i , k
-        real(rkx) , dimension(j1:j2,i1:i2) :: p2
+        integer(ik4) :: j , i , k , k1 , k2
 
-        call exchange(p,1,j1,j2,i1,i2,1,kz)
+        k1 = lbound(pp,3)
+        k2 = ubound(pp,3)
+        call exchange(pp,1,j1,j2,i1,i2,k1,k2)
 
-        do k = 1  , kz
+        do k = k1 , k2
           do i = i1 , i2
             do j = j1 , j2
-              p2(j,i) = 0.125_rkx * (p(j,i-1,k) + p(j-1,i,k) + &
-                                     p(j+1,i,k) + p(j,i+1,k)) - &
-                        0.5_rkx   * p(j,i,k)
+              p2d(j,i) = 0.125_rkx * (pp(j-1,i,k) + pp(j+1,i,k) + &
+                                      pp(j,i-1,k) + pp(j,i+1,k)) - &
+                         0.5_rkx   * pp(j,i,k)
             end do
           end do
           do i = i1 , i2
             do j = j1 , j2
-              p(j,i,k) = p(j,i,k) + anu2 * p2(j,i)
+              pp(j,i,k) = pp(j,i,k) + anu2 * p2d(j,i)
             end do
           end do
         end do
@@ -642,7 +645,7 @@ module mod_moloch
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jdii1 , jdii2
-              u(j,i,k) = 0.5625_rkx * (ux(j,i,k)+ux(j-1,i,k)) - &
+              u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
                          0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
             end do
           end do
@@ -666,7 +669,7 @@ module mod_moloch
         do k = 1 , kz
           do i = idii1 , idii2
             do j = jci1 , jci2
-              v(j,i,k) = 0.5625_rkx * (vx(j,i,k)+vx(j,i-1,k)) - &
+              v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
                          0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
             end do
           end do
@@ -691,14 +694,14 @@ module mod_moloch
         do k = 3 , kz - 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              w(j,i,k) = 0.5625_rkx * (wx(j,i,k)+wx(j,i,k-1)) - &
+              w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
                          0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
             end do
           end do
         end do
         do i = ici1 , ici2
           do j = jci1 , jci2
-            w(j,i,2) = 0.5_rkx * (wx(j,i,2)+wx(j,i,1))
+            w(j,i,2) = 0.5_rkx * (wx(j,i,2)  +wx(j,i,1))
             w(j,i,kz) = 0.5_rkx * (wx(j,i,kz)+wx(j,i,kzm1))
           end do
         end do
@@ -707,14 +710,14 @@ module mod_moloch
           do k = 3 , kz - 1
             do i = ici1 , ici2
               do j = jci1 , jci2
-                tke(j,i,k) = 0.5625_rkx*(tkex(j,i,k)+tkex(j,i,k-1)) - &
+                tke(j,i,k) = 0.5625_rkx*(tkex(j,i,k)  +tkex(j,i,k-1)) - &
                              0.0625_rkx*(tkex(j,i,k+1)+tkex(j,i,k-2))
               end do
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              tke(j,i,2) = 0.5_rkx * (tkex(j,i,2)+tkex(j,i,1))
+              tke(j,i,2) = 0.5_rkx * (tkex(j,i,2)  +tkex(j,i,1))
               tke(j,i,kz) = 0.5_rkx * (tkex(j,i,kz)+tkex(j,i,kzm1))
             end do
           end do
@@ -767,7 +770,7 @@ module mod_moloch
           end do
           do k = 1 , kz
             do j = jci1 , jci2
-              zdv = (s(j,i,k+1)-s(j,i,k)) * zdtrdz
+              zdv = (s(j,i,k+1) - s(j,i,k)) * zdtrdz
               wz(j,i,k) = pp(j,i,k) + wfw(j,k) - wfw(j,k+1) + pp(j,i,k)*zdv
             end do
           end do
@@ -792,9 +795,9 @@ module mod_moloch
               im1 = max(i-1,icross1+1)
               r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,im1,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
-              zphi = is+zamu*b - is*b
+              zphi = is + zamu*b - is*b
               zpby(j,i) = d_half*zamu * &
-                ((d_one+zphi)*wz(j,im1,k)+(d_one-zphi)*wz(j,i,k))
+                ((d_one+zphi)*wz(j,im1,k) + (d_one-zphi)*wz(j,i,k))
             end do
           end do
 
@@ -830,9 +833,9 @@ module mod_moloch
               jm1 = max(j-1,jcross1+1)
               r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
-              zphi = is+zamu*b - is*b
+              zphi = is + zamu*b - is*b
               zpbw(j,i) = d_half*zamu * &
-                   ((d_one+zphi)*p0(jm1,i,k)+(d_one-zphi)*p0(j,i,k))
+                   ((d_one+zphi)*p0(jm1,i,k) + (d_one-zphi)*p0(j,i,k))
             end do
           end do
 
@@ -840,7 +843,7 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdv = (u(j+1,i,k)-u(j,i,k))*zdtrdx*fmyu(j,i)
+              zdv = (u(j+1,i,k) - u(j,i,k))*zdtrdx*fmyu(j,i)
               pp(j,i,k) = p0(j,i,k) + zpbw(j,i) - zpbw(j+1,i) + pp(j,i,k)*zdv
             end do
           end do
@@ -891,7 +894,7 @@ module mod_moloch
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ice1 , ice2
-          ux(jci1,i,k) = 0.5_rkx * (u(jde1,i,k)+u(jdi1,i,k))
+          ux(jce1,i,k) = 0.5_rkx * (u(jde1,i,k)+u(jdi1,i,k))
         end do
       end do
     end if
@@ -914,7 +917,7 @@ module mod_moloch
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jce1 , jce2
-          vx(j,ici1,k) = 0.5_rkx * (v(j,ide1,k)+v(j,idi1,k))
+          vx(j,ice1,k) = 0.5_rkx * (v(j,ide1,k)+v(j,idi1,k))
         end do
       end do
     end if

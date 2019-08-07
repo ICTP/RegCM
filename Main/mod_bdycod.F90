@@ -1164,7 +1164,7 @@ module mod_bdycod
           do k = 1 , kz
             do i = ici1 , ici2
               mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k)
-              mo_atm%v(jce1,i,k) = xub%b0(jce1,i,k)
+              mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k)
             end do
           end do
         end if
@@ -1172,14 +1172,14 @@ module mod_bdycod
           do k = 1 , kz
             do i = ici1 , ici2
               mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k)
-              mo_atm%u(jce2,i,k) = xub%b0(jce2,i,k)
+              mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k)
             end do
           end do
         end if
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              mo_atm%u(j,ice1,k) = xvb%b0(j,ice1,k)
+              mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k)
               mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k)
             end do
           end do
@@ -1187,7 +1187,7 @@ module mod_bdycod
         if ( ma%has_bdytop ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              mo_atm%v(j,ice2,k) = xvb%b0(j,ice2,k)
+              mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k)
               mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k)
             end do
           end do

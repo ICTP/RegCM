@@ -210,7 +210,8 @@ module mod_init
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              mo_atm%tvirt(j,i,k) = xtb%b0(j,i,k)*(d_one + ep1*xqb%b0(j,i,k))
+              mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+                           (d_one + ep1*mo_atm%qx(j,i,k,iqv))
             end do
           end do
         end do
@@ -218,7 +219,7 @@ module mod_init
           do j = jce1 , jce2
             zb = mddom%ht(j,i) * regrav + mo_atm%zeta(j,i,kz)
             mo_atm%p(j,i,kz) = xpsb%b0(j,i) * &
-              exp(-egrav*zb/rgas/mo_atm%tvirt(j,i,kz))
+                  exp(-egrav*zb/rgas/mo_atm%tvirt(j,i,kz))
             mo_atm%pai(j,i,kz) = (mo_atm%p(j,i,kz)/p00)**rovcp
           end do
         end do
@@ -756,9 +757,10 @@ module mod_init
       !
       ! End of restart phase
       !
-      if ( idynamic == 3 ) then
-        call init_moloch
-      end if
+    end if
+
+    if ( idynamic == 3 ) then
+      call init_moloch
     end if
 
     if ( idynamic == 1 ) then
