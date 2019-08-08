@@ -181,9 +181,9 @@ module mod_moloch
         end do
       end do
 
-      !! call sound(dtsound)
+      ! call sound(dtsound)
 
-      ! call advection(dtstepa)
+      call advection(dtstepa)
 
       do k = 1 , kz
         do i = ice1 , ice2
@@ -270,12 +270,12 @@ module mod_moloch
 
       subroutine boundary
         implicit none
-        call exchange(u,1,jde1,jde2,ice1,ice2,1,kz)
-        call exchange(v,1,jce1,jce2,ide1,ide2,1,kz)
-        call exchange(t,1,jce1,jce2,ice1,ice2,1,kz)
-        call exchange(qv,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
+        call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
+        call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
         if ( ichem == 1 ) then
-          call exchange(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
 
         if ( iboudy == 1 .or. iboudy == 5 ) then
@@ -319,7 +319,7 @@ module mod_moloch
         integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
         integer(ik4) :: j , i
 
-        call exchange(pp,1,j1,j2,i1,i2)
+        call exchange_lrbt(pp,1,j1,j2,i1,i2)
 
         do i = i1 , i2
           do j = j1 , j2
@@ -343,7 +343,7 @@ module mod_moloch
 
         k1 = lbound(pp,3)
         k2 = ubound(pp,3)
-        call exchange(pp,1,j1,j2,i1,i2,k1,k2)
+        call exchange_lrbt(pp,1,j1,j2,i1,i2,k1,k2)
 
         do k = k1 , k2
           do i = i1 , i2
@@ -485,10 +485,10 @@ module mod_moloch
 
           ! horizontal momentum equations
 
-          call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange(deltaw,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange(w,1,jce1,jce2,ice1,ice2,1,kz)
+          call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
+          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+          call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kz)
+          call exchange_lrbt(w,1,jce1,jce2,ice1,ice2,1,kz)
 
           do k = 1, kz
             km1 = max(k-1,1)
@@ -583,7 +583,7 @@ module mod_moloch
         do k = 2 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              s(j,i,k) = (w(j,i,k)+s(j,i,k)) * fmzf(j,i,k)
+              s(j,i,k) = (w(j,i,k) + s(j,i,k)) * fmzf(j,i,k)
             end do
           end do
         end do
@@ -776,6 +776,13 @@ module mod_moloch
           end do
         end do
 
+        do k = 1 , kz
+          do j = jci1 , jci2
+            wz(j,ice1,k) = pp(j,ice1,k)
+            wz(j,ice2,k) = pp(j,ice2,k)
+          end do
+        end do
+
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
         ! Meridional advection
@@ -791,8 +798,8 @@ module mod_moloch
                 is = -d_one
                 ih = min(i+1,icross2-1)
               end if
-              ihm1 = max(ih-1,icross1+1)
-              im1 = max(i-1,icross1+1)
+              ihm1 = ih-1
+              im1 = i-1
               r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,im1,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
@@ -814,7 +821,14 @@ module mod_moloch
           end do
         end do
 
-        call exchange_lr(p0,2,jci1,jci2,ici1,ici2,1,kz)
+        do k = 1 , kz
+          do i = ici1 , ici2
+            p0(jce1,i,k) = pp(jce1,i,k)
+            p0(jce2,i,k) = pp(jce2,i,k)
+          end do
+        end do
+
+        call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
         ! Zonal advection
 
@@ -829,8 +843,8 @@ module mod_moloch
                 is = -d_one
                 jh = min(j+1,jcross2-1)
               end if
-              jhm1 = max(jh-1,jcross1+1)
-              jm1 = max(j-1,jcross1+1)
+              jhm1 = jh-1
+              jm1 = j-1
               r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
