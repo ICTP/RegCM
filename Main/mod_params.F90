@@ -2690,21 +2690,20 @@ module mod_params
         call exchange_lr(mddom%clu,1,jde1,jde2,ice1,ice2)
         do i = ice1 , ice2
           do j = jce1 , jce2
-            mddom%fmyu(j,i) = 1.0_rkx/cos(degrad*mddom%ulat(j,i))
-            mddom%fmyv(j,i) = 1.0_rkx/cos(degrad*mddom%vlat(j,i))
+            mddom%fmyu(j,i) = 1.0_rkx/mddom%clu(j,i)
+            mddom%fmyv(j,i) = 1.0_rkx/mddom%clv(j,i)
           end do
         end do
         do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * &
-                     mddom%fmyu(j,i)*rdx*regrav
+                     mddom%fmyu(j,i) * rdx * regrav
           end do
         end do
         call exchange_lr(mddom%hx,1,jdi1,jdi2,ice1,ice2)
         do i = idi1 , idi2
           do j = jce1 , jce2
-            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1)) * &
-                     mddom%fmyv(j,i)*rdx*regrav
+            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1)) * rdx * regrav
           end do
         end do
         call exchange_bt(mddom%hy,1,jce1,jce2,idi1,idi2)

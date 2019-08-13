@@ -226,7 +226,7 @@ module mod_init
         do k = kzm1 , 1 , -1
           do i = ice1 , ice2
             do j = jce1 , jce2
-              zb = d_two * egrav * mo_dz / (mo_atm%fmz(j,i,k)*cpd) + &
+              zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k+1)*cpd) + &
                     mo_atm%tvirt(j,i,k+1) - mo_atm%tvirt(j,i,k)
               zdelta = sqrt(zb**2 + d_four * &
                     mo_atm%tvirt(j,i,k+1)*mo_atm%tvirt(j,i,k))
