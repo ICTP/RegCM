@@ -468,6 +468,7 @@ module mod_moloch
             end do
           end do
 
+          ! Equation 10, generalized vertica velocity
 
           do k = kz , 2 , -1
             do i = ici1 , ici2
@@ -481,22 +482,23 @@ module mod_moloch
             end do
           end do
 
-          ! part of divergence (except w contribution) put in zdiv2
+          ! Part of divergence (except w contribution) put in zdiv2
+          ! Equation 16
 
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zcx  = zdtrdx * fmyu(j,i)
-                zcy  = zdtrdy * fmyu(j,i) * clv(j,i)
                 zcxp = zdtrdx * fmyu(j,i)
+                zcy  = zdtrdy * fmyu(j,i) * clv(j,i)
                 zcyp = zdtrdy * fmyu(j,i) * clv(j,i+1)
                 zrfmzu  = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
                 zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
                 zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
                 zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
                 zum = u(j,i,k) * zrfmzu
-                zvm = v(j,i,k) * zrfmzv
                 zup = u(j+1,i,k) * zrfmzup
+                zvm = v(j,i,k) * zrfmzv
                 zvp = v(j,i+1,k) * zrfmzvp
                 zdiv = zup*zcxp - zum*zcx + zvp*zcyp - zvm*zcy + &
                        zdtrdz * (s(j,i,k) - s(j,i,k+1))
@@ -507,7 +509,7 @@ module mod_moloch
 
           call filt3d(zdiv2,0.8_rkx,jcii1,jcii2,icii1,icii2)
 
-          ! new w (implicit scheme)
+          ! new w (implicit scheme) from Equation 19
 
           do k = kz , 2 , -1
             do i = ici1 , ici2
@@ -582,8 +584,9 @@ module mod_moloch
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * &
                   (tetav(j-1,i,k) + tetav(j,i,k) - d_half*zzww)
-                u(j,i,k) = u(j,i,k) - zrom1u * zcx * &
-                    (pai(j,i,k) - pai(j-1,i,k)) - &
+                ! Equation 17
+                u(j,i,k) = u(j,i,k) - &
+                    zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
                     zfz * hx(j,i) * gzita(zita(k)) + &
                     coriol(j,i) * v(j,i,k) * dtsound
                 zzww = zzww0 + fmz(j,i-1,k) * jsound * zdtrdz * &
@@ -594,8 +597,9 @@ module mod_moloch
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * &
                   (tetav(j,i-1,k) + tetav(j,i,k) - d_half*zzww)
-                v(j,i,k) = v(j,i,k) - zrom1v * zdtrdy * &
-                    (pai(j,i,k) - pai(j,i-1,k)) - &
+                ! Equation 18
+                v(j,i,k) = v(j,i,k) - &
+                    zrom1v * zdtrdy * (pai(j,i,k) - pai(j,i-1,k)) - &
                     zfz * hy(j,i) * gzita(zita(k)) - &
                     coriol(j,i) * u(j,i,k) * dtsound
               end do
@@ -618,8 +622,8 @@ module mod_moloch
                    deltaw(j,ice2,k) + deltaw(j,ice2,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * &
                  (tetav(j,ici2,k) + tetav(j,ice2,k) - d_half*zzww)
-                v(j,idi2,k) = v(j,idi2,k) - zrom1v * zdtrdy * &
-                    (pai(j,ice2,k) - pai(j,ici2,k)) - &
+                v(j,idi2,k) = v(j,idi2,k) - &
+                     zrom1v * zdtrdy * (pai(j,ice2,k) - pai(j,ici2,k)) - &
                      zfz * hy(j,idi2) * gzita(zita(k)) - &
                      coriol(j,ice2) * u(j,ice2,k) * dtsound
               end do
@@ -643,8 +647,8 @@ module mod_moloch
                    deltaw(jce2,i,k) + deltaw(jce2,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * &
                  (tetav(jci2,i,k) + tetav(jce2,i,k) - d_half*zzww)
-                u(jdi2,i,k) = u(jdi2,i,k) - zrom1u * zcx * &
-                    (pai(jce2,i,k) - pai(jci2,i,k)) - &
+                u(jdi2,i,k) = u(jdi2,i,k) - &
+                    zrom1u * zcx * (pai(jce2,i,k) - pai(jci2,i,k)) - &
                     zfz * hx(jdi2,i) * gzita(zita(k)) + &
                     coriol(jce2,i) * v(jce2,i,k) * dtsound
               end do
