@@ -169,7 +169,7 @@ module mod_init
             end do
           end do
         end do
-        call exchange(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         mo_atm%fmzf(:,:,1) = 0.0_rkx
         do k = 2 , kzp1
           do i = ice1 , ice2

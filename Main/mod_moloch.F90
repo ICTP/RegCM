@@ -209,6 +209,8 @@ module mod_moloch
       end do
     end do
 
+    call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+
     do jadv = 1 , nadv
 
       do k = 1 , kz
@@ -442,7 +444,7 @@ module mod_moloch
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zdiv
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
-        real(rkx) :: zzww0 , zzww , zfz
+        real(rkx) :: zzww0 , zzww , zfz , gzitak
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 
@@ -456,8 +458,8 @@ module mod_moloch
         do jsound = 1 , nsound
 
           ! partial definition of the generalized vertical velocity
-          call exchange_lr(u,2,jde1,jde2,ice1,ice2,1,kz)
-          call exchange_bt(v,2,jce1,jce2,ide1,ide2,1,kz)
+          call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
 
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -471,13 +473,14 @@ module mod_moloch
           ! Equation 10, generalized vertica velocity
 
           do k = kz , 2 , -1
+            gzitak = gzita(zita(k))
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
                       (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
                 zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
                       (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
-                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzita(zitah(k))
+                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak
               end do
             end do
           end do
@@ -563,13 +566,13 @@ module mod_moloch
           ! horizontal momentum equations
 
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(w,1,jce1,jce2,ice1,ice2,1,kz)
 
           do k = 1 , kz
             km1 = max(k-1,1)
             kp1 = min(k+1,kz)
+            gzitak = gzita(zitah(k))
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zcx = zdtrdx*fmyu(j,i)
@@ -587,8 +590,7 @@ module mod_moloch
                 ! Equation 17
                 u(j,i,k) = u(j,i,k) - &
                     zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
-                    zfz * hx(j,i) * gzita(zita(k)) + &
-                    coriol(j,i) * v(j,i,k) * dtsound
+                    zfz * hx(j,i) * gzitak + coriol(j,i) * v(j,i,k) * dtsound
                 zzww = zzww0 + fmz(j,i-1,k) * jsound * zdtrdz * &
                   (w(j,i-1,k+1) * (tetav(j,i-1,k)   - tetav(j,i-1,kp1)) + &
                    w(j,i-1,k)   * (tetav(j,i-1,km1) - tetav(j,i-1,k)))
@@ -600,8 +602,7 @@ module mod_moloch
                 ! Equation 18
                 v(j,i,k) = v(j,i,k) - &
                     zrom1v * zdtrdy * (pai(j,i,k) - pai(j,i-1,k)) - &
-                    zfz * hy(j,i) * gzita(zita(k)) - &
-                    coriol(j,i) * u(j,i,k) * dtsound
+                    zfz * hy(j,i) * gzitak - coriol(j,i) * u(j,i,k) * dtsound
               end do
             end do
           end do
@@ -610,6 +611,7 @@ module mod_moloch
             do k = 1 , kz
               km1 = max(k-1,1)
               kp1 = min(k+1,kz)
+              gzitak = gzita(zitah(k))
               do j = jci1 , jci2
                 zzww0 = fmz(j,ice2,k) * jsound * zdtrdz * &
                   (w(j,ice2,k+1) * (tetav(j,ice2,k)   - tetav(j,ice2,kp1)) + &
@@ -624,7 +626,7 @@ module mod_moloch
                  (tetav(j,ici2,k) + tetav(j,ice2,k) - d_half*zzww)
                 v(j,idi2,k) = v(j,idi2,k) - &
                      zrom1v * zdtrdy * (pai(j,ice2,k) - pai(j,ici2,k)) - &
-                     zfz * hy(j,idi2) * gzita(zita(k)) - &
+                     zfz * hy(j,idi2) * gzitak - &
                      coriol(j,ice2) * u(j,ice2,k) * dtsound
               end do
             end do
@@ -634,6 +636,7 @@ module mod_moloch
             do k = 1 , kz
               km1 = max(k-1,1)
               kp1 = min(k+1,kz)
+              gzitak = gzita(zitah(k))
               do i = ici1 , ici2
                 zcx = zdtrdx*fmyu(jce2,i)
                 zzww0 = fmz(jce2,i,k) * jsound * zdtrdz * &
@@ -649,7 +652,7 @@ module mod_moloch
                  (tetav(jci2,i,k) + tetav(jce2,i,k) - d_half*zzww)
                 u(jdi2,i,k) = u(jdi2,i,k) - &
                     zrom1u * zcx * (pai(jce2,i,k) - pai(jci2,i,k)) - &
-                    zfz * hx(jdi2,i) * gzita(zita(k)) + &
+                    zfz * hx(jdi2,i) * gzitak + &
                     coriol(jce2,i) * v(jce2,i,k) * dtsound
               end do
             end do
@@ -770,7 +773,7 @@ module mod_moloch
 
         ! Back to half-levels
 
-        do k = 3 , kz - 1
+        do k = 3 , kzm1
           do i = ici1 , ici2
             do j = jci1 , jci2
               w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
@@ -786,7 +789,7 @@ module mod_moloch
         end do
 
         if ( ibltyp == 2 ) then
-          do k = 3 , kz - 1
+          do k = 3 , kzm1
             do i = ici1 , ici2
               do j = jci1 , jci2
                 tke(j,i,k) = 0.5625_rkx*(tkex(j,i,k)  +tkex(j,i,k-1)) - &
@@ -840,31 +843,31 @@ module mod_moloch
         end do
 
         do i = ici1 , ici2
-          do k = 2 , kz
+          do k = kzm1 , 1 , -1
             do j = jci1 , jci2
-              zamu = s(j,i,k)*zdtrdz
+              zamu = s(j,i,k+1)*zdtrdz
               if ( zamu >= d_zero ) then
                 is = d_one
-                k1 = k - 1
-                k1m1 = k1 - 1
-                k1m1 = max(k1m1,1)
+                k1 = k + 1
+                k1m1 = k1 + 1
+                if ( k1m1 > kz ) k1m1 = kz
               else
                 is = -d_one
-                k1 = k + 1
-                k1m1 = k1 - 1
-                k1 = min(k1,kz)
+                k1 = k - 1
+                if ( k1 < 1 ) k1 = 1
+                k1m1 = k1 + 1
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1m1),pp(j,i,k),pp(j,i,k-1))
+              r = rdeno(pp(j,i,k1),pp(j,i,k1m1),pp(j,i,k),pp(j,i,k+1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,k) = d_half * zamu*((d_one+zphi)*pp(j,i,k-1) + &
+              wfw(j,k) = d_half * zamu*((d_one+zphi)*pp(j,i,k+1) + &
                                         (d_one-zphi)*pp(j,i,k))
             end do
           end do
           do k = 1 , kz
             do j = jci1 , jci2
-              zdv = (s(j,i,k+1) - s(j,i,k)) * zdtrdz
-              wz(j,i,k) = pp(j,i,k) + wfw(j,k) - wfw(j,k+1) + pp(j,i,k)*zdv
+              zdv = (s(j,i,k) - s(j,i,k+1)) * zdtrdz
+              wz(j,i,k) = pp(j,i,k) + wfw(j,k+1) - wfw(j,k) + pp(j,i,k)*zdv
             end do
           end do
         end do
@@ -950,7 +953,7 @@ module mod_moloch
     real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
     integer(ik4) :: i , j , k
-    do k = 2 , kz-1
+    do k = 2 , kzm1
       do i = lbound(wx,2) , ubound(wx,2)
         do j = lbound(wx,1) , ubound(wx,1)
           wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
