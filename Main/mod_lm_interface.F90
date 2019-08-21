@@ -1093,6 +1093,17 @@ module mod_lm_interface
             end where
           end do
         end if
+#ifdef CLM45
+        if ( associated(srf_tsoil_out) ) then
+          do n = 1 , num_soil_layers
+            where ( lm%ldmsk == 1 )
+              srf_tsoil_out(:,:,n) = sum(lms%tsoi(:,:,:,n),1)*rdnnsg
+            elsewhere
+              srf_tsoil_out(:,:,n) = dmissval
+            end where
+          end do
+        end if
+#endif
         if ( associated(srf_mslp_out) ) then
           call mslp
           srf_mslp_out(jci1:jci2,ici1:ici2) = slp(jci1:jci2,ici1:ici2)

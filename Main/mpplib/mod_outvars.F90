@@ -152,6 +152,7 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: srf_q2m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_rh2m_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_smw_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: srf_tsoil_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_ua100_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: srf_va100_out => null()
 

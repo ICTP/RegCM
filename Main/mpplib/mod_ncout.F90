@@ -63,7 +63,7 @@ module mod_ncout
   integer(ik4) , parameter :: nshfvars = 3 + nbase
 
   integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
-  integer(ik4) , parameter :: nsrf3dvars = 8
+  integer(ik4) , parameter :: nsrf3dvars = 9
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
   integer(ik4) , parameter :: nsts2dvars = 9 + nbase
@@ -292,8 +292,9 @@ module mod_ncout
   integer(ik4) , parameter :: srf_q2m    = 4
   integer(ik4) , parameter :: srf_rh2m   = 5
   integer(ik4) , parameter :: srf_smw    = 6
-  integer(ik4) , parameter :: srf_ua100  = 7
-  integer(ik4) , parameter :: srf_va100  = 8
+  integer(ik4) , parameter :: srf_tsoi   = 7
+  integer(ik4) , parameter :: srf_ua100  = 8
+  integer(ik4) , parameter :: srf_va100  = 9
 
   integer(ik4) , parameter :: sts_xlon    = 1
   integer(ik4) , parameter :: sts_xlat    = 2
@@ -1476,6 +1477,17 @@ module mod_ncout
             'moisture_content_of_soil_layer',.true.,l_fill=.true.)
           srf_smw_out => v3dvar_srf(srf_smw)%rval
         end if
+#ifdef CLM45
+        v3dvar_srf(srf_tsoi)%axis = 'xys'
+        if ( enable_srf3d_vars(srf_tsoi) ) then
+          call setup_var(v3dvar_srf,srf_tsoi,vsize,'tsoil','K', &
+            'Bulk temperature of the Soil Layers', &
+            'soil_temperature',.true.,l_fill=.true.)
+          srf_tsoil_out => v3dvar_srf(srf_tsoi)%rval
+        end if
+#else
+        enable_srf3d_vars(srf_tsoi) = .false.
+#endif
 
         enable_srf_vars(1:nsrf2dvars) = enable_srf2d_vars
         enable_srf_vars(nsrf2dvars+1:nsrfvars) = enable_srf3d_vars
