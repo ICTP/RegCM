@@ -1541,8 +1541,21 @@ module mod_rad_aerosol
           clnlon = 211
           clnlat = 89
           cliyear = 1979
+
         else if ( 1==1 ) then
-          infile = 'MACV2_gt_t_00550nm_1980_2040.nc'
+
+          if (iyear < 1901) then
+            infile = 'MACV2_gt_t_00550nm_1850_1900.nc'
+           elseif (iyear > 1900 .and. iyear < 1951) then  
+            infile = 'MACV2_gt_t_00550nm_1901_1950.nc'
+           elseif (iyear > 1950 .and. iyear < 2001) then
+            infile = 'MACV2_gt_t_00550nm_1951_2000.nc'
+           elseif (iyear > 2000 .and. iyear < 2051) then 
+            infile = 'MACV2_gt_t_00550nm_2001_2050.nc'
+           elseif (iyear > 2050 .and. iyear <= 2101) then
+            infile = 'MACV2_gt_t_00550nm_2051_2100.nc'
+          endif 
+
           clnlev = 20
           clnlon = 360
           clnlat = 180
