@@ -36,20 +36,11 @@ module mod_zita
     module procedure zh4d
   end interface zita_interp
 
-  public :: rdeno , md_zeta , md_zeta_h , md_fmz , md_fmz_h , hzita
+  public :: md_zeta , md_zeta_h , md_fmz , md_fmz_h , hzita
   public :: bzita , gzita
   public :: zita_interp
 
   contains
-
-  ! WAF Scheme
-  real(rkx) elemental function rdeno(t1, t2, t3, t4)
-    implicit none
-    real(rkx) , intent(in) :: t1 , t2 , t3 , t4
-    real(rkx) :: zzden
-    zzden = t3 - t4
-    rdeno = (t1-t2) / sign(max(abs(zzden),1.e-15_rkx),zzden)
-  end function rdeno
 
   ! Decay function
   real(rkx) elemental function gzita(zita)

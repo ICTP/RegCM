@@ -59,6 +59,7 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: wx
   real(rkx) , pointer , dimension(:,:,:) :: tkex
   real(rkx) , pointer , dimension(:,:,:) :: wz
+  real(rkx) , pointer , dimension(:,:) :: wfw
   real(rkx) , pointer , dimension(:,:,:) :: p0
   real(rkx) , pointer , dimension(:,:,:) :: zdiv2
   real(rkx) , pointer , dimension(:,:) :: zpby
@@ -89,6 +90,7 @@ module mod_moloch
 
   integer(ik4) :: nadv = 1
   integer(ik4) :: nsound = 6
+  real(rkx) , parameter :: minden = 1.0e-15_rkx
 
   contains
 
@@ -105,6 +107,7 @@ module mod_moloch
     call getmem3d(zdiv2,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wwkw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wwkw')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
+    call getmem2d(wfw,jci1,jci2,1,kzp1,'moloch:wfw')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1ga,jce2ga,ici1,ici2,'moloch:zpbw')
@@ -470,7 +473,7 @@ module mod_moloch
             end do
           end do
 
-          ! Equation 10, generalized vertica velocity
+          ! Equation 10, generalized vertical velocity
 
           do k = kz , 2 , -1
             gzitak = gzita(zita(k))
@@ -806,13 +809,20 @@ module mod_moloch
         end if
       end subroutine advection
 
+      pure real(rkx) function rdeno(t1,t2,t3,t4)
+        implicit none
+        real(rkx) , intent(in) :: t1 , t2 , t3 , t4
+        real(rkx) :: zzden
+        zzden = (t3-t4)
+        rdeno = (t1-t2)/sign(max(abs(zzden),minden),zzden)
+      end function rdeno
+
       subroutine wafone(pp,dtstepa)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: dtstepa
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1m1 , ih , ihm1 , im1 , jh , jhm1 , jm1
-        real(rkx) , dimension(jci1:jci2,1:kzp1) :: wfw
         real(rkx) :: zamu , r , b , zphi , is , zdv
         real(rkx) :: zhxvt , zhxvtn
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
@@ -822,20 +832,6 @@ module mod_moloch
         zdtrdz = dtstepa/mo_dz
 
         ! Vertical advection
-
-        do k = 1 , kz
-          do j = jci1 , jci2
-            wz(j,ice1,k) = pp(j,ice1,k)
-            wz(j,ice2,k) = pp(j,ice2,k)
-          end do
-        end do
-
-        do k = 1 , kz
-          do i = ici1 , ici2
-            p0(jce1,i,k) = pp(jce1,i,k)
-            p0(jce2,i,k) = pp(jce2,i,k)
-          end do
-        end do
 
         do j = jci1 , jci2
           wfw(j,1) = d_zero
@@ -860,8 +856,8 @@ module mod_moloch
               r = rdeno(pp(j,i,k1),pp(j,i,k1m1),pp(j,i,k),pp(j,i,k+1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,k) = d_half * zamu*((d_one+zphi)*pp(j,i,k+1) + &
-                                        (d_one-zphi)*pp(j,i,k))
+              wfw(j,k+1) = d_half * zamu*((d_one+zphi)*pp(j,i,k+1) + &
+                                          (d_one-zphi)*pp(j,i,k))
             end do
           end do
           do k = 1 , kz
@@ -871,6 +867,21 @@ module mod_moloch
             end do
           end do
         end do
+
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jci1 , jci2
+              wz(j,ice1,k) = pp(j,ice1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jci1 , jci2
+              wz(j,ice2,k) = pp(j,ice2,k)
+            end do
+          end do
+        end if
 
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
@@ -909,6 +920,22 @@ module mod_moloch
             end do
           end do
         end do
+
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              p0(jce1,i,k) = pp(jce1,i,k)
+            end do
+          end do
+        end if
+
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              p0(jce2,i,k) = pp(jce2,i,k)
+            end do
+          end do
+        end if
 
         call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
 
