@@ -576,8 +576,8 @@ module mod_moloch
             km1 = max(k-1,1)
             kp1 = min(k+1,kz)
             gzitak = gzita(zitah(k))
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = icii1 , icii2
+              do j = jcii1 , jcii2
                 zcx = zdtrdx*fmyu(j,i)
                 zzww0 = fmz(j,i,k) * jsound * zdtrdz * &
                   (w(j,i,k+1) * (tetav(j,i,k)   - tetav(j,i,kp1)) + &
@@ -615,22 +615,22 @@ module mod_moloch
               km1 = max(k-1,1)
               kp1 = min(k+1,kz)
               gzitak = gzita(zitah(k))
-              do j = jci1 , jci2
-                zzww0 = fmz(j,ice2,k) * jsound * zdtrdz * &
-                  (w(j,ice2,k+1) * (tetav(j,ice2,k)   - tetav(j,ice2,kp1)) + &
-                   w(j,ice2,k)   * (tetav(j,ice2,km1) - tetav(j,ice2,k)))
+              do j = jcii1 , jcii2
+                zzww0 = fmz(j,icii2,k) * jsound * zdtrdz * &
+                  (w(j,icii2,k+1) * (tetav(j,icii2,k)  - tetav(j,icii2,kp1)) + &
+                   w(j,icii2,k)   * (tetav(j,icii2,km1) - tetav(j,icii2,k)))
                 zzww = zzww0 + fmz(j,ici2,k) * jsound * zdtrdz * &
                   (w(j,ici2,k+1) * (tetav(j,ici2,k)   - tetav(j,ici2,kp1)) + &
                    w(j,ici2,k)   * (tetav(j,ici2,km1) - tetav(j,ici2,k)))
                 zfz = 0.25_rkx * &
-                  (deltaw(j,ici2,k) + deltaw(j,ici2,k+1) + &
-                   deltaw(j,ice2,k) + deltaw(j,ice2,k+1)) + egrav*dtsound
+                  (deltaw(j,icii2,k) + deltaw(j,icii2,k+1) + &
+                   deltaw(j,ici2,k) + deltaw(j,ici2,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * &
-                 (tetav(j,ici2,k) + tetav(j,ice2,k) - d_half*zzww)
-                v(j,idi2,k) = v(j,idi2,k) - &
-                     zrom1v * zdtrdy * (pai(j,ice2,k) - pai(j,ici2,k)) - &
-                     zfz * hy(j,idi2) * gzitak - &
-                     coriol(j,ice2) * u(j,ice2,k) * dtsound
+                 (tetav(j,icii2,k) + tetav(j,ici2,k) - d_half*zzww)
+                v(j,idii2,k) = v(j,idii2,k) - &
+                     zrom1v * zdtrdy * (pai(j,ici2,k) - pai(j,icii2,k)) - &
+                     zfz * hy(j,idii2) * gzitak - &
+                     coriol(j,ici2) * u(j,ici2,k) * dtsound
               end do
             end do
           end if
@@ -640,23 +640,23 @@ module mod_moloch
               km1 = max(k-1,1)
               kp1 = min(k+1,kz)
               gzitak = gzita(zitah(k))
-              do i = ici1 , ici2
-                zcx = zdtrdx*fmyu(jce2,i)
-                zzww0 = fmz(jce2,i,k) * jsound * zdtrdz * &
-                  (w(jce2,i,k+1) * (tetav(jce2,i,k)   - tetav(jce2,i,kp1)) + &
-                   w(jce2,i,k)   * (tetav(jce2,i,km1) - tetav(jce2,i,k)))
+              do i = icii1 , icii2
+                zcx = zdtrdx*fmyu(jci2,i)
+                zzww0 = fmz(jcii2,i,k) * jsound * zdtrdz * &
+                  (w(jcii2,i,k+1) * (tetav(jcii2,i,k)  - tetav(jcii2,i,kp1)) + &
+                   w(jcii2,i,k)   * (tetav(jcii2,i,km1) - tetav(jcii2,i,k)))
                 zzww = zzww0 + fmz(jci2,i,k) * jsound * zdtrdz * &
                   (w(jci2,i,k+1) * (tetav(jci2,i,k)   - tetav(jci2,i,kp1)) + &
                    w(jci2,i,k)   * (tetav(jci2,i,km1) - tetav(jci2,i,k)))
                 zfz = 0.25_rkx * &
-                  (deltaw(jci2,i,k) + deltaw(jci2,i,k+1) + &
-                   deltaw(jce2,i,k) + deltaw(jce2,i,k+1)) + egrav*dtsound
+                  (deltaw(jcii2,i,k) + deltaw(jcii2,i,k+1) + &
+                   deltaw(jci2,i,k) + deltaw(jci2,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * &
-                 (tetav(jci2,i,k) + tetav(jce2,i,k) - d_half*zzww)
-                u(jdi2,i,k) = u(jdi2,i,k) - &
-                    zrom1u * zcx * (pai(jce2,i,k) - pai(jci2,i,k)) - &
-                    zfz * hx(jdi2,i) * gzitak + &
-                    coriol(jce2,i) * v(jce2,i,k) * dtsound
+                 (tetav(jcii2,i,k) + tetav(jci2,i,k) - d_half*zzww)
+                u(jdii2,i,k) = u(jdii2,i,k) - &
+                    zrom1u * zcx * (pai(jci2,i,k) - pai(jcii2,i,k)) - &
+                    zfz * hx(jdii2,i) * gzitak + &
+                    coriol(jci2,i) * v(jci2,i,k) * dtsound
               end do
             end do
           end if
