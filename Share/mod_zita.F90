@@ -28,7 +28,7 @@ module mod_zita
   private
 
   real(rkx) , parameter :: t0 = 280.0_rkx
-  real(rkx) , parameter :: b0 = 0.5_rkx
+  real(rkx) , parameter :: b0 = 0.25_rkx
   real(rkx) , parameter :: hzita = rgas*t0/egrav
 
   interface zita_interp

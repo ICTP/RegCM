@@ -641,6 +641,18 @@ module mod_hgt
     end do
   end subroutine htsig_o_single
 
+  pure elemental real(rkx) function p2pai(p) result(pai)
+    implicit none
+    real(rkx) , intent(in) :: p
+    pai = (p/p00)**rovcp
+  end function p2pai
+
+  pure elemental real(rkx) function pai2p(pai) result(p)
+    implicit none
+    real(rkx) , intent(in) :: pai
+    p = (pai**cpovr) * p00
+  end function pai2p
+
   subroutine mslp2ps(h,t,slp,ht,ps,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km

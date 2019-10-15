@@ -164,7 +164,8 @@ module mod_init
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              mo_atm%zeta(j,i,k) = ak(k) + bk(k) * mddom%ht(j,i)*regrav
+              mo_atm%zeta(j,i,k) = ak(k) + (bk(k) - d_one) * &
+                                         mddom%ht(j,i)*regrav
               mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
             end do
           end do
@@ -256,7 +257,6 @@ module mod_init
             ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
           end if
         end do
-
       end if
 
       do i = ici1 , ici2

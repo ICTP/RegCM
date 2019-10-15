@@ -65,7 +65,6 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:) :: zpby
   real(rkx) , pointer , dimension(:,:) :: zpbw
 
-  real(rkx) , pointer , dimension(:,:,:) :: pf , tf
   real(rkx) , pointer , dimension(:,:,:) :: ten0
   real(rkx) , pointer , dimension(:,:,:) :: qen0
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
@@ -74,6 +73,7 @@ module mod_moloch
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coriol
   real(rkx) , dimension(:,:) , pointer :: clu , fmyu , hx
   real(rkx) , dimension(:,:) , pointer :: clv , fmyv , hy
+  real(rkx) , dimension(:,:) , pointer :: ps
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
   real(rkx) , dimension(:,:,:) , pointer :: pai
@@ -99,8 +99,6 @@ module mod_moloch
   subroutine allocate_moloch
     implicit none
     call getmem2d(p2d,jde1,jde2,ide1,ide2,'moloch:p2d')
-    call getmem3d(pf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:pf')
-    call getmem3d(tf,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:tf')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
@@ -136,6 +134,7 @@ module mod_moloch
     call assignpnt(mddom%xlat,xlat)
     call assignpnt(mddom%xlon,xlon)
     call assignpnt(mddom%coriol,coriol)
+    call assignpnt(sfs%psb,ps)
     call assignpnt(mo_atm%fmz,fmz)
     call assignpnt(mo_atm%fmzf,fmzf)
     call assignpnt(mo_atm%pai,pai)
@@ -207,7 +206,6 @@ module mod_moloch
       do i = ice1 , ice2
         do j = jce1 , jce2
           tetav(j,i,k) = tvirt(j,i,k)/pai(j,i,k)
-          tf(j,i,k) = tetav(j,i,k)
         end do
       end do
     end do
@@ -216,56 +214,11 @@ module mod_moloch
 
     do jadv = 1 , nadv
 
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            pf(j,i,k) = pai(j,i,k)
-          end do
-        end do
-      end do
-
       call sound(dtsound)
 
-      call advection(dtstepa)
-
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            pai(j,i,k) = pai(j,i,k) - pf(j,i,k)
-          end do
-        end do
-      end do
-      call filt3d(pai,0.05_rkx,jci1,jci2,ici1,ici2)
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            pai(j,i,k) = pai(j,i,k) + pf(j,i,k)
-          end do
-        end do
-      end do
+      !call advection(dtstepa)
 
     end do ! Advection loop
-
-    if ( mod(rcmtimer%lcount,25_ik8*int(nadv,ik8)) == 0 ) then
-      call filt3d(u,0.06_rkx,jdi1,jdi2,ici1,ici2)
-      call filt3d(v,0.06_rkx,jci1,jci2,idi1,idi2)
-      call filt3d(w,0.06_rkx,jci1,jci2,ici1,ici2)
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            tetav(j,i,k) = tetav(j,i,k) - tf(j,i,k)
-          end do
-        end do
-      end do
-      call filt3d(tetav,0.06_rkx,jci1,jci2,ici1,ici2)
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            tetav(j,i,k) = tetav(j,i,k) + tf(j,i,k)
-          end do
-        end do
-      end do
-    end if
 
     do k = 1 , kz
       do i = ice1 , ice2
@@ -312,9 +265,9 @@ module mod_moloch
       end do
     end do
 
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        sfs%psa(j,i) = p(j,i,kz) !*exp(
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        ps(j,i) = p(j,i,kz) !*exp(
       end do
     end do
 
@@ -361,6 +314,7 @@ module mod_moloch
             ten0 = t(jci1:jci2,ici1:ici2,:)
             qen0 = qv(jci1:jci2,ici1:ici2,:)
           end if
+          call nudge(iboudy,ps,xpsb)
           call nudge(iboudy,t,xtb)
           call nudge(iboudy,qv,xqb)
           call nudge(iboudy,u,v,xub,xvb)
@@ -369,6 +323,7 @@ module mod_moloch
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
           end if
         else if ( iboudy == 4 ) then
+          call sponge(ps,xpsb)
           call sponge(t,xtb)
           call sponge(qv,xqb)
           call sponge(u,v,xub,xvb)
@@ -494,10 +449,14 @@ module mod_moloch
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zcx  = zdtrdx * fmyu(j,i)
-                zcxp = zdtrdx * fmyu(j,i)
-                zcy  = zdtrdy * fmyu(j,i) * clv(j,i)
-                zcyp = zdtrdy * fmyu(j,i) * clv(j,i+1)
+                !zcx  = zdtrdx * fmyu(j,i)
+                !zcxp = zdtrdx * fmyu(j,i)
+                !zcy  = zdtrdy * fmyu(j,i) * clv(j,i)
+                !zcyp = zdtrdy * fmyu(j,i) * clv(j,i+1)
+                zcx  = zdtrdx
+                zcxp = zdtrdx
+                zcy  = zdtrdy
+                zcyp = zdtrdy
                 zrfmzu  = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
                 zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
                 zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
@@ -506,14 +465,22 @@ module mod_moloch
                 zup = u(j+1,i,k) * zrfmzup
                 zvm = v(j,i,k) * zrfmzv
                 zvp = v(j,i+1,k) * zrfmzvp
-                zdiv = zup*zcxp - zum*zcx + zvp*zcyp - zvm*zcy + &
-                       zdtrdz * (s(j,i,k) - s(j,i,k+1))
+                zdiv = zup*zcxp - zum*zcx + zvp*zcyp - zvm*zcy
                 zdiv2(j,i,k) = zdiv * fmz(j,i,k)
               end do
             end do
           end do
 
-          call filt3d(zdiv2,0.8_rkx,jcii1,jcii2,icii1,icii2)
+          call filt3d(zdiv2,0.5_rkx,jcii1,jcii2,icii1,icii2)
+
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
+                       zdtrdz * (s(j,i,k) - s(j,i,k+1))
+              end do
+            end do
+          end do
 
           ! new w (implicit scheme) from Equation 19
 
@@ -526,20 +493,21 @@ module mod_moloch
                 zrom1w = d_half * cpd * fmzf(j,i,k) * &
                         (tetav(j,i,k-1) + tetav(j,i,k))
                 zrom1w = zrom1w - cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
-                         jsound * zdtrdz * (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
+                        jsound * zdtrdz * (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
                          (pai(j,i,k-1) - pai(j,i,k)) - egrav*dtsound
                 zwexpl = zwexpl + rdrcv * zrom1w * zdtrdz * &
                          (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
                           pai(j,i,k)   * zdiv2(j,i,k))
                 ! computation of the tridiagonal matrix coefficients
-                ! - zp*w(k+1) + (1+zp+zm)*w(k) - zm*w(k-1) = zwexpl
-                zp = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
-                zm = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
+                ! -zp*w(k+1) + (1+zp+zm)*w(k) - zm*w(k-1) = zwexpl
+                zm = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
+                zp = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
                 ! 1st loop for the tridiagonal inversion
-                zrapp = d_one / (d_one + zm + zp - zm*wwkw(j,i,k+1))
-                w(j,i,k) = zrapp * (zwexpl + zm * w(j,i,k+1))
-                wwkw(j,i,k) = zrapp * zp
+                ! a = -zm ; b = (1+zp+zm) ; c = -zp
+                zrapp = d_one / (d_one + zm + zp - zp*wwkw(j,i,k+1))
+                w(j,i,k) = zrapp * (zwexpl + zp * w(j,i,k+1))
+                wwkw(j,i,k) = zrapp * zm
               end do
             end do
           end do
@@ -559,9 +527,9 @@ module mod_moloch
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zdiv = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
+                zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
                       (w(j,i,k) - w(j,i,k+1))
-                pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv)
+                pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
               end do
             end do
           end do
@@ -570,38 +538,24 @@ module mod_moloch
 
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange_lrbt(w,1,jce1,jce2,ice1,ice2,1,kz)
 
           do k = 1 , kz
-            km1 = max(k-1,1)
-            kp1 = min(k+1,kz)
             gzitak = gzita(zitah(k))
-            do i = icii1 , icii2
-              do j = jcii1 , jcii2
-                zcx = zdtrdx*fmyu(j,i)
-                zzww0 = fmz(j,i,k) * jsound * zdtrdz * &
-                  (w(j,i,k+1) * (tetav(j,i,k)   - tetav(j,i,kp1)) + &
-                   w(j,i,k)   * (tetav(j,i,km1) - tetav(j,i,k)))
-                zzww = zzww0 + fmz(j-1,i,k) * jsound * zdtrdz * &
-                  (w(j-1,i,k+1) * (tetav(j-1,i,k)   - tetav(j-1,i,kp1)) + &
-                   w(j-1,i,k)   * (tetav(j-1,i,km1) - tetav(j-1,i,k)))
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zcx = zdtrdx !*fmyu(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
-                zrom1u = d_half * cpd * &
-                  (tetav(j-1,i,k) + tetav(j,i,k) - d_half*zzww)
+                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                 ! Equation 17
                 u(j,i,k) = u(j,i,k) - &
                     zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
                     zfz * hx(j,i) * gzitak + coriol(j,i) * v(j,i,k) * dtsound
-                zzww = zzww0 + fmz(j,i-1,k) * jsound * zdtrdz * &
-                  (w(j,i-1,k+1) * (tetav(j,i-1,k)   - tetav(j,i-1,kp1)) + &
-                   w(j,i-1,k)   * (tetav(j,i-1,km1) - tetav(j,i-1,k)))
                 zfz = 0.25_rkx * &
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
-                zrom1v = d_half * cpd * &
-                  (tetav(j,i-1,k) + tetav(j,i,k) - d_half*zzww)
+                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                 ! Equation 18
                 v(j,i,k) = v(j,i,k) - &
                     zrom1v * zdtrdy * (pai(j,i,k) - pai(j,i-1,k)) - &
@@ -609,57 +563,6 @@ module mod_moloch
               end do
             end do
           end do
-
-          if ( ma%has_bdytop ) then
-            do k = 1 , kz
-              km1 = max(k-1,1)
-              kp1 = min(k+1,kz)
-              gzitak = gzita(zitah(k))
-              do j = jcii1 , jcii2
-                zzww0 = fmz(j,icii2,k) * jsound * zdtrdz * &
-                  (w(j,icii2,k+1) * (tetav(j,icii2,k)  - tetav(j,icii2,kp1)) + &
-                   w(j,icii2,k)   * (tetav(j,icii2,km1) - tetav(j,icii2,k)))
-                zzww = zzww0 + fmz(j,ici2,k) * jsound * zdtrdz * &
-                  (w(j,ici2,k+1) * (tetav(j,ici2,k)   - tetav(j,ici2,kp1)) + &
-                   w(j,ici2,k)   * (tetav(j,ici2,km1) - tetav(j,ici2,k)))
-                zfz = 0.25_rkx * &
-                  (deltaw(j,icii2,k) + deltaw(j,icii2,k+1) + &
-                   deltaw(j,ici2,k) + deltaw(j,ici2,k+1)) + egrav*dtsound
-                zrom1v = d_half * cpd * &
-                 (tetav(j,icii2,k) + tetav(j,ici2,k) - d_half*zzww)
-                v(j,idii2,k) = v(j,idii2,k) - &
-                     zrom1v * zdtrdy * (pai(j,ici2,k) - pai(j,icii2,k)) - &
-                     zfz * hy(j,idii2) * gzitak - &
-                     coriol(j,ici2) * u(j,ici2,k) * dtsound
-              end do
-            end do
-          end if
-
-          if ( ma%has_bdyright ) then
-            do k = 1 , kz
-              km1 = max(k-1,1)
-              kp1 = min(k+1,kz)
-              gzitak = gzita(zitah(k))
-              do i = icii1 , icii2
-                zcx = zdtrdx*fmyu(jci2,i)
-                zzww0 = fmz(jcii2,i,k) * jsound * zdtrdz * &
-                  (w(jcii2,i,k+1) * (tetav(jcii2,i,k)  - tetav(jcii2,i,kp1)) + &
-                   w(jcii2,i,k)   * (tetav(jcii2,i,km1) - tetav(jcii2,i,k)))
-                zzww = zzww0 + fmz(jci2,i,k) * jsound * zdtrdz * &
-                  (w(jci2,i,k+1) * (tetav(jci2,i,k)   - tetav(jci2,i,kp1)) + &
-                   w(jci2,i,k)   * (tetav(jci2,i,km1) - tetav(jci2,i,k)))
-                zfz = 0.25_rkx * &
-                  (deltaw(jcii2,i,k) + deltaw(jcii2,i,k+1) + &
-                   deltaw(jci2,i,k) + deltaw(jci2,i,k+1)) + egrav*dtsound
-                zrom1u = d_half * cpd * &
-                 (tetav(jcii2,i,k) + tetav(jci2,i,k) - d_half*zzww)
-                u(jdii2,i,k) = u(jdii2,i,k) - &
-                    zrom1u * zcx * (pai(jci2,i,k) - pai(jcii2,i,k)) - &
-                    zfz * hx(jdii2,i) * gzitak + &
-                    coriol(jci2,i) * v(jci2,i,k) * dtsound
-              end do
-            end do
-          end if
 
         end do ! sound loop
 

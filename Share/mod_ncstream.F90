@@ -925,7 +925,7 @@ module mod_ncstream
         stvar%ptop_var%rval(1) = real(ptop*10.0_rkx,rk8)
         call outstream_writevar(ncout,stvar%ptop_var)
       else
-        zita = d_one - sigma*hzita
+        zita = hzita * (d_one - sigma)
         buffer%doublebuff(1:size(sigma)) = real( -hzita * &
                   (bzita(zita) * log(max(sigma,tiny(d_one)))),rk8)
         call outstream_writevar(ncout,stvar%ak_var,nocopy)

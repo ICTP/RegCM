@@ -2696,8 +2696,7 @@ module mod_params
         end do
         do i = ice1 , ice2
           do j = jdi1 , jdi2
-            mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * &
-                     mddom%fmyu(j,i) * rdx * regrav
+            mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * rdx * regrav
           end do
         end do
         call exchange_lr(mddom%hx,1,jdi1,jdi2,ice1,ice2)
