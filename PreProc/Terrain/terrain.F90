@@ -272,6 +272,9 @@ program terrain
     end if
     if ( idynamic == 3 ) then
       call corpar(xlat_s,coriol_s,jxsg,iysg)
+      call mapfac(xlat_s,xmap_s,jxsg,iysg,iproj)
+      call mapfac(ulat_s,umap_s,jxsg,iysg,iproj)
+      call mapfac(vlat_s,vmap_s,jxsg,iysg,iproj)
     else
       call mapfac(xlat_s,xmap_s,jxsg,iysg,iproj)
       call mapfac(dlat_s,dmap_s,jxsg,iysg,iproj)
@@ -496,6 +499,9 @@ program terrain
   end if
   if ( idynamic == 3 ) then
     call corpar(xlat,coriol,jx,iy)
+    call mapfac(xlat,xmap,jx,iy,iproj)
+    call mapfac(ulat,umap,jx,iy,iproj)
+    call mapfac(vlat,vmap,jx,iy,iproj)
   else
     call mapfac(xlat,xmap,jx,iy,iproj)
     call mapfac(dlat,dmap,jx,iy,iproj)
@@ -867,12 +873,12 @@ program terrain
 
     write (outname,'(a,i0.3,a)') &
        trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
-    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s, &
-                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,  &
-                      ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,coriol_s,mask_s, &
-                      htgrid_s,lndout_s,snowam_s,smoist_s,rmoist_s,dpth_s,&
-                      texout_s,frac_tex_s,ps0_s,pr0_s,t0_s,rho0_s,z0_s,   &
-                      ts0,zeta_s,fmz_s)
+    call write_domain(outname,.true.,fudge_lnd_s,fudge_tex_s,fudge_lak_s,   &
+                      ntypec_s,sigma,xlat_s,xlon_s,dlat_s,dlon_s,ulat_s,    &
+                      ulon_s,vlat_s,vlon_s,xmap_s,dmap_s,umap_s,vmap_s,     &
+                      coriol_s,mask_s,htgrid_s,lndout_s,snowam_s,smoist_s,  &
+                      rmoist_s,dpth_s,texout_s,frac_tex_s,ps0_s,pr0_s,t0_s, &
+                      rho0_s,z0_s,ts0,zeta_s,fmz_s)
     write(stdout,*) 'Subgrid data written to output file'
   end if
 
@@ -960,8 +966,9 @@ program terrain
      trim(dirter)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
   call write_domain(outname,.false.,fudge_lnd,fudge_tex,fudge_lak,ntypec, &
                     sigma,xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,   &
-                    dmap,coriol,mask,htgrid,lndout,snowam,smoist,rmoist,  &
-                    dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
+                    dmap,umap,vmap,coriol,mask,htgrid,lndout,snowam,      &
+                    smoist,rmoist,dpth,texout,frac_tex,ps0,pr0,t0,rho0,   &
+                    z0,ts0,zeta,fmz)
   write(stdout,*) 'Grid data written to output file'
 
   if ( debug_level > 2 ) then

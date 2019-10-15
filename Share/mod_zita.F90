@@ -28,6 +28,7 @@ module mod_zita
   private
 
   real(rkx) , parameter :: t0 = 280.0_rkx
+  real(rkx) , parameter :: a0 = 0.5_rkx
   real(rkx) , parameter :: b0 = 0.25_rkx
   real(rkx) , parameter :: hzita = rgas*t0/egrav
 
@@ -43,37 +44,40 @@ module mod_zita
   contains
 
   ! Decay function
-  real(rkx) elemental function gzita(zita)
+  pure real(rkx) elemental function gzita(zita)
     implicit none
     real(rkx) , intent(in) :: zita
-    gzita = 1.0_rkx - 3.0_rkx*(zita/hzita)**2 + 2.0_rkx*(zita/hzita)**3
+    real(rkx) :: ratio
+    ratio = zita/hzita
+    gzita = 1.0_rkx - a0*ratio - (3.0_rkx-2*a0) * ratio**2 + &
+            (2.0_rkx-a0) * ratio**3
   end function gzita
 
   ! Derivative of decay function
-  real(rkx) elemental function gzitap(zita)
+  pure real(rkx) elemental function gzitap(zita)
     implicit none
     real(rkx) , intent(in) :: zita
     gzitap = (-6.0_rkx*(zita/hzita) + 6.0_rkx*(zita/hzita)**2)/hzita
   end function gzitap
 
   ! Stretching function
-  real(rkx) elemental function bzita(zita)
+  pure real(rkx) elemental function bzita(zita)
     implicit none
     real(rkx) , intent(in) :: zita
     bzita = b0 + (1.0_rkx-b0)*(zita/hzita)
   end function bzita
 
   ! Derivative of stretching function
-  real(rkx) elemental function bzitap(zita)
+  pure real(rkx) elemental function bzitap(zita)
     implicit none
     real(rkx) , intent(in) :: zita
     bzitap = (1.0_rkx-b0)/hzita
   end function bzitap
 
   ! Factor used to transform the vertical derivatives in zeta
-  real(rkx) function md_fmz(zita,geopot)
+  pure real(rkx) function md_fmz(zita,geopot)
     implicit none
-    real(rkx) :: zita , geopot
+    real(rkx) , intent(in) :: zita , geopot
     real(rkx) :: zfz
     zfz = 1.0_rkx - zita/hzita
     ! Equation 9
@@ -81,9 +85,9 @@ module mod_zita
                     hzita*zfz*log(zfz)*bzitap(zita) )
   end function md_fmz
 
-  real(rkx) function md_fmz_h(zita,orog)
+  pure real(rkx) function md_fmz_h(zita,orog)
     implicit none
-    real(rkx) :: zita , orog
+    real(rkx) , intent(in) :: zita , orog
     real(rkx) :: zfz
     zfz = 1.0_rkx - zita/hzita
     ! Equation 9
@@ -92,9 +96,9 @@ module mod_zita
   end function md_fmz_h
 
   ! Elevation above orography as function of zita
-  real(rkx) function md_zeta(zita,geopot)
+  pure real(rkx) function md_zeta(zita,geopot)
     implicit none
-    real(rkx) :: zita , geopot
+    real(rkx) , intent(in) :: zita , geopot
     real(rkx) :: zfz , orog
     zfz = 1.0_rkx - zita/hzita
     orog = geopot/egrav
@@ -103,9 +107,9 @@ module mod_zita
   end function md_zeta
 
   ! Elevation above orography as function of zita
-  real(rkx) function md_zeta_h(zita,orog)
+  pure real(rkx) function md_zeta_h(zita,orog)
     implicit none
-    real(rkx) :: zita , orog
+    real(rkx) , intent(in) :: zita , orog
     real(rkx) :: zfz
     zfz = 1.0_rkx - zita/hzita
     ! Equation 7 with removal of orography and check for negatives

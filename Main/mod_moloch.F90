@@ -77,8 +77,8 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
   real(rkx) , dimension(:,:,:) , pointer :: pai
-  real(rkx) , dimension(:,:,:) , pointer :: tetav
-  real(rkx) , dimension(:,:,:) , pointer :: tvirt
+  real(rkx) , dimension(:,:,:) , pointer :: tetav , tvirt
+  real(rkx) , dimension(:,:,:) , pointer :: zeta
   real(rkx) , dimension(:,:,:) , pointer :: u , v , w
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
   real(rkx) , dimension(:,:,:) , pointer :: p , t , qv , qc , qi
@@ -89,7 +89,7 @@ module mod_moloch
   public :: uvstagtox , wstagtox
 
   integer(ik4) :: nadv = 1
-  integer(ik4) :: nsound = 6
+  integer(ik4) :: nsound = 4
   real(rkx) , parameter :: minden = 1.0e-15_rkx
 
   contains
@@ -145,6 +145,7 @@ module mod_moloch
     call assignpnt(mo_atm%vx,vx)
     call assignpnt(mo_atm%w,w)
     call assignpnt(mo_atm%tvirt,tvirt)
+    call assignpnt(mo_atm%zeta,zeta)
     call assignpnt(mo_atm%p,p)
     call assignpnt(mo_atm%t,t)
     call assignpnt(mo_atm%qx,qv,iqv)
@@ -216,7 +217,7 @@ module mod_moloch
 
       call sound(dtsound)
 
-      !call advection(dtstepa)
+      call advection(dtstepa)
 
     end do ! Advection loop
 
@@ -267,7 +268,7 @@ module mod_moloch
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ps(j,i) = p(j,i,kz) !*exp(
+        ps(j,i) = p(j,i,kz) !
       end do
     end do
 
@@ -301,6 +302,7 @@ module mod_moloch
 
       subroutine boundary
         implicit none
+        call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
         call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
         call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
@@ -397,12 +399,12 @@ module mod_moloch
       subroutine sound(dtsound)
         implicit none
         real(rkx) , intent(in) :: dtsound
-        integer(ik4) :: i , j , k , km1 , kp1
+        integer(ik4) :: i , j , k
         real(rkx) :: zuh , zvh , zcx , zcxp , zcy , zcyp
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zdiv
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
-        real(rkx) :: zzww0 , zzww , zfz , gzitak
+        real(rkx) :: zfz , gzitak
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 
@@ -449,10 +451,6 @@ module mod_moloch
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                !zcx  = zdtrdx * fmyu(j,i)
-                !zcxp = zdtrdx * fmyu(j,i)
-                !zcy  = zdtrdy * fmyu(j,i) * clv(j,i)
-                !zcyp = zdtrdy * fmyu(j,i) * clv(j,i+1)
                 zcx  = zdtrdx
                 zcxp = zdtrdx
                 zcy  = zdtrdy
@@ -543,7 +541,7 @@ module mod_moloch
             gzitak = gzita(zitah(k))
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zcx = zdtrdx !*fmyu(j,i)
+                zcx = zdtrdx
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
@@ -725,9 +723,8 @@ module mod_moloch
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: dtstepa
         integer(ik4) :: j , i , k
-        integer(ik4) :: k1 , k1m1 , ih , ihm1 , im1 , jh , jhm1 , jm1
+        integer(ik4) :: k1 , k1p1 , ih , ihm1 , im1 , jh , jhm1 , jm1
         real(rkx) :: zamu , r , b , zphi , is , zdv
-        real(rkx) :: zhxvt , zhxvtn
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
 
         zdtrdx = dtstepa/dx
@@ -748,15 +745,15 @@ module mod_moloch
               if ( zamu >= d_zero ) then
                 is = d_one
                 k1 = k + 1
-                k1m1 = k1 + 1
-                if ( k1m1 > kz ) k1m1 = kz
+                k1p1 = k1 + 1
+                if ( k1p1 > kz ) k1p1 = kz
               else
                 is = -d_one
                 k1 = k - 1
                 if ( k1 < 1 ) k1 = 1
-                k1m1 = k1 + 1
+                k1p1 = k1 + 1
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1m1),pp(j,i,k),pp(j,i,k+1))
+              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
               wfw(j,k+1) = d_half * zamu*((d_one+zphi)*pp(j,i,k+1) + &
@@ -815,11 +812,8 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zhxvtn = clv(j,i+1)*fmyu(j,i)
-              zhxvt  = clv(j,i)*fmyu(j,i)
-              zdv = (v(j,i+1,k)*zhxvtn - v(j,i,k)*zhxvt)*zdtrdy
-              p0(j,i,k) = wz(j,i,k) + &
-                      zpby(j,i)*zhxvt - zpby(j,i+1)*zhxvtn + pp(j,i,k)*zdv
+              zdv = (v(j,i+1,k) - v(j,i,k))*zdtrdy
+              p0(j,i,k) = wz(j,i,k) + zpby(j,i) - zpby(j,i+1) + pp(j,i,k)*zdv
             end do
           end do
         end do
@@ -847,7 +841,7 @@ module mod_moloch
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jce2
-              zamu = u(j,i,k)*zdtrdx*fmyu(j,i)
+              zamu = u(j,i,k)*zdtrdx
               if ( zamu > d_zero ) then
                 is = d_one
                 jh = max(j-1,jcross1+1)
@@ -869,7 +863,7 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdv = (u(j+1,i,k) - u(j,i,k))*zdtrdx*fmyu(j,i)
+              zdv = (u(j+1,i,k) - u(j,i,k)) * zdtrdx
               pp(j,i,k) = p0(j,i,k) + zpbw(j,i) - zpbw(j+1,i) + pp(j,i,k)*zdv
             end do
           end do

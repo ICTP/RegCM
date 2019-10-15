@@ -26,7 +26,7 @@ module mod_maps
   real(rkx) , pointer , dimension(:,:) :: coriol , dlat , dlon ,   &
                    dmap , htgrid , lndout , mask , dpth , snowam , &
                    smoist , texout , xlat , xlon , xmap , ps0 ,    &
-                   ulat , ulon , vlat , vlon
+                   ulat , ulon , vlat , vlon , umap , vmap
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex , rmoist
   real(rkx) , pointer , dimension(:,:,:) :: pr0 , t0 , rho0 , z0
   real(rkx) , pointer , dimension(:,:,:) :: zeta , fmz
@@ -35,7 +35,8 @@ module mod_maps
                       dlon_s , dmap_s , htgrid_s , lndout_s , &
                       mask_s , dpth_s , snowam_s , smoist_s , &
                       texout_s , xlat_s , xlon_s , xmap_s ,   &
-                      ps0_s , ulat_s , ulon_s , vlat_s , vlon_s
+                      ulat_s , ulon_s , vlat_s , vlon_s ,     &
+                      umap_s , vmap_s , ps0_s
   real(rkx) , pointer , dimension(:,:,:) :: frac_tex_s , rmoist_s
   real(rkx) , pointer , dimension(:,:,:) :: pr0_s , t0_s , rho0_s , z0_s
   real(rkx) , pointer , dimension(:,:,:) :: zeta_s , fmz_s
@@ -80,6 +81,9 @@ module mod_maps
       call getmem2d(ulon,1,jx,1,iy,'maps:ulon')
       call getmem2d(vlat,1,jx,1,iy,'maps:vlat')
       call getmem2d(vlon,1,jx,1,iy,'maps:vlon')
+      call getmem2d(xmap,1,jx,1,iy,'maps:xmap')
+      call getmem2d(umap,1,jx,1,iy,'maps:umap')
+      call getmem2d(vmap,1,jx,1,iy,'maps:vmap')
     else
       call getmem2d(dlat,1,jx,1,iy,'maps:dlat')
       call getmem2d(dlon,1,jx,1,iy,'maps:dlon')
@@ -117,6 +121,9 @@ module mod_maps
       call getmem2d(ulon_s,1,jxsg,1,iysg,'maps:ulon_s')
       call getmem2d(vlat_s,1,jxsg,1,iysg,'maps:vlat_s')
       call getmem2d(vlon_s,1,jxsg,1,iysg,'maps:vlon_s')
+      call getmem2d(xmap_s,1,jxsg,1,iysg,'maps:xmap_s')
+      call getmem2d(umap_s,1,jxsg,1,iysg,'maps:umap_s')
+      call getmem2d(vmap_s,1,jxsg,1,iysg,'maps:vmap_s')
     else
       call getmem2d(dlat_s,1,jxsg,1,iysg,'maps:dlat_s')
       call getmem2d(dlon_s,1,jxsg,1,iysg,'maps:dlon_s')

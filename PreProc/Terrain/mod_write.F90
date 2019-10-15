@@ -103,7 +103,7 @@ module mod_write
       nvar2d = 14
       nvar3d = 6
     else if ( idynamic == 3 ) then
-      nvar2d = 13
+      nvar2d = 16
       nvar3d = 4
     end if
     allocate(v2dvar_base(nvar2d))
@@ -116,38 +116,38 @@ module mod_write
     v2dvar_base(2)%vunit = 'degrees_north'
     v2dvar_base(2)%long_name = 'Latitude on Cross Points'
     v2dvar_base(2)%standard_name = 'latitude'
-    v2dvar_base(7)%vname = 'coriol'
-    v2dvar_base(7)%vunit = 's-1'
-    v2dvar_base(7)%long_name = 'Coriolis Parameter'
-    v2dvar_base(7)%standard_name = 'coriolis_parameter'
-    v2dvar_base(8)%vname = 'mask'
+    v2dvar_base(3)%vname = 'coriol'
+    v2dvar_base(3)%vunit = 's-1'
+    v2dvar_base(3)%long_name = 'Coriolis Parameter'
+    v2dvar_base(3)%standard_name = 'coriolis_parameter'
+    v2dvar_base(4)%vname = 'mask'
+    v2dvar_base(4)%vunit = '1'
+    v2dvar_base(4)%long_name = 'Land Mask'
+    v2dvar_base(4)%standard_name = 'land_binary_mask'
+    v2dvar_base(5)%vname = 'topo'
+    v2dvar_base(5)%vunit = 'm'
+    v2dvar_base(5)%long_name = 'Surface Model Elevation'
+    v2dvar_base(5)%standard_name = 'surface_altitude'
+    v2dvar_base(6)%vname = 'landuse'
+    v2dvar_base(6)%vunit = '1'
+    v2dvar_base(6)%long_name = 'Landuse category as defined in BATS1E'
+    v2dvar_base(6)%standard_name = 'land_type'
+    idlnd = 6
+    v2dvar_base(7)%vname = 'snowam'
+    v2dvar_base(7)%vunit = 'mm'
+    v2dvar_base(7)%long_name = 'Snow initial LWE in mm'
+    v2dvar_base(7)%standard_name = 'snowfall_amount'
+    v2dvar_base(7)%lfillvalue = .true.
+    v2dvar_base(8)%vname = 'smoist'
     v2dvar_base(8)%vunit = '1'
-    v2dvar_base(8)%long_name = 'Land Mask'
-    v2dvar_base(8)%standard_name = 'land_binary_mask'
-    v2dvar_base(9)%vname = 'topo'
-    v2dvar_base(9)%vunit = 'm'
-    v2dvar_base(9)%long_name = 'Surface Model Elevation'
-    v2dvar_base(9)%standard_name = 'surface_altitude'
-    v2dvar_base(10)%vname = 'landuse'
-    v2dvar_base(10)%vunit = '1'
-    v2dvar_base(10)%long_name = 'Landuse category as defined in BATS1E'
-    v2dvar_base(10)%standard_name = 'land_type'
-    idlnd = 10
-    v2dvar_base(11)%vname = 'snowam'
-    v2dvar_base(11)%vunit = 'mm'
-    v2dvar_base(11)%long_name = 'Snow initial LWE in mm'
-    v2dvar_base(11)%standard_name = 'snowfall_amount'
-    v2dvar_base(11)%lfillvalue = .true.
-    v2dvar_base(12)%vname = 'smoist'
-    v2dvar_base(12)%vunit = '1'
-    v2dvar_base(12)%long_name = 'Soil Moisture'
-    v2dvar_base(12)%standard_name = 'volume_fraction_of_water_in_soil'
-    v2dvar_base(12)%lfillvalue = .true.
-    v2dvar_base(13)%vname = 'texture'
-    v2dvar_base(13)%vunit = '1'
-    v2dvar_base(13)%long_name = 'Texture dominant category'
-    v2dvar_base(13)%standard_name = 'soil_type'
-    idtxt = 13
+    v2dvar_base(8)%long_name = 'Soil Moisture'
+    v2dvar_base(8)%standard_name = 'volume_fraction_of_water_in_soil'
+    v2dvar_base(8)%lfillvalue = .true.
+    v2dvar_base(9)%vname = 'texture'
+    v2dvar_base(9)%vunit = '1'
+    v2dvar_base(9)%long_name = 'Texture dominant category'
+    v2dvar_base(9)%standard_name = 'soil_type'
+    idtxt = 9
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
@@ -167,11 +167,72 @@ module mod_write
     v3dvar_base(2)%axis = 'xyT'
     v3dvar_base(2)%lfillvalue = .true.
 
-    if ( idynamic == 2 ) then
-      v2dvar_base(14)%vname = 'ps0'
-      v2dvar_base(14)%vunit = 'Pa'
-      v2dvar_base(14)%long_name = 'Reference State Surface Pressure'
-      v2dvar_base(14)%standard_name = 'air_pressure'
+    if ( idynamic == 3 ) then
+      v2dvar_base(10)%vname = 'ulon'
+      v2dvar_base(10)%vunit = 'degrees_east'
+      v2dvar_base(10)%long_name = 'Longitude on U Points'
+      v2dvar_base(10)%standard_name = 'longitude'
+      v2dvar_base(11)%vname = 'ulat'
+      v2dvar_base(11)%vunit = 'degrees_north'
+      v2dvar_base(11)%long_name = 'latitude'
+      v2dvar_base(11)%standard_name = 'Latitude on U Points'
+      v2dvar_base(12)%vname = 'vlon'
+      v2dvar_base(12)%vunit = 'degrees_east'
+      v2dvar_base(12)%long_name = 'Longitude on V Points'
+      v2dvar_base(12)%standard_name = 'longitude'
+      v2dvar_base(13)%vname = 'vlat'
+      v2dvar_base(13)%vunit = 'degrees_north'
+      v2dvar_base(13)%long_name = 'latitude'
+      v2dvar_base(13)%standard_name = 'Latitude on V Points'
+      v2dvar_base(14)%vname = 'xmap'
+      v2dvar_base(14)%vunit = '1'
+      v2dvar_base(14)%long_name = 'Map Factor on Cross Points'
+      v2dvar_base(14)%standard_name = 'map_factor'
+      v2dvar_base(15)%vname = 'umap'
+      v2dvar_base(15)%vunit = '1'
+      v2dvar_base(15)%long_name = 'Map Factor on U Points'
+      v2dvar_base(15)%standard_name = 'map_factor'
+      v2dvar_base(16)%vname = 'vmap'
+      v2dvar_base(16)%vunit = '1'
+      v2dvar_base(16)%long_name = 'Map Factor on V Points'
+      v2dvar_base(16)%standard_name = 'map_factor'
+    else
+      v2dvar_base(10)%vname = 'dlon'
+      v2dvar_base(10)%vunit = 'degrees_east'
+      v2dvar_base(10)%long_name = 'Longitude on Dot Points'
+      v2dvar_base(10)%standard_name = 'longitude'
+      v2dvar_base(11)%vname = 'dlat'
+      v2dvar_base(11)%vunit = 'degrees_north'
+      v2dvar_base(11)%long_name = 'latitude'
+      v2dvar_base(11)%standard_name = 'Latitude on Dot Points'
+      v2dvar_base(12)%vname = 'xmap'
+      v2dvar_base(12)%vunit = '1'
+      v2dvar_base(12)%long_name = 'Map Factor on Cross Points'
+      v2dvar_base(12)%standard_name = 'map_factor'
+      v2dvar_base(13)%vname = 'dmap'
+      v2dvar_base(13)%vunit = '1'
+      v2dvar_base(13)%long_name = 'Map Factor on Dot Points'
+      v2dvar_base(13)%standard_name = 'map_factor'
+      if ( idynamic == 2 ) then
+        v2dvar_base(14)%vname = 'ps0'
+        v2dvar_base(14)%vunit = 'Pa'
+        v2dvar_base(14)%long_name = 'Reference State Surface Pressure'
+        v2dvar_base(14)%standard_name = 'air_pressure'
+      end if
+    end if
+
+    if ( idynamic == 3 ) then
+      v3dvar_base(3)%vname = 'zeta'
+      v3dvar_base(3)%vunit = 'm'
+      v3dvar_base(3)%long_name = 'Elevation above ground'
+      v3dvar_base(3)%standard_name = 'heigth'
+      v3dvar_base(3)%axis = 'xyz'
+      v3dvar_base(4)%vname = 'fmz'
+      v3dvar_base(4)%vunit = ''
+      v3dvar_base(4)%long_name = 'Vertical factor'
+      v3dvar_base(4)%standard_name = ''
+      v3dvar_base(4)%axis = 'xyz'
+    else if ( idynamic == 2 ) then
       v3dvar_base(3)%vname = 'pr0'
       v3dvar_base(3)%vunit = 'Pa'
       v3dvar_base(3)%long_name = 'Reference State Pressure'
@@ -194,57 +255,13 @@ module mod_write
       v3dvar_base(6)%axis = 'xyz'
     end if
 
-    if ( idynamic == 3 ) then
-      v2dvar_base(3)%vname = 'ulon'
-      v2dvar_base(3)%vunit = 'degrees_east'
-      v2dvar_base(3)%long_name = 'Longitude on U Points'
-      v2dvar_base(3)%standard_name = 'longitude'
-      v2dvar_base(4)%vname = 'ulat'
-      v2dvar_base(4)%vunit = 'degrees_north'
-      v2dvar_base(4)%long_name = 'latitude'
-      v2dvar_base(4)%standard_name = 'Latitude on U Points'
-      v2dvar_base(5)%vname = 'vlon'
-      v2dvar_base(5)%vunit = 'degrees_east'
-      v2dvar_base(5)%long_name = 'Longitude on V Points'
-      v2dvar_base(5)%standard_name = 'longitude'
-      v2dvar_base(6)%vname = 'vlat'
-      v2dvar_base(6)%vunit = 'degrees_north'
-      v2dvar_base(6)%long_name = 'latitude'
-      v2dvar_base(6)%standard_name = 'Latitude on V Points'
-      v3dvar_base(3)%vname = 'zeta'
-      v3dvar_base(3)%vunit = 'm'
-      v3dvar_base(3)%long_name = 'Elevation above ground'
-      v3dvar_base(3)%standard_name = 'heigth'
-      v3dvar_base(3)%axis = 'xyz'
-      v3dvar_base(4)%vname = 'fmz'
-      v3dvar_base(4)%vunit = ''
-      v3dvar_base(4)%long_name = 'Vertical factor'
-      v3dvar_base(4)%standard_name = ''
-      v3dvar_base(4)%axis = 'xyz'
-    else
-      v2dvar_base(3)%vname = 'dlon'
-      v2dvar_base(3)%vunit = 'degrees_east'
-      v2dvar_base(3)%long_name = 'Longitude on Dot Points'
-      v2dvar_base(3)%standard_name = 'longitude'
-      v2dvar_base(4)%vname = 'dlat'
-      v2dvar_base(4)%vunit = 'degrees_north'
-      v2dvar_base(4)%long_name = 'latitude'
-      v2dvar_base(4)%standard_name = 'Latitude on Dot Points'
-      v2dvar_base(5)%vname = 'xmap'
-      v2dvar_base(5)%vunit = '1'
-      v2dvar_base(5)%long_name = 'Map Factor on Cross Points'
-      v2dvar_base(5)%standard_name = 'map_factor'
-      v2dvar_base(6)%vname = 'dmap'
-      v2dvar_base(6)%vunit = '1'
-      v2dvar_base(6)%long_name = 'Map Factor on Dot Points'
-      v2dvar_base(6)%standard_name = 'map_factor'
-    end if
   end subroutine setup_outvars
 
   subroutine write_domain(fname,lsub,lndfudge,texfudge,lakfudge,ntype,sigma, &
                           xlat,xlon,dlat,dlon,ulat,ulon,vlat,vlon,xmap,dmap, &
-                          coriol,mask,htgrid,lndout,snowam,smoist,rmoist,    &
-                          dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,zeta,fmz)
+                          umap,vmap,coriol,mask,htgrid,lndout,snowam,smoist, &
+                          rmoist,dpth,texout,frac_tex,ps0,pr0,t0,rho0,z0,ts0,&
+                          zeta,fmz)
     implicit none
     character (len=*) , intent(in) :: fname
     logical , intent(in) :: lsub , lndfudge , texfudge , lakfudge
@@ -255,6 +272,7 @@ module mod_write
     real(rkx) , dimension(:,:) , pointer , intent(in) :: ulat , ulon
     real(rkx) , dimension(:,:) , pointer , intent(in) :: vlat , vlon
     real(rkx) , dimension(:,:) , pointer , intent(in) :: xmap , dmap , coriol
+    real(rkx) , dimension(:,:) , pointer , intent(in) :: umap , vmap
     real(rkx) , dimension(:,:) , pointer , intent(in) :: mask
     real(rkx) , dimension(:,:) , pointer , intent(in) :: htgrid , lndout
     real(rkx) , dimension(:,:) , pointer , intent(in) :: snowam
@@ -327,13 +345,13 @@ module mod_write
       ncattribute_string('legend',texture_legend))
     v2dvar_base(1)%rval => xlon
     v2dvar_base(2)%rval => xlat
-    v2dvar_base(7)%rval => coriol
-    v2dvar_base(8)%rval => mask
-    v2dvar_base(9)%rval => htgrid
-    v2dvar_base(10)%rval => lndout
-    v2dvar_base(11)%rval => snowam
-    v2dvar_base(12)%rval => smoist
-    v2dvar_base(13)%rval => texout
+    v2dvar_base(3)%rval => coriol
+    v2dvar_base(4)%rval => mask
+    v2dvar_base(5)%rval => htgrid
+    v2dvar_base(6)%rval => lndout
+    v2dvar_base(7)%rval => snowam
+    v2dvar_base(8)%rval => smoist
+    v2dvar_base(9)%rval => texout
 
     do ivar = 1 , nvar3d
       v3dvar_base(ivar)%j1 = -1
@@ -358,7 +376,6 @@ module mod_write
     end if
 
     if ( idynamic == 2 ) then
-      v2dvar_base(14)%rval => ps0
       v3dvar_base(3)%rval => pr0
       v3dvar_base(4)%rval => t0
       v3dvar_base(5)%rval => rho0
@@ -366,17 +383,23 @@ module mod_write
     end if
 
     if ( idynamic == 3 ) then
-      v2dvar_base(3)%rval => ulon
-      v2dvar_base(4)%rval => ulat
-      v2dvar_base(5)%rval => vlon
-      v2dvar_base(6)%rval => vlat
+      v2dvar_base(10)%rval => ulon
+      v2dvar_base(11)%rval => ulat
+      v2dvar_base(12)%rval => vlon
+      v2dvar_base(13)%rval => vlat
+      v2dvar_base(14)%rval => xmap
+      v2dvar_base(15)%rval => umap
+      v2dvar_base(16)%rval => vmap
       v3dvar_base(3)%rval => zeta
       v3dvar_base(4)%rval => fmz
     else
-      v2dvar_base(3)%rval => dlon
-      v2dvar_base(4)%rval => dlat
-      v2dvar_base(5)%rval => xmap
-      v2dvar_base(6)%rval => dmap
+      v2dvar_base(10)%rval => dlon
+      v2dvar_base(11)%rval => dlat
+      v2dvar_base(12)%rval => xmap
+      v2dvar_base(13)%rval => dmap
+      if ( idynamic == 2 ) then
+        v2dvar_base(14)%rval => ps0
+      end if
     end if
 
     call outstream_enable(ncout,sigma)

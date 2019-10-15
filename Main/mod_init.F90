@@ -75,7 +75,7 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens
-    real(rkx) :: zb , zdelta , zzi , zfilt
+    real(rkx) :: azmax , zmax , zb , zdelta , zzi , zfilt
     real(rkx) , dimension(kzp1) :: ozprnt
     integer(ik4) :: ntop
 #ifdef DEBUG
@@ -193,6 +193,14 @@ module mod_init
             end do
           end do
         end do
+        zmax = d_zero
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              zmax = max (zmax, sqrt(mo_atm%u(j,i,k)**2+mo_atm%v(j,i,k)**2))
+            end do
+          end do
+        end do
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -218,21 +226,20 @@ module mod_init
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
-            zb = mddom%ht(j,i) * regrav + mo_atm%zeta(j,i,kz)
-            mo_atm%p(j,i,kz) = xpsb%b0(j,i) * &
-                  exp(-egrav*zb/rgas/mo_atm%tvirt(j,i,kz))
+            mo_atm%p(j,i,kz) = xpsb%b0(j,i) * exp(-egrav * &
+                 mo_atm%zeta(j,i,kz)/(rgas*mo_atm%tvirt(j,i,kz)))
             mo_atm%pai(j,i,kz) = (mo_atm%p(j,i,kz)/p00)**rovcp
           end do
         end do
-        do k = kzm1 , 1 , -1
+        do k = kz , 2 , -1
           do i = ice1 , ice2
             do j = jce1 , jce2
-              zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k+1)*cpd) + &
-                    mo_atm%tvirt(j,i,k+1) - mo_atm%tvirt(j,i,k)
+              zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k)*cpd) + &
+                    mo_atm%tvirt(j,i,k-1) - mo_atm%tvirt(j,i,k)
               zdelta = sqrt(zb**2 + d_four * &
-                    mo_atm%tvirt(j,i,k+1)*mo_atm%tvirt(j,i,k))
-              mo_atm%pai(j,i,k) = -mo_atm%pai(j,i,k+1) / &
-                    (d_two * mo_atm%tvirt(j,i,k+1)) * (zb - zdelta)
+                    mo_atm%tvirt(j,i,k-1)*mo_atm%tvirt(j,i,k))
+              mo_atm%pai(j,i,k-1) = -mo_atm%pai(j,i,k) / &
+                    (d_two * mo_atm%tvirt(j,i,k)) * (zb - zdelta)
             end do
           end do
         end do
@@ -244,6 +251,12 @@ module mod_init
             end do
           end do
         end do
+        call maxall(zmax,azmax)
+        if ( myid == 0 ) then
+          write(stdout,'(a, f7.4)') &
+             ' Max. Courant number for horizontal advection =', &
+             sqrt(d_two)*azmax*dtsec/dx
+        end if
 
         ! Sponge layer at the top of the atmosphere
 
