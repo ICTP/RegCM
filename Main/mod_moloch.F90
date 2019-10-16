@@ -286,8 +286,8 @@ module mod_moloch
     call boundary
 
     if ( syncro_rep%act( ) .and. rcmtimer%integrating( ) ) then
-      maxps = maxval(ps(jce1:jce2,ice1:ice2))
-      minps = maxval(ps(jce1:jce2,ice1:ice2))
+      maxps = maxval(ps(jci1:jci2,ici1:ici2))
+      minps = minval(ps(jci1:jci2,ici1:ici2))
       call maxall(maxps,pmax)
       call minall(minps,pmin)
       call sumall(total_precip_points,iconvec)
