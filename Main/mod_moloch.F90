@@ -162,7 +162,9 @@ module mod_moloch
     implicit none
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
+    real(rkx) :: maxps , minps , pmax , pmin
     integer(ik4) :: i , j , k
+    integer(ik4) :: iconvec
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'moloch'
     integer(ik4) , save :: idindx = 0
@@ -266,7 +268,7 @@ module mod_moloch
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ps(j,i) = p(j,i,kz) !
+        ps(j,i) = p(j,i,kz) * exp(egrav*zeta(j,i,kz)/(rgas*tvirt(j,i,kz)))
       end do
     end do
 
@@ -281,6 +283,27 @@ module mod_moloch
     !
 
     call boundary
+
+    if ( syncro_rep%act( ) ) then
+      maxps = maxval(ps(jce1:jce2,ice1:ice2))
+      minps = maxval(ps(jce1:jce2,ice1:ice2))
+      call maxall(maxps,pmax)
+      call minall(minps,pmin)
+      if ( is_nan(pmax) .or. is_nan(pmin) ) then
+        write (stderr,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
+        write (stderr,*) 'No more atmosphere here....'
+        write (stderr,*) 'CFL violation detected, so model STOP'
+        write (stderr,*) '#####################################'
+        write (stderr,*) '#            DECREASE DT !!!!       #'
+        write (stderr,*) '#####################################'
+        call fatal(__FILE__,__LINE__,'CFL VIOLATION')
+      end if
+      write(stdout,'(a,2E12.5)') ' $$$ max, min of ps   = ', pmax , pmin
+      if ( any(icup > 0) ) then
+        write(stdout,'(a,i7)') &
+          ' $$$ no. of points with active convection = ', iconvec
+      end if
+    end if
 
     !
     ! Next timestep ready : increment elapsed forecast time

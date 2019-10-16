@@ -3191,7 +3191,6 @@ module mod_memutil
 !    type(c_ptr) :: pntr
 !    pntr = c_loc(a)
 !    call c_f_pointer(pntr,b,shape(a))
-!  end subroutine spaceshare_2d_r4l4
 
 !  subroutine spaceshare_2d_r8l4(a,b)
 !    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
