@@ -39,7 +39,11 @@ module mod_spbarcoord
 
   type , bind(C) :: vpoint
     integer(c_int) :: idx
+#ifdef SINGLE_PRECISION_REAL
+    real(c_float) , dimension(3) :: v
+#else
     real(c_double) , dimension(3) :: v
+#endif
   end type vpoint
 
   real(rkx) , dimension(3) :: centroid
