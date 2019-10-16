@@ -854,7 +854,7 @@ program terrain
       do k = 2 , kzp1
         do i = 1 , iysg
           do j = 1 , jxsg
-            zeta_s(j,i,k) = ak(k) + bk(k) * htgrid_s(j,i)
+            zeta_s(j,i,k) = ak(k) + (bk(k) - d_one) * htgrid_s(j,i)
           end do
         end do
       end do
@@ -925,7 +925,7 @@ program terrain
     do k = 2 , kzp1
       do i = 1 , iysg
         do j = 1 , jxsg
-          zeta(j,i,k) = ak(k) + bk(k) * htgrid(j,i)
+          zeta(j,i,k) = ak(k) + (bk(k) - d_one) * htgrid(j,i)
         end do
       end do
     end do
