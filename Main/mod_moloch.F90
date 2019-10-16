@@ -132,7 +132,7 @@ module mod_moloch
     call assignpnt(mddom%xlat,xlat)
     call assignpnt(mddom%xlon,xlon)
     call assignpnt(mddom%coriol,coriol)
-    call assignpnt(sfs%psb,ps)
+    call assignpnt(sfs%psa,ps)
     call assignpnt(mo_atm%fmz,fmz)
     call assignpnt(mo_atm%fmzf,fmzf)
     call assignpnt(mo_atm%pai,pai)
@@ -223,8 +223,8 @@ module mod_moloch
     end do ! Advection loop
 
     do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           tvirt(j,i,k) = tetav(j,i,k)*pai(j,i,k)
         end do
       end do
@@ -233,8 +233,8 @@ module mod_moloch
     if ( ipptls > 0 ) then
       if ( ipptls > 1 ) then
         do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
                              qc(j,i,k) - qi(j,i,k))
             end do
@@ -242,8 +242,8 @@ module mod_moloch
         end do
       else
         do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - qc(j,i,k))
             end do
           end do
@@ -251,8 +251,8 @@ module mod_moloch
       end if
     else
       do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k))
           end do
         end do
@@ -328,11 +328,11 @@ module mod_moloch
 
       subroutine boundary
         implicit none
-        call exchange_lrbt(ps,1,jce1,jce2,ice1,ice2)
         call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
         call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
         if ( ichem == 1 ) then
           call exchange_lrbt(trac,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
         end if
@@ -372,28 +372,6 @@ module mod_moloch
           end if
         end if
       end subroutine boundary
-
-      subroutine filt2d(pp,anu2,j1,j2,i1,i2)
-        implicit none
-        real(rkx) , dimension(:,:) , pointer , intent(inout) :: pp
-        real(rkx) , intent(in) :: anu2
-        integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
-        integer(ik4) :: j , i
-
-        call exchange_lrbt(pp,1,j1,j2,i1,i2)
-
-        do i = i1 , i2
-          do j = j1 , j2
-            p2d(j,i) = 0.125_rkx * (pp(j,i-1)+pp(j-1,i)+pp(j+1,i)+pp(j,i+1)) - &
-                       0.5_rkx * pp(j,i)
-          end do
-        end do
-        do i = i1 , i2
-          do j = j1 , j2
-            pp(j,i) = pp(j,i) + anu2 * p2d(j,i)
-          end do
-        end do
-      end subroutine filt2d
 
       subroutine filt3d(pp,anu2,j1,j2,i1,i2)
         implicit none
@@ -565,8 +543,8 @@ module mod_moloch
 
           do k = 1 , kz
             gzitak = gzita(zitah(k))
-            do i = icii1 , ici2
-              do j = jcii1 , jcii2
+            do i = ici1 , ice2
+              do j = jcii1 , jci2
                 zcx = zdtrdx
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
@@ -583,7 +561,7 @@ module mod_moloch
           do k = 1 , kz
             gzitak = gzita(zitah(k))
             do i = icii1 , ici2
-              do j = jcii1 , jcii2
+              do j = jci1 , jce2
                 zcy = zdtrdy
                 zfz = 0.25_rkx * &
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &

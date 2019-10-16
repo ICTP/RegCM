@@ -184,7 +184,6 @@ module mod_init
         do i = ice1 , ice2
           do j = jce1 , jce2
             sfs%psa(j,i) = xpsb%b0(j,i)
-            sfs%psb(j,i) = xpsb%b0(j,i)
           end do
         end do
         do k = 1 , kz
