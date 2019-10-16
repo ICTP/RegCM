@@ -39,6 +39,11 @@ module mod_memutil
   public :: assignpnt , remappnt4
   !public :: memshare
 
+  interface remappnt4
+    module procedure remappnt4_r8
+    module procedure remappnt4_r4
+  end interface remappnt4
+
   interface assignpnt
     module procedure assignp1d_l
     module procedure assignp1d_s
@@ -3076,7 +3081,7 @@ module mod_memutil
                      lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_d
 
-  subroutine remappnt4(a,b)
+  subroutine remappnt4_r8(a,b)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: b
@@ -3085,7 +3090,18 @@ module mod_memutil
       return
     end if
     b => remap_bound(lbound(a,1),lbound(a,2),1,lbound(a,4),a)
-  end subroutine remappnt4
+  end subroutine remappnt4_r8
+
+  subroutine remappnt4_r4(a,b)
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: b
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    b => remap_bound(lbound(a,1),lbound(a,2),1,lbound(a,4),a)
+  end subroutine remappnt4_r4
 
 !  subroutine spaceshare_1d_r8r4(a,b)
 !    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
