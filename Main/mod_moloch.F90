@@ -173,6 +173,7 @@ module mod_moloch
 
     dtstepa = dtsec / real(nadv,rkx)
     dtsound = dtsec / real(nsound,rkx)
+    iconvec = 0
 
     if ( ipptls > 0 ) then
       if ( ipptls > 1 ) then
@@ -284,11 +285,12 @@ module mod_moloch
 
     call boundary
 
-    if ( syncro_rep%act( ) ) then
+    if ( syncro_rep%act( ) .and. rcmtimer%integrating( ) ) then
       maxps = maxval(ps(jce1:jce2,ice1:ice2))
       minps = maxval(ps(jce1:jce2,ice1:ice2))
       call maxall(maxps,pmax)
       call minall(minps,pmin)
+      call sumall(total_precip_points,iconvec)
       if ( is_nan(pmax) .or. is_nan(pmin) ) then
         write (stderr,*) 'WHUUUUBBBASAAAGASDDWD!!!!!!!!!!!!!!!!'
         write (stderr,*) 'No more atmosphere here....'
@@ -298,10 +300,13 @@ module mod_moloch
         write (stderr,*) '#####################################'
         call fatal(__FILE__,__LINE__,'CFL VIOLATION')
       end if
-      write(stdout,'(a,2E12.5)') ' $$$ max, min of ps   = ', pmax , pmin
-      if ( any(icup > 0) ) then
-        write(stdout,'(a,i7)') &
-          ' $$$ no. of points with active convection = ', iconvec
+      if ( myid == 0 ) then
+        write(stdout,*) '$$$ ', rcmtimer%str( )
+        write(stdout,'(a,2E12.5)') ' $$$ max, min of ps   = ', pmax , pmin
+        if ( any(icup > 0) ) then
+          write(stdout,'(a,i7)') &
+            ' $$$ no. of points with active convection = ', iconvec
+        end if
       end if
     end if
 
