@@ -1719,6 +1719,8 @@ module mod_params
     if ( idynamic == 2 ) then
       call allocate_v3dbound(xppb,kz,cross)
       call allocate_v3dbound(xwwb,kzp1,cross)
+    else if ( idynamic == 3 ) then
+      call allocate_v3dbound(xpaib,kz,cross)
     end if
 
     if ( myid == italk ) then
@@ -2706,6 +2708,34 @@ module mod_params
           end do
         end do
         call exchange_bt(mddom%hy,1,jce1,jce2,idi1,idi2)
+        zita(kzp1) = d_zero
+        do k = kz , 1 , -1
+          zita(k) = zita(k+1) + mo_dz
+          zitah(k) = zita(k) - mo_dz*d_half
+        end do
+        sigma(1) = d_zero
+        sigma = d_one - zita/hzita
+        hsigma = d_one - zitah/hzita
+        ak = -hzita * bzita(zitah) * log(hsigma)
+        bk = gzita(zitah)
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%zeta(j,i,k) = ak(k) + (bk(k) - d_one) * &
+                                         mddom%ht(j,i)*regrav
+              mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
+            end do
+          end do
+        end do
+        call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
+        mo_atm%fmzf(:,:,1) = 0.0_rkx
+        do k = 2 , kzp1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
+            end do
+          end do
+        end do
       end subroutine compute_moloch_static
 
       recursive integer function gcd_rec(u,v) result(gcd)

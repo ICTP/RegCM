@@ -75,7 +75,7 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens
-    real(rkx) :: azmax , zmax , zb , zdelta , zzi , zfilt
+    real(rkx) :: azmax , zmax , zzi , zfilt
     real(rkx) , dimension(kzp1) :: ozprnt
     integer(ik4) :: ntop
 #ifdef DEBUG
@@ -151,34 +151,6 @@ module mod_init
         call psc2psd(sfs%psb,sfs%psdotb)
         call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
       else
-        zita(kzp1) = d_zero
-        do k = kz , 1 , -1
-          zita(k) = zita(k+1) + mo_dz
-          zitah(k) = zita(k) - mo_dz*d_half
-        end do
-        sigma(1) = d_zero
-        sigma = d_one - zita/hzita
-        hsigma = d_one - zitah/hzita
-        ak = -hzita * bzita(zitah) * log(hsigma)
-        bk = gzita(zitah)
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%zeta(j,i,k) = ak(k) + (bk(k) - d_one) * &
-                                         mddom%ht(j,i)*regrav
-              mo_atm%fmz(j,i,k) = md_fmz(zitah(k),mddom%ht(j,i))
-            end do
-          end do
-        end do
-        call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
-        mo_atm%fmzf(:,:,1) = 0.0_rkx
-        do k = 2 , kzp1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
-            end do
-          end do
-        end do
         do k = 1 , kz
           do i = ide1 , ide2
             do j = jce1 , jce2
@@ -215,36 +187,17 @@ module mod_init
             sfs%psb(j,i) = xpsb%b0(j,i)
           end do
         end do
-        ! Hydrostatic initialization of pai
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
               mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                            (d_one + ep1*mo_atm%qx(j,i,k,iqv))
-            end do
-          end do
-        end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            mo_atm%p(j,i,kz) = xpsb%b0(j,i) * exp(-egrav * &
-                 mo_atm%zeta(j,i,kz)/(rgas*mo_atm%tvirt(j,i,kz)))
-            mo_atm%pai(j,i,kz) = (mo_atm%p(j,i,kz)/p00)**rovcp
-          end do
-        end do
-        do k = kz , 2 , -1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k)*cpd) + &
-                    mo_atm%tvirt(j,i,k-1) - mo_atm%tvirt(j,i,k)
-              zdelta = sqrt(zb**2 + d_four * &
-                    mo_atm%tvirt(j,i,k-1)*mo_atm%tvirt(j,i,k))
-              mo_atm%pai(j,i,k-1) = -mo_atm%pai(j,i,k) / &
-                    (d_two * mo_atm%tvirt(j,i,k)) * (zb - zdelta)
+              mo_atm%pai(j,i,k) = xpaib%b0(j,i,k)
             end do
           end do
         end do
         ! Compute pressure
-        do k = 1 , kzm1
+        do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
               mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00

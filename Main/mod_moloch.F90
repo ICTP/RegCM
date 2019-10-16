@@ -316,7 +316,7 @@ module mod_moloch
             ten0 = t(jci1:jci2,ici1:ici2,:)
             qen0 = qv(jci1:jci2,ici1:ici2,:)
           end if
-          call nudge(iboudy,ps,xpsb)
+          call nudge(iboudy,pai,xpaib)
           call nudge(iboudy,t,xtb)
           call nudge(iboudy,qv,xqb)
           call nudge(iboudy,u,v,xub,xvb)
@@ -325,7 +325,7 @@ module mod_moloch
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
           end if
         else if ( iboudy == 4 ) then
-          call sponge(ps,xpsb)
+          call sponge(pai,xpaib)
           call sponge(t,xtb)
           call sponge(qv,xqb)
           call sponge(u,v,xub,xvb)

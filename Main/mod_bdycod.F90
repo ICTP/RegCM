@@ -332,6 +332,7 @@ module mod_bdycod
       psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
       xpsb%b1(:,:) = xpsb%b0(:,:)
     else
+      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
     end if
     !
@@ -420,6 +421,7 @@ module mod_bdycod
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
+      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
     end if
     !
@@ -516,6 +518,10 @@ module mod_bdycod
     else if ( idynamic == 2 ) then
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
+    else if ( idynamic == 3 ) then
+      call paicompute(xpsb%b0,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b1,xtb%b1,xqb%b1,xpaib%b1)
+      call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
 
 #ifdef DEBUG
@@ -616,6 +622,7 @@ module mod_bdycod
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
+      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
     end if
     !
@@ -648,6 +655,10 @@ module mod_bdycod
     if ( idynamic == 2 ) then
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
+    else if ( idynamic == 3 ) then
+      call paicompute(xpsb%b0,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b1,xtb%b1,xqb%b1,xpaib%b1)
+      call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
     !
     ! Update ground temperature on Ocean/Lakes
@@ -4769,6 +4780,35 @@ module mod_bdycod
       tau = d_zero
     end if
   end function tau
+
+  subroutine paicompute(xpsb,xtb,xqb,xpaib)
+    implicit none
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: xpsb
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xtb , xqb
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xpaib
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta
+    integer(ik4) :: i , j , k
+    ! Hydrostatic initialization of pai
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz))
+        p = xpsb(j,i) * exp(-egrav * mo_atm%zeta(j,i,kz)/(rgas*tv))
+        xpaib(j,i,kz) = (p/p00)**rovcp
+      end do
+    end do
+    do k = kz , 2 , -1
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          tv1 = xtb(j,i,k) * (d_one + ep1*xqb(j,i,k))
+          tv2 = xtb(j,i,k-1) * (d_one + ep1*xqb(j,i,k-1))
+          zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k)*cpd) + tv2 - tv1
+          zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
+          xpaib(j,i,k-1) = -xpaib(j,i,k) / (d_two * tv1) * (zb - zdelta)
+        end do
+      end do
+    end do
+    call exchange(xpaib,1,jce1,jce2,ice1,ice2,1,kz)
+  end subroutine paicompute
 
 end module mod_bdycod
 
