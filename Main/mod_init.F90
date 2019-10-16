@@ -169,7 +169,7 @@ module mod_init
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              zmax = max (zmax, sqrt(mo_atm%u(j,i,k)**2+mo_atm%v(j,i,k)**2))
+              zmax = max(zmax, sqrt(mo_atm%u(j,i,k)**2+mo_atm%v(j,i,k)**2))
             end do
           end do
         end do
@@ -207,8 +207,11 @@ module mod_init
         call maxall(zmax,azmax)
         if ( myid == 0 ) then
           write(stdout,'(a, f7.4)') &
-             ' Max. Courant number for horizontal advection =', &
-             sqrt(d_two)*azmax*dtsec/dx
+             ' Max. Courant number for horizontal advection = ', &
+             sqrt(d_two)*azmax*dtsec/dx 
+          write(stdout,'(a, f7.4)') &
+             ' Courant number of horizontal sound waves = ', &
+             sqrt(d_two)*sqrt(cpd/cvd*rgas*300.0_rkx)*dtsec/6.0_rkx/dx
         end if
 
         ! Sponge layer at the top of the atmosphere
