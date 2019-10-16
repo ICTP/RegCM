@@ -856,7 +856,11 @@ module mod_atm_interface
       type(surfstate) , intent(out) :: sfs
       call getmem2d(sfs%psa,jce1ga,jce2ga,ice1ga,ice2ga,'surf:psa')
       call getmem2d(sfs%psdota,jde1ga,jde2ga,ide1ga,ide2ga,'surf:psdota')
-      call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
+      if ( idynamic == 3 ) then
+        sfs%psb => sfs%psa
+      else
+        call getmem2d(sfs%psb,jx1,jx2,ix1,ix2,'surf:psb')
+      end if
       call getmem2d(sfs%psdotb,jd1,jd2,id1,id2,'surf:psdotb')
       call getmem2d(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
       call getmem2d(sfs%tg,jci1,jci2,ici1,ici2,'surf:tg')
