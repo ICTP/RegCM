@@ -179,10 +179,15 @@ module mod_dynparam
 
   integer(ik4) :: ntr = 0  ! Total number of chemical tracers
 
-  ! Base state atmosphere for non-hydrostatic
+  ! Base state atmosphere for non-hydrostatic MM5
 
   real(rkx) :: base_state_pressure ! Base state reference pressure
   real(rkx) :: logp_lrate          ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
+
+  ! Moloch dynamical vertical profile
+
+  real(rkx) :: mo_a0 = 0.0_rkx
+  real(rkx) :: mo_b0 = 0.5_rkx
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! End of configureation. Below this point things are
@@ -446,7 +451,7 @@ module mod_dynparam
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /coreparam/ idynamic
-    !namelist /molochparam/
+    namelist /molochparam/ mo_a0 , mo_b0
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
       plon , cntri , cntrj , truelatl , truelath , i_band , i_crm
     namelist /terrainparam/ domname , lresamp , smthbdy , lakedpth,   &
@@ -507,7 +512,7 @@ module mod_dynparam
     ! Moloch NH
     if ( idynamic == 3 ) then
       rewind(ipunit)
-      !read(ipunit, nml=molochparam, iostat=iresult)
+      read(ipunit, nml=molochparam, iostat=iresult)
     end if
 
     i_band = 0

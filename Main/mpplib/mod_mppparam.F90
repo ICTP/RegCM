@@ -1449,6 +1449,11 @@ module mod_mppparam
 
     call bcast(ibdyfrq)
 
+    if ( idynamic == 3 ) then
+      call bcast(mo_a0)
+      call bcast(mo_b0)
+    end if
+
     ! Setup all convenience dimensions
     ! The IOCPU has performed this previously.
 

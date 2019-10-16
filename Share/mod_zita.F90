@@ -22,14 +22,13 @@ module mod_zita
   use mod_realkinds
   use mod_intkinds
   use mod_constants
+  use mod_dynparam , only : mo_a0 , mo_b0
 
   implicit none
 
   private
 
   real(rkx) , parameter :: t0 = 280.0_rkx
-  real(rkx) , parameter :: a0 = 0.5_rkx
-  real(rkx) , parameter :: b0 = 0.25_rkx
   real(rkx) , parameter :: hzita = rgas*t0/egrav
 
   interface zita_interp
@@ -49,29 +48,32 @@ module mod_zita
     real(rkx) , intent(in) :: zita
     real(rkx) :: ratio
     ratio = zita/hzita
-    gzita = 1.0_rkx - a0*ratio - (3.0_rkx-2*a0) * ratio**2 + &
-            (2.0_rkx-a0) * ratio**3
+    gzita = 1.0_rkx - mo_a0 * ratio - (3.0_rkx - 2.0_rkx * mo_a0) * ratio**2 + &
+            (2.0_rkx - mo_a0) * ratio**3
   end function gzita
 
   ! Derivative of decay function
   pure real(rkx) elemental function gzitap(zita)
     implicit none
     real(rkx) , intent(in) :: zita
-    gzitap = (-6.0_rkx*(zita/hzita) + 6.0_rkx*(zita/hzita)**2)/hzita
+    real(rkx) :: ratio
+    ratio = zita/hzita
+    gzitap = (-mo_a0 - 2.0_rkx* (3.0_rkx - 2.0_rkx * mo_a0) * ratio + &
+                3.0_rkx * (2.0_rkx - mo_a0) * ratio**2)/hzita
   end function gzitap
 
   ! Stretching function
   pure real(rkx) elemental function bzita(zita)
     implicit none
     real(rkx) , intent(in) :: zita
-    bzita = b0 + (1.0_rkx-b0)*(zita/hzita)
+    bzita = mo_b0 + (1.0_rkx-mo_b0)*(zita/hzita)
   end function bzita
 
   ! Derivative of stretching function
   pure real(rkx) elemental function bzitap(zita)
     implicit none
     real(rkx) , intent(in) :: zita
-    bzitap = (1.0_rkx-b0)/hzita
+    bzitap = (1.0_rkx-mo_b0)/hzita
   end function bzitap
 
   ! Factor used to transform the vertical derivatives in zeta

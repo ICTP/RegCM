@@ -795,10 +795,8 @@ module mod_atm_interface
       call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
       if ( idynamic == 3 ) then
-        call getmem2d(dom%clu,jde1ga,jde2ga,ice1,ice2,'storage:clu')
-        call getmem2d(dom%clv,jce1,jce2,ide1ga,ide2ga,'storage:clv')
-        call getmem2d(dom%fmyu,jce1,jce2,ice1,ice2,'storage:fmyu')
-        call getmem2d(dom%fmyv,jce1,jce2,ice1,ice2,'storage:fmyv')
+        call getmem2d(dom%msfu,jde1gb,jde2gb,ide1,ide2,'storage:msfu')
+        call getmem2d(dom%msfv,jde1,jde2,ide1gb,ide2gb,'storage:msfv')
         call getmem2d(dom%hx,jdi1ga,jdi2ga,ice1,ice2,'storage:hx')
         call getmem2d(dom%hy,jce1,jce2,idi1ga,idi2ga,'storage:hy')
         call getmem2d(dom%ulat,jde1,jde2,ide1,ide2,'storage:ulat')

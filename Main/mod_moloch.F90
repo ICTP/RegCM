@@ -71,8 +71,8 @@ module mod_moloch
 
   real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coriol
-  real(rkx) , dimension(:,:) , pointer :: clu , fmyu , hx
-  real(rkx) , dimension(:,:) , pointer :: clv , fmyv , hy
+  real(rkx) , dimension(:,:) , pointer :: mu , hx
+  real(rkx) , dimension(:,:) , pointer :: mv , hy
   real(rkx) , dimension(:,:) , pointer :: ps
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
@@ -89,7 +89,7 @@ module mod_moloch
   public :: uvstagtox , wstagtox
 
   integer(ik4) :: nadv = 1
-  integer(ik4) :: nsound = 4
+  integer(ik4) :: nsound = 6
   real(rkx) , parameter :: minden = 1.0e-15_rkx
 
   contains
@@ -125,10 +125,8 @@ module mod_moloch
 
   subroutine init_moloch
     implicit none
-    call assignpnt(mddom%clu,clu)
-    call assignpnt(mddom%clv,clv)
-    call assignpnt(mddom%fmyu,fmyu)
-    call assignpnt(mddom%fmyv,fmyv)
+    call assignpnt(mddom%msfu,mu)
+    call assignpnt(mddom%msfv,mv)
     call assignpnt(mddom%hx,hx)
     call assignpnt(mddom%hy,hy)
     call assignpnt(mddom%xlat,xlat)

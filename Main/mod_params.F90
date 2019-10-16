@@ -1686,12 +1686,12 @@ module mod_params
     call bcast(dirglob,256)
     call bcast(dirout,256)
     call bcast(domname,64)
-    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask,   &
-                          mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,     &
-                          mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,     &
-                          mddom%msfx,mddom%msfd,mddom%coriol,mddom%snowam, &
-                          mddom%smoist,mddom%rmoist,mddom%dhlake,          &
-                          base_state_ts0)
+    call read_domain_info(mddom%ht,mddom%lndcat,mddom%lndtex,mddom%mask, &
+                          mddom%xlat,mddom%xlon,mddom%dlat,mddom%dlon,   &
+                          mddom%ulat,mddom%ulon,mddom%vlat,mddom%vlon,   &
+                          mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
+                          mddom%coriol,mddom%snowam,mddom%smoist,        &
+                          mddom%rmoist,mddom%dhlake,base_state_ts0)
     call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
@@ -2678,36 +2678,20 @@ module mod_params
       subroutine compute_moloch_static
         implicit none
         integer :: i , j
-        do i = ide1 , ide2
-          do j = jce1 , jce2
-            mddom%clv(j,i) = cos(degrad*mddom%vlat(j,i))
-          end do
-        end do
-        call exchange_bt(mddom%clv,1,jce1,jce2,ide1,ide2)
-        do i = ice1 , ice2
-          do j = jde1 , jde2
-            mddom%clu(j,i) = cos(degrad*mddom%ulat(j,i))
-          end do
-        end do
-        call exchange_lr(mddom%clu,1,jde1,jde2,ice1,ice2)
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            mddom%fmyu(j,i) = 1.0_rkx/mddom%clu(j,i)
-            mddom%fmyv(j,i) = 1.0_rkx/mddom%clv(j,i)
-          end do
-        end do
         do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * rdx * regrav
           end do
         end do
         call exchange_lr(mddom%hx,1,jdi1,jdi2,ice1,ice2)
+        call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         do i = idi1 , idi2
           do j = jce1 , jce2
             mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1)) * rdx * regrav
           end do
         end do
         call exchange_bt(mddom%hy,1,jce1,jce2,idi1,idi2)
+        call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         zita(kzp1) = d_zero
         do k = kz , 1 , -1
           zita(k) = zita(k+1) + mo_dz
