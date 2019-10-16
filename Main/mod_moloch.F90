@@ -537,8 +537,8 @@ module mod_moloch
 
           do k = 1 , kz
             gzitak = gzita(zitah(k))
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = icii1 , ici2
+              do j = jcii1 , jcii2
                 zcx = zdtrdx
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
@@ -548,13 +548,22 @@ module mod_moloch
                 u(j,i,k) = u(j,i,k) - &
                     zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
                     zfz * hx(j,i) * gzitak + coriol(j,i) * v(j,i,k) * dtsound
+              end do
+            end do
+          end do
+
+          do k = 1 , kz
+            gzitak = gzita(zitah(k))
+            do i = icii1 , ici2
+              do j = jcii1 , jcii2
+                zcy = zdtrdy
                 zfz = 0.25_rkx * &
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                 ! Equation 18
                 v(j,i,k) = v(j,i,k) - &
-                    zrom1v * zdtrdy * (pai(j,i,k) - pai(j,i-1,k)) - &
+                    zrom1v * zcy * (pai(j,i,k) - pai(j,i-1,k)) - &
                     zfz * hy(j,i) * gzitak - coriol(j,i) * u(j,i,k) * dtsound
               end do
             end do
