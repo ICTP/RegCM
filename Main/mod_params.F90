@@ -2680,18 +2680,22 @@ module mod_params
         integer :: i , j
         do i = ice1 , ice2
           do j = jdi1 , jdi2
-            mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * rdx * regrav
+            mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * &
+                     mddom%msfu(j,i) * rdx * regrav
           end do
         end do
         call exchange_lr(mddom%hx,1,jdi1,jdi2,ice1,ice2)
-        call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
+        call exchange_lr(mddom%msfu,2,jde1,jde2,ide1,ide2)
         do i = idi1 , idi2
           do j = jce1 , jce2
-            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1)) * rdx * regrav
+            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1)) * &
+                     mddom%msfv(j,i) * rdx * regrav
           end do
         end do
         call exchange_bt(mddom%hy,1,jce1,jce2,idi1,idi2)
-        call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
+        call exchange_bt(mddom%msfv,2,jde1,jde2,ide1,ide2)
+        !mddom%msfu = d_one/mddom%msfu
+        !mddom%msfv = d_one/mddom%msfv
         zita(kzp1) = d_zero
         do k = kz , 1 , -1
           zita(k) = zita(k+1) + mo_dz

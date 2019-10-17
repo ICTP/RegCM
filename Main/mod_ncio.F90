@@ -144,6 +144,8 @@ module mod_ncio
         msfu(jde1:jde2,ide1:ide2) = rspace
         call read_var2d_static(idmin,'vmap',rspace,istart=istart,icount=icount)
         msfv(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
+        msfx(jde1:jde2,ide1:ide2) = rspace
       else
         call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
         dlat(jde1:jde2,ide1:ide2) = rspace
@@ -252,6 +254,9 @@ module mod_ncio
           call read_var2d_static(idmin,'vmap',rspace, &
                                  istart=istart,icount=icount)
           call grid_distribute(rspace,msfv,jde1,jde2,ide1,ide2)
+          call read_var2d_static(idmin,'xmap',rspace, &
+                                 istart=istart,icount=icount)
+          call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         else
           call read_var2d_static(idmin,'dlat',rspace, &
                                  istart=istart,icount=icount)
@@ -328,6 +333,7 @@ module mod_ncio
           call grid_distribute(rspace,vlon,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfu,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfv,jde1,jde2,ide1,ide2)
+          call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         else
           call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
