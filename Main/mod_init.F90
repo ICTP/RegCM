@@ -207,7 +207,7 @@ module mod_init
         if ( myid == 0 ) then
           write(stdout,'(a, f7.4)') &
              ' Max. Courant number for horizontal advection = ', &
-             sqrt(d_two)*azmax*dtsec/dx 
+             sqrt(d_two)*azmax*dtsec/dx
           write(stdout,'(a, f7.4)') &
              ' Courant number of horizontal sound waves = ', &
              sqrt(d_two)*sqrt(cpd/cvd*rgas*300.0_rkx)*dtsec/6.0_rkx/dx
@@ -216,9 +216,9 @@ module mod_init
         ! Sponge layer at the top of the atmosphere
 
         ntop = int(0.08_rkx * real(kz,rkx))
-        zfilt = (kzp1-ntop+3)*mo_dz
+        zfilt = (kzp1-ntop+4)*mo_dz
         do k = 1 , kz
-          if ( k > ntop+2 ) then
+          if ( k > ntop+3 ) then
             ffilt(k) = d_zero
           else
             zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)

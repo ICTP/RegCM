@@ -107,7 +107,7 @@ module mod_moloch
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem2d(wfw,jci1,jci2,1,kzp1,'moloch:wfw')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
-    call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
+    call getmem2d(zpby,jci1,jci2,ici1,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1ga,jce2ga,ici1,ici2,'moloch:zpbw')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
@@ -799,7 +799,7 @@ module mod_moloch
         ! Meridional advection
 
         do k = 1 , kz
-          do i = ici1 , ice2
+          do i = ici1 , ice2ga
             do j = jci1 , jci2
               zamu = v(j,i,k)*zdtrdy
               if ( zamu > d_zero ) then
@@ -819,7 +819,7 @@ module mod_moloch
             end do
           end do
 
-          call exchange_bt(zpby,1,jci1,jci2,ici1,ice2)
+          !call exchange_bt(zpby,1,jci1,jci2,ici1,ice2)
 
           do i = ici1 , ici2
             do j = jci1 , jci2
