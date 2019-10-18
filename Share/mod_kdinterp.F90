@@ -78,12 +78,12 @@ module mod_kdinterp
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: h_missing_value = missl
   real(rkx) , parameter :: missc = -9990.0_rkx
-  real(rkx) , parameter :: mindis = 1.0e-8_rkx
-  real(rkx) , parameter :: mindis2 = mindis*mindis
+  real(rk8) , parameter :: mindis = 1.0e-8_rkx
+  real(rk8) , parameter :: mindis2 = mindis*mindis
 
   type pwgt
     integer(ik4) :: i , j
-    real(rkx) :: wgt
+    real(rk8) :: wgt
   end type pwgt
 
   type ijwgt
@@ -112,13 +112,13 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(in) :: tlon
     real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
-    real(rkx) , dimension(:,:) , allocatable :: x
+    real(rk8) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
     integer(ik4) :: imode
-    real(rkx) :: dx , r2
+    real(rk8) :: dx , r2
 
     if ( any(shape(tlat) /= shape(tlon)) ) then
       call die('interp_create_ll_g','Target shapes non conforming',1)
@@ -131,8 +131,8 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rkx
-    r2 = 0.0_rkx
+    dx = 0.0_rk8
+    r2 = 0.0_rk8
     if ( present(ds) ) then
       dx = ds/erkm
       imode = 1
@@ -180,7 +180,7 @@ module mod_kdinterp
       end do
     else
       r2 = gcdist_simple(slat(1),slon(1),slat(n1),slon(n2)) / &
-                   (erkm*sqrt(real(n1*n2,rkx)))
+                   (erkm*sqrt(real(n1*n2,rk8)))
       r2 = r2 * r2
       do i = 1 , ni
         if (mod(i,10) == 0) write(stdout,'(a)',advance='no') '.'
@@ -210,13 +210,13 @@ module mod_kdinterp
     real(rkx) , dimension(:) , intent(in) :: tlon
     real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
-    real(rkx) , dimension(:,:) , allocatable :: x
+    real(rk8) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
     integer(ik4) :: imode
-    real(rkx) :: dx , r2
+    real(rk8) :: dx , r2
 
     n1 = size(slat)
     n2 = size(slon)
@@ -226,8 +226,8 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rkx
-    r2 = 0.0_rkx
+    dx = 0.0_rk8
+    r2 = 0.0_rk8
     if ( present(ds) ) then
       dx = ds/erkm
       imode = 1
@@ -301,7 +301,7 @@ module mod_kdinterp
     real(rkx) , dimension(ni) , intent(in) :: slon
     real(rkx) , dimension(no) , intent(in) :: tlat
     real(rkx) , dimension(no) , intent(in) :: tlon
-    real(rkx) , dimension(:,:) , allocatable :: x
+    real(rk8) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
@@ -340,13 +340,13 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(in) :: tlon
     real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
-    real(rkx) , dimension(:,:) , allocatable :: x
+    real(rk8) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
     integer(ik4) :: imode
-    real(rkx) :: dx , r2
+    real(rk8) :: dx , r2
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -362,8 +362,8 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rkx
-    r2 = 0.0_rkx
+    dx = 0.0_rk8
+    r2 = 0.0_rk8
     if ( present(ds) ) then
       dx = ds/erkm
       imode = 1
@@ -437,13 +437,13 @@ module mod_kdinterp
     real(rkx) , dimension(:) , intent(in) :: tlon
     real(rkx) , intent(in) , optional :: ds
     real(rkx) , intent(in) , optional :: roi
-    real(rkx) , dimension(:,:) , allocatable :: x
+    real(rk8) , dimension(:,:) , allocatable :: x
     real(kdkind) , dimension(3) :: p
     type(kdtree2) , pointer :: mr
     type(kdtree2_result) , pointer , dimension(:) :: results
     integer(ik4) :: n1 , n2 , np , ni , nj , nf , i , j
     integer(ik4) :: imode
-    real(rkx) :: dx , r2
+    real(rk8) :: dx , r2
 
     if ( any(shape(slat) /= shape(slon)) ) then
       call die('interp_create_g_g','Source shapes non conforming',1)
@@ -456,8 +456,8 @@ module mod_kdinterp
     allocate(x(3,np))
     call ll2xyz(slat,slon,x)
     mr => kdtree2_create(x,sort=.true.,rearrange=.true.)
-    dx = 0.0_rkx
-    r2 = 0.0_rkx
+    dx = 0.0_rk8
+    r2 = 0.0_rk8
     if ( present(ds) ) then
       dx = ds/erkm
       imode = 1
@@ -575,7 +575,8 @@ module mod_kdinterp
     real(rkx) , dimension(:) , intent(in) :: g
     real(rkx) , dimension(:) , intent(out) :: f
     integer(ik4) :: i , ni , n , si , gni
-    real(rkx) :: gsum , gwgt , gmax , gmin
+    real(rkx) :: gmax , gmin
+    real(rk8) :: gsum , gwgt
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
       call die('interp_1d','Non conforming shape for source',1)
@@ -619,7 +620,8 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(in) :: g
     real(rkx) , dimension(:,:) , intent(out) :: f
     integer(ik4) :: i , j , ni , nj , n , si , sj , gni , gnj
-    real(rkx) :: gsum , gwgt , gmax , gmin
+    real(rk8) :: gsum , gwgt
+    real(rkx) :: gmax , gmin
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_2d','Non conforming shape for source',1)
@@ -855,7 +857,7 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(out) :: f
     real(rkx) , intent(in) :: pct
     integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
-    real(rkx) :: wgt
+    real(rk8) :: wgt
     integer(ik4) , dimension(1) :: v
     integer(ik4) , dimension(:) , allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
@@ -1045,12 +1047,12 @@ module mod_kdinterp
   subroutine compwgt_genlin_1d(np,p,xp,r,w)
     implicit none
     integer(ik4) , intent(inout) :: np
-    real(rkx) , dimension(:,:) , intent(in) :: xp
-    real(rkx) , dimension(3) , intent(in) :: p
+    real(rk8) , dimension(:,:) , intent(in) :: xp
+    real(rk8) , dimension(3) , intent(in) :: p
     type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
-    real(rkx) , dimension(3,np) :: v
-    real(rkx) , dimension(np) :: lambda
+    real(rk8) , dimension(3,np) :: v
+    real(rk8) , dimension(np) :: lambda
     integer(ik4) :: i , n
 
     ! Check perfect match
@@ -1082,12 +1084,12 @@ module mod_kdinterp
     implicit none
     integer(ik4) , intent(in) :: n2
     integer(ik4) , intent(inout) :: np
-    real(rkx) , dimension(:,:) , intent(in) :: xp
-    real(rkx) , dimension(3) , intent(in) :: p
+    real(rk8) , dimension(:,:) , intent(in) :: xp
+    real(rk8) , dimension(3) , intent(in) :: p
     type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
-    real(rkx) , dimension(3,np) :: v
-    real(rkx) , dimension(np) :: lambda
+    real(rk8) , dimension(3,np) :: v
+    real(rk8) , dimension(np) :: lambda
     integer(ik4) :: i , n
 
     ! Check perfect match

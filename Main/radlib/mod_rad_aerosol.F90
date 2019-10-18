@@ -1392,10 +1392,10 @@ module mod_rad_aerosol
       if ( idynamic == 3 ) then
         if ( step == 1 ) then
           call zita_interp(ice1,ice2,jce1,jce2,kz,ntr, &
-                           aerm,m2r%za,m2r%btv0,hsigma,m2r%bps0)
+                           aerm,m2r%za,m2r%btv0,hsigma,m2r%bps0,0)
         else if ( step == 2 ) then
           call zita_interp(ice1,ice2,jce1,jce2,kz,ntr, &
-                           aerm,m2r%za,m2r%btv1,hsigma,m2r%bps1)
+                           aerm,m2r%za,m2r%btv1,hsigma,m2r%bps1,0)
         end if
       end if
 
@@ -1546,15 +1546,15 @@ module mod_rad_aerosol
 
           if (iyear < 1901) then
             infile = 'MACV2_gt_t_00550nm_1850_1900.nc'
-           elseif (iyear > 1900 .and. iyear < 1951) then  
+           elseif (iyear > 1900 .and. iyear < 1951) then
             infile = 'MACV2_gt_t_00550nm_1901_1950.nc'
            elseif (iyear > 1950 .and. iyear < 2001) then
             infile = 'MACV2_gt_t_00550nm_1951_2000.nc'
-           elseif (iyear > 2000 .and. iyear < 2051) then 
+           elseif (iyear > 2000 .and. iyear < 2051) then
             infile = 'MACV2_gt_t_00550nm_2001_2050.nc'
            elseif (iyear > 2050 .and. iyear <= 2101) then
             infile = 'MACV2_gt_t_00550nm_2051_2100.nc'
-          endif 
+          endif
 
           clnlev = 20
           clnlon = 360

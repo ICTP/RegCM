@@ -393,10 +393,10 @@ module mod_write
         call ucrs2dot(zud4(:,:,k),z0(:,:,k),jx,iy,i_band)
         call vcrs2dot(zvd4(:,:,k),z0(:,:,k),jx,iy,i_crm)
       end do
-      call zita_interp(1,jx,1,iy,kz,u4,zud4,tvud4,sigmah,pud4)
-      call zita_interp(1,jx,1,iy,kz,v4,zvd4,tvvd4,sigmah,pvd4)
-      call zita_interp(1,jx,1,iy,kz,t4,z0,tv4,sigmah,ps4)
-      call zita_interp(1,jx,1,iy,kz,q4,z0,tv4,sigmah,ps4)
+      call zita_interp(1,jx,1,iy,kz,u4,zud4,tvud4,sigmah,pud4,0)
+      call zita_interp(1,jx,1,iy,kz,v4,zvd4,tvvd4,sigmah,pvd4,0)
+      call zita_interp(1,jx,1,iy,kz,t4,z0,tv4,sigmah,ps4,1)
+      call zita_interp(1,jx,1,iy,kz,q4,z0,tv4,sigmah,ps4,0)
       ps4 = ps4*d_r100
     end if
 

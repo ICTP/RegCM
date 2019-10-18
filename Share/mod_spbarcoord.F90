@@ -39,14 +39,10 @@ module mod_spbarcoord
 
   type , bind(C) :: vpoint
     integer(c_int) :: idx
-#ifdef SINGLE_PRECISION_REAL
-    real(c_float) , dimension(3) :: v
-#else
     real(c_double) , dimension(3) :: v
-#endif
   end type vpoint
 
-  real(rkx) , dimension(3) :: centroid
+  real(rk8) , dimension(3) :: centroid
 
   interface
     subroutine qsort(array,elem_count,elem_size,compare) bind(C,name="qsort")
@@ -63,14 +59,14 @@ module mod_spbarcoord
   subroutine spherical_barycentric(np,p,v,lambda)
     implicit none
     integer(ik4) , intent(in) :: np
-    real(rkx) , intent(in) , dimension(3) :: p
-    real(rkx) , intent(in) , dimension(3,np) :: v
-    real(rkx) , intent(out) , dimension(np) :: lambda
+    real(rk8) , intent(in) , dimension(3) :: p
+    real(rk8) , intent(in) , dimension(3,np) :: v
+    real(rk8) , intent(out) , dimension(np) :: lambda
     type(vpoint) , target , dimension(np) :: voc
-    real(rkx) , dimension(np) :: alpha
-    real(rkx) , dimension(np) :: theta
-    real(rkx) , dimension(np) :: tansum
-    real(rkx) :: norm
+    real(rk8) , dimension(np) :: alpha
+    real(rk8) , dimension(np) :: theta
+    real(rk8) , dimension(np) :: tansum
+    real(rk8) :: norm
     integer(ik4) :: i
 
     ! Compute ordering centroid
@@ -81,15 +77,15 @@ module mod_spbarcoord
       centroid(2) = centroid(2) + v(2,i)
       centroid(3) = centroid(3) + v(3,i)
     end do
-    centroid = centroid / real(np,rkx)
+    centroid = centroid / real(np,rk8)
 
     call set_clockwise_order
     call compute_angles
-    tansum(1) = tan(alpha(np)*0.5_rkx) + tan(alpha(1)*0.5_rkx)
+    tansum(1) = tan(alpha(np)*0.5_rk8) + tan(alpha(1)*0.5_rk8)
     do i = 2 , np
-      tansum(i) = tan(alpha(i-1)*0.5_rkx) + tan(alpha(i)*0.5_rkx)
+      tansum(i) = tan(alpha(i-1)*0.5_rk8) + tan(alpha(i)*0.5_rk8)
     end do
-    norm = 0.0_rkx
+    norm = 0.0_rk8
     do i = 1 , np
       norm = norm + tansum(i) / tan(theta(i))
     end do
@@ -98,9 +94,9 @@ module mod_spbarcoord
     end do
 
     ! Double check sum weights is one
-    norm = sum(lambda(1:np))-1.0_rkx
-    if ( abs(norm) > epsilon(1.0_rkx) ) then
-      lambda(:) = lambda(:) - norm * (1.0_rkx-lambda(:))
+    norm = sum(lambda(1:np))-1.0_rk8
+    if ( abs(norm) > epsilon(1.0_rk8) ) then
+      lambda(:) = lambda(:) - norm * (1.0_rk8-lambda(:))
     end if
 
     contains
@@ -118,35 +114,35 @@ module mod_spbarcoord
         call qsort(c_loc(voc(1)),lnp,lsize,c_funloc(compare))
       end subroutine set_clockwise_order
 
-      pure real(rkx) function norma2(x) result(a)
+      pure real(rk8) function norma2(x) result(a)
         implicit none
-        real(rkx) , dimension(3) , intent(in) :: x
+        real(rk8) , dimension(3) , intent(in) :: x
         a = (x(1)*x(1)+x(2)*x(2)+x(3)*x(3))
       end function norma2
 
-      pure real(rkx) function norma(x) result(a)
+      pure real(rk8) function norma(x) result(a)
         implicit none
-        real(rkx) , dimension(3) , intent(in) :: x
+        real(rk8) , dimension(3) , intent(in) :: x
         a = sqrt(norma2(x))
       end function norma
 
-      pure real(rkx) function dotprod(x,y) result(a)
+      pure real(rk8) function dotprod(x,y) result(a)
         implicit none
-        real(rkx) , dimension(3) , intent(in) :: x , y
+        real(rk8) , dimension(3) , intent(in) :: x , y
         a = (x(1)*y(1) + x(2)*y(2) + x(3)*y(3))
       end function dotprod
 
-      pure real(rkx) function angle_between(x,y) result(a)
+      pure real(rk8) function angle_between(x,y) result(a)
         implicit none
-        real(rkx) , dimension(3) , intent(in) :: x , y
+        real(rk8) , dimension(3) , intent(in) :: x , y
         a = max(-d_one,min(d_one,dotprod(x,y) / (norma(x)*norma(y))))
         a = acos(a)
       end function angle_between
 
       subroutine vecprod(x,y,z)
         implicit none
-        real(rkx) , dimension(3) , intent(in) :: x , y
-        real(rkx) , dimension(3) , intent(out) :: z
+        real(rk8) , dimension(3) , intent(in) :: x , y
+        real(rk8) , dimension(3) , intent(out) :: z
         z(1) = x(2)*y(3) - x(3)*y(2)
         z(2) = x(3)*y(1) - x(1)*y(3)
         z(3) = x(1)*y(2) - x(2)*y(1)
@@ -154,7 +150,7 @@ module mod_spbarcoord
 
       subroutine compute_angles
         implicit none
-        real(rkx) , dimension(3) :: vp1 , vp2
+        real(rk8) , dimension(3) :: vp1 , vp2
         do i = 1 , np
           theta(i) = angle_between(p,voc(i)%v)
         end do
@@ -173,8 +169,8 @@ module mod_spbarcoord
   integer(c_int) function compare(x1,x2) result(res) bind(C)
     implicit none
     type(vpoint) , intent(in) :: x1 , x2
-    real(rkx) , dimension(3) :: p1 , p2 , n
-    real(rkx) :: xres
+    real(rk8) , dimension(3) :: p1 , p2 , n
+    real(rk8) :: xres
 
     call vecdiff(centroid,x1%v,p1)
     call vecdiff(centroid,x2%v,p2)
@@ -197,8 +193,8 @@ module mod_spbarcoord
 
     subroutine vecdiff(a,b,c)
       implicit none
-      real(rkx) , dimension(3) , intent(in) :: a , b
-      real(rkx) , dimension(3) , intent(out) :: c
+      real(rk8) , dimension(3) , intent(in) :: a , b
+      real(rk8) , dimension(3) , intent(out) :: c
       c(1) = a(1) - b(1)
       c(2) = a(2) - b(2)
       c(3) = a(3) - b(3)

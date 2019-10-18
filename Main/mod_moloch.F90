@@ -71,8 +71,8 @@ module mod_moloch
 
   real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coriol
-  real(rkx) , dimension(:,:) , pointer :: mu , rmu , hx , mx
-  real(rkx) , dimension(:,:) , pointer :: mv , rmv , hy
+  real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
+  real(rkx) , dimension(:,:) , pointer :: mv , hy
   real(rkx) , dimension(:,:) , pointer :: ps
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
@@ -109,8 +109,6 @@ module mod_moloch
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem2d(zpby,jci1,jci2,ici1ga,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1ga,jce2ga,ici1,ici2,'moloch:zpbw')
-    call getmem2d(rmu,jde1gb,jde2gb,ide1,ide2,'moloch:rmu')
-    call getmem2d(rmv,jde1,jde2,ide1gb,ide2gb,'moloch:rmv')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
@@ -157,8 +155,6 @@ module mod_moloch
     if ( ipptls > 0 ) call assignpnt(mo_atm%qx,qx)
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
     if ( ichem == 1 ) call assignpnt(mo_atm%trac,trac)
-    rmu = d_one/mu
-    rmv = d_one/mv
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -464,12 +460,12 @@ module mod_moloch
                 zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
                 zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
                 zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-                zum = u(j,i,k) * rmu(j,i) * zrfmzu
-                zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
-                zvm = v(j,i,k) * rmv(j,i) * zrfmzv
-                zvp = v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                zum = u(j,i,k) * zrfmzu
+                zup = u(j+1,i,k) * zrfmzup
+                zvm = v(j,i,k) * zrfmzv
+                zvp = v(j,i+1,k) * zrfmzvp
                 zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
-                zdiv2(j,i,k) = mx(j,i)*mx(j,i) * zdiv * fmz(j,i,k)
+                zdiv2(j,i,k) = mx(j,i) * zdiv * fmz(j,i,k)
               end do
             end do
           end do

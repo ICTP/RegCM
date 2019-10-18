@@ -992,24 +992,24 @@ program terrain
     implicit none
     integer(ik4) , intent(in) :: i , j , imax , jmax , mmx
     real(rkx) , dimension(:,:) , intent(inout) :: xx
-    real(rkx) , dimension (mmx) :: vals
+    real(rk8) , dimension (mmx) :: vals
     integer(ik4) :: ii , jj , js , is , ip , il , maxil
-    real(rkx) :: countcc
-    real(rkx) , save :: mincc , maxcc
+    real(rk8) :: countcc
+    real(rk8) , save :: mincc , maxcc
     if ( laround0 ) then
-      countcc = 1.0_rkx
-      maxcc = 0.0_rkx
-      mincc = 0.0_rkx
+      countcc = 1.0_rk8
+      maxcc = 0.0_rk8
+      mincc = 0.0_rk8
       do ii = 1 , imax
         do jj = 1 , jmax
           if ( xx(jj,ii) > 0.0_rkx ) then
-            countcc = countcc + 1.0_rkx
+            countcc = countcc + 1.0_rk8
             if ( maxcc < xx(jj,ii) ) maxcc = xx(jj,ii)
             if ( mincc > xx(jj,ii) ) mincc = xx(jj,ii)
           end if
         end do
       end do
-      if ( countcc > 0.0_rkx ) then
+      if ( countcc > 0.0_rk8 ) then
         mincc = mincc / countcc
         maxcc = maxcc / countcc
       end if
@@ -1035,7 +1035,7 @@ program terrain
         end do
       end do
       if ( ip > 0 ) then
-        xx(j,i) = sum(vals(1:ip))/real(ip,rkx)
+        xx(j,i) = sum(vals(1:ip))/real(ip,rk8)
         exit
       else
         il = il + 1

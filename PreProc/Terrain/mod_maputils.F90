@@ -51,27 +51,15 @@ module mod_maputils
     real(rkx) , dimension(jx,iy) , intent(out) :: mapf
     integer(ik4) :: i , j
     if ( iproj=='LAMCON' ) then
-      do i = 1 , iy
-        do j = 1 , jx
-          call mapfac_lc(xlat(j,i), mapf(j,i))
-        end do
-      end do
+      mapf = mapfac_lc(xlat)
     else if ( iproj=='POLSTR' ) then
-      do i = 1 , iy
-        do j = 1 , jx
-          call mapfac_ps(xlat(j,i), mapf(j,i))
-        end do
-      end do
+      mapf = mapfac_ps(xlat)
     else if ( iproj=='NORMER' ) then
-      do i = 1 , iy
-        do j = 1 , jx
-          call mapfac_mc(xlat(j,i), mapf(j,i))
-        end do
-      end do
+      mapf = mapfac_mc(xlat)
     else if ( iproj=='ROTMER' ) then
       do i = 1 , iy
         do j = 1 , jx
-          call mapfac_rc(real(i,rkx), mapf(j,i))
+          mapf(j,i) = mapfac_rc(real(i,rkx))
         end do
       end do
     else
