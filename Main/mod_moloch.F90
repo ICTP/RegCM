@@ -470,7 +470,7 @@ module mod_moloch
             end do
           end do
 
-          call filt3d(zdiv2,0.5_rkx,jcii1,jcii2,icii1,icii2)
+          call filt3d(zdiv2,0.623_rkx,jcii1,jcii2,icii1,icii2)
 
           do k = 1 , kz
             do i = ici1 , ici2
@@ -548,8 +548,8 @@ module mod_moloch
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                zcoriu = d_half*(d_half*coriol(j,i)*(v(j,i,k)+v(j,i+1,k)) + &
-                                 d_half*coriol(j+1,i)*(v(j+1,i,k)+v(j+1,i+1,k)))
+                zcoriu = 0.25_rkx*(coriol(j,i)*(v(j,i,k)+v(j,i+1,k)) + &
+                                   coriol(j+1,i)*(v(j+1,i,k)+v(j+1,i+1,k)))
                 ! Equation 17
                 u(j,i,k) = u(j,i,k) - &
                     zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
@@ -567,8 +567,8 @@ module mod_moloch
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                zcoriv = d_half*(d_half*coriol(j,i)*(u(j,i,k)+u(j+1,i,k)) + &
-                                 d_half*coriol(j,i+1)*(u(j,i+1,k)+u(j+1,i+1,k)))
+                zcoriv = 0.25_rkx*(coriol(j,i)*(u(j,i,k)+u(j+1,i,k)) + &
+                                   coriol(j,i+1)*(u(j,i+1,k)+u(j+1,i+1,k)))
                 ! Equation 18
                 v(j,i,k) = v(j,i,k) - &
                     zrom1v * zcy * (pai(j,i,k) - pai(j,i-1,k)) - &
