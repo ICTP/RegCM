@@ -496,7 +496,8 @@ module mod_moloch
                 zrom1w = d_half * cpd * fmzf(j,i,k) * &
                         (tetav(j,i,k-1) + tetav(j,i,k))
                 zrom1w = zrom1w - cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
-                        jsound * zdtrdz * (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
+                         real(jsound,rkx)*zdtrdz * &
+                         (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
                          (pai(j,i,k-1) - pai(j,i,k)) - egrav*dtsound
                 zwexpl = zwexpl + rdrcv * zrom1w * zdtrdz * &
