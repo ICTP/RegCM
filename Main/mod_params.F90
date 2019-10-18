@@ -2678,6 +2678,7 @@ module mod_params
       subroutine compute_moloch_static
         implicit none
         integer :: i , j
+        call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * &

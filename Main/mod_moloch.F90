@@ -409,7 +409,7 @@ module mod_moloch
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zdiv
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
-        real(rkx) :: zfz , gzitak
+        real(rkx) :: zfz , gzitak , zcoriu , zcoriv
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 
@@ -541,34 +541,38 @@ module mod_moloch
 
           do k = 1 , kz
             gzitak = gzita(zitah(k))
-            do i = ici1 , ice2
-              do j = jcii1 , jci2
+            do i = ici1 , ici2
+              do j = jdii1 , jdii2
                 zcx = zdtrdx * mu(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                zcoriu = d_half*(d_half*coriol(j,i)*(v(j,i,k)+v(j,i+1,k)) + &
+                                 d_half*coriol(j+1,i)*(v(j+1,i,k)+v(j+1,i+1,k)))
                 ! Equation 17
                 u(j,i,k) = u(j,i,k) - &
                     zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
-                    zfz * hx(j,i) * gzitak + coriol(j,i) * v(j,i,k) * dtsound
+                    zfz * hx(j,i) * gzitak + zcoriu * dtsound
               end do
             end do
           end do
 
           do k = 1 , kz
             gzitak = gzita(zitah(k))
-            do i = icii1 , ici2
-              do j = jci1 , jce2
+            do i = idii1 , idii2
+              do j = jci1 , jci2
                 zcy = zdtrdy * mv(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                zcoriv = d_half*(d_half*coriol(j,i)*(u(j,i,k)+u(j+1,i,k)) + &
+                                 d_half*coriol(j,i+1)*(u(j,i+1,k)+u(j+1,i+1,k)))
                 ! Equation 18
                 v(j,i,k) = v(j,i,k) - &
                     zrom1v * zcy * (pai(j,i,k) - pai(j,i-1,k)) - &
-                    zfz * hy(j,i) * gzitak - coriol(j,i) * u(j,i,k) * dtsound
+                    zfz * hy(j,i) * gzitak - zcoriv * dtsound
               end do
             end do
           end do
