@@ -496,7 +496,8 @@ module mod_moloch
                 zrom1w = d_half * cpd * fmzf(j,i,k) * &
                         (tetav(j,i,k-1) + tetav(j,i,k))
                 zrom1w = zrom1w - cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
-                        jsound * zdtrdz * (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
+                         real(jsound,rkx) * zdtrdz * &
+                         (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
                          (pai(j,i,k-1) - pai(j,i,k)) - egrav*dtsound
                 zwexpl = zwexpl + rdrcv * zrom1w * zdtrdz * &
@@ -804,7 +805,7 @@ module mod_moloch
         do k = 1 , kz
           do i = ici1 , ice2
             do j = jci1 , jci2
-              zamu = v(j,i,k)*zdtrdy*mv(j,i)
+              zamu = v(j,i,k)*zdtrdy
               if ( zamu > d_zero ) then
                 is = d_one
                 ih = max(i-1,icross1+1)
@@ -826,9 +827,9 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdv = (v(j,i+1,k)*mv(j,i+1) - v(j,i,k)*mv(j,i))*zdtrdy
-              p0(j,i,k) = wz(j,i,k) + &
-                  zpby(j,i) - zpby(j,i+1) + pp(j,i,k)*zdv
+              zdv = (v(j,i+1,k) - v(j,i,k))*zdtrdy
+              p0(j,i,k) = wz(j,i,k) + mx(j,i) * &
+                  (zpby(j,i) - zpby(j,i+1) + pp(j,i,k)*zdv)
             end do
           end do
         end do
@@ -856,7 +857,7 @@ module mod_moloch
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jce2
-              zamu = u(j,i,k)*zdtrdx*mu(j,i)
+              zamu = u(j,i,k)*zdtrdx !*mu(j,i)
               if ( zamu > d_zero ) then
                 is = d_one
                 jh = max(j-1,jcross1+1)
@@ -878,9 +879,11 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdv = (u(j+1,i,k)*mu(j+1,i) - u(j,i,k)*mu(j,i)) * zdtrdx
-              pp(j,i,k) = p0(j,i,k) + &
-                  zpbw(j,i) - zpbw(j+1,i) + pp(j,i,k)*zdv
+              ! zdv = (u(j+1,i,k)*mu(j+1,i) - u(j,i,k)*mu(j,i)) * zdtrdx
+              zdv = (u(j+1,i,k) - u(j,i,k)) * zdtrdx
+              !pp(j,i,k) = p0(j,i,k) + &
+              pp(j,i,k) = p0(j,i,k) + mx(j,i) * &
+                  (zpbw(j,i) - zpbw(j+1,i) + pp(j,i,k)*zdv)
             end do
           end do
         end do
