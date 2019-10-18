@@ -149,7 +149,7 @@ module mod_che_bdyco
       end if
       if ( idynamic == 3 ) then
         call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                         chebdy,cza,tvirt0,hsigma,bndp0)
+                         chebdy,cza,tvirt0,hsigma,bndp0,0)
       end if
 
       chib0 = d_zero
@@ -214,7 +214,7 @@ module mod_che_bdyco
       end if
       if ( idynamic == 3 ) then
         call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                         chebdy,cza,tvirt1,hsigma,bndp1)
+                         chebdy,cza,tvirt1,hsigma,bndp1,0)
       end if
 
       chib1 = d_zero
@@ -336,7 +336,7 @@ module mod_che_bdyco
       end if
       if ( idynamic == 3 ) then
         call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
-                         chebdy,cza,tvirt1,hsigma,bndp1)
+                         chebdy,cza,tvirt1,hsigma,bndp1,0)
       end if
 
       chib1 = d_zero

@@ -2694,8 +2694,6 @@ module mod_params
         end do
         call exchange_bt(mddom%hy,1,jce1,jce2,idi1,idi2)
         call exchange_bt(mddom%msfv,2,jde1,jde2,ide1,ide2)
-        !mddom%msfu = d_one/mddom%msfu
-        !mddom%msfv = d_one/mddom%msfv
         zita(kzp1) = d_zero
         do k = kz , 1 , -1
           zita(k) = zita(k+1) + mo_dz

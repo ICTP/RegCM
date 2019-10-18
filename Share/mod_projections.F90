@@ -150,10 +150,9 @@ module mod_projections
     alpha = deltalon*degrad*conefac
   end subroutine uvrot_lc
 
-  subroutine mapfac_lc(lat, xmap)
+  pure elemental real(rkx) function mapfac_lc(lat) result(xmap)
     implicit none
     real(rkx) , intent(in) :: lat
-    real(rkx) , intent(out) :: xmap
     real(rkx) :: colat
 
     colat = degrad*(deg90-lat)
@@ -164,7 +163,7 @@ module mod_projections
       xmap = sin(colat1)/sin(colat) * &
              (tan(colat*d_half)/tan(colat1*d_half))**cos(colat1)
     endif
-  end subroutine mapfac_lc
+  end function mapfac_lc
 
   subroutine setup_plr(clat,clon,ci,cj,ds,slon)
     implicit none
@@ -229,12 +228,11 @@ module mod_projections
     if ( lon < -deg180 ) lon = lon + deg360
   end subroutine ijll_ps
 
-  subroutine mapfac_ps(lat, xmap)
+  pure elemental real(rkx) function mapfac_ps(lat) result(xmap)
     implicit none
     real(rkx) , intent(in) :: lat
-    real(rkx) , intent(out) :: xmap
     xmap = scale_top/(d_one + hemi * sin(lat*degrad))
-  end subroutine mapfac_ps
+  end function mapfac_ps
 
   subroutine uvrot_ps(lon, alpha)
     implicit none
@@ -288,12 +286,11 @@ module mod_projections
     if ( lon < -deg180 ) lon = lon + deg360
   end subroutine ijll_mc
 
-  subroutine mapfac_mc(lat, xmap)
+  pure elemental real(rkx) function mapfac_mc(lat) result(xmap)
     implicit none
     real(rkx) , intent(in) :: lat
-    real(rkx) , intent(out) :: xmap
     xmap = d_one/cos(lat*degrad)
-  end subroutine mapfac_mc
+  end function mapfac_mc
 
   subroutine setup_rmc(clat,clon,ci,cj,ds,plon,plat)
     implicit none
@@ -390,14 +387,13 @@ module mod_projections
     alpha = acos(zarg2*znorm)
   end subroutine uvrot_rc
 
-  subroutine mapfac_rc(ir, xmap)
+  pure elemental real(rkx) function mapfac_rc(ir) result(xmap)
     implicit none
     real(rkx) , intent(in) :: ir
-    real(rkx) , intent(out) :: xmap
     real(rkx) :: yr
     yr = yoff + (ir-polej)*dlon
     xmap = d_one/cos(yr*degrad)
-  end subroutine mapfac_rc
+  end function mapfac_rc
 
   function rounder(xval,ltop)
     implicit none

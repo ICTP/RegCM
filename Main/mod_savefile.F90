@@ -1774,7 +1774,7 @@ module mod_savefile
     character(len=*) , intent(in) :: sname
     type (rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(in) :: ncid
-#ifdef NETCDF_CDF5
+#ifndef NETCDF_CDF5
     integer(ik4) :: itemp
     itemp = int(toint10(idate),ik4)
 #else

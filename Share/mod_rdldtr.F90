@@ -35,8 +35,8 @@ module mod_rdldtr
 
   public :: read_ncglob
 
-  real(rkx) , allocatable , dimension(:) :: glat
-  real(rkx) , allocatable , dimension(:) :: glon
+  real(rk8) , allocatable , dimension(:) :: glat
+  real(rk8) , allocatable , dimension(:) :: glon
 
   type globalfile
     integer(ik4) :: ncid
@@ -105,13 +105,13 @@ module mod_rdldtr
     character(len=*) , intent(in) :: cfile , cvar
     integer(ik4) , intent(in) :: iband , iores , imeth
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
+    real(rk8) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
     integer(ik4) , intent(out) :: nlatin , nlonin
     real(rkx) , dimension(:,:) , intent(inout) , pointer :: values
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , inpsec , iopsec , ifrac
     integer(ik4) , dimension(2) :: istart , icount
-    real(rkx) :: deltalat , deltalon
+    real(rk8) :: deltalat , deltalon
     real(rkx) , allocatable , dimension(:,:) :: readbuf
 
 #ifdef DEBUG
@@ -130,8 +130,8 @@ module mod_rdldtr
     nlat = gdomain%nj
     nlon = sum(gdomain%ni)
 
-    inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(real(iores,rkx)*60.0_rkx),inpsec)
+    inpsec = int(abs(glat(2)-glat(1))*3600.0_rk8)
+    iopsec = max(int(real(iores,rk8)*60.0_rk8),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -142,19 +142,19 @@ module mod_rdldtr
     if ( ifrac > 1 ) then
       nlatin = (nlat/ifrac) - 1
       nlonin = (nlon/ifrac) - 1
-      deltalat = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
-      deltalon = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      deltalat = (real(iopsec,rk8)/2.0_rk8) / 3600.0_rk8
+      deltalon = (real(iopsec,rk8)/2.0_rk8) / 3600.0_rk8
     else
       nlatin = nlat
       nlonin = nlon
-      deltalat = 0.0_rkx
-      deltalon = 0.0_rkx
+      deltalat = 0.0_rk8
+      deltalon = 0.0_rk8
     end if
 
     grdlnmn = glon(gdomain%igstart(1)) + deltalon
-    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rkx) / 3600.0_rkx
+    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rk8) / 3600.0_rk8
     grdltmn = glat(gdomain%jgstart) + deltalat
-    grdltma = grdltmn + real((nlatin-1)*iopsec,rkx) / 3600.0_rkx
+    grdltma = grdltmn + real((nlatin-1)*iopsec,rk8) / 3600.0_rk8
 
     deallocate(glat)
     deallocate(glon)
@@ -224,13 +224,13 @@ module mod_rdldtr
     character(len=*) , intent(in) :: cfile , cvar
     integer(ik4) , intent(in) :: iband , iores , imeth
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
+    real(rk8) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
     integer(ik4) , intent(out) :: nlatin , nlonin
     real(rkx) , dimension(:,:,:) , intent(inout) , pointer :: values
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , n , inpsec , iopsec , ifrac , nd
     integer(ik4) , dimension(3) :: idims , istart , icount
-    real(rkx) :: deltalat , deltalon
+    real(rk8) :: deltalat , deltalon
     real(rkx) , allocatable , dimension(:,:,:) :: readbuf
 
 #ifdef DEBUG
@@ -262,8 +262,8 @@ module mod_rdldtr
     nlat = gdomain%nj
     nlon = sum(gdomain%ni)
 
-    inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(real(iores,rkx)*60.0_rkx),inpsec)
+    inpsec = int(abs(glat(2)-glat(1))*3600.0_rk8)
+    iopsec = max(int(real(iores,rk8)*60.0_rk8),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -274,19 +274,19 @@ module mod_rdldtr
     if ( ifrac > 1 ) then
       nlatin = (nlat/ifrac) - 1
       nlonin = (nlon/ifrac) - 1
-      deltalat = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
-      deltalon = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      deltalat = (real(iopsec,rk8)/2.0_rk8) / 3600.0_rk8
+      deltalon = (real(iopsec,rk8)/2.0_rk8) / 3600.0_rk8
     else
       nlatin = nlat
       nlonin = nlon
-      deltalat = 0.0_rkx
-      deltalon = 0.0_rkx
+      deltalat = 0.0_rk8
+      deltalon = 0.0_rk8
     end if
 
     grdlnmn = glon(gdomain%igstart(1)) + deltalon
-    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rkx) / 3600.0_rkx
+    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rk8) / 3600.0_rk8
     grdltmn = glat(gdomain%jgstart) + deltalat
-    grdltma = grdltmn + real((nlatin-1)*iopsec,rkx) / 3600.0_rkx
+    grdltma = grdltmn + real((nlatin-1)*iopsec,rk8) / 3600.0_rk8
 
     deallocate(glat)
     deallocate(glon)
@@ -363,14 +363,14 @@ module mod_rdldtr
     character(len=*) , intent(in) :: cfile , cvar
     integer(ik4) , intent(in) :: iband , iores , imeth
     real(rkx) , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
+    real(rk8) , intent(out) :: grdlnma , grdlnmn , grdltma , grdltmn
     integer(ik4) , intent(out) :: nlatin , nlonin
     real(rkx) , dimension(:,:) , intent(inout) , pointer :: values
     integer(ik4) , intent(in) :: isel
     integer(ik4) :: nlat , nlon , iti , itf , itile , ivar
     integer(ik4) :: i , j , inpsec , iopsec , ifrac , nd
     integer(ik4) , dimension(3) :: istart , icount
-    real(rkx) :: deltalat , deltalon
+    real(rk8) :: deltalat , deltalon
     real(rkx) , allocatable , dimension(:,:) :: readbuf
 
 #ifdef DEBUG
@@ -396,8 +396,8 @@ module mod_rdldtr
     nlat = gdomain%nj
     nlon = sum(gdomain%ni)
 
-    inpsec = int(abs(glat(2)-glat(1))*3600.0_rkx)
-    iopsec = max(int(real(iores,rkx)*60.0_rkx),inpsec)
+    inpsec = int(abs(glat(2)-glat(1))*3600.0_rk8)
+    iopsec = max(int(real(iores,rk8)*60.0_rk8),inpsec)
     ifrac = max(iopsec/inpsec,1)
 #ifdef DEBUG
     write(stderr,*) 'INPSEC = ', inpsec
@@ -408,19 +408,19 @@ module mod_rdldtr
     if ( ifrac > 1 ) then
       nlatin = (nlat/ifrac) - 1
       nlonin = (nlon/ifrac) - 1
-      deltalat = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
-      deltalon = (real(iopsec,rkx)/2.0_rkx) / 3600.0_rkx
+      deltalat = (real(iopsec,rk8)/2.0_rk8) / 3600.0_rk8
+      deltalon = (real(iopsec,rk8)/2.0_rk8) / 3600.0_rk8
     else
       nlatin = nlat
       nlonin = nlon
-      deltalat = 0.0_rkx
-      deltalon = 0.0_rkx
+      deltalat = 0.0_rk8
+      deltalon = 0.0_rk8
     end if
 
     grdlnmn = glon(gdomain%igstart(1)) + deltalon
-    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rkx) / 3600.0_rkx
+    grdlnma = grdlnmn + real((nlonin-1)*iopsec,rk8) / 3600.0_rk8
     grdltmn = glat(gdomain%jgstart) + deltalat
-    grdltma = grdltmn + real((nlatin-1)*iopsec,rkx) / 3600.0_rkx
+    grdltma = grdltmn + real((nlatin-1)*iopsec,rk8) / 3600.0_rk8
 
     deallocate(glat)
     deallocate(glon)
@@ -748,7 +748,7 @@ module mod_rdldtr
     real(rkx) , intent(in) :: ds , roi
     integer(ik4) , intent(in) :: iband
     integer(ik4) :: nlat , nlon , n , i , j , js , itf , iti , itile
-    real(rkx) , dimension(:) , allocatable :: glat , glon
+    real(rk8) , dimension(:) , allocatable :: glat , glon
     real(rkx) , dimension(:) , allocatable :: rglat , rglon
     integer(ik4) :: idimid , idvar
     integer(ik4) :: jlat , ilon

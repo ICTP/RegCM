@@ -108,7 +108,7 @@ module mod_kdtree2_priority
 
   integer , parameter :: sp = rk4
   integer , parameter :: dp = rk8
-  integer , parameter :: kdkind = rkx
+  integer , parameter :: kdkind = rk8
 
   !
   ! maintain a priority queue (PQ) of data, pairs of 'priority/payload',

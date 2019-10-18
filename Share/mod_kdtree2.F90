@@ -110,7 +110,7 @@ module mod_kdtree2
 
   integer , parameter :: sp = rk4
   integer , parameter :: dp = rk8
-  integer , parameter :: kdkind = rkx
+  integer , parameter :: kdkind = rk8
   !
   ! K-D tree routines in Fortran 90 by Matt Kennel.
   ! Original program was written in Sather by Steve Omohundro and
