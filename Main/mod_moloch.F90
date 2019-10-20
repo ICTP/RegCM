@@ -88,8 +88,6 @@ module mod_moloch
   public :: allocate_moloch , init_moloch , moloch
   public :: uvstagtox , wstagtox
 
-  integer(ik4) :: nadv = 1
-  integer(ik4) :: nsound = 6
   real(rkx) , parameter :: minden = 1.0e-15_rkx
 
   contains
@@ -172,8 +170,8 @@ module mod_moloch
     call time_begin(subroutine_name,idindx)
 #endif
 
-    dtstepa = dtsec / real(nadv,rkx)
-    dtsound = dtsec / real(nsound,rkx)
+    dtstepa = dtsec / real(mo_nadv,rkx)
+    dtsound = dtsec / real(mo_nsound,rkx)
     iconvec = 0
 
     if ( ipptls > 0 ) then
@@ -215,7 +213,7 @@ module mod_moloch
 
     call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
-    do jadv = 1 , nadv
+    do jadv = 1 , mo_nadv
 
       call sound(dtsound)
 
@@ -420,7 +418,7 @@ module mod_moloch
 
         !  sound waves
 
-        do jsound = 1 , nsound
+        do jsound = 1 , mo_nsound
 
           ! partial definition of the generalized vertical velocity
           call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
@@ -470,7 +468,7 @@ module mod_moloch
             end do
           end do
 
-          call filt3d(zdiv2,0.623_rkx,jcii1,jcii2,icii1,icii2)
+          call filt3d(zdiv2,0.625_rkx,jcii1,jcii2,icii1,icii2)
 
           do k = 1 , kz
             do i = ici1 , ici2

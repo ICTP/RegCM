@@ -207,18 +207,19 @@ module mod_init
         if ( myid == 0 ) then
           write(stdout,'(a, f7.4)') &
              ' Max. Courant number for horizontal advection = ', &
-             sqrt(d_two)*azmax*dtsec/dx
+             sqrt(d_two)*(1.10_rkx*azmax)*dtsec/real(mo_nadv,rkx)/dx
           write(stdout,'(a, f7.4)') &
              ' Courant number of horizontal sound waves = ', &
-             sqrt(d_two)*sqrt(cpd/cvd*rgas*300.0_rkx)*dtsec/6.0_rkx/dx
+             sqrt(d_two)*sqrt(cpd/cvd*rgas*300.0_rkx)* &
+             dtsec/real(mo_nsound,rkx)/dx
         end if
 
         ! Sponge layer at the top of the atmosphere
 
         ntop = int(0.08_rkx * real(kz,rkx))
-        zfilt = (kzp1-ntop+4)*mo_dz
+        zfilt = (kzp1-ntop+mo_nzfilt)*mo_dz
         do k = 1 , kz
-          if ( k > ntop+3 ) then
+          if ( k > ntop+mo_nzfilt-1 ) then
             ffilt(k) = d_zero
           else
             zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
@@ -651,12 +652,14 @@ module mod_init
         call vprntv(ozprnt,kzp1,'Ozone profiles restart')
       end if
 
-      call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
-      call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
-      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psa,sfs%psdota)
-      call psc2psd(sfs%psb,sfs%psdotb)
-      call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
+      if ( idynamic / 3 ) then
+        call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
+        call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
+        call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+        call psc2psd(sfs%psa,sfs%psdota)
+        call psc2psd(sfs%psb,sfs%psdotb)
+        call exchange(sfs%psdotb,idif,jde1,jde2,ide1,ide2)
+      end if
 
       if ( idynamic == 2 ) then
         do i = ice1 , ice2

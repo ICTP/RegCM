@@ -185,7 +185,7 @@ program icbc
   end if
 
   if ( idynamic == 3 ) then
-    write(stdout, *) 'Using Moloch non-hydrostatic dynamica core'
+    write(stdout, *) 'Using Moloch non-hydrostatic dynamical core'
   end if
 
   if ( dattyp == 'FVGCM' .or. dattyp == 'EH5RF' .or. &

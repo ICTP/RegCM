@@ -167,9 +167,14 @@ module mod_runparams
   character(len=8) , public :: scenario
   integer(ik4) , public :: ghg_year_const
 
+  ! Moloch
+  real(rkx) , public :: mo_dz
+  integer(ik4) , public :: mo_nadv = 1
+  integer(ik4) , public :: mo_nsound = 6
+  integer(ik4) , public :: mo_nzfilt = 3
+
   real(rkx) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rkx) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(rkx) , public :: mo_dz
   real(rkx) , public :: rdx , rdxsq
   real(rkx) , public :: dtsrf , dtabem , dtrad , dtcum , dtche
   real(rkx) , public :: cpldt , zomax , ustarmax

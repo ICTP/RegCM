@@ -332,7 +332,6 @@ module mod_bdycod
       psdot(:,:) = atm0%psdot(jde1:jde2,ide1:ide2) * d_r1000
       xpsb%b1(:,:) = xpsb%b0(:,:)
     else
-      call exchange(xpsb%b0,1,jce1,jce2,ice1,ice2)
       xpsb%b0(:,:) = xpsb%b0(:,:)*d_100
     end if
     !
@@ -421,7 +420,6 @@ module mod_bdycod
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
-      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
     end if
     !
@@ -558,6 +556,9 @@ module mod_bdycod
       xwwb%b0(:,:,:) = xwwb%b1(:,:,:)
     else
       xpsb%b0(:,:) = xpsb%b1(:,:)
+      if ( idynamic == 3 ) then
+        xpaib%b0(:,:,:) = xpaib%b1(:,:,:)
+      end if
     end if
 
     if ( update_slabocn ) then
@@ -622,7 +623,6 @@ module mod_bdycod
       call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       call psc2psd(xpsb%b1,psdot)
     else if ( idynamic == 3 ) then
-      call exchange(xpsb%b1,1,jce1,jce2,ice1,ice2)
       xpsb%b1(:,:) = xpsb%b1(:,:)*d_100
     end if
     !
@@ -643,8 +643,6 @@ module mod_bdycod
       call couple(xwwb%b1,xpsb%b1,jce1,jce2,ice1,ice2,1,kzp1)
       call exchange(xppb%b1,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(xwwb%b1,1,jce1,jce2,ice1,ice2,1,kzp1)
-    else
-      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
     end if
 
     ! Linear time interpolation
@@ -652,7 +650,9 @@ module mod_bdycod
     call timeint(xvb%b1,xvb%b0,xvb%bt,jde1ga,jde2ga,ide1ga,ide2ga,1,kz)
     call timeint(xtb%b1,xtb%b0,xtb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     call timeint(xqb%b1,xqb%b0,xqb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
-    if ( idynamic == 2 ) then
+    if ( idynamic == 1 ) then
+      call timeint(xpsb%b1,xpsb%b0,xpsb%bt,jce1ga,jce2ga,ice1ga,ice2ga)
+    else if ( idynamic == 2 ) then
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
