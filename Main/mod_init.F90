@@ -652,7 +652,7 @@ module mod_init
         call vprntv(ozprnt,kzp1,'Ozone profiles restart')
       end if
 
-      if ( idynamic / 3 ) then
+      if ( idynamic /= 3 ) then
         call exchange(sfs%psdota,1,jde1,jde2,ide1,ide2)
         call exchange(sfs%psb,idif,jce1,jce2,ice1,ice2)
         call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
