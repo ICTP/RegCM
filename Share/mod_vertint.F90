@@ -1388,7 +1388,7 @@ module mod_vertint
               fp(i,j,n) = f(i,j,km)
             else if ( sigp >= sig(1) ) then
               fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
-                        exp(real(rglrog)*log(sigp/sig(1)))
+                        exp(real(rglrog,rk4)*log(sigp/sig(1)))
             else
               !
               ! Search k level above the requested one
@@ -1451,7 +1451,7 @@ module mod_vertint
               fp(i,j,n) = f(i,j,1)
             else if ( sigp >= sig(km) ) then
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
-                        exp(real(rglrog)*log(sigp/sig(km)))
+                        exp(real(rglrog,rk4)*log(sigp/sig(km)))
             else
               !
               ! Search k level below the requested one
@@ -1633,7 +1633,7 @@ module mod_vertint
               fp(i,j,n) = f(i,j,km)
             else if ( sigp >= sig(1) ) then
               fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
-                        exp(real(rglrog)*log(sigp/sig(1)))
+                        exp(real(rglrog,rk4)*log(sigp/sig(1)))
             else
               !
               ! Search k level above the requested one
@@ -1677,7 +1677,7 @@ module mod_vertint
               fp(i,j,n) = f(i,j,1)
             else if ( sigp >= sig(km) ) then
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
-                        exp(real(rglrog)*log(sigp/sig(km)))
+                        exp(real(rglrog,rk4)*log(sigp/sig(km)))
             else
               !
               ! Search k level below the requested one
@@ -1812,7 +1812,7 @@ module mod_vertint
     real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
     real(rkx) , dimension(kccm) :: xc , fc
     real(rkx) , dimension(krcm) :: xr , fr
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i , j
     do i = 1 , ni
       do j = 1 , nj
         xc(:) = zccm(i,j,:)

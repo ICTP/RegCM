@@ -223,14 +223,14 @@ module mod_interp
     real(rk8) , dimension(:) , intent(out) :: f
     ! alfa: spline tension parameter, comprised between 0 and 1:
     ! if alfa=1, pure linear interpolation; if alfa=0, pure spline
-    real(rk4) , intent(in) :: alfa
+    real(rk8) , intent(in) :: alfa
     ! ex1: param. determining extrapolation for x < xi(1)
     ! ex2: param. determining extrapolation for x > xi(npi)
     ! if ex1=0 or ex2=0, constant value extrapolation is used at extreme
     ! if ex1=1 or ex2=1, linear extrapolation is used at corresponding extreme
     ! intermediate values of ex1 and ex2 give intermediate extrapolation values
-    real(rk4) , intent(in) :: ex1
-    real(rk4) , intent(in) :: ex2
+    real(rk8) , intent(in) :: ex1
+    real(rk8) , intent(in) :: ex2
 
     real(rk8) :: zeps , ximed , gmed , fmm , fpp , xmm , xpp
     real(rk8) :: fm , xm , fp , xp , delx , delxp , delxm
