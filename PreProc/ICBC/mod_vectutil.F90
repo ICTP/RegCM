@@ -29,9 +29,111 @@ module mod_vectutil
   public :: crs2dot , dot2crs , top2btm , btm2top , meandiv , meandivf
   public :: ucrs2dot , vcrs2dot
 
+  interface ucrs2dot
+    module procedure ucrs2dot_2d
+    module procedure ucrs2dot_3d
+  end interface ucrs2dot
+
+  interface vcrs2dot
+    module procedure vcrs2dot_2d
+    module procedure vcrs2dot_3d
+  end interface vcrs2dot
+
   contains
 
-  subroutine ucrs2dot(pd,px,ni,nj,iband)
+  subroutine ucrs2dot_3d(pd,px,ni,nj,nk,iband)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    integer(ik4) , intent(in) :: iband
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: px
+    real(rkx) , intent(out) , dimension(ni,nj,nk) :: pd
+
+    integer(ik4) :: i , j , k , ni1 , im1 , im2 , ip1
+    !
+    ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
+    ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
+    ! SATISFY P(0,J) = P(1,J); P(NI,J) = P(NI-1,J); AND SIMILARLY FOR THE
+    ! I'S.
+    !
+    if ( iband == 1 ) then
+      do k = 1 , nk
+        do j = 1 , nj
+          do i = 1 , ni
+            im1 = i-1
+            im2 = i-2
+            ip1 = i+1
+            if (ip1 > ni) ip1 = 1
+            if (im1 == 0) im1 = ni
+            if (im2 == 0) im2 = ni
+            if (im2 == -1) im2 = ni-1
+            pd(i,j,k) = 0.5625_rkx*(px(i,j,k)+px(im1,j,k)) - &
+                        0.0625_rkx*(px(ip1,j,k)+px(im2,j,k))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , nk
+        ni1 = ni - 1
+        do j = 1 , nj
+          do i = 3 , ni1
+            pd(i,j,k) = 0.5625_rkx*(px(i,j,k)+px(i-1,j,k)) - &
+                        0.0625_rkx*(px(i+1,j,k)+px(i-2,j,k))
+          end do
+        end do
+        pd(1,:,k) = px(1,:,k)
+        pd(2,:,k) = 0.5_rkx * (px(1,:,k)+px(2,:,k))
+        pd(ni,:,k) = 0.5_rkx * (px(ni-1,:,k)+px(ni,:,k))
+      end do
+    end if
+  end subroutine ucrs2dot_3d
+
+  subroutine vcrs2dot_3d(pd,px,ni,nj,nk,icrs)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nk
+    integer(ik4) , intent(in) :: icrs
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: px
+    real(rkx) , intent(out) , dimension(ni,nj,nk) :: pd
+
+    integer(ik4) :: i , j , k , nj1 , jm1 , jm2 , jp1
+    !
+    ! THIS ROUTINE DETERMINES P(.) FROM P(X) BY A 4-POINT INTERPOLATION.
+    ! ON THE X-GRID, A P(X) POINT OUTSIDE THE GRID DOMAIN IS ASSUMED TO
+    ! SATISFY P(0,J) = P(1,J); P(NI,J) = P(NI-1,J); AND SIMILARLY FOR THE
+    ! I'S.
+    !
+    if ( icrs == 1 ) then
+      do k = 1 , nk
+        do j = 1 , nj
+          jm1 = j-1
+          jm2 = j-2
+          jp1 = j+1
+          if (jp1 > ni) jp1 = 1
+          if (jm1 == 0) jm1 = nj
+          if (jm2 == 0) jm2 = nj
+          if (jm2 == -1) jm2 = nj-1
+          do i = 1 , ni
+            pd(i,j,k) = 0.5625_rkx*(px(i,j,k)+px(i,jm1,k)) - &
+                        0.0625_rkx*(px(i,jp1,k)+px(i,jm2,k))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , nk
+        nj1 = nj - 1
+        do j = 3 , nj1
+          do i = 1 , ni
+            pd(i,j,k) = 0.5625_rkx*(px(i,j,k)+px(i,j-1,k)) - &
+                        0.0625_rkx*(px(i,j+1,k)+px(i,j-2,k))
+          end do
+        end do
+        pd(:,1,k) = px(:,1,k)
+        pd(:,2,k) = 0.5_rkx * (px(:,1,k)+px(:,2,k))
+        pd(:,nj,k) = 0.5_rkx * (px(:,nj-1,k)+px(:,nj,k))
+      end do
+    end if
+  end subroutine vcrs2dot_3d
+
+  subroutine ucrs2dot_2d(pd,px,ni,nj,iband)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     integer(ik4) , intent(in) :: iband
@@ -71,9 +173,9 @@ module mod_vectutil
       pd(2,:) = 0.5_rkx * (px(1,:)+px(2,:))
       pd(ni,:) = 0.5_rkx * (px(ni-1,:)+px(ni,:))
     end if
-  end subroutine ucrs2dot
+  end subroutine ucrs2dot_2d
 
-  subroutine vcrs2dot(pd,px,ni,nj,icrs)
+  subroutine vcrs2dot_2d(pd,px,ni,nj,icrs)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     integer(ik4) , intent(in) :: icrs
@@ -113,7 +215,7 @@ module mod_vectutil
       pd(:,2) = 0.5_rkx * (px(:,1)+px(:,2))
       pd(:,nj) = 0.5_rkx * (px(:,nj-1)+px(:,nj))
     end if
-  end subroutine vcrs2dot
+  end subroutine vcrs2dot_2d
 
   subroutine crs2dot(pd,px,ni,nj,iband,icrm)
     implicit none

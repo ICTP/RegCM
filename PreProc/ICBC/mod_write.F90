@@ -34,14 +34,14 @@ module mod_write
   private
 
   real(rkx) , pointer , dimension(:,:) :: ps4 , ts4 , wtop4 , psd0 , topod
+  real(rkx) , pointer , dimension(:,:) :: pd4
   real(rkx) , pointer , dimension(:,:) :: pr , ssr , strd , clt
   real(rkx) , pointer , dimension(:,:,:) :: q4
   real(rkx) , pointer , dimension(:,:,:) :: t4 , u4 , v4
   real(rkx) , pointer , dimension(:,:,:) :: pp4 , ww4 , tv4 , tvd4
   real(rkx) , pointer , dimension(:,:,:) :: zud4 , zvd4
-  real(rkx) , pointer , dimension(:,:,:) :: tvud4 , tvvd4
 
-  public :: ps4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4
+  public :: ps4 , pd4 , ts4 , q4 , t4 , u4 , v4 , pp4 , ww4 , zud4 , zvd4
   public :: pr , ssr , strd , clt
   public :: init_output , close_output , dispose_output , newfile , writef
   public :: init_houtput , newhfile , writehf
@@ -114,9 +114,14 @@ module mod_write
     call getmem3d(t4,1,jx,1,iy,1,kz,'mod_write:t4')
     call getmem3d(u4,1,jx,1,iy,1,kz,'mod_write:u4')
     call getmem3d(v4,1,jx,1,iy,1,kz,'mod_write:v4')
-    if ( idynamic == 2 ) then
+    if ( idynamic == 1 ) then
+      nvar2d = 8
+      nvar3d = 4
+      call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
+    else if ( idynamic == 2 ) then
       nvar3d = 6
       nvar2d = 9
+      call getmem2d(pd4,1,jx,1,iy,'mod_write:pd4')
       call getmem2d(wtop4,1,jx,1,iy,'mod_write:wtop4')
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
       call getmem2d(topod,1,jx,1,iy,'mod_write:topod')
@@ -128,14 +133,8 @@ module mod_write
       nvar2d = 10
       nvar3d = 4
       call getmem2d(psd0,1,jx,1,iy,'mod_write:psd0')
-      call getmem3d(tv4,1,jx,1,iy,1,kz,'mod_write:tv4')
       call getmem3d(zud4,1,jx,1,iy,1,kz,'mod_write:zud4')
       call getmem3d(zvd4,1,jx,1,iy,1,kz,'mod_write:zvd4')
-      call getmem3d(tvud4,1,jx,1,iy,1,kz,'mod_write:tvud4')
-      call getmem3d(tvvd4,1,jx,1,iy,1,kz,'mod_write:tvvd4')
-    else
-      nvar2d = 8
-      nvar3d = 4
     end if
     allocate(v2dvar_icbc(nvar2d), v3dvar_icbc(nvar3d), stat=ierr)
     if ( ierr /= 0 ) then
@@ -383,21 +382,7 @@ module mod_write
 
     if ( idynamic == 3 ) then
       ! Remember in this case ptop is zero!
-      ps4 = ps4*d_1000
-      pud4 = pud4*d_1000
-      pvd4 = pvd4*d_1000
-      tv4 = t4 * (d_one + ep1 * q4)
-      do k = 1 , kz
-        call ucrs2dot(tvud4(:,:,k),tv4(:,:,k),jx,iy,i_band)
-        call vcrs2dot(tvvd4(:,:,k),tv4(:,:,k),jx,iy,i_crm)
-        call ucrs2dot(zud4(:,:,k),z0(:,:,k),jx,iy,i_band)
-        call vcrs2dot(zvd4(:,:,k),z0(:,:,k),jx,iy,i_crm)
-      end do
-      call zita_interp(1,jx,1,iy,kz,u4,zud4,tvud4,sigmah,pud4,0)
-      call zita_interp(1,jx,1,iy,kz,v4,zvd4,tvvd4,sigmah,pvd4,0)
-      call zita_interp(1,jx,1,iy,kz,t4,z0,tv4,sigmah,ps4,1)
-      call zita_interp(1,jx,1,iy,kz,q4,z0,tv4,sigmah,ps4,0)
-      ps4 = ps4*d_r100
+      ps4 = ps4*d_10
     end if
 
     call outstream_addrec(ncout,idate)

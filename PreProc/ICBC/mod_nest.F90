@@ -673,51 +673,53 @@ module mod_nest
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,np)
     call intpsn(ps4,topogm,pa,za,tlayer,ptoppa,jx,iy)
     if ( idynamic == 3 ) then
-      call ucrs2dot(pud4,ps4,jx,iy,i_band)
-      call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
+      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
     else
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
     !
-    ! Determine surface temps on RegCM topography.
     ! Interpolation from pressure levels
     !
-    call intv3(ts4,t3,ps4,pss,sigmar,ptoppa,jx,iy,np)
-    !
-    ! Overwrite SST using TS from ATM file.
-    !
+    if ( idynamic == 3 ) then
+      call intz3(ts4,t3,h3,topogm,jx,iy,np,0.6_rkx,0.85_rkx,0.5_rkx)
+    else
+      call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,np)
+    end if
     where ( mask == 0 )
       ts4(:,:) = ts(:,:)
     end where
     !
     ! Interpolate U, V, T, and Q.
     !
+    if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-    if ( idynamic == 3 ) then
-      call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
-    else
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
-    end if
+      call intz1(u4,u3,zud4,h3,jx,iy,kz,np,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-    if ( idynamic == 3 ) then
-      call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
-    else
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,1)
-    end if
+      call intz1(v4,v3,zvd4,h3,jx,iy,kz,np,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np)
+      call intz1(t4,t3,z0,h3,jx,iy,kz,np,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptoppa,jx,iy,kz,np,2)
+      call intz1(q4,q3,z0,h3,jx,iy,kz,np,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP END SECTIONS
+    else
+!$OMP SECTIONS
+!$OMP SECTION
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,np,1)
+!$OMP SECTION
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,np,1)
+!$OMP SECTION
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,np)
+!$OMP SECTION
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,np,1)
+!$OMP END SECTIONS
+    end if
     !
     ! Put surface pressures in cb now to be conforming to other modules.
     !
     ps4 = ps4 * d_r1000
-    if ( idynamic == 3 ) then
-      pud4 = pud4 * d_r1000
-      pvd4 = pvd4 * d_r1000
-    else
+    if ( idynamic /= 3 ) then
       pd4 = pd4 * d_r1000
     end if
   end subroutine get_nest

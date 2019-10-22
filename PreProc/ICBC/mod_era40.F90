@@ -190,40 +190,49 @@ module mod_era40
     !
     ! New calculation of P* on rcm topography.
     call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
-
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     if ( idynamic == 3 ) then
-      call ucrs2dot(pud4,ps4,jx,iy,i_band)
-      call vcrs2dot(pvd4,ps4,jx,iy,i_crm)
+      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
+      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
     else
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
     !
-    ! Determine surface temps on rcm topography.
     ! Interpolation from pressure levels
-    call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
+    !
+    if ( idynamic == 3 ) then
+      call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+    else
+      call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
+    end if
 
     call readsst(ts4,idate)
-
+    !
     ! Interpolate U, V, T, and Q.
+    !
+    if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-    if ( idynamic == 3 ) then
-      call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
-    else
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
-    end if
+      call intz1(u4,u3,zud4,h3,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-    if ( idynamic == 3 ) then
-      call intv1(v4,v3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
-    else
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
-    end if
+      call intz1(v4,v3,zvd4,h3,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-    call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+      call intz1(t4,t3,z0,h3,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
-    call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intz1(q4,q3,z0,h3,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP END SECTIONS
+    else
+!$OMP SECTIONS
+!$OMP SECTION
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+!$OMP SECTION
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+!$OMP SECTION
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+!$OMP SECTION
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+!$OMP END SECTIONS
+    end if
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_era40
 

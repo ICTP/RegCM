@@ -35,7 +35,7 @@ module mod_interp
 
   public :: bilinx , cressmcr , cressmdt , distwgtcr , distwgtdt
   public :: kernsmooth
-  public :: setup1d , interp1d
+  public :: interp1d
 
   real(rkx) :: alatmn , alatmx , alonmn , alonmx
   real(rkx) :: glatmn , glatmx , glonmn , glonmx
@@ -58,6 +58,11 @@ module mod_interp
   logical :: lonwrap = .false.
   logical :: latpole = .false.
 
+  interface interp1d
+    module procedure interp1d_r4
+    module procedure interp1d_r8
+  end interface interp1d
+
   interface cressmcr
     module procedure cressmcr3d
     module procedure cressmcr2d
@@ -73,37 +78,7 @@ module mod_interp
     module procedure kernsmooth3
   end interface kernsmooth
 
-  ! alfa: spline tension parameter, comprised between 0 and 1:
-  ! if alfa=1, pure linear interpolation; if alfa=0, pure spline
-  real(rkx) :: alfa = 1.0_rkx
-
-  ! ex1: param. determining extrapolation for x < xi(1)
-  ! ex2: param. determining extrapolation for x > xi(npi)
-  ! if ex1=0 or ex2=0, constant value extrapolation is used at extreme
-  ! if ex1=1 or ex2=1, linear extrapolation is used at corresponding extreme
-  ! intermediate values of ex1 and ex2 give intermediate extrapolation values
-  real(rkx) :: ex1 = 0.0_rkx
-  real(rkx) :: ex2 = 0.0_rkx
-
   contains
-
-  ! Set alfa, ex1 and ex2 parameters
-  subroutine setup1d(in_alfa,in_ex1,in_ex2)
-    implicit none
-    real(rkx) , intent(in) :: in_alfa , in_ex1 , in_ex2
-    alfa = in_alfa
-    ex1 = in_ex1
-    ex2 = in_ex2
-    if ( alfa < 0.0_rkx .or. alfa > 1.0_rkx ) then
-      write(stderr,*) 'Caution: in interp, alfa out of interval 0-1'
-    end if
-    if ( ex1 < 0.0_rkx .or. ex1 > 1.0_rkx ) then
-      write(stderr,*) 'Caution: in interp, ex1 out of interval 0-1'
-    end if
-    if ( ex2 < 0.0_rkx .or. ex2 > 1.0_rkx ) then
-      write(stderr,*) 'Caution: in interp, ex2 out of interval 0-1'
-    end if
-  end subroutine setup1d
 
   ! Interpolates with splines with tension in one dimension.
   ! The spline is defined imposing that the second derivative is
@@ -111,19 +86,29 @@ module mod_interp
   ! At interval extremes the second derivative is assumed null.
   ! This subroutine also extrapolates out of the interval where the
   ! input funtion g is defined
-  subroutine interp1d(xi,g,xo,f)
+  subroutine interp1d_r4(xi,g,xo,f,alfa,ex1,ex2)
     implicit none
     !  Input:  function g defined at irregular but strictly monotonic xi
     !  Output: f interpolated values at arbitrary coordinates xo
-    real(rkx) , dimension(:) , intent(in) :: xi , xo , g
-    real(rkx) , dimension(:) , intent(out) :: f
+    real(rk4) , dimension(:) , intent(in) :: xi , xo , g
+    real(rk4) , dimension(:) , intent(out) :: f
+    ! alfa: spline tension parameter, comprised between 0 and 1:
+    ! if alfa=1, pure linear interpolation; if alfa=0, pure spline
+    real(rk4) , intent(in) :: alfa
+    ! ex1: param. determining extrapolation for x < xi(1)
+    ! ex2: param. determining extrapolation for x > xi(npi)
+    ! if ex1=0 or ex2=0, constant value extrapolation is used at extreme
+    ! if ex1=1 or ex2=1, linear extrapolation is used at corresponding extreme
+    ! intermediate values of ex1 and ex2 give intermediate extrapolation values
+    real(rk4) , intent(in) :: ex1
+    real(rk4) , intent(in) :: ex2
 
-    real(rkx) :: zeps , ximed , gmed , fmm , fpp , xmm , xpp
-    real(rkx) :: fm , xm , fp , xp , delx , delxp , delxm
-    real(rkx) :: delx1 , delx2 , delxs , delx1s , delx2s
-    real(rkx) :: spl , clin
+    real(rk4) :: zeps , ximed , gmed , fmm , fpp , xmm , xpp
+    real(rk4) :: fm , xm , fp , xp , delx , delxp , delxm
+    real(rk4) :: delx1 , delx2 , delxs , delx1s , delx2s
+    real(rk4) :: spl , clin
 
-    real(rkx) , dimension(size(xi)) :: zi , zg
+    real(rk4) , dimension(size(xi)) :: zi , zg
     integer(ik4) :: npi , npo
     integer(ik4) :: k , j , jj , ir
 
@@ -140,7 +125,7 @@ module mod_interp
       call die('interp1d')
     end if
 
-    if ( zi(1) >= zi(2) ) then
+    if ( xi(1) >= xi(npi) ) then
       do k = 1 , npi
         zi(k) = xi(npi-k+1)
         zg(k) = g(npi-k+1)
@@ -151,15 +136,15 @@ module mod_interp
     end if
 
     ! small deviation used to set apart interlaced coordinates
-    zeps = (zi(npi) - zi(1)) * 1.e-6_rkx
+    zeps = (zi(npi) - zi(1)) * 1.e-6_rk4
     deinterlace: &
     do
       do k = 2 , npi
         if ( zi(k) <= zi(k-1) ) then
-          ximed = 0.5_rkx * (zi(k) + zi(k-1))
+          ximed = 0.5_rk4 * (zi(k) + zi(k-1))
           zi(k-1) = ximed - zeps
           zi(k) = ximed + zeps
-          gmed = 0.5_rkx * (zg(k) + zg(k-1))
+          gmed = 0.5_rk4 * (zg(k) + zg(k-1))
           zg(k-1) = gmed
           zg(k) = gmed
         end if
@@ -190,13 +175,13 @@ module mod_interp
         if ( xo(j) >= zi(jj) ) ir = ir + 1
       end do
       if ( ir == 1 ) then
-        fmm = 2.0_rkx * zg(1) - zg(2)
-        xmm = 2.0 * zi(1) - zi(2)
+        fmm = 2.0_rk4 * zg(1) - zg(2)
+        xmm = 2.0_rk4 * zi(1) - zi(2)
         fpp = zg(ir+2)
         xpp = zi(ir+2)
       else if ( ir == (npi-1) ) then
-        fpp = 2.0_rkx * zg(npi) - zg(npi-1)
-        xpp = 2.0_rkx * zi(npi) - zi(npi-1)
+        fpp = 2.0_rk4 * zg(npi) - zg(npi-1)
+        xpp = 2.0_rk4 * zi(npi) - zi(npi-1)
         fmm = zg(ir-1)
         xmm = zi(ir-1)
       else
@@ -226,9 +211,138 @@ module mod_interp
       !  Linear interpolation contribution
       clin = (fm*delx2 + fp*delx1)/delx
       !  Final interpolation combined using alfa
-      f(j) = alfa*clin + (1.0_rkx-alfa)*spl
+      f(j) = alfa*clin + (1.0_rk4-alfa)*spl
     end do
-  end subroutine interp1d
+  end subroutine interp1d_r4
+
+  subroutine interp1d_r8(xi,g,xo,f,alfa,ex1,ex2)
+    implicit none
+    !  Input:  function g defined at irregular but strictly monotonic xi
+    !  Output: f interpolated values at arbitrary coordinates xo
+    real(rk8) , dimension(:) , intent(in) :: xi , xo , g
+    real(rk8) , dimension(:) , intent(out) :: f
+    ! alfa: spline tension parameter, comprised between 0 and 1:
+    ! if alfa=1, pure linear interpolation; if alfa=0, pure spline
+    real(rk4) , intent(in) :: alfa
+    ! ex1: param. determining extrapolation for x < xi(1)
+    ! ex2: param. determining extrapolation for x > xi(npi)
+    ! if ex1=0 or ex2=0, constant value extrapolation is used at extreme
+    ! if ex1=1 or ex2=1, linear extrapolation is used at corresponding extreme
+    ! intermediate values of ex1 and ex2 give intermediate extrapolation values
+    real(rk4) , intent(in) :: ex1
+    real(rk4) , intent(in) :: ex2
+
+    real(rk8) :: zeps , ximed , gmed , fmm , fpp , xmm , xpp
+    real(rk8) :: fm , xm , fp , xp , delx , delxp , delxm
+    real(rk8) :: delx1 , delx2 , delxs , delx1s , delx2s
+    real(rk8) :: spl , clin
+
+    real(rk8) , dimension(size(xi)) :: zi , zg
+    integer(ik4) :: npi , npo
+    integer(ik4) :: k , j , jj , ir
+
+    npi = size(xi)
+    npo = size(xo)
+
+    if ( npi < 2 ) then
+      write(stderr,*) 'Refusing to work: too few input points.'
+      call die('interp1d')
+    end if
+
+    if ( size(g) /= npi .or. size(f) /= npo ) then
+      write(stderr,*) 'Refusing to work: different size coordinate/values'
+      call die('interp1d')
+    end if
+
+    if ( xi(1) >= xi(npi) ) then
+      do k = 1 , npi
+        zi(k) = xi(npi-k+1)
+        zg(k) = g(npi-k+1)
+      end do
+    else
+      zi(:) = xi(:)
+      zg(:) = g(:)
+    end if
+
+    ! small deviation used to set apart interlaced coordinates
+    zeps = (zi(npi) - zi(1)) * 1.e-6_rk8
+    deinterlace: &
+    do
+      do k = 2 , npi
+        if ( zi(k) <= zi(k-1) ) then
+          ximed = 0.5_rk8 * (zi(k) + zi(k-1))
+          zi(k-1) = ximed - zeps
+          zi(k) = ximed + zeps
+          gmed = 0.5_rk8 * (zg(k) + zg(k-1))
+          zg(k-1) = gmed
+          zg(k) = gmed
+        end if
+      end do
+
+      do k = 2 , npi
+        if ( zi(k) <= zi(k-1) ) then
+          cycle deinterlace
+        end if
+      end do
+      exit deinterlace
+    end do deinterlace
+
+    do j = 1 , npo
+      ! 2 cases of extrapolation
+      if ( xo(j) < zi(1) ) then
+        f(j) = zg(1) + ex1*(zg(1)-zg(2))/(zi(1)-zi(2)) * (xo(j)-zi(1))
+        cycle
+      else if ( xo(j) >= zi(npi) ) then
+        f(j) = zg(npi) + ex2*(zg(npi)-zg(npi-1))/(zi(npi)-zi(npi-1)) * &
+               (xo(j)-zi(npi))
+        cycle
+      end if
+      ir = 0
+      ! ir is a reference index determining the interpolation interval
+      ! The interpolation expression is applied also if xo = zi(j)
+      do jj = 1 , npi
+        if ( xo(j) >= zi(jj) ) ir = ir + 1
+      end do
+      if ( ir == 1 ) then
+        fmm = 2.0_rk8 * zg(1) - zg(2)
+        xmm = 2.0_rk8 * zi(1) - zi(2)
+        fpp = zg(ir+2)
+        xpp = zi(ir+2)
+      else if ( ir == (npi-1) ) then
+        fpp = 2.0_rk8 * zg(npi) - zg(npi-1)
+        xpp = 2.0_rk8 * zi(npi) - zi(npi-1)
+        fmm = zg(ir-1)
+        xmm = zi(ir-1)
+      else
+        fmm = zg(ir-1)
+        xmm = zi(ir-1)
+        fpp = zg(ir+2)
+        xpp = zi(ir+2)
+      end if
+      fm     = zg(ir)
+      xm     = zi(ir)
+      fp     = zg(ir+1)
+      xp     = zi(ir+1)
+      delx   = xp - xm
+      delxp  = xpp - xp
+      delxm  = xm - xmm
+      delx1  = xo(j) - xm
+      delx2  = xp - xo(j)
+      delxs  = delx**2
+      delx1s = delx1**2
+      delx2s = delx2**2
+      !  Spline contribution to interpolation
+      spl = fm*(delx2/delx + delx1*delx2s/(delxs*delxm) - delx1s*     &
+            delx2/((delx+delxp)*delxs)) + fp*(delx1/delx +            &
+            delx1s*delx2/(delxs*delxp) - delx1*delx2s/((delx+delxm)*  &
+            delxs)) - fmm * delx1*delx2s/((delx+delxm)*delx*delxm) -  &
+            fpp * delx1s*delx2/((delx+delxp)*delx*delxp)
+      !  Linear interpolation contribution
+      clin = (fm*delx2 + fp*delx1)/delx
+      !  Final interpolation combined using alfa
+      f(j) = alfa*clin + (1.0_rk8-alfa)*spl
+    end do
+  end subroutine interp1d_r8
 
   subroutine bilinx_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
     implicit none

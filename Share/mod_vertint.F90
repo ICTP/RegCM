@@ -24,6 +24,7 @@ module mod_vertint
   use mod_stdio
   use mod_constants
   use mod_message
+  use mod_interp , only : interp1d
 
   implicit none
 
@@ -58,6 +59,7 @@ module mod_vertint
   public :: intlin , intgtb , intlog
   public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
+  public :: intz1 , intz3
 
   contains
 
@@ -1802,6 +1804,26 @@ module mod_vertint
     end do
   end subroutine intvp
 
+  subroutine intz1(frcm,fccm,zrcm,zccm,ni,nj,krcm,kccm,a,e1,e2)
+    implicit none
+    integer(ik4) , intent(in) :: kccm , krcm , ni , nj
+    real(rkx) , intent(in) :: a , e1 , e2
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm , zccm , zrcm
+    real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
+    real(rkx) , dimension(kccm) :: xc , fc
+    real(rkx) , dimension(krcm) :: xr , fr
+    integer(ik4) :: i , j , k
+    do i = 1 , ni
+      do j = 1 , nj
+        xc(:) = zccm(i,j,:)
+        fc(:) = fccm(i,j,:)
+        xr(:) = zrcm(i,j,:)
+        call interp1d(xc,fc,xr,fr,a,e1,e2)
+        frcm(i,j,:) = fr(:)
+      end do
+    end do
+  end subroutine intz1
+
   subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm,imeth)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj , imeth
@@ -1917,9 +1939,28 @@ module mod_vertint
       end do
     end do
   end subroutine intv2
-  !
-  !-----------------------------------------------------------------------
-  !
+
+  subroutine intz3(fsrcm,fccm,zccm,zrcm,ni,nj,kccm,a,e1,e2)
+    implicit none
+    integer(ik4) , intent(in) :: kccm , ni , nj
+    real(rkx) , intent(in) :: a , e1 , e2
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm , zccm
+    real(rkx) , dimension(ni,nj) , intent(in) :: zrcm
+    real(rkx) , dimension(ni,nj) , intent(out) :: fsrcm
+    real(rkx) , dimension(kccm) :: zc , fc
+    real(rkx) , dimension(1) :: rx , rc
+    integer(ik4) :: i , j
+    do i = 1 , ni
+      do j = 1 , nj
+        zc = zccm(i,j,:)
+        fc = fccm(i,j,:)
+        rx(1) = zrcm(i,j)
+        call interp1d(zc,fc,rx,rc,a,e1,e2)
+        fsrcm(i,j) = rc(1)
+      end do
+    end do
+  end subroutine intz3
+
   subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,ni,nj,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , ni , nj

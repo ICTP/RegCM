@@ -49,7 +49,7 @@ mod_intkinds.o: mod_intkinds.F90
 mod_space.o: mod_space.F90 mod_intkinds.o mod_realkinds.o mod_date.o
 mod_spline.o: mod_spline.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_stdio.o: mod_stdio.F90 mod_intkinds.o
-mod_vertint.o: mod_vertint.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o
+mod_vertint.o: mod_vertint.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_message.o mod_interp.F90
 mod_ncstream.o: mod_ncstream.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_dynparam.o mod_message.o mod_date.o mod_ncstream_types.o mod_dynparam.o mod_zita.o $(REGCM_ROOT)/version
 	$(MPIFC) $(CPPFLAGS) $(OMPFLAGS) $(GITVER) $(FCFLAGS) -c $<
 mod_ncstream_types.o: mod_ncstream_types.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o

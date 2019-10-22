@@ -37,8 +37,6 @@ module mod_grid
   real(rkx) , public , pointer , dimension(:,:) :: topogm , mask , landuse
   real(rkx) , public , pointer , dimension(:,:) :: msfx , msfd
   real(rkx) , public , pointer , dimension(:,:) :: pa , tlayer , za
-  real(rkx) , public , pointer , dimension(:,:) :: pd4
-  real(rkx) , public , pointer , dimension(:,:) :: pud4 , pvd4
   real(rkx) , public , pointer , dimension(:) :: sigmah
   real(rkx) , public , pointer , dimension(:) :: sigmaf
   real(rkx) , public , pointer , dimension(:) :: dsigma
@@ -89,10 +87,7 @@ module mod_grid
     call getmem1d(sigmah,1,nz,'mod_grid:sigmah')
     call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
     call getmem1d(dsigma,1,nz,'mod_write:dsigma')
-    if ( idynamic == 1 ) then
-      call getmem2d(pd4,1,nx,1,ny,'mod_grid:pd4')
-    else if ( idynamic == 2 ) then
-      call getmem2d(pd4,1,nx,1,ny,'mod_grid:pd4')
+    if ( idynamic == 2 ) then
       call getmem2d(msfx,1,nx,1,ny,'mod_write:msfx')
       call getmem2d(msfd,1,nx,1,ny,'mod_write:msfd')
       call getmem2d(ps0,1,nx,1,ny,'mod_write:ps0')
@@ -101,8 +96,6 @@ module mod_grid
       call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
       call getmem3d(t0,1,nx,1,ny,1,nz,'mod_write:t0')
     else if ( idynamic == 3 ) then
-      call getmem2d(pud4,1,nx,1,ny,'mod_grid:pud4')
-      call getmem2d(pvd4,1,nx,1,ny,'mod_grid:pvd4')
       call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
     else
       write(stderr,*) 'Dynamical core : ', idynamic

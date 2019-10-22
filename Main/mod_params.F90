@@ -1134,6 +1134,9 @@ module mod_params
     if ( idynamic == 3 ) then
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
+      mo_nadv = 1
+      mo_nsound = 6
+      mo_nzfilt = 3
     else if ( idynamic == 2 ) then
       call bcast(base_state_pressure)
       call bcast(logp_lrate)
