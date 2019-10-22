@@ -363,7 +363,7 @@ module mod_era5
 !$OMP SECTIONS
 !$OMP SECTION
     if ( idynamic == 3 ) then
-      call intv1(u4,u3,pvd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(u4,u3,pud4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
     else
       call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
     end if
