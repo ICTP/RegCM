@@ -97,9 +97,6 @@ module mod_grid
       call getmem3d(t0,1,nx,1,ny,1,nz,'mod_write:t0')
     else if ( idynamic == 3 ) then
       call getmem3d(z0,1,nx,1,ny,1,nz,'mod_write:z0')
-    else
-      write(stderr,*) 'Dynamical core : ', idynamic
-      call die('init_grid','Unrecognized dynamical core',1)
     end if
     call read_domain_info
   end subroutine init_grid
