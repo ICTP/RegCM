@@ -4,7 +4,7 @@
   !             vapor pressure.  Journal of Applied Meteorology, 31, 1507-1513.
   !
 !DIR$ ATTRIBUTES FORCEINLINE :: esatliq
-  pure real(rkx) function esatliq(t) result(es)
+  pure elemental real(rkx) function esatliq(t) result(es)
     implicit none
     real(rkx) , intent(in) :: t     ! Temperature (K)
 

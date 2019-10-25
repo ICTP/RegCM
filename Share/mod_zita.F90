@@ -48,7 +48,8 @@ module mod_zita
     real(rkx) , intent(in) :: zita
     real(rkx) :: ratio
     ratio = zita/hzita
-    gzita = 1.0_rkx - mo_a0 * ratio - (3.0_rkx - 2.0_rkx * mo_a0) * ratio**2 + &
+    gzita = 1.0_rkx - mo_a0 * ratio -  &
+            (3.0_rkx - 2.0_rkx * mo_a0) * ratio**2 + &
             (2.0_rkx - mo_a0) * ratio**3
   end function gzita
 
@@ -58,8 +59,8 @@ module mod_zita
     real(rkx) , intent(in) :: zita
     real(rkx) :: ratio
     ratio = zita/hzita
-    gzitap = (-mo_a0 - 2.0_rkx* (3.0_rkx - 2.0_rkx * mo_a0) * ratio + &
-                3.0_rkx * (2.0_rkx - mo_a0) * ratio**2)/hzita
+    gzitap = (-mo_a0 - (6.0_rkx - 4.0_rkx * mo_a0) * ratio + &
+                       (6.0_rkx - 3.0_rkx * mo_a0) * ratio**2)/hzita
   end function gzitap
 
   ! Stretching function

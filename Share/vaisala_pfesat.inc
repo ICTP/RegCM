@@ -10,7 +10,7 @@
 ! Issue 2, pp.  387535
 !
 !DIR$ ATTRIBUTES FORCEINLINE :: pfesat
-  pure real(rkx) function pfesat(t) result(es) ! Pressure in Pa
+  pure elemental real(rkx) function pfesat(t) result(es) ! Pressure in Pa
    implicit none
    real(rkx) , intent(in) :: t     ! Temperature (K)
    real(rk8) :: xt , rt , theta , lnp , ps

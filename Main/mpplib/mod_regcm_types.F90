@@ -130,6 +130,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: tvirt
     real(rkx) , pointer , dimension(:,:,:) :: tetav
     real(rkx) , pointer , dimension(:,:,:) :: tke
+    real(rkx) , pointer , dimension(:,:,:) :: qs
     real(rkx) , pointer , dimension(:,:,:,:) :: qx
     real(rkx) , pointer , dimension(:,:,:,:) :: trac
     real(rkx) , pointer , dimension(:,:,:) :: zeta

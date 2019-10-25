@@ -3,7 +3,7 @@
   ! Uber einige meteorologische Begriffe. Zeitschrift fur Geophysik, Vol. 6:297.
   !
 !DIR$ ATTRIBUTES FORCEINLINE :: pfesat
-  pure real(rkx) function pfesat(t) result(es)
+  pure elemental real(rkx) function pfesat(t) result(es)
     implicit none
     real(rkx) , intent(in) :: t     ! Temperature (K)
 

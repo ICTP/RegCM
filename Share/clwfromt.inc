@@ -2,7 +2,7 @@
   ! in g/m3 (Lemus et al., 1997)
   ! NOTE : THIS IS IN-CLOUD VARIABLE.
 !DIR$ ATTRIBUTES FORCEINLINE :: clwfromt
-  pure real(rkx) function clwfromt(t) result(clw)
+  pure elemental real(rkx) function clwfromt(t) result(clw)
     implicit none
     real(rkx) , intent(in) :: t
     real(rkx) :: tcel

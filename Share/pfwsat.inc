@@ -1,5 +1,5 @@
 !DIR$ ATTRIBUTES FORCEINLINE :: pfwsat
-  pure real(rkx) function pfwsat(t,p,e) result(ws) ! In kg/kg
+  pure elemental real(rkx) function pfwsat(t,p,e) result(ws) ! In kg/kg
     implicit none
     real(rkx) , intent(in) :: t             ! Temperature (K)
     real(rkx) , intent(in) :: p             ! Pressure (Pa)

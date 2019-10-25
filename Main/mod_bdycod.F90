@@ -108,6 +108,7 @@ module mod_bdycod
     module procedure raydampuv
     module procedure raydampqv
     module procedure raydampuv_c
+    module procedure moraydamp
   end interface raydamp
 
   logical , parameter :: bdyflow = .true.
@@ -4722,6 +4723,26 @@ module mod_bdycod
       end do
     end do
   end subroutine raydamp3
+
+  subroutine moraydamp(z,var,bnd,j1,j2,i1,i2,k1,k2)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: var
+    type(v3dbound) , intent(in) :: bnd
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
+    real(rkx) :: xt , bval
+    integer(ik4) :: i , j , k , k3
+    xt = xbctime + dt
+    k3 = max(k2,rayndamp)
+    do k = k1 , k3
+      do i = i1 , i2
+        do j = j1 , j2
+          bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
+          var(j,i,k) = var(j,i,k) + tau(z(j,i,k))*(bval-var(j,i,k))
+        end do
+      end do
+    end do
+  end subroutine moraydamp
 
   subroutine raydampqv(z,var,vten,bnd)
     implicit none

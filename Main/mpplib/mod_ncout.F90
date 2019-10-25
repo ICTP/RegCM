@@ -2833,6 +2833,23 @@ module mod_ncout
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_real8('rayleigh_hd',rayhd))
           end if
+        else if ( idynamic == 3 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_integer('advection_timestep_factor',mo_nadv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_integer('sound_timestep_factor',mo_nsound))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_integer('top_w_filtering_layers',mo_nzfilt))
+          if ( ifrayd == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_integer('rayleigh_ndamp',rayndamp))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('rayleigh_alpha0',rayalpha0))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('rayleigh_zetad',rayzd))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('rayleigh_hd',rayhd))
+          end if
         end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('lateral_boundary_condition_scheme',iboudy))

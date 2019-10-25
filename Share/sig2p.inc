@@ -1,5 +1,5 @@
 !DIR$ ATTRIBUTES FORCEINLINE :: sig2p
-  pure real(rkx) function sig2p(ps,sigma,ptop) result(p)
+  pure elemental real(rkx) function sig2p(ps,sigma,ptop) result(p)
     implicit none
     real(rkx) , intent(in) :: ps , sigma , ptop
     !!!!!!!!!! Assume input is in cbar !!!!!!!!!!

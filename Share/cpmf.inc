@@ -1,6 +1,6 @@
   ! Heat capacity for moist air at constant pressure
 !DIR$ ATTRIBUTES FORCEINLINE :: cpmf
-  pure real(rkx) function cpmf(qv)
+  pure elemental real(rkx) function cpmf(qv)
     implicit none
     real(rkx) , intent(in) :: qv
     !cpmf = cpd * (d_one + 0.856_rkx * qv)

@@ -113,8 +113,9 @@ module mod_params
 
     namelist /hydroparam/ nsplit , lstand
 
-    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,  &
-      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge
+    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,      &
+      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge , &
+      mo_nadv , mo_nsound , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -291,6 +292,9 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 0.001_rkx
     rayhd = 10000.0_rkx
+    mo_nadv = 1
+    mo_nsound = 6
+    mo_nzfilt = 3
     !
     ! Rrtm radiation param ;
     !
@@ -682,7 +686,15 @@ module mod_params
           end if
         end if
       else
-        ! Moloch dynamic
+        rewind(ipunit)
+        read (ipunit, nml=nonhydroparam, iostat=iretval, err=105)
+        if ( iretval /= 0 ) then
+          write(stdout,*) 'Using default non-hydrostatc parameters.'
+#ifdef DEBUG
+        else
+          write(stdout,*) 'Read nonhydroparam OK'
+#endif
+        end if
       end if
 
       ! Hack. permanently disable seasonal albedo.
@@ -1134,9 +1146,9 @@ module mod_params
     if ( idynamic == 3 ) then
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
-      mo_nadv = 1
-      mo_nsound = 6
-      mo_nzfilt = 3
+      call bcast(mo_nadv)
+      call bcast(mo_nsound)
+      call bcast(mo_nzfilt)
     else if ( idynamic == 2 ) then
       call bcast(base_state_pressure)
       call bcast(logp_lrate)
@@ -2718,7 +2730,8 @@ module mod_params
           end do
         end do
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
-        mo_atm%fmzf(:,:,1) = 0.0_rkx
+        call exchange_lrbt(mo_atm%zeta,1,jce1,jce2,ice1,ice2,1,kz)
+        mo_atm%fmzf(:,:,1) = 1.0_rkx ! for vertical advection code
         do k = 2 , kzp1
           do i = ice1 , ice2
             do j = jce1 , jce2

@@ -211,7 +211,7 @@ module mod_init
           write(stdout,'(a, f7.4)') &
              ' Courant number of horizontal sound waves = ', &
              sqrt(d_two)*sqrt(cpd/cvd*rgas*300.0_rkx)* &
-             dtsec/real(mo_nsound,rkx)/dx
+             dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
         end if
 
         ! Sponge layer at the top of the atmosphere

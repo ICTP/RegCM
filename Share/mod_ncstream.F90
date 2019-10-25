@@ -3286,6 +3286,14 @@ module mod_ncstream
       attc%aname = 'CoordinateAxisType'
       attc%theval = 'GeoZ'
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
+      if ( idynamic == 3 ) then
+        attr%aname = 'zita_factor_a0'
+        attr%theval = mo_a0
+        call add_attribute(stream,attr)
+        attr%aname = 'zita_factor_b0'
+        attr%theval = mo_b0
+        call add_attribute(stream,attr)
+      end if
     end subroutine add_common_global_params
 
     subroutine instream_readvar(ncin,var,irec,window)
