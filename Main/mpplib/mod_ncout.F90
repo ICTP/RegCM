@@ -2787,59 +2787,63 @@ module mod_ncout
 
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('dynamical_core',idynamic))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('asselin_filter_nu_1',gnu1))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('asselin_filter_nu_2',gnu2))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_logical('upstream_mode',upstream_mode))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('off_centering_max',uoffc))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_logical('stability_enhance',stability_enhance))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('temperature_extreme_gradient',t_extrema))
-        call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_real8('vapor_extreme_gradient_fraction',q_rel_extrema))
-        if ( idynamic == 2 ) then
+        if ( idynamic /= 3 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_real8('logp_lapse_rate',logp_lrate))
+            ncattribute_real8('asselin_filter_nu_1',gnu1))
           call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_real8('base_state_surface_temperature', &
-                  base_state_ts0))
+            ncattribute_real8('asselin_filter_nu_2',gnu2))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('diffusion_hgt_factor',diffu_hgtf))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('upstream_mode',upstream_mode))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('off_centering_max',uoffc))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('stability_enhance',stability_enhance))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('temperature_extreme_gradient',t_extrema))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('vapor_extreme_gradient_fraction',q_rel_extrema))
+          if ( idynamic == 2 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('logp_lapse_rate',logp_lrate))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('base_state_surface_temperature', &
+                    base_state_ts0))
+            call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('background_diffusion_coefficient',ckh))
-          call outstream_addatt(outstream(i)%ncout(j), &
+            call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_real8('dynamical_diffusion_coefficient',adyndif))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_integer('upper_radiative_bc',ifupr))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_integer('rayleigh_damping',ifrayd))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_integer('top_nudging',itopnudge))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_real8('sound_bet_param',nhbet))
-          call outstream_addatt(outstream(i)%ncout(j), &
-                  ncattribute_real8('sound_xkd_param',nhxkd))
-          if ( ifrayd == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_integer('rayleigh_ndamp',rayndamp))
+                    ncattribute_integer('upper_radiative_bc',ifupr))
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_alpha0',rayalpha0))
+                    ncattribute_integer('rayleigh_damping',ifrayd))
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_zetad',rayzd))
+                    ncattribute_integer('top_nudging',itopnudge))
             call outstream_addatt(outstream(i)%ncout(j), &
-                    ncattribute_real8('rayleigh_hd',rayhd))
+                    ncattribute_real8('sound_bet_param',nhbet))
+            call outstream_addatt(outstream(i)%ncout(j), &
+                    ncattribute_real8('sound_xkd_param',nhxkd))
+            if ( ifrayd == 1 ) then
+              call outstream_addatt(outstream(i)%ncout(j), &
+                      ncattribute_integer('rayleigh_ndamp',rayndamp))
+              call outstream_addatt(outstream(i)%ncout(j), &
+                      ncattribute_real8('rayleigh_alpha0',rayalpha0))
+              call outstream_addatt(outstream(i)%ncout(j), &
+                      ncattribute_real8('rayleigh_zetad',rayzd))
+              call outstream_addatt(outstream(i)%ncout(j), &
+                      ncattribute_real8('rayleigh_hd',rayhd))
+            end if
           end if
-        else if ( idynamic == 3 ) then
+        else
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('advection_timestep_factor',mo_nadv))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('sound_timestep_factor',mo_nsound))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('top_w_filtering_layers',mo_nzfilt))
+          call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_integer('rayleigh_damping',ifrayd))
           if ( ifrayd == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
                     ncattribute_integer('rayleigh_ndamp',rayndamp))
