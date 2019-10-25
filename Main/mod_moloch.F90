@@ -319,11 +319,26 @@ module mod_moloch
     end do
 
     !
+    ! Recompute saturation
+    !
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          qs(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+        end do
+      end do
+    end do
+    !
+    ! Prepare fields to be used in physical parametrizations.
+    !
+    call mkslice
+    !
     ! PHYSICS
     !
-
     call physical_parametrizations
-
+    !
+    ! Diagnostic and end timestep
+    !
     if ( syncro_rep%act( ) .and. rcmtimer%integrating( ) ) then
       maxps = maxval(ps(jci1:jci2,ici1:ici2))
       minps = minval(ps(jci1:jci2,ici1:ici2))

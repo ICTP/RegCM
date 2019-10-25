@@ -1808,13 +1808,14 @@ module mod_vertint
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
     real(rkx) , intent(in) :: a , e1 , e2
-    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm , zccm , zrcm
+    real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm , zccm
+    real(rkx) , dimension(ni,nj,krcm) , intent(in) :: zrcm
     real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
     real(rkx) , dimension(kccm) :: xc , fc
     real(rkx) , dimension(krcm) :: xr , fr
     integer(ik4) :: i , j
-    do i = 1 , ni
-      do j = 1 , nj
+    do j = 1 , nj
+      do i = 1 , ni
         xc(:) = zccm(i,j,:)
         fc(:) = fccm(i,j,:)
         xr(:) = zrcm(i,j,:)
@@ -1950,8 +1951,8 @@ module mod_vertint
     real(rkx) , dimension(kccm) :: zc , fc
     real(rkx) , dimension(1) :: rx , rc
     integer(ik4) :: i , j
-    do i = 1 , ni
-      do j = 1 , nj
+    do j = 1 , nj
+      do i = 1 , ni
         zc = zccm(i,j,:)
         fc = fccm(i,j,:)
         rx(1) = zrcm(i,j)

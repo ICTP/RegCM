@@ -899,45 +899,63 @@ module mod_atm_interface
       implicit none
       type(slice) , intent(out) :: ax
       type(reference_atmosphere) , intent(in) :: a0
-      call getmem3d(ax%ubx3d,jce1,jce2,ice1,ice2,1,kz,'slice:ubx3d')
-      call getmem3d(ax%vbx3d,jce1,jce2,ice1,ice2,1,kz,'slice:vbx3d')
-      call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
-      call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
-      call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
-      call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
-      call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
-      call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
-      call getmem3d(ax%tv3d,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:tv3d')
-      if ( icldmstrat == 1 ) then
-        call getmem2d(ax%th700,jce1,jce2,ice1,ice2,'slice:th700')
-      end if
-      call getmem3d(ax%ubd3d,jd1,jd2,id1,id2,1,kz,'slice:ubd3d')
-      call getmem3d(ax%vbd3d,jd1,jd2,id1,id2,1,kz,'slice:vbd3d')
-      call getmem3d(ax%tb3d,jx1,jx2,ix1,ix2,1,kz,'slice:tb3d')
-      call getmem4d(ax%qxb3d,jx1,jx2,ix1,ix2,1,kz,1,nqx,'slice:qxb3d')
-      if ( idynamic == 2 ) then
-        call getmem3d(ax%ppb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:ppb3d')
-        call getmem3d(ax%wb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:wb3d')
-      end if
-      if ( ichem == 1 ) then
-        call getmem4d(ax%chib3d,jx1,jx2,ix1,ix2,1,kz,1,ntr,'slice:chib3d')
-      end if
-      call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
-      if ( idynamic == 1 ) then
-        call getmem3d(ax%zq,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'slice:zq')
-        call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
+      if ( idynamic == 3 ) then
+        call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
+        call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
         call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
-        call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
+        call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
+        call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
+        call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
+        call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
+        if ( icldmstrat == 1 ) then
+          call getmem2d(ax%th700,jce1,jce2,ice1,ice2,'slice:th700')
+        end if
+        call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
+        call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
+        if ( ibltyp == 4 ) then
+          call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+        end if
       else
-        call assignpnt(a0%z,atms%za)
-        call assignpnt(a0%zf,atms%zq)
-        call assignpnt(a0%dzf,atms%dzq)
-      end if
-      call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
-      call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
-      call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
-      if ( ibltyp == 4 ) then
-        call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+        call getmem3d(ax%ubx3d,jce1,jce2,ice1,ice2,1,kz,'slice:ubx3d')
+        call getmem3d(ax%vbx3d,jce1,jce2,ice1,ice2,1,kz,'slice:vbx3d')
+        call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
+        call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
+        call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
+        call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
+        call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
+        call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
+        call getmem3d(ax%tv3d,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:tv3d')
+        if ( icldmstrat == 1 ) then
+          call getmem2d(ax%th700,jce1,jce2,ice1,ice2,'slice:th700')
+        end if
+        call getmem3d(ax%ubd3d,jd1,jd2,id1,id2,1,kz,'slice:ubd3d')
+        call getmem3d(ax%vbd3d,jd1,jd2,id1,id2,1,kz,'slice:vbd3d')
+        call getmem3d(ax%tb3d,jx1,jx2,ix1,ix2,1,kz,'slice:tb3d')
+        call getmem4d(ax%qxb3d,jx1,jx2,ix1,ix2,1,kz,1,nqx,'slice:qxb3d')
+        if ( idynamic == 2 ) then
+          call getmem3d(ax%ppb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:ppb3d')
+          call getmem3d(ax%wb3d,jx1,jx2,ix1,ix2,1,kzp1,'slice:wb3d')
+        end if
+        if ( ichem == 1 ) then
+          call getmem4d(ax%chib3d,jx1,jx2,ix1,ix2,1,kz,1,ntr,'slice:chib3d')
+        end if
+        call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
+        if ( idynamic == 1 ) then
+          call getmem3d(ax%zq,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'slice:zq')
+          call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')
+          call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
+          call getmem3d(ax%wb3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:wb3d')
+        else
+          call assignpnt(a0%z,atms%za)
+          call assignpnt(a0%zf,atms%zq)
+          call assignpnt(a0%dzf,atms%dzq)
+        end if
+        call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
+        call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
+        call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
+        if ( ibltyp == 4 ) then
+          call getmem3d(ax%tkepbl,jci1,jci2,ici1,ici2,1,kz,'slice:tkepbl')
+        end if
       end if
     end subroutine allocate_slice
 
@@ -999,10 +1017,10 @@ module mod_atm_interface
         call allocate_atmstate_decoupled(atmx)
         call allocate_atmstate_c(atmc)
         call allocate_atmstate_tendency(aten)
-        call allocate_slice(atms,atm0)
         call allocate_mass_divergence(mdv)
       end if
 
+      call allocate_slice(atms,atm0)
       call allocate_surfstate(sfs)
 
       ! FAB:
