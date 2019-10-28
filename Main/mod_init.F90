@@ -887,7 +887,9 @@ module mod_init
     !
     ! Initialize the Surface Model
     !
-    call init_slice
+    if ( idynamic < 3 ) then
+      call init_slice
+    end if
     call initialize_surface_model
     if ( idynamic /= 3 ) then
       call initialize_diffusion

@@ -1977,6 +1977,8 @@ module mod_params
       if ( isladvec == 1 ) then
         call init_sladvection
       end if
+    else
+      call init_slice
     end if
     call init_micro
     if ( ichem == 1 ) then

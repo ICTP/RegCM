@@ -1029,6 +1029,57 @@ module mod_moloch
 
   subroutine physical_parametrizations
     implicit none
+    integer(ik4) :: i , j , k
+    logical :: loutrad , labsem
+    !
+    !------------------------------------------------
+    !       Call radiative transfer package
+    !------------------------------------------------
+    !
+    if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
+      if ( debug_level > 3 .and. myid == italk ) then
+        write(stdout,*) 'Calling radiative transfer at ',trim(rcmtimer%str())
+      end if
+      ! calculate albedo
+      call surface_albedo
+      ! Update / init Ozone profiles
+      if ( iclimao3 == 1 ) then
+        call updateo3(rcmtimer%idate,scenario)
+      else
+        if ( rcmtimer%start() ) call inito3
+      end if
+      if ( iclimaaer == 1 ) then
+        call updateaerosol(rcmtimer%idate)
+      else if ( iclimaaer == 2 ) then
+        call updateaeropp(rcmtimer%idate)
+      end if
+      loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
+      labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
+      if ( debug_level > 3 .and. labsem .and. myid == italk ) then
+        write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+      end if
+      call radiation(rcmtimer%year,loutrad,labsem)
+    end if
+    !
+    ! Add radiative transfer package-calculated heating rates to
+    ! temperature tendency (deg/sec)
+    !
+    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+      t(j,i,k) = t(j,i,k) + heatrt(j,i,k)
+    end do
+    if ( idiag > 0 ) tdiag%rad = heatrt
+    !
+    !------------------------------------------------
+    !            Call Surface model
+    !------------------------------------------------
+    !
+    if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
+      if ( debug_level > 3 .and. myid == italk ) then
+        write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
+      end if
+      call surface_model
+      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+    end if
   end subroutine physical_parametrizations
 
 end module mod_moloch
