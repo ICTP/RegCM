@@ -127,6 +127,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: pai
     real(rkx) , pointer , dimension(:,:,:) :: t
     real(rkx) , pointer , dimension(:,:,:) :: p
+    real(rkx) , pointer , dimension(:,:,:) :: pf
     real(rkx) , pointer , dimension(:,:,:) :: tvirt
     real(rkx) , pointer , dimension(:,:,:) :: tetav
     real(rkx) , pointer , dimension(:,:,:) :: tke
@@ -134,6 +135,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: qx
     real(rkx) , pointer , dimension(:,:,:,:) :: trac
     real(rkx) , pointer , dimension(:,:,:) :: zeta
+    real(rkx) , pointer , dimension(:,:,:) :: zetaf
     real(rkx) , pointer , dimension(:,:,:) :: fmz
     real(rkx) , pointer , dimension(:,:,:) :: fmzf
   end type atmosphere

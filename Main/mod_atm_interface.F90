@@ -572,10 +572,12 @@ module mod_atm_interface
       call getmem3d(atm%w,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:w')
       call getmem3d(atm%pai,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:pai')
       call getmem3d(atm%p,jce1,jce2,ice1,ice2,1,kz,'atmstate:p')
+      call getmem3d(atm%pf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:pf')
       call getmem3d(atm%t,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:t')
       call getmem3d(atm%tvirt,jce1,jce2,ice1,ice2,1,kz,'atmstate:tvirt')
       call getmem3d(atm%tetav,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:tetav')
       call getmem3d(atm%zeta,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:zeta')
+      call getmem3d(atm%zetaf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:zetaf')
       call getmem3d(atm%qs,jci1,jci2,ici1,ici2,1,kz,'atmstate:qs')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       if ( ibltyp == 2 ) then
@@ -903,12 +905,12 @@ module mod_atm_interface
         call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
         call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
         call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
-        call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
+        call getmem3d(ax%rhob3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhob3d')
         call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
-        call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
-        call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
+        call getmem3d(ax%th3d,jci1,jci2,ici1,ici2,1,kz,'slice:th3d')
+        call getmem3d(ax%tp3d,jci1,jci2,ici1,ici2,1,kz,'slice:tp3d')
         if ( icldmstrat == 1 ) then
-          call getmem2d(ax%th700,jce1,jce2,ice1,ice2,'slice:th700')
+          call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
         end if
         call getmem2d(ax%rhox2d,jci1,jci2,ici1,ici2,'slice:rhox2d')
         call getmem3d(ax%wpx3d,jci1,jci2,ici1,ici2,1,kz,'slice:wpx3d')
@@ -920,13 +922,13 @@ module mod_atm_interface
         call getmem3d(ax%vbx3d,jce1,jce2,ice1,ice2,1,kz,'slice:vbx3d')
         call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kzp1,'slice:pf3d')
         call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
-        call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
+        call getmem3d(ax%rhob3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhob3d')
         call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
-        call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
-        call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
+        call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
+        call getmem3d(ax%th3d,jci1,jci2,ici1,ici2,1,kz,'slice:th3d')
         call getmem3d(ax%tv3d,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:tv3d')
         if ( icldmstrat == 1 ) then
-          call getmem2d(ax%th700,jce1,jce2,ice1,ice2,'slice:th700')
+          call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
         end if
         call getmem3d(ax%ubd3d,jd1,jd2,id1,id2,1,kz,'slice:ubd3d')
         call getmem3d(ax%vbd3d,jd1,jd2,id1,id2,1,kz,'slice:vbd3d')
@@ -939,7 +941,7 @@ module mod_atm_interface
         if ( ichem == 1 ) then
           call getmem4d(ax%chib3d,jx1,jx2,ix1,ix2,1,kz,1,ntr,'slice:chib3d')
         end if
-        call getmem3d(ax%tp3d,jce1,jce2,ice1,ice2,1,kz,'slice:tp3d')
+        call getmem3d(ax%tp3d,jci1,jci2,ici1,ici2,1,kz,'slice:tp3d')
         if ( idynamic == 1 ) then
           call getmem3d(ax%zq,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'slice:zq')
           call getmem3d(ax%za,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'slice:za')

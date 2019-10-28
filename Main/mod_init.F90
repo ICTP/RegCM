@@ -203,6 +203,25 @@ module mod_init
             end do
           end do
         end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
+          end do
+        end do
+        do k = kz , 2 , -1
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%pf(j,i,k) = p00 * &
+                (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
+            end do
+          end do
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%pf(j,i,1) = 1.0e-6_rkx ! Supposedly zero
+          end do
+        end do
+
         call maxall(zmax,azmax)
         if ( myid == 0 ) then
           write(stdout,'(a, f7.4)') &

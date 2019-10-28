@@ -1932,11 +1932,10 @@ module mod_params
       call exchange(mddom%msfd,idif,jde1,jde2,ide1,ide2)
     end if
     !
-    !-----compute dsigma and half sigma levels.
+    !-----compute half sigma levels.
     !
     if ( idynamic < 3 ) then
       do k = 1 , kz
-        dsigma(k) = (sigma(k+1) - sigma(k))
         hsigma(k) = (sigma(k+1) + sigma(k))*d_half
       end do
     end if
@@ -1992,6 +1991,23 @@ module mod_params
     if ( islab_ocean == 1 ) then
       call allocate_mod_slabocean
       call init_slabocean(sfs,mddom%lndcat,fsw,flw)
+    end if
+    !
+    ! Setup Boundary condition routines.
+    !
+    call setup_bdycon
+    if ( ichem == 1 ) call setup_che_bdycon
+
+    if ( idynamic == 2 ) then
+      call make_reference_atmosphere
+      call compute_full_coriolis_coefficients
+    else if ( idynamic == 3 ) then
+      call compute_moloch_static
+    end if
+
+    if ( iboudy < 0 .or. iboudy > 5 ) then
+      call fatal(__FILE__,__LINE__, &
+                 'UNSUPPORTED BDY SCHEME.')
     end if
 
     if ( myid == italk ) then
@@ -2129,6 +2145,18 @@ module mod_params
     end if
 
     call allocate_cumulus
+    !
+    !-----compute the vertical interpolation coefficients for t and qv.
+    !
+    twt(1,1) = d_zero
+    twt(1,2) = d_zero
+    qcon(1) = d_zero
+    do k = 2 , kz
+      twt(k,1) = (sigma(k)-hsigma(k-1))/(hsigma(k)-hsigma(k-1))
+      twt(k,2) = d_one - twt(k,1)
+      dsigma(k) = (sigma(k+1) - sigma(k))
+      qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
+    end do
 
     if ( any(icup == 1) ) then
       !
@@ -2358,19 +2386,6 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcv
       write(stdout,'(a,f11.6)') '  Convective Cloud Water         : ',cllwcv
     end if
-    !
-    !-----compute the vertical interpolation coefficients for t and qv.
-    !
-    if ( idynamic /= 3 ) then
-      twt(1,1) = d_zero
-      twt(1,2) = d_zero
-      qcon(1) = d_zero
-      do k = 2 , kz
-        twt(k,1) = (sigma(k)-hsigma(k-1))/(hsigma(k)-hsigma(k-1))
-        twt(k,2) = d_one - twt(k,1)
-        qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
-      end do
-    end if
 
     chibot = 450.0_rkx
     ptmb = d_10*ptop
@@ -2449,24 +2464,6 @@ module mod_params
         if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
       end do
     end if
-    !
-    ! Setup Boundary condition routines.
-    !
-    call setup_bdycon
-    if ( ichem == 1 ) call setup_che_bdycon
-
-    if ( idynamic == 2 ) then
-      call make_reference_atmosphere
-      call compute_full_coriolis_coefficients
-    else if ( idynamic == 3 ) then
-      call compute_moloch_static
-    end if
-
-    if ( iboudy < 0 .or. iboudy > 5 ) then
-      call fatal(__FILE__,__LINE__, &
-                 'UNSUPPORTED BDY SCHEME.')
-    end if
-
     if ( myid == italk ) then
       write(stdout,*) &
         'The surface energy budget is used to calculate the ground temperature.'
@@ -2692,7 +2689,8 @@ module mod_params
 
       subroutine compute_moloch_static
         implicit none
-        integer :: i , j
+        integer(ik4) :: i , j
+        real(rkx) , dimension(kzp1) :: fak , fbk
         call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
           do j = jdi1 , jdi2
@@ -2718,6 +2716,8 @@ module mod_params
         sigma(1) = d_zero
         sigma = d_one - zita/hzita
         hsigma = d_one - zitah/hzita
+        fak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+        fbk = gzita(zita)
         ak = -hzita * bzita(zitah) * log(hsigma)
         bk = gzita(zitah)
         do k = 1 , kz
@@ -2732,10 +2732,13 @@ module mod_params
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,1,jce1,jce2,ice1,ice2,1,kz)
         mo_atm%fmzf(:,:,1) = 1.0_rkx ! for vertical advection code
+        mo_atm%zetaf(:,:,1) = hzita * 10.0_rkx ! Supposedly infinite
         do k = 2 , kzp1
           do i = ice1 , ice2
             do j = jce1 , jce2
               mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))
+              mo_atm%zetaf(j,i,k) = fak(k) + (fbk(k) - d_one) * &
+                                           mddom%ht(j,i)*regrav
             end do
           end do
         end do
