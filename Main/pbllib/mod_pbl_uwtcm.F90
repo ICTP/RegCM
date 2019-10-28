@@ -180,7 +180,11 @@ module mod_pbl_uwtcm
 !*******************************************************************************
 
         ! Copy in local versions of necessary variables
-        rpfac = m2p%psb(j,i) / dt
+        if ( idynamic == 3 ) then
+          rpfac = rdt
+        else
+          rpfac = m2p%psb(j,i) / dt
+        end if
         tskx = m2p%tg(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
@@ -193,7 +197,7 @@ module mod_pbl_uwtcm
           presfl(k) = m2p%patmf(j,i,k)
           ! epop(k) = ep2/m2p%patmf(j,i,k)
           zqx(k) = m2p%zq(j,i,k)
-          tke(k) = m2p%tkests(j,i,k)
+          tke(k) = max(m2p%tkests(j,i,k),uwtkemin)
         end do
         zqx(kzp2) = d_zero
 
@@ -611,7 +615,7 @@ module mod_pbl_uwtcm
         ! tke at top is fixed
         tke(1) = d_zero
         ! diagnose tke at surface, following my 82, b1 ** (2/3) / 2 = 3.25
-        tke(kzp1) = tkefac*ustxsq ! normal
+        tke(kzp1) = max(tkefac*ustxsq,uwtkemin) ! normal
 
         ! now the implicit calculations
         ! first find the coefficients that apply for full levels

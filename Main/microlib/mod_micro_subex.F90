@@ -221,10 +221,16 @@ module mod_micro_subex
         if ( pptnew > pptmin ) then
           dpovg = dsigma(1)*mo2mc%psb(j,i)*thog    ![kg/m2]
           pptsum(j,i) = pptnew*dpovg         ![kg/m2/s][avg]
-          ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
-          ! [kg/kg/s*cb][avg]
-          mc2mo%qxten(j,i,1,iqc) = mc2mo%qxten(j,i,1,iqc) - &
-                                pptnew*mo2mc%psb(j,i)
+          if ( idynamic == 3 ) then
+            ! 1ai. Compute the cloud water tendency [kg/kg/s]
+            ! [kg/kg/s][avg]
+            mc2mo%qxten(j,i,1,iqc) = mc2mo%qxten(j,i,1,iqc) - pptnew
+          else
+            ! 1ai. Compute the cloud water tendency [kg/kg/s*cb]
+            ! [kg/kg/s*cb][avg]
+            mc2mo%qxten(j,i,1,iqc) = mc2mo%qxten(j,i,1,iqc) - &
+                                  pptnew*mo2mc%psb(j,i)
+          end if
           ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
           if ( ichem == 1 ) then
             mc2mo%remrat(j,i,1) = pptnew/qcw
@@ -273,14 +279,24 @@ module mod_micro_subex
             if ( rdevap > dlowval ) then
               pptsum(j,i) = max(pptsum(j,i)-rdevap*dpovg,d_zero) ![kg/m2/s][avg]
               pptkm1 = pptkm1 - rdevap
-              ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
-              ![kg/kg/s*cb][avg]
-              mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
-                                         rdevap*mo2mc%psb(j,i)
-              ! 2bcf. Compute the temperature tendency [K/s*cb]
-              ![k/s*cb][avg]
-              mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                      wlh(mo2mc%t(j,i,k))*rcpd*rdevap*mo2mc%psb(j,i)
+              if ( idynamic == 3 ) then
+                ! 2bcf. Compute the water vapor tendency [kg/kg/s]
+                ![kg/kg/s][avg]
+                mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + rdevap
+                ! 2bcf. Compute the temperature tendency [K/s]
+                ![K/s][avg]
+                mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
+                        wlh(mo2mc%t(j,i,k))*rcpd*rdevap
+              else
+                ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
+                ![kg/kg/s*cb][avg]
+                mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
+                                           rdevap*mo2mc%psb(j,i)
+                ! 2bcf. Compute the temperature tendency [K/s*cb]
+                ![k/s*cb][avg]
+                mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
+                        wlh(mo2mc%t(j,i,k))*rcpd*rdevap*mo2mc%psb(j,i)
+              end if
             end if
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
@@ -307,10 +323,16 @@ module mod_micro_subex
           if ( pptnew > pptmin ) then
             ! 1bg. Accumulate precipitation and convert to kg/m2/s
             pptsum(j,i) = pptsum(j,i) + pptnew*dpovg       ![kg/m2/s][avg]
-            ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
-            ![kg/kg/s*cb][avg]
-            mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) - &
-                         pptnew*mo2mc%psb(j,i)
+            if ( idynamic == 3 ) then
+              ! 1bh. Compute the cloud water tendency [kg/kg/s]
+              ![kg/kg/s][avg]
+              mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) - pptnew
+            else
+              ! 1bh. Compute the cloud water tendency [kg/kg/s*cb]
+              ![kg/kg/s*cb][avg]
+              mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) - &
+                           pptnew*mo2mc%psb(j,i)
+            end if
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1 ) then
               mc2mo%remrat(j,i,k) = pptnew/qcw

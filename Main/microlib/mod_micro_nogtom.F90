@@ -445,23 +445,42 @@ module mod_micro_nogtom
 
     oneodt = d_one/dt
 
-    ! Decouple tendencies
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nqx
-            qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n) / mo2mc%psb(j,i)
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nqx
+              qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n)
+            end do
           end do
         end do
       end do
-    end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ttendc(j,i,k) = mc2mo%tten(j,i,k) / mo2mc%psb(j,i)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ttendc(j,i,k) = mc2mo%tten(j,i,k)
+          end do
         end do
       end do
-    end do
+    else
+      ! Decouple tendencies
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nqx
+              qxtendc(n,j,i,k) = mc2mo%qxten(j,i,k,n) / mo2mc%psb(j,i)
+            end do
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ttendc(j,i,k) = mc2mo%tten(j,i,k) / mo2mc%psb(j,i)
+          end do
+        end do
+      end do
+    end if
 
     ! Define the initial array qx
     do k = 1 , kz
@@ -1793,25 +1812,44 @@ module mod_micro_nogtom
       end do   ! iy : end of latitude loop
     end do     ! kz : end of vertical loop
 
-    !
-    ! Couple tendencies with pressure
-    !
-    do n = 1 , nqx
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)*mo2mc%psb(j,i)
+    if ( idynamic == 3 ) then
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)
+            end do
           end do
         end do
       end do
-    end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mc2mo%tten(j,i,k) = ttendc(j,i,k)*mo2mc%psb(j,i)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mc2mo%tten(j,i,k) = ttendc(j,i,k)
+          end do
         end do
       end do
-    end do
+    else
+      !
+      ! Couple tendencies with pressure
+      !
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              mc2mo%qxten(j,i,k,n) = qxtendc(n,j,i,k)*mo2mc%psb(j,i)
+            end do
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mc2mo%tten(j,i,k) = ttendc(j,i,k)*mo2mc%psb(j,i)
+          end do
+        end do
+      end do
+    end if
 
     !-------------------------------------
     ! Final enthalpy and total water diagnostics

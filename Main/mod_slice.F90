@@ -92,6 +92,7 @@ module mod_slice
       call assignpnt(mo_atm%w,atms%wb3d)
       call assignpnt(mo_atm%pf,atms%pf3d)
       call assignpnt(mo_atm%zetaf,atms%zq)
+      call assignpnt(mo_atm%dz,atms%dzq)
       call assignpnt(sfs%psb,atms%ps2d)
       call assignpnt(omega,atms%wpx3d)
     end if
@@ -120,9 +121,6 @@ module mod_slice
                             (p00/atms%pb3d(j,i,k))**rovcp
         atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
-      end do
-      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
-        atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
       end do
 
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )

@@ -136,8 +136,15 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:,:) :: trac
     real(rkx) , pointer , dimension(:,:,:) :: zeta
     real(rkx) , pointer , dimension(:,:,:) :: zetaf
+    real(rkx) , pointer , dimension(:,:,:) :: dz
     real(rkx) , pointer , dimension(:,:,:) :: fmz
     real(rkx) , pointer , dimension(:,:,:) :: fmzf
+    real(rkx) , pointer , dimension(:,:,:) :: tten
+    real(rkx) , pointer , dimension(:,:,:) :: uten
+    real(rkx) , pointer , dimension(:,:,:) :: vten
+    real(rkx) , pointer , dimension(:,:,:) :: tketen
+    real(rkx) , pointer , dimension(:,:,:,:) :: qxten
+    real(rkx) , pointer , dimension(:,:,:,:) :: chiten
   end type atmosphere
 
   type reference_atmosphere

@@ -25,7 +25,7 @@ module mod_micro_wsm5
   use mod_dynparam
   use mod_memutil
   use mod_runparams , only : ichem , dt , dtsec , iqi , iqc , iqr , iqs , iqv
-  use mod_runparams , only : dsigma
+  use mod_runparams , only : rdt , dsigma
   use mod_regcm_types
 
   private
@@ -271,27 +271,51 @@ module mod_micro_wsm5
 
     call wsm52d(dt,is,ie)
 
-    do k = 1 , kz
-      n = 1
-      kk = kzp1 - k
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) + &
-                  (t(n,kk)-mo2mc%t(j,i,k))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
-                  (qv(n,kk)-mo2mc%qxx(j,i,k,iqv))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) + &
-                  (qci(n,kk,1)-mo2mc%qxx(j,i,k,iqc))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqi) = mc2mo%qxten(j,i,k,iqi) + &
-                  (qci(n,kk,2)-mo2mc%qxx(j,i,k,iqi))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqr) = mc2mo%qxten(j,i,k,iqr) + &
-                  (qrs(n,kk,1)-mo2mc%qxx(j,i,k,iqr))*ptfac(n)
-          mc2mo%qxten(j,i,k,iqs) = mc2mo%qxten(j,i,k,iqs) + &
-                  (qrs(n,kk,2)-mo2mc%qxx(j,i,k,iqs))*ptfac(n)
-          n = n + 1
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        n = 1
+        kk = kzp1 - k
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) + &
+                    (t(n,kk)-mo2mc%t(j,i,k)) * rdt
+            mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
+                    (qv(n,kk)-mo2mc%qxx(j,i,k,iqv)) * rdt
+            mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) + &
+                    (qci(n,kk,1)-mo2mc%qxx(j,i,k,iqc)) * rdt
+            mc2mo%qxten(j,i,k,iqi) = mc2mo%qxten(j,i,k,iqi) + &
+                    (qci(n,kk,2)-mo2mc%qxx(j,i,k,iqi)) * rdt
+            mc2mo%qxten(j,i,k,iqr) = mc2mo%qxten(j,i,k,iqr) + &
+                    (qrs(n,kk,1)-mo2mc%qxx(j,i,k,iqr)) * rdt
+            mc2mo%qxten(j,i,k,iqs) = mc2mo%qxten(j,i,k,iqs) + &
+                    (qrs(n,kk,2)-mo2mc%qxx(j,i,k,iqs)) * rdt
+            n = n + 1
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        n = 1
+        kk = kzp1 - k
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) + &
+                    (t(n,kk)-mo2mc%t(j,i,k))*ptfac(n)
+            mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + &
+                    (qv(n,kk)-mo2mc%qxx(j,i,k,iqv))*ptfac(n)
+            mc2mo%qxten(j,i,k,iqc) = mc2mo%qxten(j,i,k,iqc) + &
+                    (qci(n,kk,1)-mo2mc%qxx(j,i,k,iqc))*ptfac(n)
+            mc2mo%qxten(j,i,k,iqi) = mc2mo%qxten(j,i,k,iqi) + &
+                    (qci(n,kk,2)-mo2mc%qxx(j,i,k,iqi))*ptfac(n)
+            mc2mo%qxten(j,i,k,iqr) = mc2mo%qxten(j,i,k,iqr) + &
+                    (qrs(n,kk,1)-mo2mc%qxx(j,i,k,iqr))*ptfac(n)
+            mc2mo%qxten(j,i,k,iqs) = mc2mo%qxten(j,i,k,iqs) + &
+                    (qrs(n,kk,2)-mo2mc%qxx(j,i,k,iqs))*ptfac(n)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
 
     if ( ichem == 1 ) then
       do k = 1 , kz

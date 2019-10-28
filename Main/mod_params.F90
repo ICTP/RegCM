@@ -1144,6 +1144,16 @@ module mod_params
     call bcast(ichem)
 
     if ( idynamic == 3 ) then
+      if ( any(icup ==  1) ) then
+        write(stderr,*) 'Moloch core does not work with Kuo convection scheme'
+        call fatal(__FILE__,__LINE__, &
+                   'MOLOCH DOES NOT WORK WITH KUO')
+      end if
+      if ( ibltyp == 1 ) then
+        write(stderr,*) 'Moloch core does not work with Holtslag PBL scheme'
+        call fatal(__FILE__,__LINE__, &
+                   'MOLOCH DOES NOT WORK WITH HOLTSLAG')
+      end if
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
       call bcast(mo_nadv)
@@ -2743,6 +2753,9 @@ module mod_params
                                            mddom%ht(j,i)*regrav
             end do
           end do
+        end do
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
+          mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
         end do
       end subroutine compute_moloch_static
 

@@ -187,7 +187,7 @@ module mod_pbl_myj
           rdtturbl , thnew , thold , tx , exner , qsfc ,       &
           thsk , ct , qha , ustar
     real(rkx) :: zu , wght , zt , zq , wghtt , wghtq , tha
-    real(rkx) :: akhs , akms
+    real(rkx) :: akhs , akms , pfac
     real(rkx) , dimension(nspec) :: clow , cts , sz0
     real(rkx) , dimension(kz) :: cwmk , pk , q2k , qk , thek ,&
             tk , uk , vk , qcwk , qcik
@@ -451,6 +451,11 @@ module mod_pbl_myj
           end if
         end do
 
+        if ( idynamic == 3 ) then
+          pfac = d_one
+        else
+          pfac = m2p%psb(j,i)
+        end if
         do k = 1 , kz
           thold = th(j,i,k)
           thnew = thek(k)+cwmk(k)*elocp*ape(j,i,k)
@@ -458,21 +463,21 @@ module mod_pbl_myj
           qold = m2p%qxatm(j,i,k,iqv)/(d_one+m2p%qxatm(j,i,k,iqv))
           dqdt = (qk(k)-qold)*rdtturbl
           exner = (m2p%patm(j,i,k)/p00)**rovcp
-          p2m%tten(j,i,k) = p2m%tten(j,i,k) + dtdt * exner * m2p%psb(j,i)
+          p2m%tten(j,i,k) = p2m%tten(j,i,k) + dtdt * exner * pfac
           p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
-                   (dqdt/(d_one-qk(k))**2) * m2p%psb(j,i)
+                   (dqdt/(d_one-qk(k))**2) * pfac
           p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-                   (qcwk(k)-m2p%qxatm(j,i,k,iqc))*rdtturbl * m2p%psb(j,i)
+                   (qcwk(k)-m2p%qxatm(j,i,k,iqc))*rdtturbl * pfac
           if ( ipptls > 1 ) then
             p2m%qxten(j,i,k,iqi) = p2m%qxten(j,i,k,iqi) + &
-                     (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl * m2p%psb(j,i)
+                     (qcik(k)-m2p%qxatm(j,i,k,iqi))*rdtturbl * pfac
           end if
         end do
         if ( ichem == 1 ) then
           do n = 1 , ntr
             do k = 1 , kz
               p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
-                   (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*m2p%psb(j,i)
+                   (species(ispb+n,k)-m2p%chib(j,i,k,n))*rdtturbl*pfac
             end do
           end do
         end if

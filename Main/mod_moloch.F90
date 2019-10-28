@@ -86,7 +86,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
 
   public :: allocate_moloch , init_moloch , moloch
-  public :: uvstagtox , wstagtox
+  public :: uvstagtox , xtouvstag , wstagtox
 
   real(rkx) , parameter :: minden = 1.0e-15_rkx
 
@@ -152,13 +152,13 @@ module mod_moloch
     call assignpnt(mo_atm%zeta,zeta)
     call assignpnt(mo_atm%p,p)
     call assignpnt(mo_atm%t,t)
+    call assignpnt(mo_atm%qx,qx)
     call assignpnt(mo_atm%qs,qs)
     call assignpnt(mo_atm%qx,qv,iqv)
     if ( ipptls > 0 ) then
       call assignpnt(mo_atm%qx,qc,iqc)
       if ( ipptls > 1 ) call assignpnt(mo_atm%qx,qi,iqi)
     end if
-    if ( ipptls > 0 ) call assignpnt(mo_atm%qx,qx)
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
     if ( ichem == 1 ) call assignpnt(mo_atm%trac,trac)
     if ( ifrayd == 1 ) then
@@ -702,57 +702,7 @@ module mod_moloch
           end do
         end if
 
-        call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
-
-        ! Back to wind points: U (fourth order)
-
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jdii1 , jdii2
-              u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
-                         0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
-            end do
-          end do
-        end do
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
-            end do
-          end do
-        end if
-        if ( ma%has_bdyleft ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
-            end do
-          end do
-        end if
-
-        ! Back to wind points: V (fourth order)
-        do k = 1 , kz
-          do i = idii1 , idii2
-            do j = jci1 , jci2
-              v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
-                         0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
-            end do
-          end do
-        end do
-        if ( ma%has_bdytop ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
-              v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
-            end do
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do k = 1 , kz
-            do j = jci1 , jci2
-              v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
-            end do
-          end do
-        end if
+        call xtouvstag(ux,vx,u,v)
 
         ! Back to half-levels
 
@@ -970,6 +920,65 @@ module mod_moloch
     end do
   end subroutine wstagtox
 
+  subroutine xtouvstag(ux,vx,u,v)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
+    integer(ik4) :: i , j , k
+
+    call exchange_lr(ux,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange_bt(vx,2,jce1,jce2,ice1,ice2,1,kz)
+
+    ! Back to wind points: U (fourth order)
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jdii1 , jdii2
+          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
+                     0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
+        end do
+      end do
+    end do
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
+        end do
+      end do
+    end if
+
+    ! Back to wind points: V (fourth order)
+    do k = 1 , kz
+      do i = idii1 , idii2
+        do j = jci1 , jci2
+          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
+                     0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
+        end do
+      end do
+    end do
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
+        end do
+      end do
+    end if
+  end subroutine xtouvstag
+
   subroutine uvstagtox(u,v,ux,vx)
     implicit none
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
@@ -1027,10 +1036,78 @@ module mod_moloch
     end if
   end subroutine uvstagtox
 
+  subroutine reset_tendencies
+    implicit none
+    mo_atm%tten = d_zero
+    mo_atm%uten = d_zero
+    mo_atm%vten = d_zero
+    mo_atm%qxten = d_zero
+    if ( ichem == 1 ) mo_atm%chiten = d_zero
+    if ( ibltyp == 2 ) mo_atm%tketen = d_zero
+    cldfra(:,:,:) = d_zero
+    cldlwc(:,:,:) = d_zero
+    if ( idiag > 0 ) then
+      ten0 = d_zero
+      qen0 = d_zero
+    end if
+    if ( ichem == 1 .and. ichdiag > 0 ) chiten0 = d_zero
+  end subroutine reset_tendencies
+
   subroutine physical_parametrizations
     implicit none
     integer(ik4) :: i , j , k
     logical :: loutrad , labsem
+
+    call reset_tendencies
+
+    if ( all(icup > 0) ) then
+
+      if ( idiag > 0 ) then
+        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+      end if
+      if ( ichem == 1 .and. ichdiag > 0 ) then
+        chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+      end if
+
+      call cumulus
+
+      if ( idiag > 0 ) then
+        tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+        qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+      end if
+      if ( ichem == 1 .and. ichdiag > 0 ) then
+        cconvdiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
+      end if
+
+    end if
+    !
+    !------------------------------------------------
+    ! Large scale precipitation microphysical schemes
+    !------------------------------------------------
+    !
+    if ( ipptls > 0 ) then
+      if ( idiag > 0 ) then
+        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+      end if
+      ! Cumulus clouds
+      if ( icldfrac /= 2 ) then
+        call cucloud
+      end if
+      ! Save cumulus cloud fraction for chemistry before it is
+      ! overwritten in cldfrac
+      if ( ichem == 1 ) then
+        convcldfra(:,:,:) = cldfra(:,:,:)
+      end if
+      ! Clouds and large scale precipitation
+      call cldfrac
+      call microscheme
+      if ( idiag > 0 ) then
+        tdiag%lsc = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+        qdiag%lsc = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+      end if
+    end if
     !
     !------------------------------------------------
     !       Call radiative transfer package
@@ -1065,7 +1142,7 @@ module mod_moloch
     ! temperature tendency (deg/sec)
     !
     do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-      t(j,i,k) = t(j,i,k) + heatrt(j,i,k)
+      mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
     end do
     if ( idiag > 0 ) tdiag%rad = heatrt
     !
@@ -1080,6 +1157,63 @@ module mod_moloch
       call surface_model
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
+    !
+    !------------------------------------------------
+    !             Call PBL scheme
+    !------------------------------------------------
+    !
+    if ( ibltyp > 0 ) then
+      if ( idiag > 0 ) then
+        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+      end if
+      if ( ichem == 1 .and. ichdiag > 0 ) then
+        chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+      end if
+      call pblscheme
+      if ( idiag > 0 ) then
+        tdiag%tbl = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+        qdiag%tbl = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+      end if
+      if ( ichem == 1 .and. ichdiag > 0 ) then
+        ctbldiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
+      end if
+    end if
+    if ( ipptls == 1 ) then
+      if ( idiag > 0 ) then
+        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+      end if
+      call condtq
+      if ( idiag > 0 ) then
+        tdiag%lsc = tdiag%lsc + mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+        qdiag%lsc = qdiag%lsc + mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+      end if
+    end if
+    !
+    ! Update status
+    !
+    t(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:) + dtsec * &
+                   mo_atm%tten(jci1:jci2,ici1:ici2,:)
+    u(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:) + dtsec * &
+                   mo_atm%uten(jdi1:jdi2,ici1:ici2,:)
+    v(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:) + dtsec * &
+                   mo_atm%vten(jci1:jci2,idi1:idi2,:)
+    qx(jci1:jci2,ici1:ici2,:,:) = qx(jci1:jci2,ici1:ici2,:,:) + dtsec * &
+                   mo_atm%qxten(jci1:jci2,ici1:ici2,:,:)
+    qx(jci1:jci2,ici1:ici2,:,:) = max(qx(jci1:jci2,ici1:ici2,:,:),d_zero)
+    qx(jci1:jci2,ici1:ici2,:,iqv) = max(qx(jci1:jci2,ici1:ici2,:,iqv),minqq)
+    if ( ibltyp == 2 ) then
+      tke(jci1:jci2,ici1:ici2,:) = tke(jci1:jci2,ici1:ici2,:) + dtsec * &
+                   mo_atm%tketen(jci1:jci2,ici1:ici2,:)
+      tke(jci1:jci2,ici1:ici2,:) = max(tke(jci1:jci2,ici1:ici2,:),tkemin)
+    end if
+    if ( ichem == 1 ) then
+      trac(jci1:jci2,ici1:ici2,:,:) = &
+                 trac(jci1:jci2,ici1:ici2,:,:) + dtsec * &
+                 mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+    end if
+
   end subroutine physical_parametrizations
 
 end module mod_moloch

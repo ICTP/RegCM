@@ -553,6 +553,7 @@ module mod_mppparam
   public :: grid_distribute , grid_collect , grid_fill
   public :: subgrid_distribute , subgrid_collect
   public :: uvcross2dot , uvdot2cross , cross2dot , psc2psd
+  public :: tenxtouvten , uvtentotenx
   public :: bcast , sumall , maxall , minall , meanall
   public :: gather_r , gather_i
   public :: allgather_r , allgather_i
@@ -13494,6 +13495,57 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine real4_2d_grid_fill_extend2
+
+  subroutine uvtentotenx(u,v,ux,vx)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
+    integer(ik4) :: i , j , k
+
+    call exchange_lr(u,1,jdi1,jdi2,ici1,ici2,1,kz)
+    call exchange_bt(v,1,jci1,jci2,idi1,idi2,1,kz)
+    ! Back to wind points
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ux(j,i,k) = 0.5_rkx * (u(j,i,k)+u(j+1,i,k))
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          vx(j,i,k) = 0.5_rkx * (v(j,i,k)+v(j,i+1,k))
+        end do
+      end do
+    end do
+  end subroutine uvtentotenx
+
+  subroutine tenxtouvten(ux,vx,u,v)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
+    integer(ik4) :: i , j , k
+
+    call exchange_lr(ux,1,jci1,jci2,ici1,ici2,1,kz)
+    call exchange_bt(vx,1,jci1,jci2,ici1,ici2,1,kz)
+    ! Back to wind points
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jcii2
+          u(j,i,k) = 0.5_rkx * (ux(j,i,k)+ux(j+1,i,k))
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , icii2
+        do j = jci1 , jci2
+          v(j,i,k) = 0.5_rkx * (vx(j,i,k)+vx(j,i+1,k))
+        end do
+      end do
+    end do
+  end subroutine tenxtouvten
+
   !
   ! Takes u and v tendencies on the cross grid (as t, qv, qc, etc.)
   ! and interpolates the u and v to the dot grid.

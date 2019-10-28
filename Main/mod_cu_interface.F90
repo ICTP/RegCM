@@ -28,6 +28,7 @@ module mod_cu_interface
   use mod_memutil
   use mod_regcm_types
   use mod_mppparam , only : exchange , uvcross2dot , uvdot2cross , italk
+  use mod_mppparam , only : tenxtouvten , uvtentotenx
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
       model_cumulus_cloud , init_mod_cumulus
@@ -115,16 +116,26 @@ module mod_cu_interface
     end if
     if ( any(icup == 4) ) then
       call allocate_mod_cu_em
-      call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
-      call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+      if ( idynamic == 3 ) then
+        call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
+      else
+        call getmem3d(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
+      end if
     end if
     if ( any(icup == 5) ) then
       if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
       call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
       call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
-      call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
-      call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+      if ( idynamic /= 3 ) then
+        call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
+      else
+        call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+      end if
     end if
     if ( any(icup == 6) ) then
       call allocate_mod_cu_kf
@@ -164,26 +175,39 @@ module mod_cu_interface
     call assignpnt(sfs%hfx,m2c%hfx)
     call assignpnt(ktrop,m2c%ktrop)
     call assignpnt(ccn,m2c%ccn)
-    ! Pass dynamic tendencies as input.
-    call assignpnt(aten%t,m2c%tten,pc_dynamic)
-    call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
-    call assignpnt(aten%u,m2c%uten,pc_dynamic)
-    call assignpnt(aten%v,m2c%vten,pc_dynamic)
-    call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
     call assignpnt(heatrt,m2c%heatrt)
-    ! OUTPUT
-    call assignpnt(aten%t,c2m%tten,pc_physic)
-    call assignpnt(aten%u,c2m%uten,pc_physic)
-    call assignpnt(aten%v,c2m%vten,pc_physic)
-    call assignpnt(aten%qx,c2m%qxten,pc_physic)
-    call assignpnt(aten%chi,c2m%chiten,pc_physic)
+    ! Pass dynamic tendencies as input.
+    if ( idynamic == 3 ) then
+      call assignpnt(mo_atm%tten,m2c%tten)
+      call assignpnt(mo_atm%qxten,m2c%qxten)
+      call assignpnt(mo_atm%uten,m2c%uten)
+      call assignpnt(mo_atm%vten,m2c%vten)
+      if ( ichem == 1 ) call assignpnt(mo_atm%chiten,m2c%chiten)
+      call assignpnt(mo_atm%tten,c2m%tten)
+      call assignpnt(mo_atm%uten,c2m%uten)
+      call assignpnt(mo_atm%vten,c2m%vten)
+      call assignpnt(mo_atm%qxten,c2m%qxten)
+      if ( ichem == 1 ) call assignpnt(mo_atm%chiten,c2m%chiten)
+    else
+      call assignpnt(aten%t,m2c%tten,pc_dynamic)
+      call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
+      call assignpnt(aten%u,m2c%uten,pc_dynamic)
+      call assignpnt(aten%v,m2c%vten,pc_dynamic)
+      if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
+      ! OUTPUT
+      call assignpnt(aten%t,c2m%tten,pc_physic)
+      call assignpnt(aten%u,c2m%uten,pc_physic)
+      call assignpnt(aten%v,c2m%vten,pc_physic)
+      call assignpnt(aten%qx,c2m%qxten,pc_physic)
+      if ( ichem == 1 ) call assignpnt(aten%chi,c2m%chiten,pc_physic)
+    end if
     call assignpnt(sfs%rainc,c2m%rainc)
     call assignpnt(pptc,c2m%pcratec)
     call assignpnt(cldfra,c2m%cldfrc)
     call assignpnt(cldlwc,c2m%cldlwc)
     call assignpnt(icumtop,c2m%kcumtop)
     call assignpnt(icumbot,c2m%kcumbot)
-    call assignpnt(convpr,c2m%convpr)
+    if ( ichem == 1 ) call assignpnt(convpr,c2m%convpr)
     call assignpnt(q_detr,c2m%q_detr)
     call assignpnt(rain_cc,c2m%rain_cc)
     call assignpnt(crrate,c2m%trrate)
@@ -257,15 +281,19 @@ module mod_cu_interface
         ! Update input wind cumulus tendencies (dot to cross points)
 
         if ( any(icup == 5) ) then
-          do k = 1 , kz
-            do i = idi1 , idi2
-              do j = jdi1 , jdi2
-                utend(j,i,k) = m2c%uten(j,i,k) / sfs%psdotb(j,i)
-                vtend(j,i,k) = m2c%vten(j,i,k) / sfs%psdotb(j,i)
+          if ( idynamic == 3 ) then
+            call uvtentotenx(m2c%uten,m2c%vten,utenx,vtenx)
+          else
+            do k = 1 , kz
+              do i = idi1 , idi2
+                do j = jdi1 , jdi2
+                  utend(j,i,k) = m2c%uten(j,i,k) / sfs%psdotb(j,i)
+                  vtend(j,i,k) = m2c%vten(j,i,k) / sfs%psdotb(j,i)
+                end do
               end do
             end do
-          end do
-          call uvdot2cross(utend,vtend,utenx,vtenx)
+            call uvdot2cross(utend,vtend,utenx,vtenx)
+          end if
         end if
 
         cu_prate(:,:) = d_zero
@@ -329,7 +357,11 @@ module mod_cu_interface
         ! Update output wind cumulus tendencies (cross to dot points)
 
         if ( any(icup == 5) .or. any(icup == 4) ) then
-          call uvcross2dot(cu_uten,cu_vten,utend,vtend)
+          if ( idynamic == 3 ) then
+            call tenxtouvten(cu_uten,cu_vten,utend,vtend)
+          else
+            call uvcross2dot(cu_uten,cu_vten,utend,vtend)
+          end if
         end if
 
       end if
@@ -346,47 +378,103 @@ module mod_cu_interface
         end do
       end do
 
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k) * m2c%psb(j,i)
-          end do
-        end do
-      end do
+      if ( idynamic == 3 ) then
 
-      if ( any(icup == 5) .or. any(icup == 4) ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)*m2c%psdotb(j,i)
-              c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)*m2c%psdotb(j,i)
-            end do
-          end do
-        end do
-      end if
-
-      do n = 1 , nqx
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
-                            cu_qten(j,i,k,n) * m2c%psb(j,i)
+              c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k)
             end do
           end do
         end do
-      end do
 
-      if ( ichem == 1 ) then
-        do n = 1 , ntr
+        if ( any(icup == 5) .or. any(icup == 4) ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jci1 , jci2
+                c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)
+              end do
+            end do
+          end do
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jdi1 , jdi2
+                c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)
+              end do
+            end do
+          end do
+        end if
+
+        do n = 1 , nqx
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + &
-                                 cu_chiten(j,i,k,n) * m2c%psb(j,i)
+                c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + cu_qten(j,i,k,n)
               end do
             end do
           end do
         end do
+
+        if ( ichem == 1 ) then
+          do n = 1 , ntr
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + cu_chiten(j,i,k,n)
+                end do
+              end do
+            end do
+          end do
+        end if
+
+
+      else
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k) * m2c%psb(j,i)
+            end do
+          end do
+        end do
+
+        if ( any(icup == 5) .or. any(icup == 4) ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              do j = jdi1 , jdi2
+                c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)*m2c%psdotb(j,i)
+                c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)*m2c%psdotb(j,i)
+              end do
+            end do
+          end do
+        end if
+
+        do n = 1 , nqx
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + &
+                              cu_qten(j,i,k,n) * m2c%psb(j,i)
+              end do
+            end do
+          end do
+        end do
+
+        if ( ichem == 1 ) then
+          do n = 1 , ntr
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + &
+                                   cu_chiten(j,i,k,n) * m2c%psb(j,i)
+                end do
+              end do
+            end do
+          end do
+        end if
+      end if
+
+      if ( ichem == 1 ) then
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -406,14 +494,25 @@ module mod_cu_interface
           end do
         end do
         if ( ipptls /= 2 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + rdt * &
-                                       c2m%q_detr(j,i,k) * m2c%psb(j,i)
+          if ( idynamic == 3 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + rdt * &
+                                         c2m%q_detr(j,i,k)
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + rdt * &
+                                         c2m%q_detr(j,i,k) * m2c%psb(j,i)
+                end do
+              end do
+            end do
+          end if
         end if
       end if
     end if

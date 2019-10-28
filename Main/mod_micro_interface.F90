@@ -50,7 +50,6 @@ module mod_micro_interface
   real(rkx) , pointer , dimension(:,:) :: rh0
   real(rkx) , pointer , dimension(:,:,:) :: totc
 
-  real(rkx) , parameter :: qvmin = 1.0e-8_rkx
   real(rkx) , parameter :: alphaice = d_one
 
   integer(ik4) , parameter :: nchi = 256
@@ -159,8 +158,13 @@ module mod_micro_interface
     end if
 
     call assignpnt(fcc,mc2mo%fcc)
-    call assignpnt(aten%qx,mc2mo%qxten,pc_physic)
-    call assignpnt(aten%t,mc2mo%tten,pc_physic)
+    if ( idynamic == 3 ) then
+      call assignpnt(mo_atm%tten,mc2mo%tten)
+      call assignpnt(mo_atm%qxten,mc2mo%qxten)
+    else
+      call assignpnt(aten%t,mc2mo%tten,pc_physic)
+      call assignpnt(aten%qx,mc2mo%qxten,pc_physic)
+    end if
     call assignpnt(sfs%rainnc,mc2mo%rainnc)
     call assignpnt(sfs%snownc,mc2mo%snownc)
     call assignpnt(pptnc,mc2mo%lsmrnc)
@@ -354,7 +358,7 @@ module mod_micro_interface
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine condtq
-    use mod_atm_interface , only : atm0 , atm2 , sfs , aten
+    use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten
     implicit none
     !
     ! rhc    - Relative humidity at ktau+1
@@ -371,7 +375,30 @@ module mod_micro_interface
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
+          if ( idynamic == 3 ) then
+            tmp3 = mo_atm%t(j,i,k) + dt*mo_atm%tten(j,i,k)
+            qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
+            qccs = mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc)
+            pres = mo_atm%p(j,i,k)
+          else
+            tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
+            qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
+            qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
+            if ( idynamic == 1 ) then
+              pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
+            else
+              pres = atm0%pr(j,i,k) + &
+                 (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
+            end if
+            if ( qvcs < minqq * sfs%psc(j,i) ) then
+              qvcs = minqq * sfs%psc(j,i)
+            end if
+            if ( qccs < dlowval * sfs%psc(j,i) ) then
+              qccs = d_zero
+            end if
+            qvcs = qvcs /sfs%psc(j,i)
+            qccs = qccs /sfs%psc(j,i)
+          end if
 #ifdef DEBUG
           if ( tmp3 < d_zero ) then
             write(stderr,*) 'Time step = ', rcmtimer%lcount
@@ -381,26 +408,10 @@ module mod_micro_interface
             write(stderr,*) 'At global K : ',k
           end if
 #endif
-          qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
-          qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
-          if ( qvcs < minqq * sfs%psc(j,i) ) then
-            qvcs = minqq * sfs%psc(j,i)
-          end if
-          if ( qccs < dlowval * sfs%psc(j,i) ) then
-            qccs = d_zero
-          end if
-          qvcs = qvcs /sfs%psc(j,i)
-          qccs = qccs /sfs%psc(j,i)
           !
           ! 2.  Compute the cloud condensation/evaporation term.
           !
           ! 2a. Calculate the saturation mixing ratio and relative humidity
-          if ( idynamic == 1 ) then
-            pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
-          else
-            pres = atm0%pr(j,i,k) + &
-               (atm2%pp(j,i,k)+dt*aten%pp(j,i,k,pc_total))/sfs%psc(j,i)
-          end if
           qvs = pfwsat(tmp3,pres)
           rhc = min(max(qvcs/qvs,d_zero),rhmax)
           wwlh = wlh(tmp3)
@@ -447,12 +458,18 @@ module mod_micro_interface
           ! 3. Compute the tendencies.
           !
           if ( abs(tmp2) > dlowval ) then
-            aten%qx(j,i,k,iqv,pc_physic) = &
-                aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
-            aten%qx(j,i,k,iqc,pc_physic) = &
-                aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
-            aten%t(j,i,k,pc_physic) = &
-                aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wwlh*rcpd
+            if ( idynamic == 3 ) then
+              mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) - tmp2
+              mo_atm%qxten(j,i,k,iqc) = mo_atm%qxten(j,i,k,iqc) + tmp2
+              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + tmp2*wwlh*rcpd
+            else
+              aten%qx(j,i,k,iqv,pc_physic) = &
+                  aten%qx(j,i,k,iqv,pc_physic) - sfs%psc(j,i)*tmp2
+              aten%qx(j,i,k,iqc,pc_physic) = &
+                  aten%qx(j,i,k,iqc,pc_physic) + sfs%psc(j,i)*tmp2
+              aten%t(j,i,k,pc_physic) = &
+                  aten%t(j,i,k,pc_physic) + sfs%psc(j,i)*tmp2*wwlh*rcpd
+            end if
           end if
         end do
       end do

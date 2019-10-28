@@ -740,10 +740,12 @@ module mod_init
       ! Setup all timeseps for a restart
       !
       dtbat = dtsrf
-      dt = dt2
-      rdt = d_one/dt
-      dtsq = dt*dt
-      dtcb = dt*dt*dt
+      if ( idynamic /= 3 ) then
+        dt = dt2
+        rdt = d_one/dt
+        dtsq = dt*dt
+        dtcb = dt*dt*dt
+      end if
       !
       ! End of restart phase
       !
