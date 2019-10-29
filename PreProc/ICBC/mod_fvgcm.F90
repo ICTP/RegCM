@@ -443,14 +443,13 @@ module mod_fvgcm
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3,jx,iy,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,h3,topogm,jx,iy,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3,jx,iy,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,h3,topogm,jx,iy,kz,nlev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(t4,t3,z0,h3,jx,iy,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,nlev,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
-      call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
-      call intz1(q4,q3,z0,h3,jx,iy,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,nlev,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
@@ -461,11 +460,9 @@ module mod_fvgcm
 !$OMP SECTION
       call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev)
 !$OMP SECTION
-      call mxr2rh(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
       call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nlev,1)
 !$OMP END SECTIONS
     end if
-    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_fvgcm
 
   subroutine conclude_fvgcm

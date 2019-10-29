@@ -1804,12 +1804,13 @@ module mod_vertint
     end do
   end subroutine intvp
 
-  subroutine intz1(frcm,fccm,zrcm,zccm,ni,nj,krcm,kccm,a,e1,e2)
+  subroutine intz1(frcm,fccm,zrcm,zccm,trcm,ni,nj,krcm,kccm,a,e1,e2)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
     real(rkx) , intent(in) :: a , e1 , e2
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm , zccm
     real(rkx) , dimension(ni,nj,krcm) , intent(in) :: zrcm
+    real(rkx) , dimension(ni,nj) , intent(in) :: trcm
     real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
     real(rkx) , dimension(kccm) :: xc , fc
     real(rkx) , dimension(krcm) :: xr , fr
@@ -1818,7 +1819,7 @@ module mod_vertint
       do i = 1 , ni
         xc(:) = zccm(i,j,:)
         fc(:) = fccm(i,j,:)
-        xr(:) = zrcm(i,j,:)
+        xr(:) = zrcm(i,j,:) + trcm(i,j)
         call interp1d(xc,fc,xr,fr,a,e1,e2)
         frcm(i,j,:) = fr(:)
       end do

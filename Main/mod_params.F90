@@ -1947,6 +1947,7 @@ module mod_params
     if ( idynamic < 3 ) then
       do k = 1 , kz
         hsigma(k) = (sigma(k+1) + sigma(k))*d_half
+        dsigma(k) = (sigma(k+1) - sigma(k))
       end do
     end if
 
@@ -2166,7 +2167,6 @@ module mod_params
     do k = 2 , kz
       twt(k,1) = (sigma(k)-hsigma(k-1))/(hsigma(k)-hsigma(k-1))
       twt(k,2) = d_one - twt(k,1)
-      dsigma(k) = (sigma(k+1) - sigma(k))
       qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
     end do
 
@@ -2732,6 +2732,9 @@ module mod_params
         fbk = gzita(zita)
         ak = -hzita * bzita(zitah) * log(hsigma)
         bk = gzita(zitah)
+        do k = 1 , kz
+          dsigma(k) = (sigma(k+1) - sigma(k))
+        end do
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
