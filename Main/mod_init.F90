@@ -840,24 +840,23 @@ module mod_init
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                t = mo_atm%t(j,i,k) / sfs%psa(j,i)
+                t = mo_atm%t(j,i,k)
                 p = mo_atm%p(j,i,k)
                 qs = pfwsat(t,p)
-                qv = mo_atm%qx(j,i,k,iqv)/sfs%psa(j,i) + 1.0e-6_rkx*sigma(k)
+                qv = mo_atm%qx(j,i,k,iqv) + 1.0e-6_rkx*sigma(k)
                 if ( qv > qs ) then
                   rh = min(max((qv/qs),rhmin),rhmax)
                   pfcc = d_one-sqrt(d_one-(rh-rh0(j,i))/(rhmax-rh0(j,i)))
                   dens = p/(rgas*t)
-                  mo_atm%qx(j,i,k,iqv) = qs * sfs%psa(j,i)
-                  atm2%qx(j,i,k,iqv) = mo_atm%qx(j,i,k,iqv)
+                  mo_atm%qx(j,i,k,iqv) = qs
                   if ( t > tzero-2.0_rkx ) then
                     mo_atm%qx(j,i,k,iqc) = pfcc * dens * &
-                                   clwfromt(t)/d_1000 * sfs%psa(j,i)
+                                   clwfromt(t)/d_1000
                     mo_atm%qx(j,i,k,iqi) = d_zero
                   else
                     mo_atm%qx(j,i,k,iqc) = d_zero
                     mo_atm%qx(j,i,k,iqi) = pfcc * dens * &
-                                   clwfromt(t)/d_1000 * sfs%psa(j,i)
+                                   clwfromt(t)/d_1000
                   end if
                 else
                   mo_atm%qx(j,i,k,iqc) = d_zero
