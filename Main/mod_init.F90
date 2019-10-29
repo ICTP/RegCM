@@ -233,18 +233,6 @@ module mod_init
              dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
         end if
 
-        ! Sponge layer at the top of the atmosphere
-
-        ntop = int(0.08_rkx * real(kz,rkx))
-        zfilt = (kzp1-ntop+mo_nzfilt)*mo_dz
-        do k = 1 , kz
-          if ( k > ntop+mo_nzfilt-1 ) then
-            ffilt(k) = d_zero
-          else
-            zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
-            ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
-          end if
-        end do
       end if
 
       do i = ici1 , ici2
@@ -808,6 +796,34 @@ module mod_init
           end do
         end do
       end do
+    else if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
+            mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
+                           (d_one + ep1*mo_atm%qx(j,i,k,iqv))
+          end do
+        end do
+      end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          mo_atm%pf(j,i,kzp1) = sfs%psa(j,i)
+        end do
+      end do
+      do k = kz , 2 , -1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            mo_atm%pf(j,i,k) = p00 * &
+              (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
+          end do
+        end do
+      end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          mo_atm%pf(j,i,1) = 1.0e-6_rkx ! Supposedly zero
+        end do
+      end do
     end if
     !
     ! pressure of tropopause
@@ -929,7 +945,19 @@ module mod_init
     !
     ! Initialize the Surface Model
     !
-    if ( idynamic < 3 ) then
+    if ( idynamic == 3 ) then
+      ! Sponge layer at the top of the atmosphere
+      ntop = int(0.08_rkx * real(kz,rkx))
+      zfilt = (kzp1-ntop+mo_nzfilt)*mo_dz
+      do k = 1 , kz
+        if ( k > ntop+mo_nzfilt-1 ) then
+          ffilt(k) = d_zero
+        else
+          zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
+          ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
+        end if
+      end do
+    else
       call init_slice
     end if
     call initialize_surface_model
