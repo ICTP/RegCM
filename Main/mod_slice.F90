@@ -115,10 +115,12 @@ module mod_slice
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
       end do
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
-        atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz)
         atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (p00/atms%pb3d(j,i,k))**rovcp
+      end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
+        atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
         atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
       end do
@@ -212,10 +214,12 @@ module mod_slice
         atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
       end do
 
-      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
-        atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
+      do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz)
         atms%th3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (p00/atms%pb3d(j,i,k))**rovcp
+      end do
+      do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
+        atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
         atms%tp3d(j,i,k) = atms%tb3d(j,i,k) * &
                             (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
       end do
