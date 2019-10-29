@@ -73,6 +73,15 @@ module mod_savefile
   integer(ik4) , public , pointer , dimension(:,:,:) :: ldmsk1_io
   integer(ik4) , public , pointer , dimension(:,:) :: ldmsk_io
 
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_u_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_v_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_w_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_pai_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_t_io
+  real(rkx) , public , pointer , dimension(:,:,:) :: atm_tke_io
+  real(rkx) , public , pointer , dimension(:,:,:,:) :: atm_qx_io
+  real(rkx) , public , pointer , dimension(:,:) :: ps_io
+
   real(rkx) , public , pointer , dimension(:,:,:) :: atm1_u_io
   real(rkx) , public , pointer , dimension(:,:,:) :: atm2_u_io
   real(rkx) , public , pointer , dimension(:,:,:) :: atm1_v_io
@@ -87,10 +96,12 @@ module mod_savefile
   real(rkx) , public , pointer , dimension(:,:,:,:) :: atm2_qx_io
   real(rkx) , public , pointer , dimension(:,:,:) :: atm1_tke_io
   real(rkx) , public , pointer , dimension(:,:,:) :: atm2_tke_io
+
   real(rkx) , public , pointer , dimension(:,:,:) :: tke_pbl_io
 
   real(rkx) , public , pointer , dimension(:,:) :: psa_io
   real(rkx) , public , pointer , dimension(:,:) :: psb_io
+
   real(rkx) , public , pointer , dimension(:,:) :: hfx_io
   real(rkx) , public , pointer , dimension(:,:) :: qfx_io
   real(rkx) , public , pointer , dimension(:,:) :: tgbb_io
@@ -206,7 +217,16 @@ module mod_savefile
 
     if ( do_parallel_save ) then
       if ( idynamic == 3 ) then
-        ! Placeholder
+        call getmem3d(atm_u_io,jde1,jde2,ice1,ice2,1,kz,'atm_u_io')
+        call getmem3d(atm_v_io,jce1,jce2,ide1,ide2,1,kz,'atm_v_io')
+        call getmem3d(atm_t_io,jce1,jce2,ice1,ice2,1,kz,'atm_t_io')
+        call getmem3d(atm_pai_io,jce1,jce2,ice1,ice2,1,kz,'atm_pai_io')
+        call getmem3d(atm_w_io,jce1,jce2,ice1,ice2,1,kzp1,'atm_w_io')
+        call getmem4d(atm_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx,'atm_qx_io')
+        if ( ibltyp == 2 ) then
+          call getmem3d(atm_tke_io,jce1,jce2,ice1,ice2,1,kzp1,'atm_tke_io')
+        end if
+        call getmem2d(ps_io,jce1,jce2,ice1,ice2,'ps_io')
       else
         call getmem3d(atm1_u_io,jde1,jde2,ide1,ide2,1,kz,'atm1_u_io')
         call getmem3d(atm1_v_io,jde1,jde2,ide1,ide2,1,kz,'atm1_v_io')
@@ -220,6 +240,8 @@ module mod_savefile
           call getmem3d(atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1,'atm1_tke_io')
           call getmem3d(atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1,'atm2_tke_io')
         end if
+        call getmem2d(psa_io,jce1,jce2,ice1,ice2,'psa_io')
+        call getmem2d(psb_io,jce1,jce2,ice1,ice2,'psb_io')
       end if
       if ( ibltyp == 4 ) then
         call getmem3d(tke_pbl_io,jci1,jci2,ici1,ici2,1,kz,'tke_pbl_io')
@@ -230,8 +252,7 @@ module mod_savefile
         call getmem3d(atm1_pp_io,jce1,jce2,ice1,ice2,1,kz,'atm1_pp_io')
         call getmem3d(atm2_pp_io,jce1,jce2,ice1,ice2,1,kz,'atm2_pp_io')
       end if
-      call getmem2d(psa_io,jce1,jce2,ice1,ice2,'psa_io')
-      call getmem2d(psb_io,jce1,jce2,ice1,ice2,'psb_io')
+
       call getmem2d(hfx_io,jci1,jci2,ici1,ici2,'hfx_io')
       call getmem2d(qfx_io,jci1,jci2,ici1,ici2,'qfx_io')
       call getmem2d(tgbb_io,jci1,jci2,ici1,ici2,'tgbb_io')
@@ -351,22 +372,44 @@ module mod_savefile
     end if
 
     if ( myid == iocpu ) then
-      call getmem3d(atm1_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_u_io')
-      call getmem3d(atm1_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_v_io')
-      call getmem3d(atm1_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm1_t_io')
-      call getmem4d(atm1_qx_io,jcross1,jcross2, &
-                    icross1,icross2,1,kz,1,nqx,'atm1_qx_io')
-      call getmem3d(atm2_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_u_io')
-      call getmem3d(atm2_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_v_io')
-      call getmem3d(atm2_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm2_t_io')
-      call getmem4d(atm2_qx_io,jcross1,jcross2, &
-                    icross1,icross2,1,kz,1,nqx,'atm2_qx_io')
-      if ( ibltyp == 2 ) then
-        call getmem3d(atm1_tke_io,jcross1,jcross2, &
-                      icross1,icross2,1,kzp1,'atm1_tke_io')
-        call getmem3d(atm2_tke_io,jcross1,jcross2, &
-                      icross1,icross2,1,kzp1,'atm2_tke_io')
-      else if ( ibltyp == 4 ) then
+      if ( idynamic == 3 ) then
+        call getmem3d(atm_u_io,jdot1,jdot2,icross1,icross2,1,kz,'atm_u_io')
+        call getmem3d(atm_v_io,jcross1,jcross2,idot1,idot2,1,kz,'atm_v_io')
+        call getmem3d(atm_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm_t_io')
+        call getmem3d(atm_pai_io,jcross1,jcross2, &
+                                 icross1,icross2,1,kz,'atm_pai_io')
+        call getmem3d(atm_w_io,jcross1,jcross2, &
+                               icross1,icross2,1,kzp1,'atm_w_io')
+        call getmem4d(atm_qx_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,1,nqx,'atm_qx_io')
+        if ( ibltyp == 2 ) then
+          call getmem3d(atm_tke_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,'atm_tke_io')
+        end if
+        call getmem2d(ps_io,jcross1,jcross2,icross1,icross2,'ps_io')
+      else
+        call getmem3d(atm1_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_u_io')
+        call getmem3d(atm1_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm1_v_io')
+        call getmem3d(atm1_t_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,'atm1_t_io')
+        call getmem4d(atm1_qx_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,1,nqx,'atm1_qx_io')
+        call getmem3d(atm2_u_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_u_io')
+        call getmem3d(atm2_v_io,jdot1,jdot2,idot1,idot2,1,kz,'atm2_v_io')
+        call getmem3d(atm2_t_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,'atm2_t_io')
+        call getmem4d(atm2_qx_io,jcross1,jcross2, &
+                      icross1,icross2,1,kz,1,nqx,'atm2_qx_io')
+        if ( ibltyp == 2 ) then
+          call getmem3d(atm1_tke_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,'atm1_tke_io')
+          call getmem3d(atm2_tke_io,jcross1,jcross2, &
+                        icross1,icross2,1,kzp1,'atm2_tke_io')
+        end if
+        call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
+        call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
+      end if
+      if ( ibltyp == 4 ) then
         call getmem3d(tke_pbl_io,jcross1,jcross2, &
                       icross1,icross2,1,kz,'tke_pbl_io')
       end if
@@ -380,8 +423,6 @@ module mod_savefile
         call getmem3d(atm2_pp_io,jcross1,jcross2, &
                       icross1,icross2,1,kz,'atm2_pp_io')
       end if
-      call getmem2d(psa_io,jcross1,jcross2,icross1,icross2,'psa_io')
-      call getmem2d(psb_io,jcross1,jcross2,icross1,icross2,'psb_io')
       call getmem2d(hfx_io,jcross1,jcross2,icross1,icross2,'hfx_io')
       call getmem2d(qfx_io,jcross1,jcross2,icross1,icross2,'qfx_io')
       call getmem2d(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
@@ -543,17 +584,34 @@ module mod_savefile
 
     call saveopen(ffin,ncid)
 
-    call mygetvar(ncid,'atm1_u',atm1_u_io)
-    call mygetvar(ncid,'atm2_u',atm2_u_io)
-    call mygetvar(ncid,'atm1_v',atm1_v_io)
-    call mygetvar(ncid,'atm2_v',atm2_v_io)
-    call mygetvar(ncid,'atm1_t',atm1_t_io)
-    call mygetvar(ncid,'atm2_t',atm2_t_io)
-    call mygetvar(ncid,'atm1_qx',atm1_qx_io)
-    call mygetvar(ncid,'atm2_qx',atm2_qx_io)
+    if ( idynamic == 3 ) then
+      call mygetvar(ncid,'atm_u',atm_u_io)
+      call mygetvar(ncid,'atm_v',atm_v_io)
+      call mygetvar(ncid,'atm_w',atm_w_io)
+      call mygetvar(ncid,'atm_t',atm_t_io)
+      call mygetvar(ncid,'atm_pai',atm_pai_io)
+      call mygetvar(ncid,'atm_qx',atm_qx_io)
+      if ( ibltyp == 2 ) then
+        call mygetvar(ncid,'atm_tke',atm_tke_io)
+      end if
+      call mygetvar(ncid,'ps',ps_io)
+    else
+      call mygetvar(ncid,'atm1_u',atm1_u_io)
+      call mygetvar(ncid,'atm2_u',atm2_u_io)
+      call mygetvar(ncid,'atm1_v',atm1_v_io)
+      call mygetvar(ncid,'atm2_v',atm2_v_io)
+      call mygetvar(ncid,'atm1_t',atm1_t_io)
+      call mygetvar(ncid,'atm2_t',atm2_t_io)
+      call mygetvar(ncid,'atm1_qx',atm1_qx_io)
+      call mygetvar(ncid,'atm2_qx',atm2_qx_io)
+      if ( ibltyp == 2 ) then
+        call mygetvar(ncid,'atm1_tke',atm1_tke_io)
+        call mygetvar(ncid,'atm2_tke',atm2_tke_io)
+      end if
+      call mygetvar(ncid,'psa',psa_io)
+      call mygetvar(ncid,'psb',psb_io)
+    end if
     if ( ibltyp == 2 ) then
-      call mygetvar(ncid,'atm1_tke',atm1_tke_io)
-      call mygetvar(ncid,'atm2_tke',atm2_tke_io)
       call mygetvar(ncid,'kpbl',kpbl_io)
     else if ( ibltyp == 4 ) then
       call mygetvar(ncid,'tke_pbl',tke_pbl_io)
@@ -569,8 +627,6 @@ module mod_savefile
       call mygetvar(ncid,'atm1_pp',atm1_pp_io)
       call mygetvar(ncid,'atm2_pp',atm2_pp_io)
     end if
-    call mygetvar(ncid,'psa',psa_io)
-    call mygetvar(ncid,'psb',psb_io)
     call mygetvar(ncid,'hfx',hfx_io)
     call mygetvar(ncid,'qfx',qfx_io)
     call mygetvar(ncid,'tgbb',tgbb_io)
@@ -651,8 +707,12 @@ module mod_savefile
       call mygetvar(ncid,'zpbl',zpbl_io)
     end if
     if ( ichem == 1 ) then
-      call mygetvar(ncid,'chia',chia_io)
-      call mygetvar(ncid,'chib',chib_io)
+      if ( idynamic == 3 ) then
+        call mygetvar(ncid,'trac',trac_io)
+      else
+        call mygetvar(ncid,'chia',chia_io)
+        call mygetvar(ncid,'chib',chib_io)
+      end if
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         call mygetvar(ncid,'chemall',chemall_io)
         call remappnt4(taucldsp_io,tmp_io)
@@ -764,25 +824,53 @@ module mod_savefile
     dimids(indep) = savedefdim(ncid,'soil_layers',num_soil_layers)
 
     ivcc = 0
-    wrkdim(1) = dimids(idjdot)
-    wrkdim(2) = dimids(ididot)
-    wrkdim(3) = dimids(idkh)
-    call savedefvar(ncid,'atm1_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'atm2_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'atm1_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'atm2_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    wrkdim(1) = dimids(idjcross)
-    wrkdim(2) = dimids(idicross)
-    wrkdim(3) = dimids(idkh)
-    call savedefvar(ncid,'atm1_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    call savedefvar(ncid,'atm2_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
-    wrkdim(4) = dimids(idnqx)
-    call savedefvar(ncid,'atm1_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
-    call savedefvar(ncid,'atm2_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
-    if ( ibltyp == 2 ) then
+    if ( idynamic == 3 ) then
+      wrkdim(1) = dimids(idjdot)
+      wrkdim(2) = dimids(idicross)
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'atm_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(ididot)
+      call savedefvar(ncid,'atm_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
       wrkdim(3) = dimids(idkf)
-      call savedefvar(ncid,'atm1_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
-      call savedefvar(ncid,'atm2_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm_w',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'atm_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm_pai',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(4) = dimids(idnqx)
+      call savedefvar(ncid,'atm_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      if ( ibltyp == 2 ) then
+        wrkdim(3) = dimids(idkf)
+        call savedefvar(ncid,'atm_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      call savedefvar(ncid,'ps',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    else
+      wrkdim(1) = dimids(idjdot)
+      wrkdim(2) = dimids(ididot)
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'atm1_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm2_u',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm1_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm2_v',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
+      wrkdim(3) = dimids(idkh)
+      call savedefvar(ncid,'atm1_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      call savedefvar(ncid,'atm2_t',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      wrkdim(4) = dimids(idnqx)
+      call savedefvar(ncid,'atm1_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      call savedefvar(ncid,'atm2_qx',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      if ( ibltyp == 2 ) then
+        wrkdim(3) = dimids(idkf)
+        call savedefvar(ncid,'atm1_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+        call savedefvar(ncid,'atm2_tke',regcm_vartype,wrkdim,1,3,varids,ivcc)
+      end if
+      call savedefvar(ncid,'psa',regcm_vartype,wrkdim,1,2,varids,ivcc)
+      call savedefvar(ncid,'psb',regcm_vartype,wrkdim,1,2,varids,ivcc)
+    end if
+    if ( ibltyp == 2 ) then
       call savedefvar(ncid,'kpbl',nf90_int,wrkdim,1,2,varids,ivcc)
     else if ( ibltyp == 4 ) then
       wrkdim(3) = dimids(idkh)
@@ -801,8 +889,6 @@ module mod_savefile
       call savedefvar(ncid,'atm1_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
       call savedefvar(ncid,'atm2_pp',regcm_vartype,wrkdim,1,3,varids,ivcc)
     end if
-    call savedefvar(ncid,'psa',regcm_vartype,wrkdim,1,2,varids,ivcc)
-    call savedefvar(ncid,'psb',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'hfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'qfx',regcm_vartype,wrkdim,1,2,varids,ivcc)
     call savedefvar(ncid,'tgbb',regcm_vartype,wrkdim,1,2,varids,ivcc)
@@ -907,8 +993,12 @@ module mod_savefile
     if ( ichem == 1 ) then
       wrkdim(3) = dimids(idkh)
       wrkdim(4) = dimids(idntr)
-      call savedefvar(ncid,'chia',regcm_vartype,wrkdim,1,4,varids,ivcc)
-      call savedefvar(ncid,'chib',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      if ( idynamic == 3 ) then
+        call savedefvar(ncid,'trac',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      else
+        call savedefvar(ncid,'chia',regcm_vartype,wrkdim,1,4,varids,ivcc)
+        call savedefvar(ncid,'chib',regcm_vartype,wrkdim,1,4,varids,ivcc)
+      end if
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idtotsp)
@@ -981,17 +1071,34 @@ module mod_savefile
 
     ivcc = 0
 
-    call myputvar(ncid,'atm1_u',atm1_u_io,varids,ivcc)
-    call myputvar(ncid,'atm2_u',atm2_u_io,varids,ivcc)
-    call myputvar(ncid,'atm1_v',atm1_v_io,varids,ivcc)
-    call myputvar(ncid,'atm2_v',atm2_v_io,varids,ivcc)
-    call myputvar(ncid,'atm1_t',atm1_t_io,varids,ivcc)
-    call myputvar(ncid,'atm2_t',atm2_t_io,varids,ivcc)
-    call myputvar(ncid,'atm1_qx',atm1_qx_io,varids,ivcc)
-    call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
+    if ( idynamic == 3 ) then
+      call myputvar(ncid,'atm_u',atm_u_io,varids,ivcc)
+      call myputvar(ncid,'atm_v',atm_v_io,varids,ivcc)
+      call myputvar(ncid,'atm_w',atm_w_io,varids,ivcc)
+      call myputvar(ncid,'atm_t',atm_t_io,varids,ivcc)
+      call myputvar(ncid,'atm_pai',atm_pai_io,varids,ivcc)
+      call myputvar(ncid,'atm_qx',atm_qx_io,varids,ivcc)
+      if ( ibltyp == 2 ) then
+        call myputvar(ncid,'atm_tke',atm_tke_io,varids,ivcc)
+      end if
+      call myputvar(ncid,'ps',ps_io,varids,ivcc)
+    else
+      call myputvar(ncid,'atm1_u',atm1_u_io,varids,ivcc)
+      call myputvar(ncid,'atm2_u',atm2_u_io,varids,ivcc)
+      call myputvar(ncid,'atm1_v',atm1_v_io,varids,ivcc)
+      call myputvar(ncid,'atm2_v',atm2_v_io,varids,ivcc)
+      call myputvar(ncid,'atm1_t',atm1_t_io,varids,ivcc)
+      call myputvar(ncid,'atm2_t',atm2_t_io,varids,ivcc)
+      call myputvar(ncid,'atm1_qx',atm1_qx_io,varids,ivcc)
+      call myputvar(ncid,'atm2_qx',atm2_qx_io,varids,ivcc)
+      if ( ibltyp == 2 ) then
+        call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
+        call myputvar(ncid,'atm2_tke',atm2_tke_io,varids,ivcc)
+      end if
+      call myputvar(ncid,'psa',psa_io,varids,ivcc)
+      call myputvar(ncid,'psb',psb_io,varids,ivcc)
+    end if
     if ( ibltyp == 2 ) then
-      call myputvar(ncid,'atm1_tke',atm1_tke_io,varids,ivcc)
-      call myputvar(ncid,'atm2_tke',atm2_tke_io,varids,ivcc)
       call myputvar(ncid,'kpbl',kpbl_io,varids,ivcc)
     else if ( ibltyp == 4 ) then
       call myputvar(ncid,'tke_pbl',tke_pbl_io,varids,ivcc)
@@ -1007,8 +1114,6 @@ module mod_savefile
       call myputvar(ncid,'atm1_pp',atm1_pp_io,varids,ivcc)
       call myputvar(ncid,'atm2_pp',atm2_pp_io,varids,ivcc)
     end if
-    call myputvar(ncid,'psa',psa_io,varids,ivcc)
-    call myputvar(ncid,'psb',psb_io,varids,ivcc)
     call myputvar(ncid,'hfx',hfx_io,varids,ivcc)
     call myputvar(ncid,'qfx',qfx_io,varids,ivcc)
     call myputvar(ncid,'tgbb',tgbb_io,varids,ivcc)
@@ -1089,8 +1194,12 @@ module mod_savefile
       call myputvar(ncid,'zpbl',zpbl_io,varids,ivcc)
     end if
     if ( ichem == 1 ) then
-      call myputvar(ncid,'chia',chia_io,varids,ivcc)
-      call myputvar(ncid,'chib',chib_io,varids,ivcc)
+      if ( idynamic == 3 ) then
+        call myputvar(ncid,'trac',trac_io,varids,ivcc)
+      else
+        call myputvar(ncid,'chia',chia_io,varids,ivcc)
+        call myputvar(ncid,'chib',chib_io,varids,ivcc)
+      end if
       if ( igaschem == 1 .and. ichsolver > 0 ) then
         call myputvar(ncid,'chemall',chemall_io,varids,ivcc)
         call remappnt4(taucldsp_io,tmp_io)

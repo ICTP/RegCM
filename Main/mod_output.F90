@@ -1339,6 +1339,23 @@ module mod_output
       if ( ldosav ) then
         if ( do_parallel_save ) then
           if ( idynamic == 3 ) then
+            atm_u_io(jde1:jde2,ice1:ice2,:) = mo_atm%u(jde1:jde2,ice1:ice2,:)
+            atm_v_io(jce1:jce2,ide1:ide2,:) = mo_atm%v(jce1:jce2,ide1:ide2,:)
+            atm_w_io(jce1:jce2,ice1:ice2,:) = mo_atm%w(jce1:jce2,ice1:ice2,:)
+            atm_t_io(jce1:jce2,ice1:ice2,:) = mo_atm%t(jce1:jce2,ice1:ice2,:)
+            atm_pai_io(jce1:jce2,ice1:ice2,:) = &
+                              mo_atm%pai(jce1:jce2,ice1:ice2,:)
+            atm_qx_io(jce1:jce2,ice1:ice2,:,:) = &
+                               mo_atm%qx(jce1:jce2,ice1:ice2,:,:)
+            if ( ibltyp == 2 ) then
+              atm_tke_io(jce1:jce2,ice1:ice2,:) = &
+                       mo_atm%tke(jce1:jce2,ice1:ice2,:)
+            end if
+            if ( ichem == 1 ) then
+              trac_io(jce1:jce2,ice1:ice2,:,:) = &
+                                mo_atm%trac(jce1:jce2,ice1:ice2,:,:)
+            end if
+            ps_io(jce1:jce2,ice1:ice2) = sfs%psa(jce1:jce2,ice1:ice2)
           else
             atm1_u_io(jde1:jde2,ide1:ide2,:) = atm1%u(jde1:jde2,ide1:ide2,:)
             atm1_v_io(jde1:jde2,ide1:ide2,:) = atm1%v(jde1:jde2,ide1:ide2,:)
@@ -1362,6 +1379,8 @@ module mod_output
               chib_io(jce1:jce2,ice1:ice2,:,:) = &
                                 atm2%chi(jce1:jce2,ice1:ice2,:,:)
             end if
+            psa_io(jce1:jce2,ice1:ice2) = sfs%psa(jce1:jce2,ice1:ice2)
+            psb_io(jce1:jce2,ice1:ice2) = sfs%psb(jce1:jce2,ice1:ice2)
           end if
           if ( ibltyp == 2 ) then
             kpbl_io = kpbl
@@ -1380,8 +1399,6 @@ module mod_output
             atm1_w_io(jce1:jce2,ice1:ice2,:) = atm1%w(jce1:jce2,ice1:ice2,:)
             atm2_w_io(jce1:jce2,ice1:ice2,:) = atm2%w(jce1:jce2,ice1:ice2,:)
           end if
-          psa_io(jce1:jce2,ice1:ice2) = sfs%psa(jce1:jce2,ice1:ice2)
-          psb_io(jce1:jce2,ice1:ice2) = sfs%psb(jce1:jce2,ice1:ice2)
           hfx_io = sfs%hfx
           qfx_io = sfs%qfx
           tgbb_io = sfs%tgbb
@@ -1502,6 +1519,22 @@ module mod_output
           end if
         else
           if ( idynamic == 3 ) then
+            call grid_collect(mo_atm%u,atm_u_io,jde1,jde2,ice1,ice2,1,kz)
+            call grid_collect(mo_atm%v,atm_v_io,jce1,jce2,ide1,ide2,1,kz)
+            call grid_collect(mo_atm%w,atm_w_io,jce1,jce2,ice1,ice2,1,kzp1)
+            call grid_collect(mo_atm%t,atm_t_io,jce1,jce2,ice1,ice2,1,kz)
+            call grid_collect(mo_atm%pai,atm_pai_io,jce1,jce2,ice1,ice2,1,kz)
+            call grid_collect(mo_atm%qx,atm_qx_io, &
+                              jce1,jce2,ice1,ice2,1,kz,1,nqx)
+            if ( ibltyp == 2 ) then
+              call grid_collect(mo_atm%tke,atm_tke_io, &
+                                jce1,jce2,ice1,ice2,1,kzp1)
+            end if
+            if ( ichem == 1 ) then
+              call grid_collect(mo_atm%trac,trac_io, &
+                                jce1,jce2,ice1,ice2,1,kz,1,ntr)
+            end if
+            call grid_collect(sfs%psa,ps_io,jce1,jce2,ice1,ice2)
           else
             call grid_collect(atm1%u,atm1_u_io,jde1,jde2,ide1,ide2,1,kz)
             call grid_collect(atm1%v,atm1_v_io,jde1,jde2,ide1,ide2,1,kz)
@@ -1519,6 +1552,8 @@ module mod_output
               call grid_collect(atm1%chi,chia_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
               call grid_collect(atm2%chi,chib_io,jce1,jce2,ice1,ice2,1,kz,1,ntr)
             end if
+            call grid_collect(sfs%psa,psa_io,jce1,jce2,ice1,ice2)
+            call grid_collect(sfs%psb,psb_io,jce1,jce2,ice1,ice2)
           end if
           if ( ibltyp == 2 ) then
             call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
@@ -1537,8 +1572,6 @@ module mod_output
             call grid_collect(atm1%w,atm1_w_io,jce1,jce2,ice1,ice2,1,kzp1)
             call grid_collect(atm2%w,atm2_w_io,jce1,jce2,ice1,ice2,1,kzp1)
           end if
-          call grid_collect(sfs%psa,psa_io,jce1,jce2,ice1,ice2)
-          call grid_collect(sfs%psb,psb_io,jce1,jce2,ice1,ice2)
           call grid_collect(sfs%hfx,hfx_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfs%tgbb,tgbb_io,jci1,jci2,ici1,ici2)

@@ -331,6 +331,22 @@ module mod_init
       !
       if ( do_parallel_save ) then
         if ( idynamic == 3 ) then
+          mo_atm%u(jde1:jde2,ice1:ice2,:) = atm_u_io(jde1:jde2,ice1:ice2,:)
+          mo_atm%v(jce1:jce2,ide1:ide2,:) = atm_v_io(jce1:jce2,ide1:ide2,:)
+          mo_atm%w(jce1:jce2,ice1:ice2,:) = atm_w_io(jce1:jce2,ice1:ice2,:)
+          mo_atm%t(jce1:jce2,ice1:ice2,:) = atm_t_io(jce1:jce2,ice1:ice2,:)
+          mo_atm%pai(jce1:jce2,ice1:ice2,:) = atm_pai_io(jce1:jce2,ice1:ice2,:)
+          mo_atm%qx(jce1:jce2,ice1:ice2,:,:) = &
+                             atm_qx_io(jce1:jce2,ice1:ice2,:,:)
+          if ( ibltyp == 2 ) then
+            mo_atm%tke(jce1:jce2,ice1:ice2,:) = &
+                     atm_tke_io(jce1:jce2,ice1:ice2,:)
+          end if
+          if ( ichem == 1 ) then
+            mo_atm%trac(jce1:jce2,ice1:ice2,:,:) = &
+                       trac_io(jce1:jce2,ice1:ice2,:,:)
+          end if
+          sfs%psa(jce1:jce2,ice1:ice2) = ps_io(jce1:jce2,ice1:ice2)
         else
           atm1%u(jde1:jde2,ide1:ide2,:) = atm1_u_io(jde1:jde2,ide1:ide2,:)
           atm1%v(jde1:jde2,ide1:ide2,:) = atm1_v_io(jde1:jde2,ide1:ide2,:)
@@ -354,6 +370,8 @@ module mod_init
             atm2%chi(jce1:jce2,ice1:ice2,:,:) = &
                      chib_io(jce1:jce2,ice1:ice2,:,:)
           end if
+          sfs%psa(jce1:jce2,ice1:ice2) = psa_io(jce1:jce2,ice1:ice2)
+          sfs%psb(jce1:jce2,ice1:ice2) = psb_io(jce1:jce2,ice1:ice2)
         end if
         if ( ibltyp == 2 ) then
           kpbl = kpbl_io
@@ -372,8 +390,6 @@ module mod_init
           atm1%w(jce1:jce2,ice1:ice2,:) = atm1_w_io(jce1:jce2,ice1:ice2,:)
           atm2%w(jce1:jce2,ice1:ice2,:) = atm2_w_io(jce1:jce2,ice1:ice2,:)
         end if
-        sfs%psa(jce1:jce2,ice1:ice2) = psa_io(jce1:jce2,ice1:ice2)
-        sfs%psb(jce1:jce2,ice1:ice2) = psb_io(jce1:jce2,ice1:ice2)
         sfs%hfx = hfx_io
         sfs%qfx = qfx_io
         sfs%tgbb = tgbb_io
@@ -494,6 +510,22 @@ module mod_init
         end if
       else
         if ( idynamic == 3 ) then
+          call grid_distribute(atm_u_io,mo_atm%u,jde1,jde2,ice1,ice2,1,kz)
+          call grid_distribute(atm_v_io,mo_atm%v,jce1,jce2,ide1,ide2,1,kz)
+          call grid_distribute(atm_w_io,mo_atm%w,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_distribute(atm_t_io,mo_atm%t,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(atm_pai_io,mo_atm%pai,jce1,jce2,ice1,ice2,1,kz)
+          call grid_distribute(atm_qx_io,mo_atm%qx, &
+                               jce1,jce2,ice1,ice2,1,kz,1,nqx)
+          if ( ibltyp == 2 ) then
+            call grid_distribute(atm_tke_io,mo_atm%tke, &
+                                 jce1,jce2,ice1,ice2,1,kzp1)
+          end if
+          if ( ichem == 1 ) then
+            call grid_distribute(trac_io,mo_atm%trac, &
+                                 jce1,jce2,ice1,ice2,1,kz,1,ntr)
+          end if
+          call grid_distribute(ps_io,sfs%psa,jce1,jce2,ice1,ice2)
         else
           call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
           call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
@@ -517,6 +549,8 @@ module mod_init
             call grid_distribute(chib_io,atm2%chi, &
                                  jce1,jce2,ice1,ice2,1,kz,1,ntr)
           end if
+          call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
+          call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
         end if
         if ( ibltyp == 2 ) then
           call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
@@ -536,8 +570,6 @@ module mod_init
           call grid_distribute(atm1_pp_io,atm1%pp,jce1,jce2,ice1,ice2,1,kz)
           call grid_distribute(atm2_pp_io,atm2%pp,jce1,jce2,ice1,ice2,1,kz)
         end if
-        call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
-        call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
         call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
         call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
         call grid_distribute(tgbb_io,sfs%tgbb,jci1,jci2,ici1,ici2)
@@ -859,6 +891,14 @@ module mod_init
             do i = ici1 , ici2
               do j = jci1 , jci2
                 avg_ww(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+              end do
+            end do
+          end do
+        else if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                avg_ww(j,i,k) = mo_atm%w(j,i,k)
               end do
             end do
           end do

@@ -76,7 +76,7 @@ module mod_moloch
   real(rkx) , dimension(:,:) , pointer :: ps
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
-  real(rkx) , dimension(:,:,:) , pointer :: pai
+  real(rkx) , dimension(:,:,:) , pointer :: pai , pf
   real(rkx) , dimension(:,:,:) , pointer :: tetav , tvirt
   real(rkx) , dimension(:,:,:) , pointer :: zeta , zetau , zetav
   real(rkx) , dimension(:,:,:) , pointer :: u , v , w
@@ -101,6 +101,7 @@ module mod_moloch
     call getmem2d(p2d,jde1,jde2,ide1,ide2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+    call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
     call getmem3d(zdiv2,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wwkw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wwkw')
@@ -249,6 +250,14 @@ module mod_moloch
       end do
     end do
 
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          pf(j,i,k) = pai(j,i,k)
+        end do
+      end do
+    end do
+
     call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
     do jadv = 1 , mo_nadv
@@ -257,15 +266,18 @@ module mod_moloch
 
       call advection(dtstepa)
 
-      if ( ifrayd == 1 ) then
-        if ( i_crm /= 1 ) then
-          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
-          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-        end if
-      end if
+      pai(jce1:jce2,ice1:ice2,1:kz) = pai(jce1:jce2,ice1:ice2,1:kz) - pf
+      call filt3d(pai,0.05_rkx,jci1,jci2,ici1,ici2)
+      pai(jce1:jce2,ice1:ice2,1:kz) = pai(jce1:jce2,ice1:ice2,1:kz) + pf
 
     end do ! Advection loop
+
+    if ( ifrayd == 1 ) then
+      if ( i_crm /= 1 ) then
+        call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+        call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+       end if
+    end if
 
     do k = 1 , kz
       do i = ici1 , ici2

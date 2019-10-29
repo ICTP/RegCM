@@ -254,9 +254,9 @@ module mod_micro_subex
           dpovg = dsigma(k)*mo2mc%psb(j,i)*thog       ![kg/m2][avg]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
-          pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
+          pptmax = (d_one-remfrc)*qcw/dt              ![kg/kg/s][avg]
           if ( pptsum(j,i) > d_zero ) then
-            pptkm1 = pptsum(j,i)/dpovg             ![kg/kg/s][avg]
+            pptkm1 = pptsum(j,i)/dpovg                ![kg/kg/s][avg]
           else
             pptkm1 = d_zero
           end if

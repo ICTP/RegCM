@@ -41,6 +41,7 @@ module mod_che_mppio
                                          sdelq_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
+  real(rkx) , pointer , public , dimension(:,:,:,:) :: trac_io
   real(rkx) , pointer , public , dimension(:,:,:,:) :: chia_io , chib_io
   real(rkx) , pointer , public , dimension(:,:,:,:) :: chemall_io
   real(rkx) , pointer , public , dimension(:,:,:,:) :: taucldsp_io
@@ -57,10 +58,15 @@ module mod_che_mppio
       if ( ichem == 1 ) then
 
         if ( do_parallel_save ) then
-          call getmem4d(chia_io,jce1,jce2,ice1,ice2, &
-                        1,kz,1,ntr,'che_mppio:chia_io')
-          call getmem4d(chib_io,jce1,jce2,ice1,ice2, &
-                        1,kz,1,ntr,'che_mppio:chib_io')
+          if ( idynamic == 3 ) then
+            call getmem4d(trac_io,jce1,jce2,ice1,ice2, &
+                          1,kz,1,ntr,'che_mppio:trac_io')
+          else
+            call getmem4d(chia_io,jce1,jce2,ice1,ice2, &
+                          1,kz,1,ntr,'che_mppio:chia_io')
+            call getmem4d(chib_io,jce1,jce2,ice1,ice2, &
+                          1,kz,1,ntr,'che_mppio:chib_io')
+          end if
           call getmem3d(convpr_io,jci1,jci2,ici1,ici2, &
                         1,kz,'che_mppio:convpr_io')
           call getmem4d(rainout_io,jci1,jci2,ici1,ici2, &
@@ -133,10 +139,15 @@ module mod_che_mppio
           call getmem2d(sfracv2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracv2d_io')
 
-          call getmem4d(chia_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:chia_io')
-          call getmem4d(chib_io,jcross1,jcross2,icross1,icross2, &
-                        1,kz,1,ntr,'che_mppio:chib_io')
+          if ( idynamic == 3 ) then
+            call getmem4d(trac_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:trac_io')
+          else
+            call getmem4d(chia_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:chia_io')
+            call getmem4d(chib_io,jcross1,jcross2,icross1,icross2, &
+                          1,kz,1,ntr,'che_mppio:chib_io')
+          end if
           if ( igaschem == 1 .and. ichsolver > 0 ) then
             call getmem4d(chemall_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,totsp,'che_mppio:chemall_io')

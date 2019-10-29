@@ -58,6 +58,7 @@ module mod_che_interface
 
   public :: idust
   public :: totsp
+  public :: trac_io
   public :: chia_io
   public :: chib_io
   public :: convcldfra , cadvhdiag , cadvvdiag , cbdydiag , cconvdiag
