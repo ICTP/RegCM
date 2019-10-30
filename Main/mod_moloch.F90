@@ -81,7 +81,8 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: zeta , zetau , zetav
   real(rkx) , dimension(:,:,:) , pointer :: u , v , w
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
-  real(rkx) , dimension(:,:,:) , pointer :: p , t , qv , qc , qi , qs
+  real(rkx) , dimension(:,:,:) , pointer :: p , t
+  real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
 
@@ -154,11 +155,15 @@ module mod_moloch
     call assignpnt(mo_atm%p,p)
     call assignpnt(mo_atm%t,t)
     call assignpnt(mo_atm%qx,qx)
-    call assignpnt(mo_atm%qs,qs)
+    call assignpnt(mo_atm%qs,qsat)
     call assignpnt(mo_atm%qx,qv,iqv)
     if ( ipptls > 0 ) then
       call assignpnt(mo_atm%qx,qc,iqc)
-      if ( ipptls > 1 ) call assignpnt(mo_atm%qx,qi,iqi)
+      if ( ipptls > 1 ) then
+        call assignpnt(mo_atm%qx,qi,iqi)
+        call assignpnt(mo_atm%qx,qr,iqr)
+        call assignpnt(mo_atm%qx,qs,iqs)
+      end if
     end if
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
     if ( ichem == 1 ) call assignpnt(mo_atm%trac,trac)
@@ -208,7 +213,7 @@ module mod_moloch
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qs(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+          qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
         end do
       end do
     end do
@@ -219,7 +224,8 @@ module mod_moloch
           do i = ice1 , ice2
             do j = jce1 , jce2
               tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - &
-                                         qc(j,i,k) - qi(j,i,k))
+                                         qc(j,i,k) - qi(j,i,k) - &
+                                         qr(j,i,k) - qs(j,i,k))
             end do
           end do
         end do
@@ -293,7 +299,7 @@ module mod_moloch
           do i = ici1 , ici2
             do j = jci1 , jci2
               t(j,i,k) = tvirt(j,i,k) / (d_one + ep1*qv(j,i,k) - &
-                             qc(j,i,k) - qi(j,i,k))
+                             qc(j,i,k) - qi(j,i,k) - qr(j,i,k) - qs(j,i,k))
             end do
           end do
         end do
@@ -336,7 +342,7 @@ module mod_moloch
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          qs(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
+          qsat(j,i,k) = pfwsat(t(j,i,k),p(j,i,k))
         end do
       end do
     end do
@@ -562,9 +568,9 @@ module mod_moloch
                          real(jsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
                 if ( k < kz ) then
-                  if ( qv(j,i,k+1) > 0.96_rkx*qs(j,i,k+1) .and. &
+                  if ( qv(j,i,k+1) > 0.96_rkx*qsat(j,i,k+1) .and. &
                        w(j,i,k) > 0.1_rkx ) then
-                    zqs = 0.5_rkx*(qs(j,i,k)+qs(j,i,k+1))
+                    zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k+1))
                     zdth = egrav*w(j,i,k)*(jsound-1)*dtsound*wlhv*wlhv* &
                       zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
                     zrom1w = zrom1w + zdth*fmzf(j,i,k)

@@ -69,8 +69,8 @@ module mod_micro_wsm5
   ! constant in biggs freezing
   real(rkx) , parameter :: pfrz2 = 0.66_rkx
   ! minimun values for qr, qs, and qg
-  real(rkx) , parameter :: qrsmin = 1.e-12_rkx
-  real(rkx) , parameter :: qcimin = 1.e-10_rkx
+  real(rkx) , parameter :: qrsmin = 1.e-15_rkx
+  real(rkx) , parameter :: qcimin = 1.e-15_rkx
   ! snow/cloud-water collection efficiency
   real(rkx) , parameter :: eacrc = 1.0_rkx
 
@@ -256,8 +256,8 @@ module mod_micro_wsm5
       end do
     end do
 
-    where ( qci < 1.0e-14_rkx ) qci = d_zero
-    where ( qrs < 1.0e-14_rkx ) qrs = d_zero
+    where ( qci < qcimin ) qci = d_zero
+    where ( qrs < qrsmin ) qrs = d_zero
 
     !do k = 1 , kz
     !  do n = is , ie
@@ -531,7 +531,7 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          temp = den(i,k)*qci(i,k,2)
+          temp = den(i,k)*max(qci(i,k,2),qcimin)
           temp = sqrt(sqrt(temp*temp*temp))
           xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
         end do
@@ -604,9 +604,13 @@ module mod_micro_wsm5
       !
       do k = kz , 1 , -1
         do i = ims , ime
-          xmi = max(den(i,k)*qci(i,k,2)/xni(i,k),1e-10_rkx)
-          diameter  = max(min(dicon*sqrt(xmi),dimax), 1.e-25_rkx)
-          work1c(i,k) = 1.49e4_rkx*exp(log(diameter)*(1.31_rkx))
+          if ( qci(i,k,2) <= d_zero ) then
+            work1c(i,k) = d_zero
+          else
+            xmi = max(den(i,k)*qci(i,k,2)/xni(i,k),1e-10_rkx)
+            diameter  = max(min(dicon*sqrt(xmi),dimax), 1.e-25_rkx)
+            work1c(i,k) = 1.49e4_rkx*exp(log(diameter)*(1.31_rkx))
+          end if
         end do
       end do
       !
@@ -804,7 +808,7 @@ module mod_micro_wsm5
           !
           ! ni: ice crystal number concentraiton   [hdc 5c]
           !
-          temp = max(den(i,k)*qci(i,k,2),1e-12_rkx)
+          temp = max(den(i,k)*qci(i,k,2),qcimin)
           temp = sqrt(sqrt(temp*temp*temp))
           xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
           eacrs = exp(0.07_rkx*(-supcol))
@@ -906,8 +910,8 @@ module mod_micro_wsm5
             !if ( qrs(i,k,2) > d_zero .and. rh(i,k,1) < d_one ) then
             if ( qrs(i,k,2) > d_zero .and. rh(i,k) < d_one ) then
               psevp(i,k) = psdep(i,k)*work1(i,k,2)/work1(i,k,1)
+              psevp(i,k) = min(max(psevp(i,k),-qrs(i,k,2)*rdtcld),d_zero)
             end if
-            psevp(i,k) = min(max(psevp(i,k),-qrs(i,k,2)*rdtcld),d_zero)
           end if
         end do
       end do
@@ -1065,10 +1069,10 @@ module mod_micro_wsm5
 
     do k = 1 , kz
       do i = ims , ime
-        if ( qci(i,k,1) < dlowval ) qci(i,k,1) = d_zero
-        if ( qci(i,k,2) < dlowval ) qci(i,k,2) = d_zero
-        if ( qrs(i,k,1) < dlowval ) qrs(i,k,1) = d_zero
-        if ( qrs(i,k,2) < dlowval ) qrs(i,k,2) = d_zero
+        if ( qci(i,k,1) < qcimin ) qci(i,k,1) = d_zero
+        if ( qci(i,k,2) < qcimin ) qci(i,k,2) = d_zero
+        if ( qrs(i,k,1) < qrsmin ) qrs(i,k,1) = d_zero
+        if ( qrs(i,k,2) < qrsmin ) qrs(i,k,2) = d_zero
       end do
     end do
 

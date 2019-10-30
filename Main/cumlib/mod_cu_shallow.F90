@@ -61,8 +61,13 @@ module mod_cu_shallow
           kk = kzp1-k
           t(k) = m2c%tas(j,i,kk)
           q(k) = m2c%qxas(j,i,kk,iqv)
-          tns(k) = t(k) + m2c%tten(j,i,kk)/m2c%psb(j,i)*dt
-          qns(k) = q(k) + m2c%qxten(j,i,kk,iqv)/m2c%psb(j,i)*dt
+          if ( idynamic == 3 ) then
+            tns(k) = t(k) + m2c%tten(j,i,kk)*dt
+            qns(k) = q(k) + m2c%qxten(j,i,kk,iqv)*dt
+          else
+            tns(k) = t(k) + m2c%tten(j,i,kk)/m2c%psb(j,i)*dt
+            qns(k) = q(k) + m2c%qxten(j,i,kk,iqv)/m2c%psb(j,i)*dt
+          end if
           p(k) = m2c%pas(j,i,kk)*d_r100
           psur = m2c%psf(j,i)
           outts(k) = d_zero
