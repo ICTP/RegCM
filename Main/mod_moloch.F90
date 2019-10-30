@@ -204,12 +204,6 @@ module mod_moloch
     dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
 
-    !
-    ! lateral boundary condition
-    !
-
-    call boundary
-
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -346,7 +340,10 @@ module mod_moloch
         end do
       end do
     end do
-
+    !
+    ! lateral boundary condition
+    !
+    call boundary
     !
     ! Prepare fields to be used in physical parametrizations.
     !
