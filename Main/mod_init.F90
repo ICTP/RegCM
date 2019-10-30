@@ -74,7 +74,7 @@ module mod_init
   subroutine init
     implicit none
     integer(ik4) :: i , j , k , n
-    real(rkx) :: rdnnsg , t , p , qs , qv , rh , pfcc , dens
+    real(rkx) :: rdnnsg
     real(rkx) :: azmax , zmax , zzi , zfilt
     real(rkx) , dimension(kzp1) :: ozprnt
     integer(ik4) :: ntop
@@ -918,12 +918,6 @@ module mod_init
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
-#include <clwfromt.inc>
 
   end subroutine init
 
