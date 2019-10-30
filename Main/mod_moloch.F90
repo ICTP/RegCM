@@ -567,14 +567,12 @@ module mod_moloch
                 zrom1w = zrom1w - cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
                          real(jsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
-                if ( k < kz ) then
-                  if ( qv(j,i,k+1) > 0.96_rkx*qsat(j,i,k+1) .and. &
-                       w(j,i,k) > 0.1_rkx ) then
-                    zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k+1))
-                    zdth = egrav*w(j,i,k)*(jsound-1)*dtsound*wlhv*wlhv* &
-                      zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
-                    zrom1w = zrom1w + zdth*fmzf(j,i,k)
-                  end if
+                if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
+                     w(j,i,k) > 0.1_rkx ) then
+                  zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k-1))
+                  zdth = egrav*w(j,i,k)*(jsound-1)*dtsound*wlhv*wlhv* &
+                    zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
+                  zrom1w = zrom1w + zdth*fmzf(j,i,k)
                 end if
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
                          (pai(j,i,k-1) - pai(j,i,k)) - egrav*dtsound
@@ -820,14 +818,14 @@ module mod_moloch
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
             do j = jci1 , jci2
-              wz(j,ice1,k) = pp(j,ice1,k)
+              wz(j,ice1,k) = wz(j,ici1,k)
             end do
           end do
         end if
         if ( ma%has_bdytop ) then
           do k = 1 , kz
             do j = jci1 , jci2
-              wz(j,ice2,k) = pp(j,ice2,k)
+              wz(j,ice2,k) = wz(j,ici2,k)
             end do
           end do
         end if
@@ -868,7 +866,7 @@ module mod_moloch
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              p0(jce1,i,k) = pp(jce1,i,k)
+              p0(jce1,i,k) = p0(jci1,i,k)
             end do
           end do
         end if
@@ -876,7 +874,7 @@ module mod_moloch
         if ( ma%has_bdyright ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              p0(jce2,i,k) = pp(jce2,i,k)
+              p0(jce2,i,k) = p0(jci2,i,k)
             end do
           end do
         end if
