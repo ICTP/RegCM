@@ -25,7 +25,7 @@ module mod_micro_wsm5
   use mod_dynparam
   use mod_memutil
   use mod_runparams , only : ichem , dt , dtsec , iqi , iqc , iqr , iqs , iqv
-  use mod_runparams , only : rdt , dsigma
+  use mod_runparams , only : rdt
   use mod_regcm_types
 
   private
@@ -76,9 +76,6 @@ module mod_micro_wsm5
 
   real(rkx) , parameter :: minni = 1.0e3_rkx
   real(rkx) , parameter :: maxni = 1.0e6_rkx
-
-  real(rkx) , parameter :: thog = d_1000*regrav
-  real(rkx) , parameter :: uch = thog*secph
 
   !real(rkx) , parameter :: xa = -(cpv-cpw)/rwat
   !real(rkx) , parameter :: xb = xa + wlhv/(rwat*wattp)
@@ -352,7 +349,7 @@ module mod_micro_wsm5
                 qcw = mo2mc%qcn(j,i,k)
                 mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
                   mc2mo%remrat(j,i,kk) * qcw * &
-                              mo2mc%psb(j,i) * dsigma(kk) * uch
+                              (mo2mc%phs(j,i,k)-mo2mc%phs(j,i,k))*regrav
               end do
             end if
           end do

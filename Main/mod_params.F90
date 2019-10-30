@@ -1149,10 +1149,20 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'MOLOCH DOES NOT WORK WITH KUO')
       end if
+      if ( any(icup ==  3) ) then
+        write(stderr,*) 'Moloch core does not work with BM convection scheme'
+        call fatal(__FILE__,__LINE__, &
+                   'MOLOCH DOES NOT WORK WITH BM')
+      end if
       if ( ibltyp == 1 ) then
         write(stderr,*) 'Moloch core does not work with Holtslag PBL scheme'
         call fatal(__FILE__,__LINE__, &
                    'MOLOCH DOES NOT WORK WITH HOLTSLAG')
+      end if
+      if ( ichem == 1 ) then
+        write(stderr,*) 'Moloch core does not work with Chemistry/Aerosol'
+        call fatal(__FILE__,__LINE__, &
+                   'MOLOCH DOES NOT WORK WITH CHEMISTRY/AEROSOL')
       end if
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
