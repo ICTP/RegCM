@@ -361,7 +361,7 @@ module mod_moloch
       end if
       if ( myid == 0 ) then
         write(stdout,*) '$$$ ', rcmtimer%str( )
-        write(stdout,'(a,2f7.2)') &
+        write(stdout,'(a,2f8.2)') &
             ' $$$ max, min of ps (mb) = ', pmax*d_r100 , pmin*d_r100
         if ( any(icup > 0) ) then
           write(stdout,'(a,i7)') &

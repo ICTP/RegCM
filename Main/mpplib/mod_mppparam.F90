@@ -13532,15 +13532,15 @@ module mod_mppparam
     ! Back to wind points
     do k = 1 , kz
       do i = ici1 , ici2
-        do j = jci1 , jcii2
-          u(j,i,k) = 0.5_rkx * (ux(j,i,k)+ux(j+1,i,k))
+        do j = jdii1 , jdii2
+          u(j,i,k) = 0.5_rkx * (ux(j,i,k)+ux(j-1,i,k))
         end do
       end do
     end do
     do k = 1 , kz
-      do i = ici1 , icii2
+      do i = idii1 , idii2
         do j = jci1 , jci2
-          v(j,i,k) = 0.5_rkx * (vx(j,i,k)+vx(j,i+1,k))
+          v(j,i,k) = 0.5_rkx * (vx(j,i,k)+vx(j,i-1,k))
         end do
       end do
     end do
