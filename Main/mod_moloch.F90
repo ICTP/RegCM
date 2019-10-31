@@ -191,7 +191,7 @@ module mod_moloch
     implicit none
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
-    real(rkx) :: maxps , minps , pmax , pmin
+    real(rkx) :: maxps , minps , pmax , pmin , zz1 , zdgz
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
 #ifdef DEBUG
@@ -324,9 +324,11 @@ module mod_moloch
       end do
     end do
 
+    zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ps(j,i) = p(j,i,kz) * exp(egrav*zeta(j,i,kz)/(rgas*tvirt(j,i,kz)))
+        zdgz = mddom%ht(j,i)*(gzita(d_half*mo_dz)-d_one) + zz1
+        ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
       end do
     end do
 
@@ -1092,7 +1094,18 @@ module mod_moloch
       if ( ichem == 1 .and. ichdiag > 0 ) then
         cconvdiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
       end if
-
+    else
+      if ( any(icup < 0) ) then
+        if ( idiag > 0 ) then
+          ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+          qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+        end if
+        call shallow_convection
+        if ( idiag > 0 ) then
+          tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+          qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+        end if
+      end if
     end if
     !
     !------------------------------------------------
@@ -1192,6 +1205,7 @@ module mod_moloch
         ctbldiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
       end if
     end if
+
     if ( ipptls == 1 ) then
       if ( idiag > 0 ) then
         ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)

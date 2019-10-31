@@ -364,8 +364,13 @@ module mod_cu_grell
         t(n,k) = m2c%tas(j,i,kk)
         q(n,k) = m2c%qxas(j,i,kk,iqv)
         po(n,k) = p(n,k)
-        tn(n,k) = t(n,k) + m2c%tten(j,i,kk) / m2c%psb(j,i) * dtime
-        qo(n,k) = q(n,k) + m2c%qxten(j,i,kk,iqv) / m2c%psb(j,i) * dtime
+        if ( idynamic == 3 ) then
+          tn(n,k) = t(n,k) + m2c%tten(j,i,kk) * dtime
+          qo(n,k) = q(n,k) + m2c%qxten(j,i,kk,iqv) * dtime
+        else
+          tn(n,k) = t(n,k) + m2c%tten(j,i,kk) / m2c%psb(j,i) * dtime
+          qo(n,k) = q(n,k) + m2c%qxten(j,i,kk,iqv) / m2c%psb(j,i) * dtime
+        end if
         if ( qo(n,k) < minqq ) qo(n,k) = minqq
         qcrit(n) = qcrit(n) + m2c%qxten(j,i,kk,iqv)
       end do

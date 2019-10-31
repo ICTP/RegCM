@@ -527,22 +527,41 @@ module mod_cu_interface
 
       call shallcu(m2c)
 
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
-                        cu_tten(j,i,k) * m2c%psb(j,i)
+      if ( idynamic == 3 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
+                          cu_tten(j,i,k)
+            end do
           end do
         end do
-      end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
-                        cu_qten(j,i,k,iqv) * m2c%psb(j,i)
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
+                          cu_qten(j,i,k,iqv)
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
+                          cu_tten(j,i,k) * m2c%psb(j,i)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
+                          cu_qten(j,i,k,iqv) * m2c%psb(j,i)
+            end do
+          end do
+        end do
+      end if
 
     end if
   end subroutine shallow_convection

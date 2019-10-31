@@ -218,7 +218,7 @@ module mod_init
         end do
         do i = ice1 , ice2
           do j = jce1 , jce2
-            mo_atm%pf(j,i,1) = 1.0e-6_rkx ! Supposedly zero
+            mo_atm%pf(j,i,1) = 100.0_rkx ! 1 mb
           end do
         end do
 
@@ -821,7 +821,7 @@ module mod_init
       end do
       do i = ice1 , ice2
         do j = jce1 , jce2
-          mo_atm%pf(j,i,1) = 1.0e-6_rkx ! Supposedly zero
+          mo_atm%pf(j,i,1) = 100.0_rkx ! 1 mb
         end do
       end do
     end if

@@ -378,7 +378,7 @@ module mod_micro_interface
           if ( idynamic == 3 ) then
             tmp3 = mo_atm%t(j,i,k) + dt*mo_atm%tten(j,i,k)
             qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
-            qccs = mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc)
+            qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
             pres = mo_atm%p(j,i,k)
           else
             tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
@@ -438,8 +438,13 @@ module mod_micro_interface
               fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
             end if
             fccc = min(max(fccc,d_zero),d_one)
-            qvc_cld = max((mo2mc%qs(j,i,k) + &
-                     dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
+            if ( idynamic == 3 ) then
+              qvc_cld = max((mo2mc%qs(j,i,k) + &
+                       dt * mc2mo%qxten(j,i,k,iqv)),d_zero)
+            else
+              qvc_cld = max((mo2mc%qs(j,i,k) + &
+                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
+            end if
             ! qv diff between predicted qv_c
             dqv = conf * fccc * (qvc_cld - qvs)
           end if

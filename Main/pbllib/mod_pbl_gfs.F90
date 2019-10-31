@@ -102,7 +102,7 @@ module mod_pbl_gfs
 
       integer(ik4) :: i , j , k , kk , km , n
       integer(ik4) :: iq , it , iit
-      real(rkx) :: tvcon , pfac
+      real(rkx) :: tvcon , xpfac
       real(rkx) :: ps , ta , qa , pa , ua , va
       real(rkx) :: rrhox , hf , qf , cpm
 
@@ -217,9 +217,9 @@ module mod_pbl_gfs
       call moninq(iblp,kz,ibnt)
 
       if ( idynamic == 3 ) then
-        pfac = d_one
+        xpfac = d_one
       else
-        pfac = m2p%psb(j,i)
+        xpfac = m2p%psb(j,i)
       end if
       do k = 1 , kz
         n = 1
@@ -228,7 +228,7 @@ module mod_pbl_gfs
           do j = jci1 , jci2
             p2m%uxten(j,i,k) = du(n,kk)
             p2m%vxten(j,i,k) = dv(n,kk)
-            p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*pfac
+            p2m%tten(j,i,k) = p2m%tten(j,i,k) + tau(n,kk)*xpfac
             n = n + 1
           end do
         end do
@@ -241,7 +241,7 @@ module mod_pbl_gfs
           do i = ici1 , ici2
             do j = jci1 , jci2
               p2m%qxten(j,i,k,iq) = p2m%qxten(j,i,k,iq) + &
-                     rtg(n,kk,iq)/(d_one-q1(n,kk,iq))**2 * pfac
+                     rtg(n,kk,iq)/(d_one-q1(n,kk,iq))**2 * xpfac
               n = n + 1
             end do
           end do
@@ -257,7 +257,7 @@ module mod_pbl_gfs
             do i = ici1 , ici2
               do j = jci1 , jci2
                 p2m%chiten(j,i,k,it) = p2m%chiten(j,i,k,it) + &
-                      rtg(n,kk,iit)/(d_one-q1(n,kk,iit)) * pfac
+                      rtg(n,kk,iit)/(d_one-q1(n,kk,iit)) * xpfac
                 n = n + 1
               end do
             end do
