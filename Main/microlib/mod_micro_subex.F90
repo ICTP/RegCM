@@ -217,7 +217,7 @@ module mod_micro_subex
         end if
         ! 1ah. Accumulate precipitation and convert to kg/m2/s
         if ( pptnew > pptmin ) then
-          dpovg = (mo2mc%phs(j,i,2)-mo2mc%phs(j,i,1))*regrav    ![kg/m2]
+          dpovg = (mo2mc%pfs(j,i,2)-mo2mc%pfs(j,i,1))*regrav    ![kg/m2]
           pptsum(j,i) = pptnew*dpovg         ![kg/m2/s][avg]
           if ( idynamic == 3 ) then
             ! 1ai. Compute the cloud water tendency [kg/kg/s]
@@ -249,7 +249,7 @@ module mod_micro_subex
           pptnew = d_zero
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
-          dpovg = (mo2mc%phs(j,i,k)-mo2mc%phs(j,i,k-1))*regrav    ![kg/m2]
+          dpovg = (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav    ![kg/m2]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
           pptmax = (d_one-remfrc)*qcw/dt              ![kg/kg/s][avg]
@@ -364,7 +364,7 @@ module mod_micro_subex
                 qcw = mo2mc%qcn(j,i,k)
                 mc2mo%rembc(j,i,k) = mc2mo%rembc(j,i,k) + & ![mm/hr]
                   mc2mo%remrat(j,i,kk) * qcw * &
-                              (mo2mc%phs(j,i,k)-mo2mc%phs(j,i,k-1))*regrav
+                              (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav
               end do
             end if
           end do

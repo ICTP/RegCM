@@ -26,7 +26,7 @@ module mod_pbl_holtbl
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
-    ichdrdepo , dsigma , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter
+    ichdrdepo , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -50,7 +50,7 @@ module mod_pbl_holtbl
                         coeff2 , tpred1 , tpred2
   real(rkx) , pointer , dimension(:,:,:) :: kzm , rc , ttnp
   real(rkx) , pointer , dimension(:,:) :: govrth , uvdrage
-  real(rkx) , pointer , dimension(:) :: hydf
+  real(rkx) , pointer , dimension(:,:,:) :: hydf
 
   real(rkx) , pointer , dimension(:,:,:) :: dza , thvx
   real(rkx) , pointer , dimension(:,:,:) :: akzz1 , akzz2
@@ -71,7 +71,6 @@ module mod_pbl_holtbl
   real(rkx) , parameter :: betah = 15.0_rkx
   real(rkx) , parameter :: ccon = fak*sffrac*vonkar
   real(rkx) , parameter :: gvk = egrav*vonkar
-  real(rkx) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
   real(rkx) , parameter :: binm = betam*sffrac
   real(rkx) , parameter :: binh = betah*sffrac
   ! power in formula for k and critical ri for judging stability
@@ -98,7 +97,7 @@ module mod_pbl_holtbl
     call getmem3d(rc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rc')
     call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
     call getmem2d(govrth,jci1,jci2,ici1,ici2,'mod_holtbl:govrth')
-    call getmem1d(hydf,1,kz,'mod_holtbl:hydf')
+    call getmem3d(hydf,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:hydf')
     call getmem2d(therm,jci1,jci2,ici1,ici2,'mod_holtbl:therm')
     call getmem3d(vv,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:vv')
     call getmem3d(cgh,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:cgh')
@@ -151,11 +150,9 @@ module mod_pbl_holtbl
     ! tendencies.
     !
     do k = 1 , kz
-      hydf(k) = gpcf/dsigma(k)
-    end do
-    do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
+          hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
           thvx(j,i,k) = m2p%tpatm(j,i,k) * (d_one + ep1*m2p%qxatm(j,i,k,iqv))
         end do
       end do
@@ -317,7 +314,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          akzz2(j,i,k) = hydf(k)/m2p%psb(j,i)
+          akzz2(j,i,k) = hydf(j,i,k)
         end do
       end do
     end do
@@ -448,7 +445,7 @@ module mod_pbl_holtbl
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          alphak(j,i,k) = hydf(k)/m2p%psb(j,i)
+          alphak(j,i,k) = hydf(j,i,k)
         end do
       end do
     end do
@@ -701,14 +698,15 @@ module mod_pbl_holtbl
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - hydf(kz)*ttnp(j,i,kz)*rcpd
+        p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - &
+                   m2p%psb(j,i)*hydf(j,i,kz)*ttnp(j,i,kz)*rcpd
       end do
     end do
     do k = 1 , kzm1
       do i = ici1 , ici2
         do j = jci1 , jci2
           p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-                  hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
+                  m2p%psb(j,i)*hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
         end do
       end do
     end do
@@ -811,7 +809,7 @@ module mod_pbl_holtbl
           do j = jci1 , jci2
             p2m%remdrd(j,i,itr) = p2m%remdrd(j,i,itr) + m2p%chib(j,i,kz,itr)* &
                 m2p%drydepv(j,i,itr)*m2p%psb(j,i)*dt*d_half*m2p%rhox2d(j,i)* &
-                hydf(kz)/m2p%psb(j,i)
+                hydf(j,i,kz)
           end do
         end do
       end do
