@@ -787,8 +787,8 @@ module mod_moloch
               r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,k+1) = d_half * s(j,i,k+1) *((d_one-zphi)*pp(j,i,k+1) + &
-                                                 (d_one+zphi)*pp(j,i,k))
+              wfw(j,k+1) = d_half * s(j,i,k+1) *((d_one+zphi)*pp(j,i,k+1) + &
+                                                 (d_one-zphi)*pp(j,i,k))
             end do
           end do
           do k = 1 , kz
