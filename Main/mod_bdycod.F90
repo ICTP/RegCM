@@ -36,6 +36,7 @@ module mod_bdycod
   use mod_mpmessage
   use mod_ncio
   use mod_service
+  use mod_zita
   use mod_slabocean
 
   implicit none
@@ -4807,13 +4808,15 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xpsb
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xtb , xqb
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xpaib
-    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz1 , zdgz
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
+    zz1 = egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
     do i = ice1 , ice2
       do j = jce1 , jce2
         tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz))
-        p = xpsb(j,i) * exp(-egrav * mo_atm%zeta(j,i,kz)/(rgas*tv))
+        zdgz = mddom%ht(j,i)*(gzita(d_half*mo_dz)-d_one) + zz1
+        p = xpsb(j,i) * exp(zdgz/(rgas*tv))
         xpaib(j,i,kz) = (p/p00)**rovcp
       end do
     end do

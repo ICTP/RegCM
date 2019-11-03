@@ -519,7 +519,7 @@ module mod_cu_interface
   end subroutine cumulus
 
   subroutine shallow_convection
-    use mod_atm_interface , only : aten
+    use mod_atm_interface , only : aten , mo_atm
     implicit none
     integer(ik4) :: i , j , k
 
@@ -531,15 +531,14 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%t(j,i,k,pc_total) = aten%t(j,i,k,pc_total) + &
-                          cu_tten(j,i,k)
+              mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + cu_tten(j,i,k)
             end do
           end do
         end do
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%qx(j,i,k,iqv,pc_total) = aten%qx(j,i,k,iqv,pc_total) + &
+              mo_atm%qxten(j,i,k,iqv) = mo_atm%qxten(j,i,k,iqv) + &
                           cu_qten(j,i,k,iqv)
             end do
           end do

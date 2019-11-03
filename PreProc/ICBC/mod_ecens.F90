@@ -328,20 +328,15 @@ module mod_ecens
     !
     ! New calculation of P* on RegCM topography.
     !
-    call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nplev)
-    call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     if ( idynamic == 3 ) then
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-    else
-      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-    end if
-    !
-    ! Interpolation from pressure levels
-    !
-    if ( idynamic == 3 ) then
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,jx,iy,nplev)
       call intz3(ts4,t3,h3,topogm,jx,iy,nplev,0.6_rkx,0.85_rkx,0.5_rkx)
     else
+      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,nplev)
+      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+      call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,nplev)
     end if
 

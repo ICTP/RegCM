@@ -59,7 +59,7 @@ module mod_vertint
   public :: intlin , intgtb , intlog
   public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
-  public :: intz1 , intz3
+  public :: intz1 , intz3 , intzps
 
   contains
 
@@ -1699,9 +1699,7 @@ module mod_vertint
       end do
     end if
   end subroutine intlog_o_single
-  !
-  !-----------------------------------------------------------------------
-  !
+
   subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
@@ -1720,9 +1718,7 @@ module mod_vertint
       end do
     end do
   end subroutine intpsn
-  !
-  !-----------------------------------------------------------------------
-  !
+
   subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
@@ -1893,9 +1889,7 @@ module mod_vertint
       end do
     end if
   end subroutine intv1
-  !
-  !-----------------------------------------------------------------------
-  !
+
   subroutine intv2(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
@@ -2007,6 +2001,43 @@ module mod_vertint
       end do
     end do
   end subroutine intv3
+
+  subroutine intzps(psrcm,zrcm,tp,zp,pss,sccm,ni,nj,nlev1)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj , nlev1
+    real(rkx) :: pss
+    real(rkx) , dimension(ni,nj) , intent(in) :: zrcm
+    real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
+    real(rkx) , dimension(nlev1) , intent(in) :: sccm
+    real(rkx) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
+    integer(ik4) :: i , j , k , kb , kt
+    real(rkx) :: wu , wl , tlayer , pa , za
+
+    do i = 1 , ni
+      do j = 1 , nj
+        kt = 0
+        do k = 1 , nlev1 - 1
+          if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
+               zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
+        end do
+        kb = kt + 1
+        if ( kt /= 0 ) then
+          wu = ( zrcm(i,j) - zp(i,j,nlev1+1-kb) ) / &
+               ( zp(i,j,nlev1+1-kt) - zp(i,j,nlev1+1-kb) )
+          wl = d_one - wu
+          tlayer = tp(i,j,nlev1+1-kt) * wu + tp(i,j,nlev1+1-kb) * wl
+          tlayer = (tp(i,j,nlev1+1-kt) + tlayer)/d_two
+          za = zp(i,j,nlev1+1-kt)
+          pa = pss*sccm(kt)
+        else
+          tlayer = tp(i,j,1)
+          za = zp(i,j,1)
+          pa = pss
+        end if
+        psrcm(i,j) = pa*exp(-govr*(zrcm(i,j)-za)/tlayer)
+      end do
+    end do
+  end subroutine intzps
 
 end module mod_vertint
 
