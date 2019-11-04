@@ -1169,6 +1169,10 @@ module mod_params
       call bcast(mo_nadv)
       call bcast(mo_nsound)
       call bcast(mo_nzfilt)
+      call bcast(ifrayd)
+      call bcast(rayndamp)
+      call bcast(rayalpha0)
+      call bcast(rayhd)
     else if ( idynamic == 2 ) then
       call bcast(base_state_pressure)
       call bcast(logp_lrate)

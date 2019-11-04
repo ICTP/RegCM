@@ -259,13 +259,6 @@ module mod_moloch
 
     end do ! Advection loop
 
-    if ( ifrayd == 1 ) then
-      if ( i_crm /= 1 ) then
-        call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-        call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-       end if
-    end if
-
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -301,6 +294,15 @@ module mod_moloch
           end do
         end do
       end do
+    end if
+
+    if ( ifrayd == 1 ) then
+      if ( i_crm /= 1 ) then
+        call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+        call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+        call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
+        call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+       end if
     end if
 
     do k = 1 , kz
