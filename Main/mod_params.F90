@@ -115,7 +115,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,      &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge , &
-      mo_nadv , mo_nsound , mo_nzfilt
+      mo_nadv , mo_nsound , mo_nzfilt , mo_anu2
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -292,6 +292,7 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 0.001_rkx
     rayhd = 10000.0_rkx
+    mo_anu2 = 0.6_rkx
     mo_nadv = 1
     mo_nsound = 6
     mo_nzfilt = 3
@@ -1166,6 +1167,7 @@ module mod_params
       end if
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
+      call bcast(mo_anu2)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
       call bcast(mo_nzfilt)

@@ -168,7 +168,7 @@ module mod_runparams
   integer(ik4) , public :: ghg_year_const
 
   ! Moloch
-  real(rkx) , public :: mo_dz
+  real(rkx) , public :: mo_dz , mo_anu2
   integer(ik4) , public :: mo_nadv = 1
   integer(ik4) , public :: mo_nsound = 6
   integer(ik4) , public :: mo_nzfilt = 3

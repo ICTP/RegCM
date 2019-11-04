@@ -2837,6 +2837,8 @@ module mod_ncout
           end if
         else
           call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_real8('divergence_filtering_factor',mo_anu2))
+          call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('advection_timestep_factor',mo_nadv))
           call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('sound_timestep_factor',mo_nsound))

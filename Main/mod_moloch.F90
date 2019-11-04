@@ -531,7 +531,7 @@ module mod_moloch
             end do
           end do
 
-          call filt3d(zdiv2,0.625_rkx,jcii1,jcii2,icii1,icii2)
+          call filt3d(zdiv2,mo_anu2,jcii1,jcii2,icii1,icii2)
 
           do k = 1 , kz
             do i = ici1 , ici2
@@ -611,7 +611,7 @@ module mod_moloch
             gzitak = gzita(zitah(k))
             do i = ici1 , ici2
               do j = jdii1 , jdii2
-                zcx = zdtrdx * mx(j,i)
+                zcx = zdtrdx / mu(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
@@ -629,7 +629,7 @@ module mod_moloch
             gzitak = gzita(zitah(k))
             do i = idii1 , idii2
               do j = jci1 , jci2
-                zcy = zdtrdy * mx(j,i)
+                zcy = zdtrdy / mv(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
