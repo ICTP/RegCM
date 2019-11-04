@@ -2739,6 +2739,8 @@ module mod_params
           zita(k) = zita(k+1) + mo_dz
           zitah(k) = zita(k) - mo_dz*d_half
         end do
+        mddom%msfv = d_one/mddom%msfv
+        mddom%msfu = d_one/mddom%msfu
         sigma(1) = d_zero
         sigma = d_one - zita/hzita
         hsigma = d_one - zitah/hzita
