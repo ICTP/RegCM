@@ -1683,7 +1683,8 @@ module mod_rad_aerosol
       ! Important :  radiation schemes expect AOD per layer, calculated
       !              from extinction
       extprof(jci1:jci2,ici1:ici2,1:kz) = &
-         extprof(jci1:jci2,ici1:ici2,1:kz)*m2r%deltaz(jci1:jci2,ici1:ici2,1:kz)
+         max(extprof(jci1:jci2,ici1:ici2,1:kz) * &
+              m2r%deltaz(jci1:jci2,ici1:ici2,1:kz),d_zero)
       if ( myid == italk .and. dointerp ) then
         ozprnt = extprof(3,3,:)
         call vprntv(ozprnt,kz,'Updated ext profile at (3,3)')
