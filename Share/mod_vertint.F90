@@ -24,6 +24,7 @@ module mod_vertint
   use mod_stdio
   use mod_constants
   use mod_message
+  use mod_stdatm
   use mod_interp , only : interp1d
 
   implicit none
@@ -2002,16 +2003,16 @@ module mod_vertint
     end do
   end subroutine intv3
 
-  subroutine intzps(psrcm,zrcm,tp,zp,pss,sccm,ni,nj,nlev1)
+  subroutine intzps(psrcm,zrcm,tp,zp,pss,sccm,lat,jday,ni,nj,nlev1)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nlev1
-    real(rkx) :: pss
-    real(rkx) , dimension(ni,nj) , intent(in) :: zrcm
+    real(rkx) :: pss , jday
+    real(rkx) , dimension(ni,nj) , intent(in) :: zrcm , lat
     real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
     real(rkx) , dimension(nlev1) , intent(in) :: sccm
     real(rkx) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
     integer(ik4) :: i , j , k , kb , kt
-    real(rkx) :: wu , wl , tlayer , pa , za
+    real(rkx) :: wu , wl , tlayer , pa , za , climrate
 
     do i = 1 , ni
       do j = 1 , nj
@@ -2020,8 +2021,8 @@ module mod_vertint
           if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
                zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
         end do
-        kb = kt + 1
         if ( kt /= 0 ) then
+          kb = kt + 1
           wu = ( zrcm(i,j) - zp(i,j,nlev1+1-kb) ) / &
                ( zp(i,j,nlev1+1-kt) - zp(i,j,nlev1+1-kb) )
           wl = d_one - wu
@@ -2030,11 +2031,12 @@ module mod_vertint
           za = zp(i,j,nlev1+1-kt)
           pa = pss*sccm(kt)
         else
-          tlayer = tp(i,j,1)
           za = zp(i,j,1)
+          tlayer = 0.5_rkx * ( d_two * tp(i,j,1) - &
+               stdlrate(jday,lat(j,i)) * (za-zrcm(i,j)))
           pa = pss
         end if
-        psrcm(i,j) = pa*exp(-govr*(zrcm(i,j)-za)/tlayer)
+        psrcm(i,j) = pa*exp(govr*(za-zrcm(i,j))/tlayer)
       end do
     end do
   end subroutine intzps

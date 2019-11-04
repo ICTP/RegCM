@@ -160,6 +160,11 @@ module mod_date
     module procedure timeval2date_single , timeval2date_double
   end interface
 
+  interface julianday
+    module procedure ymd_julianday
+    module procedure idate_julianday
+  end interface julianday
+
   public :: timeval2ym
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
@@ -991,7 +996,15 @@ module mod_date
     end select
   end function add_interval
 
-  real(rk8) function julianday(iy, im, id)
+  real(rk8) function idate_julianday(x)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) :: iy , im , id
+    call split_rcm_date(x,iy,im,id)
+    idate_julianday = ymd_julianday(iy, im, id)
+  end function idate_julianday
+
+  real(rk8) function ymd_julianday(iy, im, id)
     implicit none
     integer(ik4) , intent(in) :: iy , im , id
     integer(ik4) :: ia , ib , iiy , iim
@@ -1007,7 +1020,7 @@ module mod_date
     else
       ib = 0
     end if
-    julianday = int(365.25_rk8*real(iiy+4716,rk8)) + &
+    ymd_julianday = int(365.25_rk8*real(iiy+4716,rk8)) + &
                 int(30.6001_rk8*real(iim+1,rk8))   + &
                 real(id + ib,rk8) - 1524.5_rk8
     contains
@@ -1051,7 +1064,7 @@ module mod_date
         call die('mod_date','Day non existent, inside Julian/Gregorian jump',1)
       end if
     end function lcaltype
-  end function julianday
+  end function ymd_julianday
 
   subroutine check_cal(x,y)
     implicit none

@@ -56,7 +56,7 @@ module mod_stdatm
     module procedure stdatm_val_noseason
   end interface stdatm_val
 
-  public :: stdplevf , stdplevh , stdatm_val
+  public :: stdplevf , stdplevh , stdatm_val , stdlrate
 
 !-------------------------------------------------------------------------------
 !
@@ -383,6 +383,63 @@ module mod_stdatm
              log(stdatm(istdatm_prsmb,k,izone)/stdatm(istdatm_prsmb,k+1,izone))
        end if
      end function plev_wgt
+
+     real(rkx) function stdlrate(jday,lat)
+       implicit none
+       real(rkx) , intent(in) :: jday
+       real(rkx) , intent(in) :: lat
+       real(rkx) :: wts1 , wts2 , wtp1 , wtp2 , vs1 , vs2 , vz1 , vz2
+       real(rkx) :: vs3 , vs4
+       integer(ik4) :: kp1 , kp2
+       if ( lat >= 75.0_rkx ) then ! use Polar , interpolate with season
+         wts1 = winter_wgt(jday)
+         wts2 = 1.0_rkx-wts1
+         kp1 = find_klev(300.0_rkx,ipolarwinter)
+         kp2 = find_klev(300.0_rkx,ipolarsummer)
+         wtp1 = plev_wgt(kp1,300.0_rkx,ipolarwinter)
+         wtp2 = plev_wgt(kp1,300.0_rkx,ipolarsummer)
+         vs1 = stdatm(istdatm_tempk,kp1,ipolarwinter)*wtp1 + &
+               stdatm(istdatm_tempk,kp1+1,ipolarwinter)*(d_one-wtp1)
+         vs2 = stdatm(istdatm_tempk,kp1,ipolarsummer)*wtp1 + &
+               stdatm(istdatm_tempk,kp1+1,ipolarsummer)*(d_one-wtp1)
+         vs3 = stdatm(istdatm_tempk,1,ipolarwinter)
+         vs4 = stdatm(istdatm_tempk,1,ipolarsummer)
+         vz1 = stdatm(istdatm_hgtkm,kp1,ipolarwinter)*wtp1 + &
+               stdatm(istdatm_hgtkm,kp1+1,ipolarwinter)*(d_one-wtp1)
+         vz2 = stdatm(istdatm_hgtkm,kp1,ipolarsummer)*wtp1 + &
+               stdatm(istdatm_hgtkm,kp1+1,ipolarsummer)*(d_one-wtp1)
+         stdlrate = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
+                    (d_1000*(vz1*wts1+vz2*wts2))
+       else if ( lat <= 25.0_rkx ) then ! Tropical
+         kp1 = find_klev(300.0_rkx,itropical)
+         wtp1 = plev_wgt(kp1,300.0_rkx,itropical)
+         vs1 = stdatm(istdatm_tempk,kp1,itropical)*wtp1 + &
+               stdatm(istdatm_tempk,kp1+1,itropical)*(d_one-wtp1)
+         vs2 = stdatm(istdatm_tempk,1,itropical)
+         vz1 = stdatm(istdatm_hgtkm,kp1,itropical)*wtp1 + &
+               stdatm(istdatm_hgtkm,kp1+1,itropical)*(d_one-wtp1)
+         stdlrate = (vs1 - vs2)/(d_1000*vz1)
+       else if ( lat > 25.0_rkx .and. lat < 75.0_rkx ) then ! midlat , seasonal
+         wts1 = winter_wgt(jday)
+         wts2 = 1.0_rkx-wts1
+         kp1 = find_klev(300.0_rkx,imidlatwinter)
+         kp2 = find_klev(300.0_rkx,imidlatsummer)
+         wtp1 = plev_wgt(kp1,300.0_rkx,imidlatwinter)
+         wtp2 = plev_wgt(kp1,300.0_rkx,imidlatsummer)
+         vs1 = stdatm(istdatm_tempk,kp1,imidlatwinter)*wtp1 + &
+               stdatm(istdatm_tempk,kp1+1,imidlatwinter)*(d_one-wtp1)
+         vs2 = stdatm(istdatm_tempk,kp1,imidlatsummer)*wtp1 + &
+               stdatm(istdatm_tempk,kp1+1,imidlatsummer)*(d_one-wtp1)
+         vs3 = stdatm(istdatm_tempk,1,imidlatwinter)
+         vs4 = stdatm(istdatm_tempk,1,imidlatsummer)
+         vz1 = stdatm(istdatm_hgtkm,kp1,imidlatwinter)*wtp1 + &
+               stdatm(istdatm_hgtkm,kp1+1,imidlatwinter)*(d_one-wtp1)
+         vz2 = stdatm(istdatm_hgtkm,kp1,imidlatsummer)*wtp1 + &
+               stdatm(istdatm_hgtkm,kp1+1,imidlatsummer)*(d_one-wtp1)
+         stdlrate = ((vs1*wts1+vs2*wts2) - (vs3*wts1+vs4*wts2)) / &
+                    (d_1000*(vz1*wts1+vz2*wts2))
+       end if
+    end function stdlrate
 
 end module mod_stdatm
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
