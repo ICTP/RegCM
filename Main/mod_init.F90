@@ -819,6 +819,7 @@ module mod_init
           end do
         end do
       end do
+      ! Top pressure should be zero.
       do i = ice1 , ice2
         do j = jce1 , jce2
           mo_atm%pf(j,i,1) = 100.0_rkx ! 1 mb

@@ -1350,6 +1350,7 @@ module mod_bdycod
             do i = ici1 , ici2
               mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k)
               mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k)
+              mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k)
             end do
           end do
         end if
@@ -1358,6 +1359,7 @@ module mod_bdycod
             do i = ici1 , ici2
               mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k)
               mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k)
+              mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k)
             end do
           end do
         end if
@@ -1366,6 +1368,7 @@ module mod_bdycod
             do j = jce1 , jce2
               mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k)
               mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k)
+              mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k)
             end do
           end do
         end if
@@ -1374,6 +1377,7 @@ module mod_bdycod
             do j = jce1 , jce2
               mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k)
               mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k)
+              mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k)
             end do
           end do
         end if
@@ -1467,32 +1471,36 @@ module mod_bdycod
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              mo_atm%t(jce1,i,k)      = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
+              mo_atm%t(jce1,i,k) = xtb%b0(jce1,i,k) + xt*xtb%bt(jce1,i,k)
               mo_atm%qx(jce1,i,k,iqv) = xqb%b0(jce1,i,k) + xt*xqb%bt(jce1,i,k)
+              mo_atm%pai(jce1,i,k) = xpaib%b0(jce1,i,k) + xt*xpaib%bt(jce1,i,k)
             end do
           end do
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kz
             do i = ici1 , ici2
-              mo_atm%t(jce2,i,k)      = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
+              mo_atm%t(jce2,i,k) = xtb%b0(jce2,i,k) + xt*xtb%bt(jce2,i,k)
               mo_atm%qx(jce2,i,k,iqv) = xqb%b0(jce2,i,k) + xt*xqb%bt(jce2,i,k)
+              mo_atm%pai(jce2,i,k) = xpaib%b0(jce2,i,k) + xt*xpaib%bt(jce2,i,k)
             end do
           end do
         end if
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              mo_atm%t(j,ice1,k)      = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
+              mo_atm%t(j,ice1,k) = xtb%b0(j,ice1,k) + xt*xtb%bt(j,ice1,k)
               mo_atm%qx(j,ice1,k,iqv) = xqb%b0(j,ice1,k) + xt*xqb%bt(j,ice1,k)
+              mo_atm%pai(j,ice1,k) = xpaib%b0(j,ice1,k) + xt*xpaib%bt(j,ice1,k)
             end do
           end do
         end if
         if ( ma%has_bdytop ) then
           do k = 1 , kz
             do j = jce1 , jce2
-              mo_atm%t(j,ice2,k)      = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
+              mo_atm%t(j,ice2,k) = xtb%b0(j,ice2,k) + xt*xtb%bt(j,ice2,k)
               mo_atm%qx(j,ice2,k,iqv) = xqb%b0(j,ice2,k) + xt*xqb%bt(j,ice2,k)
+              mo_atm%pai(j,ice2,k) = xpaib%b0(j,ice2,k) + xt*xpaib%bt(j,ice2,k)
             end do
           end do
         end if
@@ -4811,23 +4819,23 @@ module mod_bdycod
     real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz1 , zdgz
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
-    zz1 = egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
+    zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
     do i = ice1 , ice2
       do j = jce1 , jce2
         tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz))
         zdgz = mddom%ht(j,i)*(gzita(d_half*mo_dz)-d_one) + zz1
-        p = xpsb(j,i) * exp(zdgz/(rgas*tv))
+        p = xpsb(j,i) * exp(-zdgz/(rgas*tv))
         xpaib(j,i,kz) = (p/p00)**rovcp
       end do
     end do
-    do k = kz , 2 , -1
+    do k = kzm1 , 1 , -1
       do i = ice1 , ice2
         do j = jce1 , jce2
           tv1 = xtb(j,i,k) * (d_one + ep1*xqb(j,i,k))
-          tv2 = xtb(j,i,k-1) * (d_one + ep1*xqb(j,i,k-1))
-          zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k)*cpd) + tv2 - tv1
+          tv2 = xtb(j,i,k+1) * (d_one + ep1*xqb(j,i,k+1))
+          zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
-          xpaib(j,i,k-1) = -xpaib(j,i,k) / (d_two * tv1) * (zb - zdelta)
+          xpaib(j,i,k) = -xpaib(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
         end do
       end do
     end do

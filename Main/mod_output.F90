@@ -630,111 +630,237 @@ module mod_output
         ! FAB add tendency diagnostic here
         if ( idiag > 0 ) then
           if ( associated(atm_tten_adh_out) ) then
-            do k = 1 , kz
-              atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_adh_out(:,:,k) = &
+                   tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%adh = d_zero
           end if
           if ( associated(atm_tten_adv_out) ) then
-            do k = 1 , kz
-              atm_tten_adv_out(:,:,k) = tdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_adv_out(:,:,k) = tdiag%adv(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_adv_out(:,:,k) = &
+                   tdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%adv = d_zero
           end if
           if ( associated(atm_tten_tbl_out) ) then
-            do k = 1 , kz
-              atm_tten_tbl_out(:,:,k) = tdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_tbl_out(:,:,k) = tdiag%tbl(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_tbl_out(:,:,k) = &
+                   tdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%tbl = d_zero
           end if
           if ( associated(atm_tten_dif_out) ) then
-            do k = 1 , kz
-              atm_tten_dif_out(:,:,k) = tdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_dif_out(:,:,k) = tdiag%dif(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_dif_out(:,:,k) = &
+                   tdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%dif = d_zero
           end if
           if ( associated(atm_tten_bdy_out) ) then
-            do k = 1 , kz
-              atm_tten_bdy_out(:,:,k) = tdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_bdy_out(:,:,k) = tdiag%bdy(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_bdy_out(:,:,k) = &
+                   tdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%bdy = d_zero
           end if
           if ( associated(atm_tten_con_out) ) then
-            do k = 1 , kz
-              atm_tten_con_out(:,:,k) = tdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_con_out(:,:,k) = tdiag%con(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_con_out(:,:,k) = &
+                   tdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%con = d_zero
           end if
           if ( associated(atm_tten_adi_out) ) then
-            do k = 1 , kz
-              atm_tten_adi_out(:,:,k) = tdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_adi_out(:,:,k) = tdiag%adi(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_adi_out(:,:,k) = &
+                   tdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%adi = d_zero
           end if
           if ( associated(atm_tten_rad_out) ) then
-            do k = 1 , kz
-              atm_tten_rad_out(:,:,k) = tdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_rad_out(:,:,k) = tdiag%rad(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_rad_out(:,:,k) = &
+                   tdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%rad = d_zero
           end if
           if ( associated(atm_tten_lsc_out) ) then
-            do k = 1 , kz
-              atm_tten_lsc_out(:,:,k) = tdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_tten_lsc_out(:,:,k) = tdiag%lsc(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_tten_lsc_out(:,:,k) = &
+                   tdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             tdiag%lsc = d_zero
           end if
           if ( associated(atm_qten_adh_out) ) then
-            do k = 1 , kz
-              atm_qten_adh_out(:,:,k) = qdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_adh_out(:,:,k) = qdiag%adh(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_adh_out(:,:,k) = &
+                   qdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%adh = d_zero
           end if
           if ( associated(atm_qten_adv_out) ) then
-            do k = 1 , kz
-              atm_qten_adv_out(:,:,k) = qdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_adv_out(:,:,k) = qdiag%adv(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_adv_out(:,:,k) = &
+                   qdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%adv = d_zero
           end if
           if ( associated(atm_qten_tbl_out) ) then
-            do k = 1 , kz
-              atm_qten_tbl_out(:,:,k) = qdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_tbl_out(:,:,k) = qdiag%tbl(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_tbl_out(:,:,k) = &
+                   qdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%tbl = d_zero
           end if
           if ( associated(atm_qten_dif_out) ) then
-            do k = 1 , kz
-              atm_qten_dif_out(:,:,k) = qdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_dif_out(:,:,k) = qdiag%dif(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_dif_out(:,:,k) = &
+                  qdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%dif = d_zero
           end if
           if ( associated(atm_qten_bdy_out) ) then
-            do k = 1 , kz
-              atm_qten_bdy_out(:,:,k) = qdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_bdy_out(:,:,k) = qdiag%bdy(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_bdy_out(:,:,k) = &
+                   qdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%bdy = d_zero
           end if
           if ( associated(atm_qten_con_out) ) then
-            do k = 1 , kz
-              atm_qten_con_out(:,:,k) = qdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_con_out(:,:,k) = qdiag%con(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_con_out(:,:,k) = &
+                   qdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%con = d_zero
           end if
           if ( associated(atm_qten_adi_out) ) then
-            do k = 1 , kz
-              atm_qten_adi_out(:,:,k) = qdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_adi_out(:,:,k) = qdiag%adi(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_adi_out(:,:,k) = &
+                   qdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%adi = d_zero
           end if
           if ( associated(atm_qten_rad_out) ) then
-            do k = 1 , kz
-              atm_qten_rad_out(:,:,k) = qdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_rad_out(:,:,k) = qdiag%rad(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_rad_out(:,:,k) = &
+                  qdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%rad = d_zero
           end if
           if ( associated(atm_qten_lsc_out) ) then
-            do k = 1 , kz
-              atm_qten_lsc_out(:,:,k) = qdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
-            end do
+            if ( idynamic == 3 ) then
+              do k = 1 , kz
+                atm_qten_lsc_out(:,:,k) = qdiag%lsc(jci1:jci2,ici1:ici2,k)
+              end do
+            else
+              do k = 1 , kz
+                atm_qten_lsc_out(:,:,k) = &
+                   qdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
+              end do
+            end if
             qdiag%lsc = d_zero
           end if
         end if
