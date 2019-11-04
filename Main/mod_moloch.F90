@@ -468,7 +468,7 @@ module mod_moloch
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zdiv , zqs , zdth
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
-        real(rkx) :: zfz , gzitak , zcoriu , zcoriv
+        real(rkx) :: zfz , gzitak , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 
@@ -588,7 +588,7 @@ module mod_moloch
             end do
           end do
 
-          ! new Exner function
+          ! new Exner function (Equation 19)
 
           do k = 1 , kz
             do i = ici1 , ici2
@@ -614,12 +614,11 @@ module mod_moloch
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                zcoriu = 0.25_rkx*(coriol(j,i)*(v(j,i,k)+v(j,i+1,k)) + &
-                                   coriol(j+1,i)*(v(j+1,i,k)+v(j+1,i+1,k)))
+                zcor1u = coriol(j,i) * v(j,i,k)
                 ! Equation 17
                 u(j,i,k) = u(j,i,k) - &
                     zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
-                    zfz * hx(j,i) * gzitak + zcoriu * dtsound
+                    zfz * hx(j,i) * gzitak + zcor1u * dtsound
               end do
             end do
           end do
@@ -633,12 +632,11 @@ module mod_moloch
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                    deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
                 zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                zcoriv = 0.25_rkx*(coriol(j,i)*(u(j,i,k)+u(j+1,i,k)) + &
-                                   coriol(j,i+1)*(u(j,i+1,k)+u(j+1,i+1,k)))
+                zcor1v = coriol(j,i)*u(j,i,k)
                 ! Equation 18
                 v(j,i,k) = v(j,i,k) - &
                     zrom1v * zcy * (pai(j,i,k) - pai(j,i-1,k)) - &
-                    zfz * hy(j,i) * gzitak - zcoriv * dtsound
+                    zfz * hy(j,i) * gzitak - zcor1v * dtsound
               end do
             end do
           end do
@@ -646,6 +644,7 @@ module mod_moloch
         end do ! sound loop
 
         ! complete computation of generalized vertical velocity
+        ! Complete Equation 10
 
         do k = 2 , kz
           do i = ici1 , ici2
