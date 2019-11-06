@@ -2006,7 +2006,7 @@ module mod_vertint
   subroutine intzps(psrcm,zrcm,tp,zp,pss,sccm,lat,jday,ni,nj,nlev1)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nlev1
-    real(rkx) :: pss , jday
+    real(rkx) , intent(in) :: pss , jday
     real(rkx) , dimension(ni,nj) , intent(in) :: zrcm , lat
     real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
     real(rkx) , dimension(nlev1) , intent(in) :: sccm
@@ -2033,7 +2033,7 @@ module mod_vertint
         else
           za = zp(i,j,1)
           tlayer = 0.5_rkx * ( d_two * tp(i,j,1) - &
-               stdlrate(jday,lat(j,i)) * (za-zrcm(i,j)))
+               stdlrate(jday,lat(i,j)) * (za-zrcm(i,j)))
           pa = pss
         end if
         psrcm(i,j) = pa*exp(govr*(za-zrcm(i,j))/tlayer)

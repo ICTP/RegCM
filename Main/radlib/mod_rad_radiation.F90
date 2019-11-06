@@ -3277,7 +3277,7 @@ module mod_rad_radiation
         end if
         ! FAB AER SAVE uinpl  for aerosl LW forcing calculation
         do kn = 1 , 4
-          ux(n) = uinpl(n,kn)*abs(plh2o(n,k2)-plh2o(n,k2+1))
+          ux(n) = abs(uinpl(n,kn)*(plh2o(n,k2)-plh2o(n,k2+1)))
           sqrtu = sqrt(ux(n))
           dw(n) = abs(w(n,k2)-w(n,k2+1))
           pnew(n) = ux(n)/(winpl(n,kn)*dw(n))

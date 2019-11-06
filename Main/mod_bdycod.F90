@@ -4747,7 +4747,7 @@ module mod_bdycod
       do i = i1 , i2
         do j = j1 , j2
           bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
-          var(j,i,k) = var(j,i,k) + tau(z(j,i,k))*(bval-var(j,i,k))
+          var(j,i,k) = var(j,i,k) + dt*tau(z(j,i,k))*(bval-var(j,i,k))
         end do
       end do
     end do

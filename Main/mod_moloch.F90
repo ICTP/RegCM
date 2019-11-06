@@ -85,6 +85,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
+  real(rkx) , dimension(:,:,:) , pointer :: mmu , mmv
 
   public :: allocate_moloch , init_moloch , moloch
   public :: uvstagtox , xtouvstag , wstagtox
@@ -108,6 +109,8 @@ module mod_moloch
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem2d(wfw,jci1,jci2,1,kzp1,'moloch:wfw')
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
+    call getmem3d(mmu,jde1ga,jde2ga,ice1,ice2,1,kz,'moloch:mmu')
+    call getmem3d(mmv,jce1,jce2,ide1ga,ide2ga,1,kz,'moloch:mmv')
     call getmem2d(zpby,jci1,jci2,ici1,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1,jce2ga,ici1,ici2,'moloch:zpbw')
     if ( ibltyp == 2 ) then
@@ -250,6 +253,24 @@ module mod_moloch
     end do
 
     call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
+    call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
+
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jde1ga , jde2ga
+          mmu(j,i,k) = u(j,i,k) * mu(j,i)
+        end do
+      end do
+    end do
+
+    do k = 1 , kz
+      do i = ide1ga , ide2ga
+        do j = jce1 , jce2
+          mmv(j,i,k) = v(j,i,k) * mv(j,i)
+        end do
+      end do
+    end do
 
     do jadv = 1 , mo_nadv
 
@@ -484,8 +505,6 @@ module mod_moloch
         do jsound = 1 , mo_nsound
 
           ! partial definition of the generalized vertical velocity
-          call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
-          call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
 
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -521,10 +540,10 @@ module mod_moloch
                 zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
                 zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
                 zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-                zum = u(j,i,k) * mu(j,i) * zrfmzu
-                zup = u(j+1,i,k) * mu(j+1,i) * zrfmzup
-                zvm = v(j,i,k) * mv(j,i) * zrfmzv
-                zvp = v(j,i+1,k) * mv(j,i+1) * zrfmzvp
+                zum = mmu(j,i,k) * zrfmzu
+                zup = mmu(j+1,i,k) * zrfmzup
+                zvm = mmv(j,i,k) * zrfmzv
+                zvp = mmv(j,i+1,k) * zrfmzvp
                 zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
                 zdiv2(j,i,k) = mx(j,i) * mx(j,i) * zdiv * fmz(j,i,k)
               end do
@@ -618,9 +637,9 @@ module mod_moloch
                 zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                 zcor1u = coriol(j,i) * v(j,i,k)
                 ! Equation 17
-                u(j,i,k) = u(j,i,k) - &
-                    zrom1u * zcx * (pai(j,i,k) - pai(j-1,i,k)) - &
-                    zfz * hx(j,i) * gzitak + zcor1u * dtsound
+                u(j,i,k) = u(j,i,k) + zcor1u * dtsound - &
+                           zfz * hx(j,i) * gzitak - &
+                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
               end do
             end do
           end do
@@ -636,9 +655,28 @@ module mod_moloch
                 zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                 zcor1v = coriol(j,i) * u(j,i,k)
                 ! Equation 18
-                v(j,i,k) = v(j,i,k) - &
-                    zrom1v * zcy * (pai(j,i,k) - pai(j,i-1,k)) - &
-                    zfz * hy(j,i) * gzitak - zcor1v * dtsound
+                v(j,i,k) = v(j,i,k) - zcor1v * dtsound - &
+                           zfz * hy(j,i) * gzitak -  &
+                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+              end do
+            end do
+          end do
+
+          ! partial definition of the generalized vertical velocity
+          call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
+
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jde1ga , jde2ga
+                mmu(j,i,k) = u(j,i,k) * mu(j,i)
+              end do
+            end do
+          end do
+          do k = 1 , kz
+            do i = ide1ga , ide2ga
+              do j = jce1 , jce2
+                mmv(j,i,k) = v(j,i,k) * mv(j,i)
               end do
             end do
           end do
@@ -757,6 +795,7 @@ module mod_moloch
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1p1 , ih , ihm1 , im1 , jh , jhm1 , jm1
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmp , zrfmm
+        real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
 
         zdtrdx = dtstepa/dx
@@ -824,7 +863,7 @@ module mod_moloch
         do k = 1 , kz
           do i = ici1 , ice2ga
             do j = jci1 , jci2
-              zamu = v(j,i,k) * zdtrdy * mv(j,i)
+              zamu = mmv(j,i,k) * zdtrdy
               if ( zamu > d_zero ) then
                 is = d_one
                 ih = max(i-1,icross1+1)
@@ -837,15 +876,18 @@ module mod_moloch
               r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,im1,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
-              zpby(j,i) = d_half * zamu * &
+              zpby(j,i) = d_half * mmv(j,i,k) * &
                 ((d_one+zphi)*wz(j,im1,k) + (d_one-zphi)*wz(j,i,k))
             end do
           end do
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdv = (v(j,i+1,k) * mv(j,i+1) - v(j,i,k) * mv(j,i)) * zdtrdy
-              p0(j,i,k) = wz(j,i,k) + zpby(j,i) - zpby(j,i+1) + pp(j,i,k)*zdv
+              zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+              zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+              zdv = (mmv(j,i+1,k) * zrfmn - mmv(j,i,k) * zrfms) * pp(j,i,k)
+              p0(j,i,k) = wz(j,i,k) + &
+                mx(j,i) * mx(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
             end do
           end do
         end do
@@ -873,7 +915,7 @@ module mod_moloch
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jce2ga
-              zamu = u(j,i,k) * zdtrdx * mu(j,i)
+              zamu = mmu(j,i,k) * zdtrdx
               if ( zamu > d_zero ) then
                 is = d_one
                 jh = max(j-1,jcross1+1)
@@ -886,15 +928,18 @@ module mod_moloch
               r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
-              zpbw(j,i) = d_half * zamu * &
+              zpbw(j,i) = d_half * mmu(j,i,k) * &
                    ((d_one+zphi)*p0(jm1,i,k) + (d_one-zphi)*p0(j,i,k))
             end do
           end do
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zdv = (u(j+1,i,k) * mu(j+1,i) - u(j,i,k) * mu(j,i)) * zdtrdx
-              pp(j,i,k) = p0(j,i,k) + zpbw(j,i) - zpbw(j+1,i) + pp(j,i,k)*zdv
+              zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+              zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+              zdv = (mmu(j+1,i,k) * zrfme - mmu(j,i,k) * zrfmw) * pp(j,i,k)
+              pp(j,i,k) = p0(j,i,k) + &
+                mx(j,i) * mx(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
             end do
           end do
         end do
