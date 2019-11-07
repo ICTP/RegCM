@@ -60,6 +60,7 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: tkex
   real(rkx) , pointer , dimension(:,:,:) :: wz
   real(rkx) , pointer , dimension(:,:) :: wfw
+  real(rkx) , pointer , dimension(:,:) :: mx2
   real(rkx) , pointer , dimension(:,:,:) :: p0
   real(rkx) , pointer , dimension(:,:,:) :: zdiv2
   real(rkx) , pointer , dimension(:,:) :: zpby
@@ -113,6 +114,7 @@ module mod_moloch
     call getmem3d(mmv,jce1,jce2,ide1ga,ide2ga,1,kz,'moloch:mmv')
     call getmem2d(zpby,jci1,jci2,ici1,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1,jce2ga,ici1,ici2,'moloch:zpbw')
+    call getmem2d(mx2,jci1,jci2,ici1,ici2,'moloch:mx2')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
@@ -185,6 +187,11 @@ module mod_moloch
         end do
       end do
     end if
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        mx2(j,i) = mx(j,i) * mx(j,i)
+      end do
+    end do
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -205,6 +212,19 @@ module mod_moloch
     dtstepa = dtsec / real(mo_nadv,rkx)
     dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
+
+    call reset_tendencies
+
+    mo_atm%tten(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:)
+    mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = mo_atm%qx(jci1:jci2,ici1:ici2,:,:)
+    if ( ichem == 1 ) then
+      mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
+          mo_atm%trac(jci1:jci2,ici1:ici2,:,:)
+    end if
+    if ( any(icup == 5) .or. any(icup == 4) ) then
+      mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:)
+      mo_atm%vten(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:)
+    end if
 
     do k = 1 , kz
       do i = ici1 , ici2
@@ -272,6 +292,16 @@ module mod_moloch
       end do
     end do
 
+    if ( idiag > 0 ) then
+      ten0 = t(jci1:jci2,ici1:ici2,:)
+      qen0 = qv(jci1:jci2,ici1:ici2,:)
+    end if
+    if ( ichem == 1 ) then
+      if ( ichdiag > 0 ) then
+        chiten0 = trac(jci1:jci2,ici1:ici2,:,:)
+      end if
+    end if
+
     do jadv = 1 , mo_nadv
 
       call sound(dtsound)
@@ -315,6 +345,17 @@ module mod_moloch
           end do
         end do
       end do
+    end if
+
+    if ( idiag > 0 ) then
+      tdiag%adh = (t(jci1:jci2,ici1:ici2,:) - ten0) * rdt
+      qdiag%adh = (qv(jci1:jci2,ici1:ici2,:) - qen0) * rdt
+    end if
+
+    if ( ichem == 1 ) then
+      if ( ichdiag > 0 ) then
+        cadvhdiag = (trac(jci1:jci2,ici1:ici2,:,:) - chiten0) * rdt
+      end if
     end if
 
     if ( ifrayd == 1 ) then
@@ -362,6 +403,23 @@ module mod_moloch
     call mkslice
     !
     ! PHYSICS
+    !
+    mo_atm%tten(jci1:jci2,ici1:ici2,:) = (t(jci1:jci2,ici1:ici2,:) - &
+        mo_atm%tten(jci1:jci2,ici1:ici2,:))*rdt
+    mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = &
+        (mo_atm%qx(jci1:jci2,ici1:ici2,:,:) - &
+         mo_atm%qxten(jci1:jci2,ici1:ici2,:,:))*rdt
+    if ( ichem == 1 ) then
+      mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
+          (mo_atm%trac(jci1:jci2,ici1:ici2,:,:) - &
+           mo_atm%chiten(jci1:jci2,ici1:ici2,:,:))*rdt
+    end if
+    if ( any(icup == 5) .or. any(icup == 4) ) then
+      mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = (u(jdi1:jdi2,ici1:ici2,:) - &
+          mo_atm%uten(jdi1:jdi2,ici1:ici2,:))*rdt
+      mo_atm%vten(jci1:jci2,idi1:idi2,:) = (v(jci1:jci2,idi1:idi2,:) - &
+          mo_atm%vten(jci1:jci2,idi1:idi2,:))*rdt
+    end if
     !
     call physical_parametrizations
     !
@@ -545,7 +603,7 @@ module mod_moloch
                 zvm = mmv(j,i,k) * zrfmzv
                 zvp = mmv(j,i+1,k) * zrfmzvp
                 zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
-                zdiv2(j,i,k) = mx(j,i) * mx(j,i) * zdiv * fmz(j,i,k)
+                zdiv2(j,i,k) = mx2(j,i) * zdiv * fmz(j,i,k)
               end do
             end do
           end do
@@ -887,7 +945,7 @@ module mod_moloch
               zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
               zdv = (mmv(j,i+1,k) * zrfmn - mmv(j,i,k) * zrfms) * pp(j,i,k)
               p0(j,i,k) = wz(j,i,k) + &
-                mx(j,i) * mx(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
+                mx2(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
             end do
           end do
         end do
@@ -939,11 +997,201 @@ module mod_moloch
               zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
               zdv = (mmu(j+1,i,k) * zrfme - mmu(j,i,k) * zrfmw) * pp(j,i,k)
               pp(j,i,k) = p0(j,i,k) + &
-                mx(j,i) * mx(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
+                mx2(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
             end do
           end do
         end do
       end subroutine wafone
+
+      subroutine reset_tendencies
+        implicit none
+        mo_atm%tten = d_zero
+        mo_atm%uten = d_zero
+        mo_atm%vten = d_zero
+        mo_atm%qxten = d_zero
+        if ( ichem == 1 ) mo_atm%chiten = d_zero
+        if ( ibltyp == 2 ) mo_atm%tketen = d_zero
+        cldfra(:,:,:) = d_zero
+        cldlwc(:,:,:) = d_zero
+        if ( idiag > 0 ) then
+          ten0 = d_zero
+          qen0 = d_zero
+        end if
+        if ( ichem == 1 .and. ichdiag > 0 ) chiten0 = d_zero
+      end subroutine reset_tendencies
+
+      subroutine physical_parametrizations
+        implicit none
+        integer(ik4) :: i , j , k
+        logical :: loutrad , labsem
+
+        if ( all(icup > 0) ) then
+          if ( idiag > 0 ) then
+            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+          end if
+          call cumulus
+          if ( idiag > 0 ) then
+            tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            cconvdiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
+          end if
+        else
+          if ( any(icup < 0) ) then
+            if ( idiag > 0 ) then
+              ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+              qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+            end if
+            call shallow_convection
+            if ( idiag > 0 ) then
+              tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+              qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+            end if
+          end if
+        end if
+        !
+        !------------------------------------------------
+        ! Large scale precipitation microphysical schemes
+        !------------------------------------------------
+        !
+        if ( ipptls > 0 ) then
+          if ( idiag > 0 ) then
+            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+          end if
+          ! Cumulus clouds
+          if ( icldfrac /= 2 ) then
+            call cucloud
+          end if
+          ! Save cumulus cloud fraction for chemistry before it is
+          ! overwritten in cldfrac
+          if ( ichem == 1 ) then
+            convcldfra(:,:,:) = cldfra(:,:,:)
+          end if
+          ! Clouds and large scale precipitation
+          call cldfrac
+          call microscheme
+          if ( idiag > 0 ) then
+            tdiag%lsc = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%lsc = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+          end if
+        end if
+        !
+        !------------------------------------------------
+        !       Call radiative transfer package
+        !------------------------------------------------
+        !
+        if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
+          if ( debug_level > 3 .and. myid == italk ) then
+            write(stdout,*) &
+              'Calling radiative transfer at ',trim(rcmtimer%str())
+          end if
+          ! calculate albedo
+          call surface_albedo
+          ! Update / init Ozone profiles
+          if ( iclimao3 == 1 ) then
+            call updateo3(rcmtimer%idate,scenario)
+          else
+            if ( rcmtimer%start() ) call inito3
+          end if
+          if ( iclimaaer == 1 ) then
+            call updateaerosol(rcmtimer%idate)
+          else if ( iclimaaer == 2 ) then
+            call updateaeropp(rcmtimer%idate)
+          end if
+          loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
+          labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
+          if ( debug_level > 3 .and. labsem .and. myid == italk ) then
+            write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
+          end if
+          call radiation(rcmtimer%year,loutrad,labsem)
+        end if
+        !
+        ! Add radiative transfer package-calculated heating rates to
+        ! temperature tendency (deg/sec)
+        !
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
+          mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
+        end do
+        if ( idiag > 0 ) tdiag%rad = heatrt
+        !
+        !------------------------------------------------
+        !            Call Surface model
+        !------------------------------------------------
+        !
+        if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
+          if ( debug_level > 3 .and. myid == italk ) then
+            write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
+          end if
+          call surface_model
+          if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
+        end if
+        !
+        !------------------------------------------------
+        !             Call PBL scheme
+        !------------------------------------------------
+        !
+        if ( ibltyp > 0 ) then
+          if ( idiag > 0 ) then
+            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+          end if
+          call pblscheme
+          if ( idiag > 0 ) then
+            tdiag%tbl = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%tbl = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            ctbldiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
+          end if
+        end if
+
+        if ( ipptls == 1 ) then
+          if ( idiag > 0 ) then
+            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+          end if
+          call condtq
+          if ( idiag > 0 ) then
+            tdiag%lsc = tdiag%lsc + mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%lsc = qdiag%lsc + &
+                 mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+          end if
+        end if
+        !
+        ! Update status
+        !
+        t(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:) + dtsec * &
+                       mo_atm%tten(jci1:jci2,ici1:ici2,:)
+        u(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:) + dtsec * &
+                       mo_atm%uten(jdi1:jdi2,ici1:ici2,:)
+        v(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:) + dtsec * &
+                       mo_atm%vten(jci1:jci2,idi1:idi2,:)
+        qx(jci1:jci2,ici1:ici2,:,:) = qx(jci1:jci2,ici1:ici2,:,:) + dtsec * &
+                       mo_atm%qxten(jci1:jci2,ici1:ici2,:,:)
+        qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst) = &
+                       max(qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst),d_zero)
+        qx(jci1:jci2,ici1:ici2,:,iqv) = &
+                       max(qx(jci1:jci2,ici1:ici2,:,iqv),minqq)
+        if ( ibltyp == 2 ) then
+          tke(jci1:jci2,ici1:ici2,:) = tke(jci1:jci2,ici1:ici2,:) + dtsec * &
+                       mo_atm%tketen(jci1:jci2,ici1:ici2,:)
+          tke(jci1:jci2,ici1:ici2,:) = max(tke(jci1:jci2,ici1:ici2,:),tkemin)
+        end if
+        if ( ichem == 1 ) then
+          trac(jci1:jci2,ici1:ici2,:,:) = &
+                     trac(jci1:jci2,ici1:ici2,:,:) + dtsec * &
+                     mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+        end if
+      end subroutine physical_parametrizations
 
   end subroutine moloch
 
@@ -1083,199 +1331,6 @@ module mod_moloch
       end do
     end if
   end subroutine uvstagtox
-
-  subroutine reset_tendencies
-    implicit none
-    mo_atm%tten = d_zero
-    mo_atm%uten = d_zero
-    mo_atm%vten = d_zero
-    mo_atm%qxten = d_zero
-    if ( ichem == 1 ) mo_atm%chiten = d_zero
-    if ( ibltyp == 2 ) mo_atm%tketen = d_zero
-    cldfra(:,:,:) = d_zero
-    cldlwc(:,:,:) = d_zero
-    if ( idiag > 0 ) then
-      ten0 = d_zero
-      qen0 = d_zero
-    end if
-    if ( ichem == 1 .and. ichdiag > 0 ) chiten0 = d_zero
-  end subroutine reset_tendencies
-
-  subroutine physical_parametrizations
-    implicit none
-    integer(ik4) :: i , j , k
-    logical :: loutrad , labsem
-
-    call reset_tendencies
-
-    if ( all(icup > 0) ) then
-
-      if ( idiag > 0 ) then
-        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
-      end if
-      if ( ichem == 1 .and. ichdiag > 0 ) then
-        chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
-      end if
-
-      call cumulus
-
-      if ( idiag > 0 ) then
-        tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-        qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
-      end if
-      if ( ichem == 1 .and. ichdiag > 0 ) then
-        cconvdiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
-      end if
-    else
-      if ( any(icup < 0) ) then
-        if ( idiag > 0 ) then
-          ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-          qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
-        end if
-        call shallow_convection
-        if ( idiag > 0 ) then
-          tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-          qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
-        end if
-      end if
-    end if
-    !
-    !------------------------------------------------
-    ! Large scale precipitation microphysical schemes
-    !------------------------------------------------
-    !
-    if ( ipptls > 0 ) then
-      if ( idiag > 0 ) then
-        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
-      end if
-      ! Cumulus clouds
-      if ( icldfrac /= 2 ) then
-        call cucloud
-      end if
-      ! Save cumulus cloud fraction for chemistry before it is
-      ! overwritten in cldfrac
-      if ( ichem == 1 ) then
-        convcldfra(:,:,:) = cldfra(:,:,:)
-      end if
-      ! Clouds and large scale precipitation
-      call cldfrac
-      call microscheme
-      if ( idiag > 0 ) then
-        tdiag%lsc = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-        qdiag%lsc = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
-      end if
-    end if
-    !
-    !------------------------------------------------
-    !       Call radiative transfer package
-    !------------------------------------------------
-    !
-    if ( rcmtimer%start() .or. syncro_rad%will_act( ) ) then
-      if ( debug_level > 3 .and. myid == italk ) then
-        write(stdout,*) 'Calling radiative transfer at ',trim(rcmtimer%str())
-      end if
-      ! calculate albedo
-      call surface_albedo
-      ! Update / init Ozone profiles
-      if ( iclimao3 == 1 ) then
-        call updateo3(rcmtimer%idate,scenario)
-      else
-        if ( rcmtimer%start() ) call inito3
-      end if
-      if ( iclimaaer == 1 ) then
-        call updateaerosol(rcmtimer%idate)
-      else if ( iclimaaer == 2 ) then
-        call updateaeropp(rcmtimer%idate)
-      end if
-      loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
-      labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )
-      if ( debug_level > 3 .and. labsem .and. myid == italk ) then
-        write(stdout,*) 'Updating abs-emi at ',trim(rcmtimer%str())
-      end if
-      call radiation(rcmtimer%year,loutrad,labsem)
-    end if
-    !
-    ! Add radiative transfer package-calculated heating rates to
-    ! temperature tendency (deg/sec)
-    !
-    do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-      mo_atm%tten(j,i,k) = mo_atm%tten(j,i,k) + heatrt(j,i,k)
-    end do
-    if ( idiag > 0 ) tdiag%rad = heatrt
-    !
-    !------------------------------------------------
-    !            Call Surface model
-    !------------------------------------------------
-    !
-    if ( rcmtimer%start() .or. syncro_srf%will_act( ) ) then
-      if ( debug_level > 3 .and. myid == italk ) then
-        write(stdout,*) 'Calling surface model at ',trim(rcmtimer%str())
-      end if
-      call surface_model
-      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
-    end if
-    !
-    !------------------------------------------------
-    !             Call PBL scheme
-    !------------------------------------------------
-    !
-    if ( ibltyp > 0 ) then
-      if ( idiag > 0 ) then
-        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
-      end if
-      if ( ichem == 1 .and. ichdiag > 0 ) then
-        chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
-      end if
-      call pblscheme
-      if ( idiag > 0 ) then
-        tdiag%tbl = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-        qdiag%tbl = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
-      end if
-      if ( ichem == 1 .and. ichdiag > 0 ) then
-        ctbldiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
-      end if
-    end if
-
-    if ( ipptls == 1 ) then
-      if ( idiag > 0 ) then
-        ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-        qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
-      end if
-      call condtq
-      if ( idiag > 0 ) then
-        tdiag%lsc = tdiag%lsc + mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-        qdiag%lsc = qdiag%lsc + mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
-      end if
-    end if
-    !
-    ! Update status
-    !
-    t(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:) + dtsec * &
-                   mo_atm%tten(jci1:jci2,ici1:ici2,:)
-    u(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:) + dtsec * &
-                   mo_atm%uten(jdi1:jdi2,ici1:ici2,:)
-    v(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:) + dtsec * &
-                   mo_atm%vten(jci1:jci2,idi1:idi2,:)
-    qx(jci1:jci2,ici1:ici2,:,:) = qx(jci1:jci2,ici1:ici2,:,:) + dtsec * &
-                   mo_atm%qxten(jci1:jci2,ici1:ici2,:,:)
-    qx(jci1:jci2,ici1:ici2,:,:) = max(qx(jci1:jci2,ici1:ici2,:,:),d_zero)
-    qx(jci1:jci2,ici1:ici2,:,iqv) = max(qx(jci1:jci2,ici1:ici2,:,iqv),minqq)
-    if ( ibltyp == 2 ) then
-      tke(jci1:jci2,ici1:ici2,:) = tke(jci1:jci2,ici1:ici2,:) + dtsec * &
-                   mo_atm%tketen(jci1:jci2,ici1:ici2,:)
-      tke(jci1:jci2,ici1:ici2,:) = max(tke(jci1:jci2,ici1:ici2,:),tkemin)
-    end if
-    if ( ichem == 1 ) then
-      trac(jci1:jci2,ici1:ici2,:,:) = &
-                 trac(jci1:jci2,ici1:ici2,:,:) + dtsec * &
-                 mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
-    end if
-
-  end subroutine physical_parametrizations
-
 end module mod_moloch
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

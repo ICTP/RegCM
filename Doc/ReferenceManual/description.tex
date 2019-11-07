@@ -36,14 +36,15 @@ on a three dimensional computation grid with fixed horizontal resolution
 and terrain following vertical coordinate.
 
 \section{Dynamics}
-The model has two dynamical cores:
+The model has three dynamical cores:
 
 \begin{itemize}
 \item Hydrostatic equation solver
-\item Non-hydrostatic equation solver
+\item Non-hydrostatic equation solver with pressure coordinate
+\item Non-hydrostatic equation solver with height coordinate
 \end{itemize}
 
-The primitive equations for the two solvers are different and have different
+The primitive equations for the three solvers are different and have different
 prognostic variables used to identify the atmospheric state.
 
 \subsection{Hydrostatic dynamical core}
@@ -577,7 +578,7 @@ known the matrix $\bm{Z}$, are thus:
 
 \newpage
 
-\subsection{Non-hydrostatic dynamical core}
+\subsection{Non-hydrostatic dynamical core with pressure vertical coordinate}
 The non-hydrostatic model dynamic equations and numerical discretization are
 described by \cite{Grell_94}.
 
@@ -706,6 +707,10 @@ During the small time-steps, the $S_x$ terms are kept constant (they contain
 advection, diffusion, buoyancy and coriolis tendencies), and following the
 semi-implicit scheme in \cite{Klemp_1978} we solve the above by recursion.
 The step only depends on the horizontal grid size.
+
+\subsection{Non-hydrostatic dynamical core with height vertical coordinate}
+
+This dynamical core uses 
 
 \section{Physics parametrizations} \label{sec:physics}
 
