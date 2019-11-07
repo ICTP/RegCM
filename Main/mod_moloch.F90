@@ -357,7 +357,10 @@ module mod_moloch
         cadvhdiag = (trac(jci1:jci2,ici1:ici2,:,:) - chiten0) * rdt
       end if
     end if
-
+    !
+    ! lateral/damping boundary condition
+    !
+    call boundary
     if ( ifrayd == 1 ) then
       if ( i_crm /= 1 ) then
         call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
@@ -393,10 +396,6 @@ module mod_moloch
         end do
       end do
     end do
-    !
-    ! lateral boundary condition
-    !
-    call boundary
     !
     ! Prepare fields to be used in physical parametrizations.
     !
