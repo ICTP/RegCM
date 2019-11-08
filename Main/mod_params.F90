@@ -1145,6 +1145,10 @@ module mod_params
     call bcast(ichem)
 
     if ( idynamic == 3 ) then
+      if ( isladvec == 1 ) then
+        write(stderr,*) 'Moloch core does not work SL advection code'
+        isladvec = 0
+      end if
       if ( any(icup ==  1) ) then
         write(stderr,*) 'Moloch core does not work with Kuo convection scheme'
         call fatal(__FILE__,__LINE__, &
