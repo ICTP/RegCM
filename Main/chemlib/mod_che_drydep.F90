@@ -379,7 +379,7 @@ module mod_che_drydep
       real(rkx) , intent(out) , dimension(jci1:jci2,kz,ntr) :: pdepv
       real(rkx) , intent(out) , dimension(jci1:jci2,ntr) :: ddepv
 
-      real(rkx) :: amfp , amob , eb , eim , ein , frx1
+      real(rkx) :: amfp , amob , eb , eim , ein , frx1 , w1 , w2
       real(rkx) :: pre , prii , priiv , r1 , st , rhsize , pdiff
       real(rkx) , dimension(jci1:jci2,kz) :: amu
       real(rkx) , dimension(jci1:jci2) :: anu , schm
@@ -574,109 +574,220 @@ module mod_che_drydep
       ! Finally update the emission and settling tendencies for
       ! dust and sea salt
       !
-      do ib = 1 , mbin
-        ! deposition, remember chiten must be normalised by psb and
-        ! consistent with chib
-        do k = 2 , kz
+      if ( idynamic == 3 ) then
+        do ib = 1 , mbin
+          ! deposition, remember chiten must be normalised by psb and
+          ! consistent with chemt
+          do k = 2 , kz
+            do j = jci1 , jci2
+              if ( chemt(j,i,k-1,indsp(ib)) > mintr ) then
+                w1 = cfmz(j,i,k)/cfmz(j,i,k-1)
+                w2 = d_two - w1
+                wk(j,k) = d_half * (w2 * chemt(j,i,k,indsp(ib)) + &
+                                    w1 * chemt(j,i,k-1,indsp(ib))) * rdt
+              else
+                wk(j,k) = d_zero
+              end if
+            end do
+          end do
           do j = jci1 , jci2
-            if ( chib(j,i,k-1,indsp(ib)) > mintr * cpsb(j,i) ) then
-              wk(j,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
-                         twt(k,2)*chib(j,i,k-1,indsp(ib)))*rdt
-            else
-              wk(j,k) = d_zero
-            end if
-          end do
-        end do
-        do j = jci1 , jci2
-          do k = 2 , kz - 1
-            ! do not apply to the first level
-            !settend(j,k) = (wk(j,k+1)*pdepv(j,k+1,indsp(ib)) - &
-            !                wk(j,k)*pdepv(j,k,indsp(ib))) / cdzq(j,i,k)
-            ! use exponential form for stability
-            settend(j,k) =  wk(j,k+1) * &
-                (d_one - exp(-pdepvsub(j,k+1,ib)/cdzq(j,i,k)*dt)) - &
-                            wk(j,k)   * &
-                (d_one - exp(-pdepvsub(j,k,ib)/cdzq(j,i,k)*dt))
-            chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(j,k)
-            if ( ichdiag > 0 ) then
-              cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
-                                            settend(j,k) * cfdout
-            end if
-          end do
-          !
-          ! option 1 : calculate the tend as flux divergence
-          ! at first level include surface drydep velocity to calculate the
-          ! divergence
-          !
-          ! option 2 : the dry deposition is accounted for in the BL scheme
-          ! we just pass the surface flux to the pbl interface (actually the
-          ! net surface flux, cf also emission module)
-          !
-          if ( ichdrdepo == 1 ) then
-            !settend(j,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(j,indsp(ib))-  &
-            !                 wk(j,kz)*pdepv(j,kz,indsp(ib))) / cdzq(j,i,kz)
-            ! use exponential form for stability
-            settend(j,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
-                (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) - &
-                              wk(j,kz) * &
-                (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
-            chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - settend(j,kz)
-            ! save the dry deposition flux for coupling with
-            ! landsurface scheme (Kg.m2.s-1)
-            ! consider ddflux = Cav . Vd where Cav would be the average
-            ! concentration within the time step Cav = 0.5 (C + (C+deltaC))
-            ! care  chib and settend have to be corrected for pressure
-            ! cdrydepflux is a time accumulated array set to zero when surface
-            ! scheme is called (cf atm to surf interface)
-            cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + &
-              (chib(j,i,kz,indsp(ib))  - settend(j,kz)*dt/d_two) / &
-                 cpsb(j,i) * crhob3d(j,i,kz) * ddepv(j,indsp(ib))
-
-            !diagnostic for settling and drydeposition removal
-            if ( ichdiag > 0 ) then
-              cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
-                                             settend(j,kz) * cfdout
-            end if
-
-            ! accumulated diagnostic for dry deposition flux
-            ! average (in kg .m2.s-1)
-            ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-            !                         cdrydepflx(j,i,indsp(ib)) * cfdout
-            ! bugfix: remdrd is accumulated and averaged at a different
-            ! frequency than drydepflx accum !
-            ! do not use drydepflx in the formula
-            remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                     (chib(j,i,kz,indsp(ib)) - settend(j,kz)*dt/d_two) / &
-                      cpsb(j,i) * crhob3d(j,i,kz)*ddepv(j,indsp(ib)) * cfdout
-            ! alternative formulation using tendency/flux relationship
-            ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-            !            chib3d(j,i,kz,indsp(ib)) * &
-            !         (d_one - exp(-ddepv(j,indsp(ib)) / &
-            !                 cdzq(j,i,kz)*dt ))*rdt  &
-            !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
-
-            ! no net flux is passed to BL schemes in this case
-            chifxuw(j,i,indsp(ib)) = d_zero
-            drydepv(j,i,indsp(ib)) = d_zero
-          else if ( ichdrdepo == 2 ) then
+            do k = 2 , kz - 1
+              ! do not apply to the first level
+              !settend(j,k) = (wk(j,k+1)*pdepv(j,k+1,indsp(ib)) - &
+              !                wk(j,k)*pdepv(j,k,indsp(ib))) / cdzq(j,i,k)
+              ! use exponential form for stability
+              settend(j,k) =  wk(j,k+1) * &
+                  (d_one - exp(-pdepvsub(j,k+1,ib)/cdzq(j,i,k)*dt)) - &
+                              wk(j,k)   * &
+                  (d_one - exp(-pdepvsub(j,k,ib)/cdzq(j,i,k)*dt))
+              chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(j,k)
+              if ( ichdiag > 0 ) then
+                cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
+                                              settend(j,k) * cfdout
+              end if
+            end do
             !
-            ! add the dry deposition term to the net emision/deposition flux
-            ! for the BL scheme !
-            ! flux
-            chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
-                max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
-                (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) + &
-                     wk(j,kz) * &
-                 (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
-            drydepv(j,i,indsp(ib)) = ddepv(j,indsp(ib))
-          end if
-          !
-          ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
-          ! also settling , accumulated between two outputs time step)
-          ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
-                 ddepv(j,indsp(ib))
+            ! option 1 : calculate the tend as flux divergence
+            ! at first level include surface drydep velocity to calculate the
+            ! divergence
+            !
+            ! option 2 : the dry deposition is accounted for in the BL scheme
+            ! we just pass the surface flux to the pbl interface (actually the
+            ! net surface flux, cf also emission module)
+            !
+            if ( ichdrdepo == 1 ) then
+              !settend(j,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(j,indsp(ib))-  &
+              !                 wk(j,kz)*pdepv(j,kz,indsp(ib))) / cdzq(j,i,kz)
+              ! use exponential form for stability
+              settend(j,kz) = max(chemt(j,i,kz,indsp(ib)),d_zero)*rdt * &
+                  (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) - &
+                                wk(j,kz) * &
+                  (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
+              chemt(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - &
+                  settend(j,kz)
+              ! save the dry deposition flux for coupling with
+              ! landsurface scheme (Kg.m2.s-1)
+              ! consider ddflux = Cav . Vd where Cav would be the average
+              ! concentration within the time step Cav = 0.5 (C + (C+deltaC))
+              ! care  chib and settend have to be corrected for pressure
+              ! cdrydepflux is a time accumulated array set to zero when surface
+              ! scheme is called (cf atm to surf interface)
+              cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + &
+                (chemt(j,i,kz,indsp(ib))  - settend(j,kz)*dt/d_two) * &
+                   crhob3d(j,i,kz) * ddepv(j,indsp(ib))
+
+              !diagnostic for settling and drydeposition removal
+              if ( ichdiag > 0 ) then
+                cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
+                                               settend(j,kz) * cfdout
+              end if
+
+              ! accumulated diagnostic for dry deposition flux
+              ! average (in kg .m2.s-1)
+              ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+              !                         cdrydepflx(j,i,indsp(ib)) * cfdout
+              ! bugfix: remdrd is accumulated and averaged at a different
+              ! frequency than drydepflx accum !
+              ! do not use drydepflx in the formula
+              remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+                       (chemt(j,i,kz,indsp(ib)) - settend(j,kz)*dt/d_two) * &
+                        crhob3d(j,i,kz)*ddepv(j,indsp(ib)) * cfdout
+              ! alternative formulation using tendency/flux relationship
+              ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+              !            chemt(j,i,kz,indsp(ib)) * &
+              !         (d_one - exp(-ddepv(j,indsp(ib)) / &
+              !                 cdzq(j,i,kz)*dt ))*rdt  &
+              !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
+
+              ! no net flux is passed to BL schemes in this case
+              chifxuw(j,i,indsp(ib)) = d_zero
+              drydepv(j,i,indsp(ib)) = d_zero
+            else if ( ichdrdepo == 2 ) then
+              !
+              ! add the dry deposition term to the net emision/deposition flux
+              ! for the BL scheme !
+              ! flux
+              chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
+                  max(chemt(j,i,kz,indsp(ib)),d_zero)*rdt * &
+                  (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) + &
+                       wk(j,kz) * &
+                   (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
+              drydepv(j,i,indsp(ib)) = ddepv(j,indsp(ib))
+            end if
+            !
+            ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
+            ! also settling , accumulated between two outputs time step)
+            ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
+                   ddepv(j,indsp(ib))
+          end do
         end do
-      end do
+      else
+        do ib = 1 , mbin
+          ! deposition, remember chiten must be normalised by psb and
+          ! consistent with chib
+          do k = 2 , kz
+            do j = jci1 , jci2
+              if ( chib(j,i,k-1,indsp(ib)) > mintr * cpsb(j,i) ) then
+                wk(j,k) = (twt(k,1)*chib(j,i,k,indsp(ib)) + &
+                           twt(k,2)*chib(j,i,k-1,indsp(ib)))*rdt
+              else
+                wk(j,k) = d_zero
+              end if
+            end do
+          end do
+          do j = jci1 , jci2
+            do k = 2 , kz - 1
+              ! do not apply to the first level
+              !settend(j,k) = (wk(j,k+1)*pdepv(j,k+1,indsp(ib)) - &
+              !                wk(j,k)*pdepv(j,k,indsp(ib))) / cdzq(j,i,k)
+              ! use exponential form for stability
+              settend(j,k) =  wk(j,k+1) * &
+                  (d_one - exp(-pdepvsub(j,k+1,ib)/cdzq(j,i,k)*dt)) - &
+                              wk(j,k)   * &
+                  (d_one - exp(-pdepvsub(j,k,ib)/cdzq(j,i,k)*dt))
+              chiten(j,i,k,indsp(ib)) = chiten(j,i,k,indsp(ib)) - settend(j,k)
+              if ( ichdiag > 0 ) then
+                cseddpdiag(j,i,k,indsp(ib)) = cseddpdiag(j,i,k,indsp(ib)) - &
+                                              settend(j,k) * cfdout
+              end if
+            end do
+            !
+            ! option 1 : calculate the tend as flux divergence
+            ! at first level include surface drydep velocity to calculate the
+            ! divergence
+            !
+            ! option 2 : the dry deposition is accounted for in the BL scheme
+            ! we just pass the surface flux to the pbl interface (actually the
+            ! net surface flux, cf also emission module)
+            !
+            if ( ichdrdepo == 1 ) then
+              !settend(j,kz) = (chib(j,i,kz,indsp(ib))  * ddepv(j,indsp(ib))-  &
+              !                 wk(j,kz)*pdepv(j,kz,indsp(ib))) / cdzq(j,i,kz)
+              ! use exponential form for stability
+              settend(j,kz) = max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
+                  (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) - &
+                                wk(j,kz) * &
+                  (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
+              chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - &
+                  settend(j,kz)
+              ! save the dry deposition flux for coupling with
+              ! landsurface scheme (Kg.m2.s-1)
+              ! consider ddflux = Cav . Vd where Cav would be the average
+              ! concentration within the time step Cav = 0.5 (C + (C+deltaC))
+              ! care  chib and settend have to be corrected for pressure
+              ! cdrydepflux is a time accumulated array set to zero when surface
+              ! scheme is called (cf atm to surf interface)
+              cdrydepflx(j,i,indsp(ib)) = cdrydepflx(j,i,indsp(ib)) + &
+                (chib(j,i,kz,indsp(ib))  - settend(j,kz)*dt/d_two) / &
+                   cpsb(j,i) * crhob3d(j,i,kz) * ddepv(j,indsp(ib))
+
+              !diagnostic for settling and drydeposition removal
+              if ( ichdiag > 0 ) then
+                cseddpdiag(j,i,kz,indsp(ib)) = cseddpdiag(j,i,kz,indsp(ib)) - &
+                                               settend(j,kz) * cfdout
+              end if
+
+              ! accumulated diagnostic for dry deposition flux
+              ! average (in kg .m2.s-1)
+              ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+              !                         cdrydepflx(j,i,indsp(ib)) * cfdout
+              ! bugfix: remdrd is accumulated and averaged at a different
+              ! frequency than drydepflx accum !
+              ! do not use drydepflx in the formula
+              remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+                       (chib(j,i,kz,indsp(ib)) - settend(j,kz)*dt/d_two) / &
+                        cpsb(j,i) * crhob3d(j,i,kz)*ddepv(j,indsp(ib)) * cfdout
+              ! alternative formulation using tendency/flux relationship
+              ! remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
+              !            chib3d(j,i,kz,indsp(ib)) * &
+              !         (d_one - exp(-ddepv(j,indsp(ib)) / &
+              !                 cdzq(j,i,kz)*dt ))*rdt  &
+              !           * crhob3d(j,i,kz) / cdzq(j,i,kz) * cfdout
+
+              ! no net flux is passed to BL schemes in this case
+              chifxuw(j,i,indsp(ib)) = d_zero
+              drydepv(j,i,indsp(ib)) = d_zero
+            else if ( ichdrdepo == 2 ) then
+              !
+              ! add the dry deposition term to the net emision/deposition flux
+              ! for the BL scheme !
+              ! flux
+              chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib)) - &
+                  max(chib(j,i,kz,indsp(ib)),d_zero)*rdt * &
+                  (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) + &
+                       wk(j,kz) * &
+                   (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
+              chifxuw(j,i,indsp(ib)) = chifxuw(j,i,indsp(ib))/cpsb(j,i)
+              drydepv(j,i,indsp(ib)) = ddepv(j,indsp(ib))
+            end if
+            !
+            ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
+            ! also settling , accumulated between two outputs time step)
+            ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
+                   ddepv(j,indsp(ib))
+          end do
+        end do
+      end if
 #ifdef DEBUG
       call time_end(subroutine_name,idindx)
 #endif

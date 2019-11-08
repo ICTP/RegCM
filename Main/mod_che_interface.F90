@@ -109,9 +109,15 @@ module mod_che_interface
     call assignpnt(mddom%dlat,cdlat)
     call assignpnt(mddom%dlon,cdlon)
 
-    call assignpnt(atm1%chi,chia)
-    call assignpnt(atm2%chi,chib)
-    call assignpnt(aten%chi,chiten,pc_total)
+    if ( idynamic == 3 ) then
+      call assignpnt(mo_atm%trac,chemt)
+      call assignpnt(mo_atm%chiten,chiten)
+      call assignpnt(mo_atm%fmz,cfmz)
+    else
+      call assignpnt(atm1%chi,chia)
+      call assignpnt(atm2%chi,chib)
+      call assignpnt(aten%chi,chiten,pc_total)
+    end if
 
     call assignpnt(mddom%ht,cht)
     call assignpnt(mddom%iveg,cveg2d)

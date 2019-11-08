@@ -36,6 +36,11 @@ module mod_che_cumtran
   logical , dimension(:,:) , pointer :: dotran
   real(rkx) , dimension(:,:,:,:) , pointer :: chiten0
 
+  interface cumtran
+    module procedure cumtran1
+    module procedure cumtran2
+  end interface cumtran
+
   contains
 
   subroutine init_cumtran
@@ -63,15 +68,63 @@ module mod_che_cumtran
     end do
   end subroutine init_cumtran
 
-  subroutine cumtran
+  subroutine cumtran1(mxc)
     implicit none
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: mxc
+    real(rkx) :: chibar , deltas , cumfrc
+    integer(ik4) :: i , j , k , kctop , n
+
+    if ( ichdiag > 0 ) then
+      do j = jci1 , jci2
+        do i = ici1 , ici2
+         chiten0(j,i,:,:) = mxc(j,i,:,:)
+        end do
+      end do
+    end if
+
+    do n = 1 , ntr
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( .not. dotran(j,i) ) cycle
+          if ( kcumtop(j,i) > 0 ) then
+            deltas = d_zero
+            chibar = d_zero
+            kctop = max(kcumtop(j,i),4)
+            do k = kctop , kz
+              deltas = deltas + dsigma(k)
+              chibar = chibar + mxc(j,i,k,n)*dsigma(k)
+            end do
+            do k = kctop , kz
+              cumfrc = convcldfra(j,i,k)
+              mxc(j,i,k,n) = mxc(j,i,k,n)*(d_one-cumfrc) + &
+                           cumfrc*chibar/deltas
+            end do
+          end if
+        end do
+      end do
+    end do
+    ! here calculate a pseudo tendency.
+    ! factor 2 is added since we are out of leap frog
+    if ( ichdiag > 0 ) then
+      do j = jci1 , jci2
+        do i = ici1 , ici2
+          cconvdiag(j,i,:,:) = cconvdiag(j,i,:,:) + &
+            (mxc(j,i,:,:) - chiten0(j,i,:,:))/dt * d_two * cfdout
+       end do
+      end do
+    end if
+  end subroutine cumtran1
+
+  subroutine cumtran2(amxc,bmxc)
+    implicit none
+    real(rkx) , pointer , dimension(:,:,:,:) , intent(inout) :: amxc , bmxc
     real(rkx) :: chiabar , chibbar , deltas , cumfrc
     integer(ik4) :: i , j , k , kctop , n
 
     if ( ichdiag > 0 ) then
       do j = jci1 , jci2
         do i = ici1 , ici2
-         chiten0(j,i,:,:) = chib(j,i,:,:)
+         chiten0(j,i,:,:) = bmxc(j,i,:,:)
         end do
       end do
     end if
@@ -87,14 +140,14 @@ module mod_che_cumtran
             kctop = max(kcumtop(j,i),4)
             do k = kctop , kz
               deltas = deltas + dsigma(k)
-              chiabar = chiabar + chia(j,i,k,n)*dsigma(k)
-              chibbar = chibbar + chib(j,i,k,n)*dsigma(k)
+              chiabar = chiabar + amxc(j,i,k,n)*dsigma(k)
+              chibbar = chibbar + bmxc(j,i,k,n)*dsigma(k)
             end do
             do k = kctop , kz
               cumfrc = convcldfra (j,i,k)
-              chia(j,i,k,n) = chia(j,i,k,n)*(d_one-cumfrc) + &
+              amxc(j,i,k,n) = amxc(j,i,k,n)*(d_one-cumfrc) + &
                            cumfrc*chiabar/deltas
-              chib(j,i,k,n) = chib(j,i,k,n)*(d_one-cumfrc) + &
+              bmxc(j,i,k,n) = bmxc(j,i,k,n)*(d_one-cumfrc) + &
                            cumfrc*chibbar/deltas
             end do
           end if
@@ -107,11 +160,11 @@ module mod_che_cumtran
       do j = jci1 , jci2
         do i = ici1 , ici2
           cconvdiag(j,i,:,:) = cconvdiag(j,i,:,:) + &
-            (chib(j,i,:,:) - chiten0(j,i,:,:))/dt * d_two * cfdout
+            (bmxc(j,i,:,:) - chiten0(j,i,:,:))/dt * d_two * cfdout
        end do
       end do
     end if
-  end subroutine cumtran
-!
+  end subroutine cumtran2
+
 end module mod_che_cumtran
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

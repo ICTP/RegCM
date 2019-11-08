@@ -2299,6 +2299,7 @@ module mod_bdycod
 
     if ( ichem == 1 ) then
       if ( idynamic == 3 ) then
+        call chem_bdyval(mo_atm%u,mo_atm%v)
       else
         call chem_bdyval(sfs%psa,wue,wui,eue,eui,nve,nvi,sve,svi)
       end if

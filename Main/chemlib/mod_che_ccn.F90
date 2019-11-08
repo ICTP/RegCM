@@ -102,7 +102,7 @@ module mod_che_ccn
     end do
   end subroutine ccn
 
-  pure real(rkx) function calc_ccn(denx,mrat) result(res)
+  pure elemental real(rkx) function calc_ccn(denx,mrat) result(res)
     implicit none
     ! Calculate the particle number from the mass distriubution of
     ! hydrophilic particle

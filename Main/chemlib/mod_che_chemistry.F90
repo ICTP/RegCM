@@ -125,7 +125,11 @@ module mod_che_chemistry
           !
           ! Now calculate chemical tendencies
           ! mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
-          pfact = cpsb(j,i) / cfactor / dtchsolv
+          if ( idynamic == 3 ) then
+            pfact = cfactor / dtchsolv
+          else
+            pfact = cpsb(j,i) / cfactor / dtchsolv
+          end if
 
           do n = 1 , ntr
             if ( trac%indcbmz(n) > 0 ) then

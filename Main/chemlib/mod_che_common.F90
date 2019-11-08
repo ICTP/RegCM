@@ -60,10 +60,11 @@ module mod_che_common
   real(rkx) , pointer , dimension(:,:,:,:) :: chi
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten , chemten
 
-  real(rkx) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc,chemsrcbb,chemsrcan
-  real(rkx) , pointer , dimension(:,:,:,:) :: chia , chib
+  real(rkx) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
+  real(rkx) , pointer , dimension(:,:,:) :: chemsrcbb , chemsrcan
+  real(rkx) , pointer , dimension(:,:,:,:) :: chia , chib , chemt
   real(rkx) , pointer , dimension(:,:,:) :: dtrace , wdwout , wdrout , ddv_out
-  real(rkx) , pointer , dimension(:,:,:) :: drydepv
+  real(rkx) , pointer , dimension(:,:,:) :: drydepv , cfmz
 
   real(rkx) , pointer , dimension(:,:,:,:) :: chemall , jphoto
   integer(ik4) , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d

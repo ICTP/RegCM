@@ -505,7 +505,7 @@ module mod_moloch
             chiten0 = trac(jci1:jci2,ici1:ici2,:,:)
           end if
           if ( iboudy == 1 .or. iboudy == 5 ) then
-            ! call nudge_chi(kz,trac)
+            call nudge_chi(trac)
           end if
           if ( ichdiag > 0 ) then
             cbdydiag = trac(jci1:jci2,ici1:ici2,:,:) - chiten0
@@ -1033,6 +1033,15 @@ module mod_moloch
             chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
           end if
           call cumulus
+          if ( ichem == 1 ) then
+            if ( ichcumtra == 1 ) then
+              if ( debug_level > 3 .and. myid == italk ) then
+                write(stdout,*) 'Calling cumulus transport at ', &
+                           trim(rcmtimer%str())
+              end if
+              call cumtran(trac)
+            end if
+          end if
           if ( idiag > 0 ) then
             tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
             qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0

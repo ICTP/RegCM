@@ -324,13 +324,23 @@ contains
     !
     ! update tendency for NO flux
     if ( ichdrdepo == 1 ) then
-      do i  = ici1 , ici2
-        do j  = jci1 , jci2
-          if ( ivegcov(j,i) == 0 ) cycle
-          chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
-                 noxflux(j,i)*egrav/(dsigma(kz)*1.e3_rkx)
+      if ( idynamic == 3 ) then
+        do i  = ici1 , ici2
+          do j  = jci1 , jci2
+            if ( ivegcov(j,i) == 0 ) cycle
+            chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
+                   noxflux(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+          end do
         end do
-      end do
+      else
+        do i  = ici1 , ici2
+          do j  = jci1 , jci2
+            if ( ivegcov(j,i) == 0 ) cycle
+            chiten(j,i,kz,ino) = chiten(j,i,kz,ino) + &
+                   noxflux(j,i)*cpsb(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+          end do
+        end do
+      end if
     else if ( ichdrdepo == 2 ) then
       do i  = ici1 , ici2
         do j  = jci1 , jci2
@@ -352,7 +362,7 @@ contains
       do i  = ici1 , ici2
         do j  = jci1 , jci2
           cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
-               noxflux(j,i)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+               noxflux(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
         end do
       end do
     end if

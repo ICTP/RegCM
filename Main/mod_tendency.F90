@@ -598,7 +598,7 @@ module mod_tendency
             write(stdout,*) 'Calling cumulus transport at ', &
                          trim(rcmtimer%str())
           end if
-          call cumtran
+          call cumtran(atm1%chi,atm2%chi)
         end if
       end if
     end if
@@ -1504,7 +1504,7 @@ module mod_tendency
           chiten0 = chidyn
         end if
         if ( iboudy == 1 .or. iboudy == 5 ) then
-          call nudge_chi(kz,atm2%chi,chidyn)
+          call nudge_chi(atm2%chi,chidyn)
         end if
         if ( ichdiag > 0 ) then
           call ten2diag(aten%chi,cbdydiag,pc_dynamic,chiten0)

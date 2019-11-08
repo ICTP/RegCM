@@ -100,7 +100,7 @@ module mod_slice
 
   subroutine mkslice
     implicit none
-    real(rkx) :: cell
+    real(rkx) :: cell , w1 , w2
     integer(ik4) :: i , j , k , n
 
     if ( idynamic == 3 ) then
@@ -143,6 +143,26 @@ module mod_slice
         omega(j,i,k) = -d_half*egrav*atms%rhb3d(j,i,k) * &
                        (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
       end do
+      !
+      ! Find 700 mb theta
+      !
+      if ( icldmstrat == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atms%th700(j,i) = atms%th3d(j,i,kz)
+            vertloop1: &
+            do k = 1 , kz-1
+              if ( atms%pb3d(j,i,k) > 70000.0 ) then
+                w1 = mo_atm%fmz(j,i,k)/mo_atm%fmzf(j,i,k)
+                w2 = d_two - w1
+                atms%th700(j,i) = d_half * (w2 * atms%th3d(j,i,k+1) + &
+                                            w1 * atms%th3d(j,i,k))
+                exit vertloop1
+              end if
+            end do vertloop1
+          end do
+        end do
+      end if
     else
 
       do concurrent ( j = jx1:jx2 , i = ix1:ix2 )
@@ -285,26 +305,24 @@ module mod_slice
         atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
         atms%rhb3d(j,i,k) = min(max(atms%rhb3d(j,i,k),rhmin),rhmax)
       end do
-
-    end if
-
-    !
-    ! Find 700 mb theta
-    !
-    if ( icldmstrat == 1 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atms%th700(j,i) = atms%th3d(j,i,kz)
-          vertloop: &
-          do k = 1 , kz-1
-            if ( atms%pb3d(j,i,k) > 70000.0 ) then
-              atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
-                                twt(k,2) * atms%th3d(j,i,k)
-              exit vertloop
-            end if
-          end do vertloop
+      !
+      ! Find 700 mb theta
+      !
+      if ( icldmstrat == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            atms%th700(j,i) = atms%th3d(j,i,kz)
+            vertloop2: &
+            do k = 1 , kz-1
+              if ( atms%pb3d(j,i,k) > 70000.0 ) then
+                atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
+                                  twt(k,2) * atms%th3d(j,i,k)
+                exit vertloop2
+              end if
+            end do vertloop2
+          end do
         end do
-      end do
+      end if
     end if
     !
     ! Find tropopause hgt.

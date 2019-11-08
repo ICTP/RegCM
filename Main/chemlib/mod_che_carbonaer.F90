@@ -84,6 +84,7 @@ module mod_che_carbonaer
   ! unit of so4chagct = kg kg-1 sec-1
   public :: so4chagct
   public :: carb_init , carb_prepare , aging_carb
+  real(rkx) , pointer , dimension(:,:,:,:) :: pp
 
   contains
 
@@ -94,6 +95,11 @@ module mod_che_carbonaer
         call getmem3d(surf,jci1,jci2,ici1,ici2,1,kz,'carbonaer:surf')
         call getmem3d(so4chagct,jci1,jci2, &
                       ici1,ici2,1,kz,'che_common:so4chagct')
+      end if
+      if ( idynamic == 3 ) then
+        call assignpnt(chemt,pp)
+      else
+        call assignpnt(chib,pp)
       end if
     end subroutine carb_init
 
@@ -106,77 +112,147 @@ module mod_che_carbonaer
       if ( ibchb > 0 ) then
         ! particle mass in kg
         pm = rhobc * mathpi / d_six * reffbc * reffbc * reffbc*1e-18
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! mixing ratio in kg/kg
-              kav = max(chib(j,i,k,ibchb)-mintr,d_zero)
-              ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
-              ! unit of surf m2/kg
-              surf(j,i,k) = surf(j,i,k)+mathpi*reffbc*reffbc*kav/pm*1e-12
+        if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(chemt(j,i,k,ibchb)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffbc*reffbc*kav/pm*1e-12
+              end do
             end do
           end do
-        end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,ibchb)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffbc*reffbc*kav/pm*1e-12
+              end do
+            end do
+          end do
+        end if
       end if
       if ( ibchl > 0 ) then
         ! particle mass in kg
         pm = rhobchl * mathpi / d_six * reffbchl*reffbchl*reffbchl*1e-18
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! mixing ratio in kg/kg
-              kav = max(chib(j,i,k,ibchl)-mintr,d_zero)
-              ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
-              ! unit of surf m2/kg
-              surf(j,i,k) = surf(j,i,k)+mathpi*reffbchl*reffbchl*kav/pm*1e-12
+        if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,ibchl)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffbchl*reffbchl*kav/pm*1e-12
+              end do
             end do
           end do
-        end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,ibchl)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffbchl*reffbchl*kav/pm*1e-12
+              end do
+            end do
+          end do
+        end if
       end if
       if ( iochb > 0 ) then
         ! particle mass in kg
         pm = rhooc * mathpi / d_six * reffoc*reffoc*reffoc*1e-18
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! mixing ratio in kg/kg
-              kav = max(chib(j,i,k,iochb)-mintr,d_zero)
-              ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
-              ! unit of surf m2/kg
-              surf(j,i,k) = surf(j,i,k)+mathpi*reffoc*reffoc*kav/pm*1e-12
+        if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,iochb)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffoc*reffoc*kav/pm*1e-12
+              end do
             end do
           end do
-        end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,iochb)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffoc*reffoc*kav/pm*1e-12
+              end do
+            end do
+          end do
+        end if
       end if
       if ( iochl > 0 ) then
         ! particle mass in kg
         pm = rhoochl * mathpi / d_six * reffochl*reffochl*reffochl*1e-18
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! mixing ratio in kg/kg
-              kav = max(chib(j,i,k,iochl)-mintr,d_zero)
-              ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
-              ! unit of surf m2/kg
-              surf(j,i,k) = surf(j,i,k)+mathpi*reffochl*reffochl*kav/pm*1e-12
+        if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,iochl)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffochl*reffochl*kav/pm*1e-12
+              end do
             end do
           end do
-        end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,iochl)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffochl*reffochl*kav/pm*1e-12
+              end do
+            end do
+          end do
+        end if
       end if
       if ( iso4 > 0 ) then
         ! particle mass in kg
         pm = rhoso4 * mathpi / d_six * reffso4 * reffso4 * reffso4*1e-18
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ! mixing ratio in kg/kg
-              kav = max(chib(j,i,k,iso4)-mintr,d_zero)
-              ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
-              ! unit of surf m2/kg
-              surf(j,i,k) = surf(j,i,k)+mathpi*reffso4*reffso4*kav/pm*1e-12
+        if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,iso4)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffso4*reffso4*kav/pm*1e-12
+              end do
             end do
           end do
-        end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ! mixing ratio in kg/kg
+                kav = max(pp(j,i,k,iso4)-mintr,d_zero)
+                ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
+                ! unit of surf m2/kg
+                surf(j,i,k) = surf(j,i,k)+mathpi*reffso4*reffso4*kav/pm*1e-12
+              end do
+            end do
+          end do
+        end if
       end if
     end subroutine carb_prepare
 
@@ -204,7 +280,7 @@ module mod_che_carbonaer
                 end if
                 arg = min(max(1.0e-3_rkx, kcond*icon + kcoag*ncon(j,i,k)),d_one)
                 chagct = 3600.0_rkx * d_one/arg
-                ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
+                ksp = max(pp(j,i,k,ibchb)-mintr,d_zero)
                 arg = max(min(dt/chagct,25.0_rkx),d_zero)
                 agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
                 chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend(j,i)
@@ -226,7 +302,7 @@ module mod_che_carbonaer
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ksp = max(chib(j,i,k,ibchb)-mintr,d_zero)
+                ksp = max(pp(j,i,k,ibchb)-mintr,d_zero)
                 arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
                 agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
                 chiten(j,i,k,ibchb) = chiten(j,i,k,ibchb) + agingtend(j,i)
@@ -260,7 +336,7 @@ module mod_che_carbonaer
                 end if
                 arg = min(max(1.0e-3_rkx, kcond*icon + kcoag*ncon(j,i,k)),d_one)
                 chagct = 3600.0_rkx * d_one/arg
-                ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
+                ksp = max(pp(j,i,k,iochb)-mintr,d_zero)
                 arg = max(min(dt/chagct,25.0_rkx),d_zero)
                 agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
                 chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend(j,i)
@@ -282,7 +358,7 @@ module mod_che_carbonaer
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                ksp = max(chib(j,i,k,iochb)-mintr,d_zero)
+                ksp = max(pp(j,i,k,iochb)-mintr,d_zero)
                 arg = max(min(dt/const_chagct,25.0_rkx),d_zero)
                 agingtend(j,i) = -ksp*(d_one-exp(-arg))/dt
                 chiten(j,i,k,iochb) = chiten(j,i,k,iochb) + agingtend(j,i)
@@ -306,7 +382,7 @@ module mod_che_carbonaer
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ksp = max(chib(j,i,k,ism1)-mintr,d_zero)
+              ksp = max(pp(j,i,k,ism1)-mintr,d_zero)
               agingtend(j,i) = -ksp*(d_one-exp(-dt/chsmct))/dt
               chiten(j,i,k,ism1) = chiten(j,i,k,ism1) + agingtend(j,i)
               chiten(j,i,k,ism2) = chiten(j,i,k,ism2) - agingtend(j,i)
