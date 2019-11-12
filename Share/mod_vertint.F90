@@ -1303,7 +1303,7 @@ module mod_vertint
             !
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( sigp >= sig(km) ) then
+            else if ( sigp > sig(km) ) then
               fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
                         dexp(rglrog*dlog(sigp/sig(km)))
             else
@@ -1387,7 +1387,7 @@ module mod_vertint
             !
             if ( sigp <= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
-            else if ( sigp >= sig(1) ) then
+            else if ( sigp > sig(1) ) then
               fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(1)))
             else
@@ -1450,7 +1450,7 @@ module mod_vertint
             !
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( sigp >= sig(km) ) then
+            else if ( sigp > sig(km) ) then
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(km)))
             else
@@ -1520,7 +1520,7 @@ module mod_vertint
             !
             if ( sigp <= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
-            else if ( sigp >= sig(1) ) then
+            else if ( sigp > sig(1) ) then
               fp(i,j,n) = d_half*(f(i,j,1)+f(i,j,2)) * &
                              dexp(rglrog*dlog(sigp/sig(1)))
             else
@@ -1564,7 +1564,7 @@ module mod_vertint
             !
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( sigp >= sig(km) ) then
+            else if ( sigp > sig(km) ) then
               fp(i,j,n) = d_half*(f(i,j,km)+f(i,j,km-1)) * &
                         dexp(rglrog*dlog(sigp/sig(km)))
             else
@@ -1632,7 +1632,7 @@ module mod_vertint
             !
             if ( sigp <= sig(km) ) then
               fp(i,j,n) = f(i,j,km)
-            else if ( sigp >= sig(1) ) then
+            else if ( sigp > sig(1) ) then
               fp(i,j,n) = 0.5*(f(i,j,1)+f(i,j,2)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(1)))
             else
@@ -1676,7 +1676,7 @@ module mod_vertint
             !
             if ( sigp <= sig(1) ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( sigp >= sig(km) ) then
+            else if ( sigp > sig(km) ) then
               fp(i,j,n) = 0.5*(f(i,j,km)+f(i,j,km-1)) * &
                         exp(real(rglrog,rk4)*log(sigp/sig(km)))
             else
