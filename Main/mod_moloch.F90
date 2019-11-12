@@ -82,7 +82,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: zeta , zetau , zetav
   real(rkx) , dimension(:,:,:) , pointer :: u , v , w
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
-  real(rkx) , dimension(:,:,:) , pointer :: p , t
+  real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
   real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
@@ -158,6 +158,7 @@ module mod_moloch
     call assignpnt(mo_atm%zeta,zeta)
     call assignpnt(mo_atm%p,p)
     call assignpnt(mo_atm%t,t)
+    call assignpnt(mo_atm%rho,rho)
     call assignpnt(mo_atm%qx,qx)
     call assignpnt(mo_atm%qs,qsat)
     call assignpnt(mo_atm%qx,qv,iqv)
@@ -374,6 +375,7 @@ module mod_moloch
       do i = ice1 , ice2
         do j = jce1 , jce2
           p(j,i,k) = (pai(j,i,k)**cpovr) * p00
+          rho(j,i,k) = p(j,i,k)/(rgas*t(j,i,k))
         end do
       end do
     end do
@@ -396,6 +398,10 @@ module mod_moloch
         end do
       end do
     end do
+    !
+    ! Mass check
+    !
+    if ( debug_level > 0 ) call massck
     !
     ! Prepare fields to be used in physical parametrizations.
     !
