@@ -1019,25 +1019,46 @@ module mod_che_dust
       sumdflux = sum(cdustflx_clm,3) * rdstemfac
       do n = 1 , nbin
         ib = idust(n)
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( ichdrdepo == 1 ) then
-              chiten(j,i,kz,ib) = chiten(j,i,kz,ib) + &
-                   sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.e3_rkx)
-            else if ( ichdrdepo == 2 ) then
+        if ( ichdrdepo == 1 ) then
+          if ( idynamic == 3 ) then
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                chiten(j,i,kz,ib) = chiten(j,i,kz,ib) + &
+                     sumdflux(j,i)*frac(n)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                chiten(j,i,kz,ib) = chiten(j,i,kz,ib) + &
+                     sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.e3_rkx)
+              end do
+            end do
+          end if
+        else if ( ichdrdepo == 2 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               ! pass the flux to BL scheme
               chifxuw(j,i,ib) = chifxuw(j,i,ib) + sumdflux(j,i) * frac(n)
-            end if
+            end do
+          end do
+        end if
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             ! diagnostic source (accumulated)
             ! cdsfrq = cfdout
             cemtrac(j,i,ib) = cemtrac(j,i,ib) + sumdflux(j,i)*frac(n) * cfdout
-            if ( ichdiag > 0 ) then
+          end do
+        end do
+        if ( ichdiag > 0 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               cemisdiag(j,i,kz,ib) = cemisdiag(j,i,kz,ib) + &
                                  sumdflux(j,i)*frac(n) / &
                                  (cdzq(j,i,kz)*crhob3d(j,i,kz))*cfdout
-            end if
+            end do
           end do
-        end do
+        end if
       end do
 #endif
     end subroutine clm_dust_tend

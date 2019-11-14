@@ -253,20 +253,31 @@ module mod_che_emission
     !
     if ( ichdrdepo /= 2 ) then
       do itr = 1 , ntr
-         if ( chtrname(itr)(1:2) == 'DU' .or. &
-              chtrname(itr)(1:4) == 'SSLT' .or. &
-              chtrname(itr)(1:6) == 'POLLEN'.or. &
-              any ( mine_name == chtrname(itr)(1:4) )) cycle
+        if ( chtrname(itr)(1:2) == 'DU' .or. &
+             chtrname(itr)(1:4) == 'SSLT' .or. &
+             chtrname(itr)(1:6) == 'POLLEN'.or. &
+             any ( mine_name == chtrname(itr)(1:4) )) cycle
+        if ( idynamic == 3 ) then
+          do j = jci1 , jci2
+            chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+                  chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+          end do
+        else
           do j = jci1 , jci2
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
-            ! diagnostic for source, cumul
-            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
-            if ( ichdiag > 0 ) then
-              cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
-                  chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
-            end if
           end do
+        end if
+        do j = jci1 , jci2
+          ! diagnostic for source, cumul
+          cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
+        end do
+        if ( ichdiag > 0 ) then
+          do j = jci1 , jci2
+            cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+                chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+          end do
+        end if
       end do
     else if ( ichdrdepo == 2 ) then
       do itr = 1 , ntr
@@ -274,27 +285,41 @@ module mod_che_emission
              chtrname(itr)(1:4) == 'SSLT' .or. &
              chtrname(itr)(1:6) == 'POLLEN'.or. &
              any ( mine_name == chtrname(itr)(1:4) )) cycle
-        do j = jci1 , jci2
+        if ( ibltyp /= 2 ) then
           ! if PBL scheme is not UW then calculate emission tendency
-          if ( ibltyp /= 2 ) then
-            chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
+          if ( idynamic == 3 ) then
+            do j = jci1 , jci2
+              chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+                   chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+            end do
+          else
+            do j = jci1 , jci2
+              chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+                   chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
+            end do
           end if
+        else
           ! otherwise emission is injected in the PBL scheme ( together
           ! with dry deposition) for tend calculation
-          chifxuw(j,i,itr) = chifxuw(j,i,itr) + chemsrc(j,i,itr)
-          ! diagnostic for source, cumul
+          do j = jci1 , jci2
+            chifxuw(j,i,itr) = chifxuw(j,i,itr) + chemsrc(j,i,itr)
+          end do
+        end if
+        ! diagnostic for source, cumul
+        do j = jci1 , jci2
           cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
-          if ( ichdiag > 0 ) then
+        end do
+        if ( ichdiag > 0 ) then
+          if ( ibltyp /= 2 ) then
+            do j = jci1 , jci2
             ! in this case we calculate emission tendency diagnostic, but
             ! this term will also be included in BL tendency diagnostic
             ! if UW scheme is used.
-            if ( ibltyp /= 2 ) then
               cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
                  chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
-            end if
+            end do
           end if
-        end do
+        end if
       end do
     end if
 
