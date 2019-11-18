@@ -176,7 +176,11 @@
           ! aerodynamic resistance)
           srad(j,i) = csol2d(j,i)
           hsurf(j,i) = cht(j,i)
-          bchi(j,:,:,i) = chib(j,i,:,:)
+          if ( idynamic == 3 ) then
+            bchi(j,:,:,i) = chemt(j,i,:,:)
+          else
+            bchi(j,:,:,i) = chib(j,i,:,:)
+          end if
           ! fraction of vegetation
 #ifdef CLM45
           vegfrac(j,i) = d_one - csfracb2d(j,i)

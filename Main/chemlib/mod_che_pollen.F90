@@ -107,14 +107,25 @@ module mod_che_pollen
       end do
 
       if ( ichdrdepo /= 2 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
-            emispol(j,i)*egrav/(dsigma(kz)*1.0e3_rkx)
-            ! diagnostic for source, cumul
-            cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(j,i)*cfdout
+        if ( idynamic == 3 ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
+                        emispol(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+              ! diagnostic for source, cumul
+              cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(j,i)*cfdout
+            end do
           end do
-        end do
+        else
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
+                        emispol(j,i)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
+              ! diagnostic for source, cumul
+              cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(j,i)*cfdout
+            end do
+          end do
+        end if
       else if ( ichdrdepo == 2 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2

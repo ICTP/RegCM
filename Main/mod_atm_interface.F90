@@ -1026,6 +1026,8 @@ module mod_atm_interface
       end if
       if ( idynamic == 3 ) then
         call allocate_atmosphere(mo_atm)
+        call allocate_nhbh(nhbh0)
+        call allocate_nhbh(nhbh1)
       else
         call allocate_atmstate_a(atm1)
         call allocate_atmstate_b(atm2)

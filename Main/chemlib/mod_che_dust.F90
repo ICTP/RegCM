@@ -689,13 +689,14 @@ module mod_che_dust
           do j = jci1 , jci2
             if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
               if ( ichdrdepo == 1 ) then
-                ! kg m-2 s-1 => kg/kg * s-1 * psb : use hydrostatic eq
-                ! multiply by g/dp * psb
-                ! dp = dsigma * ps in Pa = dsigma * psb * 1000
-                ! Simplify psb
-                ! Result is g/(dsigma * 1000)
-                chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
-                     xrsfrow(ieff,n)*egrav/(dsigma(kz)*1.e3_rkx)
+                if ( idynamic == 3 ) then
+                  chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
+                       xrsfrow(ieff,n)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+                else
+                  ! kg m-2 s-1 => kg/kg * s-1 * psb
+                  chiten(j,i,kz,idust(n)) = chiten(j,i,kz,idust(n)) + &
+                       xrsfrow(ieff,n)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
+                end if
               else if ( ichdrdepo == 2 ) then
                 ! pass the flux to BL scheme
                 chifxuw(j,i,idust(n)) = chifxuw(j,i,idust(n)) + &
@@ -726,11 +727,17 @@ module mod_che_dust
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( ivegcov(j,i) == 8 .or. ivegcov(j,i) == 11 ) then
-                  chiten(j,i,kz,imine(n,m)) = &
-                       chiten(j,i,kz,imine(n,m)) + &
-                       xrsfrow(ieff,n)* ( cminer(j,i,m)*cfrac(n) + &
-                                      sminer(j,i,m)*sfrac(n) ) &
-                       *egrav / (dsigma(kz)*1.e3_rkx)
+                  if ( idynamic == 3 ) then
+                    chiten(j,i,kz,imine(n,m)) = &
+                         chiten(j,i,kz,imine(n,m)) + xrsfrow(ieff,n) * &
+                         (cminer(j,i,m)*cfrac(n) + sminer(j,i,m)*sfrac(n)) / &
+                         (cdzq(j,i,kz)*crhob3d(j,i,kz))
+                  else
+                    chiten(j,i,kz,imine(n,m)) = &
+                         chiten(j,i,kz,imine(n,m)) + xrsfrow(ieff,n) * &
+                         (cminer(j,i,m)*cfrac(n) + sminer(j,i,m)*sfrac(n)) / &
+                         (cdzq(j,i,kz)*crhob3d(j,i,kz)) * cpsb(j,i)
+                  end if
                   cemtrac(j,i,imine(n,m)) = cemtrac(j,i,imine(n,m)) + &
                          xrsfrow(ieff,n)* (cminer(j,i,m) *cfrac(n)  + &
                                        sminer(j,i,m) *sfrac(n)) * cfdout
@@ -1031,7 +1038,8 @@ module mod_che_dust
             do i = ici1 , ici2
               do j = jci1 , jci2
                 chiten(j,i,kz,ib) = chiten(j,i,kz,ib) + &
-                     sumdflux(j,i)*frac(n) * egrav/(dsigma(kz)*1.e3_rkx)
+                     sumdflux(j,i)*frac(n)/(cdzq(j,i,kz)*crhob3d(j,i,kz)) * &
+                     cpsb(j,i)
               end do
             end do
           end if

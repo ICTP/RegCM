@@ -148,7 +148,8 @@ module mod_che_emission
       call read_bioburn_emission(ifreqbb,lyear,lmonth,lday,lhour,chemsrcbb)
       ! define the smoke tracer emission
       if ( ism1 > 0 ) then
-        chemsrcbb(:,:,ism1) = chemsrcbb(:,:,ibchb) + rocemfac * chemsrcbb(:,:,iochb)
+        chemsrcbb(:,:,ism1) = chemsrcbb(:,:,ibchb) + &
+                              rocemfac * chemsrcbb(:,:,iochb)
         chemsrcbb(:,:,iochb) = d_zero
         chemsrcbb(:,:,ibchb) = d_zero
       end if
@@ -206,8 +207,7 @@ module mod_che_emission
             fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
             amp = 12.0_rkx*mathpi/daylen
             tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-            chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * &
-                                sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
+            chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * sin(mathpi*fact)
           end if
         end do
       end if
@@ -242,8 +242,7 @@ module mod_che_emission
           fact = (halfpi-acos(czen(j,i)))/(d_two*maxelev)
           amp = 12.0_rkx*mathpi/daylen
           tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
-          chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * &
-                              sin(mathpi*fact)*egrav/(dsigma(kz)*1.0e3_rkx)
+          chemsrc(j,i,iisop) = amp*chemsrc(j,i,iisop) * sin(mathpi*fact)
         end if
       end do
     end if
@@ -265,7 +264,7 @@ module mod_che_emission
         else
           do j = jci1 , jci2
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
+                chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
           end do
         end if
         do j = jci1 , jci2
@@ -275,7 +274,7 @@ module mod_che_emission
         if ( ichdiag > 0 ) then
           do j = jci1 , jci2
             cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
-                chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+                chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
           end do
         end if
       end do
@@ -295,7 +294,7 @@ module mod_che_emission
           else
             do j = jci1 , jci2
               chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-                   chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0e3_rkx)
+                   chemsrc(j,i,itr)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
             end do
           end if
         else

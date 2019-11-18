@@ -132,6 +132,13 @@ module mod_rad_interface
         call assignpnt(nhbh0%tvirt,m2r%btv0)
         call assignpnt(nhbh1%tvirt,m2r%btv1)
       end if
+    else if ( idynamic == 3 ) then
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        call assignpnt(nhbh0%ps,m2r%bps0)
+        call assignpnt(nhbh1%ps,m2r%bps1)
+        call assignpnt(nhbh0%tvirt,m2r%btv0)
+        call assignpnt(nhbh1%tvirt,m2r%btv1)
+      end if
     end if
     ! OUTPUT
     call assignpnt(solis,r2m%solis)

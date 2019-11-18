@@ -311,17 +311,23 @@ CONTAINS
          nf90_get_var(ncid, varid_xlonc, xlonc ) &
          ,25)
 
-    CALL  NFERR( status, &
-         nf90_inq_varid(ncid, 'dlat', varid_xlatd ) &
-         ,26)
+    status = nf90_inq_varid(ncid, 'dlat', varid_xlatd )
+    if ( status /= nf90_noerr ) then
+      CALL  NFERR( status, &
+           nf90_inq_varid(ncid, 'vlat', varid_xlatd ) &
+           ,26)
+    end if
 
     CALL  NFERR( status, &
          nf90_get_var(ncid, varid_xlatd, xlatd ) &
          ,27)
 
-    CALL  NFERR( status, &
-         nf90_inq_varid(ncid, 'dlon', varid_xlond ) &
-         ,28)
+    status = nf90_inq_varid(ncid, 'dlon', varid_xlond )
+    if ( status /= nf90_noerr ) then
+      CALL  NFERR( status, &
+           nf90_inq_varid(ncid, 'ulon', varid_xlond ) &
+           ,28)
+    end if
 
     CALL  NFERR( status, &
          nf90_get_var(ncid, varid_xlond, xlond ) &

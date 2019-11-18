@@ -137,11 +137,19 @@ module mod_che_seasalt
           seasalt_flx(2) = d_zero
         end if
 
-        ! calculate the source tendancy
-        chiten(j,i,kz,isslt(1)) = chiten(j,i,kz,isslt(1)) + &
-                seasalt_flx(1)*egrav/(dsigma(kz)*1.e3_rkx)
-        chiten(j,i,kz,isslt(2)) = chiten(j,i,kz,isslt(2)) + &
-                seasalt_flx(2)*egrav/(dsigma(kz)*1.e3_rkx)
+        if ( idynamic == 3 ) then
+          ! calculate the source tendancy
+          chiten(j,i,kz,isslt(1)) = chiten(j,i,kz,isslt(1)) + &
+                  seasalt_flx(1)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+          chiten(j,i,kz,isslt(2)) = chiten(j,i,kz,isslt(2)) + &
+                  seasalt_flx(2)/(cdzq(j,i,kz)*crhob3d(j,i,kz))
+        else
+          ! calculate the source tendancy
+          chiten(j,i,kz,isslt(1)) = chiten(j,i,kz,isslt(1)) + &
+                  seasalt_flx(1)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
+          chiten(j,i,kz,isslt(2)) = chiten(j,i,kz,isslt(2)) + &
+                  seasalt_flx(2)/(cdzq(j,i,kz)*crhob3d(j,i,kz))*cpsb(j,i)
+        end if
 
         ! diagnostic source
         cemtrac(j,i,isslt(1)) = cemtrac(j,i,isslt(1)) + &

@@ -160,7 +160,7 @@ module mod_che_bdyco
                       hsigma,sigma,chebdy,tvirt0,bndp0,cps0)
       end if
       if ( idynamic == 3 ) then
-        call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+        call zita_interp(jce1,jce2,ice1,ice2,kz,max_input_tracers, &
                          chebdy,cza,tvirt0,hsigma,bndp0,0)
       end if
 
@@ -225,7 +225,7 @@ module mod_che_bdyco
                       hsigma,sigma,chebdy,tvirt1,bndp1,cps0)
       end if
       if ( idynamic == 3 ) then
-        call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+        call zita_interp(jce1,jce2,ice1,ice2,kz,max_input_tracers, &
                          chebdy,cza,tvirt1,hsigma,bndp1,0)
       end if
 
@@ -349,7 +349,7 @@ module mod_che_bdyco
                       hsigma,sigma,chebdy,tvirt1,bndp1,cps0)
       end if
       if ( idynamic == 3 ) then
-        call zita_interp(ice1,ice2,jce1,jce2,kz,max_input_tracers, &
+        call zita_interp(jce1,jce2,ice1,ice2,kz,max_input_tracers, &
                          chebdy,cza,tvirt1,hsigma,bndp1,0)
       end if
 

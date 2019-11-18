@@ -64,82 +64,130 @@ module mod_che_output
         che_ddvel_out = ddv_out(jci1:jci2,ici1:ici2,itr)*cfdout
       end if
       ddv_out(:,:,itr) = d_zero
-      if ( associated(che_mixrat_out) ) then
-        do k = 1 , kz
-          che_mixrat_out(:,:,k) = chia(jci1:jci2,ici1:ici2,k,itr) / &
-                           cpsb(jci1:jci2,ici1:ici2)
-        end do
+      if ( idynamic == 3 ) then
+        if ( associated(che_mixrat_out) ) then
+          do k = 1 , kz
+            che_mixrat_out(:,:,k) = chemt(jci1:jci2,ici1:ici2,k,itr)
+          end do
+        end if
+      else
+        if ( associated(che_mixrat_out) ) then
+          do k = 1 , kz
+            che_mixrat_out(:,:,k) = chia(jci1:jci2,ici1:ici2,k,itr) / &
+                             cpsb(jci1:jci2,ici1:ici2)
+          end do
+        end if
       end if
       if ( associated(che_burden_out) ) then
         che_burden_out = dtrace(jci1:jci2,ici1:ici2,itr)*1.0e6_rkx
       end if
       if ( ichdiag > 0 ) then
-        if ( associated(che_cheten_out) ) then
-          do k = 1 , kz
-            che_cheten_out(:,:,k) = chemdiag(jci1:jci2,ici1:ici2,k,itr) / &
+        if ( idynamic == 3 ) then
+          if ( associated(che_cheten_out) ) then
+            che_cheten_out(:,:,:) = chemdiag(:,:,:,itr)
+          end if
+          chemdiag(:,:,:,itr) = d_zero
+          if ( associated(che_advhten_out) ) then
+            che_advhten_out(:,:,:) = cadvhdiag(:,:,:,itr)
+          end if
+          cadvhdiag(:,:,:,itr) = d_zero
+          if ( associated(che_advvten_out) ) then
+            che_advvten_out(:,:,:) = cadvvdiag(:,:,:,itr)
+          end if
+          cadvvdiag(:,:,:,itr) = d_zero
+          if ( associated(che_difhten_out) ) then
+            che_difhten_out(:,:,:) = cdifhdiag(:,:,:,itr)
+          end if
+          cdifhdiag(:,:,:,itr) = d_zero
+          if ( associated(che_cuten_out) ) then
+            che_cuten_out(:,:,:) = cconvdiag(:,:,:,itr)
+          end if
+          cconvdiag(:,:,:,itr) = d_zero
+          if ( associated(che_tuten_out) ) then
+            che_tuten_out(:,:,:) = ctbldiag(:,:,:,itr)
+          end if
+          ctbldiag(:,:,:,itr) = d_zero
+          if ( associated(che_wasten_out) ) then
+            che_wasten_out(:,:,:) = washout(:,:,:,itr)
+          end if
+          if ( associated(che_raiten_out) ) then
+            che_raiten_out(:,:,:) = rainout(:,:,:,itr)
+          end if
+          if ( associated(che_bdyten_out) ) then
+            che_bdyten_out(:,:,:) = cbdydiag(:,:,:,itr)
+          end if
+          cbdydiag(:,:,:,itr) = d_zero
+          if ( associated(che_sedten_out) ) then
+            che_sedten_out(:,:,:) = cseddpdiag(:,:,:,itr)
+          end if
+        else
+          if ( associated(che_cheten_out) ) then
+            do k = 1 , kz
+              che_cheten_out(:,:,k) = chemdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          chemdiag(:,:,:,itr) = d_zero
+          if ( associated(che_advhten_out) ) then
+            do k = 1 , kz
+              che_advhten_out(:,:,k) = cadvhdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          cadvhdiag(:,:,:,itr) = d_zero
+          if ( associated(che_advvten_out) ) then
+            do k = 1 , kz
+              che_advvten_out(:,:,k) = cadvvdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          cadvvdiag(:,:,:,itr) = d_zero
+          if ( associated(che_difhten_out) ) then
+            do k = 1 , kz
+              che_difhten_out(:,:,k) = cdifhdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          cdifhdiag(:,:,:,itr) = d_zero
+          if ( associated(che_cuten_out) ) then
+            do k = 1 , kz
+              che_cuten_out(:,:,k) = cconvdiag(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          cconvdiag(:,:,:,itr) = d_zero
+          if ( associated(che_tuten_out) ) then
+            do k = 1 , kz
+              che_tuten_out(:,:,k) = ctbldiag(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          ctbldiag(:,:,:,itr) = d_zero
+          if ( associated(che_wasten_out) ) then
+            do k = 1 , kz
+              che_wasten_out(:,:,k) = washout(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          if ( associated(che_raiten_out) ) then
+            do k = 1 , kz
+              che_raiten_out(:,:,k) = rainout(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          if ( associated(che_bdyten_out) ) then
+            do k = 1 , kz
+              che_bdyten_out(:,:,k) = cbdydiag(jci1:jci2,ici1:ici2,k,itr) / &
+                               cpsb(jci1:jci2,ici1:ici2)
+            end do
+          end if
+          cbdydiag(:,:,:,itr) = d_zero
+          if ( associated(che_sedten_out) ) then
+            do k = 1 , kz
+              che_sedten_out(:,:,k) = cseddpdiag(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        chemdiag(:,:,:,itr) = d_zero
-        if ( associated(che_advhten_out) ) then
-          do k = 1 , kz
-            che_advhten_out(:,:,k) = cadvhdiag(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        cadvhdiag(:,:,:,itr) = d_zero
-        if ( associated(che_advvten_out) ) then
-          do k = 1 , kz
-            che_advvten_out(:,:,k) = cadvvdiag(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        cadvvdiag(:,:,:,itr) = d_zero
-        if ( associated(che_difhten_out) ) then
-          do k = 1 , kz
-            che_difhten_out(:,:,k) = cdifhdiag(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        cdifhdiag(:,:,:,itr) = d_zero
-        if ( associated(che_cuten_out) ) then
-          do k = 1 , kz
-            che_cuten_out(:,:,k) = cconvdiag(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        cconvdiag(:,:,:,itr) = d_zero
-        if ( associated(che_tuten_out) ) then
-          do k = 1 , kz
-            che_tuten_out(:,:,k) = ctbldiag(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        ctbldiag(:,:,:,itr) = d_zero
-        if ( associated(che_wasten_out) ) then
-          do k = 1 , kz
-            che_wasten_out(:,:,k) = washout(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        if ( associated(che_raiten_out) ) then
-          do k = 1 , kz
-            che_raiten_out(:,:,k) = rainout(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        if ( associated(che_bdyten_out) ) then
-          do k = 1 , kz
-            che_bdyten_out(:,:,k) = cbdydiag(jci1:jci2,ici1:ici2,k,itr) / &
-                             cpsb(jci1:jci2,ici1:ici2)
-          end do
-        end if
-        cbdydiag(:,:,:,itr) = d_zero
-        if ( associated(che_sedten_out) ) then
-          do k = 1 , kz
-            che_sedten_out(:,:,k) = cseddpdiag(jci1:jci2,ici1:ici2,k,itr) / &
-                           cpsb(jci1:jci2,ici1:ici2)
-          end do
+            end do
+          end if
         end if
         cseddpdiag(:,:,:,itr) = d_zero
         if ( associated(che_pblten_out) ) then

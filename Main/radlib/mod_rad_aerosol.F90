@@ -1391,10 +1391,10 @@ module mod_rad_aerosol
       end if
       if ( idynamic == 3 ) then
         if ( step == 1 ) then
-          call zita_interp(ice1,ice2,jce1,jce2,kz,ntr, &
+          call zita_interp(jce1,jce2,ice1,ice2,kz,ntr, &
                            aerm,m2r%za,m2r%btv0,hsigma,m2r%bps0,0)
         else if ( step == 2 ) then
-          call zita_interp(ice1,ice2,jce1,jce2,kz,ntr, &
+          call zita_interp(jce1,jce2,ice1,ice2,kz,ntr, &
                            aerm,m2r%za,m2r%btv1,hsigma,m2r%bps1,0)
         end if
       end if

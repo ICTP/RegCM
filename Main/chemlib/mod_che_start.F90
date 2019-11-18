@@ -418,19 +418,31 @@ module mod_che_start
     call init_mod_che_ncio(chemsimtype)
     call che_init_bdy
 
-    ! Finally initialise chia and chib to chib0 over the whole domain
+    ! Finally initialise tracer MXR to chib0 over the whole domain
 
     if ( .not. ifrest ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              chia(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
-              chib(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+      if ( idynamic == 3 ) then
+        do n = 1 , ntr
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chemt(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do n = 1 , ntr
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chia(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+                chib(j,i,k,n) = max(chib0(j,i,k,n),d_zero)
+              end do
+            end do
+          end do
+        end do
+      end if
     end if
 
     return

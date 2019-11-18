@@ -232,8 +232,17 @@ module mod_che_wetdep
       !---------------------------------------
       ! convert from cb_X to mass mixing ratio
       !---------------------------------------
-      if ( ihno3 > 0 ) vmr_hno3(:,k) = (qin(:,k,ihno3)/ps2(:)) * (amd/63.012_rkx)
-      if ( ih2o2 > 0 ) vmr_h2o2(:,k) = (qin(:,k,ih2o2)/ps2(:)) * (amd/34.0147_rkx)
+      if ( idynamic == 3 ) then
+        if ( ihno3 > 0 ) &
+          vmr_hno3(:,k) = (qin(:,k,ihno3)) * (amd/63.012_rkx)
+        if ( ih2o2 > 0 ) &
+          vmr_h2o2(:,k) = (qin(:,k,ih2o2)) * (amd/34.0147_rkx)
+      else
+        if ( ihno3 > 0 ) &
+          vmr_hno3(:,k) = (qin(:,k,ihno3)/ps2(:)) * (amd/63.012_rkx)
+        if ( ih2o2 > 0 ) &
+          vmr_h2o2(:,k) = (qin(:,k,ih2o2)/ps2(:)) * (amd/34.0147_rkx)
+      end if
     end do
 
     if ( ihno3 > 0 ) then
@@ -601,22 +610,40 @@ module mod_che_wetdep
     end do
 
     ! diagnostic for surface fluxes
-    do itr = 1 , ntr
-      do j = jci1 , jci2
-        wdrout(j,i,itr) = d_zero
-        wdwout(j,i,itr) = d_zero
-        do k = 1 , kz
-          ! sum on the vertical to get total surface flux diag fo rain out
-          ! and washout (already weighted for time average cfdout !),
-          ! also change sign convention normalise by psb to get the right
-          ! flux unit
-          wdrout(j,i,itr) = wdrout(j,i,itr) - &
-            rainout(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
-          wdwout(j,i,itr) = wdwout(j,i,itr) - &
-            washout(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+    if ( idynamic == 3 ) then
+      do itr = 1 , ntr
+        do j = jci1 , jci2
+          wdrout(j,i,itr) = d_zero
+          wdwout(j,i,itr) = d_zero
+          do k = 1 , kz
+            ! sum on the vertical to get total surface flux diag fo rain out
+            ! and washout (already weighted for time average cfdout !),
+            ! also change sign convention
+            wdrout(j,i,itr) = wdrout(j,i,itr) - &
+              rainout(j,i,k,itr)*cdzq(j,i,k)*crhob3d(j,i,k)
+            wdwout(j,i,itr) = wdwout(j,i,itr) - &
+              washout(j,i,k,itr)*cdzq(j,i,k)*crhob3d(j,i,k)
+          end do
         end do
       end do
-    end do
+    else
+      do itr = 1 , ntr
+        do j = jci1 , jci2
+          wdrout(j,i,itr) = d_zero
+          wdwout(j,i,itr) = d_zero
+          do k = 1 , kz
+            ! sum on the vertical to get total surface flux diag fo rain out
+            ! and washout (already weighted for time average cfdout !),
+            ! also change sign convention normalise by psb to get the right
+            ! flux unit
+            wdrout(j,i,itr) = wdrout(j,i,itr) - &
+              rainout(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+            wdwout(j,i,itr) = wdwout(j,i,itr) - &
+              washout(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+          end do
+        end do
+      end do
+    end if
   end subroutine sethet
 
   subroutine wetdepa(i,mbin,indp,beffdiam,rhoaer,t,wl,fracloud,fracum, &
@@ -680,22 +707,40 @@ module mod_che_wetdep
               wetrem(indp(n)) = d_zero
               if ( cremrat(j,i,k) > d_zero .and. fracloud(j,k) > d_zero ) then
                 arg = cremrat(j,i,k)/fracloud(j,k)*dt
-                if ( arg < 25.0_rkx ) then
-                  wetrem(indp(n)) = fracloud(j,k)*chtrsol(indp(n)) * &
-                     chib(j,i,k,indp(n))*(exp(-arg)-d_one)
+                if ( idynamic == 3 ) then
+                  if ( arg < 25.0_rkx ) then
+                    wetrem(indp(n)) = fracloud(j,k)*chtrsol(indp(n)) * &
+                       chemt(j,i,k,indp(n))*(exp(-arg)-d_one)
+                  else
+                    wetrem(indp(n)) = -fracloud(j,k)*chtrsol(indp(n)) * &
+                       chemt(j,i,k,indp(n))
+                  end if
+                  chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
+                     wetrem(indp(n))/dt
+                  ! sum up the flux on the vertical to get instantaneous surface
+                  ! deposition flux
+                  ! in (Kg/m2/s) passed to CLM surface scheme ( change sign
+                  ! convention to get a positive deposition flux)
+                  cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) - &
+                     wetrem(indp(n))/dt * cdzq(j,i,k) * crhob3d(j,i,k)
                 else
-                  wetrem(indp(n)) = -fracloud(j,k)*chtrsol(indp(n)) * &
-                     chib(j,i,k,indp(n))
+                  if ( arg < 25.0_rkx ) then
+                    wetrem(indp(n)) = fracloud(j,k)*chtrsol(indp(n)) * &
+                       chib(j,i,k,indp(n))*(exp(-arg)-d_one)
+                  else
+                    wetrem(indp(n)) = -fracloud(j,k)*chtrsol(indp(n)) * &
+                       chib(j,i,k,indp(n))
+                  end if
+                  chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
+                     wetrem(indp(n))/dt
+                  ! sum up the flux on the vertical to get instantaneous surface
+                  ! deposition flux
+                  ! in (Kg/m2/s) passed to CLM surface scheme ( change sign
+                  ! convention to get a positive deposition flux)
+                  cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) - &
+                     wetrem(indp(n))/dt*cdzq(j,i,k)*crhob3d(j,i,k)/cpsb(j,i)
                 end if
 
-                chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
-                   wetrem(indp(n))/dt
-                ! sum up the flux on the vertical to get instantaneous surface
-                ! deposition flux
-                ! in (Kg/m2/s) passed to CLM surface scheme ( change sign
-                ! convention to get a positive deposition flux)
-                cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) - &
-                   wetrem(indp(n))/ dt *cdzq(j,i,k)*crhob3d(j,i,k) /cpsb(j,i)
                 ! save the tendency as a diag (accumulated for average at output
                 ! time step)
                 rainout(j,i,k,indp(n)) = rainout(j,i,k,indp(n)) + &
@@ -713,15 +758,27 @@ module mod_che_wetdep
         do j = jci1 , jci2
           if ( kcumtop(j,i) > 0 ) then
             do k = kcumtop(j,i) , kz
-              wetrem_cvc(indp(n)) = fracum(j,k)*chtrsol(indp(n)) * &
-                   chib(j,i,k,indp(n))*(exp(-remcum*dt)-d_one)
-              chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
-                   wetrem_cvc(indp(n))/dt
-              ! add to large scale and sum up the flux on the vertical to
-              ! get instantaneous surface flux in (Kg/m2/s) passed to CLM
-              ! surface scheme ( change sign convention to get a positive flux)
-              cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) - &
-                wetrem_cvc(indp(n))/ dt *cdzq(j,i,k)*crhob3d(j,i,k) /cpsb(j,i)
+              if ( idynamic == 3 ) then
+                wetrem_cvc(indp(n)) = fracum(j,k)*chtrsol(indp(n)) * &
+                     chemt(j,i,k,indp(n))*(exp(-remcum*dt)-d_one)
+                chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
+                     wetrem_cvc(indp(n))/dt
+                ! add to large scale and sum up the flux on the vertical to
+                ! get instantaneous surface flux in (Kg/m2/s) passed to CLM
+                ! surface scheme (change sign convention to get a positive flux)
+                cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) - &
+                  wetrem_cvc(indp(n))/ dt *cdzq(j,i,k)*crhob3d(j,i,k)
+              else
+                wetrem_cvc(indp(n)) = fracum(j,k)*chtrsol(indp(n)) * &
+                     chib(j,i,k,indp(n))*(exp(-remcum*dt)-d_one)
+                chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
+                     wetrem_cvc(indp(n))/dt
+                ! add to large scale and sum up the flux on the vertical to
+                ! get instantaneous surface flux in (Kg/m2/s) passed to CLM
+                ! surface scheme (change sign convention to get a positive flux)
+                cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) - &
+                  wetrem_cvc(indp(n))/ dt *cdzq(j,i,k)*crhob3d(j,i,k)/cpsb(j,i)
+              end if
               ! add the concvetive rainout to large scale save the
               ! tendency as a diag
               rainout(j,i,k,indp(n)) = rainout(j,i,k,indp(n)) + &
@@ -783,36 +840,63 @@ module mod_che_wetdep
     do n = 1 , mbin
       do k = 1 , kz
         do j = jci1 , jci2
-          wtend = chib(j,i,k,indp(n))*(d_one-exp(-wetdep(j,k,n)*dt))/dt
-          chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend
-
-          ! add to rainout flux  and sum up on the vertical to get
-          ! instantaneous surface flux (in Kg/m2/s) passed to CLM
-          ! surface scheme.
-          cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) + &
-               wtend * cdzq(j,i,k) * crhob3d(j,i,k) / cpsb(j,i)
+          if ( idynamic == 3 ) then
+            wtend = chemt(j,i,k,indp(n))*(d_one-exp(-wetdep(j,k,n)*dt))/dt
+            chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend
+            ! add to rainout flux  and sum up on the vertical to get
+            ! instantaneous surface flux (in Kg/m2/s) passed to CLM
+            ! surface scheme.
+            cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) + &
+                 wtend * cdzq(j,i,k) * crhob3d(j,i,k)
+          else
+            wtend = chib(j,i,k,indp(n))*(d_one-exp(-wetdep(j,k,n)*dt))/dt
+            chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend
+            ! add to rainout flux  and sum up on the vertical to get
+            ! instantaneous surface flux (in Kg/m2/s) passed to CLM
+            ! surface scheme.
+            cwetdepflx(j,i,indp(n))  = cwetdepflx(j,i,indp(n)) + &
+                 wtend * cdzq(j,i,k) * crhob3d(j,i,k) / cpsb(j,i)
+          end if
           ! wet deposition washout diagnostic ( both from conv and large scale)
           washout(j,i,k,indp(n)) = washout(j,i,k,indp(n)) - wtend * cfdout
         end do
       end do
     end do
 
-    do n = 1, mbin
-      do j = jci1 , jci2
-        wdrout(j,i,indp(n)) = d_zero
-        wdwout(j,i,indp(n)) = d_zero
-        do k = 1 , kz
-          ! sum on the vertical to get total surface flux diag for rain out
-          ! and washout (already weighted for time average cfdout !),
-          ! also change sign convention
-          ! normalise by psb to get the right flux unit
-          wdrout(j,i,indp(n)) = wdrout(j,i,indp(n)) - &
-            rainout(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
-          wdwout(j,i,indp(n)) = wdwout(j,i,indp(n)) - &
-            washout(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+    if ( idynamic == 3 ) then
+      do n = 1, mbin
+        do j = jci1 , jci2
+          wdrout(j,i,indp(n)) = d_zero
+          wdwout(j,i,indp(n)) = d_zero
+          do k = 1 , kz
+            ! sum on the vertical to get total surface flux diag for rain out
+            ! and washout (already weighted for time average cfdout !),
+            ! also change sign convention
+            wdrout(j,i,indp(n)) = wdrout(j,i,indp(n)) - &
+              rainout(j,i,k,indp(n))*cdzq(j,i,k)*crhob3d(j,i,k)
+            wdwout(j,i,indp(n)) = wdwout(j,i,indp(n)) - &
+              washout(j,i,k,indp(n))*cdzq(j,i,k)*crhob3d(j,i,k)
+          end do
         end do
       end do
-    end do
+    else
+      do n = 1, mbin
+        do j = jci1 , jci2
+          wdrout(j,i,indp(n)) = d_zero
+          wdwout(j,i,indp(n)) = d_zero
+          do k = 1 , kz
+            ! sum on the vertical to get total surface flux diag for rain out
+            ! and washout (already weighted for time average cfdout !),
+            ! also change sign convention
+            ! normalise by psb to get the right flux unit
+            wdrout(j,i,indp(n)) = wdrout(j,i,indp(n)) - &
+              rainout(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+            wdwout(j,i,indp(n)) = wdwout(j,i,indp(n)) - &
+              washout(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+          end do
+        end do
+      end do
+    end if
 
   end subroutine wetdepa
 

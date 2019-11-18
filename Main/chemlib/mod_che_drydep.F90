@@ -879,7 +879,11 @@ module mod_che_drydep
           rdz = d_one / cdzq(j,i,kz)
           do n = 1 , ntr
             kd = drydepvg(j,n) * rdz !Kd removal rate in s-1
-            kav = max(chib(j,i,kz,n),d_zero)*rdt
+            if ( idynamic == 3 ) then
+              kav = max(chemt(j,i,kz,n),d_zero)*rdt
+            else
+              kav = max(chib(j,i,kz,n),d_zero)*rdt
+            end if
             if ( kd*dt < 25.0_rkx ) then
               ! dry dep removal tendency (+)
               ddrem(j) = kav * (d_one-exp(-kd*dt))
@@ -905,8 +909,12 @@ module mod_che_drydep
       else if ( ichdrdepo == 2 ) then
         do j = jci1 , jci2
           do n = 1 , ntr
-            chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
-                                cpsb(j,i)) * drydepvg(j,n)
+            if ( idynamic == 3 ) then
+              chifxuw(j,i,n) = chifxuw(j,i,n) - chemt(j,i,kz,n) * drydepvg(j,n)
+            else
+              chifxuw(j,i,n) = chifxuw(j,i,n) - (chib(j,i,kz,n) / &
+                                  cpsb(j,i)) * drydepvg(j,n)
+            end if
             ! dry dep velocity diagnostic in m.s-1
             ! (accumulated between two outputs time step)
             drydepv(j,i,n) =  drydepvg(j,n)

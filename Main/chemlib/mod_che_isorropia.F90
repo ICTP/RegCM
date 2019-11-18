@@ -116,24 +116,45 @@ module mod_che_isorropia
                        w_ano3)*crhob3d(j,i,k)*massfactor,conmin)  !no3
 
           call isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,other)
-!
-! add to the chemical tendency the tendendy linked to thermo equilibrium
-          chemten(j,i,k,ih2so4) = chemten(j,i,k,ih2so4) + (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
-                                *cpsb(j,i)-chib3d(j,i,k,ih2so4)*cpsb(j,i))    &
-                                /dtaesolv                        !so4
-          chemten(j,i,k,inh3) = chemten(j,i,k,inh3) + (gas(1)*w_nh3/massfactor/crhob3d(j,i,k)     &
-                                *cpsb(j,i)-chib3d(j,i,k,inh3)*cpsb(j,i))    &
-                                /dtaesolv                        !nh3
-          chemten(j,i,k,ihno3) = chemten(j,i,k,ihno3) + (gas(2)*w_hno3/massfactor/crhob3d(j,i,k)   &
-                                 *cpsb(j,i)-chib3d(j,i,k,ihno3)*cpsb(j,i))  &
-                                 /dtaesolv                       !no3
-          chemten(j,i,k,ianh4) = chemten(j,i,k,ianh4) + ((wt(3)-gas(1))*w_anh4/massfactor/         &
-                                  crhob3d(j,i,k)*cpsb(j,i)-                 &
-                                  chib3d(j,i,k,ianh4)*                      &
-                                  cpsb(j,i))/dtaesolv            !anh4
-          chemten(j,i,k,iano3) = chemten(j,i,k,iano3) + ((wt(4)-gas(2))*w_ano3/massfactor/            &
-                                crhob3d(j,i,k)*cpsb(j,i)-chib3d(j,i,k,iano3) &
-                                *cpsb(j,i))/dtaesolv             !ano3
+          !
+          ! Add to the chemical tendency the tendendy linked to
+          ! thermo equilibrium
+          !
+          if ( idynamic == 3 ) then
+            chemten(j,i,k,ih2so4) = chemten(j,i,k,ih2so4) + &
+                       (wt(2)*w_so4/massfactor/crhob3d(j,i,k) - &
+                       chib3d(j,i,k,ih2so4))/dtaesolv                !so4
+            chemten(j,i,k,inh3) = chemten(j,i,k,inh3) + &
+                       (gas(1)*w_nh3/massfactor/crhob3d(j,i,k) - &
+                       chib3d(j,i,k,inh3))/dtaesolv                 !nh3
+            chemten(j,i,k,ihno3) = chemten(j,i,k,ihno3) + &
+                       (gas(2)*w_hno3/massfactor/crhob3d(j,i,k) - &
+                       chib3d(j,i,k,ihno3))/dtaesolv                !no3
+            chemten(j,i,k,ianh4) = chemten(j,i,k,ianh4) + &
+                       ((wt(3)-gas(1))*w_anh4/massfactor/ &
+                       crhob3d(j,i,k)-chib3d(j,i,k,ianh4))/dtaesolv !anh4
+            chemten(j,i,k,iano3) = chemten(j,i,k,iano3) + &
+                       ((wt(4)-gas(2))*w_ano3/massfactor/ &
+                       crhob3d(j,i,k)-chib3d(j,i,k,iano3))/dtaesolv !ano3
+          else
+            chemten(j,i,k,ih2so4) = chemten(j,i,k,ih2so4) + &
+                       (wt(2)*w_so4/massfactor/crhob3d(j,i,k)*cpsb(j,i) - &
+                       chib3d(j,i,k,ih2so4)*cpsb(j,i))/dtaesolv          !so4
+            chemten(j,i,k,inh3) = chemten(j,i,k,inh3) + &
+                       (gas(1)*w_nh3/massfactor/crhob3d(j,i,k)*cpsb(j,i) - &
+                       chib3d(j,i,k,inh3)*cpsb(j,i))/dtaesolv            !nh3
+            chemten(j,i,k,ihno3) = chemten(j,i,k,ihno3) + &
+                       (gas(2)*w_hno3/massfactor/crhob3d(j,i,k)*cpsb(j,i) - &
+                       chib3d(j,i,k,ihno3)*cpsb(j,i))/dtaesolv           !no3
+            chemten(j,i,k,ianh4) = chemten(j,i,k,ianh4) + &
+                       ((wt(3)-gas(1))*w_anh4/massfactor / &
+                       crhob3d(j,i,k)*cpsb(j,i)-chib3d(j,i,k,ianh4) * &
+                       cpsb(j,i))/dtaesolv                               !anh4
+            chemten(j,i,k,iano3) = chemten(j,i,k,iano3) + &
+                       ((wt(4)-gas(2))*w_ano3/massfactor / &
+                       crhob3d(j,i,k)*cpsb(j,i)-chib3d(j,i,k,iano3) * &
+                       cpsb(j,i))/dtaesolv                               !ano3
+          end if
         end do
       end do
     end do

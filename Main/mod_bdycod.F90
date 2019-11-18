@@ -299,6 +299,22 @@ module mod_bdycod
           end do
         end do
       end if
+    else if ( idynamic == 3 ) then
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            nhbh0%ps(j,i) = xpsb%b0(j,i)
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              nhbh0%tvirt(j,i,k) = xtb%b0(j,i,k)*(d_one+ep1*xqb%b0(j,i,k))
+            end do
+          end do
+        end do
+      end if
     else
       call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
     end if
@@ -379,6 +395,22 @@ module mod_bdycod
         do i = ice1 , ice2
           do j = jce1 , jce2
             nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
+            end do
+          end do
+        end do
+      end if
+    else if ( idynamic == 3 ) then
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            nhbh1%ps(j,i) = xpsb%b1(j,i)
           end do
         end do
         do k = 1 , kz
@@ -592,6 +624,22 @@ module mod_bdycod
         do i = ice1 , ice2
           do j = jce1 , jce2
             nhbh1%ps(j,i) = nhbh1%ps(j,i) * d_r10 - ptop
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              nhbh1%tvirt(j,i,k) = xtb%b1(j,i,k)*(d_one+ep1*xqb%b1(j,i,k))
+            end do
+          end do
+        end do
+      end if
+    else if ( idynamic == 3 ) then
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      if ( ichem == 1 .or. iclimaaer == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            nhbh1%ps(j,i) = xpsb%b1(j,i)
           end do
         end do
         do k = 1 , kz

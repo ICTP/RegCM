@@ -123,9 +123,13 @@ module mod_che_sox
          ! so2_rate = rk_com(j,k,12) * oh1int * d_10
          ! so2_rate = rk_com(j,k,12) * oh1int
          so2_rate = rrate(caircell(j,k),ttb(j,k)) * oh1int
-         so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
+         if ( idynamic == 3 ) then
+           so2_avail = max(chemt(j,i,k,iso2),d_zero)/dt
+         else
+           so2_avail = max(chib(j,i,k,iso2),d_zero)/dt
+         end if
          so2_snk(j,k) = so2_avail*(d_one-exp(-so2_rate*dt))
-         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(j,k) * cldno
+         chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(j,k)*cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5_rkx*so2_snk(j,k)*cldno
        end do
      end do
@@ -157,27 +161,54 @@ module mod_che_sox
      ! either from climatology / or from gas phase chem
      if ( igaschem == 0 ) then
        isulf = iso4
-       do k = 1 , kz
-         do j = jci1 , jci2
-           chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
-           if ( ioxclim == 1 ) then
-             h2o2mol =  oxcl(j,i,k,iox_h2o2)
-             concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
-           else
-             ! cb*kg/kg do tests, suppose h2o2 always enough
-             concmin(j,k) = chimol*64._rkx/28.9_rkx*cpsb(j,i)     ! cb*kg/kg
-           end if
+       if ( idynamic == 3 ) then
+         do k = 1 , kz
+           do j = jci1 , jci2
+             chimol = 28.9_rkx/64.0_rkx*chemt(j,i,k,iso2) ! kg/kg to mole
+             if ( ioxclim == 1 ) then
+               h2o2mol =  oxcl(j,i,k,iox_h2o2)
+               concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx
+             else
+               ! cb*kg/kg do tests, suppose h2o2 always enough
+               concmin(j,k) = chimol*64._rkx/28.9_rkx     ! cb*kg/kg
+             end if
+           end do
          end do
-       end do
+       else
+         do k = 1 , kz
+           do j = jci1 , jci2
+             ! kg/kg to mole
+             chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i)
+             if ( ioxclim == 1 ) then
+               h2o2mol =  oxcl(j,i,k,iox_h2o2)
+               concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
+             else
+               ! cb*kg/kg do tests, suppose h2o2 always enough
+               concmin(j,k) = chimol*64._rkx/28.9_rkx*cpsb(j,i)     ! cb*kg/kg
+             end if
+           end do
+         end do
+       end if
      elseif ( igaschem == 1 .and. ih2o2 > 0 ) then
        isulf = ih2so4
-       do k = 1 , kz
-         do j = jci1 , jci2
-           chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
-           h2o2mol= 28.9_rkx/34.0_rkx*chib(j,i,k,ih2o2)/cpsb(j,i)
-           concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
+       if ( idynamic == 3 ) then
+         do k = 1 , kz
+           do j = jci1 , jci2
+             chimol = 28.9_rkx/64.0_rkx*chemt(j,i,k,iso2) ! kg/kg to mole
+             h2o2mol= 28.9_rkx/34.0_rkx*chemt(j,i,k,ih2o2)
+             concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx
+           end do
          end do
-       end do
+       else
+         do k = 1 , kz
+           do j = jci1 , jci2
+             ! kg/kg to mole
+             chimol = 28.9_rkx/64.0_rkx*chib(j,i,k,iso2)/cpsb(j,i)
+             h2o2mol= 28.9_rkx/34.0_rkx*chib(j,i,k,ih2o2)/cpsb(j,i)
+             concmin(j,k) = min(h2o2mol,chimol)*64.0_rkx/28.9_rkx*cpsb(j,i)
+           end do
+         end do
+       end if
      end if
 
      ! conversion in   Large scale clouds
@@ -204,19 +235,18 @@ module mod_che_sox
 !!$           end if
 
          end if
-           ! Below cloud scavenging only for SO2 only stratiform precip !
-           ! and isthet isnot called
-           ! rembc is in calculated in prec, [mm/hr] and converted to
-           ! below cloud scavenging rate for SO2 rate, s^-1)
-           !     - Levin & Schwatz
-           ! s^-1, it is already a grid scale removal rate!
-           krembc = 6.5_rkx*1.0e-5_rkx*crembc(j,i,k)**0.68_rkx
+         ! Below cloud scavenging only for SO2 only stratiform precip !
+         ! and isthet isnot called
+         ! rembc is in calculated in prec, [mm/hr] and converted to
+         ! below cloud scavenging rate for SO2 rate, s^-1)
+         !     - Levin & Schwatz
+         ! s^-1, it is already a grid scale removal rate!
+         krembc = 6.5_rkx*1.0e-5_rkx*crembc(j,i,k)**0.68_rkx
 
          if ( crembc(j,i,k) > d_zero .and. igaschem == 0) then
-             wetrem(iso2) =  chtrsol(iso2)*concmin(j,k) * &
-                             (exp(-krembc*dt)-d_one)
+           wetrem(iso2) = chtrsol(iso2)*concmin(j,k) * &
+                          (exp(-krembc*dt)-d_one)
          end if
-
 
          ! Tendancies large scale cloud
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs1/dt + &
@@ -283,18 +313,33 @@ module mod_che_sox
 
      ! diagnostic for SO2 durface fluxes
 
-     do j = jci1 , jci2
-       wdrout(j,i,iso2) = d_zero
-       wdwout(j,i,iso2) = d_zero
-       do k = 1 , kz
-         ! sum on the vertical to get total surface flux diag fo rain out
-         ! and washout (already weighted for time average cfdout !),
-         ! also change sign convention normalise by psb to get the right
-         ! flux unit
-         wdwout(j,i,iso2) = wdwout(j,i,iso2) - &
-            washout(j,i,k,iso2)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+     if ( idynamic == 3 ) then
+       do j = jci1 , jci2
+         wdrout(j,i,iso2) = d_zero
+         wdwout(j,i,iso2) = d_zero
+         do k = 1 , kz
+           ! sum on the vertical to get total surface flux diag fo rain out
+           ! and washout (already weighted for time average cfdout !),
+           ! also change sign convention normalise by psb to get the right
+           ! flux unit
+           wdwout(j,i,iso2) = wdwout(j,i,iso2) - &
+              washout(j,i,k,iso2)*cdzq(j,i,k)*crhob3d(j,i,k)
+         end do
        end do
-     end do
+     else
+       do j = jci1 , jci2
+         wdrout(j,i,iso2) = d_zero
+         wdwout(j,i,iso2) = d_zero
+         do k = 1 , kz
+           ! sum on the vertical to get total surface flux diag fo rain out
+           ! and washout (already weighted for time average cfdout !),
+           ! also change sign convention normalise by psb to get the right
+           ! flux unit
+           wdwout(j,i,iso2) = wdwout(j,i,iso2) - &
+              washout(j,i,k,iso2)*cdzq(j,i,k)*crhob3d(j,i,k)/cpsb(j,i)
+         end do
+       end do
+     end if
 
 !!$!
 !!$  if ( (chtrname(itr) == 'DMS' ) .and. iso2 > 0 ) then

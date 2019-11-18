@@ -113,6 +113,10 @@ module mod_che_interface
       call assignpnt(mo_atm%trac,chemt)
       call assignpnt(mo_atm%chiten,chiten)
       call assignpnt(mo_atm%fmz,cfmz)
+      call assignpnt(nhbh0%ps,bndp0)
+      call assignpnt(nhbh1%ps,bndp1)
+      call assignpnt(nhbh0%tvirt,tvirt0)
+      call assignpnt(nhbh1%tvirt,tvirt1)
     else
       call assignpnt(atm1%chi,chia)
       call assignpnt(atm2%chi,chib)

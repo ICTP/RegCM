@@ -149,14 +149,25 @@ module mod_che_linox
       end do ! en loop on i
     end do ! en loop on i
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          chiten(j,i,k,ino) = chiten(j,i,k,ino) + &
-              (znox_prod_ic(j,i,k) + znox_prod_cg(j,i,k)) * cpsb(j,i)
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            chiten(j,i,k,ino) = chiten(j,i,k,ino) + &
+                (znox_prod_ic(j,i,k) + znox_prod_cg(j,i,k))
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            chiten(j,i,k,ino) = chiten(j,i,k,ino) + &
+                (znox_prod_ic(j,i,k) + znox_prod_cg(j,i,k)) * cpsb(j,i)
+          end do
+        end do
+      end do
+    end if
 
     if ( ichdiag > 0 ) then
       do k = 1 , kz
