@@ -319,126 +319,331 @@ module mod_pbl_holtbl
       end do
     end do
 
+    uvdrage(jci1:jci2,ici1:ici2) = m2p%uvdrag
+
     call exchange_lb(akzz1,1,jci1,jci2,ici1,ici2,1,kz)
     call exchange_lb(akzz2,1,jci1,jci2,ici1,ici2,1,kz)
-
-    !
-    !   calculate coefficients at dot points for u and v wind
-    !
-    do k = 2 , kz
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
-                          akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
-                           akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
-        end do
-      end do
-    end do
-    !
-    ! start now procedure for implicit diffusion calculations
-    ! performed separately for wind (dot points)
-    ! and temperature and water vapor (cross points)
-    ! countergradient term is not included in the implicit diffusion
-    ! scheme its effect is included as in the old explicit scheme
-    ! calculations assume fluxes positive upward, so the sign in front
-    ! of uflxsf and vflxsf has been changed in the various terms
-    !
-    ! wind components
-    !
-    ! first compute coefficients of the tridiagonal matrix
-    !
-    ! Atmosphere top
-    do i = idii1 , idii2
-      do j = jdii1 , jdii2
-        coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
-        coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
-        coef3(j,i,1) = d_zero
-        coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
-        coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
-        coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
-      end do
-    end do
-
-    ! top to bottom
-    do k = 2 , kz - 1
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
-          coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
-          coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
-          coefe(j,i,k) = coef1(j,i,k)/(coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
-                  coef3(j,i,k)*coeff1(j,i,k-1)) / &
-                  (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-          coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
-                  coef3(j,i,k)*coeff2(j,i,k-1)) / &
-                  (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
-        end do
-      end do
-    end do
-
-    ! Nearest to surface
-    uvdrage(jci1:jci2,ici1:ici2) = m2p%uvdrag
     call exchange_lb(uvdrage,1,jci1,jci2,ici1,ici2)
 
-    do i = idii1 , idii2
-      do j = jdii1 , jdii2
-        coef1(j,i,kz) = d_zero
-        coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
-        coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
-        drgdot = (uvdrage(j-1,i-1)+uvdrage(j,i-1) + &
-                  uvdrage(j-1,i)  +uvdrage(j,i))*d_rfour
-        uflxsf = drgdot*m2p%udatm(j,i,kz)
-        vflxsf = drgdot*m2p%vdatm(j,i,kz)
-        coefe(j,i,kz) = d_zero
-        coeff1(j,i,kz) = (m2p%udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+      &
-                        coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
-                       (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
-        coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+      &
-                        coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
-                       (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+    if ( idynamic == 3 ) then
+      !
+      !   calculate coefficients at dot points for u
+      !
+      do k = 2 , kz
+        do i = ici1 , ici2
+          do j = jdii1 , jdii2
+            betak(j,i,k) = 0.5_rkx * (akzz1(j-1,i,k)+akzz1(j,i,k))
+          end do
+        end do
       end do
-    end do
-    !
-    !   all coefficients have been computed, predict field and put it in
-    !   temporary work space tpred
-    !
-    do i = idii1 , idii2
-      do j = jdii1 , jdii2
-        tpred1(j,i,kz) = coeff1(j,i,kz)
-        tpred2(j,i,kz) = coeff2(j,i,kz)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdii1 , jdii2
+            alphak(j,i,k) = 0.5_rkx * (akzz2(j-1,i,k)+akzz2(j,i,k))
+          end do
+        end do
       end do
-    end do
+      !
+      ! start now procedure for implicit diffusion calculations
+      ! performed separately for wind (dot points)
+      ! and temperature and water vapor (cross points)
+      ! countergradient term is not included in the implicit diffusion
+      ! scheme its effect is included as in the old explicit scheme
+      ! calculations assume fluxes positive upward, so the sign in front
+      ! of uflxsf and vflxsf has been changed in the various terms
+      !
+      ! wind components
+      !
+      ! first compute coefficients of the tridiagonal matrix
+      !
+      ! Atmosphere top
+      do i = ici1 , ici2
+        do j = jdii1 , jdii2
+          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+          coef3(j,i,1) = d_zero
+          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+          coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
+        end do
+      end do
 
-    do k = kz - 1 , 1 , -1
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
-          tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
+      ! top to bottom
+      do k = 2 , kz - 1
+        do i = ici1 , ici2
+          do j = jdii1 , jdii2
+            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+            coefe(j,i,k) = coef1(j,i,k)/ &
+                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+            coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
+                    coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          end do
         end do
       end do
-    end do
-    !
-    !   calculate tendency due to vertical diffusion using temporary
-    !   predicted field
-    !
-    do k = 1 , kz
-      do i = idii1 , idii2
+
+      ! Nearest to surface
+      do i = ici1 , ici2
         do j = jdii1 , jdii2
-          p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
-                        (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt*m2p%psdotb(j,i)
-          p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
-                        (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt*m2p%psdotb(j,i)
+          coef1(j,i,kz) = d_zero
+          coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+          coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+          drgdot = 0.5_rkx * (uvdrage(j-1,i)+uvdrage(j,i))
+          uflxsf = drgdot*m2p%udatm(j,i,kz)
+          coefe(j,i,kz) = d_zero
+          coeff1(j,i,kz) = (m2p%udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+     &
+                          coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
+                         (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
         end do
       end do
-    end do
+      !
+      !   all coefficients have been computed, predict field and put it in
+      !   temporary work space tpred
+      !
+      do i = ici1 , ici2
+        do j = jdii1 , jdii2
+          tpred1(j,i,kz) = coeff1(j,i,kz)
+        end do
+      end do
+
+      do k = kz - 1 , 1 , -1
+        do i = ici1 , ici2
+          do j = jdii1 , jdii2
+            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+          end do
+        end do
+      end do
+      !
+      !   calculate tendency due to vertical diffusion using temporary
+      !   predicted field
+      !
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jdii1 , jdii2
+            p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
+                          (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt
+          end do
+        end do
+      end do
+      !
+      !   calculate coefficients at dot points for v wind
+      !
+      do k = 2 , kz
+        do i = idii1 , idii2
+          do j = jci1 , jci2
+            betak(j,i,k) = 0.5_rkx * (akzz1(j,i-1,k)+akzz1(j,i,k))
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idii1 , idii2
+          do j = jci1 , jci2
+            alphak(j,i,k) = 0.5_rkx * (akzz2(j,i-1,k)+akzz2(j,i,k))
+          end do
+        end do
+      end do
+      !
+      ! start now procedure for implicit diffusion calculations
+      ! performed separately for wind (dot points)
+      ! and temperature and water vapor (cross points)
+      ! countergradient term is not included in the implicit diffusion
+      ! scheme its effect is included as in the old explicit scheme
+      ! calculations assume fluxes positive upward, so the sign in front
+      ! of uflxsf and vflxsf has been changed in the various terms
+      !
+      ! wind components
+      !
+      ! first compute coefficients of the tridiagonal matrix
+      !
+      ! Atmosphere top
+      do i = idii1 , idii2
+        do j = jci1 , jci2
+          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+          coef3(j,i,1) = d_zero
+          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+          coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
+        end do
+      end do
+
+      ! top to bottom
+      do k = 2 , kz - 1
+        do i = idii1 , idii2
+          do j = jci1 , jci2
+            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+            coefe(j,i,k) = coef1(j,i,k)/ &
+                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+            coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
+                    coef3(j,i,k)*coeff2(j,i,k-1)) / &
+                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          end do
+        end do
+      end do
+
+      ! Nearest to surface
+      do i = idii1 , idii2
+        do j = jci1 , jci2
+          coef1(j,i,kz) = d_zero
+          coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+          coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+          drgdot = 0.5_rkx * (uvdrage(j,i-1)+uvdrage(j,i))
+          vflxsf = drgdot*m2p%vdatm(j,i,kz)
+          coefe(j,i,kz) = d_zero
+          coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
+                          coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
+                         (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+        end do
+      end do
+      !
+      !   all coefficients have been computed, predict field and put it in
+      !   temporary work space tpred
+      !
+      do i = idii1 , idii2
+        do j = jdii1 , jdii2
+          tpred2(j,i,kz) = coeff2(j,i,kz)
+        end do
+      end do
+
+      do k = kz - 1 , 1 , -1
+        do i = idii1 , idii2
+          do j = jci1 , jci2
+            tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
+          end do
+        end do
+      end do
+      !
+      !   calculate tendency due to vertical diffusion using temporary
+      !   predicted field
+      !
+      do k = 1 , kz
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
+            p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
+                          (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt
+          end do
+        end do
+      end do
+
+    else
+      !
+      !   calculate coefficients at dot points for u and v wind
+      !
+      do k = 2 , kz
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
+            betak(j,i,k) = (akzz1(j-1,i,k)+akzz1(j-1,i-1,k)+ &
+                            akzz1(j,i,k)  +akzz1(j,i-1,k))*d_rfour
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
+            alphak(j,i,k) = (akzz2(j-1,i,k)+akzz2(j-1,i-1,k)+ &
+                             akzz2(j,i,k)  +akzz2(j,i-1,k))*d_rfour
+          end do
+        end do
+      end do
+      !
+      ! start now procedure for implicit diffusion calculations
+      ! performed separately for wind (dot points)
+      ! and temperature and water vapor (cross points)
+      ! countergradient term is not included in the implicit diffusion
+      ! scheme its effect is included as in the old explicit scheme
+      ! calculations assume fluxes positive upward, so the sign in front
+      ! of uflxsf and vflxsf has been changed in the various terms
+      !
+      ! wind components
+      !
+      ! first compute coefficients of the tridiagonal matrix
+      !
+      ! Atmosphere top
+      do i = idii1 , idii2
+        do j = jdii1 , jdii2
+          coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
+          coef2(j,i,1) = d_one + dt*alphak(j,i,1)*betak(j,i,2)
+          coef3(j,i,1) = d_zero
+          coefe(j,i,1) = coef1(j,i,1)/coef2(j,i,1)
+          coeff1(j,i,1) = m2p%udatm(j,i,1)/coef2(j,i,1)
+          coeff2(j,i,1) = m2p%vdatm(j,i,1)/coef2(j,i,1)
+        end do
+      end do
+
+      ! top to bottom
+      do k = 2 , kz - 1
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
+            coef1(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k+1)
+            coef2(j,i,k) = d_one+dt*alphak(j,i,k)*(betak(j,i,k+1)+betak(j,i,k))
+            coef3(j,i,k) = dt*alphak(j,i,k)*betak(j,i,k)
+            coefe(j,i,k) = coef1(j,i,k)/ &
+                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+            coeff1(j,i,k) = (m2p%udatm(j,i,k) + &
+                    coef3(j,i,k)*coeff1(j,i,k-1)) / &
+                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+            coeff2(j,i,k) = (m2p%vdatm(j,i,k) + &
+                    coef3(j,i,k)*coeff2(j,i,k-1)) / &
+                    (coef2(j,i,k)-coef3(j,i,k)*coefe(j,i,k-1))
+          end do
+        end do
+      end do
+
+      ! Nearest to surface
+      do i = idii1 , idii2
+        do j = jdii1 , jdii2
+          coef1(j,i,kz) = d_zero
+          coef2(j,i,kz) = d_one + dt*alphak(j,i,kz)*betak(j,i,kz)
+          coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
+          drgdot = (uvdrage(j-1,i-1)+uvdrage(j,i-1) + &
+                    uvdrage(j-1,i)  +uvdrage(j,i))*d_rfour
+          uflxsf = drgdot*m2p%udatm(j,i,kz)
+          vflxsf = drgdot*m2p%vdatm(j,i,kz)
+          coefe(j,i,kz) = d_zero
+          coeff1(j,i,kz) = (m2p%udatm(j,i,kz)-dt*alphak(j,i,kz)*uflxsf+     &
+                          coef3(j,i,kz)*coeff1(j,i,kz-1))/                  &
+                         (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+          coeff2(j,i,kz) = (m2p%vdatm(j,i,kz)-dt*alphak(j,i,kz)*vflxsf+     &
+                          coef3(j,i,kz)*coeff2(j,i,kz-1))/                  &
+                         (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
+        end do
+      end do
+      !
+      !   all coefficients have been computed, predict field and put it in
+      !   temporary work space tpred
+      !
+      do i = idii1 , idii2
+        do j = jdii1 , jdii2
+          tpred1(j,i,kz) = coeff1(j,i,kz)
+          tpred2(j,i,kz) = coeff2(j,i,kz)
+        end do
+      end do
+
+      do k = kz - 1 , 1 , -1
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
+            tpred1(j,i,k) = coefe(j,i,k)*tpred1(j,i,k+1) + coeff1(j,i,k)
+            tpred2(j,i,k) = coefe(j,i,k)*tpred2(j,i,k+1) + coeff2(j,i,k)
+          end do
+        end do
+      end do
+      !
+      !   calculate tendency due to vertical diffusion using temporary
+      !   predicted field
+      !
+      do k = 1 , kz
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
+            p2m%uten(j,i,k) = p2m%uten(j,i,k) + &
+                          (tpred1(j,i,k)-m2p%udatm(j,i,k))*rdt*m2p%psdotb(j,i)
+            p2m%vten(j,i,k) = p2m%vten(j,i,k) + &
+                          (tpred2(j,i,k)-m2p%vdatm(j,i,k))*rdt*m2p%psdotb(j,i)
+          end do
+        end do
+      end do
+    end if
     !
     !   Common coefficients.
     !
@@ -517,15 +722,27 @@ module mod_pbl_holtbl
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sf = (m2p%tatm(j,i,k)*m2p%psb(j,i))/m2p%tpatm(j,i,k)
-          p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-                         (tpred1(j,i,k)-m2p%tpatm(j,i,k))*rdt*sf
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            sf = m2p%tatm(j,i,k)/m2p%tpatm(j,i,k)
+            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+                           (tpred1(j,i,k)-m2p%tpatm(j,i,k))*rdt*sf
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            sf = (m2p%tatm(j,i,k)*m2p%psb(j,i))/m2p%tpatm(j,i,k)
+            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+                           (tpred1(j,i,k)-m2p%tpatm(j,i,k))*rdt*sf
+          end do
+        end do
+      end do
+    end if
     !
     !   water vapor calculate coefficients at cross points for water vapor
     !
@@ -594,14 +811,25 @@ module mod_pbl_holtbl
     !   calculate tendency due to vertical diffusion using temporary
     !   predicted field
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
-                       (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
+                         (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv) + &
+                         (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
+          end do
+        end do
+      end do
+    end if
     !
     !   calculate coefficients at cross points for cloud vater
     !
@@ -668,14 +896,25 @@ module mod_pbl_holtbl
       !   calculate tendency due to vertical diffusion using temporary
       !   predicted field
       !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%qxten(j,i,k,nn) = p2m%qxten(j,i,k,nn) + &
-                        (tpred1(j,i,k)-m2p%qxatm(j,i,k,nn))*rdt*m2p%psb(j,i)
+      if ( idynamic == 3 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2m%qxten(j,i,k,nn) = p2m%qxten(j,i,k,nn) + &
+                        (tpred1(j,i,k)-m2p%qxatm(j,i,k,nn))*rdt
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2m%qxten(j,i,k,nn) = p2m%qxten(j,i,k,nn) + &
+                        (tpred1(j,i,k)-m2p%qxatm(j,i,k,nn))*rdt*m2p%psb(j,i)
+            end do
+          end do
+        end do
+      end if
     end do
     !
     !  now add countergradient term to temperature and water vapor equation
@@ -696,20 +935,36 @@ module mod_pbl_holtbl
     !
     !   compute the tendencies:
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - &
-                   m2p%psb(j,i)*hydf(j,i,kz)*ttnp(j,i,kz)*rcpd
-      end do
-    end do
-    do k = 1 , kzm1
+    if ( idynamic == 3 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-                  m2p%psb(j,i)*hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
+          p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - hydf(j,i,kz)*ttnp(j,i,kz)*rcpd
         end do
       end do
-    end do
+      do k = 1 , kzm1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+                  hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
+          end do
+        end do
+      end do
+    else
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - &
+                   m2p%psb(j,i)*hydf(j,i,kz)*ttnp(j,i,kz)*rcpd
+        end do
+      end do
+      do k = 1 , kzm1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+                  m2p%psb(j,i)*hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
+          end do
+        end do
+      end do
+    end if
 
     if ( ichem == 1 ) then
       !
@@ -797,21 +1052,39 @@ module mod_pbl_holtbl
         !       predicted field
         !       Dry deposition option 1 is included
         !
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) +  &
-                          (tpred1(j,i,k)-m2p%chib(j,i,k,itr))*rdt*m2p%psb(j,i)
+        if ( idynamic == 3 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) +  &
+                          (tpred1(j,i,k)-m2p%chib(j,i,k,itr))*rdt
+              end do
             end do
           end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%remdrd(j,i,itr) = p2m%remdrd(j,i,itr) + m2p%chib(j,i,kz,itr)* &
-                m2p%drydepv(j,i,itr)*m2p%psb(j,i)*dt*d_half*m2p%rhox2d(j,i)* &
-                hydf(j,i,kz)
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2m%remdrd(j,i,itr) = p2m%remdrd(j,i,itr) + &
+                m2p%chib(j,i,kz,itr)*m2p%drydepv(j,i,itr) * &
+                dt*d_half*m2p%rhox2d(j,i)*hydf(j,i,kz)
+            end do
           end do
-        end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p2m%chiten(j,i,k,itr) = p2m%chiten(j,i,k,itr) +  &
+                          (tpred1(j,i,k)-m2p%chib(j,i,k,itr))*rdt*m2p%psb(j,i)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2m%remdrd(j,i,itr) = p2m%remdrd(j,i,itr) + &
+                m2p%chib(j,i,kz,itr)*m2p%drydepv(j,i,itr) * &
+                m2p%psb(j,i)*dt*d_half*m2p%rhox2d(j,i)*hydf(j,i,kz)
+            end do
+          end do
+        end if
       end do
     end if
 #ifdef DEBUG
