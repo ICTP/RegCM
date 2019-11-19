@@ -50,13 +50,13 @@ program sigma2p
   integer(ik4) :: numarg , istatus , ncid , ncout
 
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
-  real(rk4) , allocatable , dimension(:) :: sigma
-  real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar
-  real(rk4) , allocatable , dimension(:,:,:) :: pp , press
+  real(rk4) , allocatable , dimension(:) :: sigma , ak , bk
+  real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar , tv
+  real(rk4) , allocatable , dimension(:,:,:) :: pp , press , zeta
   real(rk4) , allocatable , save , dimension(:,:,:) :: pvar , xvar
   real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0
   real(rk4) , allocatable , dimension(:) :: avar
-  character , allocatable , dimension(:) :: tvar
+  character , allocatable , dimension(:) :: txtvar
   real(rk4) , allocatable , dimension(:) :: apvar
   real(rkx) , allocatable , dimension(:) :: times
   real(rkx) , allocatable , dimension(:) :: sigfix
@@ -69,7 +69,8 @@ program sigma2p
   integer(ik4) :: ndims , nvars , natts , udimid , nvatts
   integer(ik4) :: ivarid , idimid , xtype
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
-  integer(ik4) :: ipsvarid , ishvarid , ippvarid , ip0varid
+  integer(ik4) :: avarid , bvarid , ipsvarid , ishvarid , ippvarid , ip0varid
+  integer(ik4) :: outpsvarid
   integer(ik4) :: jx , iy , kz , nt
   real(rkx) :: ptop
   integer(ik4) , dimension(4) :: tdimids
@@ -119,6 +120,8 @@ program sigma2p
   itdimid = -1
   itvarid = -1
   ikvarid = -1
+  avarid = -1
+  bvarid = -1
   iy = -1
   jx = -1
   istatus = nf90_create(ncpfile, iomode, ncout)
@@ -213,12 +216,29 @@ program sigma2p
   call checkalloc(istatus,__FILE__,__LINE__,'times')
   allocate(sigma(kz), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'sigma')
+  allocate(topo(jx,iy), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'topo')
 
   if ( iodyn == 2 ) then
     allocate(ps0(jx,iy), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'ps0')
     allocate(pp(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'pp')
+    allocate(press(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'press')
+  else if ( iodyn == 3 ) then
+    allocate(ak(kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'ak')
+    allocate(bk(kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'bk')
+    allocate(zeta(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'zeta')
+    allocate(qvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'qvar')
+    allocate(tmpvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'qvar')
+    allocate(tv(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'tv')
     allocate(press(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'press')
   end if
@@ -240,7 +260,13 @@ program sigma2p
     istatus = nf90_inquire_variable(ncid,i,varname,xtype,nvdims(i), &
                                     dimids,nvatts)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire variable')
-    if (varname == 'time') then
+    if (varname == 'a') then
+      avarid = i
+      cycle
+    else if (varname == 'b') then
+      bvarid = i
+      cycle
+    else if (varname == 'time') then
       itvarid = i
     else if (varname == 'kz' .or. varname == 'sigma' .or. varname == 'lev') then
       varname = 'plev'
@@ -254,7 +280,7 @@ program sigma2p
     else if (varname == 'ps') then
       ipsvarid = i
       psdimids = dimids(1:3)
-    else if (varname == 'ppa') then
+    else if (varname == 'ppa' .or. varname == 'pp') then
       ippvarid = i
     else if (varname == 'p0') then
       ip0varid = i
@@ -268,8 +294,10 @@ program sigma2p
       tvarid = i
       tdimids = dimids(1:4)
       if ( varname == 't' ) is_icbc = .true.
-    else if (varname == 'qas' .or. varname == 'qv') then
-      if ( varname == 'qas' ) has_sph = .true.
+    else if ( varname == 'qas' .or. &
+              varname == 'hus' .or. &
+              varname == 'qv') then
+      if ( varname == 'qas' .or. varname == 'hus' ) has_sph = .true.
       has_q = .true.
       qvarid = i
     else if (varname == 'chtrname') then
@@ -291,6 +319,7 @@ program sigma2p
     istatus = nf90_def_var(ncout, varname, xtype, dimids(1:nvdims(i)), ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
             'Error define variable '//trim(varname))
+    if ( i == ipsvarid ) outpsvarid = ivarid
 #ifdef NETCDF4_HDF5
     if (nvdims(i) > 2) then
       istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, deflate_level)
@@ -331,16 +360,14 @@ program sigma2p
     istart(2) = 1
     icount(1) = jx
     icount(2) = iy
-    allocate(topo(jx,iy), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'topo')
     allocate(mslpr(jx,iy), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'mslpr')
-    allocate(tmpvar(jx,iy,kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
+    if ( .not. allocated(tmpvar) ) then
+      allocate(tmpvar(jx,iy,kz), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
+    end if
     allocate(hzvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'hzvar')
-    istatus = nf90_get_var(ncid, ishvarid, topo, istart(1:2), icount(1:2))
-    call checkncerr(istatus,__FILE__,__LINE__,'Error reading topo.')
     istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable hgt')
 #ifdef NETCDF4_HDF5
@@ -381,8 +408,10 @@ program sigma2p
   end if
   if ( has_t .and. has_q .and. .not. has_rh ) then
     make_rh = .true.
-    allocate(qvar(jx,iy,kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'qvar')
+    if ( .not. allocated(qvar) ) then
+      allocate(qvar(jx,iy,kz), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__,'qvar')
+    end if
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
@@ -431,6 +460,27 @@ program sigma2p
     end if
   end if
 
+  istart(1) = 1
+  istart(2) = 1
+  icount(1) = jx
+  icount(2) = iy
+  istatus = nf90_get_var(ncid, ishvarid, topo, istart(1:2), icount(1:2))
+  call checkncerr(istatus,__FILE__,__LINE__,'Error reading topo.')
+
+  if ( iodyn == 3 ) then
+    istatus = nf90_inq_varid(ncid, "a", ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable a.')
+    istatus = nf90_get_var(ncid, ivarid, ak)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable a.')
+    istatus = nf90_inq_varid(ncid, "b", ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable b.')
+    istatus = nf90_get_var(ncid, ivarid, bk)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable b.')
+    do k = 1 , kz
+      zeta(:,:,k) = ak(k) + (bk(k) - d_one) * topo(:,:)
+    end do
+  end if
+
   if ( iodyn == 2 ) then
     istatus = nf90_get_var(ncid, ip0varid, ps0)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable p0.')
@@ -448,11 +498,15 @@ program sigma2p
 
   ! Write time independent variables
 
+  ivarid = 0
   do i = 1 , nvars
+    if (i == avarid) cycle
+    if (i == bvarid) cycle
+    ivarid = ivarid + 1
     if (i == itvarid) cycle
     if (i == ircm_map) cycle
     if (i == ikvarid) then
-      istatus = nf90_put_var(ncout, i, plevs)
+      istatus = nf90_put_var(ncout, ivarid, plevs)
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable plev')
       cycle
     end if
@@ -465,20 +519,21 @@ program sigma2p
         icount(1:iv) = dimsize(1:iv,i)
         istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable.')
-        istatus = nf90_put_var(ncout, i, avar, istart(1:iv), icount(1:iv))
+        istatus = nf90_put_var(ncout, ivarid, avar, istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable.')
         deallocate(avar)
       else
-        allocate(tvar(varsize(i)), stat=istatus)
-        call checkalloc(istatus,__FILE__,__LINE__,'tvar')
+        allocate(txtvar(varsize(i)), stat=istatus)
+        call checkalloc(istatus,__FILE__,__LINE__,'txtvar')
         iv = nvdims(i)
         istart(:) = 1
         icount(1:iv) = dimsize(1:iv,i)
-        istatus = nf90_get_var(ncid, i, tvar, istart(1:iv), icount(1:iv))
+        istatus = nf90_get_var(ncid, i, txtvar, istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable.')
-        istatus = nf90_put_var(ncout, i, tvar, istart(1:iv), icount(1:iv))
+        istatus = nf90_put_var(ncout, ivarid, &
+                               txtvar, istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable.')
-        deallocate(tvar)
+        deallocate(txtvar)
       end if
     end if
   end do
@@ -493,6 +548,16 @@ program sigma2p
     istatus = nf90_put_var(ncout, itvarid, times(it:it), &
                            istart(1:1), icount(1:1))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing time.')
+    istart(1) = 1
+    istart(2) = 1
+    istart(3) = it
+    icount(1) = jx
+    icount(2) = iy
+    icount(3) = 1
+    istatus = nf90_get_var(ncid, ipsvarid, ps, istart(1:3), icount(1:3))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
+    istatus = nf90_put_var(ncout, outpsvarid, ps, istart(1:3), icount(1:3))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
     if ( iodyn == 2 .and. ippvarid >= 0 ) then
       istart(1) = 1
       istart(2) = 1
@@ -507,21 +572,34 @@ program sigma2p
       do k = 1 , kz
         press(:,:,k) = ps0(:,:)*real(sigma(k)) + real(ptop) + pp(:,:,k)
       end do
+    else if ( iodyn == 3 ) then
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      icount(1) = jx
+      icount(2) = iy
+      icount(3) = kz
+      icount(4) = 1
+      istatus = nf90_get_var(ncid, tvarid, tmpvar, istart(1:4), icount(1:4))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+      istatus = nf90_get_var(ncid, qvarid, qvar, istart(1:4), icount(1:4))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+      call sph2mxr(qvar,jx,iy,kz)
+      tv = tmpvar * (d_one + ep1*qvar)
+      do k = 1 , kz
+        press(:,:,k) = ps(:,:)*exp(-egrav*zeta(:,:,k)/rgas/tv(:,:,k))
+      end do
     end if
-    istart(1) = 1
-    istart(2) = 1
-    istart(3) = it
-    icount(1) = jx
-    icount(2) = iy
-    icount(3) = 1
-    istatus = nf90_get_var(ncid, ipsvarid, ps, istart(1:3), icount(1:3))
-    call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
-    istatus = nf90_put_var(ncout, ipsvarid, ps, istart(1:3), icount(1:3))
-    call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
+    ivarid = 0
     do i = 1 , nvars
+      if (i == avarid) cycle
+      if (i == bvarid) cycle
+      ivarid = ivarid + 1
       if (.not. ltvarflag(i)) cycle
       if (i == itvarid) cycle
       if (i == ipsvarid) cycle
+      if (i == ircm_map) cycle
 
       if (lkvarflag(i)) then
 
@@ -552,6 +630,13 @@ program sigma2p
                 call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
               end if
               call top2btm(pvar,jx,iy,np)
+            else if ( iodyn == 3 ) then
+              if (intscheme(i) == 1) then
+                call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
+              else if (intscheme(i) == 2) then
+                call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
+              end if
+              call top2btm(pvar,jx,iy,np)
             else
               if (intscheme(i) == 1) then
                 call intlin(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
@@ -564,14 +649,15 @@ program sigma2p
 !$OMP END PARALLEL DO
           if ( i == tvarid ) then
             tmpvar = xvar
-          else if ( i == qvarid .and. make_rh ) then
+          else if ( i == qvarid .and. ( make_rh .or. iodyn == 3 ) ) then
             qvar = xvar
             if ( has_sph ) then
               call sph2mxr(qvar,jx,iy,kz)
             end if
           end if
           icount(iv-1) = np
-          istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
+          istatus = nf90_put_var(ncout, ivarid, apvar, &
+                                 istart(1:iv), icount(1:iv))
           call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error writing interp variable.')
           deallocate(avar)
@@ -609,6 +695,13 @@ program sigma2p
                   call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
                 end if
                 call top2btm(pvar,jx,iy,np)
+              else if ( iodyn == 3 ) then
+                if (intscheme(i) == 1) then
+                  call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
+                else if (intscheme(i) == 2) then
+                  call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
+                end if
+                call top2btm(pvar,jx,iy,np)
               else
                 if (intscheme(i) == 1) then
                   call intlin(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
@@ -619,7 +712,8 @@ program sigma2p
               apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,[ip3d])
             end do
 !$OMP END PARALLEL DO
-            istatus = nf90_put_var(ncout, i, apvar, istart(1:iv), icount(1:iv))
+            istatus = nf90_put_var(ncout, ivarid, apvar, &
+                                   istart(1:iv), icount(1:iv))
             call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error writing interp variable.')
             deallocate(apvar)
@@ -639,7 +733,7 @@ program sigma2p
         istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error reading variable to pass')
-        istatus = nf90_put_var(ncout, i, avar, istart(1:iv), icount(1:iv))
+        istatus = nf90_put_var(ncout, ivarid, avar, istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error writing variable to pass')
         deallocate(avar)
@@ -648,6 +742,10 @@ program sigma2p
 
     if ( make_rh ) then
       if ( iodyn == 2 ) then
+        call mxr2rh(tmpvar,qvar,press,jx,iy,kz)
+        call intlin(pvar,qvar,press,jx,iy,kz,plevs,np)
+        call top2btm(pvar,jx,iy,np)
+      else if ( iodyn == 3 ) then
         call mxr2rh(tmpvar,qvar,press,jx,iy,kz)
         call intlin(pvar,qvar,press,jx,iy,kz,plevs,np)
         call top2btm(pvar,jx,iy,np)
@@ -669,6 +767,14 @@ program sigma2p
       if ( iodyn == 2 ) then
         call nonhydrost(hzvar,tmpvar,press,ps,topo,jx,iy,kz)
         call height_o(pvar,hzvar,tmpvar,ps,topo,press,jx,iy,kz,plevs,np)
+      else if ( iodyn == 3 ) then
+        do k = 1 , kz
+          zeta(:,:,k) = zeta(:,:,k) + topo
+        end do
+        call height_o(pvar,zeta,tmpvar,ps,topo,press,jx,iy,kz,plevs,np)
+        do k = 1 , kz
+          zeta(:,:,k) = zeta(:,:,k) - topo
+        end do
       else
         call htsig_o(tmpvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
         call height_o(pvar,hzvar,tmpvar,ps,topo,sigma,ptop,jx,iy,kz,plevs,np)
@@ -703,16 +809,16 @@ program sigma2p
   deallocate(dimsize)
   deallocate(sigma)
   deallocate(times)
+  deallocate(topo)
   deallocate(ps)
   deallocate(xvar)
   deallocate(pvar)
-  if ( make_rh ) then
+  if ( make_rh .or. iodyn == 3 ) then
     deallocate(qvar)
   end if
   if ( has_t ) then
     deallocate(hzvar)
     deallocate(tmpvar)
-    deallocate(topo)
     deallocate(mslpr)
   end if
 
@@ -720,6 +826,10 @@ program sigma2p
     deallocate(ps0)
     deallocate(pp)
     deallocate(press)
+  else if ( iodyn == 3 ) then
+    deallocate(zeta)
+    deallocate(ak)
+    deallocate(bk)
   end if
 
   istatus = nf90_close(ncid)
