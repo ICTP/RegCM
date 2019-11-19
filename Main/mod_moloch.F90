@@ -1207,6 +1207,8 @@ module mod_moloch
           trac(jci1:jci2,ici1:ici2,:,:) = &
                      trac(jci1:jci2,ici1:ici2,:,:) + dtsec * &
                      mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+          trac(jci1:jci2,ici1:ici2,:,:) = &
+                       max(trac(jci1:jci2,ici1:ici2,:,:),d_zero)
         end if
       end subroutine physical_parametrizations
 
