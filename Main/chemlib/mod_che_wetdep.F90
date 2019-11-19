@@ -898,7 +898,7 @@ module mod_che_wetdep
       end do
     end if
 
-  end subroutine wetdepa
+  contains
 
   subroutine blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv, &
                    rhop,wetdep,colef)
@@ -1152,6 +1152,8 @@ module mod_che_wetdep
       end do
     end do
   end subroutine cas
+
+  end subroutine wetdepa
 
 end module mod_che_wetdep
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

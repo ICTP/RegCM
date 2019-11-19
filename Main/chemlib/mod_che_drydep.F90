@@ -576,8 +576,7 @@ module mod_che_drydep
       !
       if ( idynamic == 3 ) then
         do ib = 1 , mbin
-          ! deposition, remember chiten must be normalised by psb and
-          ! consistent with chemt
+          ! deposition, remember chiten must be consistent with chemt
           do k = 2 , kz
             do j = jci1 , jci2
               if ( chemt(j,i,k-1,indsp(ib)) > mintr ) then
@@ -623,7 +622,7 @@ module mod_che_drydep
                   (d_one - exp(-ddepv(j,indsp(ib))/cdzq(j,i,kz)*dt)) - &
                                 wk(j,kz) * &
                   (d_one - exp(-pdepvsub(j,kz,ib)/cdzq(j,i,kz)*dt))
-              chemt(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - &
+              chiten(j,i,kz,indsp(ib)) = chiten(j,i,kz,indsp(ib)) - &
                   settend(j,kz)
               ! save the dry deposition flux for coupling with
               ! landsurface scheme (Kg.m2.s-1)
