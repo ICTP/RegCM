@@ -41,9 +41,12 @@ module mod_vertint
     module procedure intlin_single
     module procedure intlin_o_double
     module procedure intlin_o_single
+  end interface intlin
+
+  interface intlinz
     module procedure intlin_z_o_single
     module procedure intlin_z_o_double
-  end interface intlin
+  end interface intlinz
 
   interface intlog
     module procedure intlog_double
@@ -57,7 +60,7 @@ module mod_vertint
     module procedure intlinreg_z
   end interface intlinreg
 
-  public :: intlin , intgtb , intlog
+  public :: intlin , intgtb , intlog , intlinz
   public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
   public :: intz1 , intz3 , intzps
@@ -934,12 +937,11 @@ module mod_vertint
     end if
   end subroutine intlin_o_single
 
-  subroutine intlin_z_o_single(fz,f,hz,sig,im,jm,km,z,kz)
+  subroutine intlin_z_o_single(fz,f,hz,im,jm,km,z,kz)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kz
     real(rk4) , dimension(im,jm,km) , intent(in) :: f , hz
     real(rk4) , dimension(kz) , intent(in) :: z
-    real(rk4) , dimension(km) , intent(in) :: sig
     real(rk4) , dimension(im,jm,kz) , intent(out) :: fz
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) :: w1 , wz
@@ -950,7 +952,7 @@ module mod_vertint
     !
     ! HERE BOTTOM TO TOP
     !
-    if ( sig(1) < sig(2) ) then
+    if ( hz(1,1,1) < hz(1,1,km) ) then
       !
       ! Loop over points
       !
@@ -963,10 +965,10 @@ module mod_vertint
             !
             ! Over the top or below bottom level
             !
-            if ( z(n) <= hz(i,j,km) ) then
+            if ( z(n) >= hz(i,j,km) ) then
               fz(i,j,n) = f(i,j,km)
               cycle
-            else if ( z(n) >= hz(i,j,1) ) then
+            else if ( z(n) <= hz(i,j,1) ) then
               fz(i,j,n) = f(i,j,1)
               cycle
             end if
@@ -1003,10 +1005,10 @@ module mod_vertint
             !
             ! Over the top or below bottom level
             !
-            if ( z(n) <= hz(i,j,1) ) then
+            if ( z(n) >= hz(i,j,1) ) then
               fz(i,j,n) = f(i,j,1)
               cycle
-            else if ( z(n) >= hz(i,j,km) ) then
+            else if ( z(n) <= hz(i,j,km) ) then
               fz(i,j,n) = f(i,j,km)
               cycle
             end if
@@ -1030,12 +1032,11 @@ module mod_vertint
     end if
   end subroutine intlin_z_o_single
 
-  subroutine intlin_z_o_double(fz,f,hz,sig,im,jm,km,z,kz)
+  subroutine intlin_z_o_double(fz,f,hz,im,jm,km,z,kz)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km , kz
     real(rk8) , dimension(im,jm,km) , intent(in) :: f , hz
     real(rk8) , dimension(kz) , intent(in) :: z
-    real(rk8) , dimension(km) , intent(in) :: sig
     real(rk8) , dimension(im,jm,kz) , intent(out) :: fz
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk8) :: w1 , wz
@@ -1044,9 +1045,7 @@ module mod_vertint
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
     !
-    ! HERE BOTTOM TO TOP
-    !
-    if ( sig(1) < sig(2) ) then
+    if ( hz(1,1,1) < hz(1,1,km) ) then
       !
       ! Loop over points
       !
@@ -1059,10 +1058,10 @@ module mod_vertint
             !
             ! Over the top or below bottom level
             !
-            if ( z(n) <= hz(i,j,km) ) then
+            if ( z(n) >= hz(i,j,km) ) then
               fz(i,j,n) = f(i,j,km)
               cycle
-            else if ( z(n) >= hz(i,j,1) ) then
+            else if ( z(n) <= hz(i,j,1) ) then
               fz(i,j,n) = f(i,j,1)
               cycle
             end if
@@ -1099,10 +1098,10 @@ module mod_vertint
             !
             ! Over the top or below bottom level
             !
-            if ( z(n) <= hz(i,j,1) ) then
+            if ( z(n) >= hz(i,j,1) ) then
               fz(i,j,n) = f(i,j,1)
               cycle
-            else if ( z(n) >= hz(i,j,km) ) then
+            else if ( z(n) <= hz(i,j,km) ) then
               fz(i,j,n) = f(i,j,km)
               cycle
             end if

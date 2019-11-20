@@ -536,7 +536,6 @@ module mod_erahi
     call intlog(tp,t2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
     ! 4. For Moisture
 !$OMP SECTION
-    call mxr2rh(t2,q2,pp3d,nlons,nlats,nlev1,-9999.0_rkx)
     call intlin(qp,q2,pp3d,nlons,nlats,nlev1,pplev,nlev2)
 !$OMP END SECTIONS
     !

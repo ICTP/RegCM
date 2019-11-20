@@ -288,7 +288,6 @@ module mod_ecens
     call intlog(tp,t2,pp3d,nlon,nlat,mlev,pplev,nplev)
     ! 4. For Moisture qva & qca
 !$OMP SECTION
-    call mxr2rh(t2,q2,pp3d,nlon,nlat,mlev,-9999.0_rkx)
     call intlin(qp,q2,pp3d,nlon,nlat,mlev,pplev,nplev)
 !$OMP END SECTIONS
     !
@@ -367,7 +366,6 @@ module mod_ecens
       call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,nplev,1)
 !$OMP END SECTIONS
     end if
-    call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)
   end subroutine get_ecens
 
   subroutine ecens_6hour(idate)

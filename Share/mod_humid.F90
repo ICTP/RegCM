@@ -29,7 +29,6 @@ module mod_humid
 
   interface mxr2rh
     module procedure mxr2rh
-    module procedure mxr2rhfv
     module procedure mxr2rh_o_double
     module procedure mxr2rh_o_single
     module procedure mxr2rh_o_double_nonhydro
@@ -144,7 +143,7 @@ module mod_humid
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           ! PS in output file is ps + ptop
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          p = (sigma(k)*(ps(i,j)-ptop*100.0D0)) + ptop * 100.0D0
+          p = (sigma(k)*(ps(i,j)-ptop)) + ptop
           qs = pfwsat(real(t(i,j,k),rkx),real(p,rkx))
           q(i,j,k) = max(q(i,j,k)/qs,0.0D0)
         end do
@@ -180,7 +179,7 @@ module mod_humid
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           ! PS in output file is ps + ptop
           !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-          p = real(sigma(k),rkx)*(real(ps(i,j),rkx) - ptop*d_100) + ptop * d_100
+          p = real(sigma(k),rkx)*(real(ps(i,j),rkx) - ptop) + ptop
           qs = real(pfwsat(real(t(i,j,k),rkx),p))
           q(i,j,k) = max(q(i,j,k)/qs,0.0)
         end do
@@ -193,38 +192,6 @@ module mod_humid
 #include <pfwsat.inc>
 
   end subroutine mxr2rh_o_single
-
-  subroutine mxr2rhfv(t,q,p3d,ni,nj,nk,mval)
-    implicit none
-    integer(ik4) , intent(in) :: ni , nj , nk
-    real(rkx) , intent(in) , dimension(ni,nj,nk) :: p3d , t
-    real(rkx) , intent(inout) , dimension(ni,nj,nk) :: q
-    real(rkx) , intent(in) :: mval
-
-    real(rkx) :: qs
-    integer(ik4) :: i , j , k
-    !
-    ! THIS ROUTINE REPLACES MIXING RATIO BY RELATIVE HUMIDITY
-    !
-    do k = 1 , nk
-      do j = 1 , nj
-        do i = 1 , ni
-          if ( p3d(i,j,k) > mval ) then
-            qs = pfwsat(t(i,j,k),p3d(i,j,k)*d_100) ! P in mb -> Pa
-            q(i,j,k) = max(q(i,j,k)/qs,d_zero)
-          else
-            q(i,j,k) = mval
-          end if
-        end do
-      end do
-    end do
-
-    contains
-
-#include <pfesat.inc>
-#include <pfwsat.inc>
-
-  end subroutine mxr2rhfv
 
   subroutine mxr2rh_o_double_nonhydro(t,q,p3d,ni,nj,nk)
     implicit none

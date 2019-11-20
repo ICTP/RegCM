@@ -46,7 +46,7 @@ program sigma2p
   real(rk4) , dimension(np) :: plevs
 
   character(256) :: prgname , ncsfile , ncpfile
-  character(128) :: attname , dimname , varname
+  character(128) :: attname , dimname , varname , psunit
   integer(ik4) :: numarg , istatus , ncid , ncout
 
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
@@ -236,7 +236,7 @@ program sigma2p
     allocate(qvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'qvar')
     allocate(tmpvar(jx,iy,kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'qvar')
+    call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
     allocate(tv(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'tv')
     allocate(press(jx,iy,kz), stat=istatus)
@@ -558,6 +558,11 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
     istatus = nf90_put_var(ncout, outpsvarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
+    istatus = nf90_get_att(ncid, ipsvarid, 'units', psunit)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
+    if ( psunit == 'hPa' .or. psunit == 'mb' ) then
+      ps = ps * d_100
+    end if
     if ( iodyn == 2 .and. ippvarid >= 0 ) then
       istart(1) = 1
       istart(2) = 1

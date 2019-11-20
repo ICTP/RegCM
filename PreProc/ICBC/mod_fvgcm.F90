@@ -387,7 +387,6 @@ module mod_fvgcm
 !$OMP SECTION
     call intlog(tp,t2,pp3d,numx,numy,nlev,pplev,nlev)
 !$OMP SECTION
-    call mxr2rh(t2,q2,pp3d,numx,numy,nlev,-9999.0_rkx)
     call intlin(qp,q2,pp3d,numx,numy,nlev,pplev,nlev)
 !$OMP END SECTIONS
 
