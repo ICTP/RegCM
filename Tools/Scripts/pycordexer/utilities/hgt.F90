@@ -27,15 +27,19 @@ module mod_hgt
   real(4) , parameter :: egrav = 9.80665
   ! Gas constant for dry air in Joules/kg/K
   real(4) , parameter :: rgas = 287.05823
+  ! Standard surface pressure
+  real(4) , parameter :: p00 = 100000.0
   ! Standard atmosphere ICAO 1993
   real(4) , parameter :: lrate = 0.00649
 
   real(4) , parameter :: bltop = 0.960
   ! real(4) , parameter :: rovg = rgas/egrav
   real(4) , parameter :: rovg = 29.2716599
+  real(4) , parameter :: cpovr = 3.5
 
   public :: height_hydro
   public :: height_nonhydro
+  public :: height_moloch
 
   contains
 
@@ -75,8 +79,8 @@ module mod_hgt
     !
     ptp = real(ptop) * 100.0
     pstar = ipstar
-    do j = 1 , jm
-      do i = 1 , im
+    do i = 1 , im
+      do j = 1 , jm
         do k = 1 , km
           psig(k) = sig(k)*(pstar(j,i)-ptp) + ptp
         end do
@@ -150,8 +154,8 @@ module mod_hgt
     !
     ptp = real(ptop) * 100.0
     pstar = ipstar - ptp
-    do j = 1 , jm
-      do i = 1 , im
+    do i = 1 , im
+      do j = 1 , jm
         do k = 1 , km
           psig(k) = sig(k)*pstar(j,i) + ptp + pp(k,j,i)
         end do
@@ -186,6 +190,51 @@ module mod_hgt
       end do
     end do
   end subroutine height_nonhydro
+
+  subroutine height_moloch(im,jm,km,t,pai,ps,topo,a,b,p,hp)
+    implicit none
+    integer , intent(in) :: im , jm , km
+    real(4) , intent(in) , dimension(km,jm,im) :: t , pai
+    real(4) , intent(in) , dimension(jm,im) :: topo , ps
+    real(4) , intent(in) :: p
+    real(4) , intent(in) , dimension(km) :: a , b
+    real(4) , intent(out) , dimension(jm,im) :: hp
+    real(4) :: wb , wt , temp , psfc
+    integer :: i , j , k , kb , kt
+    real(4) , dimension(km) :: psig
+    real(4) , dimension(km) :: htsig
+    do i = 1 , im
+      do j = 1 , jm
+        psfc = ps(j,i)
+        do k = 1 , km
+          htsig(k) = a(k) + b(k) * topo(j,i)
+          psig(k) = p00 * (pai(k,j,i)**cpovr)
+        end do
+        kt = 1
+        do k = 1 , km
+          if ( psig(k) < p ) kt = k
+        end do
+        kb = kt + 1
+        if ( p <= psig(1) ) then
+          temp = t(1,j,i)
+          hp(j,i) = topo(j,i) + htsig(1) + rovg*temp*log(psig(1)/p)
+        else if ( (p > psig(1)) .and. (p < psig(km)) ) then
+          wt = log(psig(kb)/p)/log(psig(kb)/psig(kt))
+          wb = log(p/psig(kt))/log(psig(kb)/psig(kt))
+          temp = wt*t(kt,j,i) + wb*t(kb,j,i)
+          temp = (temp+t(kb,j,i))/2.0
+          hp(j,i) = topo(j,i) + htsig(kb) + rovg*temp*log(psig(kb)/p)
+        else if ( (p >= psig(km)) .and. (p <= psfc) ) then
+          temp = t(km,j,i)
+          hp(j,i) = topo(j,i) + rovg*temp*log(psfc/p)
+        else if ( p > psfc ) then
+          temp = 0.5 * (t(km,j,i) + t(km-1,j,i))
+          hp(j,i) = topo(j,i) + &
+                  (temp/lrate)*(1.0-exp(+rovg*lrate*log(p/psfc)))
+        end if
+      end do
+    end do
+  end subroutine height_moloch
 
 end module mod_hgt
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

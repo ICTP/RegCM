@@ -444,11 +444,15 @@ class InterpolateHeight(Filter):
         if method == 'linear':
             if core == 'hydrostatic':
                 self.__interpolator = mod_vertint.intlin_hy
+            elif core == 'moloch':
+                self.__interpolator = mod_vertint.intlin_nonhy
             else:
                 self.__interpolator = mod_vertint.intlin_nonhy
         else:
             if core == 'hydrostatic':
                 self.__interpolator = mod_vertint.intlog_hy
+            elif core == 'moloch':
+                self.__interpolator = mod_vertint.intlog_nonhy
             else:
                 self.__interpolator = mod_vertint.intlog_nonhy
 
@@ -479,12 +483,23 @@ class InterpolateHeight(Filter):
 
         p0_names = get_regcm_variable_names('p0')
         pp_names = get_regcm_variable_names('pp')
+        pai_names = get_regcm_variable_names('pai')
 
         with Dataset(regcm_file_path, 'r') as f:
             if self.core == 'hydrostatic':
                 LOGGER.debug('Reading ps variable from regcm file')
                 ps = get_var_with_name(ps_names, f)
-
+                LOGGER.debug(
+                    'Reading ptop variable from regcm file and saving its content '
+                    'in memory'
+                )
+                ptop_array = np.array(
+                    get_var_with_name(ptop_names, f)[:],
+                    dtype=DATATYPE_AUXILIARIES,
+                )
+            elif self.core == 'moloch':
+                LOGGER.debug('Reading pai variable from regcm file')
+                pai = get_var_with_name(pai_names, f)
             else:
                 LOGGER.debug('Reading ps variable from regcm file')
                 ps = get_var_with_name(ps_names, f)
@@ -499,14 +514,14 @@ class InterpolateHeight(Filter):
                 )
                 LOGGER.debug('Reading pp variable from regcm file')
                 pp = get_var_with_name(pp_names, f)
-            LOGGER.debug(
-                'Reading ptop variable from regcm file and saving its content '
-                'in memory'
-            )
-            ptop_array = np.array(
-                get_var_with_name(ptop_names, f)[:],
-                dtype=DATATYPE_AUXILIARIES,
-            )
+                LOGGER.debug(
+                    'Reading ptop variable from regcm file and saving its content '
+                    'in memory'
+                )
+                ptop_array = np.array(
+                    get_var_with_name(ptop_names, f)[:],
+                    dtype=DATATYPE_AUXILIARIES,
+                )
 
             LOGGER.debug(
                 'Reading sigma variable from regcm file and saving its content '
@@ -540,6 +555,24 @@ class InterpolateHeight(Filter):
                             ps_t,
                             sigma_array,
                             ptop_array,
+                            self.pressure_level
+                        )
+                    elif self.core == 'moloch':
+                        LOGGER.debug('Reading time step %s of variable pai', t)
+                        pai_t = np.array(pai[t, :],
+                                        dtype=DATATYPE_AUXILIARIES)
+                        p_t = np.empty_like(prev_result.data(data_slice))
+                        nk = np.shape(p_t)[0]
+                        LOGGER.debug('Computing pressure')
+                        p_t = np.power(pai_t,3.5)*100000.0
+                        LOGGER.debug(
+                            'Interpolating time step %s of %s',
+                            t,
+                            time_steps
+                        )
+                        interpolation_result[t, :] = self.__interpolator(
+                            prev_result.data(data_slice),
+                            p_t,
                             self.pressure_level
                         )
                     else:
@@ -643,6 +676,8 @@ class InterpolateOnMultipleHeights(Filter):
                     mcore = 'hydrostatic'
                 elif core == 2:
                     mcore = 'non-hydrostatic'
+                elif core == 3:
+                    mcore = 'moloch'
                 else:
                     raise ValueError(
                             'Unknown dynamical_core : "{}"'.format(core))
@@ -1835,6 +1870,8 @@ class ComputeGeopotentialHeight(ActionStarter):
                 mcore = 'hydrostatic'
             elif core == 2:
                 mcore = 'non-hydrostatic'
+            elif core == 3:
+                mcore = 'moloch'
             else:
                 raise ValueError(
                         'Unknown dynamical_core : "{}"'.format(core))
@@ -1859,6 +1896,9 @@ class ComputeGeopotentialHeight(ActionStarter):
         if mcore == 'hydrostatic':
             needed_var_names = ['ta', 'ps', 'topo', 'sigma', 'ptop']
             funcname = mod_hgt.height_hydro
+        elif mcore == 'moloch':
+            needed_var_names = ['ta', 'pai', 'ps', 'topo', 'a', 'b']
+            funcname = mod_hgt.height_moloch
         else:
             needed_var_names = ['ta', 'p0', 'ps', 'topo', 'sigma', 'ptop', 'pp']
             funcname = mod_hgt.height_nonhydro
@@ -2068,6 +2108,8 @@ class ComputeCapeCin(ActionStarter):
                 mcore = 'hydrostatic'
             elif core == 2:
                 mcore = 'non-hydrostatic'
+            elif core == 3:
+                mcore = 'moloch'
             else:
                 raise ValueError(
                    'Unknown dynamical_core : "{}"'.format(core))
@@ -2092,6 +2134,9 @@ class ComputeCapeCin(ActionStarter):
         if mcore == 'hydrostatic':
             needed_var_names = ['ps', 'ta', 'rh', 'sigma', 'ptop']
             funcname = mod_capecin.getcape_hy
+        elif mcore == 'moloch':
+            needed_var_names = ['ps', 'ta', 'rh', 'pai']
+            funcname = mod_capecin.getcape_moloch
         else:
             needed_var_names = ['ps', 'ta', 'p0', 'rh', 'sigma', 'ptop', 'pp']
             funcname = mod_capecin.getcape_nhy

@@ -52,7 +52,7 @@ program sigma2p
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
   real(rk4) , allocatable , dimension(:) :: sigma , ak , bk
   real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar , tv
-  real(rk4) , allocatable , dimension(:,:,:) :: pp , press , zeta
+  real(rk4) , allocatable , dimension(:,:,:) :: pp , press , zeta , pai
   real(rk4) , allocatable , save , dimension(:,:,:) :: pvar , xvar
   real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0
   real(rk4) , allocatable , dimension(:) :: avar
@@ -70,7 +70,7 @@ program sigma2p
   integer(ik4) :: ivarid , idimid , xtype
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
   integer(ik4) :: avarid , bvarid , ipsvarid , ishvarid , ippvarid , ip0varid
-  integer(ik4) :: outpsvarid
+  integer(ik4) :: outpsvarid , paivarid
   integer(ik4) :: jx , iy , kz , nt
   real(rkx) :: ptop
   integer(ik4) , dimension(4) :: tdimids
@@ -233,18 +233,15 @@ program sigma2p
     call checkalloc(istatus,__FILE__,__LINE__,'bk')
     allocate(zeta(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'zeta')
-    allocate(qvar(jx,iy,kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'qvar')
-    allocate(tmpvar(jx,iy,kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
-    allocate(tv(jx,iy,kz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'tv')
+    allocate(pai(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'pai')
     allocate(press(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'press')
   end if
 
   ippvarid = -1
   ip0varid = -1
+  paivarid = -1
 
   has_sph = .false.
   is_icbc = .false.
@@ -282,6 +279,9 @@ program sigma2p
       psdimids = dimids(1:3)
     else if (varname == 'ppa' .or. varname == 'pp') then
       ippvarid = i
+    else if (varname == 'pai') then
+      paivarid = i
+      cycle
     else if (varname == 'p0') then
       ip0varid = i
     else if (varname == 'topo') then
@@ -362,10 +362,8 @@ program sigma2p
     icount(2) = iy
     allocate(mslpr(jx,iy), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'mslpr')
-    if ( .not. allocated(tmpvar) ) then
-      allocate(tmpvar(jx,iy,kz), stat=istatus)
-      call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
-    end if
+    allocate(tmpvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
     allocate(hzvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'hzvar')
     istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
@@ -408,10 +406,8 @@ program sigma2p
   end if
   if ( has_t .and. has_q .and. .not. has_rh ) then
     make_rh = .true.
-    if ( .not. allocated(qvar) ) then
-      allocate(qvar(jx,iy,kz), stat=istatus)
-      call checkalloc(istatus,__FILE__,__LINE__,'qvar')
-    end if
+    allocate(qvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'qvar')
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
@@ -586,20 +582,15 @@ program sigma2p
       icount(2) = iy
       icount(3) = kz
       icount(4) = 1
-      istatus = nf90_get_var(ncid, tvarid, tmpvar, istart(1:4), icount(1:4))
+      istatus = nf90_get_var(ncid, paivarid, pai, istart(1:4), icount(1:4))
       call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
-      istatus = nf90_get_var(ncid, qvarid, qvar, istart(1:4), icount(1:4))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
-      call sph2mxr(qvar,jx,iy,kz)
-      tv = tmpvar * (d_one + ep1*qvar)
-      do k = 1 , kz
-        press(:,:,k) = ps(:,:)*exp(-egrav*zeta(:,:,k)/rgas/tv(:,:,k))
-      end do
+      press = p00 * (pai**cpovr)
     end if
     ivarid = 0
     do i = 1 , nvars
       if (i == avarid) cycle
       if (i == bvarid) cycle
+      if (i == paivarid) cycle
       ivarid = ivarid + 1
       if (.not. ltvarflag(i)) cycle
       if (i == itvarid) cycle
@@ -832,7 +823,9 @@ program sigma2p
     deallocate(pp)
     deallocate(press)
   else if ( iodyn == 3 ) then
+    deallocate(press)
     deallocate(zeta)
+    deallocate(pai)
     deallocate(ak)
     deallocate(bk)
   end if

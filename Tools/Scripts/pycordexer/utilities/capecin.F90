@@ -44,8 +44,35 @@ module mod_capecin
 
   public :: getcape_hy
   public :: getcape_nhy
+  public :: getcape_moloch
 
   contains
+
+  subroutine getcape_moloch(im,jm,km,ps,t,rh,pai,cape,cin)
+    implicit none
+    integer , intent(in) :: im , jm , km
+    real(4) , intent(in) , dimension(jm,im) :: ps
+    real(4) , intent(in) , dimension(km,jm,im) :: pai , t , rh
+    real(4) , intent(out) , dimension(jm,im) :: cape , cin
+    real(4) , dimension(km) :: pa , ta , rha
+    integer :: i , j , k , kk , iloop , icount
+    real(4) :: z1
+    icount = im * jm
+!$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
+    do iloop = 1 , icount
+      i = iloop/jm + 1
+      j = iloop - (i-1)*jm
+      do k = 1 , km
+        kk = km - k + 1
+        pa(kk) = 100000.0*pai(k,j,i)**3.5
+        ta(kk) = t(k,j,i)
+        rha(kk) = rh(k,j,i) * 0.01
+      end do
+      z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
+      call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
+    end do
+!$OMP END PARALLEL DO
+  end subroutine getcape_moloch
 
   subroutine getcape_hy(im,jm,km,ps,t,rh,sigma,ptop,cape,cin)
     implicit none
@@ -60,7 +87,7 @@ module mod_capecin
     real(4) :: ptp , z1
     ptp = real(ptop) * 100.0
     icount = im * jm
-!$OMP PARALLEL DO PRIVATE (k,kk,pa,ta,rha,z1)
+!$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
     do iloop = 1 , icount
       i = iloop/jm + 1
       j = iloop - (i-1)*jm
@@ -85,23 +112,26 @@ module mod_capecin
     real(4) , intent(in) , dimension(km) :: sigma
     real(4) , intent(out) , dimension(jm,im) :: cape , cin
     real(4) , dimension(km) :: pa , ta , rha
-    integer :: i , j , k , kk
+    integer :: i , j , k , kk , iloop , icount
     real(4) :: ptp , z1
     real(4) , dimension(jm,im) :: pstar
     ptp = real(ptop) * 100.0
     pstar = p0 - ptp
-    do i = 1 , im
-      do j = 1 , jm
-        do k = 1 , km
-          kk = km - k + 1
-          pa(kk) = sigma(k)*pstar(j,i) + ptp + pp(k,j,i)
-          ta(kk) = t(k,j,i)
-          rha(kk) = rh(k,j,i) * 0.01
-        end do
-        z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
-        call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
+    icount = im * jm
+!$OMP PARALLEL DO PRIVATE (i,j,k,kk,pa,ta,rha,z1)
+    do iloop = 1 , icount
+      i = iloop/jm + 1
+      j = iloop - (i-1)*jm
+      do k = 1 , km
+        kk = km - k + 1
+        pa(kk) = sigma(k)*pstar(j,i) + ptp + pp(k,j,i)
+        ta(kk) = t(k,j,i)
+        rha(kk) = rh(k,j,i) * 0.01
       end do
+      z1 = rovg * ta(1) * log(ps(j,i)/pa(1))
+      call getcape(km,z1,pa,ta,rha,cape(j,i),cin(j,i))
     end do
+!$OMP END PARALLEL DO
   end subroutine getcape_nhy
   !
   !

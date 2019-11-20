@@ -262,6 +262,11 @@ module mod_output
             end do
           end if
         end if
+        if ( associated(atm_pai_out) ) then
+          do k = 1 , kz
+            atm_pai_out(:,:,k) = mo_atm%pai(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
         if ( associated(atm_pp_out) ) then
           do k = 1 , kz
             atm_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ps_out

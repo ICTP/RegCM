@@ -44,6 +44,7 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: atm_w_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_t_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_pp_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: atm_pai_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_omega_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_qv_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: atm_qc_out => null()

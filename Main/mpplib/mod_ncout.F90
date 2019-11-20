@@ -57,7 +57,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 7 + nbase
-  integer(ik4) , parameter :: natm3dvars = 61
+  integer(ik4) , parameter :: natm3dvars = 62
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nshfvars = 3 + nbase
@@ -181,62 +181,63 @@ module mod_ncout
   integer(ik4) , parameter :: atm_w            = 3
   integer(ik4) , parameter :: atm_t            = 4
   integer(ik4) , parameter :: atm_pp           = 5
-  integer(ik4) , parameter :: atm_omega        = 6
-  integer(ik4) , parameter :: atm_qv           = 7
-  integer(ik4) , parameter :: atm_qc           = 8
-  integer(ik4) , parameter :: atm_rh           = 9
-  integer(ik4) , parameter :: atm_qi           = 10
-  integer(ik4) , parameter :: atm_qr           = 11
-  integer(ik4) , parameter :: atm_qs           = 12
-  integer(ik4) , parameter :: atm_zf           = 13
-  integer(ik4) , parameter :: atm_zh           = 14
-  integer(ik4) , parameter :: atm_pf           = 15
-  integer(ik4) , parameter :: atm_ph           = 16
-  integer(ik4) , parameter :: atm_q_detr       = 17
-  integer(ik4) , parameter :: atm_rainls       = 18
-  integer(ik4) , parameter :: atm_raincc       = 19
-  integer(ik4) , parameter :: atm_tke          = 20
-  integer(ik4) , parameter :: atm_kth          = 21
-  integer(ik4) , parameter :: atm_kzm          = 22
-  integer(ik4) , parameter :: atm_tten_adh     = 23
-  integer(ik4) , parameter :: atm_tten_adv     = 24
-  integer(ik4) , parameter :: atm_tten_tbl     = 25
-  integer(ik4) , parameter :: atm_tten_dif     = 26
-  integer(ik4) , parameter :: atm_tten_bdy     = 27
-  integer(ik4) , parameter :: atm_tten_con     = 28
-  integer(ik4) , parameter :: atm_tten_adi     = 29
-  integer(ik4) , parameter :: atm_tten_rad     = 30
-  integer(ik4) , parameter :: atm_tten_lsc     = 31
-  integer(ik4) , parameter :: atm_qten_adh     = 32
-  integer(ik4) , parameter :: atm_qten_adv     = 33
-  integer(ik4) , parameter :: atm_qten_tbl     = 34
-  integer(ik4) , parameter :: atm_qten_dif     = 35
-  integer(ik4) , parameter :: atm_qten_bdy     = 36
-  integer(ik4) , parameter :: atm_qten_con     = 37
-  integer(ik4) , parameter :: atm_qten_adi     = 38
-  integer(ik4) , parameter :: atm_qten_rad     = 39
-  integer(ik4) , parameter :: atm_qten_lsc     = 40
-  integer(ik4) , parameter :: atm_stats_supw   = 41
-  integer(ik4) , parameter :: atm_stats_supc   = 42
-  integer(ik4) , parameter :: atm_stats_detw   = 43
-  integer(ik4) , parameter :: atm_stats_detc   = 44
-  integer(ik4) , parameter :: atm_stats_erow   = 45
-  integer(ik4) , parameter :: atm_stats_eroc   = 46
-  integer(ik4) , parameter :: atm_stats_evw    = 47
-  integer(ik4) , parameter :: atm_stats_evc    = 48
-  integer(ik4) , parameter :: atm_stats_con1w  = 49
-  integer(ik4) , parameter :: atm_stats_con1c  = 50
-  integer(ik4) , parameter :: atm_stats_dep    = 51
-  integer(ik4) , parameter :: atm_stats_melt   = 52
-  integer(ik4) , parameter :: atm_stats_frz    = 53
-  integer(ik4) , parameter :: atm_stats_rainev = 54
-  integer(ik4) , parameter :: atm_stats_snowev = 55
-  integer(ik4) , parameter :: atm_stats_autocw = 56
-  integer(ik4) , parameter :: atm_stats_autocc = 57
-  integer(ik4) , parameter :: atm_qcrit        = 58
-  integer(ik4) , parameter :: atm_ccnnum       = 59
-  integer(ik4) , parameter :: atm_qincl        = 60
-  integer(ik4) , parameter :: atm_autoconvr    = 61
+  integer(ik4) , parameter :: atm_pai          = 6
+  integer(ik4) , parameter :: atm_omega        = 7
+  integer(ik4) , parameter :: atm_qv           = 8
+  integer(ik4) , parameter :: atm_qc           = 9
+  integer(ik4) , parameter :: atm_rh           = 10
+  integer(ik4) , parameter :: atm_qi           = 11
+  integer(ik4) , parameter :: atm_qr           = 12
+  integer(ik4) , parameter :: atm_qs           = 13
+  integer(ik4) , parameter :: atm_zf           = 14
+  integer(ik4) , parameter :: atm_zh           = 15
+  integer(ik4) , parameter :: atm_pf           = 16
+  integer(ik4) , parameter :: atm_ph           = 17
+  integer(ik4) , parameter :: atm_q_detr       = 18
+  integer(ik4) , parameter :: atm_rainls       = 19
+  integer(ik4) , parameter :: atm_raincc       = 20
+  integer(ik4) , parameter :: atm_tke          = 21
+  integer(ik4) , parameter :: atm_kth          = 22
+  integer(ik4) , parameter :: atm_kzm          = 23
+  integer(ik4) , parameter :: atm_tten_adh     = 24
+  integer(ik4) , parameter :: atm_tten_adv     = 25
+  integer(ik4) , parameter :: atm_tten_tbl     = 26
+  integer(ik4) , parameter :: atm_tten_dif     = 27
+  integer(ik4) , parameter :: atm_tten_bdy     = 28
+  integer(ik4) , parameter :: atm_tten_con     = 29
+  integer(ik4) , parameter :: atm_tten_adi     = 30
+  integer(ik4) , parameter :: atm_tten_rad     = 31
+  integer(ik4) , parameter :: atm_tten_lsc     = 32
+  integer(ik4) , parameter :: atm_qten_adh     = 33
+  integer(ik4) , parameter :: atm_qten_adv     = 34
+  integer(ik4) , parameter :: atm_qten_tbl     = 35
+  integer(ik4) , parameter :: atm_qten_dif     = 36
+  integer(ik4) , parameter :: atm_qten_bdy     = 37
+  integer(ik4) , parameter :: atm_qten_con     = 38
+  integer(ik4) , parameter :: atm_qten_adi     = 39
+  integer(ik4) , parameter :: atm_qten_rad     = 40
+  integer(ik4) , parameter :: atm_qten_lsc     = 41
+  integer(ik4) , parameter :: atm_stats_supw   = 42
+  integer(ik4) , parameter :: atm_stats_supc   = 43
+  integer(ik4) , parameter :: atm_stats_detw   = 44
+  integer(ik4) , parameter :: atm_stats_detc   = 45
+  integer(ik4) , parameter :: atm_stats_erow   = 46
+  integer(ik4) , parameter :: atm_stats_eroc   = 47
+  integer(ik4) , parameter :: atm_stats_evw    = 48
+  integer(ik4) , parameter :: atm_stats_evc    = 49
+  integer(ik4) , parameter :: atm_stats_con1w  = 50
+  integer(ik4) , parameter :: atm_stats_con1c  = 51
+  integer(ik4) , parameter :: atm_stats_dep    = 52
+  integer(ik4) , parameter :: atm_stats_melt   = 53
+  integer(ik4) , parameter :: atm_stats_frz    = 54
+  integer(ik4) , parameter :: atm_stats_rainev = 55
+  integer(ik4) , parameter :: atm_stats_snowev = 56
+  integer(ik4) , parameter :: atm_stats_autocw = 57
+  integer(ik4) , parameter :: atm_stats_autocc = 58
+  integer(ik4) , parameter :: atm_qcrit        = 59
+  integer(ik4) , parameter :: atm_ccnnum       = 60
+  integer(ik4) , parameter :: atm_qincl        = 61
+  integer(ik4) , parameter :: atm_autoconvr    = 62
 
   integer(ik4) , parameter :: shf_xlon   = 1
   integer(ik4) , parameter :: shf_xlat   = 2
@@ -669,6 +670,7 @@ module mod_ncout
           end if
           enable_atm3d_vars(atm_w) = .false.
           enable_atm3d_vars(atm_pp) = .false.
+          enable_atm3d_vars(atm_pai) = .false.
         else if ( idynamic == 2 ) then
           if ( enable_atm3d_vars(atm_w) ) then
             call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
@@ -682,11 +684,17 @@ module mod_ncout
             atm_pp_out => v3dvar_atm(atm_pp)%rval
           end if
           enable_atm3d_vars(atm_omega) = .false.
+          enable_atm3d_vars(atm_pai) = .false.
         else
           if ( enable_atm3d_vars(atm_w) ) then
             call setup_var(v3dvar_atm,atm_w,vsize,'wa','m s-1', &
               'Vertical Component of Wind','upward_wind',.true.)
             atm_w_out => v3dvar_atm(atm_w)%rval
+          end if
+          if ( enable_atm3d_vars(atm_pai) ) then
+            call setup_var(v3dvar_atm,atm_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            atm_pai_out => v3dvar_atm(atm_pai)%rval
           end if
           enable_atm3d_vars(atm_pp) = .false.
           enable_atm3d_vars(atm_omega) = .false.
