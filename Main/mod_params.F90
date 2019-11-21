@@ -1154,11 +1154,6 @@ module mod_params
         call fatal(__FILE__,__LINE__, &
                    'MOLOCH DOES NOT WORK WITH KUO')
       end if
-      if ( any(icup ==  3) ) then
-        write(stderr,*) 'Moloch core does not work with BM convection scheme'
-        call fatal(__FILE__,__LINE__, &
-                   'MOLOCH DOES NOT WORK WITH BM')
-      end if
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
       call bcast(mo_anu2)

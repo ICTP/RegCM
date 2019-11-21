@@ -25,7 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams , only : iqv , dt , dtsec , ichem , hsigma , dsigma
+  use mod_runparams , only : iqv , dt , dtsec , ichem
   use mod_runparams , only : rhmin , rhmax
   use mod_regcm_types
 
@@ -66,11 +66,11 @@ module mod_cu_bm
 
   real(rkx) :: mxarg
   real(rkx) , pointer , dimension(:,:) :: cldefi
-  real(rkx) , pointer , dimension(:,:,:) :: ape , q , qqmod , t , &
-                                           tmod , tref , z0
-  real(rkx) , pointer , dimension(:) :: apek , apesk , difq , dift , ddzq , &
-         fpk , pdp , pk , psk , qk , qrefk , qsatk , therk , thsk ,       &
-         thvref , tk , trefk
+  real(rkx) , pointer , dimension(:,:,:) :: ape , q , qqmod , t
+  real(rkx) , pointer , dimension(:,:,:) :: tmod , tref , z0
+  real(rkx) , pointer , dimension(:) :: apek , apesk , difq , dift , &
+         fpk , pdp , pk , psk , qk , qrefk , qsatk , therk , thsk ,  &
+         trefk , thvref , tk , tds
   real(rkx) , pointer , dimension(:,:) :: cldhgt , dsp0 , dspb , dspt , &
          psp , xsm , thbt , thesp , ths , tthbt , tthes
   integer(ik4) , pointer , dimension(:,:) :: ifbuoy , ml
@@ -86,10 +86,10 @@ module mod_cu_bm
     integer(ik4) :: intall
     call getmem2d(cldefi,jci1,jci2,ici1,ici2,'cu_bm:cldefi')
     call getmem1d(apek,1,kz,'cu_bm:apek')
+    call getmem1d(tds,1,kz,'cu_bm:tds')
     call getmem1d(apesk,1,kz,'cu_bm:apesk')
     call getmem1d(difq,1,kz,'cu_bm:difq')
     call getmem1d(dift,1,kz,'cu_bm:dift')
-    call getmem1d(ddzq,1,kz,'cu_bm:ddzq')
     call getmem1d(fpk,1,kz,'cu_bm:fpk')
     call getmem1d(pdp,1,kz,'cu_bm:pdp')
     call getmem1d(pk,1,kz,'cu_bm:pk')
@@ -134,11 +134,7 @@ module mod_cu_bm
   subroutine bmpara(m2c)
     implicit none
     type(mod_2_cum) , intent(in) :: m2c
-    real(rkx) , parameter :: h1 = 1.0_rkx
     real(rkx) , parameter :: h3000 = 3000.0_rkx
-    real(rkx) , parameter :: h10e5 = 100000.0_rkx
-    real(rkx) , parameter :: d608 = 0.608_rkx
-    real(rkx) , parameter :: dm2859 = -rovcp
     real(rkx) , parameter :: stresh = 1.10_rkx
     real(rkx) , parameter :: stabs = 1.0_rkx
     real(rkx) , parameter :: stabd = 0.90_rkx
@@ -152,16 +148,22 @@ module mod_cu_bm
     real(rkx) , parameter :: pfrz = 15000.0_rkx
     real(rkx) , parameter :: pshu = 45000.0_rkx
     real(rkx) , parameter :: zno = 750.0_rkx
-    real(rkx) , parameter :: zsh = 2000.0_rkx
-    real(rkx) , parameter :: fsl = 0.90_rkx
+    real(rkx) , parameter :: zsh = 3999.0_rkx
+    real(rkx) , parameter :: fsl = 1.00_rkx
     real(rkx) , parameter :: fss = 0.60_rkx
     real(rkx) , parameter :: efimn = 0.20_rkx
     real(rkx) , parameter :: efmnt = 0.70_rkx
     real(rkx) , parameter :: fcc1 = 0.50_rkx
-    real(rkx) , parameter :: fcp = h1 - fcc1
-    real(rkx) , parameter :: dspbfl = -4843.75_rkx
-    real(rkx) , parameter :: dsp0fl = -7050.0_rkx
-    real(rkx) , parameter :: dsptfl = -2250.0_rkx
+    real(rkx) , parameter :: fcp = d_one - fcc1
+    !real(rkx) , parameter :: dspbfl = -4843.75_rkx
+    !real(rkx) , parameter :: dsp0fl = -7050.0_rkx
+    !real(rkx) , parameter :: dsptfl = -2250.0_rkx
+    !real(rkx) , parameter :: dspbfs = -3875.0_rkx
+    !real(rkx) , parameter :: dsp0fs = -5875.0_rkx
+    !real(rkx) , parameter :: dsptfs = -1875.0_rkx
+    real(rkx) , parameter :: dspbfl = -3875.0_rkx
+    real(rkx) , parameter :: dsp0fl = -5875.0_rkx
+    real(rkx) , parameter :: dsptfl = -1875.0_rkx
     real(rkx) , parameter :: dspbfs = -3875.0_rkx
     real(rkx) , parameter :: dsp0fs = -5875.0_rkx
     real(rkx) , parameter :: dsptfs = -1875.0_rkx
@@ -172,22 +174,20 @@ module mod_cu_bm
     real(rkx) , parameter :: dsp0ss = dsp0fs*fss
     real(rkx) , parameter :: dsptss = dsptfs*fss
     ! Control if Deep Convection activated.
-    real(rkx) , parameter :: epsntp = 1.0e-5_rkx
+    real(rkx) , parameter :: epsntp = 1.0e-3_rkx
     real(rkx) , parameter :: efifc = 5.0_rkx
-    real(rkx) , parameter :: avgefi = (efimn+1.0_rkx)*d_half
+    real(rkx) , parameter :: avgefi = (efimn+d_one)*d_half
     real(rkx) , parameter :: dspc = -3000.0_rkx
     real(rkx) , parameter :: epsp = 1.0e-7_rkx
     real(rkx) , parameter :: stefi = avgefi
-    real(rkx) , parameter :: slopbl = (dspbfl-dspbsl)/(h1-efimn)
-    real(rkx) , parameter :: slop0l = (dsp0fl-dsp0sl)/(h1-efimn)
-    real(rkx) , parameter :: sloptl = (dsptfl-dsptsl)/(h1-efimn)
-    real(rkx) , parameter :: slopbs = (dspbfs-dspbss)/(h1-efimn)
-    real(rkx) , parameter :: slop0s = (dsp0fs-dsp0ss)/(h1-efimn)
-    real(rkx) , parameter :: slopts = (dsptfs-dsptss)/(h1-efimn)
-    real(rkx) , parameter :: slope = (h1-efmnt)/(h1-efimn)
+    real(rkx) , parameter :: slopbl = (dspbfl-dspbsl)/(d_one-efimn)
+    real(rkx) , parameter :: slop0l = (dsp0fl-dsp0sl)/(d_one-efimn)
+    real(rkx) , parameter :: sloptl = (dsptfl-dsptsl)/(d_one-efimn)
+    real(rkx) , parameter :: slopbs = (dspbfs-dspbss)/(d_one-efimn)
+    real(rkx) , parameter :: slop0s = (dsp0fs-dsp0ss)/(d_one-efimn)
+    real(rkx) , parameter :: slopts = (dsptfs-dsptss)/(d_one-efimn)
+    real(rkx) , parameter :: slope = (d_one-efmnt)/(d_one-efimn)
     real(rkx) , parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
-    real(rkx) , parameter :: cporng = d_one/dm2859
-    real(rkx) , parameter :: elocp = wlhvocp
     real(rkx) , parameter :: cprlg = cpd/(rhoh2o*egrav*wlhv)
     logical , save :: efinit = .false.
 
@@ -211,7 +211,7 @@ module mod_cu_bm
     call time_begin(subroutine_name,idindx)
 #endif
 
-    trel = 900.0_rkx ! 15 minutes
+    trel = 3000.0_rkx
     tauk = dt/trel
     cthrs = (0.00635_rkx/secpd)*dt/cprlg
     !
@@ -229,7 +229,7 @@ module mod_cu_bm
     if ( .not. efinit ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cldefi(j,i) = avgefi*xsm(j,i) + stefi*(h1-xsm(j,i))
+          cldefi(j,i) = avgefi*xsm(j,i) + stefi*(d_one-xsm(j,i))
         end do
       end do
       efinit = .true.
@@ -251,7 +251,7 @@ module mod_cu_bm
         do j = jci1 , jci2
           t(j,i,k) = m2c%tas(j,i,k)
           q(j,i,k) = m2c%qxas(j,i,k,iqv)
-          ape(j,i,k) = (m2c%pas(j,i,k)/h10e5)**dm2859
+          ape(j,i,k) = d_one/(m2c%pas(j,i,k)/p00)**rovcp
           z0(j,i,k) = m2c%zas(j,i,k)
         end do
       end do
@@ -288,10 +288,10 @@ module mod_cu_bm
             tdpt = min(tdpt,t(j,i,k))
             tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
                            4.36e-4_rkx*(t(j,i,k)-tzero))*(t(j,i,k)-tdpt)
-            tthes(j,i) = tthbt(j,i)*exp(elocp*q(j,i,k)/tlcl)
+            tthes(j,i) = tthbt(j,i)*exp(wlhvocp*q(j,i,k)/tlcl)
             ! check for maximum buoyancy
             if ( tthes(j,i) > thesp(j,i) ) then
-              psp(j,i) = h10e5*(tthbt(j,i)/tlcl)**cporng
+              psp(j,i) = p00*(tlcl/tthbt(j,i))**cpovr
               thbt(j,i) = tthbt(j,i)
               thesp(j,i) = tthes(j,i)
             end if
@@ -341,7 +341,7 @@ module mod_cu_bm
         do j = jci1 , jci2
           es = aliq*exp((bliq*t(j,i,l)-cliq)/(t(j,i,l)-dliq))
           qs = 0.622_rkx * es/(m2c%pas(j,i,l)-es)
-          ths(j,i) = t(j,i,l)*ape(j,i,l)*exp(elocp*qs/t(j,i,l))
+          ths(j,i) = t(j,i,l)*ape(j,i,l)*exp(wlhvocp*qs/t(j,i,l))
         end do
       end do
       ! buoyancy check
@@ -362,11 +362,11 @@ module mod_cu_bm
       do j = jci1 , jci2
         efi = cldefi(j,i)
         dspb(j,i) = ((efi-efimn)*slopbs+dspbss)*xsm(j,i) + &
-                    ((efi-efimn)*slopbl+dspbsl)*(h1-xsm(j,i))
+                    ((efi-efimn)*slopbl+dspbsl)*(d_one-xsm(j,i))
         dsp0(j,i) = ((efi-efimn)*slop0s+dsp0ss)*xsm(j,i) + &
-                    ((efi-efimn)*slop0l+dsp0sl)*(h1-xsm(j,i))
+                    ((efi-efimn)*slop0l+dsp0sl)*(d_one-xsm(j,i))
         dspt(j,i) = ((efi-efimn)*slopts+dsptss)*xsm(j,i) + &
-                    ((efi-efimn)*sloptl+dsptsl)*(h1-xsm(j,i))
+                    ((efi-efimn)*sloptl+dsptsl)*(d_one-xsm(j,i))
       end do
     end do
     !
@@ -392,9 +392,9 @@ module mod_cu_bm
         cldhgt(j,i) = z0(j,i,cu_ktop(j,i)) - z0(j,i,cu_kbot(j,i))
         ! cloud is less than 90 mb deep or less than 3 sigma layers deep
         if ( cldhgt(j,i) < zno ) then
-          cldefi(j,i) = avgefi*xsm(j,i) + stefi*(h1-xsm(j,i))
+          cldefi(j,i) = avgefi*xsm(j,i) + stefi*(d_one-xsm(j,i))
         end if
-        ! cloud has to be at least 290 mb deep
+        ! cloud has to be at least 2000m deep
         if ( cldhgt(j,i) >= zsh ) then
           khdeep = khdeep + 1
           ideep(khdeep) = i
@@ -437,6 +437,7 @@ module mod_cu_bm
         pk(k) = m2c%pas(j,i,k)
         psk(k) = m2c%pas(j,i,k)
         apek(k) = ape(j,i,k)
+        tds(k) = (m2c%pasf(j,i,k+1)-m2c%pasf(j,i,k))/m2c%pasf(j,i,kzp1)
         therk(k) = tref(j,i,k)*ape(j,i,k)
       end do
       !
@@ -457,7 +458,7 @@ module mod_cu_bm
       do l = ltpk , lbm1
         ivi = ltpk + lbm1 - l
         if ( trefk(ivi+1) <= 274.16_rkx ) then
-          rdp0t = h1/(pk0-pkt)
+          rdp0t = d_one/(pk0-pkt)
           dthem = therk(l0) - trefk(l0)*apek(l0)
           exit
         else
@@ -497,7 +498,7 @@ module mod_cu_bm
         if ( pk(l) > pqm ) then
           ! pressure must be below 200 mb
           psk(l) = pk(l) + dsp
-          apesk(l) = (psk(l)/h10e5)**dm2859
+          apesk(l) = d_one/(psk(l)/p00)**rovcp
           thsk(l) = trefk(l)*apek(l)
           qrefk(l) = pq0/psk(l)*exp(c3les*(thsk(l)-tzero*apesk(l)) / &
                      (thsk(l)-c4les*apesk(l)))
@@ -512,10 +513,11 @@ module mod_cu_bm
         sumde = d_zero
         sumdp = d_zero
         do l = ltpk , lb
-          sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*wlhv)*dsigma(l) + sumde
-          sumdp = sumdp + dsigma(l)
+          sumde = ((tk(l)-trefk(l))*cpd + &
+                   (qk(l)-qrefk(l))*wlhv) * tds(l) + sumde
+          sumdp = sumdp + tds(l)
         end do
-        hcorr = sumde/(sumdp-dsigma(ltpk))
+        hcorr = sumde/(sumdp-tds(ltpk))
         lcor = ltpk + 1
         !
         ! find lqm
@@ -546,7 +548,7 @@ module mod_cu_bm
         end do
       end do
       do l = 1 , kz
-        thvref(l) = trefk(l)*apek(l)*(qrefk(l)*d608+h1)
+        thvref(l) = trefk(l)*apek(l)*(qrefk(l)*ep1+d_one)
       end do
       !
       ! heating, moistening, precipitation
@@ -555,16 +557,16 @@ module mod_cu_bm
         diftl = (trefk(l)-tk(l))*tauk
         difql = (qrefk(l)-qk(l))*tauk
         avrgtl = (tk(l)+tk(l)+diftl)
-        dentpy = (diftl*cpd+difql*wlhv)*dsigma(l)/avrgtl + dentpy
-        avrgt = avrgtl*dsigma(l) + avrgt
-        preck = dsigma(l)*diftl + preck
+        dentpy = (diftl*cpd+difql*wlhv)*tds(l)/avrgtl + dentpy
+        avrgt = avrgtl*tds(l) + avrgt
+        preck = tds(l)*diftl + preck
         dift(l) = diftl
         difq(l) = difql
       end do
       dentpy = dentpy + dentpy
       avrgt = avrgt/(sumdp+sumdp)
       if ( dentpy < epsntp .or. preck <= d_zero ) then
-        cldefi(j,i) = efimn*xsm(j,i) + stefi*(h1-xsm(j,i))
+        cldefi(j,i) = efimn*xsm(j,i) + stefi*(d_one-xsm(j,i))
         ztop = z0(j,i,cu_kbot(j,i)) + zsh - 0.000001_rkx
         do l = 1 , lb
           if ( z0(j,i,l) >= ztop ) cu_ktop(j,i) = l + 1
@@ -583,11 +585,12 @@ module mod_cu_bm
       ! keep the land value of efi equal to 1 until precip surpasses
       ! a threshold value, currently set to 0.25 inches per 24 hrs
       pthrs = cthrs/m2c%psf(j,i)
-      drheat = (preck*xsm(j,i)+max(epsp,preck-pthrs)*(h1-xsm(j,i)))*cpd/avrgt
+      drheat = (preck*xsm(j,i) + &
+            max(epsp,preck-pthrs)*(d_one-xsm(j,i)))*cpd/avrgt
       efi = efifc*dentpy/drheat
       !
-      efi = (cldefi(j,i)*fcp + efi*fcc1) * xsm(j,i) + (h1-xsm(j,i))
-      if ( efi > h1 ) efi = h1
+      efi = (cldefi(j,i)*fcp + efi*fcc1) * xsm(j,i) + (d_one-xsm(j,i))
+      if ( efi > d_one ) efi = d_one
       if ( efi < efimn ) efi = efimn
       cldefi(j,i) = efi
       fefi = efmnt + slope*(efi-efimn)
@@ -650,9 +653,10 @@ module mod_cu_bm
         qsatk(k) = q(j,i,k)
         pk(k) = m2c%pas(j,i,k)
         apek(k) = ape(j,i,k)
-        thvmkl = t(j,i,k)*ape(j,i,k)*(q(j,i,k)*d608+h1)
+        thvmkl = t(j,i,k)*ape(j,i,k)*(q(j,i,k)*ep1+d_one)
         thvref(k) = thvmkl
         pdp(k) = pk(k) - pmn
+        tds(k) = (m2c%pasf(j,i,k+1)-m2c%pasf(j,i,k))/m2c%pasf(j,i,kzp1)
       end do
       !
       ! find kdp...kdp(k) is the model level closest to 65 mb (pmn) above k;
@@ -726,7 +730,7 @@ module mod_cu_bm
       tdpt = min(tdpt,t(j,i,ltp1))
       tlcl = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
              4.36e-4_rkx*(t(j,i,ltp1)-tzero))*(t(j,i,ltp1)-tdpt)
-      ptpk = h10e5*(thtpk/tlcl)**cporng
+      ptpk = p00*(tlcl/thtpk)**cpovr
       dpmix = ptpk - psp(j,i)
       if ( abs(dpmix) < h3000 ) dpmix = -h3000
       !
@@ -744,8 +748,8 @@ module mod_cu_bm
       sumdt = d_zero
       sumdp = d_zero
       do l = ltp1 , lbtk
-        sumdt = (tk(l)-trefk(l))*dsigma(l) + sumdt
-        sumdp = sumdp + dsigma(l)
+        sumdt = (tk(l)-trefk(l))*tds(l) + sumdt
+        sumdp = sumdp + tds(l)
       end do
       rdpsum = d_one/sumdp
       fpk(lbtk) = trefk(lbtk)
@@ -767,13 +771,13 @@ module mod_cu_bm
       fptk = fpk(ltp1)
       do l = ltp1 , lbtk
         dpkl = fpk(l) - fptk
-        psum = dpkl*dsigma(l) + psum
-        qsum = qk(l)*dsigma(l) + qsum
+        psum = dpkl*tds(l) + psum
+        qsum = qk(l)*tds(l) + qsum
         rtbar = 2.0_rkx/(trefk(l)+tk(l))
-        otsum = dsigma(l)*rtbar + otsum
-        potsum = dpkl*rtbar*dsigma(l) + potsum
-        qotsum = qk(l)*rtbar*dsigma(l) + qotsum
-        dst = (trefk(l)-tk(l))*rtbar*dsigma(l) + dst
+        otsum = tds(l)*rtbar + otsum
+        potsum = dpkl*rtbar*tds(l) + potsum
+        qotsum = qk(l)*rtbar*tds(l) + qotsum
+        dst = (trefk(l)-tk(l))*rtbar*tds(l) + dst
       end do
 
       psum = psum*rdpsum
@@ -827,14 +831,14 @@ module mod_cu_bm
           cu_ktop(j,i) = cu_kbot(j,i)
           exit shallow
         end if
-        thvref(l) = trefk(l)*apek(l)*(qrfkl*d608+d_one)
+        thvref(l) = trefk(l)*apek(l)*(qrfkl*ep1+d_one)
         qrefk(l) = qrfkl
       end do
       !
       ! eliminate impossible slopes (betts, dtheta/dq)
       !
       do l = ltp1 , lbtk
-        dtdeta = (thvref(l-1)-thvref(l))/(hsigma(l)-hsigma(l-1))
+        dtdeta = (thvref(l-1)-thvref(l))/tds(l)
         if ( dtdeta < epsth ) then
           cu_ktop(j,i) = cu_kbot(j,i)
           exit shallow
@@ -848,7 +852,7 @@ module mod_cu_bm
       dentpy = d_zero
       do l = ltp1 , lbtk
         dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*wlhv) / &
-                  (tk(l)+trefk(l))*dsigma(l) + dentpy
+                  (tk(l)+trefk(l))*tds(l) + dentpy
       end do
       !
       ! relaxation towards reference profiles
