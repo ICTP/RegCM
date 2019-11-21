@@ -23,12 +23,12 @@ The RegCM model solves a set of primitive dynamical equations describing
 the atmospheric motion, with parametrizations for physical processes as per:
 
 \begin{itemize}
-	\item Radiation (Short Wave and Long Wave)
-	\item Convection
-	\item Turbolent Diffusion
-	\item Moist (Clouds and Precipitation)
-	\item Fluxes exchange with surface (Soil model and Ocean fluxes)
-	\item Tracer transport and chemistry (Aerosols and full chemistry)
+  \item Radiation (Short Wave and Long Wave)
+  \item Convection
+  \item Turbolent Diffusion
+  \item Moist (Clouds and Precipitation)
+  \item Fluxes exchange with surface (Soil model and Ocean fluxes)
+  \item Tracer transport and chemistry (Aerosols and full chemistry)
 \end{itemize}
 
 The dynamical equations are discretized using finite differences technique
@@ -55,25 +55,25 @@ described by \cite{Grell_94}.
 
 \begin{gather}
 \label{hydro_mom1}
-	\frac{\partial{p^{\ast}u}}{\partial{t}} =
-	-m^2 \left[ \frac{\partial{p^{\ast}uu/m}}{\partial{x}} + 
-		\frac{\partial{p^{\ast}vu/m}}{\partial{y}} \right] -
-		\frac{\partial{p^{\ast}u \dot{\sigma}}}{\partial{\sigma}}
-	    \\ \nonumber
-	    -mp^{\ast} \left[ \frac{\sigma}{\rho}
-			\frac{\partial{p^{\ast}}}{\partial{x}} +
-			\frac{\partial{\phi}}{\partial{x}} \right] +
-	p^{\ast}fv + F_Hu + F_Vu \\
+  \frac{\partial{p^{\ast}u}}{\partial{t}} =
+  -m^2 \left[ \frac{\partial{p^{\ast}uu/m}}{\partial{x}} + 
+    \frac{\partial{p^{\ast}vu/m}}{\partial{y}} \right] -
+    \frac{\partial{p^{\ast}u \dot{\sigma}}}{\partial{\sigma}}
+      \\ \nonumber
+      -mp^{\ast} \left[ \frac{\sigma}{\rho}
+      \frac{\partial{p^{\ast}}}{\partial{x}} +
+      \frac{\partial{\phi}}{\partial{x}} \right] +
+  p^{\ast}fv + F_Hu + F_Vu \\
 \label{hydro_mom2}
-	\frac{\partial{p^{\ast}v}}{\partial{t}} = 
-	-m^2 \left[ \frac{\partial{p^{\ast}uv/m}}{\partial{x}} +
-		\frac{\partial{p^{\ast}vv/m}}{\partial{y}} \right] -
-		\frac{\partial{p^{\ast}v\dot{\sigma}}}{\partial{\sigma}}
-	   \\ \nonumber
-	   -mp^{\ast} \left[ \frac{\sigma}{\rho}
-	   		\frac{\partial{p^{\ast}}}{\partial{y}} +
-			\frac{\partial{\phi}}{\partial{y}} \right]
-	+ p^{\ast}fu + F_Hv + F_Vv
+  \frac{\partial{p^{\ast}v}}{\partial{t}} = 
+  -m^2 \left[ \frac{\partial{p^{\ast}uv/m}}{\partial{x}} +
+    \frac{\partial{p^{\ast}vv/m}}{\partial{y}} \right] -
+    \frac{\partial{p^{\ast}v\dot{\sigma}}}{\partial{\sigma}}
+     \\ \nonumber
+     -mp^{\ast} \left[ \frac{\sigma}{\rho}
+         \frac{\partial{p^{\ast}}}{\partial{y}} +
+      \frac{\partial{\phi}}{\partial{y}} \right]
+  + p^{\ast}fu + F_Hv + F_Vv
 \end{gather}
 
 where $u$ and $v$ are the eastward and northward components of
@@ -110,9 +110,9 @@ The surface pressure is computed from the continuity equation:
 
 \begin{eqnarray} \label{eq:continuity}
 \frac{\partial{p^{\ast}}}{\partial{t}} = 
-	-m^2 \left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} +
-		    \frac{\partial{p^{\ast}v/m}}{\partial{y}} \right] -
-	\frac{\partial{p^{\ast}\dot{\sigma}}}{\partial{\sigma}}
+  -m^2 \left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} +
+        \frac{\partial{p^{\ast}v/m}}{\partial{y}} \right] -
+  \frac{\partial{p^{\ast}\dot{\sigma}}}{\partial{\sigma}}
 \end{eqnarray}
 
 The vertical integral of Equation~\ref{eq:continuity} is used to
@@ -120,9 +120,9 @@ compute the temporal variation of the surface pressure in the model,
 
 \begin{eqnarray}
 \label{intform}
-	\frac{\partial{p^{\ast}}}{\partial{t}} = -m^2 \int_{0}^{1}
-	{\left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} + 
-		\frac{\partial{p^{\ast}v/m}}{\partial{y}} \right] d\sigma}
+  \frac{\partial{p^{\ast}}}{\partial{t}} = -m^2 \int_{0}^{1}
+  {\left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} + 
+    \frac{\partial{p^{\ast}v/m}}{\partial{y}} \right] d\sigma}
 \end{eqnarray}
 
 The surface pressure tendency from \ref{intform} is then used with the
@@ -131,11 +131,11 @@ velocity in sigma coordinates $(\dot{\sigma})$ at each
 level in the model:
 
 \begin{eqnarray}
-	\dot{\sigma} = - \frac{1}{p^{\ast}} \int_{0}^{\sigma}{
-		\left[ \frac{\partial{p^{\ast}}}{\partial{t}} +
-		m^2 \left(\frac{\partial{p^{\ast}u/m}}{\partial{x}} +
-		                 \frac{\partial{p^{\ast}v/m}}{\partial{y}}
-	 \right) \right] d\sigma^\prime}
+  \dot{\sigma} = - \frac{1}{p^{\ast}} \int_{0}^{\sigma}{
+    \left[ \frac{\partial{p^{\ast}}}{\partial{t}} +
+    m^2 \left(\frac{\partial{p^{\ast}u/m}}{\partial{x}} +
+                     \frac{\partial{p^{\ast}v/m}}{\partial{y}}
+   \right) \right] d\sigma^\prime}
 \end{eqnarray}
 
 where $\sigma^\prime$ is a dummy variable of integration and
@@ -148,11 +148,11 @@ The thermodynamic equation is
 \begin{eqnarray}
 \frac{\partial{p^{\ast}T}}{\partial{t}} = 
 -m^2 \left[ \frac{\partial{p^{\ast}uT/m}}{\partial{x}} +
-	    \frac{\partial{p^{\ast}vT/m}}{\partial{y}} \right] -
-	    \frac{\partial{p^{\ast}T\dot{\sigma}}}{\partial{\sigma}} +
-	    \nonumber \\
-	\frac{RT_v\omega}{c_{p}(\sigma + p_t/p_{\ast})} +
-	\frac{p^{\ast}Q}{c_{p}} + F_HT + F_VT
+      \frac{\partial{p^{\ast}vT/m}}{\partial{y}} \right] -
+      \frac{\partial{p^{\ast}T\dot{\sigma}}}{\partial{\sigma}} +
+      \nonumber \\
+  \frac{RT_v\omega}{c_{p}(\sigma + p_t/p_{\ast})} +
+  \frac{p^{\ast}Q}{c_{p}} + F_HT + F_VT
 \end{eqnarray}
 
 where, given $c_{pd}$ the heat capacity of dry air and
@@ -168,8 +168,8 @@ $F_VT$ represents the effect of vertical mixing and dry convective adjustment,
 and $\omega$ is
 
 \begin{equation}
-	\omega = \frac{dp}{dt} = p^{\ast} \dot{\sigma} +
-	          \sigma \frac{dp^{\ast}}{dt}
+  \omega = \frac{dp}{dt} = p^{\ast} \dot{\sigma} +
+            \sigma \frac{dp^{\ast}}{dt}
 \end{equation}
 
 where:
@@ -205,68 +205,68 @@ with:
 
 \begin{gather}
 \label{reference_atm}
-	\mean{u} = 0 \nonumber \\
-	\mean{v} = 0 \nonumber \\
-	T = \mean{T} \nonumber \\
-	f_0 = \mean{f} \nonumber \\
-	p^{\ast} = \mean{p}
+  \mean{u} = 0 \nonumber \\
+  \mean{v} = 0 \nonumber \\
+  T = \mean{T} \nonumber \\
+  f_0 = \mean{f} \nonumber \\
+  p^{\ast} = \mean{p}
 \end{gather}
 
 The linearized equations are:
 
 \begin{gather}
-	\label{linearized}
-	\frac{\partial u}{\partial t} =
-	     f_0 v - \frac{\partial}{\partial x} (\phi^{\prime} +
-	     R\mean{T}\ln^{\prime}(\sigma p^{\ast} + p_t)) \\
-	\frac{\partial v}{\partial t} =
-	     - f_0 u - \frac{\partial}{\partial y} (\phi^{\prime} +
-	     R\mean{T}\ln^{\prime}(\sigma p^{\ast} + p_t)) \\
-	\frac{\partial T^\prime}{\partial t} =
-	   - \dot{\sigma} \frac{\partial \mean{T}}{\partial \sigma} +
-	   \frac{\kappa \mean{T}}{\sigma + \frac{p_t}{\mean{p}}}
-	   \frac{\omega}{\mean{p}} \\
-	\label{2111a}
-	\frac{\partial \ln\left(\frac{p^{\ast}}{\mean{p}}\right)}{\partial t} =
-	-\int_0^1\left(\frac{\partial u}{\partial x} +
-	\frac{\partial v}{\partial y} \right) d\sigma \\
-	\label{2111b}
-	\frac{\partial}{\partial t} \ln^{\prime}\left(\sigma p^{\ast} +
-	   p_t\right) = \frac{\sigma}{\sigma+\frac{p_t}{\mean{p}}}
-	      \frac{\partial}{\partial t}
-	      \ln\left(\frac{p^{\ast}}{\mean{p}}\right) \\
-	\phi^{\prime} = \phi_S - R \int_0^1 T^{\prime}
-	  d \left[ \ln(\sigma \mean{p}+p_t)\right] -
-	  R \int_0^1 \mean{T} d \left[ \ln^{\prime}
-	  (\sigma p^{\ast}+p_t) \right] \\
-	\dot{\sigma} = \sigma \int_0^1 \left(\frac{\partial u}{\partial x} +
-	\frac{\partial v}{\partial y} \right) d\sigma -
-	\int_0^{\sigma} \left(\frac{\partial u}{\partial x} +
-	\frac{\partial v}{\partial y}\right) d\sigma^{\prime} \\
-	\label{last_linearized}
-	\frac{\omega}{\mean{p}} = \dot{\sigma} - \sigma
-	\int_0^1 \left(\frac{\partial u}{\partial x} +
-	\frac{\partial v}{\partial y}\right) d\sigma
+  \label{linearized}
+  \frac{\partial u}{\partial t} =
+       f_0 v - \frac{\partial}{\partial x} (\phi^{\prime} +
+       R\mean{T}\ln^{\prime}(\sigma p^{\ast} + p_t)) \\
+  \frac{\partial v}{\partial t} =
+       - f_0 u - \frac{\partial}{\partial y} (\phi^{\prime} +
+       R\mean{T}\ln^{\prime}(\sigma p^{\ast} + p_t)) \\
+  \frac{\partial T^\prime}{\partial t} =
+     - \dot{\sigma} \frac{\partial \mean{T}}{\partial \sigma} +
+     \frac{\kappa \mean{T}}{\sigma + \frac{p_t}{\mean{p}}}
+     \frac{\omega}{\mean{p}} \\
+  \label{2111a}
+  \frac{\partial \ln\left(\frac{p^{\ast}}{\mean{p}}\right)}{\partial t} =
+  -\int_0^1\left(\frac{\partial u}{\partial x} +
+  \frac{\partial v}{\partial y} \right) d\sigma \\
+  \label{2111b}
+  \frac{\partial}{\partial t} \ln^{\prime}\left(\sigma p^{\ast} +
+     p_t\right) = \frac{\sigma}{\sigma+\frac{p_t}{\mean{p}}}
+        \frac{\partial}{\partial t}
+        \ln\left(\frac{p^{\ast}}{\mean{p}}\right) \\
+  \phi^{\prime} = \phi_S - R \int_0^1 T^{\prime}
+    d \left[ \ln(\sigma \mean{p}+p_t)\right] -
+    R \int_0^1 \mean{T} d \left[ \ln^{\prime}
+    (\sigma p^{\ast}+p_t) \right] \\
+  \dot{\sigma} = \sigma \int_0^1 \left(\frac{\partial u}{\partial x} +
+  \frac{\partial v}{\partial y} \right) d\sigma -
+  \int_0^{\sigma} \left(\frac{\partial u}{\partial x} +
+  \frac{\partial v}{\partial y}\right) d\sigma^{\prime} \\
+  \label{last_linearized}
+  \frac{\omega}{\mean{p}} = \dot{\sigma} - \sigma
+  \int_0^1 \left(\frac{\partial u}{\partial x} +
+  \frac{\partial v}{\partial y}\right) d\sigma
 \end{gather}
 
 where
 
 \begin{gather}
-	T^{\prime}(x,y,t,\sigma) = T(x,y,t,\sigma) -
-	   \mean{T}(\sigma) \nonumber \\
-	\ln^{\prime}(\sigma p^{\ast} + p_t) = \ln(\sigma p^{\ast} + p_t) -
-	  \ln(\sigma \mean{p} + p_t) \nonumber \\
-	\kappa = \frac{R}{c_p} \nonumber
+  T^{\prime}(x,y,t,\sigma) = T(x,y,t,\sigma) -
+     \mean{T}(\sigma) \nonumber \\
+  \ln^{\prime}(\sigma p^{\ast} + p_t) = \ln(\sigma p^{\ast} + p_t) -
+    \ln(\sigma \mean{p} + p_t) \nonumber \\
+  \kappa = \frac{R}{c_p} \nonumber
 \end{gather}
 
 Substituting now coordinates $u,v$ with horizontal vorticity $\zeta$ and
 divergence $\delta$ defined as:
 
 \begin{gather}
-	\label{vorticity}
-	\zeta = \frac{\partial v}{\partial x} -
-	        \frac{\partial u}{\partial y} \\
-	\label{divergence}
+  \label{vorticity}
+  \zeta = \frac{\partial v}{\partial x} -
+          \frac{\partial u}{\partial y} \\
+  \label{divergence}
         \delta = \frac{\partial u}{\partial x} +
                  \frac{\partial v}{\partial y}
 \end{gather}
@@ -275,30 +275,30 @@ and defining the stream function $\psi$ and the velocity potential $\chi$
 by:
 
 \begin{gather}
-	\left(\frac{\partial^2}{\partial x^2} +
-	      \frac{\partial^2}{\partial y^2}\right) \psi = 
-	      \nabla^2 \psi = \zeta \\
-	\left(\frac{\partial^2}{\partial x^2} +
-	      \frac{\partial^2}{\partial y^2}\right) \chi = 
-	      \nabla ^2 \chi = \delta \\
-	u = \frac{\partial \chi}{\partial x} -
-	    \frac{\partial \psi}{\partial y} \\
-	v = \frac{\partial \chi}{\partial y} +
-	    \frac{\partial \psi}{\partial x}
+  \left(\frac{\partial^2}{\partial x^2} +
+        \frac{\partial^2}{\partial y^2}\right) \psi = 
+        \nabla^2 \psi = \zeta \\
+  \left(\frac{\partial^2}{\partial x^2} +
+        \frac{\partial^2}{\partial y^2}\right) \chi = 
+        \nabla ^2 \chi = \delta \\
+  u = \frac{\partial \chi}{\partial x} -
+      \frac{\partial \psi}{\partial y} \\
+  v = \frac{\partial \chi}{\partial y} +
+      \frac{\partial \psi}{\partial x}
 \end{gather}
 
 we obtain:
 
 \begin{gather}
-	\frac{\partial \zeta}{\partial t} = -f_0 \delta \\
-	\frac{\partial \delta}{\partial t} = f_0 \zeta -
-	  \nabla^2\left[\phi^{\prime} + R \mean{T}
-	  \ln^{\prime}\left(\sigma p^{\ast} + p_t\right)\right] \\
-	\label{2124}
-	\frac{\partial T^{\prime}}{\partial t} = \bm{A} \delta \\
-	\label{2125}
-	\phi^{\prime} = \phi_S + R \bm{B} T^{\prime} +
-	    R \bm{C} \ln^{\prime} \left(\sigma p^{\ast} + p_t\right)
+  \frac{\partial \zeta}{\partial t} = -f_0 \delta \\
+  \frac{\partial \delta}{\partial t} = f_0 \zeta -
+    \nabla^2\left[\phi^{\prime} + R \mean{T}
+    \ln^{\prime}\left(\sigma p^{\ast} + p_t\right)\right] \\
+  \label{2124}
+  \frac{\partial T^{\prime}}{\partial t} = \bm{A} \delta \\
+  \label{2125}
+  \phi^{\prime} = \phi_S + R \bm{B} T^{\prime} +
+      R \bm{C} \ln^{\prime} \left(\sigma p^{\ast} + p_t\right)
 \end{gather}
 
 where $\bm{A}, \bm{B}, \bm{C}$ are integral-differential operators in $\sigma$
@@ -307,39 +307,39 @@ function of $\mean{T}$ and $\frac{p_t}{\mean{p}}$.
 Defining now the pseudo-geopotential $h$ as:
 
 \begin{gather}
-	\label{pseudogeop}
-	h = \phi^{\prime} + R \mean{T} \ln^{\prime}
-	    \left(\sigma p^{\ast} + p_t\right)
+  \label{pseudogeop}
+  h = \phi^{\prime} + R \mean{T} \ln^{\prime}
+      \left(\sigma p^{\ast} + p_t\right)
 \end{gather}
 
 combining \ref{2125}, \ref{2124} and \ref{2111a}, we can derive time tendency
 of this pseudo-geopotential $h$ as:
 
 \begin{gather}
-	\frac{\partial h}{\partial t} = - \tau(\delta)
+  \frac{\partial h}{\partial t} = - \tau(\delta)
 \end{gather}
 
 with $\tau$ is the integral $\sigma$-coordinate operator:
 
 \begin{gather}
-	\tau( ) = -R \bm{B}\bm{A}( ) + R \left( \bm{C} + \mean{T} \right)
-	  \frac{\sigma}{\sigma + \frac{p_t}{\mean{p}}}
-	  \int_0^1 ( ) d\sigma
+  \tau( ) = -R \bm{B}\bm{A}( ) + R \left( \bm{C} + \mean{T} \right)
+    \frac{\sigma}{\sigma + \frac{p_t}{\mean{p}}}
+    \int_0^1 ( ) d\sigma
 \end{gather}
 
 The complete nonlinear equations may be written as:
 
 \begin{gather}
-	\label{cmplnonlin1}
-	\frac{\partial \zeta}{\partial t} = -f_0 \delta + N_{\zeta} \\
-	\label{cmplnonlin2}
-	\frac{\partial \delta}{\partial t} = f_0 \zeta -
-	   \nabla^2 h + N_{\delta} \\
-	\label{cmplnonlin3}
-	\frac{\partial h}{\partial t} = - \tau(\delta) + N_{h} \\
-	\frac{\partial p^{\ast}}{\partial t} = -
-	   \int_0^1 \left(\frac{\partial p^{\ast}u}{\partial x} +
-	   \frac{\partial p^{\ast} v}{\partial y} \right) d\sigma
+  \label{cmplnonlin1}
+  \frac{\partial \zeta}{\partial t} = -f_0 \delta + N_{\zeta} \\
+  \label{cmplnonlin2}
+  \frac{\partial \delta}{\partial t} = f_0 \zeta -
+     \nabla^2 h + N_{\delta} \\
+  \label{cmplnonlin3}
+  \frac{\partial h}{\partial t} = - \tau(\delta) + N_{h} \\
+  \frac{\partial p^{\ast}}{\partial t} = -
+     \int_0^1 \left(\frac{\partial p^{\ast}u}{\partial x} +
+     \frac{\partial p^{\ast} v}{\partial y} \right) d\sigma
 \end{gather}
 
 where the non linear terms contains also horizontal variations of $f$.
@@ -347,33 +347,33 @@ where the non linear terms contains also horizontal variations of $f$.
 If we now impose the conditions:
 
 \begin{itemize}
-	\item the primitive equations have slow behavior
-	\item the time tendencies of the amplitudes of gravitational waves are
-		negligible compared with other terms in the prognostic equations
-	\item the linearized potential vorticity
-		$\eta = \zeta - f_0 \tau^{-1}(h)$ is unchanged
+  \item the primitive equations have slow behavior
+  \item the time tendencies of the amplitudes of gravitational waves are
+    negligible compared with other terms in the prognostic equations
+  \item the linearized potential vorticity
+    $\eta = \zeta - f_0 \tau^{-1}(h)$ is unchanged
 \end{itemize}
 
 we have:
 
 \begin{gather}
-	f_0 \zeta - \nabla^2 h = -N_{\delta} \\
-	\frac{\partial}{\partial t}\left( f_0 \zeta - \nabla^2 h\right) = 0 \\
-	\frac{\partial \eta}{\partial t} = 
-	 \frac{\partial \left(\zeta - f_0 \tau^{-1}(h)\right)}{\partial t} = 0
+  f_0 \zeta - \nabla^2 h = -N_{\delta} \\
+  \frac{\partial}{\partial t}\left( f_0 \zeta - \nabla^2 h\right) = 0 \\
+  \frac{\partial \eta}{\partial t} = 
+   \frac{\partial \left(\zeta - f_0 \tau^{-1}(h)\right)}{\partial t} = 0
 \end{gather}
 
 The complete set of equations for the balance condition is:
 
 \begin{gather}
-	\label{balance_condition_1}
-	\left(f_0^2 \tau^{-1} - \nabla^2\right) \zeta =
-	    -f_0\tau^{-1} N_{\delta} - \nabla^2 \eta \\
-	\label{balance_condition_2}
-	\left(f_0^2 \tau^{-1} - \nabla^2\right) \delta =
-	    \tau^{-1}\left(f_0 N_{\zeta} - \nabla^2 N_h \right) \\
-	\label{balance_condition_3}
-	h = \tau f_0^{-1}\left(\zeta - \eta\right)
+  \label{balance_condition_1}
+  \left(f_0^2 \tau^{-1} - \nabla^2\right) \zeta =
+      -f_0\tau^{-1} N_{\delta} - \nabla^2 \eta \\
+  \label{balance_condition_2}
+  \left(f_0^2 \tau^{-1} - \nabla^2\right) \delta =
+      \tau^{-1}\left(f_0 N_{\zeta} - \nabla^2 N_h \right) \\
+  \label{balance_condition_3}
+  h = \tau f_0^{-1}\left(\zeta - \eta\right)
 \end{gather}
 
 The equations \ref{balance_condition_1}, \ref{balance_condition_2} and
@@ -385,32 +385,32 @@ time step).
 Assuming:
 
 \begin{gather}
-	\zeta^N = \zeta^0 + \Delta \zeta \\
-	\delta^N = \delta^0 + \Delta \delta \\
-	h^N = h^0 + \Delta h
+  \zeta^N = \zeta^0 + \Delta \zeta \\
+  \delta^N = \delta^0 + \Delta \delta \\
+  h^N = h^0 + \Delta h
 \end{gather}
 
 the tendencies are:
 
 \begin{gather}
-	\frac{\partial \zeta}{\partial t} = -f_0 \delta^0 + N_{\zeta^0} \\
-	\frac{\partial \delta}{\partial t} = f_0 \zeta^0 -
-		 \nabla^2 h^0 + N_{\delta^0} \\
-	\frac{\partial h}{\partial t} = -\tau(\delta^0) + N_{h^0}
+  \frac{\partial \zeta}{\partial t} = -f_0 \delta^0 + N_{\zeta^0} \\
+  \frac{\partial \delta}{\partial t} = f_0 \zeta^0 -
+     \nabla^2 h^0 + N_{\delta^0} \\
+  \frac{\partial h}{\partial t} = -\tau(\delta^0) + N_{h^0}
 \end{gather}
 
 then the changes to compute next timelevel are:
 
 \begin{gather}
-	\label{nextlev1}
-	\left(f_0^2\tau^{-1}-\nabla^2\right) \Delta\zeta =
-	-f_0 \tau^{-1} \left(f_0 \zeta^0-\nabla^2 h^0 + N_{\delta^0} \right) \\
-	\label{nextlev2}
-	\left(f_0^2\tau^{-1}-\nabla^2\right) \Delta\delta =
-	\tau^{-1} \left(f_0 (-f_0 \delta^0 + N_{\zeta^0}) -
-	\nabla^2(-\tau(\delta^0) + N_{h^0})\right) \\
-	\label{nextlev3}
-	\Delta h = \tau f_0^{-1} \Delta \zeta
+  \label{nextlev1}
+  \left(f_0^2\tau^{-1}-\nabla^2\right) \Delta\zeta =
+  -f_0 \tau^{-1} \left(f_0 \zeta^0-\nabla^2 h^0 + N_{\delta^0} \right) \\
+  \label{nextlev2}
+  \left(f_0^2\tau^{-1}-\nabla^2\right) \Delta\delta =
+  \tau^{-1} \left(f_0 (-f_0 \delta^0 + N_{\zeta^0}) -
+  \nabla^2(-\tau(\delta^0) + N_{h^0})\right) \\
+  \label{nextlev3}
+  \Delta h = \tau f_0^{-1} \Delta \zeta
 \end{gather}
 
 To solve the equations \ref{nextlev1}, \ref{nextlev2}, \ref{nextlev3} we need
@@ -425,7 +425,7 @@ is defined as a $kz\times kz$ matrix withe the normal modes $\bm{z_i}$ as the
 $kz$-dimensional vectors satisfying the equation:
 
 \begin{gather}
-	\left( g H_i - \tau \right) \bm{z_i} = 0
+  \left( g H_i - \tau \right) \bm{z_i} = 0
 \end{gather}
 
 where $H_i$ are the corresponding eigenvalues, called the equivalent depths,
@@ -438,41 +438,41 @@ $\bm{H}$ the diagonal matrix of correspondingly ordered $H_i$, it can
 be rewritten as:
 
 \begin{gather}
-	g\bm{H}\bm{Z} = \tau \bm{Z}
+  g\bm{H}\bm{Z} = \tau \bm{Z}
 \end{gather}
 
 If we represent the three dimensional field $\zeta$, $\delta$ and $h$ as one
 dimensional vectors of two dimensional fields:
 
 \begin{gather}
-	\bm{\zeta}(x,y,t) = (\zeta(x,y,\sigma_1,t),\zeta(x,y,\sigma_2,t),
-	       \dots,\zeta(x,y,\sigma_{kz},t))^\top \\
-	\bm{\delta}(x,y,t) = (\delta(x,y,\sigma_1,t),\delta(x,y,\sigma_2,t),
-	       \dots,\delta(x,y,\sigma_{kz},t))^\top \\
-	\bm{h}(x,y,t) = (h(x,y,\sigma_1,t),h(x,y,\sigma_2,t),
-	       \dots,h(x,y,\sigma_{kz},t))^\top
+  \bm{\zeta}(x,y,t) = (\zeta(x,y,\sigma_1,t),\zeta(x,y,\sigma_2,t),
+         \dots,\zeta(x,y,\sigma_{kz},t))^\top \\
+  \bm{\delta}(x,y,t) = (\delta(x,y,\sigma_1,t),\delta(x,y,\sigma_2,t),
+         \dots,\delta(x,y,\sigma_{kz},t))^\top \\
+  \bm{h}(x,y,t) = (h(x,y,\sigma_1,t),h(x,y,\sigma_2,t),
+         \dots,h(x,y,\sigma_{kz},t))^\top
 \end{gather}
 
 having computed the $\bm{Z}$ matrix, we can transform from the $\sigma$
 coordinates to the vertical-model amplitudes with:
 
 \begin{gather}
-	\label{hatz1}
-	\hat{\bm{\zeta}} = \bm{Z^{-1}} \bm{\zeta} \\
-	\label{hatz2}
-	\hat{\bm{\delta}} = \bm{Z^{-1}} \bm{\delta} \\
-	\label{hatz3}
-	\hat{\bm{h}} = \bm{Z^{-1}} \bm{h} \\
-	\nonumber \\
-	\bm{\zeta} = \bm{Z} \hat{\bm{\zeta}} \\
-	\bm{\delta} = \bm{Z} \hat{\bm{\delta}} \\
-	\bm{h} = \bm{Z} \hat{\bm{h}}
+  \label{hatz1}
+  \hat{\bm{\zeta}} = \bm{Z^{-1}} \bm{\zeta} \\
+  \label{hatz2}
+  \hat{\bm{\delta}} = \bm{Z^{-1}} \bm{\delta} \\
+  \label{hatz3}
+  \hat{\bm{h}} = \bm{Z^{-1}} \bm{h} \\
+  \nonumber \\
+  \bm{\zeta} = \bm{Z} \hat{\bm{\zeta}} \\
+  \bm{\delta} = \bm{Z} \hat{\bm{\delta}} \\
+  \bm{h} = \bm{Z} \hat{\bm{h}}
 \end{gather}
 
 with the $\bm{I}$ identity matrix $kz\times kz$ as:
 
 \begin{gather}
-	\bm{I} = \bm{Z}\bm{Z^{-1}}
+  \bm{I} = \bm{Z}\bm{Z^{-1}}
 \end{gather}
 
 In terms of the above defined vertical mode amplitudes, the complete
@@ -480,12 +480,12 @@ non-linear equations in \ref{cmplnonlin1} - \ref{cmplnonlin3} can be
 rewritten as:
 
 \begin{gather}
-	\frac{\partial \hat{\zeta}_i}{\partial t} = - f_0 \hat{\delta}_i +
-	   \hat{N}_{\zeta_i} \\
-	\frac{\partial \hat{\delta}_i}{\partial t} = f_0 \hat{\zeta}_i -
-	   \nabla^2 \hat{h}_i + \hat{N}_{\delta_i} \\
-	\frac{\partial \hat{h}_i}{\partial t} = -g H_i \hat{\delta}_i +
-	   \hat{N}_{h_i}
+  \frac{\partial \hat{\zeta}_i}{\partial t} = - f_0 \hat{\delta}_i +
+     \hat{N}_{\zeta_i} \\
+  \frac{\partial \hat{\delta}_i}{\partial t} = f_0 \hat{\zeta}_i -
+     \nabla^2 \hat{h}_i + \hat{N}_{\delta_i} \\
+  \frac{\partial \hat{h}_i}{\partial t} = -g H_i \hat{\delta}_i +
+     \hat{N}_{h_i}
 \end{gather}
 
 Ignoring the non-linear terms $N$, we can thus, for discrete $\sigma_i$,
@@ -493,7 +493,7 @@ replace the three dimensional operator $(f_0^2\tau^{-1} - \nabla^2)$ with
 a set of two-dimensional operators $(\lambda_i - \nabla^2)$ where
 
 \begin{gather}
-	\lambda_i = \frac{f_0^2}{gH_i}
+  \lambda_i = \frac{f_0^2}{gH_i}
 \end{gather}
 
 which are the squared inverse of the Rossby radius of deformation
@@ -501,32 +501,32 @@ corresponding to the $H_i$ dephts.
 The balanced fields are thus obtained by iterating:
 
 \begin{gather}
-	\label{to_be_iterated1}
-	\left( \lambda_i - \nabla^2 \right) \Delta \hat{\zeta}_i =
-	   \frac{\lambda}{f_0} \frac{\partial \hat{\delta}}{\partial t} \\
-	\label{to_be_iterated2}
-	\left( \lambda_i - \nabla^2 \right) \Delta \hat{\delta}_i =
-	   \frac{\lambda}{f_0^2} \left( f_0 
-	   \frac{\partial \hat{\zeta}}{\partial t} -
-	   \nabla^2 \frac{\partial \hat{h}}{\partial t} \right) \\
-	\label{to_be_iterated3}
-	\Delta \hat{h}_i = f_0 \lambda^{-1} \Delta \hat{\zeta}_i
+  \label{to_be_iterated1}
+  \left( \lambda_i - \nabla^2 \right) \Delta \hat{\zeta}_i =
+     \frac{\lambda}{f_0} \frac{\partial \hat{\delta}}{\partial t} \\
+  \label{to_be_iterated2}
+  \left( \lambda_i - \nabla^2 \right) \Delta \hat{\delta}_i =
+     \frac{\lambda}{f_0^2} \left( f_0 
+     \frac{\partial \hat{\zeta}}{\partial t} -
+     \nabla^2 \frac{\partial \hat{h}}{\partial t} \right) \\
+  \label{to_be_iterated3}
+  \Delta \hat{h}_i = f_0 \lambda^{-1} \Delta \hat{\zeta}_i
 \end{gather}
 
 Using the relations:
 
 \begin{gather}
-	\Delta \left( \ln p\right) = \int_0^1 \tau^{-1} \Delta h d\sigma \\
-	p^N = p^0 \exp^{\left( \Delta \ln p \right)}
+  \Delta \left( \ln p\right) = \int_0^1 \tau^{-1} \Delta h d\sigma \\
+  p^N = p^0 \exp^{\left( \Delta \ln p \right)}
 \end{gather}
 
 the temperature changes can be computed as:
 
 \begin{gather}
-	\label{tchange}
-	\Delta T = \frac{1}{R} \bm{B}^{-1} \left[ \Delta h - R
-	\left( \bm{C} + \mean{T}\right) \ln \left(
-	\frac{\sigma p^N + p_t}{\sigma p^0 + p_t}\right) \right]
+  \label{tchange}
+  \Delta T = \frac{1}{R} \bm{B}^{-1} \left[ \Delta h - R
+  \left( \bm{C} + \mean{T}\right) \ln \left(
+  \frac{\sigma p^N + p_t}{\sigma p^0 + p_t}\right) \right]
 \end{gather}
 
 Defining now a shorter timestep $\hat{\Delta} t$, the sequence
@@ -534,46 +534,46 @@ to balance the dynamic fields and thus remove the fast wave components,
 known the matrix $\bm{Z}$, are thus:
 
 \begin{enumerate}
-	\item \label{step1} Compute $\zeta$, $\delta$ and $h$ from the model
-		variables $u$, $v$, $T$, $p^{\ast}$ at time $t$ using
-		equation \ref{vorticity}, \ref{divergence} and
-		\ref{pseudogeop}
-	\item \label{step2} Compute $\hat{\zeta}$, $\hat{\delta}$, $\hat{h}$
-		from $\zeta$, $\delta$ and $h$ using \ref{hatz1}, \ref{hatz2}
-		and \ref{hatz3}
-	\item Compute the new values of the prognostic variables
-		$u$, $v$, $T$, $p^{\ast}$ at $t = t + \Delta t$ using
-		model dynamic and physic
-	\item Repeat the steps \ref{step1}, \ref{step2} for the new timestep
-	\item Compute the tendencies of $\hat{\zeta}$, $\hat{\delta}$, $\hat{h}$
-		using the two discrete timesteps and short timestep
-		$\hat{\Delta} t$ as in:
-		\begin{gather}
-			\frac{\partial \hat{\zeta}}{\partial t} = 
-			\left[ \frac{\left( \hat{\zeta}_{t+\hat{\Delta} t} -
-			     \hat{\zeta}_t \right)}{\hat{\Delta} t} \right] \\
-			\frac{\partial \hat{\delta}}{\partial t} = 
-			\left[ \frac{\left( \hat{\delta}_{t+\hat{\Delta} t} -
-			     \hat{\delta}_t \right)}{\hat{\Delta} t} \right] \\
-			\frac{\partial \hat{h}}{\partial t} = 
-			\left[ \frac{\left( \hat{h}_{t+\Delta t} -
-			     \hat{h}_t \right)}{\hat{\Delta} t} \right]
-		\end{gather}
-	\item Compute the right hand side of \ref{to_be_iterated1},
-		\ref{to_be_iterated2}, \ref{to_be_iterated3}
-	\item Solve the equations \ref{to_be_iterated1}, \ref{to_be_iterated2}
-		for $\Delta \hat{\zeta}_i$ and $\Delta \hat{\delta}_i$
-	\item Compute $\Delta \hat{h}_i$ using \ref{to_be_iterated3}
-	\item Compute velocity modifications in terms of $\Delta \hat{\psi}$
-		and $\Delta \hat{\chi}$ corresponding to the computed
-		$\Delta \hat{\zeta}_i$ and $\Delta \hat{\delta}_i$ using the
-		definitions of stream function and velocity potential
-	\item Transform those to modifications in $\Delta u$ and $\Delta v$
-		and $\Delta h$
-	\item Compute $\Delta p$ using \ref{2111a} and \ref{2111b} or
-		\cite{Daley} variational analysis
-	\item Compute changes to $T$ using \ref{tchange}
-	\item Compute updated fields and iterate
+  \item \label{step1} Compute $\zeta$, $\delta$ and $h$ from the model
+    variables $u$, $v$, $T$, $p^{\ast}$ at time $t$ using
+    equation \ref{vorticity}, \ref{divergence} and
+    \ref{pseudogeop}
+  \item \label{step2} Compute $\hat{\zeta}$, $\hat{\delta}$, $\hat{h}$
+    from $\zeta$, $\delta$ and $h$ using \ref{hatz1}, \ref{hatz2}
+    and \ref{hatz3}
+  \item Compute the new values of the prognostic variables
+    $u$, $v$, $T$, $p^{\ast}$ at $t = t + \Delta t$ using
+    model dynamic and physic
+  \item Repeat the steps \ref{step1}, \ref{step2} for the new timestep
+  \item Compute the tendencies of $\hat{\zeta}$, $\hat{\delta}$, $\hat{h}$
+    using the two discrete timesteps and short timestep
+    $\hat{\Delta} t$ as in:
+    \begin{gather}
+      \frac{\partial \hat{\zeta}}{\partial t} = 
+      \left[ \frac{\left( \hat{\zeta}_{t+\hat{\Delta} t} -
+           \hat{\zeta}_t \right)}{\hat{\Delta} t} \right] \\
+      \frac{\partial \hat{\delta}}{\partial t} = 
+      \left[ \frac{\left( \hat{\delta}_{t+\hat{\Delta} t} -
+           \hat{\delta}_t \right)}{\hat{\Delta} t} \right] \\
+      \frac{\partial \hat{h}}{\partial t} = 
+      \left[ \frac{\left( \hat{h}_{t+\Delta t} -
+           \hat{h}_t \right)}{\hat{\Delta} t} \right]
+    \end{gather}
+  \item Compute the right hand side of \ref{to_be_iterated1},
+    \ref{to_be_iterated2}, \ref{to_be_iterated3}
+  \item Solve the equations \ref{to_be_iterated1}, \ref{to_be_iterated2}
+    for $\Delta \hat{\zeta}_i$ and $\Delta \hat{\delta}_i$
+  \item Compute $\Delta \hat{h}_i$ using \ref{to_be_iterated3}
+  \item Compute velocity modifications in terms of $\Delta \hat{\psi}$
+    and $\Delta \hat{\chi}$ corresponding to the computed
+    $\Delta \hat{\zeta}_i$ and $\Delta \hat{\delta}_i$ using the
+    definitions of stream function and velocity potential
+  \item Transform those to modifications in $\Delta u$ and $\Delta v$
+    and $\Delta h$
+  \item Compute $\Delta p$ using \ref{2111a} and \ref{2111b} or
+    \cite{Daley} variational analysis
+  \item Compute changes to $T$ using \ref{tchange}
+  \item Compute updated fields and iterate
 \end{enumerate}
 
 \newpage
@@ -591,81 +591,81 @@ equation no longer applies, thus the $DIV$ term appear in the equations
 \begin{gather}
 \label{non-hydro-eq-first}
 \frac{\partial{p^{\ast} u}}{\partial{t}} = -m^2 \left[ 
-	\frac{\partial{p^{\ast} uu/m}}{\partial{x}} + 
+  \frac{\partial{p^{\ast} uu/m}}{\partial{x}} + 
 \frac{\partial{p^{\ast} vu/m}}{\partial{y}}\right] -
-	\frac{\partial{p^{\ast} u \dot{\sigma}}}{\partial{\sigma}} + 
-	uDIV \\ \nonumber
-	-\frac{mp^{\ast}}{\rho} \left[
-		\frac{\partial{p^\prime}}{\partial{x}} -
-		\frac{\sigma}{p^{\ast}}
-		\frac{\partial{p^{\ast}}}{\partial{x}}
-	        \frac{\partial{p^\prime}}{\partial{\sigma}}\right] +
-	p^{\ast}fv - p^{\ast} ew \cos\theta + D_u  \\
+  \frac{\partial{p^{\ast} u \dot{\sigma}}}{\partial{\sigma}} + 
+  uDIV \\ \nonumber
+  -\frac{mp^{\ast}}{\rho} \left[
+    \frac{\partial{p^\prime}}{\partial{x}} -
+    \frac{\sigma}{p^{\ast}}
+    \frac{\partial{p^{\ast}}}{\partial{x}}
+          \frac{\partial{p^\prime}}{\partial{\sigma}}\right] +
+  p^{\ast}fv - p^{\ast} ew \cos\theta + D_u  \\
 \frac{\partial{p^{\ast} v}}{\partial{t}}= -m^2 \left[ 
-	\frac{\partial{p^{\ast} uv/m}}{\partial{x}} + 
-	\frac{\partial{p^{\ast} vv/m}}{\partial{y}}\right] -
-	\frac{\partial{p^{\ast} v \dot{\sigma}}}{\partial{\sigma}}+ 
-	vDIV \\ \nonumber
-	-\frac{mp^{\ast}}{\rho} \left[
-		\frac{\partial{p^\prime}}{\partial{y}} -
-		\frac{\sigma}{p^{\ast}}
-		\frac{\partial{p^{\ast}}}{\partial{y}}
-		\frac{\partial{p^\prime}}{\partial{\sigma}} \right] -
-	p^{\ast}fu + p^{\ast} ew \sin\theta + D_v \\
+  \frac{\partial{p^{\ast} uv/m}}{\partial{x}} + 
+  \frac{\partial{p^{\ast} vv/m}}{\partial{y}}\right] -
+  \frac{\partial{p^{\ast} v \dot{\sigma}}}{\partial{\sigma}}+ 
+  vDIV \\ \nonumber
+  -\frac{mp^{\ast}}{\rho} \left[
+    \frac{\partial{p^\prime}}{\partial{y}} -
+    \frac{\sigma}{p^{\ast}}
+    \frac{\partial{p^{\ast}}}{\partial{y}}
+    \frac{\partial{p^\prime}}{\partial{\sigma}} \right] -
+  p^{\ast}fu + p^{\ast} ew \sin\theta + D_v \\
 \frac{\partial{p^{\ast} w}}{\partial{t}} = -m^2 \left[ 
-	\frac{\partial{p^{\ast} uw/m}}{\partial{x}} + 
-	\frac{\partial{p^{\ast} vw/m}}{\partial{y}}\right] -
-	\frac{\partial{p^{\ast} w \dot{\sigma}}}{\partial{\sigma}} + 
-	wDIV \\ \nonumber
-	+ p^{\ast}g\frac{\rho_0}\rho{}\left[
-		\frac{1}{p^{\ast}}
-		\frac{\partial{p^\prime}}{\partial{\sigma}} +
-		\frac{T^{\prime}_{v}}{T} -
-		\frac{T_0 p^\prime}{Tp_0} \right]
-	-p^{\ast} g \left[\left(q_c+q_r\right)\right] \\ \nonumber
-	+ p^{\ast} e \left( u\cos\theta - v\sin\theta \right) + D_w \\
+  \frac{\partial{p^{\ast} uw/m}}{\partial{x}} + 
+  \frac{\partial{p^{\ast} vw/m}}{\partial{y}}\right] -
+  \frac{\partial{p^{\ast} w \dot{\sigma}}}{\partial{\sigma}} + 
+  wDIV \\ \nonumber
+  + p^{\ast}g\frac{\rho_0}\rho{}\left[
+    \frac{1}{p^{\ast}}
+    \frac{\partial{p^\prime}}{\partial{\sigma}} +
+    \frac{T^{\prime}_{v}}{T} -
+    \frac{T_0 p^\prime}{Tp_0} \right]
+  -p^{\ast} g \left[\left(q_c+q_r\right)\right] \\ \nonumber
+  + p^{\ast} e \left( u\cos\theta - v\sin\theta \right) + D_w \\
 \frac{\partial{p^{\ast} p^\prime}}{\partial{t}} = -m^2 \left[ 
-	\frac{\partial{p^{\ast} up^\prime/m}}{\partial{x}} + 
-	\frac{\partial{p^{\ast} vp^\prime/m}}{\partial{y}}\right] -
-	\frac{\partial{p^{\ast} p^\prime \dot{\sigma}}}{\partial{\sigma}} + 
-	p^{\prime}DIV \\ \nonumber
-	- m^2 p^{\ast} \gamma p \left[
-		\frac{\partial{u/m}}{\partial{x}} -
-		\frac{\sigma}{mp^{\ast}}
-		\frac{\partial{p^{\ast}}}{\partial{x}}
-		\frac{\partial{u}}{\partial{\sigma}} + 
-		\frac{\partial{v/m}}{\partial{y}} -
-		\frac{\sigma}{mp^{\ast}}
-		\frac{\partial{p^{\ast}}}{\partial{y}}
-		\frac{\partial{v}}{\partial{\sigma}} \right] \\ \nonumber
-	+ \rho_0 g \gamma p \frac{\partial{w}}{\partial{\sigma}} +
-	p^{\ast} \rho_0 gw \\
+  \frac{\partial{p^{\ast} up^\prime/m}}{\partial{x}} + 
+  \frac{\partial{p^{\ast} vp^\prime/m}}{\partial{y}}\right] -
+  \frac{\partial{p^{\ast} p^\prime \dot{\sigma}}}{\partial{\sigma}} + 
+  p^{\prime}DIV \\ \nonumber
+  - m^2 p^{\ast} \gamma p \left[
+    \frac{\partial{u/m}}{\partial{x}} -
+    \frac{\sigma}{mp^{\ast}}
+    \frac{\partial{p^{\ast}}}{\partial{x}}
+    \frac{\partial{u}}{\partial{\sigma}} + 
+    \frac{\partial{v/m}}{\partial{y}} -
+    \frac{\sigma}{mp^{\ast}}
+    \frac{\partial{p^{\ast}}}{\partial{y}}
+    \frac{\partial{v}}{\partial{\sigma}} \right] \\ \nonumber
+  + \rho_0 g \gamma p \frac{\partial{w}}{\partial{\sigma}} +
+  p^{\ast} \rho_0 gw \\
 \label{non-hydro-eq-last}
 \frac{\partial{p^{\ast} T}}{\partial{t}} = -m^2 \left[
-	\frac{\partial{p^{\ast} uT/m}}{\partial{x}} +
-	\frac{\partial{p^{\ast} vT/m}}{\partial{y}} \right] -
-	\frac{\partial{p^{\ast} T \dot{\sigma}}}{\partial{\sigma}} +
-	TDIV \\ \nonumber
-	+\frac{1}{\rho c_p}\left[p^{\ast}\frac{Dp^{\prime}}{Dt} -
-	\rho_0gp^{\ast}w -D_{p^\prime}\right] +
-	p^{\ast}\frac{\dot{Q}}{c_p} +D_T
+  \frac{\partial{p^{\ast} uT/m}}{\partial{x}} +
+  \frac{\partial{p^{\ast} vT/m}}{\partial{y}} \right] -
+  \frac{\partial{p^{\ast} T \dot{\sigma}}}{\partial{\sigma}} +
+  TDIV \\ \nonumber
+  +\frac{1}{\rho c_p}\left[p^{\ast}\frac{Dp^{\prime}}{Dt} -
+  \rho_0gp^{\ast}w -D_{p^\prime}\right] +
+  p^{\ast}\frac{\dot{Q}}{c_p} +D_T
 \end{gather}
 
 where:
 
 \begin{eqnarray}
-	DIV = m^2 \left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} +
-		\frac{\partial{p^{\ast} v/m}}{\partial{y}} \right] +
-		\frac{\partial{p^{\ast} \dot{\sigma}}}{\partial{\sigma}} \\
+  DIV = m^2 \left[ \frac{\partial{p^{\ast}u/m}}{\partial{x}} +
+    \frac{\partial{p^{\ast} v/m}}{\partial{y}} \right] +
+    \frac{\partial{p^{\ast} \dot{\sigma}}}{\partial{\sigma}} \\
   \dot{\sigma} = - \frac{\rho_0g}{p^{\ast}}w -
                    \frac{m\sigma}{p^{\ast}}
-		   \frac{\partial{p^{\ast}}}{\partial{x}}u -
-		   \frac{m\sigma}{p^{\ast}}
-		   \frac{\partial{p^{\ast}}}{\partial{y}} v \\
+       \frac{\partial{p^{\ast}}}{\partial{x}}u -
+       \frac{m\sigma}{p^{\ast}}
+       \frac{\partial{p^{\ast}}}{\partial{y}} v \\
    \tan \theta = - \cos \phi \frac{\partial{\lambda}/ \partial{y}}
-				  {\partial{\phi}/ \partial{x}} \\ \nonumber
-				 \phi = latitude \\ \nonumber
-				 \lambda = longitude \\
+          {\partial{\phi}/ \partial{x}} \\ \nonumber
+         \phi = latitude \\ \nonumber
+         \lambda = longitude \\
    \gamma = c_p / c_v
 \end{eqnarray}
 
@@ -677,29 +677,29 @@ equations contain only interactions between momentum and pressure:
 
 \begin{gather}
 \frac{\partial{u}}{\partial{t}} + \frac{m}{\rho} \left[
-		\frac{\partial{p^\prime}}{\partial{x}} -
-		\frac{\sigma}{p^{\ast}}
-		\frac{\partial{p^\ast}}{\partial{x}}
-		\frac{\partial{p^\prime}}{\partial{\sigma}} \right] = S_u \\
+    \frac{\partial{p^\prime}}{\partial{x}} -
+    \frac{\sigma}{p^{\ast}}
+    \frac{\partial{p^\ast}}{\partial{x}}
+    \frac{\partial{p^\prime}}{\partial{\sigma}} \right] = S_u \\
 \frac{\partial{v}}{\partial{t}} + \frac{m}{\rho} \left[
-		\frac{\partial{p^\prime}}{\partial{y}} -
-		\frac{\sigma}{p^{\ast}}
-		\frac{\partial{p^\ast}}{\partial{y}}
-		\frac{\partial{p^\prime}}{\partial{\sigma}} \right] = S_v \\
+    \frac{\partial{p^\prime}}{\partial{y}} -
+    \frac{\sigma}{p^{\ast}}
+    \frac{\partial{p^\ast}}{\partial{y}}
+    \frac{\partial{p^\prime}}{\partial{\sigma}} \right] = S_v \\
 \frac{\partial{w}}{\partial{t}} - \frac{\rho_0}{\rho} 
-	\frac{g}{p^\ast}\frac{\partial{p^\prime}}{\partial{\sigma}} +
-	\frac{g}{\gamma} \frac{p^\prime}{p} = S_w \\
+  \frac{g}{p^\ast}\frac{\partial{p^\prime}}{\partial{\sigma}} +
+  \frac{g}{\gamma} \frac{p^\prime}{p} = S_w \\
 \frac{\partial{p^\prime}}{\partial{t}} + m^2 \gamma p \left[
-	  \frac{\partial{u/m}}{\partial{x}} -
-	  \frac{\sigma}{mp^\ast}
-	  \frac{\partial{p^\ast}}{\partial{x}}
-	  \frac{\partial{u}}{\partial{\sigma}} +
-	  \frac{\partial{v/m}}{\partial{y}} -
-	  \frac{\sigma}{mp^\ast}
-	  \frac{\partial{p^\ast}}{\partial{y}}
-	  \frac{\partial{v}}{\partial{\sigma}} \right] -
-	  \frac{\rho_0 g \gamma p}{p^\ast}
-	  \frac{\partial{w}}{\partial{\sigma}} - \rho_0 gw = S_{p^\prime}
+    \frac{\partial{u/m}}{\partial{x}} -
+    \frac{\sigma}{mp^\ast}
+    \frac{\partial{p^\ast}}{\partial{x}}
+    \frac{\partial{u}}{\partial{\sigma}} +
+    \frac{\partial{v/m}}{\partial{y}} -
+    \frac{\sigma}{mp^\ast}
+    \frac{\partial{p^\ast}}{\partial{y}}
+    \frac{\partial{v}}{\partial{\sigma}} \right] -
+    \frac{\rho_0 g \gamma p}{p^\ast}
+    \frac{\partial{w}}{\partial{\sigma}} - \rho_0 gw = S_{p^\prime}
 \end{gather}
 
 with $\gamma$ the ratio of the specific heats at constant pressure and volume.
@@ -710,7 +710,26 @@ The step only depends on the horizontal grid size.
 
 \subsection{Non-hydrostatic dynamical core with height vertical coordinate}
 
-This dynamical core uses 
+Given the definizion of the $\zeta$ vertical coordinate in \ref{h_coordinate},
+the factor to transform the vertical derivatives in the new coordinate system
+is thus:
+
+\begin{eqnarray}
+\sigma &=& 1 - \frac{\zeta}{H} \\
+F_z &=& \frac{\partial \zeta}{\partial z} =
+  \frac{\sigma}{B + h \frac{dG}{d\zeta}\sigma - H\sigma ln(\sigma)
+  \frac{dB}{d\zeta}}
+\end{eqnarray}
+
+which allows for the generalized vertical velocity to be expressed as:
+
+\begin{equation}
+\dot{\zeta} = s = F_z \left[ w - 
+              \left( u \frac{\partial h}{\partial x} +
+                     v \frac{\partial h}{\partial y} \right) G \right]
+\end{equation}
+
+The model basic equation in 
 
 \section{Physics parametrizations} \label{sec:physics}
 
@@ -1381,7 +1400,8 @@ $Cevap$ lead to decreased precipitation amounts.
 
 \subsection{The new cloud microphysics scheme}
 
-The new scheme is built upon the European Centre for Medium Weather Forecast's Integrated Forecast System (IFS) (\citet{tiedtke:93}, \citet{tompkins:07}), \citet{nogherotto:14}. \\
+The new scheme is built upon the European Centre for Medium Weather Forecast's Integrated Forecast System (IFS) (\citet{tiedtke:93}, \citet{tompkins:07}),
+\citet{gmd-9-2533-2016}. \\
 In the new scheme some important achievement have been added:
 \begin{itemize}
 \item Liquid and ice water content are independent, allowing the existence of supercooled liquid water and mixed-phase cloud.

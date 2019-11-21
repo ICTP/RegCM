@@ -38,8 +38,8 @@ with an algorithm for reducing horizontal diffusion in the presence of steep
 topographical gradients \citep{Giorgi_93,Giorgi_93b}.
 
 As a result, the dynamical core of the \ac{RegCM} is similar to that of the
-hydrostatic version of \ac{MM5} \citep{Grell_94}: the \ac{RegCM}4 is thus a
-hydrostatic, compressible, sigma-p vertical coordinate model run on an
+hydrostatic version of \ac{MM5} \citep{Grell_94}: the \ac{RegCM}4 
+hydrostatic is thus a compressible, sigma-p vertical coordinate model run on an
 Arakawa B-grid in which wind and thermodynamical variables are horizontally
 staggered using a time-splitting explicit integration scheme in which the two
 fastest gravity modes are first separated from the model solution and then
@@ -153,31 +153,75 @@ in the \ac{BATS1e}.
 The Hydrostatic dynamical core was flanked in 2013-2015 by the \ac{MM5}
 non-hydrostatic equations dynamical core, together with ice phase permitting
 microphysical options, numerous bouquet state-of-the-art convective and
-boundary layer schemes, an interface to the \ac{CLM4.5} surface model and
-gas phase chemistry.
+boundary layer schemes, an interface to the \ac{CLM} version 4.5 surface model
+and gas phase chemistry.
 
 The 2020 release sees the addition of the \ac{MOLOCH} non hydrostatic
-height based vertical coordinates dynamical core.
+dynamical core on terrain following $H$ vertical coordinate model on an
+Arakawa C-grid in which wind and thermodynamical variables are horizontally
+staggered with an implicit, Euler-backward time integration scheme for the
+propagation of sound waves, a time integration of the horizontal momentum
+equations with a second order forward-backward scheme, total variation
+diminishing advection contribution subtraction with a longer time step and
+physical parametrizations contribution computation with the user selected
+time step.
 
 \section{Model components}
 
 The \ac{RegCM} modeling system has four components: Terrain, ICBC, \ac{RegCM},
 and Postprocessor.  Terrain and ICBC are the two components of \ac{RegCM}
 preprocessor. Terrestrial variables (including elevation, landuse and sea
-surface temperature) and three-dimensional isobaric meteorological data are
+surface temperature) and three-dimensional meteorological data are
 horizontally interpolated from a latitude-longitude mesh to a high-resolution
-domain on either a Rotated (and Normal) Mercator, Lambert Conformal, or Polar
-Stereographic projection. Vertical interpolation from pressure levels to the
-$\sigma$ coordinate system of \ac{RegCM} is also performed. $\sigma$ surfaces
-near the ground closely follow the terrain, and the higher-level $\sigma$
-surfaces tend to approximate isobaric surfaces. 
+domain on either a Normal or Rotated Mercator, Lambert Conformal, or Polar
+Stereographic Projection. Vertical interpolation from \ac{GCM} levels to the
+vertical coordinate system of \ac{RegCM} is also performed.
 
 Since the vertical and horizontal resolution and domain size can vary, the
 modeling package programs employ parameterized dimensions requiring a variable
 amount of core memory, and the requisite hard-disk storage amount is varied
 accordingly.
 
-\section{The \ac{RegCM} Model Horizontal and Vertical Grid}
+\section{The \ac{RegCM} Model Horizontal Grid}
+
+\subsection{Horizontal Arakawa-B Grid}
+
+\begin{figure}
+\begin{center}
+\resizebox{5.5in}{!}{\includegraphics{grid2.eps}}
+\caption{Schematic representation showing the horizontal Arakawa B-grid
+staggering of the dot and cross grid points.}
+\label{grid}
+\end{center}
+\end{figure}
+
+The horizontal grid has an Arakawa-Lamb B-staggering of the velocity variables
+with respect to the scalar variables. This is shown in Figure~\ref{grid} where
+it can be seen that the scalars (T, q, p, etc) are defined at the center of the
+grid box, while the eastward (u) and northward (v) velocity components are
+collocated at the corners. The center points of grid squares will be referred to
+as cross points, and the corner points are dot points.  Hence horizontal
+velocity is defined at dot points. Data is input to the model, the preprocessors
+do the necessary interpolation to assure consistency with the grid.
+
+The finite differencing in the model is, of course, crucially dependent upon the
+grid staggering wherever gradients or averaging are represented terms in the
+equation.
+
+\subsection{Horizontal Arakawa-C Grid}
+
+\section{The \ac{RegCM} Model Vertical Grid}
+
+All the status variables are defined in the middle of each model vertical layer,
+referred to as half-levels and represented by the dashed lines in
+Figure~\ref{sigma_levels}. Vertical velocity is carried instead at the full
+levels (solid lines).
+
+In defining the sigma levels it is the full levels that are
+listed, including levels at $\sigma$ = 0 and 1. The number of model layers is
+therefore always one less than the number of full sigma levels.
+
+\subsection{Pressure based Vertical Coordinates}
 
 \begin{figure}
 \resizebox{6.45in}{!}
@@ -189,17 +233,17 @@ Modeling System Tutorial Class Notes and User's Guide.)}
 \label{sigma_levels}
 \end{figure}
 
-It is useful to first introduce the model's grid configuration. The modeling
-system usually gets and analyzes its data on pressure surfaces, but these have
-to be interpolated to the model's vertical coordinate before input to the model.
-The vertical coordinate is terrain-following (Figure~\ref{sigma_levels}) meaning
-that the lower grid levels follow the terrain while the upper surface is
-flatter. Intermediate levels progressively flatten as the pressure decreases
+The vertical coordinate for the \ac{MM5} derived dynamical cores are
+terrain-following (Figure~\ref{sigma_levels}) pressure, meaning
+that the lower grid levels follow the terrain, while the topmost surface is
+flat with user imposed configurable top rigid lid pressure.
+Intermediate levels progressively flatten as the pressure decreases
 toward the top of the model. 
 
-The Hydrostatic solver uses A dimensionless $\sigma$ coordinate to
+The Hydrostatic solver uses a dimensionless $\sigma$ coordinate to
 define the model levels where $p$ is the pressure, $p_t$ is a specified
 constant top pressure, $p_s$ is the surface pressure.
+
 \begin{eqnarray}
   \sigma = {(p - p_t) \over (p_s - p_t)}
 \end{eqnarray}
@@ -210,7 +254,7 @@ where we can define:
   p^*(x,y) = p_s(x,y) - p_t
 \end{eqnarray}
 
-For the Non-hydrostatic solver a similar dimensionless coordinate is used,
+For the Non-hydrostatic solver, a similar dimensionless coordinate is used,
 but it is defined entirely from the reference pressure. Given a reference
 atmospheric profile:
 
@@ -243,34 +287,39 @@ between zero and one that do not necessarily have to be evenly spaced. Commonly
 the resolution in the boundary layer is much finer than above, and the number of
 levels may vary upon the user demand.
 
-\begin{figure}
-\begin{center}
-\resizebox{5.5in}{!}{\includegraphics{grid2.eps}}
-\caption{Schematic representation showing the horizontal Arakawa B-grid
-staggering of the dot and cross grid points.}
-\label{grid}
-\end{center}
-\end{figure}
+\subsection{$H$ based Vertical Coordinate}
+\label{h_coordinate}
 
-The horizontal grid has an Arakawa-Lamb B-staggering of the velocity variables
-with respect to the scalar variables. This is shown in Figure~\ref{grid} where
-it can be seen that the scalars (T, q, p, etc) are defined at the center of the
-grid box, while the eastward (u) and northward (v) velocity components are
-collocated at the corners. The center points of grid squares will be referred to
-as cross points, and the corner points are dot points.  Hence horizontal
-velocity is defined at dot points. Data is input to the model, the preprocessors
-do the necessary interpolation to assure consistency with the grid.
+The \ac{MOLOCH} dynamical core uses a terrain following $H$ coordinate
+$\zeta$ which transform the semi-infinite z interval $[h, \infty)$ into the
+finite interval $[0,H]$ and is defined as:
 
-All the above variables are defined in the middle of each model vertical layer,
-referred to as half-levels and represented by the dashed lines in
-Figure~\ref{sigma_levels}. Vertical velocity is carried at the full levels
-(solid lines). In defining the sigma levels it is the full levels that are
-listed, including levels at $\sigma$ = 0 and 1. The number of model layers is
-therefore always one less than the number of full sigma levels.
+\begin{equation}
+\zeta = H \left( 1 - e^{-\frac{z - G(\zeta)h(x,y)}{B(\zeta) H}} \right)
+\end{equation}
 
-The finite differencing in the model is, of course, crucially dependent upon the
-grid staggering wherever gradients or averaging are represented terms in the
-equation.
+where $h(x,y)$ is the local topography and $G(\zeta)$ and $B(\zeta)$ have the
+following analythical formulation:
+
+\begin{eqnarray}
+G(\zeta) &=& 1 - a_0 \frac{\zeta}{H} -
+       (3 - 2 a_0)\left( \frac{\zeta}{H} \right)^2 +
+       (2 - a_0) \left( \frac{\zeta}{H} \right)^3 \\
+B(\zeta) &=& b_0 + (1-b_0) \frac{\zeta}{H}
+\end{eqnarray}
+
+where $H$ is the scale height of the atmosphere defined as function of
+reference climatological surface temperature $T_0$ as:
+
+\begin{equation}
+H = R_d T_0 / g
+\end{equation}
+
+and the $a_0$ and $b_0$ are configurable constant parameters with:
+
+\begin{equation}
+0 \le a_0 \le 1 \quad , \quad 0 \le b_0 \le 1
+\end{equation}
 
 \section{Map Projections and Map-Scale Factors}
 The modeling system has a
