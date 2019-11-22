@@ -245,13 +245,15 @@ therefore always one less than the number of full sigma levels.
 \subsection{Pressure based Vertical Coordinates}
 
 \begin{figure}
-\resizebox{6.45in}{!}
+\begin{center}
+\resizebox{3.5in}{!}
 {\includegraphics{sigma_levels.eps}}
-\caption{Schematic representation of the vertical structure of the model.
-This example is for 16 vertical layers. Dashed lines denote half-sigma levels,
-solid lines denote full-sigma levels. (Adapted from the PSU/NCAR Mesoscale
-Modeling System Tutorial Class Notes and User's Guide.)}
+\caption{Schematic representation of the vertical structure of the pressure
+based levels of the model.
+This example is for $KZ$ vertical layers. Dashed lines denote full-sigma levels,
+solid lines denote half-sigma levels.}
 \label{sigma_levels}
+\end{center}
 \end{figure}
 
 The vertical coordinate for the \ac{MM5} derived dynamical cores are
@@ -311,9 +313,21 @@ levels may vary upon the user demand.
 \subsection{$H$ based Vertical Coordinate}
 \label{h_coordinate}
 
+\begin{figure}
+\begin{center}
+\resizebox{3.5in}{!}
+{\includegraphics{moloch_levels.eps}}
+\caption{Schematic representation of the vertical structure of the $H$
+based levels of the model.
+This example is for $KZ$ vertical layers. Dashed lines denote full-sigma levels,
+solid lines denote half-sigma levels.}
+\label{moloch_levels}
+\end{center}
+\end{figure}
+
 The \ac{MOLOCH} dynamical core uses a terrain following $H$ coordinate
-$\zeta$ which transform the semi-infinite z interval $[h, \infty)$ into the
-finite interval $[0,H]$ and is defined as:
+$\zeta$ (Figure~\ref{moloch_levels}) which transform the semi-infinite z
+interval $[h, \infty)$ into the finite interval $[0,H]$ and is defined as:
 
 \begin{equation}
 \zeta = H \left( 1 - e^{-\frac{z - G(\zeta)h(x,y)}{B(\zeta) H}} \right)
