@@ -184,31 +184,52 @@ accordingly.
 
 \section{The \ac{RegCM} Model Horizontal Grid}
 
-\subsection{Horizontal Arakawa-B Grid}
+The finite differencing in the model is, of course, crucially dependent upon the
+grid staggering wherever gradients or averaging are represented terms in the
+model equations.
+
+\subsection{\ac{MM5} Horizontal Arakawa-B Grid}
+
+The horizontal grid has an Arakawa-Lamb B-staggering of the velocity variables
+with respect to the scalar variables. This is shown in Figure~\ref{mm5_grid}
+where it can be seen that the scalars ($T,Q,p$, etc) are defined at the center
+of the grid box, while the eastward ($U$) and northward ($V$) velocity
+components are collocated at the corners.
+The center points of grid squares will be referred to as cross points, and the
+corner points are dot points.  Hence horizontal velocity is defined at dot
+points. Data is input to the model, the preprocessors
+do the necessary interpolation to assure consistency with the grid.
+
+\subsection{Horizontal Arakawa-C Grid}
+
+The horizontal grid has an Arakawa C-staggering of the velocity variables
+with respect to the scalar variables. This is shown in Figure~\ref{mo_grid}
+where it can be seen that the scalars ($T,Q,p$, etc) are defined at the center
+of the grid box, while the eastward ($U$) and northward ($V$) velocity
+components are collocated at the corners but not co-located.
+The center points of grid squares will be referred to as cross points, and the
+corner points are dot-U and dot-V points.
+Data is input to the model, the preprocessors
+do the necessary interpolation to assure consistency with the grid.
 
 \begin{figure}
 \begin{center}
-\resizebox{5.5in}{!}{\includegraphics{grid2.eps}}
+\resizebox{3.5in}{!}{\includegraphics{mm5_grid2.eps}}
 \caption{Schematic representation showing the horizontal Arakawa B-grid
-staggering of the dot and cross grid points.}
-\label{grid}
+staggering of the dot ($U,V$) and cross ($T,Q,\dots$) grid points.}
+\label{mm5_grid}
 \end{center}
 \end{figure}
 
-The horizontal grid has an Arakawa-Lamb B-staggering of the velocity variables
-with respect to the scalar variables. This is shown in Figure~\ref{grid} where
-it can be seen that the scalars (T, q, p, etc) are defined at the center of the
-grid box, while the eastward (u) and northward (v) velocity components are
-collocated at the corners. The center points of grid squares will be referred to
-as cross points, and the corner points are dot points.  Hence horizontal
-velocity is defined at dot points. Data is input to the model, the preprocessors
-do the necessary interpolation to assure consistency with the grid.
-
-The finite differencing in the model is, of course, crucially dependent upon the
-grid staggering wherever gradients or averaging are represented terms in the
-equation.
-
-\subsection{Horizontal Arakawa-C Grid}
+\begin{figure}
+\begin{center}
+\resizebox{3.7in}{!}{\includegraphics{moloch_grid2.eps}}
+\caption{Schematic representation showing the horizontal Arakawa C-grid
+staggering of the dot-$U$ (green), dot-$V$ (blue) and cross ($T,Q,\dots$)
+grid points.}
+\label{mo_grid}
+\end{center}
+\end{figure}
 
 \section{The \ac{RegCM} Model Vertical Grid}
 
