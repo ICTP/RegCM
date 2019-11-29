@@ -100,7 +100,7 @@ program terrain
   integer(ik4) :: i , j , k , ierr , ism , mmx
   integer(ik4) :: year , month , day , hour
   logical :: ibndry
-  real(rkx) :: clong , dsinm , dsnsg
+  real(rkx) :: clong , dsnsg
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
@@ -122,9 +122,9 @@ program terrain
   ! 3 : most present for classes
   ! 4 : mean of central 50% after median filtering
 
-  integer(ik4) :: topo_resamp_method = 4
-  integer(ik4) :: class_resamp_method = 3
-  integer(ik4) :: moisture_resamp_method = 1
+  integer(ik4) , parameter :: topo_resamp_method = 4
+  integer(ik4) , parameter :: class_resamp_method = 3
+  integer(ik4) , parameter :: moisture_resamp_method = 1
 
   ! INTERPOLATION METHODS
   ! 1 : bilinear interpolation
@@ -134,10 +134,13 @@ program terrain
   ! 5 : percent of most represented classes
   ! 6 : distance weigth with roidem radius in ds units
 
-  integer(ik4) :: topo_interp_method = 6
-  integer(ik4) :: class_interp_method = 4
-  integer(ik4) :: percent_interp_method = 5
-  integer(ik4) :: moist_interp_method = 1
+  integer(ik4) , parameter :: topo_interp_method = 6
+  integer(ik4) , parameter :: class_interp_method = 4
+  integer(ik4) , parameter :: percent_interp_method = 5
+  integer(ik4) , parameter :: moist_interp_method = 1
+
+  type(regcm_projection) :: pjx , pjd , pju , pjv
+  type(anyprojparams) :: pjpara
 
 #ifdef PNETCDF
   call mpi_init(ierr)
@@ -199,8 +202,16 @@ program terrain
   if ( clong>180. ) clong = clong - 360.
   if ( clong<=-180. ) clong = clong + 360.
 
-  if ( nsg > 1 ) then
+  pjpara%pcode = iproj
+  pjpara%clat = clat
+  pjpara%clon = clon
+  pjpara%plat = plat
+  pjpara%plon = plon
+  pjpara%trlat1 = truelatl
+  pjpara%trlat2 = truelath
+  pjpara%rotparam = .false.
 
+  if ( nsg > 1 ) then
     write (stdout,*) ''
     write (stdout,*) 'Doing Horizontal Subgrid with following parameters'
     write (stdout,*) 'iy     = ' , iysg
@@ -210,76 +221,38 @@ program terrain
     write (stdout,*) 'clon   = ' , clong
     write (stdout,*) 'iproj  = ' , iproj
     dsnsg = (ds/real(nsg,rkx))
-    dsinm = dsnsg*d_1000
     write(stdout,*) 'Subgrid setup done'
 
-    if ( iproj=='LAMCON' ) then
-      call lambrt(xlon_s,xlat_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
-      if ( idynamic == 3 ) then
-        call lambrt(ulon_s,ulat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,0,1,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
-        call lambrt(vlon_s,vlat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,1,0,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
-      else
-        call lambrt(dlon_s,dlat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,1,1,xcone,truelatl,truelath,cntri*nsg,cntrj*nsg)
-      end if
-    else if ( iproj=='POLSTR' ) then
-      call mappol(xlon_s,xlat_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0,0,cntri*nsg,cntrj*nsg)
-      if ( idynamic == 3 ) then
-        call mappol(ulon_s,ulat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,0,1,cntri*nsg,cntrj*nsg)
-        call mappol(vlon_s,vlat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,1,0,cntri*nsg,cntrj*nsg)
-      else
-        call mappol(dlon_s,dlat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,1,1,cntri*nsg,cntrj*nsg)
-      end if
-      xcone = d_one
-    else if ( iproj=='NORMER' ) then
-      call normer(xlon_s,xlat_s,jxsg,iysg,clong,    &
-                  clat,dsinm,0,0,cntri*nsg,cntrj*nsg)
-      if ( idynamic == 3 ) then
-        call normer(ulon_s,ulat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,0,1,cntri*nsg,cntrj*nsg)
-        call normer(vlon_s,vlat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,1,0,cntri*nsg,cntrj*nsg)
-      else
-        call normer(dlon_s,dlat_s,jxsg,iysg,clong,    &
-                    clat,dsinm,1,1,cntri*nsg,cntrj*nsg)
-      end if
-      xcone = d_zero
-    else if ( iproj=='ROTMER' ) then
-      call rotmer(xlon_s,xlat_s,jxsg,iysg,clon,     &
-                  clat,plon,plat,dsinm,0,0,cntri*nsg,cntrj*nsg)
-      if ( idynamic == 3 ) then
-        call rotmer(ulon_s,ulat_s,jxsg,iysg,clon,     &
-                    clat,plon,plat,dsinm,0,1,cntri*nsg,cntrj*nsg)
-        call rotmer(vlon_s,vlat_s,jxsg,iysg,clon,     &
-                    clat,plon,plat,dsinm,1,0,cntri*nsg,cntrj*nsg)
-      else
-        call rotmer(dlon_s,dlat_s,jxsg,iysg,clon,     &
-                    clat,plon,plat,dsinm,1,1,cntri*nsg,cntrj*nsg)
-      end if
-      xcone = d_zero
-    else
-      write (stderr,*) 'iproj = ', iproj
-      write (stderr,*) 'Unrecognized or unsupported projection'
-      write (stderr,*) 'Set iproj in LAMCON,POLSTR,NORMER,ROTMER'
-      call die('terrain')
-    end if
+    pjpara%ds = dsnsg*1000.0_rk8
+    pjpara%nlon = jxsg
+    pjpara%nlat = iysg
+    pjpara%staggerx = .false.
+    pjpara%staggery = .false.
+    call getcoord(pjpara,xlon_s,xlat_s,pjx,jxsg,iysg)
     if ( idynamic == 3 ) then
-      call corpar(xlat_s,coriol_s,jxsg,iysg)
-      call mapfac(xlat_s,xmap_s,jxsg,iysg,iproj)
-      call mapfac(ulat_s,umap_s,jxsg,iysg,iproj)
-      call mapfac(vlat_s,vmap_s,jxsg,iysg,iproj)
+      pjpara%staggerx = .true.
+      pjpara%staggery = .false.
+      call getcoord(pjpara,ulon_s,ulat_s,pju,jxsg,iysg)
+      pjpara%staggerx = .false.
+      pjpara%staggery = .true.
+      call getcoord(pjpara,vlon_s,vlat_s,pjv,jxsg,iysg)
     else
-      call mapfac(xlat_s,xmap_s,jxsg,iysg,iproj)
-      call mapfac(dlat_s,dmap_s,jxsg,iysg,iproj)
-      call corpar(dlat_s,coriol_s,jxsg,iysg)
+      pjpara%staggerx = .true.
+      pjpara%staggery = .true.
+      call getcoord(pjpara,dlon_s,dlat_s,pjd,jxsg,iysg)
     end if
+
+    if ( idynamic == 3 ) then
+      call mappar(pjx,xlat_s,xlon_s,xmap_s)
+      call mappar(pju,ulat_s,ulon_s,umap_s)
+      call mappar(pjv,vlat_s,vlon_s,vmap_s)
+      call corpar(xlat_s,coriol_s)
+    else
+      call mappar(pjx,xlat_s,xlon_s,xmap_s)
+      call mappar(pjd,dlat_s,dlon_s,dmap_s)
+      call corpar(dlat_s,coriol_s)
+    end if
+
     write(stdout,*) 'Subgrid Geo mapping done'
     !
     ! reduce the search area for the domain
@@ -443,71 +416,42 @@ program terrain
   write (stdout,*) 'clat   = ' , clat
   write (stdout,*) 'clon   = ' , clong
   write (stdout,*) 'iproj  = ' , iproj
-  dsinm = ds*d_1000
   write(stdout,*) 'Grid setup done'
   !
   ! calling the map projection subroutine
   !
-  if ( iproj=='LAMCON' ) then
-    call lambrt(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,xcone,  &
-                truelatl,truelath,cntri,cntrj)
-    if ( idynamic == 3 ) then
-      call lambrt(ulon,ulat,jx,iy,clong,clat,dsinm,0,1,xcone,  &
-                  truelatl,truelath,cntri,cntrj)
-      call lambrt(vlon,vlat,jx,iy,clong,clat,dsinm,1,0,xcone,  &
-                  truelatl,truelath,cntri,cntrj)
-    else
-      call lambrt(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,xcone,  &
-                  truelatl,truelath,cntri,cntrj)
-    end if
-  else if ( iproj=='POLSTR' ) then
-    call mappol(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,cntri,cntrj)
-    if ( idynamic == 3 ) then
-      call mappol(ulon,ulat,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
-      call mappol(vlon,vlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
-    else
-      call mappol(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,cntri,cntrj)
-    end if
-    xcone = d_one
-  else if ( iproj=='NORMER' ) then
-    call normer(xlon,xlat,jx,iy,clong,clat,dsinm,0,0,cntri,cntrj)
-    if ( idynamic == 3 ) then
-      call normer(ulon,ulat,jx,iy,clong,clat,dsinm,0,1,cntri,cntrj)
-      call normer(vlon,vlat,jx,iy,clong,clat,dsinm,1,0,cntri,cntrj)
-    else
-      call normer(dlon,dlat,jx,iy,clong,clat,dsinm,1,1,cntri,cntrj)
-    end if
-    xcone = d_zero
-  else if ( iproj=='ROTMER' ) then
-    call rotmer(xlon,xlat,jx,iy,clong,clat,plon,plat,   &
-                dsinm,0,0,cntri,cntrj)
-    if ( idynamic == 3 ) then
-      call rotmer(ulon,ulat,jx,iy,clong,clat,plon,plat,   &
-                  dsinm,0,1,cntri,cntrj)
-      call rotmer(vlon,vlat,jx,iy,clong,clat,plon,plat,   &
-                  dsinm,1,0,cntri,cntrj)
-    else
-      call rotmer(dlon,dlat,jx,iy,clong,clat,plon,plat,   &
-                  dsinm,1,1,cntri,cntrj)
-    end if
-    xcone = d_zero
-  else
-    write (stderr,*) 'iproj = ', iproj
-    write (stderr,*) 'Unrecognized or unsupported projection'
-    write (stderr,*) 'Set iproj in LAMCON, POLSTR, NORMER, ROTMER'
-    call die('terrain')
-  end if
+  pjpara%ds = ds*1000.0_rk8
+  pjpara%nlon = jx
+  pjpara%nlat = iy
+  pjpara%staggerx = .false.
+  pjpara%staggery = .false.
+  call getcoord(pjpara,xlon,xlat,pjx,jx,iy)
   if ( idynamic == 3 ) then
-    call corpar(xlat,coriol,jx,iy)
-    call mapfac(xlat,xmap,jx,iy,iproj)
-    call mapfac(ulat,umap,jx,iy,iproj)
-    call mapfac(vlat,vmap,jx,iy,iproj)
+    pjpara%staggerx = .true.
+    pjpara%staggery = .false.
+    call getcoord(pjpara,ulon,ulat,pju,jx,iy)
+    pjpara%staggerx = .false.
+    pjpara%staggery = .true.
+    call getcoord(pjpara,vlon,vlat,pjv,jx,iy)
   else
-    call mapfac(xlat,xmap,jx,iy,iproj)
-    call mapfac(dlat,dmap,jx,iy,iproj)
-    call corpar(dlat,coriol,jx,iy)
+    pjpara%staggerx = .true.
+    pjpara%staggery = .true.
+    call getcoord(pjpara,dlon,dlat,pjd,jx,iy)
   end if
+
+  if ( idynamic == 3 ) then
+    call mappar(pjx,xlat,xlon,xmap)
+    call mappar(pju,ulat,ulon,umap)
+    call mappar(pjv,vlat,vlon,vmap)
+    call corpar(xlat,coriol)
+  else
+    call mappar(pjx,xlat,xlon,xmap)
+    call mappar(pjd,dlat,dlon,dmap)
+    call corpar(dlat,coriol)
+  end if
+
   write(stdout,*) 'Geo mapping done'
+
   !
   ! reduce the search area for the domain
   !
@@ -1035,7 +979,7 @@ program terrain
         end do
       end do
       if ( ip > 0 ) then
-        xx(j,i) = sum(vals(1:ip))/real(ip,rk8)
+        xx(j,i) = real(sum(vals(1:ip))/real(ip,rk8),rkx)
         exit
       else
         il = il + 1
@@ -1043,7 +987,7 @@ program terrain
           write(stderr,*) 'At point lat = ',xlat(j,i)
           write(stderr,*) '         lon = ',xlon(j,i)
           write(stderr,*) 'Setting to default value '
-          xx(j,i) = (maxcc+mincc) * d_half
+          xx(j,i) = real((maxcc+mincc) * 0.5_rk8,rkx)
         end if
       end if
     end do

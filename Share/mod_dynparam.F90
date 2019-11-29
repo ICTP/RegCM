@@ -526,6 +526,11 @@ module mod_dynparam
       ierr = 3
       return
     end if
+    if ( iproj == 'ROTLLR' ) then
+      if ( ds < 0.0_rkx ) then
+        ds = -erkm*ds*degrad
+      end if
+    end if
     if ( cntri < 0.0_rkx ) then
       cntri = real(iy,rkx)/d_two
     end if
@@ -615,7 +620,7 @@ module mod_dynparam
       clon  = 180.0_rkx
     else
       if ( i_band.eq.1 ) then
-        ds = (2.0_rkx*mathpi*erkm)/real(jx,rkx)
+        ds = real((twopi*erkm)/real(jx,rk8),rkx)
         iproj = 'NORMER'
         clat  =   0.0_rkx
         clon  = 180.0_rkx

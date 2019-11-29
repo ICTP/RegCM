@@ -255,12 +255,12 @@ module mod_ch_fnest
         xsign = 1.0_rkx        ! NORTH HEMESPHERE
       end if
       if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
-        xcone_in = (log10(cos(trlat(1)*degrad))                    &
-                    -log10(cos(trlat(2)*degrad))) /                &
-                    (log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))  &
-                    -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
+        xcone_in = real((log10(cos(trlat(1)*degrad))                       &
+                    -log10(cos(trlat(2)*degrad))) /                        &
+                    (log10(tan((45.0_rk8-xsign*trlat(1)/2.0_rk8)*degrad))  &
+                    -log10(tan((45.0_rk8-xsign*trlat(2)/2.0_rk8)*degrad))),rkx)
       else
-        xcone_in = xsign*sin(real(trlat(1),rkx)*degrad)
+        xcone_in = real(xsign*sin(real(trlat(1),rk8)*degrad),rkx)
       end if
     else if ( iproj_in == 'POLSTR' ) then
       xcone_in = 1.0_rkx

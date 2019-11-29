@@ -51,7 +51,7 @@ program sigma2p
 
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
   real(rk4) , allocatable , dimension(:) :: sigma , ak , bk
-  real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar , tv
+  real(rk4) , allocatable , dimension(:,:,:) :: tmpvar , qvar , hzvar
   real(rk4) , allocatable , dimension(:,:,:) :: pp , press , zeta , pai
   real(rk4) , allocatable , save , dimension(:,:,:) :: pvar , xvar
   real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0

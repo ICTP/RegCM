@@ -293,7 +293,7 @@ module mod_params
     rayalpha0 = 0.001_rkx
     rayhd = 10000.0_rkx
     mo_anu2 = 0.6_rkx
-    mo_nadv = 1
+    mo_nadv = 3
     mo_nsound = 6
     mo_nzfilt = 3
     !
@@ -2037,7 +2037,7 @@ module mod_params
       write(stdout,'(a,f11.6,a)') '  Model Grid Spacing    : ',ds,' km'
       write(stdout,'(a,f11.6,a)') '  Proj Center Latitude  : ',clat,' deg'
       write(stdout,'(a,f11.6,a)') '  Proj Center longitude : ',clon,' deg'
-      if ( iproj == 'ROTMER' ) then
+      if ( iproj == 'ROTMER' .or. iproj == 'ROTLLR' ) then
         write(stdout,'(a,f11.6,a)') '  Pole Latitude         : ',plat,' deg'
         write(stdout,'(a,f11.6,a)') '  Pole longitude        : ',plon,' deg'
       else if ( iproj == 'LAMCON' ) then

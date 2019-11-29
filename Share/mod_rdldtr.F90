@@ -848,12 +848,12 @@ module mod_rdldtr
     rglat = 1e-20_rkx
     rglon = 1e-20_rkx
     do i = 1 , nlat
-      rglat(i) = glat(gfile%gdomain%jgstart+i-1)
+      rglat(i) = real(glat(gfile%gdomain%jgstart+i-1),rkx)
     end do
     js = 1
     do n = 1 , gfile%gdomain%ntiles
       do j = js , js + gfile%gdomain%ni(n) - 1
-        rglon(j) = glon(gfile%gdomain%igstart(n) + j - js)
+        rglon(j) = real(glon(gfile%gdomain%igstart(n) + j - js),rkx)
       end do
       js = js + gfile%gdomain%ni(n)
     end do

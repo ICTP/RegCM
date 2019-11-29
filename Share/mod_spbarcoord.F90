@@ -135,7 +135,7 @@ module mod_spbarcoord
       pure real(rk8) function angle_between(x,y) result(a)
         implicit none
         real(rk8) , dimension(3) , intent(in) :: x , y
-        a = max(-d_one,min(d_one,dotprod(x,y) / (norma(x)*norma(y))))
+        a = max(-1.0_rk8,min(1.0_rk8,dotprod(x,y) / (norma(x)*norma(y))))
         a = acos(a)
       end function angle_between
 

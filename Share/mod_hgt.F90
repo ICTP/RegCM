@@ -63,6 +63,7 @@ module mod_hgt
   public :: htsig , htsig_o
   public :: psig , psig1 , mslp , gs_filter
   public :: crc_zeta_from_p , crc_p_from_zeta
+  public :: p2pai , pai2p
 
   contains
 

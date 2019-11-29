@@ -2014,10 +2014,16 @@ module mod_output
 
   subroutine alpharot_compute
     implicit none
-    real(rkx) :: polcphi , pollam , polphi , polsphi ,  &
-            x , zarg1 , zarg2 , znorm , zphi , zrla , zrlap
+    real(rk8) :: polcphi , pollam , polphi , polsphi ,  &
+            x , zarg1 , zarg2 , znorm , zphi , zrla ,   &
+            zrlap , zlat , zlon , xn , yn , rteta , rphi
     integer(ik4) :: i , j
 
+    if ( debug_level > 3 ) then
+      if ( myid == italk ) then
+        write(stdout,*) 'Computing rotation coefficients'
+      end if
+    end if
     call getmem2d(alpharotsin,jci1,jci2,ici1,ici2,'mod_output:alpharotsin')
     call getmem2d(alpharotcos,jci1,jci2,ici1,ici2,'mod_output:alpharotcos')
 

@@ -154,6 +154,7 @@ program icbc
   use mod_nest
   use mod_gn6hnc
   use mod_write
+  use mod_projections
 #ifdef PNETCDF
   use mpi
 #endif
@@ -166,6 +167,7 @@ program icbc
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname
+  type(anyprojparams) :: pjpara
 
 #ifdef PNETCDF
   call mpi_init(ierr)
@@ -208,6 +210,31 @@ program icbc
 
   call init_grid(jx,iy,kz)
   call init_output
+
+  pjpara%pcode = iproj
+  pjpara%ds = ds*1000.0_rk8
+  pjpara%clat = clat
+  pjpara%clon = clon
+  pjpara%plat = plat
+  pjpara%plon = plon
+  pjpara%trlat1 = truelatl
+  pjpara%trlat2 = truelath
+  pjpara%nlon = jx
+  pjpara%nlat = iy
+  pjpara%rotparam = .true.
+
+  if ( idynamic == 3 ) then
+    pjpara%staggerx = .true.
+    pjpara%staggery = .false.
+    call init_projection(pjpara,pju)
+    pjpara%staggerx = .false.
+    pjpara%staggery = .true.
+    call init_projection(pjpara,pjv)
+  else
+    pjpara%staggerx = .true.
+    pjpara%staggery = .true.
+    call init_projection(pjpara,pjd)
+  end if
 
   if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. dattyp == 'CCSM3' .or. &
       dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'GF_' .or. &

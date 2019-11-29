@@ -493,7 +493,7 @@ module mod_clm_params
       write(stdout,'(a,f11.6,a)') '  Model Grid Spacing    : ',ds,' km'
       write(stdout,'(a,f11.6,a)') '  Proj Center Latitude  : ',clat,' deg'
       write(stdout,'(a,f11.6,a)') '  Proj Center longitude : ',clon,' deg'
-      if ( iproj == 'ROTMER' ) then
+      if ( iproj == 'ROTMER' .or. iproj == 'ROTLLR' ) then
         write(stdout,'(a,f11.6,a)') '  Pole Latitude         : ',plat,' deg'
         write(stdout,'(a,f11.6,a)') '  Pole longitude        : ',plon,' deg'
       else if ( iproj == 'LAMCON' ) then

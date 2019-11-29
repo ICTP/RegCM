@@ -32,7 +32,7 @@ module mod_nest
   use mod_stdatm
   use mod_hgt
   use mod_humid
-  use mod_uvrot
+  use mod_projections
   use mod_vectutil
   use mod_message
   use mod_memutil
@@ -47,6 +47,9 @@ module mod_nest
 
   integer(ik4) :: nrec
 
+  type(regcm_projection) :: ipj1 , ipj2
+  type(anyprojparams) :: pjparam
+
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
   real(rkx) , pointer , dimension(:,:,:) :: d3u
@@ -58,6 +61,7 @@ module mod_nest
 
   real(rkx) , pointer , dimension(:,:,:) :: q , t
   real(rkx) , pointer , dimension(:,:,:) :: u , v
+  real(rkx) , pointer , dimension(:,:,:) :: upd , vpd
   real(rkx) , pointer , dimension(:,:,:) :: pp3d , p3d , t0_in
   real(rkx) , pointer , dimension(:,:) :: ts
   real(rkx) , pointer , dimension(:,:) :: ps , xts , p0_in , pstar0
@@ -79,9 +83,7 @@ module mod_nest
   integer(ik4) :: np
 
   integer(ik4) :: oidyn
-  character(len=6) :: iproj_in
-  real(rkx) :: clat_in , clon_in , plat_in , plon_in
-  real(rkx) :: xcone_in , ptop_in
+  real(rkx) :: ptop_in
 
   logical :: uvrotate = .false.
 
@@ -101,10 +103,11 @@ module mod_nest
     use netcdf
     implicit none
 
-    real(rkx) :: xsign
     integer(ik4) :: i , j , k , ip , istatus , idimid , ivarid
     type(rcm_time_and_date) :: imf
     real(rkx) , dimension(2) :: trlat
+    character(len=6) :: iproj_in
+    real(rkx) :: clat_in , clon_in , plat_in , plon_in , ds_in
     real(rkx) , dimension(:) , allocatable :: sigfix
     integer(ik4) , dimension(3) :: istart , icount
     real(rkx) :: tlp , pr0_in , maxps , minps
@@ -228,62 +231,72 @@ module mod_nest
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable topo read error')
     istatus = nf90_inq_varid(ncinp, 'ptop', ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ptop error')
-    istatus = nf90_get_var(ncinp, ivarid, ptop_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'variable ptop read error')
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_get_var(ncinp, ivarid, ptop_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ptop read error')
+      ptop_in = ptop_in * d_100
+    end if
 
-    istatus = nf90_get_att(ncinp, nf90_global,'projection', iproj_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'attribure iproj read error')
-    istatus = nf90_get_att(ncinp, nf90_global, &
-                      'latitude_of_projection_origin', clat_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'attribure clat read error')
-    istatus = nf90_get_att(ncinp, nf90_global, &
-                      'longitude_of_projection_origin', clon_in)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-                    'attribure clat read error')
     istatus = nf90_get_att(ncinp, nf90_global, 'dynamical_core', oidyn)
     if ( istatus /= nf90_noerr ) then
       oidyn = 1 ! Assume non-hydrostatic
     end if
 
-    if ( iproj_in == 'LAMCON' ) then
-      istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
+    if ( .not. uvrotate ) then
+      istatus = nf90_get_att(ncinp, nf90_global,'projection', iproj_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'attribure truelat read error')
-      if ( clat_in < 0. ) then
-        xsign = -1.0_rkx       ! SOUTH HEMESPHERE
-      else
-        xsign = 1.0_rkx        ! NORTH HEMESPHERE
-      end if
-      if ( abs(trlat(1)-trlat(2)) > 1.E-1 ) then
-        xcone_in = (log10(cos(trlat(1)*degrad))                    &
-                    -log10(cos(trlat(2)*degrad))) /                &
-                    (log10(tan((45.0-xsign*trlat(1)/2.0)*degrad))  &
-                    -log10(tan((45.0-xsign*trlat(2)/2.0)*degrad)))
-      else
-        xcone_in = xsign*sin(real(trlat(1),rkx)*degrad)
-      end if
-    else if ( iproj_in == 'POLSTR' ) then
-      xcone_in = 1.0_rkx
-    else if ( iproj_in == 'NORMER' ) then
-      xcone_in = 0.0_rkx
-    else
+                      'attribure iproj read error')
       istatus = nf90_get_att(ncinp, nf90_global, &
-                      'grid_north_pole_latitude', plat_in)
+                        'latitude_of_projection_origin', clat_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'attribure plat read error')
+                      'attribure clat read error')
       istatus = nf90_get_att(ncinp, nf90_global, &
-                      'grid_north_pole_longitude', plon_in)
+                        'longitude_of_projection_origin', clon_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'attribure plon read error')
-      xcone_in = 0.0_rkx
-    end if
+                      'attribure clat read error')
+      istatus = nf90_get_att(ncinp, nf90_global, &
+                        'grid_size_in_meters', ds_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure ds read error')
+      if ( iproj_in == 'LAMCON' ) then
+        istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'attribure truelat read error')
+      else if ( iproj_in == 'ROTMER' .or. iproj_in == 'ROTLLR' ) then
+        istatus = nf90_get_att(ncinp, nf90_global, &
+                        'grid_north_pole_latitude', plat_in)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'attribure plat read error')
+        istatus = nf90_get_att(ncinp, nf90_global, &
+                        'grid_north_pole_longitude', plon_in)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'attribure plon read error')
+      end if
 
-    ptop_in = ptop_in * d_100
+      pjparam%pcode = iproj_in
+      pjparam%ds = ds_in
+      pjparam%clat = clat_in
+      pjparam%clon = clon_in
+      pjparam%trlat1 = trlat(1)
+      pjparam%trlat2 = trlat(2)
+      pjparam%nlon = jx_in
+      pjparam%nlat = iy_in
+      pjparam%rotparam = .true.
+
+      if ( oidyn == 3 ) then
+        pjparam%staggerx = .true.
+        pjparam%staggery = .false.
+        call init_projection(pjparam,ipj1)
+        pjparam%staggerx = .false.
+        pjparam%staggery = .true.
+        call init_projection(pjparam,ipj2)
+      else
+        pjparam%staggerx = .true.
+        pjparam%staggery = .true.
+        call init_projection(pjparam,ipj1)
+      end if
+    end if
 
     np = kz_in
     call getmem1d(plev,1,np,'mod_nest:plev')
@@ -353,12 +366,13 @@ module mod_nest
     ! Set up pointers
 
     call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
-    call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
     call getmem3d(b3,1,jx,1,iy,1,np*3,'mod_nest:b3')
     if ( idynamic == 3 ) then
+      call getmem3d(d2,1,jx_in,1,iy_in,1,np*4,'mod_nest:d2')
       call getmem3d(d3u,1,jx,1,iy,1,np*2,'mod_nest:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,np*2,'mod_nest:d3v')
     else
+      call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
       call getmem3d(d3,1,jx,1,iy,1,np*2,'mod_nest:d3')
     end if
     call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
@@ -367,6 +381,10 @@ module mod_nest
     hp => b2(:,:,2*np+1:3*np)
     up => d2(:,:,1:np)
     vp => d2(:,:,np+1:2*np)
+    if ( idynamic == 3 ) then
+      upd => d2(:,:,2*np+1:3*np)
+      upd => d2(:,:,3*np+1:4*np)
+    end if
     t3 => b3(:,:,1:np)
     q3 => b3(:,:,np+1:2*np)
     h3 => b3(:,:,2*np+1:3*np)
@@ -629,8 +647,17 @@ module mod_nest
     end if
 
     if ( .not. uvrotate ) then
-      call uvrot4nx(up,vp,xlon_in,xlat_in,clon_in,clat_in, &
-                    xcone_in,jx_in,iy_in,np,plon_in,plat_in,iproj_in)
+      if ( idynamic == 3 ) then
+        upd = up
+        vpd = vp
+        call uvantirot_inplace(ipj1,upd,vpd)
+        vpd = upd
+        upd = up
+        call uvantirot_inplace(ipj2,upd,vp)
+        up = vpd
+      else
+        call uvantirot_inplace(ipj1,up,vp)
+      end if
     end if
     !
     ! Horizontal interpolation of both the scalar and vector fields
@@ -647,10 +674,10 @@ module mod_nest
     ! Rotate U-V fields after horizontal interpolation
     !
     if ( idynamic == 3 ) then
-      call uvrot4(u3,v3u,ulon,ulat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
-      call uvrot4(u3v,v3,vlon,vlat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
+      call uvrot_inplace(pju,u3,v3u)
+      call uvrot_inplace(pjv,u3v,v3)
     else
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,np,plon,plat,iproj)
+      call uvrot_inplace(pjd,u3,v3)
     end if
     !
     ! Vertical interpolation

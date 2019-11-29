@@ -656,6 +656,71 @@ module mod_ncstream
                 trim(adjustl(tempstr(4)))//'],'//NEW_LINE('A')//               &
                 '    UNIT["Meter",1]]'//NEW_LINE('A')
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+          case('ROTLLR')
+            attc%aname = 'proj4_params'
+            write(tempstr(1),'(f7.2)') clat
+            write(tempstr(2),'(f7.2)') clon
+            write(tempstr(3),'(f10.0)') x0
+            write(tempstr(4),'(f10.0)') x0
+            write(tempstr(5),'(f9.0)') earthrad
+            write(tempstr(6),'(f7.2)') plat
+            write(tempstr(7),'(f7.2)') plon
+            attc%theval = '+proj=ob_tran +o_proj=longlat'// &
+              ' +o_lat_p='//trim(adjustl(tempstr(6)))// &
+              ' +o_lon_p='//trim(adjustl(tempstr(7)))// &
+              ' +o_lat_c='//trim(adjustl(tempstr(1)))// &
+              ' +o_lon_c='//trim(adjustl(tempstr(2)))// &
+              ' +x_0='//trim(adjustl(tempstr(3)))// &
+              ' +y_0='//trim(adjustl(tempstr(4)))// &
+              ' +R='//trim(adjustl(tempstr(5)))// &
+              ' +units=m +no_defs'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'grid_mapping_name'
+            attc%theval = 'rotated_latitude_longitude'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'latitude_of_projection_origin'
+            attr%theval = clat
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'longitude_of_projection_origin'
+            attr%theval = clon
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'grid_north_pole_latitude'
+            attr%theval = plat
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'grid_north_pole_longitude'
+            attr%theval = plon
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_easting'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'false_northing'
+            attr%theval = x0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attc%aname = 'crs_wkt'
+            attc%theval = 'PROJCS["unnamed",'//NEW_LINE('A')//                 &
+                '    GEOGCS["Normal Sphere (r='//                              &
+                trim(adjustl(tempstr(5)))//')",'//NEW_LINE('A')//              &
+                '        DATUM["unknown",'//NEW_LINE('A')//                    &
+                '            SPHEROID["sphere",'//                             &
+                trim(adjustl(tempstr(5)))//',0]],'//NEW_LINE('A')//            &
+                '        PRIMEM["Greenwich",0],'//NEW_LINE('A')//              &
+                '        UNIT["degree",0.0174532925199433]],'//NEW_LINE('A')// &
+                '    PROJECTION["Rotated_Latitude_Longitude"],'//              &
+                NEW_LINE('A')//                                                &
+                '    PARAMETER["grid_north_pole_latitude",'//                  &
+                trim(adjustl(tempstr(6)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["grid_north_pole_longitude",'//                 &
+                trim(adjustl(tempstr(7)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["latitude_of_origin",'//                        &
+                trim(adjustl(tempstr(1)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["central_meridian",'//                          &
+                trim(adjustl(tempstr(2)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_easting",'//                             &
+                trim(adjustl(tempstr(3)))//'],'//NEW_LINE('A')//               &
+                '    PARAMETER["false_northing",'//                            &
+                trim(adjustl(tempstr(4)))//'],'//NEW_LINE('A')//               &
+                '    UNIT["Meter",1]]'//NEW_LINE('A')
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
           case('NORMER')
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') clat

@@ -353,9 +353,9 @@ module mod_stdatm
      real(rkx) function winter_wgt(jday)
        implicit none
        real(rkx) , intent(in) :: jday
-       real(rkx) :: dis
+       real(rk8) :: dis
        dis = ((half_dayspy-jday-sixteenth_dayspy+d_one)/dayspy)*mathpi
-       winter_wgt = sin(dis)**2
+       winter_wgt = real(sin(dis)**2,rkx)
      end function winter_wgt
 
      integer(ik4) function find_klev(plev,izone)

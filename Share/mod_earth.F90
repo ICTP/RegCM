@@ -25,7 +25,7 @@ module mod_earth
 
   private
 
-  real(rk8) , parameter :: mindist = 1.0e-6_rkx
+  real(rk8) , parameter :: mindist = 1.0e-6_rk8
 
   public :: gcdist_simple , gcdist
   public :: ll2xyz , longitude_circle
@@ -69,7 +69,7 @@ module mod_earth
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
     ! Have it in km to avoid numerical problems :)
-    gcdist_simple = erkm*acos(crd)
+    gcdist_simple = sngl(erkm*acos(crd))
   end function gcdist_simple
 
   real(rkx) function gcdist(ds,lat1,lon1,lat2,lon2)
@@ -85,7 +85,7 @@ module mod_earth
     sdlon = sin((lon1-lon2)*degrad)
     y = sqrt((clat2*sdlon)**2+(clat1*slat2-slat1*clat2*cdlon)**2)
     x = slat1*slat2+clat1*clat2*cdlon
-    gcdist = max(erkm*atan2(y,x)/ds,mindist)
+    gcdist = sngl(max(erkm*atan2(y,x)/ds,mindist))
   end function gcdist
 
   subroutine ll2xyz_values(lat,lon,x,y,z)
@@ -93,7 +93,7 @@ module mod_earth
     real(rkx) , intent(in) :: lat , lon
     real(rk8) , intent(out) :: x , y , z
     real(rk8) :: rlat , rlon
-    rlat = max(min(lat,89.999_rk8),-89.999_rk8)*degrad
+    rlat = max(min(dble(lat),89.999_rk8),-89.999_rk8)*degrad
     rlon = lon*degrad
     x = cos(rlat) * sin(rlon)
     y = sin(rlat)
@@ -106,7 +106,7 @@ module mod_earth
     real(rkx) , intent(in) :: lon
     real(rk8) , intent(out) , dimension(3) :: x
     real(rk8) :: rlat , rlon
-    rlat = max(min(lat,89.999_rk8),-89.999_rk8)*degrad
+    rlat = max(min(dble(lat),89.999_rk8),-89.999_rk8)*degrad
     rlon = lon*degrad
     x(1) = cos(rlat) * sin(rlon)
     x(2) = sin(rlat)
@@ -122,7 +122,7 @@ module mod_earth
     real(rk8) :: rlat , rlon
     integer(ik4) :: i
     do i = 1 , ni
-      rlat = max(min(lat(i),89.999_rk8),-89.999_rk8)*degrad
+      rlat = max(min(dble(lat(i)),89.999_rk8),-89.999_rk8)*degrad
       rlon = lon(i)*degrad
       x(1,i) = cos(rlat) * sin(rlon)
       x(2,i) = sin(rlat)
@@ -143,7 +143,7 @@ module mod_earth
     n = 1
     do j = 1 , size(lat)
       do i = 1 , size(lon)
-        rlat = max(min(lat(j),89.999_rk8),-89.999_rk8)*degrad
+        rlat = max(min(dble(lat(j)),89.999_rk8),-89.999_rk8)*degrad
         rlon = lon(i)*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
@@ -167,7 +167,7 @@ module mod_earth
     n = 1
     do j = 1 , size(lat,2)
       do i = 1 , size(lat,1)
-        rlat = max(min(lat(i,j),89.999_rk8),-89.999_rk8)*degrad
+        rlat = max(min(dble(lat(i,j)),89.999_rk8),-89.999_rk8)*degrad
         rlon = lon(i,j)*degrad
         x(1,n) = cos(rlat) * sin(rlon)
         x(2,n) = sin(rlat)
@@ -258,10 +258,10 @@ module mod_earth
       d1 = 0.0_rk8
       d2 = 0.0_rk8
       do j = 1 , xj-1
-        d1 = max(abs(xlon(1,j+1)-xlon(1,j)),d1)
+        d1 = max(dble(abs(xlon(1,j+1)-xlon(1,j))),d1)
       end do
       do j = 1 , xj-1
-        d2 = max(abs(xlon(xi,j+1)-xlon(xi,j)),d2)
+        d2 = max(dble(abs(xlon(xi,j+1)-xlon(xi,j))),d2)
       end do
       if ( d1 < 350.0_rk8 .and. d2 < 350.0_rk8 .and. &
           .not. (all(xlon(1,:) > 0.0_rk8) .and. all(xlon(xi,:) < 0.0)) ) then
@@ -471,10 +471,10 @@ module mod_earth
       d1 = 0.0_rk8
       d2 = 0.0_rk8
       do j = 1 , xj-1
-        d1 = max(abs(xlon(1,j+1)-xlon(1,j)),d1)
+        d1 = max(dble(abs(xlon(1,j+1)-xlon(1,j))),d1)
       end do
       do j = 1 , xj-1
-        d2 = max(abs(xlon(xi,j+1)-xlon(xi,j)),d2)
+        d2 = max(dble(abs(xlon(xi,j+1)-xlon(xi,j))),d2)
       end do
       if ( d1 < 350.0_rk8 .and. d2 < 350.0_rk8 .and. &
           .not. (all(xlon(1,:) > 0.0_rk8) .and. all(xlon(xi,:) < 0.0)) ) then

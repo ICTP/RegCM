@@ -67,12 +67,15 @@ program ncprepare
   integer(ik4) :: ivarid , idimid , xtype , ip1 , ip2
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , dptdimid
   integer(ik4) :: jx , iy , kz , nd , nt , nlat , nlon , ilat , ilon , isplit
-  real(rkx) :: alat , alon , angle
+  real(rkx) :: alat , alon
   integer(ik4) :: i , j , iid
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , existing , lsigma , ldepth , lu , lua , luas , lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
+
+  type(anyprojparams) :: pjpara
+  type(regcm_projection) :: pj
 
   data cmon /'jan','feb','mar','apr','may','jun', &
              'jul','aug','sep','oct','nov','dec'/
@@ -380,38 +383,7 @@ program ncprepare
     istatus = nf90_get_att(ncid, nf90_global, 'standard_parallel', trlat)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute standard_parallel')
-    call setup_lcc(clat,clon,centerj,centeri,ds,clon,trlat(1),trlat(2))
-    do ilon = 1 , nlon
-      alon = minlon + (ilon-1) * rloninc
-      call uvrot_lc(alon,angle)
-      do ilat = 1 , nlat
-        alat = minlat + (ilat-1) * rlatinc
-        call llij_lc(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-        ruv(ilon,ilat) = angle
-      end do
-    end do
-  else if (iproj == 'POLSTR') then
-    call setup_plr(clat,clon,centerj,centeri,ds,clon)
-    do ilon = 1 , nlon
-      alon = minlon + (ilon-1) * rloninc
-      call uvrot_ps(alon,angle)
-      do ilat = 1 , nlat
-        alat = minlat + (ilat-1) * rlatinc
-        call llij_ps(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-        ruv(ilon,ilat) = angle
-      end do
-    end do
-  else if (iproj == 'NORMER') then
-    call setup_mrc(clat,clon,centerj,centeri,ds)
-    do ilon = 1 , nlon
-      alon = minlon + (ilon-1) * rloninc
-      do ilat = 1 , nlat
-        alat = minlat + (ilat-1) * rlatinc
-        call llij_mc(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-        ruv(ilon,ilat) = 1.0
-      end do
-    end do
-  else if (iproj == 'ROTMER') then
+  else if (iproj == 'ROTLLR' .or. iproj == 'ROTMER' ) then
     istatus = nf90_get_att(ncid, nf90_global, 'grid_north_pole_latitude', &
                            plat)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -420,20 +392,31 @@ program ncprepare
                            plon)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute grid_north_pole_longitude')
-    call setup_rmc(clat,clon,centerj,centeri,ds,plon,plat)
-    do ilon = 1 , nlon
-      alon = minlon + (ilon-1) * rloninc
-      do ilat = 1 , nlat
-        alat = minlat + (ilat-1) * rlatinc
-        call llij_rc(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-        call uvrot_rc(alat,alon,angle)
-        ruv(ilon,ilat) = angle
-      end do
-    end do
-  else
-    write (stderr,*) 'Unknown Projection : ', iproj
-    stop
   end if
+
+  pjpara%pcode = iproj
+  pjpara%ds = ds*1000.0_rk8
+  pjpara%clat = clat
+  pjpara%clon = clon
+  pjpara%plat = plat
+  pjpara%plon = plon
+  pjpara%trlat1 = trlat(1)
+  pjpara%trlat2 = trlat(2)
+  pjpara%nlon = jx
+  pjpara%nlat = iy
+  pjpara%staggerx = .false.
+  pjpara%staggery = .false.
+
+  call init_projection(pjpara,pj)
+
+  do ilon = 1 , nlon
+    alon = minlon + (ilon-1) * rloninc
+    do ilat = 1 , nlat
+      alat = minlat + (ilat-1) * rlatinc
+      call pj%llij(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
+      ruv(ilon,ilat) = 1.0
+    end do
+  end do
 
   tmpcoord = ncfile(1:iid)//trim(experiment)//'.coord'
   inquire (file=tmpcoord, exist=existing)

@@ -29,6 +29,7 @@ module mod_grid
   use mod_nhinterp
   use mod_zita
   use mod_dynparam , only : idynamic , base_state_pressure , logp_lrate
+  use mod_projections
 
   private
 
@@ -46,6 +47,8 @@ module mod_grid
   real(rkx) , public :: delx
   integer(ik4) , public :: i0 , i1 , j0 , j1
   real(rkx) , public :: lat0 , lat1 , lon0 , lon1 , ts0
+
+  type(regcm_projection) , public :: pju , pjv , pjd
 
   public :: init_grid , init_hgrid
 

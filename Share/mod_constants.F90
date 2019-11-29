@@ -46,12 +46,12 @@ module mod_constants
   real(rkx) , parameter :: twot = d_two/d_three
   real(rkx) , parameter :: fourt = d_four/d_three
 
-  ! Angles degrees
-  real(rkx) , parameter :: deg00  = 0.0_rkx
-  real(rkx) , parameter :: deg45  = 45.0_rkx
-  real(rkx) , parameter :: deg90  = 90.0_rkx
-  real(rkx) , parameter :: deg180 = 180.0_rkx
-  real(rkx) , parameter :: deg360 = 360.0_rkx
+  ! Angles degrees : Operations must be always performed double precision
+  real(rk8) , parameter :: deg00  = 0.0_rk8
+  real(rk8) , parameter :: deg45  = 45.0_rk8
+  real(rk8) , parameter :: deg90  = 90.0_rk8
+  real(rk8) , parameter :: deg180 = 180.0_rk8
+  real(rk8) , parameter :: deg360 = 360.0_rk8
 
   ! minimum values for uncoupled/coupled variables which require them
   real(rkx) , parameter :: minqq   = 1.0e-8_rkx
@@ -247,17 +247,17 @@ module mod_constants
   ! Fixed emissivity of water
   real(rkx) , parameter :: emsw = 0.97_rkx
 
-  real(rkx) , parameter :: m_euler = 0.577215664901532860606512090082402431_rkx
+  real(rk8) , parameter :: m_euler = 0.577215664901532860606512090082402431_rk8
 
   ! Trigonometric constants.
-  real(rkx) , parameter :: mathpi =                                   &
-                      &   3.1415926535897932384626433832795029_rkx
-  real(rkx) , parameter :: invpi = d_one/mathpi
-  real(rkx) , parameter :: halfpi = mathpi*d_half
-  real(rkx) , parameter :: twopi = mathpi*d_two
-  real(rkx) , parameter :: pisqr = mathpi*mathpi
-  real(rkx) , parameter :: degrad = mathpi/180.0_rkx
-  real(rkx) , parameter :: raddeg = 180.0_rkx/mathpi
+  real(rk8) , parameter :: mathpi =                                   &
+                      &   3.1415926535897932384626433832795029_rk8
+  real(rk8) , parameter :: invpi = d_one/mathpi
+  real(rk8) , parameter :: halfpi = mathpi*d_half
+  real(rk8) , parameter :: twopi = mathpi*d_two
+  real(rk8) , parameter :: pisqr = mathpi*mathpi
+  real(rk8) , parameter :: degrad = mathpi/180.0_rk8
+  real(rk8) , parameter :: raddeg = 180.0_rk8/mathpi
 
   ! Maximum stomatl resistance (s/m)
   real(rkx) , parameter :: rmax0 = 2.0e4_rkx
@@ -277,12 +277,12 @@ module mod_constants
   real(rkx) , parameter :: minwrat = 1.0e-4_rkx
 
   ! Earth radius in meters
-  real(rkx) , parameter :: earthrad = 6.371229e6_rkx
-  real(rkx) , parameter :: erkm = earthrad/d_1000
-  real(rkx) , parameter :: rearthrad = d_one/earthrad
+  real(rk8) , parameter :: earthrad = 6.371229e6_rk8
+  real(rk8) , parameter :: erkm = earthrad/1000.0_rk8
+  real(rk8) , parameter :: rearthrad = d_one/earthrad
   ! Angular velocity of rotation of Earth
-  real(rkx) , parameter :: eomeg = 7.2921159e-5_rkx
-  real(rkx) , parameter :: eomeg2 = d_two*eomeg
+  real(rk8) , parameter :: eomeg = 7.2921159e-5_rk8
+  real(rk8) , parameter :: eomeg2 = d_two*eomeg
 
   ! Soil roughness length
   real(rkx) , parameter :: zlnd = 0.01_rkx

@@ -2011,7 +2011,7 @@ module mod_vertint
     real(rkx) , dimension(nlev1) , intent(in) :: sccm
     real(rkx) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
     integer(ik4) :: i , j , k , kb , kt
-    real(rkx) :: wu , wl , tlayer , pa , za , climrate
+    real(rkx) :: wu , wl , tlayer , pa , za
 
     do i = 1 , ni
       do j = 1 , nj

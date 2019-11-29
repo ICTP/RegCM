@@ -996,12 +996,12 @@ module mod_date
     end select
   end function add_interval
 
-  real(rk8) function idate_julianday(x)
+  real(rkx) function idate_julianday(x)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) :: iy , im , id
     call split_rcm_date(x,iy,im,id)
-    idate_julianday = ymd_julianday(iy, im, id)
+    idate_julianday = real(ymd_julianday(iy, im, id),rkx)
   end function idate_julianday
 
   real(rk8) function ymd_julianday(iy, im, id)
@@ -2136,12 +2136,14 @@ module mod_date
     real(rkx) , optional , intent(in) :: delta
     type(iatime) :: t
     type (rcm_time_and_date) :: y
+    integer(ik8) :: id
     t%hour = h
     t%minute = m
     t%second = s
     call time_to_second_of_day(t,y)
     if ( present(delta) ) then
-      time_complete_is = ( abs(y%second_of_day - x%second_of_day) < delta )
+      id = int(delta,ik8)
+      time_complete_is = ( abs(y%second_of_day - x%second_of_day) < id )
     else
       time_complete_is = ( y%second_of_day == x%second_of_day )
     end if
@@ -2152,8 +2154,10 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(in) :: s
     real(rkx) , optional , intent(in) :: delta
+    integer(ik8) :: id
     if ( present(delta) ) then
-      time_of_day_is = ( abs(s - x%second_of_day) < delta )
+      id = int(delta,ik8)
+      time_of_day_is = ( abs(s - x%second_of_day) < id )
     else
       time_of_day_is = ( s == x%second_of_day )
     end if

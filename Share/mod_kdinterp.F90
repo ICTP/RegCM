@@ -545,7 +545,7 @@ module mod_kdinterp
     real(rkx) , dimension(:) , intent(in) :: g
     real(rkx) , dimension(:) , intent(out) :: f
     integer(ik4) :: i , ni , n , si , gni
-    real(rkx) :: gmax
+    real(rk8) :: gmax
     if ( size(g) /= h_i%sshape(1) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape(1),' /= ',size(g)
       call die('interp_1d_nn','Non conforming shape for source',1)
@@ -606,7 +606,7 @@ module mod_kdinterp
         end if
       end do
       if ( gwgt > d_zero ) then
-        f(i) = gsum / gwgt
+        f(i) = real(gsum / gwgt,rkx)
       else
         f(i) = missl
       end if
@@ -657,7 +657,7 @@ module mod_kdinterp
           end if
         end do
         if ( gwgt > d_zero ) then
-          f(j,i) = gsum / gwgt
+          f(j,i) = real(gsum / gwgt,rkx)
         else
           f(j,i) = missl
         end if
@@ -683,7 +683,7 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(in) :: g
     real(rkx) , dimension(:,:) , intent(out) :: f
     integer(ik4) :: i , j , ni , nj , n , si , sj , gni , gnj
-    real(rkx) :: gmax
+    real(rk8) :: gmax
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_2d_nn','Non conforming shape for source',1)
@@ -772,7 +772,7 @@ module mod_kdinterp
     real(rkx) , dimension(:,:) , intent(out) :: f
     integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
     integer(ik4) , dimension(1) :: v
-    real(rkx) , dimension(:) , allocatable :: gvals
+    real(rk8) , dimension(:) , allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -814,7 +814,7 @@ module mod_kdinterp
     integer(ik4) , dimension(:,:) , intent(out) :: f
     integer(ik4) :: i , j , ni , nj , n , si , sj , iv , nc , n1 , n2
     integer(ik4) , dimension(1) :: v
-    real(rkx) , dimension(:) , allocatable :: gvals
+    real(rk8) , dimension(:) , allocatable :: gvals
     if ( any(shape(g) /= h_i%sshape) ) then
       write(stderr,*) 'SOURCE SHAPE INTERP = ',h_i%sshape,' /= ',shape(g)
       call die('interp_class','Non conforming shape for source',1)
@@ -1020,7 +1020,7 @@ module mod_kdinterp
     type(kdtree2_result) , pointer , dimension(:) , intent(in) :: r
     type(pwgt) , dimension(:) , pointer , intent(inout) :: w
     integer(ik4) :: n
-    real(rkx) :: rx , rmax
+    real(rk8) :: rx , rmax
 
     rmax = r(1)%dis
     do n = 2 , np

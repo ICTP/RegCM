@@ -43,7 +43,7 @@ mod_memutil.o: mod_memutil.F90 mod_intkinds.o mod_realkinds.o mod_space.o mod_me
 mod_message.o: mod_message.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o
 mod_nchelper.o: mod_nchelper.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_memutil.o mod_dynparam.o mod_message.o $(REGCM_ROOT)/version
 mod_nhinterp.o : mod_nhinterp.F90 mod_constants.o mod_intkinds.o mod_realkinds.o mod_stdio.o mod_stdatm.o
-mod_projections.o: mod_projections.F90 mod_intkinds.o mod_realkinds.o mod_constants.o
+mod_projections.o: mod_projections.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_memutil.o
 mod_realkinds.o: mod_realkinds.F90
 mod_intkinds.o: mod_intkinds.F90
 mod_space.o: mod_space.F90 mod_intkinds.o mod_realkinds.o mod_date.o

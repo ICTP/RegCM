@@ -197,10 +197,10 @@ module mod_intldtr
     real(rkx) , intent(in) , dimension(m,n) :: grid
     integer(ik4) :: ii0 , jj0 , ii , jj
     integer(ik4) :: i , j
-    real(rk8) :: rx , ry , pc
+    real(rk8) :: rx , ry , pc , npc
 
-    pctaround = d_zero
-    pc = real(nbox*nbox,rk8)
+    pc = d_zero
+    npc = real(nbox*nbox,rk8)
     ii0 = ifloor(x,m)
     jj0 = jfloor(y,n)
     do i = 1 , nbox
@@ -210,11 +210,11 @@ module mod_intldtr
         ii = ifloor(rx,m)
         jj = jfloor(ry,n)
         if (int(grid(ii,jj)) == ival) then
-          pctaround = pctaround + 1
+          pc = pc + 1
         end if
       end do
     end do
-    pctaround = (pctaround / pc) * d_100
+    pctaround = real(pc/npc*100_rk8,rkx)
   end function pctaround
 
   real(rkx) function bilinear(x,y,m,n,grid)
@@ -262,7 +262,7 @@ module mod_intldtr
     j3 = int(jj3)
     p12 = dx*grid(i2,j2)+(d_one-dx)*grid(i1,j1)
     p03 = dx*grid(i3,j3)+(d_one-dx)*grid(i0,j0)
-    bilinear = dy*p12+(d_one-dy)*p03
+    bilinear = real(dy*p12+(d_one-dy)*p03,rkx)
   end function bilinear
 
   real(rkx) function dwgt(x,y,m,n,grid,nb)
@@ -289,7 +289,7 @@ module mod_intldtr
         do i = ii - nh , ii + nh
           iii = max(1,min(m,i))
           jjj = max(1,min(n,j))
-          dx = max(dlowval,sqrt((x-real(i,rk8))**2+(y-real(j,rk8))**2))
+          dx = max(1.0e-10_rk8,sqrt((x-real(i,rk8))**2+(y-real(j,rk8))**2))
           pp = pp + d_one/dx
           f = f + grid(iii,jjj)/dx
         end do
@@ -312,13 +312,13 @@ module mod_intldtr
             iii = iii - m
           end if
           jjj = max(1,min(n,j))
-          dx = max(dlowval,sqrt((x-real(i,rk8))**2+(y-real(j,rk8))**2))
+          dx = max(1.0e-10_rk8,sqrt((x-real(i,rk8))**2+(y-real(j,rk8))**2))
           pp = pp + d_one/dx
           f = f + grid(iii,jjj)/dx
         end do
       end do
     end if
-    dwgt = f / pp
+    dwgt = real(f / pp,rkx)
   end function dwgt
 
   real(rkx) function bicubic(x,y,m,n,grid)
@@ -383,7 +383,7 @@ module mod_intldtr
     u = (x2-x2l)/(x2u-x2l)
     a = d_zero
     do i = 4 , 1 , -1
-      a = t*a + ((c(i,4)*u+c(i,3))*u+c(i,2))*u + c(i,1)
+      a = real(t*a + ((c(i,4)*u+c(i,3))*u+c(i,2))*u + c(i,1),rkx)
     end do
   end subroutine bcuint
 

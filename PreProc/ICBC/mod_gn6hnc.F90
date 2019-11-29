@@ -39,7 +39,7 @@ module mod_gn6hnc
   use mod_hgt
   use mod_humid
   use mod_mksst
-  use mod_uvrot
+  use mod_projections
   use mod_vectutil
   use mod_message
   use mod_nchelper
@@ -1049,12 +1049,11 @@ module mod_gn6hnc
 
     ! Rotate winds
     if ( idynamic == 3 ) then
-      call uvrot4(u3,v3u,ulon,ulat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
-      call uvrot4(u3v,v3,vlon,vlat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
+      call uvrot_inplace(pju,u3,v3u)
+      call uvrot_inplace(pjv,u3v,v3)
     else
-      call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
+      call uvrot_inplace(pjd,u3,v3)
     end if
-
     ! Go to bottom->top
     if ( dattyp(1:3) /= 'EC_' ) then
 !$OMP SECTIONS
