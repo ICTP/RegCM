@@ -36,8 +36,6 @@ module mod_maputils
     type(regcm_projection) , intent(out) :: pj
     integer(ik4) , intent(in) :: jx , iy
     real(rkx) , pointer , dimension(:,:) , intent(out) :: lat , lon
-    type(regcm_projection) :: pjx , pjd , pju , pjv
-    real(rkx) :: xcntri , xcntrj
     integer :: i , j
 
     call init_projection(pjpara,pj)

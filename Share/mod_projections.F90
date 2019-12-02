@@ -263,7 +263,6 @@ module mod_projections
     implicit none
     type(regcm_projection) , intent(inout) :: pj
     real(rk8) , intent(in) :: ci , cj , clat , clon , ds
-    real(rk8) :: phi , lam
     pj%dlon = raddeg * ds / earthrad
     pj%dlat = pj%dlon
     pj%rlat0 = clat - cj*pj%dlat
@@ -279,7 +278,6 @@ module mod_projections
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , intent(in) :: i , j
     real(rkx) , intent(out) :: lat , lon
-    real(rk8) :: phi , lam
     lat = pj%rlat0 + (j-1.0_rk8) * pj%dlat
     lon = pj%rlon0 + (i-1.0_rk8) * pj%dlon
     if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
@@ -387,7 +385,7 @@ module mod_projections
               pj%f5(i,j) = -sin(pj%phi0)*sin(rotlam)/cos(phi)
               pj%f6(i,j) = (cos(pj%phi0)*cos(rotphi) - &
                             sin(pj%phi0)*sin(rotphi)*cos(rotlam)) / cos(phi)
-              pj%f7(i,j) = cos(rotphi)/sin(dlam)/sin(pj%phi0)
+              pj%f7(i,j) = cos(rotphi)/(sin(dlam)*sin(pj%phi0))
               pj%f8(i,j) = (cos(dlam)*sin(pj%phi0)*sin(phi) + &
                             cos(pj%phi0)*cos(phi))/cos(rotphi)
             else
@@ -1335,7 +1333,7 @@ module mod_projections
     j2 = ubound(u,2)
     do j = j1 , j2
       do i = i1 , i2
-        if ( pj%f2(i,j) > 0.0_rk8 .and. pj%f3(i,j) > 0.0_rk8 ) then
+        if ( pj%f2(i,j) /= 0.0_rk8 .and. pj%f3(i,j) /= 0.0_rk8 ) then
           tmp1 = pj%f1(i,j) * u(i,j) + pj%f2(i,j) * v(i,j)
           tmp2 = pj%f3(i,j) * tmp1 + pj%f4(i,j) * v(i,j)
           vr(i,j) = real(tmp1,rkx)
@@ -1361,13 +1359,13 @@ module mod_projections
     j2 = ubound(u,2)
     do j = j1 , j2
       do i = i1 , i2
-        if ( pj%f8(i,j) > 0.0_rk8 ) then
+        if ( pj%f8(i,j) /= 0.0_rk8 .and.  pj%f7(i,j) /= 0.0_rk8 ) then
           tmp1 = pj%f5(i,j) * u(i,j) + pj%f6(i,j) * v(i,j)
-          tmp2 = pj%f7(i,j) * (v(i,j)/tmp1*pj%f8(j,i))
+          tmp2 = pj%f7(i,j) * (v(i,j)-tmp1*pj%f8(j,i))
           ur(i,j) = real(tmp2,rkx)
           vr(i,j) = real(tmp1,rkx)
         else
-          if ( pj%f7(i,j) > 0.0_rk8 ) then
+          if ( pj%f7(i,j) /= 0.0_rk8 ) then
             ur(i,j) = pj%f5(i,j) * u(i,j)
             vr(i,j) = pj%f7(i,j) * v(i,j)
           else
@@ -1399,7 +1397,7 @@ module mod_projections
     do k = k1 , k2
       do j = j1 , j2
         do i = i1 , i2
-          if ( pj%f2(i,j) > 0.0_rk8 .and. pj%f3(i,j) > 0.0_rk8 ) then
+          if ( pj%f2(i,j) /= 0.0_rk8 .and. pj%f3(i,j) /= 0.0_rk8 ) then
             tmp1 = pj%f1(i,j) * u(i,j,k) + pj%f2(i,j) * v(i,j,k)
             tmp2 = pj%f3(i,j) * tmp1 + pj%f4(i,j) * v(i,j,k)
             vr(i,j,k) = real(tmp1,rkx)
@@ -1429,13 +1427,13 @@ module mod_projections
     do k = k1 , k2
       do j = j1 , j2
         do i = i1 , i2
-          if ( pj%f8(i,j) > 0.0_rk8 ) then
+          if ( pj%f8(i,j) /= 0.0_rk8 .and.  pj%f7(i,j) /= 0.0_rk8 ) then
             tmp1 = pj%f5(i,j) * u(i,j,k) + pj%f6(i,j) * v(i,j,k)
             tmp2 = pj%f7(i,j) * (v(i,j,k)/tmp1*pj%f8(j,i))
             ur(i,j,k) = real(tmp2,rkx)
             vr(i,j,k) = real(tmp1,rkx)
           else
-            if ( pj%f7(i,j) > 0.0_rk8 ) then
+            if ( pj%f7(i,j) /= 0.0_rk8 ) then
               ur(i,j,k) = pj%f5(i,j) * u(i,j,k)
               vr(i,j,k) = pj%f7(i,j) * v(i,j,k)
             else
