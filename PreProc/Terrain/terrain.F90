@@ -922,6 +922,11 @@ program terrain
     call viz_done
   end if
 
+  call pjx%destruct( )
+  call pjd%destruct( )
+  call pju%destruct( )
+  call pjv%destruct( )
+
   call memory_destroy
 
   write(stdout,*)'Successfully completed terrain fields generation'

@@ -38,7 +38,7 @@ module mod_maputils
     real(rkx) , pointer , dimension(:,:) , intent(out) :: lat , lon
     integer :: i , j
 
-    call init_projection(pjpara,pj)
+    call pj%initialize(pjpara)
     do i = 1 , iy
       do j = 1 , jx
         call pj%ijll(real(j,rkx),real(i,rkx),lat(j,i),lon(j,i))

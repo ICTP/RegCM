@@ -226,14 +226,14 @@ program icbc
   if ( idynamic == 3 ) then
     pjpara%staggerx = .true.
     pjpara%staggery = .false.
-    call init_projection(pjpara,pju)
+    call pju%initialize(pjpara)
     pjpara%staggerx = .false.
     pjpara%staggery = .true.
-    call init_projection(pjpara,pjv)
+    call pjv%initialize(pjpara)
   else
     pjpara%staggerx = .true.
     pjpara%staggery = .true.
-    call init_projection(pjpara,pjd)
+    call pjd%initialize(pjpara)
   end if
 
   if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. dattyp == 'CCSM3' .or. &
@@ -367,6 +367,9 @@ program icbc
     call conclude_gn6hnc
   end if
 
+  call pju%destruct( )
+  call pjv%destruct( )
+  call pjd%destruct( )
   call dispose_output
   call memory_destroy
 

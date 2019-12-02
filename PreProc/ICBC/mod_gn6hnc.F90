@@ -1049,10 +1049,10 @@ module mod_gn6hnc
 
     ! Rotate winds
     if ( idynamic == 3 ) then
-      call uvrot_inplace(pju,u3,v3u)
-      call uvrot_inplace(pjv,u3v,v3)
+      call pju%uvrotate3(u3,v3u)
+      call pjv%uvrotate3(u3v,v3)
     else
-      call uvrot_inplace(pjd,u3,v3)
+      call pjd%uvrotate3(u3,v3)
     end if
     ! Go to bottom->top
     if ( dattyp(1:3) /= 'EC_' ) then

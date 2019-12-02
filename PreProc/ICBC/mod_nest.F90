@@ -287,14 +287,14 @@ module mod_nest
       if ( oidyn == 3 ) then
         pjparam%staggerx = .true.
         pjparam%staggery = .false.
-        call init_projection(pjparam,ipj1)
+        call ipj1%initialize(pjparam)
         pjparam%staggerx = .false.
         pjparam%staggery = .true.
-        call init_projection(pjparam,ipj2)
+        call ipj2%initialize(pjparam)
       else
         pjparam%staggerx = .true.
         pjparam%staggery = .true.
-        call init_projection(pjparam,ipj1)
+        call ipj1%initialize(pjparam)
       end if
     end if
 
@@ -650,13 +650,13 @@ module mod_nest
       if ( idynamic == 3 ) then
         upd = up
         vpd = vp
-        call uvantirot_inplace(ipj1,upd,vpd)
+        call ipj1%uvbkrotate3(upd,vpd)
         vpd = upd
         upd = up
-        call uvantirot_inplace(ipj2,upd,vp)
+        call ipj2%uvbkrotate3(upd,vp)
         up = vpd
       else
-        call uvantirot_inplace(ipj1,up,vp)
+        call ipj1%uvbkrotate3(up,vp)
       end if
     end if
     !
@@ -674,10 +674,10 @@ module mod_nest
     ! Rotate U-V fields after horizontal interpolation
     !
     if ( idynamic == 3 ) then
-      call uvrot_inplace(pju,u3,v3u)
-      call uvrot_inplace(pjv,u3v,v3)
+      call pju%uvrotate3(u3,v3u)
+      call pjv%uvrotate3(u3v,v3)
     else
-      call uvrot_inplace(pjd,u3,v3)
+      call pjd%uvrotate3(u3,v3)
     end if
     !
     ! Vertical interpolation
@@ -754,6 +754,8 @@ module mod_nest
     if ( idynamic == 3 ) then
       call h_interpolator_destroy(vdot_hint)
     end if
+    call ipj1%destruct( )
+    call ipj2%destruct( )
   end subroutine conclude_nest
 
 end module mod_nest

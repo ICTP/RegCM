@@ -72,6 +72,7 @@ program ncplot
   logical :: lvarsplit , lsigma , ldepth , lu , lua , luas , lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
+  real(rk8) , dimension(:,:) , pointer :: pntp
 
   type(anyprojparams) :: pjpara
   type(regcm_projection) :: pj
@@ -405,16 +406,23 @@ program ncplot
   pjpara%staggerx = .false.
   pjpara%staggery = .false.
 
-  call init_projection(pjpara,pj)
+  call pj%initialize(pjpara)
 
   do ilon = 1 , nlon
     alon = minlon + (ilon-1) * rloninc
     do ilat = 1 , nlat
       alat = minlat + (ilat-1) * rlatinc
       call pj%llij(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-      ruv(ilon,ilat) = 1.0
     end do
   end do
+  if ( iproj == 'ROTMER' .or. &
+       iproj == 'POLSTR' .or. &
+       iproj == 'LAMCON' ) then
+    pntp => pj%rotation_angle( )
+    ruv(:,:) = pntp(:,:)
+  else
+    ruv(:,:) = 1.0
+  end if
 
   write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
          ' bilin sequential binary-big ', trim(tmpcoord)

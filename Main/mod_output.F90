@@ -27,6 +27,7 @@ module mod_output
   use mod_mpmessage
   use mod_mppparam
   use mod_service
+  use mod_projections
   use mod_atm_interface
   use mod_che_interface
   use mod_che_output
@@ -51,8 +52,9 @@ module mod_output
 
   type(rcm_time_and_date) , save , public :: lastout
 
-  real(rkx) , pointer , dimension(:,:) :: alpharotsin => null( )
-  real(rkx) , pointer , dimension(:,:) :: alpharotcos => null( )
+  type(regcm_projection) , save :: pj
+
+  logical :: rotinit = .false.
 
   interface uvrot
     module procedure uvrot2d
@@ -1917,45 +1919,11 @@ module mod_output
   !
   subroutine uvrot2d(u,v)
     implicit none
-
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: u , v
-    real(rkx) :: us , vs
-    integer(ik4) :: i , j
-
-    if ( .not. associated(alpharotcos) ) then
+    if ( .not. rotinit ) then
       call alpharot_compute
     end if
-
-    if ( iproj == 'ROTMER' ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          us = u(j,i)*alpharotcos(j,i) + v(j,i)*alpharotsin(j,i)
-          vs = v(j,i)*alpharotcos(j,i) - u(j,i)*alpharotsin(j,i)
-          u(j,i) = us
-          v(j,i) = vs
-        end do
-      end do
-    else
-      if ( clat >= d_zero ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            us = u(j,i)*alpharotcos(j,i) - v(j,i)*alpharotsin(j,i)
-            vs = u(j,i)*alpharotsin(j,i) + v(j,i)*alpharotcos(j,i)
-            u(j,i) = us
-            v(j,i) = vs
-          end do
-        end do
-      else
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            us = u(j,i)*alpharotcos(j,i) + v(j,i)*alpharotsin(j,i)
-            vs = v(j,i)*alpharotcos(j,i) - u(j,i)*alpharotsin(j,i)
-            u(j,i) = us
-            v(j,i) = vs
-          end do
-        end do
-      end if
-    end if
+    call pj%wind2_antirotate(u,v)
   end subroutine uvrot2d
 
   !
@@ -1963,120 +1931,41 @@ module mod_output
   !
   subroutine uvrot3d(u,v)
     implicit none
-
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: u , v
-    real(rkx) :: us , vs
-    integer(ik4) :: i , j , k , nk
-
-    if ( .not. associated(alpharotcos) ) then
+    if ( .not. rotinit ) then
       call alpharot_compute
     end if
-
-    nk = size(u,3)
-
-    if ( iproj == 'ROTMER' ) then
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            us = u(j,i,k)*alpharotcos(j,i) + v(j,i,k)*alpharotsin(j,i)
-            vs = v(j,i,k)*alpharotcos(j,i) - u(j,i,k)*alpharotsin(j,i)
-            u(j,i,k) = us
-            v(j,i,k) = vs
-          end do
-        end do
-      end do
-    else
-      if ( clat >= d_zero ) then
-        do k = 1 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              us = u(j,i,k)*alpharotcos(j,i) - v(j,i,k)*alpharotsin(j,i)
-              vs = u(j,i,k)*alpharotsin(j,i) + v(j,i,k)*alpharotcos(j,i)
-              u(j,i,k) = us
-              v(j,i,k) = vs
-            end do
-          end do
-        end do
-      else
-        do k = 1 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              us = u(j,i,k)*alpharotcos(j,i) + v(j,i,k)*alpharotsin(j,i)
-              vs = v(j,i,k)*alpharotcos(j,i) - u(j,i,k)*alpharotsin(j,i)
-              u(j,i,k) = us
-              v(j,i,k) = vs
-            end do
-          end do
-        end do
-      end if
-    end if
+    call pj%wind_antirotate(u,v)
   end subroutine uvrot3d
 
   subroutine alpharot_compute
     implicit none
-    real(rk8) :: polcphi , pollam , polphi , polsphi ,  &
-            x , zarg1 , zarg2 , znorm , zphi , zrla ,   &
-            zrlap , zlat , zlon , xn , yn , rteta , rphi
-    integer(ik4) :: i , j
-
+    type(anyprojparams) :: pjpara
     if ( debug_level > 3 ) then
       if ( myid == italk ) then
         write(stdout,*) 'Computing rotation coefficients'
       end if
     end if
-    call getmem2d(alpharotsin,jci1,jci2,ici1,ici2,'mod_output:alpharotsin')
-    call getmem2d(alpharotcos,jci1,jci2,ici1,ici2,'mod_output:alpharotcos')
-
-    if ( iproj == 'ROTMER' ) then
-      if ( plat > d_zero ) then
-        pollam = plon + deg180
-        polphi = deg90 - plat
-      else
-        polphi = deg90 + plat
-        pollam = plon
+    pjpara%pcode = iproj
+    pjpara%ds = dx
+    pjpara%clat = clat
+    pjpara%clon = clon
+    pjpara%plat = plat
+    pjpara%plon = plon
+    pjpara%trlat1 = truelatl
+    pjpara%trlat2 = truelath
+    pjpara%nlon = jx
+    pjpara%nlat = iy
+    pjpara%rotparam = .true.
+    pjpara%staggerx = .false.
+    pjpara%staggery = .false.
+    call pj%initialize(pjpara)
+    if ( debug_level > 3 ) then
+      if ( myid == italk ) then
+        write(stdout,*) 'Done'
       end if
-      if ( pollam > deg180 ) pollam = pollam - deg360
-
-      polcphi = cos(degrad*polphi)
-      polsphi = sin(degrad*polphi)
-
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          zphi = mddom%xlat(j,i)*degrad
-          zrla = mddom%xlon(j,i)*degrad
-          if ( mddom%xlat(j,i) > 89.999999_rkx ) zrla = d_zero
-          zrlap = pollam*degrad - zrla
-          zarg1 = polcphi*sin(zrlap)
-          zarg2 = polsphi*cos(zphi) - polcphi*sin(zphi)*cos(zrlap)
-          znorm = d_one/sqrt(zarg1**2+zarg2**2)
-          alpharotsin(j,i) = zarg1*znorm
-          alpharotcos(j,i) = zarg2*znorm
-        end do
-      end do
-    else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( (clon >= d_zero .and. mddom%xlon(j,i) >= deg00) .or.  &
-               (clon < d_zero .and. mddom%xlon(j,i) < deg00) ) then
-            x = (clon-mddom%xlon(j,i))*degrad*xcone
-          else if ( clon >= d_zero ) then
-            if ( abs(clon-(mddom%xlon(j,i)+deg360)) < &
-                 abs(clon-mddom%xlon(j,i)) ) then
-              x = (clon-(mddom%xlon(j,i)+deg360))*degrad*xcone
-            else
-              x = (clon-mddom%xlon(j,i))*degrad*xcone
-            end if
-          else if ( abs(clon-(mddom%xlon(j,i)-deg360)) < &
-                    abs(clon-mddom%xlon(j,i)) ) then
-            x = (clon-(mddom%xlon(j,i)-deg360))*degrad*xcone
-          else
-            x = (clon-mddom%xlon(j,i))*degrad*xcone
-          end if
-          alpharotsin(j,i) = sin(x)
-          alpharotcos(j,i) = cos(x)
-        end do
-      end do
     end if
+    rotinit = .true.
   end subroutine alpharot_compute
 
 end module mod_output

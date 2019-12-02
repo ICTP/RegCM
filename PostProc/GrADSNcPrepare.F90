@@ -407,7 +407,7 @@ program ncprepare
   pjpara%staggerx = .false.
   pjpara%staggery = .false.
 
-  call init_projection(pjpara,pj)
+  call pj%initialize(pjpara)
 
   do ilon = 1 , nlon
     alon = minlon + (ilon-1) * rloninc
