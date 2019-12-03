@@ -40,7 +40,9 @@
                    ! 'POLSTR', Polar stereographic.
                    ! 'NORMER', Normal  Mercator.
                    ! 'ROTMER', Rotated Mercator.
+                   ! 'ROTLLR', Rotated Latitude/Longitude.
  ds = 60.0,        ! Grid point horizontal resolution in km
+                   ! If negative, horizontal resolution in degrees
  ptop = 5.0,       ! Pressure of model top in cbar
  clat = 45.39,     ! Central latitude  of projection in degrees
                    ! North hemisphere is positive

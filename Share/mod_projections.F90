@@ -864,6 +864,7 @@ module mod_projections
     if ( luvrot ) then
       call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
       call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
+      call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
       do j = 1 , pj%p%nlat
         do i = 1 , pj%p%nlon
           ri = i

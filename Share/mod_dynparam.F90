@@ -526,10 +526,8 @@ module mod_dynparam
       ierr = 3
       return
     end if
-    if ( iproj == 'ROTLLR' ) then
-      if ( ds < 0.0_rkx ) then
-        ds = -erkm*ds*degrad
-      end if
+    if ( ds < 0.0_rkx ) then
+      ds = -erkm*ds*degrad
     end if
     if ( cntri < 0.0_rkx ) then
       cntri = real(iy,rkx)/d_two

@@ -156,7 +156,9 @@ affect the model behavior, at least in adjacent areas.
                    ! 'POLSTR', Polar stereographic.
                    ! 'NORMER', Normal  Mercator.
                    ! 'ROTMER', Rotated Mercator.
+                   ! 'ROTLLR', Rotated Longitude/Latitude.
  ds = 60.0,        ! Grid point horizontal resolution in km
+                   ! If negative, horizontal resolution in degrees
  ptop = 5.0,       ! Pressure of model top in cbar
  clat = 45.39,     ! Central latitude  of model domain in degrees
                    ! North hemisphere is positive
@@ -187,12 +189,12 @@ position and extent of the domain. In particular, regardless of hemisphere:
 \item Middle latitudes (around 45 degrees) - Lambert Conformal
 \item Polar latitudes (more than 75 degrees) - Polar Stereographic
 \item Low latitudes (up to 30 degrees and crossing the equator) - Mercator
-\item Crossing more than 45 degrees extent in latitude - Rotated Mercator
+\item Crossing more than 45 degrees extent in latitude - Rotated Mercator or Rotated Longitude/Latitude (latter is ggested by CORDEX project).
 \end{itemize}
 \item The model hydrostatic engine does not allow a resolution lower than
-$20 km$. If you want a higher resolution consider using the subgridding scheme.
-ICTP plans to introduce in the future a non-hydrostatic compressible core to
-the RegCM model.
+$20 km$. For higher resolutions, use one of the non-hydrostatic dynamical cores
+or consider using the subgridding scheme. The Moloch non-hydrostatic scheme
+allows larger timesteps.
 \item Lowering the top pressure of the model can give you problems in regions
 with complex topography. Touch the default after thinking twice on that.
 \item Always specify \verb=clat= and \verb=clon=, the central domain point,
