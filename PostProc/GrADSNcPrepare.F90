@@ -32,6 +32,7 @@ program ncprepare
   use mod_date
   use mod_message
   use mod_nchelper
+  use mod_memutil
   use netcdf
 
   implicit none
@@ -73,6 +74,7 @@ program ncprepare
   logical :: lvarsplit , existing , lsigma , ldepth , lu , lua , luas , lclm
   logical :: is_model_output = .false.
   logical :: uvrotate = .false.
+  real(rk8) , dimension(:,:) , pointer :: pntp
 
   type(anyprojparams) :: pjpara
   type(regcm_projection) :: pj
@@ -102,6 +104,9 @@ program ncprepare
   end if
 
   call get_command_argument(1,value=ncfile)
+
+  call memory_init( )
+
   iid = scan(ncfile, '/', .true.)
   tmpctl = trim(ncfile)//'.ctl'
 
@@ -360,25 +365,6 @@ program ncprepare
   deallocate(xlat)
   deallocate(xlon)
 
-  allocate(rin(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'rin')
-  allocate(r4in(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'r4in')
-  allocate(rjn(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'rjn')
-  allocate(r4jn(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'r4jn')
-  allocate(ruv(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'ruv')
-  allocate(r4uv(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'r4uv')
-
   if (iproj == 'LAMCON') then
     istatus = nf90_get_att(ncid, nf90_global, 'standard_parallel', trlat)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -395,7 +381,7 @@ program ncprepare
   end if
 
   pjpara%pcode = iproj
-  pjpara%ds = ds*1000.0_rk8
+  pjpara%ds = ds
   pjpara%clat = clat
   pjpara%clon = clon
   pjpara%plat = plat
@@ -406,43 +392,71 @@ program ncprepare
   pjpara%nlat = iy
   pjpara%staggerx = .false.
   pjpara%staggery = .false.
-
   call pj%initialize(pjpara)
 
-  do ilon = 1 , nlon
-    alon = minlon + (ilon-1) * rloninc
-    do ilat = 1 , nlat
-      alat = minlat + (ilat-1) * rlatinc
-      call pj%llij(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-      ruv(ilon,ilat) = 1.0
-    end do
-  end do
-
-  tmpcoord = ncfile(1:iid)//trim(experiment)//'.coord'
-  inquire (file=tmpcoord, exist=existing)
-  if (.not. existing) then
-    r4in = real(rin)
-    r4jn = real(rjn)
-    r4uv = real(ruv)
-    open(newunit=ip2, file=tmpcoord, form='unformatted', status='replace')
-    write(ip2) r4in
-    write(ip2) r4jn
-    write(ip2) r4uv
-    close(ip2)
+  if ( iproj == 'ROTLLR' ) then
+    call pj%rl00(alat,alon)
+    write(ip1, '(a,i8,i8,a,6f8.2)') 'pdef ', jx , iy ,   &
+           ' rotll ',plon, plat, raddeg*ds/earthrad, &
+           raddeg*ds/earthrad,alon,alat
   else
-    write(stdout,*) 'Coordinate file exist, not recreating it'
+    if ( lclm ) then
+      tmpcoord = trim(ncfile)//'.coord'
+    else
+      tmpcoord = trim(experiment)//'.coord'
+    end if
+    inquire (file=tmpcoord, exist=existing)
+    if (.not. existing) then
+      allocate(rin(nlon,nlat), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__, &
+                      'rin')
+      allocate(r4in(nlon,nlat), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__, &
+                      'r4in')
+      allocate(rjn(nlon,nlat), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__, &
+                      'rjn')
+      allocate(r4jn(nlon,nlat), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__, &
+                      'r4jn')
+      allocate(ruv(nlon,nlat), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__, &
+                      'ruv')
+      allocate(r4uv(nlon,nlat), stat=istatus)
+      call checkalloc(istatus,__FILE__,__LINE__, &
+                      'r4uv')
+      do ilon = 1 , nlon
+        alon = minlon + (ilon-1) * rloninc
+        do ilat = 1 , nlat
+          alat = minlat + (ilat-1) * rlatinc
+          call pj%llij(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
+        end do
+      end do
+      if ( iproj == 'ROTMER' .or. &
+           iproj == 'POLSTR' .or. &
+           iproj == 'LAMCON' ) then
+        pntp => pj%rotation_angle( )
+        ruv(:,:) = pntp(:,:)
+      else
+        ruv(:,:) = 1.0_rkx
+      end if
+      r4in = real(rin)
+      r4jn = real(rjn)
+      r4uv = real(ruv)
+      open(newunit=ip2, file=tmpcoord, form='unformatted', status='replace')
+      write(ip2) r4in
+      write(ip2) r4jn
+      write(ip2) r4uv
+      close(ip2)
+      deallocate(rin,rjn,ruv)
+      deallocate(r4in,r4jn,r4uv)
+      write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,       &
+             ' bilin sequential binary-big ', trim(tmpcoord)
+    else
+      write(stdout,*) 'Coordinate file exist, not recreating it'
+    end if
   end if
 
-  deallocate(rin,rjn,ruv)
-  deallocate(r4in,r4jn,r4uv)
-
-  if ( lclm ) then
-    write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
-           ' bilin sequential binary-big ', trim(tmpcoord)
-  else
-    write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
-           ' bilin sequential binary-big ^', trim(experiment)//'.coord'
-  end if
   write(ip1, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc
   write(ip1, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
@@ -795,6 +809,8 @@ program ncprepare
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Close file error')
   end if
+
+  call memory_destroy( )
 
 end program ncprepare
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

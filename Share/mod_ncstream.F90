@@ -3256,7 +3256,7 @@ module mod_ncstream
       attra%theval(2) = cntri
       attra%numval = 2
       call add_attribute(stream,attra)
-      if ( iproj == 'ROTMER' ) then
+      if ( iproj == 'ROTMER' .or. iproj == 'ROTLLR' ) then
         attr%aname = 'grid_north_pole_latitude'
         attr%theval = plat
         call add_attribute(stream,attr)

@@ -31,6 +31,7 @@ program ncplot
   use mod_date
   use mod_message
   use mod_nchelper
+  use mod_memutil
   use mod_stdio
   use netcdf
 
@@ -102,8 +103,10 @@ program ncplot
   end if
 
   call get_command_argument(1,value=ncfile)
+
+  call memory_init( )
+
   tmpctl = trim(ncfile)//'.ctl'
-  tmpcoord = trim(ncfile)//'.coord'
 
   if ( numarg == 2 ) then
     lclm = .true.
@@ -136,7 +139,6 @@ program ncplot
                   'dimids')
 
   open(newunit=ip1, file=tmpctl, form='formatted', status='replace')
-  open(newunit=ip2, file=tmpcoord, form='unformatted', status='replace')
   if ( lclm ) then
     write(ip1, '(a)') 'dset '//trim(clmfile)
   else
@@ -359,25 +361,6 @@ program ncplot
   deallocate(xlat)
   deallocate(xlon)
 
-  allocate(rin(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'rin')
-  allocate(r4in(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'r4in')
-  allocate(rjn(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'rjn')
-  allocate(r4jn(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'r4jn')
-  allocate(ruv(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'ruv')
-  allocate(r4uv(nlon,nlat), stat=istatus)
-  call checkalloc(istatus,__FILE__,__LINE__, &
-                  'r4uv')
-
   if (iproj == 'LAMCON') then
     istatus = nf90_get_att(ncid, nf90_global, 'standard_parallel', trlat)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -394,7 +377,7 @@ program ncplot
   end if
 
   pjpara%pcode = iproj
-  pjpara%ds = ds*1000.0_rk8
+  pjpara%ds = ds
   pjpara%clat = clat
   pjpara%clon = clon
   pjpara%plat = plat
@@ -405,42 +388,65 @@ program ncplot
   pjpara%nlat = iy
   pjpara%staggerx = .false.
   pjpara%staggery = .false.
-
   call pj%initialize(pjpara)
 
-  do ilon = 1 , nlon
-    alon = minlon + (ilon-1) * rloninc
-    do ilat = 1 , nlat
-      alat = minlat + (ilat-1) * rlatinc
-      call pj%llij(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
-    end do
-  end do
-  if ( iproj == 'ROTMER' .or. &
-       iproj == 'POLSTR' .or. &
-       iproj == 'LAMCON' ) then
-    pntp => pj%rotation_angle( )
-    ruv(:,:) = pntp(:,:)
+  if ( iproj == 'ROTLLR' ) then
+    call pj%rl00(alat,alon)
+    write(ip1, '(a,i8,i8,a,6f8.2)') 'pdef ', jx , iy ,   &
+           ' rotll ',plon, plat, raddeg*ds/earthrad, &
+           raddeg*ds/earthrad,alon,alat
   else
-    ruv(:,:) = 1.0
+    allocate(rin(nlon,nlat), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'rin')
+    allocate(r4in(nlon,nlat), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'r4in')
+    allocate(rjn(nlon,nlat), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'rjn')
+    allocate(r4jn(nlon,nlat), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'r4jn')
+    allocate(ruv(nlon,nlat), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'ruv')
+    allocate(r4uv(nlon,nlat), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__, &
+                    'r4uv')
+    do ilon = 1 , nlon
+      alon = minlon + (ilon-1) * rloninc
+      do ilat = 1 , nlat
+        alat = minlat + (ilat-1) * rlatinc
+        call pj%llij(alat,alon,rin(ilon,ilat),rjn(ilon,ilat))
+      end do
+    end do
+    if ( iproj == 'ROTMER' .or. &
+         iproj == 'POLSTR' .or. &
+         iproj == 'LAMCON' ) then
+      pntp => pj%rotation_angle( )
+      ruv(:,:) = pntp(:,:)
+    else
+      ruv(:,:) = 1.0
+    end if
+    r4in = real(rin)
+    r4jn = real(rjn)
+    r4uv = real(ruv)
+    tmpcoord = trim(ncfile)//'.coord'
+    open(newunit=ip2, file=tmpcoord, form='unformatted', status='replace')
+    write(ip2) r4in
+    write(ip2) r4jn
+    write(ip2) r4uv
+    close(ip2)
+    deallocate(rin,rjn,ruv)
+    deallocate(r4in,r4jn,r4uv)
+    write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
+           ' bilin sequential binary-big ', trim(tmpcoord)
   end if
-
-  write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,                         &
-         ' bilin sequential binary-big ', trim(tmpcoord)
   write(ip1, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
          minlon, rloninc
   write(ip1, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
          minlat, rlatinc
-
-  r4in = real(rin)
-  r4jn = real(rjn)
-  r4uv = real(ruv)
-  write(ip2) r4in
-  write(ip2) r4jn
-  write(ip2) r4uv
-  close(ip2)
-
-  deallocate(rin,rjn,ruv)
-  deallocate(r4in,r4jn,r4uv)
 
   if (.not. ldepth .and. kz /= 0) then
     allocate(level(kz), stat=istatus)
@@ -796,6 +802,8 @@ program ncplot
   command = 'grads -l -c temp.gs'
 
   call system(command)
+
+  call memory_destroy( )
 
   call unlink('temp.gs')
   call unlink(tmpctl)

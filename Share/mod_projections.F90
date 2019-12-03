@@ -75,8 +75,11 @@ module mod_projections
 
       procedure , public :: initialize
       procedure , public :: rotation_angle
+      procedure , public :: wind_rotate
+      procedure , public :: wind2_rotate
       procedure , public :: wind_antirotate
       procedure , public :: wind2_antirotate
+      procedure , public :: rl00
       procedure , public :: destruct
 
   end type regcm_projection
@@ -179,6 +182,32 @@ module mod_projections
 
   contains
 
+  subroutine rl00(pj,lat0,lon0)
+    implicit none
+    class(regcm_projection) , intent(in) :: pj
+    real(rk8) , intent(out) :: lat0 , lon0
+    lat0 = pj%p%rlat0
+    lon0 = pj%p%rlon0
+  end subroutine rl00
+
+  subroutine wind_rotate(pj,u,v)
+    implicit none
+    class(regcm_projection) , intent(in) :: pj
+    real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: u , v
+    select case(pj%p%code)
+      case ('LAMCON')
+        call rotate3_lc(pj,u,v)
+      case ('ROTMER')
+        call rotate3_rc(pj,u,v)
+      case ('POLSTR')
+        call rotate3_ps(pj,u,v)
+      case ('ROTLL')
+        call rotate3_rl(pj,u,v)
+      case default
+        ! No action
+    end select
+  end subroutine wind_rotate
+
   subroutine wind_antirotate(pj,u,v)
     implicit none
     class(regcm_projection) , intent(in) :: pj
@@ -196,6 +225,24 @@ module mod_projections
         ! No action
     end select
   end subroutine wind_antirotate
+
+  subroutine wind2_rotate(pj,u,v)
+    implicit none
+    class(regcm_projection) , intent(in) :: pj
+    real(rkx) , dimension(:,:) , pointer , intent(inout) :: u , v
+    select case(pj%p%code)
+      case ('LAMCON')
+        call rotate2_lc(pj,u,v)
+      case ('ROTMER')
+        call rotate2_rc(pj,u,v)
+      case ('POLSTR')
+        call rotate2_ps(pj,u,v)
+      case ('ROTLL')
+        call rotate2_rl(pj,u,v)
+      case default
+        ! No action
+    end select
+  end subroutine wind2_rotate
 
   subroutine wind2_antirotate(pj,u,v)
     implicit none
