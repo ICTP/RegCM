@@ -385,32 +385,146 @@ horizontal gradients are used.
 
 \subsection{Mercator projection}
 
+Spherical coordinates longitude and latitude $(\lambda, \phi)$ can be computed
+from the grid index values $i,j$ as:
+
+\begin{eqnarray}
+  \lambda &=& \lambda_c + \frac{ds \left(j-j_c\right)}{R} \\
+  \phi &=& 2 \arctan\left[\exp\left(\frac{y_c +
+                ds\left(i-i_c\right)}{R}\right)\right]-90
+\end{eqnarray}
+
+where $R$ is the Earth radius and
+
+\begin{equation}
+  y_c = R \ln \left(\frac{1+\sin(\phi_c)}{cos(\phi_c)}\right)
+\end{equation}
+
+is the distance from the pole to the center of the domain, $(\lambda_c,\phi_c)$.
+
 \subsection{Lambert Conformal Conical projection}
 
-Spherical coordinates longitude and latitude $(\lambda, \phi)$ are transformed
-into plane projected coordinate $(x,y)$ by the following formulas:
+Spherical coordinates longitude and latitude $(\lambda, \phi)$ can be computed
+from the grid index values $i,j$ as:
+
+\begin{itemize}
+  \item $\phi_c > 0$
+    \begin{eqnarray}
+      \lambda &=& \lambda_c + 
+         \frac{1}{\kappa}\arctan\left(\frac{x}{-y}\right) \\
+      \phi &=& 90 - 2 \arctan\left[ \tan\left(\frac{\psi_1}{2}\right) \left(
+         \frac{M \kappa}{R \sin(\psi_1)}\right)^{\frac{1}{\kappa}}\right]
+    \end{eqnarray}
+  \item $\phi_c < 0$
+    \begin{eqnarray}
+      \lambda &=& \lambda_c + 
+         \frac{1}{\kappa} \arctan \left(\frac{x}{y}\right) \\
+      \phi &=& -90 - 2 \arctan\left[ \tan\left(\frac{\psi_1}{2}\right) \left(
+         \frac{-M \kappa}{R \sin(\psi_1)}\right)^{\frac{1}{\kappa}}\right]
+    \end{eqnarray}
+\end{itemize}
+
+where:
 
 \begin{eqnarray}
-x &=& \rho \sin \left[ n (\lambda-\lambda_0) \right] \\
-y &=& \rho_0 - \rho \cos \left[ n (\lambda-\lambda_0) \right] 
+  x &=& ds \left(j-j_c\right) \\
+  y &=& ds \left(i-i_c\right) y_c\\
+  M &=& \left(x^2+y^2\right)^{\frac{1}{2}} \\
 \end{eqnarray}
 
-where $(\lambda_0, \phi_0)$ is the central point coordinates, $\phi_1,\phi_2$
-are the two standar parallels and:
+The variable $\psi_1$ is the co-latitude, and $\kappa$ is the cone constant.
+They are defined from the true latitudes $\phi1$ and $\phi_2$ as:
 
-\begin{eqnarray}
-  n &=& \frac{\ln\left(\cos \phi_1 \sec \phi_2\right)}
-        {\ln \left[ \tan \left( \frac{1}{4} \pi + \frac{1}{2}\phi_2 \right)
-        \cot \left(\frac{1}{4}\pi + \frac{1}{2}\phi_1 \right) \right]} \\
-  \rho &=& F \cot^n \left( \frac{1}{4}\pi + \frac{1}{2}\phi \right) \\
-  \rho_0 &=& F \cot^n \left( \frac{1}{4}\pi + \frac{1}{2}\phi_0 \right) \\ 
-  F &=& \frac{\cos \phi_1 \tan^n \left( \frac{1}{4}\pi +
-              \frac{1}{2}\phi_1 \right) }{n}
-\end{eqnarray}
+\begin{itemize}
+  \item $\phi_c > 0$
+    \begin{equation}
+      \psi_1 = \left(\frac{\pi}{2} - |\phi_1| \right)
+    \end{equation}
+  \item $\phi_c < 0$
+    \begin{equation}
+      \psi_1 = -\left(\frac{\pi}{2} - |\phi_1| \right)
+    \end{equation}
+\end{itemize}
 
-If $\phi_1 = \phi_2$, $n = sin(\phi_1)$.
- 
+\begin{equation}
+  \kappa = \frac{\log_{10}\left[\cos(\phi_1)\right] - 
+                 \log_{10}\left[\cos(\phi_2)\right]}
+                {\log_{10}\left[\tan(\frac{\pi}{4}-\frac{|\phi_1|}{2})\right]-
+                 \log_{10}\left[\tan(\frac{\pi}{4}-\frac{|\phi_2|}{2})\right]}
+\end{equation}
+
+and finally
+
+\begin{itemize}
+  \item $\phi_c > 0$
+    \begin{equation}
+      y_c = -\frac{R}{\kappa} \sin(\psi_1) \left[\frac{\tan\left(
+          \frac{\frac{\pi}{2}-\phi_c}{2}\right)}
+          {\tan\left(\frac{\psi_1}{2}\right)} \right]^\kappa
+    \end{equation}
+  \item $\phi_c < 0$
+    \begin{equation}
+      y_c = -\frac{R}{\kappa} \sin(\psi_1) \left[\frac{\tan\left(
+          \frac{-\frac{\pi}{2}-\phi_c}{2}\right)}
+          {\tan\left(\frac{\psi_1}{2}\right)} \right]^\kappa
+    \end{equation}
+\end{itemize}
+
 \subsection{Stereographic projection}
+
+Spherical coordinates longitude and latitude $(\lambda, \phi)$ can be computed
+from the grid index values $i,j$ as:
+
+\begin{itemize}
+  \item $\phi_c > 0$
+    \begin{eqnarray}
+      \lambda &=& \lambda_c + 
+         \frac{1}{\kappa}\arctan\left(\frac{x}{-y}\right) \\
+      \phi &=& 90 - 2 \arctan\left[\frac{\frac{M}{R}}{1+\cos(\psi_1)}\right]
+    \end{eqnarray}
+  \item $\phi_c < 0$
+    \begin{eqnarray}
+      \lambda &=& \lambda_c + 
+         \frac{1}{\kappa} \arctan \left(\frac{x}{y}\right) \\
+      \phi &=& -90 - 2 \arctan\left[\frac{\frac{M}{R}}{1+\cos(\psi_1)}\right]
+    \end{eqnarray}
+\end{itemize}
+
+where:
+
+\begin{eqnarray}
+  x &=& ds \left(j-j_c\right) \\
+  y &=& ds \left(i-i_c\right) y_c\\
+  M &=& \left(x^2+y^2\right)^{\frac{1}{2}} \\
+\end{eqnarray}
+
+The variable $\psi_1$ is the co-latitude defined from the pole latitude as:
+
+\begin{itemize}
+  \item $\phi_c > 0$
+    \begin{equation}
+      \psi_1 = \left(\frac{\pi}{2} - |\phi_1| \right)
+    \end{equation}
+  \item $\phi_c < 0$
+    \begin{equation}
+      \psi_1 = -\left(\frac{\pi}{2} - |\phi_1| \right)
+    \end{equation}
+\end{itemize}
+
+and finally
+
+\begin{itemize}
+  \item $\phi_c > 0$
+    \begin{equation}
+      y_c = -R \sin \left(\frac{\pi}{2} - \phi_c\right)
+        \frac{1+\cos(\psi_1)}{1+\cos\left(\frac{\pi}{2}-\phi_c\right)}
+    \end{equation}
+  \item $\phi_c < 0$
+    \begin{equation}
+      y_c = -R \sin \left(-\frac{\pi}{2} - \phi_c\right)
+        \frac{1+\cos(\psi_1)}{1+\cos\left(-\frac{\pi}{2}-\phi_c\right)}
+    \end{equation}
+\end{itemize}
 
 \subsection{Oblique Mercator projection}
 
