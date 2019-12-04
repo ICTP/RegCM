@@ -360,34 +360,32 @@ and the $a_0$ and $b_0$ are configurable constant parameters with:
 The modeling system has a
 choice of four map projections. Lambert Conformal is suitable for mid-latitudes,
 Polar Stereographic for high latitudes, Normal Mercator for low latitudes, and
-Rotated Mercator for extra choice. The $x$ and $y$ directions in the model do
+Rotated Mercator and Rotated Latitude/Longitude for extra choice.
+The $x$ and $y$ directions in the model do
 not correspond to west-east and north-south except for the Normal Mercator
 projection, and therefore the observed wind generally has to be rotated to the
 model grid, and the model $u$ and $v$ components need to be rotated before
 comparison with observations. These transformations are accounted for in the
 model pre-processors that provide data on the model grid (Please note that
 model output of u and v components, raw or postprocessed, should be rotated to a
-lat/lon grid before comparing to observations).  The map scale factor, $m$, is
-defined by:
+lat/lon grid before comparing to observations).
+
+The map scale factor, $m$, is defined by:
 
 \begin{equation}
-  m = \frac{model\_grid\_distance}{real\_earth\_distance}
+  m = \frac{model\:grid\:distance}{real\:earth\:distance}
 \end{equation}
 
 \noindent \\ and its value is usually close to one, varying with latitude. The
 projections in the model preserve the shape of small areas, so that $dx=dy$
 everywhere, but the grid length varies across the domain to allow a
-representation of a spherical surface on a plane surface. Map-scale factors need
-to be accounted for in the model equations wherever horizontal gradients are
-used.
+representation of a spherical surface on a plane surface.
+Map-scale factors need to be accounted for in the model equations wherever
+horizontal gradients are used.
 
 \subsection{Mercator projection}
 
-The 
-
-\subsection{Oblique Mercator projection}
-
-\subsection{Lambert Conformal Conical}
+\subsection{Lambert Conformal Conical projection}
 
 Spherical coordinates longitude and latitude $(\lambda, \phi)$ are transformed
 into plane projected coordinate $(x,y)$ by the following formulas:
@@ -412,8 +410,10 @@ are the two standar parallels and:
 
 If $\phi_1 = \phi_2$, $n = sin(\phi_1)$.
  
-\subsection{Stereographic}
+\subsection{Stereographic projection}
 
+\subsection{Oblique Mercator projection}
 
+\subsection{Rotated Latitude Longitude projection}
 
 % vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

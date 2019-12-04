@@ -783,24 +783,80 @@ steps:
 \begin{itemize}
   \item Integrate the vertical propagation of sound waves from
     equations \ref{molochbase_3}-\ref{molochbase_5} with an implicit
-    Euler-backward scheme with timestep $dt_{sound}$ with vertical
+    Euler-backward scheme with timestep $dt_s$ with vertical
     velocity and pressure taken at the new timelevel $n+1$ but using
     horizontal wind component at timelevel $n$ to compute the new vertical
-    velocity inverting a tri-diagonal linear system
+    velocity inverting a tri-diagonal linear system (see
+    \ref{implicitscheme}).
   \item Compute advection terms using a second order total variation 
     diminishing implementation of the \cite{Godunov_59} method
-    described in \cite{hubbard2003three} with timestep $dt_{advec}$
+    described in \cite{hubbard2003three} with timestep $dt_a$
   \item Compute physical parametrization contribution to the new state
-    using the user defined large timestep $dt$
+    using the user defined large timestep $dt_p$
 \end{itemize}
 
-The user defines the ratios $dt/dt_{advec}$ and $dt_{advec}/dt_{sound}$ to
+The user defines the ratios $dt_p/dt_a$ and $dt_a/dt_s$ to
 control the relative frequencies of the solution steps. The vertical
 acceleration is set to zero at the surface.
 
 No diffusion is required, and numerical stability is accomplished by
 applying a second order spatial filter of the divergence of the
 horizontal wind (first two RHS terms in equation \ref{total_divergence}).
+
+\subsubsection{Implicit scheme for the vertical velocity}
+\label{implicitscheme}
+
+The time and space discretization of equations
+\ref{molochbase_3}-\ref{molochbase_5} is at $w$ levels $k$:
+
+\begin{eqnarray}
+  \label{impli1}
+  w^{(n+1)}_{(k)} &=& w^{(n)}_{(k)} - F_{fz(k)}c_{p_d} \overline{\Theta_v}^{(n)}
+      \frac{\Pi^{(n+1)}_{(k)} - \Pi^{(n+1)}_{(k+1)}}{\Delta z} \Delta t_{s} -
+      g \Delta t_{s} \\
+  \label{impli2}
+  \Pi^{(n+1)}_{(k)} &=& \Pi^{(n)}_{(k)} - \Delta t_{s}  \Pi^{(n)}_{(k)}
+      \frac{R_d}{c_{v_d}} \left[ \frac{F_{z (k)}}{\Delta \zeta} \left(
+      w^{(n+1)}_{(k)} - w^{(n+1)}_{(k+1)} \right) + DIV^{(n)}_{(k)} \right]
+\end{eqnarray}
+
+where the average is performed from the above and below half levels for
+$\overline{\Theta_v}$ and $DIV^{(n)}_{(k)}$ is the part of wind divergence
+computed at timelevel $n$, $F_{fz(k)}$ and $F_{z (k)}$ are computed at full
+($w$) and half $\zeta$ levels.
+
+By substituting \ref{impli2} into \ref{impli1} we obtain a tri-diagonal linear
+system we must solve to compute the vertical velocity at the new time level:
+
+\begin{eqnarray}
+  -Z_p w^{(n+1)}_{(k+1)} + (1 + Z_p + Z_m) w^{(n+1)}_{(k)} -
+   Z_m w^{(n+1)}_{(k-1)} = RHS \\
+   RHS = w^{(n+1)}_{(Ek)} + F_{fz(k)}c_{p_d}
+     \frac{R_d}{c_{v_d}} \overline{\Theta_v}^{(n)}
+     \frac{\Delta t_{s}^2}{\Delta \zeta} \left(
+     \Pi^{(n)}_{(k-1)}DIV^{(n)}_{(k-1)} - \Pi^{(n)}_{(k)}DIV^{(n)}_{(k)}
+     \right)
+\end{eqnarray}
+
+where
+
+\begin{equation}
+  w^{(n+1)}_{(Ek)} = w^{(n)}_{(k)} - F_{fz(k)}c_{p_d} \overline{\Theta_v}^{(n)}
+      \frac{\Pi^{(n)}_{(k-1)} - \Pi^{(n)}_{(k)}}{\Delta \zeta} \Delta t_{s} -
+      g \Delta t_{s}
+\end{equation}
+
+denotes the explicit velocity at the new timelevel. The off-diagonal terms
+$Z_p$ and $Z_m$ are:
+
+\begin{eqnarray}
+  Z_p &=& \Pi^{(n)}_{(k)} F_{z (k)} F_{fz(k)} \frac{R_d}{c_{v_d}} c_{p_d}
+    \overline{\Theta_v}^{(n)} \left(\frac{\Delta t_{s}}
+     {\Delta \zeta}\right)^2 \\
+  Z_m &=& \Pi^{(n)}_{(k-1)} F_{z (k-1)} F_{fz(k)} \frac{R_d}{c_{v_d}} c_{p_d}
+    \overline{\Theta_v}^{(n)} \left(\frac{\Delta t_{s}}
+     {\Delta \zeta}\right)^2
+\end{eqnarray}
 
 \section{Physics parametrizations} \label{sec:physics}
 
