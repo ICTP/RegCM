@@ -19,13 +19,13 @@
 
 \chapter{Model Equations}
 
-The RegCM model solves a set of primitive dynamical equations describing
+The \ac{RegCM} model solves a set of primitive dynamical equations describing
 the atmospheric motion, with parametrizations for physical processes as per:
 
 \begin{itemize}
   \item Radiation (Short Wave and Long Wave)
   \item Convection
-  \item Turbolent Diffusion
+  \item Turbulent Diffusion
   \item Moist (Clouds and Precipitation)
   \item Fluxes exchange with surface (Soil model and Ocean fluxes)
   \item Tracer transport and chemistry (Aerosols and full chemistry)
@@ -77,7 +77,7 @@ described by \cite{Grell_94}.
 \end{gather}
 
 where $u$ and $v$ are the eastward and northward components of
-velocity, $\phi$ is geopotential height, $f$ is the coriolis parameter,
+velocity, $\phi$ is geopotential height, $f$ is the Coriolis parameter,
 $m$ is the map scale factor for the chosen projection, and $F_H$ and $F_V$
 represent the effects of horizontal and vertical diffusion, and
 $p^{\ast} = p_s-p_t$, i.e. the difference between surface and model top
@@ -125,7 +125,7 @@ compute the temporal variation of the surface pressure in the model,
     \frac{\partial{p^{\ast}v/m}}{\partial{y}} \right] d\sigma}
 \end{eqnarray}
 
-The surface pressure tendency from \ref{intform} is then used with the
+The surface pressure tendency from \ref{intform} is then used with
 the vertical integral of \ref{eq:continuity} to compute the vertical
 velocity in sigma coordinates $(\dot{\sigma})$ at each
 level in the model:
@@ -497,7 +497,7 @@ a set of two-dimensional operators $(\lambda_i - \nabla^2)$ where
 \end{gather}
 
 which are the squared inverse of the Rossby radius of deformation
-corresponding to the $H_i$ dephts.
+corresponding to the $H_i$ depths.
 The balanced fields are thus obtained by iterating:
 
 \begin{gather}
@@ -704,15 +704,15 @@ equations contain only interactions between momentum and pressure:
 
 with $\gamma$ the ratio of the specific heats at constant pressure and volume.
 During the small time-steps, the $S_x$ terms are kept constant (they contain
-advection, diffusion, buoyancy and coriolis tendencies), and following the
+advection, diffusion, buoyancy and Coriolis tendencies), and following the
 semi-implicit scheme in \cite{Klemp_1978} we solve the above by recursion.
 The step only depends on the horizontal grid size.
 
 \subsection{Non-hydrostatic dynamical core with height vertical coordinate}
 
-Given the definizion of the $\zeta$ vertical coordinate in \ref{h_coordinate},
-the factor to transform the vertical derivatives in the new coordinate system
-is thus:
+Given the definition of the $\zeta$ hybrid vertical coordinate in
+\ref{h_coordinate}, the factor to transform the vertical derivatives in
+the new coordinate system is thus:
 
 \begin{eqnarray}
 \sigma &=& 1 - \frac{\zeta}{H} \\
@@ -729,14 +729,85 @@ which allows for the generalized vertical velocity to be expressed as:
                      v \frac{\partial h}{\partial y} \right) G \right]
 \end{equation}
 
-The model basic equation in 
+The model uses as prognostic variables the Exner function
+$\Pi$ and the virtual potential temperature $\Theta_v$ defined as:
+
+\begin{eqnarray}
+  \Pi &=& \left(\frac{P}{P_0}\right)^{\frac{R_d}{c_{p_d}}} \\
+  \Theta_v &=& \frac{T_v}{\Pi} \\
+  T_v &\approx& T \left( 1 + e w \right)
+\end{eqnarray}
+
+where $P_0$ us a reference pressure, $C_{p_d}$ is the specific heat of dry
+air at constant pressure and $T_v$ is the virtual temperature with $M_v$ and
+$e$ is $M_d/M_v - 1$ with $M_d,M_v$ the effective molecular weights of dry air
+and water.
+
+The model basic equations are thus:
+
+\begin{eqnarray}
+  \label{molochbase_1}
+  \frac{du}{dt} &=& m c_{p_d}\Theta_v \frac{\partial \Pi}{\partial x}
+                 -  m G(\zeta) \frac{\partial h}{\partial x}
+                 \left(g + \frac{dw}{dt}\right) + fv + K_u \\
+  \label{molochbase_2}
+  \frac{dv}{dt} &=& m c_{p_d}\Theta_v \frac{\partial \Pi}{\partial y}
+                 - m G(\zeta) \frac{\partial h}{\partial y}
+                 \left(g + \frac{dw}{dt}\right) - fu + K_v \\
+  \label{molochbase_3}
+  \frac{dw}{dt} &=& - F_z c_{p_d}\Theta_v \frac{\partial \Pi}{\partial z}
+                 - g + K_w \\
+  \label{molochbase_4}
+  \frac{d\Theta_{v}}{dt} &\approx& K_{\Theta_v} \\
+  \label{molochbase_5}
+  \frac{d\Pi}{dt} &\approx& -\Pi \frac{R_d}{c_{v_d}} \bm{\nabla} \vv{\bm{V}}
+\end{eqnarray}
+
+Equations \ref{molochbase_1}-\ref{molochbase_5} are a very good approximation
+of the exact solution [\cite{Emanuel_94}]. The terms $K_x$ denote the physical
+parametrization contributions and $fv,-fu$ are the Coriolis terms. The
+velocity divergence is expressed in flux form as:
+
+\begin{equation}
+  \label{total_divergence}
+  \bm{\nabla} \vv{\bm{V}} = F_z \left\{ m^2 \left[
+    \frac{\partial{ \left(\frac{u}{m F_z} \right)}}{\partial x} +
+    \frac{\partial{ \left(\frac{v}{m F_z} \right)}}{\partial y} \right] +
+  \frac{\partial{ \left(\frac{s}{F_z} \right)}}{\partial \zeta} \right\}
+\end{equation}
+
+Horizontal and vertical derivatives are computed with second order, centred
+finite differences on the grid points. The time scheme is split into three
+steps:
+
+\begin{itemize}
+  \item Integrate the vertical propagation of sound waves from
+    equations \ref{molochbase_3}-\ref{molochbase_5} with an implicit
+    Euler-backward scheme with timestep $dt_{sound}$ with vertical
+    velocity and pressure taken at the new timelevel $n+1$ but using
+    horizontal wind component at timelevel $n$ to compute the new vertical
+    velocity inverting a tri-diagonal linear system
+  \item Compute advection terms using a second order total variation 
+    diminishing implementation of the \cite{Godunov_59} method
+    described in \cite{hubbard2003three} with timestep $dt_{advec}$
+  \item Compute physical parametrization contribution to the new state
+    using the user defined large timestep $dt$
+\end{itemize}
+
+The user defines the ratios $dt/dt_{advec}$ and $dt_{advec}/dt_{sound}$ to
+control the relative frequencies of the solution steps. The vertical
+acceleration is set to zero at the surface.
+
+No diffusion is required, and numerical stability is accomplished by
+applying a second order spatial filter of the divergence of the
+horizontal wind (first two RHS terms in equation \ref{total_divergence}).
 
 \section{Physics parametrizations} \label{sec:physics}
 
 \subsection{Radiation Scheme}
 
-\noindent RegCM4 uses the radiation scheme of
-the NCAR CCM3, which is described in \cite{Kiehl_96}.  Briefly, the solar
+\noindent \ac{RegCM}4 uses the radiation scheme of
+the \ac{NCAR} CCM3, which is described in \cite{Kiehl_96}.  Briefly, the solar
 component, which accounts for the effect of ${\rm O_3}$, ${\rm H_2O}$, ${\rm
 CO_2}$, and ${\rm O_2}$, follows the $\delta$-Eddington approximation of
 \cite{Kiehl_96}.  It includes 18 spectral intervals from 0.2 to 5 $\mu {\rm m}$.
@@ -760,13 +831,13 @@ surface-atmosphere exchanges of momentum, energy, and water vapor (see
 layer, a surface soil layer, 10~cm thick, or root zone layer, 1-2~m thick, and a
 third deep soil layer 3~m thick.  Prognostic equations are solved for the soil
 layer temperatures using a generalization of the force-restore method of
-\cite{Deardoff_78}.  The temperature of the canopy and canopy foilage is
+\cite{Deardoff_78}.  The temperature of the canopy and canopy foliage is
 calculated diagnostically via an energy balance formulation including sensible,
 radiative, and latent heat fluxes.
 
 The soil hydrology calculations include predictive equations for the water
 content of the soil layers.  These equations account for precipitation,
-snowmelt, canopy foiliage drip, evapotranspiration, surface runoff, infiltration
+snowmelt, canopy foliage drip, evapotranspiration, surface runoff, infiltration
 below the root zone, and diffusive exchange of water between soil layers.  The
 soil water movement formulation is obtained from a fit to results from a
 high-resolution soil model \cite{Dickinson_84} and the surface runoff rates are
@@ -787,15 +858,15 @@ has 20 vegetation types (Table~\ref{landuse};  soil textures ranging from coarse
 
 In the latest release version, additional modifications have been made to
 \ac{BATS}in order to account for the subgrid variability of topography and
-landcover using a mosaic-type approach \citep{Giorgi03b}.  Thismodification
-adopts a regular fine-scale surface subgrid for eachcoarse model grid cell.
-Meteorological variables are disaggregatedfrom the coarse grid to the fine
-grid based on the elevationdifferences.  The \ac{BATS} calculations are then
-performed separatelyfor each subgrid cell, and surface fluxes are reaggregated
-onto thecoarse grid cell for input to the atmospheric model.
-This parameterization showed a marked improvement in the representation ofthe
+landcover using a mosaic-type approach \citep{Giorgi03b}.  This modification
+adopts a regular fine-scale surface subgrid for each coarse model grid cell.
+Meteorological variables are disaggregated from the coarse grid to the fine
+grid based on the elevation differences.  The \ac{BATS} calculations are then
+performed separately for each subgrid cell, and surface fluxes are reaggregated
+onto the coarse grid cell for input to the atmospheric model.
+This parameterization showed a marked improvement in the representation of the
 surface hydrological cycle in mountainous regions \citep{Giorgi03b}.
-As a first augmentation, in \ac{RegCM4} two new land use types were added to
+As a first augmentation, in \ac{RegCM}4 two new land use types were added to
 \ac{BATS} to represent urban and sub-urban environments. Urban development not
 only modifies the surface albedo and alters the surface energy balance, but
 also creates impervious surfaces with large effects on runoff and
@@ -806,10 +877,11 @@ length, albedo, and soil characteristics. For this purpose, we implemented the
 parameters proposed in Table 1 of \cite{Kueppers_08}.
 
 \noindent {\bf CLM (optional):} The Community Land Model (CLM; \cite{Oleson_08})
-is the land surface model developed by the National Center of Atmospheric
-Research (NCAR) as part of the Community Climate System Model (CCSM), described
-in detail in \cite{Collins_06}.  CLM version 3.5 was coupled to RegCM for a more
-detailed land surface description option.  CLM contains five possible snow
+is the land surface model developed by the \ac{NCAR}
+as part of the Community Climate System Model (CCSM), described
+in detail in \cite{Collins_06}.  CLM version 3.5 and 4.5 have been coupled to
+\ac{RegCM} for a more
+detailed land surface description option. CLM contains five possible snow
 layers with an additional representation of trace snow and ten unevenly spaced
 soil layers with explicit solutions of temperature, liquid water and ice water
 in each layer.  To account for land surface complexity within a climate model
@@ -954,30 +1026,31 @@ Max. sat. area  & $0.5^{\circ}$ x $0.5^{\circ}$ & $\pm 179.75$ & $\pm 89.75$  \\
 \end{table}
 
 \subsection{Planetary Boundary Layer Scheme}
+
 \subsubsection{Holtslag PBL}
 
 The Holtslag planetary boundary layer scheme, developed by \cite{Holtslag_90},
-is based on a nonlocal diffusion concept that takes into account
-countergradient fluxes resulting from large-scale eddies in an unstable,
+is based on a non-local diffusion concept that takes into account
+counter-gradient fluxes resulting from large-scale eddies in an unstable,
 well-mixed atmosphere.  The vertical eddy flux within the PBL is given by
 
 \begin{eqnarray}
 F_c = -K_c \left( {\partial{C} \over \partial{z}} - \gamma_c \right)
 \end{eqnarray}
 
-where $\gamma_c$ is a ``countergradient'' transport term describing
-nonlocal transport due to dry deep convection.  The eddy diffusivity is given by
-the nonlocal formulation
+where $\gamma_c$ is a ``counter-gradient'' transport term describing
+non-local transport due to dry deep convection.
+The eddy diffusivity is given by the non-local formulation
 
 \begin{eqnarray}
 K_c = kw_tz \left( 1- {z \over h} \right)^2
 \end{eqnarray}
 
 where $k$ is the von Karman constant; $w_t$ is a turbulent convective
-velocity that depends on the friction velocity, height, and the Monin--Obhukov
+velocity that depends on the friction velocity, height, and the Monin-Obhukov
 length;  and $h$ is the PBL height.
 
-The countergradient term for temperature and water vapor is given by
+The counter-gradient term for temperature and water vapor is given by
 
 \begin{eqnarray}
 \label{eq:countergradient}
@@ -990,7 +1063,7 @@ between the top of the PBL and the top of the surface layer, which is assumed to
 be equal to $0.1h$. Outside this region and for momentum, $\gamma_c$ is assumed
 to be equal to 0.  
 
-For the calculation of the eddy diffusivity and countergradient terms, the PBL
+For the calculation of the eddy diffusivity and counter-gradient terms, the PBL
 height is diagnostically computed from
 
 \begin{eqnarray}
@@ -1009,7 +1082,7 @@ For example, after extensive testing, we found excessive vertical transfer
 of moisture in the model resulting in low moisture amounts near the surface
 and excessive moisture near the PBL top.
 
-Therefore in order to ameliorate this problem, the countergradient term for
+Therefore in order to ameliorate this problem, the counter-gradient term for
 water vapor was removed in \ac{RegCM4}. Another problem of the Holtslag scheme
 (at least in our implementation) is an excessive vertical transport of heat,
 moisture and momentum in very stable conditions, such as during the winter in
@@ -1051,7 +1124,7 @@ with other 1$^{st}$-order models, such as the Holtslag model, the UW model
 parameterizes turbulent fluxes as the product of a diffusivity and a gradient.
 In contrast to 1$^{st}$-order models, however, the model prognostically
 determines the turbulent kinetic energy (TKE, also referred to as $e$), and it
-uses TKE to define the diffusivites. 
+uses TKE to define the diffusivities. 
 
 As with the Holtslag mode, diffusivity is defined as the product of a length
 scale and a velocity scale, though the velocity scale is defined as the square
@@ -1279,27 +1352,27 @@ efficiency. Larger values of Peff lead to reduced precipitation.
 \item {\bf MIT-Emanuel scheme:} 
 More detailed descriptions can be found
 in \citet{Emanuel_91} and\citet{Emanuel_99}.  The scheme assumes that the
-mixing in clouds ishighly episodic and inhomogeneous (as opposed to a
-continuousentraining plume) and considers convective fluxes based on
-anidealized model of sub-cloud-scale updrafts and downdrafts.Convection is
-triggered when the level of neutral buoyancy is greaterthan the cloud base
-level.  Between these two levels, air is liftedand a fraction of the condensed
-moisture forms precipitation while theremaining fraction forms the cloud.  The
-cloud is assumed to mix withthe air from the environment according to a
-uniform spectrum ofmixtures that ascend or descend to their respective levels
-of neutralbuoyancy.  The mixing entrainment and detrainment rates are
-functionsof the vertical gradients of buoyancy in clouds.  The fraction of
-thetotal cloud base mass flux that mixes with its environment at eachlevel
-is proportional to the undiluted buoyancy rate of change withaltitude.  The
-cloud base upward mass flux is relaxed towards thesub-cloud layer quasi
+mixing in clouds is highly episodic and inhomogeneous (as opposed to a
+continuous entraining plume) and considers convective fluxes based on
+an idealized model of sub-cloud-scale updrafts and downdrafts.Convection is
+triggered when the level of neutral buoyancy is greater than the cloud base
+level.  Between these two levels, air is lifted and a fraction of the condensed
+moisture forms precipitation while the remaining fraction forms the cloud.  The
+cloud is assumed to mix with the air from the environment according to a
+uniform spectrum of mixtures that ascend or descend to their respective levels
+of neutral buoyancy.  The mixing entrainment and detrainment rates are
+functions of the vertical gradients of buoyancy in clouds.  The fraction of
+the total cloud base mass flux that mixes with its environment at each level
+is proportional to the undiluted buoyancy rate of change with altitude.  The
+cloud base upward mass flux is relaxed towards the sub-cloud layer quasi
 equilibrium.
 
 In addition to a more physical representation of convection, the MIT-Emanuel
-scheme offers several advantages compared to theother RegCM4 convection
-options.  For instance, it includes aformulation of the auto-conversion of
-cloud water into precipitationinside cumulus clouds, and ice processes are
-accounted for by allowingthe auto-conversion threshold water content to be
-temperaturedependent.  Additionally, the precipitation is added to a
+scheme offers several advantages compared to the other RegCM4 convection
+options.  For instance, it includes a formulation of the auto-conversion of
+cloud water into precipitation inside cumulus clouds, and ice processes are
+accounted for by allowing the auto-conversion threshold water content to be
+temperature dependent.  Additionally, the precipitation is added to a
 single,hydrostatic, unsaturated downdraft that transports heat and
 water. Lastly, the MIT-Emanuel scheme considers the transport of passive
 tracers.
@@ -1310,12 +1383,11 @@ climate regimes. Differently from the Grell scheme, however, test experiments
 did not identify a single parameter to which the model is most sensitive.
 \end{enumerate}
 
-
 A major augmentation in \ac{RegCM4} compared to previous versions of the model
 is the capability of running different convection schemes over land and ocean,
 a configuration which we refer to as “mixed convection”. Extensive test
 experiments showed that different schemes have different performance over
-different regions, and in particular over land vs. ocean areas.
+different regions, and in particular over Land vs. Ocean areas.
 
 For example, the MIT scheme tends to produce excessive precipitation over land
 areas, especially through the occurrence of very intense individual
@@ -1333,9 +1405,9 @@ was added to the model.
 \subsection{Large-Scale Precipitation Scheme}
 
 Subgrid Explicit Moisture
-Scheme (SUBEX) is used to handle nonconvective clouds and precipitation resolved
-by the model.  This is one of the new components of the model.  SUBEX accounts
-for the subgrid variability in clouds by linking the average grid cell relative
+Scheme (SUBEX) is used to handle non-convective clouds and precipitation
+resolved by the model.  SUBEX accounts for the sub-grid variability in clouds
+by linking the average grid cell relative
 humidity to the cloud fraction and cloud water following the work of
 \cite{Sundqvist_89}.  
 
@@ -1350,7 +1422,7 @@ begin to form, and ${RH_{max}}$ is the relative humidity where $FC$ reaches
 unity.  $FC$ is assumed to be zero when RH is less than ${RH_{min}}$ and unity
 when RH is greater than ${RH_{max}}$.  
 
-Precipitation $P$ forms when the cloud water content exceeds the autoconversion
+Precipitation $P$ forms when the cloud water content exceeds the auto-conversion
 threshold ${Q^{th}}_c$ according to the following relation:
 
 \begin{eqnarray}
@@ -1366,7 +1438,7 @@ the median cloud liquid water content equation according to the following:
 \end{eqnarray}
 
 where $T$ is temperature in degrees Celsius, and $C_{acs}$ is the
-autoconversion scale factor.  Precipitation is assumed to fall instantaneously.
+auto-conversion scale factor.  Precipitation is assumed to fall instantaneously.
 
 SUBEX also includes simple formulations for raindrop accretion and evaporation.
 The formulation for the accretion of cloud droplets by falling rain droplets is
@@ -1393,7 +1465,7 @@ and a list of the parameter values refer to \cite{Pal_00}.
 
 Traditionally, \ac{RegCM3} has shown a tendency to produce excessive
 precipitation, especially at high resolutions, and optimizations of 
-the in-cloud liquid water threshold for the activation of the autoconversion
+the in-cloud liquid water threshold for the activation of the auto-conversion
 term $Qcth$ and the rate of sub-cloud evaporation $Cevap$ parameters have
 proven effective in ameliorating this problem: greater values of $Qth$ and
 $Cevap$ lead to decreased precipitation amounts.
@@ -1407,7 +1479,8 @@ In the new scheme some important achievement have been added:
 \item Liquid and ice water content are independent, allowing the existence of supercooled liquid water and mixed-phase cloud.
 \item Rain and snow now precipitate with a fixed, finite, terminal fall speed and can be then advected by the three dimensional wind.
 \item The new scheme solves implicitly 5 prognostic equations for water vapor, cloud liquid water, rain, ice and snow. It is also easily suitable for a larger number of variables. Water vapor $q_v$, cloud liquid water $q_l$, rain $q_r$, ice $q_i$ and snow $q_s$ are all expressed in terms of the grid-mean mixing ratio.
-\item A check for the conservation of enthalpy and of total moisture is en- sured at the end of each timestep.
+\item A check for the conservation of enthalpy and of total moisture is ensured
+at the end of each timestep.
 \end{itemize}
 The governing equation for each variable is:
 \begin{equation}
@@ -1466,7 +1539,7 @@ to \cite{Zeng_98}.
 
 By default in \ac{RegCM}, sea surface temperatures (SST) are prescribed every
 six hours from temporally interpolated weekly or monthly SST products.
-These products, which are produced from satellite retrievals and in situ
+These products, which are produced from satellite retrievals and in-situ
 measurements, are representative of the mean temperature in the top
 few meters of the ocean. However, the actual SST can differ significantly
 from this mean temperature due to the cool-skin and warm-layer effects
