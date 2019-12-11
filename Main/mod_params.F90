@@ -2708,6 +2708,7 @@ module mod_params
         implicit none
         integer(ik4) :: i , j
         real(rkx) , dimension(kzp1) :: fak , fbk
+        real(rkx) :: ztop
         call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
         call exchange_lr(mddom%msfu,2,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,2,jde1,jde2,ide1,ide2)
@@ -2767,6 +2768,11 @@ module mod_params
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
           mo_atm%dz(j,i,k) = mo_atm%zetaf(j,i,k) - mo_atm%zetaf(j,i,k+1)
         end do
+        ztop = maxval(mo_atm%zeta)
+        call maxall(ztop,rayzd)
+        if ( myid == italk ) then
+          write(stdout,*) 'Model top at ',rayzd,' m'
+        end if
       end subroutine compute_moloch_static
 
       recursive integer function gcd_rec(u,v) result(gcd)
