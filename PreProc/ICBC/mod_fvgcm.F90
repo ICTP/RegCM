@@ -399,10 +399,10 @@ module mod_fvgcm
     end if
 
     if ( idynamic == 3 ) then
-      call pju%uvrotate3(u3,v3u)
-      call pjv%uvrotate3(u3v,v3)
+      call pju%wind_rotate(u3,v3u)
+      call pjv%wind_rotate(u3v,v3)
     else
-      call pjd%uvrotate3(u3,v3)
+      call pjd%wind_rotate(u3,v3)
     end if
 
 !$OMP SECTIONS

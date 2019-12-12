@@ -896,10 +896,10 @@ module mod_moloch
           end do
           do k = 1 , kz
             do j = jci1 , jci2
-              zrfmp = zdtrdz*fmz(j,i,k)/fmzf(j,i,k)
-              zrfmm = zdtrdz*fmz(j,i,k)/fmzf(j,i,k+1)
+              zrfmm = zdtrdz*fmz(j,i,k)/fmzf(j,i,k)
+              zrfmp = zdtrdz*fmz(j,i,k)/fmzf(j,i,k+1)
               zdv = (s(j,i,k)*zrfmm - s(j,i,k+1)*zrfmp) * pp(j,i,k)
-              wz(j,i,k) = pp(j,i,k) + wfw(j,k+1)*zrfmp - wfw(j,k)*zrfmm + zdv
+              wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmm + wfw(j,k+1)*zrfmp + zdv
             end do
           end do
         end do
