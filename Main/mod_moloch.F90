@@ -806,40 +806,13 @@ module mod_moloch
           end do
         end if
 
+        ! Interpolate on staggered points
         call xtouvstag(ux,vx,u,v)
 
         ! Back to half-levels
-
-        do k = 3 , kzm1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
-                         0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            w(j,i,2) = 0.5_rkx * (wx(j,i,2)  +wx(j,i,1))
-            w(j,i,kz) = 0.5_rkx * (wx(j,i,kz)+wx(j,i,kzm1))
-          end do
-        end do
-
+        call xtowstag(wx,w)
         if ( ibltyp == 2 ) then
-          do k = 3 , kzm1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                tke(j,i,k) = 0.5625_rkx*(tkex(j,i,k)  +tkex(j,i,k-1)) - &
-                             0.0625_rkx*(tkex(j,i,k+1)+tkex(j,i,k-2))
-              end do
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              tke(j,i,2) = 0.5_rkx * (tkex(j,i,2)  +tkex(j,i,1))
-              tke(j,i,kz) = 0.5_rkx * (tkex(j,i,kz)+tkex(j,i,kzm1))
-            end do
-          end do
+          call xtowstag(tkex,tke)
         end if
       end subroutine advection
 
@@ -1234,6 +1207,27 @@ module mod_moloch
       end do
     end do
   end subroutine wstagtox
+
+  subroutine xtowstag(wx,w)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
+    integer(ik4) :: i , j , k
+    do k = 3 , kzm1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
+                     0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
+        end do
+      end do
+    end do
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        w(j,i,2) = 0.5_rkx * (wx(j,i,2)  +wx(j,i,1))
+        w(j,i,kz) = 0.5_rkx * (wx(j,i,kz)+wx(j,i,kzm1))
+      end do
+    end do
+  end subroutine xtowstag
 
   subroutine xtouvstag(ux,vx,u,v)
     implicit none
