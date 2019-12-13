@@ -288,6 +288,8 @@ module mod_cu_interface
         if ( any(icup == 5) ) then
           if ( idynamic == 3 ) then
             call uvtentotenx(m2c%uten,m2c%vten,utenx,vtenx)
+            m2c%uten = d_zero
+            m2c%vten = d_zero
           else
             do k = 1 , kz
               do i = idi1 , idi2
@@ -431,7 +433,6 @@ module mod_cu_interface
             end do
           end do
         end if
-
 
       else
 

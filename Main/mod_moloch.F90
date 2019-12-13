@@ -84,6 +84,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
   real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
   real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
+  real(rkx) , dimension(:,:,:) , pointer :: qwstot
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
   real(rkx) , dimension(:,:,:) , pointer :: mmu , mmv
@@ -131,6 +132,9 @@ module mod_moloch
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
+    if ( ipptls /= 1 ) then
+      call getmem3d(qwstot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwstot')
+    end if
   end subroutine allocate_moloch
 
   subroutine init_moloch
@@ -168,6 +172,8 @@ module mod_moloch
         call assignpnt(mo_atm%qx,qi,iqi)
         call assignpnt(mo_atm%qx,qr,iqr)
         call assignpnt(mo_atm%qx,qs,iqs)
+      else
+        call assignpnt(mo_atm%qx,qwstot,iqc)
       end if
     end if
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
@@ -216,17 +222,6 @@ module mod_moloch
 
     call reset_tendencies
 
-    mo_atm%tten(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:)
-    mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = mo_atm%qx(jci1:jci2,ici1:ici2,:,:)
-    if ( ichem == 1 ) then
-      mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
-          mo_atm%trac(jci1:jci2,ici1:ici2,:,:)
-    end if
-    if ( any(icup == 5) .or. any(icup == 4) ) then
-      mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:)
-      mo_atm%vten(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:)
-    end if
-
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -243,6 +238,13 @@ module mod_moloch
               tvirt(j,i,k) = t(j,i,k) * (d_one + ep1*qv(j,i,k) - &
                                          qc(j,i,k) - qi(j,i,k) - &
                                          qr(j,i,k) - qs(j,i,k))
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              qwstot(j,i,k) = qc(j,i,k) + qi(j,i,k) + qr(j,i,k) + qs(j,i,k)
             end do
           end do
         end do
@@ -263,6 +265,7 @@ module mod_moloch
           end do
         end do
       end do
+      qwstot(:,:,:) = d_zero
     end if
 
     do k = 1 , kz
@@ -361,16 +364,6 @@ module mod_moloch
     !
     ! lateral/damping boundary condition
     !
-    call boundary
-    if ( ifrayd == 1 ) then
-      if ( i_crm /= 1 ) then
-        call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-        call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-        call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
-        call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
-       end if
-    end if
-
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -387,7 +380,6 @@ module mod_moloch
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
       end do
     end do
-
     !
     ! Recompute saturation
     !
@@ -409,24 +401,19 @@ module mod_moloch
     !
     ! PHYSICS
     !
-    mo_atm%tten(jci1:jci2,ici1:ici2,:) = (t(jci1:jci2,ici1:ici2,:) - &
-        mo_atm%tten(jci1:jci2,ici1:ici2,:))*rdt
-    mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = &
-        (mo_atm%qx(jci1:jci2,ici1:ici2,:,:) - &
-         mo_atm%qxten(jci1:jci2,ici1:ici2,:,:))*rdt
-    if ( ichem == 1 ) then
-      mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
-          (mo_atm%trac(jci1:jci2,ici1:ici2,:,:) - &
-           mo_atm%chiten(jci1:jci2,ici1:ici2,:,:))*rdt
-    end if
-    if ( any(icup == 5) .or. any(icup == 4) ) then
-      mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = (u(jdi1:jdi2,ici1:ici2,:) - &
-          mo_atm%uten(jdi1:jdi2,ici1:ici2,:))*rdt
-      mo_atm%vten(jci1:jci2,idi1:idi2,:) = (v(jci1:jci2,idi1:idi2,:) - &
-          mo_atm%vten(jci1:jci2,idi1:idi2,:))*rdt
-    end if
-    !
     call physical_parametrizations
+    !
+    ! Boundary values
+    !
+    call boundary
+    if ( ifrayd == 1 ) then
+      if ( i_crm /= 1 ) then
+        call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+        call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+        call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
+        call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+      end if
+    end if
     !
     ! Diagnostic and end timestep
     !
@@ -484,10 +471,6 @@ module mod_moloch
         end if
 
         if ( iboudy == 1 .or. iboudy == 5 ) then
-          if ( idiag > 0 ) then
-            ten0 = t(jci1:jci2,ici1:ici2,:)
-            qen0 = qv(jci1:jci2,ici1:ici2,:)
-          end if
           call nudge(iboudy,pai,xpaib)
           call nudge(iboudy,t,xtb)
           call nudge(iboudy,qv,xqb)
@@ -679,6 +662,14 @@ module mod_moloch
               do j = jci1 , jci2
                 zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
                       (w(j,i,k) - w(j,i,k+1))
+                zdiv2(j,i,k) = zdiv2(j,i,k) * &
+                   (d_one + 0.86_rkx * qv(j,i,k) + &
+                            3.2_rkx * qc(j,i,k)) / &
+                   (d_one + 0.96_rkx * qv(j,i,k) + &
+                            4.8_rkx * qc(j,i,k))
+                tetav(j,i,k) = tetav(j,i,k) * &
+                   (d_one + rdrcv*zdiv2(j,i,k) * &
+                    (0.25_rkx * qv(j,i,k)  + 4.2_rkx * qwstot(j,i,k)))
                 pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
               end do
             end do
@@ -857,8 +848,8 @@ module mod_moloch
               else
                 is = -d_one
                 k1 = k - 1
-                if ( k1 < 1 ) k1 = 1
                 k1p1 = k1 + 1
+                if ( k1 < 1 ) k1 = 1
               end if
               r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
@@ -983,27 +974,66 @@ module mod_moloch
 
       subroutine reset_tendencies
         implicit none
-        mo_atm%tten = d_zero
-        mo_atm%uten = d_zero
-        mo_atm%vten = d_zero
-        mo_atm%qxten = d_zero
-        if ( ichem == 1 ) mo_atm%chiten = d_zero
-        if ( ibltyp == 2 ) mo_atm%tketen = d_zero
+        if ( all(icup > 0) ) then
+          mo_atm%tten(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:)
+          mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = &
+                          mo_atm%qx(jci1:jci2,ici1:ici2,:,:)
+          if ( ichem == 1 ) then
+            mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
+                          mo_atm%trac(jci1:jci2,ici1:ici2,:,:)
+          end if
+          if ( any(icup == 5) .or. any(icup == 4) ) then
+            mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:)
+            mo_atm%vten(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:)
+          else
+            mo_atm%uten = d_zero
+            mo_atm%vten = d_zero
+          end if
+        else
+          mo_atm%tten = d_zero
+          mo_atm%qxten = d_zero
+          mo_atm%chiten = d_zero
+          mo_atm%uten = d_zero
+          mo_atm%vten = d_zero
+        end if
+        if ( ibltyp == 2 ) then
+          mo_atm%tketen = d_zero
+        end if
         cldfra(:,:,:) = d_zero
         cldlwc(:,:,:) = d_zero
         if ( idiag > 0 ) then
-          ten0 = d_zero
-          qen0 = d_zero
+          ten0 = t(jci1:jci2,ici1:ici2,:)
+          qen0 = qv(jci1:jci2,ici1:ici2,:)
         end if
-        if ( ichem == 1 .and. ichdiag > 0 ) chiten0 = d_zero
+        if ( ichem == 1 .and. ichdiag > 0 ) then
+          chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+        end if
       end subroutine reset_tendencies
 
       subroutine physical_parametrizations
         implicit none
         integer(ik4) :: i , j , k
         logical :: loutrad , labsem
-
         if ( all(icup > 0) ) then
+          !
+          ! Initial tendencies as input to cumuls scheme
+          !
+          mo_atm%tten(jci1:jci2,ici1:ici2,:) = (t(jci1:jci2,ici1:ici2,:) - &
+              mo_atm%tten(jci1:jci2,ici1:ici2,:))*rdt
+          mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = &
+              (mo_atm%qx(jci1:jci2,ici1:ici2,:,:) - &
+               mo_atm%qxten(jci1:jci2,ici1:ici2,:,:))*rdt
+          if ( ichem == 1 ) then
+            mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
+                (mo_atm%trac(jci1:jci2,ici1:ici2,:,:) - &
+                 mo_atm%chiten(jci1:jci2,ici1:ici2,:,:))*rdt
+          end if
+          if ( any(icup == 5) .or. any(icup == 4) ) then
+            mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = (u(jdi1:jdi2,ici1:ici2,:) - &
+                mo_atm%uten(jdi1:jdi2,ici1:ici2,:))*rdt
+            mo_atm%vten(jci1:jci2,idi1:idi2,:) = (v(jci1:jci2,idi1:idi2,:) - &
+                mo_atm%vten(jci1:jci2,idi1:idi2,:))*rdt
+          end if
           if ( idiag > 0 ) then
             ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
             qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
