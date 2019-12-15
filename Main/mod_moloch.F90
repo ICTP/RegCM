@@ -657,23 +657,35 @@ module mod_moloch
 
           ! new Exner function (Equation 19)
 
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
-                      (w(j,i,k) - w(j,i,k+1))
-                zdiv2(j,i,k) = zdiv2(j,i,k) * &
-                   (d_one + 0.86_rkx * qv(j,i,k) + &
-                            3.2_rkx * qc(j,i,k)) / &
-                   (d_one + 0.96_rkx * qv(j,i,k) + &
-                            4.8_rkx * qc(j,i,k))
-                tetav(j,i,k) = tetav(j,i,k) * &
-                   (d_one + rdrcv*zdiv2(j,i,k) * &
-                    (0.25_rkx * qv(j,i,k)  + 4.2_rkx * qwstot(j,i,k)))
-                pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+          if ( ipptls > 0 ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
+                        (w(j,i,k) - w(j,i,k+1))
+                  zdiv2(j,i,k) = zdiv2(j,i,k) * &
+                     (d_one + 0.86_rkx * qv(j,i,k) + &
+                              3.2_rkx * qc(j,i,k)) / &
+                     (d_one + 0.96_rkx * qv(j,i,k) + &
+                              4.8_rkx * qc(j,i,k))
+                  tetav(j,i,k) = tetav(j,i,k) * &
+                     (d_one + rdrcv*zdiv2(j,i,k) * &
+                      (0.25_rkx * qv(j,i,k)  + 4.2_rkx * qwstot(j,i,k)))
+                  pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
+                        (w(j,i,k) - w(j,i,k+1))
+                  pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+                end do
+              end do
+            end do
+          end if
 
           ! horizontal momentum equations
 
