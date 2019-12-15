@@ -94,6 +94,9 @@ module mod_moloch
 
   real(rkx) , parameter :: minden = 1.0e-15_rkx
 
+  logical , parameter :: do_phys = .true.
+  logical , parameter :: do_bdy = .true.
+
   contains
 
 #include <pfesat.inc>
@@ -401,17 +404,33 @@ module mod_moloch
     !
     ! PHYSICS
     !
-    call physical_parametrizations
+    if ( do_phys ) then
+      call physical_parametrizations
+    else
+      if ( debug_level > 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'WARNING: Physical package disabled!!!'
+        end if
+      end if
+    end if
     !
     ! Boundary values
     !
-    call boundary
-    if ( ifrayd == 1 ) then
-      if ( i_crm /= 1 ) then
-        call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-        call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-        call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
-        call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+    if ( do_bdy ) then
+      call boundary
+      if ( ifrayd == 1 ) then
+        if ( i_crm /= 1 ) then
+          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
+          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+        end if
+      end if
+    else
+      if ( debug_level > 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
+        end if
       end if
     end if
     !
@@ -834,7 +853,7 @@ module mod_moloch
         integer(ik4) :: j , i , k
         integer(ik4) :: k1 , k1p1 , ih , ihm1 , im1 , jh , jhm1 , jm1
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmp , zrfmm
-        real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
+        real(rkx) :: zrfmn , zrfmw , zrfme , zrfms , wgt
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
 
         zdtrdx = dtstepa/dx
@@ -872,8 +891,9 @@ module mod_moloch
           end do
           do k = 1 , kz
             do j = jci1 , jci2
-              zrfmm = zdtrdz*fmz(j,i,k)/fmzf(j,i,k)
-              zrfmp = zdtrdz*fmz(j,i,k)/fmzf(j,i,k+1)
+              wgt = fmz(j,i,k)/fmzf(j,i,k)
+              zrfmm = zdtrdz * wgt
+              zrfmp = zdtrdz * (d_two - wgt)
               zdv = (s(j,i,k)*zrfmm - s(j,i,k+1)*zrfmp) * pp(j,i,k)
               wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmm + wfw(j,k+1)*zrfmp + zdv
             end do
@@ -922,8 +942,9 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-              zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+              wgt = fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+              zrfmn = zdtrdy * d_two * wgt
+              zrfms = zdtrdy * d_two * (d_one - wgt)
               zdv = (mmv(j,i+1,k) * zrfmn - mmv(j,i,k) * zrfms) * pp(j,i,k)
               p0(j,i,k) = wz(j,i,k) + &
                 mx2(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
@@ -974,8 +995,9 @@ module mod_moloch
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-              zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+              wgt = fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+              zrfme = zdtrdx * d_two * wgt
+              zrfmw = zdtrdx * d_two * (d_one - wgt)
               zdv = (mmu(j+1,i,k) * zrfme - mmu(j,i,k) * zrfmw) * pp(j,i,k)
               pp(j,i,k) = p0(j,i,k) + &
                 mx2(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
