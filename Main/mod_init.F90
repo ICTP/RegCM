@@ -245,6 +245,34 @@ module mod_init
             mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
           end do
         end do
+        if ( ma%has_bdybottom ) then
+          do k = 2 , kz
+            do j = jce1 , jce2
+              mo_atm%w(j,ice1,k) = mo_atm%w(j,ici1,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do k = 2 , kz
+            do j = jce1 , jce2
+              mo_atm%w(j,ice2,k) = mo_atm%w(j,ici2,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyleft ) then
+          do k = 2 , kz
+            do i = ice1 , ice2
+              mo_atm%w(jce1,i,k) = mo_atm%w(jci1,i,k)
+            end do
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do k = 2 , kz
+            do i = ice1 , ice2
+              mo_atm%w(jce2,i,k) = mo_atm%w(jci2,i,k)
+            end do
+          end do
+        end if
 
         call maxall(zmax,azmax)
         if ( myid == 0 ) then

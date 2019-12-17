@@ -113,7 +113,6 @@ module mod_clm_time_manager
   logical function is_end_curr_day()
     implicit none
     ! Return true if current timestep is last timestep in current day.
-    integer(ik4) :: iy , im , id , ih , imm , iss
     is_end_curr_day = (nextdate%second_of_day == int(0, ik8))
   end function is_end_curr_day
 

@@ -168,6 +168,8 @@ module mod_runparams
   integer(ik4) , public :: ghg_year_const
 
   ! Moloch
+  logical , parameter , public :: moloch_do_test_1 = .false.
+  logical , parameter , public :: moloch_do_test_2 = .false.
   real(rkx) , public :: mo_dz , mo_anu2
   integer(ik4) , public :: mo_nadv = 1
   integer(ik4) , public :: mo_nsound = 6

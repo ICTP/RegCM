@@ -1722,6 +1722,25 @@ module mod_params
                           mddom%msfx,mddom%msfd,mddom%msfu,mddom%msfv,   &
                           mddom%coriol,mddom%snowam,mddom%smoist,        &
                           mddom%rmoist,mddom%dhlake,base_state_ts0)
+    if ( moloch_do_test_1 ) then
+      mddom%ht = 0.0_rkx
+      mddom%lndcat = 15.0_rkx
+      mddom%lndtex = 14.0_rkx
+      mddom%mask = 0.0_rkx
+    end if
+    if ( moloch_do_test_2 ) then
+      !mddom%ht(jde1:jde2,ide1:ide2) = 100.0_rkx * &
+      !              abs(sin(mddom%xlat(jde1:jde2,ide1:ide2)*degrad))
+      mo_nzfilt = 0
+      mddom%ht = 0.0_rkx
+      mddom%lndcat = 15.0_rkx
+      mddom%lndtex = 14.0_rkx
+      mddom%mask = 0.0_rkx
+      mddom%msfu = d_one
+      mddom%msfv = d_one
+      mddom%msfx = d_one
+      mddom%coriol = d_zero
+    end if
     call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
@@ -1751,6 +1770,7 @@ module mod_params
       call allocate_v3dbound(xwwb,kzp1,cross)
     else if ( idynamic == 3 ) then
       call allocate_v3dbound(xpaib,kz,cross)
+      call allocate_v3dbound(xwwb,kzp1,cross)
     end if
 
     if ( myid == italk ) then
@@ -2724,8 +2744,32 @@ module mod_params
                   mddom%msfv(j,i) * rdx * regrav
           end do
         end do
-        call exchange_lr(mddom%hx,1,jdi1,jdi2,ice1,ice2)
-        call exchange_bt(mddom%hy,1,jce1,jce2,idi1,idi2)
+        if ( ma%has_bdyleft ) then
+          do i = ice1 , ice2
+            mddom%hx(jde1,i) = d_half*(mddom%hx(jdi1,i) + &
+                        d_half*(mddom%hy(jci1,i)+mddom%hy(jci1,i+1)))
+          end do
+        end if
+        if ( ma%has_bdyright ) then
+          do i = ice1 , ice2
+            mddom%hx(jde2,i) = d_half*(mddom%hx(jdi2,i) + &
+                        d_half*(mddom%hy(jci2,i)+mddom%hy(jci2,i+1)))
+          end do
+        end if
+        if ( ma%has_bdybottom ) then
+          do j = jce1 , jce2
+            mddom%hy(j,ide1) = d_half*(mddom%hy(j,idi1) + &
+                        d_half*(mddom%hx(j,ici1)+mddom%hy(j+1,ici1)))
+          end do
+        end if
+        if ( ma%has_bdytop ) then
+          do j = jce1 , jce2
+            mddom%hy(j,ide2) = d_half*(mddom%hy(j,idi2) + &
+                        d_half*(mddom%hx(j,ici2)+mddom%hy(j+1,ici2)))
+          end do
+        end if
+        call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
+        call exchange_bt(mddom%hy,1,jce1,jce2,ide1,ide2)
         mddom%msfu = d_one/mddom%msfu
         mddom%msfv = d_one/mddom%msfv
         zita(kzp1) = d_zero

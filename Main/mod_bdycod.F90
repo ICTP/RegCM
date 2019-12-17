@@ -302,6 +302,14 @@ module mod_bdycod
       end if
     else if ( idynamic == 3 ) then
       call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+
+      if ( moloch_do_test_1 ) then
+        call moloch_static_test1(xtb%b0,xqb%b0,xub%b0,xvb%b0,xpsb%b0,xtsb%b0)
+      end if
+      if ( moloch_do_test_2 ) then
+        call moloch_static_test2(xtb%b0,xqb%b0,xub%b0,xvb%b0,xpsb%b0,xtsb%b0)
+      end if
+
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -408,6 +416,14 @@ module mod_bdycod
       end if
     else if ( idynamic == 3 ) then
       call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+
+      if ( moloch_do_test_1 ) then
+        call moloch_static_test1(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
+      end if
+      if ( moloch_do_test_2 ) then
+        call moloch_static_test2(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
+      end if
+
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -637,6 +653,14 @@ module mod_bdycod
       end if
     else if ( idynamic == 3 ) then
       call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+
+      if ( moloch_do_test_1 ) then
+        call moloch_static_test1(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
+      end if
+      if ( moloch_do_test_2 ) then
+        call moloch_static_test2(xtb%b1,xqb%b1,xub%b1,xvb%b1,xpsb%b1,xtsb%b1)
+      end if
+
       if ( ichem == 1 .or. iclimaaer == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -4866,7 +4890,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xpsb
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xtb , xqb
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xpaib
-    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz1 , zz2 , zdgz , zlr
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz1 , zz2 , zlr
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
     zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
@@ -4893,6 +4917,74 @@ module mod_bdycod
     end do
     call exchange(xpaib,1,jce1,jce2,ice1,ice2,1,kz)
   end subroutine paicompute
+
+  subroutine moloch_static_test1(xt,xq,xu,xv,xps,xts)
+    implicit none
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: xps , xts
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xt , xq , xu , xv
+    integer(ik4) :: i , j , k
+    xts = stdt
+    xps = stdpmb
+    xu = d_zero
+    xv = d_zero
+    xq = d_zero
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          xt(j,i,k) = max(xts(j,i) - lrate * mo_atm%zeta(j,i,k), 210.0_rkx)
+        end do
+      end do
+    end do
+  end subroutine moloch_static_test1
+
+  subroutine moloch_static_test2(xt,xq,xu,xv,xps,xts)
+    implicit none
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: xps , xts
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xt , xq , xu , xv
+    integer(ik4) :: i , j , k
+    real(rkx) :: zlr
+    xv = d_zero
+    xq = d_zero
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
+        xts(j,i) = stdt + zlr * mddom%ht(j,i)
+      end do
+    end do
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          !zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
+          zlr = -lrate
+          xt(j,i,k) = max(xts(j,i) + zlr * mo_atm%zeta(j,i,k), 210.0_rkx)
+        end do
+      end do
+    end do
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        xps(j,i) = stdpmb * exp(-govr*mo_atm%zeta(j,i,kz)/xt(j,i,kz))
+      end do
+    end do
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          !xu(j,i,k) = 1.0_rkx + 5.0_rkx * log(mo_atm%zeta(j,i,k)) * &
+          !            abs(sin(mddom%ulat(j,i)*degrad))
+          xu(j,i,k) = 10.0_rkx !+ 5.0_rkx * log(mo_atm%zeta(j,i,k))
+        end do
+      end do
+      if ( ma%has_bdyright ) then
+        do i = ice1 , ice2
+          !xu(jde2,i,k) = 1.0_rkx + 5.0_rkx * log(mo_atm%zeta(jce2,i,k)) * &
+          !               abs(sin(mddom%ulat(jce2,i)*degrad))
+          xu(jde2,i,k) = 10.0_rkx !+ 5.0_rkx * log(mo_atm%zeta(jce2,i,k))
+        end do
+        !xu(jde2,ide2,k) = 1.0_rkx + 5.0_rkx * log(mo_atm%zeta(jce2,ice2,k)) * &
+        !                 abs(sin(mddom%ulat(jde2,ide2)*degrad))
+        xu(jde2,ide2,k) = 10.0_rkx !+ 5.0_rkx * log(mo_atm%zeta(jce2,ice2,k))
+      end if
+    end do
+  end subroutine moloch_static_test2
 
 end module mod_bdycod
 
