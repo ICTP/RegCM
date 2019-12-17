@@ -856,13 +856,13 @@ module mod_projections
     pj%p%yoff = clat - plat
     pj%p%polei = ci
     pj%p%polej = cj
-    if ( plat > 0.0_rk8 ) then
+    !if ( plat > 0.0_rk8 ) then
       pphi = deg90 - plat
       plam = plon + deg180
-    else
-      pphi = deg90 + plat
-      plam = plon
-    end if
+    !else
+    !  pphi = deg90 + plat
+    !  plam = plon
+    !end if
     if ( plam>deg180 ) plam = plam - deg360
     pj%p%zlampol = degrad*plam
     zphipol = degrad*pphi
