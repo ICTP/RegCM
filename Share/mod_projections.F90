@@ -852,17 +852,18 @@ module mod_projections
     real(rk8) :: plam , pphi , zphipol , ri , rj , lat , lon
     integer(ik4) :: i , j
     pj%p%dlon = ds*raddeg/earthrad
+    pj%p%dlat = ds*raddeg/earthrad
     pj%p%xoff = clon - plon
     pj%p%yoff = clat - plat
     pj%p%polei = ci
     pj%p%polej = cj
-    if ( plat > 0.0_rk8 ) then
+    !if ( plat > 0.0_rk8 ) then
       pphi = deg90 - plat
       plam = plon + deg180
-    else
-      pphi = deg90 + plat
-      plam = plon
-    end if
+    !else
+    !  pphi = deg90 + plat
+    !  plam = plon
+    !end if
     if ( plam>deg180 ) plam = plam - deg360
     pj%p%zlampol = degrad*plam
     zphipol = degrad*pphi
@@ -913,7 +914,7 @@ module mod_projections
       lams = -deg90
     end if
     i = real(pj%p%polei + (lams-pj%p%xoff)/pj%p%dlon,rkx)
-    j = real(pj%p%polej + (phis-pj%p%yoff)/pj%p%dlon,rkx)
+    j = real(pj%p%polej + (phis-pj%p%yoff)/pj%p%dlat,rkx)
   end subroutine llij_rc
 
   pure subroutine ijll_rc(pj,i,j,lat,lon)
@@ -926,7 +927,7 @@ module mod_projections
     xr = pj%p%xoff + (i-pj%p%polei)*pj%p%dlon
     if ( xr > deg180 ) xr = xr - deg360
     xr = degrad*xr
-    yr = pj%p%yoff + (j-pj%p%polej)*pj%p%dlon
+    yr = pj%p%yoff + (j-pj%p%polej)*pj%p%dlat
     yr = 2.0_rk8*atan(exp(degrad*yr)) - atan(1.0_rk8)*2.0_rk8
     arg = pj%p%zcospol*cos(yr)*cos(xr) + pj%p%zsinpol*sin(yr)
     lat = real(raddeg*asin(arg),rkx)
