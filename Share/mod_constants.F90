@@ -254,6 +254,7 @@ module mod_constants
                       &   3.1415926535897932384626433832795029_rk8
   real(rk8) , parameter :: invpi = d_one/mathpi
   real(rk8) , parameter :: halfpi = mathpi*d_half
+  real(rk8) , parameter :: quartpi = halfpi*d_half
   real(rk8) , parameter :: twopi = mathpi*d_two
   real(rk8) , parameter :: pisqr = mathpi*mathpi
   real(rk8) , parameter :: degrad = mathpi/180.0_rk8

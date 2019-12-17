@@ -2033,6 +2033,8 @@ module mod_vertint
           za = zp(i,j,1)
           tlayer = 0.5_rkx * ( d_two * tp(i,j,1) + &
                stdlrate(jday,lat(i,j)) * (za-zrcm(i,j)))
+          !tlayer = 0.5_rkx * ( d_two * tp(i,j,1) - &
+          !     lrate * (za-zrcm(i,j)))
           pa = pss
         end if
         psrcm(i,j) = pa * exp(-govr*(zrcm(i,j)-za)/tlayer)
