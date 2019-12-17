@@ -415,12 +415,12 @@ module mod_stdatm
        real(rkx) , intent(in) :: jday
        real(rkx) , intent(in) :: lat
        real(rkx) :: wts1 , wts2 , wtp1 , wtp2 , vs1 , vs2 , vz1 , vz2
-       real(rkx) :: wtl1 , wtl2 , vs3 , vs4 , wm , ff
+       real(rkx) :: wtl1 , wtl2 , vs3 , vs4
        integer(ik4) :: kp1 , kp2
        real(rkx) :: polar , midlat , tropical
        if ( abs(lat) >= 45.0_rkx ) then
          wtl1 = ((90.0_rkx-abs(lat))/45.0_rkx)**3
-         wtl2 = 1.0_rkx-wtl2
+         wtl2 = 1.0_rkx-wtl1
          wts1 = winter_wgt(jday)
          wts2 = 1.0_rkx-wts1
          kp1 = find_klev(300.0_rkx,ipolarwinter)

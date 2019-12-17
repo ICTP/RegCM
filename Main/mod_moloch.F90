@@ -96,6 +96,8 @@ module mod_moloch
 
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
+  logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
+                               (.not. moloch_do_test_2)
 
   contains
 
@@ -107,9 +109,9 @@ module mod_moloch
     implicit none
     call getmem2d(p2d,jde1,jde2,ide1,ide2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
-    call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+    call getmem3d(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
-    call getmem3d(zdiv2,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'moloch:zdiv2')
+    call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wwkw,jci1,jci2,ici1,ici2,1,kzp1,'moloch:wwkw')
     call getmem3d(wz,jci1,jci2,ice1gb,ice2gb,1,kz,'moloch:wz')
     call getmem2d(wfw,jci1,jci2,1,kzp1,'moloch:wfw')
@@ -118,7 +120,7 @@ module mod_moloch
     call getmem3d(mmv,jce1,jce2,ide1ga,ide2ga,1,kz,'moloch:mmv')
     call getmem2d(zpby,jci1,jci2,ici1,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1,jce2ga,ici1,ici2,'moloch:zpbw')
-    call getmem2d(mx2,jci1,jci2,ici1,ici2,'moloch:mx2')
+    call getmem2d(mx2,jce1,jce2,ice1,ice2,'moloch:mx2')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
@@ -197,8 +199,8 @@ module mod_moloch
         end do
       end do
     end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ice1 , ice2
+      do j = jce1 , jce2
         mx2(j,i) = mx(j,i) * mx(j,i)
       end do
     end do
@@ -404,7 +406,7 @@ module mod_moloch
     !
     ! PHYSICS
     !
-    if ( do_phys ) then
+    if ( do_phys .and. moloch_realcase ) then
       call physical_parametrizations
     else
       if ( debug_level > 1 ) then
@@ -571,8 +573,8 @@ module mod_moloch
 
           ! partial definition of the generalized vertical velocity
 
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ice1 , ice2
+            do j = jce1 , jce2
               zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
               zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
               w(j,i,kzp1) = d_half * (zuh+zvh)
@@ -584,8 +586,8 @@ module mod_moloch
 
           do k = kz , 2 , -1
             gzitak = gzita(zita(k))
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
                       (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
                 zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
@@ -615,11 +617,60 @@ module mod_moloch
             end do
           end do
 
-          call filt3d(zdiv2,mo_anu2,jcii1,jcii2,icii1,icii2)
+          if ( ma%has_bdybottom ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                zum = mmu(j,ice1,k)
+                zup = mmu(j+1,ice1,k)
+                zvm = mmv(j,ide1,k)
+                zvp = mmv(j,idi1,k)
+                zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
+                zdiv2(j,ice1,k) = mx2(j,ice1) * zdiv * fmz(j,ice1,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdytop ) then
+            do k = 1 , kz
+              do j = jce1 , jce2
+                zum = mmu(j,ice2,k)
+                zup = mmu(j+1,ice2,k)
+                zvm = mmv(j,idi2,k)
+                zvp = mmv(j,ide2,k)
+                zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
+                zdiv2(j,ice2,k) = mx2(j,ice2) * zdiv * fmz(j,ice2,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdyleft ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                zum = mmu(jde1,i,k)
+                zup = mmu(jdi1,i,k)
+                zvm = mmv(jce1,i,k)
+                zvp = mmv(jce1,i+1,k)
+                zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
+                zdiv2(jce1,i,k) = mx2(jce1,i) * zdiv * fmz(jce1,i,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdyright ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                zum = mmu(jdi2,i,k)
+                zup = mmu(jde2,i,k)
+                zvm = mmv(jce2,i,k)
+                zvp = mmv(jce2,i+1,k)
+                zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
+                zdiv2(jce2,i,k) = mx2(jce2,i) * zdiv * fmz(jce2,i,k)
+              end do
+            end do
+          end if
+
+          call filt3d(zdiv2,mo_anu2,jci1,jci2,ici1,ici2)
 
           do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
                        zdtrdz * (s(j,i,k) - s(j,i,k+1))
               end do
@@ -674,6 +725,39 @@ module mod_moloch
             end do
           end do
 
+          if ( ma%has_bdybottom ) then
+            do k = 2 , kz
+              do j = jce1 , jce2
+                w(j,ice1,k) = w(j,ici1,k)
+                deltaw(j,ice1,k) = deltaw(j,ici1,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdytop ) then
+            do k = 2 , kz
+              do j = jce1 , jce2
+                w(j,ice2,k) = w(j,ici2,k)
+                deltaw(j,ice2,k) = deltaw(j,ici2,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdyleft ) then
+            do k = 2 , kz
+              do i = ice1 , ice2
+                w(jce1,i,k) = w(jci1,i,k)
+                deltaw(jce1,i,k) = deltaw(jci1,i,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdyright ) then
+            do k = 2 , kz
+              do i = ice1 , ice2
+                w(jce2,i,k) = w(jci2,i,k)
+                deltaw(jce2,i,k) = deltaw(jci2,i,k)
+              end do
+            end do
+          end if
+
           ! new Exner function (Equation 19)
 
           if ( ipptls > 0 ) then
@@ -714,7 +798,7 @@ module mod_moloch
           do k = 1 , kz
             gzitak = gzita(zitah(k))
             do i = ici1 , ici2
-              do j = jdii1 , jdii2
+              do j = jdi1 , jdi2
                 zcx = zdtrdx / mu(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
@@ -731,7 +815,7 @@ module mod_moloch
 
           do k = 1 , kz
             gzitak = gzita(zitah(k))
-            do i = idii1 , idii2
+            do i = idi1 , idi2
               do j = jci1 , jci2
                 zcy = zdtrdy / mv(j,i)
                 zfz = 0.25_rkx * &
@@ -792,7 +876,7 @@ module mod_moloch
 
       subroutine advection(dtstepa)
         implicit none
-        integer(ik4) :: i , j , k , n
+        integer(ik4) :: n
         real(rkx) :: dtstepa
         real(rkx) , pointer , dimension(:,:,:) :: ptr
 

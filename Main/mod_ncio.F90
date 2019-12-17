@@ -67,7 +67,7 @@ module mod_ncio
   contains
 
   subroutine read_domain_info(ht,lnd,tex,mask,xlat,xlon,dlat,dlon, &
-                              ulon,ulat,vlon,vlat,msfx,msfd,msfu,  &
+                              ulat,ulon,vlat,vlon,msfx,msfd,msfu,  &
                               msfv,coriol,snowam,smoist,rmoist,hlake,ts0)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(inout) :: ht
