@@ -2734,44 +2734,38 @@ module mod_params
         call exchange_bt(mddom%msfv,2,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
           do j = jdi1 , jdi2
-            mddom%hx(j,i) = (mddom%ht(j,i)-mddom%ht(j-1,i)) * &
-                  mddom%msfu(j,i) * rdx * regrav
+            mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
+              mddom%msfu(j,i) * rdx * regrav
           end do
         end do
         do i = idi1 , idi2
           do j = jce1 , jce2
-            mddom%hy(j,i) = (mddom%ht(j,i)-mddom%ht(j,i-1)) * &
-                  mddom%msfv(j,i) * rdx * regrav
+            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+              mddom%msfv(j,i) * rdx * regrav
           end do
         end do
         if ( ma%has_bdyleft ) then
           do i = ice1 , ice2
-            mddom%hx(jde1,i) = d_half*(mddom%hx(jdi1,i) + &
-                        d_half*(mddom%hy(jci1,i)+mddom%hy(jci1,i+1)))
+            mddom%hx(jde1,i) = mddom%hx(jdi1,i)
           end do
         end if
         if ( ma%has_bdyright ) then
           do i = ice1 , ice2
-            mddom%hx(jde2,i) = d_half*(mddom%hx(jdi2,i) + &
-                        d_half*(mddom%hy(jci2,i)+mddom%hy(jci2,i+1)))
+            mddom%hx(jde2,i) = mddom%hx(jdi2,i)
           end do
         end if
         if ( ma%has_bdybottom ) then
           do j = jce1 , jce2
-            mddom%hy(j,ide1) = d_half*(mddom%hy(j,idi1) + &
-                        d_half*(mddom%hx(j,ici1)+mddom%hy(j+1,ici1)))
+            mddom%hy(j,ide1) = mddom%hy(j,idi1)
           end do
         end if
         if ( ma%has_bdytop ) then
           do j = jce1 , jce2
-            mddom%hy(j,ide2) = d_half*(mddom%hy(j,idi2) + &
-                        d_half*(mddom%hx(j,ici2)+mddom%hy(j+1,ici2)))
+            mddom%hy(j,ide2) = mddom%hy(j,idi2)
           end do
         end if
         call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
         call exchange_bt(mddom%hy,1,jce1,jce2,ide1,ide2)
-        mddom%msfu = d_one/mddom%msfu
-        mddom%msfv = d_one/mddom%msfv
         zita(kzp1) = d_zero
         do k = kz , 1 , -1
           zita(k) = zita(k+1) + mo_dz

@@ -27,7 +27,7 @@ module mod_cu_interface
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-  use mod_mppparam , only : exchange , uvcross2dot , uvdot2cross , italk
+  use mod_mppparam , only : exchange_lrbt , uvcross2dot , uvdot2cross , italk
   use mod_mppparam , only : tenxtouvten , uvtentotenx
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
@@ -117,11 +117,11 @@ module mod_cu_interface
     if ( any(icup == 4) ) then
       call allocate_mod_cu_em
       if ( idynamic == 3 ) then
-        call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
+        call getmem3d(utend,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
       else
-        call getmem3d(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
+        call getmem3d(utend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
       end if
     end if
     if ( any(icup == 5) ) then
@@ -130,11 +130,11 @@ module mod_cu_interface
       call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
       call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
       if ( idynamic == 3 ) then
-        call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
+        call getmem3d(utend,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
       else
-        call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+        call getmem3d(utend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
       end if
     end if
     if ( any(icup == 6) ) then
@@ -366,8 +366,12 @@ module mod_cu_interface
         if ( any(icup == 5) .or. any(icup == 4) ) then
           if ( idynamic == 3 ) then
             call tenxtouvten(cu_uten,cu_vten,utend,vtend)
+            call exchange_lrbt(utend,1,jde1,jde2,ice1,ice2,1,kz)
+            call exchange_lrbt(vtend,1,jce1,jce2,ide1,ide2,1,kz)
           else
             call uvcross2dot(cu_uten,cu_vten,utend,vtend)
+            call exchange_lrbt(utend,1,jde1,jde2,ide1,ide2,1,kz)
+            call exchange_lrbt(vtend,1,jde1,jde2,ide1,ide2,1,kz)
           end if
         end if
 
@@ -399,14 +403,18 @@ module mod_cu_interface
           do k = 1 , kz
             do i = idi1 , idi2
               do j = jci1 , jci2
-                c2m%vten(j,i,k) = vtend(j,i,k)
+                c2m%vten(j,i,k) = vtend(j,i,k) - 0.25_rkx * &
+                  ( 4.0_rkx * vtend(j,i,k) - (vtend(j+1,i,k) + &
+                    vtend(j-1,i,k) + vtend(j,i+1,k) + vtend(j,i-1,k)))
               end do
             end do
           end do
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jdi1 , jdi2
-                c2m%uten(j,i,k) = utend(j,i,k)
+                c2m%uten(j,i,k) = utend(j,i,k) - 0.25_rkx * &
+                  ( 4.0_rkx * utend(j,i,k) - (utend(j+1,i,k) + &
+                    utend(j-1,i,k) + utend(j,i+1,k) + utend(j,i-1,k)))
               end do
             end do
           end do

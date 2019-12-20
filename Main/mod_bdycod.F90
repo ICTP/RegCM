@@ -1248,32 +1248,48 @@ module mod_bdycod
       if ( idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
-            do i = ici1 , ici2
+            do i = ice1 , ice2
               mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k)
+            end do
+          end do
+          do k = 1 , kz
+            do i = ide1 , ide2
               mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k)
             end do
           end do
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kz
-            do i = ici1 , ici2
+            do i = ice1 , ice2
               mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k)
+            end do
+          end do
+          do k = 1 , kz
+            do i = ide1 , ide2
               mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k)
             end do
           end do
         end if
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
-            do j = jce1 , jce2
+            do j = jde1 , jde2
               mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k)
+            end do
+          end do
+          do k = 1 , kz
+            do j = jce1 , jce2
               mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k)
             end do
           end do
         end if
         if ( ma%has_bdytop ) then
           do k = 1 , kz
-            do j = jce1 , jce2
+            do j = jde1 , jde2
               mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k)
+            end do
+          end do
+          do k = 1 , kz
+            do j = jce1 , jce2
               mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k)
             end do
           end do
@@ -1341,32 +1357,40 @@ module mod_bdycod
       if ( idynamic == 3 ) then
         if ( ma%has_bdyleft ) then
           do k = 1 , kz
-            do i = ici1 , ici2
+            do i = ice1 , ice2
               mo_atm%u(jde1,i,k) = xub%b0(jde1,i,k) + xt*xub%bt(jde1,i,k)
+            end do
+            do i = ide1 , ide2
               mo_atm%v(jce1,i,k) = xvb%b0(jce1,i,k) + xt*xvb%bt(jce1,i,k)
             end do
           end do
         end if
         if ( ma%has_bdyright ) then
           do k = 1 , kz
-            do i = ici1 , ici2
+            do i = ice1 , ice2
               mo_atm%u(jde2,i,k) = xub%b0(jde2,i,k) + xt*xub%bt(jde2,i,k)
+            end do
+            do i = ide1 , ide2
               mo_atm%v(jce2,i,k) = xvb%b0(jce2,i,k) + xt*xvb%bt(jce2,i,k)
             end do
           end do
         end if
         if ( ma%has_bdybottom ) then
           do k = 1 , kz
-            do j = jce1 , jce2
+            do j = jde1 , jde2
               mo_atm%u(j,ice1,k) = xub%b0(j,ice1,k) + xt*xub%bt(j,ice1,k)
+            end do
+            do j = jce1 , jce2
               mo_atm%v(j,ide1,k) = xvb%b0(j,ide1,k) + xt*xvb%bt(j,ide1,k)
             end do
           end do
         end if
         if ( ma%has_bdytop ) then
           do k = 1 , kz
-            do j = jce1 , jce2
+            do j = jde1 , jde2
               mo_atm%u(j,ice2,k) = xub%b0(j,ice2,k) + xt*xub%bt(j,ice2,k)
+            end do
+            do j = jce1 , jce2
               mo_atm%v(j,ide2,k) = xvb%b0(j,ide2,k) + xt*xvb%bt(j,ide2,k)
             end do
           end do
@@ -3643,11 +3667,11 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jde1ga:jde2ga , i = ice1:ice2 , k = 1:kz )
-      fg1(j,i,k) = ((bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - fu(j,i,k))
+      fg1(j,i,k) = (bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - fu(j,i,k)
     end do
 
     do concurrent ( j = jce1:jce2 , i = ide1ga:ide2ga , k = 1:kz )
-      fg2(j,i,k) = ((bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - fv(j,i,k))
+      fg2(j,i,k) = (bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - fv(j,i,k)
     end do
 
     if ( ibdy == 1 ) then
@@ -4555,7 +4579,7 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
-      fg1(j,i,1) = ((bnd%b0(j,i) + xt*bnd%bt(j,i)) - f(j,i))
+      fg1(j,i,1) = (bnd%b0(j,i) + xt*bnd%bt(j,i)) - f(j,i)
     end do
 
     if ( ibdy == 1 ) then

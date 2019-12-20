@@ -99,7 +99,6 @@ module mod_cu_kf
   real(rkx) , parameter :: dpmin = 5.0e3_rkx
   real(rkx) , parameter :: ttfrz = tzero - 5.0_rkx
   real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
-  real(rkx) , parameter :: maxvw = 0.10_rkx
 
   contains
 
@@ -395,7 +394,7 @@ module mod_cu_kf
             nd1 , ndk , lmax , ncount , noitr , nstep , ntc , ishall , np
     logical :: iprnt
     real(rkx) :: qslcl , rhlcl , dqssdt    !jfb
-    integer(ik4) , parameter :: maxiter = 100
+    integer(ik4) , parameter :: maxiter = 10
 
     kl = kte
     kx = kte
@@ -598,7 +597,7 @@ module mod_cu_kf
         end if
         wkl = (w0avg(k,np) + &
                 (w0avg(klcl,np)-w0avg(k,np))*dlp) * dx/25.0e3_rkx - wklcl
-        if ( wkl < maxvw ) then
+        if ( wkl < 0.0001_rkx ) then
           dtlcl = 0.0_rkx
         else
           dtlcl = 4.64_rkx*wkl**0.33_rkx  ! Kain (2004) Eq. 1
@@ -660,10 +659,10 @@ module mod_cu_kf
           ! (Kain (2004) Eq. 6)
           if ( wkl < d_zero ) then
             rad = 1000.0_rkx
-          else if ( wkl > maxvw ) then
+          else if ( wkl > 0.1_rkx ) then
             rad = 2000.0_rkx
           else
-            rad = 1000.0_rkx + 1000.0_rkx * wkl/maxvw
+            rad = 1000.0_rkx + 1000.0_rkx * wkl/0.1_rkx
           end if
           !
           ! Compute updraft properties
