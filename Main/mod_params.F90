@@ -2730,8 +2730,8 @@ module mod_params
         real(rkx) , dimension(kzp1) :: fak , fbk
         real(rkx) :: ztop
         call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
-        call exchange_lr(mddom%msfu,2,jde1,jde2,ide1,ide2)
-        call exchange_bt(mddom%msfv,2,jde1,jde2,ide1,ide2)
+        call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
+        call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &

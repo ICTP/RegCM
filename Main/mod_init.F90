@@ -178,6 +178,7 @@ module mod_init
             do j = jce1 , jce2
               mo_atm%t(j,i,k) = xtb%b0(j,i,k)
               mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
+              mo_atm%qx(j,i,k,iqc) = minqc
             end do
           end do
         end do

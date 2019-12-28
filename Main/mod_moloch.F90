@@ -123,8 +123,8 @@ module mod_moloch
     call getmem2d(zpby,jci1,jci2,ici1,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1,jce2ga,ici1,ici2,'moloch:zpbw')
     call getmem2d(mx2,jce1,jce2,ice1,ice2,'moloch:mx2')
-    call getmem2d(rmu,jde1ga,jde2ga,ice1,ice2,'moloch:rmu')
-    call getmem2d(rmv,jce1,jce2,ide1ga,ide2ga,'moloch:rmv')
+    call getmem2d(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
+    call getmem2d(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
@@ -1256,7 +1256,7 @@ module mod_moloch
         qx(jci1:jci2,ici1:ici2,:,:) = qx(jci1:jci2,ici1:ici2,:,:) + dtsec * &
                        mo_atm%qxten(jci1:jci2,ici1:ici2,:,:)
         qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst) = &
-                       max(qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst),d_zero)
+                       max(qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst),minqc)
         qx(jci1:jci2,ici1:ici2,:,iqv) = &
                        max(qx(jci1:jci2,ici1:ici2,:,iqv),minqq)
         if ( ibltyp == 2 ) then

@@ -237,6 +237,13 @@ module mod_micro_interface
         end do
       end do
     end if
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( totc(j,i,k) <= 1.0e-10_rkx ) totc(j,i,k) = d_zero
+        end do
+      end do
+    end do
 
     select case ( icldfrac )
       case (1)
