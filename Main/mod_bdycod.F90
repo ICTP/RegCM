@@ -184,12 +184,20 @@ module mod_bdycod
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
-        fnudge = 0.1_rkx/(dtsec*2.0_rkx)
+        if ( idynamic == 3 ) then
+          fnudge = 0.1_rkx/dtsec
+        else
+          fnudge = 0.1_rkx/(dtsec*2.0_rkx)
+        end if
       end if
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
-        gnudge = d_one/(50.0_rkx*dtsec)
+        if ( idynamic == 3 ) then
+          gnudge = d_two/(50.0_rkx*dtsec)
+        else
+          gnudge = d_one/(50.0_rkx*dtsec)
+        end if
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
@@ -731,7 +739,6 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      call paicompute(xpsb%b0,xtb%b0,xqb%b0,xpaib%b0)
       call paicompute(xpsb%b1,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
@@ -1871,8 +1878,7 @@ module mod_bdycod
             do k = 1 , kz
               do i = ice1 , ice2
                 qxint = mo_atm%qx(jci1,i,k,n)
-                windavg = mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k)
-                if ( windavg > d_zero ) then
+                if ( mo_atm%u(jde1,i,k) >= d_zero ) then
                   mo_atm%qx(jce1,i,k,n) = d_zero
                 else
                   mo_atm%qx(jce1,i,k,n) = qxint
@@ -1889,8 +1895,7 @@ module mod_bdycod
             do k = 1 , kz
               do i = ice1 , ice2
                 qxint = mo_atm%qx(jci2,i,k,n)
-                windavg = mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k)
-                if ( windavg < d_zero ) then
+                if ( mo_atm%u(jde2,i,k) <= d_zero ) then
                   mo_atm%qx(jce2,i,k,n) = d_zero
                 else
                   mo_atm%qx(jce2,i,k,n) = qxint
@@ -1907,8 +1912,7 @@ module mod_bdycod
             do k = 1 , kz
               do j = jci1 , jci2
                 qxint = mo_atm%qx(j,ici1,k,n)
-                windavg = mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k)
-                if ( windavg > d_zero ) then
+                if ( mo_atm%v(j,ide1,k) >= d_zero ) then
                   mo_atm%qx(j,ice1,k,n) = d_zero
                 else
                   mo_atm%qx(j,ice1,k,n) = qxint
@@ -1925,8 +1929,7 @@ module mod_bdycod
             do k = 1 , kz
               do j = jci1 , jci2
                 qxint = mo_atm%qx(j,ici2,k,n)
-                windavg = mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k)
-                if ( windavg < d_zero ) then
+                if ( mo_atm%v(j,ide2,k) <= d_zero ) then
                   mo_atm%qx(j,ice2,k,n) = d_zero
                 else
                   mo_atm%qx(j,ice2,k,n) = qxint
@@ -4409,7 +4412,7 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga )
-      fg1(j,i,1) = ((bnd%b0(j,i) + xt*bnd%bt(j,i)) - f(j,i))
+      fg1(j,i,1) = (bnd%b0(j,i) + xt*bnd%bt(j,i)) - f(j,i)
     end do
 
     if ( ibdy == 1 ) then
@@ -4921,7 +4924,8 @@ module mod_bdycod
     do i = ice1 , ice2
       do j = jce1 , jce2
         zz1 = mo_atm%zeta(j,i,kz)
-        zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
+        ! zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
+        zlr = -lrate
         tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz)) + d_half * zz1 * zlr
         zz2 = egrav/(rgas*tv)
         p = xpsb(j,i) * exp(-zz1*zz2)
@@ -4967,18 +4971,13 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xt , xq , xu , xv
     integer(ik4) :: i , j , k
     real(rkx) :: zlr
+    xu = 10.0_rkx
     xv = d_zero
     xq = d_zero
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
-        xts(j,i) = stdt + zlr * mddom%ht(j,i)
-      end do
-    end do
+    xts = stdt
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          !zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
           zlr = -lrate
           xt(j,i,k) = max(xts(j,i) + zlr * mo_atm%zeta(j,i,k), 210.0_rkx)
         end do
@@ -4988,25 +4987,6 @@ module mod_bdycod
       do j = jce1 , jce2
         xps(j,i) = stdpmb * exp(-govr*mo_atm%zeta(j,i,kz)/xt(j,i,kz))
       end do
-    end do
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          !xu(j,i,k) = 1.0_rkx + 5.0_rkx * log(mo_atm%zeta(j,i,k)) * &
-          !            abs(sin(mddom%ulat(j,i)*degrad))
-          xu(j,i,k) = 10.0_rkx !+ 5.0_rkx * log(mo_atm%zeta(j,i,k))
-        end do
-      end do
-      if ( ma%has_bdyright ) then
-        do i = ice1 , ice2
-          !xu(jde2,i,k) = 1.0_rkx + 5.0_rkx * log(mo_atm%zeta(jce2,i,k)) * &
-          !               abs(sin(mddom%ulat(jce2,i)*degrad))
-          xu(jde2,i,k) = 10.0_rkx !+ 5.0_rkx * log(mo_atm%zeta(jce2,i,k))
-        end do
-        !xu(jde2,ide2,k) = 1.0_rkx + 5.0_rkx * log(mo_atm%zeta(jce2,ice2,k)) * &
-        !                 abs(sin(mddom%ulat(jde2,ide2)*degrad))
-        xu(jde2,ide2,k) = 10.0_rkx !+ 5.0_rkx * log(mo_atm%zeta(jce2,ice2,k))
-      end if
     end do
   end subroutine moloch_static_test2
 

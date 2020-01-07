@@ -193,7 +193,11 @@ module mod_micro_subex
     do i = ici1 , ici2
       do j = jci1 , jci2
         afc = mc2mo%fcc(j,i,1)     ![frac][avg]
-        qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
+        if ( mo2mc%qcn(j,i,1) > minqc ) then
+          qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
+        else
+          qcw = d_zero
+        end if
         pptnew = d_zero
         pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
         if ( afc > actcld ) then ! if there is a cloud
@@ -231,7 +235,11 @@ module mod_micro_subex
           end if
           ! 1af. Compute the cloud removal rate (for chemistry) [1/s]
           if ( ichem == 1 ) then
-            mc2mo%remrat(j,i,1) = pptnew/qcw
+            if ( qcw > minqc ) then
+              mc2mo%remrat(j,i,1) = pptnew/qcw
+            else
+              mc2mo%remrat(j,i,1) = d_zero
+            end if
             if ( lsecind .and. idiag > 0 ) then
               mc2mo%dia_acr(j,i,1) = pptnew
             end if
@@ -250,8 +258,12 @@ module mod_micro_subex
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
           dpovg = (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav    ![kg/m2]
-          qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
+          if ( mo2mc%qcn(j,i,k) > minqc ) then
+            qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
+          else
+            qcw = d_zero
+          end if
           pptmax = (d_one-remfrc)*qcw/dt              ![kg/kg/s][avg]
           if ( pptsum(j,i) > d_zero ) then
             pptkm1 = pptsum(j,i)/dpovg                ![kg/kg/s][avg]
@@ -333,7 +345,11 @@ module mod_micro_subex
             end if
             ! 1be. Compute the cloud removal rate (for chemistry) [1/s]
             if ( ichem == 1 ) then
-              mc2mo%remrat(j,i,k) = pptnew/qcw
+              if ( qcw > minqc ) then
+                mc2mo%remrat(j,i,k) = pptnew/qcw
+              else
+                mc2mo%remrat(j,i,k) = d_zero
+              end if
               if ( lsecind .and. idiag > 0 ) then
                 mc2mo%dia_acr(j,i,k) = pptnew
               end if
