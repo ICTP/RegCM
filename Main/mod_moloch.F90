@@ -116,9 +116,9 @@ module mod_moloch
     call getmem3d(p0,jce1gb,jce2gb,ici1,ici2,1,kz,'moloch:p0')
     call getmem2d(zpby,jci1,jci2,ici1,ice2ga,'moloch:zpby')
     call getmem2d(zpbw,jci1,jce2ga,ici1,ici2,'moloch:zpbw')
-    call getmem2d(mx2,jde1ga,jde2ga,ide1ga,ide2ga,'moloch:mx2')
-    call getmem2d(rmu,jde1gb,jde2gb,ide1,ide2,'moloch:rmu')
-    call getmem2d(rmv,jde1,jde2,ide1gb,ide2gb,'moloch:rmv')
+    call getmem2d(mx2,jde1,jde2,ide1,ide2,'moloch:mx2')
+    call getmem2d(rmu,jde1ga,jde2ga,ide1,ide2,'moloch:rmu')
+    call getmem2d(rmv,jde1,jde2,ide1ga,ide2ga,'moloch:rmv')
     if ( ibltyp == 2 ) then
       call getmem3d(tkex,jce1,jce2,ice1,ice2,1,kz,'moloch:tkex')
     end if
@@ -512,6 +512,7 @@ module mod_moloch
         implicit none
         integer(ik4) :: j , i , k
 
+        call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -587,10 +588,10 @@ module mod_moloch
           ! Equation 16
 
           do k = 1 , kz
-            do i = ice1ga , ice2ga
+            do i = ice1 , ice2
               im1 = max(i-1,icross1)
               ip1 = min(i+1,icross2)
-              do j = jce1ga , jce2ga
+              do j = jce1 , jce2
                 jm1 = max(j-1,jcross1)
                 jp1 = min(j+1,jcross2)
                 zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))

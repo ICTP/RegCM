@@ -601,7 +601,7 @@ module mod_atm_interface
         call getmem4d(atm%chiten,jci1,jci2,   &
                                  ici1,ici2,1,kz,1,ntr,'atmstate:chiten')
       end if
-      call getmem3d(atm%fmz,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'atmstate:fmz')
+      call getmem3d(atm%fmz,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'atmstate:fmz')
       call getmem3d(atm%fmzf,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:fmzf')
     end subroutine allocate_atmosphere
 
@@ -812,9 +812,9 @@ module mod_atm_interface
       call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
       if ( idynamic == 3 ) then
-        call getmem2d(dom%msfx,jde1ga,jde2ga,ide1ga,ide2ga,'storage:msfx')
-        call getmem2d(dom%msfu,jde1gb,jde2gb,ide1,ide2,'storage:msfu')
-        call getmem2d(dom%msfv,jde1,jde2,ide1gb,ide2gb,'storage:msfv')
+        call getmem2d(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
+        call getmem2d(dom%msfu,jde1ga,jde2ga,ide1,ide2,'storage:msfu')
+        call getmem2d(dom%msfv,jde1,jde2,ide1ga,ide2ga,'storage:msfv')
         call getmem2d(dom%hx,jde1ga,jde2ga,ice1,ice2,'storage:hx')
         call getmem2d(dom%hy,jce1,jce2,ide1ga,ide2ga,'storage:hy')
         call getmem2d(dom%ulat,jde1,jde2,ide1,ide2,'storage:ulat')

@@ -2730,9 +2730,8 @@ module mod_params
         real(rkx) , dimension(kzp1) :: fak , fbk
         real(rkx) :: ztop
         call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
-        call exchange_lrbt(mddom%msfx,1,jde1,jde2,ide1,ide2)
-        call exchange_lr(mddom%msfu,2,jde1,jde2,ide1,ide2)
-        call exchange_bt(mddom%msfv,2,jde1,jde2,ide1,ide2)
+        call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
+        call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
@@ -2791,7 +2790,7 @@ module mod_params
             end do
           end do
         end do
-        call exchange_lrbt(mo_atm%fmz,2,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,1,jce1,jce2,ice1,ice2,1,kz)
         mo_atm%fmzf(:,:,1) = 1.0_rkx ! for vertical advection code
         mo_atm%zetaf(:,:,1) = 47500.0_rkx ! Supposedly infinite
