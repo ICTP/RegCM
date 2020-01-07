@@ -548,6 +548,8 @@ module mod_moloch
         !  sound waves
 
         call uvstagtox(u,v,ux,vx)
+        call exchange_bt(ux,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lr(vx,1,jce1,jce2,ice1,ice2,1,kz)
 
         do jsound = 1 , mo_nsound
 
@@ -679,7 +681,7 @@ module mod_moloch
                               4.8_rkx * qc(j,i,k))
                   tetav(j,i,k) = tetav(j,i,k) * &
                      (d_one + rdrcv*zdiv2(j,i,k) * &
-                      (0.25_rkx * qv(j,i,k)  + 4.2_rkx * qwstot(j,i,k)))
+                      (0.25_rkx * qv(j,i,k) + 4.2_rkx * qwstot(j,i,k)))
                   pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
                 end do
               end do
@@ -1386,9 +1388,6 @@ module mod_moloch
         end do
       end do
     end if
-
-    call exchange_bt(ux,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange_lr(vx,1,jce1,jce2,ice1,ice2,1,kz)
   end subroutine uvstagtox
 
 end module mod_moloch
