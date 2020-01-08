@@ -251,11 +251,11 @@ module mod_cu_interface
     real(rkx) :: w1
 
     if ( any(icup == 6) ) then
-      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,3600.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            avg_ww(j,i,k) = (d_one-w1) * avg_ww(j,i,k) + &
+            avg_ww(j,i,k) = (d_one - w1) * avg_ww(j,i,k) + &
                           w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
           end do
         end do

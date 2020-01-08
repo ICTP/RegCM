@@ -107,7 +107,7 @@ module mod_moloch
     implicit none
     call getmem2d(p2d,jci1,jci2,ici1,ici2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
-    call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+    call getmem3d(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
     call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wwkw,jce1,jce2,ice1,ice2,1,kzp1,'moloch:wwkw')
@@ -563,8 +563,8 @@ module mod_moloch
               w(j,i,kzp1) = d_half * (zuh+zvh)
             end do
           end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ice1 , ice2
+            do j = jce1 , jce2
               s(j,i,kzp1) = -w(j,i,kzp1)
             end do
           end do
@@ -573,8 +573,8 @@ module mod_moloch
 
           do k = kz , 2 , -1
             gzitak = gzita(zita(k))
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
                       (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
                 zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
@@ -611,8 +611,8 @@ module mod_moloch
           call filt3d
 
           do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
                        zdtrdz * (s(j,i,k) - s(j,i,k+1))
               end do
