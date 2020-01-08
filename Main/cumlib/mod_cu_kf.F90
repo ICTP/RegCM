@@ -2247,6 +2247,11 @@ module mod_cu_kf
       real(rkx) , intent(inout) :: qliq , qice , qnewlq , qnewic
       real(rkx) :: qtot , qnew , qest , g1 , wavg , conv , ratio3
       real(rkx) :: oldq , ratio4 , dq , pptdrg
+      !
+      ! - note that only 60% of the fresh condensate is is allowed to
+      !   participate in the conversion process...
+      !
+      real(rkx) , parameter :: convfac = 0.4_rkx
 
       qtot = qliq + qice
       qnew = qnewlq + qnewic
@@ -2263,15 +2268,14 @@ module mod_cu_kf
       !
       ! ratio3 is the fraction of liquid water in fresh condensate, ratio4 is
       ! the fraction of liquid water in the total amount of condensate involv
-      ! in the precipitation process - note that only 60% of the fresh conden
-      ! sate is is allowed to participate in the conversion process...
+      ! in the precipitation process
       !
-      ratio3 = qnewlq / (qnew+1.0e-8_rkx)
-      qtot = qtot + 0.6_rkx*qnew
+      ratio3 = qnewlq / max(qnew,1.0e-8_rkx)
+      qtot = qtot + (d_one-convfac)*qnew
       oldq = qtot
-      ratio4 = (0.6_rkx*qnewlq + qliq) / (qtot+1.0e-8_rkx)
+      ratio4 = ((d_one-convfac)*qnewlq + qliq) / max(qtot,1.0e-8_rkx)
       if ( conv > 25.0_rkx ) then
-        qtot = d_zero
+        qtot = 1.0e-8_rkx
       else
         qtot = qtot * exp(-conv) ! KF90  Eq. 9
       end if
@@ -2286,15 +2290,15 @@ module mod_cu_kf
       ! Estimate the mean load of condensate on the updraft in the layer, cal
       ! late vertical velocity
       !
-      pptdrg = d_half * (oldq+qtot-0.2_rkx*qnew)
+      pptdrg = d_half * (oldq + qtot - 0.2_rkx*qnew)
       wtw = wtw + boterm - enterm - d_two*egrav*dz*pptdrg/1.5_rkx
       if ( abs(wtw) < 1.0e-4_rkx) wtw = 1.0e-4_rkx
       !
       ! Determine the new liquid water and ice concentrations including losses
       ! due to precipitation and gains from condensation...
       !
-      qliq = ratio4*qtot + ratio3*0.4_rkx*qnew
-      qice = (d_one-ratio4)*qtot + (d_one-ratio3)*0.4_rkx*qnew
+      qliq = ratio4*qtot + ratio3*convfac*qnew
+      qice = (d_one-ratio4)*qtot + (d_one-ratio3)*convfac*qnew
       qnewlq = d_zero
       qnewic = d_zero
     end subroutine condload

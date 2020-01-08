@@ -53,6 +53,7 @@ module mod_projections
     real(rk8) :: rlon0 , rlat0 , phi0 , lam0
     real(rk8) :: xoff , yoff
     real(rk8) :: zsinpol , zcospol , zlampol
+    real(rk8) :: pollam , polcphi , polsphi
     real(rk8) :: conefac , rconefac
     integer(ik4) :: nlat , nlon
     logical :: lamtan
@@ -857,18 +858,22 @@ module mod_projections
     pj%p%yoff = clat - plat
     pj%p%polei = ci
     pj%p%polej = cj
-    !if ( plat > 0.0_rk8 ) then
-      pphi = deg90 - plat
-      plam = plon + deg180
-    !else
-    !  pphi = deg90 + plat
-    !  plam = plon
-    !end if
+    pphi = deg90 - plat
+    plam = plon + deg180
     if ( plam>deg180 ) plam = plam - deg360
     pj%p%zlampol = degrad*plam
     zphipol = degrad*pphi
     pj%p%zsinpol = sin(zphipol)
     pj%p%zcospol = cos(zphipol)
+    if ( plat > 0.0_rk8 ) then
+      pphi = (deg90 - plat) * degrad
+      pj%p%pollam = (plon + deg180) * degrad
+    else
+      pphi = (deg90 + plat) * degrad
+      pj%p%pollam = plon * degrad
+    end if
+    pj%p%polcphi = sin(pphi)
+    pj%p%polsphi = cos(pphi)
     if ( luvrot ) then
       call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
       call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
@@ -1063,9 +1068,9 @@ module mod_projections
     zphi = lat*degrad
     zrla = lon*degrad
     if ( lat > deg90-0.00001_rk8 ) zrla = 0.0_rk8
-    zrlap = pj%p%zlampol - zrla
-    zarg1 = pj%p%zcospol*sin(zrlap)
-    zarg2 = pj%p%zsinpol*cos(zphi) - pj%p%zcospol*sin(zphi)*cos(zrlap)
+    zrlap = pj%p%pollam - zrla
+    zarg1 = pj%p%polcphi*sin(zrlap)
+    zarg2 = pj%p%polsphi*cos(zphi) - pj%p%polcphi*sin(zphi)*cos(zrlap)
     znorm = 1.0_rk8/sqrt(zarg1**2.0_rk8+zarg2**2.0_rk8)
     sindel = zarg1*znorm
     cosdel = zarg2*znorm
