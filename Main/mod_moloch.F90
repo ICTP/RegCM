@@ -83,7 +83,7 @@ module mod_moloch
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
   real(rkx) , dimension(:,:,:) , pointer :: p , t , rho
   real(rkx) , dimension(:,:,:) , pointer :: qv , qc , qi , qr , qs , qsat
-  real(rkx) , dimension(:,:,:) , pointer :: qwstot
+  real(rkx) , dimension(:,:,:) , pointer :: qwltot , qwitot
   real(rkx) , dimension(:,:,:) , pointer :: tke
   real(rkx) , dimension(:,:,:,:) , pointer :: qx , trac
 
@@ -94,6 +94,7 @@ module mod_moloch
 
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
+  logical , parameter :: do_fulleq = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
 
@@ -107,7 +108,7 @@ module mod_moloch
     implicit none
     call getmem2d(p2d,jci1,jci2,ici1,ici2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
-    call getmem3d(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
+    call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
     call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wwkw,jce1,jce2,ice1,ice2,1,kzp1,'moloch:wwkw')
@@ -135,8 +136,11 @@ module mod_moloch
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
-    if ( ipptls /= 1 ) then
-      call getmem3d(qwstot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwstot')
+    if ( do_fulleq ) then
+      if ( ipptls /= 1 ) then
+        call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
+        call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
+      end if
     end if
   end subroutine allocate_moloch
 
@@ -176,7 +180,10 @@ module mod_moloch
         call assignpnt(mo_atm%qx,qr,iqr)
         call assignpnt(mo_atm%qx,qs,iqs)
       else
-        call assignpnt(mo_atm%qx,qwstot,iqc)
+        if ( do_fulleq ) then
+          call assignpnt(mo_atm%qx,qwltot,iqc)
+          call assignpnt(mo_atm%qx,qwitot,iqc)
+        end if
       end if
     end if
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
@@ -243,13 +250,16 @@ module mod_moloch
             end do
           end do
         end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              qwstot(j,i,k) = qc(j,i,k) + qi(j,i,k) + qr(j,i,k) + qs(j,i,k)
+        if ( do_fulleq ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                qwltot(j,i,k) = qc(j,i,k) + qr(j,i,k)
+                qwitot(j,i,k) = qi(j,i,k) + qs(j,i,k)
+              end do
             end do
           end do
-        end do
+        end if
       else
         do k = 1 , kz
           do i = ice1 , ice2
@@ -267,7 +277,10 @@ module mod_moloch
           end do
         end do
       end do
-      qwstot(:,:,:) = d_zero
+      if ( do_fulleq ) then
+        qwltot(:,:,:) = d_zero
+        qwitot(:,:,:) = d_zero
+      end if
     end if
 
     do k = 1 , kz
@@ -551,6 +564,9 @@ module mod_moloch
         call uvstagtox(u,v,ux,vx)
         call exchange_bt(ux,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lr(vx,1,jce1,jce2,ice1,ice2,1,kz)
+        if ( .not. do_fulleq ) then
+          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+        end if
 
         do jsound = 1 , mo_nsound
 
@@ -563,8 +579,8 @@ module mod_moloch
               w(j,i,kzp1) = d_half * (zuh+zvh)
             end do
           end do
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               s(j,i,kzp1) = -w(j,i,kzp1)
             end do
           end do
@@ -573,8 +589,8 @@ module mod_moloch
 
           do k = kz , 2 , -1
             gzitak = gzita(zita(k))
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+            do i = ici1 , ici2
+              do j = jci1 , jci2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
                       (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
                 zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
@@ -611,8 +627,8 @@ module mod_moloch
           call filt3d
 
           do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+            do i = ici1 , ici2
+              do j = jci1 , jci2
                 zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
                        zdtrdz * (s(j,i,k) - s(j,i,k+1))
               end do
@@ -632,12 +648,14 @@ module mod_moloch
                 zrom1w = zrom1w - cpd * w(j,i,k) * fmzf(j,i,k)**2 * &
                          real(jsound,rkx) * zdtrdz * &
                          (tetav(j,i,k-1) - tetav(j,i,k)) !! GW
-                if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
-                     w(j,i,k) > 0.1_rkx ) then
-                  zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k-1))
-                  zdth = egrav*w(j,i,k)*(jsound-1)*dtsound*wlhv*wlhv* &
-                    zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
-                  zrom1w = zrom1w + zdth*fmzf(j,i,k)
+                if ( do_fulleq ) then
+                  if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
+                       w(j,i,k) > 0.1_rkx ) then
+                    zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k-1))
+                    zdth = egrav*w(j,i,k)*(jsound-1)*dtsound*wlhv*wlhv* &
+                      zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
+                    zrom1w = zrom1w + zdth*fmzf(j,i,k)
+                  end if
                 end if
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
                          (pai(j,i,k-1) - pai(j,i,k)) - egrav*dtsound
@@ -667,42 +685,85 @@ module mod_moloch
             end do
           end do
 
+          if ( ma%has_bdybottom ) then
+            do k = 2 , kz
+              do j = jce1 , jce2
+                deltaw(j,ice1,k) = deltaw(j,ici1,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdytop ) then
+            do k = 2 , kz
+              do j = jce1 , jce2
+                deltaw(j,ice2,k) = deltaw(j,ici2,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdyleft ) then
+            do k = 2 , kz
+              do i = ice1 , ice2
+                deltaw(jce1,i,k) = deltaw(jci1,i,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdyright ) then
+            do k = 2 , kz
+              do i = ice1 , ice2
+                deltaw(jce2,i,k) = deltaw(jci2,i,k)
+              end do
+            end do
+          end if
+
           ! new Exner function (Equation 19)
 
-          if ( ipptls > 0 ) then
+          if ( .not. do_fulleq ) then
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
                   zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
                         (w(j,i,k) - w(j,i,k+1))
-                  zdiv2(j,i,k) = zdiv2(j,i,k) * &
-                     (d_one + 0.86_rkx * qv(j,i,k) + &
-                              3.2_rkx * qc(j,i,k)) / &
-                     (d_one + 0.96_rkx * qv(j,i,k) + &
-                              4.8_rkx * qc(j,i,k))
-                  tetav(j,i,k) = tetav(j,i,k) * &
-                     (d_one + rdrcv*zdiv2(j,i,k) * &
-                      (0.25_rkx * qv(j,i,k) + 4.2_rkx * qwstot(j,i,k)))
                   pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
                 end do
               end do
             end do
           else
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
-                        (w(j,i,k) - w(j,i,k+1))
-                  pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+            if ( ipptls > 0 ) then
+              do k = 1 , kz
+                do i = ici1 , ici2
+                  do j = jci1 , jci2
+                    zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
+                          (w(j,i,k) - w(j,i,k+1))
+                    zdiv2(j,i,k) = zdiv2(j,i,k) * &
+                       (d_one + 0.86_rkx * qv(j,i,k) + &
+                                3.2_rkx * qc(j,i,k)) / &
+                       (d_one + 0.96_rkx * qv(j,i,k) + &
+                                4.8_rkx * qc(j,i,k))
+                    tetav(j,i,k) = tetav(j,i,k) * &
+                       (d_one + rdrcv*zdiv2(j,i,k) * &
+                        (0.25_rkx * qv(j,i,k) +      &
+                         4.2_rkx * qwltot(j,i,k) +   &
+                         2.1_rkx * qwitot(j,i,k)))
+                    pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+                  end do
                 end do
               end do
-            end do
+              call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
+            else
+              do k = 1 , kz
+                do i = ici1 , ici2
+                  do j = jci1 , jci2
+                    zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
+                          (w(j,i,k) - w(j,i,k+1))
+                    pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+                  end do
+                end do
+              end do
+            end if
           end if
 
           ! horizontal momentum equations
 
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
-          call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
           do k = 1 , kz
@@ -1260,15 +1321,15 @@ module mod_moloch
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: w
     integer(ik4) :: i , j , k
     do k = 3 , kzm1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+      do i = ice1 , ice2
+        do j = jce1 , jce2
           w(j,i,k) = 0.5625_rkx * (wx(j,i,k)  +wx(j,i,k-1)) - &
                      0.0625_rkx * (wx(j,i,k+1)+wx(j,i,k-2))
         end do
       end do
     end do
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+    do i = ice1 , ice2
+      do j = jce1 , jce2
         w(j,i,2) = 0.5_rkx * (wx(j,i,2)  +wx(j,i,1))
         w(j,i,kz) = 0.5_rkx * (wx(j,i,kz)+wx(j,i,kzm1))
       end do
