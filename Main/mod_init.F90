@@ -223,8 +223,8 @@ module mod_init
           end do
         end do
         do k = 2 , kzm1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ice1 , ice2
+            do j = jce1 , jce2
               zuh = xub%b0(j,i,k) * mddom%hx(j,i) +     &
                     xub%b0(j+1,i,k) * mddom%hx(j+1,i) + &
                     xub%b0(j,i,k+1) * mddom%hx(j,i) +   &
@@ -237,8 +237,8 @@ module mod_init
             end do
           end do
         end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             zuh = xub%b0(j,i,kz) * mddom%hx(j,i) +     &
                   xub%b0(j+1,i,kz) * mddom%hx(j+1,i)
             zvh = xvb%b0(j,i,kz) * mddom%hy(j,i) +     &
@@ -246,34 +246,6 @@ module mod_init
             mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
           end do
         end do
-        if ( ma%has_bdybottom ) then
-          do k = 2 , kz
-            do j = jce1 , jce2
-              mo_atm%w(j,ice1,k) = mo_atm%w(j,ici1,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do k = 2 , kz
-            do j = jce1 , jce2
-              mo_atm%w(j,ice2,k) = mo_atm%w(j,ici2,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdyleft ) then
-          do k = 2 , kz
-            do i = ice1 , ice2
-              mo_atm%w(jce1,i,k) = mo_atm%w(jci1,i,k)
-            end do
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do k = 2 , kz
-            do i = ice1 , ice2
-              mo_atm%w(jce2,i,k) = mo_atm%w(jci2,i,k)
-            end do
-          end do
-        end if
 
         call maxall(zmax,azmax)
         if ( myid == 0 ) then
@@ -902,15 +874,17 @@ module mod_init
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                avg_ww(j,i,k) = mo_atm%w(j,i,k)
+                avg_ww(j,i,k) = 0.5_rkx * mo_atm%w(j,i,k)
               end do
             end do
           end do
         else
           avg_ww(:,:,:) = d_zero
         end if
-      else if ( any(icup == 5) ) then
-        avg_ww(:,:,:) = d_zero
+      else
+        if ( any(icup == 5) ) then
+          avg_ww(:,:,:) = d_zero
+        end if
       end if
     end if
     !
