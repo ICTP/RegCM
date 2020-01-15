@@ -35,7 +35,7 @@ module mod_maputils
     type(anyprojparams) , intent(in) :: pjpara
     type(regcm_projection) , intent(out) :: pj
     integer(ik4) , intent(in) :: jx , iy
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: lat , lon
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: lat , lon
     integer :: i , j
 
     call pj%initialize(pjpara)
@@ -49,7 +49,7 @@ module mod_maputils
   subroutine corpar(lat,coriol)
     implicit none
     real(rkx) , pointer , dimension(:,:) , intent(in) :: lat
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: coriol
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: coriol
     coriol = real(eomeg2*sin(lat*degrad),rkx)
   end subroutine corpar
 
@@ -57,7 +57,7 @@ module mod_maputils
     implicit none
     type(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: mapf
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: mapf
     call pj%mapfac(xlat,xlon,mapf)
   end subroutine mappar
 

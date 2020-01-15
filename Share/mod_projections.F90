@@ -176,7 +176,7 @@ module mod_projections
       integer , parameter :: rkx = rk8
 #endif
       real(rkx) , pointer , dimension(:,:) , intent(in) :: a , b
-      real(rkx) , pointer , dimension(:,:) , intent(out) :: c
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: c
     end subroutine map_factor
   end interface
 
@@ -1560,7 +1560,7 @@ module mod_projections
     implicit none
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: xmap
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
     xmap = fac_rl(pj,xlat,xlon)
   end subroutine mapfac_rl
 
@@ -1568,7 +1568,7 @@ module mod_projections
     implicit none
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: xmap
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
     xmap = fac_lc(pj,xlat)
   end subroutine mapfac_lc
 
@@ -1576,7 +1576,7 @@ module mod_projections
     implicit none
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: xmap
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
     xmap = fac_ps(pj,xlat)
   end subroutine mapfac_ps
 
@@ -1584,7 +1584,7 @@ module mod_projections
     implicit none
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: xmap
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
     xmap = fac_mc(pj,xlat)
   end subroutine mapfac_mc
 
@@ -1592,7 +1592,7 @@ module mod_projections
     implicit none
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: xmap
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
     xmap = d_one
   end subroutine mapfac_ll
 
@@ -1600,7 +1600,7 @@ module mod_projections
     implicit none
     class(regcm_projection) , intent(in) :: pj
     real(rkx) , pointer , dimension(:,:) , intent(in) :: xlat , xlon
-    real(rkx) , pointer , dimension(:,:) , intent(out) :: xmap
+    real(rkx) , pointer , dimension(:,:) , intent(inout) :: xmap
     xmap = fac_rc(pj,xlat,xlon)
   end subroutine mapfac_rc
 
