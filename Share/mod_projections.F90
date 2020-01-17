@@ -782,7 +782,7 @@ module mod_projections
 
     xx = i - pj%p%polei
     yy = (j - pj%p%polej) * pj%p%hemi
-    r2 = xx**2.0_rk8 + yy**2.0_rk8
+    r2 = xx*xx + yy*yy
     if ( abs(r2) < dlowval ) then
       lat = real(pj%p%hemi*deg90,rkx)
       lon = real(pj%p%reflon,rkx)
@@ -865,16 +865,22 @@ module mod_projections
     zphipol = degrad*pphi
     pj%p%zsinpol = sin(zphipol)
     pj%p%zcospol = cos(zphipol)
-    if ( plat > 0.0_rk8 ) then
-      pphi = (deg90 - plat) * degrad
-      pj%p%pollam = (plon + deg180) * degrad
-    else
-      pphi = (deg90 + plat) * degrad
-      pj%p%pollam = plon * degrad
-    end if
-    pj%p%polcphi = sin(pphi)
-    pj%p%polsphi = cos(pphi)
     if ( luvrot ) then
+      if ( plat > 0.0_rk8 ) then
+        pphi = (deg90 - plat) * degrad
+        pj%p%pollam = plon + deg180
+      else
+        pphi = (deg90 + plat) * degrad
+        pj%p%pollam = plon
+      end if
+      if ( pj%p%pollam > deg180 ) then
+        pj%p%pollam = pj%p%pollam - deg360
+      end if
+      if ( pj%p%pollam < -deg180 ) then
+        pj%p%pollam = deg360 + pj%p%pollam
+      end if
+      pj%p%polcphi = cos(pphi)
+      pj%p%polsphi = sin(pphi)
       call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
       call getmem2d(pj%f2,1,pj%p%nlon,1,pj%p%nlat,'projections:f2')
       call getmem2d(pj%f3,1,pj%p%nlon,1,pj%p%nlat,'projections:f3')
@@ -883,7 +889,7 @@ module mod_projections
         do i = 1 , pj%p%nlon
           ri = i
           call ijll_rc(pj,ri,rj,lat,lon)
-          call uvrot_rc(pj,lat,lon,pj%f2(i,j),pj%f1(i,j))
+          call uvrot_rc(pj,lat,lon,pj%f1(i,j),pj%f2(i,j))
           pj%f3(i,j) = acos(pj%f1(i,j))
         end do
       end do
@@ -1059,19 +1065,19 @@ module mod_projections
     alpha = real(deltalon*degrad*pj%p%hemi,rkx)
   end function uvrot_ps
 
-  pure subroutine uvrot_rc(pj,lat,lon,sindel,cosdel)
+  pure subroutine uvrot_rc(pj,lat,lon,cosdel,sindel)
     implicit none
     type(regcm_projection) , intent(in) :: pj
     real(rkx) , intent(in) :: lon , lat
-    real(rk8) , intent(out) :: sindel , cosdel
+    real(rk8) , intent(out) :: cosdel , sindel
     real(rk8) :: zphi , zrla , zrlap , zarg1 , zarg2 , znorm
-    zphi = lat*degrad
-    zrla = lon*degrad
+    zrla = lon
     if ( lat > deg90-0.00001_rk8 ) zrla = 0.0_rk8
-    zrlap = pj%p%pollam - zrla
+    zrlap = (pj%p%pollam - zrla)*degrad
+    zphi = lat*degrad
     zarg1 = pj%p%polcphi*sin(zrlap)
     zarg2 = pj%p%polsphi*cos(zphi) - pj%p%polcphi*sin(zphi)*cos(zrlap)
-    znorm = 1.0_rk8/sqrt(zarg1**2.0_rk8+zarg2**2.0_rk8)
+    znorm = 1.0_rk8/sqrt(zarg1*zarg1 + zarg2*zarg2)
     sindel = zarg1*znorm
     cosdel = zarg2*znorm
   end subroutine uvrot_rc
