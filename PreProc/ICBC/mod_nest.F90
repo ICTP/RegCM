@@ -47,8 +47,19 @@ module mod_nest
 
   integer(ik4) :: nrec
 
-  type(regcm_projection) :: ipj1 , ipj2
+  type(regcm_projection) :: pj
   type(anyprojparams) :: pjparam
+
+  ! Pressure levels to interpolate to if dataset is on model sigma levels.
+  integer(ik4) , parameter :: nipl = 38
+  real(rkx) , target , dimension(nipl) :: fplev = &
+   [  1.0_rkx,   2.0_rkx,   3.0_rkx,   5.0_rkx,   7.0_rkx,  10.0_rkx, &
+      20.0_rkx,  30.0_rkx,  50.0_rkx,  70.0_rkx, 100.0_rkx, 125.0_rkx, &
+     150.0_rkx, 175.0_rkx, 200.0_rkx, 225.0_rkx, 250.0_rkx, 300.0_rkx, &
+     350.0_rkx, 400.0_rkx, 425.0_rkx, 450.0_rkx, 500.0_rkx, 550.0_rkx, &
+     600.0_rkx, 650.0_rkx, 700.0_rkx, 750.0_rkx, 775.0_rkx, 800.0_rkx, &
+     825.0_rkx, 850.0_rkx, 875.0_rkx, 900.0_rkx, 925.0_rkx, 950.0_rkx, &
+     975.0_rkx, 1000.0_rkx ]
 
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
@@ -61,22 +72,22 @@ module mod_nest
 
   real(rkx) , pointer , dimension(:,:,:) :: q , t
   real(rkx) , pointer , dimension(:,:,:) :: u , v
-  real(rkx) , pointer , dimension(:,:,:) :: upd , vpd
-  real(rkx) , pointer , dimension(:,:,:) :: pp3d , p3d , t0_in
+  real(rkx) , pointer , dimension(:,:,:) :: ppa , p , t0_in
+  real(rkx) , pointer , dimension(:) :: ak_in , bk_in
   real(rkx) , pointer , dimension(:,:) :: ts
-  real(rkx) , pointer , dimension(:,:) :: ps , xts , p0_in , pstar0
+  real(rkx) , pointer , dimension(:,:) :: ps , xts , xps , p0_in , pstar0
   real(rkx) , pointer , dimension(:,:) :: ht_in
   real(rkx) , pointer , dimension(:,:) :: xlat_in , xlon_in
 
   real(rkx) , pointer , dimension(:,:,:) :: h3 , q3 , t3
-  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3
+  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , p3
   real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
 
-  real(rkx) , pointer , dimension(:,:,:) :: hp , qp , tp
+  real(rkx) , pointer , dimension(:,:,:) :: hp , qp , tp , pp
   real(rkx) , pointer , dimension(:,:,:) :: up , vp
 
   real(rkx) , pointer , dimension(:) :: plev , sigmar
-  real(rkx) :: pss , ptoppa
+  real(rkx) :: pss , ts0_in , bsp_in
   real(rkx) , pointer , dimension(:) :: sigma_in
 
   integer(ik4) :: iy_in , jx_in , kz_in
@@ -182,13 +193,16 @@ module mod_nest
     ! Reserve space for I/O
 
     call getmem1d(sigma_in,1,kz_in,'mod_nest:sigma_in')
-    call getmem3d(q,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q')
-    call getmem3d(t,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t')
-    call getmem3d(u,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u')
-    call getmem3d(v,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v')
-    call getmem3d(z1,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z1')
-    call getmem2d(ps,1,jx_in,1,iy_in,'mod_nest:ps')
+    if ( idynamic /= 3 ) then
+      call getmem3d(q,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q')
+      call getmem3d(t,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t')
+      call getmem3d(u,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u')
+      call getmem3d(v,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v')
+      call getmem3d(p,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v')
+      call getmem3d(z1,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z1')
+    end if
     call getmem2d(xts,1,jx_in,1,iy_in,'mod_nest:xts')
+    call getmem2d(xps,1,jx_in,1,iy_in,'mod_nest:xps')
     call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
     call getmem2d(xlon_in,1,jx_in,1,iy_in,'mod_nest:xlon_in')
     call getmem2d(ht_in,1,jx_in,1,iy_in,'mod_nest:ht_in')
@@ -283,34 +297,56 @@ module mod_nest
       pjparam%nlon = jx_in
       pjparam%nlat = iy_in
       pjparam%rotparam = .true.
-
-      if ( oidyn == 3 ) then
-        pjparam%staggerx = .true.
-        pjparam%staggery = .false.
-        call ipj1%initialize(pjparam)
-        pjparam%staggerx = .false.
-        pjparam%staggery = .true.
-        call ipj2%initialize(pjparam)
-      else
-        pjparam%staggerx = .true.
-        pjparam%staggery = .true.
-        call ipj1%initialize(pjparam)
-      end if
+      pjparam%staggerx = .false.
+      pjparam%staggery = .false.
+      call pj%initialize(pjparam)
     end if
 
-    np = kz_in
-    call getmem1d(plev,1,np,'mod_nest:plev')
+    if ( oidyn == 3 ) then
+      if ( idynamic /= 3 ) then
+        np = nipl
+        call getmem1d(plev,1,np,'mod_nest:plev')
+        plev = fplev * 1000.0
+      else
+        np = kz_in
+        call getmem1d(plev,1,np,'mod_nest:plev')
+      end if
+    else
+      np = kz_in
+      call getmem1d(plev,1,np,'mod_nest:plev')
+    end if
     call getmem1d(sigmar,1,np,'mod_nest:sigmar')
 
     call getmem2d(p0_in,1,jx_in,1,iy_in,'mod_nest:p0_in')
     call getmem2d(pstar0,1,jx_in,1,iy_in,'mod_nest:pstar0')
 
-    if ( oidyn == 2 ) then
+    if ( oidyn == 1 ) then
+      istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps error')
+      istart(:) = 1
+      icount(1) = jx_in
+      icount(2) = iy_in
+      icount(3) = 1
+      istatus = nf90_get_var(ncinp, ivarid, p0_in, istart, icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ps read error')
+      pstar0 = p0_in - ptop_in
+    else if ( oidyn == 2 ) then
       istatus = nf90_get_att(ncinp, nf90_global, 'logp_lapse_rate', tlp)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'attribure logp_lapse_rate read error')
-      call getmem3d(pp3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pp3d')
-      call getmem3d(p3d,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p3d')
+      istatus = nf90_get_att(ncinp, nf90_global, &
+           'base_state_surface_temperature', ts0_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'attribure logp_lapse_rate read error')
+      istatus = nf90_get_att(ncinp, nf90_global, &
+           'base_state_pressure', bsp_in)
+      if ( istatus /= nf90_noerr ) then
+        write(stdout,*) 'Assuming base state pressure to be ', stdp
+        bsp_in = stdp
+      end if
+      call getmem3d(ppa,1,jx_in,1,iy_in,1,kz_in,'mod_nest:ppa')
       call getmem3d(t0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t0_in')
       istatus = nf90_inq_varid(ncinp, 'p0', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -323,36 +359,40 @@ module mod_nest
         do i = 1 , iy_in
           do j = 1 , jx_in
             pr0_in = pstar0(j,i) * sigma_in(k) + ptop_in
-            t0_in(j,i,k) = max(ts0 +  &
-                      tlp * log(pr0(j,i,k) / base_state_pressure),tiso)
+            t0_in(j,i,k) = max(ts0_in +  &
+                      tlp * log(pr0_in / bsp_in),tiso)
           end do
         end do
       end do
     else
-      istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
+      call getmem1d(ak_in,1,kz_in,'mod_nest:ak_in')
+      call getmem1d(bk_in,1,kz_in,'mod_nest:bk_in')
+      istatus = nf90_inq_varid(ncinp, 'a', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ps error')
-      istart(:) = 1
-      icount(1) = jx_in
-      icount(2) = iy_in
-      icount(3) = 1
-      istatus = nf90_get_var(ncinp, ivarid, p0_in, istart, icount)
+                      'variable a error')
+      istatus = nf90_get_var(ncinp, ivarid, ak_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
-                      'variable ps read error')
-      pstar0 = p0_in - ptop_in
+                      'variable a read error')
+      istatus = nf90_inq_varid(ncinp, 'b', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable b error')
+      istatus = nf90_get_var(ncinp, ivarid, bk_in)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable b read error')
     end if
 
-    maxps = maxval(pstar0)
-    do ip = 1 , np
-      plev(ip) = maxps*sigma_in(ip) + ptop_in
-    end do
-
-    minps = d_half * (plev(2)+plev(1)) * d_r1000
-    if ( ptop-minps > 1.0_rkx ) then
-      write(stderr,*) 'ERROR : top pressure lower than COARSE top'
-      write(stderr,*) 'ERROR : Extrapolation will be performed.'
-      write(stderr,*) 'MINIMUM SUGGESTED PTOP is ', minps
-      call die('nest','INCREASE PTOP',1)
+    if ( oidyn /= 3 ) then
+      maxps = maxval(pstar0)
+      do ip = 1 , np
+        plev(ip) = maxps*sigma_in(ip) + ptop_in
+      end do
+      minps = d_half * (plev(2)+plev(1)) * d_r1000
+      if ( ptop-minps > 1.0_rkx ) then
+        write(stderr,*) 'ERROR : top pressure lower than COARSE top'
+        write(stderr,*) 'ERROR : Extrapolation will be performed.'
+        write(stderr,*) 'MINIMUM SUGGESTED PTOP is ', minps
+        call die('nest','INCREASE PTOP',1)
+      end if
     end if
 
     call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon)
@@ -365,30 +405,35 @@ module mod_nest
 
     ! Set up pointers
 
-    call getmem3d(b2,1,jx_in,1,iy_in,1,np*3,'mod_nest:b2')
-    call getmem3d(b3,1,jx,1,iy,1,np*3,'mod_nest:b3')
+    call getmem3d(b2,1,jx_in,1,iy_in,1,np*4,'mod_nest:b2')
+    call getmem3d(b3,1,jx,1,iy,1,np*4,'mod_nest:b3')
     if ( idynamic == 3 ) then
-      call getmem3d(d2,1,jx_in,1,iy_in,1,np*4,'mod_nest:d2')
+      call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
       call getmem3d(d3u,1,jx,1,iy,1,np*2,'mod_nest:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,np*2,'mod_nest:d3v')
     else
       call getmem3d(d2,1,jx_in,1,iy_in,1,np*2,'mod_nest:d2')
       call getmem3d(d3,1,jx,1,iy,1,np*2,'mod_nest:d3')
     end if
+    call getmem2d(ps,1,jx,1,iy,'mod_nest:ps')
     call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
-    tp => b2(:,:,1:np)
-    qp => b2(:,:,np+1:2*np)
-    hp => b2(:,:,2*np+1:3*np)
-    up => d2(:,:,1:np)
-    vp => d2(:,:,np+1:2*np)
-    if ( idynamic == 3 ) then
-      upd => d2(:,:,2*np+1:3*np)
-      upd => d2(:,:,3*np+1:4*np)
-    end if
     t3 => b3(:,:,1:np)
     q3 => b3(:,:,np+1:2*np)
     h3 => b3(:,:,2*np+1:3*np)
+    p3 => b3(:,:,3*np+1:4*np)
+    tp => b2(:,:,1:np)
+    qp => b2(:,:,np+1:2*np)
+    hp => b2(:,:,2*np+1:3*np)
+    pp => b2(:,:,3*np+1:4*np)
+    up => d2(:,:,1:np)
+    vp => d2(:,:,np+1:2*np)
     if ( idynamic == 3 ) then
+      q => qp
+      t => tp
+      u => up
+      v => vp
+      p => pp
+      z1 => hp
       u3 => d3u(:,:,1:np)
       v3u => d3u(:,:,np+1:2*np)
       u3v => d3v(:,:,1:np)
@@ -398,12 +443,22 @@ module mod_nest
       v3 => d3(:,:,np+1:2*np)
     end if
 
-    do k = 1 , np
-      sigmar(k) = plev(k)/plev(np)
-    end do
+    if ( idynamic /= 3 ) then
+      do k = 1 , np
+        sigmar(k) = plev(k)/plev(np)
+      end do
+      pss = plev(np)
+    end if
 
-    pss = plev(np)
-    ptoppa = ptop * d_1000
+    if ( oidyn == 3 ) then
+      do k = 1 , kz_in
+        do i = 1 , iy_in
+          do j = 1 , jx_in
+            z1(j,i,k) =  ak_in(k) + (bk_in(k) - d_one) * ht_in(j,i)
+          end do
+        end do
+      end do
+    end if
 
   end subroutine init_nest
 
@@ -568,14 +623,28 @@ module mod_nest
       istatus = nf90_inq_varid(ncinp, 'ppa', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ppa missing')
-      istatus = nf90_get_var(ncinp, ivarid, pp3d, istart, icount)
+      istatus = nf90_get_var(ncinp, ivarid, ppa, istart, icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable ppa read error')
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
-            p3d(j,i,k) = pstar0(j,i) * sigma_in(k) + &
-                         ptop_in + pp3d(j,i,k)
+            p(j,i,k) = pstar0(j,i) * sigma_in(k) + &
+                       ptop_in + ppa(j,i,k)
+          end do
+        end do
+      end do
+    else if ( oidyn == 3 ) then
+      istatus = nf90_inq_varid(ncinp, 'pai', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ppa missing')
+      istatus = nf90_get_var(ncinp, ivarid, p, istart, icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable ppa read error')
+      do k = 1 , kz_in
+        do i = 1 , iy_in
+          do j = 1 , jx_in
+            p(j,i,k) = (p(j,i,k)**cpovr) * p00
           end do
         end do
       end do
@@ -589,7 +658,7 @@ module mod_nest
     istatus = nf90_inq_varid(ncinp, 'ps', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable ps missing')
-    istatus = nf90_get_var(ncinp, ivarid, ps, istart(1:3), icount(1:3))
+    istatus = nf90_get_var(ncinp, ivarid, xps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable ps read error')
     istatus = nf90_inq_varid(ncinp, 'ts', ivarid)
@@ -608,7 +677,7 @@ module mod_nest
     ! In this module, all pressures are in Pascal.
     !
     if ( oidyn == 1 ) then
-      pstar0 = ps - ptop_in
+      pstar0 = xps - ptop_in
       maxps = maxval(pstar0)
       do ip = 1 , np
         plev(ip) = maxps*sigma_in(ip) + ptop_in
@@ -619,46 +688,53 @@ module mod_nest
       pss = plev(np)
 !$OMP SECTIONS
 !$OMP SECTION
-      call htsig_o(t,z1,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in)
-      call height_o(hp,z1,t,ps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call htsig_o(t,z1,xps,ht_in,sigma_in,ptop_in,jx_in,iy_in,kz_in)
+      call height_o(hp,z1,t,xps,ht_in,sigma_in,ptop_in, &
+                    jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlog(tp,t,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlog(tp,t,xps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(up,u,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin(up,u,xps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(vp,v,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin(vp,v,xps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(qp,q,ps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
+      call intlin(qp,q,xps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !$OMP END SECTIONS
-    else
+    else if ( oidyn ==  2 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call nonhydrost(z1,t0_in,p3d,ps,ht_in,jx_in,iy_in,kz_in)
-      call height_o(hp,z1,t,ps,ht_in,p3d,jx_in,iy_in,kz_in,plev,np)
+      call nonhydrost(z1,t0_in,p,xps,ht_in,jx_in,iy_in,kz_in)
+      call height_o(hp,z1,t,xps,ht_in,p,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlog(tp,t,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlog(tp,t,p,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(up,u,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(up,u,p,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(vp,v,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(vp,v,p,jx_in,iy_in,kz_in,plev,np)
 !$OMP SECTION
-      call intlin(qp,q,p3d,jx_in,iy_in,kz_in,plev,np)
+      call intlin(qp,q,p,jx_in,iy_in,kz_in,plev,np)
 !$OMP END SECTIONS
+    else
+      if ( idynamic /= 3 ) then
+!$OMP SECTIONS
+!$OMP SECTION
+        call intlin(hp,z1,p,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
+        call intlog(tp,t,p,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
+        call intlin(up,u,p,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
+        call intlin(vp,v,p,jx_in,iy_in,kz_in,plev,np)
+!$OMP SECTION
+        call intlin(qp,q,p,jx_in,iy_in,kz_in,plev,np)
+!$OMP END SECTIONS
+      end if
     end if
 
     if ( .not. uvrotate ) then
-      if ( idynamic == 3 ) then
-        upd = up
-        vpd = vp
-        call ipj1%uvbkrotate3(upd,vpd)
-        vpd = upd
-        upd = up
-        call ipj2%uvbkrotate3(upd,vp)
-        up = vpd
-      else
-        call ipj1%uvbkrotate3(up,vp)
-      end if
+      call pj%uvbkrotate3(up,vp)
     end if
+
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
@@ -670,6 +746,7 @@ module mod_nest
       call h_interpolate_cont(udot_hint,d2,d3)
     end if
     call h_interpolate_cont(cross_hint,xts,ts)
+    call h_interpolate_cont(cross_hint,xps,ps)
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -688,11 +765,13 @@ module mod_nest
 !$OMP SECTION
     call top2btm(q3,jx,iy,np)
 !$OMP SECTION
-    call top2btm(h3,jx,iy,np)
-!$OMP SECTION
     call top2btm(u3,jx,iy,np)
 !$OMP SECTION
     call top2btm(v3,jx,iy,np)
+!$OMP SECTION
+    call top2btm(h3,jx,iy,np)
+!$OMP SECTION
+    call top2btm(p3,jx,iy,np)
 !$OMP END SECTIONS
     !
     ! New calculation of P* on RegCM topography.
@@ -700,11 +779,19 @@ module mod_nest
     if ( idynamic == 3 ) then
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,np)
+      if ( oidyn /= 3 ) then
+        call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,np)
+      else
+        call intzps(ps4,topogm,t3,h3,p3,ps,xlat,julianday(idate),jx,iy,np)
+      end if
       call intz3(ts4,t3,h3,topogm,jx,iy,np,0.6_rkx,0.85_rkx,0.5_rkx)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,np)
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+      if ( oidyn /= 3 ) then
+        call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,np)
+        call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+      else
+        call intzps(ps4,topogm,t3,h3,p3,ps,xlat,julianday(idate),jx,iy,kz_in)
+      end if
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,np)
     end if
@@ -754,8 +841,7 @@ module mod_nest
     if ( idynamic == 3 ) then
       call h_interpolator_destroy(vdot_hint)
     end if
-    call ipj1%destruct( )
-    call ipj2%destruct( )
+    call pj%destruct( )
   end subroutine conclude_nest
 
 end module mod_nest

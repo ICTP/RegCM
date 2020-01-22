@@ -224,6 +224,7 @@ module mod_regcm_interface
           write(6,'(a,a,f12.2)') 'Simulation time: ', rcmtimer%str( ), extime
         end if
       end if
+
     end do
 
 #ifdef DEBUG

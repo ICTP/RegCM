@@ -3669,11 +3669,11 @@ module mod_bdycod
 
     xt = xbctime + dt
 
-    do concurrent ( j = jde1ga:jde2ga , i = ice1:ice2 , k = 1:kz )
+    do concurrent ( j = jde1ga:jde2ga , i = ice1ga:ice2ga , k = 1:kz )
       fg1(j,i,k) = (bndu%b0(j,i,k) + xt*bndu%bt(j,i,k)) - fu(j,i,k)
     end do
 
-    do concurrent ( j = jce1:jce2 , i = ide1ga:ide2ga , k = 1:kz )
+    do concurrent ( j = jce1ga:jce2ga , i = ide1ga:ide2ga , k = 1:kz )
       fg2(j,i,k) = (bndv%b0(j,i,k) + xt*bndv%bt(j,i,k)) - fv(j,i,k)
     end do
 
