@@ -255,8 +255,10 @@ module mod_cu_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            avg_ww(j,i,k) = (d_one - w1) * avg_ww(j,i,k) + &
-                          w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
+            if ( cuscheme(j,i) == 6 ) then
+              avg_ww(j,i,k) = (d_one - w1) * avg_ww(j,i,k) + &
+                            w1 * d_half * (m2c%was(j,i,k)+m2c%was(j,i,k+1))
+            end if
           end do
         end do
       end do
@@ -267,7 +269,9 @@ module mod_cu_interface
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            avg_ww(j,i,k) = (d_one-w1)*avg_ww(j,i,k) + w1*m2c%wpas(j,i,k)
+            if ( cuscheme(j,i) == 5 ) then
+              avg_ww(j,i,k) = (d_one-w1)*avg_ww(j,i,k) + w1*m2c%wpas(j,i,k)
+            end if
           end do
         end do
       end do

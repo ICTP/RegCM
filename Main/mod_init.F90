@@ -866,7 +866,9 @@ module mod_init
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                avg_ww(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+                if ( cuscheme(j,i) == 6 ) then
+                  avg_ww(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+                end if
               end do
             end do
           end do
@@ -874,17 +876,26 @@ module mod_init
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                avg_ww(j,i,k) = 0.5_rkx * mo_atm%w(j,i,k)
+                if ( cuscheme(j,i) == 6 ) then
+                  avg_ww(j,i,k) = 0.5_rkx * mo_atm%w(j,i,k)
+                end if
               end do
             end do
           end do
         else
           avg_ww(:,:,:) = d_zero
         end if
-      else
-        if ( any(icup == 5) ) then
-          avg_ww(:,:,:) = d_zero
-        end if
+      end if
+      if ( any(icup == 5) ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              if ( cuscheme(j,i) == 5 ) then
+                avg_ww(j,i,k) = d_zero
+              end if
+            end do
+          end do
+        end do
       end if
     end if
     !
