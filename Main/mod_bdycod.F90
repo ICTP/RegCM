@@ -185,7 +185,7 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.1_rkx/(dtsec/(mo_nadv*mo_nsound))
+          fnudge = 0.0777_rkx/dtsec
         else
           fnudge = 0.1_rkx/(dtsec*2.0_rkx)
         end if
@@ -194,7 +194,7 @@ module mod_bdycod
         gnudge = bdy_dm
       else
         if ( idynamic == 3 ) then
-          gnudge = d_two/(50.0_rkx*(dtsec/(mo_nadv*mo_nsound)))
+          gnudge = 0.0333_rkx/dtsec
         else
           gnudge = d_one/(50.0_rkx*dtsec)
         end if
