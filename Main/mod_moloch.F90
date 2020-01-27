@@ -226,6 +226,9 @@ module mod_moloch
 #endif
 
     dtstepa = dtsec / real(mo_nadv,rkx)
+    if ( rcmtimer%lcount < 6 ) then
+      dtstepa = dtsec / real(mo_nadv+(6-rcmtimer%lcount),rkx)
+    end if
     dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
 
