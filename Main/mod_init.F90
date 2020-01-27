@@ -63,6 +63,8 @@ module mod_init
 
   contains
 
+#include <pfesat.inc>
+#include <pfwsat.inc>
 
   !
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -193,6 +195,16 @@ module mod_init
           do i = ice1 , ice2
             do j = jce1 , jce2
               mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              mo_atm%qs(j,i,k) = pfwsat(mo_atm%t(j,i,k),mo_atm%p(j,i,k))
+              ! Remove excessive supersaturation
+              mo_atm%qx(j,i,k,iqv) = &
+                  min(mo_atm%qx(j,i,k,iqv),mo_atm%qs(j,i,k)*1.001_rkx)
             end do
           end do
         end do
