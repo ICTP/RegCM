@@ -140,7 +140,7 @@ module mod_slice
       end do
 
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
-        omega(j,i,k) = -d_half*egrav*atms%rhb3d(j,i,k) * &
+        omega(j,i,k) = -d_half*egrav*atms%rhob3d(j,i,k) * &
                        (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
       end do
       !
