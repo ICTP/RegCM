@@ -75,7 +75,7 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg
-    real(rkx) :: azmax , zmax , zzi , zfilt , zuh , zvh
+    real(rkx) :: zzi , zfilt , zuh , zvh
     real(rkx) , dimension(kzp1) :: ozprnt
     integer(ik4) :: ntop
 #ifdef DEBUG
@@ -165,14 +165,6 @@ module mod_init
             end do
           end do
         end do
-        zmax = d_zero
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              zmax = max(zmax, sqrt(mo_atm%u(j,i,k)**2+mo_atm%v(j,i,k)**2))
-            end do
-          end do
-        end do
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -246,17 +238,6 @@ module mod_init
             mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
           end do
         end do
-
-        call maxall(zmax,azmax)
-        if ( myid == 0 ) then
-          write(stdout,'(a, f7.4)') &
-             ' Max. Courant number for horizontal advection = ', &
-             sqrt(d_two)*(1.10_rkx*azmax)*dtsec/real(mo_nadv,rkx)/dx
-          write(stdout,'(a, f7.4)') &
-             ' Courant number of horizontal sound waves = ', &
-             sqrt(d_two)*sqrt(cpd/cvd*rgas*300.0_rkx)* &
-             dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
-        end if
 
       end if
 

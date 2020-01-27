@@ -349,6 +349,7 @@
  rayndamp = 5,      ! Number of top levels to apply
  rayalpha0 = 0.001, ! Rate alpha0
  rayhd = 10000.0,   ! Damping scale depth
+ mo_wmax = 100.0,   ! Maximum representable horizontal wind speed (m/s)
  mo_nadv = 3,       ! Moloch factor for dynamical timestep
  mo_nsound = 6,     ! Moloch factor for sound removal timestep foreach dynamical
  mo_nzfilt = 3,     ! Moloch number of top level for filtering vertical velocity

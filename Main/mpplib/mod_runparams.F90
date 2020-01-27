@@ -171,6 +171,7 @@ module mod_runparams
   logical , parameter , public :: moloch_do_test_1 = .false.
   logical , parameter , public :: moloch_do_test_2 = .false.
   real(rkx) , public :: mo_dz , mo_anu2
+  real(rkx) , public :: mo_wmax = 100.0 ! m/s maximum wind intensity
   integer(ik4) , public :: mo_nadv = 1
   integer(ik4) , public :: mo_nsound = 6
   integer(ik4) , public :: mo_nzfilt = 3

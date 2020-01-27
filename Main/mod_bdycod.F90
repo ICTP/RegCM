@@ -45,7 +45,7 @@ module mod_bdycod
   private
 
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
-  public :: sponge , nudge , setup_bdycon , raydamp
+  public :: sponge , nudge , setup_bdycon , raydamp , mo_cmax
 
   !
   ! West U External  = WUE
@@ -74,6 +74,7 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:) :: wgtx
   real(rkx) , pointer , dimension(:,:,:) :: fg1 , fg2
   real(rkx) :: fnudge , gnudge , rdtbdy
+  real(rkx) :: mo_cmax
   integer(ik4) :: som_month
 
   interface timeint
@@ -185,7 +186,10 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.0777_rkx/dtsec
+          fnudge = 0.9_rkx * mo_cmax / dtsec
+          if ( myid == italk ) then
+            write(stdout,*) 'Relaxation N : ', fnudge
+          end if
         else
           fnudge = 0.1_rkx/(dtsec*2.0_rkx)
         end if
@@ -194,7 +198,10 @@ module mod_bdycod
         gnudge = bdy_dm
       else
         if ( idynamic == 3 ) then
-          gnudge = 0.0333_rkx/dtsec
+          gnudge = 0.7_rkx * (mo_cmax * mo_cmax) / dtsec
+          if ( myid == italk ) then
+            write(stdout,*) 'Relaxation D : ', gnudge
+          end if
         else
           gnudge = d_one/(50.0_rkx*dtsec)
         end if

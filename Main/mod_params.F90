@@ -69,7 +69,7 @@ module mod_params
     real(rkx) :: afracl , afracs , bb , cc , chibot , delsig ,  &
                dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk , &
                qkp1 , sig700 , sigtbl , ssum , vqmax , wk ,     &
-               wkp1 , xbot , xtop , xx , yy
+               wkp1 , xbot , xtop , xx , yy , mo_c1 , mo_c2
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     integer(ik4) :: i , j , k , kbase , ktop , ns
@@ -115,7 +115,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,      &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge , &
-      mo_nadv , mo_nsound , mo_nzfilt , mo_anu2
+      mo_wmax , mo_nadv , mo_nsound , mo_nzfilt , mo_anu2
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -292,6 +292,7 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 0.001_rkx
     rayhd = 10000.0_rkx
+    mo_wmax = 100.0_rkx
     mo_anu2 = 0.6_rkx
     mo_nadv = 3
     mo_nsound = 6
@@ -1156,6 +1157,7 @@ module mod_params
       end if
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
+      call bcast(mo_wmax)
       call bcast(mo_anu2)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
@@ -1753,6 +1755,20 @@ module mod_params
     dxsq = dx*dx
     rdx = 1.0_rkx/dx
     rdxsq = 1.0_rkx/dxsq
+
+    if ( idynamic == 3 ) then
+      mo_c1 = sqrt(d_two)*(1.10_rkx*mo_wmax)*dtsec/real(mo_nadv,rkx)/dx
+      mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*350.0_rkx)* &
+              dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
+      mo_cmax = max(mo_c1,mo_c2)
+      if ( myid == italk ) then
+        write(stdout,'(a, f7.4)') &
+           ' Max. Courant number for horizontal advection = ', mo_c1
+        write(stdout,'(a, f7.4)') &
+           ' Courant number of horizontal sound waves = ', mo_c2
+      end if
+    end if
+
     !
     ! Calculate boundary areas per processor
     !
