@@ -290,7 +290,7 @@ module mod_params
     itopnudge = 0
     ifrayd = 1
     rayndamp = 5
-    rayalpha0 = 0.001_rkx
+    rayalpha0 = 0.0003_rkx
     rayhd = 10000.0_rkx
     mo_wmax = 100.0_rkx
     mo_anu2 = 0.6_rkx
@@ -2807,7 +2807,7 @@ module mod_params
           end do
         end do
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lrbt(mo_atm%zeta,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
         mo_atm%fmzf(:,:,1) = 1.0_rkx ! for vertical advection code
         mo_atm%zetaf(:,:,1) = 47500.0_rkx ! Supposedly infinite
         do k = 2 , kzp1

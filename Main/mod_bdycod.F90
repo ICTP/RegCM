@@ -186,9 +186,9 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.9_rkx * mo_cmax / dtsec
+          fnudge = 0.9_rkx * mo_nadv * mo_cmax / dtsec
           if ( myid == italk ) then
-            write(stdout,*) 'Relaxation N : ', fnudge
+            write(stdout,'(a, f12.4)') 'Relaxation N : ', fnudge
           end if
         else
           fnudge = 0.1_rkx/(dtsec*2.0_rkx)
@@ -198,9 +198,9 @@ module mod_bdycod
         gnudge = bdy_dm
       else
         if ( idynamic == 3 ) then
-          gnudge = 0.7_rkx * (mo_cmax * mo_cmax) / dtsec
+          gnudge = 0.7_rkx * mo_nadv * mo_cmax / dtsec
           if ( myid == italk ) then
-            write(stdout,*) 'Relaxation D : ', gnudge
+            write(stdout,'(a, f12.4)') 'Relaxation D : ', gnudge
           end if
         else
           gnudge = d_one/(50.0_rkx*dtsec)
@@ -4757,7 +4757,7 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     type(v3dbound) , intent(in) :: ubnd , vbnd
-    real(rkx) :: zz , xt , bval
+    real(rkx) :: zz , zm , xt , bval
     integer(ik4) :: i , j , k
     xt = xbctime + dt
     do k = 1 , min(kz,rayndamp)
@@ -4765,7 +4765,8 @@ module mod_bdycod
         do j = jdi1 , jdi2
           bval = ubnd%b0(j,i,k) + xt*ubnd%bt(j,i,k)
           zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          uten(j,i,k) = uten(j,i,k) + tau(zz) * (bval-u(j,i,k))
+          zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
+          uten(j,i,k) = uten(j,i,k) + tau(zz,zm) * (bval-u(j,i,k))
         end do
       end do
     end do
@@ -4774,7 +4775,8 @@ module mod_bdycod
         do j = jdi1 , jdi2
           bval = vbnd%b0(j,i,k) + xt*vbnd%bt(j,i,k)
           zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          vten(j,i,k) = vten(j,i,k) + tau(zz) * (bval-v(j,i,k))
+          zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
+          vten(j,i,k) = vten(j,i,k) + tau(zz,zm) * (bval-v(j,i,k))
         end do
       end do
     end do
@@ -4786,13 +4788,14 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
   real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
   real(rkx) , intent(in) :: sval
-  real(rkx) :: zz
+  real(rkx) :: zz , zm
   integer(ik4) :: i , j , k
   do k = 1 , min(kz,rayndamp)
     do i = idi1 , idi2
       do j = jdi1 , jdi2
         zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-        uten(j,i,k) = uten(j,i,k) + tau(zz) * (sval-u(j,i,k))
+        zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
+        uten(j,i,k) = uten(j,i,k) + tau(zz,zm) * (sval-u(j,i,k))
       end do
     end do
   end do
@@ -4800,7 +4803,8 @@ module mod_bdycod
     do i = idi1 , idi2
       do j = jdi1 , jdi2
         zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-        vten(j,i,k) = vten(j,i,k) + tau(zz) * (sval-v(j,i,k))
+        zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
+        vten(j,i,k) = vten(j,i,k) + tau(zz,zm) * (sval-v(j,i,k))
       end do
     end do
   end do
@@ -4816,7 +4820,7 @@ module mod_bdycod
     do k = 1 , min(kzp1,rayndamp)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k)) * (sval-var(j,i,k))
+          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-var(j,i,k))
         end do
       end do
     end do
@@ -4835,7 +4839,7 @@ module mod_bdycod
       do i = ici1 , ici2
         do j = jci1 , jci2
           bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
-          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k))*(bval-var(j,i,k))
+          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1))*(bval-var(j,i,k))
         end do
       end do
     end do
@@ -4855,7 +4859,7 @@ module mod_bdycod
       do i = i1 , i2
         do j = j1 , j2
           bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
-          var(j,i,k) = var(j,i,k) + dt*tau(z(j,i,k))*(bval-var(j,i,k))
+          var(j,i,k) = var(j,i,k) + dt*tau(z(j,i,k),z(j,i,1))*(bval-var(j,i,k))
         end do
       end do
     end do
@@ -4875,7 +4879,7 @@ module mod_bdycod
         do j = jci1 , jci2
           bval = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)
           vten(j,i,k,iqv) = vten(j,i,k,iqv) + &
-                  tau(z(j,i,k))*(bval-var(j,i,k,iqv))
+                  tau(z(j,i,k),z(j,i,1))*(bval-var(j,i,k,iqv))
         end do
       end do
     end do
@@ -4909,11 +4913,11 @@ module mod_bdycod
     end do
   end subroutine timeint3
 
-  pure real(rkx) function tau(z)
+  pure real(rkx) function tau(z,zmax)
     implicit none
-    real(rkx) , intent(in) :: z
-    if ( z > rayzd-rayhd ) then
-      tau = rayalpha0 * (sin(halfpi*(d_one-(rayzd-z)/rayhd)))**2
+    real(rkx) , intent(in) :: z , zmax
+    if ( z > zmax-rayhd ) then
+      tau = rayalpha0 * (sin(halfpi*(d_one-(zmax-z)/rayhd)))**2
     else
       tau = d_zero
     end if

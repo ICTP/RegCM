@@ -189,20 +189,8 @@ module mod_moloch
     if ( ibltyp == 2 ) call assignpnt(mo_atm%tke,tke)
     if ( ichem == 1 ) call assignpnt(mo_atm%trac,trac)
     if ( ifrayd == 1 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jdi1 , jdi2
-            zetau(j,i,k) = d_half*(zeta(j,i,k)+zeta(j-1,i,k))
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = idi1 , idi2
-          do j = jci1 , jci2
-            zetav(j,i,k) = d_half*(zeta(j,i,k)+zeta(j,i-1,k))
-          end do
-        end do
-      end do
+      call xtoustag(zeta,zetau)
+      call xtovstag(zeta,zetav)
     end if
     mx2 = mx * mx
     rmu = d_one/mu
@@ -1338,6 +1326,66 @@ module mod_moloch
       end do
     end do
   end subroutine xtowstag
+
+  subroutine xtoustag(ux,u)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u
+    integer(ik4) :: i , j , k
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jdii1 , jdii2
+          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
+                     0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
+        end do
+      end do
+    end do
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
+        end do
+      end do
+    end if
+  end subroutine xtoustag
+
+  subroutine xtovstag(vx,v)
+    implicit none
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: vx
+    real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: v
+    integer(ik4) :: i , j , k
+
+    do k = 1 , kz
+      do i = idii1 , idii2
+        do j = jci1 , jci2
+          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
+                     0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
+        end do
+      end do
+    end do
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
+        end do
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
+        end do
+      end do
+    end if
+  end subroutine xtovstag
 
   subroutine xtouvstag(ux,vx,u,v)
     implicit none
