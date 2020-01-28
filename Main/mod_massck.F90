@@ -340,8 +340,6 @@ module mod_massck
         (real((drymass-dryini)/dryini,rk8) * d_100) * dt/86400.0_rk8
       waterror = waterror + &
         (real((qmass-watini)/watini,rk8) * d_100) * dt/86400.0_rk8
-      write(1000,*) dryerror , waterror
-      flush(1000)
       if ( alarm_day%act( ) .or. syncro_dbg%act( ) ) then
         write(stdout,'(a)') &
             ' ********************* MASS CHECK ********************'
