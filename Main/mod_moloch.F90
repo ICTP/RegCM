@@ -400,12 +400,10 @@ module mod_moloch
       call boundary
       if ( i_crm /= 1 ) then
         if ( ifrayd == 1 ) then
-          if ( rcmtimer%lcount > 6 ) then
-            call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-            call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-            call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
-            call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
-          end if
+          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
+          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
         end if
       end if
     else
