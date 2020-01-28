@@ -351,6 +351,7 @@ module mod_runparams
   real(rkx) , public :: kf_min_dtcape
   real(rkx) , public :: kf_max_dtcape
   real(rkx) , public :: kf_tkemax
+  real(rkx) , public :: kf_wthreshold
   !
 
   ! Tweak Global data

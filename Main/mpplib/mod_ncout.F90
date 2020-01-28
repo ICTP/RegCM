@@ -3202,6 +3202,8 @@ module mod_ncout
         end if
         if ( any(icup == 6) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('kf_w_threshold',kf_wthreshold))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_entrainment_rate',kf_entrate))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_conversion_rate',kf_convrate))

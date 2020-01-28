@@ -214,9 +214,6 @@ module mod_moloch
 #endif
 
     dtstepa = dtsec / real(mo_nadv,rkx)
-    if ( rcmtimer%lcount < 6 ) then
-      dtstepa = dtsec / real(mo_nadv+(6-rcmtimer%lcount),rkx)
-    end if
     dtsound = dtstepa / real(mo_nsound,rkx)
     iconvec = 0
 
@@ -401,12 +398,14 @@ module mod_moloch
     !
     if ( do_bdy ) then
       call boundary
-      if ( ifrayd == 1 .and. rcmtimer%lcount > 6 ) then
-        if ( i_crm /= 1 ) then
-          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
-          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+      if ( i_crm /= 1 ) then
+        if ( ifrayd == 1 ) then
+          if ( rcmtimer%lcount > 6 ) then
+            call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+            call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+            call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
+            call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+          end if
         end if
       end if
     else

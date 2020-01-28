@@ -352,7 +352,7 @@
  mo_wmax = 100.0,   ! Maximum representable horizontal wind speed (m/s)
  mo_nadv = 3,       ! Moloch factor for dynamical timestep
  mo_nsound = 6,     ! Moloch factor for sound removal timestep foreach dynamical
- mo_nzfilt = 3,     ! Moloch number of top level for filtering vertical velocity
+ mo_nzfilt = 0,     ! Moloch number of top level for filtering vertical velocity
  mo_anu2 = 0.6,     ! Moloch factor for divergence filtering
  /
 !
@@ -549,6 +549,7 @@
  kf_tkemax = 5.0,        ! Maximum turbolent kinetic energy in sub cloud layer
  kf_min_dtcape = 1800.0, ! Consumption time of CAPE low limit
  kf_max_dtcape = 3600.0, ! Consumption time of CAPE high limit
+ kf_wthreshold = 0.02,   ! Vertical wind threshold in m/s
  /
 !
 ! Holtslag PBL scheme control

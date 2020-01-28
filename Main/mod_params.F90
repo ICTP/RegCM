@@ -150,7 +150,8 @@ module mod_params
       lmfscv , lmfuvdis , lmftrac , lmfsmooth , lmfwstar
 
     namelist /kfparam/ kf_min_pef , kf_max_pef , kf_entrate , kf_dpp , &
-      kf_min_dtcape , kf_max_dtcape , kf_tkemax , kf_convrate
+      kf_min_dtcape , kf_max_dtcape , kf_tkemax , kf_convrate ,        &
+      kf_wthreshold
 
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
@@ -296,7 +297,7 @@ module mod_params
     mo_anu2 = 0.6_rkx
     mo_nadv = 3
     mo_nsound = 6
-    mo_nzfilt = 3
+    mo_nzfilt = 0
     !
     ! Rrtm radiation param ;
     !
@@ -459,6 +460,7 @@ module mod_params
     ! kfparam ;
     ! Taken from WRF KFeta parametrization
     !
+    kf_wthreshold = 0.02   ! Kain Fritsch vertical velocity threshold
     kf_entrate = 0.03_rkx  ! Kain Fritsch entrainment rate
     kf_convrate = 0.03_rkx ! Kain Fritsch condensate to rain conversion rate
     kf_min_pef = 0.2_rkx  ! Minimum precipitation efficiency
@@ -1459,6 +1461,7 @@ module mod_params
     end if
 
     if ( any(icup == 6) ) then
+      call bcast(kf_wthreshold)
       call bcast(kf_entrate)
       call bcast(kf_convrate)
       call bcast(kf_min_pef)
@@ -2410,14 +2413,24 @@ module mod_params
     if ( any(icup == 6)  ) then
       if ( myid == italk ) then
         write(stdout,*) 'Kain Fritsch scheme used.'
-        write(stdout,'(a,f11.6)') '  Entrainment rate         : ', kf_entrate
-        write(stdout,'(a,f11.6)') '  Conversion rate          : ', kf_convrate
-        write(stdout,'(a,f11.6)') '  Maximum prec. efficiency : ', kf_max_pef
-        write(stdout,'(a,f11.6)') '  Minimum prec. efficiency : ', kf_min_pef
-        write(stdout,'(a,f11.6)') '  Updraft start elevation  : ', kf_dpp
-        write(stdout,'(a,f11.6)') '  CAPE removal time min.   : ', kf_min_dtcape
-        write(stdout,'(a,f11.6)') '  CAPE removal time max.   : ', kf_max_dtcape
-        write(stdout,'(a,f11.6)') '  TKE maximum in sub cloud : ', kf_tkemax
+        write(stdout,'(a,f11.6)') &
+          '  Vertical velocity threshold : ', kf_wthreshold
+        write(stdout,'(a,f11.6)') &
+          '  Entrainment rate            : ', kf_entrate
+        write(stdout,'(a,f11.6)') &
+          '  Conversion rate             : ', kf_convrate
+        write(stdout,'(a,f11.6)') &
+          '  Maximum prec. efficiency    : ', kf_max_pef
+        write(stdout,'(a,f11.6)') &
+          '  Minimum prec. efficiency    : ', kf_min_pef
+        write(stdout,'(a,f11.6)') &
+          '  Updraft start elevation     : ', kf_dpp
+        write(stdout,'(a,f11.6)') &
+          '  CAPE removal time min.      : ', kf_min_dtcape
+        write(stdout,'(a,f11.6)') &
+          '  CAPE removal time max.      : ', kf_max_dtcape
+        write(stdout,'(a,f11.6)') &
+          '  TKE maximum in sub cloud    : ', kf_tkemax
       end if
     end if
 

@@ -31,7 +31,7 @@ module mod_cu_kf
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
   use mod_runparams , only : kf_entrate , kf_convrate , kf_min_pef , kf_max_pef
   use mod_runparams , only : kf_dpp , kf_min_dtcape , kf_max_dtcape
-  use mod_runparams , only : kf_tkemax
+  use mod_runparams , only : kf_tkemax , kf_wthreshold
   use mod_runparams , only : k2_const , kfac_shal , kfac_deep
   use mod_runparams , only : ichem , clfrcv
   use mod_service
@@ -591,9 +591,9 @@ module mod_cu_kf
         ! length, assuming linear dependence of w on grid length.
         !
         if ( zlcl < 2.0e3_rkx ) then  ! Kain (2004) Eq. 2
-          wklcl = 0.02_rkx * zlcl/2.0e3_rkx
+          wklcl = kf_wthreshold * zlcl/2.0e3_rkx
         else
-          wklcl = 0.02_rkx          ! units of m/s
+          wklcl = kf_wthreshold       ! units of m/s
         end if
         wkl = (w0avg(k,np) + &
                 (w0avg(klcl,np)-w0avg(k,np))*dlp) * dx/25.0e3_rkx - wklcl
@@ -1888,7 +1888,7 @@ module mod_cu_kf
       if ( iprnt .or. istop == 1 ) then
         write(stdout,*)
         write(stdout,*) 'P(LC), DTP, WKL, WKLCL =',p0(lc,np)/d_100, &
-            tlcl+dtlcl+dtrh-tenv,wkl,wklcL
+            tlcl+dtlcl+dtrh-tenv,wkl,wklcl
         write(stdout,*) 'TLCL, DTLCL, DTRH, TENV =',tlcl,dtlcl,    &
             dtrh,tenv
         write(stdout,1025) klcl,zlcl,dtlcl,ltop,p0(ltop,np),iflag,    &
