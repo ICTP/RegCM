@@ -13527,23 +13527,56 @@ module mod_mppparam
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
     integer(ik4) :: i , j , k
 
-    call exchange_lr(ux,1,jci1,jci2,ici1,ici2,1,kz)
-    call exchange_bt(vx,1,jci1,jci2,ici1,ici2,1,kz)
-    ! Back to wind points
+    call exchange_lr(ux,2,jci1,jci2,ici1,ici2,1,kz)
+    call exchange_bt(vx,2,jci1,jci2,ici1,ici2,1,kz)
+
+    ! Back to wind points: U (fourth order)
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jdii1 , jdii2
-          u(j,i,k) = 0.5_rkx * (ux(j,i,k)+ux(j-1,i,k))
+          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
+                     0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
         end do
       end do
     end do
+    if ( ma%has_bdyright ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi2,i,k) = ux(jci2,i,k)
+        end do
+      end do
+    end if
+    if ( ma%has_bdyleft ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          u(jdi1,i,k) = ux(jci1,i,k)
+        end do
+      end do
+    end if
+
+    ! Back to wind points: V (fourth order)
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jci1 , jci2
-          v(j,i,k) = 0.5_rkx * (vx(j,i,k)+vx(j,i-1,k))
+          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
+                     0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
         end do
       end do
     end do
+    if ( ma%has_bdytop ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi2,k) = vx(j,ici2,k)
+        end do
+      end do
+    end if
+    if ( ma%has_bdybottom ) then
+      do k = 1 , kz
+        do j = jci1 , jci2
+          v(j,idi1,k) = vx(j,ici1,k)
+        end do
+      end do
+    end if
   end subroutine tenxtouvten
 
   !

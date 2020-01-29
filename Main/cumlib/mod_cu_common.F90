@@ -72,8 +72,13 @@ module mod_cu_common
     real(rk4) :: cputime
 
     if ( any(icup == 4) .or. any(icup == 5) ) then
-      call getmem3d(cu_uten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:uten')
-      call getmem3d(cu_vten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:vten')
+      if ( idynamic == 3 ) then
+        call getmem3d(cu_uten,jci1gb,jci2gb,ici1gb,ici2gb,1,kz,'cumulus:uten')
+        call getmem3d(cu_vten,jci1gb,jci2gb,ici1gb,ici2gb,1,kz,'cumulus:vten')
+      else
+        call getmem3d(cu_uten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:uten')
+        call getmem3d(cu_vten,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'cumulus:vten')
+      end if
     end if
     call getmem3d(cu_tten,jci1,jci2,ici1,ici2,1,kz,'cumulus:tten')
     call getmem4d(cu_qten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cumulus:qten')

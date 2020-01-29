@@ -28,7 +28,7 @@ module mod_cu_interface
   use mod_memutil
   use mod_regcm_types
   use mod_mppparam , only : exchange_lrbt , uvcross2dot , uvdot2cross , italk
-  use mod_mppparam , only : tenxtouvten , uvtentotenx
+  use mod_mppparam , only : tenxtouvten
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
       model_cumulus_cloud , init_mod_cumulus
@@ -290,11 +290,7 @@ module mod_cu_interface
         ! Update input wind cumulus tendencies (dot to cross points)
 
         if ( any(icup == 5) ) then
-          if ( idynamic == 3 ) then
-            call uvtentotenx(m2c%uten,m2c%vten,utenx,vtenx)
-            m2c%uten = d_zero
-            m2c%vten = d_zero
-          else
+          if ( idynamic /= 3 ) then
             do k = 1 , kz
               do i = idi1 , idi2
                 do j = jdi1 , jdi2
@@ -304,6 +300,10 @@ module mod_cu_interface
               end do
             end do
             call uvdot2cross(utend,vtend,utenx,vtenx)
+          else
+            ! input tendencies to cumulus null
+            ! utenx = d_zero
+            ! vtenx = d_zero
           end if
         end if
 
@@ -370,8 +370,6 @@ module mod_cu_interface
         if ( any(icup == 5) .or. any(icup == 4) ) then
           if ( idynamic == 3 ) then
             call tenxtouvten(cu_uten,cu_vten,utend,vtend)
-            call exchange_lrbt(utend,1,jde1,jde2,ice1,ice2,1,kz)
-            call exchange_lrbt(vtend,1,jce1,jce2,ide1,ide2,1,kz)
           else
             call uvcross2dot(cu_uten,cu_vten,utend,vtend)
             call exchange_lrbt(utend,1,jde1,jde2,ide1,ide2,1,kz)
@@ -407,18 +405,14 @@ module mod_cu_interface
           do k = 1 , kz
             do i = idi1 , idi2
               do j = jci1 , jci2
-                c2m%vten(j,i,k) = vtend(j,i,k) - 0.25_rkx * &
-                  ( 4.0_rkx * vtend(j,i,k) - (vtend(j+1,i,k) + &
-                    vtend(j-1,i,k) + vtend(j,i+1,k) + vtend(j,i-1,k)))
+                c2m%vten(j,i,k) = vtend(j,i,k)
               end do
             end do
           end do
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jdi1 , jdi2
-                c2m%uten(j,i,k) = utend(j,i,k) - 0.25_rkx * &
-                  ( 4.0_rkx * utend(j,i,k) - (utend(j+1,i,k) + &
-                    utend(j-1,i,k) + utend(j,i+1,k) + utend(j,i-1,k)))
+                c2m%uten(j,i,k) = utend(j,i,k)
               end do
             end do
           end do

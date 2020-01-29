@@ -378,22 +378,6 @@ module mod_moloch
     !
     if ( debug_level > 0 ) call massck
     !
-    ! Prepare fields to be used in physical parametrizations.
-    !
-    call mkslice
-    !
-    ! PHYSICS
-    !
-    if ( do_phys .and. moloch_realcase ) then
-      call physical_parametrizations
-    else
-      if ( debug_level > 1 ) then
-        if ( myid == italk ) then
-          write(stdout,*) 'WARNING: Physical package disabled!!!'
-        end if
-      end if
-    end if
-    !
     ! Boundary values
     !
     if ( do_bdy ) then
@@ -410,6 +394,22 @@ module mod_moloch
       if ( debug_level > 1 ) then
         if ( myid == italk ) then
           write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
+        end if
+      end if
+    end if
+    !
+    ! Prepare fields to be used in physical parametrizations.
+    !
+    call mkslice
+    !
+    ! PHYSICS
+    !
+    if ( do_phys .and. moloch_realcase ) then
+      call physical_parametrizations
+    else
+      if ( debug_level > 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'WARNING: Physical package disabled!!!'
         end if
       end if
     end if
@@ -1039,28 +1039,10 @@ module mod_moloch
 
       subroutine reset_tendencies
         implicit none
-        if ( all(icup > 0) ) then
-          mo_atm%tten(jci1:jci2,ici1:ici2,:) = t(jci1:jci2,ici1:ici2,:)
-          mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = &
-                          mo_atm%qx(jci1:jci2,ici1:ici2,:,:)
-          if ( ichem == 1 ) then
-            mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
-                          mo_atm%trac(jci1:jci2,ici1:ici2,:,:)
-          end if
-          if ( any(icup == 5) .or. any(icup == 4) ) then
-            mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = u(jdi1:jdi2,ici1:ici2,:)
-            mo_atm%vten(jci1:jci2,idi1:idi2,:) = v(jci1:jci2,idi1:idi2,:)
-          else
-            mo_atm%uten = d_zero
-            mo_atm%vten = d_zero
-          end if
-        else
-          mo_atm%tten = d_zero
-          mo_atm%qxten = d_zero
-          mo_atm%chiten = d_zero
-          mo_atm%uten = d_zero
-          mo_atm%vten = d_zero
-        end if
+        mo_atm%tten = d_zero
+        mo_atm%qxten = d_zero
+        mo_atm%uten = d_zero
+        mo_atm%vten = d_zero
         if ( ibltyp == 2 ) then
           mo_atm%tketen = d_zero
         end if
@@ -1070,8 +1052,11 @@ module mod_moloch
           ten0 = t(jci1:jci2,ici1:ici2,:)
           qen0 = qv(jci1:jci2,ici1:ici2,:)
         end if
-        if ( ichem == 1 .and. ichdiag > 0 ) then
-          chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+        if ( ichem == 1 ) then
+          mo_atm%chiten = d_zero
+          if ( ichdiag > 0 ) then
+            chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+          end if
         end if
       end subroutine reset_tendencies
 
@@ -1079,26 +1064,7 @@ module mod_moloch
         implicit none
         integer(ik4) :: i , j , k
         logical :: loutrad , labsem
-        if ( all(icup > 0) ) then
-          !
-          ! Initial tendencies as input to cumuls scheme
-          !
-          mo_atm%tten(jci1:jci2,ici1:ici2,:) = (t(jci1:jci2,ici1:ici2,:) - &
-              mo_atm%tten(jci1:jci2,ici1:ici2,:))*rdt
-          mo_atm%qxten(jci1:jci2,ici1:ici2,:,:) = &
-              (mo_atm%qx(jci1:jci2,ici1:ici2,:,:) - &
-               mo_atm%qxten(jci1:jci2,ici1:ici2,:,:))*rdt
-          if ( ichem == 1 ) then
-            mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) = &
-                (mo_atm%trac(jci1:jci2,ici1:ici2,:,:) - &
-                 mo_atm%chiten(jci1:jci2,ici1:ici2,:,:))*rdt
-          end if
-          if ( any(icup == 5) .or. any(icup == 4) ) then
-            mo_atm%uten(jdi1:jdi2,ici1:ici2,:) = (u(jdi1:jdi2,ici1:ici2,:) - &
-                mo_atm%uten(jdi1:jdi2,ici1:ici2,:))*rdt
-            mo_atm%vten(jci1:jci2,idi1:idi2,:) = (v(jci1:jci2,idi1:idi2,:) - &
-                mo_atm%vten(jci1:jci2,idi1:idi2,:))*rdt
-          end if
+        if ( any(icup > 0) ) then
           if ( idiag > 0 ) then
             ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
             qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
