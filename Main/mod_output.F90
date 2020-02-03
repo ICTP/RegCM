@@ -1351,6 +1351,7 @@ module mod_output
         if ( associated(shf_pcpavg_out) ) shf_pcpavg_out = d_zero
         if ( associated(shf_pcpmax_out) ) shf_pcpmax_out = d_zero
         if ( associated(shf_pcprcv_out) ) shf_pcprcv_out = d_zero
+        if ( associated(shf_twetb_out) ) shf_twetb_out = d_zero
       end if
     end if
 

@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 62
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nshfvars = 3 + nbase
+  integer(ik4) , parameter :: nshfvars = 4 + nbase
 
   integer(ik4) , parameter :: nsrf2dvars = 33 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 9
@@ -247,6 +247,7 @@ module mod_ncout
   integer(ik4) , parameter :: shf_pcpavg = 6
   integer(ik4) , parameter :: shf_pcpmax = 7
   integer(ik4) , parameter :: shf_pcprcv = 8
+  integer(ik4) , parameter :: shf_twetb  = 9
 
   integer(ik4) , parameter :: srf_xlon     = 1
   integer(ik4) , parameter :: srf_xlat     = 2
@@ -1146,6 +1147,12 @@ module mod_ncout
             'Maximum Hourly Precipitation Rate','precipitation_flux', &
             .true.,'time: maximum')
           shf_pcpmax_out => v2dvar_shf(shf_pcpmax)%rval
+        end if
+        if ( enable_shf_vars(shf_twetb) ) then
+          call setup_var(v2dvar_shf,shf_twetb,vsize,'twetbmax','K', &
+            'Wet bulb temperature','wet_bulb_temperature', &
+            .true.,'time: maximum')
+          shf_twetb_out => v2dvar_shf(shf_twetb)%rval
         end if
         if ( all(icup > 0) ) then
           if ( enable_shf_vars(shf_pcprcv) ) then
