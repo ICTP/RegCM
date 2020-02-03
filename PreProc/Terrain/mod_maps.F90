@@ -55,6 +55,8 @@ module mod_maps
     call getmem2d(coriol,1,jx,1,iy,'maps:coriol')
     call getmem2d(xlat,1,jx,1,iy,'maps:xlat')
     call getmem2d(xlon,1,jx,1,iy,'maps:xlon')
+    call getmem2d(dlat,1,jx,1,iy,'maps:dlat')
+    call getmem2d(dlon,1,jx,1,iy,'maps:dlon')
     call getmem2d(htgrid,1,jx,1,iy,'maps:htgrid')
     call getmem2d(dpth,1,jx,1,iy,'maps:dpth')
     call getmem2d(lndout,1,jx,1,iy,'maps:lndout')
@@ -85,8 +87,6 @@ module mod_maps
       call getmem2d(umap,1,jx,1,iy,'maps:umap')
       call getmem2d(vmap,1,jx,1,iy,'maps:vmap')
     else
-      call getmem2d(dlat,1,jx,1,iy,'maps:dlat')
-      call getmem2d(dlon,1,jx,1,iy,'maps:dlon')
       call getmem2d(dmap,1,jx,1,iy,'maps:dmap')
       call getmem2d(xmap,1,jx,1,iy,'maps:xmap')
     end if
@@ -98,6 +98,8 @@ module mod_maps
     call getmem2d(coriol_s,1,jxsg,1,iysg,'maps:coriol_s')
     call getmem2d(xlat_s,1,jxsg,1,iysg,'maps:xlat_s')
     call getmem2d(xlon_s,1,jxsg,1,iysg,'maps:xlon_s')
+    call getmem2d(dlat_s,1,jxsg,1,iysg,'maps:dlat_s')
+    call getmem2d(dlon_s,1,jxsg,1,iysg,'maps:dlon_s')
     call getmem2d(htgrid_s,1,jxsg,1,iysg,'maps:htgrid_s')
     call getmem2d(dpth_s,1,jxsg,1,iysg,'maps:dpth_s')
     call getmem2d(lndout_s,1,jxsg,1,iysg,'maps:lndout_s')
@@ -125,8 +127,6 @@ module mod_maps
       call getmem2d(umap_s,1,jxsg,1,iysg,'maps:umap_s')
       call getmem2d(vmap_s,1,jxsg,1,iysg,'maps:vmap_s')
     else
-      call getmem2d(dlat_s,1,jxsg,1,iysg,'maps:dlat_s')
-      call getmem2d(dlon_s,1,jxsg,1,iysg,'maps:dlon_s')
       call getmem2d(dmap_s,1,jxsg,1,iysg,'maps:dmap_s')
       call getmem2d(xmap_s,1,jxsg,1,iysg,'maps:xmap_s')
     end if

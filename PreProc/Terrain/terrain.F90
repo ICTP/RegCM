@@ -236,6 +236,9 @@ program terrain
       pjpara%staggerx = .false.
       pjpara%staggery = .true.
       call getcoord(pjpara,vlon_s,vlat_s,pjv,jxsg,iysg)
+      pjpara%staggerx = .true.
+      pjpara%staggery = .true.
+      call getcoord(pjpara,dlon_s,dlat_s,pjd,jxsg,iysg)
     else
       pjpara%staggerx = .true.
       pjpara%staggery = .true.
@@ -433,6 +436,9 @@ program terrain
     pjpara%staggerx = .false.
     pjpara%staggery = .true.
     call getcoord(pjpara,vlon,vlat,pjv,jx,iy)
+    pjpara%staggerx = .true.
+    pjpara%staggery = .true.
+    call getcoord(pjpara,dlon,dlat,pjd,jx,iy)
   else
     pjpara%staggerx = .true.
     pjpara%staggery = .true.

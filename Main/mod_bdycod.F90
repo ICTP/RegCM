@@ -186,9 +186,9 @@ module mod_bdycod
         fnudge = bdy_nm
       else
         if ( idynamic == 3 ) then
-          fnudge = 0.9_rkx * mo_nadv * mo_cmax / dtsec
+          fnudge = 0.009_rkx * mo_cmax
           if ( myid == italk ) then
-            write(stdout,'(a, f12.4)') 'Relaxation N : ', fnudge
+            write(stdout,'(a, f12.4)') ' Relaxation N : ', fnudge
           end if
         else
           fnudge = 0.1_rkx/(dtsec*2.0_rkx)
@@ -198,9 +198,9 @@ module mod_bdycod
         gnudge = bdy_dm
       else
         if ( idynamic == 3 ) then
-          gnudge = 0.7_rkx * mo_nadv * mo_cmax / dtsec
+          gnudge = 0.003_rkx * mo_cmax
           if ( myid == italk ) then
-            write(stdout,'(a, f12.4)') 'Relaxation D : ', gnudge
+            write(stdout,'(a, f12.4)') ' Relaxation D : ', gnudge
           end if
         else
           gnudge = d_one/(50.0_rkx*dtsec)
