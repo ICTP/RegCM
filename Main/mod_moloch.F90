@@ -378,6 +378,22 @@ module mod_moloch
     !
     if ( debug_level > 0 ) call massck
     !
+    ! Prepare fields to be used in physical parametrizations.
+    !
+    call mkslice
+    !
+    ! PHYSICS
+    !
+    if ( do_phys .and. moloch_realcase ) then
+      call physical_parametrizations
+    else
+      if ( debug_level > 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'WARNING: Physical package disabled!!!'
+        end if
+      end if
+    end if
+    !
     ! Boundary values
     !
     if ( do_bdy ) then
@@ -394,22 +410,6 @@ module mod_moloch
       if ( debug_level > 1 ) then
         if ( myid == italk ) then
           write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
-        end if
-      end if
-    end if
-    !
-    ! Prepare fields to be used in physical parametrizations.
-    !
-    call mkslice
-    !
-    ! PHYSICS
-    !
-    if ( do_phys .and. moloch_realcase ) then
-      call physical_parametrizations
-    else
-      if ( debug_level > 1 ) then
-        if ( myid == italk ) then
-          write(stdout,*) 'WARNING: Physical package disabled!!!'
         end if
       end if
     end if
