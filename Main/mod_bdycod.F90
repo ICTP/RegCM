@@ -198,7 +198,7 @@ module mod_bdycod
         gnudge = bdy_dm
       else
         if ( idynamic == 3 ) then
-          gnudge = 0.003_rkx * mo_cmax
+          gnudge = 0.006_rkx * mo_cmax
           if ( myid == italk ) then
             write(stdout,'(a, f12.4)') ' Relaxation D : ', gnudge
           end if
