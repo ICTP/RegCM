@@ -146,7 +146,6 @@ module mod_moloch
 
   subroutine init_moloch
     implicit none
-    integer(ik4) :: i , j , k
     call assignpnt(mddom%msfu,mu)
     call assignpnt(mddom%msfv,mv)
     call assignpnt(mddom%msfx,mx)

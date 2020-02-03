@@ -13525,7 +13525,7 @@ module mod_mppparam
     implicit none
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: ux , vx
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: u , v
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i , j , k , np1 , nm1 , np2
 
     call exchange_lr(ux,2,jci1,jci2,ici1,ici2,1,kz)
     call exchange_bt(vx,2,jci1,jci2,ici1,ici2,1,kz)
@@ -13534,49 +13534,27 @@ module mod_mppparam
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jdii1 , jdii2
-          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(j-1,i,k)) - &
-                     0.0625_rkx * (ux(j+1,i,k)+ux(j-2,i,k))
+          nm1 = max(j-1, jcross1+1)
+          np1 = min(j+1, jcross2-1)
+          np2 = min(j+2, jcross2-1)
+          u(j,i,k) = 0.5625_rkx * (ux(j,i,k)  +ux(nm1,i,k)) - &
+                     0.0625_rkx * (ux(np1,i,k)+ux(np2,i,k))
         end do
       end do
     end do
-    if ( ma%has_bdyright ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          u(jdi2,i,k) = ux(jci2,i,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          u(jdi1,i,k) = ux(jci1,i,k)
-        end do
-      end do
-    end if
 
     ! Back to wind points: V (fourth order)
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jci1 , jci2
-          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,i-1,k)) - &
-                     0.0625_rkx * (vx(j,i+1,k)+vx(j,i-2,k))
+          nm1 = max(i-1, icross1+1)
+          np1 = min(i+1, icross2-1)
+          np2 = min(i+2, icross2-1)
+          v(j,i,k) = 0.5625_rkx * (vx(j,i,k)  +vx(j,nm1,k)) - &
+                     0.0625_rkx * (vx(j,np1,k)+vx(j,np2,k))
         end do
       end do
     end do
-    if ( ma%has_bdytop ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
-          v(j,idi2,k) = vx(j,ici2,k)
-        end do
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jci1 , jci2
-          v(j,idi1,k) = vx(j,ici1,k)
-        end do
-      end do
-    end if
   end subroutine tenxtouvten
 
   !
