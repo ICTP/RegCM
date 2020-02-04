@@ -117,8 +117,8 @@ module mod_cu_interface
     if ( any(icup == 4) ) then
       call allocate_mod_cu_em
       if ( idynamic == 3 ) then
-        call getmem3d(utend,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
+        call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
       else
         call getmem3d(utend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:utend')
         call getmem3d(vtend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
@@ -129,12 +129,16 @@ module mod_cu_interface
       call allocate_mod_cu_tiedtke
       call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
       call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
-      if ( idynamic == 3 ) then
-        call getmem3d(utend,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
-      else
-        call getmem3d(utend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
+      if ( .not. associated(utend) ) then
+        if ( idynamic == 3 ) then
+          call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
+          call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
+        else
+          call getmem3d(utend,jde1ga,jde2ga, &
+                              ide1ga,ide2ga,1,kz,'pbl_common:utend')
+          call getmem3d(vtend,jde1ga,jde2ga, &
+                              ide1ga,ide2ga,1,kz,'pbl_common:vtend')
+        end if
       end if
     end if
     if ( any(icup == 6) ) then
