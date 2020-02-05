@@ -150,19 +150,19 @@ module mod_slice
         do i = ici1 , ici2
           do j = jci1 , jci2
             atms%th700(j,i) = atms%th3d(j,i,kz)
-            vertloop1: &
             do k = 1 , kz-1
               if ( atms%pb3d(j,i,k) > 70000.0 ) then
                 w1 = mo_atm%fmz(j,i,k)/mo_atm%fmzf(j,i,k)
                 w2 = d_two - w1
                 atms%th700(j,i) = d_half * (w2 * atms%th3d(j,i,k+1) + &
                                             w1 * atms%th3d(j,i,k))
-                exit vertloop1
+                exit
               end if
-            end do vertloop1
+            end do
           end do
         end do
       end if
+
     else
 
       do concurrent ( j = jx1:jx2 , i = ix1:ix2 )
@@ -312,14 +312,13 @@ module mod_slice
         do i = ici1 , ici2
           do j = jci1 , jci2
             atms%th700(j,i) = atms%th3d(j,i,kz)
-            vertloop2: &
             do k = 1 , kz-1
               if ( atms%pb3d(j,i,k) > 70000.0 ) then
                 atms%th700(j,i) = twt(k,1) * atms%th3d(j,i,k+1) + &
                                   twt(k,2) * atms%th3d(j,i,k)
-                exit vertloop2
+                exit
               end if
-            end do vertloop2
+            end do
           end do
         end do
       end if
@@ -338,6 +337,17 @@ module mod_slice
         end do
       end do
     end do
+    if ( ibltyp == 1 ) then
+      kmxpbl(:,:) = kz - 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do k = 1 , kz-1
+            if ( atms%pb3d(j,i,k) > 60000.0 ) exit
+            kmxpbl(j,i) = k
+          end do
+        end do
+      end do
+    end if
 
     contains
 

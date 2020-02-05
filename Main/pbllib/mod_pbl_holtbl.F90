@@ -92,7 +92,7 @@ module mod_pbl_holtbl
     call getmem3d(coeff2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:coeff2')
     call getmem3d(tpred1,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred1')
     call getmem3d(tpred2,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:tpred2')
-    call getmem3d(ri,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ri')
+    call getmem3d(ri,1,kz,jci1,jci2,ici1,ici2,'mod_holtbl:ri')
     call getmem3d(kzm,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kzm')
     call getmem3d(rc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:rc')
     call getmem3d(ttnp,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:ttnp')
@@ -243,8 +243,8 @@ module mod_pbl_holtbl
         ! Compute virtual heat flux at surface. Make it never exactly zero.
         hfxv(j,i) = xhfx(j,i) + 0.61_rkx *m2p%tpatm(j,i,kz)*xqfx(j,i)
         hfxv(j,i) = hfxv(j,i) + sign(1.0e-5_rkx,hfxv(j,i))
-        ! limit coriolis parameter to value at 10 deg. latitude
-        pfcor(j,i) = max(abs(m2p%coriol(j,i)),2.546e-5_rkx)
+        ! limit coriolis parameter to value at 20 deg. latitude
+        pfcor(j,i) = max(abs(m2p%coriol(j,i)),5.0e-5_rkx)
       end do
     end do
     !
@@ -1139,12 +1139,12 @@ module mod_pbl_holtbl
   call time_begin(subroutine_name,idindx)
 #endif
 !
-  ! note: kmxpbl, max no. of pbl levels, calculated in param
+  ! note: kmxpbl, max no. of pbl levels
   ! compute richardson number
-  do k = kz , kmxpbl , -1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ri(j,i,k) = egrav*(thvx(j,i,k)-th10(j,i))*m2p%za(j,i,k) / &
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      do k = kz , kmxpbl(j,i) , -1
+        ri(k,j,i) = egrav*(thvx(j,i,k)-th10(j,i))*m2p%za(j,i,k) / &
                           (th10(j,i)*vv(j,i,k))
       end do
     end do
@@ -1157,16 +1157,16 @@ module mod_pbl_holtbl
     end do
   end do
   ! looking for bl top
-  do k = kz , kmxpbl + 1 , -1
-    k2 = k - 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      do k = kz , kmxpbl(j,i) + 1 , -1
+        k2 = k - 1
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
-        if ( (ri(j,i,k) < ricr(j,i)) .and. &
-             (ri(j,i,k2) >= ricr(j,i)) ) then
+        if ( (ri(k,j,i) < ricr(j,i)) .and. &
+             (ri(k2,j,i) >= ricr(j,i)) ) then
           p2m%zpbl(j,i) = m2p%za(j,i,k) + (m2p%za(j,i,k2)-m2p%za(j,i,k)) &
-              *((ricr(j,i)-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
+              *((ricr(j,i)-ri(k,j,i))/(ri(k2,j,i)-ri(k,j,i)))
           p2m%kpbl(j,i) = k
         end if
       end do
@@ -1175,9 +1175,9 @@ module mod_pbl_holtbl
   do i = ici1 , ici2
     do j = jci1 , jci2
       ! set bl top to highest allowable model layer
-      if ( ri(j,i,kmxpbl) < ricr(j,i) ) then
-        p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl)
-        p2m%kpbl(j,i) = kmxpbl
+      if ( ri(kmxpbl(j,i),j,i) < ricr(j,i) ) then
+        p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl(j,i))
+        p2m%kpbl(j,i) = kmxpbl(j,i)
       end if
     end do
   end do
@@ -1190,37 +1190,37 @@ module mod_pbl_holtbl
         wsc = ustr(j,i)*xfmt
         ! thermal temperature excess
         therm(j,i) = (xhfx(j,i)+ep1*m2p%tpatm(j,i,kz)*xqfx(j,i))*fak/wsc
-        ri(j,i,kz) = -egrav*therm(j,i)*m2p%za(j,i,kz)/(th10(j,i)*vv(j,i,kz))
+        ri(kz,j,i) = -egrav*therm(j,i)*m2p%za(j,i,kz)/(th10(j,i)*vv(j,i,kz))
       else
         therm(j,i) = d_zero
       end if
     end do
   end do
   ! recompute richardson no. at other model levels
-  do k = kz - 1 , kmxpbl , -1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      do k = kz - 1 , kmxpbl(j,i) , -1
         if ( hfxv(j,i) > d_zero ) then
           tlv = th10(j,i) + therm(j,i)
           tkv = m2p%tpatm(j,i,k)*(d_one+ep1* &
                       (m2p%qxatm(j,i,k,iqv)/(m2p%qxatm(j,i,k,iqv)+d_one)))
-          ri(j,i,k) = egrav*(tkv-tlv)*m2p%za(j,i,k)/(th10(j,i)*vv(j,i,k))
+          ri(k,j,i) = egrav*(tkv-tlv)*m2p%za(j,i,k)/(th10(j,i)*vv(j,i,k))
         end if
       end do
     end do
   end do
   ! improve estimate of bl height under convective conditions
   ! using convective temperature excess (therm)
-  do k = kz , kmxpbl + 1 , -1
-    k2 = k - 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      do k = kz , kmxpbl(j,i) + 1 , -1
+        k2 = k - 1
         if ( hfxv(j,i) > d_zero ) then
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
-          if ( (ri(j,i,k) < ricr(j,i)) .and. (ri(j,i,k2) >= ricr(j,i)) ) then
+          if ( (ri(k,j,i) < ricr(j,i)) .and. (ri(k2,j,i) >= ricr(j,i)) ) then
             p2m%zpbl(j,i) = m2p%za(j,i,k) + (m2p%za(j,i,k2)-m2p%za(j,i,k)) * &
-                        ((ricr(j,i)-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
+                        ((ricr(j,i)-ri(k,j,i))/(ri(k2,j,i)-ri(k,j,i)))
             p2m%kpbl(j,i) = k
           end if
         end if
@@ -1231,8 +1231,8 @@ module mod_pbl_holtbl
     do j = jci1 , jci2
       if ( hfxv(j,i) > d_zero ) then
         ! set bl top to highest allowable model layer
-        if ( ri(j,i,kmxpbl) < ricr(j,i) ) then
-          p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl)
+        if ( ri(kmxpbl(j,i),j,i) < ricr(j,i) ) then
+          p2m%zpbl(j,i) = m2p%za(j,i,kmxpbl(j,i))
         end if
       end if
     end do
@@ -1247,10 +1247,10 @@ module mod_pbl_holtbl
     end do
   end do
 
-  do k = kz , kmxpbl + 1 , -1
-    k2 = k - 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
+  do i = ici1 , ici2
+    do j = jci1 , jci2
+      do k = kz , kmxpbl(j,i) + 1 , -1
+        k2 = k - 1
         zm = m2p%za(j,i,k)
         zp = m2p%za(j,i,k2)
         if ( zm < p2m%zpbl(j,i) ) then

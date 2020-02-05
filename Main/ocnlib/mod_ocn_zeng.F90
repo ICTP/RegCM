@@ -77,7 +77,7 @@ module mod_ocn_zeng
     real(rkx) :: dthv , hq , zh , hu , obu , qstar , xdens ,   &
                  th , thv , thvstar , tstar , um , visa , zot ,     &
                  xlv , wc , zeta , zoq , wt1 , wt2 , rhp , twbulb , &
-                 pcpcool , tha
+                 pcpcool , tha , nobu
     integer(ik4) :: i , nconv
 !   real(rkx) :: lwds , lwus
     real(rkx) :: rs , rd , td , tdelta , delta
@@ -257,7 +257,12 @@ module mod_ocn_zeng
           um = sqrt(uv995*uv995+wc*wc)
           zeta = max(-d_100,min(zeta,-minz))
         end if
-        obu = hu/zeta
+        nobu = hu/zeta
+        if ( abs(nobu-obu) < 0.1_rkx ) then
+          obu = nobu
+          exit
+        end if
+        obu = nobu
       end do
       if ( lpcpcool ) then
         ! Stull 2011

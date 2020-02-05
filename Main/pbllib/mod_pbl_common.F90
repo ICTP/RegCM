@@ -33,7 +33,7 @@ module mod_pbl_common
 
   real(rkx) , public , pointer , dimension(:,:) :: ricr
 
-  integer(ik4) , public :: kmxpbl
+  integer(ik4) , pointer , public , dimension(:,:) :: kmxpbl
 
   !
   ! Pointers to the TCM state variables

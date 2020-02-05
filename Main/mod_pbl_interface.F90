@@ -47,8 +47,8 @@ module mod_pbl_interface
   public :: pblscheme
 
   public :: uwstate
-  public :: kmxpbl
   public :: ricr
+  public :: kmxpbl
 
   real(rkx) , public :: tkemin = 0.0_rkx
   real(rkx) , pointer , dimension(:,:,:) :: utenx , vtenx
@@ -61,6 +61,7 @@ module mod_pbl_interface
     implicit none
     if ( ibltyp == 1 ) then
       call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
+      call getmem2d(kmxpbl,jci1,jci2,ici1,ici2,'pbl_common:kmxpbl')
       call allocate_mod_pbl_holtbl
     else if ( ibltyp == 2 ) then
       call allocate_tcm_state(uwstate)

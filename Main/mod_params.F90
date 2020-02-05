@@ -2084,21 +2084,7 @@ module mod_params
         write(stdout,'(a,f11.6,a)') '  True Latitude 2       : ',truelath,' deg'
       end if
     end if
-    !
-    !----calculate max no of pbl levels: kmxpbl=k at highest allowed pbl level
-    !-----1. caluclate sigma level at 700mb, assuming 600mb highest
-    !-----   allowed pbl, and 1013mb as standard surface pressure. (sigtbl)
-    !-----2. find first model sigma level above sigtbl.
-    !
-    sigtbl = (70.0_rkx-ptop)/(101.3_rkx-ptop)
-    kmxpbl = kz
-    do k = kz , 2 , -1
-      delsig = hsigma(k) - sigtbl
-      if ( delsig <= d_zero ) then
-        kmxpbl = k
-        exit
-      end if
-    end do
+
     if ( ipptls > 0 ) then
       cevaplnd = max(cevaplnd,d_zero)
       caccrlnd = max(caccrlnd,d_zero)
@@ -2116,10 +2102,7 @@ module mod_params
           write(stdout,*) 'Sixth order diffusion with flux limiter'
         end if
       end if
-      if ( ibltyp == 1 ) then
-        write(stdout,*) 'PBL limit for Holtstag'
-        write(stdout,'(a,i3)') '  Index of highest allowed pbl : ', kmxpbl
-      else if ( ibltyp == 2 ) then
+      if ( ibltyp == 2 ) then
         write(stdout,*) 'UW TCM Parameters'
         write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl
         write(stdout,'(a,f11.6)') '  atwo      = ', atwo
