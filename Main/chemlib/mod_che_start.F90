@@ -54,6 +54,7 @@ module mod_che_start
   subroutine start_chem
     implicit none
     integer(ik4) :: i , j , k , n , itr , ibin , jbin , kbin , mmin , mbin
+    integer(ik4) :: next
     integer(ik4) :: ipunit
     character(len=8) :: minamesav
 
@@ -177,12 +178,19 @@ module mod_che_start
         carbed(kbin) = reffochl
         chtrsol(ianh4) = solso4
       end if
-      if ( chtrname(itr) == 'BC_HL' ) then
+      if ( chtrname(itr)(1:5) == 'BC_HL' ) then
         kbin = kbin + 1
-        ibchl = itr
         icarb(kbin) = itr
-        carbed(kbin) = reffbchl
-        chtrsol(itr) = solbchl
+        if ( chtrname(itr)(6:6) /= ' ' ) then
+          read(chtrname(itr)(6:6),'(i1)') next
+          ibchl_e(next) = itr
+          carbed(kbin) = reffbchl_e(next)
+          chtrsol(itr) = solbchl_e(next)
+        else
+          ibchl = itr
+          carbed(kbin) = reffbchl
+          chtrsol(itr) = solbchl
+        end if
       end if
       if ( chtrname(itr) == 'BC_HB' ) then
         kbin = kbin + 1
@@ -191,12 +199,19 @@ module mod_che_start
         carbed(kbin) = reffbc
         chtrsol(itr) = solbc
       end if
-      if ( chtrname(itr) == 'OC_HL' ) then
+      if ( chtrname(itr)(1:5) == 'OC_HL' ) then
         kbin = kbin + 1
-        iochl = itr
         icarb(kbin) = itr
-        carbed(kbin) = reffochl
-        chtrsol(itr) = solochl
+        if ( chtrname(itr)(6:6) /= ' ' ) then
+          read(chtrname(itr)(6:6),'(i1)') next
+          iochl_e(next) = itr
+          carbed(kbin) = reffochl_e(next)
+          chtrsol(itr) = solochl_e(next)
+        else
+          iochl = itr
+          carbed(kbin) = reffochl
+          chtrsol(itr) = solochl
+        end if
       end if
       if ( chtrname(itr) == 'OC_HB' ) then
         kbin = kbin + 1

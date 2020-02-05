@@ -66,10 +66,10 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl , afracs , bb , cc , chibot , delsig ,  &
-               dlargc , dsmalc , dxtemc , pk , ptmb , pz , qk , &
-               qkp1 , sig700 , sigtbl , ssum , vqmax , wk ,     &
-               wkp1 , xbot , xtop , xx , yy , mo_c1 , mo_c2
+    real(rkx) :: afracl , afracs , bb , cc , chibot , dlargc , &
+               dsmalc , dxtemc , pk , ptmb , pz , qk , qkp1 ,  &
+               sig700 , ssum , vqmax , wk , wkp1 , xbot ,      &
+               xtop , xx , yy , mo_c1 , mo_c2
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     integer(ik4) :: i , j , k , kbase , ktop , ns

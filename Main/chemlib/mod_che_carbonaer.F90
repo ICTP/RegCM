@@ -36,8 +36,14 @@ module mod_che_carbonaer
 
   real(rkx) , public , parameter :: rhobc   = 2000.0_rkx
   real(rkx) , public , parameter :: rhooc   = 1200.0_rkx
+  ! main mode
   real(rkx) , public , parameter :: rhobchl = 1600.0_rkx
   real(rkx) , public , parameter :: rhoochl = 1200.0_rkx
+  ! higher modes
+  real(rkx) , public , parameter , dimension(cbin_e) :: rhobchl_e = &
+                      [ 1600.0_rkx, 1600.0_rkx ]
+  real(rkx) , public , parameter , dimension(cbin_e) :: rhoochl_e = &
+                      [ 1200.0_rkx, 1200.0_rkx ]
   real(rkx) , public , parameter :: rhoso4 = 1830.0_rkx  !(95-96% H2SO4)
   real(rkx) , public , parameter :: rhosm1 = 1200.0_rkx
   real(rkx) , public , parameter :: rhosm2 = 1200.0_rkx
@@ -45,9 +51,15 @@ module mod_che_carbonaer
   ! effctive diameters ( and not radius!)  in micrometer
   ! ( should they be defined intercatively in the future ? )
   real(rkx) , public , parameter :: reffbc   = 0.05_rkx
-  real(rkx) , public , parameter :: reffbchl = 0.3_rkx
   real(rkx) , public , parameter :: reffoc   = 0.2_rkx
+  ! main mode
+  real(rkx) , public , parameter :: reffbchl = 0.3_rkx
   real(rkx) , public , parameter :: reffochl = 0.3_rkx
+  ! higher modes
+  real(rkx) , public , parameter , dimension(cbin_e) :: reffbchl_e = &
+                         [ 0.3_rkx, 0.3_rkx ]
+  real(rkx) , public , parameter , dimension(cbin_e) :: reffochl_e = &
+                         [ 0.3_rkx, 0.3_rkx ]
   ! (75% H2SO4,25% H2O; Kiehl and Briegleb, 1993)
   real(rkx) , public , parameter :: reffso4 = 0.1_rkx
   real(rkx) , public , parameter :: reffsm1 = 0.3_rkx
@@ -65,9 +77,15 @@ module mod_che_carbonaer
   ! solubility of carbon aer for rain out param of giorgi and chameides
   !
   real(rkx) , parameter :: solbc = 0.05_rkx
-  real(rkx) , parameter :: solbchl = 0.8_rkx
   real(rkx) , parameter :: soloc = 0.05_rkx
+  ! main mode
+  real(rkx) , parameter :: solbchl = 0.8_rkx
   real(rkx) , parameter :: solochl = 0.8_rkx
+  ! Higher modes
+  real(rkx) , dimension(cbin_e) , parameter :: solbchl_e = &
+                      [ 0.8_rkx , 0.8_rkx ]
+  real(rkx) , dimension(cbin_e) , parameter :: solochl_e = &
+                      [ 0.8_rkx , 0.8_rkx ]
   real(rkx) , parameter :: solsm1 = 0.05_rkx
   real(rkx) , parameter :: solsm2 = 0.8_rkx
 
@@ -80,7 +98,8 @@ module mod_che_carbonaer
   real(rkx) , pointer , dimension(:,:,:) :: surf
   real(rkx) , pointer , dimension(:,:,:) :: so4chagct
 
-  public :: solbc , solbchl , soloc , solochl , solsm1 , solsm2
+  public :: solbc , solbchl , solbchl_e , soloc , solochl , solochl_e
+  public :: solsm1 , solsm2
   ! unit of so4chagct = kg kg-1 sec-1
   public :: so4chagct
   public :: carb_init , carb_prepare , aging_carb
@@ -274,7 +293,7 @@ module mod_che_carbonaer
                 ! in nm/hr from m/sec
                 if ( surf(j,i,k) > d_zero ) then
                   arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
-                  icon = arg*3.6e+12_rkx !????????????
+                  icon = arg*3.6e+12_rkx
                 else
                   icon = d_zero
                 end if
@@ -330,7 +349,7 @@ module mod_che_carbonaer
                 ! in nm/hr from m/sec
                 if ( surf(j,i,k) > d_zero ) then
                   arg = so4chagct(j,i,k)/rhoso4/surf(j,i,k)
-                  icon = arg*3.6e+12_rkx !????????????
+                  icon = arg*3.6e+12_rkx
                 else
                   icon = d_zero
                 end if

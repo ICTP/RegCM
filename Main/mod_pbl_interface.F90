@@ -75,8 +75,8 @@ module mod_pbl_interface
     end if
     if ( ibltyp > 1 ) then
       if ( idynamic == 3 ) then
-        call getmem3d(utenx,jci1gb,jci2gb,ici1gb,ici2gb,1,kz,'pbl_common:utenx')
-        call getmem3d(vtenx,jci1gb,jci2gb,ici1gb,ici2gb,1,kz,'pbl_common:vtenx')
+        call getmem3d(utenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:utenx')
+        call getmem3d(vtenx,jce1gb,jce2gb,ice1gb,ice2gb,1,kz,'pbl_common:vtenx')
         call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
         call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
       else

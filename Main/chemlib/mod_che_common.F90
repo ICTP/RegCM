@@ -39,6 +39,7 @@ module mod_che_common
   real(rkx) :: cfdout
 
   integer(ik4) , parameter :: sbin = 2
+  integer(ik4) , parameter :: cbin = 9
   integer(ik4) , parameter :: maxntr = 50
   !
   ! Only one cover type per grid cell for now
@@ -152,7 +153,7 @@ module mod_che_common
     call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
     call getmem1d(idust,1,nbin,'mod_che_common:idust')
     call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
-    call getmem1d(icarb,1,9,'mod_che_common:icarb')
+    call getmem1d(icarb,1,cbin,'mod_che_common:icarb')
     call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
     if ( nmine > 0 ) then
@@ -294,10 +295,19 @@ module mod_che_common
       ntr = 6
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = ['BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
-                               'SO2   ','SO4   ']
+                              'SO2   ','SO4   ']
       iaerosol = 1
       ioxclim  = 1
       if ( myid == italk ) write(stdout,*) 'SUCA simulation'
+    else if ( chemsimtype(1:4) == 'SUCE' ) then
+      ntr = 10
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = ['BC_HB ','BC_HL ','BC_HL1','BC_HL2', &
+                              'OC_HB ','OC_HL ','OC_HL1','OC_HL2', &
+                              'SO2   ','SO4   ']
+      iaerosol = 1
+      ioxclim  = 1
+      if ( myid == italk ) write(stdout,*) 'SUCE simulation'
     else if ( chemsimtype(1:4) == 'AERO' ) then
       nbin = 4
       iaerosol = 1
@@ -317,6 +327,17 @@ module mod_che_common
                                 'DUST03','DUST04','SSLT01','SSLT02' ]
       end if
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
+    else if ( chemsimtype(1:4) == 'AERE' ) then
+      nbin = 4
+      iaerosol = 1
+      ioxclim = 1
+      ntr = 16
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = ['BC_HB ','BC_HL ','BC_HL1','BC_HL2', &
+                              'OC_HB ','OC_HL ','OC_HL1','OC_HL2', &
+                              'SO2   ','SO4   ','DUST01','DUST02', &
+                              'DUST03','DUST04','SSLT01','SSLT02' ]
+      if ( myid == italk ) write(stdout,*) 'AERE simulation'
     else if ( chemsimtype(1:4) == 'DCCB' ) then
       nbin = 4
       if ( ismoke == 1 ) then
