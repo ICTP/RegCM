@@ -1452,9 +1452,9 @@ end subroutine clm_map2gcell
         c2r_all(nn+14*nt) = clm_l2a%sm10cm(n)
         c2r_all(nn+15*nt) = clm_l2a%sm1m(n)
         c2r_all(nn+16*nt) = clm_l2a%smtot(n)
-        c2r_all(nn+17*nt) = clm_l2a%qflx_infl(n)*(24._r8 * 3600._r8)
-        c2r_all(nn+18*nt) = clm_l2a%qflx_surf(n)*(24._r8 * 3600._r8)
-        c2r_all(nn+19*nt) = clm_l2a%qflx_drain(n)*(24._r8 * 3600._r8)
+        c2r_all(nn+17*nt) = clm_l2a%qflx_infl(n)
+        c2r_all(nn+18*nt) = clm_l2a%qflx_surf(n)
+        c2r_all(nn+19*nt) = clm_l2a%qflx_drain(n)
 
         if(    ichem == 1 ) then
         if( caerosol == 1 ) then
