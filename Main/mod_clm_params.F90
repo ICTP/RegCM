@@ -30,6 +30,7 @@ module mod_clm_params
   use mod_service
   use mod_sun
   use mod_atm_stub
+  use mod_zita
 #ifdef CLM45
   use mod_clm_regcm
 #endif
@@ -118,6 +119,10 @@ module mod_clm_params
     temperature_tweak = 0.0_rkx
     solar_tweak = 0.0_rkx
     gas_tweak_factors(:) = 1.0_rkx
+
+    if ( idynamic == 3 ) then
+      mo_dz = hzita / real(kz,rkx)
+    end if
 
 #ifdef CLM
     if ( myid == italk ) then
@@ -448,6 +453,8 @@ module mod_clm_params
         dsigma(k) = (sigma(k+1) - sigma(k))
         hsigma(k) = (sigma(k+1) + sigma(k))*d_half
       end do
+    else
+      call compute_moloch_static
     end if
     !
     !-----compute land/water mask
@@ -584,6 +591,34 @@ module mod_clm_params
           end do
         end if
       end function check_against_outparams
+
+      subroutine compute_moloch_static
+        implicit none
+        integer(ik4) :: i , j
+        real(rkx) , dimension(kzp1) :: fak , fbk
+        zita(kzp1) = d_zero
+        do k = kz , 1 , -1
+          zita(k) = zita(k+1) + mo_dz
+          zitah(k) = zita(k) - mo_dz*d_half
+        end do
+        sigma(1) = d_zero
+        sigma = d_one - zita/hzita
+        hsigma = d_one - zitah/hzita
+        fak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+        fbk = gzita(zita)
+        ak = -hzita * bzita(zitah) * log(hsigma)
+        bk = gzita(zitah)
+        do k = 1 , kz
+          dsigma(k) = (sigma(k+1) - sigma(k))
+        end do
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            zeta(j,i) = ak(kz) + (bk(kz) - d_one) * &
+                                       mddom%ht(j,i)*regrav
+            fmzf(j,i) = md_fmz(zita(kzp1),mddom%ht(j,i))
+          end do
+        end do
+      end subroutine compute_moloch_static
 
   end subroutine param
 
