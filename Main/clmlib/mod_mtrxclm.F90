@@ -628,8 +628,8 @@ module mod_mtrxclm
               lms%rsw(n,j,i)    = c2rsm1m(j,i)
               lms%ssw(n,j,i)    = c2rsm10cm(j,i)
               lms%sncv(n,j,i)   = c2rsnowc(j,i)
-              lms%srnof(n,j,i)  = c2rro_sur(j,i)*dtsrf
-              lms%trnof(n,j,i)  = (c2rro_sub(j,i)+c2rro_sur(j,i))*dtsrf
+              lms%srnof(n,j,i)  = c2rro_sur(j,i)
+              lms%trnof(n,j,i)  = (c2rro_sub(j,i)+c2rro_sur(j,i))
               lms%q2m(n,j,i)    = c2r2mq(j,i)
               lms%deltat(n,j,i) = lms%tgbrd(n,j,i)-lm%tatm(j,i)
               lms%deltaq(n,j,i) = (lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))) - &
