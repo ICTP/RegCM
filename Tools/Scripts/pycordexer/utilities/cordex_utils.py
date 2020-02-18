@@ -221,8 +221,8 @@ class RegcmOutputFile(object):
         LOGGER.debug('Copying values for longitudes%s in memory', of_file)
         self._save_in_memory(xlon, 'xlon', np.float32)
 
-        iy = get_var_with_name(['iy', 'y'], ncf)
-        jx = get_var_with_name(['jx', 'x'], ncf)
+        iy = get_var_with_name(['iy', 'y', 'rlat'], ncf)
+        jx = get_var_with_name(['jx', 'x', 'rlon'], ncf)
 
         LOGGER.debug('Copying values of variable iy%s in memory', of_file)
         self._save_in_memory(iy, 'iy', np.float32)
@@ -915,7 +915,7 @@ class CordexDataset(Dataset):
             attributes=regcm_file.map_attributes
         )
 
-        if 'semi_major_axis' not in regcm_file.attributes:
+        if 'grid_mapping_name' not in regcm_file.map_attributes:
             LOGGER.debug('Setting attributes about the projection')
 
             crs_var.setncattr('semi_major_axis', 6371229.0)

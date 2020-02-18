@@ -668,12 +668,8 @@ module mod_ncstream
             attc%theval = '+proj=ob_tran +o_proj=longlat'// &
               ' +o_lat_p='//trim(adjustl(tempstr(6)))// &
               ' +o_lon_p='//trim(adjustl(tempstr(7)))// &
-              ' +o_lat_c='//trim(adjustl(tempstr(1)))// &
-              ' +o_lon_c='//trim(adjustl(tempstr(2)))// &
-              ' +x_0='//trim(adjustl(tempstr(3)))// &
-              ' +y_0='//trim(adjustl(tempstr(4)))// &
               ' +R='//trim(adjustl(tempstr(5)))// &
-              ' +units=m +no_defs'
+              ' +lon_0=180.0 +to_meter=0.01745329'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'grid_mapping_name'
             attc%theval = 'rotated_latitude_longitude'
@@ -968,22 +964,42 @@ module mod_ncstream
       else
         xds = ds
       end if
-      buffer%doublebuff(1) = &
-        -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
-                  xds * d_1000,rk8)
-      do i = 2 , stream%len_dims(jx_dim)
-        buffer%doublebuff(i) = &
-          real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
-      end do
-      call outstream_writevar(ncout,stvar%jx_var,nocopy)
-      buffer%doublebuff(1) = &
-        -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
-                  xds * d_1000,rk8)
-      do i = 2 , stream%len_dims(iy_dim)
-        buffer%doublebuff(i) = &
-          real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
-      end do
-      call outstream_writevar(ncout,stvar%iy_var,nocopy)
+      if ( iproj /= 'ROTLLR' ) then
+        buffer%doublebuff(1) = &
+          -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
+                    xds * d_1000,rk8)
+        do i = 2 , stream%len_dims(jx_dim)
+          buffer%doublebuff(i) = &
+            real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
+        end do
+        call outstream_writevar(ncout,stvar%jx_var,nocopy)
+        buffer%doublebuff(1) = &
+          -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
+                    xds * d_1000,rk8)
+        do i = 2 , stream%len_dims(iy_dim)
+          buffer%doublebuff(i) = &
+            real(real(buffer%doublebuff(i-1),rkx)+xds*d_1000,rk8)
+        end do
+        call outstream_writevar(ncout,stvar%iy_var,nocopy)
+      else
+        xds = xds/erkm*raddeg
+        buffer%doublebuff(1) = &
+          -real(((real(stream%len_dims(jx_dim),rkx)-d_one)/d_two) * &
+                    xds,rk8)
+        do i = 2 , stream%len_dims(jx_dim)
+          buffer%doublebuff(i) = &
+            real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
+        end do
+        call outstream_writevar(ncout,stvar%jx_var,nocopy)
+        buffer%doublebuff(1) = &
+          -real(((real(stream%len_dims(iy_dim),rkx)-d_one)/d_two) * &
+                    xds,rk8)
+        do i = 2 , stream%len_dims(iy_dim)
+          buffer%doublebuff(i) = &
+            real(real(buffer%doublebuff(i-1),rkx)+xds,rk8)
+        end do
+        call outstream_writevar(ncout,stvar%iy_var,nocopy)
+      end if
       buffer%doublebuff(1:size(sigma)) = real(sigma,rk8)
       call outstream_writevar(ncout,stvar%sigma_var,nocopy)
       if ( idynamic < 3 ) then
@@ -3273,16 +3289,29 @@ module mod_ncstream
       attr%aname = 'grid_factor'
       attr%theval = xcone
       call add_attribute(stream,attr)
-      stvar%jx_var%vname = 'jx'
-      stvar%jx_var%vunit = 'm'
-      stvar%jx_var%long_name = 'x-coordinate in Cartesian system'
-      stvar%jx_var%standard_name = 'projection_x_coordinate'
-      stvar%jx_var%axis = 'x'
-      stvar%iy_var%vname = 'iy'
-      stvar%iy_var%vunit = 'm'
-      stvar%iy_var%long_name = 'y-coordinate in Cartesian system'
-      stvar%iy_var%standard_name = 'projection_y_coordinate'
-      stvar%iy_var%axis = 'y'
+      if ( iproj /= 'ROTLLR' ) then
+        stvar%jx_var%vname = 'jx'
+        stvar%jx_var%vunit = 'm'
+        stvar%jx_var%long_name = 'x-coordinate in Cartesian system'
+        stvar%jx_var%standard_name = 'projection_x_coordinate'
+        stvar%jx_var%axis = 'x'
+        stvar%iy_var%vname = 'iy'
+        stvar%iy_var%vunit = 'm'
+        stvar%iy_var%long_name = 'y-coordinate in Cartesian system'
+        stvar%iy_var%standard_name = 'projection_y_coordinate'
+        stvar%iy_var%axis = 'y'
+      else
+        stvar%jx_var%vname = 'rlon'
+        stvar%jx_var%vunit = 'degrees'
+        stvar%jx_var%long_name = 'longitude in rotated pole grid'
+        stvar%jx_var%standard_name = 'grid_longitude'
+        stvar%jx_var%axis = 'x'
+        stvar%iy_var%vname = 'rlat'
+        stvar%iy_var%vunit = 'degrees'
+        stvar%iy_var%long_name = 'latitude in rotated pole grid'
+        stvar%iy_var%standard_name = 'grid_latitude'
+        stvar%iy_var%axis = 'y'
+      end if
       stvar%sigma_var%vname = 'kz'
       stvar%sigma_var%vunit = '1'
       if ( stream%l_full_sigma ) then
