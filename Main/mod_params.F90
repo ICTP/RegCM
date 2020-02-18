@@ -297,7 +297,7 @@ module mod_params
     mo_anu2 = 0.6_rkx
     mo_nadv = 3
     mo_nsound = 6
-    mo_nzfilt = 0
+    mo_nzfilt = 3
     !
     ! Rrtm radiation param ;
     !

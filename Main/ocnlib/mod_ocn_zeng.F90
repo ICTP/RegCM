@@ -501,6 +501,9 @@ module mod_ocn_zeng
         else if ( re <= 1000.0_rkx ) then
           rt = 5.88e5_rkx*re**(-3.935_rkx)
           rq = 2.98e5_rkx*re**(-3.616_rkx)
+        else
+          rt = 1e-10_rkx
+          rq = 1e-10_rkx
         end if
         zot = rt*visa/ustar
         zoq = rq*visa/ustar

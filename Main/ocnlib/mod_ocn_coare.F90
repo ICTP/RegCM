@@ -228,8 +228,6 @@ module mod_ocn_coare
           rr = zo*usr/visa
 
           ! for snow/ice, Andreas, 1987
-          rt = d_one
-          rq = d_one
           if ( iflag ) then
             if ( rr <= 0.135_rkx ) then
               rt = rr*exp(1.250_rkx)
@@ -240,6 +238,9 @@ module mod_ocn_coare
             else if ( rr <= 1000_rkx ) then
               rt = rr*exp(0.317_rkx-0.565_rkx*log(rr)-0.183_rkx*log(rr)*log(rr))
               rq = rr*exp(0.396_rkx-0.512_rkx*log(rr)-0.180_rkx*log(rr)*log(rr))
+            else
+              rt = 1e-10_rkx
+              rq = 1e-10_rkx
             end if
             ! for ocean, Lui et al., 1979
           else
@@ -267,6 +268,9 @@ module mod_ocn_coare
             else if ( rr <= 1000.0_rkx ) then
               rt = 5.88e5_rkx*rr**(-3.935_rkx)
               rq = 2.98e5_rkx*rr**(-3.616_rkx)
+            else
+              rt = 1e-10_rkx
+              rq = 1e-10_rkx
             end if
           end if
 

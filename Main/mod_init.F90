@@ -912,17 +912,21 @@ module mod_init
     ! Initialize the Surface Model
     !
     if ( idynamic == 3 ) then
-      ! Sponge layer at the top of the atmosphere
-      ntop = int(0.08_rkx * real(kz,rkx))
-      zfilt = (kzp1-ntop+mo_nzfilt)*mo_dz
-      do k = 1 , kz
-        if ( k > ntop+mo_nzfilt-1 ) then
-          ffilt(k) = d_zero
-        else
-          zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
-          ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
-        end if
-      end do
+      if ( mo_nzfilt > 0 ) then
+        ! Sponge layer at the top of the atmosphere
+        ntop = int(0.08_rkx * real(kz,rkx))
+        zfilt = (kzp1-ntop+mo_nzfilt)*mo_dz
+        do k = 1 , kz
+          if ( k > ntop+mo_nzfilt-1 ) then
+            ffilt(k) = d_zero
+          else
+            zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)
+            ffilt(k) = 0.8_rkx*sin(d_half*mathpi*zzi)**2
+          end if
+        end do
+      else
+        ffilt(:) = d_zero
+      end if
     else
       call init_slice
     end if

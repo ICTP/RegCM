@@ -1027,7 +1027,7 @@ module mod_bdycod
   !
   subroutine bdyval
     implicit none
-    real(rkx) :: qxint , qrat , tkeint , qext , qint
+    real(rkx) :: qxint , qxext , qrat , tkeint , qext , qint
     integer(ik4) :: i , j , k , n
     real(rkx) :: windavg
     real(rkx) :: xt
@@ -1883,16 +1883,54 @@ module mod_bdycod
         if ( ma%has_bdyleft ) then
           do n = iqfrst , iqlst
             do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = mo_atm%qx(jci1,i,k,n)
-                if ( mo_atm%u(jde1,i,k) >= d_zero ) then
-                  mo_atm%qx(jce1,i,k,n) = d_zero
+              do i = ici1 , ici2
+                qxint = max(mo_atm%qx(jci1,i,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce1,i,k,n),d_zero)
+                windavg = (mo_atm%u(jde1,i,k) + mo_atm%u(jdi1,i,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(jce1,i,k,n) = max(qxext - &
+                              d_half * qxext * dt/dx * windavg, d_zero)
                 else
-                  mo_atm%qx(jce1,i,k,n) = qxint
+                  mo_atm%qx(jce1,i,k,n) = qxext + &
+                              d_half * qxint * dt/dx * windavg
                 end if
               end do
             end do
           end do
+          if ( ma%has_bdybottom ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                qxint = max(mo_atm%qx(jci1,ici1,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce1,ice1,k,n),d_zero)
+                windavg = (mo_atm%u(jde1,ice1,k) + mo_atm%u(jdi1,ice1,k) + &
+                           mo_atm%v(jce1,ide1,k) + mo_atm%u(jce1,idi1,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(jce1,ice1,k,n) = max(qxext - &
+                              0.25_rkx * qxext * dt/dx * windavg, d_zero)
+                else
+                  mo_atm%qx(jce1,ice1,k,n) = qxext + &
+                              0.25_rkx * qxint * dt/dx * windavg
+                end if
+              end do
+            end do
+          end if
+          if ( ma%has_bdytop ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                qxint = max(mo_atm%qx(jci1,ici2,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce1,ice2,k,n),d_zero)
+                windavg = (mo_atm%u(jde1,ice2,k) + mo_atm%u(jdi1,ice2,k) + &
+                           mo_atm%v(jce1,ide2,k) + mo_atm%u(jce1,idi2,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(jce1,ice2,k,n) = max(qxext - &
+                              0.25_rkx * qxext * dt/dx * windavg, d_zero)
+                else
+                  mo_atm%qx(jce1,ice2,k,n) = qxext + &
+                              0.25_rkx * qxint * dt/dx * windavg
+                end if
+              end do
+            end do
+          end if
         end if
         !
         ! east boundary:
@@ -1900,16 +1938,54 @@ module mod_bdycod
         if ( ma%has_bdyright ) then
           do n = iqfrst , iqlst
             do k = 1 , kz
-              do i = ice1 , ice2
-                qxint = mo_atm%qx(jci2,i,k,n)
-                if ( mo_atm%u(jde2,i,k) <= d_zero ) then
-                  mo_atm%qx(jce2,i,k,n) = d_zero
+              do i = ici1 , ici2
+                qxint = max(mo_atm%qx(jci2,i,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce2,i,k,n),d_zero)
+                windavg = (mo_atm%u(jde2,i,k) + mo_atm%u(jdi2,i,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(jce2,i,k,n) = max(qxext + &
+                              d_half * qxext * dt/dx * windavg, d_zero)
                 else
-                  mo_atm%qx(jce2,i,k,n) = qxint
+                  mo_atm%qx(jce2,i,k,n) = qxext - &
+                              d_half * qxint * dt/dx * windavg
                 end if
               end do
             end do
           end do
+          if ( ma%has_bdybottom ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                qxint = max(mo_atm%qx(jci2,ici1,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce2,ice1,k,n),d_zero)
+                windavg = (mo_atm%u(jde2,ice1,k) + mo_atm%u(jdi2,ice1,k) + &
+                           mo_atm%v(jce2,ide1,k) + mo_atm%u(jce2,idi1,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(jce2,ice1,k,n) = max(qxext + &
+                              0.25_rkx * qxext * dt/dx * windavg,d_zero)
+                else
+                  mo_atm%qx(jce2,ice1,k,n) = qxext - &
+                              0.25_rkx * qxint * dt/dx * windavg
+                end if
+              end do
+            end do
+          end if
+          if ( ma%has_bdytop ) then
+            do n = iqfrst , iqlst
+              do k = 1 , kz
+                qxint = max(mo_atm%qx(jci2,ici2,k,n),d_zero)
+                qxext = max(mo_atm%qx(jce2,ice2,k,n),d_zero)
+                windavg = (mo_atm%u(jde2,ice2,k) + mo_atm%u(jdi2,ice2,k) + &
+                           mo_atm%v(jce2,ide2,k) + mo_atm%u(jce2,idi2,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(jce2,ice2,k,n) = max(qxext + &
+                              0.25_rkx * qxext * dt/dx * windavg,d_zero)
+                else
+                  mo_atm%qx(jce2,ice2,k,n) = qxext - &
+                              0.25_rkx * qxint * dt/dx * windavg
+                end if
+              end do
+            end do
+          end if
         end if
         !
         ! south boundary:
@@ -1918,11 +1994,15 @@ module mod_bdycod
           do n = iqfrst , iqlst
             do k = 1 , kz
               do j = jci1 , jci2
-                qxint = mo_atm%qx(j,ici1,k,n)
-                if ( mo_atm%v(j,ide1,k) >= d_zero ) then
-                  mo_atm%qx(j,ice1,k,n) = d_zero
+                qxint = max(mo_atm%qx(j,ici1,k,n),d_zero)
+                qxext = max(mo_atm%qx(j,ice1,k,n),d_zero)
+                windavg = (mo_atm%v(j,ide1,k) + mo_atm%v(j,idi1,k))
+                if ( windavg >= d_zero ) then
+                  mo_atm%qx(j,ice1,k,n) = max(qxext - &
+                                d_half * qxext * dt/dx * windavg,d_zero)
                 else
-                  mo_atm%qx(j,ice1,k,n) = qxint
+                  mo_atm%qx(j,ice1,k,n) = qxext + &
+                                d_half * qxint * dt/dx * windavg
                 end if
               end do
             end do
@@ -1935,11 +2015,15 @@ module mod_bdycod
           do n = iqfrst , iqlst
             do k = 1 , kz
               do j = jci1 , jci2
-                qxint = mo_atm%qx(j,ici2,k,n)
-                if ( mo_atm%v(j,ide2,k) <= d_zero ) then
-                  mo_atm%qx(j,ice2,k,n) = d_zero
+                qxint = max(mo_atm%qx(j,ici2,k,n),d_zero)
+                qxext = max(mo_atm%qx(j,ice2,k,n),d_zero)
+                windavg = (mo_atm%v(j,ide2,k) + mo_atm%v(j,idi2,k))
+                if ( windavg <= d_zero ) then
+                  mo_atm%qx(j,ice2,k,n) = max(qxext + &
+                                d_half * qxext * dt/dx * windavg,d_zero)
                 else
-                  mo_atm%qx(j,ice2,k,n) = qxint
+                  mo_atm%qx(j,ice2,k,n) = qxext - &
+                                d_half * qxint * dt/dx * windavg
                 end if
               end do
             end do

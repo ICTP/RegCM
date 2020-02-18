@@ -133,11 +133,11 @@ module mod_moloch
         call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
       end if
     end if
+    call getmem3d(ud,jde1,jde2,ice1,ice2,1,kz,'moloch:ud')
+    call getmem3d(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
     if ( ifrayd == 1 ) then
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
-      call getmem3d(ud,jde1,jde2,ice1,ice2,1,kz,'moloch:ud')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
-      call getmem3d(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
     end if
     if ( do_fulleq ) then
       if ( ipptls /= 1 ) then
@@ -346,9 +346,6 @@ module mod_moloch
         cadvhdiag = (trac(jci1:jci2,ici1:ici2,:,:) - chiten0) * rdt
       end if
     end if
-    !
-    ! lateral/damping boundary condition
-    !
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -376,6 +373,26 @@ module mod_moloch
       end do
     end do
     !
+    ! Lateral/damping boundary condition
+    !
+    if ( do_bdy ) then
+      call boundary
+      if ( i_crm /= 1 ) then
+        if ( ifrayd == 1 ) then
+          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
+          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+        end if
+      end if
+    else
+      if ( debug_level > 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
+        end if
+      end if
+    end if
+    !
     ! Mass check
     !
     if ( debug_level > 0 ) call massck
@@ -392,26 +409,6 @@ module mod_moloch
       if ( debug_level > 1 ) then
         if ( myid == italk ) then
           write(stdout,*) 'WARNING: Physical package disabled!!!'
-        end if
-      end if
-    end if
-    !
-    ! Boundary values
-    !
-    if ( do_bdy ) then
-      call boundary
-      if ( i_crm /= 1 ) then
-        if ( ifrayd == 1 ) then
-          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
-          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
-        end if
-      end if
-    else
-      if ( debug_level > 1 ) then
-        if ( myid == italk ) then
-          write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
         end if
       end if
     end if
@@ -532,9 +529,9 @@ module mod_moloch
         end do
       end subroutine filt3d
 
-      subroutine sound(dtsound)
+      subroutine sound(dts)
         implicit none
-        real(rkx) , intent(in) :: dtsound
+        real(rkx) , intent(in) :: dts
         integer(ik4) :: i , j , k
         real(rkx) :: zuh , zvh , zcx , zcy
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
@@ -544,9 +541,9 @@ module mod_moloch
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 
-        zdtrdx = dtsound/dx
-        zdtrdy = dtsound/dx
-        zdtrdz = dtsound/mo_dz
+        zdtrdx = dts/dx
+        zdtrdy = dts/dx
+        zdtrdz = dts/mo_dz
         zcs2   = zdtrdz**2*rdrcv
 
         !  sound waves
@@ -565,8 +562,8 @@ module mod_moloch
           call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
           call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
 
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ice1 , ici2
+            do j = jce1 , jci2
               zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
               zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
               w(j,i,kzp1) = d_half * (zuh+zvh)
@@ -641,25 +638,25 @@ module mod_moloch
                   if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                        w(j,i,k) > 0.1_rkx ) then
                     zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k-1))
-                    zdth = egrav*w(j,i,k)*(jsound-1)*dtsound*wlhv*wlhv* &
+                    zdth = egrav*w(j,i,k)*(jsound-1)*dts*wlhv*wlhv* &
                       zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
                     zrom1w = zrom1w + zdth*fmzf(j,i,k)
                   end if
                 end if
                 zwexpl = w(j,i,k) - zrom1w * zdtrdz * &
-                         (pai(j,i,k-1) - pai(j,i,k)) - egrav*dtsound
+                         (pai(j,i,k-1) - pai(j,i,k)) - egrav*dts
                 zwexpl = zwexpl + rdrcv * zrom1w * zdtrdz * &
                          (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
                           pai(j,i,k)   * zdiv2(j,i,k))
                 ! computation of the tridiagonal matrix coefficients
                 ! -zp*w(k+1) + (1+zp+zm)*w(k) - zm*w(k-1) = zwexpl
-                zm = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
-                zp = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
+                zp = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
+                zm = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
                 ! 1st loop for the tridiagonal inversion
                 ! a = -zm ; b = (1+zp+zm) ; c = -zp
-                zrapp = d_one / (d_one + zm + zp - zp*wwkw(j,i,k+1))
-                w(j,i,k) = zrapp * (zwexpl + zp * w(j,i,k+1))
-                wwkw(j,i,k) = zrapp * zm
+                zrapp = d_one / (d_one + zm + zp - zm*wwkw(j,i,k+1))
+                w(j,i,k) = zrapp * (zwexpl + zm * w(j,i,k+1))
+                wwkw(j,i,k) = zrapp * zp
               end do
             end do
           end do
@@ -733,11 +730,11 @@ module mod_moloch
                 zcx = zdtrdx * mu(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                   deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
+                   deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
                 zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
                 zcor1u = coriol(j,i) * vd(j,i,k)
                 ! Equation 17
-                u(j,i,k) = u(j,i,k) + zcor1u * dtsound - &
+                u(j,i,k) = u(j,i,k) + zcor1u * dts - &
                            zfz * hx(j,i) * gzitak - &
                            zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
               end do
@@ -751,11 +748,11 @@ module mod_moloch
                 zcy = zdtrdy * mv(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                   deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dtsound
+                   deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
                 zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
                 zcor1v = coriol(j,i) * ud(j,i,k)
                 ! Equation 18
-                v(j,i,k) = v(j,i,k) - zcor1v * dtsound - &
+                v(j,i,k) = v(j,i,k) - zcor1v * dts - &
                            zfz * hy(j,i) * gzitak -  &
                            zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
               end do
@@ -786,10 +783,10 @@ module mod_moloch
         end do
       end subroutine sound
 
-      subroutine advection(dtstepa)
+      subroutine advection(dta)
         implicit none
         integer(ik4) :: n
-        real(rkx) :: dtstepa
+        real(rkx) :: dta
         real(rkx) , pointer , dimension(:,:,:) :: ptr
 
         call uvstagtox(u,v,ux,vx)
@@ -802,25 +799,25 @@ module mod_moloch
           call wstagtox(tke,tkex)
         end if
 
-        call wafone(tetav,dtstepa)
-        call wafone(pai,dtstepa)
-        call wafone(ux,dtstepa)
-        call wafone(vx,dtstepa)
-        call wafone(wx,dtstepa)
-        call wafone(qv,dtstepa)
+        call wafone(tetav,dta)
+        call wafone(pai,dta)
+        call wafone(ux,dta)
+        call wafone(vx,dta)
+        call wafone(wx,dta)
+        call wafone(qv,dta)
         if ( ipptls > 0 ) then
           do n = iqfrst , iqlst
             call assignpnt(qx,ptr,n)
-            call wafone(ptr,dtstepa)
+            call wafone(ptr,dta)
           end do
         end if
         if ( ibltyp == 2 ) then
-          call wafone(tkex,dtstepa)
+          call wafone(tkex,dta)
         end if
         if ( ichem == 1 ) then
           do n = 1 , ntr
             call assignpnt(trac,ptr,n)
-            call wafone(ptr,dtstepa)
+            call wafone(ptr,dta)
           end do
         end if
 
@@ -842,19 +839,19 @@ module mod_moloch
         rdeno = (t1-t2)/sign(max(abs(zzden),minden),zzden)
       end function rdeno
 
-      subroutine wafone(pp,dtstepa)
+      subroutine wafone(pp,dta)
         implicit none
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
-        real(rkx) , intent(in) :: dtstepa
+        real(rkx) , intent(in) :: dta
         integer(ik4) :: j , i , k
-        integer(ik4) :: k1 , k1p1 , ih , ihm1 , im1 , jh , jhm1 , jm1
+        integer(ik4) :: k1 , k1p1 , ih , ihm1 , jh , jhm1
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmp , zrfmm
-        real(rkx) :: zrfmn , zrfmw , zrfme , zrfms , wgt
+        real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
 
-        zdtrdx = dtstepa/dx
-        zdtrdy = dtstepa/dx
-        zdtrdz = dtstepa/mo_dz
+        zdtrdx = dta/dx
+        zdtrdy = dta/dx
+        zdtrdz = dta/mo_dz
 
         ! Vertical advection
 
@@ -864,34 +861,37 @@ module mod_moloch
         end do
 
         do i = ici1 , ici2
-          do k = kzm1 , 1 , -1
+          do k = 2 , kz
             do j = jci1 , jci2
-              zamu = s(j,i,k+1)*zdtrdz
+              zamu = s(j,i,k)*zdtrdz
               if ( zamu >= d_zero ) then
                 is = d_one
-                k1 = k + 1
+                k1 = k
                 k1p1 = k1 + 1
                 if ( k1p1 > kz ) k1p1 = kz
               else
                 is = -d_one
-                k1 = k - 1
-                k1p1 = k1 + 1
+                k1 = k - 2
                 if ( k1 < 1 ) k1 = 1
+                k1p1 = k1 + 1
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
+              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k-1),pp(j,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,k+1) = d_half * s(j,i,k+1) *((d_one+zphi)*pp(j,i,k+1) + &
-                                                 (d_one-zphi)*pp(j,i,k))
+              wfw(j,k) = d_half * s(j,i,k) * ((d_one+zphi)*pp(j,i,k) + &
+                                              (d_one-zphi)*pp(j,i,k-1))
+              !wfw(j,k) = d_half * zamu * ((d_one+zphi)*pp(j,i,k) + &
+              !                            (d_one-zphi)*pp(j,i,k-1))
             end do
           end do
           do k = 1 , kz
             do j = jci1 , jci2
-              wgt = fmz(j,i,k)/fmzf(j,i,k)
-              zrfmm = zdtrdz * wgt
-              zrfmp = zdtrdz * (d_two - wgt)
-              zdv = (s(j,i,k)*zrfmm - s(j,i,k+1)*zrfmp) * pp(j,i,k)
-              wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmm + wfw(j,k+1)*zrfmp + zdv
+              zrfmm = zdtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
+              zrfmp = zdtrdz * fmz(j,i,k)/fmzf(j,i,k)
+              zdv = (s(j,i,k)*zrfmp - s(j,i,k+1)*zrfmm) * pp(j,i,k)
+              wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmp + wfw(j,k+1)*zrfmm + zdv
+              !zdv = (s(j,i,k) - s(j,i,k+1)) * zdtrdz * pp(j,i,k)
+              !wz(j,i,k) = pp(j,i,k) - wfw(j,k) + wfw(j,k+1) + zdv
             end do
           end do
         end do
@@ -921,26 +921,24 @@ module mod_moloch
               zamu = v(j,i,k) * rmv(j,i) * zdtrdy
               if ( zamu > d_zero ) then
                 is = d_one
-                ih = max(i-1,icross1+1)
+                ih = i-1
               else
                 is = -d_one
-                ih = min(i+1,icross2-1)
+                ih = min(i+1,icross2)
               end if
-              ihm1 = ih-1
-              im1 = i-1
-              r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,im1,k))
+              ihm1 = max(ih-1,icross1)
+              r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
               zpby(j,i) = d_half * v(j,i,k) * rmv(j,i) * &
-                ((d_one+zphi)*wz(j,im1,k) + (d_one-zphi)*wz(j,i,k))
+                ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
             end do
           end do
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              wgt = fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-              zrfmn = zdtrdy * d_two * wgt
-              zrfms = zdtrdy * d_two * (d_one - wgt)
+              zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+              zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
               zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
                      v(j,i,k) * rmv(j,i) * zrfms) * pp(j,i,k)
               p0(j,i,k) = wz(j,i,k) + &
@@ -975,26 +973,24 @@ module mod_moloch
               zamu = u(j,i,k) * rmu(j,i) * zdtrdx
               if ( zamu > d_zero ) then
                 is = d_one
-                jh = max(j-1,jcross1+1)
+                jh = j-1
               else
                 is = -d_one
-                jh = min(j+1,jcross2-1)
+                jh = min(j+1,jcross2)
               end if
-              jhm1 = jh-1
-              jm1 = j-1
-              r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(jm1,i,k))
+              jhm1 = max(jh-1,jcross1)
+              r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu*b - is*b
               zpbw(j,i) = d_half * u(j,i,k) * rmu(j,i) * &
-                   ((d_one+zphi)*p0(jm1,i,k) + (d_one-zphi)*p0(j,i,k))
+                   ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
             end do
           end do
 
           do i = ici1 , ici2
             do j = jci1 , jci2
-              wgt = fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-              zrfme = zdtrdx * d_two * wgt
-              zrfmw = zdtrdx * d_two * (d_one - wgt)
+              zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+              zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
               zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
                      u(j,i,k) * rmu(j,i) * zrfmw) * pp(j,i,k)
               pp(j,i,k) = p0(j,i,k) + &
@@ -1196,7 +1192,7 @@ module mod_moloch
         qx(jci1:jci2,ici1:ici2,:,:) = qx(jci1:jci2,ici1:ici2,:,:) + dtsec * &
                        mo_atm%qxten(jci1:jci2,ici1:ici2,:,:)
         qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst) = &
-                       max(qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst),minqc)
+                       max(qx(jci1:jci2,ici1:ici2,:,iqfrst:iqlst),d_zero)
         qx(jci1:jci2,ici1:ici2,:,iqv) = &
                        max(qx(jci1:jci2,ici1:ici2,:,iqv),minqq)
         if ( ibltyp == 2 ) then
