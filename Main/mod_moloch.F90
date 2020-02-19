@@ -69,6 +69,8 @@ module mod_moloch
   real(rkx) , pointer , dimension(:,:,:) :: qen0
   real(rkx) , pointer , dimension(:,:,:,:) :: chiten0
 
+  real(rkx) , dimension(:) , pointer :: gzitak
+  real(rkx) , dimension(:) , pointer :: gzitakh
   real(rkx) , dimension(:,:) , pointer :: p2d
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coriol
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
@@ -107,6 +109,8 @@ module mod_moloch
 
   subroutine allocate_moloch
     implicit none
+    call getmem1d(gzitak,1,kzp1,'moloch:gzitak')
+    call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
     call getmem2d(p2d,jci1,jci2,ici1,ici2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
@@ -197,6 +201,8 @@ module mod_moloch
     mx2 = mx * mx
     rmu = d_one/mu
     rmv = d_one/mv
+    gzitak = gzita(zita)
+    gzitakh = gzita(zitah)
     deltaw = d_zero
   end subroutine init_moloch
   !
@@ -373,26 +379,6 @@ module mod_moloch
       end do
     end do
     !
-    ! Lateral/damping boundary condition
-    !
-    if ( do_bdy ) then
-      call boundary
-      if ( i_crm /= 1 ) then
-        if ( ifrayd == 1 ) then
-          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
-          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
-          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
-          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
-        end if
-      end if
-    else
-      if ( debug_level > 1 ) then
-        if ( myid == italk ) then
-          write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
-        end if
-      end if
-    end if
-    !
     ! Mass check
     !
     if ( debug_level > 0 ) call massck
@@ -409,6 +395,26 @@ module mod_moloch
       if ( debug_level > 1 ) then
         if ( myid == italk ) then
           write(stdout,*) 'WARNING: Physical package disabled!!!'
+        end if
+      end if
+    end if
+    !
+    ! Lateral/damping boundary condition
+    !
+    if ( do_bdy ) then
+      call boundary
+      if ( i_crm /= 1 ) then
+        if ( ifrayd == 1 ) then
+          call raydamp(zetau,u,xub,jdi1,jdi2,ici1,ici2,1,kz)
+          call raydamp(zetav,v,xvb,jci1,jci2,idi1,idi2,1,kz)
+          call raydamp(zeta,t,xtb,jci1,jci2,ici1,ici2,1,kz)
+          call raydamp(zeta,pai,xpaib,jci1,jci2,ici1,ici2,1,kz)
+        end if
+      end if
+    else
+      if ( debug_level > 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'WARNING: Physical boundary package disabled!!!'
         end if
       end if
     end if
@@ -537,7 +543,7 @@ module mod_moloch
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zdiv , zqs , zdth
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
-        real(rkx) :: zfz , gzitak , zcor1u , zcor1v
+        real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
 
@@ -578,14 +584,13 @@ module mod_moloch
           ! Equation 10, generalized vertical velocity
 
           do k = kz , 2 , -1
-            gzitak = gzita(zita(k))
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
                       (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
                 zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
                       (v(j,i+1,k) + v(j,i+1,k-1)) * hy(j,i+1)
-                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak
+                s(j,i,k) = -0.25_rkx * (zuh+zvh) * gzitak(k)
               end do
             end do
           end do
@@ -724,7 +729,6 @@ module mod_moloch
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
           do k = 1 , kz
-            gzitak = gzita(zitah(k))
             do i = ici1 , ici2
               do j = jdi1 , jdi2
                 zcx = zdtrdx * mu(j,i)
@@ -735,14 +739,13 @@ module mod_moloch
                 zcor1u = coriol(j,i) * vd(j,i,k)
                 ! Equation 17
                 u(j,i,k) = u(j,i,k) + zcor1u * dts - &
-                           zfz * hx(j,i) * gzitak - &
+                           zfz * hx(j,i) * gzitakh(k) - &
                            zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
               end do
             end do
           end do
 
           do k = 1 , kz
-            gzitak = gzita(zitah(k))
             do i = idi1 , idi2
               do j = jci1 , jci2
                 zcy = zdtrdy * mv(j,i)
@@ -753,7 +756,7 @@ module mod_moloch
                 zcor1v = coriol(j,i) * ud(j,i,k)
                 ! Equation 18
                 v(j,i,k) = v(j,i,k) - zcor1v * dts - &
-                           zfz * hy(j,i) * gzitak -  &
+                           zfz * hy(j,i) * gzitakh(k) -  &
                            zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
               end do
             end do

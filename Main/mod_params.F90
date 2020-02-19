@@ -293,7 +293,7 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 0.0003_rkx
     rayhd = 10000.0_rkx
-    mo_wmax = 100.0_rkx
+    mo_wmax = 150.0_rkx
     mo_anu2 = 0.6_rkx
     mo_nadv = 3
     mo_nsound = 6
