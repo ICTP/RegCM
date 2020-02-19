@@ -113,7 +113,7 @@ module mod_moloch
     call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
     call getmem2d(p2d,jci1,jci2,ici1,ici2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
-    call getmem3d(s,jci1,jci2,ici1,ici2,1,kzp1,'moloch:s')
+    call getmem3d(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
     call getmem3d(zdiv2,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'moloch:zdiv2')
     call getmem3d(wwkw,jce1,jce2,ice1,ice2,1,kzp1,'moloch:wwkw')
@@ -538,7 +538,7 @@ module mod_moloch
       subroutine sound(dts)
         implicit none
         real(rkx) , intent(in) :: dts
-        integer(ik4) :: i , j , k
+        integer(ik4) :: i , j , k , im1 , ip1 , jm1 , jp1
         real(rkx) :: zuh , zvh , zcx , zcy
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zdiv , zqs , zdth
@@ -568,15 +568,15 @@ module mod_moloch
           call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
           call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
 
-          do i = ice1 , ici2
-            do j = jce1 , jci2
+          do i = ice1 , ice2
+            do j = jce1 , jce2
               zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
               zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
               w(j,i,kzp1) = d_half * (zuh+zvh)
             end do
           end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
+          do i = ice1 , ice2
+            do j = jce1 , jce2
               s(j,i,kzp1) = -w(j,i,kzp1)
             end do
           end do
@@ -584,8 +584,8 @@ module mod_moloch
           ! Equation 10, generalized vertical velocity
 
           do k = kz , 2 , -1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
                       (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
                 zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
@@ -599,12 +599,16 @@ module mod_moloch
           ! Equation 16
 
           do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                zrfmzu  = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
-                zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
-                zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
-                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                jm1 = max(jcross1,j-1)
+                jp1 = min(jcross2,j+1)
+                im1 = max(icross1,i-1)
+                ip1 = min(icross2,i+1)
+                zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
+                zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,im1,k))
+                zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
+                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
                 zum = u(j,i,k) * rmu(j,i) * zrfmzu
                 zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
                 zvm = v(j,i,k) * rmv(j,i) * zrfmzv
@@ -618,8 +622,8 @@ module mod_moloch
           call filt3d
 
           do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
                        zdtrdz * (s(j,i,k) - s(j,i,k+1))
               end do
@@ -629,8 +633,8 @@ module mod_moloch
           ! new w (implicit scheme) from Equation 19
 
           do k = kz , 2 , -1
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 deltaw(j,i,k) = -w(j,i,k)
                 ! explicit w:
                 !    it must be consistent with the initialization of pai
@@ -668,8 +672,8 @@ module mod_moloch
 
           ! 2nd loop for the tridiagonal inversion
           do k = 2 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
+            do i = ice1 , ice2
+              do j = jce1 , jce2
                 w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
                 deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
               end do
