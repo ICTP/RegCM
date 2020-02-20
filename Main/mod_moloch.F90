@@ -519,6 +519,7 @@ module mod_moloch
         integer(ik4) :: j , i , k
 
         call exchange_lrbt(zdiv2,1,jce1,jce2,ice1,ice2,1,kz)
+
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
@@ -600,11 +601,11 @@ module mod_moloch
 
           do k = 1 , kz
             do i = ice1 , ice2
+              im1 = max(icross1,i-1)
+              ip1 = min(icross2,i+1)
               do j = jce1 , jce2
                 jm1 = max(jcross1,j-1)
                 jp1 = min(jcross2,j+1)
-                im1 = max(icross1,i-1)
-                ip1 = min(icross2,i+1)
                 zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
                 zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,im1,k))
                 zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))

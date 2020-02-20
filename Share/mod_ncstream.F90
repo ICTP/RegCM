@@ -3368,7 +3368,7 @@ module mod_ncstream
       call add_attribute(stream,attc,stvar%sigma_var%id,stvar%sigma_var%vname)
       if ( idynamic == 3 ) then
         attc%aname = 'formula'
-        attc%theval = 'z(k,j,i) = a(k) * topo(j,i) + b(k)'
+        attc%theval = 'z(k,j,i) = a(k) + topo(j,i) * b(k)'
       else if ( idynamic == 2 ) then
         attc%aname = 'formula'
         attc%theval = 'p(n,k,j,i) = ptop + kz(k)*(p0(j,i)-ptop)+ppa(n,k,j,i)'

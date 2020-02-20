@@ -473,6 +473,7 @@ program sigma2p
     istatus = nf90_get_var(ncid, ivarid, bk)
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable b.')
     do k = 1 , kz
+      ! height above the surface here
       zeta(:,:,k) = ak(k) + (bk(k) - d_one) * topo(:,:)
     end do
   end if

@@ -2747,13 +2747,13 @@ module mod_params
         do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
-              mddom%msfu(j,i) * rdx * regrav
+                             mddom%msfu(j,i) * rdx * regrav
           end do
         end do
         do i = idi1 , idi2
           do j = jce1 , jce2
             mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-              mddom%msfv(j,i) * rdx * regrav
+                             mddom%msfv(j,i) * rdx * regrav
           end do
         end do
         if ( ma%has_bdyleft ) then
