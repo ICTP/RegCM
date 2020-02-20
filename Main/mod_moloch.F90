@@ -542,7 +542,7 @@ module mod_moloch
         integer(ik4) :: i , j , k , im1 , ip1 , jm1 , jp1
         real(rkx) :: zuh , zvh , zcx , zcy
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
-        real(rkx) :: zup , zum , zvp , zvm , zdiv , zqs , zdth
+        real(rkx) :: zup , zum , zvp , zvm , zqs , zdth
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
@@ -614,8 +614,7 @@ module mod_moloch
                 zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
                 zvm = v(j,i,k) * rmv(j,i) * zrfmzv
                 zvp = v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
-                zdiv = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
-                zdiv2(j,i,k) = mx2(j,i) * zdiv * fmz(j,i,k)
+                zdiv2(j,i,k) = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
               end do
             end do
           end do
@@ -625,8 +624,8 @@ module mod_moloch
           do k = 1 , kz
             do i = ice1 , ice2
               do j = jce1 , jce2
-                zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
-                       zdtrdz * (s(j,i,k) - s(j,i,k+1))
+                zdiv2(j,i,k) = fmz(j,i,k) * (mx2(j,i) * zdiv2(j,i,k) + &
+                       zdtrdz * (s(j,i,k) - s(j,i,k+1)))
               end do
             end do
           end do
@@ -735,7 +734,7 @@ module mod_moloch
 
           do k = 1 , kz
             do i = ici1 , ici2
-              do j = jdi1 , jdi2
+              do j = jdii1 , jdii2
                 zcx = zdtrdx * mu(j,i)
                 zfz = 0.25_rkx * &
                   (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
@@ -751,7 +750,7 @@ module mod_moloch
           end do
 
           do k = 1 , kz
-            do i = idi1 , idi2
+            do i = idii1 , idii2
               do j = jci1 , jci2
                 zcy = zdtrdy * mv(j,i)
                 zfz = 0.25_rkx * &
@@ -1223,17 +1222,21 @@ module mod_moloch
     implicit none
     real(rkx) , intent(in) , dimension(:,:,:) , pointer :: w
     real(rkx) , intent(inout) , dimension(:,:,:) , pointer :: wx
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i , j , k , i1 , i2 , j1 , j2
+    i1 = lbound(wx,2)
+    i2 = ubound(wx,2)
+    j1 = lbound(wx,1)
+    j2 = ubound(wx,1)
     do k = 2 , kzm1
-      do i = lbound(wx,2) , ubound(wx,2)
-        do j = lbound(wx,1) , ubound(wx,1)
+      do i = i1 , i2
+        do j = j1 , j2
           wx(j,i,k) = 0.5625_rkx * (w(j,i,k+1)+w(j,i,k)) - &
                       0.0625_rkx * (w(j,i,k+2)+w(j,i,k-1))
         end do
       end do
     end do
-    do i = lbound(wx,2) , ubound(wx,2)
-      do j = lbound(wx,1) , ubound(wx,1)
+    do i = i1 , i2
+      do j = j1 , j2
         wx(j,i,1)  = 0.5_rkx * (w(j,i,2)+w(j,i,1))
         wx(j,i,kz) = 0.5_rkx * (w(j,i,kzp1)+w(j,i,kz))
       end do
