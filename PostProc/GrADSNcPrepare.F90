@@ -392,6 +392,7 @@ program ncprepare
   pjpara%nlat = iy
   pjpara%staggerx = .false.
   pjpara%staggery = .false.
+  pjpara%rotparam = .true.
   call pj%initialize(pjpara)
 
   if ( iproj == 'ROTLLR' ) then
