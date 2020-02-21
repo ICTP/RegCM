@@ -24,6 +24,7 @@ module mod_write
   use mod_dynparam
   use mod_ncstream_types
   use mod_ncstream
+  use mod_memutil
 
   private
 
@@ -97,13 +98,13 @@ module mod_write
     lrmoist = .false.
 
     if ( idynamic == 1 ) then
-      nvar2d = 13
+      nvar2d = 14
       nvar3d = 2
     else if ( idynamic == 2 ) then
-      nvar2d = 14
+      nvar2d = 15
       nvar3d = 6
     else if ( idynamic == 3 ) then
-      nvar2d = 18
+      nvar2d = 19
       nvar3d = 4
     end if
     allocate(v2dvar_base(nvar2d))
@@ -156,6 +157,10 @@ module mod_write
     v2dvar_base(11)%long_name = 'Texture dominant category'
     v2dvar_base(11)%standard_name = 'soil_type'
     idtxt = 11
+    v2dvar_base(12)%vname = 'areacella'
+    v2dvar_base(12)%vunit = 'm2'
+    v2dvar_base(12)%long_name = 'Atmosphere >Grid-Cell Area'
+    v2dvar_base(12)%standard_name = 'cell_area'
 
     v2dvar_lake%vname = 'dhlake'
     v2dvar_lake%vunit = 'm'
@@ -176,48 +181,48 @@ module mod_write
     v3dvar_base(2)%lfillvalue = .true.
 
     if ( idynamic == 3 ) then
-      v2dvar_base(12)%vname = 'ulon'
-      v2dvar_base(12)%vunit = 'degrees_east'
-      v2dvar_base(12)%long_name = 'Longitude on U Points'
-      v2dvar_base(12)%standard_name = 'longitude'
-      v2dvar_base(13)%vname = 'ulat'
-      v2dvar_base(13)%vunit = 'degrees_north'
-      v2dvar_base(13)%long_name = 'latitude'
-      v2dvar_base(13)%standard_name = 'Latitude on U Points'
-      v2dvar_base(14)%vname = 'vlon'
-      v2dvar_base(14)%vunit = 'degrees_east'
-      v2dvar_base(14)%long_name = 'Longitude on V Points'
-      v2dvar_base(14)%standard_name = 'longitude'
-      v2dvar_base(15)%vname = 'vlat'
-      v2dvar_base(15)%vunit = 'degrees_north'
-      v2dvar_base(15)%long_name = 'latitude'
-      v2dvar_base(15)%standard_name = 'Latitude on V Points'
-      v2dvar_base(16)%vname = 'xmap'
-      v2dvar_base(16)%vunit = '1'
-      v2dvar_base(16)%long_name = 'Map Factor on Cross Points'
-      v2dvar_base(16)%standard_name = 'map_factor'
-      v2dvar_base(17)%vname = 'umap'
+      v2dvar_base(13)%vname = 'ulon'
+      v2dvar_base(13)%vunit = 'degrees_east'
+      v2dvar_base(13)%long_name = 'Longitude on U Points'
+      v2dvar_base(13)%standard_name = 'longitude'
+      v2dvar_base(14)%vname = 'ulat'
+      v2dvar_base(14)%vunit = 'degrees_north'
+      v2dvar_base(14)%long_name = 'latitude'
+      v2dvar_base(14)%standard_name = 'Latitude on U Points'
+      v2dvar_base(15)%vname = 'vlon'
+      v2dvar_base(15)%vunit = 'degrees_east'
+      v2dvar_base(15)%long_name = 'Longitude on V Points'
+      v2dvar_base(15)%standard_name = 'longitude'
+      v2dvar_base(16)%vname = 'vlat'
+      v2dvar_base(16)%vunit = 'degrees_north'
+      v2dvar_base(16)%long_name = 'latitude'
+      v2dvar_base(16)%standard_name = 'Latitude on V Points'
+      v2dvar_base(17)%vname = 'xmap'
       v2dvar_base(17)%vunit = '1'
-      v2dvar_base(17)%long_name = 'Map Factor on U Points'
+      v2dvar_base(17)%long_name = 'Map Factor on Cross Points'
       v2dvar_base(17)%standard_name = 'map_factor'
-      v2dvar_base(18)%vname = 'vmap'
+      v2dvar_base(18)%vname = 'umap'
       v2dvar_base(18)%vunit = '1'
-      v2dvar_base(18)%long_name = 'Map Factor on V Points'
+      v2dvar_base(18)%long_name = 'Map Factor on U Points'
       v2dvar_base(18)%standard_name = 'map_factor'
+      v2dvar_base(19)%vname = 'vmap'
+      v2dvar_base(19)%vunit = '1'
+      v2dvar_base(19)%long_name = 'Map Factor on V Points'
+      v2dvar_base(19)%standard_name = 'map_factor'
     else
-      v2dvar_base(12)%vname = 'xmap'
-      v2dvar_base(12)%vunit = '1'
-      v2dvar_base(12)%long_name = 'Map Factor on Cross Points'
-      v2dvar_base(12)%standard_name = 'map_factor'
-      v2dvar_base(13)%vname = 'dmap'
+      v2dvar_base(13)%vname = 'xmap'
       v2dvar_base(13)%vunit = '1'
-      v2dvar_base(13)%long_name = 'Map Factor on Dot Points'
+      v2dvar_base(13)%long_name = 'Map Factor on Cross Points'
       v2dvar_base(13)%standard_name = 'map_factor'
+      v2dvar_base(14)%vname = 'dmap'
+      v2dvar_base(14)%vunit = '1'
+      v2dvar_base(14)%long_name = 'Map Factor on Dot Points'
+      v2dvar_base(14)%standard_name = 'map_factor'
       if ( idynamic == 2 ) then
-        v2dvar_base(14)%vname = 'ps0'
-        v2dvar_base(14)%vunit = 'Pa'
-        v2dvar_base(14)%long_name = 'Reference State Surface Pressure'
-        v2dvar_base(14)%standard_name = 'air_pressure'
+        v2dvar_base(15)%vname = 'ps0'
+        v2dvar_base(15)%vunit = 'Pa'
+        v2dvar_base(15)%long_name = 'Reference State Surface Pressure'
+        v2dvar_base(15)%standard_name = 'air_pressure'
       end if
     end if
 
@@ -254,6 +259,8 @@ module mod_write
       v3dvar_base(6)%standard_name = 'heigth'
       v3dvar_base(6)%axis = 'xyz'
     end if
+
+    call getmem2d(v2dvar_base(12)%rval,1,jx,1,iy,'mod_write:areacella')
 
   end subroutine setup_outvars
 
@@ -292,6 +299,7 @@ module mod_write
 
     type(nc_output_stream) :: ncout
     type(ncoutstream_params) :: opar
+    real(rkx) :: dx
     integer(ik4) :: ivar
 
     opar%fname = fname
@@ -385,21 +393,28 @@ module mod_write
     end if
 
     if ( idynamic == 3 ) then
-      v2dvar_base(12)%rval => ulon
-      v2dvar_base(13)%rval => ulat
-      v2dvar_base(14)%rval => vlon
-      v2dvar_base(15)%rval => vlat
-      v2dvar_base(16)%rval => xmap
-      v2dvar_base(17)%rval => umap
-      v2dvar_base(18)%rval => vmap
+      v2dvar_base(13)%rval => ulon
+      v2dvar_base(14)%rval => ulat
+      v2dvar_base(15)%rval => vlon
+      v2dvar_base(16)%rval => vlat
+      v2dvar_base(17)%rval => xmap
+      v2dvar_base(18)%rval => umap
+      v2dvar_base(19)%rval => vmap
       v3dvar_base(3)%rval => zeta
       v3dvar_base(4)%rval => fmz
     else
-      v2dvar_base(12)%rval => xmap
-      v2dvar_base(13)%rval => dmap
+      v2dvar_base(13)%rval => xmap
+      v2dvar_base(14)%rval => dmap
       if ( idynamic == 2 ) then
-        v2dvar_base(14)%rval => ps0
+        v2dvar_base(15)%rval => ps0
       end if
+    end if
+
+    dx = ds * 1000.0
+    if ( iproj == 'ROTLLR' ) then
+      v2dvar_base(12)%rval = (dx*dx)/xmap
+    else
+      v2dvar_base(12)%rval = (dx/xmap)**2
     end if
 
     call outstream_enable(ncout,sigma)

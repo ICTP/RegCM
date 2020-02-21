@@ -198,7 +198,11 @@ module mod_moloch
       call xtoustag(zeta,zetau)
       call xtovstag(zeta,zetav)
     end if
-    mx2 = mx * mx
+    if ( iproj == 'ROTLLR' ) then
+      mx2 = mx
+    else
+      mx2 = mx * mx
+    end if
     rmu = d_one/mu
     rmv = d_one/mv
     gzitak = gzita(zita)

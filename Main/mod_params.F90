@@ -2741,6 +2741,9 @@ module mod_params
         integer(ik4) :: i , j
         real(rkx) , dimension(kzp1) :: fak , fbk
         real(rkx) :: ztop
+        if ( iproj == 'ROTLLR' ) then
+          mddom%msfv = d_one
+        end if
         call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
