@@ -187,7 +187,9 @@ contains
         ! cycle on sea points
         if ( ivegcov(j,i) == 0 ) cycle
         ! getting the soil sand percentage, pH and fert rate values
-        sandper(j,i) = sandrow2(j,i)
+        ! ABSOLUMENT àCHANGER
+        !sandper(j,i) = sandrow2(j,i)
+        sandper(j,i)  = 30.
         ! calculating water-filled pore space from soil moisture
         porewater(j,i) = cssw2da(j,i)
         ! converting soil moisture from kg/m2 to (m3 water/m3 soil)
@@ -218,7 +220,8 @@ contains
         ! cycle on sea points
         if ( ivegcov(j,i) == 0 ) cycle
         ! getting the soil sand percentage, pH and fert rate values
-        sandper(j,i) = sandrow2(j,i)
+        !sandper(j,i) = sandrow2(j,i) ! ABSOLUMENT A CHANGER
+        sandper(j,i) = 30 
         ! calculating water-filled pore space from soil moisture
         ! csw_vol voluletric soil moist (m3/m3)
         ! here consider second soil level / to be perhaps tested

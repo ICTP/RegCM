@@ -3293,6 +3293,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_dust_emission_scheme',ichdustemd))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_dust_read_emission_parameter',ichdustparam))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_enable_aerosol_radiation_feedback', &
                                 idirect))
           call outstream_addatt(outstream(i)%ncout(j), &

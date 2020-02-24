@@ -416,6 +416,7 @@ module mod_runparams
   integer(ik4) , public :: ichsolver
   integer(ik4) , public :: ismoke ! marijuana
   integer(ik4) , public :: ichdustemd
+  integer(ik4) , public :: ichdustparam
   integer(ik4) , public :: ichdiag
   integer(ik4) , public :: ichebdy
   integer(ik4) , public :: ichjphcld

@@ -38,7 +38,7 @@ module mod_che_ncio
   public :: read_bioburn_emission
   public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc , read_bionem
-
+  public :: read_dust_param
   public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname, aeaero, aedu12
 
   integer(ik4) :: istatus
@@ -197,7 +197,56 @@ module mod_che_ncio
       end if
     end subroutine read_texture
 
-   subroutine read_bionem(nfert,nmanure,soilph)
+   subroutine read_dust_param(erodfc)
+!read dust emission relevant parameters
+!for now : erod_dsfc = source function / erodibility mask 
+!e.g. see  Zender et al., Laurent et al.
+!place holder for other relevant geographical data afecting dust ( e.g. non erodibe zo)
+      implicit none
+
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: erodfc
+      integer(ik4) :: idmin
+      integer(ik4) , dimension(2) :: istart , icount
+      character(len=256) :: dname
+      real(rkx) , pointer , dimension(:,:) ::  rspace
+
+      dname = trim(dirter)//pthsep//trim(domname)//'_DUSTPARAM.nc'
+
+      if ( do_parallel_netcdf_in ) then
+        call openfile_withname(dname,idmin)
+        istart(1) = jde1
+        istart(2) = ide1
+        icount(1) = jde2-jde1+1
+        icount(2) = ide2-ide1+1
+        allocate(rspace(jde1:jde2,ide1:ide2))
+        call read_var2d_static(idmin,'erodfc',rspace, &
+          istart=istart,icount=icount)
+        erodfc(jci1:jci2,ici1:ici2) = &
+          max(rspace(jci1:jci2,ici1:ici2),d_zero)
+        call closefile(idmin)
+        deallocate(rspace)
+      else
+        if ( myid == iocpu ) then
+          call openfile_withname(dname,idmin)
+          istart(1) = 1
+          istart(2) = 1
+          icount(1) = jx
+          icount(2) = iy
+          allocate(rspace(jx,iy))
+          call read_var2d_static(idmin,'erodfc',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          call grid_distribute(rspace,erodfc,jci1,jci2,ici1,ici2)
+          call closefile(idmin)
+          deallocate(rspace)
+        else
+          call grid_distribute(rspace,erodfc,jci1,jci2,ici1,ici2)
+        end if
+      end if
+    print*,'FAB EROD',maxval(erodfc),minval(erodfc)
+    end subroutine read_dust_param
+
+    subroutine read_bionem(nfert,nmanure,soilph)
       implicit none
 
       real(rkx) , pointer , dimension(:,:) , intent(inout) :: nfert
