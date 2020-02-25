@@ -2741,9 +2741,6 @@ module mod_params
         integer(ik4) :: i , j
         real(rkx) , dimension(kzp1) :: fak , fbk
         real(rkx) :: ztop
-        if ( iproj == 'ROTLLR' ) then
-          mddom%msfv = d_one
-        end if
         call exchange_lrbt(mddom%coriol,1,jde1,jde2,ide1,ide2)
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
@@ -2753,12 +2750,20 @@ module mod_params
                              mddom%msfu(j,i) * rdx * regrav
           end do
         end do
-        do i = idi1 , idi2
-          do j = jce1 , jce2
-            mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
-                             mddom%msfv(j,i) * rdx * regrav
+        if ( iproj == 'ROTLLR' ) then
+          do i = idi1 , idi2
+            do j = jce1 , jce2
+              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * rdx * regrav
+            end do
           end do
-        end do
+        else
+          do i = idi1 , idi2
+            do j = jce1 , jce2
+              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+                               mddom%msfv(j,i) * rdx * regrav
+            end do
+          end do
+        end if
         if ( ma%has_bdyleft ) then
           do i = ice1 , ice2
             mddom%hx(jde1,i) = mddom%hx(jdi1,i)

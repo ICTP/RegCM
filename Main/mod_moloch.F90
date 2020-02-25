@@ -198,11 +198,7 @@ module mod_moloch
       call xtoustag(zeta,zetau)
       call xtovstag(zeta,zetav)
     end if
-    if ( iproj == 'ROTLLR' ) then
-      mx2 = mx
-    else
-      mx2 = mx * mx
-    end if
+    mx2 = mx * mx
     rmu = d_one/mu
     rmv = d_one/mv
     gzitak = gzita(zita)
@@ -603,36 +599,66 @@ module mod_moloch
           ! Part of divergence (except w contribution) put in zdiv2
           ! Equation 16
 
-          do k = 1 , kz
-            do i = ice1 , ice2
-              im1 = max(icross1,i-1)
-              ip1 = min(icross2,i+1)
-              do j = jce1 , jce2
-                jm1 = max(jcross1,j-1)
-                jp1 = min(jcross2,j+1)
-                zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
-                zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,im1,k))
-                zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
-                zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
-                zum = u(j,i,k) * rmu(j,i) * zrfmzu
-                zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
-                zvm = v(j,i,k) * rmv(j,i) * zrfmzv
-                zvp = v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
-                zdiv2(j,i,k) = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
+          if ( iproj == 'ROTLLR' ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                im1 = max(icross1,i-1)
+                ip1 = min(icross2,i+1)
+                do j = jce1 , jce2
+                  jm1 = max(jcross1,j-1)
+                  jp1 = min(jcross2,j+1)
+                  zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
+                  zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,im1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
+                  zum = u(j,i,k) * zrfmzu
+                  zup = u(j+1,i,k) * zrfmzup
+                  zvm = v(j,i,k) * zrfmzv
+                  zvp = v(j,i+1,k) * zrfmzvp
+                  zdiv2(j,i,k) = (zup-zum)*zdtrdx*mu(j,i)/mx(j,i) + &
+                                 (zvp-zvm)*zdtrdy*mv(j,i)/mx(j,i)
+                end do
               end do
             end do
-          end do
-
-          call filt3d
-
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                zdiv2(j,i,k) = fmz(j,i,k) * (mx2(j,i) * zdiv2(j,i,k) + &
-                       zdtrdz * (s(j,i,k) - s(j,i,k+1)))
+            call filt3d
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  zdiv2(j,i,k) = fmz(j,i,k) * (zdiv2(j,i,k) + &
+                         zdtrdz * (s(j,i,k) - s(j,i,k+1)))
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ice1 , ice2
+                im1 = max(icross1,i-1)
+                ip1 = min(icross2,i+1)
+                do j = jce1 , jce2
+                  jm1 = max(jcross1,j-1)
+                  jp1 = min(jcross2,j+1)
+                  zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
+                  zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,im1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
+                  zum = u(j,i,k) * rmu(j,i) * zrfmzu
+                  zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
+                  zvm = v(j,i,k) * rmv(j,i) * zrfmzv
+                  zvp = v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                  zdiv2(j,i,k) = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
+                end do
+              end do
+            end do
+            call filt3d
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  zdiv2(j,i,k) = fmz(j,i,k) * (mx2(j,i) * zdiv2(j,i,k) + &
+                         zdtrdz * (s(j,i,k) - s(j,i,k+1)))
+                end do
+              end do
+            end do
+          end if
 
           ! new w (implicit scheme) from Equation 19
 
@@ -736,39 +762,73 @@ module mod_moloch
           call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jdii1 , jdii2
-                zcx = zdtrdx * mu(j,i)
-                zfz = 0.25_rkx * &
-                  (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                   deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
-                zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                zcor1u = coriol(j,i) * vd(j,i,k)
-                ! Equation 17
-                u(j,i,k) = u(j,i,k) + zcor1u * dts - &
-                           zfz * hx(j,i) * gzitakh(k) - &
-                           zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+          if ( iproj == 'ROTLLR' ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jdii1 , jdii2
+                  zcx = zdtrdx * mu(j,i)
+                  zfz = 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coriol(j,i) * vd(j,i,k)
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u * dts - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+                end do
               end do
             end do
-          end do
-
-          do k = 1 , kz
-            do i = idii1 , idii2
-              do j = jci1 , jci2
-                zcy = zdtrdy * mv(j,i)
-                zfz = 0.25_rkx * &
-                  (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                   deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
-                zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                zcor1v = coriol(j,i) * ud(j,i,k)
-                ! Equation 18
-                v(j,i,k) = v(j,i,k) - zcor1v * dts - &
-                           zfz * hy(j,i) * gzitakh(k) -  &
-                           zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+            do k = 1 , kz
+              do i = idii1 , idii2
+                do j = jci1 , jci2
+                  zcy = zdtrdy
+                  zfz = 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = coriol(j,i) * ud(j,i,k)
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v * dts - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jdii1 , jdii2
+                  zcx = zdtrdx * mu(j,i)
+                  zfz = 0.25_rkx * &
+                    (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                  zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
+                  zcor1u = coriol(j,i) * vd(j,i,k)
+                  ! Equation 17
+                  u(j,i,k) = u(j,i,k) + zcor1u * dts - &
+                             zfz * hx(j,i) * gzitakh(k) - &
+                             zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
+                end do
+              end do
+            end do
+            do k = 1 , kz
+              do i = idii1 , idii2
+                do j = jci1 , jci2
+                  zcy = zdtrdy * mv(j,i)
+                  zfz = 0.25_rkx * &
+                    (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                  zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
+                  zcor1v = coriol(j,i) * ud(j,i,k)
+                  ! Equation 18
+                  v(j,i,k) = v(j,i,k) - zcor1v * dts - &
+                             zfz * hy(j,i) * gzitakh(k) -  &
+                             zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
+                end do
+              end do
+            end do
+          end if
 
         end do ! sound loop
 
@@ -926,89 +986,175 @@ module mod_moloch
 
         ! Meridional advection
 
-        do k = 1 , kz
-          do i = ici1 , ice2ga
-            do j = jci1 , jci2
-              zamu = v(j,i,k) * rmv(j,i) * zdtrdy
-              if ( zamu > d_zero ) then
-                is = d_one
-                ih = i-1
-              else
-                is = -d_one
-                ih = min(i+1,icross2)
-              end if
-              ihm1 = max(ih-1,icross1)
-              r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
-              b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu*b - is*b
-              zpby(j,i) = d_half * v(j,i,k) * rmv(j,i) * &
-                ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+        if ( iproj == 'ROTLLR' ) then
+          do k = 1 , kz
+            do i = ici1 , ice2ga
+              do j = jci1 , jci2
+                zamu = v(j,i,k) * zdtrdy
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  ih = i-1
+                else
+                  is = -d_one
+                  ih = min(i+1,icross2)
+                end if
+                ihm1 = max(ih-1,icross1)
+                r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
+                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpby(j,i) = d_half * v(j,i,k) * &
+                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+              end do
+            end do
+
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+                zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+                zdv = (v(j,i+1,k) * mv(j,i+1)/mx(j,i) * zrfmn - &
+                       v(j,i,k) * mv(j,i)/mx(j,i) * zrfms) * pp(j,i,k)
+                p0(j,i,k) = wz(j,i,k) + &
+                      (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
+              end do
             end do
           end do
 
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-              zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
-              zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
-                     v(j,i,k) * rmv(j,i) * zrfms) * pp(j,i,k)
-              p0(j,i,k) = wz(j,i,k) + &
-                mx2(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
+          if ( ma%has_bdyleft ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                p0(jce1,i,k) = p0(jci1,i,k)
+              end do
             end do
-          end do
-        end do
+          end if
 
-        if ( ma%has_bdyleft ) then
+          if ( ma%has_bdyright ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                p0(jce2,i,k) = p0(jci2,i,k)
+              end do
+            end do
+          end if
+
+          call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+
+          ! Zonal advection
+
           do k = 1 , kz
             do i = ici1 , ici2
-              p0(jce1,i,k) = p0(jci1,i,k)
+              do j = jci1 , jce2ga
+                zamu = u(j,i,k) * mu(j,i) * zdtrdx
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  jh = j-1
+                else
+                  is = -d_one
+                  jh = min(j+1,jcross2)
+                end if
+                jhm1 = max(jh-1,jcross1)
+                r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
+                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpbw(j,i) = d_half * u(j,i,k) * &
+                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+              end do
+            end do
+
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+                zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+                zdv = (u(j+1,i,k) * mu(j+1,i) * zrfme - &
+                       u(j,i,k) * mu(j,i) * zrfmw) * pp(j,i,k)
+                pp(j,i,k) = p0(j,i,k) + &
+                  (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
+              end do
+            end do
+          end do
+        else
+          do k = 1 , kz
+            do i = ici1 , ice2ga
+              do j = jci1 , jci2
+                zamu = v(j,i,k) * rmv(j,i) * zdtrdy
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  ih = i-1
+                else
+                  is = -d_one
+                  ih = min(i+1,icross2)
+                end if
+                ihm1 = max(ih-1,icross1)
+                r = rdeno(wz(j,ih,k), wz(j,ihm1,k), wz(j,i,k), wz(j,i-1,k))
+                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpby(j,i) = d_half * v(j,i,k) * rmv(j,i) * &
+                  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+              end do
+            end do
+
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+                zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+                zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
+                       v(j,i,k) * rmv(j,i) * zrfms) * pp(j,i,k)
+                p0(j,i,k) = wz(j,i,k) + &
+                  mx2(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
+              end do
+            end do
+          end do
+
+          if ( ma%has_bdyleft ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                p0(jce1,i,k) = p0(jci1,i,k)
+              end do
+            end do
+          end if
+
+          if ( ma%has_bdyright ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                p0(jce2,i,k) = p0(jci2,i,k)
+              end do
+            end do
+          end if
+
+          call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
+
+          ! Zonal advection
+
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jce2ga
+                zamu = u(j,i,k) * rmu(j,i) * zdtrdx
+                if ( zamu > d_zero ) then
+                  is = d_one
+                  jh = j-1
+                else
+                  is = -d_one
+                  jh = min(j+1,jcross2)
+                end if
+                jhm1 = max(jh-1,jcross1)
+                r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
+                b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
+                zphi = is + zamu*b - is*b
+                zpbw(j,i) = d_half * u(j,i,k) * rmu(j,i) * &
+                     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+              end do
+            end do
+
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+                zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+                zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
+                       u(j,i,k) * rmu(j,i) * zrfmw) * pp(j,i,k)
+                pp(j,i,k) = p0(j,i,k) + &
+                  mx2(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
+              end do
             end do
           end do
         end if
-
-        if ( ma%has_bdyright ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              p0(jce2,i,k) = p0(jci2,i,k)
-            end do
-          end do
-        end if
-
-        call exchange_lr(p0,2,jce1,jce2,ici1,ici2,1,kz)
-
-        ! Zonal advection
-
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jce2ga
-              zamu = u(j,i,k) * rmu(j,i) * zdtrdx
-              if ( zamu > d_zero ) then
-                is = d_one
-                jh = j-1
-              else
-                is = -d_one
-                jh = min(j+1,jcross2)
-              end if
-              jhm1 = max(jh-1,jcross1)
-              r = rdeno(p0(jh,i,k), p0(jhm1,i,k), p0(j,i,k), p0(j-1,i,k))
-              b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
-              zphi = is + zamu*b - is*b
-              zpbw(j,i) = d_half * u(j,i,k) * rmu(j,i) * &
-                   ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
-            end do
-          end do
-
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-              zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
-              zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
-                     u(j,i,k) * rmu(j,i) * zrfmw) * pp(j,i,k)
-              pp(j,i,k) = p0(j,i,k) + &
-                mx2(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
-            end do
-          end do
-        end do
       end subroutine wafone
 
       subroutine reset_tendencies
