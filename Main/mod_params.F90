@@ -156,7 +156,7 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac, ichlinox , isnowdark
+      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -517,6 +517,7 @@ module mod_params
     ichdrdepo = 1     ! tracer dry deposition
     ichcumtra = 1     ! tracer convective transport
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
+    ichdustparam = 1  ! read dust emission scheme surface parameters
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
     idirect = 0       ! tracer direct effect
 #ifdef CLM45
@@ -1520,6 +1521,7 @@ module mod_params
       call bcast(ichsolver)
       call bcast(ichjphcld)
       call bcast(ichdustemd)
+      call bcast(ichdustparam)
       call bcast(rdstemfac)
       call bcast(rocemfac)
       call bcast(ichdiag)

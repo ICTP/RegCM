@@ -92,14 +92,14 @@ module mod_che_dust
   integer(ik4) , parameter :: nsoil = 152
   integer(ik4) , parameter :: mode = 5
   integer(ik4) , parameter :: jsoilm = 1
-  integer(ik4) , parameter :: jfs = 1
-  integer(ik4) , parameter :: ust = 0
+  integer(ik4) , parameter :: ust = 1
   integer(ik4) , parameter :: ndi_4 = 4000
   integer(ik4) , parameter :: ndi_12 = 6500
 
-  !choice of emission distribution 1= alfaro/gomes
-  !                                2 = Kok + Laurent et al.
-  ! ichdustemd
+  !choice emission scheme and size distribution 1=  MB95  + alfaro/gomes 
+  !                                             2 = Kok et al, 2014, 2011 with thresholf friction vel based on MB95  
+  ! ichdustemd is set in regcm.in 
+  !
   ! lognormal alfaro parameters
   ! define the aerosol distribution at the emission and the corresponding
   ! weighting factors in fuction of bin sizes
@@ -142,21 +142,23 @@ module mod_che_dust
   ! in each texture type.
   real(rkx) , pointer,  dimension(:) :: dustbed , soldust
   real(rkx) , pointer,  dimension(:) :: frac1 , frac2 , frac3 , frac
-  real(rkx) , pointer , dimension(:,:,:) :: clay2row2 , sand2row2
-  real(rkx) , pointer , dimension(:,:) :: clayrow2 , sandrow2 , dustbsiz
+  real(rkx) , pointer , dimension(:) :: fclay 
+  real(rkx) , pointer , dimension(:,:) :: clayrow2 , dustbsiz
   real(rkx) , pointer , dimension(:,:,:,:) :: srel2d
   real(rkx) , pointer , dimension(:,:,:) :: dustsotex
   !
+  ! erodibility : source function parameter 
+  real(rkx) , pointer , dimension(:,:) :: erodfc
   ! Mineralogy fraction of minerals in clay and silt categories
   real(rkx) , pointer , dimension(:,:,:) :: cminer , sminer
-  !************jj -----Scanza et al.,2015
+
+  !************ realative to mineralogy option -----Scanza et al.,2015
   real(rkx) , dimension (4):: cfrac , sfrac
   data cfrac  /1._rkx, 0.97_rkx, 0.625_rkx, 0.429_rkx /
-  data sfrac / 0._rkx, 0.03_rkx, 0.375_rkx,  0.571_rkx /
+  data sfrac / 0._rkx, 0.03_rkx, 0.375_rkx, 0.571_rkx /
   ! Name of variable changed ! SC. 06.10.2010
   real(rkx) , dimension(nsoil) :: dp_array
 
-  public :: sandrow2
   public :: rhodust
   public :: soldust , dustbed , dustbsiz
 
@@ -178,13 +180,12 @@ module mod_che_dust
       implicit none
       if ( ichem == 1 ) then
         call getmem3d(dustsotex,jci1,jci2,ici1,ici2,1,nats,'che_dust:dustsotex')
-        call getmem3d(clay2row2,1,nats,jci1,jci2,ici1,ici2,'che_dust:clay2row2')
-        call getmem3d(sand2row2,1,nats,jci1,jci2,ici1,ici2,'che_dust:sand2row2')
+        call getmem1d(fclay,1,nats,'che_dust:fclay')   
         call getmem2d(clayrow2,jci1,jci2,ici1,ici2,'che_dust:clayrow2')
-        call getmem2d(sandrow2,jci1,jci2,ici1,ici2,'che_dust:sandrow2')
         call getmem4d(srel2d,1,nsoil,1,nats, &
                       jci1,jci2,ici1,ici2,'che_dust:srel2d')
         call getmem2d(dustbsiz,1,nbin,1,2,'che_dust:dustbsiz')
+        call getmem2d(erodfc,jci1,jci2,ici1,ici2,'che_dust:erodfc')
         call getmem1d(dustbed,1,nbin,'che_dust:dustbed')
         call getmem1d(soldust,1,nbin,'che_dust:soldust')
         call getmem1d(frac1,1,nbin,'che_dust:frac1')
@@ -211,8 +212,8 @@ module mod_che_dust
     !  * ------------------------------------------------    *****
     !  * 1         sand                   coarse             *****
     !  * 2         lomay sand             coarse             *****
-    !  * 3         sand lomay             coarse-medium      *****
-    !  * 4         silt loma              medium-fine        *****
+    !  * 3         sand loamy             coarse-medium      *****
+    !  * 4         silt loay              medium-fine        *****
     !  * 5         silt                   medium             *****
     !  * 6         loam                   fine               *****
     !  * 7         sandy clay loam        coarse-medium-fine *****
@@ -233,9 +234,6 @@ module mod_che_dust
       real(rkx) , dimension(mode,nats) :: mmd , pcent , sigma
       real(rkx) , dimension(nsoil) :: ss
       real(rkx) , dimension(:) , allocatable :: di
-      ! modif new distribution
-      ! for each category, this is the percent of Coarse sand,
-      ! Fine mode sand, silt , clay and salt ( cf Menut et al. ,2012)
       real(rkx) , dimension (mode,12) :: soiltexpc
       real(rkx) , dimension (mode)    :: texmmd , texstd
 
@@ -249,74 +247,9 @@ module mod_che_dust
       real(rkx) , external :: erf
 #endif
       !
-      ! FAB update
-      ! change type 1 and 2 and 3 to Laurent et al., 2008,
-      ! marticorena et al., 1997 soil size parameter.
-      ! change also the clay/sand/sil percentage (used to calculate the ratio
-      ! of vertical/horizontal flux): This (bcly) is only effective when Kok
-      ! size distribution is option enabled.
-      ! Values are derived from Laurent et al. typical ranged adapted
-      ! for our USDA texture types.
-      !
-      !data bcly/0.00_rkx , 0.4e-2_rkx ,0.7e-2_rkx  , 0.7e-2_rkx , &
-      !          0.4e-2_rkx , 1.e-2_rkx , 3.e-2_rkx , 3e-2_rkx ,   &
-      !          5.e-2_rkx , 8.e-2_rkx , 8.e-2_rkx , 1.e-2_rkx/
-      !data bcly / 4.3e-2_rkx, 2.3e-2_rkx, 7.3e-2_rkx, 0.0_rkx,0.0_rkx, &
-      !            0.0e-2_rkx,0.0_rkx, 0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx,0.0_rkx/
-      data bcly / 6.0e-2_rkx , 2.3e-2_rkx , 7.3e-2_rkx , 0.0e-2_rkx , &
-                  0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , &
-                  0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx , 0.0e-2_rkx /
-
-      ! bsnd and bslt are not really used after /
-      ! the data here are not consistent with clay.
-      data bsnd / 0.90_rkx , 0.85_rkx , 0.80_rkx , 0.50_rkx , 0.45_rkx , &
-                  0.35_rkx , 0.30_rkx , 0.30_rkx , 0.20_rkx , 0.65_rkx , &
-                  0.60_rkx , 0.50_rkx /
-      !data bslt / 0.050_rkx , 0.050_rkx , 0.051_rkx , 0.350_rkx , 0.400_rkx , &
-      !            0.600_rkx , 0.650_rkx , 0.500_rkx , 0.050_rkx , 0.000_rkx , &
-      !            0.000_rkx , 0.000_rkx/
-
-      data mmdd /690.0_rkx ,   0.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
-                 690.0_rkx , 210.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
-                 690.0_rkx , 210.0_rkx , 0.0_rkx , 0.0_rkx , 0.0_rkx, &
-                 520.0_rkx , 100.0_rkx , 5.0_rkx , 0.0_rkx , 0.0_rkx, &
-                 520.0_rkx ,  75.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
-                 520.0_rkx ,  75.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
-                 210.0_rkx ,  75.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
-                 210.0_rkx ,  50.0_rkx , 2.5_rkx , 0.0_rkx , 0.0_rkx, &
-                 125.0_rkx ,  50.0_rkx , 1.0_rkx , 0.0_rkx , 0.0_rkx, &
-                 100.0_rkx ,  10.0_rkx , 1.0_rkx , 0.0_rkx , 0.0_rkx, &
-                 100.0_rkx ,  10.0_rkx , 0.5_rkx , 0.0_rkx , 0.0_rkx, &
-                 100.0_rkx ,  10.0_rkx , 0.5_rkx , 0.0_rkx , 0.0_rkx /
-
-      data sigmad / 1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.6_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.6_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.7_rkx , 1.7_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.8_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.8_rkx , 1.8_rkx , 1.8_rkx , 0.0_rkx , 0.0_rkx,  &
-                    1.8_rkx , 1.8_rkx , 1.8_rkx,  0.0_rkx , 0.0_rkx /
-
-      data pcentd / 1.00_rkx , 0.00_rkx , 0.00_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.90_rkx , 0.10_rkx , 0.00_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.80_rkx , 0.20_rkx , 0.00_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.50_rkx , 0.35_rkx , 0.15_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.45_rkx , 0.40_rkx , 0.15_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.35_rkx , 0.50_rkx , 0.15_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.30_rkx , 0.50_rkx , 0.20_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.30_rkx , 0.50_rkx , 0.20_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.20_rkx , 0.50_rkx , 0.30_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.65_rkx , 0.00_rkx , 0.35_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.60_rkx , 0.00_rkx , 0.40_rkx , 0.0_rkx , 0.0_rkx, &
-                    0.50_rkx , 0.00_rkx , 0.50_rkx , 0.0_rkx , 0.0_rkx /
-      !!
-      !! new option
-      !!
+      !! Soil texture characterisation/
+      !! Based on STAT-FAO soil data types and summarized in Menut et al. 2013  
+      !! gives the texture composition (percent of CS,FMS,Silt, Clay, Salt)  for each of the 12 categories
       data   soiltexpc / 0.46_rkx, 0.46_rkx, 0.05_rkx, 0.03_rkx, 0.0_rkx, &
                          0.41_rkx, 0.41_rkx, 0.18_rkx, 0.00_rkx, 0.0_rkx, &
                          0.29_rkx, 0.29_rkx, 0.32_rkx, 0.10_rkx, 0.0_rkx, &
@@ -329,18 +262,18 @@ module mod_che_dust
                          0.00_rkx, 0.52_rkx, 0.06_rkx, 0.42_rkx, 0.0_rkx, &
                          0.00_rkx, 0.06_rkx, 0.47_rkx, 0.47_rkx, 0.0_rkx, &
                          0.00_rkx, 0.22_rkx, 0.20_rkx, 0.58_rkx, 0.0_rkx/
-
+      ! soil distribution parameters for each of the texture component, also summarized in Menut et al. 2013 
       data  texmmd  / 690.0_rkx, 210.0_rkx, 125.0_rkx,2.0_rkx, 520.0_rkx /
       data  texstd  / 1.6_rkx,   1.6_rkx,   1.8_rkx,  2.0_rkx, 1.50_rkx /
+
+      ! specific table for clay component 
+      bcly(:) = soiltexpc(4,:)
+    
 
       mmd = d_zero
       sigma = d_zero
       pcent = d_zero
-      if ( ichdustemd == 1 ) then
-        mmd = mmdd
-        sigma = sigmad
-        pcent = pcentd
-      else if ( ichdustemd >= 2 ) then
+      if ( ichdustemd <= 2 ) then
         do nm = 1 , mode
           mmd(nm,:) = texmmd(nm)
           sigma(nm,:) = texstd(nm)
@@ -352,6 +285,7 @@ module mod_che_dust
         end where
       end if
 
+! read 2D texture class composition
       rd_tex = .false.
       do itr = 1 , ntr
         aerctl = chtrname(itr)
@@ -366,24 +300,27 @@ module mod_che_dust
       if ( rd_tex ) then
         call read_texture(nats,dustsotex)
       end if
+ 
+      if (ichdustparam == 1) then 
+         call read_dust_param(erodfc)
+      end if
 
       ! read mineral fractions
       if ( nmine > 0 ) then
         call read_miner(nmine,cminer,sminer)
       end if
 
-      clay2row2 = d_zero
+! calculation of srel2d 
+      fclay     = d_zero
       clayrow2  = d_zero
-      sand2row2 = d_zero
       srel2d    = d_zero
 
       do i = ici1 , ici2
         do j = jci1 , jci2
           do nt = 1 , nats
-            clay2row2(nt,j,i) = bcly(nt)*d_100
-            sand2row2(nt,j,i) = bsnd(nt)*d_100
-            sandrow2(j,i) = sandrow2(j,i) + dustsotex(j,i,nt)*sand2row2(nt,j,i)
-            clayrow2(j,i) = clayrow2(j,i) + dustsotex(j,i,nt)*clay2row2(nt,j,i)
+            fclay(nt) = bcly(nt) 
+            ! grid level clay fraction in percent
+            clayrow2(j,i) = clayrow2(j,i) + dustsotex(j,i,nt)*fclay(nt)*100_rkx
           end do
         end do
       end do ! end j loop
@@ -410,9 +347,9 @@ module mod_che_dust
           do nt = 1 , nats
             ss(:) = d_zero
             stotal = d_zero
-            if ( sand2row2(nt,j,i) > d_zero ) then
+            
               do ns = 1 , nsoil          !soil size segregatoin no
-                do nm = 1 , mode       !soil mode = 5
+                do nm = 1 , mode       ! soil mode = 5
                   if ( (pcent(nm,nt) > eps) .and. (sigma(nm,nt) > eps) ) then
                     xk = pcent(nm,nt)/(sqrt(twopi)*log(sigma(nm,nt)))
                     xl = ((log(dp_array(ns))- &
@@ -425,7 +362,6 @@ module mod_che_dust
                     end if
                     xn = rhodust*twot*(dp_array(ns)*d_half)
                     deldp = 0.0460517018598807_rkx
-                    ! dp_array(2)-dp_array(1) ss(nsoil)
                     ss(ns) = ss(ns) + (xm*deldp/xn)
                   end if
                 end do
@@ -436,7 +372,7 @@ module mod_che_dust
                   srel2d(ns,nt,j,i) = min(ss(ns)/stotal,d_one)
                 end if
               end do
-            end if
+          
           end do ! soil types
         end do
       end do  ! end J loop
@@ -498,15 +434,15 @@ module mod_che_dust
         frac1(:) = frac1(:) / totv1
         frac2(:) = frac2(:) / totv2
         frac3(:) = frac3(:) / totv3
-      else if ( ichdustemd >= 2 ) then
-        ! calculate the bin mass fraction to the total mass from Kok et al.
-        ! distribution ( mass distribution).
+      else if ( ichdustemd <= 3 ) then
+        ! calculate the bin mass fraction to the total mass from Kok et al.,2011
+        ! distribution (mass distribution).
         ! the independant variable is diameter so going from
         ! dV/dlnD to dV/dD implies a factor 1/D
         frac = 0._rkx
         totv = 0._rkx
         do ns = 1 , ndi
-          ! kok 2001
+          ! kok 2011
           term = d_one/cv * (d_one+erf(log(di(ns)/d)/sqrt(d_two)/ &
                      log(sigmas)))*exp(-(di(ns)/lambda)**3)
           do n = 1 , nbin
@@ -623,7 +559,7 @@ module mod_che_dust
       real(rkx) , dimension(ilg) :: xclayrow , xroarow , xsoilw , &
                 xsurfwd , xvegfrac , xz0 , xustarnd , xsnowfrac
       real(rkx) , dimension(ilg,nbin) :: xrsfrow
-      real(rkx) , dimension(ilg,nats) :: xftex , xalphaprop
+      real(rkx) , dimension(ilg,nats) :: xftex 
       real(rkx) , dimension(ilg,nsoil,nats) :: xsrel2d
       integer(ik4) :: i , j , ieff , n , ns , m
 
@@ -639,7 +575,7 @@ module mod_che_dust
       xsrel2d = d_zero
       xustarnd=d_zero
       xrsfrow = d_zero
-      xalphaprop = d_zero
+     
 
       ieff = 0
       do i = ici1 , ici2
@@ -656,17 +592,6 @@ module mod_che_dust
             xclayrow(ieff) = clayrow2(j,i)
             do n = 1 , nats
               xftex(ieff,n) = dustsotex(j,i,n)
-              if ( ichdustemd >= 2 ) then
-                if ( clay2row2(n,j,i) <= 20 ) then
-                  xalphaprop(ieff,n) = d_10**(0.134_rkx * &
-                                clay2row2(n,j,i)-6.0_rkx)
-!                                clay2row2(n,j,i)-6.0_rkx)*0.035_rkx
-                else
-                  xalphaprop(ieff,n) = d_10**(-0.1_rkx * &
-                                clay2row2(n,j,i)-6.0_rkx)
-!                                clay2row2(n,j,i)-1.2_rkx)*0.035_rkx
-                end if
-              end if
               do  ns = 1 , nsoil
                 xsrel2d(ieff,ns,n) = srel2d(ns,n,j,i)
               end do
@@ -677,7 +602,7 @@ module mod_che_dust
 
       if ( ieff > 0 ) then
         call dust_module(1,ieff,trsize,xsoilw,xvegfrac,xsnowfrac,xsurfwd, &
-                         xftex,xclayrow,xroarow,xalphaprop,xz0, &
+                         xftex,xclayrow,xroarow,fclay,xz0, &
                          xsrel2d,xustarnd,xrsfrow)
       end if
 
@@ -751,13 +676,14 @@ module mod_che_dust
     end subroutine sfflux
 
     subroutine dust_module(jl1,jl2,trsize,soilw,vegfrac,snowfrac,surfwd,ftex, &
-                           clayrow,roarow,alphaprop,z0,srel,ustarnd,rsfrow)
+                           clayrow,roarow,fclay,z0,srel,ustarnd,rsfrow)
       implicit none
       integer(ik4) :: jl1 , jl2
       real(rkx) , dimension(ilg) :: clayrow , roarow , soilw , surfwd ,   &
                                    vegfrac , z0 , ustarnd , snowfrac
       real(rkx) , dimension(ilg,nbin) :: rsfrow
-      real(rkx) , dimension(ilg,nats) :: ftex , alphaprop
+      real(rkx) , dimension(ilg,nats) :: ftex 
+      real(rkx), dimension(nats)      :: fclay
       real(rkx) , dimension(ilg,nsoil,nats) :: srel
       real(rkx) , dimension(nbin,2) :: trsize
       intent (in) clayrow , soilw , surfwd , z0 , ustarnd , ftex
@@ -765,7 +691,7 @@ module mod_che_dust
       real(rkx) , dimension(ilg) :: alamda , hc , rc , srl , wprim
       real(rkx) :: arc1 , arc2 , cly1 , cly2 , tempd , &
           ustarns , uth , utmin , ustarfw
-      integer(ik4) :: j
+      integer(ik4) :: j,n
       real(rkx) , dimension(ilg) :: ustar
       real(rkx) , dimension(ilg,nsoil) :: utheff
 
@@ -774,43 +700,28 @@ module mod_che_dust
       real(rkx) , parameter :: br = 202.0_rkx
       real(rkx) , parameter :: ym = 0.16_rkx
       real(rkx) , parameter :: sigr = 1.45_rkx
-      real(rkx) , parameter :: z0s = 3.0e-3_rkx
+      real(rkx) , parameter :: z0s = 1.0e-3_rkx
       real(rkx) , parameter :: x = d_10
 
-      do j = jl1 , jl2
+     ! threshold friction velocity on dry smooth surface
+      do n = 1 , nsoil
+        do j = jl1 , jl2
+          if ( ust == 0 ) utheff(j,n) = ustart0(rhodust,dp_array(n),roarow(j))
+          if ( ust == 1 ) utheff(j,n) = ustart01(rhodust,dp_array(n),roarow(j))
+       end do
+      end do
 
+      do j = jl1 , jl2
         srl(j) = z0(j)*d_100
         rc(j) = d_one
-
-        if ( jfs == 0 ) then
-          ! * raupach et al. (1993)
-          if ( vegfrac(j) < d_one ) then
-            alamda(j) = xz*(log(d_one-vegfrac(j)))*(-d_one)
-            arc1 = sigr*ym*alamda(j)
-            arc2 = br*ym*alamda(j)
-            if ( arc1 <= d_one .and. arc2 <= d_one ) then
-              rc(j) = (sqrt(d_one-arc1)*sqrt(d_one+arc2))
-            end if
-          end if
-        else if ( jfs == 1 ) then
-          ! Marticorena et al., 1997: correction factor for non
-          ! erodible elements
+        ! Marticorena et al., 1997: thershold friction velocity correction factor for non
+        ! erodible elements
           rc(j) = d_one - (log(0.50e-2_rkx/z0s) / &
                           (log(0.35_rkx*(x/z0s)**0.8_rkx)))
-        end if
+
         ! threshold velocity correction for soil humidity hc
-        if ( jsoilm == 0 ) then
-          if ( soilw(j) < d_zero ) then
-            write(stderr,*) 'hc, rc = ' , soilw(j) , ' less than zero'
-            call fatal(__FILE__,__LINE__,'NEGATIVE SOILW')
-          else if ( soilw(j) < 0.03_rkx ) then
-            hc(j) = exp(22.7_rkx*soilw(j))
-          else if ( soilw(j) >= 0.03_rkx ) then
-            hc(j) = exp(95.3_rkx*soilw(j)-2.029_rkx)
-          else
-            hc(j) = d_one
-          end if
-        else if ( jsoilm == 1 ) then
+        ! based on Fécan et al. 1999. Grid level.
+        if (jsoilm == 1) then 
           cly1 = clayrow(j)
           cly2 = cly1*cly1
           wprim(j) = 0.0014_rkx*cly2 + 0.17_rkx*cly1
@@ -822,12 +733,13 @@ module mod_che_dust
           else
             hc(j) = d_one
           end if
-          ! no soil humidity correction facor if jsoilm > 1
+          ! no soil humidity corretion 
         else
           hc(j) = d_one
         end if
         ! * total correction factor for both hc and rc
         rc(j) = rc(j)/hc(j)
+
         ! * computation of the wind friction velocity
         ! * accounting for the increase of the roughness length
         ! * due to the saltation layer (gillette etal. jgr 103,
@@ -842,9 +754,7 @@ module mod_che_dust
         end if
       end do       ! end i loop
 
-      call uthefft(jl1,jl2,ust,nsoil,roarow,utheff,rhodust)
-
-      call emission(jl1,jl2,rhodust,ftex,alphaprop,uth,roarow,rc,utheff, &
+      call emission(jl1,jl2,rhodust,ftex,fclay,uth,roarow,rc,utheff, &
                     ustar,srel,rsfrow,vegfrac,snowfrac)
 
     end subroutine dust_module
@@ -862,18 +772,19 @@ module mod_che_dust
         do j = jl1 , jl2
           if ( ust == 0 ) utheff(j,n) = ustart0(rhodust,dp_array(n),roarow(j))
           if ( ust == 1 ) utheff(j,n) = ustart01(rhodust,dp_array(n),roarow(j))
-        end do
+       end do
       end do
     end subroutine uthefft
 
-    subroutine emission(jl1,jl2,rhodust,ftex,alphaprop,uth,roarow,rc, &
+    subroutine emission(jl1,jl2,rhodust,ftex,fclay,uth,roarow,rc, &
                         utheff,ustar,srel,rsfrow,vegfrac,snowfrac)
       implicit none
       integer(ik4) :: jl1 , jl2
       real(rkx) :: rhodust , uth
       real(rkx) , dimension(ilg) :: rc , ustar, roarow , vegfrac , snowfrac
       real(rkx) , dimension(ilg,nbin) :: rsfrow
-      real(rkx) , dimension(ilg,nats) :: ftex , alphaprop
+      real(rkx) , dimension(ilg,nats) :: ftex 
+      real(rkx) , dimension(nats) :: fclay
       real(rkx) , dimension(ilg,nsoil,nats) :: srel
       real(rkx) , dimension(ilg,nsoil) :: utheff
       intent (in)  jl1 , jl2 , rc , rhodust , roarow , srel ,  &
@@ -882,20 +793,27 @@ module mod_che_dust
       real(rkx) :: p1 , p2 , p3 , dec , ec , fdp1 , fdp2
       real(rkx) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
       integer(ik4) :: j , k , n , nt , ns
-
       real(rkx), dimension(ilg,nbin,nats):: rsfrowt
 
       real(rkx) , parameter :: beta = 16300.0_rkx
 
+      ! Parameters used in K 2014 
+      real(rkx) :: Cd,k1,k2,utheffc, usst, ustark 
       !
-      ! Put rdstemfac consistent with soil parameters and Laurent et al., 08
+      real(rkx) , parameter :: roa0 = 1.225_rkx
+      real(rkx) , parameter :: usst0 = 0.16_rkx
+      real(rkx) , parameter :: calph = 2.7_rkx
+      real(rkx) , parameter :: Ce = 2.0_rkx
+      real(rkx) , parameter :: Cd0 = 4.5e-5_rkx 
       !
-      ! rdstemfac = d_one
-      !
+
+      fsoil(:,:) = d_zero
+      if ( ichdustemd == 1 ) then    
+
       p1 = d_zero
       p2 = d_zero
       p3 = d_zero
-      fsoil(:,:) = d_zero
+      
       fsoil1(:,:) = d_zero
       fsoil2(:,:) = d_zero
       fsoil3(:,:) = d_zero
@@ -904,7 +822,7 @@ module mod_che_dust
         do j = jl1 , jl2
           if ( ftex(j,nt) < 1.e-10_rkx ) cycle
           do ns = 1 , nsoil
-            if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
+            if ( rc(j) > d_zero .and. ustar(j) > d_zero ) then
               uth = utheff(j,ns)/(rc(j)*ustar(j))
               if ( uth <= d_one ) then
                 fdp1 = ustar(j)**3*(d_one-uth*uth)
@@ -913,9 +831,7 @@ module mod_che_dust
                 ! FAB: with subgrid soil texture, the aggregation of vertical
                 ! fluxes per texture type at the grid cell level is done in
                 ! fine.
-                ! fsoil(k) = srel(k,j,i)*fdp1*fdp2*aeffect*beffect
-                ! FAB
-                if ( ichdustemd == 1 ) then
+                                
                   fsoil(j,nt) = srel(j,ns,nt)*fdp1*fdp2
                   ! size-distributed kinetic energy flux(per texture type)
                   dec = fsoil(j,nt)*beta
@@ -946,16 +862,53 @@ module mod_che_dust
                             (mathpi/6.0_rkx)*rhodust*((d2*1.0e-4_rkx)**3)
                   fsoil3(j,nt) = fsoil3(j,nt) + 1.0e-2_rkx*p3*(dec/e3)* &
                             (mathpi/6.0_rkx)*rhodust*((d3*1.0e-4_rkx)**3)
-                else if ( ichdustemd >= 2 ) then
-                  fsoil(j,nt) = fsoil(j,nt) + alphaprop(j,nt)* &
-                                 srel(j,ns,nt)*fdp1*fdp2
-                end if
+                
+               
               end if
             end if
           end do
         end do
       end do
-      !
+     end if 
+
+     if ( ichdustemd == 2 ) then  
+      ! Kok et al., ACP, 2014 parameterisation 
+      ! NB : the integration on soil aggregate size distribution is made explicitely
+      ! using MB95. This differs from clm5 approach   
+      do nt = 1 , nats
+        do j = jl1 , jl2
+          if ( ftex(j,nt) < 1.e-10_rkx ) cycle
+          if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then           
+          do ns = 1 , nsoil
+            if ( rc(j) > d_zero .and. ustar(j) /= d_zero ) then
+              utheffc = utheff(j,ns)/ rc(j)
+              uth =  utheffc / ustar(j)
+              usst =  utheffc * (roarow(j)/roa0)**0.5 
+              usst = usst / 100._rkx  ! usst in m.s-1
+              utheffc = utheffc / 100._rkx ! utheffc in m.s-1
+              ustark = ustar(j) / 100._rkx ! 
+              if ( uth <= d_one ) then                     
+                 k1 = calph * (usst - usst0) / usst0
+                 k2 = roarow(j) * (ustark**2 - utheffc**2)/ usst
+                 ! Cd is equivalent to erodibilty
+                 ! maybe output it in the future 
+                 Cd = Cd0 * exp(-Ce * (usst - usst0)/ usst0)
+                 !
+                 ! finally integrate over nsoil
+                 ! note the clay fraction is used    
+                 fsoil(j,nt) = fsoil(j,nt) +  &
+                               srel(j,ns,nt)* &
+                               fclay(nt) * Cd * &
+                               k1 * uth ** k2  
+              end if               
+            end if
+           end do
+           end if
+          end do
+        end do 
+
+      end if ! end Kok 2014 
+
       ! calculate fluxes for each of transport bins
       !
       rsfrowt(:,:,:) = d_zero
@@ -969,7 +922,7 @@ module mod_che_dust
             end do
           end do
         end do
-      else if ( ichdustemd >= 2 ) then
+      else if ( ichdustemd == 2 ) then
         do nt = 1 , nats
           do n = 1 , nbin
             do j = jl1 , jl2
@@ -982,15 +935,10 @@ module mod_che_dust
       ! Finally, aggregation of the dust flux at the grid cell level =
       ! weighted sum over soil texture
       ! weighting by grid cell veg fraction, snow fraction,
-      ! EBL = erodibility factor, to be introduced )
-      ! f = d_zero
-      ! aeffect = (1-f)*(1-vegfrac(k))
-      ! beffect = 0.01*fland(k,i)*sand2row(k,i)
-      ! Fab : fland is equal to 1 with bats
-      ! the fraction of sand ( coarse particles) is intrinsically contained
-      ! in dsrel soil aggregate distribution
-      ! there is no need to multipky by sand2row.
       !
+      ! f = d_zero
+      !
+
       rsfrow(:,:) = d_zero
       do k = 1 , nbin
         do nt = 1 , nats
@@ -1003,7 +951,7 @@ module mod_che_dust
             rsfrow(j,k) = rsfrow(j,k) + rsfrowt(j,k,nt)*ftex(j,nt) * &
                           (d_one - vegfrac(j))*(d_one - snowfrac(j))
 #endif
-            ! * EBL(j)
+             
             ! * (1-snowfrac)
           end do
         end do
@@ -1021,9 +969,15 @@ module mod_che_dust
       ! distrib frac(n) is the weight relatibe to bin n ..
       ! this insure consistency between emission distrbution and effective
       ! readius and optical properties
-      ! use the same tuning erodibility factor rdstemfac than for
-      ! standard scheme
-      sumdflux = sum(cdustflx_clm,3) * rdstemfac
+      ! use the same tuning  rdstemfac and also add the erodibility source function (fixed to 1 in CLM)
+      ! from external data. 
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          sumdflux(j,i) = sum(cdustflx_clm(j,i,:)) * rdstemfac * erodfc(j,i)
+        end do
+      end do
+
       do n = 1 , nbin
         ib = idust(n)
         if ( ichdrdepo == 1 ) then
