@@ -540,7 +540,7 @@ module mod_moloch
         implicit none
         real(rkx) , intent(in) :: dts
         integer(ik4) :: i , j , k , im1 , ip1 , jm1 , jp1
-        real(rkx) :: zuh , zvh , zcx , zcy
+        real(rkx) :: zuh , zvh , zcx , zcy , zcym , zcyp
         real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zqs , zdth
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
@@ -600,6 +600,7 @@ module mod_moloch
           ! Equation 16
 
           if ( iproj == 'ROTLLR' ) then
+
             do k = 1 , kz
               do i = ice1 , ice2
                 im1 = max(icross1,i-1)
@@ -615,8 +616,9 @@ module mod_moloch
                   zup = u(j+1,i,k) * zrfmzup
                   zvm = v(j,i,k) * zrfmzv
                   zvp = v(j,i+1,k) * zrfmzvp
-                  zdiv2(j,i,k) = (zup-zum)*zdtrdx*mu(j,i)/mx(j,i) + &
-                                 (zvp-zvm)*zdtrdy*mv(j,i)/mx(j,i)
+                  zcym = zdtrdy*rmv(j,i)
+                  zcyp = zdtrdy*rmv(j,i+1)
+                  zdiv2(j,i,k) = (zup-zum)*zdtrdx + zvp*zcyp - zvm*zcym
                 end do
               end do
             end do
@@ -624,12 +626,14 @@ module mod_moloch
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
-                  zdiv2(j,i,k) = fmz(j,i,k) * (zdiv2(j,i,k) + &
+                zdiv2(j,i,k) = fmz(j,i,k) * (mx(j,i) * zdiv2(j,i,k) + &
                          zdtrdz * (s(j,i,k) - s(j,i,k+1)))
                 end do
               end do
             end do
+
           else
+
             do k = 1 , kz
               do i = ice1 , ice2
                 im1 = max(icross1,i-1)
@@ -658,6 +662,7 @@ module mod_moloch
                 end do
               end do
             end do
+
           end if
 
           ! new w (implicit scheme) from Equation 19
@@ -763,6 +768,7 @@ module mod_moloch
           call exchange_lrbt(deltaw,1,jce1,jce2,ice1,ice2,1,kzp1)
 
           if ( iproj == 'ROTLLR' ) then
+
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jdii1 , jdii2
@@ -795,7 +801,9 @@ module mod_moloch
                 end do
               end do
             end do
+
           else
+
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jdii1 , jdii2
@@ -919,6 +927,7 @@ module mod_moloch
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmp , zrfmm
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
+        real(rkx) :: zhxvtn , zhxvts , zcostx
 
         zdtrdx = dta/dx
         zdtrdy = dta/dx
@@ -987,6 +996,7 @@ module mod_moloch
         ! Meridional advection
 
         if ( iproj == 'ROTLLR' ) then
+
           do k = 1 , kz
             do i = ici1 , ice2ga
               do j = jci1 , jci2
@@ -1009,12 +1019,13 @@ module mod_moloch
 
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
-                zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
-                zdv = (v(j,i+1,k) * mv(j,i+1)/mx(j,i) * zrfmn - &
-                       v(j,i,k) * mv(j,i)/mx(j,i) * zrfms) * pp(j,i,k)
+                zhxvtn = zdtrdy * rmv(j,i+1) * mx(j,i)
+                zhxvts = zdtrdy * rmv(j,i) * mx(j,i)
+                zrfmn = zhxvtn * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
+                zrfms = zhxvts * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
+                zdv = (v(j,i+1,k) * zrfmn - v(j,i,k) * zrfms) * pp(j,i,k)
                 p0(j,i,k) = wz(j,i,k) + &
-                      (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
+                      zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv
               end do
             end do
           end do
@@ -1061,16 +1072,18 @@ module mod_moloch
 
             do i = ici1 , ici2
               do j = jci1 , jci2
-                zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
-                zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
-                zdv = (u(j+1,i,k) * mu(j+1,i) * zrfme - &
-                       u(j,i,k) * mu(j,i) * zrfmw) * pp(j,i,k)
+                zcostx = zdtrdx * mu(j,i)
+                zrfme = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
+                zrfmw = zcostx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
+                zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
                 pp(j,i,k) = p0(j,i,k) + &
-                  (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
+                     zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv
               end do
             end do
           end do
+
         else
+
           do k = 1 , kz
             do i = ici1 , ice2ga
               do j = jci1 , jci2
