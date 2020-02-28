@@ -203,7 +203,7 @@ module mod_projections
         call rotate3_rc(pj,u,v)
       case ('POLSTR')
         call rotate3_ps(pj,u,v)
-      case ('ROTLL')
+      case ('ROTLLR')
         call rotate3_rl(pj,u,v)
       case default
         ! No action
@@ -221,7 +221,7 @@ module mod_projections
         call backrotate3_rc(pj,u,v)
       case ('POLSTR')
         call backrotate3_ps(pj,u,v)
-      case ('ROTLL')
+      case ('ROTLLR')
         call backrotate3_rl(pj,u,v)
       case default
         ! No action
@@ -239,7 +239,7 @@ module mod_projections
         call rotate2_rc(pj,u,v)
       case ('POLSTR')
         call rotate2_ps(pj,u,v)
-      case ('ROTLL')
+      case ('ROTLLR')
         call rotate2_rl(pj,u,v)
       case default
         ! No action
@@ -257,7 +257,7 @@ module mod_projections
         call backrotate2_rc(pj,u,v)
       case ('POLSTR')
         call backrotate2_ps(pj,u,v)
-      case ('ROTLL')
+      case ('ROTLLR')
         call backrotate2_rl(pj,u,v)
       case default
         ! No action
