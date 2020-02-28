@@ -540,8 +540,8 @@ module mod_moloch
         implicit none
         real(rkx) , intent(in) :: dts
         integer(ik4) :: i , j , k , im1 , ip1 , jm1 , jp1
-        real(rkx) :: zuh , zvh , zcx , zcy , zcym , zcyp
-        real(rkx) :: zrfmzu , zrfmzup , zrfmzv , zrfmzvp
+        real(rkx) :: zuh , zvh , zcx , zcy
+        real(rkx) :: zrfmzum , zrfmzup , zrfmzvm , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zqs , zdth
         real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
         real(rkx) :: zfz , zcor1u , zcor1v
@@ -608,17 +608,15 @@ module mod_moloch
                 do j = jce1 , jce2
                   jm1 = max(jcross1,j-1)
                   jp1 = min(jcross2,j+1)
-                  zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
-                  zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,im1,k))
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,im1,k))
                   zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
                   zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
-                  zum = u(j,i,k) * zrfmzu
-                  zup = u(j+1,i,k) * zrfmzup
-                  zvm = v(j,i,k) * zrfmzv
-                  zvp = v(j,i+1,k) * zrfmzvp
-                  zcym = zdtrdy*rmv(j,i)
-                  zcyp = zdtrdy*rmv(j,i+1)
-                  zdiv2(j,i,k) = (zup-zum)*zdtrdx + zvp*zcyp - zvm*zcym
+                  zum = zdtrdx * u(j,i,k) * zrfmzum
+                  zup = zdtrdx * u(j+1,i,k) * zrfmzup
+                  zvm = zdtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
+                  zvp = zdtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
+                  zdiv2(j,i,k) = (zup-zum) + (zvp-zvm)
                 end do
               end do
             end do
@@ -641,13 +639,13 @@ module mod_moloch
                 do j = jce1 , jce2
                   jm1 = max(jcross1,j-1)
                   jp1 = min(jcross2,j+1)
-                  zrfmzu  = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
-                  zrfmzv  = d_two / (fmz(j,i,k) + fmz(j,im1,k))
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,im1,k))
                   zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
                   zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
-                  zum = u(j,i,k) * rmu(j,i) * zrfmzu
+                  zum = u(j,i,k) * rmu(j,i) * zrfmzum
                   zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
-                  zvm = v(j,i,k) * rmv(j,i) * zrfmzv
+                  zvm = v(j,i,k) * rmv(j,i) * zrfmzvm
                   zvp = v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
                   zdiv2(j,i,k) = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
                 end do
