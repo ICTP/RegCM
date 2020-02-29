@@ -57,8 +57,6 @@ module mod_advection
   real(rkx) , pointer , dimension(:,:,:) :: va   ! V/m * ps
   real(rkx) , pointer , dimension(:,:) :: ps     ! Surface pressure
   real(rkx) , pointer , dimension(:,:) :: pd     ! Surface pressure dot points
-  real(rkx) , pointer , dimension(:,:) :: mapfx  ! Map factor Cross
-  real(rkx) , pointer , dimension(:,:) :: mapfd  ! Map factor Dot
   real(rkx) , pointer , dimension(:,:) :: xmapf  ! 1/(mapfx**2 * 4 * dx)
   real(rkx) , pointer , dimension(:,:) :: dmapf  ! 1/(mapfd**2 * 16 * dx)
   real(rkx) , pointer , dimension(:,:,:) :: svv  ! Sigma Vertical Velocity
@@ -85,8 +83,6 @@ module mod_advection
       call assignpnt(atmx%vmc,va)
       call assignpnt(sfs%psa,ps)
       call assignpnt(sfs%psdota,pd)
-      call assignpnt(mddom%msfx,mapfx)
-      call assignpnt(mddom%msfd,mapfd)
       call assignpnt(mddom%xmsf,xmapf)
       call assignpnt(mddom%dmsf,dmapf)
       call assignpnt(atms%pf3d,pfs)

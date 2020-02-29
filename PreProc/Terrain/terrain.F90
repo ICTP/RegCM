@@ -196,6 +196,15 @@ program terrain
 
   if ( idynamic == 3 ) then
     write(stdout, *) 'Using non hydrostatic Moloch dynamic'
+  else
+    if ( iproj == 'ROTLLR' ) then
+    write (stderr,*) 'Temporary fix:'
+    write (stderr,*) 'Rotated Longitude/Latitude projection supported only&
+                    & by MOLOCH'
+    write (stderr,*) 'Either change iproj or use idynamic=3 in &
+                    &coreparam (MOLOCH)'
+    call die('terrain')
+    end if
   end if
 
   clong = clon
