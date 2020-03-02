@@ -714,24 +714,20 @@ module mod_moloch
           end do
 
           ! new Exner function (Equation 19)
-
-          if ( .not. do_fulleq ) then
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
-                        (w(j,i,k) - w(j,i,k+1))
-                  pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
-                end do
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
+                      (w(j,i,k) - w(j,i,k+1))
               end do
             end do
-          else
+          end do
+
+          if ( do_fulleq ) then
             if ( ipptls > 0 ) then
               do k = 1 , kz
                 do i = ici1 , ici2
                   do j = jci1 , jci2
-                    zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
-                          (w(j,i,k) - w(j,i,k+1))
                     zdiv2(j,i,k) = zdiv2(j,i,k) * &
                        (d_one + 0.86_rkx * qv(j,i,k) + &
                                 3.2_rkx * qc(j,i,k)) / &
@@ -742,23 +738,20 @@ module mod_moloch
                         (0.25_rkx * qv(j,i,k) +      &
                          4.2_rkx * qwltot(j,i,k) +   &
                          2.1_rkx * qwitot(j,i,k)))
-                    pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
                   end do
                 end do
               end do
               call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
-            else
-              do k = 1 , kz
-                do i = ici1 , ici2
-                  do j = jci1 , jci2
-                    zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
-                          (w(j,i,k) - w(j,i,k+1))
-                    pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
-                  end do
-                end do
-              end do
             end if
           end if
+
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                pai(j,i,k) = pai(j,i,k) * (d_one - rdrcv*zdiv2(j,i,k))
+              end do
+            end do
+          end do
 
           ! horizontal momentum equations
 
