@@ -234,6 +234,9 @@ case $CHEMTYPE in
   "SUCA")
   SPECIELIST=(BC OC SO2)
   ;;
+  "SUCE")
+  SPECIELIST=(BC OC SO2)
+  ;;
   "AERO")
   SPECIELIST=(BC OC SO2)
   ;;
