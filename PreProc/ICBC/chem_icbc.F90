@@ -159,7 +159,7 @@ program chem_icbc
         dochem = .true.
       case ( 'DUST', 'DU12', 'SSLT', 'DUSS' )
         doaero = .true.
-      case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
+      case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' . 'SUCE' )
         doaero = .true.
         dooxcl = .true.
       case ( 'DCCB' )
