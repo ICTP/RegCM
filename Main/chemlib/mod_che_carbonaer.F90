@@ -124,7 +124,6 @@ module mod_che_carbonaer
 
     subroutine carb_prepare( )
       implicit none
-      integer(ik4) :: n
       ncon(:,:,:) = d_zero
       surf(:,:,:) = d_zero
       if ( ibchb > 0 ) then
@@ -157,7 +156,6 @@ module mod_che_carbonaer
 
     subroutine aging_carb
       implicit none
-      integer(ik4) :: i , j , k
       integer(ik4) , dimension(4) :: ids
       !
       ! aging o carbon species : Conversion from hydrophobic to
@@ -176,7 +174,15 @@ module mod_che_carbonaer
             call doagingdyn([ibchb,ibchl])
           end if
         else
-          call doaging([ibchb,ibchl],const_chagct)
+          if ( any(ibchl_e > 0) ) then
+            ids(1) = ibchb
+            ids(2) = ibchl
+            ids(3) = ibchl_e(1)
+            ids(4) = ibchl_e(2)
+            call doaging(ids,const_chagct)
+          else
+            call doaging([ibchb,ibchl],const_chagct)
+          end if
         end if
       end if
       if ( iochb > 0  .and. iochl > 0 ) then
@@ -191,10 +197,18 @@ module mod_che_carbonaer
             call doagingdyn([iochb,iochl])
           end if
         else
-          call doaging([iochb,iochl],const_chagct)
+          if ( any(iochl_e > 0) ) then
+            ids(1) = iochb
+            ids(2) = iochl
+            ids(3) = iochl_e(1)
+            ids(4) = iochl_e(2)
+            call doaging(ids,const_chagct)
+          else
+            call doaging([iochb,iochl],const_chagct)
+          end if
         end if
       end if
-      if ( ism1 > 0  .and. ism2 > 0 ) then
+      if ( ism1 > 0 .and. ism2 > 0 ) then
         call doaging([ism1,ism2],chsmct)
       end if
 
@@ -295,8 +309,8 @@ module mod_che_carbonaer
               do j = jci1 , jci2
                 ksp = max(pp(j,i,k,b1)-mintr,d_zero)
                 agingtend(j,i) = -ksp*(d_one-exp(-dt/sm))/dt
-                chiten(j,i,k,b1) = chiten(j,i,k,ism1) + agingtend(j,i)
-                chiten(j,i,k,b2) = chiten(j,i,k,ism2) - agingtend(j,i)
+                chiten(j,i,k,b1) = chiten(j,i,k,b1) + agingtend(j,i)
+                chiten(j,i,k,b2) = chiten(j,i,k,b2) - agingtend(j,i)
               end do
             end do
             if ( ichdiag > 0 ) then
