@@ -352,7 +352,6 @@ module mod_runparams
   real(rkx) , public :: kf_max_dtcape
   real(rkx) , public :: kf_tkemax
   real(rkx) , public :: kf_wthreshold
-  !
 
   ! Tweak Global data
 
@@ -428,8 +427,11 @@ module mod_runparams
   ! chemistry species indices that are used not only in chemlib but also in
   ! other interface ( e.g CLM4.5)/ other species are delcared in
   ! chemlib/mod_che_indices
-  integer(ik4) , public :: ibchb , ibchl , iochl , iochb , ianh4 , &
-                           iano3 , iisop , ich4 , ism1 , ism2 , ino
+  integer(ik4) , public , parameter :: nchlmax = 3
+  integer(ik4) , public :: nochl , nbchl
+  integer(ik4) , public , dimension(nchlmax) :: iochl , ibchl
+  integer(ik4) , public :: ibchb , iochb , ianh4 , iano3 , iisop , &
+                           ich4 , ism1 , ism2 , ino
 
   ! Cloud control parameters
 

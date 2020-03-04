@@ -46,24 +46,28 @@ module mod_che_ccn
 
   subroutine ccn
     implicit none
-    integer(ik4) :: i , j , k
+    integer(ik4) :: i , j , k , n
     cccn(:,:,:) = d_zero
-    if ( ibchl > 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            cccn(j,i,k) = cccn(j,i,k) + &
-                 calc_ccn(rhobchl,chib3d(j,i,k,ibchl)*crhob3d(j,i,k))
+    if ( nbchl > 0 ) then
+      do n = 1 , nbchl
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              cccn(j,i,k) = cccn(j,i,k) + &
+                 calc_ccn(rhobchl(n),chib3d(j,i,k,ibchl(n))*crhob3d(j,i,k))
+            end do
           end do
         end do
       end do
     end if
-    if ( iochl > 0 ) then
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            cccn(j,i,k) = cccn(j,i,k) + &
-                 calc_ccn(rhoochl,chib3d(j,i,k,iochl)*crhob3d(j,i,k))
+    if ( nochl > 0 ) then
+      do n = 1 , nochl
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              cccn(j,i,k) = cccn(j,i,k) + &
+                 calc_ccn(rhoochl(n),chib3d(j,i,k,iochl(n))*crhob3d(j,i,k))
+            end do
           end do
         end do
       end do

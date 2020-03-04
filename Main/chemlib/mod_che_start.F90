@@ -68,7 +68,9 @@ module mod_che_start
     idms  = 0
     imsa  = 0
     ibchl = 0
+    nbchl = 0
     ibchb = 0
+    nochl = 0
     iochl = 0
     iochb = 0
     idust = 0
@@ -161,36 +163,30 @@ module mod_che_start
         ih2so4 = itr
         iso4 = itr
         icarb(kbin) = itr
-        carbed(kbin) = reffochl
+        carbed(kbin) = reffochl(1)
         chtrsol(iso4) = solso4
       end if
       if ( chtrname(itr) == 'ANO3' ) then
         kbin = kbin + 1
         iano3 = itr
         icarb(kbin) = itr
-        carbed(kbin) = reffochl
+        carbed(kbin) = reffochl(1)
         chtrsol(iano3) = solso4
       end if
       if ( chtrname(itr) == 'ANH4' ) then
         kbin = kbin + 1
         ianh4 = itr
         icarb(kbin) = itr
-        carbed(kbin) = reffochl
+        carbed(kbin) = reffochl(1)
         chtrsol(ianh4) = solso4
       end if
       if ( chtrname(itr)(1:5) == 'BC_HL' ) then
         kbin = kbin + 1
         icarb(kbin) = itr
-        if ( chtrname(itr)(6:6) /= ' ' ) then
-          read(chtrname(itr)(6:6),'(i1)') next
-          ibchl_e(next) = itr
-          carbed(kbin) = reffbchl_e(next)
-          chtrsol(itr) = solbchl_e(next)
-        else
-          ibchl = itr
-          carbed(kbin) = reffbchl
-          chtrsol(itr) = solbchl
-        end if
+        nbchl = nbchl + 1
+        ibchl(nbchl) = itr
+        carbed(kbin) = reffochl(nbchl)
+        chtrsol(itr) = solochl(nbchl)
       end if
       if ( chtrname(itr) == 'BC_HB' ) then
         kbin = kbin + 1
@@ -202,16 +198,10 @@ module mod_che_start
       if ( chtrname(itr)(1:5) == 'OC_HL' ) then
         kbin = kbin + 1
         icarb(kbin) = itr
-        if ( chtrname(itr)(6:6) /= ' ' ) then
-          read(chtrname(itr)(6:6),'(i1)') next
-          iochl_e(next) = itr
-          carbed(kbin) = reffochl_e(next)
-          chtrsol(itr) = solochl_e(next)
-        else
-          iochl = itr
-          carbed(kbin) = reffochl
-          chtrsol(itr) = solochl
-        end if
+        nochl = nochl + 1
+        iochl(nochl) = itr
+        carbed(kbin) = reffochl(nochl)
+        chtrsol(itr) = solochl(nochl)
       end if
       if ( chtrname(itr) == 'OC_HB' ) then
         kbin = kbin + 1
