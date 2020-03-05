@@ -66,9 +66,8 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl , afracs , bb , cc , chibot , dlargc , &
-               dsmalc , dxtemc , pk , ptmb , pz , qk , qkp1 ,  &
-               sig700 , ssum , vqmax , wk , wkp1 , xbot ,      &
+    real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc ,    &
+               pk , qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot , &
                xtop , xx , yy , mo_c1 , mo_c2
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
@@ -708,6 +707,12 @@ module mod_params
       icup(1) = icup_lnd
       icup(2) = icup_ocn
       if ( any(icup == 1) ) then
+        if ( idynamic == 3 ) then
+          write(stderr,*) &
+            'ERROR: Kuo scheme cannot be used with MOLOCH dynamical scheme'
+          call fatal(__FILE__,__LINE__, &
+                     'INPUT NAMELIST ICUP INCONSISTENT')
+        end if
         if ( icup_lnd /= icup_ocn ) then
           write(stderr,*) &
             'ERROR: Kuo scheme MUST be used on both Land and Ocean'
@@ -2074,7 +2079,9 @@ module mod_params
       write(stdout,'(a,a)') '  Map Projection        : ',iproj
       write(stdout,'(a,i4,a,i4,a,i3)') &
         '  Dot Grid Full Extent  : ',jx,'x',iy,'x',kz
-      write(stdout,'(a,f11.6,a)') '  Model Top Pressure    : ',ptop,' cb'
+      if ( idynamic /= 3 ) then
+        write(stdout,'(a,f11.6,a)') '  Model Top Pressure    : ',ptop,' cb'
+      end if
       write(stdout,'(a,f11.6,a)') '  Model Grid Spacing    : ',ds,' km'
       write(stdout,'(a,f11.6,a)') '  Proj Center Latitude  : ',clat,' deg'
       write(stdout,'(a,f11.6,a)') '  Proj Center longitude : ',clon,' deg'
@@ -2437,19 +2444,6 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcv
       write(stdout,'(a,f11.6)') '  Convective Cloud Water         : ',cllwcv
     end if
-
-    chibot = 450.0_rkx
-    ptmb = d_10*ptop
-    pz = hsigma(1)*(d_1000-ptmb) + ptmb
-    if ( pz > chibot ) then
-      call fatal(__FILE__,__LINE__, &
-                 'VERTICAL INTERPOLATION ERROR')
-    end if
-
-    do k = 1 , kz
-      pk = hsigma(k)*(d_1000-ptmb) + ptmb
-      if ( pk <= chibot ) kchi = k
-    end do
 
     do i = ici1 , ici2
       do j = jci1 , jci2

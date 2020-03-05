@@ -202,8 +202,6 @@ module mod_runparams
   logical , public :: do_parallel_save
   logical , public :: ifrest , doing_restart , lsync
 
-  integer(ik4) , public :: kchi , kclo , kcmd
-
   real(rkx) , pointer , dimension(:) , public :: dtau , dtsplit
   real(rkx) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
   real(rkx) , pointer , dimension(:) , public :: sigma , zita , zitah

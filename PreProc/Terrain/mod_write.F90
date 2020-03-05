@@ -330,6 +330,9 @@ module mod_write
     if ( idynamic == 2 ) then
       call outstream_addatt(ncout, &
         ncattribute_real8('base_state_surface_temperature',ts0))
+    else if ( idynamic == 3 ) then
+      call outstream_addatt(ncout, &
+        ncattribute_real8('top_pressure_stdatm',ptop))
     end if
 
     if ( lakedpth ) then

@@ -100,7 +100,7 @@ program terrain
   integer(ik4) :: i , j , k , ierr , ism , mmx
   integer(ik4) :: year , month , day , hour
   logical :: ibndry
-  real(rkx) :: clong , dsnsg
+  real(rkx) :: clong , dsnsg , zsurf
   integer(ik4) :: ntypec , ntypec_s
   real(rkx) , allocatable , dimension(:,:) :: tmptex
   real(rkx) , pointer , dimension(:,:) :: values
@@ -899,6 +899,7 @@ program terrain
     end do
     ! Filling.
     fmz(:,:,1) = 0.0_rkx
+    zsurf = sum(htgrid)/real(jx*iy,rkx)
     ! Write the levels out to the screen
     write (stdout,*) 'Vertical Grid Description (mean over domain)'
     write (stdout,*) ''
@@ -907,7 +908,7 @@ program terrain
     write (stdout,*) '--------------------------------------------------'
     do k = kz, 1, -1
       sigh = 1.0_rkx - (((kz-k) * dz + dz*d_half)/hzita)
-      zsig = sum(zeta(:,:,k+1))/real(jx*iy,rkx)
+      zsig = sum(zeta(:,:,k+1))/real(jx*iy,rkx) + zsurf
       if ( zsig > 20000.0_rkx ) then
         tsig = (tzero - 56.5_rkx) + 0.0045_rkx * (zsig-20000.0_rkx)
       else if ( zsig > 10000.0_rkx ) then
@@ -919,6 +920,7 @@ program terrain
       write (stdout,'(i3,4x,f8.3,4x,f8.2,4x,f10.2,4x,f6.1)') k, sigh, &
         psig * d_r100 , zsig , tsig
     end do
+    ptop = max(int(psig * d_r100),5) ! Approximation of top pressure. hPa
   end if
 
   write (outname,'(a,i0.3,a)') &

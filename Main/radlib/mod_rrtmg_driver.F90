@@ -118,16 +118,24 @@ module mod_rrtmg_driver
     ! Define here the total number of vertical levels, including standard
     ! atmosphere hat replace kz by kth, kzp1 by ktf
 
-    do k = 1 , n_prehlev
-      kclimh = k
-      if ( ptop*d_10 > stdplevh(k) ) exit
-    end do
-    kth = kz + n_prehlev - kclimh - 1
-    do k = 1 , n_preflev
-      kclimf = k
-      if ( ptop*d_10 > stdplevf(k) ) exit
-    end do
-    ktf = kz + n_preflev - kclimf - 1
+    if ( idynamic /= 3 ) then
+      do k = 1 , n_prehlev
+        kclimh = k
+        if ( ptop*d_10 > stdplevh(k) ) exit
+      end do
+      kth = kz + n_prehlev - kclimh - 1
+      do k = 1 , n_preflev
+        kclimf = k
+        if ( ptop*d_10 > stdplevf(k) ) exit
+      end do
+      ktf = kz + n_preflev - kclimf - 1
+    else
+      ! Cannot do this for the MOLOCH. Ach...
+      kclimh = n_prehlev
+      kth = kz
+      kclimf = n_preflev
+      ktf = kzp1
+    end if
 
     call getmem1d(frsa,1,npr,'rrtmg:frsa')
     call getmem1d(sabtp,1,npr,'rrtmg:sabtp')
