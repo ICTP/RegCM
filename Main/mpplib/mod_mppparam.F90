@@ -1199,20 +1199,20 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_coords error.')
       end if
-      call mpi_comm_split_type(cartesian_communicator,mpi_comm_type_shared, &
-                               0, mpi_info_null,node_local_communicator, &
-                               mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_split_type error.')
-      end if
-      call mpi_comm_rank(node_local_communicator,myidshm,mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
-      end if
-      call mpi_comm_size(node_local_communicator, nprocshm, mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_size error.')
-      end if
+      !call mpi_comm_split_type(cartesian_communicator,mpi_comm_type_shared, &
+      !                         0, mpi_info_null,node_local_communicator, &
+      !                         mpierr)
+      !if ( mpierr /= mpi_success ) then
+      !  call fatal(__FILE__,__LINE__,'mpi_comm_split_type error.')
+      !end if
+      !call mpi_comm_rank(node_local_communicator,myidshm,mpierr)
+      !if ( mpierr /= mpi_success ) then
+      !  call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
+      !end if
+      !call mpi_comm_size(node_local_communicator, nprocshm, mpierr)
+      !if ( mpierr /= mpi_success ) then
+      !  call fatal(__FILE__,__LINE__,'mpi_comm_size error.')
+      !end if
 
       if ( myid == iocpu ) ccio = ccid
 

@@ -78,7 +78,7 @@ module mod_kdinterp
   real(rkx) , parameter :: missl = -9999.0_rkx
   real(rkx) , parameter :: h_missing_value = missl
   real(rkx) , parameter :: missc = -9990.0_rkx
-  real(rk8) , parameter :: mindis = 1.0e-8_rkx
+  real(rk8) , parameter :: mindis = 1.0e-4_rkx
   real(rk8) , parameter :: mindis2 = mindis*mindis
 
   type pwgt

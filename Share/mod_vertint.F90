@@ -65,6 +65,11 @@ module mod_vertint
     module procedure intzps2
   end interface intzps
 
+  interface intpsn
+    module procedure intpsnnops
+    module procedure intpsnps
+  end interface intpsn
+
   public :: intlin , intgtb , intlog , intlinz
   public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
@@ -1130,13 +1135,13 @@ module mod_vertint
     end if
   end subroutine intlin_z_o_double
 
-  subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,ni,nj,nlev1)
+  subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,ni,nj,nz)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nlev1
+    integer(ik4) , intent(in) :: ni , nj , nz
     real(rkx) :: pss
     real(rkx) , dimension(ni,nj) , intent(in) :: zrcm
-    real(rkx) , dimension(nlev1) , intent(in) :: sccm
-    real(rkx) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
+    real(rkx) , dimension(nz) , intent(in) :: sccm
+    real(rkx) , dimension(ni,nj,nz) , intent(in) :: tp , zp
     real(rkx) , dimension(ni,nj) , intent(out) :: tlayer , pa , za
     integer(ik4) :: i , j , k , kb , kt
     real(rkx) :: wu , wl
@@ -1158,18 +1163,18 @@ module mod_vertint
     do i = 1 , ni
       do j = 1 , nj
         kt = 0
-        do k = 1 , nlev1 - 1
-          if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
-               zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
+        do k = 1 , nz - 1
+          if ( zrcm(i,j) <= zp(i,j,nz+1-k) .and. &
+               zrcm(i,j) > zp(i,j,nz-k) ) kt = k
         end do
         kb = kt + 1
         if ( kt /= 0 ) then
-          wu = ( zrcm(i,j) - zp(i,j,nlev1+1-kb) ) / &
-               ( zp(i,j,nlev1+1-kt) - zp(i,j,nlev1+1-kb) )
+          wu = ( zrcm(i,j) - zp(i,j,nz+1-kb) ) / &
+               ( zp(i,j,nz+1-kt) - zp(i,j,nz+1-kb) )
           wl = d_one - wu
-          tlayer(i,j) = tp(i,j,nlev1+1-kt) * wu + tp(i,j,nlev1+1-kb) * wl
-          tlayer(i,j) = (tp(i,j,nlev1+1-kt) + tlayer(i,j))/d_two
-          za(i,j) = zp(i,j,nlev1+1-kt)
+          tlayer(i,j) = tp(i,j,nz+1-kt) * wu + tp(i,j,nz+1-kb) * wl
+          tlayer(i,j) = (tp(i,j,nz+1-kt) + tlayer(i,j))/d_two
+          za(i,j) = zp(i,j,nz+1-kt)
           pa(i,j) = pss*sccm(kt)
         else
           tlayer(i,j) = tp(i,j,1)
@@ -1705,7 +1710,7 @@ module mod_vertint
     end if
   end subroutine intlog_o_single
 
-  subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
+  subroutine intpsnnops(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     real(rkx) , intent(in) :: pt
@@ -1722,7 +1727,30 @@ module mod_vertint
         psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
       end do
     end do
-  end subroutine intpsn
+  end subroutine intpsnnops
+
+  subroutine intpsnps(psrcm,zrcm,ps,pa,za,tlayer,pt,ni,nj)
+    implicit none
+    integer(ik4) , intent(in) :: ni , nj
+    real(rkx) , intent(in) :: pt
+    real(rkx) , dimension(ni,nj) , intent(in) :: ps , pa , tlayer , za , zrcm
+    real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
+    integer(ik4) :: i , j
+    !
+    ! EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
+    ! USE TLAYER CALCULATED IN INTGTB.
+    ! PSRCM = SURFACE PRESSURE - PTOP
+    !
+    do j = 1 , nj
+      do i = 1 , ni
+        if ( zrcm(i,j) < 25.0_rkx ) then
+          psrcm(i,j) = ps(i,j) - pt
+        else
+          psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
+        end if
+      end do
+    end do
+  end subroutine intpsnps
 
   subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none
@@ -2007,39 +2035,35 @@ module mod_vertint
     end do
   end subroutine intv3
 
-  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,lat,jday,ni,nj,nlev1)
+  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,lat,jday,ni,nj,nz)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nlev1
+    integer(ik4) , intent(in) :: ni , nj , nz
     real(rkx) , intent(in) :: pss , jday
     real(rkx) , dimension(ni,nj) , intent(in) :: zrcm , lat
     real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
-    real(rkx) , dimension(nlev1) , intent(in) :: sccm
-    real(rkx) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp
+    real(rkx) , dimension(nz) , intent(in) :: sccm
+    real(rkx) , dimension(ni,nj,nz) , intent(in) :: tp , zp
     integer(ik4) :: i , j , k , kb , kt
     real(rkx) :: wu , wl , tlayer , pa , za
 
     do i = 1 , ni
       do j = 1 , nj
         kt = 0
-        do k = 1 , nlev1 - 1
-          if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
-               zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
+        do k = nz , 2 , -1
+          if ( zrcm(i,j) <= zp(i,j,k) .and. &
+               zrcm(i,j) > zp(i,j,k-1) ) kt = k
         end do
         if ( kt /= 0 ) then
-          kb = kt + 1
-          wu = ( zrcm(i,j) - zp(i,j,nlev1+1-kb) ) / &
-               ( zp(i,j,nlev1+1-kt) - zp(i,j,nlev1+1-kb) )
+          kb = kt - 1
+          wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
           wl = d_one - wu
-          tlayer = tp(i,j,nlev1+1-kt) * wu + tp(i,j,nlev1+1-kb) * wl
-          tlayer = (tp(i,j,nlev1+1-kt) + tlayer)/d_two
-          za = zp(i,j,nlev1+1-kt)
-          pa = pss*sccm(kt)
+          tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
+          tlayer = (tp(i,j,kt) + tlayer)/d_two
+          za = zp(i,j,kt)
+          pa = pss*sccm(nz+1-kt)
         else
           za = zp(i,j,1)
-          !tlayer = 0.5_rkx * ( d_two * tp(i,j,1) + &
-          !     stdlrate(jday,lat(i,j)) * (za-zrcm(i,j)))
-          tlayer = 0.5_rkx * ( d_two * tp(i,j,1) - &
-               lrate * (za-zrcm(i,j)))
+          tlayer = tp(i,j,1) - 0.5_rkx*stdlrate(jday,lat(i,j))*(za-zrcm(i,j))
           pa = pss
         end if
         psrcm(i,j) = pa * exp(-govr*(zrcm(i,j)-za)/tlayer)
@@ -2047,38 +2071,34 @@ module mod_vertint
     end do
   end subroutine intzps1
 
-  subroutine intzps2(psrcm,zrcm,tp,zp,pp,ps,lat,jday,ni,nj,nlev1)
+  subroutine intzps2(psrcm,zrcm,tp,zp,pp,ps,lat,jday,ni,nj,nz)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , nlev1
+    integer(ik4) , intent(in) :: ni , nj , nz
     real(rkx) , intent(in) :: jday
     real(rkx) , dimension(ni,nj) , intent(in) :: zrcm , lat , ps
     real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
-    real(rkx) , dimension(ni,nj,nlev1) , intent(in) :: tp , zp , pp
+    real(rkx) , dimension(ni,nj,nz) , intent(in) :: tp , zp , pp
     integer(ik4) :: i , j , k , kb , kt
     real(rkx) :: wu , wl , tlayer , pa , za
 
     do i = 1 , ni
       do j = 1 , nj
         kt = 0
-        do k = 1 , nlev1 - 1
-          if ( zrcm(i,j) <= zp(i,j,nlev1+1-k) .and. &
-               zrcm(i,j) > zp(i,j,nlev1-k) ) kt = k
+        do k = nz , 2 , -1
+          if ( zrcm(i,j) <= zp(i,j,k) .and. &
+               zrcm(i,j) > zp(i,j,k-1) ) kt = k
         end do
         if ( kt /= 0 ) then
-          kb = kt + 1
-          wu = ( zrcm(i,j) - zp(i,j,nlev1+1-kb) ) / &
-               ( zp(i,j,nlev1+1-kt) - zp(i,j,nlev1+1-kb) )
+          kb = kt - 1
+          wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
           wl = d_one - wu
-          tlayer = tp(i,j,nlev1+1-kt) * wu + tp(i,j,nlev1+1-kb) * wl
-          tlayer = (tp(i,j,nlev1+1-kt) + tlayer)/d_two
-          za = zp(i,j,nlev1+1-kt)
-          pa = pp(i,j,nlev1+1-kt)
+          tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
+          tlayer = (tp(i,j,kt) + tlayer)/d_two
+          za = zp(i,j,kt)
+          pa = pp(i,j,kt)
         else
           za = zp(i,j,1)
-          !tlayer = 0.5_rkx * ( d_two * tp(i,j,1) + &
-          !     stdlrate(jday,lat(i,j)) * (za-zrcm(i,j)))
-          tlayer = 0.5_rkx * ( d_two * tp(i,j,1) - &
-               lrate * (za-zrcm(i,j)))
+          tlayer = tp(i,j,1) - 0.5_rkx*stdlrate(jday,lat(i,j))*(za-zrcm(i,j))
           pa = ps(i,j)
         end if
         psrcm(i,j) = pa * exp(-govr*(zrcm(i,j)-za)/tlayer)

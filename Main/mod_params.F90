@@ -66,8 +66,8 @@ module mod_params
   !
   subroutine param
     implicit none
-    real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc ,    &
-               pk , qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot , &
+    real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc , &
+               qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot ,   &
                xtop , xx , yy , mo_c1 , mo_c2
     integer(ik4) :: kbmax
     integer(ik4) :: iretval

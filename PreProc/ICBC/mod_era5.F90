@@ -226,8 +226,8 @@ module mod_era5
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    sigmar(:) = real(plevs(:),rkx)/plevs(klev)
-    pss = plevs(klev)/10.0_rkx ! mb -> cb
+    sigmar(:) = real(plevs(:),rkx)/real(plevs(klev),rkx)
+    pss = real(plevs(klev),rkx)/10.0_rkx ! mb -> cb
     !
     ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
     !

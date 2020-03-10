@@ -443,13 +443,6 @@ module mod_nest
       v3 => d3(:,:,np+1:2*np)
     end if
 
-    if ( idynamic /= 3 ) then
-      do k = 1 , np
-        sigmar(k) = plev(k)/plev(np)
-      end do
-      pss = plev(np)
-    end if
-
     if ( oidyn == 3 ) then
       do k = 1 , kz_in
         do i = 1 , iy_in
@@ -701,6 +694,14 @@ module mod_nest
       call intlin(qp,q,xps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !$OMP END SECTIONS
     else if ( oidyn ==  2 ) then
+      maxps = maxval(p(:,:,kz)) - ptop_in
+      do ip = 1 , np
+        plev(ip) = maxps*sigma_in(ip) + ptop_in
+      end do
+      do k = 1 , np
+        sigmar(k) = plev(k)/plev(np)
+      end do
+      pss = plev(np)
 !$OMP SECTIONS
 !$OMP SECTION
       call nonhydrost(z1,t0_in,p,xps,ht_in,jx_in,iy_in,kz_in)
@@ -788,7 +789,7 @@ module mod_nest
     else
       if ( oidyn /= 3 ) then
         call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,np)
-        call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
+        call intpsn(ps4,topogm,ps,pa,za,tlayer,ptop,jx,iy)
       else
         call intzps(ps4,topogm,t3,h3,p3,ps,xlat,julianday(idate),jx,iy,kz_in)
       end if
