@@ -669,6 +669,10 @@ module mod_nest
     !
     ! In this module, all pressures are in Pascal.
     !
+    if ( .not. uvrotate ) then
+      call pj%wind_antirotate(u,v)
+    end if
+
     if ( oidyn == 1 ) then
       pstar0 = xps - ptop_in
       maxps = maxval(pstar0)
@@ -731,11 +735,6 @@ module mod_nest
 !$OMP END SECTIONS
       end if
     end if
-
-    if ( .not. uvrotate ) then
-      call pj%uvbkrotate3(up,vp)
-    end if
-
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
