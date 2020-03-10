@@ -694,7 +694,7 @@ module mod_nest
       call intlin(qp,q,xps,sigma_in,ptop_in,jx_in,iy_in,kz_in,plev,np)
 !$OMP END SECTIONS
     else if ( oidyn ==  2 ) then
-      maxps = maxval(p(:,:,kz)) - ptop_in
+      maxps = maxval(p(:,:,kz_in)) - ptop_in
       do ip = 1 , np
         plev(ip) = maxps*sigma_in(ip) + ptop_in
       end do
