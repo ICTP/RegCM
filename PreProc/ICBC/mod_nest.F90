@@ -57,7 +57,7 @@ module mod_nest
   real(rkx) , pointer , dimension(:,:) :: xlat_in , xlon_in
   real(rkx) , pointer , dimension(:) :: ak_in , bk_in
   real(rkx) , pointer , dimension(:,:) :: pstar_in
-  real(rkx) , pointer , dimension(:,:) :: ts , ps , ht
+  real(rkx) , pointer , dimension(:,:) :: ts , ps , ht , topou , topov
 
   real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , z3 , zud3 , zvd3
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , p3 , pd3
@@ -360,6 +360,8 @@ module mod_nest
     call getmem3d(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
     call getmem3d(p3,1,jx,1,iy,1,kz_in,'mod_nest:p3')
     if ( idynamic == 3 ) then
+      call getmem2d(topou,1,jx,1,iy,'mod_nest:topou')
+      call getmem2d(topov,1,jx,1,iy,'mod_nest:topov')
       call getmem3d(zud3,1,jx,1,iy,1,kz_in,'mod_nest:zud3')
       call getmem3d(zvd3,1,jx,1,iy,1,kz_in,'mod_nest:zvd3')
       call getmem3d(u3v,1,jx,1,iy,1,kz_in,'mod_nest:u3v')
@@ -389,6 +391,8 @@ module mod_nest
     if ( idynamic == 3 ) then
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(topou,topogm,jx,iy,i_band)
+      call vcrs2dot(topov,topogm,jx,iy,i_crm)
     end if
 
     call h_interpolate_cont(cross_hint,ht_in,ht)
@@ -700,9 +704,9 @@ module mod_nest
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,zud3,topogm,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,zud3,topou,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,zvd3,topogm,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,zvd3,topov,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION

@@ -137,8 +137,8 @@ module mod_moloch
         call getmem4d(chiten0,jci1,jci2,ici1,ici2,1,kz,1,ntr,'moloch:chiten0')
       end if
     end if
-    call getmem3d(ud,jde1,jde2,ice1,ice2,1,kz,'moloch:ud')
-    call getmem3d(vd,jce1,jce2,ide1,ide2,1,kz,'moloch:vd')
+    call getmem3d(ud,jde1ga,jde2ga,ice1ga,ice2ga,1,kz,'moloch:ud')
+    call getmem3d(vd,jce1ga,jce2ga,ide1ga,ide2ga,1,kz,'moloch:vd')
     if ( ifrayd == 1 ) then
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
@@ -566,6 +566,8 @@ module mod_moloch
           ud(jde1:jde2,ice1:ice2,:) = u(jde1:jde2,ice1:ice2,:)
           vd(jce1:jce2,ide1:ide2,:) = v(jce1:jce2,ide1:ide2,:)
 
+          call exchange(ud,1,jde1,jde2,ice1,ice2,1,kz)
+          call exchange(vd,1,jce1,jce2,ide1,ide2,1,kz)
           call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
           call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
 
@@ -768,7 +770,10 @@ module mod_moloch
                     (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                  zcor1u = coriol(j,i) * vd(j,i,k)
+                  zcor1u = coriol(j,i) * 0.25_rkx * &
+                          (vd(j,i-1,k) + vd(j+1,i,k) - &
+                           vd(j,i-1,k) + vd(j+1,i-1,k))
+                  ! zcor1u = coriol(j,i) * vd(j,i,k)
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u * dts - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -784,7 +789,9 @@ module mod_moloch
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
                      deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                  zcor1v = coriol(j,i) * ud(j,i,k)
+                  zcor1v = coriol(j,i) * 0.25_rkx * &
+                          (ud(j,i-1,k) + ud(j+1,i,k) - &
+                           ud(j,i-1,k) + ud(j+1,i-1,k))
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v * dts - &
                              zfz * hy(j,i) * gzitakh(k) -  &

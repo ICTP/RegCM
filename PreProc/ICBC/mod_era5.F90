@@ -50,9 +50,9 @@ module mod_era5
   real(rkx) , pointer , dimension(:,:,:) :: d2
 
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , h3 , q3 , t3
-  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
+  real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u , h3u , h3v
   real(rkx) , pointer , dimension(:,:,:) :: uvar , vvar , hvar , qvar , tvar
-  real(rkx) , pointer , dimension(:,:) :: prvar
+  real(rkx) , pointer , dimension(:,:) :: prvar , topou , topov
 
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
@@ -198,6 +198,10 @@ module mod_era5
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_era5:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_era5:d3v')
+      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
+      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
+      call getmem2d(topou,1,jx,1,iy,'mod_era5:topou')
+      call getmem2d(topov,1,jx,1,iy,'mod_era5:topov')
     else
       call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_era5:d3')
     end if
@@ -283,6 +287,12 @@ module mod_era5
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
     qvar => b2(:,:,2*klev+1:3*klev)
+    if ( idynamic == 3 ) then
+      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
+      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(topou,topogm,jx,iy,i_band)
+      call vcrs2dot(topov,topogm,jx,iy,i_crm)
+    end if
   end subroutine init_era5
 
   subroutine get_era5h(idate)
@@ -345,8 +355,8 @@ module mod_era5
     ! New calculation of p* on rcm topography.
     !
     if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(h3u,h3,jx,iy,kz,i_band)
+      call vcrs2dot(h3v,h3,jx,iy,kz,i_crm)
       call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,klev)
       call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,1.0_rkx,1.0_rkx)
     else
@@ -363,9 +373,9 @@ module mod_era5
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
