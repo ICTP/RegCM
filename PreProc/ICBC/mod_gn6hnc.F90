@@ -946,19 +946,19 @@ module mod_gn6hnc
       if ( dattyp(1:3) == 'HA_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-        call top2btm(tvar,nlon,nlat,klev)
+        call top2btm(tvar)
 !$OMP SECTION
-        call top2btm(qvar,nlon,nlat,klev)
+        call top2btm(qvar)
 !$OMP SECTION
-        call top2btm(uvar,nlon,nlat,klev)
+        call top2btm(uvar)
 !$OMP SECTION
-        call top2btm(vvar,nlon,nlat,klev)
+        call top2btm(vvar)
 !$OMP SECTION
-        call top2btm(pp3d,nlon,nlat,klev)
+        call top2btm(pp3d)
 !$OMP SECTION
-        call top2btm(pp3d1,nlon,nlat,klev)
+        call top2btm(pp3d1)
 !$OMP SECTION
-        call top2btm(hvar,nlon,nlat,klev)
+        call top2btm(hvar)
 !$OMP END SECTIONS
       end if
 
@@ -970,15 +970,15 @@ module mod_gn6hnc
            dattyp(1:3) == 'NO_' .or. dattyp(1:3) == 'CC_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-        call top2btm(tvar,nlon,nlat,klev)
+        call top2btm(tvar)
 !$OMP SECTION
-        call top2btm(qvar,nlon,nlat,klev)
+        call top2btm(qvar)
 !$OMP SECTION
-        call top2btm(uvar,nlon,nlat,klev)
+        call top2btm(uvar)
 !$OMP SECTION
-        call top2btm(vvar,nlon,nlat,klev)
+        call top2btm(vvar)
 !$OMP SECTION
-        call top2btm(pp3d,nlon,nlat,klev)
+        call top2btm(pp3d)
 !$OMP END SECTIONS
         call htsig(tvar,hvar,pp3d,psvar,zsvar,nlon,nlat,klev)
       end if
@@ -1023,17 +1023,17 @@ module mod_gn6hnc
     if ( dattyp == 'JRA55' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call top2btm(tvar,nlon,nlat,klev)
+      call top2btm(tvar)
 !$OMP SECTION
-      call top2btm(qvar,nlon,nlat,klev)
+      call top2btm(qvar)
 !$OMP SECTION
-      call top2btm(uvar,nlon,nlat,klev)
+      call top2btm(uvar)
 !$OMP SECTION
-      call top2btm(vvar,nlon,nlat,klev)
+      call top2btm(vvar)
 !$OMP SECTION
-      call top2btm(pp3d,nlon,nlat,klev)
+      call top2btm(pp3d)
 !$OMP SECTION
-      call top2btm(hvar,nlon,nlat,klev)
+      call top2btm(hvar)
 !$OMP END SECTIONS
     end if
 
@@ -1058,15 +1058,15 @@ module mod_gn6hnc
     if ( dattyp(1:3) /= 'EC_' ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call top2btm(t3,jx,iy,npl)
+      call top2btm(t3)
 !$OMP SECTION
-      call top2btm(q3,jx,iy,npl)
+      call top2btm(q3)
 !$OMP SECTION
-      call top2btm(h3,jx,iy,npl)
+      call top2btm(h3)
 !$OMP SECTION
-      call top2btm(u3,jx,iy,npl)
+      call top2btm(u3)
 !$OMP SECTION
-      call top2btm(v3,jx,iy,npl)
+      call top2btm(v3)
 !$OMP END SECTIONS
     end if
 

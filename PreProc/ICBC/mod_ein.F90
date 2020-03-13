@@ -57,7 +57,7 @@ module mod_ein
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
-  integer(ik4) , pointer , dimension(:) :: plevs
+  real(rkx) , pointer , dimension(:) :: plevs
   real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
   real(rkx) :: pss
   integer(2) , pointer , dimension(:,:,:) :: work
@@ -165,7 +165,7 @@ module mod_ein
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    sigmar(:) = real(plevs(:),rkx)/plevs(klev)
+    sigmar(:) = (plevs(:)-plevs(1))/(plevs(klev)-plevs(1))
     pss = plevs(klev)/10.0_rkx ! mb -> cb
     !
     ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
@@ -256,15 +256,15 @@ module mod_ein
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(t3,jx,iy,klev)
+    call top2btm(t3)
 !$OMP SECTION
-    call top2btm(q3,jx,iy,klev)
+    call top2btm(q3)
 !$OMP SECTION
-    call top2btm(h3,jx,iy,klev)
+    call top2btm(h3)
 !$OMP SECTION
-    call top2btm(u3,jx,iy,klev)
+    call top2btm(u3)
 !$OMP SECTION
-    call top2btm(v3,jx,iy,klev)
+    call top2btm(v3)
 !$OMP END SECTIONS
     !
     ! Vertical interpolation

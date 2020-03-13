@@ -562,15 +562,15 @@ module mod_erahi
     !
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(t3,jx,iy,nlev2)
+    call top2btm(t3)
 !$OMP SECTION
-    call top2btm(q3,jx,iy,nlev2)
+    call top2btm(q3)
 !$OMP SECTION
-    call top2btm(h3,jx,iy,nlev2)
+    call top2btm(h3)
 !$OMP SECTION
-    call top2btm(u3,jx,iy,nlev2)
+    call top2btm(u3)
 !$OMP SECTION
-    call top2btm(v3,jx,iy,nlev2)
+    call top2btm(v3)
 !$OMP END SECTIONS
     ! New calculation of P* on RegCM topography.
     if ( idynamic == 3 ) then

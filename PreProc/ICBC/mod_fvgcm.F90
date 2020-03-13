@@ -407,15 +407,15 @@ module mod_fvgcm
 
 !$OMP SECTIONS
 !$OMP SECTION
-    call top2btm(t3,jx,iy,nlev)
+    call top2btm(t3)
 !$OMP SECTION
-    call top2btm(q3,jx,iy,nlev)
+    call top2btm(q3)
 !$OMP SECTION
-    call top2btm(h3,jx,iy,nlev)
+    call top2btm(h3)
 !$OMP SECTION
-    call top2btm(u3,jx,iy,nlev)
+    call top2btm(u3)
 !$OMP SECTION
-    call top2btm(v3,jx,iy,nlev)
+    call top2btm(v3)
 !$OMP END SECTIONS
 
     if ( idynamic == 3 ) then
