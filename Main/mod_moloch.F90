@@ -624,7 +624,7 @@ module mod_moloch
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
-                zdiv2(j,i,k) = fmz(j,i,k) * (mx(j,i) * zdiv2(j,i,k) + &
+                  zdiv2(j,i,k) = fmz(j,i,k) * (mx(j,i) * zdiv2(j,i,k) + &
                          zdtrdz * (s(j,i,k) - s(j,i,k+1)))
                 end do
               end do
@@ -653,8 +653,8 @@ module mod_moloch
             end do
             call filt3d
             do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
+              do i = ici1 , ici2
+                do j = jci1 , jci2
                   zdiv2(j,i,k) = fmz(j,i,k) * (mx2(j,i) * zdiv2(j,i,k) + &
                          zdtrdz * (s(j,i,k) - s(j,i,k+1)))
                 end do
@@ -715,8 +715,8 @@ module mod_moloch
 
           ! new Exner function (Equation 19)
           do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+            do i = ici1 , ici2
+              do j = jci1 , jci2
                 zdiv2(j,i,k) = zdiv2(j,i,k) + zdtrdz * fmz(j,i,k) * &
                       (w(j,i,k) - w(j,i,k+1))
               end do

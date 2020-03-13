@@ -54,7 +54,6 @@ module mod_che_start
   subroutine start_chem
     implicit none
     integer(ik4) :: i , j , k , n , itr , ibin , jbin , kbin , mmin , mbin
-    integer(ik4) :: next
     integer(ik4) :: ipunit
     character(len=8) :: minamesav
 

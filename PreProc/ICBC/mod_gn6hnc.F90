@@ -1075,7 +1075,7 @@ module mod_gn6hnc
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
       call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,npl)
-      call intz3(ts4,t3,h3,topogm,jx,iy,npl,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz3(ts4,t3,h3,topogm,jx,iy,npl,0.6_rkx,1.0_rkx,1.0_rkx)
     else
       call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,npl)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
