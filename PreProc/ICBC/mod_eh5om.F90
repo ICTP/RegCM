@@ -45,6 +45,8 @@ module mod_eh5om
   real(rkx) , target , dimension(ilon,jlat,klev*2) :: d2
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3 , d3u , d3v
+  real(rkx) , pointer , dimension(:,:,:) :: h3u , h3v
+  real(rkx) , pointer , dimension(:,:) :: topou , topov
 
   real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
@@ -340,8 +342,8 @@ module mod_eh5om
 !$OMP END SECTIONS
 
     if ( idynamic == 3 ) then
-      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
-      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
+      call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
       call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,klev)
       call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,1.0_rkx,1.0_rkx)
     else
@@ -358,9 +360,9 @@ module mod_eh5om
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
       call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
@@ -513,6 +515,10 @@ module mod_eh5om
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_eh5om:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_eh5om:d3v')
+      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_era5:h3u')
+      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_era5:h3v')
+      call getmem2d(topou,1,jx,1,iy,'mod_era5:topou')
+      call getmem2d(topov,1,jx,1,iy,'mod_era5:topov')
     else
       call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_eh5om:d3')
     end if
@@ -542,7 +548,12 @@ module mod_eh5om
     tvar => b2(:,:,1:klev)
     hvar => b2(:,:,klev+1:2*klev)
     rhvar => b2(:,:,2*klev+1:3*klev)
-
+    if ( idynamic == 3 ) then
+      call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
+      call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
+      call ucrs2dot(topou,topogm,jx,iy,i_band)
+      call vcrs2dot(topov,topogm,jx,iy,i_crm)
+    end if
   end subroutine init_eh5om
 
   subroutine conclude_eh5om

@@ -355,8 +355,8 @@ module mod_era5
     ! New calculation of p* on rcm topography.
     !
     if ( idynamic == 3 ) then
-      call ucrs2dot(h3u,h3,jx,iy,kz,i_band)
-      call vcrs2dot(h3v,h3,jx,iy,kz,i_crm)
+      call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
+      call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
       call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,klev)
       call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,1.0_rkx,1.0_rkx)
     else
