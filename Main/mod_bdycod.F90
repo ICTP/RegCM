@@ -197,7 +197,8 @@ module mod_bdycod
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
-        gnudge = (dxsq/dt)/50.0_rkx
+        ! The dxsq is simplified in below when dividing by dxsq
+        gnudge = d_one/(dt*50.0_rkx)
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
