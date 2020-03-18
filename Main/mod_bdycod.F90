@@ -180,17 +180,24 @@ module mod_bdycod
     !
     ! Specify the coefficients for nudging boundary conditions:
     !
+    ! Development of a Second-Generation Regional Climate Model (RegCM2).
+    ! Part II: Convective Processes and Assimilation of Lateral Boundary
+    ! Conditions
+    !
+    ! Article in Monthly Weather Review · October 1993
+    ! DOI: 10.1175/1520-0493(1993)121<2814:DOASGR>2.0.CO;2
+    !
     rdtbdy = d_one / dtbdys
     if ( iboudy == 1 .or. iboudy == 5 ) then
       if ( bdy_nm > d_zero ) then
         fnudge = bdy_nm
       else
-        fnudge = 0.1_rkx/(dtsec*2.0_rkx)
+        fnudge = 0.1_rkx/dt
       end if
       if ( bdy_dm > d_zero ) then
         gnudge = bdy_dm
       else
-        gnudge = d_one/(50.0_rkx*dtsec)
+        gnudge = (dxsq/dt)/50.0_rkx
       end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
