@@ -200,6 +200,14 @@ module mod_bdycod
         ! The dxsq is simplified in below when dividing by dxsq
         gnudge = d_one/(dt*50.0_rkx)
       end if
+      if ( idynamic == 3 ) then
+        fnudge = d_10 * fnudge
+        gnudge = d_10 * gnudge
+      end if
+      if ( myid == italk ) then
+        write(stdout, '(a,f12.6,a,f12.6)') &
+          ' Nudging coefficients F1=',fnudge,', F2=',gnudge
+      end if
     end if
     if ( iboudy == 1 .or. idynamic == 2 ) then
       do n = 2 , nspgx-1

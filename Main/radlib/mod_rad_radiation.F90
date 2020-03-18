@@ -1544,7 +1544,7 @@ module mod_rad_radiation
           solflx(n) = solin(n)*frcsol(ns)*psf
           fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)    - fluxup(n,1))
           fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1) - fluxup(n,kzp1))
-          solout(n) = solout(n) + solflx(n)*fluxup(n,kzp1)
+          solout(n) = solout(n) + solflx(n)*fluxup(n,0)
           sfltot = sfltot + solflx(n)
           fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
           fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
