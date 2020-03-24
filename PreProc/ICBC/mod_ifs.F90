@@ -30,7 +30,6 @@ module mod_ifs
   use mod_earth
   use mod_hgt
   use mod_humid
-  use mod_mksst
   use mod_projections
   use mod_vectutil
   use mod_message
@@ -54,6 +53,7 @@ module mod_ifs
   real(rkx) , pointer :: hvar(:,:,:) , qvar(:,:,:) , tvar(:,:,:)
   real(rkx) , pointer :: topou(:,:) , topov(:,:)
   real(rkx) , pointer :: xps(:,:) , xts(:,:)
+  real(rkx) , pointer :: ps(:,:) , ts(:,:)
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
@@ -65,9 +65,7 @@ module mod_ifs
   real(rkx) :: pss
 
   integer(ik4) :: ncin
-  integer(ik4) , dimension(5) :: ivar5
-  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
-  integer(ik4) , pointer , dimension(:) :: xtimes
+  integer(ik4) , dimension(8) :: ivar5
 
   type(global_domain) :: gdomain
   type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
@@ -86,7 +84,7 @@ module mod_ifs
 
     call split_idate(globidate1,year,month,day,hour)
     write(inname,'(a,i0.4,i0.2,i0.2,i0.2,a)') &
-      'IFS',year,month,day,hour,'+000.nc'
+      'IFS_',year,month,day,hour,'+000.nc'
     pathaddname = trim(inpglob)//pthsep//'IFS'//pthsep//inname
     istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -169,6 +167,9 @@ module mod_ifs
     if ( gdomain%ntiles == 2 ) then
       glon(gdomain%ni(1)+1:ilon) = ghelp(gdomain%igstart(2):gdomain%igstop(2))
     end if
+
+    print *, glon
+    print *, glat
 
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
     if ( idynamic == 3 ) then
@@ -323,7 +324,7 @@ module mod_ifs
 
     call split_idate(idate,year,month,day,hour)
     write(inname,'(a,i0.4,i0.2,i0.2,i0.2,a)') &
-           'IFS',year,month,day,hour,'+000.nc'
+           'IFS_',year,month,day,hour,'+000.nc'
     pathaddname = trim(inpglob)//pthsep//'IFS'//pthsep//inname
     istatus = nf90_open(pathaddname,nf90_nowrite,ncin)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -361,9 +362,9 @@ module mod_ifs
 
     contains
 
-      subroutine getwork3(var,irec)
+      subroutine getwork3(irec,var)
         implicit none
-        real(rkx) , pointer , dimension(:,:,:) :: var
+        real(rkx) , pointer , intent(inout) , dimension(:,:,:) :: var
         integer(ik4) , intent(in) :: irec
         integer(ik4) :: itile , iti , itf
         integer(ik4) , dimension(4) :: icount , istart
@@ -386,9 +387,9 @@ module mod_ifs
         end do
       end subroutine getwork3
 
-      subroutine getwork2(var,irec)
+      subroutine getwork2(irec,var)
         implicit none
-        real(rkx) , pointer , dimension(:,:) :: var
+        real(rkx) , pointer , intent(inout) , dimension(:,:) :: var
         integer(ik4) , intent(in) :: irec
         integer(ik4) :: itile , iti , itf
         integer(ik4) , dimension(3) :: icount , istart

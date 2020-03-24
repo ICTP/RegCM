@@ -205,6 +205,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: rad_lowcl_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: rad_pp_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: rad_pai_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: rad_cld_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: rad_clwp_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: rad_qrs_out => null()
@@ -236,6 +237,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: opt_aassrlrf_out => null()
   real(rkx) , dimension(:,:) , pointer :: opt_aod_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_pp_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: opt_pai_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_aext8_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_assa8_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_agfu8_out => null()
@@ -249,6 +251,7 @@ module mod_outvars
   real(rkx) , dimension(:,:) , pointer :: che_burden_out => null()
   real(rkx) , dimension(:,:) , pointer :: che_pblten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_pp_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: che_pai_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_mixrat_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_cheten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_advhten_out => null()

@@ -154,6 +154,7 @@ program icbc
   use mod_nest
   use mod_gn6hnc
   use mod_write
+  use mod_ifs
   use mod_projections
 #ifdef PNETCDF
   use mpi
@@ -290,6 +291,8 @@ program icbc
     call init_fvgcm
   else if ( dattyp == 'FNEST' ) then
     call init_nest
+  else if ( dattyp == 'IFSXX' ) then
+    call init_ifs
   else
     if ( dattyp(4:5) == 'RF' ) then
       write(stderr,*) 'THIS CODE IS NOT SUPPORTED.'
@@ -328,6 +331,8 @@ program icbc
       call get_fvgcm(idate)
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
+    else if ( dattyp == 'IFSXX' ) then
+      call get_ifs(idate)
     else
       call get_gn6hnc(idate)
     end if

@@ -52,7 +52,7 @@ program sigma2z
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
   real(rk4) , allocatable , dimension(:) :: sigma , ak , bk
   real(rk4) , allocatable , dimension(:,:,:) :: tazvar , hzvar , qazvar
-  real(rk4) , allocatable , dimension(:,:,:) :: pp , press
+  real(rk4) , allocatable , dimension(:,:,:) :: pp , press , pai
   real(rk4) , allocatable , save , dimension(:,:,:) :: zvar , xvar
   real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr , ps0
   real(rk4) , allocatable , dimension(:) :: avar
@@ -66,11 +66,13 @@ program sigma2z
   integer(ik4) , allocatable , dimension(:) :: nvdims
   integer(ik4) , allocatable , dimension(:,:) :: dimsize
   integer(ik4) , allocatable , dimension(:) :: istart , icount
+  integer(ik4) , allocatable , dimension(:) :: invarid
+  integer(ik4) , allocatable , dimension(:) :: outvarid
   integer(ik4) :: ndims , nvars , natts , udimid , nvatts
   integer(ik4) :: ivarid , idimid , xtype
   integer(ik4) :: jxdimid , iydimid , kzdimid , itdimid , itvarid , ikvarid
-  integer(ik4) :: ipsvarid , ishvarid , ippvarid , ip0varid
-  integer(ik4) :: outpsvarid , avarid , bvarid
+  integer(ik4) :: ipsvarid , ishvarid , ppvarid , ip0varid
+  integer(ik4) :: avarid , bvarid , paivarid
   integer(ik4) :: jx , iy , kz , nt
   real(rkx) :: ptop
   integer(ik4) , dimension(4) :: tdimids
@@ -197,6 +199,10 @@ program sigma2z
   call checkalloc(istatus,__FILE__,__LINE__,'lchnameflag')
   allocate(varsize(nvars), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'varsize')
+  allocate(invarid(nvars), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'invarid')
+  allocate(outvarid(nvars), stat=istatus)
+  call checkalloc(istatus,__FILE__,__LINE__,'outvarid')
   allocate(intscheme(nvars), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'intscheme')
   allocate(nvdims(nvars), stat=istatus)
@@ -232,15 +238,21 @@ program sigma2z
     allocate(press(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'press')
   else if ( iodyn == 3 ) then
+    allocate(pai(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'pai')
+    allocate(press(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'press')
     allocate(ak(kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'ak')
     allocate(bk(kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'bk')
   end if
 
-  ippvarid = -1
+  ppvarid = -1
   ip0varid = -1
   ircm_map = -1
+  invarid = -1
+  outvarid = -1
 
   has_sph = .false.
   is_icbc = .false.
@@ -263,7 +275,9 @@ program sigma2z
       cycle
     else if (varname == 'time') then
       itvarid = i
-    else if (varname == 'kz' .or. varname == 'sigma' .or. varname == 'lev') then
+    else if (varname == 'kz' .or. &
+             varname == 'sigma' .or. &
+             varname == 'lev') then
       varname = 'zlev'
       ikvarid = i
     else if (varname == 'ptop') then
@@ -276,7 +290,11 @@ program sigma2z
       ipsvarid = i
       psdimids = dimids(1:3)
     else if (varname == 'ppa' .or. varname == 'pp') then
-      ippvarid = i
+      ppvarid = i
+      cycle
+    else if (varname == 'pai') then
+      paivarid = i
+      cycle
     else if (varname == 'p0') then
       ip0varid = i
     else if (varname == 'topo') then
@@ -314,7 +332,8 @@ program sigma2z
     istatus = nf90_def_var(ncout, varname, xtype, dimids(1:nvdims(i)), ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
             'Error define variable '//trim(varname))
-    if ( i == ipsvarid ) outpsvarid = ivarid
+    invarid(i) = i
+    outvarid(i) = ivarid
 #ifdef NETCDF4_HDF5
     if (nvdims(i) > 2) then
       istatus = nf90_def_var_deflate(ncout, ivarid, 1, 1, deflate_level)
@@ -464,28 +483,31 @@ program sigma2z
 
   ! Write time independent variables
 
-  ivarid = 0
   do i = 1 , nvars
+    if ( ltvarflag(i) ) cycle
     if (i == avarid) cycle
     if (i == bvarid) cycle
-    ivarid = ivarid + 1
     if (i == itvarid) cycle
     if (i == ircm_map) cycle
+    if (i == paivarid) cycle
+    if (i == ppvarid) cycle
     if (i == ikvarid) then
-      istatus = nf90_put_var(ncout, ivarid, zlevs)
+      istatus = nf90_put_var(ncout, outvarid(i), zlevs)
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable zlev')
       cycle
     end if
-    if (.not. ltvarflag(i)) then
+    if ( invarid(i) >= 0 ) then
       if ( .not. lchnameflag(i) ) then
         allocate(avar(varsize(i)), stat=istatus)
         call checkalloc(istatus,__FILE__,__LINE__,'avar')
         iv = nvdims(i)
         istart(:) = 1
         icount(1:iv) = dimsize(1:iv,i)
-        istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+        istatus = nf90_get_var(ncid, invarid(i), avar, &
+                               istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable.')
-        istatus = nf90_put_var(ncout, ivarid, avar, istart(1:iv), icount(1:iv))
+        istatus = nf90_put_var(ncout, outvarid(i), avar, &
+                               istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable.')
         deallocate(avar)
       else
@@ -494,9 +516,10 @@ program sigma2z
         iv = nvdims(i)
         istart(:) = 1
         icount(1:iv) = dimsize(1:iv,i)
-        istatus = nf90_get_var(ncid, i, txtvar, istart(1:iv), icount(1:iv))
+        istatus = nf90_get_var(ncid, invarid(i), txtvar, &
+                               istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable.')
-        istatus = nf90_put_var(ncout, ivarid, &
+        istatus = nf90_put_var(ncout, outvarid(i), &
                                txtvar, istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__,'Error writing variable.')
         deallocate(txtvar)
@@ -509,7 +532,7 @@ program sigma2z
   do it = 1 , nt
     istart(1) = it
     icount(1) = 1
-    istatus = nf90_put_var(ncout, itvarid, times(it:it), &
+    istatus = nf90_put_var(ncout, outvarid(itvarid), times(it:it), &
                            istart(1:1), icount(1:1))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing time.')
     istart(1) = 1
@@ -520,9 +543,10 @@ program sigma2z
     icount(3) = 1
     istatus = nf90_get_var(ncid, ipsvarid, ps, istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading ps.')
-    istatus = nf90_put_var(ncout, outpsvarid, ps, istart(1:3), icount(1:3))
+    istatus = nf90_put_var(ncout, outvarid(ipsvarid), ps, &
+                           istart(1:3), icount(1:3))
     call checkncerr(istatus,__FILE__,__LINE__,'Error writing ps.')
-    if ( iodyn == 2 .and. ippvarid >= 0 ) then
+    if ( iodyn == 2 .and. ppvarid >= 0 ) then
       istart(1) = 1
       istart(2) = 1
       istart(3) = 1
@@ -531,33 +555,45 @@ program sigma2z
       icount(2) = iy
       icount(3) = kz
       icount(4) = 1
-      istatus = nf90_get_var(ncid, ippvarid, pp, istart(1:4), icount(1:4))
+      istatus = nf90_get_var(ncid, ppvarid, pp, istart(1:4), icount(1:4))
       call checkncerr(istatus,__FILE__,__LINE__,'Error reading pp.')
       do k = 1 , kz
         press(:,:,k) = ps0(:,:)*real(sigma(k)) + real(ptop) + pp(:,:,k)
       end do
+    else if ( iodyn == 3 .and. paivarid >= 0) then
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      icount(1) = jx
+      icount(2) = iy
+      icount(3) = kz
+      icount(4) = 1
+      istatus = nf90_get_var(ncid, paivarid, pai, istart(1:4), icount(1:4))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+      press = p00 * (pai**cpovr)
     end if
-    istart(1) = 1
-    istart(2) = 1
-    istart(3) = 1
-    istart(4) = it
-    icount(1) = jx
-    icount(2) = iy
-    icount(3) = kz
-    icount(4) = 1
-    istatus = nf90_get_var(ncid, tvarid, tazvar, istart(1:4), icount(1:4))
-    call checkncerr(istatus,__FILE__,__LINE__,'Error reading temp.')
-    if ( iodyn == 1 ) then
-      call htsig_o(tazvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
-    else if ( iodyn == 2 ) then
-      call nonhydrost(hzvar,tazvar,press,ps,topo,jx,iy,kz)
+    if ( iodyn /= 3 ) then
+      istart(1) = 1
+      istart(2) = 1
+      istart(3) = 1
+      istart(4) = it
+      icount(1) = jx
+      icount(2) = iy
+      icount(3) = kz
+      icount(4) = 1
+      istatus = nf90_get_var(ncid, tvarid, tazvar, istart(1:4), icount(1:4))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error reading temp.')
+      if ( iodyn == 1 ) then
+        call htsig_o(tazvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
+      else if ( iodyn == 2 ) then
+        call nonhydrost(hzvar,tazvar,press,ps,topo,jx,iy,kz)
+      end if
     end if
-    ivarid = 0
     do i = 1 , nvars
+      if (.not. ltvarflag(i)) cycle
       if (i == avarid) cycle
       if (i == bvarid) cycle
-      ivarid = ivarid + 1
-      if (.not. ltvarflag(i)) cycle
       if (i == itvarid) cycle
       if (i == ipsvarid) cycle
       if (i == ircm_map) cycle
@@ -574,7 +610,8 @@ program sigma2z
           icount(1:iv-1) = dimsize(1:iv-1,i)
           allocate(avar(varsize(i)),stat=istatus)
           call checkalloc(istatus,__FILE__,__LINE__,'avar')
-          istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+          istatus = nf90_get_var(ncid, invarid(i), avar, &
+                                 istart(1:iv), icount(1:iv))
           call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error reading var to interpolate.')
           n3d = varsize(i) / i3d
@@ -595,7 +632,7 @@ program sigma2z
             end if
           end if
           icount(iv-1) = nz
-          istatus = nf90_put_var(ncout, ivarid, azvar, &
+          istatus = nf90_put_var(ncout, outvarid(i), azvar, &
                                  istart(1:iv), icount(1:iv))
           call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error writing interp variable.')
@@ -608,7 +645,8 @@ program sigma2z
           icount(1:iv-1) = dimsize(1:iv-1,i)
           allocate(avar(varsize(i)),stat=istatus)
           call checkalloc(istatus,__FILE__,__LINE__,'avar')
-          istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+          istatus = nf90_get_var(ncid, invarid(i), avar, &
+                                 istart(1:iv), icount(1:iv))
           call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error reading var to interpolate.')
           n3d = varsize(i) / dimsize(iv-1,i) / i3d
@@ -631,7 +669,7 @@ program sigma2z
               azvar((ii-1)*iz3d+1:ii*iz3d) = reshape(zvar,[iz3d])
             end do
 !$OMP END PARALLEL DO
-            istatus = nf90_put_var(ncout, ivarid, &
+            istatus = nf90_put_var(ncout, outvarid(i), &
                                    azvar, istart(1:iv), icount(1:iv))
             call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error writing interp variable.')
@@ -651,10 +689,12 @@ program sigma2z
         icount(1:iv-1) = dimsize(1:iv-1,i)
         allocate(avar(varsize(i)),stat=istatus)
         call checkalloc(istatus,__FILE__,__LINE__,'avar')
-        istatus = nf90_get_var(ncid, i, avar, istart(1:iv), icount(1:iv))
+        istatus = nf90_get_var(ncid, invarid(i), avar, &
+                               istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error reading variable to pass')
-        istatus = nf90_put_var(ncout, ivarid, avar, istart(1:iv), icount(1:iv))
+        istatus = nf90_put_var(ncout, outvarid(i), avar, &
+                               istart(1:iv), icount(1:iv))
         call checkncerr(istatus,__FILE__,__LINE__, &
                 'Error writing variable to pass')
         deallocate(avar)
@@ -698,6 +738,8 @@ program sigma2z
   deallocate(lkvarflag)
   deallocate(ltvarflag)
   deallocate(varsize)
+  deallocate(invarid)
+  deallocate(outvarid)
   deallocate(nvdims)
   deallocate(dimsize)
   deallocate(sigma)
@@ -718,8 +760,12 @@ program sigma2z
     deallocate(ps0)
     deallocate(pp)
     deallocate(press)
+  else if ( iodyn == 3 ) then
+    deallocate(press)
+    deallocate(pai)
+    deallocate(ak)
+    deallocate(bk)
   end if
-
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close input file '//trim(ncsfile))

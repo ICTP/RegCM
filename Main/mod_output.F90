@@ -1264,6 +1264,11 @@ module mod_output
                                   sfs%psa(jci1:jci2,ici1:ici2)
           end do
         end if
+        if ( associated(opt_pai_out) ) then
+          do k = 1 , kz
+            opt_pai_out(:,:,k) = mo_atm%pai(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
         if ( associated(opt_acstoarf_out) ) &
           opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
         if ( associated(opt_acstsrrf_out) ) &
@@ -1313,6 +1318,11 @@ module mod_output
           do k = 1 , kz
             che_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k) / &
                                  sfs%psa(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        if ( associated(che_pai_out) ) then
+          do k = 1 , kz
+            che_pai_out(:,:,k) = mo_atm%pai(jci1:jci2,ici1:ici2,k)
           end do
         end if
         do itr = 1 , ntr
@@ -1430,6 +1440,11 @@ module mod_output
           do k = 1 , kz
             rad_pp_out(:,:,k) = atm1%pp(jci1:jci2,ici1:ici2,k)/ &
                              sfs%psa(jci1:jci2,ici1:ici2)
+          end do
+        end if
+        if ( associated(rad_pai_out) ) then
+          do k = 1 , kz
+            rad_pai_out(:,:,k) = mo_atm%pai(jci1:jci2,ici1:ici2,k)
           end do
         end if
         if ( associated(rad_higcl_out) ) &

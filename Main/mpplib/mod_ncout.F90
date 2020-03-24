@@ -79,16 +79,16 @@ module mod_ncout
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 16 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 5
+  integer(ik4) , parameter :: nrad3dvars = 6
   integer(ik4) , parameter :: nrad4dvars = 2
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
-  integer(ik4) , parameter :: nopt3dvars = 5
+  integer(ik4) , parameter :: nopt3dvars = 6
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 8 + nbase
-  integer(ik4) , parameter :: nche3dvars = 13
+  integer(ik4) , parameter :: nche3dvars = 14
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -361,10 +361,11 @@ module mod_ncout
   integer(ik4) , parameter :: rad_lowcl  = 21
 
   integer(ik4) , parameter :: rad_pp     = 1
-  integer(ik4) , parameter :: rad_cld    = 2
-  integer(ik4) , parameter :: rad_clwp   = 3
-  integer(ik4) , parameter :: rad_qrs    = 4
-  integer(ik4) , parameter :: rad_qrl    = 5
+  integer(ik4) , parameter :: rad_pai    = 2
+  integer(ik4) , parameter :: rad_cld    = 3
+  integer(ik4) , parameter :: rad_clwp   = 4
+  integer(ik4) , parameter :: rad_qrs    = 5
+  integer(ik4) , parameter :: rad_qrl    = 6
 
   integer(ik4) , parameter :: rad_taucl  = 1
   integer(ik4) , parameter :: rad_tauci  = 2
@@ -406,10 +407,11 @@ module mod_ncout
   integer(ik4) , parameter :: opt_aassrlrf = 15
 
   integer(ik4) , parameter :: opt_pp       = 1
-  integer(ik4) , parameter :: opt_aext8    = 2
-  integer(ik4) , parameter :: opt_assa8    = 3
-  integer(ik4) , parameter :: opt_agfu8    = 4
-  integer(ik4) , parameter :: opt_deltaz   = 5
+  integer(ik4) , parameter :: opt_pai      = 2
+  integer(ik4) , parameter :: opt_aext8    = 3
+  integer(ik4) , parameter :: opt_assa8    = 4
+  integer(ik4) , parameter :: opt_agfu8    = 5
+  integer(ik4) , parameter :: opt_deltaz   = 6
 
   integer(ik4) , parameter :: che_xlon     = 1
   integer(ik4) , parameter :: che_xlat     = 2
@@ -426,18 +428,19 @@ module mod_ncout
   integer(ik4) , parameter :: che_pblten   = 13
 
   integer(ik4) , parameter :: che_pp       = 1
-  integer(ik4) , parameter :: che_mixrat   = 2
-  integer(ik4) , parameter :: che_cheten   = 3
-  integer(ik4) , parameter :: che_advhten  = 4
-  integer(ik4) , parameter :: che_advvten  = 5
-  integer(ik4) , parameter :: che_difhten  = 6
-  integer(ik4) , parameter :: che_cuten    = 7
-  integer(ik4) , parameter :: che_tuten    = 8
-  integer(ik4) , parameter :: che_raiten   = 9
-  integer(ik4) , parameter :: che_wasten   = 10
-  integer(ik4) , parameter :: che_bdyten   = 11
-  integer(ik4) , parameter :: che_sedten   = 12
-  integer(ik4) , parameter :: che_emten    = 13
+  integer(ik4) , parameter :: che_pai      = 2
+  integer(ik4) , parameter :: che_mixrat   = 3
+  integer(ik4) , parameter :: che_cheten   = 4
+  integer(ik4) , parameter :: che_advhten  = 5
+  integer(ik4) , parameter :: che_advvten  = 6
+  integer(ik4) , parameter :: che_difhten  = 7
+  integer(ik4) , parameter :: che_cuten    = 8
+  integer(ik4) , parameter :: che_tuten    = 9
+  integer(ik4) , parameter :: che_raiten   = 10
+  integer(ik4) , parameter :: che_wasten   = 11
+  integer(ik4) , parameter :: che_bdyten   = 12
+  integer(ik4) , parameter :: che_sedten   = 13
+  integer(ik4) , parameter :: che_emten    = 14
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -1935,8 +1938,17 @@ module mod_ncout
               'difference_of_air_pressure_from_model_reference',.true.)
             rad_pp_out => v3dvar_rad(rad_pp)%rval
           end if
+          enable_rad3d_vars(rad_pai) = .false.
+        else if ( idynamic == 3 ) then
+          if ( enable_rad3d_vars(rad_pai) ) then
+            call setup_var(v3dvar_rad,rad_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            rad_pai_out => v3dvar_rad(rad_pai)%rval
+          end if
+          enable_rad3d_vars(rad_pp) = .false.
         else
           enable_rad3d_vars(rad_pp) = .false.
+          enable_rad3d_vars(rad_pai) = .false.
         end if
         if ( enable_rad3d_vars(rad_cld) ) then
           call setup_var(v3dvar_rad,rad_cld,vsize,'cl','1', &
@@ -2293,8 +2305,17 @@ module mod_ncout
               'difference_of_air_pressure_from_model_reference',.true.)
             opt_pp_out => v3dvar_opt(opt_pp)%rval
           end if
+          enable_opt3d_vars(opt_pai) = .false.
+        else if ( idynamic == 3 ) then
+          if ( enable_opt3d_vars(opt_pai) ) then
+            call setup_var(v3dvar_opt,opt_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            opt_pai_out => v3dvar_opt(opt_pai)%rval
+          end if
+          enable_opt3d_vars(opt_pp) = .false.
         else
           enable_opt3d_vars(opt_pp) = .false.
+          enable_opt3d_vars(opt_pai) = .false.
         end if
         if ( enable_opt3d_vars(opt_aext8) ) then
           call setup_var(v3dvar_opt,opt_aext8,vsize,'aext8','(m^-1)', &
@@ -2434,8 +2455,17 @@ module mod_ncout
               'difference_of_air_pressure_from_model_reference',.true.)
             che_pp_out => v3dvar_che(che_pp)%rval
           end if
+          enable_che3d_vars(che_pai) = .false.
+        else if ( idynamic == 3 ) then
+          if ( enable_che3d_vars(che_pai) ) then
+            call setup_var(v3dvar_che,che_pai,vsize,'pai','1', &
+              'Exner function','dimensionless_exner_function',.true.)
+            che_pai_out => v3dvar_che(che_pai)%rval
+          end if
+          enable_che3d_vars(che_pp) = .false.
         else
           enable_che3d_vars(che_pp) = .false.
+          enable_che3d_vars(che_pai) = .false.
         end if
         if ( enable_che3d_vars(che_mixrat) ) then
           call setup_var(v3dvar_che,che_mixrat,vsize,'mixrat','1', &
