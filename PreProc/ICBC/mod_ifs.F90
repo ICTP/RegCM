@@ -39,7 +39,7 @@ module mod_ifs
 
   private
 
-  integer(ik4) :: jlat , ilon , klev , timlen
+  integer(ik4) :: jlat , ilon , klev , hynlev , timlen
 
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
@@ -47,25 +47,28 @@ module mod_ifs
 
   real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
-  real(rkx) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
-  real(rkx) , pointer :: h3u(:,:,:) , h3v(:,:,:)
-  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:)
-  real(rkx) , pointer :: hvar(:,:,:) , qvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: p3(:,:,:) , q3(:,:,:) , t3(:,:,:) , z3(:,:,:)
+  real(rkx) , pointer :: z3u(:,:,:) , z3v(:,:,:)
+  real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:) , pvar(:,:,:)
+  real(rkx) , pointer :: qvar(:,:,:) , tvar(:,:,:)
   real(rkx) , pointer :: topou(:,:) , topov(:,:)
-  real(rkx) , pointer :: xps(:,:) , xts(:,:)
-  real(rkx) , pointer :: ps(:,:) , ts(:,:)
+  real(rkx) , pointer :: xps(:,:) , xts(:,:) , xzs(:,:)
+  real(rkx) , pointer :: ps(:,:) , ts(:,:) , zs(:,:)
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: ghelp
   real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: slev
+  real(rkx) , pointer , dimension(:) :: slev , hyam , hybm
   real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
   real(rkx) :: pss
 
   integer(ik4) :: ncin
-  integer(ik4) , dimension(8) :: ivar5
+  integer(ik4) , parameter :: nrvar = 7
+  character(len=4) , dimension(nrvar) , parameter :: varname = &
+           ['t' , 'q' , 'u' , 'v' , 'lnsp' , 'skt' , 'z']
+  integer(ik4) , dimension(nrvar) :: ivar5
 
   type(global_domain) :: gdomain
   type(h_interpolator) :: cross_hint , udot_hint , vdot_hint
@@ -107,10 +110,18 @@ module mod_ifs
     istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading levelist dimelen in file '//trim(pathaddname))
+    istatus = nf90_inq_dimid(ncid,'nhym',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing nhym dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=hynlev)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading levelist dimelen in file '//trim(pathaddname))
     !
     ! Allocate working space
     !
     call getmem1d(slev,1,klev,'mod_ifs:slev')
+    call getmem1d(hyam,1,hynlev,'mod_ifs:hyam')
+    call getmem1d(hybm,1,hynlev,'mod_ifs:hybm')
     call getmem1d(glat,1,jlat,'mod_ifs:glat')
     call getmem1d(glon,1,ilon,'mod_ifs:glon')
     call getmem1d(ghelp,1,max(jlat,ilon),'mod_ifs:ghelp')
@@ -120,8 +131,9 @@ module mod_ifs
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ifs:d3u')
       call getmem3d(d3v,1,jx,1,iy,1,klev*2,'mod_ifs:d3v')
-      call getmem3d(h3u,1,jx,1,iy,1,klev,'mod_ifs:h3u')
-      call getmem3d(h3v,1,jx,1,iy,1,klev,'mod_ifs:h3v')
+      call getmem3d(z3,1,jx,1,iy,1,klev,'mod_ifs:z3')
+      call getmem3d(z3u,1,jx,1,iy,1,klev,'mod_ifs:z3u')
+      call getmem3d(z3v,1,jx,1,iy,1,klev,'mod_ifs:z3v')
       call getmem2d(topou,1,jx,1,iy,'mod_ifs:topou')
       call getmem2d(topov,1,jx,1,iy,'mod_ifs:topov')
     else
@@ -129,6 +141,7 @@ module mod_ifs
     end if
     call getmem2d(ps,1,jx,1,iy,'mod_ifs:ps')
     call getmem2d(ts,1,jx,1,iy,'mod_ifs:ts')
+    call getmem2d(zs,1,jx,1,iy,'mod_ifs:zs')
 
     istatus = nf90_inq_varid(ncid,'lat',ivarid)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -148,6 +161,18 @@ module mod_ifs
     istatus = nf90_get_var(ncid,ivarid,slev)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error reading lev variable in file '//trim(pathaddname))
+    istatus = nf90_inq_varid(ncid,'hyam',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing hyam variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,hyam)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading hyam variable in file '//trim(pathaddname))
+    istatus = nf90_inq_varid(ncid,'hybm',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing hybm variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,hybm)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading hybm variable in file '//trim(pathaddname))
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
@@ -168,9 +193,6 @@ module mod_ifs
       glon(gdomain%ni(1)+1:ilon) = ghelp(gdomain%igstart(2):gdomain%igstop(2))
     end if
 
-    print *, glon
-    print *, glat
-
     call h_interpolator_create(cross_hint,glat,glon,xlat,xlon)
     if ( idynamic == 3 ) then
       call h_interpolator_create(udot_hint,glat,glon,ulat,ulon)
@@ -183,6 +205,7 @@ module mod_ifs
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ifs:d2')
     call getmem2d(xps,1,ilon,1,jlat,'mod_ifs:xps')
     call getmem2d(xts,1,ilon,1,jlat,'mod_ifs:xts')
+    call getmem2d(xzs,1,ilon,1,jlat,'mod_ifs:xzs')
     !
     ! Set up pointers
     !
@@ -196,13 +219,13 @@ module mod_ifs
       v3 => d3(:,:,klev+1:2*klev)
     end if
     t3 => b3(:,:,1:klev)
-    h3 => b3(:,:,klev+1:2*klev)
-    q3 => b3(:,:,2*klev+1:3*klev)
+    q3 => b3(:,:,1*klev+1:2*klev)
+    p3 => b3(:,:,2*klev+1:3*klev)
     uvar => d2(:,:,1:klev)
     vvar => d2(:,:,klev+1:2*klev)
     tvar => b2(:,:,1:klev)
-    hvar => b2(:,:,klev+1:2*klev)
-    qvar => b2(:,:,2*klev+1:3*klev)
+    qvar => b2(:,:,1*klev+1:2*klev)
+    pvar => b2(:,:,2*klev+1:3*klev)
     if ( idynamic == 3 ) then
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
@@ -214,6 +237,7 @@ module mod_ifs
   subroutine get_ifs(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
+    integer(ik4) :: k
     !
     ! Read data at idate
     !
@@ -231,6 +255,7 @@ module mod_ifs
     end if
     call h_interpolate_cont(cross_hint,xps,ps)
     call h_interpolate_cont(cross_hint,xts,ts)
+    call h_interpolate_cont(cross_hint,xzs,zs)
     !
     ! Rotate u-v fields after horizontal interpolation
     !
@@ -249,7 +274,7 @@ module mod_ifs
 !$OMP SECTION
     call top2btm(q3)
 !$OMP SECTION
-    call top2btm(h3)
+    call top2btm(p3)
 !$OMP SECTION
     call top2btm(u3)
 !$OMP SECTION
@@ -259,31 +284,34 @@ module mod_ifs
     ! Vertical interpolation
     ! New calculation of p* on rcm topography.
     !
+    ps4 = ps*d_r1000
     if ( idynamic == 3 ) then
-      call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
-      call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,klev)
+      z3(:,:,1) = zs(:,:) + log(ps(:,:)/p3(:,:,1))*rovg* &
+                  t3(:,:,1)*(d_one+ep1*q3(:,:,1))
+      do k = 2 , klev
+        z3(:,:,k) = z3(:,:,k-1) + log(p3(:,:,k-1)/p3(:,:,k))*rovg* &
+                d_half * (t3(:,:,k-1)*(d_one+ep1*q3(:,:,k-1)) + &
+                          t3(:,:,k)*(d_one+ep1*q3(:,:,k)))
+      end do
+      call ucrs2dot(z3u,z3,jx,iy,klev,i_band)
+      call vcrs2dot(z3v,z3,jx,iy,klev,i_crm)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
-      call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
     end if
-
     ts4 = ts
-
     !
     ! Interpolate U, V, T, and Q.
     !
     if ( idynamic == 3 ) then
 !$OMP SECTIONS
 !$OMP SECTION
-      call intz1(u4,u3,zud4,h3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(u4,u3,zud4,z3u,topou,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intz1(v4,v3,zvd4,z3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
-      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(q4,q3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
@@ -297,18 +325,16 @@ module mod_ifs
       call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
     end if
-    q4 = d_10**q4
   end subroutine get_ifs
 
   subroutine ifs6hour(dattyp,idate,idate0)
     implicit none
     character(len=5) , intent(in) :: dattyp
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , it , j , kkrec , istatus , ivar
+    integer(ik4) :: i , j , k , it , kkrec , istatus , ivar
     integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=1) , dimension(7) :: varname
     character(len=64) :: cunit , ccal
     real(rkx) :: xadd , xscale
     integer(ik4) :: year , month , day , hour , monthp1
@@ -320,7 +346,6 @@ module mod_ifs
     ! This corresponds to the lat and lon dimension variables in the
     ! netCDF file.
     !
-    data varname /'t' , 'z' , 'u' , 'v' , 'q' , 'lnsp' , 'skt' /
 
     call split_idate(idate,year,month,day,hour)
     write(inname,'(a,i0.4,i0.2,i0.2,i0.2,a)') &
@@ -342,22 +367,25 @@ module mod_ifs
       if ( kkrec == 1 ) then
         call getwork3(kkrec,tvar)
       else if ( kkrec == 2 ) then
-        call getwork3(kkrec,hvar)
-        hvar = hvar/9.80616_rk4
-      else if ( kkrec == 3 ) then
         call getwork3(kkrec,qvar)
         call sph2mxr(qvar,ilon,jlat,klev)
-        qvar = log10(qvar)
-      else if ( kkrec == 4 ) then
+      else if ( kkrec == 3 ) then
         call getwork3(kkrec,uvar)
-      else if ( kkrec == 5 ) then
+      else if ( kkrec == 4 ) then
         call getwork3(kkrec,vvar)
-      else if ( kkrec == 6 ) then
+      else if ( kkrec == 5 ) then
         call getwork2(kkrec,xps)
         xps = exp(xps)
-      else if ( kkrec == 7 ) then
+      else if ( kkrec == 6 ) then
         call getwork2(kkrec,xts)
+      else if ( kkrec == 7 ) then
+        call getwork2(kkrec,xzs)
+        xzs = xzs / 9.80616_rkx
       end if
+    end do
+
+    do k = 1 , klev
+      pvar(:,:,k) = hyam(slev(k)) + xps(:,:) * hybm(slev(k))
     end do
 
     contains
