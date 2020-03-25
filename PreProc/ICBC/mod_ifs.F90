@@ -60,14 +60,15 @@ module mod_ifs
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: ghelp
   real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: slev , hyam , hybm
+  integer(ik4) , pointer , dimension(:) :: slev
+  real(rkx) , pointer , dimension(:) :: hyam , hybm
   real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
   real(rkx) :: pss
 
   integer(ik4) :: ncin
   integer(ik4) , parameter :: nrvar = 7
   character(len=4) , dimension(nrvar) , parameter :: varname = &
-           ['t' , 'q' , 'u' , 'v' , 'lnsp' , 'skt' , 'z']
+           ['t   ' , 'q   ' , 'u   ' , 'v   ' , 'lnsp' , 'skt ' , 'z   ']
   integer(ik4) , dimension(nrvar) :: ivar5
 
   type(global_domain) :: gdomain
