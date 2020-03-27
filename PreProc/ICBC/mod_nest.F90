@@ -319,14 +319,6 @@ module mod_nest
           end do
         end do
       end do
-      do k = 1 , kz
-        do i = 1 , iy
-          do j = 1 , jx
-            p_out(j,i,k) = (ps0(j,i) - ptop_out) * sigmah(k) + ptop_out
-          end do
-        end do
-      end do
-      call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
     else if ( oidyn == 3 ) then
       call getmem1d(ak_in,1,kz_in,'mod_nest:ak_in')
       call getmem1d(bk_in,1,kz_in,'mod_nest:bk_in')
@@ -342,6 +334,17 @@ module mod_nest
       istatus = nf90_get_var(ncinp, ivarid, bk_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'variable b read error')
+    end if
+
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = 1 , iy
+          do j = 1 , jx
+            p_out(j,i,k) = (ps0(j,i) - ptop_out) * sigmah(k) + ptop_out
+          end do
+        end do
+      end do
+      call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
     end if
 
     call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon)
