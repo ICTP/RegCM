@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cloud_texeira
+module mod_cloud_tompkins
 
   use mod_realkinds
   use mod_constants
@@ -28,26 +28,23 @@ module mod_cloud_texeira
 
   private
 
-  public :: texeira_cldfrac
+  public :: tompkins_cldfrac
 
   contains
   !
   ! This subroutine computes the fractional cloud coverage
   ! which is used in radiation.
   !
-  ! See Cloud Fraction and Relative Humidity in a Prognostic Cloud
-  ! Fraction Scheme, João Teixeira,
-  ! https://doi.org/10.1175/1520-0493(2001)129<1750:CFARHI>2.0.CO;2
-  subroutine texeira_cldfrac(qc,qs,rh,fcc)
+  ! See A cloud scheme for data assimilation purposes
+  ! ECMWF Technical Memorandum 410
+  subroutine tompkins_cldfrac(qc,qs,rh,p,ps,fcc)
     implicit none
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs , qc , rh
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qs , qc , rh , p
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    real(rkx) :: rhrng
+    real(rkx) :: rhrng , kappa , rhcrit
+    real(rkx) :: spq , spqs , sig
     integer(ik4) :: i , j , k
-
-    real(rkx) , parameter :: kappa = 1.0e-6 ! sec-1
-    real(rkx) , parameter :: d = 4.0e-6 ! sec-1
-    real(rkx) :: liq , spq
 
     !-----------------------------------------
     ! 1.  Determine large-scale cloud fraction
@@ -58,12 +55,15 @@ module mod_cloud_texeira
         do j = jci1 , jci2
           ! Adjusted relative humidity threshold
           rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
-          liq = qc(j,i,k)
-          spq = qs(j,i,k) / (d_one + qs(j,i,k))
-          if ( liq > 1.0e-8_rkx ) then
-            fcc(j,i,k) = d*liq / (d_two*spq*(d_one-rhrng)*kappa) * &
-              ( -d_one + sqrt(d_one + &
-                 (d_four*spq*((d_one-rhrng)*kappa))/(d*liq)) )
+          spq = qc(j,i,k) / (d_one + qc(j,i,k))
+          spqs = qs(j,i,k) / (d_one + qs(j,i,k))
+          if ( spq > 1.0e-8_rkx ) then
+            sig = p(j,i,k)/ps(j,i)
+            kappa = max(0.0_rkx,0.9_rkx*(sig-0.2_rkx)**0.2_rkx)
+            rhcrit = 0.7_rkx * sig * (1.0_rkx-sig) * &
+                   (1.85_rkx + 0.95_rkx*(sig-0.5_rkx))
+            fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
+                   (1.0_rkx - rhcrit - kappa*(rhrng-rhcrit)))
           else
             fcc(j,i,k) = d_zero
           end if
@@ -71,7 +71,7 @@ module mod_cloud_texeira
       end do
     end do
 
-  end subroutine texeira_cldfrac
+  end subroutine tompkins_cldfrac
 
-end module mod_cloud_texeira
+end module mod_cloud_tompkins
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

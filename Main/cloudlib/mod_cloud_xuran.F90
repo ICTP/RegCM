@@ -65,6 +65,7 @@ module mod_cloud_xuran
               else
                 fcc(j,i,k) = rm*(d_one-exp(-100.0_rkx*(qcld/botm)))
               end if
+              fcc(j,i,k) = max(fcc(j,i,k),hicld)
             else
               fcc(j,i,k) = hicld
             end if

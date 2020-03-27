@@ -721,6 +721,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: xlat     ! mddom
     real(rkx) , pointer , dimension(:,:) :: psb      ! sfc
     real(rkx) , pointer , dimension(:,:,:) :: pfcc   ! from atm
+    real(rkx) , pointer , dimension(:,:) :: ps2      ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: phs    ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: pfs    ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: delz   ! from atms

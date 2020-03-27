@@ -35,6 +35,7 @@ module mod_micro_interface
   use mod_cloud_thomp
   use mod_cloud_guli2007
   use mod_cloud_texeira
+  use mod_cloud_tompkins
 
   implicit none
 
@@ -135,6 +136,7 @@ module mod_micro_interface
     call assignpnt(atms%rhob3d,mo2mc%rho)
     call assignpnt(atms%rhb3d,mo2mc%rh)
     call assignpnt(atms%qsb3d,mo2mc%qs)
+    call assignpnt(atms%ps2d,mo2mc%ps2)
     call assignpnt(heatrt,mo2mc%heatrt)
     call assignpnt(q_detr,mo2mc%qdetr)
 
@@ -257,6 +259,9 @@ module mod_micro_interface
         call gulisa_cldfrac(mo2mc%qvn,mo2mc%qs,totc,mc2mo%fcc)
       case (4)
         call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
+      case (5)
+        call tompkins_cldfrac(totc,mo2mc%qs,mo2mc%rh,mo2mc%phs, &
+                              mo2mc%ps2,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
