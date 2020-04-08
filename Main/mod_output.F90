@@ -61,6 +61,13 @@ module mod_output
     module procedure uvrot3d
   end interface uvrot
 
+  logical :: lfirstsrf = .false.
+  logical :: lfirstrad = .false.
+  logical :: lfirstlak = .false.
+  logical :: lfirstsub = .false.
+  logical :: lfirstopt = .false.
+  logical :: lfirststs = .false.
+
   contains
 
   subroutine output
@@ -72,11 +79,21 @@ module mod_output
     integer(ik4) :: i , j , k , kk , itr
     real(rkx) , dimension(kz) :: p1d , t1d , rh1d
     real(rkx) :: cell , zz , zz1 , ww , tv
+    real(rkx) :: srffac , srafac , radfac , lakfac , subfac , optfac , stsfac
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    if ( rcmtimer%start( ) ) then
+      lfirstsrf = .true.
+      lfirstrad = .true.
+      lfirstlak = .true.
+      lfirstsub = .true.
+      lfirstopt = .true.
+      lfirststs = .true.
+    end if
 
     lstartup = .false.
     if ( rcmtimer%start( ) .or. doing_restart ) then
@@ -896,7 +913,14 @@ module mod_output
 
     if ( srf_stream > 0 ) then
       if ( ldosrf ) then
-
+        if ( lfirstsrf ) then
+          srffac = d_one/((d_one/rnsrf_for_srffrq)+d_one)
+          srafac = d_one/((d_one/rnrad_for_srffrq)+d_one)
+          lfirstsrf = .false.
+        else
+          srffac = rnsrf_for_srffrq
+          srafac = rnrad_for_srffrq
+        end if
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -911,22 +935,22 @@ module mod_output
         end if
         ! Averaged values
         if ( associated(srf_tpr_out) ) &
-          srf_tpr_out = srf_tpr_out*rnsrf_for_srffrq
+          srf_tpr_out = srf_tpr_out*srffac
         if ( associated(srf_prcv_out) ) &
-          srf_prcv_out = srf_prcv_out*rnsrf_for_srffrq
+          srf_prcv_out = srf_prcv_out*srffac
         if ( associated(srf_zpbl_out) ) &
-          srf_zpbl_out = srf_zpbl_out*rnsrf_for_srffrq
+          srf_zpbl_out = srf_zpbl_out*srffac
         if ( associated(srf_dew_out) .and. associated(srf_evp_out) ) then
-          srf_dew_out = -(srf_evp_out*rnsrf_for_srffrq)
+          srf_dew_out = -(srf_evp_out*srffac)
           srf_dew_out = max(srf_dew_out, d_zero)
         end if
         if ( associated(srf_evp_out) ) then
-          srf_evp_out = srf_evp_out*rnsrf_for_srffrq
+          srf_evp_out = srf_evp_out*srffac
           srf_evp_out = max(srf_evp_out, d_zero)
         end if
         if ( associated(srf_scv_out) ) then
           where ( mddom%ldmsk > 0 )
-            srf_scv_out = srf_scv_out*rnsrf_for_srffrq
+            srf_scv_out = srf_scv_out*srffac
           elsewhere
             srf_scv_out = dmissval
           end where
@@ -936,7 +960,7 @@ module mod_output
             srf_srunoff_out = d_zero
           end where
           where ( mddom%ldmsk == 1 )
-            srf_srunoff_out = srf_srunoff_out*rnsrf_for_srffrq
+            srf_srunoff_out = srf_srunoff_out*srffac
           elsewhere
             srf_srunoff_out = dmissval
           end where
@@ -946,36 +970,36 @@ module mod_output
             where ( srf_trunoff_out < dlowval )
               srf_trunoff_out = d_zero
             end where
-            srf_trunoff_out = srf_trunoff_out*rnsrf_for_srffrq
+            srf_trunoff_out = srf_trunoff_out*srffac
           elsewhere
             srf_trunoff_out = dmissval
           end where
         end if
         if ( associated(srf_sena_out) ) &
-          srf_sena_out = srf_sena_out*rnsrf_for_srffrq
+          srf_sena_out = srf_sena_out*srffac
         if ( associated(srf_lena_out) ) &
-          srf_lena_out = srf_lena_out*rnsrf_for_srffrq
+          srf_lena_out = srf_lena_out*srffac
         if ( associated(srf_flw_out) ) &
-          srf_flw_out = srf_flw_out*rnsrf_for_srffrq
+          srf_flw_out = srf_flw_out*srffac
         if ( associated(srf_fsw_out) ) &
-          srf_fsw_out = srf_fsw_out*rnsrf_for_srffrq
+          srf_fsw_out = srf_fsw_out*srffac
         if ( associated(srf_fld_out) ) &
-          srf_fld_out = srf_fld_out*rnsrf_for_srffrq
+          srf_fld_out = srf_fld_out*srffac
         if ( associated(srf_sina_out) ) &
-          srf_sina_out = srf_sina_out*rnsrf_for_srffrq
+          srf_sina_out = srf_sina_out*srffac
         if ( associated(srf_uflw_out) ) &
           srf_uflw_out = srf_fld_out - srf_flw_out
         if ( associated(srf_ufsw_out) ) &
           srf_ufsw_out = srf_sina_out - srf_fsw_out
         if ( associated(srf_taux_out) .and. associated(srf_tauy_out) ) then
-          srf_taux_out = srf_taux_out*rnsrf_for_srffrq
-          srf_tauy_out = srf_tauy_out*rnsrf_for_srffrq
+          srf_taux_out = srf_taux_out*srffac
+          srf_tauy_out = srf_tauy_out*srffac
           if ( uvrotate ) then
             call uvrot(srf_taux_out,srf_tauy_out)
           end if
         end if
         if ( associated(srf_snowmelt_out) ) &
-          srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq / &
+          srf_snowmelt_out = srf_snowmelt_out*srffac / &
                              alarm_out_srf%dt
         if ( associated(srf_u10m_out) .and. associated(srf_v10m_out) ) then
           if ( associated(srf_wspd_out) ) then
@@ -988,10 +1012,10 @@ module mod_output
         end if
 
         if ( associated(srf_totcf_out) ) then
-          srf_totcf_out = srf_totcf_out * rnrad_for_srffrq * d_100
+          srf_totcf_out = srf_totcf_out * srafac * d_100
         end if
         if ( associated(srf_evpot_out) ) then
-          srf_evpot_out = srf_evpot_out*rnsrf_for_srffrq
+          srf_evpot_out = srf_evpot_out*srffac
         end if
 
         if ( associated(srf_ua100_out) .and. &
@@ -1148,28 +1172,34 @@ module mod_output
 
     if ( sub_stream > 0 ) then
       if ( ldosub ) then
+        if ( lfirstsub ) then
+          subfac = d_one/((d_one/rnsrf_for_subfrq)+d_one)
+          lfirstsub = .false.
+        else
+          subfac = rnsrf_for_subfrq
+        end if
 
-        sub_ps_out = sub_ps_out*rnsrf_for_subfrq
+        sub_ps_out = sub_ps_out*subfac
 
         if ( associated(sub_evp_out) ) then
-          sub_evp_out = sub_evp_out*rnsrf_for_subfrq
+          sub_evp_out = sub_evp_out*subfac
           sub_evp_out = max(sub_evp_out, d_zero)
         end if
         if ( associated(sub_scv_out) ) then
           where ( sub_scv_out < dmissval )
-            sub_scv_out = sub_scv_out*rnsrf_for_subfrq
+            sub_scv_out = sub_scv_out*subfac
           end where
         end if
         if ( associated(sub_sena_out) ) &
-          sub_sena_out = sub_sena_out*rnsrf_for_subfrq
+          sub_sena_out = sub_sena_out*subfac
         if ( associated(sub_srunoff_out) ) then
           where ( sub_srunoff_out < dmissval )
-            sub_srunoff_out = sub_srunoff_out*rnsrf_for_subfrq
+            sub_srunoff_out = sub_srunoff_out*subfac
           end where
         end if
         if ( associated(sub_trunoff_out) ) then
           where ( sub_trunoff_out < dmissval )
-            sub_trunoff_out = sub_trunoff_out*rnsrf_for_subfrq
+            sub_trunoff_out = sub_trunoff_out*subfac
           end where
         end if
 
@@ -1192,6 +1222,12 @@ module mod_output
 
     if ( lak_stream > 0 ) then
       if ( ldolak ) then
+        if ( lfirstlak ) then
+          lakfac = d_one/((d_one/rnsrf_for_lakfrq)+d_one)
+          lfirstlak = .false.
+        else
+          lakfac = rnsrf_for_lakfrq
+        end if
 
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
@@ -1206,26 +1242,26 @@ module mod_output
           ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         if ( associated(lak_tpr_out) ) &
-          lak_tpr_out = lak_tpr_out*rnsrf_for_lakfrq
+          lak_tpr_out = lak_tpr_out*lakfac
         if ( associated(lak_scv_out) ) then
           where ( mddom%ldmsk > 0 )
-            lak_scv_out = lak_scv_out*rnsrf_for_lakfrq
+            lak_scv_out = lak_scv_out*lakfac
           elsewhere
             lak_scv_out = dmissval
           end where
         end if
         if ( associated(lak_sena_out) ) &
-          lak_sena_out = lak_sena_out*rnsrf_for_lakfrq
+          lak_sena_out = lak_sena_out*lakfac
         if ( associated(lak_flw_out) ) &
-          lak_flw_out = lak_flw_out*rnsrf_for_lakfrq
+          lak_flw_out = lak_flw_out*lakfac
         if ( associated(lak_fsw_out) ) &
-          lak_fsw_out = lak_fsw_out*rnsrf_for_lakfrq
+          lak_fsw_out = lak_fsw_out*lakfac
         if ( associated(lak_fld_out) ) &
-          lak_fld_out = lak_fld_out*rnsrf_for_lakfrq
+          lak_fld_out = lak_fld_out*lakfac
         if ( associated(lak_sina_out) ) &
-          lak_sina_out = lak_sina_out*rnsrf_for_lakfrq
+          lak_sina_out = lak_sina_out*lakfac
         if ( associated(lak_evp_out) ) then
-          lak_evp_out = lak_evp_out*rnsrf_for_lakfrq
+          lak_evp_out = lak_evp_out*lakfac
           lak_evp_out = max(lak_evp_out, d_zero)
         end if
 
@@ -1246,6 +1282,12 @@ module mod_output
 
     if ( opt_stream > 0 .and. rcmtimer%integrating( ) ) then
       if ( ldoche ) then
+        if ( lfirstopt ) then
+          optfac = d_one/((d_one/rnrad_for_chem)+d_one)
+          lfirstopt = .false.
+        else
+          optfac = rnrad_for_chem
+        end if
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -1270,21 +1312,21 @@ module mod_output
           end do
         end if
         if ( associated(opt_acstoarf_out) ) &
-          opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
+          opt_acstoarf_out = opt_acstoarf_out * optfac
         if ( associated(opt_acstsrrf_out) ) &
-          opt_acstsrrf_out = opt_acstsrrf_out * rnrad_for_chem
+          opt_acstsrrf_out = opt_acstsrrf_out * optfac
         if ( associated(opt_acstalrf_out) ) &
-          opt_acstalrf_out = opt_acstalrf_out * rnrad_for_chem
+          opt_acstalrf_out = opt_acstalrf_out * optfac
         if ( associated(opt_acssrlrf_out) ) &
-          opt_acssrlrf_out = opt_acssrlrf_out * rnrad_for_chem
+          opt_acssrlrf_out = opt_acssrlrf_out * optfac
         if ( associated(opt_aastoarf_out) ) &
-          opt_aastoarf_out = opt_aastoarf_out * rnrad_for_chem
+          opt_aastoarf_out = opt_aastoarf_out * optfac
         if ( associated(opt_aastsrrf_out) ) &
-          opt_aastsrrf_out = opt_aastsrrf_out * rnrad_for_chem
+          opt_aastsrrf_out = opt_aastsrrf_out * optfac
         if ( associated(opt_aastalrf_out) ) &
-          opt_aastalrf_out = opt_aastalrf_out * rnrad_for_chem
+          opt_aastalrf_out = opt_aastalrf_out * optfac
         if ( associated(opt_aassrlrf_out) ) &
-          opt_aassrlrf_out = opt_aassrlrf_out * rnrad_for_chem
+          opt_aassrlrf_out = opt_aassrlrf_out * optfac
 
         call write_record_output_stream(opt_stream,alarm_out_che%idate)
         if ( myid == italk ) &
@@ -1367,6 +1409,12 @@ module mod_output
 
     if ( sts_stream > 0 ) then
       if ( ldosts ) then
+        if ( lfirststs ) then
+          stsfac = d_one/((d_one/rnsrf_for_day)+d_one)
+          lfirststs = .false.
+        else
+          stsfac = rnsrf_for_day
+        end if
 
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
@@ -1381,21 +1429,21 @@ module mod_output
           ps_out = sfs%psa(jci1:jci2,ici1:ici2)
         end if
         if ( associated(sts_pcpavg_out) ) &
-          sts_pcpavg_out = sts_pcpavg_out*rnsrf_for_day
+          sts_pcpavg_out = sts_pcpavg_out*stsfac
         if ( associated(sts_t2avg_out) ) &
-          sts_t2avg_out = sts_t2avg_out*rnsrf_for_day
+          sts_t2avg_out = sts_t2avg_out*stsfac
         if ( associated(sts_psavg_out) ) &
-          sts_psavg_out = sts_psavg_out*rnsrf_for_day
+          sts_psavg_out = sts_psavg_out*stsfac
         if ( associated(sts_srunoff_out) ) then
           where ( mddom%ldmsk == 1 )
-            sts_srunoff_out = sts_srunoff_out*rnsrf_for_day
+            sts_srunoff_out = sts_srunoff_out*stsfac
           elsewhere
             sts_srunoff_out = dmissval
           end where
         end if
         if ( associated(sts_trunoff_out) ) then
           where ( mddom%ldmsk == 1 )
-            sts_trunoff_out = sts_trunoff_out*rnsrf_for_day
+            sts_trunoff_out = sts_trunoff_out*stsfac
           elsewhere
             sts_trunoff_out = dmissval
           end where
@@ -1424,6 +1472,12 @@ module mod_output
 
     if ( rad_stream > 0 ) then
       if ( ldorad ) then
+        if ( lfirstrad ) then
+          radfac = d_one/((d_one/rnrad_for_radfrq)+d_one)
+          lfirstrad = .false.
+        else
+          radfac = rnrad_for_radfrq
+        end if
         if ( idynamic == 1 ) then
           ps_out = d_1000*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         else if ( idynamic == 2 ) then
@@ -1448,11 +1502,11 @@ module mod_output
           end do
         end if
         if ( associated(rad_higcl_out) ) &
-          rad_higcl_out = min(rad_higcl_out * rnrad_for_radfrq,d_one) * d_100
+          rad_higcl_out = min(rad_higcl_out * radfac,d_one) * d_100
         if ( associated(rad_midcl_out) ) &
-          rad_midcl_out = min(rad_midcl_out * rnrad_for_radfrq,d_one) * d_100
+          rad_midcl_out = min(rad_midcl_out * radfac,d_one) * d_100
         if ( associated(rad_lowcl_out) ) &
-          rad_lowcl_out = min(rad_lowcl_out * rnrad_for_radfrq,d_one) * d_100
+          rad_lowcl_out = min(rad_lowcl_out * radfac,d_one) * d_100
         call write_record_output_stream(rad_stream,alarm_out_rad%idate)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ' , rcmtimer%str( )
