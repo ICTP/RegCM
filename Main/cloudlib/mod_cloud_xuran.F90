@@ -53,26 +53,16 @@ module mod_cloud_xuran
           if ( qc(j,i,k) < 1.0E-6_rkx ) then
             fcc(j,i,k) = d_zero
           else
-            if ( rh(j,i,k) >= rhmax ) then  ! full cloud cover
-              fcc(j,i,k) = hicld
-            else if ( rh(j,i,k) <= rhmin ) then
-              fcc(j,i,k) = d_zero
+            qcld = qc(j,i,k)
+            rhrng = max(rhmin,min(rhmax,rh(j,i,k)))
+            botm = exp(0.49_rkx*log((rhmax-rhrng)*qs(j,i,k)))
+            rm = exp(0.25_rkx*log(rhrng))
+            if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
+              fcc(j,i,k) = rm
             else
-              qcld = qc(j,i,k)
-              rhrng = max(rhmin,min(rhmax,rh(j,i,k)))
-              if ( rhrng < rhmax ) then
-                botm = exp(0.49_rkx*log((rhmax-rhrng)*qs(j,i,k)))
-                rm = exp(0.25_rkx*log(rhrng))
-                if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
-                  fcc(j,i,k) = rm
-                else
-                  fcc(j,i,k) = rm*(d_one-exp(-100.0_rkx*(qcld/botm)))
-                end if
-                fcc(j,i,k) = max(fcc(j,i,k),hicld)
-              else
-                fcc(j,i,k) = hicld
-              end if
+              fcc(j,i,k) = rm*(d_one-exp(-100.0_rkx*(qcld/botm)))
             end if
+            fcc(j,i,k) = min(fcc(j,i,k),hicld)
           end if
         end do
       end do
