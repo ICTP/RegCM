@@ -248,6 +248,7 @@ program sigma2z
     call checkalloc(istatus,__FILE__,__LINE__,'bk')
   end if
 
+  paivarid = -1
   ppvarid = -1
   ip0varid = -1
   ircm_map = -1
@@ -570,7 +571,7 @@ program sigma2z
       icount(3) = kz
       icount(4) = 1
       istatus = nf90_get_var(ncid, paivarid, pai, istart(1:4), icount(1:4))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error reading ta.')
+      call checkncerr(istatus,__FILE__,__LINE__,'Error reading pai.')
       press = p00 * (pai**cpovr)
     end if
     if ( iodyn /= 3 ) then
