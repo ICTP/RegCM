@@ -1727,7 +1727,7 @@ module mod_tendency
           convcldfra(:,:,:) = cldfra(:,:,:)
         end if
         ! Clouds and large scale precipitation
-        call cldfrac
+        call cldfrac(cldlwc,cldfra)
         call microscheme
         if ( idiag > 0 ) then
           call ten2diag(aten%t,tdiag%lsc,pc_physic,ten0)

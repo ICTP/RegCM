@@ -1253,7 +1253,7 @@ module mod_moloch
             convcldfra(:,:,:) = cldfra(:,:,:)
           end if
           ! Clouds and large scale precipitation
-          call cldfrac
+          call cldfrac(cldlwc,cldfra)
           call microscheme
           if ( idiag > 0 ) then
             tdiag%lsc = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0

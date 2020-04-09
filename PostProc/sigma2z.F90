@@ -250,6 +250,7 @@ program sigma2z
 
   paivarid = -1
   ppvarid = -1
+  tvarid = -1
   ip0varid = -1
   ircm_map = -1
   invarid = -1

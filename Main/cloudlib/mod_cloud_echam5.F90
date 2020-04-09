@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_cloud_tompkins
+module mod_cloud_echam5
 
   use mod_realkinds
   use mod_constants
@@ -28,22 +28,27 @@ module mod_cloud_tompkins
 
   private
 
-  public :: tompkins_cldfrac
+  public :: echam5_cldfrac
 
   contains
   !
   ! This subroutine computes the fractional cloud coverage
   ! which is used in radiation.
   !
-  ! See A cloud scheme for data assimilation purposes
-  ! ECMWF Technical Memorandum 410
-  subroutine tompkins_cldfrac(qc,rh,p,ps,fcc)
+  ! See Johannes Quaas
+  ! Evaluating the “critical relative humidity” as a measure
+  ! of subgrid-scale variability of humidity in general circulation
+  ! model cloud cover parameterizations using satellite data
+  !
+  subroutine echam5_cldfrac(qc,rh,p,ps,fcc)
     implicit none
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: qc , rh , p
     real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: fcc
-    real(rkx) :: rhrng , kappa , rhcrit
-    real(rkx) :: sig
+    real(rkx) :: rhrng , rhcrit , sig
+    real(rkx) , parameter :: ct = 0.35_rkx
+    real(rkx) , parameter :: cs = 0.85_rkx
+    real(rkx) , parameter :: nx = 4.0_rkx
     integer(ik4) :: i , j , k
 
     !-----------------------------------------
@@ -58,18 +63,16 @@ module mod_cloud_tompkins
           else
             ! Adjusted relative humidity threshold
             rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
-            sig = p(j,i,k)/ps(j,i)
-            kappa = max(0.0_rkx,0.9_rkx*(sig-0.2_rkx)**0.2_rkx)
-            rhcrit = 0.7_rkx * sig * (1.0_rkx-sig) * &
-                   (1.85_rkx + 0.95_rkx*(sig-0.5_rkx))
+            sig = ps(j,i)/p(j,i,k)
+            rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
             fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
-                   (1.0_rkx - rhcrit - kappa*(rhrng-rhcrit)))
+                                        (1.0_rkx-rhcrit))
           end if
         end do
       end do
     end do
 
-  end subroutine tompkins_cldfrac
+  end subroutine echam5_cldfrac
 
-end module mod_cloud_tompkins
+end module mod_cloud_echam5
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

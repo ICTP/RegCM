@@ -36,6 +36,7 @@ module mod_micro_interface
   use mod_cloud_guli2007
   use mod_cloud_texeira
   use mod_cloud_tompkins
+  use mod_cloud_echam5
 
   implicit none
 
@@ -205,10 +206,11 @@ module mod_micro_interface
   ! liquid water content (in cloud value).  Both are use in
   ! radiation.
   !
-  subroutine cldfrac
-    use mod_atm_interface , only : atms , cldlwc , cldfra
+  subroutine cldfrac(cldlwc,cldfra)
+    use mod_atm_interface , only : atms
     implicit none
     real(rkx) :: exlwc
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: cldlwc , cldfra
     integer(ik4) :: i , j , k , ichi
 
     if ( ipptls > 1 ) then
@@ -260,8 +262,9 @@ module mod_micro_interface
       case (4)
         call texeira_cldfrac(totc,mo2mc%qs,mo2mc%rh,mc2mo%fcc)
       case (5)
-        call tompkins_cldfrac(totc,mo2mc%qs,mo2mc%rh,mo2mc%phs, &
-                              mo2mc%ps2,mc2mo%fcc)
+        call tompkins_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
+      case (6)
+        call echam5_cldfrac(totc,mo2mc%rh,mo2mc%phs,mo2mc%ps2,mc2mo%fcc)
       case default
         call subex_cldfrac(mo2mc%t,mo2mc%phs,mo2mc%qvn, &
                            totc,mo2mc%rh,tc0,rh0,mc2mo%fcc)
@@ -370,7 +373,7 @@ module mod_micro_interface
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine condtq
-    use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten
+    use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten , cldfra
     implicit none
     !
     ! rhc    - Relative humidity at ktau+1
@@ -429,26 +432,16 @@ module mod_micro_interface
           wwlh = wlh(tmp3)
 
           r1 = d_one/(d_one+wwlh*wwlh*qvs/(rwat*cpd*tmp3*tmp3))
+          rh0adj = d_one - (d_one-rhc)/(d_one-cldfra(j,i,k))**2
+          rh0adj = max(d_zero,min(rh0adj,d_one))
 
           ! 2b. Compute the relative humidity threshold at ktau+1
-          if ( tmp3 > tc0 ) then
-            rh0adj = rh0(j,i)
-          else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15_rkx*(tc0-tmp3))
-          end if
-          rh0adj = max(d_zero,min(rh0adj,rhmax))
           if ( rhc < rh0adj ) then      ! Low cloud cover
             dqv = conf * (qvcs - qvs)
           else if ( rhc >= rhmax ) then ! Full cloud cover
             dqv = conf * (qvcs - qvs)
           else
-            if ( rh0adj >= rhmax ) then
-              fccc = hicld
-            else if ( rh0adj <= rhmin ) then
-              fccc = d_zero
-            else
-              fccc = d_one-sqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
-            end if
+            fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj))
             fccc = min(max(fccc,d_zero),d_one)
             if ( idynamic == 3 ) then
               qvc_cld = max((mo2mc%qs(j,i,k) + &
