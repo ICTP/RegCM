@@ -415,7 +415,7 @@ module mod_projections
     lam = clon
     if ( phi >  deg90 )  phi = deg90 - phi
     if ( phi < -deg90 )  phi = phi + deg90
-    if ( lam >  deg180 ) lam = deg360 - lam
+    if ( lam >  deg180 ) lam = lam - deg360
     if ( lam < -deg180 ) lam = lam + deg360
     phi = degrad * phi
     lam = degrad * lam
@@ -440,7 +440,7 @@ module mod_projections
     pj%p%rlon0 = raddeg*pj%p%rlon0 - ci*pj%p%dlon
     if ( pj%p%rlat0 >  deg90 )  pj%p%rlat0 = deg90 - pj%p%rlat0
     if ( pj%p%rlat0 < -deg90 )  pj%p%rlat0 = pj%p%rlat0 + deg90
-    if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 = deg360 - pj%p%rlon0
+    if ( pj%p%rlon0 >  deg180 ) pj%p%rlon0 = pj%p%rlon0 - deg360
     if ( pj%p%rlon0 < -deg180 ) pj%p%rlon0 = pj%p%rlon0 + deg360
     if ( luvrot ) then
       call getmem2d(pj%f1,1,pj%p%nlon,1,pj%p%nlat,'projections:f1')
@@ -461,7 +461,7 @@ module mod_projections
           lam = degrad*lon
           phi = degrad*lat
           dlam = lam - pj%p%lam0
-          if ( abs(rotlam) < 1.0e-4 ) then
+          if ( abs(rotlam) < 1.0e-7 ) then
             if ( lam > halfpi .or. lam < -halfpi ) then
               pj%f1(i,j) = -1.0_rk8
               pj%f2(i,j) = 0.0_rk8
@@ -483,8 +483,8 @@ module mod_projections
                          (sin(pj%p%phi0)*sin(rotlam))
             pj%f4(i,j) = -cos(phi) / (sin(pj%p%phi0)*sin(rotlam))
           end if
-          if ( abs(cos(phi)) > 1.0e-2_rk8 ) then
-            if ( abs(sin(dlam)) > 1.0e-1_rk8 ) then
+          if ( abs(cos(phi)) > 1.0e-7_rk8 ) then
+            if ( abs(sin(dlam)) > 1.0e-7_rk8 ) then
               pj%f5(i,j) = -sin(pj%p%phi0)*sin(rotlam)/cos(phi)
               pj%f6(i,j) = (cos(pj%p%phi0)*cos(rotphi) - &
                             sin(pj%p%phi0)*sin(rotphi)*cos(rotlam)) / cos(phi)
@@ -531,7 +531,7 @@ module mod_projections
     lam = pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon
     if ( phi >  deg90 )  phi = deg90 - phi
     if ( phi < -deg90 )  phi = phi + deg90
-    if ( lam >  deg180 ) lam = deg360 - lam
+    if ( lam >  deg180 ) lam = lam - deg360
     if ( lam < -deg180 ) lam = lam + deg360
     phi = degrad * phi
     lam = degrad * lam
@@ -570,7 +570,7 @@ module mod_projections
     real(rk8) :: rlat , rlon , phi , lam
     phi = lat
     lam = lon
-    if ( lam >  deg180 ) lam = deg360 - lam
+    if ( lam >  deg180 ) lam = lam - deg360
     if ( lam < -deg180 ) lam = lam + deg360
     if ( phi >  deg90 )  phi = deg90 - phi
     if ( phi < -deg90 )  phi = phi + deg90
@@ -860,7 +860,7 @@ module mod_projections
     pj%p%polej = cj
     pphi = deg90 - plat
     plam = plon + deg180
-    if ( plam>deg180 ) plam = plam - deg360
+    if ( plam > deg180 ) plam = plam - deg360
     pj%p%zlampol = degrad*plam
     zphipol = degrad*pphi
     pj%p%zsinpol = sin(zphipol)
@@ -906,7 +906,7 @@ module mod_projections
 
     zphi = degrad*lat
     zlam = lon
-    if ( zlam>deg180 ) zlam = zlam - deg360
+    if ( zlam > deg180 ) zlam = zlam - deg360
     zlam = degrad*zlam
     zarg = pj%p%zcospol*cos(zphi)*cos(zlam-pj%p%zlampol) + &
            pj%p%zsinpol*sin(zphi)
