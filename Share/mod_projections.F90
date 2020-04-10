@@ -385,7 +385,7 @@ module mod_projections
     lon = pj%p%rlon0 + (i-1.0_rk8) * pj%p%dlon
     if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
     if ( lat < -90.0_rkx ) lat = lat + 90.0_rkx
-    if ( lon >  180.0_rkx ) lon = 360.0_rkx - lon
+    if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
     if ( lon < -180.0_rkx ) lon = lon + 360.0_rkx
   end subroutine ijll_ll
 
@@ -558,7 +558,7 @@ module mod_projections
     lon = raddeg*lon
     if ( lat >  90.0_rkx ) lat = 90.0_rkx - lat
     if ( lat < -90.0_rkx ) lat = lat + 90.0_rkx
-    if ( lon >  180.0_rkx ) lon = 360.0_rkx - lon
+    if ( lon >  180.0_rkx ) lon = lon - 360.0_rkx
     if ( lon < -180.0_rkx ) lon = lon + 360.0_rkx
   end subroutine ijll_rl
 
