@@ -50,7 +50,8 @@ module mod_micro_interface
   type(micro_2_mod) :: mc2mo
 
   real(rkx) , pointer , dimension(:,:) :: rh0
-  real(rkx) , pointer , dimension(:,:,:) :: totc
+  ! rh0adj - Adjusted relative humidity threshold
+  real(rkx) , pointer , dimension(:,:,:) :: totc , rh0adj
 
   real(rkx) , parameter :: alphaice = d_one
 
@@ -67,6 +68,7 @@ module mod_micro_interface
     real(rkx) :: cf
     if ( ipptls == 1 ) then
       call allocate_subex
+      call getmem3d(rh0adj,jci1,jci2,ici1,ici2,1,kz,'micro:rh0adj')
     else if ( ipptls == 2 ) then
       call allocate_mod_nogtom
 #ifdef DEBUG
@@ -348,6 +350,11 @@ module mod_micro_interface
       end do
     end do
 
+    if ( ipptls == 1 ) then
+      rh0adj = d_one - (d_one-mo2mc%rh)/(d_one-cldfra)**2
+      rh0adj = max(d_zero,min(rh0adj,d_one))
+    end if
+
     contains
 
 #include <clwfromt.inc>
@@ -377,11 +384,10 @@ module mod_micro_interface
     implicit none
     !
     ! rhc    - Relative humidity at ktau+1
-    ! rh0adj - Adjusted relative humidity threshold at ktau+1
     !
     real(rkx) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rkx) :: dqv , exces , pres , qvc_cld , qvs , fccc , &
-               r1 , rh0adj , rhc , wwlh
+               r1 , rhc , wwlh
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
@@ -428,20 +434,15 @@ module mod_micro_interface
           !
           ! 2a. Calculate the saturation mixing ratio and relative humidity
           qvs = pfwsat(tmp3,pres)
-          rhc = min(max(qvcs/qvs,d_zero),rhmax)
           wwlh = wlh(tmp3)
-
           r1 = d_one/(d_one+wwlh*wwlh*qvs/(rwat*cpd*tmp3*tmp3))
-          rh0adj = d_one - (d_one-rhc)/(d_one-cldfra(j,i,k))**2
-          rh0adj = max(d_zero,min(rh0adj,d_one))
 
+          rhc = min(max(qvcs/qvs,d_zero),rhmax)
           ! 2b. Compute the relative humidity threshold at ktau+1
-          if ( rhc < rh0adj ) then      ! Low cloud cover
-            dqv = conf * (qvcs - qvs)
-          else if ( rhc >= rhmax ) then ! Full cloud cover
+          if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
             dqv = conf * (qvcs - qvs)
           else
-            fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj))
+            fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj(j,i,k)))
             fccc = min(max(fccc,d_zero),d_one)
             if ( idynamic == 3 ) then
               qvc_cld = max((mo2mc%qs(j,i,k) + &

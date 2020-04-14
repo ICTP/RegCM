@@ -53,17 +53,21 @@ module mod_cloud_tompkins
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) <= 1.0e-6_rkx ) then
+          if ( qc(j,i,k) < 1.0e-6_rkx ) then
             fcc(j,i,k) = d_zero
           else
-            ! Adjusted relative humidity threshold
             rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
             sig = p(j,i,k)/ps(j,i)
             kappa = max(0.0_rkx,0.9_rkx*(sig-0.2_rkx)**0.2_rkx)
+            ! Adjusted relative humidity threshold
             rhcrit = 0.7_rkx * sig * (1.0_rkx-sig) * &
                    (1.85_rkx + 0.95_rkx*(sig-0.5_rkx))
-            fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
-                   (1.0_rkx - rhcrit - kappa*(rhrng-rhcrit)))
+            if ( rhrng > rhcrit ) then
+              fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
+                     (1.0_rkx - rhcrit - kappa*(rhrng-rhcrit)))
+            else
+              fcc(j,i,k) = d_zero
+            end if
           end if
         end do
       end do

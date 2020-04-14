@@ -58,15 +58,20 @@ module mod_cloud_echam5
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( qc(j,i,k) <= 1.0e-6_rkx ) then
-            fcc(j,i,k) = d_zero
-          else
-            ! Adjusted relative humidity threshold
+          if ( qc(j,i,k) > 1.0e-6_rkx ) then
+            ! Relative humidity
             rhrng = min(max(rh(j,i,k),0.001_rkx),0.999_rkx)
             sig = ps(j,i)/p(j,i,k)
             rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
-            fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
-                                        (1.0_rkx-rhcrit))
+            if ( rhrng < rhcrit ) then
+              fcc(j,i,k) = d_zero
+            else
+              ! Sundqvist formula
+              fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &
+                                          (1.0_rkx-rhcrit))
+            end if
+          else
+            fcc(j,i,k) = d_zero
           end if
         end do
       end do
