@@ -435,6 +435,25 @@ module mod_output
               end do
             end do
           end if
+        else if ( idynamic == 3 ) then
+          if ( associated(atm_ph_out) ) then
+            do k = 2 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_ph_out(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
+                end do
+              end do
+            end do
+          end if
+          if ( associated(atm_zh_out) ) then
+            do k = 1 , kz
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  atm_zh_out(j,i,k) = mo_atm%zeta(j,i,k)
+                end do
+              end do
+            end do
+          end if
         end if
         if ( associated(atm_zf_out) ) then
           do k = 1 , kz
