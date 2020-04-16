@@ -69,8 +69,8 @@ module mod_micro_wsm5
   ! constant in biggs freezing
   real(rkx) , parameter :: pfrz2 = 0.66_rkx
   ! minimun values for qr, qs, and qg
-  real(rkx) , parameter :: qrsmin = 1.e-15_rkx
-  real(rkx) , parameter :: qcimin = 1.e-15_rkx
+  real(rkx) , parameter :: qrsmin = 1.0e-15_rkx
+  real(rkx) , parameter :: qcimin = 1.0e-15_rkx
   ! snow/cloud-water collection efficiency
   real(rkx) , parameter :: eacrc = 1.0_rkx
 
@@ -135,7 +135,9 @@ module mod_micro_wsm5
     !call getmem2d(cloud_er,is,ie,1,kz,'wsm5::cloud_er')
     !call getmem2d(ice_er,is,ie,1,kz,'wsm5::ice_er')
     !call getmem2d(snow_er,is,ie,1,kz,'wsm5::snow_er')
-    call getmem1d(ptfac,is,ie,'wsm5::ptfac')
+    if ( idynamic /= 3 ) then
+      call getmem1d(ptfac,is,ie,'wsm5::ptfac')
+    end if
     call getmem1d(rain,is,ie,'wsm5::rain')
     call getmem1d(snow,is,ie,'wsm5::snow')
   end subroutine allocate_mod_wsm5
@@ -224,13 +226,15 @@ module mod_micro_wsm5
     !real(rkx) , dimension(kz) :: qi1d
     !real(rkx) , dimension(kz) :: re_qc , re_qi , re_qs
 
-    n = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        ptfac(n) = mo2mc%psb(j,i)/dt
-        n = n + 1
+    if ( idynamic /= 3 ) then
+      n = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          ptfac(n) = mo2mc%psb(j,i)*rdt
+          n = n + 1
+        end do
       end do
-    end do
+    end if
 
     do k = 1 , kz
       n = 1
@@ -254,7 +258,7 @@ module mod_micro_wsm5
     end do
 
     where ( qci < qcimin ) qci = d_zero
-    where ( qrs < qrsmin ) qrs = d_zero
+    where ( qrs < d_zero ) qrs = d_zero
 
     !do k = 1 , kz
     !  do n = is , ie
@@ -475,8 +479,9 @@ module mod_micro_wsm5
     ! compute the minor time steps.
     !
     loops = max(nint(delt/dtcldcr),1)
-    dtcld = delt/loops
+    dtcld = delt/real(loops,rkx)
     if ( delt <= dtcldcr ) dtcld = delt
+    rdtcld = d_one/dtcld
 
     bigloop: &
     do loop = 1 , loops
@@ -604,7 +609,7 @@ module mod_micro_wsm5
           if ( qci(i,k,2) <= d_zero ) then
             work1c(i,k) = d_zero
           else
-            xmi = max(den(i,k)*qci(i,k,2)/xni(i,k),1e-10_rkx)
+            xmi = den(i,k)*qci(i,k,2)/xni(i,k)
             diameter  = max(min(dicon*sqrt(xmi),dimax), 1.e-25_rkx)
             work1c(i,k) = 1.49e4_rkx*exp(log(diameter)*(1.31_rkx))
           end if
@@ -776,7 +781,7 @@ module mod_micro_wsm5
                          precr2*work2(i,k)*coeres)/work1(i,k,1)
             if ( prevp(i,k) < d_zero ) then
               prevp(i,k) = max(prevp(i,k),-qrs(i,k,1)/dtcld)
-              prevp(i,k) = min(prevp(i,k),satdt/2.0_rkx)
+              prevp(i,k) = max(prevp(i,k),satdt/2.0_rkx)
             else
               prevp(i,k) = min(prevp(i,k),satdt/2.0_rkx)
             end if
@@ -793,7 +798,6 @@ module mod_micro_wsm5
       !   concentration (ni), ice nuclei number concentration
       !   (n0i), ice diameter (d)
       !
-      rdtcld = d_one/dtcld
       do k = 1 , kz
         do i = ims , ime
           supcol = tzero-t(i,k)
@@ -805,7 +809,7 @@ module mod_micro_wsm5
           !
           ! ni: ice crystal number concentraiton   [hdc 5c]
           !
-          temp = max(den(i,k)*qci(i,k,2),qcimin)
+          temp = den(i,k)*max(qci(i,k,2),qcimin)
           temp = sqrt(sqrt(temp*temp*temp))
           xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
           eacrs = exp(0.07_rkx*(-supcol))
@@ -898,12 +902,11 @@ module mod_micro_wsm5
               qimax = roqimax/den(i,k)
               psaut(i,k) = max(d_zero,(qci(i,k,2)-qimax)*rdtcld)
             end if
-          end if
           !
           ! psevp: evaporation of melting snow [hl a35] [rh83 a27]
           !       (t>t0: s->v)
           !
-          if ( supcol < d_zero ) then
+          else ! if ( supcol <= d_zero ) then
             !if ( qrs(i,k,2) > d_zero .and. rh(i,k,1) < d_one ) then
             if ( qrs(i,k,2) > d_zero .and. rh(i,k) < d_one ) then
               psevp(i,k) = psdep(i,k)*work1(i,k,2)/work1(i,k,1)
@@ -1068,8 +1071,8 @@ module mod_micro_wsm5
       do i = ims , ime
         if ( qci(i,k,1) < qcimin ) qci(i,k,1) = d_zero
         if ( qci(i,k,2) < qcimin ) qci(i,k,2) = d_zero
-        if ( qrs(i,k,1) < qrsmin ) qrs(i,k,1) = d_zero
-        if ( qrs(i,k,2) < qrsmin ) qrs(i,k,2) = d_zero
+        if ( qrs(i,k,1) < d_zero ) qrs(i,k,1) = d_zero
+        if ( qrs(i,k,2) < d_zero ) qrs(i,k,2) = d_zero
       end do
     end do
 

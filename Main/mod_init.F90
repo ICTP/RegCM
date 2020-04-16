@@ -172,10 +172,30 @@ module mod_init
             do j = jce1 , jce2
               mo_atm%t(j,i,k) = xtb%b0(j,i,k)
               mo_atm%qx(j,i,k,iqv) = xqb%b0(j,i,k)
-              mo_atm%qx(j,i,k,iqc) = minqc
             end do
           end do
         end do
+        if ( ipptls > 1 ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                if ( mo_atm%t(j,i,k) < 253.15 ) then
+                  mo_atm%qx(j,i,k,iqi) = minqc
+                else
+                  mo_atm%qx(j,i,k,iqc) = minqc
+                end if
+              end do
+            end do
+          end do
+        else if ( ipptls == 1 ) then
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                mo_atm%qx(j,i,k,iqc) = minqc
+              end do
+            end do
+          end do
+        end if
         do i = ice1 , ice2
           do j = jce1 , jce2
             sfs%psa(j,i) = xpsb%b0(j,i)
