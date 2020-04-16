@@ -2809,7 +2809,7 @@ module mod_params
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
         mo_atm%fmzf(:,:,1) = 1.0_rkx ! for vertical advection code
-        mo_atm%zetaf(:,:,1) = 47500.0_rkx ! Supposedly infinite
+        mo_atm%zetaf(:,:,1) = 48446.4_rkx ! Supposedly infinite
         do k = 2 , kzp1
           do i = ice1 , ice2
             do j = jce1 , jce2

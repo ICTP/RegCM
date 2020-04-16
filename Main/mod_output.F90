@@ -372,23 +372,13 @@ module mod_output
           end if
         end if
         if ( associated(atm_pf_out) ) then
-          if ( idynamic == 3 ) then
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  atm_pf_out(j,i,k) = mo_atm%p(j,i,k)
-                end do
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                atm_pf_out(j,i,k) = atms%pf3d(j,i,k)
               end do
             end do
-          else
-            do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
-                  atm_pf_out(j,i,k) = atm1%pr(j,i,k)
-                end do
-              end do
-            end do
-          end if
+          end do
         end if
         if ( idynamic == 1 ) then
           if ( associated(atm_ph_out) ) then

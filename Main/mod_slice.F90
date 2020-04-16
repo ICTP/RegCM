@@ -113,6 +113,7 @@ module mod_slice
         atms%pf3d(j,i,k) = p00 * &
                 (d_half*(mo_atm%pai(j,i,k)+mo_atm%pai(j,i,k-1)))**cpovr
       end do
+      atms%pf3d(:,:,1) = 100_rkx
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 )
         atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
       end do
