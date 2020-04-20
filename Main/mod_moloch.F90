@@ -655,8 +655,8 @@ module mod_moloch
             end do
             call filt3d
             do k = 1 , kz
-              do i = ici1 , ici2
-                do j = jci1 , jci2
+              do i = ice1 , ice2
+                do j = jce1 , jce2
                   zdiv2(j,i,k) = fmz(j,i,k) * (mx2(j,i) * zdiv2(j,i,k) + &
                          zdtrdz * (s(j,i,k) - s(j,i,k+1)))
                 end do
