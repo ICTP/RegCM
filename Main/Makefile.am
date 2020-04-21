@@ -198,7 +198,7 @@ regcm.o : regcm.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_inte
          $(RRTMSWLIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
-mod_atm_stub.o : mod_atm_stub.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_service.o mod_memutil.o mod_regcm_types.o mod_ncio.o mod_zita.o 
+mod_atm_stub.o : mod_atm_stub.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_service.o mod_memutil.o mod_regcm_types.o mod_ncio.o mod_zita.o mod_stdatm.o
 mod_clm_params.o : mod_clm_params.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_domain.o mod_service.o mod_clm_regcm.o mod_ncio.o mod_timer.o mod_realkinds.o mod_intkinds.o mod_date.o mod_atm_stub.o mod_dynparam.o mod_ipcc_scenario.o mod_sun.o mod_zita.o
 clmsa.o : clmsa.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_interface.o mod_runparams.o mod_memutil.o mod_service.o mod_header.o mod_params.o mod_date.o mod_dynparam.o mod_atm_stub.o mod_clm_params.o mod_clm_regcm.o mod_ncio.o \
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(BATLIB)

@@ -5009,11 +5009,11 @@ module mod_bdycod
     end if
   end function tau
 
-  subroutine paicompute(xpsb,xtb,xqb,xpaib)
+  subroutine paicompute(ps,t,q,pai)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: xpsb
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: xtb , xqb
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: xpaib
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , q
+    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
     real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz1 , zz2 , zlr
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
@@ -5021,26 +5021,26 @@ module mod_bdycod
     do i = ice1 , ice2
       do j = jce1 , jce2
         zz1 = mo_atm%zeta(j,i,kz)
-        ! zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
-        zlr = -lrate
-        tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz)) + d_half * zz1 * zlr
+        zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
+        ! zlr = -lrate
+        tv = t(j,i,kz) * (d_one + ep1*q(j,i,kz)) + d_half * zz1 * zlr
         zz2 = egrav/(rgas*tv)
-        p = xpsb(j,i) * exp(-zz1*zz2)
-        xpaib(j,i,kz) = (p/p00)**rovcp
+        p = ps(j,i) * exp(-zz1*zz2)
+        pai(j,i,kz) = (p/p00)**rovcp
       end do
     end do
     do k = kzm1 , 1 , -1
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tv1 = xtb(j,i,k) * (d_one + ep1*xqb(j,i,k))
-          tv2 = xtb(j,i,k+1) * (d_one + ep1*xqb(j,i,k+1))
+          tv1 = t(j,i,k) * (d_one + ep1*q(j,i,k))
+          tv2 = t(j,i,k+1) * (d_one + ep1*q(j,i,k+1))
           zb = d_two * egrav * mo_dz / (mo_atm%fmzf(j,i,k+1)*cpd) + tv1 - tv2
           zdelta = sqrt(zb**2 + d_four * tv2 * tv1)
-          xpaib(j,i,k) = -xpaib(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
+          pai(j,i,k) = -pai(j,i,k+1) / (d_two * tv2) * (zb - zdelta)
         end do
       end do
     end do
-    call exchange(xpaib,1,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(pai,1,jce1,jce2,ice1,ice2,1,kz)
   end subroutine paicompute
 
   subroutine moloch_static_test1(xt,xq,xu,xv,xps,xts)

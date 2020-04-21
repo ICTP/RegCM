@@ -27,6 +27,7 @@ module mod_atm_stub
   use mod_service
   use mod_memutil
   use mod_regcm_types
+  use mod_stdatm
   use mod_zita
   use mod_ncio
 
@@ -890,8 +891,8 @@ module mod_atm_stub
     do i = ice1 , ice2
       do j = jce1 , jce2
         zz1 = zeta(j,i)
-        ! zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
-        zlr = -lrate
+        zlr = stdlrate(julianday(rcmtimer%idate),mddom%xlat(j,i))
+        ! zlr = -lrate
         tv = xtb(j,i,kz) * (d_one + ep1*xqb(j,i,kz)) + d_half * zz1 * zlr
         zz2 = egrav/(rgas*tv)
         p = xpsb(j,i) * exp(-zz1*zz2)
