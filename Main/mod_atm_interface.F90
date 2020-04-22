@@ -821,14 +821,15 @@ module mod_atm_interface
         call getmem2d(dom%ulon,jde1,jde2,ide1,ide2,'storage:ulon')
         call getmem2d(dom%vlat,jde1,jde2,ide1,ide2,'storage:vlat')
         call getmem2d(dom%vlon,jde1,jde2,ide1,ide2,'storage:vlon')
-        call getmem2d(dom%coriol,jde1ga,jde2ga,ide1ga,ide2ga,'storage:f')
+        call getmem2d(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
+        call getmem2d(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
       else
         call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
         call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
         call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
         call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
-        call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       end if
+      call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
       call getmem2d(dom%smoist,jde1,jde2,ide1,ide2,'storage:smoist')
       call getmem3d(dom%rmoist,jde1,jde2,ide1,ide2, &

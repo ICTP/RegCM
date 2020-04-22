@@ -82,6 +82,8 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: msfx
     real(rkx) , pointer , dimension(:,:) :: msfd
     real(rkx) , pointer , dimension(:,:) :: coriol
+    real(rkx) , pointer , dimension(:,:) :: coriou
+    real(rkx) , pointer , dimension(:,:) :: coriov
     real(rkx) , pointer , dimension(:,:) :: ef
     real(rkx) , pointer , dimension(:,:) :: ddx
     real(rkx) , pointer , dimension(:,:) :: ddy
