@@ -663,11 +663,7 @@ module mod_kdinterp
         end if
       end do
     end do
-    if ( idynamic > 1 ) then
-      call smther(f)
-    else
-      call smtdsmt(f)
-    end if
+    call smtdsmt(f)
     do i = 1 , ni
       do j = 1 , nj
         if ( f(j,i) > missc ) then

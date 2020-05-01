@@ -335,7 +335,7 @@ module mod_params
     cllwcv    = 0.3e-3_rkx ! Cloud liquid water content for convective precip.
     clfrcvmax = 0.75_rkx   ! Max cloud fractional cover for convective precip.
     cftotmax  = 0.75_rkx   ! Max total cover cloud fraction for radiation
-    k2_const  = 10.0_rkx   ! K2 CF factor relation with updraft mass flux
+    k2_const  = 500.0_rkx  ! K2 CF factor relation with updraft mass flux
     kfac_shal = 0.07_rkx   ! Conv. cf factor in relation with updraft mass flux
     kfac_deep = 0.14_rkx   ! Conv. cf factor in relation with updraft mass flux
     lsrfhack  = .false.    ! Surface radiation hack
@@ -1783,8 +1783,13 @@ module mod_params
     !
     ! Calculate boundary areas per processor
     !
-    call setup_boundaries(cross,ba_cr)
-    call setup_boundaries(dot,ba_dt)
+    call setup_boundaries(cross,cross,ba_cr)
+    if ( idynamic == 3 ) then
+      call setup_boundaries(dot,cross,ba_ut)
+      call setup_boundaries(cross,dot,ba_vt)
+    else
+      call setup_boundaries(dot,dot,ba_dt)
+    end if
 
     call allocate_v2dbound(xpsb,cross)
     call allocate_v2dbound(xtsb,cross)
@@ -2818,7 +2823,7 @@ module mod_params
         end do
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
-        mo_atm%fmzf(:,:,1) = 1.0_rkx ! for vertical advection code
+        mo_atm%fmzf(:,:,1) = 0.0_rkx
         mo_atm%zetaf(:,:,1) = 48446.4_rkx ! Supposedly infinite
         do k = 2 , kzp1
           do i = ice1 , ice2

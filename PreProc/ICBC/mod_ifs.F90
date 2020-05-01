@@ -39,7 +39,7 @@ module mod_ifs
 
   private
 
-  integer(ik4) :: jlat , ilon , klev , hynlev , timlen
+  integer(ik4) :: jlat , ilon , klev , hynlev
 
   real(rkx) , pointer , dimension(:,:,:) :: b3
   real(rkx) , pointer , dimension(:,:,:) :: d3
@@ -80,8 +80,7 @@ module mod_ifs
 
   subroutine init_ifs
     implicit none
-    integer(ik4) :: k , kr
-    integer(ik4) :: year , month , monthp1 , day , hour
+    integer(ik4) :: year , month , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
     character(len=64) :: inname
@@ -242,7 +241,7 @@ module mod_ifs
     !
     ! Read data at idate
     !
-    call ifs6hour(dattyp,idate,globidate1)
+    call ifs6hour(idate,globidate1)
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     !
     ! Horizontal interpolation of both the scalar and vector fields
@@ -310,9 +309,9 @@ module mod_ifs
 !$OMP SECTION
       call intz1(v4,v3,zvd4,z3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
-      call intz1(q4,q3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(q4,q3,z0,z3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
@@ -328,20 +327,13 @@ module mod_ifs
     end if
   end subroutine get_ifs
 
-  subroutine ifs6hour(dattyp,idate,idate0)
+  subroutine ifs6hour(idate,idate0)
     implicit none
-    character(len=5) , intent(in) :: dattyp
     type(rcm_time_and_date) , intent(in) :: idate , idate0
-    integer(ik4) :: i , j , k , it , kkrec , istatus , ivar
-    integer(ik4) :: timid
+    integer(ik4) :: k , it , kkrec , istatus , ivar
     character(len=64) :: inname
     character(len=256) :: pathaddname
-    character(len=64) :: cunit , ccal
-    real(rkx) :: xadd , xscale
-    integer(ik4) :: year , month , day , hour , monthp1
-    integer(ik4) , save :: lastmonth , lastyear
-    type(rcm_time_and_date) :: xdate
-    type(rcm_time_interval) :: tdif
+    integer(ik4) :: year , month , day , hour
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the

@@ -286,7 +286,7 @@ module mod_ein
       call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
       call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
       call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,klev)
-      call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,1.0_rkx,1.0_rkx)
+      call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.5_rkx,0.85_rkx)
     else
       call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
@@ -305,9 +305,9 @@ module mod_ein
 !$OMP SECTION
       call intz1(v4,v3,zvd4,h3v,topov,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intz1(t4,t3,z0,h3,topogm,jx,iy,kz,klev,0.6_rkx,0.5_rkx,0.85_rkx)
 !$OMP SECTION
-      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intz1(q4,q3,z0,h3,topogm,jx,iy,kz,klev,0.7_rkx,0.4_rkx,0.7_rkx)
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS

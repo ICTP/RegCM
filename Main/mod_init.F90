@@ -77,7 +77,7 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg
-    real(rkx) :: zzi , zfilt , zuh , zvh
+    real(rkx) :: zzi , zfilt , zuh , zvh , zz1 , zdgz
     real(rkx) , dimension(kzp1) :: ozprnt
     integer(ik4) :: ntop
 #ifdef DEBUG
@@ -114,6 +114,30 @@ module mod_init
             end do
           end do
         end do
+        if ( ipptls > 0 ) then
+          if ( is_present_qc( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  atm1%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                  atm2%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                end do
+              end do
+            end do
+          end if
+          if ( ipptls > 1 ) then
+            if ( is_present_qi( ) ) then
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    atm1%qx(j,i,k,iqi) = xib%b0(j,i,k)
+                    atm2%qx(j,i,k,iqi) = xib%b0(j,i,k)
+                  end do
+                end do
+              end do
+            end if
+          end if
+        end if
         if ( idynamic == 1 ) then
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -176,31 +200,63 @@ module mod_init
           end do
         end do
         if ( ipptls > 1 ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                if ( mo_atm%t(j,i,k) < 253.15 ) then
-                  mo_atm%qx(j,i,k,iqi) = minqc
-                else
-                  mo_atm%qx(j,i,k,iqc) = minqc
-                end if
+          if ( is_present_qc( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  if ( mo_atm%t(j,i,k) > 253.15 ) then
+                    mo_atm%qx(j,i,k,iqc) = minqc
+                  end if
+                end do
+              end do
+            end do
+          end if
+          if ( is_present_qi( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqi) = xib%b0(j,i,k)
+                end do
+              end do
+            end do
+          else
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  if ( mo_atm%t(j,i,k) < 253.15 ) then
+                    mo_atm%qx(j,i,k,iqi) = minqc
+                  end if
+                end do
+              end do
+            end do
+          end if
         else if ( ipptls == 1 ) then
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                mo_atm%qx(j,i,k,iqc) = minqc
+          if ( is_present_qc( ) ) then
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqc) = xlb%b0(j,i,k)
+                end do
               end do
             end do
-          end do
+          else
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  mo_atm%qx(j,i,k,iqc) = minqc
+                end do
+              end do
+            end do
+          end if
         end if
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            sfs%psa(j,i) = xpsb%b0(j,i)
-          end do
-        end do
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
@@ -216,6 +272,14 @@ module mod_init
             do j = jce1 , jce2
               mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
             end do
+          end do
+        end do
+        zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            zdgz = mddom%ht(j,i)*(gzita(d_half*mo_dz)-d_one) + zz1
+            sfs%psa(j,i) = mo_atm%p(j,i,kz) * &
+                   exp(zdgz/(rgas*mo_atm%tvirt(j,i,kz)))
           end do
         end do
         do k = 1 , kz

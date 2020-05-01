@@ -75,7 +75,7 @@ module mod_moloch
   real(rkx) , dimension(:,:) , pointer :: xlat , xlon , coriou , coriov
   real(rkx) , dimension(:,:) , pointer :: mu , hx , mx
   real(rkx) , dimension(:,:) , pointer :: mv , hy
-  real(rkx) , dimension(:,:) , pointer :: ps
+  real(rkx) , dimension(:,:) , pointer :: ps , ht
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
   real(rkx) , dimension(:,:,:) , pointer :: pai
@@ -98,8 +98,13 @@ module mod_moloch
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
   logical , parameter :: do_fulleq = .false.
+  logical , parameter :: do_filterpai = .false.
+  logical , parameter :: do_filter = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
+
+  integer :: nadv , nsound
+  real(rkx) :: dz , nupait , nuwind , nuqx
 
   contains
 
@@ -111,7 +116,7 @@ module mod_moloch
     implicit none
     call getmem1d(gzitak,1,kzp1,'moloch:gzitak')
     call getmem1d(gzitakh,1,kz,'moloch:gzitakh')
-    call getmem2d(p2d,jci1,jci2,ici1,ici2,'moloch:p2d')
+    call getmem2d(p2d,jdi1,jdi2,idi1,idi2,'moloch:p2d')
     call getmem3d(deltaw,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1,'moloch:deltaw')
     call getmem3d(s,jce1,jce2,ice1,ice2,1,kzp1,'moloch:s')
     call getmem3d(wx,jce1,jce2,ice1,ice2,1,kz,'moloch:wx')
@@ -162,6 +167,7 @@ module mod_moloch
     call assignpnt(mddom%xlon,xlon)
     call assignpnt(mddom%coriou,coriou)
     call assignpnt(mddom%coriov,coriov)
+    call assignpnt(mddom%ht,ht)
     call assignpnt(sfs%psa,ps)
     call assignpnt(mo_atm%fmz,fmz)
     call assignpnt(mo_atm%fmzf,fmzf)
@@ -205,6 +211,12 @@ module mod_moloch
     gzitak = gzita(zita)
     gzitakh = gzita(zitah)
     deltaw = d_zero
+    nadv = mo_nadv
+    nsound = mo_nsound
+    dz = mo_dz
+    nupait = d_one / real(nadv,rkx)
+    nuwind = d_one / real(nsound,rkx)
+    nuqx = nuwind * d_half
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -222,8 +234,8 @@ module mod_moloch
     call time_begin(subroutine_name,idindx)
 #endif
 
-    dtstepa = dtsec / real(mo_nadv,rkx)
-    dtsound = dtstepa / real(mo_nsound,rkx)
+    dtstepa = dtsec / real(nadv,rkx)
+    dtsound = dtstepa / real(nsound,rkx)
     iconvec = 0
 
     call reset_tendencies
@@ -298,7 +310,7 @@ module mod_moloch
       end if
     end if
 
-    do jadv = 1 , mo_nadv
+    do jadv = 1 , nadv
 
       call sound(dtsound)
 
@@ -362,10 +374,10 @@ module mod_moloch
       end do
     end do
 
-    zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        zdgz = mddom%ht(j,i)*(gzita(d_half*mo_dz)-d_one) + zz1
+    zz1 = -egrav*hzita*bzita(d_half*dz)*log(d_one-d_half*dz/hzita)
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        zdgz = ht(j,i)*(gzita(d_half*dz)-d_one) + zz1
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
       end do
     end do
@@ -458,6 +470,12 @@ module mod_moloch
     !
     call zenitm(xlat,xlon,coszrs)
 
+    if ( do_filter ) then
+      call filtuv
+      call filtt
+      call filtq
+    end if
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -466,6 +484,7 @@ module mod_moloch
 
       subroutine boundary
         implicit none
+
         call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
         call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
         call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
@@ -493,6 +512,12 @@ module mod_moloch
             tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
           end if
+          if ( is_present_qc( ) ) then
+            call nudge(iboudy,qc,xlb)
+          end if
+          if ( is_present_qi( ) ) then
+            call nudge(iboudy,qi,xib)
+          end if
         else if ( iboudy == 4 ) then
           call sponge(pai,xpaib)
           call sponge(t,xtb)
@@ -501,6 +526,12 @@ module mod_moloch
           if ( idiag > 0 ) then
             tdiag%bdy = t(jci1:jci2,ici1:ici2,:) - ten0
             qdiag%bdy = qv(jci1:jci2,ici1:ici2,:) - qen0
+          end if
+          if ( is_present_qc( ) ) then
+            call sponge(qc,xlb)
+          end if
+          if ( is_present_qi( ) ) then
+            call sponge(qi,xib)
           end if
         end if
         if ( ichem == 1 ) then
@@ -537,6 +568,143 @@ module mod_moloch
         end do
       end subroutine filt3d
 
+      subroutine filtuv
+        implicit none
+        integer(ik4) :: j , i , k
+
+        call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
+        call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jdi1 , jdi2
+              p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
+                                      u(j,i-1,k) + u(j,i+1,k)) - &
+                         0.5_rkx   * u(j,i,k)
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jdi1 , jdi2
+              u(j,i,k) = u(j,i,k) + nuwind * p2d(j,i)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jci1 , jci2
+              p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
+                                      v(j,i-1,k) + v(j,i+1,k)) - &
+                         0.5_rkx   * v(j,i,k)
+            end do
+          end do
+          do i = idi1 , idi2
+            do j = jci1 , jci2
+              v(j,i,k) = v(j,i,k) + nuwind * p2d(j,i)
+            end do
+          end do
+        end do
+      end subroutine filtuv
+
+      subroutine filtq
+        implicit none
+        integer(ik4) :: j , i , k
+
+        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(qc,1,jce1,jce2,ice1,ice2,1,kz)
+        if ( ipptls > 1 ) then
+          call exchange_lrbt(qi,1,jce1,jce2,ice1,ice2,1,kz)
+        end if
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2d(j,i) = 0.125_rkx * (qv(j-1,i,k) + qv(j+1,i,k) + &
+                                      qv(j,i-1,k) + qv(j,i+1,k)) - &
+                         0.5_rkx   * qv(j,i,k)
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              qv(j,i,k) = qv(j,i,k) + nuqx * p2d(j,i)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2d(j,i) = 0.125_rkx * (qc(j-1,i,k) + qc(j+1,i,k) + &
+                                      qc(j,i-1,k) + qc(j,i+1,k)) - &
+                         0.5_rkx   * qc(j,i,k)
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              qc(j,i,k) = qc(j,i,k) + d_half * nuqx * p2d(j,i)
+            end do
+          end do
+        end do
+        if ( ipptls > 1 ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p2d(j,i) = 0.125_rkx * (qi(j-1,i,k) + qi(j+1,i,k) + &
+                                        qi(j,i-1,k) + qi(j,i+1,k)) - &
+                           0.5_rkx   * qi(j,i,k)
+              end do
+            end do
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                qi(j,i,k) = qi(j,i,k) + d_half * nuqx * p2d(j,i)
+              end do
+            end do
+          end do
+        end if
+      end subroutine filtq
+
+      subroutine filtpai
+        implicit none
+        integer(ik4) :: j , i , k
+
+        call exchange_lrbt(pai,1,jce1,jce2,ice1,ice2,1,kz)
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2d(j,i) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
+                                      pai(j,i-1,k) + pai(j,i+1,k)) - &
+                         0.5_rkx   * pai(j,i,k)
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              pai(j,i,k) = pai(j,i,k) + d_two * nupait * p2d(j,i)
+            end do
+          end do
+        end do
+      end subroutine filtpai
+
+      subroutine filtt
+        implicit none
+        integer(ik4) :: j , i , k
+
+        call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
+
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2d(j,i) = 0.125_rkx * (t(j-1,i,k) + t(j+1,i,k) + &
+                                      t(j,i-1,k) + t(j,i+1,k)) - &
+                         0.5_rkx   * t(j,i,k)
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              t(j,i,k) = t(j,i,k) + nupait * p2d(j,i)
+            end do
+          end do
+        end do
+      end subroutine filtt
+
       subroutine sound(dts)
         implicit none
         real(rkx) , intent(in) :: dts
@@ -551,7 +719,7 @@ module mod_moloch
 
         zdtrdx = dts/dx
         zdtrdy = dts/dx
-        zdtrdz = dts/mo_dz
+        zdtrdz = dts/dz
         zcs2   = zdtrdz**2*rdrcv
 
         !  sound waves
@@ -560,7 +728,7 @@ module mod_moloch
           call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
         end if
 
-        do jsound = 1 , mo_nsound
+        do jsound = 1 , nsound
 
           ! partial definition of the generalized vertical velocity
 
@@ -815,7 +983,7 @@ module mod_moloch
                   zcor1u = coriou(j,i) * 0.25_rkx * &
                           (vd(j,i,k)   + vd(j-1,i,k) + &
                            vd(j,i+1,k) + vd(j-1,i+1,k))
-                  !zcor1u = coriou(j,i) * vd(j,i,k)
+                  !zcor1u = coriov(j,i) * vd(j,i,k)
                   ! Equation 17
                   u(j,i,k) = u(j,i,k) + zcor1u * dts - &
                              zfz * hx(j,i) * gzitakh(k) - &
@@ -834,7 +1002,7 @@ module mod_moloch
                   zcor1v = coriov(j,i) * 0.25_rkx * &
                           (ud(j,i,k)   + ud(j+1,i,k) + &
                            ud(j,i-1,k) + ud(j+1,i-1,k))
-                  !zcor1v = coriov(j,i) * ud(j,i,k)
+                  !zcor1v = coriou(j,i) * ud(j,i,k)
                   ! Equation 18
                   v(j,i,k) = v(j,i,k) - zcor1v * dts - &
                              zfz * hy(j,i) * gzitakh(k) -  &
@@ -845,6 +1013,8 @@ module mod_moloch
           end if
 
         end do ! sound loop
+
+        if ( do_filterpai ) call filtpai
 
         ! complete computation of generalized vertical velocity
         ! Complete Equation 10
@@ -866,6 +1036,7 @@ module mod_moloch
             s(j,i,kzp1) = d_zero
           end do
         end do
+
       end subroutine sound
 
       subroutine advection(dta)
@@ -929,7 +1100,7 @@ module mod_moloch
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: dta
         integer(ik4) :: j , i , k
-        integer(ik4) :: k1 , k1p1 , ih , ihm1 , jh , jhm1
+        integer(ik4) :: k1 , k1m1 , ih , ihm1 , jh , jhm1
         real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmp , zrfmm
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
@@ -937,7 +1108,7 @@ module mod_moloch
 
         zdtrdx = dta/dx
         zdtrdy = dta/dx
-        zdtrdz = dta/mo_dz
+        zdtrdz = dta/dz
 
         ! Vertical advection
 
@@ -947,39 +1118,48 @@ module mod_moloch
         end do
 
         do i = ici1 , ici2
-          do k = 2 , kz
+          do k = 1 , kzm1
             do j = jci1 , jci2
-              zamu = s(j,i,k)*zdtrdz
+              zamu = s(j,i,k+1) * zdtrdz
               if ( zamu >= d_zero ) then
                 is = d_one
-                k1 = k
-                k1p1 = k1 + 1
-                if ( k1p1 > kz ) k1p1 = kz
+                k1 = k + 1
+                k1m1 = k1 + 1
+                if ( k1m1 > kz ) k1m1 = kz
               else
                 is = -d_one
-                k1 = k - 2
+                k1m1 = k
+                k1 = k - 1
                 if ( k1 < 1 ) k1 = 1
-                k1p1 = k1 + 1
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k-1),pp(j,i,k))
+              r = rdeno(pp(j,i,k1),pp(j,i,k1m1),pp(j,i,k),pp(j,i,k+1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
-              wfw(j,k) = d_half * s(j,i,k) * ((d_one+zphi)*pp(j,i,k) + &
-                                              (d_one-zphi)*pp(j,i,k-1))
-              !wfw(j,k) = d_half * zamu * ((d_one+zphi)*pp(j,i,k) + &
-              !                            (d_one-zphi)*pp(j,i,k-1))
+              wfw(j,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
+                                                  (d_one-zphi)*pp(j,i,k))
+              !wfw(j,k+1) = d_half * zamu * ((d_one+zphi)*pp(j,i,k+1) + &
+              !                              (d_one-zphi)*pp(j,i,k))
             end do
           end do
-          do k = 1 , kz
+          do j = jci1 , jci2
+            zrfmm = zdtrdz * fmz(j,i,1)/fmzf(j,i,2)
+            zdv = -s(j,i,2) * zrfmm * pp(j,i,1)
+            wz(j,i,1) = pp(j,i,1) + wfw(j,2) * zrfmm + zdv
+          end do
+          do k = 2 , kz
             do j = jci1 , jci2
               zrfmm = zdtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
               zrfmp = zdtrdz * fmz(j,i,k)/fmzf(j,i,k)
               zdv = (s(j,i,k)*zrfmp - s(j,i,k+1)*zrfmm) * pp(j,i,k)
               wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmp + wfw(j,k+1)*zrfmm + zdv
-              !zdv = (s(j,i,k) - s(j,i,k+1)) * zdtrdz * pp(j,i,k)
-              !wz(j,i,k) = pp(j,i,k) - wfw(j,k) + wfw(j,k+1) + zdv
             end do
           end do
+          !do k = 1 , kz
+          !  do j = jci1 , jci2
+          !    zdv = (s(j,i,k) - s(j,i,k+1)) * zdtrdz * pp(j,i,k)
+          !    wz(j,i,k) = pp(j,i,k) - wfw(j,k) + wfw(j,k+1) + zdv
+          !  end do
+          !end do
         end do
 
         if ( ma%has_bdybottom ) then
@@ -999,9 +1179,10 @@ module mod_moloch
 
         call exchange_bt(wz,2,jci1,jci2,ice1,ice2,1,kz)
 
-        ! Meridional advection
 
         if ( iproj == 'ROTLLR' ) then
+
+          ! Meridional advection
 
           do k = 1 , kz
             do i = ici1 , ice2ga
@@ -1090,6 +1271,8 @@ module mod_moloch
 
         else
 
+          ! Meridional advection
+
           do k = 1 , kz
             do i = ici1 , ice2ga
               do j = jci1 , jci2
@@ -1174,6 +1357,7 @@ module mod_moloch
             end do
           end do
         end if
+
       end subroutine wafone
 
       subroutine reset_tendencies

@@ -348,7 +348,6 @@ module mod_regcm_types
   end type nhboundhelp
 
   type bound_area
-    logical :: dotflag
     logical :: havebound
     logical , pointer , dimension(:,:) :: bsouth
     logical , pointer , dimension(:,:) :: bnorth

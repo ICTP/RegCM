@@ -151,7 +151,7 @@ module mod_slice
         do i = ici1 , ici2
           do j = jci1 , jci2
             atms%th700(j,i) = atms%th3d(j,i,kz)
-            do k = 1 , kz-1
+            do k = 2 , kz-1
               if ( atms%pb3d(j,i,k) > 70000.0 ) then
                 w1 = mo_atm%fmz(j,i,k)/mo_atm%fmzf(j,i,k)
                 w2 = d_two - w1

@@ -39,7 +39,7 @@ module mod_atm_stub
   type(domain_subgrid) , public :: mdsub
   type(surfstate) , public :: sfs
 
-  type(v3dbound) , public :: xtb , xqb , xub , xvb
+  type(v3dbound) , public :: xtb , xqb , xub , xvb , xlb , xib , xppb , xwwb
   type(v2dbound) , public :: xpsb , xtsb , xpaib
 
   type(lm_exchange) , public :: lm
@@ -419,6 +419,8 @@ module mod_atm_stub
       call allocate_v3dbound(xtb,kz,cross)
       call allocate_v3dbound(xqb,kz,cross)
       call allocate_v3dbound(xub,kz,dot)
+      call allocate_v3dbound(xlb,kz,dot)
+      call allocate_v3dbound(xib,kz,dot)
       call allocate_v3dbound(xvb,kz,dot)
       if ( idynamic == 3 ) then
         call allocate_v2dbound(xpaib,cross)
@@ -635,7 +637,8 @@ module mod_atm_stub
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
 
-      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+      call read_icbc(xpsb%b0,xtsb%b0,mddom%ldmsk,xub%b0,xvb%b0,xtb%b0, &
+                     xqb%b0,xlb%b0,xib%b0,xppb%b0,xwwb%b0)
 
       if ( myid == italk ) then
         appdat = tochar(bdydate1)
@@ -671,7 +674,8 @@ module mod_atm_stub
         end if
       end if
 
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1, &
+                     xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
 
       if ( myid == italk ) then
         write (stdout,*) 'READY  BC from     ' , &
@@ -760,7 +764,8 @@ module mod_atm_stub
           call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
         end if
       end if
-      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+      call read_icbc(xpsb%b1,xtsb%b1,mddom%ldmsk,xub%b1,xvb%b1,xtb%b1, &
+                     xqb%b1,xlb%b1,xib%b1,xppb%b1,xwwb%b1)
 
       if ( idynamic == 3 ) then
         xpsb%b1(:,:) = xpsb%b1(:,:)*d_100

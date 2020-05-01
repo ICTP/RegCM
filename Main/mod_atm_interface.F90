@@ -48,8 +48,9 @@ module mod_atm_interface
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
   type(v3dbound) , public :: xtb , xqb , xub , xvb , xppb , xwwb , xpaib
+  type(v3dbound) , public :: xlb , xib
   type(v2dbound) , public :: xpsb , xtsb
-  type(bound_area) , public :: ba_cr , ba_dt
+  type(bound_area) , public :: ba_cr , ba_dt , ba_ut , ba_vt
   type(reference_atmosphere) , public :: atm0
   type(mass_divergence) , public :: mdv
   type(nhboundhelp) , public :: nhbh0 , nhbh1
@@ -379,26 +380,34 @@ module mod_atm_interface
 #endif
     end subroutine setup_model_indexes
 
-    subroutine setup_boundaries(ldot,ba)
+    subroutine setup_boundaries(ldotx,ldoty,ba)
       implicit none
-      logical , intent(in) :: ldot
+      logical , intent(in) :: ldotx , ldoty
       type(bound_area) , intent(out) :: ba
-      integer(ik4) :: ic
+      integer(ik4) :: icx , icy
       integer(ik4) :: igbb1 , igbb2 , igbt1 , igbt2
       integer(ik4) :: jgbl1 , jgbl2 , jgbr1 , jgbr2
       integer(ik4) :: i , j , i1 , i2 , j1 , j2
 
-      ba%dotflag = ldot
       call getmem2d(ba%ibnd,jde1,jde2,ide1,ide2,'setup_boundaries:ibnd')
       call getmem2d(ba%bsouth,jde1,jde2,ide1,ide2,'setup_boundaries:bsouth')
       call getmem2d(ba%bnorth,jde1,jde2,ide1,ide2,'setup_boundaries:bnorth')
       call getmem2d(ba%beast,jde1,jde2,ide1,ide2,'setup_boundaries:beast')
       call getmem2d(ba%bwest,jde1,jde2,ide1,ide2,'setup_boundaries:bwest')
-      if ( ldot ) then
-        ic = 0
+
+      if ( ldotx ) then
+        icx = 0
+      else
+        icx = 1
+      end if
+      if ( ldoty ) then
+        icy = 0
+      else
+        icy = 1
+      end if
+      if ( ldotx .or. ldoty ) then
         ba%nsp = nspgd
       else
-        ic = 1
         ba%nsp = nspgx
       end if
       ba%ibnd(:,:) = -1
@@ -406,10 +415,10 @@ module mod_atm_interface
       igbb2 = ba%nsp-1
       jgbl1 = 2
       jgbl2 = ba%nsp-1
-      igbt1 = iy-ic-ba%nsp+2
-      igbt2 = iy-ic-1
-      jgbr1 = jx-ic-ba%nsp+2
-      jgbr2 = jx-ic-1
+      igbt1 = iy-icy-ba%nsp+2
+      igbt2 = iy-icy-1
+      jgbr1 = jx-icx-ba%nsp+2
+      jgbr2 = jx-icx-1
       i1 = ide1
       i2 = ide2
       j1 = jde1

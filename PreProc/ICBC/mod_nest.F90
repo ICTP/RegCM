@@ -52,15 +52,15 @@ module mod_nest
 
   real(rkx) , pointer , dimension(:,:,:) :: q_in , t_in , p_in
   real(rkx) , pointer , dimension(:,:,:) :: u_in , v_in , z_in
-  real(rkx) , pointer , dimension(:,:,:) :: ppa_in , t0_in
+  real(rkx) , pointer , dimension(:,:,:) :: ppa_in , t0_in , qc_in , qi_in
   real(rkx) , pointer , dimension(:,:) :: ht_in , ps_in , ts_in , p0_in
   real(rkx) , pointer , dimension(:,:) :: xlat_in , xlon_in
   real(rkx) , pointer , dimension(:) :: ak_in , bk_in
   real(rkx) , pointer , dimension(:,:) :: pstar_in
-  real(rkx) , pointer , dimension(:,:) :: ts , ps , ht , topou , topov
+  real(rkx) , pointer , dimension(:,:) :: ts , topou , topov
 
   real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , z3 , zud3 , zvd3
-  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , p3 , pd3
+  real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , p3 , pd3 , qc3 , qi3
   real(rkx) , pointer , dimension(:,:,:) :: u3v , v3u
 
   real(rkx) , pointer , dimension(:,:,:) :: p_out , pd_out
@@ -74,6 +74,8 @@ module mod_nest
   real(rkx) :: ptop_in , ptop_out
 
   logical :: uvrotate = .false.
+  logical :: has_qc = .false.
+  logical :: has_qi = .false.
 
   character(len=14) :: fillin
   character(len=256) :: inpfile
@@ -156,6 +158,14 @@ module mod_nest
     istatus = nf90_get_var(ncinp, ivarid, xtimes)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'variable time read error')
+    istatus = nf90_inq_varid(ncinp, 'clw', ivarid)
+    if ( istatus == nf90_noerr ) then
+      has_qc = .true.
+    end if
+    istatus = nf90_inq_varid(ncinp, 'cli', ivarid)
+    if ( istatus == nf90_noerr ) then
+      has_qi = .true.
+    end if
     do i = 1 , nrec
       itimes(i) = timeval2date(xtimes(i), timeunits, timecal)
     end do
@@ -175,6 +185,12 @@ module mod_nest
 
     call getmem1d(sigma_in,1,kz_in,'mod_nest:sigma_in')
     call getmem3d(q_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:q_in')
+    if ( has_qc ) then
+      call getmem3d(qc_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:qc_in')
+    end if
+    if ( has_qi ) then
+      call getmem3d(qi_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:qi_in')
+    end if
     call getmem3d(t_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:t_in')
     call getmem3d(u_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:u_in')
     call getmem3d(v_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v_in')
@@ -362,6 +378,12 @@ module mod_nest
     call getmem3d(q3,1,jx,1,iy,1,kz_in,'mod_nest:q3')
     call getmem3d(z3,1,jx,1,iy,1,kz_in,'mod_nest:z3')
     call getmem3d(p3,1,jx,1,iy,1,kz_in,'mod_nest:p3')
+    if ( has_qc ) then
+      call getmem3d(qc3,1,jx,1,iy,1,kz_in,'mod_nest:qc3')
+    end if
+    if ( has_qi ) then
+      call getmem3d(qi3,1,jx,1,iy,1,kz_in,'mod_nest:qi3')
+    end if
     if ( idynamic == 3 ) then
       call getmem2d(topou,1,jx,1,iy,'mod_nest:topou')
       call getmem2d(topov,1,jx,1,iy,'mod_nest:topov')
@@ -372,9 +394,7 @@ module mod_nest
     else
       call getmem3d(pd3,1,jx,1,iy,1,kz_in,'mod_nest:pd3')
     end if
-    call getmem2d(ps,1,jx,1,iy,'mod_nest:ps')
     call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
-    call getmem2d(ht,1,jx,1,iy,'mod_nest:ht')
 
     if ( idynamic /= 3 ) then
       call getmem3d(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
@@ -386,19 +406,21 @@ module mod_nest
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
-            z_in(j,i,k) =  ak_in(k) + (bk_in(k) - d_one) * ht_in(j,i)
+            z_in(j,i,k) =  ak_in(k) + bk_in(k) * ht_in(j,i)
           end do
         end do
       end do
     end if
     if ( idynamic == 3 ) then
+      do k = 1 , kz
+        z0(:,:,k) = z0(:,:,k) + topogm
+      end do
+      call top2btm(z0)
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
       call ucrs2dot(topou,topogm,jx,iy,i_band)
       call vcrs2dot(topov,topogm,jx,iy,i_crm)
     end if
-
-    call h_interpolate_cont(cross_hint,ht_in,ht)
 
   end subroutine init_nest
 
@@ -554,6 +576,22 @@ module mod_nest
       call sph2mxr(q_in,jx_in,iy_in,kz_in)
     end if
     q_in = max(minqq,q_in)
+    if ( has_qc ) then
+      istatus = nf90_inq_varid(ncinp, 'clw', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable clw missing')
+      istatus = nf90_get_var(ncinp, ivarid, qc_in, istart, icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable clw read error')
+    end if
+    if ( has_qi ) then
+      istatus = nf90_inq_varid(ncinp, 'cli', ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                        'variable cli missing')
+      istatus = nf90_get_var(ncinp, ivarid, qi_in, istart, icount)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'variable cli read error')
+    end if
     if ( oidyn == 2 ) then
       istatus = nf90_inq_varid(ncinp, 'ppa', ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
@@ -647,7 +685,12 @@ module mod_nest
       call h_interpolate_cont(udot_hint,v_in,v3)
     end if
     call h_interpolate_cont(cross_hint,ts_in,ts)
-    call h_interpolate_cont(cross_hint,ps_in,ps)
+    if ( has_qc ) then
+      call h_interpolate_cont(cross_hint,qc_in,qc3)
+    end if
+    if ( has_qi ) then
+      call h_interpolate_cont(cross_hint,qi_in,qi3)
+    end if
     !
     ! Rotate U-V fields after horizontal interpolation
     !
@@ -673,12 +716,19 @@ module mod_nest
     call top2btm(z3)
 !$OMP SECTION
     call top2btm(p3)
+!$OMP SECTION
+    if ( has_qc ) then
+      call top2btm(qc3)
+    end if
+    if ( has_qi ) then
+      call top2btm(qi3)
+    end if
 !$OMP END SECTIONS
     !
     ! New calculation of P* on RegCM topography.
     !
-    call intzps(ps4,topogm,ht,t3,z3,p3,ps,xlat,julianday(idate),jx,iy,kz_in)
-    call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.6_rkx,1.0_rkx,1.0_rkx)
+    call intzps(ps4,topogm,t3,z3,p3,xlat,julianday(idate),jx,iy,kz_in)
+    call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.6_rkx,0.5_rkx,0.85_rkx)
 
     if ( idynamic /= 3 ) then
       if ( oidyn == 1 ) then
@@ -708,12 +758,25 @@ module mod_nest
 !$OMP SECTIONS
 !$OMP SECTION
       call intz1(u4,u3,zud4,zud3,topou,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call top2btm(u4)
 !$OMP SECTION
       call intz1(v4,v3,zvd4,zvd3,topov,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call top2btm(v4)
 !$OMP SECTION
       call intz1(t4,t3,z0,z3,topogm,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)
+      call top2btm(t4)
 !$OMP SECTION
       call intz1(q4,q3,z0,z3,topogm,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+      call top2btm(q4)
+!$OMP SECTION
+      if ( has_qc ) then
+        call intz1(qc4,qc3,z0,z3,topogm,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+        call top2btm(qc4)
+      end if
+      if ( has_qi ) then
+        call intz1(qi4,qi3,z0,z3,topogm,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+        call top2btm(qi4)
+      end if
 !$OMP END SECTIONS
     else
 !$OMP SECTIONS
@@ -725,6 +788,13 @@ module mod_nest
       call intp1(t4,t3,p_out,p3,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
       call intp1(q4,q3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+!$OMP SECTION
+      if ( has_qc ) then
+        call intp1(qc4,qc3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+      end if
+      if ( has_qi ) then
+        call intp1(qi4,qi3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+      end if
 !$OMP END SECTIONS
     end if
     !
