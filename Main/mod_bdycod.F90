@@ -121,12 +121,12 @@ module mod_bdycod
 
   contains
 
-  logical function is_present_qc
+  logical function is_present_qc( )
     implicit none
     is_present_qc = present_qc
   end function is_present_qc
 
-  logical function is_present_qi
+  logical function is_present_qi( )
     implicit none
     is_present_qi = present_qi
   end function is_present_qi

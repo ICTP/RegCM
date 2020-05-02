@@ -69,11 +69,11 @@ module mod_ncio
 
   contains
 
-  logical function we_have_qc
+  logical function we_have_qc( )
     implicit none
     we_have_qc = has_qc
   end function we_have_qc
-  logical function we_have_qi
+  logical function we_have_qi( )
     implicit none
     we_have_qi = has_qi
   end function we_have_qi
