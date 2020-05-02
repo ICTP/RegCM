@@ -65,11 +65,6 @@ module mod_vertint
     module procedure intzps2
   end interface intzps
 
-  interface intpsn
-    module procedure intpsnnops
-    module procedure intpsnps
-  end interface intpsn
-
   public :: intlin , intgtb , intlog , intlinz
   public :: intpsn , intv0 , intv1 , intvp , intv2 , intv3
   public :: intlinreg , intlinprof
@@ -1707,7 +1702,7 @@ module mod_vertint
     end if
   end subroutine intlog_o_single
 
-  subroutine intpsnnops(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
+  subroutine intpsn(psrcm,zrcm,pa,za,tlayer,pt,ni,nj)
     implicit none
     integer(ik4) , intent(in) :: ni , nj
     real(rkx) , intent(in) :: pt
@@ -1724,30 +1719,7 @@ module mod_vertint
         psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
       end do
     end do
-  end subroutine intpsnnops
-
-  subroutine intpsnps(psrcm,zrcm,ps,pa,za,tlayer,pt,ni,nj)
-    implicit none
-    integer(ik4) , intent(in) :: ni , nj
-    real(rkx) , intent(in) :: pt
-    real(rkx) , dimension(ni,nj) , intent(in) :: ps , pa , tlayer , za , zrcm
-    real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
-    integer(ik4) :: i , j
-    !
-    ! EXTRAPOLATE SURFACE PRESSURE FROM CLOSEST PRESSURE LEVEL ABOVE.
-    ! USE TLAYER CALCULATED IN INTGTB.
-    ! PSRCM = SURFACE PRESSURE - PTOP
-    !
-    do j = 1 , nj
-      do i = 1 , ni
-        if ( zrcm(i,j) < 25.0_rkx ) then
-          psrcm(i,j) = ps(i,j) - pt
-        else
-          psrcm(i,j) = pa(i,j)*exp(-govr*(zrcm(i,j)-za(i,j))/tlayer(i,j)) - pt
-        end if
-      end do
-    end do
-  end subroutine intpsnps
+  end subroutine intpsn
 
   subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
     implicit none

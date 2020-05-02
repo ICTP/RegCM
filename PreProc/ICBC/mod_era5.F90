@@ -354,9 +354,6 @@ module mod_era5
     ! Vertical interpolation
     ! New calculation of p* on rcm topography.
     !
-    print *, t3(1,1,:)
-    print *, h3(1,1,:)
-    stop
     if ( idynamic == 3 ) then
       call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
       call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
