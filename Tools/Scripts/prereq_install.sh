@@ -24,11 +24,11 @@
 # Destination directory
 #DEST=$PWD
 
-netcdf_c_ver=4.7.3
+netcdf_c_ver=4.7.4
 netcdf_f_ver=4.5.2
-hdf5_ver=1.10.5
+hdf5_ver=1.12.0
 zlib_ver=1.2.11
-ompi_ver=4.0.2
+ompi_ver=4.0.3
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
 hdf5_major=`echo $hdf5_ver | cut -d "." -f 1-2`
 

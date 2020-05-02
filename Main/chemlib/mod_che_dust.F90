@@ -244,7 +244,7 @@ module mod_che_dust
              asigma2 , asigma3 , totv1 , totv2 , totv3 , totv ,  &
              exp1 , exp2 , exp3 , term
 #ifdef __PGI
-      real(rkx) , external :: erf
+      !real(rkx) , external :: erf
 #endif
       !
       !! Soil texture characterisation/

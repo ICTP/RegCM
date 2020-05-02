@@ -53,7 +53,7 @@ module mod_clm_h2osfc
     real(rk8):: min_h2osfc
 
 #ifdef __PGI
-    real(rk8) , external :: erf
+    !real(rk8) , external :: erf
 #endif
     ! Assign local pointers to derived subtypes components (column-level)
 

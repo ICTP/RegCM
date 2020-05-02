@@ -866,7 +866,7 @@ program interpinic
         ! Extract values for pft and put on grid values
         do ig = 1 , ingc
           if ( i_mapc(ig,ic) > 0 ) then
-            if ( .not. isnan(i_cval_ng_t(i_mapc(ig,ic),igr)) ) then
+            if ( .not. is_nan(i_cval_ng_t(i_mapc(ig,ic),igr)) ) then
               if ( i_cval_ng_t(i_mapc(ig,ic),igr) >= -1.0e-20 .and. &
                    i_cval_ng_t(i_mapc(ig,ic),igr) <= 1.0e+20 ) then
                 i_gval(ig) = i_cval_ng_t(i_mapc(ig,ic),igr)
@@ -913,7 +913,7 @@ program interpinic
       ! Extract values for pft and put on grid values
       do ig = 1 , ingc
         if ( i_mapc(ig,ic) > 0 ) then
-          if ( .not. isnan(i_cval(i_mapc(ig,ic))) ) then
+          if ( .not. is_nan(i_cval(i_mapc(ig,ic))) ) then
             if ( i_cval(i_mapc(ig,ic)) >= -1.0e-20 .and. &
                  i_cval(i_mapc(ig,ic)) <= 1.0e+20 ) then
               i_gval(ig) = i_cval(i_mapc(ig,ic))
