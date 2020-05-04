@@ -352,7 +352,7 @@ module mod_micro_interface
 
     if ( ipptls == 1 ) then
       rh0adj = d_one - (d_one-mo2mc%rh)/(d_one-cldfra)**2
-      rh0adj = max(d_zero,min(rh0adj,d_one))
+      rh0adj = max(1.0e-5_rkx,min(rh0adj,d_one))
     end if
 
     contains

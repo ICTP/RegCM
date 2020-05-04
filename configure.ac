@@ -553,8 +553,8 @@ if eval "test x$DEBUG = x1"; then
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
-             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=denorm -O0 -g \
-             -traceback $FCFLAGS"
+             -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=divz -O0 -g \
+             -gopt -traceback $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_CRAY_TRUE"; then

@@ -515,7 +515,8 @@ module mod_atm_interface
       ba%havebound = (ba%ns /= 0 .or. ba%nn /= 0 .or. &
                       ba%nw /= 0 .or. ba%ne /= 0)
 #ifdef DEBUG
-      write(ndebug,*) 'DOT  : ', ldot
+      write(ndebug,*) 'DOTX : ', ldotx
+      write(ndebug,*) 'DOTY : ', ldoty
       write(ndebug,*) 'BDYS : ', ba%ns
       write(ndebug,*) 'BDYN : ', ba%nn
       write(ndebug,*) 'BDYW : ', ba%nw
