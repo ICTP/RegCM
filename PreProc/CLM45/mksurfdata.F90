@@ -161,7 +161,7 @@ program mksurfdata
   integer(ik4) , dimension(2) :: illvar
   integer(ik4) , dimension(3) :: izvar
   integer(ik4) , dimension(1) :: istart1 , icount1 , mxsoil_color , iloc
-  real(rkx) :: spft , mean , diff
+  real(rkx) :: spft , mean , diff , argf
   integer(ik4) :: ierr
   integer(ik4) :: i , j , ip , il , ir , iu , it , ipnt , iurbmax
   integer(ik4) :: jgstart , jgstop , igstart , igstop
@@ -892,8 +892,13 @@ program mksurfdata
   ! Calculate slope and std
   do i = igstart , igstop
     do j = jgstart , jgstop
-      var3d(j,i,1) = raddeg * &
+      argf = sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0_rkx
+      if ( abs(argf) > dlowval ) then
+        var3d(j,i,1) = raddeg * &
           atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0_rkx)/(ds*1000.0_rkx))
+      else
+        var3d(j,i,1) = 0.0_rkx
+      end if
       mean = sum(topo(j-1:j+1,i-1:i+1))/9.0_rkx
       var3d(j,i,2) = sqrt(sum((topo(j-1:j+1,i-1:i+1)-mean)**2)/8.0_rkx)
     end do
