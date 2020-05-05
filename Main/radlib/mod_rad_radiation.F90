@@ -40,10 +40,93 @@ module mod_rad_radiation
 
   private
 
-  public :: allocate_mod_rad_radiation , radini , radctl
+  public :: allocate_mod_rad_radiation , radini , radctl , radtype
 
-  logical :: linteract = .false.
-  logical :: lzero = .false.
+  type radtype
+    integer(ik4) :: n1 , n2
+    real(rkx) :: eccf
+    logical :: labsem
+    integer(ik4) , dimension(:) , pointer :: ioro
+    real(rkx) , dimension(:) , pointer :: dlat
+    real(rkx) , dimension(:) , pointer :: xptrop
+    real(rkx) , dimension(:) , pointer :: ts
+    real(rkx) , dimension(:) , pointer :: ps
+    real(rkx) , dimension(:) , pointer :: totcl
+    real(rkx) , dimension(:) , pointer :: totci
+    real(rkx) , dimension(:) , pointer :: totwv
+    real(rkx) , dimension(:,:) , pointer :: pmid
+    real(rkx) , dimension(:,:) , pointer :: pint
+    real(rkx) , dimension(:,:) , pointer :: pmln
+    real(rkx) , dimension(:,:) , pointer :: piln
+    real(rkx) , dimension(:,:) , pointer :: t
+    real(rkx) , dimension(:,:) , pointer :: q
+    real(rkx) , dimension(:,:) , pointer :: ql
+    real(rkx) , dimension(:,:) , pointer :: qi
+    real(rkx) , dimension(:,:) , pointer :: dz
+    real(rkx) , dimension(:,:) , pointer :: rh
+    real(rkx) , dimension(:,:) , pointer :: cld
+    real(rkx) , dimension(:,:) , pointer :: effcld
+    real(rkx) , dimension(:,:) , pointer :: clwp
+    real(rkx) , dimension(:,:) , pointer :: qrs
+    real(rkx) , dimension(:,:) , pointer :: qrl
+    real(rkx) , dimension(:) , pointer :: fsns
+    real(rkx) , dimension(:) , pointer :: flwds
+    real(rkx) , dimension(:,:) , pointer :: rel
+    real(rkx) , dimension(:,:) , pointer :: rei
+    real(rkx) , dimension(:,:) , pointer :: fice
+    real(rkx) , dimension(:) , pointer :: sols
+    real(rkx) , dimension(:) , pointer :: soll
+    real(rkx) , dimension(:) , pointer :: solsd
+    real(rkx) , dimension(:) , pointer :: solld
+    real(rkx) , dimension(:) , pointer :: emiss
+    real(rkx) , dimension(:) , pointer :: fsnt
+    real(rkx) , dimension(:) , pointer :: fsntc
+    real(rkx) , dimension(:) , pointer :: fsnsc
+    real(rkx) , dimension(:) , pointer :: flnt
+    real(rkx) , dimension(:) , pointer :: lwout
+    real(rkx) , dimension(:) , pointer :: lwin
+    real(rkx) , dimension(:) , pointer :: flns
+    real(rkx) , dimension(:) , pointer :: flntc
+    real(rkx) , dimension(:) , pointer :: flnsc
+    real(rkx) , dimension(:) , pointer :: solin
+    real(rkx) , dimension(:) , pointer :: solout
+    real(rkx) , dimension(:) , pointer :: alb
+    real(rkx) , dimension(:) , pointer :: albc
+    real(rkx) , dimension(:) , pointer :: fsds
+    real(rkx) , dimension(:) , pointer :: fsnirt
+    real(rkx) , dimension(:) , pointer :: fsnrtc
+    real(rkx) , dimension(:) , pointer :: fsnirtsq
+    real(rkx) , dimension(:) , pointer :: totcf
+    real(rkx) , dimension(:,:) , pointer :: o3vmr
+    real(rkx) , dimension(:) , pointer :: czen
+    logical , dimension(:) , pointer :: czengt0
+    real(rkx) , dimension(:) , pointer :: adirsw
+    real(rkx) , dimension(:) , pointer :: adifsw
+    real(rkx) , dimension(:) , pointer :: adirlw
+    real(rkx) , dimension(:) , pointer :: adiflw
+    real(rkx) , dimension(:) , pointer :: asw
+    real(rkx) , dimension(:) , pointer :: alw
+    real(rkx) , dimension(:) , pointer :: abv
+    real(rkx) , dimension(:) , pointer :: sol
+    real(rkx) , dimension(:) , pointer :: aeradfo
+    real(rkx) , dimension(:) , pointer :: aeradfos
+    real(rkx) , dimension(:) , pointer :: aerlwfo
+    real(rkx) , dimension(:) , pointer :: aerlwfos
+    real(rkx) , dimension(:,:,:) , pointer :: absgasnxt
+    real(rkx) , dimension(:,:,:) , pointer :: absgastot
+    real(rkx) , dimension(:,:) , pointer :: emsgastot
+    real(rkx) , dimension(:,:,:) , pointer :: tauxcl
+    real(rkx) , dimension(:,:,:) , pointer :: tauxci
+    real(rkx) , dimension(:,:,:) , pointer :: outtaucl
+    real(rkx) , dimension(:,:,:) , pointer :: outtauci
+    real(rkx) , dimension(:) , pointer :: asaeradfo
+    real(rkx) , dimension(:) , pointer :: asaeradfos
+    real(rkx) , dimension(:) , pointer :: asaerlwfo
+    real(rkx) , dimension(:) , pointer :: asaerlwfos
+  end type radtype
+
+  logical , save :: linteract = .false.
+  logical , save :: lzero = .false.
 
   integer(ik4) :: npoints
 
@@ -171,9 +254,9 @@ module mod_rad_radiation
   ! uco2     - Layer absorber amount of co2
   ! uo2      - Layer absorber amount of  o2
   !
-  real(rkx) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif ,    &
-        explay , flxdiv , totfld , wcl , gcl , fcl , &
-        wci , gci , fci , uh2o , uo3 , uco2 , uo2
+  real(rkx) , pointer , dimension(:,:) :: rdir , rdif , tdir , tdif ,  &
+        explay , flxdiv , totfld , wcl , gcl , fcl , wci , gci , fci , &
+        uh2o , uo3 , uco2 , uo2
   !
   ! These arrays are defined at model interfaces; 0 is the top of the
   ! extra layer above the model top; kzp1 is the earth surface:
@@ -227,7 +310,7 @@ module mod_rad_radiation
   real(rkx) , dimension(2) :: a1 , a2 , b1 , b2 , realk , st
   real(rkx) , dimension(4) :: c1 , c2 , c3 , c4 , c5 , c6 , c7
   real(rkx) :: c10 , c11 , c12 , c13 , c14 , c15 , c16 , c17 , c18 ,  &
-             c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,  &
+             c19 , c20 , c21 , c22 , c23 , c24 , c25 , c26 , c27 ,    &
              c28 , c29 , c30 , c31 , c8 , c9 , cfa1
   real(rkx) :: co2vmr
   real(rkx) , dimension(3,4) :: coefa , coefc , coefe
@@ -325,7 +408,7 @@ module mod_rad_radiation
   ! fbari    - f coefficient for asymmetry parameter
   !
   real(rkx) , dimension(4) :: abari , abarl , bbari , bbarl , cbari , &
-                             cbarl , dbari , dbarl , ebari , ebarl , &
+                             cbarl , dbari , dbarl , ebari , ebarl ,  &
                              fbari , fbarl
   !
   ! Next series depends on spectral interval
@@ -344,7 +427,7 @@ module mod_rad_radiation
   ! nirwgt   - Weight for intervals to simulate satellite filter
   !
   real(rkx) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
-                                frcsol , nirwgt , pco2 , ph2o , &
+                                frcsol , nirwgt , pco2 , ph2o ,  &
                                 po2 , raytau , wavmax , wavmin
   !
   ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
@@ -378,9 +461,9 @@ module mod_rad_radiation
              7.42500e-2_rkx ,  3.97397e-5_rkx , 0.00000e+0_rkx , &
              7.52859e-2_rkx ,  4.18073e-5_rkx , 0.00000e+0_rkx/
 
-  data coeff/2.20370e-1_rkx , 1.39719e-3_rkx , -7.32011e-6_rkx , &
+  data coeff/2.20370e-1_rkx , 1.39719e-3_rkx , -7.32011e-6_rkx ,   &
             -1.40262e-8_rkx , 2.13638e-10_rkx , -2.35955e-13_rkx , &
-             3.07431e-1_rkx , 8.27225e-4_rkx , -1.30067e-5_rkx , &
+             3.07431e-1_rkx , 8.27225e-4_rkx , -1.30067e-5_rkx ,   &
              3.49847e-8_rkx , 2.07835e-10_rkx , -1.98937e-12_rkx/
 
   data coefg/9.04489e+0_rkx , -9.56499e-3_rkx ,  1.80898e+1_rkx , &
@@ -391,9 +474,9 @@ module mod_rad_radiation
             -1.46077e-1_rkx ,  5.11479e+1_rkx , -6.82615e-2_rkx ,  &
              1.02296e+2_rkx , -1.36523e-1_rkx/
 
-  data coefi/3.31654e-1_rkx , -2.86103e-4_rkx , -7.87860e-6_rkx , &
+  data coefi/3.31654e-1_rkx , -2.86103e-4_rkx , -7.87860e-6_rkx ,   &
              5.88187e-8_rkx , -1.25340e-10_rkx , -1.37731e-12_rkx , &
-             3.14365e-1_rkx , -1.33872e-3_rkx , -2.15585e-6_rkx , &
+             3.14365e-1_rkx , -1.33872e-3_rkx , -2.15585e-6_rkx ,   &
              6.07798e-8_rkx , -3.45612e-10_rkx , -9.34139e-15_rkx/
 
   data coefj/2.82096e-2_rkx , 2.47836e-4_rkx , 1.16904e-6_rkx , &
@@ -451,8 +534,8 @@ module mod_rad_radiation
               5.000_rkx , 2.860_rkx , 4.550_rkx , 4.550_rkx/
 
   data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx , &
-              1.2500_rkx , 1.0850_rkx , 0.7300_rkx ,            &
-              v_raytau_35 , v_raytau_64 ,                 &
+              1.2500_rkx , 1.0850_rkx , 0.7300_rkx ,              &
+              v_raytau_35 , v_raytau_64 ,                         &
               0.0200_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx , &
               0.0001_rkx , 0.0001_rkx , 0.0001_rkx , 0.0001_rkx , &
               0.0001_rkx , 0.0001_rkx/
@@ -465,8 +548,8 @@ module mod_rad_radiation
            190.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
 
   data abo3/5.370e+4_rkx , 13.080e+4_rkx , 9.292e+4_rkx , 4.530e+4_rkx , &
-            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , v_abo3_35 , &
-            v_abo3_64 ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx , &
+            1.616e+4_rkx ,  4.441e+3_rkx , 1.775e+2_rkx , v_abo3_35 ,    &
+            v_abo3_64 ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx ,    &
             0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx , 0.000e+0_rkx , &
             0.000e+0_rkx ,  0.000e+0_rkx , 0.000e+0_rkx/
 
@@ -475,9 +558,9 @@ module mod_rad_radiation
              0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx , &
              0.000_rkx , 0.094_rkx , 0.196_rkx , 1.963_rkx/
 
-  data abo2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,  &
+  data abo2/0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
             0.000_rkx , 0.000_rkx , 0.000_rkx , 1.11e-5_rkx , 6.69e-5_rkx , &
-            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,  &
+            0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx ,  0.000_rkx ,    &
             0.000_rkx , 0.000_rkx , 0.000_rkx , 0.000_rkx/
   !
   ! Spectral interval weights
@@ -793,15 +876,7 @@ module mod_rad_radiation
   !
   !-----------------------------------------------------------------------
   !
-  subroutine radctl(n1,n2,dlat,xptrop,ts,pmid,pint,pmln,piln,t,h2ommr, &
-                    rh,cld,effcld,clwp,fsns,qrs,qrl,flwds,rel,rei,fice,&
-                    sols,soll,solsd,solld,emiss,fsnt,fsntc,fsnsc,flnt, &
-                    lwout,lwin,flns,flntc,flnsc,solin,solout,alb,albc, &
-                    fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen, &
-                    czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw,abv,   &
-                    sol,aeradfo,aeradfos,aerlwfo,aerlwfos,absgasnxt,   &
-                    absgastot,emsgastot,tauxcl,tauxci,outtaucl,        &
-                    outtauci,labsem)
+  subroutine radctl(rt)
     implicit none
     !
     ! Input arguments
@@ -815,7 +890,7 @@ module mod_rad_radiation
     ! fice    - fractional ice content within cloud
     ! piln    - Natural log of pint
     ! t       - Model level temperatures
-    ! h2ommr  - Model level specific humidity
+    ! q       - Model level specific humidity
     ! cld     - Fractional cloud cover
     ! effcld  - Effective fractional cloud cover
     ! clwp    - Cloud liquid water path
@@ -831,32 +906,6 @@ module mod_rad_radiation
     !
     ! qrl     - Longwave cooling rate
     ! flwds   - Surface down longwave flux
-    !
-    integer(ik4) , intent(in) :: n1 , n2
-    logical , intent(in) :: labsem
-    real(rkx) , intent(in) :: eccf
-    real(rkx) , pointer , dimension(:) :: alb , albc , emiss ,    &
-            flns , flnsc , flnt , lwout , lwin , flntc , flwds ,  &
-            fsds , fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc ,    &
-            fsnt , fsntc , solin , solout , soll , solld , sols , &
-            solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,   &
-            aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw , &
-            adiflw , asw , alw , abv , sol , czen
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
-    real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
-    real(rkx) , pointer , dimension(:,:) , intent(inout) :: emsgastot
-    logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rkx) , pointer , dimension(:,:) :: cld , effcld , piln , pint
-    real(rkx) , pointer , dimension(:,:,:) :: outtaucl , outtauci
-    real(rkx) , pointer , dimension(:,:,:) :: tauxcl , tauxci
-    real(rkx) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
-            pmln , qrl , qrs , rei , rel , t , rh
-    real(rkx) , pointer , dimension(:,:) :: o3vmr
-    intent (inout) alb , albc , abv , sol , tauxcl , tauxci
-    intent (inout) flns , flnsc , flnt , lwout , lwin , flntc , flwds , &
-            fsds ,  fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt ,  &
-            fsntc , solin , solout , totcf , outtaucl , outtauci
-    !
     ! solin    - Solar incident flux
     ! solout   - Solar outgoing flux
     ! fsnt     - Net column abs solar flux at model top
@@ -875,6 +924,7 @@ module mod_rad_radiation
     ! o3vmr    - Ozone volume mixing ratio
     ! eccf     - Earth/sun distance factor
     !
+    type(radtype) , intent(inout) :: rt
     integer(ik4) :: n , k
     real(rkx) :: betafac
 
@@ -890,8 +940,8 @@ module mod_rad_radiation
     !
     ! Set latitude dependent radiation input
     !
-    call radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pbr,pnm, &
-                plco2,plh2o,tclrsf,o3mmr)
+    call radinp(rt%n1,rt%n2,rt%pmid,rt%pint,rt%q,rt%cld,rt%o3vmr, &
+                pbr,pnm,plco2,plh2o,tclrsf,o3mmr)
     !
     ! Solar radiation computation
     !
@@ -899,85 +949,90 @@ module mod_rad_radiation
       !
       ! Specify aerosol mass mixing ratio
       !
-      call aermix(pnm,n1,n2)
+      call aermix(pnm,rt%n1,rt%n2)
 
-      call aeroppt(rh,pint,n1,n2)
+      call aeroppt(rt%rh,rt%pint,rt%n1,rt%n2)
 
-      call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
-                  solin,solout,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,   &
-                  soll,solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw,     &
-                  adifsw,adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,  &
-                  aeradfo,aeradfos,tauxcl,tauxci,outtaucl,outtauci)
+      call radcsw(rt%n1,rt%n2,pnm,rt%q,o3mmr,rt%cld,rt%clwp,        &
+                  rt%rel,rt%rei,rt%fice,rt%eccf,rt%solin,rt%solout, &
+                  rt%qrs,rt%fsns,rt%fsnt,rt%fsds,rt%fsnsc,rt%fsntc, &
+                  rt%sols,rt%soll,rt%solsd,rt%solld,rt%fsnirt,      &
+                  rt%fsnrtc,rt%fsnirtsq,rt%adirsw,rt%adifsw,        &
+                  rt%adirlw,rt%adiflw,rt%asw,rt%alw,rt%abv,rt%sol,  &
+                  rt%czen,rt%czengt0,rt%aeradfo,rt%aeradfos,        &
+                  rt%tauxcl,rt%tauxci,rt%outtaucl,rt%outtauci)
       !
       ! Convert units of shortwave fields needed by rest of model
       ! from CGS to MKS
       !
-      do n = n1 , n2
-        solin(n) = solin(n)*1.0e-3_rkx
-        solout(n) = solout(n)*1.0e-3_rkx
-        fsnt(n) = fsnt(n)*1.0e-3_rkx
-        fsns(n) = fsns(n)*1.0e-3_rkx
-        fsntc(n) = fsntc(n)*1.0e-3_rkx
-        fsnsc(n) = fsnsc(n)*1.0e-3_rkx
+      do n = rt%n1 , rt%n2
+        rt%solin(n) = rt%solin(n)*1.0e-3_rkx
+        rt%solout(n) = rt%solout(n)*1.0e-3_rkx
+        rt%fsnt(n) = rt%fsnt(n)*1.0e-3_rkx
+        rt%fsns(n) = rt%fsns(n)*1.0e-3_rkx
+        rt%fsntc(n) = rt%fsntc(n)*1.0e-3_rkx
+        rt%fsnsc(n) = rt%fsnsc(n)*1.0e-3_rkx
         !
         ! clear sky column partitioning for surface flux
         ! note : should be generalised to the whole column to be
         !        really in energy balance !
         !
-        totcf(n) = d_one
+        rt%totcf(n) = d_one
         if ( luse_max_rnovl ) then
           do k = 2 , kzp1
-            totcf(n) = totcf(n) * (d_one - max(cld(n,k-1),cld(n,k)))/ &
-                                  (d_one - cld(n,k-1))
+            rt%totcf(n) = rt%totcf(n) * &
+                   (d_one - max(rt%cld(n,k-1),rt%cld(n,k)))/ &
+                   (d_one - rt%cld(n,k-1))
           end do
         else
           do k = 1 , kzp1
-            totcf(n) = totcf(n) * (d_one - cld(n,k))
+            rt%totcf(n) = rt%totcf(n) * (d_one - rt%cld(n,k))
           end do
         end if
-        totcf(n) = d_one - totcf(n)
+        rt%totcf(n) = d_one - rt%totcf(n)
         !
         ! maximum cld cover considered
-        ! fsns(n) = fsns(n) * maxval(cld(n,:)) + &
-        !           fsnsc(n) * (1-maxval(cld(n,:)))
+        ! rt%fsns(n) = rt%fsns(n) * maxval(rt%cld(n,:)) + &
+        !           rt%fsnsc(n) * (1-maxval(rt%cld(n,:)))
         ! random overlap assumption is tocf(n)
         ! Now average btw rand ov and maximum cloud cover as fil suggest
-        ! totcf(n) =  d_half * ( totcf(n) + maxval(cld(n,:)) )
+        ! rt%totcf(n) =  d_half * ( rt%totcf(n) + maxval(rt%cld(n,:)) )
         ! abv is proportional to fsns in radcsw : Calculate the factor
-        if ( fsns(n) > d_zero ) then
-          betafac = abv(n) / fsns(n)
+        if ( rt%fsns(n) > d_zero ) then
+          betafac = rt%abv(n) / rt%fsns(n)
         else
           betafac = d_zero
         end if
         ! Fil suggestion of putting a max on column cloud fraction
         ! TAO: implement a user-specified CF maximum (default of 1.0)
         if ( lsrfhack ) then
-          if ( totcf(n) > cftotmax ) totcf(n) = cftotmax
-          if ( totcf(n) < d_zero ) totcf(n) = d_zero
-          fsns(n) = fsns(n) * totcf(n) + fsnsc(n) * (d_one-totcf(n))
+          if ( rt%totcf(n) > cftotmax ) rt%totcf(n) = cftotmax
+          if ( rt%totcf(n) < d_zero ) rt%totcf(n) = d_zero
+          rt%fsns(n) = rt%fsns(n) * rt%totcf(n) + &
+                       rt%fsnsc(n) * (d_one-rt%totcf(n))
         end if
         ! Apply the clear-sky / cloudy-sky also to abv using the beta factor
-        abv(n) = betafac * fsns(n)
-        fsds(n) = fsds(n)*1.0e-3_rkx
-        fsnirt(n) = fsnirt(n)*1.0e-3_rkx
-        fsnrtc(n) = fsnrtc(n)*1.0e-3_rkx
-        fsnirtsq(n) = fsnirtsq(n)*1.0e-3_rkx
+        rt%abv(n) = betafac * rt%fsns(n)
+        rt%fsds(n) = rt%fsds(n)*1.0e-3_rkx
+        rt%fsnirt(n) = rt%fsnirt(n)*1.0e-3_rkx
+        rt%fsnrtc(n) = rt%fsnrtc(n)*1.0e-3_rkx
+        rt%fsnirtsq(n) = rt%fsnirtsq(n)*1.0e-3_rkx
       end do
       !
       ! Calculate/outfld albedo and clear sky albedo
       !
-      do n = n1 , n2
-        if ( solin(n) > d_zero ) then
-          alb(n) = (solin(n)-fsnt(n))/solin(n)
+      do n = rt%n1 , rt%n2
+        if ( rt%solin(n) > d_zero ) then
+          rt%alb(n) = (rt%solin(n)-rt%fsnt(n))/rt%solin(n)
         else
-          alb(n) = d_zero
+          rt%alb(n) = d_zero
         end if
       end do
-      do n = n1 , n2
-        if ( solin(n) > d_zero ) then
-          albc(n) = (solin(n)-fsntc(n))/solin(n)
+      do n = rt%n1 , rt%n2
+        if ( rt%solin(n) > d_zero ) then
+          rt%albc(n) = (rt%solin(n)-rt%fsntc(n))/rt%solin(n)
         else
-          albc(n) = d_zero
+          rt%albc(n) = d_zero
         end if
       end do
     end if
@@ -988,39 +1043,43 @@ module mod_rad_radiation
       !
       ! Specify trace gas mixing ratios
       !
-      call trcmix(n1,n2,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
+      call trcmix(rt%n1,rt%n2,rt%dlat,rt%xptrop,rt%pmid,n2o,ch4,cfc11,cfc12)
 
-      call radclw(n1,n2,ts,t,h2ommr,o3vmr,pbr,pnm,pmln,piln,n2o,ch4, &
-                  cfc11,cfc12,effcld,tclrsf,qrl,flns,flnt,lwout,lwin,&
-                  flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
-                  absgasnxt,absgastot,emsgastot,labsem)
+      call radclw(rt%n1,rt%n2,rt%ts,rt%t,rt%q,rt%o3vmr,pbr,pnm,         &
+                  rt%pmln,rt%piln,n2o,ch4,cfc11,cfc12,rt%effcld,tclrsf, &
+                  rt%qrl,rt%flns,rt%flnt,rt%lwout,rt%lwin,rt%flnsc,     &
+                  rt%flntc,rt%flwds,fslwdcs,rt%emiss,rt%aerlwfo,        &
+                  rt%aerlwfos,rt%absgasnxt,rt%absgastot,rt%emsgastot,   &
+                  rt%labsem)
       !
       ! Convert units of longwave fields needed by rest of model from CGS to MKS
       !
-      do n = n1 , n2
-        flnt(n) = flnt(n)*1.0e-3_rkx
-        lwout(n) = lwout(n)*1.0e-3_rkx
-        lwin(n) = lwin(n)*1.0e-3_rkx
-        flns(n) = flns(n)*1.0e-3_rkx
-        flntc(n) = flntc(n)*1.0e-3_rkx
-        flnsc(n) = flnsc(n)*1.0e-3_rkx
-        flwds(n) = flwds(n)*1.0e-3_rkx
+      do n = rt%n1 , rt%n2
+        rt%flnt(n) = rt%flnt(n)*1.0e-3_rkx
+        rt%lwout(n) = rt%lwout(n)*1.0e-3_rkx
+        rt%lwin(n) = rt%lwin(n)*1.0e-3_rkx
+        rt%flns(n) = rt%flns(n)*1.0e-3_rkx
+        rt%flntc(n) = rt%flntc(n)*1.0e-3_rkx
+        rt%flnsc(n) = rt%flnsc(n)*1.0e-3_rkx
+        rt%flwds(n) = rt%flwds(n)*1.0e-3_rkx
         fslwdcs(n) = fslwdcs(n)*1.0e-3_rkx
         !
         ! essai clear sky column
         !
-        ! flwds(n) = flwds(n) * maxval(cld((n,:))) + &
-        !            flwds(n) * (1-maxval(cld((n,:))))
-        ! flwds(n) = flwds(n) * maxval(cld(n,:)) + &
-        !            fslwdcs(n)*(d_one-maxval(cld(n,:)))
-        ! flns(n) = flns(n) * maxval(cld(n,:)) + &
-        !           flnsc(n)*(d_one-maxval(cld(n,:)))
+        ! rt%flwds(n) = rt%flwds(n) * maxval(rt%cld((n,:))) + &
+        !            rt%flwds(n) * (1-maxval(rt%cld((n,:))))
+        ! rt%flwds(n) = rt%flwds(n) * maxval(rt%cld(n,:)) + &
+        !            fslwdcs(n)*(d_one-maxval(rt%cld(n,:)))
+        ! rt%flns(n) = rt%flns(n) * maxval(rt%cld(n,:)) + &
+        !           rt%flnsc(n)*(d_one-maxval(rt%cld(n,:)))
         !
-        ! totcf(n) has been calculated for the SW, dolw is always true
+        ! rt%totcf(n) has been calculated for the SW, dolw is always true
         !
         if ( lsrfhack ) then
-          flwds(n) = flwds(n) * totcf(n) + fslwdcs(n) * (d_one - totcf(n))
-          flns(n)  = flns(n) * totcf(n)  + flnsc(n) * (d_one - totcf(n))
+          rt%flwds(n) = rt%flwds(n) * rt%totcf(n) + &
+                        fslwdcs(n) * (d_one - rt%totcf(n))
+          rt%flns(n)  = rt%flns(n) * rt%totcf(n)  + &
+                        rt%flnsc(n) * (d_one - rt%totcf(n))
         end if
       end do
     end if

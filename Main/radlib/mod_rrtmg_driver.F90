@@ -281,7 +281,7 @@ module mod_rrtmg_driver
 
   subroutine rrtmg_driver(iyear,lout,m2r,r2m)
     implicit none
-    type(mod_2_rad) , intent(in) :: m2r
+    type(mod_2_rad) , intent(inout) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout
@@ -487,8 +487,8 @@ module mod_rrtmg_driver
                 frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,          &
                 solld,totcf,totwv,totcl,totci,cld_int,clwp_int,abv, &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,     &
-                tauasc3d,gtota3d,dzr,outtaucl,outtauci,r2m,m2r,     &
-                asaeradfo,asaeradfos,asaerlwfo,asaerlwfos)
+                tauasc3d,gtota3d,dzr,outtaucl,outtauci,asaeradfo,   &
+                asaeradfos,asaerlwfo,asaerlwfos,r2m,m2r)
 
   end subroutine rrtmg_driver
 

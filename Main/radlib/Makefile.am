@@ -29,8 +29,10 @@ MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
 if COMPILER_SUN
 FCFLAGS += -M$(MPP_INCLUDE) 
+NOOPTFC += -M$(MPP_INCLUDE)
 else
 FCFLAGS += -I$(MPP_INCLUDE)
+NOOPTFC += -I$(MPP_INCLUDE)
 endif
 
 noinst_LIBRARIES = librad.a
@@ -70,6 +72,7 @@ mcica_subcol_gen_sw.o : mcica_subcol_gen_sw.F90 parkind.o parrrsw.o rrsw_con.o r
 mod_atm_msis.o : mod_atm_msis.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_spline.o
 mod_rad_aerosol.o : mod_rad_aerosol.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_regcm_types.o mod_runparams.o mod_constants.o mod_memutil.o mod_mpmessage.o mod_rad_common.o mod_mppparam.o mod_nhinterp.o mod_zita.o
 mod_rad_colmod3.o : mod_rad_colmod3.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_service.o mod_runparams.o mod_rad_radiation.o mod_rad_common.o mod_rad_outrad.o mod_rrtmg_driver.o mod_rad_aerosol.o mod_regcm_types.o
+	$(MPIFC) $(CPPFLAGS) $(GITVER) $(NOOPTFC) -c $<
 mod_rad_common.o : mod_rad_common.F90 mod_intkinds.o mod_realkinds.o
 mod_rad_o3blk.o : mod_rad_o3blk.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o mod_kdinterp.o mod_vertint.o mod_mppparam.o mod_mpmessage.o mod_dynparam.o mod_memutil.o mod_rad_common.o mod_stdio.o mod_runparams.o mod_regcm_types.o
 mod_rad_outrad.o : mod_rad_outrad.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_rad_common.o mod_runparams.o mod_outvars.o mod_regcm_types.o

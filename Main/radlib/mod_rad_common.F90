@@ -40,8 +40,8 @@ module mod_rad_common
   real(rkx) , pointer , dimension(:,:,:) :: gasemstot
   real(rkx) , pointer , dimension(:,:,:,:) :: taucldsp
 
-  logical :: doabsems , dolw , dosw
-  integer(ik4) :: ichso4 , ichbc , ichoc
+  logical , save :: doabsems , dolw , dosw
+  integer(ik4) , save :: ichso4 , ichbc , ichoc
 
   real(rkx) :: chfrovrradfr ! chfrq/rafrq
 
