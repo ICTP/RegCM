@@ -90,7 +90,7 @@ module mod_rad_outrad
            outtauci , tauxar3d , tauasc3d , gtota3d
     real(rkx) , pointer , dimension(:) , intent(inout) :: asaeradfo , &
            asaeradfos , asaerlwfo , asaerlwfos
-    type(mod_2_rad) , intent(inout) :: m2r
+    type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
 
     integer(ik4) :: i , j , k , n

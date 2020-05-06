@@ -281,7 +281,7 @@ module mod_rrtmg_driver
 
   subroutine rrtmg_driver(iyear,lout,m2r,r2m)
     implicit none
-    type(mod_2_rad) , intent(inout) :: m2r
+    type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout
