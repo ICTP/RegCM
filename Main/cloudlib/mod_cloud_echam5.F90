@@ -65,6 +65,8 @@ module mod_cloud_echam5
             rhcrit = ct + (ct-cs)*exp(1.0_rkx-sig**nx)
             if ( rhrng < rhcrit ) then
               fcc(j,i,k) = d_zero
+            else if ( rhrng > 0.99999_rkx ) then
+              fcc(j,i,k) = d_one
             else
               ! Sundqvist formula
               fcc(j,i,k) = 1.0_rkx - sqrt((1.0_rkx-rhrng) / &

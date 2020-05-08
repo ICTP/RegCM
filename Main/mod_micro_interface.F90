@@ -352,7 +352,7 @@ module mod_micro_interface
 
     if ( ipptls == 1 ) then
       rh0adj = d_one - (d_one-mo2mc%rh)/(d_one-cldfra)**2
-      rh0adj = max(1.0e-5_rkx,min(rh0adj,0.99999_rkx))
+      rh0adj = max(0.0_rkx,min(rh0adj,0.99999_rkx))
     end if
 
     contains
@@ -401,10 +401,14 @@ module mod_micro_interface
             qvcs = max(mo_atm%qx(j,i,k,iqv) + dt*mo_atm%qxten(j,i,k,iqv),minqq)
             qccs = max(mo_atm%qx(j,i,k,iqc) + dt*mo_atm%qxten(j,i,k,iqc),d_zero)
             pres = mo_atm%p(j,i,k)
+            qvc_cld = max((mo2mc%qs(j,i,k) + &
+                       dt * mc2mo%qxten(j,i,k,iqv)),d_zero)
           else
             tmp3 = (atm2%t(j,i,k)+dt*aten%t(j,i,k,pc_total))/sfs%psc(j,i)
             qvcs = atm2%qx(j,i,k,iqv) + dt*aten%qx(j,i,k,iqv,pc_total)
             qccs = atm2%qx(j,i,k,iqc) + dt*aten%qx(j,i,k,iqc,pc_total)
+            qvc_cld = max((mo2mc%qs(j,i,k) + &
+                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
             if ( idynamic == 1 ) then
               pres = (hsigma(k)*sfs%psc(j,i)+ptop)*d_1000
             else
@@ -436,21 +440,15 @@ module mod_micro_interface
           qvs = pfwsat(tmp3,pres)
           wwlh = wlh(tmp3)
           r1 = d_one/(d_one+wwlh*wwlh*qvs/(rwat*cpd*tmp3*tmp3))
-
-          rhc = min(max(qvcs/qvs,d_zero),rhmax)
+          rhc = min(max(qvcs/qvs,d_zero),d_one)
           ! 2b. Compute the relative humidity threshold at ktau+1
           if ( rhc < rh0adj(j,i,k) ) then  ! Low cloud cover
             dqv = conf * (qvcs - qvs)
+          else if ( rhc > 0.99999_rkx ) then
+            dqv = conf * (qvcs - qvs)      ! High cloud cover
           else
             fccc = d_one-sqrt((d_one-rhc)/(d_one-rh0adj(j,i,k)))
             fccc = min(max(fccc,d_zero),d_one)
-            if ( idynamic == 3 ) then
-              qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)),d_zero)
-            else
-              qvc_cld = max((mo2mc%qs(j,i,k) + &
-                       dt * mc2mo%qxten(j,i,k,iqv)/sfs%psc(j,i)),d_zero)
-            end if
             ! qv diff between predicted qv_c
             dqv = conf * fccc * (qvc_cld - qvs)
           end if
