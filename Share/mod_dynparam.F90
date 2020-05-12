@@ -321,6 +321,7 @@ module mod_dynparam
   ! Terrain output files
 
   character(len=64) :: domname
+  character(len=64) :: prestr
 
   ! Global Begin and End date for Input Pre processing
 

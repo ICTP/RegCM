@@ -1920,16 +1920,16 @@ module mod_output
     if ( associated(alarm_out_nwf) ) then
       if ( lnewf ) then
         call newoutfiles(rcmtimer%idate)
-        call checktime(myid,trim(dirout)//pthsep//trim(domname)// &
-                       '.'//tochar10(lastout))
+        call checktime(myid,trim(dirout)//pthsep//trim(prestr)// &
+                       trim(domname)//'.'//tochar10(lastout))
         lastout = rcmtimer%idate
       end if
     else
       if ( lfdomonth(rcmtimer%idate) .and. lmidnight(rcmtimer%idate) ) then
         if ( .not. lstartup .and. rcmtimer%idate /= idate2 ) then
           call newoutfiles(rcmtimer%idate)
-          call checktime(myid,trim(dirout)//pthsep//trim(domname)// &
-                         '.'//tochar10(lastout))
+          call checktime(myid,trim(dirout)//pthsep//trim(prestr)// &
+                         trim(domname)//'.'//tochar10(lastout))
           lastout = rcmtimer%idate
         end if
       end if

@@ -275,10 +275,12 @@ module mod_clm_control
     call getlog(user)
 #endif
     if ( ifrest ) then
-      call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrContinue, &
+      call set_clmvarctl(trim(prestr)//trim(domname), &
+                         'RegCM driven CLM4.5', nsrContinue, &
                          GIT_VER, hostname, user)
     else
-      call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrStartup, &
+      call set_clmvarctl(trim(prestr)//trim(domname), &
+                         'RegCM driven CLM4.5', nsrStartup, &
                          GIT_VER, hostname, user)
     end if
 

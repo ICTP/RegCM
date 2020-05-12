@@ -290,7 +290,7 @@ getdatetime.o:  getdatetime.F90  misc.h preproc.h
 gptl.o:  gptl.c  gptl.h private.h
 gptl_papi.o:  gptl_papi.c  gptl.h private.h
 gptlutil.o:  gptlutil.c  gptl.h private.h
-histFileMod.o:  histFileMod.F90 clm_varsur.o subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o iobinary.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o shr_kind_mod.o CASAMod.o spmdGathScatMod.o shr_const_mod.o decompMod.o domainMod.o clm_time_manager.o ncdio.o misc.h preproc.h clm_varsur.o mod_runparams.o
+histFileMod.o:  histFileMod.F90 clm_varsur.o subgridAveMod.o spmdMod.o clmtype.o clm_varcon.o iobinary.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o shr_kind_mod.o CASAMod.o spmdGathScatMod.o shr_const_mod.o decompMod.o domainMod.o clm_time_manager.o ncdio.o misc.h preproc.h clm_varsur.o mod_runparams.o mod_dynparam.o
 histFldsMod.o:  histFldsMod.F90 clm_varcon.o clmtype.o histFileMod.o clm_varctl.o RunoffMod.o shr_kind_mod.o CASAMod.o clm_atmlnd.o misc.h preproc.h
 iniTimeConst.o:  iniTimeConst.F90 clm_varsur.o spmdMod.o clm_varvoc.o clm_varcon.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o mod_clm.o fileutils.o shr_kind_mod.o decompMod.o domainMod.o clm_time_manager.o clm_atmlnd.o pftvarcon.o ncdio.o ndepFileMod.o nanMod.o misc.h preproc.h
 inicFileMod.o:  inicFileMod.F90 spmdMod.o clm_varcon.o clmtype.o clm_varpar.o shr_sys_mod.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o decompMod.o ncdio.o misc.h preproc.h
@@ -365,7 +365,7 @@ pftdynMod.o:  pftdynMod.F90 clm_varsur.o spmdMod.o clm_varcon.o clmtype.o clm_va
 pftvarcon.o:  pftvarcon.F90 spmdMod.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o misc.h preproc.h
 program_csm.o:  program_csm.F90 spmdMod.o shr_orb_mod.o ESMF_Mod.o clm_csmMod.o controlMod.o clm_varorb.o clm_varctl.o shr_file_mod.o abortutils.o shr_kind_mod.o perf_mod.o clm_comp.o clm_time_manager.o misc.h preproc.h
 program_offMod.o:  program_offMod.F90 spmdMod.o clm_mct_mod.o shr_orb_mod.o ESMF_Mod.o controlMod.o atmdrvMod.o abortutils.o mod_clm.o shr_kind_mod.o perf_mod.o clm_comp.o clm_time_manager.o misc.h preproc.h
-restFileMod.o:  restFileMod.F90 spmdMod.o clm_varpar.o shr_sys_mod.o histFileMod.o clm_csmMod.o RtmMod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o subgridRestMod.o shr_kind_mod.o CASAMod.o decompMod.o CNrestMod.o DGVMRestMod.o clm_time_manager.o accumulMod.o BiogeophysRestMod.o ncdio.o misc.h preproc.h
+restFileMod.o:  restFileMod.F90 spmdMod.o clm_varpar.o shr_sys_mod.o histFileMod.o clm_csmMod.o RtmMod.o clm_varctl.o RunoffMod.o abortutils.o fileutils.o subgridRestMod.o shr_kind_mod.o CASAMod.o decompMod.o CNrestMod.o DGVMRestMod.o clm_time_manager.o accumulMod.o BiogeophysRestMod.o ncdio.o misc.h preproc.h mod_dynparam.o
 rtcrate.o:  rtcrate.F90  
 scam_setlatlonidx.o:  scam_setlatlonidx.F90 abortutils.o shr_kind_mod.o 
 shr_alarm_mod.o:  shr_alarm_mod.F90 shr_sys_mod.o shr_date_mod.o shr_kind_mod.o shr_cal_mod.o 

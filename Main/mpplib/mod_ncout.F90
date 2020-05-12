@@ -2697,13 +2697,15 @@ module mod_ncout
           write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
             '.YYYYMMDDHH'
           outstream(i)%opar%fname = &
-            trim(dirglob)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+            trim(dirglob)//pthsep//trim(prestr)//trim(domname)// &
+            '_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
         else
           write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
             '.', trim(tochar10(idate))
           outstream(i)%opar%fname = &
-            trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+            trim(dirout)//pthsep//trim(prestr)//trim(domname)// &
+            '_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
         end if
 

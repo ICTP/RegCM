@@ -88,14 +88,14 @@ module mod_params
 
     namelist /timeparam/ dtrad , dtsrf , dtcum , dtche , dtabem , dt
 
-    namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
-      ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq ,        &
-      srffrq , subfrq , lakfrq , radfrq , chemfrq , enable_atm_vars ,    &
-      enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
-      enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
-      enable_che_vars , enable_shf_vars , dirout , lsync , uvrotate ,    &
-      idiag , icosp , do_parallel_netcdf_in , do_parallel_netcdf_out ,   &
-      deflate_level
+    namelist /outparam/ prestr , ifsave , ifatm , ifrad , ifsrf , ifsub , &
+      iflak , ifshf , ifsts , ifchem , ifopt , outnwf , savfrq , atmfrq , &
+      srffrq , subfrq , lakfrq , radfrq , chemfrq , dirout , uvrotate ,   &
+      enable_atm_vars , enable_srf_vars , enable_rad_vars ,               &
+      enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
+      enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
+      lsync , idiag , icosp , deflate_level , do_parallel_netcdf_in ,     &
+      do_parallel_netcdf_out , deflate_level
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
@@ -200,6 +200,7 @@ module mod_params
     !
     ! outparam ;
     !
+    prestr = ''
     ifsave = .true.
     ifatm  = .true.
     ifrad  = .true.
@@ -1071,6 +1072,7 @@ module mod_params
     call bcast(dtche)
     call bcast(dtabem)
 
+    call bcast(prestr,64)
     call bcast(ifsave)
     call bcast(ifatm)
     call bcast(ifrad)

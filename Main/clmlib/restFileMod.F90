@@ -12,6 +12,7 @@ module restFileMod
 ! Reads from or writes to/ the CLM restart file.
 !
 ! !USES:
+  use mod_dynparam , only :: prestr , pthsep
   use shr_kind_mod, only : r8 => shr_kind_r8
   use spmdMod     , only : masterproc
   use abortutils,   only : endrun
@@ -690,13 +691,13 @@ contains
        write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
 
        if (trim(type) == 'binary') then
-          restFile_filename = trim(dirout)//trim(caseid)//".clm2.r."//trim(cdate)
+          restFile_filename = trim(dirout)//pthsep//trim(prestr)//trim(caseid)//".clm2.r."//trim(cdate)
        else if (trim(type) == 'netcdf') then
 !abt commented          if (present(offset)) then
 !             restFile_filename = "./"//trim(caseid)//".clm2.i."//trim(cdate)//".nc"
 !             write(6,*)'writing initial file ',trim(restFile_filename),' for model date = ',cdate
 !          else
-             restFile_filename = trim(dirout)//trim(caseid)//".clm2.r."//trim(cdate)//".nc"
+             restFile_filename = trim(dirout)//pthsep//trim(prestr)//trim(caseid)//".clm2.r."//trim(cdate)//".nc"
              write(6,*)'writing restart file ',trim(restFile_filename),' for model date = ',cdate
 !          end if
        else
