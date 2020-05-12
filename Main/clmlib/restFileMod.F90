@@ -12,7 +12,7 @@ module restFileMod
 ! Reads from or writes to/ the CLM restart file.
 !
 ! !USES:
-  use mod_dynparam , only :: prestr , pthsep
+  use mod_dynparam , only : prestr , pthsep
   use shr_kind_mod, only : r8 => shr_kind_r8
   use spmdMod     , only : masterproc
   use abortutils,   only : endrun
