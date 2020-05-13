@@ -412,7 +412,7 @@
                       ! This limits is ONLY for convective clouds
  cftotmax  = 0.75,    ! Max total cover for TOTAL cloud fraction
                       ! This forces a fraction of sky to be always clear
- k2_const  = 10.0,    ! K2 Factor cumulus mass flux - cloud fraction
+ k2_const  = 500.0,   ! K2 Factor cumulus mass flux - cloud fraction
                       ! Used in Emanuel, Kain-Fritsh and Tiedtke to compute
                       ! convective cloud fraction.
                       ! cldfrac = kfac * log(1.0+k2_const*MassFlux)
