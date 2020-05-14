@@ -213,6 +213,9 @@ program ncprepare
     istatus = nf90_inq_dimid(ncid, "lev", kzdimid)
     if (istatus /= nf90_noerr) then
       istatus = nf90_inq_dimid(ncid, "plev", kzdimid)
+      if (istatus /= nf90_noerr) then
+        istatus = nf90_inq_dimid(ncid, "zlev", kzdimid)
+      end if
     end if
   end if
   if (istatus == nf90_noerr) then
@@ -476,6 +479,9 @@ program ncprepare
       istatus = nf90_inq_varid(ncid, "lev", ivarid)
       if ( istatus /= nf90_noerr) then
         istatus = nf90_inq_varid(ncid, "plev", ivarid)
+        if (istatus /= nf90_noerr) then
+          istatus = nf90_inq_varid(ncid, "zlev", ivarid)
+        end if
       end if
     end if
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -485,7 +491,7 @@ program ncprepare
                     'Read Z var')
 
     if (lsigma) level = level * 1000.0
-    write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f7.1)'
+    write (lvformat, '(a,i4,a)') '(a,i4,a,',kz,'f9.2)'
     write (levels, lvformat) 'zdef ', kz , ' levels ', level
     write (ip1, '(a)') trim(levels)
     deallocate(level)
