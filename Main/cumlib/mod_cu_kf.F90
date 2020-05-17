@@ -595,8 +595,12 @@ module mod_cu_kf
         else
           wklcl = kf_wthreshold       ! units of m/s
         end if
-        wkl = (w0avg(k,np) + &
+        if ( dx >= 25.0e3_rkx ) then
+          wkl = (w0avg(k,np) + &
                 (w0avg(klcl,np)-w0avg(k,np))*dlp) * dx/25.0e3_rkx - wklcl
+        else
+          wkl = (w0avg(k,np) + (w0avg(klcl,np)-w0avg(k,np))*dlp) - wklcl
+        end if
         if ( wkl < 0.0001_rkx ) then
           dtlcl = 0.0_rkx
         else
@@ -617,7 +621,7 @@ module mod_cu_kf
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
-          if ( rhlcl >= 0.75_rkx .and. rhlcl <= 0.95_rkx ) then
+          if ( rhlcl >= 0.90_rkx .and. rhlcl <= 0.95_rkx ) then
             dtrh = 0.25_rkx*(rhlcl-0.75_rkx)*qmix/dqssdt
           else if ( rhlcl > 0.95_rkx ) then
             dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt

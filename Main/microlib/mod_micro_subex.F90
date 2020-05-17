@@ -194,9 +194,9 @@ module mod_micro_subex
     do i = ici1 , ici2
       do j = jci1 , jci2
         afc = mc2mo%fcc(j,i,1)     ![frac][avg]
+        pptnew = d_zero
         qcw = mo2mc%qcn(j,i,1)     ![kg/kg][avg]
         if ( qcw > minqc .and. afc > actcld ) then ! if there is a cloud
-          pptnew = d_zero
           pptmax = (d_one-remfrc)*qcw/dt    ![kg/kg/s][avg]
           ! 1ac. Compute the maximum precipation rate
           !      (i.e. total cloud water/dt) [kg/kg/s]
@@ -252,6 +252,7 @@ module mod_micro_subex
           dpovg = (mo2mc%pfs(j,i,k+1)-mo2mc%pfs(j,i,k))*regrav    ![kg/m2]
           afc = mc2mo%fcc(j,i,k)                      ![frac][avg]
           qcw = mo2mc%qcn(j,i,k)                      ![kg/kg][avg]
+          pptnew = d_zero
           if ( pptsum(j,i) > d_zero ) then
             pptkm1 = pptsum(j,i)/dpovg                ![kg/kg/s][avg]
           else
@@ -301,7 +302,6 @@ module mod_micro_subex
           end if
           ! 1bd. Compute the autoconversion and accretion [kg/kg/s]
           if ( qcw > minqc .and. afc > actcld ) then ! if there is a cloud
-            pptnew = d_zero
             pptmax = (d_one-remfrc)*qcw/dt              ![kg/kg/s][avg]
             ! 1bdb. Compute the maximum precipation rate
             !       (i.e. total cloud water/dt) [kg/kg/s]

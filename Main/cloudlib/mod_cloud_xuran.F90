@@ -55,14 +55,21 @@ module mod_cloud_xuran
           else
             qcld = qc(j,i,k)
             rhrng = max(rhmin,min(rhmax,rh(j,i,k)))
-            botm = exp(0.49_rkx*log((rhmax-rhrng)*qs(j,i,k)))
-            rm = exp(0.25_rkx*log(rhrng))
-            if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
-              fcc(j,i,k) = rm
+            if ( rhrng > 0.99999 ) then
+              fcc(j,i,k) = d_one
             else
-              fcc(j,i,k) = rm*(d_one-exp(-100.0_rkx*(qcld/botm)))
+              botm = rhrng ** 0.25_rkx
+              rm = -(100.0_rkx*qcld)/(((d_one-rhrng)*qs(j,i,k))**0.49_rkx)
+              fcc(j,i,k) = botm * (1.0_rkx - exp(rm))
             end if
-            fcc(j,i,k) = min(fcc(j,i,k),hicld)
+            !botm = exp(0.49_rkx*log((rhmax-rhrng)*qs(j,i,k)))
+            !rm = exp(0.25_rkx*log(rhrng))
+            !if ( 100._rkx*(qcld/botm) > 25.0_rkx ) then
+            !  fcc(j,i,k) = rm
+            !else
+            !  fcc(j,i,k) = rm*(d_one-exp(-100.0_rkx*(qcld/botm)))
+            !end if
+            !fcc(j,i,k) = min(fcc(j,i,k),hicld)
           end if
         end do
       end do
