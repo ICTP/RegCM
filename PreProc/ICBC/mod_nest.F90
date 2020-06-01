@@ -288,6 +288,8 @@ module mod_nest
       pjparam%ds = ds_in
       pjparam%clat = clat_in
       pjparam%clon = clon_in
+      pjparam%plat = plat_in
+      pjparam%plon = plon_in
       pjparam%trlat1 = trlat(1)
       pjparam%trlat2 = trlat(2)
       pjparam%nlon = jx_in
