@@ -2045,16 +2045,16 @@ module mod_vertint
         end do
         if ( kb /= 0 ) then
           kt = kb + 1
+          pa = pss*sccm(nz+1-kt)
+          za = zp(i,j,kt)
+          dz = zrcm(i,j)-za
           wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
           wl = d_one - wu
-          tlayer = tp(i,j,kt) * wl + tp(i,j,kb) * wu
+          tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
           tlayer = (tp(i,j,kt) + tlayer)/d_two
-          za = zp(i,j,kt)
-          pa = pss*sccm(nz+1-kt)
-          dz = zrcm(i,j)-za
         else
-          za = zp(i,j,1)
           pa = pss
+          za = zp(i,j,1)
           dz = zrcm(i,j)-za
           lrt = (tp(i,j,2)-tp(i,j,1))/dz
           lrt = max(0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j)),d_zero)
@@ -2084,13 +2084,13 @@ module mod_vertint
         end do
         if ( kb /= 0 ) then
           kt = kb + 1
+          pa = pp(i,j,kt)
+          za = zp(i,j,kt)
+          dz = zrcm(i,j)-za
           wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
           wl = d_one - wu
-          tlayer = tp(i,j,kt) * wl + tp(i,j,kb) * wu
+          tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
           tlayer = (tp(i,j,kt) + tlayer)/d_two
-          za = zp(i,j,kt)
-          pa = pp(i,j,kt)
-          dz = zrcm(i,j)-za
         else
           pa = pp(i,j,1)
           za = zp(i,j,1)

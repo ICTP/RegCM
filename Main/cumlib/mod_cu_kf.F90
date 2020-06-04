@@ -595,7 +595,7 @@ module mod_cu_kf
         else
           wklcl = kf_wthreshold       ! units of m/s
         end if
-        if ( dx >= 25.0e3_rkx ) then
+        if ( dx > 25.0e3_rkx ) then
           wkl = (w0avg(k,np) + &
                 (w0avg(klcl,np)-w0avg(k,np))*dlp) * dx/25.0e3_rkx - wklcl
         else
@@ -621,9 +621,9 @@ module mod_cu_kf
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
-          if ( rhlcl >= 0.90_rkx .and. rhlcl <= 0.95_rkx ) then
+          if ( rhlcl >= 0.75_rkx .and. rhlcl <= 0.99_rkx ) then
             dtrh = 0.25_rkx*(rhlcl-0.75_rkx)*qmix/dqssdt
-          else if ( rhlcl > 0.95_rkx ) then
+          else if ( rhlcl > 0.99_rkx ) then
             dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
           end if
         end if   ! kf_trigger 3
