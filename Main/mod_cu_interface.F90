@@ -255,7 +255,7 @@ module mod_cu_interface
     real(rkx) :: w1
 
     if ( any(icup == 6) ) then
-      w1 = d_one/real(max(int(max(dtcum,3600.0_rkx)/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,600.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -269,7 +269,7 @@ module mod_cu_interface
     end if
 
     if ( any(icup == 5) ) then
-      w1 = d_one/real(max(int(max(dtcum,900.0_rkx)/dtsec),1),rkx)
+      w1 = d_one/real(max(int(max(dtcum,600.0_rkx)/dtsec),1),rkx)
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -400,7 +400,7 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              c2m%tten(j,i,k) = cu_tten(j,i,k)
+              c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k)
             end do
           end do
         end do
@@ -409,14 +409,14 @@ module mod_cu_interface
           do k = 1 , kz
             do i = idi1 , idi2
               do j = jci1 , jci2
-                c2m%vten(j,i,k) = vtend(j,i,k)
+                c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)
               end do
             end do
           end do
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jdi1 , jdi2
-                c2m%uten(j,i,k) = utend(j,i,k)
+                c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)
               end do
             end do
           end do
@@ -426,7 +426,7 @@ module mod_cu_interface
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                c2m%qxten(j,i,k,n) = cu_qten(j,i,k,n)
+                c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + cu_qten(j,i,k,n)
               end do
             end do
           end do
@@ -437,7 +437,7 @@ module mod_cu_interface
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  c2m%chiten(j,i,k,n) = cu_chiten(j,i,k,n)
+                  c2m%chiten(j,i,k,n) = c2m%chiten(j,i,k,n) + cu_chiten(j,i,k,n)
                 end do
               end do
             end do
@@ -509,12 +509,12 @@ module mod_cu_interface
             end do
           end do
         end do
-        if ( ipptls /= 2 ) then
+        if ( .true. .or. ipptls /= 2 ) then
           if ( idynamic == 3 ) then
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + rdt * &
+                  c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + rdt * &
                                          c2m%q_detr(j,i,k)
                 end do
               end do
@@ -523,7 +523,7 @@ module mod_cu_interface
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  c2m%qxten(j,i,k,iqc) = c2m%qxten(j,i,k,iqc) + rdt * &
+                  c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + rdt * &
                                          c2m%q_detr(j,i,k) * m2c%psb(j,i)
                 end do
               end do

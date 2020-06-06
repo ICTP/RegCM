@@ -63,9 +63,9 @@ module mod_cu_kf
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
   !    JAH & KA (U.S. EPA) -- May 2013
   !
-  integer(ik4) , parameter :: kfnt = 500
-  integer(ik4) , parameter :: kfnp = 440
-  integer(ik4) , parameter :: kfna = 600
+  integer(ik4) , parameter :: kfnt = 250
+  integer(ik4) , parameter :: kfnp = 220
+  integer(ik4) , parameter :: kfna = 200
   real(rkx) , dimension(kfnt,kfnp) , private , save :: ttab , qstab
   real(rkx) , dimension(kfnp) , private , save :: the0k
   real(rkx) , dimension(kfna) , private , save :: alu
@@ -95,7 +95,7 @@ module mod_cu_kf
 
   real(rkx) , parameter :: c1 = 3374.6525_rkx
   real(rkx) , parameter :: c2 = 2.5403_rkx
-  real(rkx) , parameter :: c4 = 0.810_rkx
+  real(rkx) , parameter :: c3 = 0.810_rkx
   real(rkx) , parameter :: dpmin = 5.0e3_rkx
   real(rkx) , parameter :: ttfrz = tzero - 5.0_rkx
   real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
@@ -621,9 +621,9 @@ module mod_cu_kf
           qslcl = qes(k,np) + (qes(klcl,np)-qes(k,np))*dlp
           rhlcl = max(min(qenv/qslcl,d_one),d_zero)
           dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
-          if ( rhlcl >= 0.75_rkx .and. rhlcl <= 0.99_rkx ) then
-            dtrh = 0.25_rkx*(rhlcl-0.75_rkx)*qmix/dqssdt
-          else if ( rhlcl > 0.99_rkx ) then
+          if ( rhlcl >= 0.85_rkx .and. rhlcl <= 0.95_rkx ) then
+            dtrh = 0.25_rkx*(rhlcl-0.85_rkx)*qmix/dqssdt
+          else if ( rhlcl > 0.95_rkx ) then
             dtrh = (d_one/rhlcl-d_one)*qmix/dqssdt
           end if
         end if   ! kf_trigger 3
@@ -1313,7 +1313,7 @@ module mod_cu_kf
           qss = ep2*es/(p0(kstart,np)-es)
           theted(kstart) = tz(kstart) * &
                (p00/p0(kstart,np))**(0.2854_rkx*(d_one-0.28_rkx*qss))*    &
-                exp((c1/tz(kstart)-c2)*qss*(d_one+c4*qss))
+                exp((c1/tz(kstart)-c2)*qss*(d_one+c3*qss))
           ldt = min(lfs-1,kstart-1)
           findldb: &
           do nd = ldt , 1 , -1
@@ -1678,7 +1678,7 @@ module mod_cu_kf
         tven = tenv*(d_one + ep1*qenv)
         plcl = p0(k,np) + (p0(klcl,np)-p0(k,np))*dlp
         theteu(k) = tmix*(p00/pmix)**(0.2854_rkx*(d_one-0.28_rkx*qmix))* &
-               exp((c1/tlcl-c2)*qmix*(d_one+c4*qmix))
+               exp((c1/tlcl-c2)*qmix*(d_one+c3*qmix))
         !
         ! Compute adjusted abe(abeg).
         !
@@ -2107,7 +2107,7 @@ module mod_cu_kf
       ! scaling pressure and tt table index
       !*************************************
       !
-      tp = (p-plutop) * rdpr
+      tp = max((p-plutop),d_zero) * rdpr
       qq = tp - int(tp)
       iptb = inrange(int(tp)+1,1,kfnp-1)
       !
@@ -2234,7 +2234,7 @@ module mod_cu_kf
       qice = qice - dqevap
       qu = qu + dqevap
       pii = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qu))
-      thteu = tu*pii*exp((c1/tu-c2)*qu*(d_one+c4*qu))
+      thteu = tu*pii*exp((c1/tu-c2)*qu*(d_one+c3*qu))
     end subroutine dtfrznew
     !
     ! 9/18/88...this precipitation fallout scheme is based on the scheme us
@@ -2368,7 +2368,7 @@ module mod_cu_kf
       ! scaling pressure and tt table index
       !*************************************
       !
-      tp = (p-plutop) * rdpr
+      tp = max((p-plutop),d_zero) * rdpr
       qq = tp - aint(tp)
       iptb = inrange(int(tp)+1,1,kfnp-1)
       !
@@ -2427,7 +2427,7 @@ module mod_cu_kf
       tsat = tdpt - (0.212_rkx+1.571e-3_rkx*(tdpt-tzero) - &
                      4.36e-4_rkx*(t1-tzero))*(t1-tdpt)
       tht = t1*(p00/p1)**(0.2854_rkx*(d_one-0.28_rkx*q1))
-      tht1 = tht*exp((c1/tsat-c2)*q1*(d_one+c4*q1))
+      tht1 = tht*exp((c1/tsat-c2)*q1*(d_one+c3*q1))
     end function envirtht
 
   end subroutine kfpara
@@ -2447,7 +2447,7 @@ module mod_cu_kf
     ! maximum bottom pressure (pascals)
     real(rkx) , parameter :: pbot = 1.1e5_rkx
     ! equivalent potential temperature increment
-    real(rkx) , parameter :: dth = 0.5_rkx
+    real(rkx) , parameter :: dth = 1.0_rkx
 
     ! top pressure (pascals)
     plutop = max(ptop*d_1000,5000.0_rkx)
@@ -2470,7 +2470,7 @@ module mod_cu_kf
       es = aliq*exp((bliq*temp-cliq)/(temp-dliq))
       qs = ep2*es/(p-es)
       pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
-      the0k(kp) = temp * pi * exp((c1/temp-c2)*qs*(d_one+c4*qs))
+      the0k(kp) = temp * pi * exp((c1/temp-c2)*qs*(d_one+c3*qs))
     end do
     !
     ! compute temperatures for each sat. equiv. potential temp.
@@ -2492,7 +2492,7 @@ module mod_cu_kf
         es = aliq*exp((bliq*tgues-cliq)/(tgues-dliq))
         qs = ep2*es/(p-es)
         pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
-        thgues = tgues * pi * exp((c1/tgues-c2)*qs*(d_one+c4*qs))
+        thgues = tgues * pi * exp((c1/tgues-c2)*qs*(d_one+c3*qs))
         f0 = thgues - thes
         t1 = tgues - d_half*f0
         t0 = tgues
@@ -2504,7 +2504,7 @@ module mod_cu_kf
           es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
           qs = ep2*es/(p-es)
           pi = (p00/p)**(0.2854_rkx*(d_one-0.28_rkx*qs))
-          thtgs = t1 * pi * exp((c1/t1-c2)*qs*(d_one+c4*qs))
+          thtgs = t1 * pi * exp((c1/t1-c2)*qs*(d_one+c3*qs))
           f1 = thtgs - thes
           dtx = f1 * (t1-t0)/(f1-f0)
           t0 = t1

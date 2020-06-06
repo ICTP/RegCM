@@ -1018,7 +1018,7 @@ module mod_micro_nogtom
           !------------------------------------------------------------------
           ! convective detrainment
           !------------------------------------------------------------------
-          if ( mo2mc%qdetr(j,i,k) > activqx ) then
+          if ( .false. .and. mo2mc%qdetr(j,i,k) > activqx ) then
             !qice = 1 if T < 250, qice = 0 if T > 273
             qice   = d_one-alfaw
             convsrce(iqql) = alfaw*mo2mc%qdetr(j,i,k)

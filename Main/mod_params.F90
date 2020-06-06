@@ -1756,6 +1756,10 @@ module mod_params
       mddom%coriou = d_zero
       mddom%coriov = d_zero
     end if
+
+    if ( idynamic == 3 ) then
+      ptop = 0.1_rkx ! assume 1 mbar (.1 cbar)
+    end if
     call bcast(ds)
     call bcast(ptop)
     call bcast(xcone)
