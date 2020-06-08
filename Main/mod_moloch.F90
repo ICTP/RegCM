@@ -78,8 +78,8 @@ module mod_moloch
   real(rkx) , dimension(:,:) , pointer :: ps , ht
   real(rkx) , dimension(:,:,:) , pointer :: fmz
   real(rkx) , dimension(:,:,:) , pointer :: fmzf
-  real(rkx) , dimension(:,:,:) , pointer :: pai
-  real(rkx) , dimension(:,:,:) , pointer :: tetav , tvirt
+  real(rkx) , dimension(:,:,:) , pointer :: pai , pf
+  real(rkx) , dimension(:,:,:) , pointer :: tetav , tf , tvirt
   real(rkx) , dimension(:,:,:) , pointer :: zeta , zetau , zetav
   real(rkx) , dimension(:,:,:) , pointer :: u , v , w
   real(rkx) , dimension(:,:,:) , pointer :: ux , vx
@@ -99,12 +99,12 @@ module mod_moloch
   logical , parameter :: do_bdy = .true.
   logical , parameter :: do_fulleq = .false.
   logical , parameter :: do_filterpai = .false.
-  logical , parameter :: do_filter = .false.
+  logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
 
   integer :: nadv , nsound
-  real(rkx) :: dz , nupait , nuwind , nuqx
+  real(rkx) :: dz , nupait
 
   contains
 
@@ -153,6 +153,12 @@ module mod_moloch
         call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')
         call getmem3d(qwitot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwitot')
       end if
+    end if
+    if ( do_filterpai ) then
+      call getmem3d(pf,jce1,jce2,ice1,ice2,1,kz,'moloch:pf')
+    end if
+    if ( do_filtertheta ) then
+      call getmem3d(tf,jce1,jce2,ice1,ice2,1,kz,'moloch:tf')
     end if
   end subroutine allocate_moloch
 
@@ -214,9 +220,7 @@ module mod_moloch
     nadv = mo_nadv
     nsound = mo_nsound
     dz = mo_dz
-    nupait = d_one / real(nadv,rkx)
-    nuwind = d_one / real(nsound,rkx)
-    nuqx = nuwind * d_half
+    nupait = 0.05_rkx
   end subroutine init_moloch
   !
   ! Moloch dynamical integration engine
@@ -310,11 +314,33 @@ module mod_moloch
       end if
     end if
 
+    if ( do_filterpai ) then
+      pf = pai(jce1:jce2,ice1:ice2,:)
+    end if
+    if ( do_fulleq ) then
+      if ( do_filtertheta ) then
+        tf = tetav(jce1:jce2,ice1:ice2,:)
+      end if
+    end if
+
     do jadv = 1 , nadv
 
       call sound(dtsound)
 
       call advection(dtstepa)
+
+      if ( do_filterpai ) then
+        pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) - pf
+        call filtpai
+        pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) + pf
+      end if
+      if ( do_fulleq ) then
+        if ( do_filtertheta ) then
+          tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) - tf
+          call filttheta
+          tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
+        end if
+      end if
 
     end do ! Advection loop
 
@@ -470,12 +496,6 @@ module mod_moloch
     !
     call zenitm(xlat,xlon,coszrs)
 
-    if ( do_filter ) then
-      call filtuv
-      call filtt
-      call filtq
-    end if
-
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -568,99 +588,6 @@ module mod_moloch
         end do
       end subroutine filt3d
 
-      subroutine filtuv
-        implicit none
-        integer(ik4) :: j , i , k
-
-        call exchange_lrbt(u,1,jde1,jde2,ice1,ice2,1,kz)
-        call exchange_lrbt(v,1,jce1,jce2,ide1,ide2,1,kz)
-
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jdi1 , jdi2
-              p2d(j,i) = 0.125_rkx * (u(j-1,i,k) + u(j+1,i,k) + &
-                                      u(j,i-1,k) + u(j,i+1,k)) - &
-                         0.5_rkx   * u(j,i,k)
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jdi1 , jdi2
-              u(j,i,k) = u(j,i,k) + nuwind * p2d(j,i)
-            end do
-          end do
-        end do
-        do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jci1 , jci2
-              p2d(j,i) = 0.125_rkx * (v(j-1,i,k) + v(j+1,i,k) + &
-                                      v(j,i-1,k) + v(j,i+1,k)) - &
-                         0.5_rkx   * v(j,i,k)
-            end do
-          end do
-          do i = idi1 , idi2
-            do j = jci1 , jci2
-              v(j,i,k) = v(j,i,k) + nuwind * p2d(j,i)
-            end do
-          end do
-        end do
-      end subroutine filtuv
-
-      subroutine filtq
-        implicit none
-        integer(ik4) :: j , i , k
-
-        call exchange_lrbt(qv,1,jce1,jce2,ice1,ice2,1,kz)
-        call exchange_lrbt(qc,1,jce1,jce2,ice1,ice2,1,kz)
-        if ( ipptls > 1 ) then
-          call exchange_lrbt(qi,1,jce1,jce2,ice1,ice2,1,kz)
-        end if
-
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              p2d(j,i) = 0.125_rkx * (qv(j-1,i,k) + qv(j+1,i,k) + &
-                                      qv(j,i-1,k) + qv(j,i+1,k)) - &
-                         0.5_rkx   * qv(j,i,k)
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              qv(j,i,k) = qv(j,i,k) + nuqx * p2d(j,i)
-            end do
-          end do
-        end do
-        do k = 1 , kz
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              p2d(j,i) = 0.125_rkx * (qc(j-1,i,k) + qc(j+1,i,k) + &
-                                      qc(j,i-1,k) + qc(j,i+1,k)) - &
-                         0.5_rkx   * qc(j,i,k)
-            end do
-          end do
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              qc(j,i,k) = qc(j,i,k) + d_half * nuqx * p2d(j,i)
-            end do
-          end do
-        end do
-        if ( ipptls > 1 ) then
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                p2d(j,i) = 0.125_rkx * (qi(j-1,i,k) + qi(j+1,i,k) + &
-                                        qi(j,i-1,k) + qi(j,i+1,k)) - &
-                           0.5_rkx   * qi(j,i,k)
-              end do
-            end do
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                qi(j,i,k) = qi(j,i,k) + d_half * nuqx * p2d(j,i)
-              end do
-            end do
-          end do
-        end if
-      end subroutine filtq
-
       subroutine filtpai
         implicit none
         integer(ik4) :: j , i , k
@@ -677,33 +604,33 @@ module mod_moloch
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              pai(j,i,k) = pai(j,i,k) + d_two * nupait * p2d(j,i)
+              pai(j,i,k) = pai(j,i,k) + nupait * p2d(j,i)
             end do
           end do
         end do
       end subroutine filtpai
 
-      subroutine filtt
+      subroutine filttheta
         implicit none
         integer(ik4) :: j , i , k
 
-        call exchange_lrbt(t,1,jce1,jce2,ice1,ice2,1,kz)
+        call exchange_lrbt(tetav,1,jce1,jce2,ice1,ice2,1,kz)
 
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              p2d(j,i) = 0.125_rkx * (t(j-1,i,k) + t(j+1,i,k) + &
-                                      t(j,i-1,k) + t(j,i+1,k)) - &
-                         0.5_rkx   * t(j,i,k)
+              p2d(j,i) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
+                                      tetav(j,i-1,k) + tetav(j,i+1,k)) - &
+                         0.5_rkx   * tetav(j,i,k)
             end do
           end do
           do i = ici1 , ici2
             do j = jci1 , jci2
-              t(j,i,k) = t(j,i,k) + nupait * p2d(j,i)
+              tetav(j,i,k) = tetav(j,i,k) + nupait * p2d(j,i)
             end do
           end do
         end do
-      end subroutine filtt
+      end subroutine filttheta
 
       subroutine sound(dts)
         implicit none
@@ -1013,8 +940,6 @@ module mod_moloch
           end if
 
         end do ! sound loop
-
-        if ( do_filterpai ) call filtpai
 
         ! complete computation of generalized vertical velocity
         ! Complete Equation 10
