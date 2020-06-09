@@ -639,8 +639,8 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      call paicompute(xpsb%b0,mddom%ht,xtb%b0,xqb%b0,xpaib%b0)
-      call paicompute(xpsb%b1,mddom%ht,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
 
@@ -827,7 +827,7 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      call paicompute(xpsb%b1,mddom%ht,xtb%b1,xqb%b1,xpaib%b1)
+      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
     !
@@ -5122,21 +5122,20 @@ module mod_bdycod
     end if
   end function tau
 
-  subroutine paicompute(ps,ht,t,q,pai)
+  subroutine paicompute(ps,z,t,q,pai)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , ht
-    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: t , q
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z , t , q
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
-    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz1 , zz2
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
-    zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
     do i = ice1 , ice2
       do j = jce1 , jce2
-        zdelta = ht(j,i)*(gzita(d_half*mo_dz)-d_one) + zz1
+        zdelta = z(j,i,kz)*egrav
         tv = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
-        zz2 = d_one/(rgas*tv)
-        p = ps(j,i) * exp(-zdelta*zz2)
+        zz = d_one/(rgas*tv)
+        p = ps(j,i) * exp(-zdelta*zz)
         pai(j,i,kz) = (p/p00)**rovcp
       end do
     end do

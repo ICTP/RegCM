@@ -229,7 +229,7 @@ module mod_moloch
     implicit none
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
-    real(rkx) :: maxps , minps , pmax , pmin , zz1 , zdgz
+    real(rkx) :: maxps , minps , pmax , pmin , zdgz
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
 #ifdef DEBUG
@@ -400,10 +400,9 @@ module mod_moloch
       end do
     end do
 
-    zz1 = -egrav*hzita*bzita(d_half*dz)*log(d_one-d_half*dz/hzita)
     do i = ice1 , ice2
       do j = jce1 , jce2
-        zdgz = ht(j,i)*(gzita(d_half*dz)-d_one) + zz1
+        zdgz = mo_atm%zeta(j,i,kz)*egrav
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
       end do
     end do
