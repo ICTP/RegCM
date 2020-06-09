@@ -329,20 +329,20 @@ module mod_moloch
 
       call advection(dtstepa)
 
-      if ( do_filterpai ) then
-        pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) - pf
-        call filtpai
-        pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) + pf
-      end if
-      if ( do_fulleq ) then
-        if ( do_filtertheta ) then
-          tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) - tf
-          call filttheta
-          tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
-        end if
-      end if
-
     end do ! Advection loop
+
+    if ( do_filterpai ) then
+      pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) - pf
+      call filtpai
+      pai(jce1:jce2,ice1:ice2,:) = pai(jce1:jce2,ice1:ice2,:) + pf
+    end if
+    if ( do_fulleq ) then
+      if ( do_filtertheta ) then
+        tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) - tf
+        call filttheta
+        tetav(jce1:jce2,ice1:ice2,:) = tetav(jce1:jce2,ice1:ice2,:) + tf
+      end if
+    end if
 
     do k = 1 , kz
       do i = ici1 , ici2

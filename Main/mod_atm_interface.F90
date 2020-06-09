@@ -931,7 +931,6 @@ module mod_atm_interface
         call getmem3d(ax%zq,jce1,jce2,ice1,ice2,1,kzp1,'slice:zq')
         call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
         call getmem3d(ax%rhb3d,jci1,jci2,ici1,ici2,1,kz,'slice:rhb3d')
-        call getmem3d(ax%th3d,jce1,jce2,ice1,ice2,1,kz,'slice:th3d')
         call getmem3d(ax%tp3d,jci1,jci2,ici1,ici2,1,kz,'slice:tp3d')
         if ( icldmstrat == 1 ) then
           call getmem2d(ax%th700,jci1,jci2,ici1,ici2,'slice:th700')
