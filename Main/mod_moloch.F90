@@ -41,6 +41,7 @@ module mod_moloch
   use mod_sun
   use mod_slabocean
   use mod_massck
+  use mod_stdatm
   use mod_zita
 
   implicit none
@@ -230,6 +231,7 @@ module mod_moloch
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
+    real(rkx) :: tv , lrt , jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
 #ifdef DEBUG
@@ -400,10 +402,14 @@ module mod_moloch
       end do
     end do
 
+    jday = julianday(rcmtimer%idate)
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdgz = mo_atm%zeta(j,i,kz)*egrav
-        ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tvirt(j,i,kz)))
+        lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
+        lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
+        tv = tvirt(j,i,kz) - 0.5_rkx*zeta(j,i,kz)*lrt
+        ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
     !

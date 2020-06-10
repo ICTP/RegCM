@@ -45,7 +45,7 @@ module mod_bdycod
   private
 
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
-  public :: sponge , nudge , setup_bdycon , raydamp , mo_cmax
+  public :: sponge , nudge , setup_bdycon , raydamp
   public :: is_present_qc , is_present_qi
 
   !
@@ -75,7 +75,7 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:) :: wgtx
   real(rkx) , pointer , dimension(:,:,:) :: fg1 , fg2
   real(rkx) :: fnudge , gnudge , rdtbdy
-  real(rkx) :: mo_cmax
+  real(rkx) :: jday
   integer(ik4) :: som_month
 
   interface timeint
@@ -639,8 +639,9 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      call paicompute(xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
-      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      jday = julianday(rcmtimer%idate)
+      call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
+      call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
 
@@ -827,7 +828,8 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      call paicompute(xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
+      jday = julianday(rcmtimer%idate)
+      call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
     !
@@ -5122,18 +5124,22 @@ module mod_bdycod
     end if
   end function tau
 
-  subroutine paicompute(ps,z,t,q,pai)
+  subroutine paicompute(lat,ps,z,t,q,pai)
     implicit none
-    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps
+    real(rkx) , pointer , dimension(:,:) , intent(in) :: ps , lat
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: z , t , q
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: pai
-    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz
+    real(rkx) :: tv , tv1 , tv2 , p , zb , zdelta , zz , lrt
     integer(ik4) :: i , j , k
     ! Hydrostatic initialization of pai
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdelta = z(j,i,kz)*egrav
-        tv = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
+        tv1 = t(j,i,kz) * (d_one + ep1*q(j,i,kz))
+        tv2 = t(j,i,kz-1) * (d_one + ep1*q(j,i,kz-1))
+        lrt = (tv2-tv1)/(z(j,i,kz-1)-z(j,i,kz))
+        lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(j,i))
+        tv = tv1 - 0.5_rkx*z(j,i,kz)*lrt
         zz = d_one/(rgas*tv)
         p = ps(j,i) * exp(-zdelta*zz)
         pai(j,i,kz) = (p/p00)**rovcp

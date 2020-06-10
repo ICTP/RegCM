@@ -1777,7 +1777,6 @@ module mod_params
       mo_c1 = sqrt(d_two)*(1.10_rkx*mo_wmax)*dtsec/real(mo_nadv,rkx)/dx
       mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*350.0_rkx)* &
               dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
-      mo_cmax = max(mo_c1,mo_c2)
       if ( myid == italk ) then
         write(stdout,'(a, f7.4)') &
            ' Max. Courant number for horizontal advection = ', mo_c1

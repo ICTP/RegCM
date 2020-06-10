@@ -2056,8 +2056,8 @@ module mod_vertint
           pa = pss
           za = zp(i,j,1)
           dz = zrcm(i,j)-za
-          lrt = (tp(i,j,2)-tp(i,j,1))/dz
-          lrt = max(0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j)),d_zero)
+          lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
+          lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
           tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
         end if
         psrcm(i,j) = pa * exp(-govr*dz/tlayer)
@@ -2095,8 +2095,8 @@ module mod_vertint
           pa = pp(i,j,1)
           za = zp(i,j,1)
           dz = zrcm(i,j)-za
-          lrt = (tp(i,j,2)-tp(i,j,1))/dz
-          lrt = max(0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j)),d_zero)
+          lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
+          lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
           tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
         end if
         psrcm(i,j) = pa * exp(-govr*dz/tlayer)
