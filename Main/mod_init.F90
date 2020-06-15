@@ -77,7 +77,7 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg
-    real(rkx) :: zzi , zfilt , zuh , zvh , zz1 , zdgz
+    real(rkx) :: zzi , zfilt , zuh , zvh
     real(rkx) , dimension(kzp1) :: ozprnt
     integer(ik4) :: ntop
 #ifdef DEBUG
@@ -274,12 +274,9 @@ module mod_init
             end do
           end do
         end do
-        zz1 = -egrav*hzita*bzita(d_half*mo_dz)*log(d_one-d_half*mo_dz/hzita)
         do i = ice1 , ice2
           do j = jce1 , jce2
-            zdgz = mddom%ht(j,i)*(gzita(d_half*mo_dz)-d_one) + zz1
-            sfs%psa(j,i) = mo_atm%p(j,i,kz) * &
-                   exp(zdgz/(rgas*mo_atm%tvirt(j,i,kz)))
+            sfs%psa(j,i) = xpsb%b0(j,i)
           end do
         end do
         do k = 1 , kz

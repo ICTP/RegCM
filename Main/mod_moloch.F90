@@ -98,8 +98,8 @@ module mod_moloch
 
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
-  logical , parameter :: do_fulleq = .false.
-  logical , parameter :: do_filterpai = .false.
+  logical , parameter :: do_fulleq = .true.
+  logical :: do_filterpai = .false.
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
                                (.not. moloch_do_test_2)
@@ -149,6 +149,7 @@ module mod_moloch
       call getmem3d(zetau,jdi1,jdi2,ici1,ici2,1,kz,'moloch:zetau')
       call getmem3d(zetav,jci1,jci2,idi1,idi2,1,kz,'moloch:zetav')
     end if
+    do_filterpai = mo_filterpai
     if ( do_fulleq ) then
       if ( ipptls /= 1 ) then
         call getmem3d(qwltot,jci1,jci2,ici1,ici2,1,kz,'moloch:qwltot')

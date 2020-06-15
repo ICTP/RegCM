@@ -357,6 +357,7 @@
  mo_nsound = 6,     ! Moloch factor for sound removal timestep foreach dynamical
  mo_nzfilt = 0,     ! Moloch number of top level for filtering vertical velocity
  mo_anu2 = 0.6,     ! Moloch factor for divergence filtering
+ mo_filterpai = .F.,! Filter on Exner function tendencies activated
  /
 !
 ! Hydrostatic core option

@@ -112,9 +112,10 @@ module mod_params
 
     namelist /hydroparam/ nsplit , lstand
 
-    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,      &
-      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge , &
-      mo_wmax , mo_nadv , mo_nsound , mo_nzfilt , mo_anu2
+    namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
+      ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
+      mo_wmax , mo_nadv , mo_nsound , mo_nzfilt , mo_anu2, &
+      mo_filterpai
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -298,6 +299,7 @@ module mod_params
     mo_nadv = 3
     mo_nsound = 6
     mo_nzfilt = 3
+    mo_filterpai = .false.
     !
     ! Rrtm radiation param ;
     !
@@ -1172,6 +1174,7 @@ module mod_params
       call bcast(mo_nadv)
       call bcast(mo_nsound)
       call bcast(mo_nzfilt)
+      call bcast(mo_filterpai)
       call bcast(ifrayd)
       call bcast(rayndamp)
       call bcast(rayalpha0)
