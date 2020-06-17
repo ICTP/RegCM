@@ -85,7 +85,6 @@ module mod_micro_nogtom
   logical , parameter :: lmicro = .true.
 
   ! critical autoconversion
-  real(rkx) , parameter :: convfac = 1.0_rkx   ! 5.0_rkx
   real(rkx) , parameter :: rlcritsnow = 4.e-5_rkx
 
   real(rkx) , parameter :: auto_expon_khair = 1.47_rkx
