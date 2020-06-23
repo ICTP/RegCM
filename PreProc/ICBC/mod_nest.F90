@@ -408,15 +408,12 @@ module mod_nest
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
-            z_in(j,i,k) =  ak_in(k) + bk_in(k) * ht_in(j,i)
+            z_in(j,i,k) = ak_in(k) + bk_in(k) * ht_in(j,i)
           end do
         end do
       end do
     end if
     if ( idynamic == 3 ) then
-      do k = 1 , kz
-        z0(:,:,k) = z0(:,:,k) + topogm
-      end do
       call top2btm(z0)
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)

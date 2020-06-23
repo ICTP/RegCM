@@ -98,7 +98,7 @@ module mod_moloch
 
   logical , parameter :: do_phys = .true.
   logical , parameter :: do_bdy = .true.
-  logical , parameter :: do_fulleq = .true.
+  logical , parameter :: do_fulleq = .false.
   logical :: do_filterpai = .false.
   logical , parameter :: do_filtertheta = .false.
   logical :: moloch_realcase = (.not. moloch_do_test_1) .and. &
@@ -720,7 +720,7 @@ module mod_moloch
                   zup = zdtrdx * u(j+1,i,k) * zrfmzup
                   zvm = zdtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
                   zvp = zdtrdy * v(j,i+1,k) * zrfmzvp * rmv(j,i+1)
-                  zdiv2(j,i,k) = (zup-zum) + (zvp-zvm)
+                  zdiv2(j,i,k) = fmz(j,i,k) * mx(j,i) * ((zup-zum) + (zvp-zvm))
                 end do
               end do
             end do
@@ -728,8 +728,8 @@ module mod_moloch
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
-                  zdiv2(j,i,k) = fmz(j,i,k) * (mx(j,i) * zdiv2(j,i,k) + &
-                         zdtrdz * (s(j,i,k) - s(j,i,k+1)))
+                  zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
+                         zdtrdz * (s(j,i,k) - s(j,i,k+1))
                 end do
               end do
             end do
@@ -751,7 +751,8 @@ module mod_moloch
                   zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
                   zvm = v(j,i,k) * rmv(j,i) * zrfmzvm
                   zvp = v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
-                  zdiv2(j,i,k) = (zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy
+                  zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * &
+                            ((zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy)
                 end do
               end do
             end do
@@ -759,8 +760,8 @@ module mod_moloch
             do k = 1 , kz
               do i = ice1 , ice2
                 do j = jce1 , jce2
-                  zdiv2(j,i,k) = fmz(j,i,k) * (mx2(j,i) * zdiv2(j,i,k) + &
-                         zdtrdz * (s(j,i,k) - s(j,i,k+1)))
+                  zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
+                         zdtrdz * (s(j,i,k) - s(j,i,k+1))
                 end do
               end do
             end do

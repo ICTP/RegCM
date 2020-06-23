@@ -114,8 +114,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_wmax , mo_nadv , mo_nsound , mo_nzfilt , mo_anu2, &
-      mo_filterpai
+      mo_nadv , mo_nsound , mo_nzfilt , mo_anu2 , mo_filterpai
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -294,11 +293,10 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 0.0003_rkx
     rayhd = 10000.0_rkx
-    mo_wmax = 150.0_rkx
     mo_anu2 = 0.6_rkx
     mo_nadv = 3
     mo_nsound = 6
-    mo_nzfilt = 3
+    mo_nzfilt = 0
     mo_filterpai = .false.
     !
     ! Rrtm radiation param ;
@@ -1169,7 +1167,6 @@ module mod_params
       end if
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
-      call bcast(mo_wmax)
       call bcast(mo_anu2)
       call bcast(mo_nadv)
       call bcast(mo_nsound)
@@ -1748,7 +1745,6 @@ module mod_params
     if ( moloch_do_test_2 ) then
       !mddom%ht(jde1:jde2,ide1:ide2) = 100.0_rkx * &
       !              abs(sin(mddom%xlat(jde1:jde2,ide1:ide2)*degrad))
-      mo_nzfilt = 0
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
@@ -1777,7 +1773,7 @@ module mod_params
     rdxsq = 1.0_rkx/dxsq
 
     if ( idynamic == 3 ) then
-      mo_c1 = sqrt(d_two)*(1.10_rkx*mo_wmax)*dtsec/real(mo_nadv,rkx)/dx
+      mo_c1 = sqrt(d_two)*(1.10_rkx*150.0_rkx)*dtsec/real(mo_nadv,rkx)/dx
       mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*350.0_rkx)* &
               dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
       if ( myid == italk ) then
