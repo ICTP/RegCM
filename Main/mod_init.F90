@@ -79,7 +79,6 @@ module mod_init
     real(rkx) :: rdnnsg
     real(rkx) :: zzi , zfilt , zuh , zvh
     real(rkx) , dimension(kzp1) :: ozprnt
-    integer(ik4) :: ntop
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
     integer(ik4) , save :: idindx = 0
@@ -995,10 +994,9 @@ module mod_init
     if ( idynamic == 3 ) then
       if ( mo_nzfilt > 0 ) then
         ! Sponge layer at the top of the atmosphere
-        ntop = int(0.08_rkx * real(kz,rkx))
-        zfilt = (kzp1-ntop+mo_nzfilt)*mo_dz
+        zfilt = (kzp1-mo_nzfilt)*mo_dz
         do k = 1 , kz
-          if ( k > ntop+mo_nzfilt-1 ) then
+          if ( k > mo_nzfilt ) then
             ffilt(k) = d_zero
           else
             zzi = (mo_dz*(kzp1-k)-zfilt)/(hzita-zfilt)

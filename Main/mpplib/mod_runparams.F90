@@ -171,11 +171,11 @@ module mod_runparams
   logical , parameter , public :: moloch_do_test_1 = .false.
   logical , parameter , public :: moloch_do_test_2 = .false.
   real(rkx) , public :: mo_dz , mo_anu2
-  real(rkx) , public :: mo_wmax = 100.0 ! m/s maximum wind intensity
+  real(rkx) , public :: mo_wmax , mo_cflhmax , mo_cflsmax
   logical , public :: mo_filterpai
-  integer(ik4) , public :: mo_nadv = 1
-  integer(ik4) , public :: mo_nsound = 6
-  integer(ik4) , public :: mo_nzfilt = 3
+  integer(ik4) , public :: mo_nzfilt
+  integer(ik4) , public :: mo_nadv
+  integer(ik4) , public :: mo_nsound
 
   real(rkx) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rkx) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq

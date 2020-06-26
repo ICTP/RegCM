@@ -114,7 +114,8 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_nadv , mo_nsound , mo_nzfilt , mo_anu2 , mo_filterpai
+      mo_anu2 , mo_filterpai , mo_cflhmax , mo_cflsmax ,   &
+      mo_wmax , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
       iceflglw , liqflglw , icld , irng , imcica , nradfo
@@ -293,11 +294,12 @@ module mod_params
     rayndamp = 5
     rayalpha0 = 0.0003_rkx
     rayhd = 10000.0_rkx
-    mo_anu2 = 0.6_rkx
-    mo_nadv = 3
-    mo_nsound = 6
-    mo_nzfilt = 0
-    mo_filterpai = .false.
+    mo_wmax = 150.0_rkx
+    mo_cflhmax = 0.5_rkx
+    mo_cflsmax = 0.2_rkx
+    mo_anu2 = 0.8_rkx
+    mo_nzfilt = 3
+    mo_filterpai = .true.
     !
     ! Rrtm radiation param ;
     !
@@ -1168,9 +1170,10 @@ module mod_params
       ! Moloch paramters here
       mo_dz = hzita / real(kz,rkx)
       call bcast(mo_anu2)
-      call bcast(mo_nadv)
-      call bcast(mo_nsound)
+      call bcast(mo_wmax)
       call bcast(mo_nzfilt)
+      call bcast(mo_cflhmax)
+      call bcast(mo_cflsmax)
       call bcast(mo_filterpai)
       call bcast(ifrayd)
       call bcast(rayndamp)
@@ -1773,12 +1776,21 @@ module mod_params
     rdxsq = 1.0_rkx/dxsq
 
     if ( idynamic == 3 ) then
-      mo_c1 = sqrt(d_two)*(1.10_rkx*150.0_rkx)*dtsec/real(mo_nadv,rkx)/dx
-      mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*350.0_rkx)* &
-              dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx)/dx
+      mo_nadv = max(1,int(nint(sqrt(2.0_rkx)*150.0_rkx*dtsec/dx/mo_cflhmax)))
+      mo_nsound = max(1,int(nint(sqrt(2.0_rkx)*343.15_rkx*dtsec / &
+                      dx/real(mo_nadv,rkx)/mo_cflsmax)))
+      mo_c1 = sqrt(d_two)*150.0_rkx*dtsec/dx/real(mo_nadv,rkx)
+      mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*313.16_rkx)* &
+              dtsec/dx/real(mo_nadv,rkx)/real(mo_nsound,rkx)
       if ( myid == italk ) then
+        write(stdout,'(a, f7.4, a, i2, a)') &
+           ' Advection timestep = ', dtsec/real(mo_nadv,rkx), &
+           ' (factor ', mo_nadv, ')'
         write(stdout,'(a, f7.4)') &
            ' Max. Courant number for horizontal advection = ', mo_c1
+        write(stdout,'(a, f7.4, a, i2, a)') ' Sound waves timestep = ', &
+           dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx), &
+           ' (factor ', mo_nsound, ')'
         write(stdout,'(a, f7.4)') &
            ' Courant number of horizontal sound waves = ', mo_c2
       end if
