@@ -36,6 +36,7 @@ module mod_rad_aerosol
   use parrrsw , only : nbndsw
   use parrrtm , only : nbndlw
   use netcdf
+  use mo_simple_plumes
   implicit none
 
   private

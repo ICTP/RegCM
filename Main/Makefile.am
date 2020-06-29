@@ -47,6 +47,7 @@ RADLIBPTH = ./radlib
 PBLLIBPTH = ./pbllib
 CBMZLIBPTH = chemlib/GAS_CBMZ_NEW
 RRTMSWLIBPTH = radlib/RRTMG_SW
+PLUMELIBPTH = $(REGCM_ROOT)/external
 
 MPPLIB = $(MPPLIBPTH)/libmpp.a
 CLMLIB = $(CLMLIBPTH)/libclm.a
@@ -61,6 +62,7 @@ RADLIB = $(RADLIBPTH)/librad.a
 PBLLIB = $(PBLLIBPTH)/libpbl.a
 CBMZLIB = $(CBMZLIBPTH)/libcbmz.a
 RRTMSWLIB = $(RRTMSWLIBPTH)/librrtmgsw.a
+PLUMELIB = $(PLUMELIBPTH)/libaerosol.a
 
 LMPPLIB = -L$(MPPLIBPTH) -lmpp
 LBATLIB = -L$(BATLIBPTH) -lbats
@@ -78,6 +80,7 @@ LRADLIB = -L$(RADLIBPTH) -lrad
 LPBLLIB = -L$(PBLLIBPTH) -lpbl
 LCBMZLIB = -L$(CBMZLIBPTH) -lcbmz
 LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
+LPLUMELIB = -L$(PLUMELIBPTH) -laerosol
 
 if COMPILER_SUN
   CPPFLAGS += -M$(MPPLIBPTH) -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) \
@@ -93,7 +96,8 @@ endif
 
 LIBS = $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LOCNLIB) $(LMICROLIB) \
        $(CLOUDLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
-       $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB) $(LBATLIB)
+       $(LCLMLIB45) $(LMPPLIB) $(SYSLIBS) $(LNETLIB) $(LBATLIB) \
+       $(LPLUMELIB)
 
 if DO_COMPILE_LIBCLM45
 bin_PROGRAMS = regcm clmsa
@@ -195,7 +199,7 @@ endif
 regcm.o : regcm.F90 mod_dynparam.o mod_intkinds.o mod_realkinds.o mod_regcm_interface.o mod_runparams.o \
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) $(BATLIB) \
 	 $(OCNLIB) $(MICROLIB) $(CLOUDLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) \
-         $(RRTMSWLIB)
+         $(RRTMSWLIB) $(PLUMELIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 mod_atm_stub.o : mod_atm_stub.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_stdio.o mod_service.o mod_memutil.o mod_regcm_types.o mod_ncio.o mod_zita.o mod_stdatm.o
