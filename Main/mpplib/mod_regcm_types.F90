@@ -571,6 +571,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:) :: tg              ! sfs%tgbb
     real(rkx) , pointer , dimension(:,:) :: xlat            ! mddom%xlat
     real(rkx) , pointer , dimension(:,:) :: xlon            ! mddom%xlon
+    real(rkx) , pointer , dimension(:,:) :: ht              ! mddom%ht
     real(rkx) , pointer , dimension(:,:) :: ptrop
     real(rkx) , pointer , dimension(:,:) :: coszrs
     real(rkx) , pointer , dimension(:,:) :: albvs

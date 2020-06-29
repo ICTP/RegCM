@@ -380,7 +380,7 @@ module mod_micro_interface
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
   !
   subroutine condtq
-    use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten , cldfra
+    use mod_atm_interface , only : mo_atm , atm0 , atm2 , sfs , aten
     implicit none
     !
     ! rhc    - Relative humidity at ktau+1

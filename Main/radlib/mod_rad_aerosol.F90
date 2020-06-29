@@ -49,9 +49,19 @@ module mod_rad_aerosol
   public :: init_aeroppdata , read_aeroppdata
   public :: cmip6_plume_profile
   !
+  real(rk4) , pointer , dimension(:) :: lambdaw
+  real(rk4) , pointer , dimension(:) :: latr4 , lonr4 , altr4
+  real(rk4) , pointer , dimension(:,:) :: z , dz
+  real(rk4) , pointer , dimension(:) :: dnovrnr4
+  real(rk4) , pointer , dimension(:,:,:) :: extprofr4
+  real(rk4) , pointer , dimension(:,:,:) :: ssaprofr4
+  real(rk4) , pointer , dimension(:,:,:) :: asyprofr4
   real(rkx) , pointer , dimension(:) :: lat , lon , alt
   real(rkx) , pointer , dimension(:,:) :: alon , alat
   real(rkx) , pointer , dimension(:,:,:) :: ext1 , ext2
+  real(rkx) , pointer , dimension(:,:,:) :: extprof
+  real(rkx) , pointer , dimension(:,:,:) :: ssaprof
+  real(rkx) , pointer , dimension(:,:,:) :: asyprof
   real(rkx) , pointer , dimension(:,:,:) :: ssa1 , ssa2 , asy1 , asy2
   real(rkx) , pointer , dimension(:,:,:) :: ext , ssa , asy , zq3d
   real(rkx) , pointer , dimension(:,:,:) :: yext , yssa , yasy
@@ -171,6 +181,7 @@ module mod_rad_aerosol
   real(rkx) , pointer , dimension(:,:) :: faer , gaer , tauaer , utaer , waer
   integer(ik4) :: ll , mm , nn
   integer(ik4) :: npoints
+  integer(ik4) :: nband
   !
   ! Aersol LW optical properties
   !
@@ -1067,7 +1078,6 @@ module mod_rad_aerosol
 
     subroutine allocate_mod_rad_aerosol
       implicit none
-      integer(ik4) :: nband
 
       if ( irrtm == 1 ) then
         nband = nbndsw
@@ -1090,31 +1100,32 @@ module mod_rad_aerosol
         end if
       end if
 
-     if ( iclimaaer == 2 ) then
-      if ( myid == iocpu ) then
-        call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
-        call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
-        call getmem3d(zq3d,jcross1,jcross2,icross1,icross2,1,kz,'aerosol:zq3d')
-        call getmem3d(ext1,jcross1,jcross2, &
+      if ( iclimaaer == 2 ) then
+        if ( myid == iocpu ) then
+          call getmem2d(alon,jcross1,jcross2,icross1,icross2,'aerosol:alon')
+          call getmem2d(alat,jcross1,jcross2,icross1,icross2,'aerosol:alat')
+          call getmem3d(zq3d,jcross1,jcross2, &
+                             icross1,icross2,1,kz,'aerosol:zq3d')
+          call getmem3d(ext1,jcross1,jcross2, &
                              icross1,icross2,1,kz,'aerosol:ext1')
-        call getmem3d(ext2,jcross1,jcross2, &
+          call getmem3d(ext2,jcross1,jcross2, &
                              icross1,icross2,1,kz,'aerosol:ext2')
-        call getmem3d(ext,jcross1,jcross2, &
+          call getmem3d(ext,jcross1,jcross2, &
                             icross1,icross2,1,kz,'aerosol:ext')
-        call getmem3d(ssa1,jcross1,jcross2, &
+          call getmem3d(ssa1,jcross1,jcross2, &
                              icross1,icross2,1,kz,'aerosol:ssa1')
-        call getmem3d(ssa2,jcross1,jcross2, &
+          call getmem3d(ssa2,jcross1,jcross2, &
                              icross1,icross2,1,kz,'aerosol:ssa2')
-        call getmem3d(ssa,jcross1,jcross2, &
+          call getmem3d(ssa,jcross1,jcross2, &
                             icross1,icross2,1,kz,'aerosol:ssa')
-        call getmem3d(asy1,jcross1,jcross2, &
+          call getmem3d(asy1,jcross1,jcross2, &
                              icross1,icross2,1,kz,'aerosol:asy1')
-        call getmem3d(asy2,jcross1,jcross2, &
+          call getmem3d(asy2,jcross1,jcross2, &
                              icross1,icross2,1,kz,'aerosol:asy2')
-        call getmem3d(asy,jcross1,jcross2, &
+          call getmem3d(asy,jcross1,jcross2, &
                             icross1,icross2,1,kz,'aerosol:asy')
-       end if
-    end if
+        end if
+      end if
 
       call getmem1d(gsbc_hb,1,nband,'aerosol:gsbc_hb')
       call getmem1d(gsbc_hl,1,nband,'aerosol:gsbc_hl')
@@ -1168,6 +1179,23 @@ module mod_rad_aerosol
         call getmem2d(tauaer,1,npoints,1,ntr,'aerosol:tauaer')
         call getmem2d(utaer,1,npoints,1,ntr,'aerosol:utaer')
         call getmem2d(waer,1,npoints,1,ntr,'aerosol:waer')
+      end if
+
+      if ( iclimaaer == 2 ) then
+        call getmem3d(extprof,jci1,jci2,ici1,ici2,1,kz,'rad:extprof')
+        call getmem3d(asyprof,jci1,jci2,ici1,ici2,1,kz,'rad:asyprof')
+        call getmem3d(ssaprof,jci1,jci2,ici1,ici2,1,kz,'rad:ssaprof')
+      else if ( iclimaaer == 3 ) then
+        call getmem1d(dnovrnr4,1,npoints,'rad:dnovrnr4')
+        call getmem3d(extprofr4,1,npoints,1,kz,1,nband,'rad:extprofr4')
+        call getmem3d(asyprofr4,1,npoints,1,kz,1,nband,'rad:asyprofr4')
+        call getmem3d(ssaprofr4,1,npoints,1,kz,1,nband,'rad:ssaprofr4')
+        call getmem1d(lambdaw,1,nband,'rad:lambdaw')
+        call getmem1d(latr4,1,npoints,'aerosol:latr4')
+        call getmem1d(lonr4,1,npoints,'aerosol:lonr4')
+        call getmem1d(altr4,1,npoints,'aerosol:altr4')
+        call getmem2d(z,1,npoints,1,kz,'aerosol:z')
+        call getmem2d(dz,1,npoints,1,kz,'aerosol:dz')
       end if
 
       ! initialise aerosol properties in function of the radiation
@@ -1511,7 +1539,7 @@ module mod_rad_aerosol
       character(len=64) :: infile
       logical , save :: ifirst
       logical :: dointerp
-      real(rkx) , dimension(kzp1) :: ozprnt
+      real(rkx) , dimension(kz) :: opprnt
       real(rkx) :: xfac1 , xfac2 , odist
       type (rcm_time_and_date) :: imonmidd
       integer(ik4) :: iyear , imon , iday , ihour
@@ -1688,12 +1716,12 @@ module mod_rad_aerosol
          max(extprof(jci1:jci2,ici1:ici2,1:kz) * &
               m2r%deltaz(jci1:jci2,ici1:ici2,1:kz),d_zero)
       if ( myid == italk .and. dointerp ) then
-        ozprnt = extprof(3,3,:)
-        call vprntv(ozprnt,kz,'Updated ext profile at (3,3)')
-        ozprnt = ssaprof(3,3,:)
-        call vprntv(ozprnt,kz,'Updated ssa profile at (3,3)')
-        ozprnt = asyprof(3,3,:)
-        call vprntv(ozprnt,kz,'Updated asy profile at (3,3)')
+        opprnt(1:kz) = extprof(3,3,:)
+        call vprntv(opprnt,kz,'Updated ext profile at (3,3)')
+        opprnt(1:kz) = ssaprof(3,3,:)
+        call vprntv(opprnt,kz,'Updated ssa profile at (3,3)')
+        opprnt(1:kz) = asyprof(3,3,:)
+        call vprntv(opprnt,kz,'Updated asy profile at (3,3)')
       end if
     end subroutine read_aeroppdata
 
@@ -1893,25 +1921,9 @@ module mod_rad_aerosol
       real(rkx) , intent(in) , pointer , dimension(:,:) :: rh
 
       integer(ik4) :: n , l , ibin , jbin , itr , k , k1, k2 , ns
-      integer(ik4) :: nband , j , i , visband
+      integer(ik4) :: j , i , visband
       real(rkx) :: uaerdust , qabslw , rh0
 
-      ! Exit if you don't want aerosol optical properties calculated from
-      ! concentrations (either intractive aerosol, or prescribed concentration
-      ! climatology)
-      if ( ichem /= 1 .and. iclimaaer /= 1 ) then
-        tauxar(:,:) = d_zero
-        tauasc(:,:) = d_zero
-        gtota(:,:) = d_zero
-        ftota(:,:) = d_zero
-        tauxar3d(:,:,:) = d_zero
-        tauasc3d(:,:,:) = d_zero
-        gtota3d(:,:,:) = d_zero
-        ftota3d(:,:,:) = d_zero
-        aertrlw (:,:,:) = d_one
-        tauxar3d_lw(:,:,:) = d_zero
-        return
-      end if
       !-
       ! Aerosol forced by Optical Properties Climatology
       ! distinguish between standard scheme and RRTM scheme
@@ -1920,7 +1932,6 @@ module mod_rad_aerosol
       ! Directly force aerosol properties passed to radiation driver and exit
       if ( iclimaaer == 2 ) then
         if ( irrtm == 1 ) then
-          nband = nbndsw
           visband = 9
            ! FAB try only the visible RRTM  now
           ns = visband
@@ -1936,7 +1947,6 @@ module mod_rad_aerosol
             end do
           end do
         else if ( irrtm == 0 ) then
-          nband = nspi
           visband = 8
           ns = visband
           do k = 1 , kz
@@ -1957,6 +1967,50 @@ module mod_rad_aerosol
           end do
         end if
         return  ! important
+      else if ( iclimaaer == 3 ) then
+        if ( irrtm == 1 ) then
+          do n = 1 , nband
+            do k = 1 , kz
+              do i = 1 , npoints
+                tauxar3d(i,k,n) = extprofr4(i,k,n)
+                tauasc3d(i,k,n) = ssaprofr4(i,k,n)
+                gtota3d(i,k,n)  = asyprofr4(i,k,n)
+              end do
+            end do
+          end do
+        else if ( irrtm == 0 ) then
+          do n = 1 , nband
+            do k = 1 , kz
+              do i = 1 , npoints
+                ! already scaled for layer height
+                tauxar3d(i,k,n) = extprofr4(i,k,n)
+                ! here the standard scheme expect layer scaled quantity
+                tauasc3d(i,k,n) = ssaprofr4(i,k,n) * tauxar3d(i,k,n)
+                gtota3d(i,k,n)  = asyprofr4(i,k,n) * &
+                       ssaprofr4(i,k,n) * tauxar3d(i,k,n)
+                ftota3d(i,k,n)  = asyprofr4(i,k,n)**2 * &
+                       ssaprofr4(i,k,n) * tauxar3d(i,k,n)
+              end do
+            end do
+          end do
+        end if
+        return  ! important
+      end if
+      ! Exit if you don't want aerosol optical properties calculated from
+      ! concentrations (either intractive aerosol, or prescribed concentration
+      ! climatology)
+      if ( ichem /= 1 .and. iclimaaer /= 1 ) then
+        tauxar(:,:) = d_zero
+        tauasc(:,:) = d_zero
+        gtota(:,:) = d_zero
+        ftota(:,:) = d_zero
+        tauxar3d(:,:,:) = d_zero
+        tauasc3d(:,:,:) = d_zero
+        gtota3d(:,:,:) = d_zero
+        ftota3d(:,:,:) = d_zero
+        aertrlw (:,:,:) = d_one
+        tauxar3d_lw(:,:,:) = d_zero
+        return
       end if
       !
       !Calculate aerosol properties passed to radiation from concentrations
@@ -1972,11 +2026,6 @@ module mod_rad_aerosol
       !   Melange externe
       !
       !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-      if ( irrtm == 1 ) then
-        nband = nbndsw
-      else
-        nband = nspi
-      end if
       !
       !   Spectral loop
       !
@@ -2277,12 +2326,54 @@ module mod_rad_aerosol
       end if
     end subroutine aeroppt
 
-    subroutine cmip6_plume_profile(idatex,m2r)
+    subroutine cmip6_plume_profile(x,m2r)
       implicit none
-      type (rcm_time_and_date) , intent(in) :: idatex
+      type (rcm_time_and_date) , intent(in) :: x
       type(mod_2_rad) , intent(in) :: m2r
-      !call sp_aop_profile(nlevels,ncol,lambda,oro,lon,lat,year_fr, &
-      !                    z,dz,dNovrN,aod_prof,ssa_prof,asy_prof)
+      logical , save :: lfirst = .true.
+      integer(ik4) :: ibin , i , j , k , n
+      integer(ik4) :: iy , im , id
+      real(rk4) :: year_fr
+
+      if ( lfirst ) then
+        if ( irrtm == 0 ) then
+          do n = 1 , nband
+            lambdaw(n) = (wavmin(n)+wavmax(n))*d_half*d_1000
+          end do
+        else if ( irrtm == 1 ) then
+          do n = 1 , nband
+            lambdaw(n) = (1.e6_rkx/wavnm1(n)+1.e6_rkx/wavnm2(n))*d_half
+          end do
+        end if
+        ibin = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            altr4(ibin) = m2r%ht(j,i)*regrav
+            latr4(ibin) = m2r%xlat(j,i)
+            lonr4(ibin) = m2r%xlon(j,i)
+            ibin = ibin + 1
+          end do
+        end do
+        lfirst = .false.
+      end if
+      do k = 1 , kz
+        ibin = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            z(ibin,k)  = m2r%za(j,i,k)
+            dz(ibin,k) = m2r%deltaz(j,i,k)
+            ibin = ibin + 1
+          end do
+        end do
+      end do
+      call split_idate(x,iy,im,id)
+      year_fr = real(iy) + real(yeardayfrac(x))/real(yeardays(iy,x%calendar))
+      do n = 1 , nband
+        call sp_aop_profile(kz,npoints,lambdaw(n), &
+                            altr4,lonr4,latr4,year_fr,z,dz, &
+                            dnovrnr4,extprofr4(:,:,n), &
+                            ssaprofr4(:,:,n),asyprofr4(:,:,n))
+      end do
     end subroutine cmip6_plume_profile
 
 end module mod_rad_aerosol

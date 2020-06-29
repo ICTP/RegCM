@@ -428,7 +428,7 @@ module mod_rad_radiation
   !
   real(rkx) , dimension(nspi) :: abco2 , abh2o , abo2 , abo3 ,   &
                                 frcsol , nirwgt , pco2 , ph2o ,  &
-                                po2 , raytau , wavmax , wavmin
+                                po2 , raytau
   !
   ! H2O DMISSIVITY AND ABSORTIVITY CODFFICIDNTS
   !
@@ -522,16 +522,6 @@ module mod_rad_radiation
               0.320518_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
               1.000000_rkx , 1.000000_rkx , 1.000000_rkx , 1.000000_rkx , &
               1.000000_rkx , 1.000000_rkx , 1.000000_rkx/
-
-  data wavmin/0.200_rkx , 0.245_rkx , 0.265_rkx , 0.275_rkx , 0.285_rkx ,&
-              0.295_rkx , 0.305_rkx , 0.350_rkx , 0.640_rkx , 0.700_rkx ,&
-              0.701_rkx , 0.701_rkx , 0.701_rkx , 0.701_rkx , 0.702_rkx ,&
-              0.702_rkx , 2.630_rkx , 4.160_rkx , 4.160_rkx/
-
-  data wavmax/0.245_rkx , 0.265_rkx , 0.275_rkx , 0.285_rkx , 0.295_rkx ,&
-              0.305_rkx , 0.350_rkx , 0.640_rkx , 0.700_rkx , 5.000_rkx ,&
-              5.000_rkx , 5.000_rkx , 5.000_rkx , 5.000_rkx , 5.000_rkx ,&
-              5.000_rkx , 2.860_rkx , 4.550_rkx , 4.550_rkx/
 
   data raytau/4.0200_rkx , 2.1800_rkx , 1.7000_rkx , 1.4500_rkx , &
               1.2500_rkx , 1.0850_rkx , 0.7300_rkx ,              &
@@ -846,7 +836,7 @@ module mod_rad_radiation
         lzero = .false.
       end if
     end if
-    if ( iclimaaer == 1 ) then
+    if ( iclimaaer > 0 ) then
       lzero = .false.
     end if
   end subroutine radini

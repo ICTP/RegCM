@@ -35,7 +35,7 @@ module mod_rad_colmod3
   use mod_rad_aerosol , only : aermmr , tauxar3d , tauasc3d , gtota3d
   use mod_regcm_types , only : mod_2_rad , rad_2_mod
 #ifdef DEBUG
-  use mod_service , only : time_begin , time_end
+  use mod_service , only : time_begin , time_end , dbgslen
 #endif
 
   implicit none
