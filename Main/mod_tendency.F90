@@ -1758,6 +1758,8 @@ module mod_tendency
           call updateaerosol(rcmtimer%idate)
         else if ( iclimaaer == 2 ) then
           call updateaeropp(rcmtimer%idate)
+        else if ( iclimaaer == 3 ) then
+          call updateaeropp_cmip6(rcmtimer%idate)
         end if
         loutrad = ( rcmtimer%start() .or. alarm_out_rad%will_act(dtrad) )
         labsem = ( rcmtimer%start() .or. syncro_emi%will_act() )

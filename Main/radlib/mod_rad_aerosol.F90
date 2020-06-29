@@ -47,6 +47,7 @@ module mod_rad_aerosol
   public :: allocate_mod_rad_aerosol , aermix , aeroppt
   public :: init_aerclima , read_aerclima , close_aerclima
   public :: init_aeroppdata , read_aeroppdata
+  public :: cmip6_plume_profile
   !
   real(rkx) , pointer , dimension(:) :: lat , lon , alt
   real(rkx) , pointer , dimension(:,:) :: alon , alat
@@ -2275,6 +2276,14 @@ module mod_rad_aerosol
         end do
       end if
     end subroutine aeroppt
+
+    subroutine cmip6_plume_profile(idatex,m2r)
+      implicit none
+      type (rcm_time_and_date) , intent(in) :: idatex
+      type(mod_2_rad) , intent(in) :: m2r
+      !call sp_aop_profile(nlevels,ncol,lambda,oro,lon,lat,year_fr, &
+      !                    z,dz,dNovrN,aod_prof,ssa_prof,asy_prof)
+    end subroutine cmip6_plume_profile
 
 end module mod_rad_aerosol
 

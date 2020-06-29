@@ -48,6 +48,7 @@ module mod_rad_interface
   public :: init_aerclima
   public :: updateaerosol
   public :: updateaeropp
+  public :: updateaeropp_cmip6
   public :: closeaerosol
   public :: inito3
   public :: updateo3
@@ -194,6 +195,12 @@ module mod_rad_interface
     type (rcm_time_and_date) , intent(in) :: idatex
     call read_aeroppdata(idatex,m2r)
   end subroutine updateaeropp
+
+  subroutine updateaeropp_cmip6(idatex)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: idatex
+    call cmip6_plume_profile(idatex,m2r)
+  end subroutine updateaeropp_cmip6
 
   subroutine closeo3
     implicit none
