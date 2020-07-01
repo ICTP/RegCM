@@ -269,6 +269,10 @@ module mod_nest
                         'grid_size_in_meters', ds_in)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'attribure ds read error')
+      plat_in = clat_in
+      plon_in = clon_in
+      trlat(1) = clat_in
+      trlat(2) = clat_in
       if ( iproj_in == 'LAMCON' ) then
         istatus = nf90_get_att(ncinp, nf90_global, 'standard_parallel', trlat)
         call checkncerr(istatus,__FILE__,__LINE__, &
@@ -354,17 +358,6 @@ module mod_nest
                       'variable b read error')
     end if
 
-    if ( idynamic == 2 ) then
-      do k = 1 , kz
-        do i = 1 , iy
-          do j = 1 , jx
-            p_out(j,i,k) = (ps0(j,i) - ptop_out) * sigmah(k) + ptop_out
-          end do
-        end do
-      end do
-      call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
-    end if
-
     call h_interpolator_create(cross_hint,xlat_in,xlon_in,xlat,xlon)
     if ( idynamic == 3 ) then
       call h_interpolator_create(udot_hint,xlat_in,xlon_in,ulat,ulon)
@@ -413,6 +406,17 @@ module mod_nest
         end do
       end do
     end if
+    if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = 1 , iy
+          do j = 1 , jx
+            p_out(j,i,k) = (ps0(j,i) - ptop_out) * sigmah(k) + ptop_out
+          end do
+        end do
+      end do
+      call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
+    end if
+
     if ( idynamic == 3 ) then
       call top2btm(z0)
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
