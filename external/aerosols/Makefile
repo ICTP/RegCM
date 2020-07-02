@@ -13,4 +13,4 @@ mo_simple_plumes_v1.o : mo_simple_plumes_v1.f90
 	$(FC) $(INCS) -c -o $@ $<
 
 clean :
-	rm -f sptest sptest_regcm mo_simple_plumes_v1.o
+	rm -f sptest sptest_regcm mo_simple_plumes_v1.o *.mod

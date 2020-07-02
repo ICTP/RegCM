@@ -161,6 +161,9 @@ Tools/Programs/timeseries/Makefile.in
 external/.deps
 external/Makefile
 external/Makefile.in
+external/*.mod
+external/*.o
+external/*.a
 
 aclocal.m4
 autom4te.cache
