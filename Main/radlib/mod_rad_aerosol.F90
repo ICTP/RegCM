@@ -2333,6 +2333,7 @@ module mod_rad_aerosol
       logical , save :: lfirst = .true.
       integer(ik4) :: ibin , i , j , k , n
       integer(ik4) :: iy , im , id
+      integer(ik4) , save :: idlast = -1
       real(rk4) :: year_fr
 
       if ( lfirst ) then
@@ -2356,24 +2357,30 @@ module mod_rad_aerosol
         end do
         lfirst = .false.
       end if
-      do k = 1 , kz
-        ibin = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            z(ibin,k)  = m2r%za(j,i,k)
-            dz(ibin,k) = m2r%deltaz(j,i,k)
-            ibin = ibin + 1
+      call split_idate(x,iy,im,id)
+      if ( id /= idlast ) then
+        do k = 1 , kz
+          ibin = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              z(ibin,k)  = m2r%za(j,i,k)
+              dz(ibin,k) = m2r%deltaz(j,i,k)
+              ibin = ibin + 1
+            end do
           end do
         end do
-      end do
-      call split_idate(x,iy,im,id)
-      year_fr = real(iy) + real(yeardayfrac(x))/real(yeardays(iy,x%calendar))
-      do n = 1 , nband
-        call sp_aop_profile(kz,npoints,lambdaw(n), &
-                            altr4,lonr4,latr4,year_fr,z,dz, &
-                            dnovrnr4,extprofr4(:,:,n), &
-                            ssaprofr4(:,:,n),asyprofr4(:,:,n))
-      end do
+        year_fr = real(iy) + real(yeardayfrac(x))/real(yeardays(iy,x%calendar))
+        do n = 1 , nband
+          call sp_aop_profile(kz,npoints,lambdaw(n), &
+                              altr4,lonr4,latr4,year_fr,z,dz, &
+                              dnovrnr4,extprofr4(:,:,n), &
+                              ssaprofr4(:,:,n),asyprofr4(:,:,n))
+        end do
+        if ( myid == italk ) then
+          write(stdout,*) 'Updating aerosol optical properties...'
+        end if
+        idlast = id
+      end if
     end subroutine cmip6_plume_profile
 
 end module mod_rad_aerosol
