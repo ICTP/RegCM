@@ -342,7 +342,7 @@
  logp_lrate = 47.70,             ! Logp lapse rate d(T)/d(ln P) [K/ln(Pa)]
  /
  &nonhydroparam
- ifupr = 1,         ! Upper radiative boundary condition (Klemp and Durran,
+ ifupr = 0,         ! Upper radiative boundary condition (Klemp and Durran,
                     ! Bougeault, 1983)
  nhbet = 0.4,       ! Ikawa beta parameter (0.=centered, 1.=backward)
                     ! determines the time-weighting, where zero gives a

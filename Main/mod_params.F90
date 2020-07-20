@@ -286,7 +286,7 @@ module mod_params
     !
     ! Non hydrostatic param ;
     !
-    ifupr = 1
+    ifupr = 0
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     itopnudge = 0
