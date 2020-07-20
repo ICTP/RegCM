@@ -164,6 +164,9 @@ external/Makefile.in
 external/*.mod
 external/*.o
 external/*.a
+external/aerosols/*.mod
+external/aerosols/*.o
+external/aerosols/sptest*
 
 aclocal.m4
 autom4te.cache
