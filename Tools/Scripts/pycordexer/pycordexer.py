@@ -427,8 +427,8 @@ def main():
     )
     collect_logs()
 
-    LOGGER.debug('Building a pool of slave processes to perform elaborations')
-    worker_pool = Pool(max_num_of_process=args.processes, name='Slave')
+    LOGGER.debug('Building a pool of subordinate processes to perform elaborations')
+    worker_pool = Pool(max_num_of_process=args.processes, name='Subordinate')
 
     if args.disable_corrflag:
         corrflag = False
