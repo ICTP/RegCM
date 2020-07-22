@@ -45,8 +45,8 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 source_suffix = '.rst'
 
-# The master toctree document.
-master_doc = 'index'
+# The main toctree document.
+main_doc = 'index'
 
 # General information about the project.
 project = 'PyCordexer'
@@ -142,7 +142,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'PyCordexer.tex', 'PyCordexer Documentation',
+    (main_doc, 'PyCordexer.tex', 'PyCordexer Documentation',
      'eXact-lab', 'manual'),
 ]
 
@@ -152,7 +152,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pycordexer', 'PyCordexer Documentation',
+    (main_doc, 'pycordexer', 'PyCordexer Documentation',
      [author], 1)
 ]
 
@@ -163,7 +163,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'PyCordexer', 'PyCordexer Documentation',
+    (main_doc, 'PyCordexer', 'PyCordexer Documentation',
      author, 'PyCordexer', 'One line description of project.',
      'Miscellaneous'),
 ]

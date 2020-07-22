@@ -957,7 +957,7 @@ class Listener(object):
         # This import must be here to ensure that the global variables of the
         # module are already initialized
         from utilities.pool import Pool
-        WORKERS_POOL = Pool(max_num_of_process=processes, name='Slave')
+        WORKERS_POOL = Pool(max_num_of_process=processes, name='Subordinate')
         files_checked_while_exit_when_done = False
 
         while not EXIT_NOW:
