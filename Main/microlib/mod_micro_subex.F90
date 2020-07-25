@@ -285,8 +285,7 @@ module mod_micro_subex
                   mc2mo%qxten(j,i,k,iqv) = mc2mo%qxten(j,i,k,iqv) + rdevap
                   ! 2bcf. Compute the temperature tendency [K/s]
                   ![K/s][avg]
-                  mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                          wlh(mo2mc%t(j,i,k))*rcpd*rdevap
+                  mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - wlhv*rcpd*rdevap
                 else
                   ! 2bcf. Compute the water vapor tendency [kg/kg/s*cb]
                   ![kg/kg/s*cb][avg]
@@ -295,7 +294,7 @@ module mod_micro_subex
                   ! 2bcf. Compute the temperature tendency [K/s*cb]
                   ![k/s*cb][avg]
                   mc2mo%tten(j,i,k) = mc2mo%tten(j,i,k) - &
-                          wlh(mo2mc%t(j,i,k))*rcpd*rdevap*mo2mc%psb(j,i)
+                                   wlhv*rcpd*rdevap*mo2mc%psb(j,i)
                 end if
               end if
             end if
@@ -397,7 +396,6 @@ module mod_micro_subex
 #include <pfesat.inc>
 #include <pfwsat.inc>
 #include <clwfromt.inc>
-#include <wlh.inc>
 
     pure real(rkx) function season_factor(lat) result(sf)
       implicit none

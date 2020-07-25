@@ -60,7 +60,7 @@ module mod_ein
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
   real(rkx) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
+  real(rkx) , pointer , dimension(:) :: sigmar
   real(rkx) :: pss
   integer(2) , pointer , dimension(:,:,:) :: work
 
@@ -133,7 +133,6 @@ module mod_ein
     call getmem1d(glat,1,jlat,'mod_ein:glat')
     call getmem1d(glon,1,ilon,'mod_ein:glon')
     call getmem1d(grev,1,max(jlat,ilon),'mod_ein:grev')
-    call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
     call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ein:b3')
     if ( idynamic == 3 ) then
@@ -171,15 +170,10 @@ module mod_ein
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    sigmar(:) = (plevs(:)-plevs(1))/(plevs(klev)-plevs(1))
-    pss = plevs(klev)/10.0_rkx ! mb -> cb
-    !
-    ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
-    !
     do k = 1 , klev
-      kr = klev - k + 1
-      sigma1(k) = sigmar(kr)
+      sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
+    pss = plevs(klev)/10.0_rkx ! mb -> cb
     !
     ! Find window to read
     !

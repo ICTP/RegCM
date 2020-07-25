@@ -54,8 +54,6 @@ module mod_diffusion
 
   real(rkx) , pointer , dimension(:,:,:) :: ud , vd , wx
   real(rkx) , pointer , dimension(:,:) :: pc , pd , mpd
-
-
   !
   ! Use 9-point laplacian as in LeVeque,
   !   Finite Difference Methods for Differential Equations , Eq. 3.17

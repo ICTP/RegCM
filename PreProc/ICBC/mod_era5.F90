@@ -58,7 +58,7 @@ module mod_era5
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
   integer(ik4) , pointer , dimension(:) :: plevs
-  real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
+  real(rkx) , pointer , dimension(:) :: sigmar
   real(rkx) :: pss
   integer(2) , pointer , dimension(:,:,:) :: work
   integer(2) , pointer , dimension(:,:) :: iwork
@@ -192,7 +192,6 @@ module mod_era5
     call getmem1d(glat,1,jlat,'mod_era5:glat')
     call getmem1d(glon,1,ilon,'mod_era5:glon')
     call getmem1d(grev,1,max(jlat,ilon),'mod_era5:grev')
-    call getmem1d(sigma1,1,klev,'mod_era5:sigma1')
     call getmem1d(sigmar,1,klev,'mod_era5:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_era5:b3')
     if ( idynamic == 3 ) then
@@ -230,15 +229,10 @@ module mod_era5
     istatus = nf90_close(ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
-    sigmar(:) = real(plevs(:),rkx)/real(plevs(klev),rkx)
-    pss = real(plevs(klev),rkx)/10.0_rkx ! mb -> cb
-    !
-    ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
-    !
     do k = 1 , klev
-      kr = klev - k + 1
-      sigma1(k) = sigmar(kr)
+      sigmar(k) = real((plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1)),rkx)
     end do
+    pss = real(plevs(klev),rkx)/10.0_rkx ! mb -> cb
     !
     ! Find window to read
     !
@@ -336,7 +330,7 @@ module mod_era5
       call pjd%wind_rotate(u3,v3)
     end if
     !
-    ! Invert vertical order top -> bottom for RegCM convention
+    ! Invert vertical order, set BOTTOM -> TOP
     !
 !$OMP SECTIONS
 !$OMP SECTION

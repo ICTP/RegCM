@@ -80,10 +80,10 @@ module mod_pbl_interface
         call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
         call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
       else
-        call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
-        call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
-        call getmem3d(utend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jdi1ga,jdi2ga,idi1ga,idi2ga,1,kz,'pbl_common:vtend')
+        call getmem3d(utenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:utenx')
+        call getmem3d(vtenx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,'pbl_common:vtenx')
+        call getmem3d(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
       end if
     end if
   end subroutine allocate_pblscheme

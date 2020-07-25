@@ -157,6 +157,7 @@ module mod_regcm_types
     real(rkx) , pointer , dimension(:,:,:) :: pr
     real(rkx) , pointer , dimension(:,:,:) :: rho
     real(rkx) , pointer , dimension(:,:,:) :: z
+    real(rkx) , pointer , dimension(:,:,:) :: zd
     real(rkx) , pointer , dimension(:,:,:) :: tf
     real(rkx) , pointer , dimension(:,:,:) :: pf
     real(rkx) , pointer , dimension(:,:,:) :: rhof
@@ -722,7 +723,6 @@ module mod_regcm_types
   type mod_2_micro
     real(rkx) , pointer , dimension(:,:) :: xlat     ! mddom
     real(rkx) , pointer , dimension(:,:) :: psb      ! sfc
-    real(rkx) , pointer , dimension(:,:,:) :: pfcc   ! from atm
     real(rkx) , pointer , dimension(:,:) :: ps2      ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: phs    ! from atms
     real(rkx) , pointer , dimension(:,:,:) :: pfs    ! from atms

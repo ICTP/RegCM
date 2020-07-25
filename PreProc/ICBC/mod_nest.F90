@@ -50,7 +50,7 @@ module mod_nest
   type(regcm_projection) :: pj
   type(anyprojparams) :: pjparam
 
-  real(rkx) , pointer , dimension(:,:,:) :: q_in , t_in , p_in
+  real(rkx) , pointer , dimension(:,:,:) :: q_in , t_in , p_in , pr0_in
   real(rkx) , pointer , dimension(:,:,:) :: u_in , v_in , z_in
   real(rkx) , pointer , dimension(:,:,:) :: ppa_in , t0_in , qc_in , qi_in
   real(rkx) , pointer , dimension(:,:) :: ht_in , ps_in , ts_in , p0_in
@@ -99,7 +99,7 @@ module mod_nest
     character(len=6) :: iproj_in
     real(rkx) :: clat_in , clon_in , plat_in , plon_in , ds_in
     real(rkx) , dimension(:) , allocatable :: sigfix
-    real(rkx) :: tlp , pr0_in
+    real(rkx) :: tlp , alnp
     character(len=16) :: charatt
 
     imf = monfirst(globidate1)
@@ -196,6 +196,9 @@ module mod_nest
     call getmem3d(v_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:v_in')
     call getmem3d(z_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:z_in')
     call getmem3d(p_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:p_in')
+    if ( oidyn == 2 ) then
+      call getmem3d(pr0_in,1,jx_in,1,iy_in,1,kz_in,'mod_nest:pr0_in')
+    end if
     call getmem2d(ts_in,1,jx_in,1,iy_in,'mod_nest:ts_in')
     call getmem2d(ps_in,1,jx_in,1,iy_in,'mod_nest:ps_in')
     call getmem2d(xlat_in,1,jx_in,1,iy_in,'mod_nest:xlat_in')
@@ -335,9 +338,12 @@ module mod_nest
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
-            pr0_in = pstar_in(j,i) * sigma_in(k) + ptop_in
+            pr0_in(j,i,k) = pstar_in(j,i) * sigma_in(k) + ptop_in
             t0_in(j,i,k) = max(ts0_in +  &
-                      tlp * log(pr0_in / bsp_in),tiso)
+                      tlp * log(pr0_in(j,i,k) / bsp_in),tiso)
+            alnp = log(pr0_in(j,i,k)/p0_in(j,i))
+            z_in(j,i,k) = max(-(d_half*rovg*tlp*alnp*alnp + &
+                              rovg*ts0_in*alnp),d_zero)
           end do
         end do
       end do
@@ -405,6 +411,8 @@ module mod_nest
           end do
         end do
       end do
+      call h_interpolate_cont(cross_hint,z_in,z3)
+      call top2btm(z3)
     end if
     if ( idynamic == 2 ) then
       do k = 1 , kz
@@ -415,6 +423,8 @@ module mod_nest
         end do
       end do
       call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
+      call h_interpolate_cont(cross_hint,z_in,z3)
+      call top2btm(z3)
     end if
 
     if ( idynamic == 3 ) then
@@ -605,8 +615,7 @@ module mod_nest
       do k = 1 , kz_in
         do i = 1 , iy_in
           do j = 1 , jx_in
-            p_in(j,i,k) = (pstar_in(j,i) - ptop_in) * sigma_in(k) + ptop_in + &
-                      ppa_in(j,i,k)
+            p_in(j,i,k) = pr0_in(j,i,k) + ppa_in(j,i,k)
           end do
         end do
       end do
@@ -668,15 +677,14 @@ module mod_nest
 
     if ( oidyn == 1 ) then
       call hydrost(z_in,t_in,ht_in,ps_in,ptop_in,sigma_in,jx_in,iy_in,kz_in)
-    else if ( oidyn ==  2 ) then
-      call nonhydrost(z_in,t0_in,p_in,ps_in,ht_in,jx_in,iy_in,kz_in)
+      call h_interpolate_cont(cross_hint,z_in,z3)
+      call top2btm(z3)
     end if
     !
     ! Horizontal interpolation of both the scalar and vector fields
     !
     call h_interpolate_cont(cross_hint,t_in,t3)
     call h_interpolate_cont(cross_hint,q_in,q3)
-    call h_interpolate_cont(cross_hint,z_in,z3)
     call h_interpolate_cont(cross_hint,p_in,p3)
     if ( idynamic == 3 ) then
       call h_interpolate_cont(udot_hint,u_in,u3)
@@ -716,15 +724,16 @@ module mod_nest
 !$OMP SECTION
     call top2btm(v3)
 !$OMP SECTION
-    call top2btm(z3)
-!$OMP SECTION
     call top2btm(p3)
 !$OMP SECTION
     if ( has_qc ) then
       call top2btm(qc3)
+      where ( qc3 < 1.01e-8_rkx ) qc3 = 0.0_rkx
     end if
+!$OMP SECTION
     if ( has_qi ) then
       call top2btm(qi3)
+      where ( qi3 < 1.01e-8_rkx ) qi3 = 0.0_rkx
     end if
 !$OMP END SECTIONS
     !
@@ -784,19 +793,19 @@ module mod_nest
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intp1(u4,u3,pd_out,pd3,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intp1(u4,u3,pd_out,pd3,pd4,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intp1(v4,v3,pd_out,pd3,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intp1(v4,v3,pd_out,pd3,pd4,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intp1(t4,t3,p_out,p3,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intp1(t4,t3,p_out,p3,ps4,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
-      call intp1(q4,q3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intp1(q4,q3,p_out,p3,ps4,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP SECTION
       if ( has_qc ) then
-        call intp1(qc4,qc3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+        call intp1(qc4,qc3,p_out,p3,ps4,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
       end if
       if ( has_qi ) then
-        call intp1(qi4,qi3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+        call intp1(qi4,qi3,p_out,p3,ps4,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
       end if
 !$OMP END SECTIONS
     end if

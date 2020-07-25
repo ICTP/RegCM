@@ -183,13 +183,21 @@ module mod_pbl_uwtcm
         if ( idynamic == 3 ) then
           rpfac = rdt
         else
-          rpfac = m2p%psb(j,i) / dt
+          rpfac = rdt * m2p%psb(j,i)
         end if
         tskx = m2p%tg(j,i)
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         ktr = max(2,m2p%ktrop(j,i))
         uvdragx = m2p%uvdrag(j,i)
+
+        ktr = 2
+        do k = 3 , kz
+          if ( m2p%patmf(j,i,k) > 60000.0_rkx ) then
+            ktr = k
+            exit
+          end if
+        end do
 
         ! Integrate the hydrostatic equation to calculate the level height
         ! Set variables that are on full levels
@@ -411,6 +419,7 @@ module mod_pbl_uwtcm
           call solve_tridiag(aimp,bimp,cimp,rimp1,uimp1,kz)
           ! Calculate nsquared Set N^2 based on the updated potential
           ! temperature profile (this is for the semi-implicit integration)
+          uimp2 = max(uimp2,1.0e-8)
           call n2(uimp1,uimp2)
           thx_t = uimp1(kz) + wlhvocp*qcx(kz)*rexnerhl(kz)
           tvcon = d_one + ep1*qx(kz)-qcx(kz)
@@ -678,7 +687,7 @@ module mod_pbl_uwtcm
           ! Meridional wind tendency
           p2m%vxten(j,i,k) = (vx(k)-vxs(k))*rdt
           ! Temperature tendency
-          p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*(thx(k)-thxs(k))*exnerhl(k)
+          p2m%tten(j,i,k) = p2m%tten(j,i,k)+rpfac*((thx(k)-thxs(k))*exnerhl(k))
           ! Water vapor tendency
           p2m%qxten(j,i,k,iqv) = p2m%qxten(j,i,k,iqv)+rpfac*(qx(k)-qxs(k))
           ! Cloud water tendency

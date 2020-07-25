@@ -274,7 +274,7 @@ module mod_clm_ch4varcon
              subname//' error in reading in ch4par_in namelist' )
       end if
       call file_freeunit( unitn )
-    end if ! masterproc
+    end if ! mainproc
 
     call bcast(q10ch4base)
     call bcast(q10ch4)

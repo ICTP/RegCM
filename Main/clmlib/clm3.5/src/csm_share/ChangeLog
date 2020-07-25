@@ -1052,7 +1052,7 @@ Changes made:
 	Added a argument to orb_params to determine if you want
 to print messages out or not.  Normally this should be set to
 true, but if you are running a program under SPMD you will want
-the master to set it to true and the slaves set it to false.
+the principal to set it to true and the workers set it to false
 Otherwise, all the processesors print out the same messages.
 
 	Added a list of coupler compatibility message numbers.

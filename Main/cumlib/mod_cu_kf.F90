@@ -99,6 +99,8 @@ module mod_cu_kf
   real(rkx) , parameter :: dpmin = 5.0e3_rkx
   real(rkx) , parameter :: ttfrz = tzero - 5.0_rkx
   real(rkx) , parameter :: tbfrz = tzero - 25.0_rkx
+  real(rkx) , parameter :: xlv0 = 3.15e6_rkx
+  real(rkx) , parameter :: xlv1 = 2370.0_rkx
 
   contains
 

@@ -327,7 +327,7 @@ module mod_clm_control
   end subroutine control_init
   !
   ! Distribute namelist data all processors. All program i/o is
-  ! funnelled through the master processor. Processor 0 either
+  ! funnelled through the main processor. Processor 0 either
   ! reads restart/history data from the disk and distributes
   ! it to all processors, or collects data from
   ! all processors and writes it to disk.

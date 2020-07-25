@@ -245,7 +245,7 @@ module mod_clm_varctl
       end if
 #endif
 
-    endif   ! end of if-masterproc if-block
+    endif   ! end of if-mainproc if-block
 
     clmvarctl_isset = .true.
 

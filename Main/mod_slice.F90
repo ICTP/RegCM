@@ -77,6 +77,9 @@ module mod_slice
       end if
       call getmem2d(rpsb,jx1,jx2,ix1,ix2,'slice:rpsb')
       call getmem2d(rpsdotb,jd1,jd2,id1,id2,'slice:rpsdotb')
+      if ( idynamic == 2 ) then
+        call assignpnt(omega,atms%wpx3d)
+      end if
     else
       call assignpnt(mo_atm%u,atms%ubd3d)
       call assignpnt(mo_atm%v,atms%vbd3d)
@@ -141,7 +144,7 @@ module mod_slice
       end do
 
       do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
-        omega(j,i,k) = -d_half*egrav*atms%rhob3d(j,i,k) * &
+        atms%wpx3d(j,i,k) = -d_half*egrav*atms%rhob3d(j,i,k) * &
                        (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
       end do
       !
@@ -199,21 +202,31 @@ module mod_slice
         end do
       end if
 
-      do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
-        atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
-                (d_one + ep1*atms%qxb3d(j,i,k,iqv) - atms%qxb3d(j,i,k,iqc))
-      end do
+      if ( ipptls == 1 ) then
+        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+          atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
+                  (d_one + ep1*atms%qxb3d(j,i,k,iqv) - atms%qxb3d(j,i,k,iqc))
+        end do
+      else if ( ipptls > 1 ) then
+        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+          atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
+                  (d_one + ep1*atms%qxb3d(j,i,k,iqv) - &
+                  atms%qxb3d(j,i,k,iqc) - atms%qxb3d(j,i,k,iqi) - &
+                  atms%qxb3d(j,i,k,iqr) - atms%qxb3d(j,i,k,iqs))
+        end do
+      else
+        do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
+          atms%tv3d(j,i,k) = atms%tb3d(j,i,k) * &
+                  (d_one + ep1*atms%qxb3d(j,i,k,iqv))
+        end do
+      end if
 
       if ( idynamic == 2 ) then
         do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kz )
           atms%ppb3d(j,i,k) = atm2%pp(j,i,k)*rpsb(j,i)
         end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 2:kz )
+        do concurrent ( j = jce1:jce2 , i = ice1:ice2 , k = 1:kz )
           atms%pb3d(j,i,k) = atm0%pr(j,i,k) + atms%ppb3d(j,i,k)
-        end do
-        do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
-          atms%pb3d(j,i,1) = max(atm0%pr(j,i,1) + atms%ppb3d(j,i,1), &
-                            ptop*d_1000+1.0_rkx)
         end do
         do concurrent ( j = jce1:jce2 , i = ice1:ice2 )
           atms%ps2d(j,i) = atm0%ps(j,i) + ptop*d_1000 + atms%ppb3d(j,i,kz)
@@ -255,11 +268,12 @@ module mod_slice
       end do
 
       if ( idynamic == 2 ) then
-        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz )
-          atms%wpx3d(j,i,k) = omega(j,i,k)
-        end do
         do concurrent ( j = jx1:jx2 , i = ix1:ix2 , k = 1:kzp1 )
           atms%wb3d(j,i,k) = atm2%w(j,i,k)*rpsb(j,i)
+        end do
+        do concurrent ( j = jci1:jci2 , i = ici1:ici2 , k = 1:kz)
+          atms%wpx3d(j,i,k) = -d_half*egrav*atms%rhob3d(j,i,k) * &
+                         (atms%wb3d(j,i,k) + atms%wb3d(j,i,k+1))
         end do
       else
         ! Omega in the hydrostatic model is in cb/s

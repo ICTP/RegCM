@@ -2569,7 +2569,7 @@ module mod_clm_histfile
       end if
 
       !
-      ! On master restart file add ntapes/max_chars dimension
+      ! On main processor restart file add ntapes/max_chars dimension
       ! and then add the history and history restart filenames
       !
       call clm_adddim(ncid, 'ntapes', ntapes)
@@ -2751,7 +2751,7 @@ module mod_clm_histfile
       !
       ! First write out namelist information to each restart history file
       !
-      ! Add history filenames to master restart file
+      ! Add history filenames to main restart file
       do t = 1 , ntapes
         call clm_writevar(ncid,'locfnh',locfnh(1:ntapes))
         call clm_writevar(ncid,'locfnhr',locfnhr(1:ntapes))

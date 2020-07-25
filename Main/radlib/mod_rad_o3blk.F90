@@ -128,8 +128,8 @@ module mod_rad_o3blk
       ppwrk(k) = ppann(k)
     end do
     ppwrk(:) = ppwrk(:) * d_100
-    call intlinprof(o3prof,o3wrk,m2r%psatms,m2r%pfatms,jci1,jci2, &
-                    ici1,ici2,kzp1,ppwrk,31)
+    call intlinprof(o3prof,o3wrk,m2r%psatms,ppwrk,jci1,jci2, &
+                    ici1,ici2,31,m2r%pfatms,kzp1)
     if ( myid == italk ) then
       ozprnt = o3prof(3,3,:)
       call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
@@ -235,9 +235,9 @@ module mod_rad_o3blk
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
         call h_interpolate_cont(hint,xozone1,yozone)
-        call intlinreg(ozone1,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
+        call intlinreg(ozone1,yozone,aps,plev,1,njcross,1,nicross,24,pp3d,kzp1)
         call h_interpolate_cont(hint,xozone2,yozone)
-        call intlinreg(ozone2,yozone,aps,pp3d,1,njcross,1,nicross,kzp1,plev,24)
+        call intlinreg(ozone2,yozone,aps,plev,1,njcross,1,nicross,24,pp3d,kzp1)
       end if
     end if
 

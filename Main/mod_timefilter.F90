@@ -198,7 +198,7 @@ module mod_timefilter
             d = alpha * (phinp1(j,i,k,n) + phinm1(j,i,k,n) - &
                 d_two * phin(j,i,k,n))
             phinm1(j,i,k,n) = phin(j,i,k,n) + d
-            if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = low
+            if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = d_zero
             phin(j,i,k,n) = phinp1(j,i,k,n)
           end do
         end do
@@ -246,8 +246,8 @@ module mod_timefilter
                         d_two * phin(j,i,k,n))
             phinm1(j,i,k,n) = phin(j,i,k,n) + beta * d
             phin(j,i,k,n) = phinp1(j,i,k,n) + (beta - d_one) * d
-            if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = low
-            if ( phin(j,i,k,n) < low ) phin(j,i,k,n) = low
+            if ( phinm1(j,i,k,n) < low ) phinm1(j,i,k,n) = d_zero
+            if ( phin(j,i,k,n) < low ) phin(j,i,k,n) = d_zero
           end do
         end do
       end do

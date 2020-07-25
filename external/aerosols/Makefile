@@ -1,6 +1,7 @@
 
 all :: sptest sptest_regcm
 
+FC = `nf-config --fc`
 INCS = -I. `nf-config --fflags`
 LIBS = `nf-config --flibs`
 

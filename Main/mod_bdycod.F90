@@ -39,6 +39,7 @@ module mod_bdycod
   use mod_zita
   use mod_stdatm
   use mod_slabocean
+  use mod_spline
 
   implicit none
 
@@ -185,9 +186,16 @@ module mod_bdycod
     real(rkx) , dimension(kz) :: anudge
     real(rkx) :: xfun
     integer(ik4) :: n , k
+    real(rkx) , dimension(3) :: ncin
+    real(rkx) , dimension(3) :: zcin
+    real(rkx) , dimension(3) :: ycin
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4) , save :: idindx = 0
+#endif
+    data zcin /0.0_rkx, 0.6_rkx, 1.0_rkx/
+    data ycin /0.0_rkx, 0.0_rkx, 0.0_rkx/
+#ifdef DEBUG
     call time_begin(subroutine_name,idindx)
 #endif
     !
@@ -250,15 +258,13 @@ module mod_bdycod
       end do
     end if
     if ( iboudy == 5 ) then
-      do k = 1 , kz
-        if ( hsigma(k) < 0.4_rkx ) then
-          anudge(k) = high_nudge
-        else if ( hsigma(k) < 0.8_rkx ) then
-          anudge(k) = medium_nudge
-        else
-          anudge(k) = low_nudge
-        end if
-      end do
+      ncin(1) = high_nudge
+      ncin(2) = medium_nudge
+      ncin(3) = low_nudge
+      call spline1d(3,zcin,ncin,ycin,kz,hsigma,anudge)
+      if ( myid == italk ) then
+        call vprntv(anudge,kz,'Nudging coefficient profile')
+      end if
       do k = 1 , kz
         do n = 2 , nspgx-1
           xfun = exp(-(real(n-2,rkx)/anudge(k)))
@@ -2158,12 +2164,12 @@ module mod_bdycod
             do n = iqfrst , iqlst
               do k = 1 , kz
                 do i = ice1 , ice2
-                  qxint = atm1%qx(jci1,i,k,n)/sfs%psa(jci1,i)
+                  qxint = atm1%qx(jci1,i,k,n)
                   windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
                   if ( windavg > d_zero ) then
                     atm1%qx(jce1,i,k,n) = d_zero
                   else
-                    atm1%qx(jce1,i,k,n) = qxint*sfs%psa(jce1,i)
+                    atm1%qx(jce1,i,k,n) = qxint
                   end if
                 end do
               end do
@@ -2176,12 +2182,12 @@ module mod_bdycod
             do n = iqfrst , iqlst
               do k = 1 , kz
                 do i = ice1 , ice2
-                  qxint = atm1%qx(jci2,i,k,n)/sfs%psa(jci2,i)
+                  qxint = atm1%qx(jci2,i,k,n)
                   windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
                   if ( windavg < d_zero ) then
                     atm1%qx(jce2,i,k,n) = d_zero
                   else
-                    atm1%qx(jce2,i,k,n) = qxint*sfs%psa(jce2,i)
+                    atm1%qx(jce2,i,k,n) = qxint
                   end if
                 end do
               end do
@@ -2194,12 +2200,12 @@ module mod_bdycod
             do n = iqfrst , iqlst
               do k = 1 , kz
                 do j = jci1 , jci2
-                  qxint = atm1%qx(j,ici1,k,n)/sfs%psa(j,ici1)
+                  qxint = atm1%qx(j,ici1,k,n)
                   windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
                   if ( windavg > d_zero ) then
                     atm1%qx(j,ice1,k,n) = d_zero
                   else
-                    atm1%qx(j,ice1,k,n) = qxint*sfs%psa(j,ice1)
+                    atm1%qx(j,ice1,k,n) = qxint
                   end if
                 end do
               end do
@@ -2212,12 +2218,12 @@ module mod_bdycod
             do n = iqfrst , iqlst
               do k = 1 , kz
                 do j = jci1 , jci2
-                  qxint = atm1%qx(j,ici2,k,n)/sfs%psa(j,ici2)
+                  qxint = atm1%qx(j,ici2,k,n)
                   windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
                   if ( windavg < d_zero ) then
                     atm1%qx(j,ice2,k,n) = d_zero
                   else
-                    atm1%qx(j,ice2,k,n) = qxint*sfs%psa(j,ice2)
+                    atm1%qx(j,ice2,k,n) = qxint
                   end if
                 end do
               end do
@@ -3212,8 +3218,6 @@ module mod_bdycod
     type(v3dbound) , intent(in) :: bnd
     real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    real(rkx) , parameter :: nfac = 1.0e3_rkx
-    real(rkx) , parameter :: rfac = d_one/nfac
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'nudge4d3d'
@@ -3230,7 +3234,7 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
-      fg1(j,i,k) = nfac*(bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - nfac*f(j,i,k,n)
+      fg1(j,i,k) = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k) - f(j,i,k,n)
     end do
 
     if ( ibdy == 1 ) then
@@ -3247,8 +3251,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3266,8 +3270,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3285,8 +3289,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3304,8 +3308,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3324,8 +3328,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3343,8 +3347,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3362,8 +3366,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3381,8 +3385,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              ften(j,i,k,n) = ften(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              ften(j,i,k,n) = ften(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3399,8 +3403,6 @@ module mod_bdycod
     real(rkx) , pointer , intent(inout) , dimension(:,:,:,:) :: f
     type(v3dbound) , intent(in) :: bnd
     real(rkx) :: xt , xf , xg , fls0 , fls1 , fls2 , fls3 , fls4
-    real(rkx) , parameter :: nfac = 1.0e3_rkx
-    real(rkx) , parameter :: rfac = d_one/nfac
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'monudge4d3d'
@@ -3417,7 +3419,7 @@ module mod_bdycod
     xt = xbctime + dt
 
     do concurrent ( j = jce1ga:jce2ga , i = ice1ga:ice2ga , k = 1:kz )
-      fg1(j,i,k) = nfac*(bnd%b0(j,i,k) + xt*bnd%bt(j,i,k)) - nfac*f(j,i,k,n)
+      fg1(j,i,k) = bnd%b0(j,i,k) + xt*bnd%bt(j,i,k) - f(j,i,k,n)
     end do
 
     if ( ibdy == 1 ) then
@@ -3434,8 +3436,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3453,8 +3455,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3472,8 +3474,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3491,8 +3493,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3511,8 +3513,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3530,8 +3532,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3549,8 +3551,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -3568,8 +3570,8 @@ module mod_bdycod
               fls2 = fg1(j+1,i,k)
               fls3 = fg1(j,i-1,k)
               fls4 = fg1(j,i+1,k)
-              f(j,i,k,n) = f(j,i,k,n) + rfac * (xf*fls0 - &
-                            xg*(fls1+fls2+fls3+fls4-d_four*fls0))
+              f(j,i,k,n) = f(j,i,k,n) + xf*fls0 - &
+                            xg*(fls1+fls2+fls3+fls4-d_four*fls0)
             end do
           end do
         end do
@@ -4958,16 +4960,14 @@ module mod_bdycod
     real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
     real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
     type(v3dbound) , intent(in) :: ubnd , vbnd
-    real(rkx) :: zz , zm , xt , bval
+    real(rkx) :: xt , bval
     integer(ik4) :: i , j , k
     xt = xbctime + dt
     do k = 1 , min(kz,rayndamp)
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           bval = ubnd%b0(j,i,k) + xt*ubnd%bt(j,i,k)
-          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-          uten(j,i,k) = uten(j,i,k) + tau(zz,zm) * (bval-u(j,i,k))
+          uten(j,i,k) = uten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (bval-u(j,i,k))
         end do
       end do
     end do
@@ -4975,9 +4975,7 @@ module mod_bdycod
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           bval = vbnd%b0(j,i,k) + xt*vbnd%bt(j,i,k)
-          zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-          zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-          vten(j,i,k) = vten(j,i,k) + tau(zz,zm) * (bval-v(j,i,k))
+          vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (bval-v(j,i,k))
         end do
       end do
     end do
@@ -4989,23 +4987,18 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:,:,:) , intent(in) :: u , v
   real(rkx) , pointer , dimension(:,:,:) , intent(inout) :: uten , vten
   real(rkx) , intent(in) :: sval
-  real(rkx) :: zz , zm
   integer(ik4) :: i , j , k
   do k = 1 , min(kz,rayndamp)
     do i = idi1 , idi2
       do j = jdi1 , jdi2
-        zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-        zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-        uten(j,i,k) = uten(j,i,k) + tau(zz,zm) * (sval-u(j,i,k))
+        uten(j,i,k) = uten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-u(j,i,k))
       end do
     end do
   end do
   do k = 1 , min(kz,rayndamp)
     do i = idi1 , idi2
       do j = jdi1 , jdi2
-        zz = d_rfour * (z(j,i,k) + z(j-1,i,k) + z(j,i-1,k) + z(j-1,i-1,k))
-        zm = d_rfour * (z(j,i,1) + z(j-1,i,1) + z(j,i-1,1) + z(j-1,i-1,1))
-        vten(j,i,k) = vten(j,i,k) + tau(zz,zm) * (sval-v(j,i,k))
+        vten(j,i,k) = vten(j,i,k) + tau(z(j,i,k),z(j,i,1)) * (sval-v(j,i,k))
       end do
     end do
   end do

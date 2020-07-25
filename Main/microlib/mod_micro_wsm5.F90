@@ -69,8 +69,8 @@ module mod_micro_wsm5
   ! constant in biggs freezing
   real(rkx) , parameter :: pfrz2 = 0.66_rkx
   ! minimun values for qr, qs, and qg
-  real(rkx) , parameter :: qrsmin = 1.0e-15_rkx
-  real(rkx) , parameter :: qcimin = 1.0e-15_rkx
+  real(rkx) , parameter :: qrsmin = 0.0_rkx
+  real(rkx) , parameter :: qcimin = 0.0_rkx
   ! snow/cloud-water collection efficiency
   real(rkx) , parameter :: eacrc = 1.0_rkx
 
@@ -251,20 +251,18 @@ module mod_micro_wsm5
           delz(n,kk) = mo2mc%delz(j,i,k)
           qs(n,kk) = mo2mc%qs(j,i,k)
           rh(n,kk) = max(d_zero,min(d_one,mo2mc%rh(j,i,k)))
-          den(n,kk) = mo2mc%rho(j,i,k)
           n = n + 1
         end do
       end do
     end do
 
-    where ( qci < qcimin ) qci = d_zero
-    where ( qrs < d_zero ) qrs = d_zero
-
-    !do k = 1 , kz
-    !  do n = is , ie
-    !    den(n,k) = p(n,k)/(rgas*t(n,k)*(d_one+ep1*qv(n,k)))
-    !  end do
-    !end do
+    do k = 1 , kz
+      do n = is , ie
+        den(n,k) = p(n,k)/(rgas * t(n,k) * (d_one + ep1*qv(n,k) - &
+                   qci(n,k,1) - qci(n,k,2) - qrs(n,k,1) - &
+                   qrs(n,k,2)))
+      end do
+    end do
 
     if ( ichem == 1 ) then
       mc2mo%remrat(:,:,:) = d_zero
@@ -533,7 +531,7 @@ module mod_micro_wsm5
       !
       do k = 1 , kz
         do i = ims , ime
-          temp = den(i,k)*max(qci(i,k,2),qcimin)
+          temp = den(i,k)*qci(i,k,2)
           temp = sqrt(sqrt(temp*temp*temp))
           xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
         end do
@@ -809,7 +807,7 @@ module mod_micro_wsm5
           !
           ! ni: ice crystal number concentraiton   [hdc 5c]
           !
-          temp = den(i,k)*max(qci(i,k,2),qcimin)
+          temp = den(i,k)*qci(i,k,2)
           temp = sqrt(sqrt(temp*temp*temp))
           xni(i,k) = min(max(5.38e7_rkx*temp,minni),maxni)
           eacrs = exp(0.07_rkx*(-supcol))
@@ -925,7 +923,7 @@ module mod_micro_wsm5
             !
             ! cloud water
             !
-            qval = max(qcimin,qci(i,k,1))
+            qval = qci(i,k,1)
             source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -936,7 +934,7 @@ module mod_micro_wsm5
             !
             ! cloud ice
             !
-            qval = max(qcimin,qci(i,k,2))
+            qval = qci(i,k,2)
             source = (psaut(i,k)+psaci(i,k)-pigen(i,k)-pidep(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -948,7 +946,7 @@ module mod_micro_wsm5
             !
             ! rain
             !
-            qval = max(qcimin,qrs(i,k,1))
+            qval = qrs(i,k,1)
             source = (-praut(i,k)-pracw(i,k)-prevp(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -959,7 +957,7 @@ module mod_micro_wsm5
             !
             ! snow
             !
-            qval = max(qcimin,qrs(i,k,2))
+            qval = qrs(i,k,2)
             source = (-psdep(i,k)-psaut(i,k)-psaci(i,k)-psacw(i,k))*dtcld
             if (source > qval) then
               factor = qval/source
@@ -987,7 +985,7 @@ module mod_micro_wsm5
             !
             ! cloud water
             !
-            qval = max(qcimin,qci(i,k,1))
+            qval = qci(i,k,1)
             source = (praut(i,k)+pracw(i,k)+psacw(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -998,7 +996,7 @@ module mod_micro_wsm5
             !
             ! rain
             !
-            qval = max(qcimin,qrs(i,k,1))
+            qval = qrs(i,k,1)
             source = (-praut(i,k)-pracw(i,k)-prevp(i,k)-psacw(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -1010,7 +1008,7 @@ module mod_micro_wsm5
             !
             ! snow
             !
-            qval = max(qcimin,qrs(i,k,2))
+            qval = qrs(i,k,2)
             source = (-psevp(i,k))*dtcld
             if ( source > qval ) then
               factor = qval/source
@@ -1069,8 +1067,8 @@ module mod_micro_wsm5
 
     do k = 1 , kz
       do i = ims , ime
-        if ( qci(i,k,1) < qcimin ) qci(i,k,1) = d_zero
-        if ( qci(i,k,2) < qcimin ) qci(i,k,2) = d_zero
+        if ( qci(i,k,1) < d_zero ) qci(i,k,1) = d_zero
+        if ( qci(i,k,2) < d_zero ) qci(i,k,2) = d_zero
         if ( qrs(i,k,1) < d_zero ) qrs(i,k,1) = d_zero
         if ( qrs(i,k,2) < d_zero ) qrs(i,k,2) = d_zero
       end do
@@ -1084,13 +1082,15 @@ module mod_micro_wsm5
     pure real(rkx) function cpmcal(x)
       implicit none
       real(rkx) , intent(in) :: x
-      cpmcal = cpd*(d_one-max(x,qcimin)) + cpv*max(x,qcimin)
+      cpmcal = cpd*(d_one-x) + cpv*x
     end function cpmcal
 
     pure real(rkx) function xlcal(x)
       implicit none
       real(rkx) , intent(in) :: x
-      xlcal = xlv0 - xlv1*(x-tzero)
+      real(rkx) , parameter :: xlv0 = 3.15e6_rkx
+      real(rkx) , parameter :: xlv1 = 2370.0_rkx
+      xlcal = xlv0 - xlv1*x
     end function xlcal
 
     ! diffus: diffusion coefficient of the water vapor
@@ -1130,7 +1130,7 @@ module mod_micro_wsm5
     pure real(rkx) function conden(a,b,c,d,e)
       implicit none
       real(rkx) , intent(in) :: a , b , c , d , e
-      conden = (max(b,qcimin)-c)/(d_one+d*d/(rwat*e)*c/(a*a))
+      conden = (b-c)/(d_one+d*d/(rwat*e)*c/(a*a))
     end function conden
 
   end subroutine wsm52d
@@ -1311,7 +1311,7 @@ module mod_micro_wsm5
     integer(ik4) :: i , k , n , m , kk , kb , kt
     real(rkx) :: tl , tl2 , qql , dql , qqd
     real(rkx) :: th , th2 , qqh , dqh
-    real(rkx) :: zsum , qsum , xdim , dip , con1
+    real(rkx) :: zsum , qsum , xdim , dip , d1 , d2 , con1
     real(rkx) :: allold , decfl
     real(rkx) , dimension(kz) :: dz , ww , qq , wd , wa , was
     real(rkx) , dimension(kz) :: den , denfac , tk
@@ -1420,8 +1420,12 @@ module mod_micro_wsm5
       ! estimate values at arrival cell interface with monotone
       !
       do k = 2 , kz
-        dip = (qa(k+1)-qa(k)) / (dza(k+1)+dza(k))
-        xdim = (qa(k)-qa(k-1)) / (dza(k-1)+dza(k))
+        d1 = qa(k+1)-qa(k)
+        d2 = qa(k)-qa(k-1)
+        if ( d1 < 1.0e-20_rkx ) d1 = d_zero
+        if ( d2 < 1.0e-20_rkx ) d2 = d_zero
+        dip = d1 / (dza(k+1)+dza(k))
+        xdim = d2 / (dza(k-1)+dza(k))
         if ( dip*xdim <= d_zero ) then
           qmi(k) = qa(k)
           qpi(k) = qa(k)
@@ -1574,7 +1578,7 @@ module mod_micro_wsm5
 !      if ( rqc(k) > r1 ) has_qc = .true.
 !      ! for ice
 !      rqi(k) = max(r1, qi(k)*rho(k))
-!      temp = (rho(k)*max(qi(k),qcimin))
+!      temp = (rho(k)*qi(k))
 !      temp = sqrt(sqrt(temp*temp*temp))
 !      ni(k) = min(max(5.38e7_rkx*temp,minni),maxni)
 !      rni(k)= max(r2, ni(k)*rho(k))

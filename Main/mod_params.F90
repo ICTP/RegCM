@@ -2017,12 +2017,10 @@ module mod_params
     !
     !-----compute half sigma levels.
     !
-    if ( idynamic < 3 ) then
-      do k = 1 , kz
-        hsigma(k) = (sigma(k+1) + sigma(k))*d_half
-        dsigma(k) = (sigma(k+1) - sigma(k))
-      end do
-    end if
+    do k = 1 , kz
+      hsigma(k) = (sigma(k+1) + sigma(k))*d_half
+      dsigma(k) = (sigma(k+1) - sigma(k))
+    end do
 
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
@@ -2061,9 +2059,8 @@ module mod_params
       if ( isladvec == 1 ) then
         call init_sladvection
       end if
-    else
-      call init_slice
     end if
+    call init_slice
     call init_micro
     if ( ichem == 1 ) then
       call init_chem
@@ -2648,6 +2645,15 @@ module mod_params
           do i = ice1 , ice2
             do j = jce1 , jce2
               atm0%dzf(j,i,k) = atm0%zf(j,i,k) - atm0%zf(j,i,k+1)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              atm0%zd(j,i,k) = d_rfour * &
+                   (atm0%z(j,i,k) + atm0%z(j-1,i,k) + &
+                    atm0%z(j,i-1,k) + atm0%z(j-1,i-1,k))
             end do
           end do
         end do

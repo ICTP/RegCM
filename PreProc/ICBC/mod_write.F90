@@ -404,8 +404,8 @@ module mod_write
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,t4,tv4,ps4,ps0,1)
       call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,q4,tv4,ps4,ps0,2)
       if ( dattyp == 'FNEST' ) then
-        call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qc4,tv4,ps4,ps0,2)
-        call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qi4,tv4,ps4,ps0,2)
+        call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qc4,tv4,ps4,ps0,1)
+        call nhinterp(1,iy,1,jx,kz,sigmah,sigmaf,qi4,tv4,ps4,ps0,1)
       end if
       ! Recompute virtual temperature on non hydrostatic sigma.
       tv4 = t4 * (d_one + ep1 * q4)

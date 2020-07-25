@@ -114,32 +114,23 @@ module mod_cu_interface
     if ( any(icup == 3) ) then
       call allocate_mod_cu_bm
     end if
-    if ( any(icup == 4) ) then
-      call allocate_mod_cu_em
+    if ( any(icup == 4) .or. any(icup == 5) ) then
       if ( idynamic == 3 ) then
         call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
         call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
       else
-        call getmem3d(utend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:utend')
-        call getmem3d(vtend,jde1ga,jde2ga,ide1ga,ide2ga,1,kz,'pbl_common:vtend')
+        call getmem3d(utend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:utend')
+        call getmem3d(vtend,jdi1,jdi2,idi1,idi2,1,kz,'pbl_common:vtend')
       end if
+    end if
+    if ( any(icup == 4) ) then
+      call allocate_mod_cu_em
     end if
     if ( any(icup == 5) ) then
       if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
-      call getmem3d(utenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:utenx')
-      call getmem3d(vtenx,jci1ga,jci2ga,ici1ga,ici2ga,1,kz,'pbl_common:vtenx')
-      if ( .not. associated(utend) ) then
-        if ( idynamic == 3 ) then
-          call getmem3d(utend,jdi1,jdi2,ici1,ici2,1,kz,'pbl_common:utend')
-          call getmem3d(vtend,jci1,jci2,idi1,idi2,1,kz,'pbl_common:vtend')
-        else
-          call getmem3d(utend,jde1ga,jde2ga, &
-                              ide1ga,ide2ga,1,kz,'pbl_common:utend')
-          call getmem3d(vtend,jde1ga,jde2ga, &
-                              ide1ga,ide2ga,1,kz,'pbl_common:vtend')
-        end if
-      end if
+      call getmem3d(utenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:utenx')
+      call getmem3d(vtenx,jci1,jci2,ici1,ici2,1,kz,'pbl_common:vtenx')
     end if
     if ( any(icup == 6) ) then
       call allocate_mod_cu_kf
@@ -291,25 +282,8 @@ module mod_cu_interface
           write(stdout,*) 'Calling cumulus scheme at ',trim(rcmtimer%str())
         end if
 
-        ! Update input wind cumulus tendencies (dot to cross points)
-
-        if ( any(icup == 5) ) then
-          if ( idynamic /= 3 ) then
-            do k = 1 , kz
-              do i = idi1 , idi2
-                do j = jdi1 , jdi2
-                  utend(j,i,k) = m2c%uten(j,i,k) / sfs%psdotb(j,i)
-                  vtend(j,i,k) = m2c%vten(j,i,k) / sfs%psdotb(j,i)
-                end do
-              end do
-            end do
-            call uvdot2cross(utend,vtend,utenx,vtenx)
-          else
-            ! input tendencies to cumulus null
-            ! utenx = d_zero
-            ! vtenx = d_zero
-          end if
-        end if
+        utend = d_zero
+        vtend = d_zero
 
         cu_prate(:,:) = d_zero
         cu_ktop(:,:) = 0
@@ -376,8 +350,6 @@ module mod_cu_interface
             call tenxtouvten(cu_uten,cu_vten,utend,vtend)
           else
             call uvcross2dot(cu_uten,cu_vten,utend,vtend)
-            call exchange_lrbt(utend,1,jde1,jde2,ide1,ide2,1,kz)
-            call exchange_lrbt(vtend,1,jde1,jde2,ide1,ide2,1,kz)
           end if
         end if
 

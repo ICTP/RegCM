@@ -1671,26 +1671,17 @@ module mod_rad_aerosol
           xasy2 = max(xasy2,d_zero)
 
           call h_interpolate_cont(hint,xext1,yext)
-          call intlinreg(ext1,yext,zq3d,sigma, &
-                         1,njcross,1,nicross,kz,alt,clnlev)
+          call intlinreg(ext1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
           call h_interpolate_cont(hint,xext2,yext)
-          call intlinreg(ext2,yext,zq3d,sigma, &
-                         1,njcross,1,nicross,kz,alt,clnlev)
-
+          call intlinreg(ext2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
           call h_interpolate_cont(hint,xssa1,yssa)
-          call intlinreg(ssa1,yssa,zq3d,sigma, &
-                         1,njcross,1,nicross,kz,alt,clnlev)
+          call intlinreg(ssa1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
           call h_interpolate_cont(hint,xssa2,yssa)
-          call intlinreg(ssa2,yssa,zq3d,sigma, &
-                         1,njcross,1,nicross,kz,alt,clnlev)
-
+          call intlinreg(ssa2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
           call h_interpolate_cont(hint,xasy1,yasy)
-          call intlinreg(asy1,yasy,zq3d,sigma, &
-                         1,njcross,1,nicross,kz,alt,clnlev)
+          call intlinreg(asy1,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
           call h_interpolate_cont(hint,xasy2,yasy)
-          call intlinreg(asy2,yasy,zq3d,sigma, &
-                         1,njcross,1,nicross,kz,alt,clnlev)
-
+          call intlinreg(asy2,yext,alt,1,njcross,1,nicross,clnlev,zq3d,kz)
         end if
       end if
       if ( myid == iocpu ) then
