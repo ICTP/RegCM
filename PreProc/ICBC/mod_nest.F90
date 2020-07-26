@@ -57,7 +57,8 @@ module mod_nest
   real(rkx) , pointer , dimension(:,:) :: xlat_in , xlon_in
   real(rkx) , pointer , dimension(:) :: ak_in , bk_in
   real(rkx) , pointer , dimension(:,:) :: pstar_in
-  real(rkx) , pointer , dimension(:,:) :: ts , topou , topov
+  real(rkx) , pointer , dimension(:,:) :: ts , ps , zs
+  real(rkx) , pointer , dimension(:,:) :: topou , topov
 
   real(rkx) , pointer , dimension(:,:,:) :: t3 , q3 , z3 , zud3 , zvd3
   real(rkx) , pointer , dimension(:,:,:) :: u3 , v3 , p3 , pd3 , qc3 , qi3
@@ -396,6 +397,8 @@ module mod_nest
       call getmem3d(pd3,1,jx,1,iy,1,kz_in,'mod_nest:pd3')
     end if
     call getmem2d(ts,1,jx,1,iy,'mod_nest:ts')
+    call getmem2d(ps,1,jx,1,iy,'mod_nest:ps')
+    call getmem2d(zs,1,jx,1,iy,'mod_nest:zs')
 
     if ( idynamic /= 3 ) then
       call getmem3d(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
@@ -426,6 +429,8 @@ module mod_nest
       call h_interpolate_cont(cross_hint,z_in,z3)
       call top2btm(z3)
     end if
+
+    call h_interpolate_cont(cross_hint,ht_in,zs)
 
     if ( idynamic == 3 ) then
       call top2btm(z0)
@@ -696,6 +701,7 @@ module mod_nest
       call h_interpolate_cont(udot_hint,v_in,v3)
     end if
     call h_interpolate_cont(cross_hint,ts_in,ts)
+    call h_interpolate_cont(cross_hint,ps_in,ps)
     if ( has_qc ) then
       call h_interpolate_cont(cross_hint,qc_in,qc3)
     end if
@@ -739,26 +745,27 @@ module mod_nest
     !
     ! New calculation of P* on RegCM topography.
     !
-    call intzps(ps4,topogm,t3,z3,p3,xlat,julianday(idate),jx,iy,kz_in)
+    call intpsn(ps4,topogm,ps,zs,ts,ptop_out,jx,iy)
 
     if ( idynamic /= 3 ) then
       if ( idynamic == 1 ) then
         do k = 1 , kz
           do i = 1 , iy
             do j = 1 , jx
-              p_out(j,i,k) = (ps4(j,i) - ptop_out) * sigmah(k) + ptop_out
+              p_out(j,i,k) = ps4(j,i) * sigmah(k) + ptop_out
             end do
           end do
         end do
         call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
       end if
-      call intp3(ts4,t3,p3,ps4,jx,iy,kz_in,0.6_rkx,0.5_rkx,0.85_rkx)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call crs2dot(pd3,p3,jx,iy,kz_in,i_band,i_crm)
+      ps = ps4 + ptop
+      call intp3(ts4,t3,p3,ps,jx,iy,kz_in,0.0_rkx,0.05_rkx,0.05_rkx)
     else
-      call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.6_rkx,0.5_rkx,0.85_rkx)
       call ucrs2dot(zud3,z3,jx,iy,kz_in,i_band)
       call vcrs2dot(zvd3,z3,jx,iy,kz_in,i_crm)
+      call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.0_rkx,0.05_rkx,0.05_rkx)
     end if
 
     where ( mask == 0 )
@@ -814,9 +821,9 @@ module mod_nest
     ! Put surface pressures as ps and in cb now to be conforming to
     ! other modules.
     !
-    ps4 = (ps4 - ptop_out) * d_r1000
+    ps4 = ps4 * d_r1000
     if ( idynamic /= 3 ) then
-      pd4 = (pd4 - ptop_out) * d_r1000
+      pd4 = pd4 * d_r1000
     end if
   end subroutine get_nest
 
