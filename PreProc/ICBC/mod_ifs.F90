@@ -47,10 +47,12 @@ module mod_ifs
 
   real(rkx) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rkx) , pointer :: u3v(:,:,:) , v3u(:,:,:)
-  real(rkx) , pointer :: p3(:,:,:) , q3(:,:,:) , t3(:,:,:) , z3(:,:,:)
+  real(rkx) , pointer :: p3(:,:,:) , pd3(:,:,:)
+  real(rkx) , pointer :: q3(:,:,:) , t3(:,:,:) , z3(:,:,:)
   real(rkx) , pointer :: z3u(:,:,:) , z3v(:,:,:)
   real(rkx) , pointer :: uvar(:,:,:) , vvar(:,:,:) , pvar(:,:,:)
   real(rkx) , pointer :: qvar(:,:,:) , tvar(:,:,:)
+  real(rkx) , pointer :: p_out(:,:,:) , pd_out(:,:,:)
   real(rkx) , pointer :: topou(:,:) , topov(:,:)
   real(rkx) , pointer :: xps(:,:) , xts(:,:) , xzs(:,:)
   real(rkx) , pointer :: ps(:,:) , ts(:,:) , zs(:,:)
@@ -62,13 +64,12 @@ module mod_ifs
   real(rkx) , pointer , dimension(:) :: glon
   integer(ik4) , pointer , dimension(:) :: slev
   real(rkx) , pointer , dimension(:) :: hyam , hybm
-  real(rkx) , pointer , dimension(:) :: sigma1 , sigmar
   real(rkx) :: pss
 
   integer(ik4) :: ncin
   integer(ik4) , parameter :: nrvar = 7
   character(len=4) , dimension(nrvar) , parameter :: varname = &
-           ['t   ' , 'q   ' , 'u   ' , 'v   ' , 'lnsp' , 'skt ' , 'z   ']
+           ['t   ' , 'q   ' , 'u   ' , 'v   ' , 'lnsp' , 'st  ' , 'z   ']
   integer(ik4) , dimension(nrvar) :: ivar5
 
   type(global_domain) :: gdomain
@@ -83,6 +84,7 @@ module mod_ifs
     integer(ik4) :: year , month , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
+    integer(ik4) :: i , j , k
     character(len=64) :: inname
 
     call split_idate(globidate1,year,month,day,hour)
@@ -125,8 +127,6 @@ module mod_ifs
     call getmem1d(glat,1,jlat,'mod_ifs:glat')
     call getmem1d(glon,1,ilon,'mod_ifs:glon')
     call getmem1d(ghelp,1,max(jlat,ilon),'mod_ifs:ghelp')
-    call getmem1d(sigma1,1,klev,'mod_ifs:sigma1')
-    call getmem1d(sigmar,1,klev,'mod_ifs:sigmar')
     call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_ifs:b3')
     if ( idynamic == 3 ) then
       call getmem3d(d3u,1,jx,1,iy,1,klev*2,'mod_ifs:d3u')
@@ -206,6 +206,12 @@ module mod_ifs
     call getmem2d(xps,1,ilon,1,jlat,'mod_ifs:xps')
     call getmem2d(xts,1,ilon,1,jlat,'mod_ifs:xts')
     call getmem2d(xzs,1,ilon,1,jlat,'mod_ifs:xzs')
+    if ( idynamic /= 3 ) then
+      call getmem3d(pd3,1,jx,1,iy,1,klev,'mod_nest:pd3')
+      call getmem3d(p_out,1,jx,1,iy,1,kz,'mod_nest:p_out')
+      call getmem3d(pd_out,1,jx,1,iy,1,kz,'mod_nest:pd_out')
+    end if
+
     !
     ! Set up pointers
     !
@@ -231,13 +237,22 @@ module mod_ifs
       call vcrs2dot(zvd4,z0,jx,iy,kz,i_crm)
       call ucrs2dot(topou,topogm,jx,iy,i_band)
       call vcrs2dot(topov,topogm,jx,iy,i_crm)
+    else if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = 1 , iy
+          do j = 1 , jx
+            p_out(j,i,k) = ps0(j,i)*d_r1000*sigmah(k) + ptop
+          end do
+        end do
+      end do
+      call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
     end if
   end subroutine init_ifs
 
   subroutine get_ifs(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer(ik4) :: k
+    integer(ik4) :: i , j , k
     !
     ! Read data at idate
     !
@@ -256,6 +271,7 @@ module mod_ifs
     call h_interpolate_cont(cross_hint,xps,ps)
     call h_interpolate_cont(cross_hint,xts,ts)
     call h_interpolate_cont(cross_hint,xzs,zs)
+    ps = ps * d_r1000
     !
     ! Rotate u-v fields after horizontal interpolation
     !
@@ -266,39 +282,42 @@ module mod_ifs
       call pjd%wind_rotate(u3,v3)
     end if
     !
-    ! Invert vertical order top -> bottom for RegCM convention
-    !
-!$OMP SECTIONS
-!$OMP SECTION
-    call top2btm(t3)
-!$OMP SECTION
-    call top2btm(q3)
-!$OMP SECTION
-    call top2btm(p3)
-!$OMP SECTION
-    call top2btm(u3)
-!$OMP SECTION
-    call top2btm(v3)
-!$OMP END SECTIONS
-    !
     ! Vertical interpolation
     ! New calculation of p* on rcm topography.
     !
-    ps4 = ps*d_r1000
+    call intpsn(ps4,topogm,ps,zs,ts,ptop,jx,iy)
+
     if ( idynamic == 3 ) then
-      z3(:,:,1) = zs(:,:) + log(ps(:,:)/p3(:,:,1))*rovg* &
-                  t3(:,:,1)*(d_one+ep1*q3(:,:,1))
-      do k = 2 , klev
-        z3(:,:,k) = z3(:,:,k-1) + log(p3(:,:,k-1)/p3(:,:,k))*rovg* &
-                d_half * (t3(:,:,k-1)*(d_one+ep1*q3(:,:,k-1)) + &
+      z3(:,:,klev) = zs(:,:) + log(ps(:,:)/p3(:,:,klev))*rovg* &
+                  t3(:,:,klev)*(d_one+ep1*q3(:,:,klev))
+      do k = klev-1, 1 , -1
+        z3(:,:,k) = z3(:,:,k+1) + log(p3(:,:,k+1)/p3(:,:,k))*rovg* &
+                d_half * (t3(:,:,k+1)*(d_one+ep1*q3(:,:,k+1)) + &
                           t3(:,:,k)*(d_one+ep1*q3(:,:,k)))
       end do
       call ucrs2dot(z3u,z3,jx,iy,klev,i_band)
       call vcrs2dot(z3v,z3,jx,iy,klev,i_crm)
+      call intz3(ts4,t3,z3,topogm,jx,iy,klev,0.0_rkx,0.05_rkx,0.05_rkx)
     else
+      if ( idynamic == 1 ) then
+        do k = 1 , kz
+          do i = 1 , iy
+            do j = 1 , jx
+              p_out(j,i,k) = ps4(j,i) * sigmah(k) + ptop
+            end do
+          end do
+        end do
+        call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
+      end if
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
+      call crs2dot(pd3,p3,jx,iy,klev,i_band,i_crm)
+      ps = ps4 + ptop
+      call intp3(ts4,t3,p3,ps,jx,iy,klev,0.0_rkx,0.05_rkx,0.05_rkx)
     end if
-    ts4 = ts
+
+    where ( mask == 0 )
+      ts4 = ts
+    end where
     !
     ! Interpolate U, V, T, and Q.
     !
@@ -316,13 +335,13 @@ module mod_ifs
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intp1(u4,u3,pd_out,pd3,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intp1(v4,v3,pd_out,pd3,jx,iy,kz,klev,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+      call intp1(t4,t3,p_out,p3,jx,iy,kz,klev,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
-      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intp1(q4,q3,p_out,p3,jx,iy,kz,klev,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP END SECTIONS
     end if
   end subroutine get_ifs
@@ -378,7 +397,7 @@ module mod_ifs
     end do
 
     do k = 1 , klev
-      pvar(:,:,k) = hyam(slev(k)) + xps(:,:) * hybm(slev(k))
+      pvar(:,:,k) = d_r1000*(hyam(slev(k)) + xps(:,:) * hybm(slev(k))) ! cb
     end do
 
     contains

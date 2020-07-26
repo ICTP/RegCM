@@ -418,7 +418,7 @@ module mod_nest
       do k = 1 , kz
         do i = 1 , iy
           do j = 1 , jx
-            p_out(j,i,k) = (ps0(j,i) - ptop_out) * sigmah(k) + ptop_out
+            p_out(j,i,k) = ps0(j,i)*sigmah(k) + ptop_out
           end do
         end do
       end do
@@ -740,10 +740,9 @@ module mod_nest
     ! New calculation of P* on RegCM topography.
     !
     call intzps(ps4,topogm,t3,z3,p3,xlat,julianday(idate),jx,iy,kz_in)
-    call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.6_rkx,0.5_rkx,0.85_rkx)
 
     if ( idynamic /= 3 ) then
-      if ( oidyn == 1 ) then
+      if ( idynamic == 1 ) then
         do k = 1 , kz
           do i = 1 , iy
             do j = 1 , jx
@@ -753,9 +752,11 @@ module mod_nest
         end do
         call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
       end if
+      call intp3(ts4,t3,p3,ps4,jx,iy,kz_in,0.6_rkx,0.5_rkx,0.85_rkx)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call crs2dot(pd3,p3,jx,iy,kz_in,i_band,i_crm)
     else
+      call intz3(ts4,t3,z3,topogm,jx,iy,kz_in,0.6_rkx,0.5_rkx,0.85_rkx)
       call ucrs2dot(zud3,z3,jx,iy,kz_in,i_band)
       call vcrs2dot(zvd3,z3,jx,iy,kz_in,i_crm)
     end if
@@ -793,19 +794,19 @@ module mod_nest
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intp1(u4,u3,pd_out,pd3,pd4,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intp1(u4,u3,pd_out,pd3,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intp1(v4,v3,pd_out,pd3,pd4,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
+      call intp1(v4,v3,pd_out,pd3,jx,iy,kz,kz_in,0.6_rkx,0.2_rkx,0.2_rkx)
 !$OMP SECTION
-      call intp1(t4,t3,p_out,p3,ps4,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)
+      call intp1(t4,t3,p_out,p3,jx,iy,kz,kz_in,0.6_rkx,0.85_rkx,0.5_rkx)
 !$OMP SECTION
-      call intp1(q4,q3,p_out,p3,ps4,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+      call intp1(q4,q3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
 !$OMP SECTION
       if ( has_qc ) then
-        call intp1(qc4,qc3,p_out,p3,ps4,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+        call intp1(qc4,qc3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
       end if
       if ( has_qi ) then
-        call intp1(qi4,qi3,p_out,p3,ps4,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
+        call intp1(qi4,qi3,p_out,p3,jx,iy,kz,kz_in,0.7_rkx,0.7_rkx,0.4_rkx)
       end if
 !$OMP END SECTIONS
     end if

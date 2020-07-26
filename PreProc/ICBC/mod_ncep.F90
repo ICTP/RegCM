@@ -44,7 +44,7 @@ module mod_ncep
 
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: glon
-  real(rkx) , pointer , dimension(:) :: sigmar , sigma1
+  real(rkx) , pointer , dimension(:) :: sigmar , plevs
   real(rkx) :: pss
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
@@ -125,19 +125,18 @@ module mod_ncep
     call getmem1d(glon,1,ilon,'mod_ncep:glon')
     call getmem1d(glat,1,jlat,'mod_ncep:glat')
     call getmem1d(sigmar,1,klev,'mod_ncep:sigmar')
-    call getmem1d(sigma1,1,klev,'mod_ncep:sigma1')
+    call getmem1d(plevs,1,klev,'mod_ncep:plevs')
 
     istatus = nf90_inq_varid(inet,'level',idv)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error find var level')
-    istatus = nf90_get_var(inet,idv,sigma1)
+    istatus = nf90_get_var(inet,idv,plevs)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read level')
-    ! Invert levels
     do k = 1 , klev
-      sigmar(k) = sigma1(klev-k+1)/sigma1(1)
+      sigmar(k) = (plevs(k)-plevs(klev))/(plevs(1)-plevs(klev))
     end do
-    pss = sigma1(1) / d_10 ! centibars
+    pss = plevs(1) / d_10 ! centibars
     !
     ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
     !

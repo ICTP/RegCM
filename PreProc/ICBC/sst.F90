@@ -44,9 +44,7 @@ program sst
   use mod_message
   use mod_sst_grid
   use mod_sst_1deg
-  use mod_sst_eh5om
   use mod_sst_ersst
-  use mod_sst_fvgcm
   use mod_sst_gnmnc
   use mod_sst_gndnc
   use mod_sst_gnhnc
@@ -93,12 +91,8 @@ program sst
     call sst_1deg
   else if ( ssttyp == 'TMIST' ) then
     call sst_gndnc
-  else if ( ssttyp(1:2) == 'EH' ) then
-    call sst_eh5om
   else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' ) then
     call sst_ersst
-  else if ( ssttyp == 'FV_A2' .or.  ssttyp == 'FV_B2' ) then
-    call sst_fvgcm
   else if ( ssttyp == 'CCSST' .or. ssttyp == 'CAM4N' ) then
     if (ical /= noleap) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'

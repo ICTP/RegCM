@@ -57,7 +57,7 @@ module mod_era5
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: grev
   real(rkx) , pointer , dimension(:) :: glon
-  integer(ik4) , pointer , dimension(:) :: plevs
+  real(rkx) , pointer , dimension(:) :: plevs
   real(rkx) , pointer , dimension(:) :: sigmar
   real(rkx) :: pss
   integer(2) , pointer , dimension(:,:,:) :: work
@@ -151,7 +151,7 @@ module mod_era5
 
   subroutine init_era5
     implicit none
-    integer(ik4) :: k , kr
+    integer(ik4) :: k
     integer(ik4) :: year , month , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid
@@ -230,9 +230,9 @@ module mod_era5
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close file '//trim(pathaddname))
     do k = 1 , klev
-      sigmar(k) = real((plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1)),rkx)
+      sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
-    pss = real(plevs(klev),rkx)/10.0_rkx ! mb -> cb
+    pss = plevs(klev)/10.0_rkx ! mb -> cb
     !
     ! Find window to read
     !

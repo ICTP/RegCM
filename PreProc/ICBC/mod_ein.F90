@@ -80,7 +80,7 @@ module mod_ein
 
   subroutine init_ein
     implicit none
-    integer(ik4) :: k , kr
+    integer(ik4) :: k
     integer(ik4) :: year , month , monthp1 , day , hour
     character(len=256) :: pathaddname
     integer(ik4) :: istatus , ncid , ivarid , idimid

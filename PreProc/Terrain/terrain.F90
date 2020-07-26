@@ -111,7 +111,7 @@ program terrain
   character(len=*) , parameter :: f99002 = '(a,a,a,a)'
   logical :: laround0 = .true.
 
-  data ibndry /.true./
+  data ibndry /.false./
 
   ! You should nor modify those, but it may help with "difficult" domains
   ! to obtain better representation of topography and landuse
