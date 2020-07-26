@@ -640,14 +640,12 @@ program sigma2p
               else if (intscheme(i) == 2) then
                 call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
               end if
-              call top2btm(pvar,jx,iy,np)
             else if ( iodyn == 3 ) then
               if (intscheme(i) == 1) then
                 call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
               else if (intscheme(i) == 2) then
                 call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
               end if
-              call top2btm(pvar,jx,iy,np)
             else
               if (intscheme(i) == 1) then
                 call intlin(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
@@ -706,14 +704,12 @@ program sigma2p
                 else if (intscheme(i) == 2) then
                   call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
                 end if
-                call top2btm(pvar,jx,iy,np)
               else if ( iodyn == 3 ) then
                 if (intscheme(i) == 1) then
                   call intlin(pvar,xvar,press,jx,iy,kz,plevs,np)
                 else if (intscheme(i) == 2) then
                   call intlog(pvar,xvar,press,jx,iy,kz,plevs,np)
                 end if
-                call top2btm(pvar,jx,iy,np)
               else
                 if (intscheme(i) == 1) then
                   call intlin(pvar,xvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
@@ -758,11 +754,9 @@ program sigma2p
       if ( iodyn == 2 ) then
         call mxr2rh(tmpvar,qvar,press,jx,iy,kz)
         call intlin(pvar,qvar,press,jx,iy,kz,plevs,np)
-        call top2btm(pvar,jx,iy,np)
       else if ( iodyn == 3 ) then
         call mxr2rh(tmpvar,qvar,press,jx,iy,kz)
         call intlin(pvar,qvar,press,jx,iy,kz,plevs,np)
-        call top2btm(pvar,jx,iy,np)
       else
         call mxr2rh(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
         call intlin(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
