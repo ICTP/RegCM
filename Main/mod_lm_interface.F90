@@ -1043,14 +1043,15 @@ module mod_lm_interface
     end if
 
     ! Those are for the output, but collected only at POINT in time
-
-    if ( alarm_out_srf%will_act(dtsrf) ) then
-
+    if ( alarm_out_atm%will_act(dtsrf) ) then
       if ( ifatm ) then
         if ( associated(atm_tgb_out) ) then
           atm_tgb_out = sum(lms%tgbb,1)*rdnnsg
         end if
       end if
+    end if
+
+    if ( alarm_out_srf%will_act(dtsrf) ) then
 
       if ( ifsrf ) then
         if ( associated(srf_uvdrag_out) ) &
