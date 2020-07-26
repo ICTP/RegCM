@@ -688,7 +688,7 @@ module mod_bdycod
     if ( present_qc ) then
       xlb%b0(:,:,:) = xlb%b1(:,:,:)
     end if
-    if ( present_qc ) then
+    if ( present_qi ) then
       xib%b0(:,:,:) = xib%b1(:,:,:)
     end if
     xtsb%b0(:,:) = xtsb%b1(:,:)
