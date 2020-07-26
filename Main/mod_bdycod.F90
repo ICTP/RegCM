@@ -193,7 +193,6 @@ module mod_bdycod
     character(len=dbgslen) :: subroutine_name = 'setup_bdycon'
     integer(ik4) , save :: idindx = 0
 #endif
-    data zcin /0.0_rkx, 0.6_rkx, 1.0_rkx/
     data ycin /0.0_rkx, 0.0_rkx, 0.0_rkx/
 #ifdef DEBUG
     call time_begin(subroutine_name,idindx)
@@ -261,6 +260,13 @@ module mod_bdycod
       ncin(1) = high_nudge
       ncin(2) = medium_nudge
       ncin(3) = low_nudge
+      zcin(1) = 0.0_rkx
+      zcin(3) = 1.0_rkx
+      if ( idynamic == 3 ) then
+        zcin(2) = 0.5_rkx
+      else
+        zcin(2) = 0.6_rkx
+      end if
       call spline1d(3,zcin,ncin,ycin,kz,hsigma,anudge)
       if ( myid == italk ) then
         call vprntv(anudge,kz,'Nudging coefficient profile')
