@@ -187,7 +187,7 @@ module mod_projections
   subroutine rl00(pj,lat0,lon0)
     implicit none
     class(regcm_projection) , intent(in) :: pj
-    real(rk8) , intent(out) :: lat0 , lon0
+    real(rkx) , intent(out) :: lat0 , lon0
     lat0 = pj%p%rlat0
     lon0 = pj%p%rlon0
   end subroutine rl00
@@ -403,8 +403,9 @@ module mod_projections
     type(regcm_projection) , intent(inout) :: pj
     real(rk8) , intent(in) :: ci , cj , clat , clon , plon , plat , ds
     logical , intent(in) :: luvrot
-    real(rk8) :: phi , lam , dlam , lon , lat
-    real(rk8) :: rotlam , rotphi , ri , rj
+    real(rk8) :: phi , lam , dlam
+    real(rk8) :: rotlam , rotphi
+    real(rkx) :: lon , lat , ri , rj
     integer(ik4) :: i , j
     pj%p%dlon = raddeg * ds / earthrad
     pj%p%dlat = pj%p%dlon
@@ -602,7 +603,8 @@ module mod_projections
     real(rk8) , intent(in) :: ci , cj , slon , clat , clon , ds , &
                               trlat1 , trlat2
     logical , intent(in) :: luvrot
-    real(rk8) :: arg , deltalon1 , tl1r , tl2r , ri , rj , lat , lon
+    real(rk8) :: arg , deltalon1 , tl1r , tl2r
+    real(rkx) :: ri , rj , lat , lon
     integer(ik4) :: i , j
 
     pj%p%stdlon = slon
@@ -719,7 +721,8 @@ module mod_projections
     type(regcm_projection) , intent(inout) :: pj
     real(rk8) , intent(in) :: clat , clon , cj , ci , ds , slon
     logical , intent(in) :: luvrot
-    real(rk8) :: ala1 , alo1 , ri , rj , lat , lon
+    real(rk8) :: ala1 , alo1
+    real(rkx) :: lat , lon , ri , rj
     integer(ik4) :: i , j
 
     pj%p%stdlon = slon
@@ -850,7 +853,8 @@ module mod_projections
     type(regcm_projection) , intent(inout) :: pj
     real(rk8) , intent(in) :: clat , clon , cj , ci , ds , plon , plat
     logical , intent(in) :: luvrot
-    real(rk8) :: plam , pphi , zphipol , ri , rj , lat , lon
+    real(rk8) :: plam , pphi , zphipol
+    real(rkx) :: lat , lon , ri , rj
     integer(ik4) :: i , j
     pj%p%dlon = ds*raddeg/earthrad
     pj%p%dlat = ds*raddeg/earthrad
@@ -999,7 +1003,7 @@ module mod_projections
     implicit none
     type(regcm_projection) , intent(in) :: pj
     real(rkx) , intent(in) :: xlat , xlon
-    real(rk8) :: ri , rj
+    real(rkx) :: ri , rj
     call llij_rl(pj,xlat,xlon,ri,rj)
     xmap = real(d_one/cos(degrad*(pj%p%rlat0+(rj-1)*pj%p%dlat)),rkx)
   end function fac_rl
@@ -1037,7 +1041,8 @@ module mod_projections
     implicit none
     type(regcm_projection) , intent(in) :: pj
     real(rkx) , intent(in) :: xlat , xlon
-    real(rk8) :: ri , rj , yr
+    real(rkx) :: ri , rj
+    real(rk8) :: yr
     call llij_rc(pj,xlat,xlon,ri,rj)
     yr = pj%p%yoff + (rj-pj%p%polej)*pj%p%dlon
     xmap = real(1.0_rk8/cos(yr*degrad),rkx)

@@ -69,6 +69,7 @@ module mod_params
     real(rkx) :: afracl , afracs , bb , cc , dlargc , dsmalc , dxtemc , &
                qk , qkp1 , sig700 , ssum , vqmax , wk , wkp1 , xbot ,   &
                xtop , xx , yy , mo_c1 , mo_c2
+    real(rkx) , dimension(kzp1) :: fak , fbk
     integer(ik4) :: kbmax
     integer(ik4) :: iretval
     integer(ik4) :: i , j , k , kbase , ktop , ns
@@ -114,7 +115,7 @@ module mod_params
 
     namelist /nonhydroparam/ ifupr , nhbet , nhxkd ,       &
       ifrayd , rayndamp , rayalpha0 , rayhd , itopnudge ,  &
-      mo_anu2 , mo_filterpai , mo_cflhmax , mo_cflsmax ,   &
+      mo_anu2 , mo_filterpai , mo_nadv , mo_nsound ,       &
       mo_wmax , mo_nzfilt
 
     namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
@@ -295,9 +296,9 @@ module mod_params
     rayalpha0 = 0.0003_rkx
     rayhd = 10000.0_rkx
     mo_wmax = 150.0_rkx
-    mo_cflhmax = 0.5_rkx
-    mo_cflsmax = 0.2_rkx
-    mo_anu2 = 0.8_rkx
+    mo_nadv = 3
+    mo_nsound = 6
+    mo_anu2 = 0.6_rkx
     mo_nzfilt = 3
     mo_filterpai = .true.
     !
@@ -1172,8 +1173,8 @@ module mod_params
       call bcast(mo_anu2)
       call bcast(mo_wmax)
       call bcast(mo_nzfilt)
-      call bcast(mo_cflhmax)
-      call bcast(mo_cflsmax)
+      call bcast(mo_nadv)
+      call bcast(mo_nsound)
       call bcast(mo_filterpai)
       call bcast(ifrayd)
       call bcast(rayndamp)
@@ -1776,22 +1777,19 @@ module mod_params
     rdxsq = 1.0_rkx/dxsq
 
     if ( idynamic == 3 ) then
-      mo_nadv = max(1,int(nint(sqrt(2.0_rkx)*150.0_rkx*dtsec/dx/mo_cflhmax)))
-      mo_nsound = max(1,int(nint(sqrt(2.0_rkx)*343.15_rkx*dtsec / &
-                      dx/real(mo_nadv,rkx)/mo_cflsmax)))
       mo_c1 = sqrt(d_two)*150.0_rkx*dtsec/dx/real(mo_nadv,rkx)
       mo_c2 = sqrt(d_two)*sqrt(cpd/cvd*rgas*313.16_rkx)* &
               dtsec/dx/real(mo_nadv,rkx)/real(mo_nsound,rkx)
       if ( myid == italk ) then
-        write(stdout,'(a, f7.4, a, i2, a)') &
+        write(stdout,'(a, f9.3, a, i2, a)') &
            ' Advection timestep = ', dtsec/real(mo_nadv,rkx), &
            ' (factor ', mo_nadv, ')'
-        write(stdout,'(a, f7.4)') &
+        write(stdout,'(a, f9.4)') &
            ' Max. Courant number for horizontal advection = ', mo_c1
-        write(stdout,'(a, f7.4, a, i2, a)') ' Sound waves timestep = ', &
+        write(stdout,'(a, f9.3, a, i2, a)') ' Sound waves timestep = ', &
            dtsec/real(mo_nadv,rkx)/real(mo_nsound,rkx), &
            ' (factor ', mo_nsound, ')'
-        write(stdout,'(a, f7.4)') &
+        write(stdout,'(a, f9.4)') &
            ' Courant number of horizontal sound waves = ', mo_c2
       end if
     end if
@@ -2017,10 +2015,28 @@ module mod_params
     !
     !-----compute half sigma levels.
     !
-    do k = 1 , kz
-      hsigma(k) = (sigma(k+1) + sigma(k))*d_half
-      dsigma(k) = (sigma(k+1) - sigma(k))
-    end do
+    if ( idynamic == 3 ) then
+      zita(kzp1) = d_zero
+      do k = kz , 1 , -1
+        zita(k) = zita(k+1) + mo_dz
+        zitah(k) = zita(k) - mo_dz*d_half
+      end do
+      sigma(1) = d_zero
+      sigma = d_one - zita/hzita
+      hsigma = d_one - zitah/hzita
+      fak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+      fbk = gzita(zita)
+      ak = -hzita * bzita(zitah) * log(hsigma)
+      bk = gzita(zitah)
+      do k = 1 , kz
+        dsigma(k) = (sigma(k+1) - sigma(k))
+      end do
+    else
+      do k = 1 , kz
+        hsigma(k) = (sigma(k+1) + sigma(k))*d_half
+        dsigma(k) = (sigma(k+1) - sigma(k))
+      end do
+    end if
 
     call exchange(mddom%xlat,1,jde1,jde2,ide1,ide2)
     call exchange(mddom%xlon,1,jde1,jde2,ide1,ide2)
@@ -2763,7 +2779,6 @@ module mod_params
       subroutine compute_moloch_static
         implicit none
         integer(ik4) :: i , j
-        real(rkx) , dimension(kzp1) :: fak , fbk
         real(rkx) :: ztop
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
@@ -2819,21 +2834,6 @@ module mod_params
         end if
         call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
         call exchange_bt(mddom%hy,1,jce1,jce2,ide1,ide2)
-        zita(kzp1) = d_zero
-        do k = kz , 1 , -1
-          zita(k) = zita(k+1) + mo_dz
-          zitah(k) = zita(k) - mo_dz*d_half
-        end do
-        sigma(1) = d_zero
-        sigma = d_one - zita/hzita
-        hsigma = d_one - zitah/hzita
-        fak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
-        fbk = gzita(zita)
-        ak = -hzita * bzita(zitah) * log(hsigma)
-        bk = gzita(zitah)
-        do k = 1 , kz
-          dsigma(k) = (sigma(k+1) - sigma(k))
-        end do
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2

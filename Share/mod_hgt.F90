@@ -70,16 +70,16 @@ module mod_hgt
   subroutine hydrost(h,t,topo,ps,ptop,sigmah,ni,nj,nk)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nk
-    real(rk8) , intent(in) :: ptop
-    real(rk8) , intent(in) , dimension(nk) :: sigmah
-    real(rk8) , intent(in) , dimension(ni,nj,nk) :: t
-    real(rk8) , intent(in) , dimension(ni,nj) :: topo , ps
-    real(rk8) , intent(out) , dimension(ni,nj,nk) :: h
+    real(rkx) , intent(in) :: ptop
+    real(rkx) , intent(in) , dimension(nk) :: sigmah
+    real(rkx) , intent(in) , dimension(ni,nj,nk) :: t
+    real(rkx) , intent(in) , dimension(ni,nj) :: topo , ps
+    real(rkx) , intent(out) , dimension(ni,nj,nk) :: h
 
     integer(ik4) :: i , j , k
-    real(rk8) , dimension(nk+1) :: sigmaf
-    real(rk8) , dimension(nk) :: dsigma
-    real(rk8) :: pf , tbar
+    real(rkx) , dimension(nk+1) :: sigmaf
+    real(rkx) , dimension(nk) :: dsigma
+    real(rkx) :: pf , tbar
     !
     ! ROUTINE TO COMPUTE HEIGHT USING THE HYDROSTATIC RELATION.
     ! THE METHOD UTILIZED HERE IS CONSISTENT WITH THE WAY THE

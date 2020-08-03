@@ -645,7 +645,7 @@ module mod_moloch
         real(rkx) :: zuh , zvh , zcx , zcy
         real(rkx) :: zrfmzum , zrfmzup , zrfmzvm , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zqs , zdth
-        real(rkx) :: zrom1w , zwexpl , zp , zm , zrapp
+        real(rkx) :: zrom1w , zwexpl , zu , zd , zrapp
         real(rkx) :: zfz , zcor1u , zcor1v
         real(rkx) :: zrom1u , zrom1v
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz , zcs2
@@ -796,14 +796,14 @@ module mod_moloch
                          (pai(j,i,k-1) * zdiv2(j,i,k-1) - &
                           pai(j,i,k)   * zdiv2(j,i,k))
                 ! computation of the tridiagonal matrix coefficients
-                ! -zp*w(k+1) + (1+zp+zm)*w(k) - zm*w(k-1) = zwexpl
-                zp = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
-                zm = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
+                ! -zu*w(k+1) + (1+zu+zd)*w(k) - zd*w(k-1) = zwexpl
+                zu = zcs2 * fmz(j,i,k-1) * zrom1w * pai(j,i,k-1) + ffilt(k)
+                zd = zcs2 * fmz(j,i,k)   * zrom1w * pai(j,i,k)   + ffilt(k)
                 ! 1st loop for the tridiagonal inversion
-                ! a = -zm ; b = (1+zp+zm) ; c = -zp
-                zrapp = d_one / (d_one + zm + zp - zm*wwkw(j,i,k+1))
-                w(j,i,k) = zrapp * (zwexpl + zm * w(j,i,k+1))
-                wwkw(j,i,k) = zrapp * zp
+                ! a = -zd ; b = (1+zu+zd) ; c = -zu
+                zrapp = d_one / (d_one + zd + zu - zd*wwkw(j,i,k+1))
+                w(j,i,k) = zrapp * (zwexpl + zd * w(j,i,k+1))
+                wwkw(j,i,k) = zrapp * zu
               end do
             end do
           end do
@@ -1032,8 +1032,8 @@ module mod_moloch
         real(rkx) , dimension(:,:,:) , pointer , intent(inout) :: pp
         real(rkx) , intent(in) :: dta
         integer(ik4) :: j , i , k
-        integer(ik4) :: k1 , k1m1 , ih , ihm1 , jh , jhm1
-        real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmp , zrfmm
+        integer(ik4) :: k1 , k1p1 , ih , ihm1 , jh , jhm1
+        real(rkx) :: zamu , r , b , zphi , is , zdv , zrfmu , zrfmd
         real(rkx) :: zrfmn , zrfmw , zrfme , zrfms
         real(rkx) :: zdtrdx , zdtrdy , zdtrdz
         real(rkx) :: zhxvtn , zhxvts , zcostx
@@ -1056,15 +1056,15 @@ module mod_moloch
               if ( zamu >= d_zero ) then
                 is = d_one
                 k1 = k + 1
-                k1m1 = k1 + 1
-                if ( k1m1 > kz ) k1m1 = kz
+                k1p1 = k1 + 1
+                if ( k1p1 > kz ) k1p1 = kz
               else
                 is = -d_one
-                k1m1 = k
                 k1 = k - 1
+                k1p1 = k
                 if ( k1 < 1 ) k1 = 1
               end if
-              r = rdeno(pp(j,i,k1),pp(j,i,k1m1),pp(j,i,k),pp(j,i,k+1))
+              r = rdeno(pp(j,i,k1),pp(j,i,k1p1),pp(j,i,k),pp(j,i,k+1))
               b = max(d_zero, min(d_two, max(r, min(d_two*r,d_one))))
               zphi = is + zamu * b - is * b
               wfw(j,k+1) = d_half * s(j,i,k+1) * ((d_one+zphi)*pp(j,i,k+1) + &
@@ -1074,16 +1074,16 @@ module mod_moloch
             end do
           end do
           do j = jci1 , jci2
-            zrfmm = zdtrdz * fmz(j,i,1)/fmzf(j,i,2)
-            zdv = -s(j,i,2) * zrfmm * pp(j,i,1)
-            wz(j,i,1) = pp(j,i,1) + wfw(j,2) * zrfmm + zdv
+            zrfmd = zdtrdz * fmz(j,i,1)/fmzf(j,i,2)
+            zdv = -s(j,i,2) * zrfmd * pp(j,i,1)
+            wz(j,i,1) = pp(j,i,1) + wfw(j,2) * zrfmd + zdv
           end do
           do k = 2 , kz
             do j = jci1 , jci2
-              zrfmm = zdtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
-              zrfmp = zdtrdz * fmz(j,i,k)/fmzf(j,i,k)
-              zdv = (s(j,i,k)*zrfmp - s(j,i,k+1)*zrfmm) * pp(j,i,k)
-              wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmp + wfw(j,k+1)*zrfmm + zdv
+              zrfmu = zdtrdz * fmz(j,i,k)/fmzf(j,i,k)
+              zrfmd = zdtrdz * fmz(j,i,k)/fmzf(j,i,k+1)
+              zdv = (s(j,i,k)*zrfmu - s(j,i,k+1)*zrfmd) * pp(j,i,k)
+              wz(j,i,k) = pp(j,i,k) - wfw(j,k)*zrfmu + wfw(j,k+1)*zrfmd + zdv
             end do
           end do
           !do k = 1 , kz

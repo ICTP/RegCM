@@ -32,10 +32,12 @@ module mod_clm_regcm
   public :: initclm45 , runclm45 , albedoclm45
   public :: initsaclm45 , runsaclm45
 
-  real(rk8) , dimension(:) , pointer :: glon , glat , ihfac
-  real(rk8) , dimension(:,:) , pointer :: temps
-  real(rk8) , dimension(:,:) , pointer :: alon , alat , rcp
-  real(rk8) , dimension(:,:) , pointer :: crupre , acp0 , acp1 , acp2
+  real(rkx) , dimension(:) , pointer :: glon , glat
+  real(rkx) , dimension(:) , pointer :: ihfac
+  real(rkx) , dimension(:,:) , pointer :: temps
+  real(rkx) , dimension(:,:) , pointer :: alon , alat
+  real(rkx) , dimension(:,:) , pointer :: rcp
+  real(rkx) , dimension(:,:) , pointer :: crupre , acp0 , acp1 , acp2
   real(rk8) , dimension(:,:,:) , pointer :: emis2d
 
   type(h_interpolator) :: hint
@@ -810,7 +812,7 @@ module mod_clm_regcm
   subroutine read_cru_pre(lm,temps)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
-    real(rk8) , dimension(:,:) , pointer , intent(inout) :: temps
+    real(rkx) , dimension(:,:) , pointer , intent(inout) :: temps
     integer(ik4) , save :: ncid = -1
     integer(ik4) , save :: ivar = -1
     integer(ik4) , save :: imon = -1
@@ -969,7 +971,7 @@ module mod_clm_regcm
       end if
       if ( lcru_rand ) then
         if ( iday /= id ) then
-          call random_pick(24.0_rk8,ihfac,24)
+          call random_pick(24.0_rkx,ihfac,24)
           call bcast(ihfac)
           iday = id
         end if
