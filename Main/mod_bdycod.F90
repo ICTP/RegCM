@@ -315,6 +315,7 @@ module mod_bdycod
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       call open_som
     end if
+    call fixqcqi( )
 
     if ( we_have_qc( ) ) then
      call allocate_v3dbound(xlb,kz,cross)

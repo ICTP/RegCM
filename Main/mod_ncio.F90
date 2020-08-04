@@ -69,6 +69,12 @@ module mod_ncio
 
   contains
 
+  subroutine fixqcqi( )
+    implicit none
+    call bcast(has_qc)
+    call bcast(has_qi)
+  end subroutine
+
   logical function we_have_qc( )
     implicit none
     we_have_qc = has_qc
@@ -588,8 +594,6 @@ module mod_ncio
     character(len=64) :: icbc_timeunits , icbc_timecal
     character(len=256) :: icbcname
     if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
-      call bcast(has_qc)
-      call bcast(has_qi)
       return
     end if
     call close_icbc
@@ -675,8 +679,6 @@ module mod_ncio
         has_qi = .true.
       end if
     end if
-    call bcast(has_qc)
-    call bcast(has_qi)
     if ( do_parallel_netcdf_in ) then
       allocate(rspace2(jde1:jde2,ide1:ide2))
       allocate(rspace3(jde1:jde2,ide1:ide2,kz))
