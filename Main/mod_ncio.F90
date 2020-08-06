@@ -37,7 +37,7 @@ module mod_ncio
   public :: open_icbc , icbc_search , read_icbc , close_icbc
   public :: open_som , som_search , read_som , close_som
   public :: open_clmbc , clmbc_search , close_clmbc , read_clmbc
-  public :: we_have_qc , we_have_qi
+  public :: fixqcqi , we_have_qc , we_have_qi
 
   integer(ik4) :: ibcin , somin , clmbcin
   integer(ik4) :: istatus
