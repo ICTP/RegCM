@@ -769,8 +769,8 @@ conditions and the base state vertical profile curve shape.
  rayalpha0 = 0.0003,! Rate alpha0
  rayhd = 10000.0,   ! Damping scale depth
  mo_wmax = 150.0,   ! Maximum representable wind speed in m/s
- mo_cflhmax = 0.6,  ! Safety CFL fraction for computing advection timestep
- mo_cflsmax = 0.25, ! Safety CFL fraction for computing sound waves timestep
+ mo_nadv = 3,       ! Number of advection loops for phisics loop
+ mo_nsound = 6,     ! Number of sound loops for advection loop
  mo_nzfilt = 3,     ! Number of top levels where W filter is active
  mo_anu2 = 0.8,     ! Moloch factor for divergence filtering
  mo_filterpai = .T.,! Filter on Exner function tendencies activated
