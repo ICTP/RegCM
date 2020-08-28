@@ -64,7 +64,6 @@ module mod_ifs
   real(rkx) , pointer , dimension(:) :: glon
   integer(ik4) , pointer , dimension(:) :: slev
   real(rkx) , pointer , dimension(:) :: hyam , hybm
-  real(rkx) :: pss
 
   integer(ik4) :: ncin
   integer(ik4) , parameter :: nrvar = 7

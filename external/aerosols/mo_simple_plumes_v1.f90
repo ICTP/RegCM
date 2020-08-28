@@ -19,7 +19,7 @@
 !!   and Stefan Kinne with input from Thorsten Mauritsen and Robert Pincus
 !!
 !! @par Copyright
-!! 
+!!
 !
 MODULE MO_SIMPLE_PLUMES
 
@@ -41,19 +41,19 @@ MODULE MO_SIMPLE_PLUMES
        plume_lon      (nplumes)               ,& !< longitude of plume center (AOD maximum)
        beta_a         (nplumes)               ,& !< parameter a for beta function vertical profile
        beta_b         (nplumes)               ,& !< parameter b for beta function vertical profile
-       aod_spmx       (nplumes)               ,& !< anthropogenic AOD maximum at 550 for plumes 
+       aod_spmx       (nplumes)               ,& !< anthropogenic AOD maximum at 550 for plumes
        aod_fmbg       (nplumes)               ,& !< anthropogenic AOD at 550 for fine-mode natural background (idealized to mimic Twomey effect)
        asy550         (nplumes)               ,& !< asymmetry parameter at 550nm for plume
        ssa550         (nplumes)               ,& !< single scattering albedo at 550nm for plume
-       angstrom       (nplumes)               ,& !< Angstrom parameter for plume 
+       angstrom       (nplumes)               ,& !< Angstrom parameter for plume
        sig_lon_E      (nfeatures,nplumes)     ,& !< Eastward extent of plume feature
        sig_lon_W      (nfeatures,nplumes)     ,& !< Westward extent of plume feature
        sig_lat_E      (nfeatures,nplumes)     ,& !< Southward extent of plume feature
        sig_lat_W      (nfeatures,nplumes)     ,& !< Northward extent of plume feature
        theta          (nfeatures,nplumes)     ,& !< Rotation angle of plume feature
-       ftr_weight     (nfeatures,nplumes)     ,& !< Feature weights 
-       time_weight    (nfeatures,nplumes)     ,& !< Time weights 
-       time_weight_bg (nfeatures,nplumes)     ,& !< as time_weight but for natural background in Twomey effect 
+       ftr_weight     (nfeatures,nplumes)     ,& !< Feature weights
+       time_weight    (nfeatures,nplumes)     ,& !< Time weights
+       time_weight_bg (nfeatures,nplumes)     ,& !< as time_weight but for natural background in Twomey effect
        year_weight    (nyears,nplumes)        ,& !< Yearly weight for plume
        ann_cycle      (nfeatures,ntimes,nplumes) !< annual cycle for plume feature
 
@@ -67,14 +67,17 @@ CONTAINS
   !
   SUBROUTINE sp_setup
     !
-    ! ---------- 
+    ! ----------
     !
     INTEGER :: iret, ncid, DimID, VarID, xdmy
     !
-    ! ---------- 
-    !    
+    ! ----------
+    !
     iret = nf90_open("MACv2.0-SP_v1.nc", NF90_NOWRITE, ncid)
-    IF (iret /= NF90_NOERR) STOP 'NetCDF File not opened'
+    IF (iret /= NF90_NOERR) THEN
+      write (0,*) 'Cannot find file MACv2.0-SP_v1.nc in current directory.'
+      STOP 'NetCDF File not opened'
+    END IF
     !
     ! read dimensions and make sure file conforms to expected size
     !
@@ -160,21 +163,21 @@ CONTAINS
   ! SET_TIME_WEIGHT:  The simple plume model assumes that meteorology constrains plume shape and that only source strength
   ! influences the amplitude of a plume associated with a given source region.   This routine retrieves the temporal weights
   ! for the plumes.  Each plume feature has its own temporal weights which varies yearly.  The annual cycle is indexed by
-  ! week in the year and superimposed on the yearly mean value of the weight. 
+  ! week in the year and superimposed on the yearly mean value of the weight.
   !
   SUBROUTINE set_time_weight(year_fr)
     !
-    ! ---------- 
+    ! ----------
     !
     REAL, INTENT(IN) ::  &
          year_fr           !< Fractional Year (1850.0 - 2100.99)
 
     INTEGER          ::  &
-         iyear          ,& !< Integer year values between 1 and 156 (1850-2100) 
+         iyear          ,& !< Integer year values between 1 and 156 (1850-2100)
          iweek          ,& !< Integer index (between 1 and ntimes); for ntimes=52 this corresponds to weeks (roughly)
          iplume            ! plume number
     !
-    ! ---------- 
+    ! ----------
     !
     iyear = FLOOR(year_fr) - 1849
     iweek = FLOOR((year_fr - FLOOR(year_fr)) * ntimes) + 1
@@ -184,23 +187,23 @@ CONTAINS
       time_weight(1,iplume) = year_weight(iyear,iplume) * ann_cycle(1,iweek,iplume)
       time_weight(2,iplume) = year_weight(iyear,iplume) * ann_cycle(2,iweek,iplume)
       time_weight_bg(1,iplume) = ann_cycle(1,iweek,iplume)
-      time_weight_bg(2,iplume) = ann_cycle(2,iweek,iplume) 
+      time_weight_bg(2,iplume) = ann_cycle(2,iweek,iplume)
     END DO
-    
+
     RETURN
   END SUBROUTINE set_time_weight
   !
   ! ------------------------------------------------------------------------------------------------------------------------
   ! SP_AOP_PROFILE:  This subroutine calculates the simple plume aerosol and cloud active optical properties based on the
   ! the simple plume fit to the MPI Aerosol Climatology (Version 2).  It sums over nplumes to provide a profile of aerosol
-  ! optical properties on a host models vertical grid. 
+  ! optical properties on a host models vertical grid.
   !
   SUBROUTINE sp_aop_profile                                                                           ( &
        nlevels        ,ncol           ,lambda         ,oro            ,lon            ,lat            , &
        year_fr        ,z              ,dz             ,dNovrN         ,aod_prof       ,ssa_prof       , &
        asy_prof       )
     !
-    ! ---------- 
+    ! ----------
     !
     INTEGER, INTENT(IN)        :: &
          nlevels,                 & !< number of levels
@@ -210,7 +213,7 @@ CONTAINS
          lambda,                  & !< wavelength
          year_fr,                 & !< Fractional Year (1903.0 is the 0Z on the first of January 1903, Gregorian)
          oro(ncol),               & !< orographic height (m)
-         lon(ncol),               & !< longitude 
+         lon(ncol),               & !< longitude
          lat(ncol),               & !< latitude
          z (ncol,nlevels),        & !< height above sea-level (m)
          dz(ncol,nlevels)           !< level thickness (difference between half levels) (m)
@@ -228,7 +231,7 @@ CONTAINS
          z_beta(ncol,nlevels),     & !< profile for scaling column optical depth
          prof(ncol,nlevels),       & !< scaled profile (by beta function)
          beta_sum(ncol),           & !< vertical sum of beta function
-         ssa(ncol),                & !< single scattering albedo 
+         ssa(ncol),                & !< single scattering albedo
          asy(ncol),                & !< asymmetry parameter
          cw_an(ncol),              & !< column weight for simple plume (anthropogenic) AOD at 550 nm
          cw_bg(ncol),              & !< column weight for fine-mode natural background AOD at 550 nm
@@ -253,9 +256,9 @@ CONTAINS
          aod_lmd,                  & !< aerosol optical depth at input wavelength
          lfactor                     !< factor to compute wavelength dependence of optical properties
     !
-    ! ---------- 
+    ! ----------
     !
-    ! initialize input data (by calling setup at first instance) 
+    ! initialize input data (by calling setup at first instance)
     !
     IF (.NOT.sp_initialized) CALL sp_setup
     !
@@ -327,13 +330,13 @@ CONTAINS
         ! calculate contribution to plume from its different features, to get a column weight for the anthropogenic
         ! (cw_an) and the fine-mode natural background aerosol (cw_bg)
         !
-        f1 = time_weight(1,iplume) * ftr_weight(1,iplume) * EXP(-1.* (a_plume1 * ((lon1)**2) + (b_plume1 * ((lat1)**2)))) 
-        f2 = time_weight(2,iplume) * ftr_weight(2,iplume) * EXP(-1.* (a_plume2 * ((lon2)**2) + (b_plume2 * ((lat2)**2)))) 
-        f3 = time_weight_bg(1,iplume) * ftr_weight(1,iplume) * EXP(-1.* (a_plume1 * ((lon1)**2) + (b_plume1 * ((lat1)**2)))) 
+        f1 = time_weight(1,iplume) * ftr_weight(1,iplume) * EXP(-1.* (a_plume1 * ((lon1)**2) + (b_plume1 * ((lat1)**2))))
+        f2 = time_weight(2,iplume) * ftr_weight(2,iplume) * EXP(-1.* (a_plume2 * ((lon2)**2) + (b_plume2 * ((lat2)**2))))
+        f3 = time_weight_bg(1,iplume) * ftr_weight(1,iplume) * EXP(-1.* (a_plume1 * ((lon1)**2) + (b_plume1 * ((lat1)**2))))
         f4 = time_weight_bg(2,iplume) * ftr_weight(2,iplume) * EXP(-1.* (a_plume2 * ((lon2)**2) + (b_plume2 * ((lat2)**2))))
 
-        cw_an(icol) = f1 * aod_spmx(iplume) + f2 * aod_spmx(iplume)  
-        cw_bg(icol) = f3 * aod_fmbg(iplume) + f4 * aod_fmbg(iplume) 
+        cw_an(icol) = f1 * aod_spmx(iplume) + f2 * aod_spmx(iplume)
+        cw_bg(icol) = f3 * aod_fmbg(iplume) + f4 * aod_fmbg(iplume)
         !
         ! calculate wavelength-dependent scattering properties
         !
@@ -343,8 +346,8 @@ CONTAINS
       END DO
       !
       ! distribute plume optical properties across its vertical profile weighting by optical depth and scaling for
-      ! wavelength using the angstrom parameter. 
-      !      
+      ! wavelength using the angstrom parameter.
+      !
       lfactor = EXP(-angstrom(iplume) * LOG(lambda/550.0))
       DO k=1,nlevels
         DO icol = 1,ncol
@@ -376,5 +379,5 @@ CONTAINS
 
     RETURN
   END SUBROUTINE sp_aop_profile
-  
+
 END MODULE MO_SIMPLE_PLUMES

@@ -743,7 +743,7 @@ module mod_clm_regcm
 
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
-    call glb_l2c_ss(lndcomm,clm_l2a%qflx_snomelt,lms%snwm)
+    call glb_l2c_ss(lndcomm,clm_l2a%qflx_snow_melt,lms%snwm)
     lms%snwm = lms%snwm * dtsrf
 
     ! From the input
