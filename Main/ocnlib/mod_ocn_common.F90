@@ -114,11 +114,6 @@ module mod_ocn_common
       call c2l_ss(ocncomm,lms%sncv,sncv)
       call c2l_ss(ocncomm,lms%snag,snag)
     end if
-    if ( llake ) then
-      call initlake
-      lms%lakmsk = .false.
-      call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
-    end if
     if ( rcmtimer%start( ) ) then
       call c2l_gs(ocncomm,lm%tg,tgb)
       tgrd = tgb
@@ -174,6 +169,11 @@ module mod_ocn_common
           end do
         end if
       end if
+    end if
+    if ( llake ) then
+      call initlake
+      lms%lakmsk = .false.
+      call l2c_ss(ocncomm,lakmsk,lms%lakmsk)
     end if
     emiss(:) = ocn_sfcemiss
     call l2c_ss(ocncomm,emiss,lms%emisv)
