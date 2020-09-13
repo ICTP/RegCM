@@ -76,7 +76,7 @@ module mod_bdycod
   real(rkx) , pointer , dimension(:) :: wgtx
   real(rkx) , pointer , dimension(:,:,:) :: fg1 , fg2
   real(rkx) :: fnudge , gnudge , rdtbdy
-  real(rkx) :: jday
+  real(rk8) :: jday
   integer(ik4) :: som_month
 
   interface timeint
@@ -652,7 +652,7 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      jday = julianday(rcmtimer%idate)
+      jday = yeardayfrac(rcmtimer%idate)
       call paicompute(mddom%xlat,xpsb%b0,mo_atm%zeta,xtb%b0,xqb%b0,xpaib%b0)
       call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
@@ -841,7 +841,7 @@ module mod_bdycod
       call timeint(xppb%b1,xppb%b0,xppb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
       call timeint(xwwb%b1,xwwb%b0,xwwb%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kzp1)
     else if ( idynamic == 3 ) then
-      jday = julianday(rcmtimer%idate)
+      jday = yeardayfrac(rcmtimer%idate)
       call paicompute(mddom%xlat,xpsb%b1,mo_atm%zeta,xtb%b1,xqb%b1,xpaib%b1)
       call timeint(xpaib%b1,xpaib%b0,xpaib%bt,jce1ga,jce2ga,ice1ga,ice2ga,1,kz)
     end if
