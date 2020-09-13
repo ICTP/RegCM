@@ -1086,7 +1086,7 @@ module mod_gn6hnc
     if ( idynamic == 3 ) then
       call ucrs2dot(h3u,h3,jx,iy,npl,i_band)
       call vcrs2dot(h3v,h3,jx,iy,npl,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,julianday(idate),jx,iy,npl)
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,yeardayfrac(idate),jx,iy,npl)
       call intz3(ts4,t3,h3,topogm,jx,iy,npl,0.6_rkx,0.5_rkx,0.85_rkx)
     else
       call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,npl)

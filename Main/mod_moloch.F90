@@ -232,7 +232,8 @@ module mod_moloch
     integer(ik4) :: jadv , jsound
     real(rkx) :: dtsound , dtstepa
     real(rkx) :: maxps , minps , pmax , pmin , zdgz
-    real(rkx) :: tv , lrt , jday
+    real(rkx) :: tv , lrt
+    real(rk8) :: jday
     integer(ik4) :: i , j , k
     integer(ik4) :: iconvec
 #ifdef DEBUG
@@ -403,7 +404,7 @@ module mod_moloch
       end do
     end do
 
-    jday = julianday(rcmtimer%idate)
+    jday = yeardayfrac(rcmtimer%idate)
     do i = ice1 , ice2
       do j = jce1 , jce2
         zdgz = mo_atm%zeta(j,i,kz)*egrav
