@@ -59,7 +59,7 @@ module mod_era5
   real(rkx) , pointer , dimension(:) :: glon
   real(rkx) , pointer , dimension(:) :: plevs
   real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss
+  real(rkx) :: pss , pst
   integer(2) , pointer , dimension(:,:,:) :: work
   integer(2) , pointer , dimension(:,:) :: iwork
 
@@ -233,6 +233,7 @@ module mod_era5
       sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
     pss = plevs(klev)/10.0_rkx ! mb -> cb
+    pst = plevs(1)/10.0_rkx ! mb -> cb
     !
     ! Find window to read
     !
@@ -351,10 +352,11 @@ module mod_era5
     if ( idynamic == 3 ) then
       call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
       call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,yeardayfrac(idate),jx,iy,klev)
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,pst, &
+                  xlat,yeardayfrac(idate),jx,iy,klev)
       call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.5_rkx,0.85_rkx)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,klev)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
@@ -378,13 +380,13 @@ module mod_era5
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev)
 !$OMP SECTION
-      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
     end if
     ! Get from RHUM to mixing ratio

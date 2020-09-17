@@ -5,7 +5,10 @@ import os
 import xarray as xr
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import matplotlib
 import matplotlib.pyplot as plt
+
+matplotlib.use('cairo')
 
 def usage(msg):
     print(msg)
