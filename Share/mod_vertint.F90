@@ -1227,7 +1227,7 @@ module mod_vertint
       do j = 1 , nj
         do i = 1 , ni
           do n = 1 , krcm
-            sc = ((srcm(n)*psrcm(j,i) + pt) - pst)/pss
+            sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
             if ( sc > sccm(1) ) then
               frcm(i,j,n) = fccm(i,j,1)
             else if ( sc < sccm(kccm) ) then
@@ -1252,7 +1252,7 @@ module mod_vertint
       do j = 1 , nj
         do i = 1 , ni
           do n = 1 , krcm
-            sc = ((srcm(n)*psrcm(j,i) + pt) - pst)/pss
+            sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
             if ( sc > sccm(1) ) then
               frcm(i,j,n) = max(fccm(i,j,1),1.0e-8_rkx)
             else if ( sc < sccm(kccm) ) then
@@ -1292,7 +1292,7 @@ module mod_vertint
     do j = 1 , nj
       do i = 1 , ni
         do n = 1 , krcm
-          sc = ((srcm(n)*psrcm(j,i) + pt) - pst)/pss
+          sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
           if ( sc > sccm(1) ) then
             a1 = rgas2*log(sc/sccm(1))
             frcm(i,j,n) = fccm(i,j,1)*(b1-a1)/(b1+a1)
