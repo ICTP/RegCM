@@ -78,7 +78,7 @@ module mod_gn6hnc
   integer(ik4) :: npl , nrhlev
   real(rkx) , pointer , dimension(:) :: pplev
   real(rkx) , pointer , dimension(:) :: sigmar
-  real(rkx) :: pss
+  real(rkx) :: pss , pst
 
   ! Whole space
   real(rkx) , pointer , dimension(:,:,:) :: b2
@@ -924,11 +924,13 @@ module mod_gn6hnc
         sigmar(k) = (pplev(k)-pplev(npl))/(pplev(1)-pplev(npl))
       end do
       pss = pplev(1)/1000.0_rkx ! Pa -> cb
+      pst = pplev(npl)/1000.0_rkx ! Pa -> cb
     else
       do k = 1 , npl
         sigmar(k) = (pplev(npl-k+1)-pplev(1))/(pplev(npl)-pplev(1))
       end do
       pss = pplev(npl)/10.0_rkx ! mb -> cb
+      pst = pplev(1)/10.0_rkx ! mb -> cb
     end if
     if ( idynamic == 3 ) then
       call ucrs2dot(zud4,z0,jx,iy,kz,i_band)
@@ -1086,10 +1088,11 @@ module mod_gn6hnc
     if ( idynamic == 3 ) then
       call ucrs2dot(h3u,h3,jx,iy,npl,i_band)
       call vcrs2dot(h3v,h3,jx,iy,npl,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,yeardayfrac(idate),jx,iy,npl)
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,pst, &
+                  xlat,yeardayfrac(idate),jx,iy,npl)
       call intz3(ts4,t3,h3,topogm,jx,iy,npl,0.6_rkx,0.5_rkx,0.85_rkx)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,npl)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,npl)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,npl)
@@ -1113,13 +1116,13 @@ module mod_gn6hnc
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl,1)
 !$OMP SECTION
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl,1)
 !$OMP SECTION
-      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl)
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl)
 !$OMP SECTION
-      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,npl,1)
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,npl,1)
 !$OMP END SECTIONS
     end if
   end subroutine get_gn6hnc

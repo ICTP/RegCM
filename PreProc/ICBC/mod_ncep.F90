@@ -45,7 +45,7 @@ module mod_ncep
   real(rkx) , pointer , dimension(:) :: glat
   real(rkx) , pointer , dimension(:) :: glon
   real(rkx) , pointer , dimension(:) :: sigmar , plevs
-  real(rkx) :: pss
+  real(rkx) :: pss , pst
 
   real(rkx) , pointer , dimension(:,:,:) :: b2
   real(rkx) , pointer , dimension(:,:,:) :: d2
@@ -137,6 +137,7 @@ module mod_ncep
       sigmar(k) = (plevs(k)-plevs(klev))/(plevs(1)-plevs(klev))
     end do
     pss = plevs(1) / d_10 ! centibars
+    pst = plevs(klev) / d_10 ! centibars
     !
     ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
     !
@@ -253,10 +254,11 @@ module mod_ncep
     if ( idynamic == 3 ) then
       call ucrs2dot(h3u,h3,jx,iy,klev,i_band)
       call vcrs2dot(h3v,h3,jx,iy,klev,i_crm)
-      call intzps(ps4,topogm,t3,h3,pss,sigmar,xlat,yeardayfrac(idate),jx,iy,klev)
+      call intzps(ps4,topogm,t3,h3,pss,sigmar,pst, &
+                  xlat,yeardayfrac(idate),jx,iy,klev)
       call intz3(ts4,t3,h3,topogm,jx,iy,klev,0.6_rkx,0.5_rkx,0.85_rkx)
     else
-      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,jx,iy,klev)
+      call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,klev)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
       call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
@@ -280,13 +282,13 @@ module mod_ncep
     else
 !$OMP SECTIONS
 !$OMP SECTION
-      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(u4,u3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(v4,v3,pd4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP SECTION
-      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev)
+      call intv2(t4,t3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev)
 !$OMP SECTION
-      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,jx,iy,kz,klev,1)
+      call intv1(q4,q3,ps4,sigmah,pss,sigmar,ptop,pst,jx,iy,kz,klev,1)
 !$OMP END SECTIONS
     end if
     call rh2mxr(t4,q4,ps4,ptop,sigmah,jx,iy,kz)

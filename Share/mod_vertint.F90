@@ -718,10 +718,10 @@ module mod_vertint
   !        Pressure coordinates for pss , psrccm and ptop MUST match.
   !        Lowermost level is 1
   !
-  subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,ni,nj,nz)
+  subroutine intgtb(pa,za,tlayer,zrcm,tp,zp,pss,sccm,pst,ni,nj,nz)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nz
-    real(rkx) :: pss
+    real(rkx) :: pss , pst
     real(rkx) , dimension(ni,nj) , intent(in) :: zrcm
     real(rkx) , dimension(nz) , intent(in) :: sccm
     real(rkx) , dimension(ni,nj,nz) , intent(in) :: tp , zp
@@ -734,7 +734,7 @@ module mod_vertint
         if ( zrcm(i,j) < zp(i,j,1) ) then
           tlayer(i,j) = tp(i,j,1)
           za(i,j) = zp(i,j,1)
-          pa(i,j) = pss
+          pa(i,j) = pss + pst
         else
           kb = 0
           do k = 1 , nz - 1
@@ -750,7 +750,7 @@ module mod_vertint
           tlayer(i,j) = tp(i,j,kt) * wl + tp(i,j,kb) * wu
           tlayer(i,j) = (tp(i,j,kt) + tlayer(i,j))/d_two
           za(i,j) = zp(i,j,kt)
-          pa(i,j) = pss*sccm(kt)
+          pa(i,j) = pss*sccm(kt) + pst
         end if
       end do
     end do
@@ -1211,25 +1211,23 @@ module mod_vertint
   !        Pressure coordinates for pss , psrccm and ptop MUST match.
   !        Lowermost input level is 1
   !
-  subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm,imeth)
+  subroutine intv1(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,krcm,kccm,imeth)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj , imeth
-    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , intent(in) :: pt , pss , pst
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
     real(rkx) , dimension(kccm) , intent(in) :: sccm
     real(rkx) , dimension(krcm) , intent(in) :: srcm
     real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
-    real(rkx) :: pt1 , dp1 , rc1 , rc2 , sc
+    real(rkx) :: rc1 , rc2 , sc
     integer(ik4) :: i , j , k , k1 , km1 , n
 
-    pt1 = pt/pss
     if ( imeth == 1 ) then
       do j = 1 , nj
         do i = 1 , ni
-          dp1 = psrcm(i,j)/pss
           do n = 1 , krcm
-            sc = srcm(n)*dp1 + pt1
+            sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
             if ( sc > sccm(1) ) then
               frcm(i,j,n) = fccm(i,j,1)
             else if ( sc < sccm(kccm) ) then
@@ -1253,9 +1251,8 @@ module mod_vertint
     else
       do j = 1 , nj
         do i = 1 , ni
-          dp1 = psrcm(i,j)/pss
           do n = 1 , krcm
-            sc = srcm(n)*dp1 + pt1
+            sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
             if ( sc > sccm(1) ) then
               frcm(i,j,n) = max(fccm(i,j,1),1.0e-8_rkx)
             else if ( sc < sccm(kccm) ) then
@@ -1280,24 +1277,22 @@ module mod_vertint
     end if
   end subroutine intv1
 
-  subroutine intv2(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
+  subroutine intv2(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , intent(in) :: pt , pss , pst
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
     real(rkx) , dimension(kccm) , intent(in) :: sccm
     real(rkx) , dimension(krcm) , intent(in) :: srcm
     real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
-    real(rkx) :: pt1 , a1 , dp1 , rc1 , rc2 , sc
+    real(rkx) :: a1 , rc1 , rc2 , sc
     integer(ik4) :: i , j , k , k1 , km1 , n
 
-    pt1 = pt/pss
     do j = 1 , nj
       do i = 1 , ni
-        dp1 = psrcm(i,j)/pss
         do n = 1 , krcm
-          sc = srcm(n)*dp1 + pt1
+          sc = ((srcm(n)*psrcm(i,j) + pt) - pst)/pss
           if ( sc > sccm(1) ) then
             a1 = rgas2*log(sc/sccm(1))
             frcm(i,j,n) = fccm(i,j,1)*(b1-a1)/(b1+a1)
@@ -1423,77 +1418,97 @@ module mod_vertint
     end do
   end subroutine intv3
 
-  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,lat,jday,ni,nj,nz)
+  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,ptop,lat,jday,ni,nj,nz)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nz
-    real(rkx) , intent(in) :: pss , jday
+    real(rkx) , intent(in) :: pss , jday , ptop
     real(rkx) , dimension(ni,nj) , intent(in) :: zrcm , lat
     real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
     real(rkx) , dimension(nz) , intent(in) :: sccm
     real(rkx) , dimension(ni,nj,nz) , intent(in) :: tp , zp
     integer(ik4) :: i , j , k , kb , kt
-    real(rkx) :: wu , wl , tlayer , pa , za , dz , lrt
+    real :: wu , wl , tlayer , tva , tvb , pa , pb , za , zb , dz , lrt
 
     if ( zp(1,1,1) < zp(1,1,nz) ) then
       do j = 1 , nj
         do i = 1 , ni
-          kb = 0
-          do k = 1 , nz - 1
-            if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
-                 zrcm(i,j) > zp(i,j,k) ) then
-              kb = k
-              exit
-            end if
-          end do
-          if ( kb /= 0 ) then
-            kt = kb + 1
-            pa = pss*sccm(kt)
-            za = zp(i,j,kt)
-            dz = zrcm(i,j)-za
-            wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
-            wl = d_one - wu
-            tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
-            tlayer = (tp(i,j,kt) + tlayer)/d_two
-          else
-            pa = pss
-            za = zp(i,j,1)
-            dz = zrcm(i,j)-za
-            lrt = (tp(i,j,2)-tp(i,j,1))/(zp(i,j,2)-zp(i,j,1))
+          if ( zp(i,j,1) > zrcm(i,j) ) then
+            pb = pss + ptop
+            za = zp(i,j,2)
+            zb = zp(i,j,1)
+            tva = tp(i,j,2)
+            tvb = tp(i,j,1)
+            dz = zb - zrcm(i,j)
+            lrt = (tva-tvb)/(za-zb)
             lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            tlayer = tp(i,j,1) - 0.5_rkx*dz*lrt
+            tlayer = tvb - dz*lrt
+            tlayer = (tvb + tlayer) * 0.5_rkx
+            psrcm(i,j) = pb * exp(govr*dz/tlayer)
+          else if ( zp(1,1,nz) < zrcm(i,j) ) then
+            write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
+            psrcm(i,j) = missl
+          else
+            do k = 1 , nz - 1
+              if ( zrcm(i,j) <= zp(i,j,k+1) .and. &
+                   zrcm(i,j) > zp(i,j,k) ) then
+                kb = k
+                exit
+              end if
+            end do
+            kt = kb + 1
+            pa = pss*sccm(kt) + ptop
+            tva = tp(i,j,kt)
+            tvb = tp(i,j,kb)
+            za = zp(i,j,kt)
+            zb = zp(i,j,kb)
+            dz = za - zrcm(i,j)
+            wu = (zrcm(i,j)-zb)/(za-zb)
+            wl = 1.0_rkx - wu
+            tlayer = tva * wu + tvb * wl
+            tlayer = (tva + tlayer) * 0.5_rkx
+            psrcm(i,j) = pa * exp(govr*dz/tlayer)
           end if
-          psrcm(i,j) = pa * exp(-govr*dz/tlayer)
         end do
       end do
     else
       do j = 1 , nj
         do i = 1 , ni
-          kb = 0
-          do k = nz , 2 , -1
-            if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
-                 zrcm(i,j) > zp(i,j,k) ) then
-              kb = k
-              exit
-            end if
-          end do
-          if ( kb /= 0 ) then
-            kt = kb - 1
-            pa = pss*sccm(kt)
-            za = zp(i,j,kt)
-            dz = zrcm(i,j)-za
-            wu = (zrcm(i,j)-zp(i,j,kb))/(zp(i,j,kt)-zp(i,j,kb))
-            wl = d_one - wu
-            tlayer = tp(i,j,kt) * wu + tp(i,j,kb) * wl
-            tlayer = (tp(i,j,kt) + tlayer)/d_two
-          else
-            pa = pss
-            za = zp(i,j,nz)
-            dz = zrcm(i,j)-za
-            lrt = (tp(i,j,nz-1)-tp(i,j,nz))/(zp(i,j,nz-1)-zp(i,j,nz))
+          if ( zp(i,j,nz) > zrcm(i,j) ) then
+            pb = pss + ptop
+            za = zp(i,j,nz-1)
+            zb = zp(i,j,nz)
+            tva = tp(i,j,nz-1)
+            tvb = tp(i,j,nz)
+            dz = za - zrcm(i,j)
+            lrt = (tva-tvb)/(za-zb)
             lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,lat(i,j))
-            tlayer = tp(i,j,nz) - 0.5_rkx*dz*lrt
+            tlayer = tvb - dz*lrt
+            tlayer = (tvb + tlayer) * 0.5_rkx
+            psrcm(i,j) = pb * exp(govr*dz/tlayer)
+          else if ( zp(1,1,1) < zrcm(i,j) ) then
+            write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
+            psrcm(i,j) = missl
+          else
+            do k = nz , 2 , -1
+              if ( zrcm(i,j) <= zp(i,j,k-1) .and. &
+                   zrcm(i,j) > zp(i,j,k) ) then
+                kb = k
+                exit
+              end if
+            end do
+            kt = kb - 1
+            pa = pss*sccm(kt) + ptop
+            za = zp(i,j,kt)
+            zb = zp(i,j,kb)
+            tva = tp(i,j,kt)
+            tvb = tp(i,j,kb)
+            dz = za - zrcm(i,j)
+            wu = (zrcm(i,j)-zb)/(za-zb)
+            wl = 1.0_rkx - wu
+            tlayer = tva * wu + tvb * wl
+            tlayer = (tva + tlayer) * 0.5_rkx
+            psrcm(i,j) = pa * exp(govr*dz/tlayer)
           end if
-          psrcm(i,j) = pa * exp(-govr*dz/tlayer)
         end do
       end do
     end if
