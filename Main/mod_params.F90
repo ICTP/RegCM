@@ -157,7 +157,8 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam , ichecold
+      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam , ichecold ,   &
+      carb_aging_control
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -537,6 +538,7 @@ module mod_params
     rdstemfac = d_one
     ichbion = 0
     rocemfac = 1.33_rkx
+    carb_aging_control = .false.
 
     ntr = 0
     nbin = 0
@@ -1543,6 +1545,7 @@ module mod_params
       call bcast(ichlinox)
       call bcast(ichbion)
       call bcast(ismoke)
+      call bcast(carb_aging_control)
 
       ! Set chemistry dimensions and tracer names
       call chem_config

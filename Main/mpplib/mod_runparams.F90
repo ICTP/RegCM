@@ -32,7 +32,7 @@ module mod_runparams
 
   character(len=256) , public :: namelistfile , prgname
 
-  logical , public , parameter :: carb_aging_control = .false.
+  logical , public :: carb_aging_control = .false.
 
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
