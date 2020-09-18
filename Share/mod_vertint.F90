@@ -1380,10 +1380,10 @@ module mod_vertint
   !        Pressure coordinates for pss , psrccm and ptop MUST match.
   !        Lowermost level is 1
   !
-  subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,ni,nj,kccm)
+  subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,pst,ni,nj,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , ni , nj
-    real(rkx) , intent(in) :: ptop , pss
+    real(rkx) , intent(in) :: ptop , pss , pst
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rkx) , dimension(ni,nj) , intent(in) :: psrccm
     real(rkx) , dimension(ni,nj) , intent(out) :: fsccm
@@ -1393,7 +1393,7 @@ module mod_vertint
 
     do j = 1 , nj
       do i = 1 , ni
-        sc = (psrccm(i,j)+ptop)/pss
+        sc = ((psrccm(i,j)+ptop) - pst)/pss
         if ( sc < sccm(kccm) ) then
           fsccm(i,j) = fccm(i,j,kccm)
         else if ( sc > sccm(1) ) then

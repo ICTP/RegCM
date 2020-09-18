@@ -1095,7 +1095,7 @@ module mod_gn6hnc
       call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,npl)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-      call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,npl)
+      call intv3(ts4,t3,ps4,pss,sigmar,ptop,pst,jx,iy,npl)
     end if
 
     call readsst(ts4,idate)

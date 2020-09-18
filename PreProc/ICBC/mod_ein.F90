@@ -287,7 +287,7 @@ module mod_ein
       call intgtb(pa,za,tlayer,topogm,t3,h3,pss,sigmar,pst,jx,iy,klev)
       call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
       call crs2dot(pd4,ps4,jx,iy,i_band,i_crm)
-      call intv3(ts4,t3,ps4,pss,sigmar,ptop,jx,iy,klev)
+      call intv3(ts4,t3,ps4,pss,sigmar,ptop,pst,jx,iy,klev)
     end if
 
     call readsst(ts4,idate)
