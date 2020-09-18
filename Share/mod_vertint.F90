@@ -1121,7 +1121,7 @@ module mod_vertint
     real(rkx) , dimension(kccm) , intent(in) :: sccm
     real(rkx) , intent(in) :: srcm
     real(rkx) , dimension(ni,nj) , intent(out) :: frcm
-    real(rkx) :: psc , dp1 , rc , rc1 , sc
+    real(rkx) :: rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1
 
     do i = 1 , ni
@@ -1428,7 +1428,7 @@ module mod_vertint
     real(rkx) , dimension(nz) , intent(in) :: sccm
     real(rkx) , dimension(ni,nj,nz) , intent(in) :: tp , zp
     integer(ik4) :: i , j , k , kb , kt
-    real :: wu , wl , tlayer , tva , tvb , pa , pb , za , zb , dz , lrt
+    real(rkx) :: wu , wl , tlayer , tva , tvb , pa , pb , za , zb , dz , lrt
 
     if ( zp(1,1,1) < zp(1,1,nz) ) then
       do j = 1 , nj
