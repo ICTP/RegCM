@@ -735,6 +735,11 @@ module mod_vertint
           tlayer(i,j) = tp(i,j,1)
           za(i,j) = zp(i,j,1)
           pa(i,j) = pss + pst
+        else if ( zrcm(i,j) > zp(i,j,nz) ) then
+          write(stderr,*) 'REGIONAL MODEL ELEVATION HIGHER THAN GCM TOP'
+          tlayer(i,j) = missl
+          za(i,j) = missl
+          pa(i,j) = missl
         else
           kb = 0
           do k = 1 , nz - 1
@@ -1067,23 +1072,21 @@ module mod_vertint
   ! of regcm. The interpolation is linear in p.  Where extrapolation
   ! is necessary, fields are considered to have 0 vertical derivative.
   !
-  subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,krcm,kccm)
+  subroutine intv0(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,krcm,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , krcm , ni , nj
-    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , intent(in) :: pt , pss , pst
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
     real(rkx) , dimension(kccm) , intent(in) :: sccm
     real(rkx) , dimension(krcm) , intent(in) :: srcm
     real(rkx) , dimension(ni,nj,krcm) , intent(out) :: frcm
-    real(rkx) :: psc , dp1 , rc , rc1 , sc
+    real(rkx) :: rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1 , n
-    psc = pss - pt
     do i = 1 , ni
       do j = 1 , nj
-        dp1 = psrcm(i,j)/psc
         do n = 1 , krcm
-          sc = srcm(n)*dp1
+          sc = (srcm(n)*psrcm(i,j) + pt - pst)/pss
           k1 = 0
           do k = 1 , kccm
             if ( sc > sccm(k) ) k1 = k
@@ -1109,10 +1112,10 @@ module mod_vertint
   ! is necessary, fields are considered to have 0 vertical derivative.
   ! For a particular sigma value only.
   !
-  subroutine intvp(frcm,fccm,psrcm,srcm,pss,sccm,pt,ni,nj,kccm)
+  subroutine intvp(frcm,fccm,psrcm,srcm,pss,sccm,pt,pst,ni,nj,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , ni , nj
-    real(rkx) , intent(in) :: pt , pss
+    real(rkx) , intent(in) :: pt , pss , pst
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rkx) , dimension(ni,nj) , intent(in) :: psrcm
     real(rkx) , dimension(kccm) , intent(in) :: sccm
@@ -1121,11 +1124,9 @@ module mod_vertint
     real(rkx) :: psc , dp1 , rc , rc1 , sc
     integer(ik4) :: i , j , k , k1 , kp1
 
-    psc = pss - pt
     do i = 1 , ni
       do j = 1 , nj
-        dp1 = psrcm(i,j)/psc
-        sc = srcm*dp1
+        sc = (srcm * psrcm(i,j) + pt - pst)/pss
         k1 = 0
         do k = 1 , kccm
           if ( sc > sccm(k) ) k1 = k
@@ -1380,10 +1381,10 @@ module mod_vertint
   !        Pressure coordinates for pss , psrccm and ptop MUST match.
   !        Lowermost level is 1
   !
-  subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,ni,nj,kccm)
+  subroutine intv3(fsccm,fccm,psrccm,pss,sccm,ptop,pst,ni,nj,kccm)
     implicit none
     integer(ik4) , intent(in) :: kccm , ni , nj
-    real(rkx) , intent(in) :: ptop , pss
+    real(rkx) , intent(in) :: ptop , pss , pst
     real(rkx) , dimension(ni,nj,kccm) , intent(in) :: fccm
     real(rkx) , dimension(ni,nj) , intent(in) :: psrccm
     real(rkx) , dimension(ni,nj) , intent(out) :: fsccm
@@ -1393,7 +1394,7 @@ module mod_vertint
 
     do j = 1 , nj
       do i = 1 , ni
-        sc = (psrccm(i,j)+ptop)/pss
+        sc = ((psrccm(i,j)+ptop) - pst)/pss
         if ( sc < sccm(kccm) ) then
           fsccm(i,j) = fccm(i,j,kccm)
         else if ( sc > sccm(1) ) then
@@ -1418,10 +1419,10 @@ module mod_vertint
     end do
   end subroutine intv3
 
-  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,ptop,lat,jday,ni,nj,nz)
+  subroutine intzps1(psrcm,zrcm,tp,zp,pss,sccm,pst,lat,jday,ni,nj,nz)
     implicit none
     integer(ik4) , intent(in) :: ni , nj , nz
-    real(rkx) , intent(in) :: pss , jday , ptop
+    real(rkx) , intent(in) :: pss , jday , pst
     real(rkx) , dimension(ni,nj) , intent(in) :: zrcm , lat
     real(rkx) , dimension(ni,nj) , intent(out) :: psrcm
     real(rkx) , dimension(nz) , intent(in) :: sccm
@@ -1433,7 +1434,7 @@ module mod_vertint
       do j = 1 , nj
         do i = 1 , ni
           if ( zp(i,j,1) > zrcm(i,j) ) then
-            pb = pss + ptop
+            pb = pss + pst
             za = zp(i,j,2)
             zb = zp(i,j,1)
             tva = tp(i,j,2)
@@ -1456,7 +1457,7 @@ module mod_vertint
               end if
             end do
             kt = kb + 1
-            pa = pss*sccm(kt) + ptop
+            pa = pss*sccm(kt) + pst
             tva = tp(i,j,kt)
             tvb = tp(i,j,kb)
             za = zp(i,j,kt)
@@ -1474,7 +1475,7 @@ module mod_vertint
       do j = 1 , nj
         do i = 1 , ni
           if ( zp(i,j,nz) > zrcm(i,j) ) then
-            pb = pss + ptop
+            pb = pss + pst
             za = zp(i,j,nz-1)
             zb = zp(i,j,nz)
             tva = tp(i,j,nz-1)
@@ -1497,7 +1498,7 @@ module mod_vertint
               end if
             end do
             kt = kb - 1
-            pa = pss*sccm(kt) + ptop
+            pa = pss*sccm(kt) + pst
             za = zp(i,j,kt)
             zb = zp(i,j,kb)
             tva = tp(i,j,kt)
