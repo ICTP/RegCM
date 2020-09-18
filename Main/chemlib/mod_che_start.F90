@@ -425,6 +425,11 @@ module mod_che_start
     ! Finally initialise tracer MXR to chib0 over the whole domain
 
     if ( .not. ifrest .or. ichecold == 1 ) then
+      if ( myid == 0 ) then
+        write(stdout,*) '#################################'
+        write(stdout,*) '       Initializing tracers'
+        write(stdout,*) '#################################'
+      end if
       if ( idynamic == 3 ) then
         do n = 1 , ntr
           do k = 1 , kz

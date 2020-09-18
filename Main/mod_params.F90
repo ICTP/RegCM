@@ -1528,6 +1528,7 @@ module mod_params
       call bcast(ichdrdepo)
       call bcast(ichcumtra)
       call bcast(idirect)
+      call bcast(ichecold)
       call bcast(isnowdark)
       call bcast(iindirect)
       call bcast(ichsolver)
