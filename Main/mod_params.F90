@@ -157,7 +157,7 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam
+      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam , ichecold
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -522,6 +522,7 @@ module mod_params
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
     ichdustparam = 1  ! read dust emission scheme surface parameters
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
+    ichecold = 0      ! chemistry cold start (restart without chem data in SAV)
     idirect = 0       ! tracer direct effect
 #ifdef CLM45
     isnowdark = 1     ! Snow darkening by CARB/DUST

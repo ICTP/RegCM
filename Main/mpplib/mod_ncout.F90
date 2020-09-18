@@ -3313,6 +3313,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_string('chem_simulation_type',chemsimtype))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('chem_cold_restart',ichecold))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_activate_reaction_solver',ichsolver))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('chem_activate_emission',ichsursrc))
