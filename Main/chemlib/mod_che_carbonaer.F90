@@ -26,6 +26,7 @@ module mod_che_carbonaer
   use mod_che_common
   use mod_che_species
   use mod_che_indices
+  use mod_runparams , only : chechgact
 
   implicit none
 
@@ -85,14 +86,16 @@ module mod_che_carbonaer
   real(rkx) , public , dimension(12) :: carbed
 
   real(rkx) , pointer , dimension(:,:,:) :: ncon
+  real(rkx) , pointer , dimension(:,:,:,:) :: save_chagct
   ! variable for surface area of aerosol
   real(rkx) , pointer , dimension(:,:,:) :: surf
   real(rkx) , pointer , dimension(:,:,:) :: so4chagct
 
   public :: solbc , solbchl , soloc , solochl
   public :: solsm1 , solsm2
+  public :: ncon
   ! unit of so4chagct = kg kg-1 sec-1
-  public :: so4chagct
+  public :: so4chagct , save_chagct
   public :: carb_init , carb_prepare , aging_carb
   real(rkx) , pointer , dimension(:,:,:,:) :: pp
 
@@ -105,6 +108,10 @@ module mod_che_carbonaer
         call getmem3d(surf,jci1,jci2,ici1,ici2,1,kz,'carbonaer:surf')
         call getmem3d(so4chagct,jci1,jci2, &
                       ici1,ici2,1,kz,'che_common:so4chagct')
+        if ( chechgact ) then
+          call getmem4d(save_chagct,jci1,jci2, &
+                        ici1,ici2,1,kz,1,ntr,'che_common:save_chagct')
+        end if
       end if
       if ( idynamic == 3 ) then
         call assignpnt(chemt,pp)
@@ -237,6 +244,9 @@ module mod_che_carbonaer
                 arg = min(max(1.0e-3_rkx, &
                           kcond*icon + kcoag*ncon(j,i,k)),d_one)
                 chagct = 3600.0_rkx * d_one/arg
+                if ( chechgact ) then
+                  save_chagct(j,i,k,b1) = chagct
+                end if
                 kav = max(pp(j,i,k,b1)-mintr,d_zero)
                 arg = max(min(dt/chagct,25.0_rkx),d_zero)
                 agingtend(j,i) = -kav*(d_one-exp(-arg))/dt

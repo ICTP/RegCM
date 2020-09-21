@@ -96,7 +96,7 @@ module mod_params
       enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
       enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
       lsync , idiag , icosp , deflate_level , do_parallel_netcdf_in ,     &
-      do_parallel_netcdf_out , deflate_level
+      do_parallel_netcdf_out , deflate_level , chechgact
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
@@ -236,6 +236,7 @@ module mod_params
     uvrotate = .false.
     do_parallel_netcdf_in = .false.
     do_parallel_netcdf_out = .false.
+    chechgact = .false.
     idiag = 0
     icosp = 0
     !
@@ -1112,6 +1113,7 @@ module mod_params
     call bcast(icosp)
     call bcast(do_parallel_netcdf_in)
     call bcast(do_parallel_netcdf_out)
+    call bcast(chechgact)
 #ifdef NETCDF4_HDF5
     call bcast(deflate_level)
 #endif

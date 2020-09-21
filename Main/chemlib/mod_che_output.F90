@@ -202,6 +202,14 @@ module mod_che_output
         cemisdiag(:,:,:,itr) = d_zero
       endif
 
+      if ( associated(che_chgact_out) ) then
+        che_chgact_out(:,:,:) = save_chagct(:,:,:,itr)
+      end if
+
+      if ( associated(opt_ncon_out) ) then
+        opt_ncon_out(:,:,:) = ncon(:,:,:)
+      end if
+
       rainout(:,:,:,itr) = d_zero
       washout(:,:,:,itr) = d_zero
 

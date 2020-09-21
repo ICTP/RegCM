@@ -202,7 +202,7 @@ module mod_runparams
 
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
   logical , public :: do_parallel_save
-  logical , public :: ifrest , doing_restart , lsync
+  logical , public :: ifrest , doing_restart , lsync , chechgact
 
   real(rkx) , pointer , dimension(:) , public :: dtau , dtsplit
   real(rkx) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
