@@ -87,15 +87,16 @@ module mod_che_carbonaer
 
   real(rkx) , pointer , dimension(:,:,:) :: ncon
   real(rkx) , pointer , dimension(:,:,:,:) :: save_chagct
+  real(rkx) , pointer , dimension(:,:,:,:) :: save_ncon
   ! variable for surface area of aerosol
   real(rkx) , pointer , dimension(:,:,:) :: surf
   real(rkx) , pointer , dimension(:,:,:) :: so4chagct
 
   public :: solbc , solbchl , soloc , solochl
   public :: solsm1 , solsm2
-  public :: ncon
+  public :: ncon , surf
   ! unit of so4chagct = kg kg-1 sec-1
-  public :: so4chagct , save_chagct
+  public :: so4chagct , save_chagct , save_ncon
   public :: carb_init , carb_prepare , aging_carb
   real(rkx) , pointer , dimension(:,:,:,:) :: pp
 
@@ -111,6 +112,8 @@ module mod_che_carbonaer
         if ( chechgact ) then
           call getmem4d(save_chagct,jci1,jci2, &
                         ici1,ici2,1,kz,1,ntr,'che_common:save_chagct')
+          call getmem4d(save_ncon,jci1,jci2, &
+                        ici1,ici2,1,kz,1,ntr,'che_common:save_ncon')
         end if
       end if
       if ( idynamic == 3 ) then
@@ -201,6 +204,9 @@ module mod_che_carbonaer
                 ! mixing ratio in kg/kg
                 kav = max(pp(j,i,k,id)-mintr,d_zero)
                 ncon(j,i,k) = ncon(j,i,k)+kav*crhob3d(j,i,k)/pm*1e-6
+                if ( chechgact ) then
+                  save_ncon(j,i,k,id) = kav*crhob3d(j,i,k)/pm*1e-6
+                end if
                 ! unit of surf m2/kg
                 surf(j,i,k) = surf(j,i,k)+mathpi*refx*refx*kav/pm*1e-12
               end do
@@ -213,6 +219,9 @@ module mod_che_carbonaer
                 ! mixing ratio in kg/kg
                 kav = max(pp(j,i,k,id)-mintr,d_zero)
                 ncon(j,i,k) = ncon(j,i,k)+kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
+                if ( chechgact ) then
+                  save_ncon(j,i,k,id) = kav/cpsb(j,i)*crhob3d(j,i,k)/pm*1e-6
+                end if
                 ! unit of surf m2/kg
                 surf(j,i,k) = surf(j,i,k)+mathpi*reffso4*reffso4*kav/pm*1e-12
               end do

@@ -204,10 +204,14 @@ module mod_che_output
 
       if ( associated(che_chgact_out) ) then
         che_chgact_out(:,:,:) = save_chagct(:,:,:,itr)
+        che_ncon_out(:,:,:) = save_ncon(:,:,:,itr)
       end if
 
       if ( associated(opt_ncon_out) ) then
         opt_ncon_out(:,:,:) = ncon(:,:,:)
+      end if
+      if ( associated(opt_surf_out) ) then
+        opt_surf_out(:,:,:) = surf(:,:,:)
       end if
 
       rainout(:,:,:,itr) = d_zero
