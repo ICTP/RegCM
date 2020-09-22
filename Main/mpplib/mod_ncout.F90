@@ -84,11 +84,11 @@ module mod_ncout
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nopt2dvars = 10 + nbase
-  integer(ik4) , parameter :: nopt3dvars = 7
+  integer(ik4) , parameter :: nopt3dvars = 8
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 8 + nbase
-  integer(ik4) , parameter :: nche3dvars = 15
+  integer(ik4) , parameter :: nche3dvars = 16
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -413,6 +413,7 @@ module mod_ncout
   integer(ik4) , parameter :: opt_agfu8    = 5
   integer(ik4) , parameter :: opt_deltaz   = 6
   integer(ik4) , parameter :: opt_ncon     = 7
+  integer(ik4) , parameter :: opt_surf     = 8
 
   integer(ik4) , parameter :: che_xlon     = 1
   integer(ik4) , parameter :: che_xlat     = 2
@@ -443,6 +444,7 @@ module mod_ncout
   integer(ik4) , parameter :: che_sedten   = 13
   integer(ik4) , parameter :: che_emten    = 14
   integer(ik4) , parameter :: che_chgact   = 15
+  integer(ik4) , parameter :: che_ncon     = 16
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -2346,13 +2348,20 @@ module mod_ncout
         end if
         if ( carb_aging_control ) then
           if ( enable_opt3d_vars(opt_ncon) ) then
-            call setup_var(v3dvar_opt,opt_ncon,vsize,'ncon','#', &
+            call setup_var(v3dvar_opt,opt_ncon,vsize,'ncon','1', &
               'Total layer aerosol number concentration', &
               'atmosphere_layer_number_content_of_aerosol_particles',.true.)
             opt_ncon_out => v3dvar_opt(opt_ncon)%rval
           end if
+          if ( enable_opt3d_vars(opt_surf) ) then
+            call setup_var(v3dvar_opt,opt_surf,vsize,'surf','m2/kg', &
+              'Total layer aerosol surface area', &
+              'atmosphere_layer_surface_area_of_aerosol_particles',.true.)
+            opt_surf_out => v3dvar_opt(opt_surf)%rval
+          end if
         else
           enable_opt3d_vars(opt_ncon) = .false.
+          enable_opt3d_vars(opt_surf) = .false.
         end if
 
         enable_opt_vars(1:nopt2dvars) = enable_opt2d_vars
@@ -2562,8 +2571,15 @@ module mod_ncout
               'aging_efolding_time',.true.)
             che_chgact_out => v3dvar_che(che_chgact)%rval
           end if
+          if ( enable_che3d_vars(che_ncon) ) then
+            call setup_var(v3dvar_che,che_ncon,vsize,'ncon', '1', &
+              'Total layer aerosol number concentration', &
+              'atmosphere_layer_number_content_of_aerosol_particles',.true.)
+            che_ncon_out => v3dvar_che(che_ncon)%rval
+          end if
         else
           enable_che3d_vars(che_chgact) = .false.
+          enable_che3d_vars(che_ncon) = .false.
         end if
 
         enable_che_vars(1:nche2dvars) = enable_che2d_vars
