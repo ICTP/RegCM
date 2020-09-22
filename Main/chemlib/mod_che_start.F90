@@ -405,7 +405,7 @@ module mod_che_start
         'ichdustemd == 3 valid only if CLM45 is active.')
     end if
 #endif
-    if ( idust(1) > 0 .or. ichbion == 1 ) then
+    if ( nbin > 0 .or. ichbion == 1 ) then
       ! activate dust initialization
       if ( myid == italk ) write(stdout,'(a)',advance='no') ' Calling inidust'
       call inidust
@@ -424,7 +424,12 @@ module mod_che_start
 
     ! Finally initialise tracer MXR to chib0 over the whole domain
 
-    if ( .not. ifrest ) then
+    if ( .not. ifrest .or. ichecold == 1 ) then
+      if ( myid == 0 ) then
+        write(stdout,*) '#################################'
+        write(stdout,*) '       Initializing tracers'
+        write(stdout,*) '#################################'
+      end if
       if ( idynamic == 3 ) then
         do n = 1 , ntr
           do k = 1 , kz

@@ -676,7 +676,7 @@ module mod_savefile
     call mygetvar(ncid,'tgbrd',tgbrd_io)
     call mygetvar(ncid,'sncv',sncv_io)
 #ifdef CLM45
-    if ( ichem == 1 ) then
+    if ( ichem == 1 .and. ichecold == 0 ) then
       call mygetvar(ncid,'tsoi',tsoi_io)
       call mygetvar(ncid,'swvol',swvol_io)
     end if
@@ -707,7 +707,7 @@ module mod_savefile
     if ( iocnflx == 2 .or. ibltyp == 3 ) then
       call mygetvar(ncid,'zpbl',zpbl_io)
     end if
-    if ( ichem == 1 ) then
+    if ( ichem == 1 .and. ichecold == 0 ) then
       if ( idynamic == 3 ) then
         call mygetvar(ncid,'trac',trac_io)
       else

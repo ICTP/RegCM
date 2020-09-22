@@ -325,7 +325,7 @@
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
-      if ( idust(1) > 0 .and. ichsursrc == 1 ) then
+      if ( nbin > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
           call sfflux(ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
                       crho2d,dustbsiz)
@@ -371,7 +371,7 @@
       pdepv(:,:,:,:) = d_zero
       ddepa(:,:,:)   = d_zero
       ! ddepg(:,:,:)   = d_zero
-      if ( idust(1) > 0 .and. ichdrdepo > 0 ) then
+      if ( nbin > 0 .and. ichdrdepo > 0 ) then
         do i = ici1 , ici2
           call drydep_aero(i,nbin,idust,rhodust,ivegcov(:,i),       &
                            ttb(:,:,i),rho(:,:,i),ph(:,:,i),         &
@@ -445,7 +445,7 @@
       !
       ! WET deposition (rainout and washout) for aerosol
       !
-      if ( idust(1) > 0 .and. ichremlsc == 1 ) then
+      if ( nbin > 0 .and. ichremlsc == 1 ) then
         xrho(1:nbin) = rhodust
         do i = ici1 , ici2
           call wetdepa(i,nbin,idust,dustbed,xrho(1:nbin),ttb(:,:,i), &

@@ -242,6 +242,8 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: opt_assa8_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_agfu8_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: opt_deltaz_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: opt_ncon_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: opt_surf_out => null()
 
   real(rkx) , dimension(:,:) , pointer :: che_wdrflx_out => null()
   real(rkx) , dimension(:,:) , pointer :: che_wdcflx_out => null()
@@ -264,6 +266,8 @@ module mod_outvars
   real(rkx) , dimension(:,:,:) , pointer :: che_bdyten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_sedten_out => null()
   real(rkx) , dimension(:,:,:) , pointer :: che_emten_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: che_chgact_out => null()
+  real(rkx) , dimension(:,:,:) , pointer :: che_ncon_out => null()
 
   real(rkx) , dimension(:,:,:) , pointer :: slab_qflx_out => null()
 

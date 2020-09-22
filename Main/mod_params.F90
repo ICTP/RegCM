@@ -96,7 +96,7 @@ module mod_params
       enable_sub_vars , enable_sts_vars , enable_lak_vars ,               &
       enable_opt_vars , enable_che_vars , enable_shf_vars ,               &
       lsync , idiag , icosp , deflate_level , do_parallel_netcdf_in ,     &
-      do_parallel_netcdf_out , deflate_level
+      do_parallel_netcdf_out , deflate_level , chechgact
 
     namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
       icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &
@@ -157,7 +157,8 @@ module mod_params
     namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
       ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,           &
       ichdiag , ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion ,    &
-      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam
+      ismoke , rocemfac, ichlinox , isnowdark, ichdustparam , ichecold ,   &
+      carb_aging_control
 
     namelist /uwparam/ iuwvadv , atwo , rstbl , czero , nuk
 
@@ -235,6 +236,7 @@ module mod_params
     uvrotate = .false.
     do_parallel_netcdf_in = .false.
     do_parallel_netcdf_out = .false.
+    chechgact = .false.
     idiag = 0
     icosp = 0
     !
@@ -522,6 +524,7 @@ module mod_params
     ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
     ichdustparam = 1  ! read dust emission scheme surface parameters
     ichjphcld = 1     ! impact of cloud aod on photolysis coef
+    ichecold = 0      ! chemistry cold start (restart without chem data in SAV)
     idirect = 0       ! tracer direct effect
 #ifdef CLM45
     isnowdark = 1     ! Snow darkening by CARB/DUST
@@ -536,6 +539,7 @@ module mod_params
     rdstemfac = d_one
     ichbion = 0
     rocemfac = 1.33_rkx
+    carb_aging_control = .false.
 
     ntr = 0
     nbin = 0
@@ -1109,6 +1113,7 @@ module mod_params
     call bcast(icosp)
     call bcast(do_parallel_netcdf_in)
     call bcast(do_parallel_netcdf_out)
+    call bcast(chechgact)
 #ifdef NETCDF4_HDF5
     call bcast(deflate_level)
 #endif
@@ -1527,6 +1532,7 @@ module mod_params
       call bcast(ichdrdepo)
       call bcast(ichcumtra)
       call bcast(idirect)
+      call bcast(ichecold)
       call bcast(isnowdark)
       call bcast(iindirect)
       call bcast(ichsolver)
@@ -1541,6 +1547,7 @@ module mod_params
       call bcast(ichlinox)
       call bcast(ichbion)
       call bcast(ismoke)
+      call bcast(carb_aging_control)
 
       ! Set chemistry dimensions and tracer names
       call chem_config

@@ -408,6 +408,15 @@ module mod_init
       ! End of initial run case
       !
     else
+      if ( ichem == 1 .and. ichecold == 1 ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'Starting tracer run in a previous run with ichem==0'
+        end if
+        if ( ichem == 1 ) then
+          sfracv2d(:,:)  = d_half
+          sfracb2d(:,:)  = d_half
+        end if
+      end if
       !
       ! When restarting, read in the data saved from previous run
       !
@@ -428,7 +437,7 @@ module mod_init
             mo_atm%tke(jce1:jce2,ice1:ice2,:) = &
                      atm_tke_io(jce1:jce2,ice1:ice2,:)
           end if
-          if ( ichem == 1 ) then
+          if ( ichem == 1 .and. ichecold == 0 ) then
             mo_atm%trac(jce1:jce2,ice1:ice2,:,:) = &
                        trac_io(jce1:jce2,ice1:ice2,:,:)
           end if
@@ -450,7 +459,7 @@ module mod_init
             atm2%tke(jce1:jce2,ice1:ice2,:) = &
                      atm2_tke_io(jce1:jce2,ice1:ice2,:)
           end if
-          if ( ichem == 1 ) then
+          if ( ichem == 1 .and. ichecold == 0 ) then
             atm1%chi(jce1:jce2,ice1:ice2,:,:) = &
                      chia_io(jce1:jce2,ice1:ice2,:,:)
             atm2%chi(jce1:jce2,ice1:ice2,:,:) = &
@@ -513,7 +522,7 @@ module mod_init
         end if
         lms%sw = sw_io
 #ifdef CLM45
-        if ( ichem == 1 ) then
+        if ( ichem == 1 .and. ichecold == 0 ) then
           tsoi = tsoi_io
           sw_vol = swvol_io
         end if
@@ -569,7 +578,7 @@ module mod_init
           dstor(jde1:jde2,ide1:ide2,:) = dstor_io(jde1:jde2,ide1:ide2,:)
           hstor(jde1:jde2,ide1:ide2,:) = hstor_io(jde1:jde2,ide1:ide2,:)
         end if
-        if ( ichem == 1 ) then
+        if ( ichem == 1 .and. ichecold == 0 ) then
           convpr = convpr_io
           rainout = rainout_io
           washout = washout_io

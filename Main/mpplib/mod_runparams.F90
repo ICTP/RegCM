@@ -32,7 +32,7 @@ module mod_runparams
 
   character(len=256) , public :: namelistfile , prgname
 
-  logical , public , parameter :: carb_aging_control = .false.
+  logical , public :: carb_aging_control = .false.
 
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
@@ -146,6 +146,7 @@ module mod_runparams
   ! Radiation switch controls
   integer(ik4) , public :: idirect , iindirect , iemiss , isolconst , ifixsolar
   integer(ik4) , public :: isnowdark
+  integer(ik4) , public :: ichecold
   ! Fixed solar constant for ifixsolar = 1
   real(rkx) , public :: fixedsolarval
   ! Semi-Langrangian advection for tracers
@@ -201,7 +202,7 @@ module mod_runparams
 
   logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
   logical , public :: do_parallel_save
-  logical , public :: ifrest , doing_restart , lsync
+  logical , public :: ifrest , doing_restart , lsync , chechgact
 
   real(rkx) , pointer , dimension(:) , public :: dtau , dtsplit
   real(rkx) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
