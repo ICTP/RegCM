@@ -5168,7 +5168,7 @@ module mod_bdycod
     xps = stdpmb
     xu = d_zero
     xv = d_zero
-    xq = d_zero
+    xq = 1.0e-8_rkx
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2

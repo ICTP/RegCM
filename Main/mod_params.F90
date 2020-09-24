@@ -1748,6 +1748,8 @@ module mod_params
                           mddom%coriol,mddom%snowam,mddom%smoist,        &
                           mddom%rmoist,mddom%dhlake,base_state_ts0)
     if ( moloch_do_test_1 ) then
+      ifrayd = 0
+      mo_filterpai = .false.
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx

@@ -447,7 +447,7 @@ module mod_moloch
     !
     ! Lateral/damping boundary condition
     !
-    if ( do_bdy ) then
+    if ( do_bdy .and. moloch_realcase ) then
       call boundary
       if ( i_crm /= 1 ) then
         if ( ifrayd == 1 ) then
@@ -642,7 +642,7 @@ module mod_moloch
       subroutine sound(dts)
         implicit none
         real(rkx) , intent(in) :: dts
-        integer(ik4) :: i , j , k , im1 , ip1 , jm1 , jp1
+        integer(ik4) :: i , j , k
         real(rkx) :: zuh , zvh , zcx , zcy
         real(rkx) :: zrfmzum , zrfmzup , zrfmzvm , zrfmzvp
         real(rkx) :: zup , zum , zvp , zvm , zqs , zdth
@@ -674,15 +674,15 @@ module mod_moloch
           call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
           call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
 
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               zuh = u(j,i,kz) * hx(j,i) + u(j+1,i,kz) * hx(j+1,i)
               zvh = v(j,i,kz) * hy(j,i) + v(j,i+1,kz) * hy(j,i+1)
               w(j,i,kzp1) = d_half * (zuh+zvh)
             end do
           end do
-          do i = ice1 , ice2
-            do j = jce1 , jce2
+          do i = ici1 , ici2
+            do j = jci1 , jci2
               s(j,i,kzp1) = -w(j,i,kzp1)
             end do
           end do
@@ -690,8 +690,8 @@ module mod_moloch
           ! Equation 10, generalized vertical velocity
 
           do k = kz , 2 , -1
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+            do i = ici1 , ici2
+              do j = jci1 , jci2
                 zuh = (u(j,i,k)   + u(j,i,k-1))   * hx(j,i) + &
                       (u(j+1,i,k) + u(j+1,i,k-1)) * hx(j+1,i)
                 zvh = (v(j,i,k)   + v(j,i,k-1))   * hy(j,i) + &
@@ -707,16 +707,12 @@ module mod_moloch
           if ( iproj == 'ROTLLR' ) then
 
             do k = 1 , kz
-              do i = ice1 , ice2
-                im1 = max(icross1,i-1)
-                ip1 = min(icross2,i+1)
-                do j = jce1 , jce2
-                  jm1 = max(jcross1,j-1)
-                  jp1 = min(jcross2,j+1)
-                  zrfmzum = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
-                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,im1,k))
-                  zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
-                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
                   zum = zdtrdx * u(j,i,k) * zrfmzum
                   zup = zdtrdx * u(j+1,i,k) * zrfmzup
                   zvm = zdtrdy * v(j,i,k) * zrfmzvm * rmv(j,i)
@@ -727,8 +723,8 @@ module mod_moloch
             end do
             call filt3d
             do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
+              do i = ici1 , ici2
+                do j = jci1 , jci2
                   zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
                          zdtrdz * (s(j,i,k) - s(j,i,k+1))
                 end do
@@ -738,16 +734,12 @@ module mod_moloch
           else
 
             do k = 1 , kz
-              do i = ice1 , ice2
-                im1 = max(icross1,i-1)
-                ip1 = min(icross2,i+1)
-                do j = jce1 , jce2
-                  jm1 = max(jcross1,j-1)
-                  jp1 = min(jcross2,j+1)
-                  zrfmzum = d_two / (fmz(j,i,k) + fmz(jm1,i,k))
-                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,im1,k))
-                  zrfmzup = d_two / (fmz(j,i,k) + fmz(jp1,i,k))
-                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,ip1,k))
+              do i = ici1 , ici2
+                do j = jci1 , jci2
+                  zrfmzum = d_two / (fmz(j,i,k) + fmz(j-1,i,k))
+                  zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
+                  zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
+                  zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
                   zum = u(j,i,k) * rmu(j,i) * zrfmzum
                   zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
                   zvm = v(j,i,k) * rmv(j,i) * zrfmzvm
@@ -759,8 +751,8 @@ module mod_moloch
             end do
             call filt3d
             do k = 1 , kz
-              do i = ice1 , ice2
-                do j = jce1 , jce2
+              do i = ici1 , ici2
+                do j = jci1 , jci2
                   zdiv2(j,i,k) = zdiv2(j,i,k) + fmz(j,i,k) * &
                          zdtrdz * (s(j,i,k) - s(j,i,k+1))
                 end do
@@ -772,8 +764,8 @@ module mod_moloch
           ! new w (implicit scheme) from Equation 19
 
           do k = kz , 2 , -1
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+            do i = ici1 , ici2
+              do j = jci1 , jci2
                 deltaw(j,i,k) = -w(j,i,k)
                 ! explicit w:
                 !    it must be consistent with the initialization of pai
@@ -811,13 +803,62 @@ module mod_moloch
 
           ! 2nd loop for the tridiagonal inversion
           do k = 2 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
+            do i = ici1 , ici2
+              do j = jci1 , jci2
                 w(j,i,k) = w(j,i,k) + wwkw(j,i,k)*w(j,i,k-1)
                 deltaw(j,i,k) = deltaw(j,i,k) + w(j,i,k)
               end do
             end do
           end do
+
+          if ( ma%has_bdybottom ) then
+            do k = 1 , kzp1
+              do j = jci1 , jci2
+                deltaw(j,ice1,k) = deltaw(j,ici1,k)
+              end do
+            end do
+            if ( ma%has_bdyleft ) then
+              do k = 1 , kzp1
+                deltaw(jce1,ice1,k) = deltaw(jci1,ici1,k)
+              end do
+            end if
+            if ( ma%has_bdyright ) then
+              do k = 1 , kzp1
+                deltaw(jce2,ice1,k) = deltaw(jci2,ici1,k)
+              end do
+            end if
+          end if
+          if ( ma%has_bdytop ) then
+            do k = 1 , kzp1
+              do j = jci1 , jci2
+                deltaw(j,ice2,k) = deltaw(j,ici2,k)
+              end do
+            end do
+            if ( ma%has_bdyleft ) then
+              do k = 1 , kzp1
+                deltaw(jce1,ice2,k) = deltaw(jci1,ici2,k)
+              end do
+            end if
+            if ( ma%has_bdyright ) then
+              do k = 1 , kzp1
+                deltaw(jce2,ice2,k) = deltaw(jci2,ici2,k)
+              end do
+            end if
+          end if
+          if ( ma%has_bdyleft ) then
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                deltaw(jce1,i,k) = deltaw(jci1,i,k)
+              end do
+            end do
+          end if
+          if ( ma%has_bdyright ) then
+            do k = 1 , kzp1
+              do i = ici1 , ici2
+                deltaw(jce2,i,k) = deltaw(jci2,i,k)
+              end do
+            end do
+          end if
 
           ! new Exner function (Equation 19)
           do k = 1 , kz
