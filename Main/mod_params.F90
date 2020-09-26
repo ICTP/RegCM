@@ -1765,8 +1765,7 @@ module mod_params
       mddom%msfu = d_one
       mddom%msfv = d_one
       mddom%msfx = d_one
-      mddom%coriou = d_zero
-      mddom%coriov = d_zero
+      mddom%coriol = d_one
     end if
 
     if ( idynamic == 3 ) then
@@ -2791,16 +2790,6 @@ module mod_params
         real(rkx) :: ztop
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
-        do i = ice1 , ice2
-          do j = jde1 , jde2
-            mddom%coriou(j,i) = eomeg2*sin(mddom%ulat(j,i)*degrad)
-          end do
-        end do
-        do i = ide1 , ide2
-          do j = jce1 , jce2
-            mddom%coriov(j,i) = eomeg2*sin(mddom%vlat(j,i)*degrad)
-          end do
-        end do
         do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &

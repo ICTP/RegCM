@@ -5203,6 +5203,66 @@ module mod_bdycod
     end do
   end subroutine moloch_static_test2
 
+  !  Computes optimal relaxation coefficients for lateral
+  !  boundary conditions (Lehmann, MAP, 1993,1-14)
+  !  See the paper for more comments
+  !  NOTE : IS MUST BE POWER OF 2
+  !  Input:  is       width of boundary relaxation zone (power of 2)
+  !          gammin   minimal Courant number (c*dt/dx)
+  !          gammax   maximal Courant number
+  !  Output: alpha()  weight of externally specified values in the boundary
+  !                   zone (corresponding to optimal relax. coefficients)
+  subroutine relax (is, gammin, gammax, alpha)
+    implicit none
+    integer(ik4) , intent(in) :: is
+    real(rkx) , intent(in) :: gammin , gammax
+    real(rkx) , dimension(is) , intent(out) :: alpha
+    real(rkx) , dimension(0:2*is) :: p , q , pp , qq
+    real(rkx) :: my , kk , kdt2 , xxx
+    integer(ik4) :: i , j , n
+
+    n = 1
+    p(0) = 0.0_rkx
+    p(1) = 1.0_rkx
+    q(0) = 1.0_rkx
+    q(1) = 0.0_rkx
+    my = sqrt(gammax/gammin)
+    do
+      my = sqrt((my+1.0_rkx/my)/2.0_rkx)
+      do i = 0 , n+n
+        pp(i) = 0.0_rkx
+        qq(i) = 0.0_rkx
+      end do
+      do i = 0 , n
+        do j = 0 , n
+          pp(i+j) = pp(i+j) + p(i)*p(j) + q(i)*q(j)
+          qq(i+j) = qq(i+j) + 2.0_rkx*my*p(i)*q(j)
+        end do
+      end do
+      do i = 0 , n+n
+        p(i) = pp(i)
+        q(i) = qq(i)
+      end do
+      n = 2*n
+      if ( n >= is ) exit
+    end do
+    do i = n , 1 , -1
+      kk = p(i)/q(i-1)
+      do j = i , 1 , -1
+        xxx = q(j)
+        q(j) = p(j) - kk*q(j-1)
+        p(j) = xxx
+      end do
+      xxx = q(0)
+      q(0) = p(0)
+      p(0) = xxx
+      kdt2 = kk*sqrt(gammin*gammax)
+      alpha(i) = kdt2/(1.0_rkx+kdt2)
+    end do
+    !  Remark: this alpha corresponds to the leapfrog scheme,
+    !  whereas kdt2 is independent of the integration scheme
+  end subroutine relax
+
 end module mod_bdycod
 
 ! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
