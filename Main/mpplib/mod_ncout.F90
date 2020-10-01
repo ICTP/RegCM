@@ -88,7 +88,7 @@ module mod_ncout
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 8 + nbase
-  integer(ik4) , parameter :: nche3dvars = 16
+  integer(ik4) , parameter :: nche3dvars = 17
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = nbase
@@ -445,6 +445,7 @@ module mod_ncout
   integer(ik4) , parameter :: che_emten    = 14
   integer(ik4) , parameter :: che_chgact   = 15
   integer(ik4) , parameter :: che_ncon     = 16
+  integer(ik4) , parameter :: che_massc    = 17
 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
@@ -2577,9 +2578,16 @@ module mod_ncout
               'atmosphere_layer_number_content_of_aerosol_particles',.true.)
             che_ncon_out => v3dvar_che(che_ncon)%rval
           end if
+          if ( enable_che3d_vars(che_massc) ) then
+            call setup_var(v3dvar_che,che_massc,vsize,'massc', 'kg m-3', &
+              'Atmosphere tracer mass concentration', &
+              'mass_concentration_of_tracer_in_air',.true.)
+            che_massc_out => v3dvar_che(che_massc)%rval
+          end if
         else
           enable_che3d_vars(che_chgact) = .false.
           enable_che3d_vars(che_ncon) = .false.
+          enable_che3d_vars(che_massc) = .false.
         end if
 
         enable_che_vars(1:nche2dvars) = enable_che2d_vars

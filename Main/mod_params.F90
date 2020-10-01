@@ -1748,6 +1748,8 @@ module mod_params
                           mddom%coriol,mddom%snowam,mddom%smoist,        &
                           mddom%rmoist,mddom%dhlake,base_state_ts0)
     if ( moloch_do_test_1 ) then
+      ifrayd = 0
+      mo_filterpai = .false.
       mddom%ht = 0.0_rkx
       mddom%lndcat = 15.0_rkx
       mddom%lndtex = 14.0_rkx
@@ -1763,8 +1765,7 @@ module mod_params
       mddom%msfu = d_one
       mddom%msfv = d_one
       mddom%msfx = d_one
-      mddom%coriou = d_zero
-      mddom%coriov = d_zero
+      mddom%coriol = d_one
     end if
 
     if ( idynamic == 3 ) then
@@ -2790,16 +2791,6 @@ module mod_params
         call exchange_lr(mddom%msfu,1,jde1,jde2,ide1,ide2)
         call exchange_bt(mddom%msfv,1,jde1,jde2,ide1,ide2)
         do i = ice1 , ice2
-          do j = jde1 , jde2
-            mddom%coriou(j,i) = eomeg2*sin(mddom%ulat(j,i)*degrad)
-          end do
-        end do
-        do i = ide1 , ide2
-          do j = jce1 , jce2
-            mddom%coriov(j,i) = eomeg2*sin(mddom%vlat(j,i)*degrad)
-          end do
-        end do
-        do i = ice1 , ice2
           do j = jdi1 , jdi2
             mddom%hx(j,i) = (mddom%ht(j,i) - mddom%ht(j-1,i)) * &
                              mddom%msfu(j,i) * rdx * regrav
@@ -2807,36 +2798,17 @@ module mod_params
         end do
         if ( iproj == 'ROTLLR' ) then
           do i = idi1 , idi2
-            do j = jce1 , jce2
-              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * rdx * regrav
+            do j = jci1 , jci2
+              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+                               rdx * regrav
             end do
           end do
         else
           do i = idi1 , idi2
-            do j = jce1 , jce2
+            do j = jci1 , jci2
               mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
                                mddom%msfv(j,i) * rdx * regrav
             end do
-          end do
-        end if
-        if ( ma%has_bdyleft ) then
-          do i = ice1 , ice2
-            mddom%hx(jde1,i) = mddom%hx(jdi1,i)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do i = ice1 , ice2
-            mddom%hx(jde2,i) = mddom%hx(jdi2,i)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do j = jce1 , jce2
-            mddom%hy(j,ide1) = mddom%hy(j,idi1)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do j = jce1 , jce2
-            mddom%hy(j,ide2) = mddom%hy(j,idi2)
           end do
         end if
         call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)

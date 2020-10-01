@@ -29,7 +29,7 @@ module mod_zita
   private
 
   real(rkx) , parameter :: t0 = 280.0_rkx
-  real(rkx) , parameter :: hzita = rgas*t0/egrav
+  real(rkx) , parameter :: hzita = rgas*t0*regrav
 
   interface zita_interp
     module procedure zh3d
@@ -84,7 +84,7 @@ module mod_zita
     real(rkx) :: zfz
     zfz = 1.0_rkx - zita/hzita
     ! Equation 9
-    md_fmz = zfz /( bzita(zita) + geopot/egrav*zfz*gzitap(zita) - &
+    md_fmz = zfz /( bzita(zita) + geopot*regrav*zfz*gzitap(zita) - &
                     hzita*zfz*log(zfz)*bzitap(zita) )
   end function md_fmz
 
@@ -104,7 +104,7 @@ module mod_zita
     real(rkx) , intent(in) :: zita , geopot
     real(rkx) :: zfz , orog
     zfz = 1.0_rkx - zita/hzita
-    orog = geopot/egrav
+    orog = geopot*regrav
     ! Equation 7 with removal of orography and check for negatives
     md_zeta = max((orog*gzita(zita)-hzita*bzita(zita)*log(zfz))-orog, 0.0_rkx)
   end function md_zeta
