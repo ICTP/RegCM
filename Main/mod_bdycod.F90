@@ -222,7 +222,7 @@ module mod_bdycod
       end if
       if ( idynamic == 3 ) then
         fnudge = fnudge * mo_nadv * mo_nsound
-        gnudge = gnudge * mo_nadv * mo_nsound
+        !gnudge = gnudge * mo_nadv * mo_nsound
       end if
       if ( myid == italk ) then
         write(stdout, '(a,f12.6,a,f12.6)') &

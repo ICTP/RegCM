@@ -409,7 +409,7 @@ module mod_moloch
         zdgz = mo_atm%zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
-        tv = tvirt(j,i,kz) - 0.5_rkx*zeta(j,i,kz)*lrt
+        tv = tvirt(j,i,kz) - d_half*zeta(j,i,kz)*lrt
         ps(j,i) = p(j,i,kz) * exp(zdgz/(rgas*tv))
       end do
     end do
@@ -583,7 +583,7 @@ module mod_moloch
             do j = jci1 , jci2
               p2d(j,i) = 0.125_rkx * (zdiv2(j-1,i,k) + zdiv2(j+1,i,k) + &
                                       zdiv2(j,i-1,k) + zdiv2(j,i+1,k)) - &
-                         0.5_rkx   * zdiv2(j,i,k)
+                         d_half   * zdiv2(j,i,k)
             end do
           end do
           do i = ici1 , ici2
@@ -605,7 +605,7 @@ module mod_moloch
             do j = jci1 , jci2
               p2d(j,i) = 0.125_rkx * (pai(j-1,i,k) + pai(j+1,i,k) + &
                                       pai(j,i-1,k) + pai(j,i+1,k)) - &
-                         0.5_rkx   * pai(j,i,k)
+                         d_half   * pai(j,i,k)
             end do
           end do
           do i = ici1 , ici2
@@ -627,7 +627,7 @@ module mod_moloch
             do j = jci1 , jci2
               p2d(j,i) = 0.125_rkx * (tetav(j-1,i,k) + tetav(j+1,i,k) + &
                                       tetav(j,i-1,k) + tetav(j,i+1,k)) - &
-                         0.5_rkx   * tetav(j,i,k)
+                         d_half   * tetav(j,i,k)
             end do
           end do
           do i = ici1 , ici2
@@ -663,10 +663,10 @@ module mod_moloch
 
         do jsound = 1 , nsound
 
-          ! partial definition of the generalized vertical velocity
+          ud(jde1:jde2,ice1:ice2,1:kz) = u(jde1:jde2,ice1:ice2,1:kz)
+          vd(jce1:jce2,ide1:ide2,1:kz) = v(jce1:jce2,ide1:ide2,1:kz)
 
-          ud(jde1:jde2,ice1:ice2,:) = u(jde1:jde2,ice1:ice2,:)
-          vd(jce1:jce2,ide1:ide2,:) = v(jce1:jce2,ide1:ide2,:)
+          ! partial definition of the generalized vertical velocity
 
           call exchange_lr(u,1,jde1,jde2,ice1,ice2,1,kz)
           call exchange_bt(v,1,jce1,jce2,ide1,ide2,1,kz)
@@ -774,7 +774,7 @@ module mod_moloch
                 if ( do_fulleq ) then
                   if ( qv(j,i,k) > 0.96_rkx*qsat(j,i,k) .and. &
                        w(j,i,k) > 0.1_rkx ) then
-                    zqs = 0.5_rkx*(qsat(j,i,k)+qsat(j,i,k-1))
+                    zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
                     zdth = egrav*w(j,i,k)*(jsound-1)*dts*wlhv*wlhv* &
                       zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
                     zrom1w = zrom1w + zdth*fmzf(j,i,k)
@@ -807,55 +807,6 @@ module mod_moloch
               end do
             end do
           end do
-
-          if ( ma%has_bdybottom ) then
-            do k = 1 , kzp1
-              do j = jci1 , jci2
-                deltaw(j,ice1,k) = deltaw(j,ici1,k)
-              end do
-            end do
-            if ( ma%has_bdyleft ) then
-              do k = 1 , kzp1
-                deltaw(jce1,ice1,k) = deltaw(jci1,ici1,k)
-              end do
-            end if
-            if ( ma%has_bdyright ) then
-              do k = 1 , kzp1
-                deltaw(jce2,ice1,k) = deltaw(jci2,ici1,k)
-              end do
-            end if
-          end if
-          if ( ma%has_bdytop ) then
-            do k = 1 , kzp1
-              do j = jci1 , jci2
-                deltaw(j,ice2,k) = deltaw(j,ici2,k)
-              end do
-            end do
-            if ( ma%has_bdyleft ) then
-              do k = 1 , kzp1
-                deltaw(jce1,ice2,k) = deltaw(jci1,ici2,k)
-              end do
-            end if
-            if ( ma%has_bdyright ) then
-              do k = 1 , kzp1
-                deltaw(jce2,ice2,k) = deltaw(jci2,ici2,k)
-              end do
-            end if
-          end if
-          if ( ma%has_bdyleft ) then
-            do k = 1 , kzp1
-              do i = ici1 , ici2
-                deltaw(jce1,i,k) = deltaw(jci1,i,k)
-              end do
-            end do
-          end if
-          if ( ma%has_bdyright ) then
-            do k = 1 , kzp1
-              do i = ici1 , ici2
-                deltaw(jce2,i,k) = deltaw(jci2,i,k)
-              end do
-            end do
-          end if
 
           ! new Exner function (Equation 19)
           do k = 1 , kz
@@ -906,31 +857,31 @@ module mod_moloch
 
             do k = 1 , kz
               do i = ici1 , ici2
-                do j = jdii1 , jdii2
+                do j = jdi1 , jdi2
                   zcx = zdtrdx * mu(j,i)
                   zfz = 0.25_rkx * &
                     (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                  zcor1u = coriol(j,i) * vd(j,i,k)
+                  zcor1u = coriol(j,i) * vd(j,i,k) * dts
                   ! Equation 17
-                  u(j,i,k) = u(j,i,k) + zcor1u * dts - &
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
                              zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
                 end do
               end do
             end do
             do k = 1 , kz
-              do i = idii1 , idii2
+              do i = idi1 , idi2
                 do j = jci1 , jci2
                   zcy = zdtrdy
                   zfz = 0.25_rkx * &
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                  zcor1v = coriol(j,i) * ud(j,i,k)
+                  zcor1v = coriol(j,i) * ud(j,i,k) * dts
                   ! Equation 18
-                  v(j,i,k) = v(j,i,k) - zcor1v * dts - &
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
                              zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
                 end do
@@ -941,31 +892,31 @@ module mod_moloch
 
             do k = 1 , kz
               do i = ici1 , ici2
-                do j = jdii1 , jdii2
+                do j = jdi1 , jdi2
                   zcx = zdtrdx * mu(j,i)
                   zfz = 0.25_rkx * &
                     (deltaw(j-1,i,k) + deltaw(j-1,i,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1u = d_half * cpd * (tetav(j-1,i,k) + tetav(j,i,k))
-                  zcor1u = coriol(j,i) * vd(j,i,k)
+                  zcor1u = coriol(j,i) * vd(j,i,k) * dts
                   ! Equation 17
-                  u(j,i,k) = u(j,i,k) + zcor1u * dts - &
+                  u(j,i,k) = u(j,i,k) + zcor1u - &
                              zfz * hx(j,i) * gzitakh(k) - &
                              zcx * zrom1u * (pai(j,i,k) - pai(j-1,i,k))
                 end do
               end do
             end do
             do k = 1 , kz
-              do i = idii1 , idii2
+              do i = idi1 , idi2
                 do j = jci1 , jci2
                   zcy = zdtrdy * mv(j,i)
                   zfz = 0.25_rkx * &
                     (deltaw(j,i-1,k) + deltaw(j,i-1,k+1) + &
-                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav*dts
+                     deltaw(j,i,k)   + deltaw(j,i,k+1)) + egrav * dts
                   zrom1v = d_half * cpd * (tetav(j,i-1,k) + tetav(j,i,k))
-                  zcor1v = coriol(j,i) * ud(j,i,k)
+                  zcor1v = coriol(j,i) * ud(j,i,k) * dts
                   ! Equation 18
-                  v(j,i,k) = v(j,i,k) - zcor1v * dts - &
+                  v(j,i,k) = v(j,i,k) - zcor1v - &
                              zfz * hy(j,i) * gzitakh(k) -  &
                              zcy * zrom1v * (pai(j,i,k) - pai(j,i-1,k))
                 end do
@@ -1160,9 +1111,10 @@ module mod_moloch
                 zphi = is + zamu*b - is*b
                 zpby(j,i) = d_half * v(j,i,k) * &
                   ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+                !zpby(j,i) = d_half * zamu * &
+                !  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
               end do
             end do
-
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zhxvtn = zdtrdy * rmv(j,i+1) * mx(j,i)
@@ -1174,6 +1126,14 @@ module mod_moloch
                       zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv
               end do
             end do
+            !do i = ici1 , ici2
+            !  do j = jci1 , jci2
+            !    zhxvtn = zdtrdy * rmv(j,i+1) * mx(j,i)
+            !    zhxvts = zdtrdy * rmv(j,i) * mx(j,i)
+            !    zdv = (v(j,i+1,k) * zhxvtn - v(j,i,k) * zhxvts) * pp(j,i,k)
+            !    p0(j,i,k) = wz(j,i,k) + zpby(j,i) - zpby(j,i+1) + zdv
+            !  end do
+            !end do
           end do
 
           if ( ma%has_bdyleft ) then
@@ -1213,9 +1173,10 @@ module mod_moloch
                 zphi = is + zamu*b - is*b
                 zpbw(j,i) = d_half * u(j,i,k) * &
                      ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+                !zpbw(j,i) = d_half * zamu * &
+                !     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
               end do
             end do
-
             do i = ici1 , ici2
               do j = jci1 , jci2
                 zcostx = zdtrdx * mu(j,i)
@@ -1226,6 +1187,14 @@ module mod_moloch
                      zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv
               end do
             end do
+            !do i = ici1 , ici2
+            !  do j = jci1 , jci2
+            !    zrfme = mu(j+1,i) * zdtrdx
+            !    zrfmw = mu(j,i) * zdtrdx
+            !    zdv = (u(j+1,i,k) * zrfme - u(j,i,k) * zrfmw) * pp(j,i,k)
+            !    pp(j,i,k) = p0(j,i,k) + zpbw(j,i) - zpbw(j+1,i) + zdv
+            !  end do
+            !end do
           end do
 
         else
@@ -1249,6 +1218,8 @@ module mod_moloch
                 zphi = is + zamu*b - is*b
                 zpby(j,i) = d_half * v(j,i,k) * rmv(j,i) * &
                   ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
+                !zpby(j,i) = d_half * zamu * &
+                !  ((d_one+zphi)*wz(j,i-1,k) + (d_one-zphi)*wz(j,i,k))
               end do
             end do
 
@@ -1257,11 +1228,19 @@ module mod_moloch
                 zrfmn = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i+1,k))
                 zrfms = zdtrdy * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j,i-1,k))
                 zdv = (v(j,i+1,k) * rmv(j,i+1) * zrfmn - &
-                       v(j,i,k) * rmv(j,i) * zrfms) * pp(j,i,k)
+                       v(j,i,k)   * rmv(j,i)   * zrfms) * pp(j,i,k)
                 p0(j,i,k) = wz(j,i,k) + &
                   mx2(j,i) * (zpby(j,i)*zrfms - zpby(j,i+1)*zrfmn + zdv)
               end do
             end do
+            !do i = ici1 , ici2
+            !  do j = jci1 , jci2
+                !zdv = (v(j,i+1,k) * rmv(j,i+1) - &
+                !       v(j,i,k)   * rmv(j,i)   ) * zdtrdy * pp(j,i,k)
+                !p0(j,i,k) = wz(j,i,k) + &
+                !  mx2(j,i) * (zpby(j,i) - zpby(j,i+1) + zdv)
+            !  end do
+            !end do
           end do
 
           if ( ma%has_bdyleft ) then
@@ -1301,6 +1280,8 @@ module mod_moloch
                 zphi = is + zamu*b - is*b
                 zpbw(j,i) = d_half * u(j,i,k) * rmu(j,i) * &
                      ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
+                !zpbw(j,i) = d_half * zamu * &
+                !     ((d_one+zphi)*p0(j-1,i,k) + (d_one-zphi)*p0(j,i,k))
               end do
             end do
 
@@ -1309,11 +1290,19 @@ module mod_moloch
                 zrfme = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j+1,i,k))
                 zrfmw = zdtrdx * d_two * fmz(j,i,k)/(fmz(j,i,k)+fmz(j-1,i,k))
                 zdv = (u(j+1,i,k) * rmu(j+1,i) * zrfme - &
-                       u(j,i,k) * rmu(j,i) * zrfmw) * pp(j,i,k)
+                       u(j,i,k)   * rmu(j,i)   * zrfmw) * pp(j,i,k)
                 pp(j,i,k) = p0(j,i,k) + &
                   mx2(j,i) * (zpbw(j,i)*zrfmw - zpbw(j+1,i)*zrfme + zdv)
               end do
             end do
+            !do i = ici1 , ici2
+            !  do j = jci1 , jci2
+            !    zdv = (u(j+1,i,k) * rmu(j+1,i) - &
+            !           u(j,i,k)   * rmu(j,i)   ) * zdtrdx * pp(j,i,k)
+            !    pp(j,i,k) = p0(j,i,k) + &
+            !      mx2(j,i) * (zpbw(j,i) - zpbw(j+1,i) + zdv)
+            !  end do
+            !end do
           end do
         end if
 
@@ -1554,8 +1543,8 @@ module mod_moloch
     end do
     do i = i1 , i2
       do j = j1 , j2
-        wx(j,i,1)  = 0.5_rkx * (w(j,i,2)+w(j,i,1))
-        wx(j,i,kz) = 0.5_rkx * (w(j,i,kzp1)+w(j,i,kz))
+        wx(j,i,1)  = d_half * (w(j,i,2)+w(j,i,1))
+        wx(j,i,kz) = d_half * (w(j,i,kzp1)+w(j,i,kz))
       end do
     end do
   end subroutine wstagtox
@@ -1575,8 +1564,8 @@ module mod_moloch
     end do
     do i = ice1 , ice2
       do j = jce1 , jce2
-        w(j,i,2) = 0.5_rkx * (wx(j,i,2)  +wx(j,i,1))
-        w(j,i,kz) = 0.5_rkx * (wx(j,i,kz)+wx(j,i,kzm1))
+        w(j,i,2) = d_half * (wx(j,i,2)  +wx(j,i,1))
+        w(j,i,kz) = d_half * (wx(j,i,kz)+wx(j,i,kzm1))
       end do
     end do
   end subroutine xtowstag
@@ -1598,14 +1587,14 @@ module mod_moloch
     if ( ma%has_bdyright ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
+          u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
         end do
       end do
     end if
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
+          u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
         end do
       end do
     end if
@@ -1628,14 +1617,14 @@ module mod_moloch
     if ( ma%has_bdytop ) then
       do k = 1 , kz
         do j = jci1 , jci2
-          v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
+          v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jci1 , jci2
-          v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
+          v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
         end do
       end do
     end if
@@ -1663,14 +1652,14 @@ module mod_moloch
     if ( ma%has_bdyright ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          u(jdi2,i,k) = 0.5_rkx * (ux(jci2,i,k)+ux(jce2,i,k))
+          u(jdi2,i,k) = d_half * (ux(jci2,i,k)+ux(jce2,i,k))
         end do
       end do
     end if
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ici1 , ici2
-          u(jdi1,i,k) = 0.5_rkx * (ux(jci1,i,k)+ux(jce1,i,k))
+          u(jdi1,i,k) = d_half * (ux(jci1,i,k)+ux(jce1,i,k))
         end do
       end do
     end if
@@ -1687,14 +1676,14 @@ module mod_moloch
     if ( ma%has_bdytop ) then
       do k = 1 , kz
         do j = jci1 , jci2
-          v(j,idi2,k) = 0.5_rkx * (vx(j,ici2,k)+vx(j,ice2,k))
+          v(j,idi2,k) = d_half * (vx(j,ici2,k)+vx(j,ice2,k))
         end do
       end do
     end if
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jci1 , jci2
-          v(j,idi1,k) = 0.5_rkx * (vx(j,ici1,k)+vx(j,ice1,k))
+          v(j,idi1,k) = d_half * (vx(j,ici1,k)+vx(j,ice1,k))
         end do
       end do
     end if
@@ -1721,14 +1710,14 @@ module mod_moloch
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
         do i = ice1 , ice2
-          ux(jce1,i,k) = 0.5_rkx * (u(jde1,i,k)+u(jdi1,i,k))
+          ux(jce1,i,k) = d_half * (u(jde1,i,k)+u(jdi1,i,k))
         end do
       end do
     end if
     if ( ma%has_bdyright ) then
       do k = 1 , kz
         do i = ice1 , ice2
-          ux(jce2,i,k) = 0.5_rkx*(u(jde2,i,k) + u(jdi2,i,k))
+          ux(jce2,i,k) = d_half*(u(jde2,i,k) + u(jdi2,i,k))
         end do
       end do
     end if
@@ -1744,14 +1733,14 @@ module mod_moloch
     if ( ma%has_bdybottom ) then
       do k = 1 , kz
         do j = jce1 , jce2
-          vx(j,ice1,k) = 0.5_rkx * (v(j,ide1,k)+v(j,idi1,k))
+          vx(j,ice1,k) = d_half * (v(j,ide1,k)+v(j,idi1,k))
         end do
       end do
     end if
     if ( ma%has_bdytop ) then
       do k = 1 , kz
         do j = jce1 , jce2
-          vx(j,ice2,k) = 0.5_rkx*(v(j,ide2,k) + v(j,idi2,k))
+          vx(j,ice2,k) = d_half*(v(j,ide2,k) + v(j,idi2,k))
         end do
       end do
     end if

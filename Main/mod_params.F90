@@ -2798,36 +2798,17 @@ module mod_params
         end do
         if ( iproj == 'ROTLLR' ) then
           do i = idi1 , idi2
-            do j = jce1 , jce2
-              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * rdx * regrav
+            do j = jci1 , jci2
+              mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
+                               rdx * regrav
             end do
           end do
         else
           do i = idi1 , idi2
-            do j = jce1 , jce2
+            do j = jci1 , jci2
               mddom%hy(j,i) = (mddom%ht(j,i) - mddom%ht(j,i-1)) * &
                                mddom%msfv(j,i) * rdx * regrav
             end do
-          end do
-        end if
-        if ( ma%has_bdyleft ) then
-          do i = ice1 , ice2
-            mddom%hx(jde1,i) = mddom%hx(jdi1,i)
-          end do
-        end if
-        if ( ma%has_bdyright ) then
-          do i = ice1 , ice2
-            mddom%hx(jde2,i) = mddom%hx(jdi2,i)
-          end do
-        end if
-        if ( ma%has_bdybottom ) then
-          do j = jce1 , jce2
-            mddom%hy(j,ide1) = mddom%hy(j,idi1)
-          end do
-        end if
-        if ( ma%has_bdytop ) then
-          do j = jce1 , jce2
-            mddom%hy(j,ide2) = mddom%hy(j,idi2)
           end do
         end if
         call exchange_lr(mddom%hx,1,jde1,jde2,ice1,ice2)
