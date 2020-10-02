@@ -458,6 +458,8 @@ program ncprepare
              ' bilin sequential binary-big ', trim(tmpcoord)
     else
       write(stdout,*) 'Coordinate file exist, not recreating it'
+      write(ip1, '(a,i8,i8,a,a)') 'pdef ', jx , iy ,       &
+             ' bilin sequential binary-big ', trim(tmpcoord)
     end if
   end if
 
