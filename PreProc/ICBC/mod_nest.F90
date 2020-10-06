@@ -426,6 +426,8 @@ module mod_nest
         end do
       end do
       call crs2dot(pd_out,p_out,jx,iy,kz,i_band,i_crm)
+    end if
+    if ( oidyn == 2 ) then
       call h_interpolate_cont(cross_hint,z_in,z3)
       call top2btm(z3)
     end if
