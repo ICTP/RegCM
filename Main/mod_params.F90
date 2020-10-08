@@ -295,14 +295,14 @@ module mod_params
     itopnudge = 0
     ifrayd = 1
     rayndamp = 5
-    rayalpha0 = 0.0003_rkx
+    rayalpha0 = 0.003_rkx
     rayhd = 10000.0_rkx
     mo_wmax = 150.0_rkx
     mo_nadv = 3
     mo_nsound = 6
     mo_anu2 = 0.6_rkx
-    mo_nzfilt = 3
-    mo_filterpai = .true.
+    mo_nzfilt = 0
+    mo_filterpai = .false.
     !
     ! Rrtm radiation param ;
     !
