@@ -2552,6 +2552,9 @@ module mod_clm_histfile
       if ( nsrest == nsrStartup ) then
         return
       end if
+      if ( ichecold == 1 ) then
+        return
+      end if
     end if
 
     ! Read history file data only for restart run
@@ -2878,7 +2881,7 @@ module mod_clm_histfile
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
       call get_proc_global(numg,numl,numc,nump)
 
-      if ( rcmtimer%integrating( ) .and. ichecold == 0 ) then
+      if ( rcmtimer%integrating( ) ) then
         do t = 1 , ntapes
           call clm_openfile(locrest(t),ncid_hist(t))
           if ( t == 1 ) then
@@ -3082,7 +3085,7 @@ module mod_clm_histfile
         call clm_closefile(ncid_hist(t))
       end do   ! end of ntapes loop
 
-    else if (flag == 'read' .and. ichecold == 0 ) then
+    else if ( flag == 'read' ) then
 
       ! Read history restart information if history files are not full
 
