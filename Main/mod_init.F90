@@ -910,6 +910,7 @@ module mod_init
             mo_atm%p(j,i,k) = (mo_atm%pai(j,i,k)**cpovr) * p00
             mo_atm%tvirt(j,i,k) = mo_atm%t(j,i,k) * &
                            (d_one + ep1*mo_atm%qx(j,i,k,iqv))
+            mo_atm%rho(j,i,k) = mo_atm%p(j,i,k)/(rgas*mo_atm%t(j,i,k))
           end do
         end do
       end do
@@ -949,7 +950,12 @@ module mod_init
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( cuscheme(j,i) == 6 ) then
-                  avg_ww(j,i,k) = atm1%w(j,i,k) / sfs%psb(j,i)
+                  avg_ww(j,i,k) = 0.5_rkx * &
+                    (atm1%w(j,i,k) + atm1%w(j,i,k+1)) / sfs%psa(j,i)
+                end if
+                if ( cuscheme(j,i) == 5 ) then
+                  avg_ww(j,i,k) = -0.5_rkx * egrav * atm1%rho(j,i,k) * &
+                    (atm1%w(j,i,k) + atm1%w(j,i,k+1)) / sfs%psa(j,i)
                 end if
               end do
             end do
@@ -959,7 +965,12 @@ module mod_init
             do i = ici1 , ici2
               do j = jci1 , jci2
                 if ( cuscheme(j,i) == 6 ) then
-                  avg_ww(j,i,k) = 0.5_rkx * mo_atm%w(j,i,k)
+                  avg_ww(j,i,k) = 0.5_rkx * &
+                    (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
+                end if
+                if ( cuscheme(j,i) == 5 ) then
+                  avg_ww(j,i,k) = -0.5_rkx * egrav * mo_atm%rho(j,i,k) * &
+                    (mo_atm%w(j,i,k) + mo_atm%w(j,i,k+1))
                 end if
               end do
             end do

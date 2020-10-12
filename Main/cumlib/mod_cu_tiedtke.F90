@@ -314,7 +314,7 @@ module mod_cu_tiedtke
       do ii = 1 , nipoi
         i = imap(ii)
         j = jmap(ii)
-        ptopmax(ii) = papp1(ii,max(1,m2c%ktrop(j,i)+1))
+        ptopmax(ii) = papp1(ii,max(1,m2c%ktrop(j,i)-1))
       end do
     end if
 

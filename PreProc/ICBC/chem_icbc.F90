@@ -72,7 +72,7 @@ program chem_icbc
     iocnrough , iocnzoq , idcsst , iseaice , idesseas , iconvlwp ,        &
     icldmstrat , icldfrac , irrtm , iclimao3 , isolconst , icumcloud ,    &
     islab_ocean , itweak , ghg_year_const , idiffu , icopcpl ,            &
-    iwhitecap , ifixsolar , year_offset , ipcpcool
+    iwhitecap , ifixsolar , year_offset , ipcpcool , ichdustparam
   real(rkx) :: temp_tend_maxval , wind_tend_maxval , fixedsolarval
   character(len=8) :: scenario
   real(rkx) :: rdstemfac , rocemfac
@@ -86,7 +86,8 @@ program chem_icbc
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect , &
     ichsursrc , ichebdy , rdstemfac , rocemfac , ichjphcld , ichbion ,   &
-    ismoke , ichlinox , isnowdark , carb_aging_control , ichecold
+    ismoke , ichlinox , isnowdark , carb_aging_control , ichecold ,      &
+    ichdustparam
 
   namelist /physicsparam/ ibltyp , iboudy , isladvec , iqmsl ,         &
     icup_lnd , icup_ocn , ipgf , iemiss , lakemod , ipptls , idiffu ,  &

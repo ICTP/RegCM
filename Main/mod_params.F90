@@ -289,20 +289,20 @@ module mod_params
     !
     ! Non hydrostatic param ;
     !
-    ifupr = 0
+    ifupr = 1
     nhbet = 0.4_rkx   ! Arakawa beta (MM5 manual, Sec. 2.5.1)
     nhxkd = 0.1_rkx
     itopnudge = 0
     ifrayd = 1
     rayndamp = 5
-    rayalpha0 = 0.0003_rkx
+    rayalpha0 = 0.003_rkx
     rayhd = 10000.0_rkx
     mo_wmax = 150.0_rkx
     mo_nadv = 3
     mo_nsound = 6
     mo_anu2 = 0.6_rkx
-    mo_nzfilt = 3
-    mo_filterpai = .true.
+    mo_nzfilt = 0
+    mo_filterpai = .false.
     !
     ! Rrtm radiation param ;
     !
