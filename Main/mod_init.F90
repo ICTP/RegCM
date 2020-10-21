@@ -77,7 +77,7 @@ module mod_init
     implicit none
     integer(ik4) :: i , j , k , n
     real(rkx) :: rdnnsg
-    real(rkx) :: zzi , zfilt , zuh , zvh
+    real(rkx) :: zzi , zfilt
     real(rkx) , dimension(kzp1) :: ozprnt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init'
@@ -306,30 +306,8 @@ module mod_init
             mo_atm%pf(j,i,1) = 100.0_rkx ! 1 mb
           end do
         end do
-        do k = 2 , kzm1
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              zuh = xub%b0(j,i,k) * mddom%hx(j,i) +     &
-                    xub%b0(j+1,i,k) * mddom%hx(j+1,i) + &
-                    xub%b0(j,i,k+1) * mddom%hx(j,i) +   &
-                    xub%b0(j+1,i,k+1) * mddom%hx(j+1,i)
-              zvh = xvb%b0(j,i,k) * mddom%hy(j,i) +     &
-                    xvb%b0(j,i+1,k) * mddom%hy(j,i+1) + &
-                    xvb%b0(j,i,k+1) * mddom%hy(j,i) +   &
-                    xvb%b0(j,i+1,k+1) * mddom%hy(j,i+1)
-              mo_atm%w(j,i,k) = d_rfour * (zuh+zvh)
-            end do
-          end do
-        end do
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            zuh = xub%b0(j,i,kz) * mddom%hx(j,i) +     &
-                  xub%b0(j+1,i,kz) * mddom%hx(j+1,i)
-            zvh = xvb%b0(j,i,kz) * mddom%hy(j,i) +     &
-                  xvb%b0(j,i+1,kz) * mddom%hy(j,i+1)
-            mo_atm%w(j,i,kz) = d_half * (zuh+zvh)
-          end do
-        end do
+
+        mo_atm%w(:,:,:) = d_zero
 
       end if
 

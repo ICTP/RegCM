@@ -2029,10 +2029,10 @@ module mod_params
         zita(k) = zita(k+1) + mo_dz
         zitah(k) = zita(k) - mo_dz*d_half
       end do
-      sigma(1) = d_zero
-      sigma = d_one - zita/hzita
+      sigma(2:kzp1) = d_one - zita(2:kzp1)/hzita
+      sigma(1) = mo_b0 * sigma(2)
       hsigma = d_one - zitah/hzita
-      fak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+      fak = -hzita * bzita(zita) * log(sigma)
       fbk = gzita(zita)
       ak = -hzita * bzita(zitah) * log(hsigma)
       bk = gzita(zitah)
@@ -2824,9 +2824,7 @@ module mod_params
         end do
         call exchange_lrbt(mo_atm%fmz,1,jce1,jce2,ice1,ice2,1,kz)
         call exchange_lrbt(mo_atm%zeta,2,jce1,jce2,ice1,ice2,1,kz)
-        mo_atm%fmzf(:,:,1) = 0.0_rkx
-        mo_atm%zetaf(:,:,1) = 48446.4_rkx ! Supposedly infinite
-        do k = 2 , kzp1
+        do k = 1 , kzp1
           do i = ice1 , ice2
             do j = jce1 , jce2
               mo_atm%fmzf(j,i,k) = md_fmz(zita(k),mddom%ht(j,i))

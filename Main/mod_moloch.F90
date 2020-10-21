@@ -406,7 +406,7 @@ module mod_moloch
     jday = yeardayfrac(rcmtimer%idate)
     do i = ice1 , ice2
       do j = jce1 , jce2
-        zdgz = mo_atm%zeta(j,i,kz)*egrav
+        zdgz = zeta(j,i,kz)*egrav
         lrt = (tvirt(j,i,kz-1)-tvirt(j,i,kz))/(zeta(j,i,kz-1)-zeta(j,i,kz))
         lrt = 0.65_rkx*lrt + 0.35_rkx*stdlrate(jday,xlat(j,i))
         tv = tvirt(j,i,kz) - d_half*zeta(j,i,kz)*lrt
@@ -737,12 +737,11 @@ module mod_moloch
                   zrfmzvm = d_two / (fmz(j,i,k) + fmz(j,i-1,k))
                   zrfmzup = d_two / (fmz(j,i,k) + fmz(j+1,i,k))
                   zrfmzvp = d_two / (fmz(j,i,k) + fmz(j,i+1,k))
-                  zum = u(j,i,k)   * rmu(j,i)   * zrfmzum
-                  zup = u(j+1,i,k) * rmu(j+1,i) * zrfmzup
-                  zvm = v(j,i,k)   * rmv(j,i)   * zrfmzvm
-                  zvp = v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
-                  zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * &
-                            ((zup-zum)*zdtrdx + (zvp-zvm)*zdtrdy)
+                  zum = zdtrdx * u(j,i,k)   * rmu(j,i)   * zrfmzum
+                  zup = zdtrdx * u(j+1,i,k) * rmu(j+1,i) * zrfmzup
+                  zvm = zdtrdy * v(j,i,k)   * rmv(j,i)   * zrfmzvm
+                  zvp = zdtrdy * v(j,i+1,k) * rmv(j,i+1) * zrfmzvp
+                  zdiv2(j,i,k) = mx2(j,i) * fmz(j,i,k) * ((zup-zum)+(zvp-zvm))
                 end do
               end do
             end do
@@ -776,7 +775,7 @@ module mod_moloch
                        w(j,i,k) > 0.1_rkx ) then
                     zqs = d_half*(qsat(j,i,k)+qsat(j,i,k-1))
                     zdth = egrav*w(j,i,k)*(jsound-1)*dts*wlhv*wlhv* &
-                      zqs/(cpd*pai(j,i,k)*rwat*t(j,i,k)**2)
+                      zqs/(cpd*pai(j,i,k-1)*rwat*t(j,i,k-1)**2)
                     zrom1w = zrom1w + zdth*fmzf(j,i,k)
                   end if
                 end if
@@ -1314,26 +1313,13 @@ module mod_moloch
         s(:,:,:) = d_zero
         deltaw(:,:,:) = d_zero
         zdiv2(:,:,:) = d_zero
-
-        ! Store the Initial state (for cumulus interface)
-        if ( any(icup > 0) ) then
-          mo_atm%tten = t(jci1:jci2,ici1:ici2,1:kz)
-          mo_atm%qxten = mo_atm%qx(jci1:jci2,ici1:ici2,1:kz,:)
-          mo_atm%uten = u(jdi1:jdi2,ici1:ici2,1:kz)
-          mo_atm%vten = v(jci1:jci2,idi1:idi2,1:kz)
-          if ( ichem == 1 ) then
-            mo_atm%chiten = trac(jci1:jci2,ici1:ici2,1:kz,1:ntr)
-          end if
-        else
-          mo_atm%tten = d_zero
-          mo_atm%qxten = d_zero
-          mo_atm%uten = d_zero
-          mo_atm%vten = d_zero
-          if ( ichem == 1 ) then
-            mo_atm%chiten = d_zero
-          end if
+        mo_atm%tten = d_zero
+        mo_atm%qxten = d_zero
+        mo_atm%uten = d_zero
+        mo_atm%vten = d_zero
+        if ( ichem == 1 ) then
+          mo_atm%chiten = d_zero
         end if
-
         if ( ibltyp == 2 ) then
           mo_atm%tketen = d_zero
         end if
@@ -1356,14 +1342,12 @@ module mod_moloch
         logical :: loutrad , labsem
 
         if ( any(icup > 0) ) then
-          ! Compute dynamic tendencies up to this point
-          mo_atm%tten = (t(jci1:jci2,ici1:ici2,:)-mo_atm%tten)/dtsec
-          mo_atm%qxten = (mo_atm%qx(jci1:jci2,ici1:ici2,:,:)-mo_atm%qxten)/dtsec
-          mo_atm%uten = (u(jdi1:jdi2,ici1:ici2,:)-mo_atm%uten)/dtsec
-          mo_atm%vten = (v(jci1:jci2,idi1:idi2,:)-mo_atm%vten)/dtsec
-          if ( ichem == 1 ) then
-            mo_atm%chiten = (mo_atm%chiten - &
-                    trac(jci1:jci2,ici1:ici2,1:kz,1:ntr))/dtsec
+          if ( idiag > 0 ) then
+            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+          end if
+          if ( ichem == 1 .and. ichdiag > 0 ) then
+            chiten0 = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
           end if
           call cumulus
           if ( ichem == 1 ) then
@@ -1376,18 +1360,18 @@ module mod_moloch
             end if
           end if
           if ( idiag > 0 ) then
-            tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-            qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+            tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+            qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
           end if
           if ( ichem == 1 .and. ichdiag > 0 ) then
-            cconvdiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:)
+            cconvdiag = mo_atm%chiten(jci1:jci2,ici1:ici2,:,:) - chiten0
           end if
         else
           if ( any(icup < 0) ) then
             call shallow_convection
             if ( idiag > 0 ) then
-              tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-              qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+              tdiag%con = mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+              qdiag%con = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
             end if
           end if
         end if
