@@ -155,7 +155,7 @@ class RegcmOutputFile(object):
     """
 
     def __init__(self, ncf, datafile=None, regcm_version=None,
-                 regcm_version_id=None):
+                 regcm_version_id=None, regcm_nest_tag=None):
 
         # in_file and _of_file are variables used just inside the log lines to
         # report the name of the file where the operations have been performed
@@ -294,7 +294,11 @@ class RegcmOutputFile(object):
 
         if regcm_version is not None:
             self._revision = regcm_version
-            self._rev_version = 'v' + str(regcm_version_id)
+            if regcm_version_id is not None:
+                self._rev_version = 'v' + str(regcm_version_id)
+            elif regcm_nest_tag is not None:
+                self._rev_version = regcm_nest_tag
+                self._nest_tag = regcm_nest_tag
         else:
             try:
                 if rev_temp.lower().startswith('tag'):
@@ -537,6 +541,10 @@ class RegcmOutputFile(object):
         return self._rev_version
 
     @property
+    def nesting_tag(self):
+        return self._nest_tag
+
+    @property
     def contains_map(self):
         return self._contains_map
 
@@ -657,6 +665,9 @@ class CordexDataset(Dataset):
             'Conventions': 'CF-1.7',
             'tracking_id': str(uuid.uuid1()),
         }
+
+        if regcm_file.nesting_tag is not None:
+            newattr['nesting_tag'] = regcm_file.nesting_tag
 
         file_name = path.basename(output_file_path)
 
