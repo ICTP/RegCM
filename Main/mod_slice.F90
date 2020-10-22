@@ -156,10 +156,8 @@ module mod_slice
             atms%th700(j,i) = atms%th3d(j,i,kz)
             do k = 2 , kz-1
               if ( atms%pb3d(j,i,k) > 70000.0 ) then
-                w1 = mo_atm%fmz(j,i,k)/mo_atm%fmzf(j,i,k)
-                w2 = d_two - w1
-                atms%th700(j,i) = d_half * (w2 * atms%th3d(j,i,k+1) + &
-                                            w1 * atms%th3d(j,i,k))
+                atms%th700(j,i) = d_half * (atms%th3d(j,i,k+1) + &
+                                            atms%th3d(j,i,k))
                 exit
               end if
             end do

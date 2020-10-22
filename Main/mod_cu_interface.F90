@@ -189,11 +189,11 @@ module mod_cu_interface
       call assignpnt(mo_atm%qxten,c2m%qxten)
       if ( ichem == 1 ) call assignpnt(mo_atm%chiten,c2m%chiten)
     else
-      call assignpnt(aten%t,m2c%tten,pc_dynamic)
-      call assignpnt(aten%qx,m2c%qxten,pc_dynamic)
-      call assignpnt(aten%u,m2c%uten,pc_dynamic)
-      call assignpnt(aten%v,m2c%vten,pc_dynamic)
-      if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_dynamic)
+      call assignpnt(aten%t,m2c%tten,pc_physic)
+      call assignpnt(aten%qx,m2c%qxten,pc_physic)
+      call assignpnt(aten%u,m2c%uten,pc_physic)
+      call assignpnt(aten%v,m2c%vten,pc_physic)
+      if ( ichem == 1 ) call assignpnt(aten%chi,m2c%chiten,pc_physic)
       ! OUTPUT
       call assignpnt(aten%t,c2m%tten,pc_physic)
       call assignpnt(aten%u,c2m%uten,pc_physic)
@@ -382,7 +382,7 @@ module mod_cu_interface
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              c2m%tten(j,i,k) = cu_tten(j,i,k)
+              c2m%tten(j,i,k) = c2m%tten(j,i,k) + cu_tten(j,i,k)
             end do
           end do
         end do
@@ -391,27 +391,24 @@ module mod_cu_interface
           do k = 1 , kz
             do i = idi1 , idi2
               do j = jci1 , jci2
-                c2m%vten(j,i,k) = vtend(j,i,k)
+                c2m%vten(j,i,k) = c2m%vten(j,i,k) + vtend(j,i,k)
               end do
             end do
           end do
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jdi1 , jdi2
-                c2m%uten(j,i,k) = utend(j,i,k)
+                c2m%uten(j,i,k) = c2m%uten(j,i,k) + utend(j,i,k)
               end do
             end do
           end do
-        else
-          c2m%uten(:,:,:) = d_zero
-          c2m%vten(:,:,:) = d_zero
         end if
 
         do n = 1 , nqx
           do k = 1 , kz
             do i = ici1 , ici2
               do j = jci1 , jci2
-                c2m%qxten(j,i,k,n) = cu_qten(j,i,k,n)
+                c2m%qxten(j,i,k,n) = c2m%qxten(j,i,k,n) + cu_qten(j,i,k,n)
               end do
             end do
           end do
@@ -422,7 +419,8 @@ module mod_cu_interface
             do k = 1 , kz
               do i = ici1 , ici2
                 do j = jci1 , jci2
-                  c2m%chiten(j,i,k,n) = cu_chiten(j,i,k,n)
+                  c2m%chiten(j,i,k,n) = &
+                      c2m%chiten(j,i,k,n) + cu_chiten(j,i,k,n)
                 end do
               end do
             end do

@@ -224,14 +224,30 @@ module mod_cu_tiedtke
             j = jmap(ii)
             ! tracers input profile : implicit loop on tracer
             pxtm1(ii,k,n) = m2c%chias(j,i,k,n)
-            if ( idynamic == 3 ) then
-              pxtte(ii,k,n) = m2c%chiten(j,i,k,n)
-            else
-              pxtte(ii,k,n) = m2c%chiten(j,i,k,n)/m2c%psb(j,i)
-            end if
           end do
         end do
       end do
+      if ( idynamic == 3 ) then
+        do n = 1 , ntr
+          do k = 1 , kz
+            do ii = 1 , nipoi
+              i = imap(ii)
+              j = jmap(ii)
+              pxtte(ii,k,n) = m2c%chiten(j,i,k,n)
+            end do
+          end do
+        end do
+      else
+        do n = 1 , ntr
+          do k = 1 , kz
+            do ii = 1 , nipoi
+              i = imap(ii)
+              j = jmap(ii)
+              pxtte(ii,k,n) = m2c%chiten(j,i,k,n)/m2c%psb(j,i)
+            end do
+          end do
+        end do
+      end if
       if ( ichem == 1 .and. iaerosol == 1 .and. iindirect == 2 ) then
         do k = 1 , kz
           do ii = 1 , nipoi
@@ -271,38 +287,61 @@ module mod_cu_tiedtke
         pverv(ii,k) = avg_ww(j,i,k)
         pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
         pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
-        if ( idynamic == 3 ) then
-          ptte(ii,k)  = m2c%tten(j,i,k)
-          pqte(ii,k)  = m2c%qxten(j,i,k,iqv)
-          pxlte(ii,k) = m2c%qxten(j,i,k,iqc)
-        else
-          ptte(ii,k)  = m2c%tten(j,i,k)/m2c%psb(j,i)
-          pqte(ii,k)  = m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
-          pxlte(ii,k) = m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
-        end if
         pvom(ii,k)  = uxten(j,i,k)
         pvol(ii,k)  = vxten(j,i,k)
-        if ( ipptls > 1 ) then
-          pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
-          if ( idynamic == 3 ) then
-            pxite(ii,k) = m2c%qxten(j,i,k,iqi)
-          else
-            pxite(ii,k) = m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
-          end if
-        else
-          pxim1(ii,k) = d_zero
-          pxite(ii,k) = d_zero
-        end if
         ! scheme diagnostic output - tendencies due to convection
         pxtec(ii,k) = d_zero ! detrained cloud water tendency
         pqtec(ii,k) = d_zero ! detrained humidity tendency
         ! pressure top limit for convection: the level above tropopause
       end do
     end do
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do ii = 1 , nipoi
+          i = imap(ii)
+          j = jmap(ii)
+          ptte(ii,k)  = m2c%tten(j,i,k)
+          pqte(ii,k)  = m2c%qxten(j,i,k,iqv)
+          pxlte(ii,k) = m2c%qxten(j,i,k,iqc)
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do ii = 1 , nipoi
+          i = imap(ii)
+          j = jmap(ii)
+          ptte(ii,k)  = m2c%tten(j,i,k)/m2c%psb(j,i)
+          pqte(ii,k)  = m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
+          pxlte(ii,k) = m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
+        end do
+      end do
+    end if
+    if ( ipptls > 1 ) then
+      if ( idynamic == 3 ) then
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            i = imap(ii)
+            j = jmap(ii)
+            pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
+          end do
+        end do
+      else
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            i = imap(ii)
+            j = jmap(ii)
+            pxite(ii,k) = m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
+          end do
+        end do
+      end if
+    else
+      pxim1(:,:) = d_zero
+      pxite(:,:) = d_zero
+    end if
 
     ! Transform to specific humidity
     pqm1(:,:) = pqm1(:,:)/(d_one + pqm1(:,:))
-    pqte(:,:) = pqte(:,:)/(d_one + pqte(:,:))
+    pqte(:,:) = pqte(:,:)/(d_one + pqm1(:,:))**2
 
     nskmax = nint(17747.5/ds)
     if ( iconv == 4 ) then
@@ -369,24 +408,40 @@ module mod_cu_tiedtke
     !
     ! update tendencies - note that rate were ADDED in cudtdq
     !                     thus here we must reset the rates.
-    do k = 1 , kz
-      do ii = 1 , nipoi
-        if (ktype(ii) > 0) then
-          i = imap(ii)
-          j = jmap(ii)
-          if ( idynamic == 3 ) then
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do ii = 1 , nipoi
+          if (ktype(ii) > 0) then
+            i = imap(ii)
+            j = jmap(ii)
             cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)
             ! Tendency in specific humidity to mixing ratio tendency.
             cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
                                  m2c%qxten(j,i,k,iqv)
             cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)
-          else
+          end if
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do ii = 1 , nipoi
+          if (ktype(ii) > 0) then
+            i = imap(ii)
+            j = jmap(ii)
             cu_tten(j,i,k) = ptte(ii,k) - m2c%tten(j,i,k)/m2c%psb(j,i)
             ! Tendency in specific humidity to mixing ratio tendency.
             cu_qten(j,i,k,iqv) = pqte(ii,k)/(d_one-pqm1(ii,k))**2 - &
                                  m2c%qxten(j,i,k,iqv)/m2c%psb(j,i)
             cu_qten(j,i,k,iqc) = pxlte(ii,k) - m2c%qxten(j,i,k,iqc)/m2c%psb(j,i)
           end if
+        end do
+      end do
+    end if
+    do k = 1 , kz
+      do ii = 1 , nipoi
+        if (ktype(ii) > 0) then
+          i = imap(ii)
+          j = jmap(ii)
           cu_uten(j,i,k) = pvom(ii,k) - uxten(j,i,k)
           cu_vten(j,i,k) = pvol(ii,k) - vxten(j,i,k)
           cu_qdetr(j,i,k) = zlude(ii,k)*dt*egrav/(paphp1(ii,k+1)-paphp1(ii,k))
@@ -396,20 +451,28 @@ module mod_cu_tiedtke
     end do
 
     if ( ipptls > 1 ) then
-      do k = 1 , kz
-        do ii = 1 , nipoi
-          if (ktype(ii) > 0) then
-            i = imap(ii)
-            j = jmap(ii)
-            if ( idynamic == 3 ) then
+      if ( idynamic == 3 ) then
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            if (ktype(ii) > 0) then
+              i = imap(ii)
+              j = jmap(ii)
               cu_qten(j,i,k,iqi) = pxite(ii,k) - m2c%qxten(j,i,k,iqi)
-            else
+            end if
+          end do
+        end do
+      else
+        do k = 1 , kz
+          do ii = 1 , nipoi
+            if (ktype(ii) > 0) then
+              i = imap(ii)
+              j = jmap(ii)
               cu_qten(j,i,k,iqi) = pxite(ii,k) - &
                          m2c%qxten(j,i,k,iqi)/m2c%psb(j,i)
             end if
-          end if
+          end do
         end do
-      end do
+      end if
     else
       do k = 1 , kz
         do ii = 1 , nipoi
@@ -424,22 +487,32 @@ module mod_cu_tiedtke
 
     if ( ichem == 1 .and. ichcumtra == 1 .and. &
          .not. any(icup == 2 .or. icup == 6) ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do ii = 1 , nipoi
-            if ( ktype(ii) > 0 ) then
-              i = imap(ii)
-              j = jmap(ii)
-              if ( idynamic == 3 ) then
+      if ( idynamic == 3 ) then
+        do n = 1 , ntr
+          do k = 1 , kz
+            do ii = 1 , nipoi
+              if ( ktype(ii) > 0 ) then
+                i = imap(ii)
+                j = jmap(ii)
                 cu_chiten(j,i,k,n) = pxtte(ii,k,n) - m2c%chiten(j,i,k,n)
-              else
+              end if
+            end do
+          end do
+        end do
+      else
+        do n = 1 , ntr
+          do k = 1 , kz
+            do ii = 1 , nipoi
+              if ( ktype(ii) > 0 ) then
+                i = imap(ii)
+                j = jmap(ii)
                 cu_chiten(j,i,k,n) = pxtte(ii,k,n) - &
                             m2c%chiten(j,i,k,n)/m2c%psb(j,i)
               end if
-            end if
+            end do
           end do
         end do
-      end do
+      end if
       ! build for chemistry 3d table of precipitation rate
       ! from the surface to the top of the convection
       do k = 1 , kz
@@ -545,7 +618,7 @@ module mod_cu_tiedtke
     integer(ik4) , dimension(kbdim) , intent(out) :: kctop , kcbot
     real(rkx) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
     intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , &
-           pxlm1 , pxlte , pxtm1 , pccn
+           pxlm1 , pxtm1 , pccn
     intent(out) :: zlude
     intent (inout) ptopmax
     integer(ik4) , dimension(kbdim) :: itopec2
@@ -573,7 +646,7 @@ module mod_cu_tiedtke
       do jk = 1 , klev
         do jl = 1 , kproma
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-          zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
           zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
           zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
@@ -601,7 +674,7 @@ module mod_cu_tiedtke
       do jk = 1 , klev
         do jl = 1 , kproma
           ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
-          zqp1(jl,jk) = max(minqq,pqm1(jl,jk) + pqte(jl,jk)*dt)
+          zqp1(jl,jk) = max(1.0e-8_rkx,pqm1(jl,jk) + pqte(jl,jk)*dt)
           zxlp1 = max(d_zero,pxlm1(jl,jk) + pxlte(jl,jk)*dt)
           zxip1 = max(d_zero,pxim1(jl,jk) + pxite(jl,jk)*dt)
           zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
@@ -710,7 +783,7 @@ module mod_cu_tiedtke
       !
       call ntiedtke(1,kproma,kbdim,klev,ldland,ztp1,zqp1,          &
                     zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
-                    pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
+                    pgeo,pgeoh,ptte,pqte,pvom,pvol,pxlte,pxite,    &
                     locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
                     zlu,pmflxr,pmflxs,zrain,pmfu,zmfd,zlude,       &
                     pmfude_rate,pmfdde_rate,pcape,ktrac,pxtm1,     &
@@ -4557,9 +4630,9 @@ module mod_cu_tiedtke
     ! specific humidity tendency kg/(kg*s)
     real(rkx) , dimension(np,nk) , intent(inout) :: tenq
     ! Cloud liquid water mixing ratio tendency kg/(kg*s)
-    real(rkx) , dimension(np,nk) , intent(out) :: tenl
+    real(rkx) , dimension(np,nk) , intent(inout) :: tenl
     ! Ice water mixing ratio tendency kg/(kg*s)
-    real(rkx) , dimension(np,nk) , intent(out) :: teni
+    real(rkx) , dimension(np,nk) , intent(inout) :: teni
     ! U wind m/s^2
     real(rkx) , dimension(np,nk) , intent(inout) :: tenu
     ! V wind m/s^2
@@ -4679,11 +4752,12 @@ module mod_cu_tiedtke
     ! scaling factor for momentum and tracer massflux
     real(rkx) , dimension(np) :: mfs , mfuub , mfuvb , xsum12 , xsum22
     real(rkx) , dimension(np) :: mf_shal
-    real(rkx) , dimension(np,nk) :: mfuus , mfdus , mfudr , &
-                                    mfddr , xtenu , xtenv , uv2
+    real(rkx) , dimension(np,nk) :: mfuus , mfdus , mfudr , xtent , &
+                                    mfddr , xtenu , xtenv , xtenq , &
+                                    xtenl , xteni , uv2
     logical :: llconscheck = .false.
     integer(ik4) :: nt
-    real(rkx) , dimension(:,:) , allocatable :: xtent , xtenq , xsumc
+    real(rkx) , dimension(:,:) , allocatable :: xsumc
     real(rkx) , dimension(:,:,:) , allocatable :: xtenc
 
     ! ---------------------------------------
@@ -4700,6 +4774,16 @@ module mod_cu_tiedtke
     !---------------------------------------------
     ! 2. Initialize values at vertical grid points
     ! --------------------------------------------
+    do k = 1 , nk
+      do n = n1 , n2
+        xtent(n,k) = tent(n,k)
+        xtenq(n,k) = tenq(n,k)
+        xtenl(n,k) = tenl(n,k)
+        xteni(n,k) = teni(n,k)
+        xtenu(n,k) = tenu(n,k)
+        xtenv(n,k) = tenv(n,k)
+      end do
+    end do
     call initcum
     !---------------------------
     ! 3. Cloud base calculations
@@ -4834,14 +4918,6 @@ module mod_cu_tiedtke
         dpmel(n,k) = d_zero
       end do
     end do
-    if ( lmfuvdis ) then
-      do k = 1 , nk
-        do n = n1 , n2
-          xtenu(n,k) = tenu(n,k)
-          xtenv(n,k) = tenv(n,k)
-        end do
-      end do
-    end if
     !----------------------------------
     ! 5. Cumulus downdraft calculations
     ! ---------------------------------
@@ -5111,18 +5187,6 @@ module mod_cu_tiedtke
       end do
     end do
     if ( llconscheck ) then
-      allocate (xtent(np,nk))
-      allocate (xtenq(np,nk))
-      do k = 2 , nk
-        do n = n1 , n2
-          if ( ldcum(n) ) then
-            xtent(n,k) = tent(n,k)
-            xtenq(n,k) = tenq(n,k)
-            xtenu(n,k) = tenu(n,k)
-            xtenv(n,k) = tenv(n,k)
-          end if
-        end do
-      end do
       if ( lmftrac .and. ntrac > 0 ) then
         allocate (xtenc(np,nk,ntrac))
         allocate (xsumc(np,4+ntrac))
@@ -5493,8 +5557,6 @@ module mod_cu_tiedtke
       end do
       deallocate (xsumc)
       if ( lmftrac .and. ntrac > 0 ) deallocate (xtenc)
-      deallocate (xtenq)
-      deallocate (xtent)
     end if
     !-------------------------------------------------------
     ! 14. Compute convective tendencies for liquid and solid
@@ -5994,7 +6056,7 @@ module mod_cu_tiedtke
             mfu(n,k) = mfu(n,k+1) + ndmfen(n) - ndmfde(n)
             qeen = qf(n,k+1)*ndmfen(n)
             seen = (cpd*tf(n,k+1)+geof(n,k+1))*ndmfen(n)
-            if ( qctot(n,k)>minqq ) then
+            if ( qctot(n,k) > 1.0e-10_rkx ) then
               leen = qctot(n,k)*ndmfen(n)
             else
               leen = d_zero
@@ -7348,7 +7410,7 @@ module mod_cu_tiedtke
                   lldsc(n) = .true.
                   ibotsc(n) = kb
                   icbot(n) = kb
-                  xlu(n,k+1) = minqq
+                  xlu(n,k+1) = 0.0_rkx
                 else if ( pdifftop <= pdiffbot .and. &
                           wu2h(n,k) > d_zero ) then
                   iilab(n,k) = 2
