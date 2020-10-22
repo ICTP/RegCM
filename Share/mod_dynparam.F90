@@ -118,11 +118,11 @@ module mod_dynparam
 
   ! Lambert true latitude (low latitude side)
 
-  real(rkx) :: truelatl
+  real(rkx) :: truelatl = 0.0_rkx
 
   ! Lambert true latitude (high latitude side)
 
-  real(rkx) :: truelath
+  real(rkx) :: truelath = 0.0_rkx
 
   ! Smoothness level
 
@@ -529,6 +529,16 @@ module mod_dynparam
     end if
     if ( ds < 0.0_rkx ) then
       ds = -erkm*ds*degrad
+    end if
+    if ( iproj == 'LAMCON' ) then
+      if ( abs(truelatl) < epsilon(1.0_rkx) .and. &
+           abs(truelath) < epsilon(1.0_rkx) ) then
+        write(stderr,*) 'SETTING TRUE LATITUDE TO DOMAIN CENTER!!!'
+        write(stderr,*) 'If this is not what you want, set the values in ', &
+          trim(filename)
+        truelatl = clat
+        truelath = clat
+      end if
     end if
     if ( cntri < 0.0_rkx ) then
       cntri = real(iy,rkx)/d_two

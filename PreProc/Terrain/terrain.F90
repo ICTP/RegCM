@@ -181,8 +181,8 @@ program terrain
       zita(k) = zita(k+1) + dz
     end do
     sigma = 1.0_rkx - zita/hzita
-    sigma(1) = 0.0_rkx
-    ak = -hzita * bzita(zita) * log(max(sigma,tiny(d_one)))
+    sigma(1) = mo_b0*sigma(2)
+    ak = -hzita * bzita(zita) * log(sigma)
     bk = gzita(zita)
   else
     write(stderr, *) 'UNKNOWN DYNAMICAL CORE'
@@ -633,11 +633,6 @@ program terrain
   elsewhere
     mask = 2.0_rkx
   end where
-  if ( .not. h2ohgt ) then
-    where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx )
-      htgrid = 0.0_rkx
-    end where
-  end if
   if (lakedpth) then
     where ( mask > 1.0 )
       dpth = 0.0_rkx
@@ -664,6 +659,12 @@ program terrain
   do ism = 1 , ismthlev
     call smth121(htgrid,jx,iy)
   end do
+
+  if ( .not. h2ohgt ) then
+    where ( lndout > 14.5_rkx .and. lndout < 15.5_rkx )
+      htgrid = 0.0_rkx
+    end where
+  end if
 
   if ( ibndry ) then
     do j = 1 , jx
@@ -724,9 +725,12 @@ program terrain
     elsewhere
       mask_s = 2.0_rkx
     end where
-    if ( .not. h2ohgt ) then
-      where ( lndout_s > 14.5_rkx .and. lndout_s < 15.5_rkx )
-        htgrid_s = 0.0_rkx
+    if (lakedpth) then
+      where ( mask_s > 1.0_rkx )
+        dpth_s = 0.0_rkx
+      end where
+      where ( mask_s < 1.0_rkx .and. dpth_s < 2.0_rkx )
+        dpth_s = 2.0_rkx
       end where
     end if
 
@@ -738,12 +742,9 @@ program terrain
       call smth121(htgrid_s,jxsg,iysg)
     end do
 
-    if (lakedpth) then
-      where ( mask_s > 1.0_rkx )
-        dpth_s = 0.0_rkx
-      end where
-      where ( mask_s < 1.0_rkx .and. dpth_s < 2.0_rkx )
-        dpth_s = 2.0_rkx
+    if ( .not. h2ohgt ) then
+      where ( lndout_s > 14.5_rkx .and. lndout_s < 15.5_rkx )
+        htgrid_s = 0.0_rkx
       end where
     end if
     if ( lakedpth ) then
