@@ -593,13 +593,8 @@ module mod_atm_interface
       call getmem3d(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       call getmem3d(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
-      if ( any(icup == 5) ) then
-        call getmem3d(atm%uten,jdi1ga,jdi2ga,ici1,ici2,1,kz,'atmstate:uten')
-        call getmem3d(atm%vten,jci1,jci2,idi1ga,idi2ga,1,kz,'atmstate:uten')
-      else
-        call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
-        call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:uten')
-      end if
+      call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
+      call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
       call getmem4d(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
