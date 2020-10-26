@@ -154,7 +154,7 @@
 ! Model Output control
 !
  &outparam
- prestring =   '',   ! string to prepend to output file names
+ prestr  =     '',   ! string to prepend to output file names
  outnwf  =     0.,   ! Day interval to open new files (0 = monthly)
  ifsave  = .true. ,  ! Create SAV files for restart
  savfrq  =     0.,   ! Frequency in days to create them (0 = monthly)

@@ -593,13 +593,8 @@ module mod_atm_interface
       call getmem3d(atm%qs,jce1,jce2,ice1,ice2,1,kz,'atmstate:qs')
       call getmem4d(atm%qx,jce1ga,jce2ga,ice1ga,ice2ga,1,kz,1,nqx,'atmstate:qx')
       call getmem3d(atm%tten,jci1,jci2,ici1,ici2,1,kz,'atmstate:tten')
-      if ( any(icup == 5) ) then
-        call getmem3d(atm%uten,jdi1ga,jdi2ga,ici1,ici2,1,kz,'atmstate:uten')
-        call getmem3d(atm%vten,jci1,jci2,idi1ga,idi2ga,1,kz,'atmstate:uten')
-      else
-        call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
-        call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:uten')
-      end if
+      call getmem3d(atm%uten,jdi1,jdi2,ici1,ici2,1,kz,'atmstate:uten')
+      call getmem3d(atm%vten,jci1,jci2,idi1,idi2,1,kz,'atmstate:vten')
       call getmem4d(atm%qxten,jci1,jci2,ici1,ici2,1,kz,1,nqx,'atmstate:qxten')
       if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1,jce2,ice1,ice2,1,kzp1,'atmstate:tke')
@@ -821,6 +816,8 @@ module mod_atm_interface
       call getmem2d(dom%lndtex,jde1,jde2,ide1,ide2,'storage:lndtex')
       call getmem2d(dom%xlat,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlat')
       call getmem2d(dom%xlon,jde1ga,jde2ga,ide1ga,ide2ga,'storage:xlon')
+      call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
+      call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
       call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
       if ( idynamic == 3 ) then
         call getmem2d(dom%msfx,jde1,jde2,ide1,ide2,'storage:msfx')
@@ -835,8 +832,6 @@ module mod_atm_interface
         call getmem2d(dom%coriou,jde1,jde2,ice1,ice2,'storage:fu')
         call getmem2d(dom%coriov,jce1,jce2,ide1,ide2,'storage:fv')
       else
-        call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
-        call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
         call getmem2d(dom%msfx,jd1,jd2,id1,id2,'storage:msfx')
         call getmem2d(dom%msfd,jd1,jd2,id1,id2,'storage:msfd')
       end if

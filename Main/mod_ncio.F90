@@ -149,6 +149,10 @@ module mod_ncio
       xlat(jde1:jde2,ide1:ide2) = rspace
       call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
       xlon(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+      dlat(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+      dlon(jde1:jde2,ide1:ide2) = rspace
       if ( idynamic == 3 ) then
         call read_var2d_static(idmin,'ulat',rspace,istart=istart,icount=icount)
         ulat(jde1:jde2,ide1:ide2) = rspace
@@ -165,10 +169,6 @@ module mod_ncio
         call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
         msfx(jde1:jde2,ide1:ide2) = rspace
       else
-        call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
-        dlat(jde1:jde2,ide1:ide2) = rspace
-        call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
-        dlon(jde1:jde2,ide1:ide2) = rspace
         call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
         msfx(jde1:jde2,ide1:ide2) = rspace
         call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
@@ -253,6 +253,10 @@ module mod_ncio
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
         if ( idynamic == 3 ) then
           call read_var2d_static(idmin,'ulat',rspace, &
                                  istart=istart,icount=icount)
@@ -276,12 +280,6 @@ module mod_ncio
                                  istart=istart,icount=icount)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         else
-          call read_var2d_static(idmin,'dlat',rspace, &
-                                 istart=istart,icount=icount)
-          call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
-          call read_var2d_static(idmin,'dlon',rspace, &
-                                 istart=istart,icount=icount)
-          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
           call read_var2d_static(idmin,'xmap',rspace, &
                                  istart=istart,icount=icount)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
@@ -344,6 +342,8 @@ module mod_ncio
         call bcast(sigma)
         call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
         call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
         if ( idynamic == 3 ) then
           call grid_distribute(rspace,ulat,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,ulon,jde1,jde2,ide1,ide2)
@@ -353,8 +353,6 @@ module mod_ncio
           call grid_distribute(rspace,msfv,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
         else
-          call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
-          call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
           call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
         end if
