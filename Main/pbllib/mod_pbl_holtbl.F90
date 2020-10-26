@@ -26,7 +26,7 @@ module mod_pbl_holtbl
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iqfrst , iqlst , dt , rdt , ichem , &
-    ichdrdepo , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter
+    ichdrdepo , zhnew_fac , ifaholtth10 , ifaholt , holtth10iter , dsigma
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -69,6 +69,7 @@ module mod_pbl_holtbl
   real(rkx) , parameter :: betam = 15.0_rkx
   real(rkx) , parameter :: betas = 5.0_rkx
   real(rkx) , parameter :: betah = 15.0_rkx
+  real(rkx) , parameter :: gpcf = egrav/d_1000 ! Grav and pressure conversion
   real(rkx) , parameter :: ccon = fak*sffrac*vonkar
   real(rkx) , parameter :: gvk = egrav*vonkar
   real(rkx) , parameter :: binm = betam*sffrac
@@ -149,10 +150,26 @@ module mod_pbl_holtbl
     ! so use only interior values of ubx3d and vbx3d to calculate
     ! tendencies.
     !
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            hydf(j,i,k) = gpcf/dsigma(k)
+          end do
+        end do
+      end do
+    end if
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          hydf(j,i,k) = egrav/(m2p%patmf(j,i,k+1)-m2p%patmf(j,i,k))
           thvx(j,i,k) = m2p%tpatm(j,i,k) * (d_one + ep1*m2p%qxatm(j,i,k,iqv))
         end do
       end do
@@ -315,13 +332,23 @@ module mod_pbl_holtbl
         end do
       end do
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          akzz2(j,i,k) = hydf(j,i,k)
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            akzz2(j,i,k) = hydf(j,i,k)
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            akzz2(j,i,k) = hydf(j,i,k)/m2p%psb(j,i)
+          end do
+        end do
+      end do
+    end if
 
     uvdrage(jci1:jci2,ici1:ici2) = m2p%uvdrag
 
@@ -651,13 +678,23 @@ module mod_pbl_holtbl
     !
     !   Common coefficients.
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          alphak(j,i,k) = hydf(j,i,k)
+    if ( idynamic == 3 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            alphak(j,i,k) = hydf(j,i,k)
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            alphak(j,i,k) = hydf(j,i,k)/m2p%psb(j,i)
+          end do
+        end do
+      end do
+    end if
     !
     !   temperature
     !   calculate coefficients at cross points for temperature
@@ -730,9 +767,8 @@ module mod_pbl_holtbl
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            sf = m2p%tatm(j,i,k)/m2p%tpatm(j,i,k)
             p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-                           (tpred1(j,i,k)-m2p%tpatm(j,i,k))*rdt*sf
+                           (tpred1(j,i,k)-m2p%tpatm(j,i,k))*rdt
           end do
         end do
       end do
@@ -928,47 +964,40 @@ module mod_pbl_holtbl
         ttnp(j,i,1) = d_zero
       end do
     end do
-    do k = 2 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          sf = m2p%tatm(j,i,k)/m2p%tpatm(j,i,k)
-          ttnp(j,i,k) = sf*cpd*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
-        end do
-      end do
-    end do
-    !
-    !   compute the tendencies:
-    !
     if ( idynamic == 3 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - hydf(j,i,kz)*ttnp(j,i,kz)*rcpd
-        end do
-      end do
-      do k = 1 , kzm1
+      do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-                  hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
+            ttnp(j,i,k) = cpd*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
           end do
         end do
       end do
     else
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - &
-                   m2p%psb(j,i)*hydf(j,i,kz)*ttnp(j,i,kz)*rcpd
-        end do
-      end do
-      do k = 1 , kzm1
+      do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
-                  m2p%psb(j,i)*hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
+            sf = m2p%tatm(j,i,k)/m2p%tpatm(j,i,k)
+            ttnp(j,i,k) = sf*cpd*rhohf(j,i,k-1)*kvh(j,i,k)*cgh(j,i,k)
           end do
         end do
       end do
     end if
+    !
+    !   compute the tendencies:
+    !
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        p2m%tten(j,i,kz) = p2m%tten(j,i,kz) - hydf(j,i,kz)*ttnp(j,i,kz)*rcpd
+      end do
+    end do
+    do k = 1 , kzm1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p2m%tten(j,i,k) = p2m%tten(j,i,k) + &
+               hydf(j,i,k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
+        end do
+      end do
+    end do
 
     if ( ichem == 1 ) then
       !
