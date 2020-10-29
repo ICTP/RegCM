@@ -286,8 +286,8 @@ module mod_micro_interface
                 ! The seasonal cycle of low stratiform clouds,
                 ! J. Climate, 6, 1587-1606, 1993
                 mc2mo%fcc(j,i,k) = max(mc2mo%fcc(j,i,k), &
-                      (atms%th700(j,i)-atms%th3d(j,i,k)) * &
-                           0.057_rkx - 0.5573_rkx)
+                      min(((atms%th700(j,i)-atms%th3d(j,i,k)) * &
+                           0.057_rkx) - 0.5573_rkx,1.0_rkx))
               end if
             end if
           end do
