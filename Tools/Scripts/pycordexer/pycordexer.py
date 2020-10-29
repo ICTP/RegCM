@@ -423,6 +423,7 @@ def main():
     regcm_version = args.regcm_version
     if regcm_version is None:
         regcm_version_id = None
+        regcm_nest_tag = None
     else:
         regcm_version_id = args.regcm_version_id
         regcm_nest_tag = args.regcm_nest_tag
