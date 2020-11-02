@@ -125,11 +125,14 @@ def get_first_and_last_date_str(dates, frequency):
             dates[0].month,
             dates[0].day
         )
-        dd2 = '{:04d}{:02d}{:02d}'.format(
-            dates[-2].year,
-            dates[-2].month,
-            dates[-2].day
-        )
+        try:
+            dd2 = '{:04d}{:02d}{:02d}'.format(
+                dates[-2].year,
+                dates[-2].month,
+                dates[-2].day
+            )
+        except:
+            dd2 = dd1
     else:
         dd1 = '{:04d}{:02d}{:02d}00'.format(
             dates[0].year,
@@ -296,6 +299,7 @@ class RegcmOutputFile(object):
             self._revision = regcm_version
             if regcm_version_id is not None:
                 self._rev_version = 'v' + str(regcm_version_id)
+                self._nest_tag = None
             elif regcm_nest_tag is not None:
                 self._rev_version = regcm_nest_tag
                 self._nest_tag = regcm_nest_tag
@@ -330,6 +334,7 @@ class RegcmOutputFile(object):
                     self._revision,
                     self._rev_version
                 )
+                self._nest_tag = None
             except Exception:
                 LOGGER.warning(
                     'Unable to understand the revision "%s"%s for the following '
