@@ -1477,18 +1477,18 @@ module mod_moloch
           end if
         end if
 
-        if ( ipptls == 1 ) then
-          if ( idiag > 0 ) then
-            ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
-            qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
-          end if
-          call condtq
-          if ( idiag > 0 ) then
-            tdiag%lsc = tdiag%lsc + mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
-            qdiag%lsc = qdiag%lsc + &
-                 mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
-          end if
-        end if
+        !if ( ipptls == 1 ) then
+        !  if ( idiag > 0 ) then
+        !    ten0 = mo_atm%tten(jci1:jci2,ici1:ici2,:)
+        !    qen0 = mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv)
+        !  end if
+        !  call condtq
+        !  if ( idiag > 0 ) then
+        !    tdiag%lsc = tdiag%lsc + mo_atm%tten(jci1:jci2,ici1:ici2,:) - ten0
+        !    qdiag%lsc = qdiag%lsc + &
+        !         mo_atm%qxten(jci1:jci2,ici1:ici2,:,iqv) - qen0
+        !  end if
+        !end if
         if ( ichem == 1 ) then
           call tractend2(rcmtimer%month,rcmtimer%day,declin)
         end if
