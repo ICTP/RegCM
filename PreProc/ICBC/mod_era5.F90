@@ -232,7 +232,7 @@ module mod_era5
     do k = 1 , klev
       sigmar(k) = (plevs(klev-k+1)-plevs(1))/(plevs(klev)-plevs(1))
     end do
-    pss = plevs(klev)/10.0_rkx ! mb -> cb
+    pss = (plevs(klev)-plevs(1))/10.0_rkx ! mb -> cb
     pst = plevs(1)/10.0_rkx ! mb -> cb
     !
     ! Find window to read

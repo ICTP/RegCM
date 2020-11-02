@@ -923,13 +923,13 @@ module mod_gn6hnc
       do k = 1 , npl
         sigmar(k) = (pplev(k)-pplev(npl))/(pplev(1)-pplev(npl))
       end do
-      pss = pplev(1)/1000.0_rkx ! Pa -> cb
+      pss = (pplev(1)-pplev(npl))/1000.0_rkx ! Pa -> cb
       pst = pplev(npl)/1000.0_rkx ! Pa -> cb
     else
       do k = 1 , npl
         sigmar(k) = (pplev(npl-k+1)-pplev(1))/(pplev(npl)-pplev(1))
       end do
-      pss = pplev(npl)/10.0_rkx ! mb -> cb
+      pss = (pplev(npl)-pplev(1))/10.0_rkx ! mb -> cb
       pst = pplev(1)/10.0_rkx ! mb -> cb
     end if
     if ( idynamic == 3 ) then

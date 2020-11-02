@@ -136,7 +136,7 @@ module mod_ncep
     do k = 1 , klev
       sigmar(k) = (plevs(k)-plevs(klev))/(plevs(1)-plevs(klev))
     end do
-    pss = plevs(1) / d_10 ! centibars
+    pss = (plevs(1)-plevs(klev)) / d_10 ! centibars
     pst = plevs(klev) / d_10 ! centibars
     !
     ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
