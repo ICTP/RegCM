@@ -197,14 +197,14 @@ module mod_che_ncio
       end if
     end subroutine read_texture
 
-   subroutine read_dust_param(erodfc)
+   subroutine read_dust_param(erodfc, aez0)
 !read dust emission relevant parameters
 !for now : erod_dsfc = source function / erodibility mask 
 !e.g. see  Zender et al., Laurent et al.
 !place holder for other relevant geographical data afecting dust ( e.g. non erodibe zo)
       implicit none
 
-      real(rkx) , pointer , dimension(:,:) , intent(inout) :: erodfc
+      real(rkx) , pointer , dimension(:,:) , intent(inout) :: erodfc, aez0
       integer(ik4) :: idmin
       integer(ik4) , dimension(2) :: istart , icount
       character(len=256) :: dname
@@ -237,13 +237,18 @@ module mod_che_ncio
             istart=istart,icount=icount)
           rspace = max(rspace,d_zero)
           call grid_distribute(rspace,erodfc,jci1,jci2,ici1,ici2)
+
+          call read_var2d_static(idmin,'z0',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          call grid_distribute(rspace,aez0,jci1,jci2,ici1,ici2)
           call closefile(idmin)
           deallocate(rspace)
         else
           call grid_distribute(rspace,erodfc,jci1,jci2,ici1,ici2)
+          call grid_distribute(rspace,aez0,jci1,jci2,ici1,ici2)
         end if
       end if
-    print*,'FAB EROD',maxval(erodfc),minval(erodfc)
     end subroutine read_dust_param
 
     subroutine read_bionem(nfert,nmanure,soilph)

@@ -239,12 +239,19 @@ function emissions_interpolate
     set_filelist
 
     # create weights from first specie file
-    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc -setgrid,${file_list[0]} \
-	${file_list[0]} remapweights.nc
+    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc -setgrid,soil_erodibility_factor.nc \
+	soil_erodibility_factor.nc remapweights.nc
+    #$CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc ${file_list[0]} $REGCM_dir/${DOMNAME}_DUST.nc
+    $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc soil_erodibility_factor.nc $REGCM_dir/${DOMNAME}_DUST_TMP1.nc
 
-    # in nterpolation
-    $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc ${file_list[0]} $REGCM_dir/${DOMNAME}_DUSTPARAM.nc
- 
+
+    $CDO gencon,$REGCM_dir/${DOMNAME}_grid.nc -setgrid,aeolian_roughness_lenght.nc \
+        aeolian_roughness_lenght.nc remapweights.nc
+
+    $CDO -O $CDOOPTIONS remap,$REGCM_dir/${DOMNAME}_grid.nc,remapweights.nc aeolian_roughness_lenght.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc
+
+    # merge averything
+    $CDO $CDOOPTIONS  merge $REGCM_dir/${DOMNAME}_DUST_TMP1.nc $REGCM_dir/${DOMNAME}_DUST_TMP2.nc $REGCM_dir/${DOMNAME}_DUST.nc
 
 }
 ######################################################################

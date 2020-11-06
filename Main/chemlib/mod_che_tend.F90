@@ -184,6 +184,9 @@
           ! fraction of vegetation
 #ifdef CLM45
           vegfrac(j,i) = d_one - csfracb2d(j,i)
+          ! csfracb2d points on clm dust emitting ground fraction
+          ! it already accouts for snow and lake mask , and is calculated
+          ! as 1 - LAI/0.3 ( cf clm doc ). 
 #else
           vegfrac(j,i) = cvegfrac(j,i)
           snowfrac(j,i) = csfracs2d(j,i)
@@ -314,8 +317,11 @@
       !
       ! Compute aerodynamic resistance
       !
+      ! FAB TEST
+
       call aerodyresis(zeff,wid10,temp10,tsurf, &
                        rh10,srad,ivegcov,ustar,xra)
+
       !
       ! Before emission and deposition routine set the surfecae netflux
       ! used by BL schems to zero
@@ -326,7 +332,7 @@
       !
       if ( idust(1) > 0 .and. ichsursrc == 1 ) then
         if ( ichdustemd /= 3 ) then
-          call sfflux(ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
+                call sfflux(ivegcov,vegfrac,snowfrac,ustar,zeff,soilw,wid10, &
                       crho2d,dustbsiz)
         else
           ! OPTION for using CLM45 dust emission scheme
